@@ -153,7 +153,7 @@ public class PipeconfLoader {
         }
         // Add IntProgrammable behaviour for INT-enabled profiles.
         if (profile.endsWith(INT_PROFILE_SUFFIX) || profile.endsWith(FULL_PROFILE_SUFFIX)) {
-            pipeconfBuilder.addBehaviour(IntProgrammable.class, IntProgrammableImpl.class);
+            pipeconfBuilder.addBehaviour(IntProgrammable.class, FabricIntProgrammable.class);
         }
         return pipeconfBuilder.build();
     }

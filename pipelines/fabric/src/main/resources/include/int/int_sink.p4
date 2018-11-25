@@ -22,11 +22,13 @@ control process_int_sink (
     inout parsed_headers_t hdr,
     inout fabric_metadata_t fabric_metadata) {
 
+    @hidden
     action restore_header () {
-        hdr.udp.dst_port = hdr.intl4_tail.dest_port;
+        hdr.udp.dport = hdr.intl4_tail.dest_port;
         hdr.ipv4.dscp = hdr.intl4_tail.dscp;
     }
 
+    @hidden
     action int_sink() {
         // restore length fields of IPv4 header and UDP header
         bit<16> len_bytes = (bit<16>) (hdr.intl4_shim.len_words << 5w2);

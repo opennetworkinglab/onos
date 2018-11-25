@@ -64,6 +64,10 @@ public interface PiPipelineInterpreter extends HandlerBehaviour {
      * @param flowRuleTableId a numeric table ID
      * @return PI table ID
      */
+    // FIXME: remove this method. The only place where this mapping seems useful
+    // is when using the default single table pipeliner which produces flow
+    // rules for table 0. Instead, PI pipeliners should provide a mapping to a
+    // specific PiTableId even when mapping to a single table.
     Optional<PiTableId> mapFlowRuleTableId(int flowRuleTableId);
 
     /**
@@ -75,6 +79,7 @@ public interface PiPipelineInterpreter extends HandlerBehaviour {
      * @param piTableId PI table ID
      * @return numeric table ID
      */
+    // FIXME: as above
     Optional<Integer> mapPiTableId(PiTableId piTableId);
 
     /**

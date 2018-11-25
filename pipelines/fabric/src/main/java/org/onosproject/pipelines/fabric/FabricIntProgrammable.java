@@ -28,7 +28,6 @@ import org.onosproject.inbandtelemetry.api.IntProgrammable;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.config.NetworkConfigService;
-import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -46,22 +45,19 @@ import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionParam;
 import org.onosproject.provider.general.device.api.GeneralProviderDeviceConfig;
-import org.slf4j.Logger;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Implementation of INT programmable behavior for fabric.p4. Currently supports
  * only SOURCE and TRANSIT functionalities.
  */
-public class IntProgrammableImpl extends AbstractHandlerBehaviour implements IntProgrammable {
-
-    private final Logger log = getLogger(getClass());
+public class FabricIntProgrammable extends AbstractFabricHandlerBehavior
+        implements IntProgrammable {
 
     // TODO: change this value to the value of diameter of a network.
     private static final int DEFAULT_PRIORITY = 10000;
@@ -145,7 +141,7 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
                 .build();
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchPi(PiCriterion.builder().matchExact(
-                        FabricConstants.HDR_INT_HEADER_IS_VALID, (byte) 0x01)
+                        FabricConstants.HDR_INT_IS_VALID, (byte) 0x01)
                                  .build())
                 .build();
 
@@ -171,7 +167,7 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
         }
 
         PiCriterion ingressCriterion = PiCriterion.builder()
-                .matchExact(FabricConstants.STANDARD_METADATA_INGRESS_PORT, port.toLong())
+                .matchExact(FabricConstants.HDR_IG_PORT, port.toLong())
                 .build();
         TrafficSelector srcSelector = DefaultTrafficSelector.builder()
                 .matchPi(ingressCriterion)
@@ -203,7 +199,7 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
         }
 
         PiCriterion egressCriterion = PiCriterion.builder()
-                .matchExact(FabricConstants.STANDARD_METADATA_EGRESS_PORT, port.toLong())
+                .matchExact(FabricConstants.HDR_EG_PORT, port.toLong())
                 .build();
         TrafficSelector sinkSelector = DefaultTrafficSelector.builder()
                 .matchPi(egressCriterion)
@@ -316,28 +312,28 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
                 case TCP_SRC:
                     sBuilder.matchPi(
                             PiCriterion.builder().matchTernary(
-                                    FabricConstants.FABRIC_METADATA_L4_SRC_PORT,
+                                    FabricConstants.HDR_L4_SPORT,
                                     ((TcpPortCriterion) criterion).tcpPort().toInt(), PORTMASK)
                                     .build());
                     break;
                 case UDP_SRC:
                     sBuilder.matchPi(
                             PiCriterion.builder().matchTernary(
-                                    FabricConstants.FABRIC_METADATA_L4_SRC_PORT,
+                                    FabricConstants.HDR_L4_SPORT,
                                     ((UdpPortCriterion) criterion).udpPort().toInt(), PORTMASK)
                                     .build());
                     break;
                 case TCP_DST:
                     sBuilder.matchPi(
                             PiCriterion.builder().matchTernary(
-                                    FabricConstants.FABRIC_METADATA_L4_DST_PORT,
+                                    FabricConstants.HDR_L4_DPORT,
                                     ((TcpPortCriterion) criterion).tcpPort().toInt(), PORTMASK)
                                     .build());
                     break;
                 case UDP_DST:
                     sBuilder.matchPi(
                             PiCriterion.builder().matchTernary(
-                                    FabricConstants.FABRIC_METADATA_L4_DST_PORT,
+                                    FabricConstants.HDR_L4_DPORT,
                                     ((UdpPortCriterion) criterion).udpPort().toInt(), PORTMASK)
                                     .build());
                     break;

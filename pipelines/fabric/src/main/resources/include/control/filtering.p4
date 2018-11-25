@@ -18,80 +18,63 @@
 #include <v1model.p4>
 
 #include "../header.p4"
-#include "../action.p4"
 
-control Filtering (
-    inout parsed_headers_t hdr,
-    inout fabric_metadata_t fabric_metadata,
-    inout standard_metadata_t standard_metadata) {
+control Filtering (inout parsed_headers_t hdr,
+                   inout fabric_metadata_t fabric_metadata,
+                   inout standard_metadata_t standard_metadata) {
 
     /*
      * Ingress Port VLAN Table.
-     * Process packets for different interfaces (Port number + VLAN).
-     * For example, an untagged packet will be tagged when it entered to an
-     * interface with untagged VLAN configuration.
+     *
+     * Filter packets based on ingress port and VLAN tag.
      */
     direct_counter(CounterType.packets_and_bytes) ingress_port_vlan_counter;
 
-    action drop() {
-        mark_to_drop();
+    action deny() {
+        // Packet from unconfigured port. Skip forwarding and next block.
+        // Do ACL table in case we want to punt to cpu.
+        fabric_metadata.skip_forwarding = _TRUE;
+        fabric_metadata.skip_next = _TRUE;
         ingress_port_vlan_counter.count();
     }
 
-    action set_vlan(vlan_id_t new_vlan_id) {
-        hdr.vlan_tag.vlan_id = new_vlan_id;
+    action permit() {
+        // Allow packet as is.
         ingress_port_vlan_counter.count();
     }
 
-    action push_internal_vlan(vlan_id_t new_vlan_id) {
-        // Add internal VLAN header, will be removed before packet emission.
-        // cfi and pri values are dummy.
-        hdr.vlan_tag.setValid();
-        hdr.vlan_tag.cfi = 0;
-        hdr.vlan_tag.pri = 0;
-        hdr.vlan_tag.ether_type = hdr.ethernet.ether_type;
-        hdr.ethernet.ether_type = ETHERTYPE_VLAN;
-        hdr.vlan_tag.vlan_id = new_vlan_id;
-
-        // pop internal vlan before packet in
-        fabric_metadata.pop_vlan_when_packet_in = _TRUE;
-        ingress_port_vlan_counter.count();
-    }
-
-    action nop_ingress_port_vlan() {
-        nop();
+    action permit_with_internal_vlan(vlan_id_t vlan_id) {
+        fabric_metadata.vlan_id = vlan_id;
         ingress_port_vlan_counter.count();
     }
 
     table ingress_port_vlan {
         key = {
-            standard_metadata.ingress_port: exact;
-            hdr.vlan_tag.isValid(): exact @name("hdr.vlan_tag.is_valid");
-            hdr.vlan_tag.vlan_id: ternary;
+            standard_metadata.ingress_port: exact @name("ig_port");
+            hdr.vlan_tag.isValid(): exact @name("vlan_is_valid");
+            hdr.vlan_tag.vlan_id: ternary @name("vlan_id");
         }
-
         actions = {
-            push_internal_vlan;
-            set_vlan;
-            drop;
-            nop_ingress_port_vlan();
+            deny();
+            permit();
+            permit_with_internal_vlan();
         }
-
-        const default_action = push_internal_vlan(DEFAULT_VLAN_ID);
+        const default_action = deny();
         counters = ingress_port_vlan_counter;
     }
 
     /*
      * Forwarding Classifier.
-     * Setup Forwarding Type metadata for Forwarding control block.
+     *
+     * Set which type of forwarding behavior to execute in the next control block.
      * There are six types of tables in Forwarding control block:
      * - Bridging: default forwarding type
      * - MPLS: destination mac address is the router mac and ethernet type is
-     *         MPLS(0x8847)
+     *   MPLS(0x8847)
      * - IP Multicast: destination mac address is multicast address and ethernet
-     *                 type is IP(0x0800 or 0x86dd)
+     *   type is IP(0x0800 or 0x86dd)
      * - IP Unicast: destination mac address is router mac and ethernet type is
-     *               IP(0x0800 or 0x86dd)
+     *   IP(0x0800 or 0x86dd)
      */
     direct_counter(CounterType.packets_and_bytes) fwd_classifier_counter;
 
@@ -102,26 +85,35 @@ control Filtering (
 
     table fwd_classifier {
         key = {
-            standard_metadata.ingress_port: exact;
-            hdr.ethernet.dst_addr: ternary;
-            hdr.vlan_tag.ether_type: exact;
+            standard_metadata.ingress_port: exact @name("ig_port");
+            hdr.ethernet.dst_addr: ternary @name("eth_dst");
+            fabric_metadata.eth_type: exact @name("eth_type");
         }
-
         actions = {
             set_forwarding_type;
         }
-
         const default_action = set_forwarding_type(FWD_BRIDGING);
         counters = fwd_classifier_counter;
     }
 
     apply {
-        if (ingress_port_vlan.apply().hit) {
-            fwd_classifier.apply();
-        } else {
-            // Packet from unconfigured port. Skip forwarding processing,
-            // except for ACL table in case we want to punt to cpu.
-            fabric_metadata.fwd_type = FWD_UNKNOWN;
+        // Initialize lookup metadata. Packets without a VLAN header will be
+        // treated as belonging to a default VLAN ID (see parser).
+        if (hdr.vlan_tag.isValid()) {
+            fabric_metadata.eth_type = hdr.vlan_tag.eth_type;
+            fabric_metadata.vlan_id = hdr.vlan_tag.vlan_id;
+            fabric_metadata.vlan_pri = hdr.vlan_tag.pri;
+            fabric_metadata.vlan_cfi = hdr.vlan_tag.cfi;
         }
+        if (!hdr.mpls.isValid()) {
+            // Packets with a valid MPLS header will have
+            // fabric_metadata.mpls_ttl set to the packet's MPLS ttl value (see
+            // parser). In any case, if we are forwarding via MPLS, ttl will be
+            // decremented in egress.
+            fabric_metadata.mpls_ttl = DEFAULT_MPLS_TTL + 1;
+        }
+
+        ingress_port_vlan.apply();
+        fwd_classifier.apply();
     }
 }

@@ -36,14 +36,14 @@ header packet_out_header_t {
 header ethernet_t {
     mac_addr_t dst_addr;
     mac_addr_t src_addr;
-    bit<16> ether_type;
+    bit<16> eth_type;
 }
 
 header vlan_tag_t {
     bit<3> pri;
     bit<1> cfi;
     vlan_id_t vlan_id;
-    bit<16> ether_type;
+    bit<16> eth_type;
 }
 
 header mpls_t {
@@ -80,17 +80,9 @@ header ipv6_t {
     bit<128> dst_addr;
 }
 
-header arp_t {
-    bit<16> hw_type;
-    bit<16> proto_type;
-    bit<8> hw_addr_len;
-    bit<8> proto_addr_len;
-    bit<16> opcode;
-}
-
 header tcp_t {
-    bit<16> src_port;
-    bit<16> dst_port;
+    bit<16> sport;
+    bit<16> dport;
     bit<32> seq_no;
     bit<32> ack_no;
     bit<4>  data_offset;
@@ -103,8 +95,8 @@ header tcp_t {
 }
 
 header udp_t {
-    bit<16> src_port;
-    bit<16> dst_port;
+    bit<16> sport;
+    bit<16> dport;
     bit<16> len;
     bit<16> checksum;
 }
@@ -139,8 +131,8 @@ struct spgw_meta_t {
     bit<32>           s1u_enb_addr;
     bit<32>           s1u_sgw_addr;
 #ifdef WITH_SPGW_PCC_GATING
-    bit<16>           l4_src_port;
-    bit<16>           l4_dst_port;
+    bit<16>           l4_sport;
+    bit<16>           l4_dport;
     pcc_gate_status_t pcc_gate_status;
     sdf_rule_id_t     sdf_rule_id;
     pcc_rule_id_t     pcc_rule_id;
@@ -150,17 +142,25 @@ struct spgw_meta_t {
 
 //Custom metadata definition
 struct fabric_metadata_t {
-    fwd_type_t fwd_type;
-    next_id_t next_id;
-    _BOOL pop_vlan_when_packet_in;
-    _BOOL is_multicast;
-    _BOOL is_controller_packet_out;
-    _BOOL clone_to_cpu;
-    bit<8> ip_proto;
-    bit<16> l4_src_port;
-    bit<16> l4_dst_port;
+    bit<16>       eth_type;
+    bit<16>       ip_eth_type;
+    vlan_id_t     vlan_id;
+    bit<3>        vlan_pri;
+    bit<1>        vlan_cfi;
+    mpls_label_t  mpls_label;
+    bit<8>        mpls_ttl;
+    _BOOL         skip_forwarding;
+    _BOOL         skip_next;
+    fwd_type_t    fwd_type;
+    next_id_t     next_id;
+    _BOOL         is_multicast;
+    _BOOL         is_controller_packet_out;
+    _BOOL         clone_to_cpu;
+    bit<8>        ip_proto;
+    bit<16>       l4_sport;
+    bit<16>       l4_dport;
 #ifdef WITH_SPGW
-    spgw_meta_t spgw;
+    spgw_meta_t   spgw;
 #endif // WITH_SPGW
 #ifdef WITH_INT
     int_metadata_t int_meta;
@@ -170,6 +170,9 @@ struct fabric_metadata_t {
 struct parsed_headers_t {
     ethernet_t ethernet;
     vlan_tag_t vlan_tag;
+#ifdef WITH_XCONNECT
+    vlan_tag_t inner_vlan_tag;
+#endif // WITH_XCONNECT
     mpls_t mpls;
 #ifdef WITH_SPGW
     ipv4_t gtpu_ipv4;
@@ -182,7 +185,6 @@ struct parsed_headers_t {
 #ifdef WITH_IPV6
     ipv6_t ipv6;
 #endif // WITH_IPV6
-    arp_t arp;
     tcp_t tcp;
     udp_t udp;
     icmp_t icmp;

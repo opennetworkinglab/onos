@@ -19,6 +19,7 @@
 
 #include "include/control/filtering.p4"
 #include "include/control/forwarding.p4"
+#include "include/control/acl.p4"
 #include "include/control/next.p4"
 #include "include/control/packetio.p4"
 #include "include/header.p4"
@@ -37,13 +38,14 @@
 #include "include/int/int_main.p4"
 #endif // WITH_INT
 
-control FabricIngress (
-inout parsed_headers_t hdr,
-inout fabric_metadata_t fabric_metadata,
-inout standard_metadata_t standard_metadata) {
+control FabricIngress (inout parsed_headers_t hdr,
+                       inout fabric_metadata_t fabric_metadata,
+                       inout standard_metadata_t standard_metadata) {
+
     PacketIoIngress() pkt_io_ingress;
     Filtering() filtering;
     Forwarding() forwarding;
+    Acl() acl;
     Next() next;
 #ifdef WITH_PORT_COUNTER
     PortCountersControl() port_counters_control;
@@ -56,30 +58,33 @@ inout standard_metadata_t standard_metadata) {
                               hdr.ipv4, hdr.udp, hdr.inner_ipv4, hdr.inner_udp);
 #endif // WITH_SPGW
         pkt_io_ingress.apply(hdr, fabric_metadata, standard_metadata);
-#ifdef WITH_SPGW
-#ifdef WITH_SPGW_PCC_GATING
-        fabric_metadata.spgw.l4_src_port = fabric_metadata.l4_src_port;
-        fabric_metadata.spgw.l4_dst_port = fabric_metadata.l4_dst_port;
-#endif // WITH_SPGW_PCC_GATING
-        spgw_ingress.apply(hdr.gtpu_ipv4, hdr.gtpu_udp, hdr.gtpu,
-                           hdr.ipv4, hdr.udp, fabric_metadata.spgw);
-#endif // WITH_SPGW
         filtering.apply(hdr, fabric_metadata, standard_metadata);
-        forwarding.apply(hdr, fabric_metadata, standard_metadata);
-        next.apply(hdr, fabric_metadata, standard_metadata);
+#ifdef WITH_SPGW
+        spgw_ingress.apply(hdr.gtpu_ipv4, hdr.gtpu_udp, hdr.gtpu,
+                           hdr.ipv4, hdr.udp, fabric_metadata);
+#endif // WITH_SPGW
+        if (fabric_metadata.skip_forwarding == _FALSE) {
+            forwarding.apply(hdr, fabric_metadata, standard_metadata);
+        }
+        acl.apply(hdr, fabric_metadata, standard_metadata);
+        if (fabric_metadata.skip_next == _FALSE) {
+            next.apply(hdr, fabric_metadata, standard_metadata);
 #ifdef WITH_PORT_COUNTER
-        // FIXME: we're not counting pkts punted to cpu or forwarded via multicast groups.
-        port_counters_control.apply(hdr, fabric_metadata, standard_metadata);
+            // FIXME: we're not counting pkts punted to cpu or forwarded via
+            // multicast groups. Remove when gNMI support will be there.
+            port_counters_control.apply(hdr, fabric_metadata, standard_metadata);
 #endif // WITH_PORT_COUNTER
 #if defined(WITH_INT_SOURCE) || defined(WITH_INT_SINK)
-        process_set_source_sink.apply(hdr, fabric_metadata, standard_metadata);
+            process_set_source_sink.apply(hdr, fabric_metadata, standard_metadata);
 #endif
+        }
     }
 }
 
 control FabricEgress (inout parsed_headers_t hdr,
                       inout fabric_metadata_t fabric_metadata,
                       inout standard_metadata_t standard_metadata) {
+
     PacketIoEgress() pkt_io_egress;
     EgressNextControl() egress_next;
 
@@ -89,7 +94,7 @@ control FabricEgress (inout parsed_headers_t hdr,
         egress_next.apply(hdr, fabric_metadata, standard_metadata);
 #ifdef WITH_SPGW
         spgw_egress.apply(hdr.ipv4, hdr.gtpu_ipv4, hdr.gtpu_udp, hdr.gtpu,
-                          fabric_metadata.spgw, standard_metadata);
+                          fabric_metadata, standard_metadata);
 #endif // WITH_SPGW
 #ifdef WITH_INT
         process_int_main.apply(hdr, fabric_metadata, standard_metadata);

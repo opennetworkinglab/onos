@@ -75,9 +75,9 @@ public final class PiInstruction implements Instruction {
     public String toString() {
         switch (tableAction.type()) {
             case ACTION_GROUP_ID:
-                return "GROUP:" + ((PiActionGroupId) tableAction).id().toString();
+                return "GROUP:0x" + Integer.toHexString(((PiActionGroupId) tableAction).id());
             case GROUP_MEMBER_ID:
-                return "GROUP_MEMBER:" + ((PiActionGroupMemberId) tableAction).id().toString();
+                return "GROUP_MEMBER:0x" + Integer.toHexString(((PiActionGroupMemberId) tableAction).id());
             default:
                 return tableAction.toString();
         }

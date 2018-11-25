@@ -13,7 +13,8 @@ fabric-spgw-int:
 	@./bmv2-compile.sh "fabric-spgw-int" "-DWITH_SPGW -DWITH_INT_SOURCE -DWITH_INT_TRANSIT"
 
 fabric-full:
-	@./bmv2-compile.sh "fabric-full" "-DWITH_MULTICAST -DWITH_IPV6 -DWITH_SPGW \
+	@./bmv2-compile.sh "fabric-full" " -DWITH_MULTICAST -DWITH_IPV6 \
+		-DWITH_SIMPLE_NEXT -DWITH_HASHED_NEXT -DWITH_SPGW \
 		-DWITH_INT_SOURCE -DWITH_INT_TRANSIT -DWITH_INT_SINK"
 
 constants:

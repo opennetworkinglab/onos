@@ -23,6 +23,14 @@
 #define WITH_INT
 #endif
 
+#ifndef WITHOUT_XCONNECT
+#define WITH_XCONNECT
+#endif
+
+#if ! defined(WITH_SIMPLE_NEXT)
+#define WITH_HASHED_NEXT
+#endif
+
 #ifndef _BOOL
 #define _BOOL bool
 #endif
@@ -78,7 +86,7 @@ typedef bit<32> next_id_t;
 typedef bit<20> mpls_label_t;
 typedef bit<9>  port_num_t;
 typedef bit<48> mac_addr_t;
-typedef bit<16> group_id_t;
+typedef bit<16> mcast_group_id_t;
 typedef bit<12> vlan_id_t;
 typedef bit<32> ipv4_addr_t;
 typedef bit<16> l4_port_t;
@@ -153,5 +161,9 @@ const bit<8> LOCAL_REPORT_HEADER_LEN = 16;
 const bit<8> ETH_HEADER_LEN = 14;
 const bit<8> IPV4_MIN_HEAD_LEN = 20;
 const bit<8> UDP_HEADER_LEN = 8;
+
+action nop() {
+    NoAction();
+}
 
 #endif

@@ -16,10 +16,7 @@
 
 package org.onosproject.pipelines.fabric.pipeliner;
 
-import org.junit.Before;
 import org.junit.Test;
-import org.onlab.junit.TestUtils;
-import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.MplsLabel;
@@ -28,15 +25,11 @@ import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.behaviour.PipelinerContext;
-import org.onosproject.net.driver.Driver;
-import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.criteria.PiCriterion;
-import org.onosproject.net.group.GroupService;
+import org.onosproject.pipelines.fabric.FabricCapabilities;
 import org.onosproject.pipelines.fabric.FabricConstants;
-import org.onosproject.pipelines.fabric.FabricInterpreter;
 
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
@@ -60,36 +53,23 @@ public class FabricPipelinerTest {
     static final TrafficSelector VLAN_META = DefaultTrafficSelector.builder()
             .matchVlanId(VLAN_100)
             .build();
-
     static final PiCriterion VLAN_VALID = PiCriterion.builder()
-            .matchExact(FabricConstants.HDR_VLAN_TAG_IS_VALID, new byte[]{1})
+            .matchExact(FabricConstants.HDR_VLAN_IS_VALID, new byte[]{1})
             .build();
     static final PiCriterion VLAN_INVALID = PiCriterion.builder()
-            .matchExact(FabricConstants.HDR_VLAN_TAG_IS_VALID, new byte[]{0})
+            .matchExact(FabricConstants.HDR_VLAN_IS_VALID, new byte[]{0})
             .build();
 
-    FabricPipeliner pipeliner;
-    FabricInterpreter interpreter;
+    FabricCapabilities capabilitiesHashed;
+    FabricCapabilities capabilitiesSimple;
 
-    @Before
-    public void setup() {
-        pipeliner = new FabricPipeliner();
-
-        GroupService mockGroupService = createNiceMock(GroupService.class);
-        ServiceDirectory serviceDirectory = createNiceMock(ServiceDirectory.class);
-        PipelinerContext pipelinerContext = createNiceMock(PipelinerContext.class);
-        DriverHandler driverHandler = createNiceMock(DriverHandler.class);
-        Driver mockDriver = createNiceMock(Driver.class);
-        expect(mockDriver.getProperty("supportTableCounters")).andReturn("true").anyTimes();
-        expect(mockDriver.getProperty("noHashedTable")).andReturn("false").anyTimes();
-        expect(driverHandler.driver()).andReturn(mockDriver).anyTimes();
-        expect(pipelinerContext.directory()).andReturn(serviceDirectory).anyTimes();
-        expect(serviceDirectory.get(GroupService.class)).andReturn(mockGroupService).anyTimes();
-        replay(serviceDirectory, pipelinerContext, driverHandler, mockDriver);
-        TestUtils.setField(pipeliner, "handler", driverHandler);
-
-        pipeliner.init(DEVICE_ID, pipelinerContext);
-        interpreter = new FabricInterpreter();
+    void doSetup() {
+        this.capabilitiesHashed = createNiceMock(FabricCapabilities.class);
+        this.capabilitiesSimple = createNiceMock(FabricCapabilities.class);
+        expect(capabilitiesHashed.hasHashedTable()).andReturn(true).anyTimes();
+        expect(capabilitiesSimple.hasHashedTable()).andReturn(false).anyTimes();
+        replay(capabilitiesHashed);
+        replay(capabilitiesSimple);
     }
 
     @Test

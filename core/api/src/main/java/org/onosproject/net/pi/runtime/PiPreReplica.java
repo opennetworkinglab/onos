@@ -84,6 +84,6 @@ public class PiPreReplica {
 
     @Override
     public String toString() {
-        return format("%s:%d", egressPort, instanceId);
+        return format("%s:0x%s", egressPort, Integer.toHexString(instanceId));
     }
 }
