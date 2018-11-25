@@ -60,7 +60,7 @@ import java.util.concurrent.ExecutorService;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.openstacknetworking.api.Constants.ACL_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.ACL_EGRESS_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.ARP_BROADCAST_MODE;
 import static org.onosproject.openstacknetworking.api.Constants.ARP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.DHCP_TABLE;
@@ -503,7 +503,7 @@ public final class OpenstackSwitchingHandler {
         if (ethType == Ethernet.TYPE_ARP) {
             tBuilder.transition(ARP_TABLE);
         } else if (ethType == Ethernet.TYPE_IPV4) {
-            tBuilder.transition(ACL_TABLE);
+            tBuilder.transition(ACL_EGRESS_TABLE);
         }
 
         osFlowRuleService.setRule(
@@ -547,7 +547,7 @@ public final class OpenstackSwitchingHandler {
         if (ethType == Ethernet.TYPE_ARP) {
             tBuilder.transition(ARP_TABLE);
         } else if (ethType == Ethernet.TYPE_IPV4) {
-            tBuilder.transition(ACL_TABLE);
+            tBuilder.transition(ACL_EGRESS_TABLE);
         }
 
         osFlowRuleService.setRule(
@@ -599,7 +599,7 @@ public final class OpenstackSwitchingHandler {
                         selector,
                         treatment,
                         PRIORITY_ADMIN_RULE,
-                        ACL_TABLE,
+                        ACL_EGRESS_TABLE,
                         install)
                 );
     }
@@ -621,7 +621,7 @@ public final class OpenstackSwitchingHandler {
                         selector,
                         treatment,
                         PRIORITY_ADMIN_RULE,
-                        ACL_TABLE,
+                        ACL_EGRESS_TABLE,
                         install)
                 );
     }
