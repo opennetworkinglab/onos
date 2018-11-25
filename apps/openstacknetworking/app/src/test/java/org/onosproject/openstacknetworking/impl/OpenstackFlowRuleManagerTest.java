@@ -44,7 +44,8 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
-import static org.onosproject.openstacknetworking.api.Constants.ACL_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.ACL_EGRESS_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.ACL_INGRESS_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.ARP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.DHCP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.FLAT_TABLE;
@@ -195,8 +196,8 @@ public class OpenstackFlowRuleManagerTest {
         fromToTableMap.put(VTAP_INBOUND_TABLE, DHCP_TABLE);
         fromToTableMap.put(DHCP_TABLE, VTAG_TABLE);
         fromToTableMap.put(VTAG_TABLE, ARP_TABLE);
-        fromToTableMap.put(ARP_TABLE, ACL_TABLE);
-        fromToTableMap.put(ACL_TABLE, JUMP_TABLE);
+        fromToTableMap.put(ARP_TABLE, ACL_INGRESS_TABLE);
+        fromToTableMap.put(ACL_EGRESS_TABLE, JUMP_TABLE);
         fromToTableMap.put(STAT_OUTBOUND_TABLE, VTAP_OUTBOUND_TABLE);
         fromToTableMap.put(VTAP_OUTBOUND_TABLE, FORWARDING_TABLE);
         fromToTableMap.put(STAT_FLAT_OUTBOUND_TABLE, VTAP_FLAT_OUTBOUND_TABLE);

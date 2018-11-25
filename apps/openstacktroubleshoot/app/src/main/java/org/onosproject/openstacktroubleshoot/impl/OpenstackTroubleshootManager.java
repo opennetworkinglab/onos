@@ -85,7 +85,7 @@ import static org.onosproject.net.PortNumber.TABLE;
 import static org.onosproject.net.flow.FlowEntry.FlowEntryState.ADDED;
 import static org.onosproject.net.flow.criteria.Criterion.Type.IPV4_DST;
 import static org.onosproject.net.flow.criteria.Criterion.Type.IPV4_SRC;
-import static org.onosproject.openstacknetworking.api.Constants.ACL_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.ACL_EGRESS_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_EXTERNAL_ROUTER_MAC;
 import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_MAC;
 import static org.onosproject.openstacknetworking.api.Constants.FORWARDING_TABLE;
@@ -355,7 +355,7 @@ public class OpenstackTroubleshootManager implements OpenstackTroubleshootServic
 
         TrafficTreatment.Builder tb = DefaultTrafficTreatment.builder()
                 .setTunnelId(getSegId(osNetworkService, port))
-                .transition(ACL_TABLE);
+                .transition(ACL_EGRESS_TABLE);
 
         osFlowRuleService.setRule(
                 appId,

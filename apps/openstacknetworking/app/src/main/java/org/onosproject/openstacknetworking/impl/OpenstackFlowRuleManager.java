@@ -209,10 +209,10 @@ public class OpenstackFlowRuleManager implements OpenstackFlowRuleService {
         connectTables(deviceId, Constants.VTAG_TABLE, Constants.ARP_TABLE);
 
         // for ARP and ACL table transition
-        connectTables(deviceId, Constants.ARP_TABLE, Constants.ACL_TABLE);
+        connectTables(deviceId, Constants.ARP_TABLE, Constants.ACL_INGRESS_TABLE);
 
         // for ACL and JUMP table transition
-        connectTables(deviceId, Constants.ACL_TABLE, Constants.JUMP_TABLE);
+        connectTables(deviceId, Constants.ACL_EGRESS_TABLE, Constants.JUMP_TABLE);
 
         // for JUMP table transition
         // we need JUMP table for bypassing routing table which contains large
