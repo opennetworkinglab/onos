@@ -66,6 +66,8 @@ import static org.onosproject.pipelines.fabric.FabricUtils.outputPort;
 class NextObjectiveTranslator
         extends AbstractObjectiveTranslator<NextObjective> {
 
+    private static final String XCONNECT = "xconnect";
+
     NextObjectiveTranslator(DeviceId deviceId, FabricCapabilities capabilities) {
         super(deviceId, capabilities);
     }
@@ -85,7 +87,11 @@ class NextObjectiveTranslator
                 hashedNext(obj, resultBuilder);
                 break;
             case BROADCAST:
-                multicastNext(obj, resultBuilder);
+                if (isXconnect(obj)) {
+                    xconnectNext(obj, resultBuilder);
+                } else {
+                    multicastNext(obj, resultBuilder);
+                }
                 break;
             default:
                 log.warn("Unsupported NextObjective type '{}'", obj);
@@ -248,12 +254,57 @@ class NextObjectiveTranslator
     }
 
     private TrafficSelector nextIdSelector(int nextId) {
+        return nextIdSelectorBuilder(nextId).build();
+    }
+
+    private TrafficSelector.Builder nextIdSelectorBuilder(int nextId) {
         final PiCriterion nextIdCriterion = PiCriterion.builder()
                 .matchExact(FabricConstants.HDR_NEXT_ID, nextId)
                 .build();
         return DefaultTrafficSelector.builder()
-                .matchPi(nextIdCriterion)
+                .matchPi(nextIdCriterion);
+    }
+
+    private void xconnectNext(NextObjective obj, ObjectiveTranslation.Builder resultBuilder)
+            throws FabricPipelinerException {
+
+        final Collection<DefaultNextTreatment> defaultNextTreatments =
+                defaultNextTreatmentsOrFail(obj.nextTreatments());
+
+        final List<PortNumber> outPorts = defaultNextTreatments.stream()
+                .map(DefaultNextTreatment::treatment)
+                .map(FabricUtils::outputPort)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        if (outPorts.size() != 2) {
+            throw new FabricPipelinerException(format(
+                    "Handling XCONNECT with %d treatments (ports), but expected is 2",
+                    defaultNextTreatments.size()), ObjectiveError.UNSUPPORTED);
+        }
+
+        final PortNumber port1 = outPorts.get(0);
+        final PortNumber port2 = outPorts.get(1);
+        final TrafficSelector selector1 = nextIdSelectorBuilder(obj.id())
+                .matchInPort(port1)
                 .build();
+        final TrafficTreatment treatment1 = DefaultTrafficTreatment.builder()
+                .setOutput(port2)
+                .build();
+        final TrafficSelector selector2 = nextIdSelectorBuilder(obj.id())
+                .matchInPort(port2)
+                .build();
+        final TrafficTreatment treatment2 = DefaultTrafficTreatment.builder()
+                .setOutput(port1)
+                .build();
+
+        resultBuilder.addFlowRule(flowRule(
+                obj, FabricConstants.FABRIC_INGRESS_NEXT_XCONNECT,
+                selector1, treatment1));
+        resultBuilder.addFlowRule(flowRule(
+                obj, FabricConstants.FABRIC_INGRESS_NEXT_XCONNECT,
+                selector2, treatment2));
+
     }
 
     private void multicastNext(NextObjective obj,
@@ -409,5 +460,9 @@ class NextObjectiveTranslator
         // group buckets only, no changes for flow rules.
         return obj.op() == Objective.Operation.ADD_TO_EXISTING ||
                 obj.op() == Objective.Operation.REMOVE_FROM_EXISTING;
+    }
+
+    private boolean isXconnect(NextObjective obj) {
+        return obj.appId().name().contains(XCONNECT);
     }
 }

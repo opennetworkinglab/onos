@@ -415,4 +415,83 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
 
         assertEquals(expectedTranslation, actualTranslation);
     }
+
+    /**
+     * Test XConnect NextObjective.
+     *
+     * @throws FabricPipelinerException
+     */
+    @Test
+    public void testXconnectOutput() throws FabricPipelinerException {
+        TrafficTreatment treatment1 = DefaultTrafficTreatment.builder()
+                .setOutput(PORT_1)
+                .build();
+        TrafficTreatment treatment2 = DefaultTrafficTreatment.builder()
+                .setOutput(PORT_2)
+                .build();
+        NextObjective nextObjective = DefaultNextObjective.builder()
+                .withId(NEXT_ID_1)
+                .withPriority(PRIORITY)
+                .addTreatment(treatment1)
+                .addTreatment(treatment2)
+                .withType(NextObjective.Type.BROADCAST)
+                .makePermanent()
+                .fromApp(XCONNECT_APP_ID)
+                .add();
+
+        ObjectiveTranslation actualTranslation = translatorHashed.doTranslate(nextObjective);
+
+        // Should generate 2 flows for the xconnect table.
+
+        // Expected multicast table flow rule.
+        PiCriterion nextIdCriterion = PiCriterion.builder()
+                .matchExact(FabricConstants.HDR_NEXT_ID, NEXT_ID_1)
+                .build();
+        TrafficSelector xcSelector1 = DefaultTrafficSelector.builder()
+                .matchPi(nextIdCriterion)
+                .matchInPort(PORT_1)
+                .build();
+        TrafficTreatment xcTreatment1 = DefaultTrafficTreatment.builder()
+                .piTableAction(PiAction.builder()
+                                       .withId(FabricConstants.FABRIC_INGRESS_NEXT_OUTPUT_XCONNECT)
+                                       .withParameter(new PiActionParam(FabricConstants.PORT_NUM, PORT_2.toLong()))
+                                       .build())
+                .build();
+        TrafficSelector xcSelector2 = DefaultTrafficSelector.builder()
+                .matchPi(nextIdCriterion)
+                .matchInPort(PORT_2)
+                .build();
+        TrafficTreatment xcTreatment2 = DefaultTrafficTreatment.builder()
+                .piTableAction(PiAction.builder()
+                                       .withId(FabricConstants.FABRIC_INGRESS_NEXT_OUTPUT_XCONNECT)
+                                       .withParameter(new PiActionParam(FabricConstants.PORT_NUM, PORT_1.toLong()))
+                                       .build())
+                .build();
+
+        FlowRule expectedXcFlowRule1 = DefaultFlowRule.builder()
+                .forDevice(DEVICE_ID)
+                .fromApp(XCONNECT_APP_ID)
+                .makePermanent()
+                .withPriority(nextObjective.priority())
+                .forTable(FabricConstants.FABRIC_INGRESS_NEXT_XCONNECT)
+                .withSelector(xcSelector1)
+                .withTreatment(xcTreatment1)
+                .build();
+        FlowRule expectedXcFlowRule2 = DefaultFlowRule.builder()
+                .forDevice(DEVICE_ID)
+                .fromApp(XCONNECT_APP_ID)
+                .makePermanent()
+                .withPriority(nextObjective.priority())
+                .forTable(FabricConstants.FABRIC_INGRESS_NEXT_XCONNECT)
+                .withSelector(xcSelector2)
+                .withTreatment(xcTreatment2)
+                .build();
+
+        ObjectiveTranslation expectedTranslation = ObjectiveTranslation.builder()
+                .addFlowRule(expectedXcFlowRule1)
+                .addFlowRule(expectedXcFlowRule2)
+                .build();
+
+        assertEquals(expectedTranslation, actualTranslation);
+    }
 }
