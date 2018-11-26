@@ -315,47 +315,51 @@ public class OpenstackRoutingFloatingIpHandler {
                                                Network osNet,
                                                Set<OpenstackNode> gateways,
                                                boolean install) {
-        TrafficTreatment treatment;
 
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPSrc(instPort.ipAddress().toIpPrefix())
                 .matchEthDst(Constants.DEFAULT_GATEWAY_MAC);
 
-        switch (osNet.getNetworkType()) {
-            case VXLAN:
-                sBuilder.matchTunnelId(Long.parseLong(osNet.getProviderSegID()));
-                break;
-            case VLAN:
-                sBuilder.matchVlanId(VlanId.vlanId(osNet.getProviderSegID()));
-                break;
-            default:
-                final String error = String.format(
-                        ERR_UNSUPPORTED_NET_TYPE,
-                        osNet.getNetworkType().toString());
-                throw new IllegalStateException(error);
-        }
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
 
         OpenstackNode selectedGatewayNode = getGwByComputeDevId(gateways, instPort.deviceId());
 
         if (selectedGatewayNode == null) {
-            final String errorFormat = ERR_FLOW + "no gateway node selected";
-            throw new IllegalStateException(errorFormat);
+            log.warn(ERR_FLOW + "no gateway node selected");
         }
-        treatment = DefaultTrafficTreatment.builder()
-                .extension(buildExtension(
+
+        switch (osNet.getNetworkType()) {
+            case VXLAN:
+                if (osNodeService.node(instPort.deviceId()).tunnelPortNum() == null) {
+                    log.warn(ERR_FLOW + "no tunnel port");
+                    return;
+                }
+                sBuilder.matchTunnelId(Long.parseLong(osNet.getProviderSegID()));
+                tBuilder.extension(buildExtension(
                         deviceService,
                         instPort.deviceId(),
                         selectedGatewayNode.dataIp().getIp4Address()),
                         instPort.deviceId())
-                .setOutput(osNodeService.node(instPort.deviceId()).tunnelPortNum())
-                .build();
+                        .setOutput(osNodeService.node(instPort.deviceId()).tunnelPortNum());
+                break;
+            case VLAN:
+                if (osNodeService.node(instPort.deviceId()).vlanPortNum() == null) {
+                    log.warn(ERR_FLOW + "no vlan port");
+                    return;
+                }
+                sBuilder.matchVlanId(VlanId.vlanId(osNet.getProviderSegID()));
+                tBuilder.setOutput(osNodeService.node(instPort.deviceId()).vlanPortNum());
+                break;
+            default:
+                log.warn(ERR_FLOW + "no supported network type");
+        }
 
         osFlowRuleService.setRule(
                 appId,
                 instPort.deviceId(),
                 sBuilder.build(),
-                treatment,
+                tBuilder.build(),
                 PRIORITY_EXTERNAL_FLOATING_ROUTING_RULE,
                 ROUTING_TABLE,
                 install);
