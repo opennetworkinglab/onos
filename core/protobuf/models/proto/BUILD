@@ -201,7 +201,7 @@ proto_library(
     name = "FlowEntry_proto",
     srcs = ["net/flow/FlowEntryProto.proto"],
     proto_source_root = PROTO_SOURCE_ROOT,
-    deps = ["FlowEntryEnums_proto"],
+    deps = [":FlowEntryEnums_proto"],
 )
 
 proto_library(
@@ -233,7 +233,7 @@ proto_library(
     srcs = ["net/flow/TrafficTreatmentProto.proto"],
     proto_source_root = PROTO_SOURCE_ROOT,
     deps = [
-        "Instruction_proto",
+        ":Instruction_proto",
         ":Instructions_proto",
     ],
 )
@@ -327,9 +327,9 @@ proto_library(
     srcs = ["net/meter/MeterProto.proto"],
     proto_source_root = PROTO_SOURCE_ROOT,
     deps = [
-        "MeterEnums_proto",
         ":ApplicationId_proto",
         ":Band_proto",
+        ":MeterEnums_proto",
     ],
 )
 
