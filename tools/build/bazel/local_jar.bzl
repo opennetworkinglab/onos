@@ -96,4 +96,33 @@ def local_atomix(path, version):
         path = "%s/rest/target/atomix-rest-%s.jar" % (path, version),
     )
 
-# TODO: add local_yang_tools, etc.
+# Macro to allow building ONOS against locally-built YANG tools artifacts
+def local_yang_tools(path, version):
+    local_jar(
+        name = "onos_yang_model",
+        path = "%s/model/target/onos-yang-model-%s.jar" % (path, version),
+    )
+    local_jar(
+        name = "onos_yang_compiler_api",
+        path = "%s/compiler/api/target/onos-yang-compiler-api-%s.jar" % (path, version),
+    )
+    local_jar(
+        name = "onos_yang_compiler_main",
+        path = "%s/compiler/plugin/main/target/onos-yang-compiler-main-%s.jar" % (path, version),
+    )
+    local_jar(
+        name = "onos_yang_runtime",
+        path = "%s/runtime/target/onos-yang-runtime-%s.jar" % (path, version),
+    )
+    local_jar(
+        name = "onos_yang_serializers_json",
+        path = "%s/serializers/json/target/onos-yang-serializers-json-%s.jar" % (path, version),
+    )
+    local_jar(
+        name = "onos_yang_serializers_xml",
+        path = "%s/serializers/xml/target/onos-yang-serializers-xml-%s.jar" % (path, version),
+    )
+    local_jar(
+        name = "onos_yang_serializers_utils",
+        path = "%s/serializers/utils/target/onos-yang-serializers-utils-%s.jar" % (path, version),
+    )

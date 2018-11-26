@@ -4,7 +4,7 @@ load("//tools/build/bazel:bazel_version.bzl", "check_bazel_version")
 
 check_bazel_version()
 
-load("//tools/build/bazel:local_jar.bzl", "local_atomix", "local_jar")
+load("//tools/build/bazel:local_jar.bzl", "local_atomix", "local_jar", "local_yang_tools")
 
 # Use this to build against locally built arbitrary 3rd party artifacts
 #local_jar(
@@ -16,6 +16,12 @@ load("//tools/build/bazel:local_jar.bzl", "local_atomix", "local_jar")
 #local_atomix(
 #    path = "/Users/tom/atomix",
 #    version = "3.0.8-SNAPSHOT",
+#)
+
+# Use this to build against locally built YANG tools
+#local_yang_tools(
+#    path = "/Users/andrea/onos-yang-tools",
+#    version = "2.6-SNAPSHOT",
 #)
 
 load("//tools/build/bazel:generate_workspace.bzl", "generated_maven_jars")
