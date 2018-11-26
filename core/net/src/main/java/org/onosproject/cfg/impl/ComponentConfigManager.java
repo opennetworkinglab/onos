@@ -136,10 +136,6 @@ public class ComponentConfigManager implements ComponentConfigService {
 
     @Override
     public void unregisterProperties(Class<?> componentClass, boolean clear) {
-        if (true) {
-            return;
-        }
-
         checkPermission(CONFIG_WRITE);
 
         String componentName = componentClass.getName();
