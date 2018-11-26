@@ -160,10 +160,13 @@ import org.onosproject.net.flow.oldbatch.FlowRuleBatchRequest;
 import org.onosproject.net.flowobjective.DefaultFilteringObjective;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
 import org.onosproject.net.flowobjective.DefaultNextObjective;
+import org.onosproject.net.flowobjective.DefaultNextTreatment;
 import org.onosproject.net.flowobjective.DefaultObjectiveContext;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.net.flowobjective.IdNextTreatment;
 import org.onosproject.net.flowobjective.NextObjective;
+import org.onosproject.net.flowobjective.NextTreatment;
 import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.host.DefaultHostDescription;
@@ -599,6 +602,10 @@ public final class KryoNamespaces {
                     DefaultFilteringObjective.class,
                     FilteringObjective.Type.class,
                     DefaultNextObjective.class,
+                    NextTreatment.class,
+                    NextTreatment.Type.class,
+                    DefaultNextTreatment.class,
+                    IdNextTreatment.class,
                     NextObjective.Type.class,
                     Objective.Operation.class,
                     DefaultObjectiveContext.class,
