@@ -37,6 +37,7 @@ import static org.easymock.EasyMock.replay;
 
 public class FabricPipelinerTest {
     static final ApplicationId APP_ID = TestApplicationId.create("FabricPipelinerTest");
+    static final ApplicationId XCONNECT_APP_ID = TestApplicationId.create("FabricPipelinerTest.xconnect");
     static final DeviceId DEVICE_ID = DeviceId.deviceId("device:bmv2:11");
     static final int PRIORITY = 100;
     static final PortNumber PORT_1 = PortNumber.portNumber(1);
