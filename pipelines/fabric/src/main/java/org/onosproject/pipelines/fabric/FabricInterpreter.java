@@ -76,7 +76,8 @@ public class FabricInterpreter extends AbstractFabricHandlerBehavior
     private static final Set<PiTableId> NEXT_CTRL_TBLS = ImmutableSet.of(
             FabricConstants.FABRIC_INGRESS_NEXT_NEXT_VLAN,
             FabricConstants.FABRIC_INGRESS_NEXT_SIMPLE,
-            FabricConstants.FABRIC_INGRESS_NEXT_HASHED);
+            FabricConstants.FABRIC_INGRESS_NEXT_HASHED,
+            FabricConstants.FABRIC_INGRESS_NEXT_XCONNECT);
     private static final Set<PiTableId> E_NEXT_CTRL_TBLS = ImmutableSet.of(
             FabricConstants.FABRIC_EGRESS_EGRESS_NEXT_EGRESS_VLAN);
 

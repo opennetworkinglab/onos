@@ -108,6 +108,8 @@ final class FabricTreatmentInterpreter {
             return mapNextHashedOrSimpleTreatment(treatment, tableId, false);
         } else if (tableId == FabricConstants.FABRIC_INGRESS_NEXT_SIMPLE) {
             return mapNextHashedOrSimpleTreatment(treatment, tableId, true);
+        } else if (tableId == FabricConstants.FABRIC_INGRESS_NEXT_XCONNECT) {
+            return mapNextXconnect(treatment, tableId);
         }
         throw new PiInterpreterException(format(
                 "Treatment mapping not supported for table '%s'", tableId));
@@ -172,6 +174,18 @@ final class FabricTreatmentInterpreter {
                                     : FabricConstants.FABRIC_INGRESS_NEXT_OUTPUT_HASHED)
                     .build();
         }
+    }
+
+    private static PiAction mapNextXconnect(
+            TrafficTreatment treatment, PiTableId tableId)
+            throws PiInterpreterException {
+        final PortNumber outPort = ((OutputInstruction) instructionOrFail(
+                treatment, OUTPUT, tableId)).port();
+        return PiAction.builder()
+                .withId(FabricConstants.FABRIC_INGRESS_NEXT_OUTPUT_XCONNECT)
+                .withParameter(new PiActionParam(
+                        FabricConstants.PORT_NUM, outPort.toLong()))
+                .build();
     }
 
     static PiAction mapAclTreatment(TrafficTreatment treatment, PiTableId tableId)
