@@ -49,9 +49,6 @@ public class PimApplication {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
-    // Our application ID
-    private static ApplicationId appId;
-
     // Register to receive PIM packets, used to send packets as well
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected PacketService packetService;
@@ -75,7 +72,7 @@ public class PimApplication {
     @Activate
     public void activate() {
         // Get our application ID
-        appId = coreService.registerApplication("org.onosproject.pim");
+        ApplicationId appId = coreService.registerApplication("org.onosproject.pim");
 
         // Build the traffic selector for PIM packets
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();

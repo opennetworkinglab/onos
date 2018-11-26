@@ -436,7 +436,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
         Criterion metadata = Criteria.matchMetadata((cvid << 32) | outPort);
 
-        if (outerVlan == null || innerVlan == null || inport == null) {
+        if (outerVlan == null || inport == null) {
             log.error("Forwarding objective is underspecified: {}", fwd);
             fail(fwd, ObjectiveError.BADPARAMS);
             return;

@@ -45,6 +45,7 @@ public class AlarmFieldValueCompleter extends AbstractChoicesCompleter {
             case TIME_CLEARED:
             case TIME_UPDATED:
                 choices.add(Instant.now().toString());
+                return choices;
             default:
                 return choices;
         }

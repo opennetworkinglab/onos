@@ -59,11 +59,11 @@ public class LispAsAddress extends LispAfiAddress {
             return true;
         }
 
-        if (!super.equals(obj)) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
 
-        if (getClass() != obj.getClass()) {
+        if (!super.equals(obj)) {
             return false;
         }
 

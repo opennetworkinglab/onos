@@ -47,12 +47,12 @@ public class EAPOLMkpduPeerListParameterSet extends BasePacket implements EAPOLM
     }
 
     // Peer List Types
-    public static byte peerListTypeLive = 1;
-    public static byte peerListTypePotential = 2;
+    private static final byte PEER_LIST_TYPE_LIVE = 1;
+    private static final byte PEER_LIST_TYPE_POTENTIAL = 2;
 
     // Type for distinguishing Live & Potential Lists.
-    protected byte peerListType = 1;
-    protected short bodyLength;
+    private byte peerListType = 1;
+    private short bodyLength;
 
     //Members
     protected List<MemberDetails> members = new ArrayList<>();
@@ -146,8 +146,8 @@ public class EAPOLMkpduPeerListParameterSet extends BasePacket implements EAPOLM
      *                     and potential peer lists
      */
     public void setPeerListType(byte peerListType) {
-        if ((peerListType != EAPOLMkpduPeerListParameterSet.peerListTypeLive) &&
-                (peerListType != EAPOLMkpduPeerListParameterSet.peerListTypePotential)) {
+        if ((peerListType != EAPOLMkpduPeerListParameterSet.PEER_LIST_TYPE_LIVE) &&
+                (peerListType != EAPOLMkpduPeerListParameterSet.PEER_LIST_TYPE_POTENTIAL)) {
             throw new IllegalArgumentException("Unknown PeerList Type specified.");
         }
         this.peerListType = peerListType;

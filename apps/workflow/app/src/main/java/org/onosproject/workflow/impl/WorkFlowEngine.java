@@ -259,7 +259,7 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
                 log.info("sleep {}", i);
                 Thread.sleep(10L * (i + 1));
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                Thread.currentThread().interrupt();
             }
         }
     }

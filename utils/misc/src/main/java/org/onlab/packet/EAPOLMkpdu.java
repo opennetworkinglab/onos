@@ -28,13 +28,13 @@ import java.util.Map;
 public class EAPOLMkpdu extends BasePacket {
 
     // Parameter Sets.
-    protected Map<Byte, IPacket> parameterSets = new LinkedHashMap<>();
+    private Map<Byte, IPacket> parameterSets = new LinkedHashMap<>();
 
     /*
      * Parameter Serialization Order.
      * IEEE 802.1x Clause 11.11.3.
      */
-    public static byte[] parametersetSerializerKeyList = new byte[]{
+    private static byte[] parametersetSerializerKeyList = new byte[]{
             EAPOLMkpduParameterSet.PARAMETERSET_TYPE_BASIC,
             EAPOLMkpduParameterSet.PARAMETERSET_TYPE_LIVE_PEER_LIST,
             EAPOLMkpduParameterSet.PARAMETERSET_TYPE_POTENTIAL_PEER_LIST,
@@ -47,7 +47,7 @@ public class EAPOLMkpdu extends BasePacket {
 
      // Various Parameter Set Deserializers.
 
-    public static final Map<Byte, Deserializer<? extends IPacket>> PARAMETERSET_DESERIALIZER_MAP =
+    private static final Map<Byte, Deserializer<? extends IPacket>> PARAMETERSET_DESERIALIZER_MAP =
             new LinkedHashMap<>();
 
     static {

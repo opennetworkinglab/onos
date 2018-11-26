@@ -83,7 +83,7 @@ public class GrpcChannelControllerImpl implements GrpcChannelController {
     private static final boolean DEFAULT_LOG_LEVEL = false;
 
     /** Indicates whether to log all gRPC messages sent and received on all channels. */
-    public static boolean enableMessageLog = DEFAULT_LOG_LEVEL;
+    private static boolean enableMessageLog = DEFAULT_LOG_LEVEL;
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 

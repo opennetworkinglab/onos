@@ -352,7 +352,7 @@ public class P4RuntimeActionGroupProgrammable
                     groupMirror.annotations(handle).value(MAX_MEM_SIZE) != null) {
                 maxMemSize = groupMirror.annotations(handle).value(MAX_MEM_SIZE);
             }
-            if (maxMemSize == "" || currentMemberSize > Integer.parseInt(maxMemSize)) {
+            if (!maxMemSize.equals("") || currentMemberSize > Integer.parseInt(maxMemSize)) {
                 deleteGroup(group, handle);
             }
         }

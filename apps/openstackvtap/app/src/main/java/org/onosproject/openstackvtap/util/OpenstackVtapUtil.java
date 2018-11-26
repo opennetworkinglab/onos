@@ -28,7 +28,6 @@ import org.onosproject.openstackvtap.api.OpenstackVtapNetwork;
 import org.slf4j.Logger;
 
 import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 
 import static org.onosproject.openstacknetworking.api.Constants.ANNOTATION_NETWORK_ID;
@@ -187,7 +186,6 @@ public final class OpenstackVtapUtil {
      */
     public static void dumpStackTrace(Logger log, Exception e) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        e.printStackTrace(new PrintStream(outputStream));
         log.error("\n{}", new String(outputStream.toByteArray(), StandardCharsets.UTF_8));
     }
 
