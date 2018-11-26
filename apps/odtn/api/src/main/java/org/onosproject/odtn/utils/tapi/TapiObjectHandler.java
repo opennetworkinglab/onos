@@ -255,7 +255,7 @@ public abstract class TapiObjectHandler<T extends ModelObject> {
 
         // for debug
         CharSequence strNode = toCharSequence(toXmlCompositeStream(toCompositeData(rData)));
-        log.info("XML:\n{}", XmlString.prettifyXml(strNode));
+        log.debug("XML:\n{}", XmlString.prettifyXml(strNode));
 
         return rData;
     }

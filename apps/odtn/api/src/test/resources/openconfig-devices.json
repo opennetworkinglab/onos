@@ -1,0 +1,26 @@
+{
+  "devices" : {
+    "netconf:127.0.0.1:11002" : {
+      "basic" : {
+        "driver":"infinera-xt3300"
+      },
+      "netconf" : {
+        "ip" : "127.0.0.1",
+        "port" : "11002",
+        "username" : "admin",
+        "password" : "admin"
+      }
+    },
+    "netconf:127.0.0.1:11003" : {
+      "basic" : {
+        "driver":"infinera-xt3300"
+      },
+      "netconf" : {
+        "ip" : "127.0.0.1",
+        "port" : "11003",
+        "username" : "admin",
+        "password" : "admin"
+      }
+    }
+  }
+}

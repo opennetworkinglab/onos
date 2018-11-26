@@ -214,31 +214,31 @@ public class DefaultTapiResolver implements TapiResolver {
 
     protected void addNodeRef(TapiNodeRef nodeRef) {
         tapiNodeRefList.add(nodeRef);
-        log.info("Nodes: {}", tapiNodeRefList);
+        log.debug("Nodes: {}", tapiNodeRefList);
     }
 
     protected void addNepRef(TapiNepRef nepRef) {
         tapiNepRefList.add(nepRef);
-        log.info("Neps: {}", tapiNepRefList);
+        log.debug("Neps: {}", tapiNepRefList);
     }
 
     protected void addNodeRefList(List<TapiNodeRef> nodes) {
         tapiNodeRefList = nodes;
-        log.info("Nodes: {}", tapiNodeRefList);
+        log.debug("Nodes: {}", tapiNodeRefList);
     }
 
     protected void addNepRefList(List<TapiNepRef> neps) {
         tapiNepRefList = neps;
-        log.info("Neps: {}", tapiNepRefList);
+        log.debug("Neps: {}", tapiNepRefList);
     }
 
     private void updateCache() {
-        log.info("Dirty: {}, Source updated: {}", isDirty, sourceUpdated);
+        log.debug("Dirty: {}, Source updated: {}", isDirty, sourceUpdated);
         if (isDirty || sourceUpdated) {
             sourceUpdated = false;
             clearCache();
             dataProvider.updateCacheRequest(this);
-            log.info("Update completed: {}", tapiNodeRefList);
+            log.debug("Update completed: {}", tapiNodeRefList);
             isDirty = false;
         }
     }

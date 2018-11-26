@@ -221,7 +221,7 @@ public class DynamicDeviceConfigSynchronizer
             // FIXME hack for unconsolidated event bug
             quietUntil = System.currentTimeMillis() + quietPeriod.toMillis();
         } else {
-            log.info("Ignored event's ResourceId: {}", event.subject());
+            log.debug("Ignored event's ResourceId: {}", event.subject());
         }
     }
 
