@@ -29,9 +29,9 @@
     <groupId>org.onosproject</groupId>
     <artifactId>onos-libgen</artifactId>
     <packaging>jar</packaging>
-    <version>1.6-SNAPSHOT</version>
+    <version>2.1</version>
 
-    <description>Third-party library generator for Buck and Bazel workspaces</description>
+    <description>Third-party library generator for ONOS Bazel workspace</description>
     <url>http://onosproject.org/</url>
 
     <scm>
@@ -51,12 +51,12 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
-            <version>2.7.0</version>
+            <version>2.9.5</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.7.0</version>
+            <version>2.9.5</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.aether</groupId>
@@ -116,7 +116,7 @@
                     <transformers>
                         <transformer
                                 implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                            <mainClass>org.onosproject.libgen.BuckLibGenerator</mainClass>
+                            <mainClass>org.onosproject.libgen.BazelLibGenerator</mainClass>
                         </transformer>
                     </transformers>
                     <filters>
