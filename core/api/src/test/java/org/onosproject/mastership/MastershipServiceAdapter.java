@@ -48,6 +48,11 @@ public class MastershipServiceAdapter implements MastershipService {
     }
 
     @Override
+    public MastershipInfo getMastershipFor(DeviceId deviceId) {
+        return null;
+    }
+
+    @Override
     public Set<DeviceId> getDevicesOf(NodeId nodeId) {
         return null;
     }

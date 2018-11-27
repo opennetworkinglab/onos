@@ -120,6 +120,14 @@ public interface MastershipService
     RoleInfo getNodesFor(DeviceId deviceId);
 
     /**
+     * Returns the mastership info for the given device.
+     *
+     * @param deviceId the device for which to return the mastership info
+     * @return the mastership info for the given device
+     */
+    MastershipInfo getMastershipFor(DeviceId deviceId);
+
+    /**
      * Returns the devices for which a controller is master.
      * <p>
      * Returned Set may contain DeviceId which no longer exist in the system.

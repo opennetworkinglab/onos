@@ -39,6 +39,7 @@ import org.onosproject.core.MetricsHelper;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.mastership.MastershipAdminService;
 import org.onosproject.mastership.MastershipEvent;
+import org.onosproject.mastership.MastershipInfo;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.mastership.MastershipStore;
@@ -236,6 +237,13 @@ public class MastershipManager
 
         checkNotNull(deviceId, DEVICE_ID_NULL);
         return store.getNodes(deviceId);
+    }
+
+    @Override
+    public MastershipInfo getMastershipFor(DeviceId deviceId) {
+        checkPermission(CLUSTER_READ);
+        checkNotNull(deviceId, DEVICE_ID_NULL);
+        return store.getMastership(deviceId);
     }
 
     @Override
