@@ -18,12 +18,6 @@ cd $ONOS_ROOT
 # Augment the version of the main pom and the modules nested underneath.
 mvn -B -f lib/pom.xml versions:set -DnewVersion=$NEW_VERSION versions:commit
 
-# Augment the version of the Java API pom files and the overview.html file.
-for pom in docs/internal.xml docs/external.xml; do
-    sed -i".VERBACK" -E "1,/<version>/s/<version>[^<]*</<version>$NEW_VERSION</g" $pom
-    sed -i".VERBACK" -E "1,/<doctitle>/s/<doctitle>ONOS Java API[^<]*</<doctitle>ONOS Java API ($NEW_VERSION)</g" $pom
-done
-
 # Augment the version in envDefaults, onos.py and archetypes test
 sed -i".VERBACK" -E "s/ONOS_VERSION:-[^$]*/ONOS_VERSION:-$NEW_VERSION_SHORT./" $ONOS_ROOT/tools/build/envDefaults
 sed -i".VERBACK" -E "s/features\/.*\/xml/features\/$NEW_VERSION\/xml/" $ONOS_ROOT/tools/dev/mininet/onos.py
@@ -46,7 +40,6 @@ sed -i".VERBACK" -E "s/-DarchetypeVersion=[^\"]*/-DarchetypeVersion=$NEW_VERSION
 sed -i".VERBACK" -E "s/<onos-build-conf.version>.*<\/onos-build-conf.version>/<onos-build-conf.version>$NEW_VERSION<\/onos-build-conf.version>/g" $ONOS_ROOT/lib/pom.xml
 
 # Version the BUCK artifacts
-sed -i".VERBACK" -E "s/ONOS_VERSION.*/ONOS_VERSION = '$NEW_VERSION'/" onos.defs
 sed -i".VERBACK" -E "s/ONOS_VERSION=.*/ONOS_VERSION='$NEW_VERSION'/" tools/build/onos-prepare-sonar
 
 # Version the bazel artifacts
