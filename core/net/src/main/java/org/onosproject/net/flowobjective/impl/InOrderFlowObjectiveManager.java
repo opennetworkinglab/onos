@@ -63,7 +63,7 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     // TODO Make queue timeout configurable
-    static final int OBJ_TIMEOUT_MS = 15000;
+    static int objTimeoutMs = 15000;
 
     private Cache<FilteringObjQueueKey, Objective> filtObjQueueHead;
     private Cache<ForwardingObjQueueKey, Objective> fwdObjQueueHead;
@@ -105,15 +105,15 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
             }
         };
         filtObjQueueHead = CacheBuilder.newBuilder()
-                .expireAfterWrite(OBJ_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+                .expireAfterWrite(objTimeoutMs, TimeUnit.MILLISECONDS)
                 .removalListener(RemovalListeners.asynchronous(removalListener, filtCacheEventExecutor))
                 .build();
         fwdObjQueueHead = CacheBuilder.newBuilder()
-                .expireAfterWrite(OBJ_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+                .expireAfterWrite(objTimeoutMs, TimeUnit.MILLISECONDS)
                 .removalListener(RemovalListeners.asynchronous(removalListener, fwdCacheEventExecutor))
                 .build();
         nextObjQueueHead = CacheBuilder.newBuilder()
-                .expireAfterWrite(OBJ_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+                .expireAfterWrite(objTimeoutMs, TimeUnit.MILLISECONDS)
                 .removalListener(RemovalListeners.asynchronous(removalListener, nextCacheEventExecutor))
                 .build();
 
@@ -122,7 +122,7 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
             filtObjQueueHead.cleanUp();
             fwdObjQueueHead.cleanUp();
             nextObjQueueHead.cleanUp();
-        }, 0, OBJ_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+        }, 0, objTimeoutMs, TimeUnit.MILLISECONDS);
 
         // Replace store delegate to make sure pendingForward and pendingNext are resubmitted to
         // execute()
