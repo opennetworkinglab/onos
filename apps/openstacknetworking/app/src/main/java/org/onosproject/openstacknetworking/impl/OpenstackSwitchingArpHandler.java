@@ -101,42 +101,42 @@ import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
     immediate = true,
     property = {
         GATEWAY_MAC + "=" + GATEWAY_MAC_DEFAULT,
-        ARP_MODE + "=" + ARP_MODE_DEFAULT,
+        ARP_MODE + "=" + ARP_MODE_DEFAULT
     }
 )
-public final class OpenstackSwitchingArpHandler {
+public class OpenstackSwitchingArpHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    CoreService coreService;
+    protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    PacketService packetService;
+    protected PacketService packetService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    OpenstackFlowRuleService osFlowRuleService;
+    protected OpenstackFlowRuleService osFlowRuleService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    ComponentConfigService configService;
+    protected ComponentConfigService configService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    ClusterService clusterService;
+    protected ClusterService clusterService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    LeadershipService leadershipService;
+    protected LeadershipService leadershipService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    DeviceService deviceService;
+    protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    MastershipService mastershipService;
+    protected MastershipService mastershipService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    InstancePortService instancePortService;
+    protected InstancePortService instancePortService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    OpenstackNetworkService osNetworkService;
+    protected OpenstackNetworkService osNetworkService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OpenstackNodeService osNodeService;
@@ -713,26 +713,10 @@ public final class OpenstackSwitchingArpHandler {
             switch (event.type()) {
                 case OPENSTACK_SUBNET_CREATED:
                 case OPENSTACK_SUBNET_UPDATED:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        setFakeGatewayArpRule(event.subnet(), event.subject(),
-                                true, null);
-                    });
+                    eventExecutor.execute(() -> processSubnetCreation(event));
                     break;
                 case OPENSTACK_SUBNET_REMOVED:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        setFakeGatewayArpRule(event.subnet(), event.subject(),
-                                false, null);
-                    });
+                    eventExecutor.execute(() -> processSubnetRemoval(event));
                     break;
                 case OPENSTACK_NETWORK_CREATED:
                 case OPENSTACK_NETWORK_UPDATED:
@@ -744,6 +728,24 @@ public final class OpenstackSwitchingArpHandler {
                     // do nothing for the other events
                     break;
             }
+        }
+
+        private void processSubnetCreation(OpenstackNetworkEvent event) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            setFakeGatewayArpRule(event.subnet(), event.subject(),
+                    true, null);
+        }
+
+        private void processSubnetRemoval(OpenstackNetworkEvent event) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            setFakeGatewayArpRule(event.subnet(), event.subject(),
+                    false, null);
         }
     }
 
@@ -767,30 +769,32 @@ public final class OpenstackSwitchingArpHandler {
             OpenstackNode osNode = event.subject();
             switch (event.type()) {
                 case OPENSTACK_NODE_COMPLETE:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        setDefaultArpRule(osNode, true);
-                        setAllArpRules(osNode, true);
-                    });
+                    eventExecutor.execute(() -> processNodeCompletion(osNode));
                     break;
                 case OPENSTACK_NODE_INCOMPLETE:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        setDefaultArpRule(osNode, false);
-                        setAllArpRules(osNode, false);
-                    });
+                    eventExecutor.execute(() -> processNodeIncompletion(osNode));
                     break;
                 default:
                     break;
             }
+        }
+
+        private void processNodeCompletion(OpenstackNode osNode) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            setDefaultArpRule(osNode, true);
+            setAllArpRules(osNode, true);
+        }
+
+        private void processNodeIncompletion(OpenstackNode osNode) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            setDefaultArpRule(osNode, false);
+            setAllArpRules(osNode, false);
         }
 
         private void setDefaultArpRule(OpenstackNode osNode, boolean install) {
@@ -804,26 +808,31 @@ public final class OpenstackSwitchingArpHandler {
                     setDefaultArpRuleForProxyMode(osNode, install);
                     break;
                 case ARP_BROADCAST_MODE:
-                    setDefaultArpRuleForBroadcastMode(osNode, install);
-
-                    // we do not add fake gateway ARP rules for FLAT network
-                    // ARP packets generated by FLAT typed VM should not be
-                    // delegated to switch to handle
-                    osNetworkService.subnets().stream().filter(subnet ->
-                        osNetworkService.network(subnet.getNetworkId()) != null &&
-                            osNetworkService.network(subnet.getNetworkId())
-                                    .getNetworkType() != NetworkType.FLAT)
-                                    .forEach(subnet -> {
-                                        String netId = subnet.getNetworkId();
-                                        Network net = osNetworkService.network(netId);
-                                        setFakeGatewayArpRule(subnet, net, install, osNode);
-                                    });
+                    processDefaultArpRuleForBroadcastMode(osNode, install);
                     break;
                 default:
                     log.warn("Invalid ARP mode {}. Please use either " +
                             "broadcast or proxy mode.", getArpMode());
                     break;
             }
+        }
+
+        private void processDefaultArpRuleForBroadcastMode(OpenstackNode osNode,
+                                                           boolean install) {
+            setDefaultArpRuleForBroadcastMode(osNode, install);
+
+            // we do not add fake gateway ARP rules for FLAT network
+            // ARP packets generated by FLAT typed VM should not be
+            // delegated to switch to handle
+            osNetworkService.subnets().stream().filter(subnet ->
+                    osNetworkService.network(subnet.getNetworkId()) != null &&
+                            osNetworkService.network(subnet.getNetworkId())
+                                    .getNetworkType() != NetworkType.FLAT)
+                    .forEach(subnet -> {
+                        String netId = subnet.getNetworkId();
+                        Network net = osNetworkService.network(netId);
+                        setFakeGatewayArpRule(subnet, net, install, osNode);
+                    });
         }
 
         private void setDefaultArpRuleForProxyMode(OpenstackNode osNode, boolean install) {
@@ -904,41 +913,44 @@ public final class OpenstackSwitchingArpHandler {
                 case OPENSTACK_INSTANCE_PORT_DETECTED:
                 case OPENSTACK_INSTANCE_PORT_UPDATED:
                 case OPENSTACK_INSTANCE_MIGRATION_STARTED:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper(event)) {
-                            return;
-                        }
-
-                        setArpRequestRule(event.subject(), true);
-                        setArpReplyRule(event.subject(), true);
-                    });
+                    eventExecutor.execute(() -> processInstanceMigrationStart(event));
                     break;
                 case OPENSTACK_INSTANCE_PORT_VANISHED:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper(event)) {
-                            return;
-                        }
-
-                        setArpRequestRule(event.subject(), false);
-                        setArpReplyRule(event.subject(), false);
-                    });
+                    eventExecutor.execute(() -> processInstanceRemoval(event));
                     break;
                 case OPENSTACK_INSTANCE_MIGRATION_ENDED:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper(event)) {
-                            return;
-                        }
-
-                        InstancePort revisedInstPort = swapStaleLocation(event.subject());
-                        setArpRequestRule(revisedInstPort, false);
-                    });
+                    eventExecutor.execute(() -> processInstanceMigrationEnd(event));
                     break;
                 default:
                     break;
             }
+        }
+
+        private void processInstanceMigrationStart(InstancePortEvent event) {
+            if (!isRelevantHelper(event)) {
+                return;
+            }
+
+            setArpRequestRule(event.subject(), true);
+            setArpReplyRule(event.subject(), true);
+        }
+
+        private void processInstanceMigrationEnd(InstancePortEvent event) {
+            if (!isRelevantHelper(event)) {
+                return;
+            }
+
+            InstancePort revisedInstPort = swapStaleLocation(event.subject());
+            setArpRequestRule(revisedInstPort, false);
+        }
+
+        private void processInstanceRemoval(InstancePortEvent event) {
+            if (!isRelevantHelper(event)) {
+                return;
+            }
+
+            setArpRequestRule(event.subject(), false);
+            setArpReplyRule(event.subject(), false);
         }
     }
 }

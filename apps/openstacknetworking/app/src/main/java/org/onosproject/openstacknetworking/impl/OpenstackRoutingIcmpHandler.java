@@ -193,28 +193,30 @@ public class OpenstackRoutingIcmpHandler {
             OpenstackNode osNode = event.subject();
             switch (event.type()) {
                 case OPENSTACK_NODE_COMPLETE:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        setIcmpReplyRules(osNode.intgBridge(), true);
-                    });
+                    eventExecutor.execute(() -> processNodeCompletion(osNode));
                     break;
                 case OPENSTACK_NODE_INCOMPLETE:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        setIcmpReplyRules(osNode.intgBridge(), false);
-                    });
+                    eventExecutor.execute(() -> processNodeInCompletion(osNode));
                     break;
                 default:
                     break;
             }
+        }
+
+        private void processNodeCompletion(OpenstackNode osNode) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            setIcmpReplyRules(osNode.intgBridge(), true);
+        }
+
+        private void processNodeInCompletion(OpenstackNode osNode) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            setIcmpReplyRules(osNode.intgBridge(), false);
         }
 
         private void setIcmpReplyRules(DeviceId deviceId, boolean install) {
@@ -289,9 +291,7 @@ public class OpenstackRoutingIcmpHandler {
             switch (icmp.getIcmpType()) {
                 case TYPE_ECHO_REQUEST:
                     if (handleEchoRequest(context.inPacket().receivedFrom().deviceId(),
-                            ethernet.getSourceMAC(),
-                            ipPacket,
-                            icmp)) {
+                            ethernet.getSourceMAC(), ipPacket, icmp)) {
                         context.block();
                     }
                     break;

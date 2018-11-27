@@ -92,6 +92,7 @@ public class OpenstackRoutingSnatHandler {
     private static final long TIME_OUT_SNAT_PORT_MS = 120L * 1000L;
     private static final int TP_PORT_MINIMUM_NUM = 65000;
     private static final int TP_PORT_MAXIMUM_NUM = 65535;
+    private static final int VM_PREFIX = 32;
 
     private static final KryoNamespace.Builder NUMBER_SERIALIZER = KryoNamespace.newBuilder()
             .register(KryoNamespaces.API);
@@ -258,8 +259,8 @@ public class OpenstackRoutingSnatHandler {
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPProtocol(iPacket.getProtocol())
-                .matchIPDst(IpPrefix.valueOf(externalIp.getIp4Address(), 32))
-                .matchIPSrc(IpPrefix.valueOf(iPacket.getDestinationAddress(), 32));
+                .matchIPDst(IpPrefix.valueOf(externalIp.getIp4Address(), VM_PREFIX))
+                .matchIPSrc(IpPrefix.valueOf(iPacket.getDestinationAddress(), VM_PREFIX));
 
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
                 .setEthDst(packetIn.parsed().getSourceMAC())
@@ -304,34 +305,43 @@ public class OpenstackRoutingSnatHandler {
 
         OpenstackNode srcNode = osNodeService.node(srcInstPort.deviceId());
         osNodeService.completeNodes(GATEWAY).forEach(gNode -> {
-            TrafficTreatment.Builder tmpBuilder =
-                    DefaultTrafficTreatment.builder(tBuilder.build());
-            switch (networkType) {
-                case VXLAN:
-                    tmpBuilder.extension(RulePopulatorUtil.buildExtension(
-                            deviceService,
-                            gNode.intgBridge(),
-                            srcNode.dataIp().getIp4Address()), gNode.intgBridge())
-                            .setOutput(gNode.tunnelPortNum());
-                    break;
-                case VLAN:
-                    tmpBuilder.setOutput(gNode.vlanPortNum());
-                    break;
-                default:
-                    final String error = String.format("%s %s",
-                            ERR_UNSUPPORTED_NET_TYPE, networkType.toString());
-                    throw new IllegalStateException(error);
-            }
-
+            TrafficTreatment treatment =
+                    getDownStreamTreatment(networkType, tBuilder, gNode, srcNode);
             osFlowRuleService.setRule(
                     appId,
                     gNode.intgBridge(),
                     sBuilder.build(),
-                    tmpBuilder.build(),
+                    treatment,
                     PRIORITY_SNAT_RULE,
                     GW_COMMON_TABLE,
                     true);
         });
+    }
+
+    private TrafficTreatment getDownStreamTreatment(NetworkType networkType,
+                                                    TrafficTreatment.Builder tBuilder,
+                                                    OpenstackNode gNode,
+                                                    OpenstackNode srcNode) {
+        TrafficTreatment.Builder tmpBuilder =
+                DefaultTrafficTreatment.builder(tBuilder.build());
+        switch (networkType) {
+            case VXLAN:
+                tmpBuilder.extension(RulePopulatorUtil.buildExtension(
+                        deviceService,
+                        gNode.intgBridge(),
+                        srcNode.dataIp().getIp4Address()), gNode.intgBridge())
+                        .setOutput(gNode.tunnelPortNum());
+                break;
+            case VLAN:
+                tmpBuilder.setOutput(gNode.vlanPortNum());
+                break;
+            default:
+                final String error = String.format("%s %s",
+                        ERR_UNSUPPORTED_NET_TYPE, networkType.toString());
+                throw new IllegalStateException(error);
+        }
+
+        return tmpBuilder.build();
     }
 
     private void setUpstreamRules(String segmentId, NetworkType networkType,
@@ -343,8 +353,8 @@ public class OpenstackRoutingSnatHandler {
         TrafficSelector.Builder sBuilder =  DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPProtocol(iPacket.getProtocol())
-                .matchIPSrc(IpPrefix.valueOf(iPacket.getSourceAddress(), 32))
-                .matchIPDst(IpPrefix.valueOf(iPacket.getDestinationAddress(), 32));
+                .matchIPSrc(IpPrefix.valueOf(iPacket.getSourceAddress(), VM_PREFIX))
+                .matchIPDst(IpPrefix.valueOf(iPacket.getDestinationAddress(), VM_PREFIX));
 
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
 
@@ -367,15 +377,13 @@ public class OpenstackRoutingSnatHandler {
                 TCP tcpPacket = (TCP) iPacket.getPayload();
                 sBuilder.matchTcpSrc(TpPort.tpPort(tcpPacket.getSourcePort()))
                         .matchTcpDst(TpPort.tpPort(tcpPacket.getDestinationPort()));
-                tBuilder.setTcpSrc(patPort)
-                        .setEthDst(externalPeerRouter.macAddress());
+                tBuilder.setTcpSrc(patPort).setEthDst(externalPeerRouter.macAddress());
                 break;
             case IPv4.PROTOCOL_UDP:
                 UDP udpPacket = (UDP) iPacket.getPayload();
                 sBuilder.matchUdpSrc(TpPort.tpPort(udpPacket.getSourcePort()))
                         .matchUdpDst(TpPort.tpPort(udpPacket.getDestinationPort()));
-                tBuilder.setUdpSrc(patPort)
-                        .setEthDst(externalPeerRouter.macAddress());
+                tBuilder.setUdpSrc(patPort).setEthDst(externalPeerRouter.macAddress());
                 break;
             default:
                 log.debug("Unsupported IPv4 protocol {}");
@@ -408,18 +416,10 @@ public class OpenstackRoutingSnatHandler {
         IPv4 iPacket = (IPv4) ethPacketIn.getPayload();
         switch (iPacket.getProtocol()) {
             case IPv4.PROTOCOL_TCP:
-                TCP tcpPacket = (TCP) iPacket.getPayload();
-                tcpPacket.setSourcePort(patPort);
-                tcpPacket.resetChecksum();
-                tcpPacket.setParent(iPacket);
-                iPacket.setPayload(tcpPacket);
+                iPacket.setPayload(buildPacketOutTcp(iPacket, patPort));
                 break;
             case IPv4.PROTOCOL_UDP:
-                UDP udpPacket = (UDP) iPacket.getPayload();
-                udpPacket.setSourcePort(patPort);
-                udpPacket.resetChecksum();
-                udpPacket.setParent(iPacket);
-                iPacket.setPayload(udpPacket);
+                iPacket.setPayload(buildPacketOutUdp(iPacket, patPort));
                 break;
             default:
                 log.trace("Temporally, this method can process UDP and TCP protocol.");
@@ -452,6 +452,24 @@ public class OpenstackRoutingSnatHandler {
                 srcDevice,
                 tBuilder.setOutput(srcNode.uplinkPortNum()).build(),
                 ByteBuffer.wrap(ethPacketIn.serialize())));
+    }
+
+    private TCP buildPacketOutTcp(IPv4 iPacket, int patPort) {
+        TCP tcpPacket = (TCP) iPacket.getPayload();
+        tcpPacket.setSourcePort(patPort);
+        tcpPacket.resetChecksum();
+        tcpPacket.setParent(iPacket);
+
+        return tcpPacket;
+    }
+
+    private UDP buildPacketOutUdp(IPv4 iPacket, int patPort) {
+        UDP udpPacket = (UDP) iPacket.getPayload();
+        udpPacket.setSourcePort(patPort);
+        udpPacket.resetChecksum();
+        udpPacket.setParent(iPacket);
+
+        return udpPacket;
     }
 
     private int getPortNum() {
@@ -502,16 +520,13 @@ public class OpenstackRoutingSnatHandler {
                     UDP udpPacket = (UDP) iPacket.getPayload();
                     if (udpPacket.getDestinationPort() == UDP.DHCP_SERVER_PORT &&
                             udpPacket.getSourcePort() == UDP.DHCP_CLIENT_PORT) {
-                        // don't process DHCP
-                        break;
+                        break; // don't process DHCP
                     }
                 default:
                     eventExecutor.execute(() -> {
-
                         if (!isRelevantHelper(context)) {
                             return;
                         }
-
                         processSnatPacket(context, eth);
                     });
                     break;

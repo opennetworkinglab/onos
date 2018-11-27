@@ -62,7 +62,7 @@ import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.CONTROLLER;
 
 @Component(immediate = true)
-public final class OpenStackSwitchingDirectPortProvider {
+public class OpenStackSwitchingDirectPortProvider {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final String UNBOUND = "unbound";
@@ -102,7 +102,7 @@ public final class OpenStackSwitchingDirectPortProvider {
     private ApplicationId appId;
 
     @Activate
-    void activate() {
+    protected void activate() {
         appId = coreService.registerApplication(OPENSTACK_NETWORKING_APP_ID);
         localNodeId = clusterService.getLocalNode().id();
         leadershipService.runForLeadership(appId.name());
@@ -113,7 +113,7 @@ public final class OpenStackSwitchingDirectPortProvider {
     }
 
     @Deactivate
-    void deactivate() {
+    protected void deactivate() {
         leadershipService.withdraw(appId.name());
         osNetworkService.removeListener(openstackNetworkListener);
         osNodeService.removeListener(internalNodeListener);
@@ -131,44 +131,41 @@ public final class OpenStackSwitchingDirectPortProvider {
         public void event(OpenstackNetworkEvent event) {
             switch (event.type()) {
                 case OPENSTACK_PORT_UPDATED:
-
-                    executor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        if (event.port().getState() == State.DOWN) {
-                            processPortRemoved(event.port());
-                        } else {
-                            processPortAdded(event.port());
-                        }
-                    });
-
+                    executor.execute(() -> processPortUpdate(event));
                     break;
                 case OPENSTACK_PORT_REMOVED:
-
-                    executor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        processPortRemoved(event.port());
-                    });
-
+                    executor.execute(() -> processPortRemoval(event));
                     break;
                 default:
                     break;
-
             }
         }
 
-        private void processPortAdded(Port port) {
+        private void processPortUpdate(OpenstackNetworkEvent event) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            if (event.port().getState() == State.DOWN) {
+                removePort(event.port());
+            } else {
+                addPort(event.port());
+            }
+        }
+
+        private void processPortRemoval(OpenstackNetworkEvent event) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            removePort(event.port());
+        }
+
+        private void addPort(Port port) {
             if (!port.getvNicType().equals(DIRECT)) {
                 return;
             } else if (!port.isAdminStateUp() || port.getVifType().equals(UNBOUND)) {
-                log.trace("processPortAdded skipped because of status: {}, adminStateUp: {}, vifType: {}",
+                log.trace("AddPort skipped because of status: {}, adminStateUp: {}, vifType: {}",
                         port.getState(), port.isAdminStateUp(), port.getVifType());
                 return;
             } else {
@@ -176,7 +173,7 @@ public final class OpenStackSwitchingDirectPortProvider {
                         .filter(node -> node.hostname().equals(port.getHostId()))
                         .findAny();
                 if (!osNode.isPresent()) {
-                    log.error("processPortAdded failed because openstackNode doesn't exist that matches hostname {}",
+                    log.error("AddPort failed because openstackNode doesn't exist that matches hostname {}",
                             port.getHostId());
                     return;
                 }
@@ -184,7 +181,7 @@ public final class OpenStackSwitchingDirectPortProvider {
 
                 String intfName = getIntfNameFromPciAddress(port);
                 if (intfName == null) {
-                    log.error("Failed to execute processPortAdded because of null interface name");
+                    log.error("Failed to execute AddPort because of null interface name");
                     return;
                 } else if (intfName.equals(UNSUPPORTED_VENDOR)) {
                     return;
@@ -211,11 +208,11 @@ public final class OpenStackSwitchingDirectPortProvider {
             }
         }
 
-        private void processPortRemoved(Port port) {
+        private void removePort(Port port) {
             if (!port.getvNicType().equals(DIRECT)) {
                 return;
             } else if (instancePortService.instancePort(port.getId()) == null) {
-                log.trace("processPortRemoved skipped because no instance port exist for portId: {}", port.getId());
+                log.trace("RemovePort skipped because no instance port exist for portId: {}", port.getId());
                 return;
             } else {
                 InstancePort instancePort = instancePortService.instancePort(port.getId());
@@ -236,14 +233,14 @@ public final class OpenStackSwitchingDirectPortProvider {
                         .findAny();
 
                 if (!removedPort.isPresent()) {
-                    log.error("Failed to execute processPortAdded because port number doesn't exist");
+                    log.error("Failed to execute RemovePort because port number doesn't exist");
                     return;
                 }
 
                 String intfName = removedPort.get().annotations().value(PORT_NAME);
 
                 if (intfName == null) {
-                    log.error("Failed to execute processPortAdded because of null interface name");
+                    log.error("Failed to execute RemovePort because of null interface name");
                     return;
                 }
                 log.trace("Retrieved interface name: {}", intfName);
@@ -276,27 +273,25 @@ public final class OpenStackSwitchingDirectPortProvider {
 
             switch (event.type()) {
                 case OPENSTACK_NODE_COMPLETE:
-                    log.info("COMPLETE node {} is detected", osNode.hostname());
-
-                    executor.execute(() -> {
-
-                        if (!isRelevantHelper(event)) {
-                            return;
-                        }
-
-                        processComputeState(event.subject());
-                    });
-
+                    executor.execute(() -> processNodeCompletion(event, osNode));
                     break;
                 case OPENSTACK_NODE_INCOMPLETE:
                 case OPENSTACK_NODE_CREATED:
                 case OPENSTACK_NODE_UPDATED:
                 case OPENSTACK_NODE_REMOVED:
-                    // not reacts to the events other than complete and incomplete states
-                    break;
                 default:
                     break;
             }
+        }
+
+        private void processNodeCompletion(OpenstackNodeEvent event,
+                                           OpenstackNode osNode) {
+            log.info("COMPLETE node {} is detected", osNode.hostname());
+            if (!isRelevantHelper(event)) {
+                return;
+            }
+
+            processComputeState(event.subject());
         }
 
         private void processComputeState(OpenstackNode node) {
