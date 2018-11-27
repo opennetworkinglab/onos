@@ -21,6 +21,7 @@ _primitive_package_names = [
     "iterator",
     "list",
     "lock",
+    "log",
     "map",
     "multimap",
     "multiset",
@@ -49,7 +50,7 @@ CLUSTER_PACKAGES = ",".join([
 ])
 
 # A list of all core protocol packages for dynamic class loading
-PROTOCOL_PACKAGES = ",".join(["io.atomix.primitive.partition.impl"] + ["io.atomix.protocols.{protocol},io.atomix.protocols.{protocol}.partition".format(protocol = protocol) for protocol in _protocol_package_names] + ["io.atomix.protocols.gossip"])
+PROTOCOL_PACKAGES = ",".join(["io.atomix.primitive.partition.impl"] + ["io.atomix.protocols.{protocol},io.atomix.protocols.{protocol}.partition".format(protocol = protocol) for protocol in _protocol_package_names])
 
 # A list of all additional core packages used in dynamic class loading
 CORE_PACKAGES = ",".join([

@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.atomix.impl;
 
+import io.atomix.cluster.Node;
 import io.atomix.cluster.discovery.BootstrapDiscoveryProvider;
 import io.atomix.core.Atomix;
 import io.atomix.protocols.raft.partition.RaftPartitionGroup;
@@ -76,13 +77,15 @@ public class AtomixManager {
             return Atomix.builder(getClass().getClassLoader())
                 .withClusterId(metadata.getName())
                 .withMemberId(metadataService.getLocalNode().id().id())
-                .withAddress(metadataService.getLocalNode().host(), metadataService.getLocalNode().tcpPort())
+                .withHost(metadata.getLocalNode().host())
+                .withPort(metadata.getLocalNode().tcpPort())
                 .withProperty("type", "onos")
                 .withMembershipProvider(BootstrapDiscoveryProvider.builder()
                     .withNodes(metadata.getStorageNodes().stream()
-                        .map(node -> io.atomix.cluster.Node.builder()
+                        .map(node -> Node.builder()
                             .withId(node.id().id())
-                            .withAddress(node.host(), node.tcpPort())
+                            .withHost(node.host())
+                            .withPort(node.tcpPort())
                             .build())
                         .collect(Collectors.toList()))
                     .build())
@@ -101,13 +104,15 @@ public class AtomixManager {
             return Atomix.builder(getClass().getClassLoader())
                 .withClusterId(metadata.getName())
                 .withMemberId(metadataService.getLocalNode().id().id())
-                .withAddress(metadataService.getLocalNode().host(), metadataService.getLocalNode().tcpPort())
+                .withHost(metadata.getLocalNode().host())
+                .withPort(metadata.getLocalNode().tcpPort())
                 .withProperty("type", "onos")
                 .withMembershipProvider(BootstrapDiscoveryProvider.builder()
                     .withNodes(metadata.getControllerNodes().stream()
                         .map(node -> io.atomix.cluster.Node.builder()
                             .withId(node.id().id())
-                            .withAddress(node.host(), node.tcpPort())
+                            .withHost(node.host())
+                            .withPort(node.tcpPort())
                             .build())
                         .collect(Collectors.toList()))
                     .build())
