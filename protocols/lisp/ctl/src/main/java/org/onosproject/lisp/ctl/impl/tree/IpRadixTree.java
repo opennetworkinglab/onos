@@ -56,7 +56,7 @@ public interface IpRadixTree<V> {
     /**
      * Removes the mapping for a address from this radix tree if it is present
      * (optional operation). More formally, if this radix tree contains a
-     * mapping from address <tt>address</tt> to value <tt>v</tt> such that
+     * mapping from address <code>address</code> to value <code>v</code> such that
      * <code>(address==null ?  address==null : address.equals(k))</code>,
      * that mapping is removed. (The radix tree can contain at most one
      * such mapping.)

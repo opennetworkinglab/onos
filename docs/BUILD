@@ -297,6 +297,9 @@ project_javadoc(
     deps = JAVADOC_DEPS,
 )
 
+# FIXME: This is broken because currently javax.bind stuff is not found
+# For some reason javadoc for a different toolchain is user.
+# We will fix this once we're fully on Java 11 (LTS)
 project_javadoc(
     name = "internal",
     srcs = SOURCES + INTERNAL_SOURCES,

@@ -1,4 +1,0 @@
-org.onosproject.ui.impl*
-org.onosproject.rest.*
-org.onosproject.cli*
-org.onosproject.codec.impl
