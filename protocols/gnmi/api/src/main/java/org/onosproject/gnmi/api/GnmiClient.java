@@ -22,6 +22,7 @@ import gnmi.Gnmi.GetRequest;
 import gnmi.Gnmi.GetResponse;
 import gnmi.Gnmi.SetRequest;
 import gnmi.Gnmi.SetResponse;
+import gnmi.Gnmi.SubscribeRequest;
 import org.onosproject.grpc.api.GrpcClient;
 
 import java.util.concurrent.CompletableFuture;
@@ -56,12 +57,23 @@ public interface GnmiClient extends GrpcClient {
     CompletableFuture<SetResponse> set(SetRequest request);
 
     /**
-     * Check weather the gNMI service is available or not by sending a
-     * dummy get request message.
+     * Subscribes to a given specific gNMI path.
+     *
+     * @param request the subscribe request
+     * @return true if subscribe successfully; false otherwise
+     */
+    boolean subscribe(SubscribeRequest request);
+
+    /**
+     * Terminates the subscription channel of this device.
+     */
+    void terminateSubscriptionChannel();
+
+    /**
+     * Check weather the gNMI service is available or not by sending a dummy get
+     * request message.
      *
      * @return true if gNMI service available; false otherwise
      */
     CompletableFuture<Boolean> isServiceAvailable();
-
-    // TODO: Support gNMI subscription
 }

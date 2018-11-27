@@ -25,6 +25,7 @@ import org.onlab.util.ItemNotFoundException;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.CoreService;
+import org.onosproject.gnmi.api.GnmiController;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
@@ -169,6 +170,16 @@ public class GeneralDeviceProvider extends AbstractProvider
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private PiPipeconfWatchdogService pipeconfWatchdogService;
 
+    // FIXME: no longer general if we add a dependency to a protocol-specific
+    // service. Possible solutions are: rename this provider to
+    // StratumDeviceProvider, find a way to allow this provider to register for
+    // protocol specific events (e.g. port events) via drivers (similar to
+    // DeviceAgentListener).
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    private GnmiController gnmiController;
+
+    private GnmiDeviceStateSubscriber gnmiDeviceStateSubscriber;
+
     /**
      * Configure poll frequency for port status and statistics; default is 10 sec.
      */
@@ -228,6 +239,9 @@ public class GeneralDeviceProvider extends AbstractProvider
         pipeconfWatchdogService.addListener(pipeconfWatchdogListener);
         rescheduleProbeTask(false);
         modified(context);
+        gnmiDeviceStateSubscriber = new GnmiDeviceStateSubscriber(gnmiController,
+                deviceService, mastershipService, providerService);
+        gnmiDeviceStateSubscriber.activate();
         log.info("Started");
     }
 
@@ -316,6 +330,8 @@ public class GeneralDeviceProvider extends AbstractProvider
         providerRegistry.unregister(this);
         providerService = null;
         cfgService.unregisterConfigFactory(factory);
+        gnmiDeviceStateSubscriber.deactivate();
+        gnmiDeviceStateSubscriber = null;
         log.info("Stopped");
     }
 

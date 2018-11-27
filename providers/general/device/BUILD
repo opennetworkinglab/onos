@@ -1,4 +1,9 @@
-COMPILE_DEPS = CORE_DEPS + JACKSON
+COMPILE_DEPS = CORE_DEPS + JACKSON + [
+    "//protocols/gnmi/stub:onos-protocols-gnmi-stub",
+    "//protocols/gnmi/api:onos-protocols-gnmi-api",
+    "@com_google_protobuf//:protobuf_java",
+    "//protocols/grpc/api:onos-protocols-grpc-api",
+]
 
 osgi_jar_with_tests(
     test_deps = TEST_ADAPTERS,

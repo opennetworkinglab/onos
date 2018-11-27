@@ -7,7 +7,7 @@ onos_app(
     category = "Provider",
     description = "General device southbound providers.",
     included_bundles = BUNDLES,
-    required_apps = [],
+    required_apps = ["org.onosproject.protocols.gnmi"],
     title = "General Device Provider",
     url = "http://onosproject.org",
 )

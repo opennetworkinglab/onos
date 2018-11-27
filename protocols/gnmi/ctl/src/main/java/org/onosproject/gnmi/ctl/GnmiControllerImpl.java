@@ -41,6 +41,7 @@ public class GnmiControllerImpl
     @Activate
     public void activate() {
         super.activate();
+        eventDispatcher.addSink(GnmiEvent.class, listenerRegistry);
         log.info("Started");
     }
 
@@ -52,6 +53,15 @@ public class GnmiControllerImpl
 
     @Override
     protected GnmiClient createClientInstance(GnmiClientKey clientKey, ManagedChannel channel) {
-        return new GnmiClientImpl(clientKey, channel);
+        return new GnmiClientImpl(clientKey, channel, this);
+    }
+
+    /**
+     * Handles event from gNMI client.
+     *
+     * @param event the gNMI event
+     */
+    void postEvent(GnmiEvent event) {
+        post(event);
     }
 }
