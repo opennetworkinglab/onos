@@ -76,7 +76,6 @@ CORE = UTILS + API + [
     '//providers/isis/topology:onos-providers-isis-topology',
     '//providers/lisp/device:onos-providers-lisp-device',
     '//providers/tl1/device:onos-providers-tl1-device',
-    '//providers/general/device:onos-providers-general-device',
     # '//providers/p4runtime/packet:onos-providers-p4runtime-packet',
 
     '//web/api:onos-rest',
@@ -146,7 +145,6 @@ ONOS_PROVIDERS = [
     '//providers/link:onos-providers-link-oar',
     '//providers/lisp:onos-providers-lisp-oar',
     '//providers/tl1:onos-providers-tl1-oar',
-    '//providers/general:onos-providers-general-oar',
     # '//providers/p4runtime:onos-providers-p4runtime-oar',
 #    '//providers/ietfte:onos-providers-ietfte-oar',
     '//providers/xmpp/device:onos-providers-xmpp-device-oar',
