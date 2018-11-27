@@ -82,6 +82,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
+import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.openstacknetworking.api.Constants.ARP_BROADCAST_MODE;
@@ -208,7 +209,7 @@ public class OpenstackRoutingArpHandler {
     }
 
     @Modified
-    void modified(ComponentContext context) {
+    protected void modified(ComponentContext context) {
         log.info("Modified");
     }
 
@@ -406,7 +407,7 @@ public class OpenstackRoutingArpHandler {
                         }
                     });
                     finalGws.remove(gateway);
-                    if (completedGws.size() >= 1) {
+                    if (!completedGws.isEmpty()) {
                         osRouterAdminService.floatingIps().forEach(fip -> {
                             if (fip.getPortId() != null) {
                                 setFloatingIpArpRule(fip, fip.getPortId(),
@@ -487,11 +488,14 @@ public class OpenstackRoutingArpHandler {
             if (install) {
                 preCommitPortService.subscribePreCommit(instPort.portId(),
                         OPENSTACK_PORT_PRE_REMOVE, this.getClass().getName());
-                log.info("Subscribed the port {} on listening pre-remove event", instPort.portId());
+                log.info("Subscribed the port {} on listening pre-remove event",
+                                                                instPort.portId());
             } else {
                 preCommitPortService.unsubscribePreCommit(instPort.portId(),
-                        OPENSTACK_PORT_PRE_REMOVE, instancePortService, this.getClass().getName());
-                log.info("Unsubscribed the port {} on listening pre-remove event", instPort.portId());
+                        OPENSTACK_PORT_PRE_REMOVE, instancePortService,
+                                                        this.getClass().getName());
+                log.info("Unsubscribed the port {} on listening pre-remove event",
+                                                                instPort.portId());
             }
 
             setArpRule(fip, targetMac, gw, install);
@@ -607,29 +611,31 @@ public class OpenstackRoutingArpHandler {
             switch (event.type()) {
                 case OPENSTACK_PORT_CREATED:
                 case OPENSTACK_PORT_UPDATED:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper() || ipAddress == null) {
-                            return;
-                        }
-
-                        setFakeGatewayArpRuleByExternalIp(ipAddress, true);
-                    });
+                    eventExecutor.execute(() -> processPortCreation(ipAddress));
                     break;
                 case OPENSTACK_PORT_REMOVED:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper() || ipAddress == null) {
-                            return;
-                        }
-
-                        setFakeGatewayArpRuleByExternalIp(ipAddress, false);
-                    });
+                    eventExecutor.execute(() -> processPortRemoval(ipAddress));
                     break;
                 default:
                     // do nothing
                     break;
             }
+        }
+
+        private void processPortCreation(IpAddress ipAddress) {
+            if (!isRelevantHelper() || ipAddress == null) {
+                return;
+            }
+
+            setFakeGatewayArpRuleByExternalIp(ipAddress, true);
+        }
+
+        private void processPortRemoval(IpAddress ipAddress) {
+            if (!isRelevantHelper() || ipAddress == null) {
+                return;
+            }
+
+            setFakeGatewayArpRuleByExternalIp(ipAddress, false);
         }
 
         private IpAddress externalIp(Port port) {
@@ -655,79 +661,86 @@ public class OpenstackRoutingArpHandler {
 
         @Override
         public void event(OpenstackRouterEvent event) {
-
-            Set<OpenstackNode> completedGws = osNodeService.completeNodes(GATEWAY);
-
             switch (event.type()) {
                 case OPENSTACK_ROUTER_CREATED:
                     // add a router with external gateway
                 case OPENSTACK_ROUTER_GATEWAY_ADDED:
                     // add a gateway manually after adding a router
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        // add a router with external gateway
-                        setFakeGatewayArpRuleByRouter(event.subject(), true);
-                    });
+                    eventExecutor.execute(() -> processRouterGwCreation(event));
                     break;
                 case OPENSTACK_ROUTER_REMOVED:
                     // remove a router with external gateway
                 case OPENSTACK_ROUTER_GATEWAY_REMOVED:
                     // remove a gateway from an existing router
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        setFakeGatewayArpRuleByRouter(event.subject(), false);
-                    });
+                    eventExecutor.execute(() -> processRouterGwRemoval(event));
                     break;
                 case OPENSTACK_FLOATING_IP_CREATED:
                     // during floating IP creation, if the floating IP is
                     // associated with any port of VM, then we will set
                     // floating IP related ARP rules to gateway node
                 case OPENSTACK_FLOATING_IP_ASSOCIATED:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        if (getValidPortId(event) == null) {
-                            return;
-                        }
-                        // associate a floating IP with an existing VM
-                        setFloatingIpArpRule(event.floatingIp(),
-                                getValidPortId(event), completedGws, true);
-                    });
+                    eventExecutor.execute(() -> processFloatingIpCreation(event));
                     break;
                 case OPENSTACK_FLOATING_IP_REMOVED:
                     // during floating IP deletion, if the floating IP is
                     // still associated with any port of VM, then we will
                     // remove floating IP related ARP rules from gateway node
                 case OPENSTACK_FLOATING_IP_DISASSOCIATED:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        if (getValidPortId(event) == null) {
-                            return;
-                        }
-                        // disassociate a floating IP with an existing VM
-                        setFloatingIpArpRule(event.floatingIp(),
-                                getValidPortId(event), completedGws, false);
-                    });
+                    eventExecutor.execute(() -> processFloatingIpRemoval(event));
                     break;
                 default:
                     // do nothing for the other events
                     break;
             }
+        }
+
+        private void processRouterGwCreation(OpenstackRouterEvent event) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            // add a router with external gateway
+            setFakeGatewayArpRuleByRouter(event.subject(), true);
+        }
+
+        private void processRouterGwRemoval(OpenstackRouterEvent event) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            setFakeGatewayArpRuleByRouter(event.subject(), false);
+        }
+
+        private void processFloatingIpCreation(OpenstackRouterEvent event) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            if (getValidPortId(event) == null) {
+                return;
+            }
+
+            Set<OpenstackNode> completedGws = osNodeService.completeNodes(GATEWAY);
+
+            // associate a floating IP with an existing VM
+            setFloatingIpArpRule(event.floatingIp(),
+                    getValidPortId(event), completedGws, true);
+        }
+
+        private void processFloatingIpRemoval(OpenstackRouterEvent event) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            if (getValidPortId(event) == null) {
+                return;
+            }
+
+            Set<OpenstackNode> completedGws = osNodeService.completeNodes(GATEWAY);
+
+            // disassociate a floating IP with an existing VM
+            setFloatingIpArpRule(event.floatingIp(),
+                    getValidPortId(event), completedGws, false);
         }
 
         private String getValidPortId(OpenstackRouterEvent event) {
@@ -755,81 +768,89 @@ public class OpenstackRoutingArpHandler {
         @Override
         public void event(InstancePortEvent event) {
             InstancePort instPort = event.subject();
-
             switch (event.type()) {
                 case OPENSTACK_INSTANCE_PORT_DETECTED:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        osRouterAdminService.floatingIps().stream()
-                                .filter(f -> f.getPortId() != null)
-                                .filter(f -> f.getPortId().equals(instPort.portId()))
-                                .forEach(f -> setFloatingIpArpRule(f, instPort.portId(),
-                                        osNodeService.completeNodes(GATEWAY), true));
-                    });
+                    eventExecutor.execute(() ->
+                                processInstanceDetection(event, instPort));
 
                     break;
                 case OPENSTACK_INSTANCE_MIGRATION_STARTED:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        NetFloatingIP fip = associatedFloatingIp(instPort,
-                                            osRouterAdminService.floatingIps());
-
-                        if (osNodeService.completeNodes(GATEWAY).size() == 1) {
-                            return;
-                        }
-
-                        if (fip != null && isAssociatedWithVM(osNetworkService, fip)) {
-                            setFloatingIpArpRuleWithPortEvent(fip, event.subject(),
-                                    osNodeService.completeNodes(GATEWAY), true);
-                        }
-                    });
+                    eventExecutor.execute(() ->
+                                processInstanceMigrationStart(event, instPort));
 
                     break;
                 case OPENSTACK_INSTANCE_MIGRATION_ENDED:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        NetFloatingIP fip = associatedFloatingIp(instPort,
-                                            osRouterAdminService.floatingIps());
-                        Set<OpenstackNode> gateways = osNodeService.completeNodes(GATEWAY);
-
-                        InstancePort revisedInstPort = swapStaleLocation(event.subject());
-
-                        if (gateways.size() == 1) {
-                            return;
-                        }
-
-                        if (fip != null && isAssociatedWithVM(osNetworkService, fip)) {
-                            DeviceId newDeviceId = event.subject().deviceId();
-                            DeviceId oldDeviceId = revisedInstPort.deviceId();
-
-                            OpenstackNode oldGw =
-                                    getGwByComputeDevId(gateways, oldDeviceId);
-                            OpenstackNode newGw =
-                                    getGwByComputeDevId(gateways, newDeviceId);
-
-                            if (oldGw != null && oldGw.equals(newGw)) {
-                                return;
-                            }
-
-                            setFloatingIpArpRuleWithPortEvent(fip,
-                                        revisedInstPort, gateways, false);
-                        }
-                    });
+                    eventExecutor.execute(() ->
+                                processInstanceMigrationEnd(event, instPort));
                     break;
                 default:
                     break;
+            }
+        }
+
+        private void processInstanceDetection(InstancePortEvent event,
+                                              InstancePort instPort) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            osRouterAdminService.floatingIps().stream()
+                    .filter(f -> f.getPortId() != null)
+                    .filter(f -> f.getPortId().equals(instPort.portId()))
+                    .forEach(f -> setFloatingIpArpRule(f, instPort.portId(),
+                            osNodeService.completeNodes(GATEWAY), true));
+        }
+
+        private void processInstanceMigrationStart(InstancePortEvent event,
+                                                   InstancePort instPort) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            NetFloatingIP fip = associatedFloatingIp(instPort,
+                    osRouterAdminService.floatingIps());
+
+            if (osNodeService.completeNodes(GATEWAY).size() == 1) {
+                return;
+            }
+
+            if (fip != null && isAssociatedWithVM(osNetworkService, fip)) {
+                setFloatingIpArpRuleWithPortEvent(fip, event.subject(),
+                        osNodeService.completeNodes(GATEWAY), true);
+            }
+        }
+
+        private void processInstanceMigrationEnd(InstancePortEvent event,
+                                                 InstancePort instPort) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            NetFloatingIP fip = associatedFloatingIp(instPort,
+                    osRouterAdminService.floatingIps());
+            Set<OpenstackNode> gateways = osNodeService.completeNodes(GATEWAY);
+
+            InstancePort revisedInstPort = swapStaleLocation(event.subject());
+
+            if (gateways.size() == 1) {
+                return;
+            }
+
+            if (fip != null && isAssociatedWithVM(osNetworkService, fip)) {
+                DeviceId newDeviceId = event.subject().deviceId();
+                DeviceId oldDeviceId = revisedInstPort.deviceId();
+
+                OpenstackNode oldGw =
+                        getGwByComputeDevId(gateways, oldDeviceId);
+                OpenstackNode newGw =
+                        getGwByComputeDevId(gateways, newDeviceId);
+
+                if (oldGw != null && oldGw.equals(newGw)) {
+                    return;
+                }
+
+                setFloatingIpArpRuleWithPortEvent(fip,
+                        revisedInstPort, gateways, false);
             }
         }
     }
@@ -850,36 +871,42 @@ public class OpenstackRoutingArpHandler {
             OpenstackNode osNode = event.subject();
             switch (event.type()) {
                 case OPENSTACK_NODE_COMPLETE:
-                    eventExecutor.execute(() -> {
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-                        setDefaultArpRule(osNode, true);
-                        setFloatingIpArpRuleForGateway(osNode, true);
-                        sendGratuitousArpToSwitch(event.subject(), true);
-                    });
+                    eventExecutor.execute(() -> processNodeCompletion(event, osNode));
                     break;
                 case OPENSTACK_NODE_INCOMPLETE:
-                    eventExecutor.execute(() -> {
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-                        setDefaultArpRule(osNode, false);
-                        setFloatingIpArpRuleForGateway(osNode, false);
-                        sendGratuitousArpToSwitch(event.subject(), false);
-                    });
+                    eventExecutor.execute(() -> processNodeIncompletion(event, osNode));
                     break;
                 case OPENSTACK_NODE_REMOVED:
-                    eventExecutor.execute(() -> {
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-                        sendGratuitousArpToSwitch(event.subject(), false);
-                    });
+                    eventExecutor.execute(() -> processNodeRemoval(event));
                     break;
                 default:
                     break;
             }
+        }
+
+        private void processNodeCompletion(OpenstackNodeEvent event, OpenstackNode node) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+            setDefaultArpRule(node, true);
+            setFloatingIpArpRuleForGateway(node, true);
+            sendGratuitousArpToSwitch(event.subject(), true);
+        }
+
+        private void processNodeIncompletion(OpenstackNodeEvent event, OpenstackNode node) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+            setDefaultArpRule(node, false);
+            setFloatingIpArpRuleForGateway(node, false);
+            sendGratuitousArpToSwitch(event.subject(), false);
+        }
+
+        private void processNodeRemoval(OpenstackNodeEvent event) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+            sendGratuitousArpToSwitch(event.subject(), false);
         }
 
         private void sendGratuitousArpToSwitch(OpenstackNode gatewayNode,
@@ -912,7 +939,7 @@ public class OpenstackRoutingArpHandler {
         private boolean isGwSelectedByComputeNode(Set<OpenstackNode> gws,
                                                   OpenstackNode computeNode,
                                                   OpenstackNode gwNode) {
-            return getGwByComputeDevId(gws, computeNode.intgBridge())
+            return requireNonNull(getGwByComputeDevId(gws, computeNode.intgBridge()))
                     .intgBridge().equals(gwNode.intgBridge());
         }
 

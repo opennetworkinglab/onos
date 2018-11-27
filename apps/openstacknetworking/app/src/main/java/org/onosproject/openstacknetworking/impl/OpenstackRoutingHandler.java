@@ -120,6 +120,8 @@ public class OpenstackRoutingHandler {
     private static final String MSG_DISABLED = "Disabled ";
     private static final String ERR_UNSUPPORTED_NET_TYPE = "Unsupported network type";
 
+    private static final int VM_PREFIX = 32;
+
     /** Use Stateful SNAT for source NATing. */
     private boolean useStatefulSnat = USE_STATEFUL_SNAT_DEFAULT;
 
@@ -362,12 +364,12 @@ public class OpenstackRoutingHandler {
                                 .filter(port -> port.state() == ACTIVE)
                                 .forEach(port -> setRulesForSnatIngressRule(gwNode.intgBridge(),
                                     Long.parseLong(osNet.getProviderSegID()),
-                                    IpPrefix.valueOf(port.ipAddress(), 32),
+                                    IpPrefix.valueOf(port.ipAddress(), VM_PREFIX),
                                     port.deviceId(),
                                     install));
 
                         setOvsNatIngressRule(gwNode.intgBridge(),
-                                IpPrefix.valueOf(natAddress, 32),
+                                IpPrefix.valueOf(natAddress, VM_PREFIX),
                                 Constants.DEFAULT_EXTERNAL_ROUTER_MAC, install);
                         setOvsNatEgressRule(gwNode.intgBridge(),
                                 natAddress, Long.parseLong(osNet.getProviderSegID()),
@@ -425,9 +427,10 @@ public class OpenstackRoutingHandler {
     }
 
     private void setGatewayIcmp(Subnet osSubnet, Router osRouter, boolean install) {
-        OpenstackNode sourceNatGateway = osNodeService.completeNodes(GATEWAY).stream().findFirst().orElse(null);
+        OpenstackNode srcNatGw = osNodeService.completeNodes(GATEWAY)
+                                         .stream().findFirst().orElse(null);
 
-        if (sourceNatGateway == null) {
+        if (srcNatGw == null) {
             return;
         }
 
@@ -437,38 +440,19 @@ public class OpenstackRoutingHandler {
         }
 
         // take ICMP request to a subnet gateway through gateway node group
-        Network network = osNetworkAdminService.network(osSubnet.getNetworkId());
+        Network net = osNetworkAdminService.network(osSubnet.getNetworkId());
         Set<Subnet> routableSubnets = routableSubnets(osRouter, osSubnet.getId());
 
-        switch (network.getNetworkType()) {
+        switch (net.getNetworkType()) {
             case VXLAN:
-                osNodeService.completeNodes(COMPUTE).stream()
-                        .filter(cNode -> cNode.dataIp() != null)
-                        .forEach(cNode -> setRulesToGatewayWithRoutableSubnets(
-                                cNode,
-                                sourceNatGateway,
-                                network.getProviderSegID(),
-                                osSubnet,
-                                routableSubnets,
-                                NetworkMode.VXLAN,
-                                install));
+                setGatewayIcmpForVxlan(osSubnet, srcNatGw, net, routableSubnets, install);
                 break;
             case VLAN:
-                osNodeService.completeNodes(COMPUTE).stream()
-                        .filter(cNode -> cNode.vlanPortNum() != null)
-                        .forEach(cNode -> setRulesToGatewayWithRoutableSubnets(
-                                cNode,
-                                sourceNatGateway,
-                                network.getProviderSegID(),
-                                osSubnet,
-                                routableSubnets,
-                                NetworkMode.VLAN,
-                                install));
+                setGatewayIcmpForVlan(osSubnet, srcNatGw, net, routableSubnets, install);
                 break;
             default:
-                final String error = String.format("%s %s",
-                        ERR_UNSUPPORTED_NET_TYPE,
-                        network.getNetworkType().toString());
+                final String error = String.format("%s %s", ERR_UNSUPPORTED_NET_TYPE,
+                                                            net.getNetworkType().toString());
                 throw new IllegalStateException(error);
         }
 
@@ -481,6 +465,40 @@ public class OpenstackRoutingHandler {
 
         final String updateStr = install ? MSG_ENABLED : MSG_DISABLED;
         log.debug(updateStr + "ICMP to {}", osSubnet.getGateway());
+    }
+
+    private void setGatewayIcmpForVxlan(Subnet osSubnet,
+                                        OpenstackNode srcNatGw,
+                                        Network network,
+                                        Set<Subnet> routableSubnets,
+                                        boolean install) {
+        osNodeService.completeNodes(COMPUTE).stream()
+                .filter(cNode -> cNode.dataIp() != null)
+                .forEach(cNode -> setRulesToGatewayWithRoutableSubnets(
+                        cNode,
+                        srcNatGw,
+                        network.getProviderSegID(),
+                        osSubnet,
+                        routableSubnets,
+                        NetworkMode.VXLAN,
+                        install));
+    }
+
+    private void setGatewayIcmpForVlan(Subnet osSubnet,
+                                       OpenstackNode srcNatGw,
+                                       Network network,
+                                       Set<Subnet> routableSubnets,
+                                       boolean install) {
+        osNodeService.completeNodes(COMPUTE).stream()
+                .filter(cNode -> cNode.vlanPortNum() != null)
+                .forEach(cNode -> setRulesToGatewayWithRoutableSubnets(
+                        cNode,
+                        srcNatGw,
+                        network.getProviderSegID(),
+                        osSubnet,
+                        routableSubnets,
+                        NetworkMode.VLAN,
+                        install));
     }
 
     private void setInternalRoutes(Router osRouter, Subnet updatedSubnet, boolean install) {
@@ -565,105 +583,127 @@ public class OpenstackRoutingHandler {
                 install);
     }
 
-    private void setInternalRouterRules(DeviceId deviceId, String srcSegmentId, String dstSegmentId,
+    private void setInternalRouterRules(DeviceId deviceId, String srcSegId, String dstSegId,
                                         IpPrefix srcSubnet, IpPrefix dstSubnet,
                                         NetworkType networkType, boolean install) {
-        TrafficSelector selector;
-        TrafficTreatment treatment;
+
         switch (networkType) {
             case VXLAN:
-                selector = DefaultTrafficSelector.builder()
-                        .matchEthType(Ethernet.TYPE_IPV4)
-                        .matchTunnelId(Long.parseLong(srcSegmentId))
-                        .matchIPSrc(srcSubnet.getIp4Prefix())
-                        .matchIPDst(dstSubnet.getIp4Prefix())
-                        .build();
-
-                treatment = DefaultTrafficTreatment.builder()
-                        .setTunnelId(Long.parseLong(dstSegmentId))
-                        .transition(STAT_OUTBOUND_TABLE)
-                        .build();
-
-                osFlowRuleService.setRule(
-                        appId,
-                        deviceId,
-                        selector,
-                        treatment,
-                        PRIORITY_INTERNAL_ROUTING_RULE,
-                        ROUTING_TABLE,
-                        install);
-
-                selector = DefaultTrafficSelector.builder()
-                        .matchEthType(Ethernet.TYPE_IPV4)
-                        .matchTunnelId(Long.parseLong(dstSegmentId))
-                        .matchIPSrc(srcSubnet.getIp4Prefix())
-                        .matchIPDst(dstSubnet.getIp4Prefix())
-                        .build();
-
-                treatment = DefaultTrafficTreatment.builder()
-                        .setTunnelId(Long.parseLong(dstSegmentId))
-                        .transition(STAT_OUTBOUND_TABLE)
-                        .build();
-
-                osFlowRuleService.setRule(
-                        appId,
-                        deviceId,
-                        selector,
-                        treatment,
-                        PRIORITY_INTERNAL_ROUTING_RULE,
-                        ROUTING_TABLE,
-                        install);
+                setInternalRouterRulesForVxlan(deviceId, srcSegId, dstSegId,
+                                                srcSubnet, dstSubnet, install);
                 break;
             case VLAN:
-                selector = DefaultTrafficSelector.builder()
-                        .matchEthType(Ethernet.TYPE_IPV4)
-                        .matchVlanId(VlanId.vlanId(srcSegmentId))
-                        .matchIPSrc(srcSubnet.getIp4Prefix())
-                        .matchIPDst(dstSubnet.getIp4Prefix())
-                        .build();
-
-                treatment = DefaultTrafficTreatment.builder()
-                        .setVlanId(VlanId.vlanId(dstSegmentId))
-                        .transition(STAT_OUTBOUND_TABLE)
-                        .build();
-
-                osFlowRuleService.setRule(
-                        appId,
-                        deviceId,
-                        selector,
-                        treatment,
-                        PRIORITY_INTERNAL_ROUTING_RULE,
-                        ROUTING_TABLE,
-                        install);
-
-                selector = DefaultTrafficSelector.builder()
-                        .matchEthType(Ethernet.TYPE_IPV4)
-                        .matchVlanId(VlanId.vlanId(dstSegmentId))
-                        .matchIPSrc(srcSubnet.getIp4Prefix())
-                        .matchIPDst(dstSubnet.getIp4Prefix())
-                        .build();
-
-                treatment = DefaultTrafficTreatment.builder()
-                        .setVlanId(VlanId.vlanId(dstSegmentId))
-                        .transition(STAT_OUTBOUND_TABLE)
-                        .build();
-
-                osFlowRuleService.setRule(
-                        appId,
-                        deviceId,
-                        selector,
-                        treatment,
-                        PRIORITY_INTERNAL_ROUTING_RULE,
-                        ROUTING_TABLE,
-                        install);
+                setInternalRouterRulesForVlan(deviceId, srcSegId, dstSegId,
+                                                srcSubnet, dstSubnet, install);
                 break;
             default:
-                final String error = String.format("%s %s",
-                        ERR_UNSUPPORTED_NET_TYPE,
-                        networkType.toString());
+                final String error = String.format("%s %s", ERR_UNSUPPORTED_NET_TYPE,
+                                                            networkType.toString());
                 throw new IllegalStateException(error);
         }
 
+    }
+
+    private void setInternalRouterRulesForVxlan(DeviceId deviceId,
+                                                String srcSegmentId,
+                                                String dstSegmentId,
+                                                IpPrefix srcSubnet,
+                                                IpPrefix dstSubnet,
+                                                boolean install) {
+        TrafficSelector selector;
+        TrafficTreatment treatment;
+        selector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchTunnelId(Long.parseLong(srcSegmentId))
+                .matchIPSrc(srcSubnet.getIp4Prefix())
+                .matchIPDst(dstSubnet.getIp4Prefix())
+                .build();
+
+        treatment = DefaultTrafficTreatment.builder()
+                .setTunnelId(Long.parseLong(dstSegmentId))
+                .transition(STAT_OUTBOUND_TABLE)
+                .build();
+
+        osFlowRuleService.setRule(
+                appId,
+                deviceId,
+                selector,
+                treatment,
+                PRIORITY_INTERNAL_ROUTING_RULE,
+                ROUTING_TABLE,
+                install);
+
+        selector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchTunnelId(Long.parseLong(dstSegmentId))
+                .matchIPSrc(srcSubnet.getIp4Prefix())
+                .matchIPDst(dstSubnet.getIp4Prefix())
+                .build();
+
+        treatment = DefaultTrafficTreatment.builder()
+                .setTunnelId(Long.parseLong(dstSegmentId))
+                .transition(STAT_OUTBOUND_TABLE)
+                .build();
+
+        osFlowRuleService.setRule(
+                appId,
+                deviceId,
+                selector,
+                treatment,
+                PRIORITY_INTERNAL_ROUTING_RULE,
+                ROUTING_TABLE,
+                install);
+    }
+
+    private void setInternalRouterRulesForVlan(DeviceId deviceId,
+                                               String srcSegmentId,
+                                               String dstSegmentId,
+                                               IpPrefix srcSubnet,
+                                               IpPrefix dstSubnet,
+                                               boolean install) {
+        TrafficSelector selector;
+        TrafficTreatment treatment;
+        selector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchVlanId(VlanId.vlanId(srcSegmentId))
+                .matchIPSrc(srcSubnet.getIp4Prefix())
+                .matchIPDst(dstSubnet.getIp4Prefix())
+                .build();
+
+        treatment = DefaultTrafficTreatment.builder()
+                .setVlanId(VlanId.vlanId(dstSegmentId))
+                .transition(STAT_OUTBOUND_TABLE)
+                .build();
+
+        osFlowRuleService.setRule(
+                appId,
+                deviceId,
+                selector,
+                treatment,
+                PRIORITY_INTERNAL_ROUTING_RULE,
+                ROUTING_TABLE,
+                install);
+
+        selector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchVlanId(VlanId.vlanId(dstSegmentId))
+                .matchIPSrc(srcSubnet.getIp4Prefix())
+                .matchIPDst(dstSubnet.getIp4Prefix())
+                .build();
+
+        treatment = DefaultTrafficTreatment.builder()
+                .setVlanId(VlanId.vlanId(dstSegmentId))
+                .transition(STAT_OUTBOUND_TABLE)
+                .build();
+
+        osFlowRuleService.setRule(
+                appId,
+                deviceId,
+                selector,
+                treatment,
+                PRIORITY_INTERNAL_ROUTING_RULE,
+                ROUTING_TABLE,
+                install);
     }
 
     private void setRulesToGateway(OpenstackNode osNode, String segmentId, IpPrefix srcSubnet,
@@ -959,74 +999,22 @@ public class OpenstackRoutingHandler {
         public void event(OpenstackRouterEvent event) {
             switch (event.type()) {
                 case OPENSTACK_ROUTER_CREATED:
-                    log.debug("Router(name:{}, ID:{}) is created",
-                            event.subject().getName(),
-                            event.subject().getId());
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        routerUpdated(event.subject());
-                    });
+                    eventExecutor.execute(() -> processRouterCreation(event));
                     break;
                 case OPENSTACK_ROUTER_UPDATED:
-                    log.debug("Router(name:{}, ID:{}) is updated",
-                            event.subject().getName(),
-                            event.subject().getId());
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        routerUpdated(event.subject());
-                    });
+                    eventExecutor.execute(() -> processRouterUpdate(event));
                     break;
                 case OPENSTACK_ROUTER_REMOVED:
-                    log.debug("Router(name:{}, ID:{}) is removed",
-                            event.subject().getName(),
-                            event.subject().getId());
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        routerRemove(event.subject());
-                    });
+                    eventExecutor.execute(() -> processRouterRemoval(event));
                     break;
                 case OPENSTACK_ROUTER_INTERFACE_ADDED:
-                    log.debug("Router interface {} added to router {}",
-                            event.routerIface().getPortId(),
-                            event.routerIface().getId());
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        routerIfaceAdded(event.subject(), event.routerIface());
-                    });
+                    eventExecutor.execute(() -> processRouterIntfCreation(event));
                     break;
                 case OPENSTACK_ROUTER_INTERFACE_UPDATED:
-                    log.debug("Router interface {} on {} updated",
-                            event.routerIface().getPortId(),
-                            event.routerIface().getId());
+                    eventExecutor.execute(() -> processRouterIntfUpdate(event));
                     break;
                 case OPENSTACK_ROUTER_INTERFACE_REMOVED:
-                    log.debug("Router interface {} removed from router {}",
-                            event.routerIface().getPortId(),
-                            event.routerIface().getId());
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        routerIfaceRemoved(event.subject(), event.routerIface());
-                    });
+                    eventExecutor.execute(() -> processRouterIntfRemoval(event));
                     break;
                 case OPENSTACK_ROUTER_GATEWAY_ADDED:
                     log.debug("Router external gateway {} added",
@@ -1046,6 +1034,72 @@ public class OpenstackRoutingHandler {
                     break;
             }
         }
+
+        private void processRouterCreation(OpenstackRouterEvent event) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            log.debug("Router(name:{}, ID:{}) is created",
+                                                    event.subject().getName(),
+                                                    event.subject().getId());
+
+            routerUpdated(event.subject());
+        }
+
+        private void processRouterUpdate(OpenstackRouterEvent event) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            log.debug("Router(name:{}, ID:{}) is updated",
+                                                    event.subject().getName(),
+                                                    event.subject().getId());
+
+            routerUpdated(event.subject());
+        }
+
+        private void processRouterRemoval(OpenstackRouterEvent event) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            log.debug("Router(name:{}, ID:{}) is removed",
+                                                    event.subject().getName(),
+                                                    event.subject().getId());
+
+            routerRemove(event.subject());
+        }
+
+        private void processRouterIntfCreation(OpenstackRouterEvent event) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            log.debug("Router interface {} added to router {}",
+                                                    event.routerIface().getPortId(),
+                                                    event.routerIface().getId());
+
+            routerIfaceAdded(event.subject(), event.routerIface());
+        }
+
+        private void processRouterIntfUpdate(OpenstackRouterEvent event) {
+            log.debug("Router interface {} on {} updated",
+                                                    event.routerIface().getPortId(),
+                                                    event.routerIface().getId());
+        }
+
+        private void processRouterIntfRemoval(OpenstackRouterEvent event) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            log.debug("Router interface {} removed from router {}",
+                                                    event.routerIface().getPortId(),
+                                                    event.routerIface().getId());
+
+            routerIfaceRemoved(event.subject(), event.routerIface());
+        }
     }
 
     private class InternalNodeEventListener implements OpenstackNodeListener {
@@ -1057,20 +1111,16 @@ public class OpenstackRoutingHandler {
         @Override
         public void event(OpenstackNodeEvent event) {
             OpenstackNode osNode = event.subject();
-
             switch (event.type()) {
                 case OPENSTACK_NODE_COMPLETE:
                 case OPENSTACK_NODE_INCOMPLETE:
                 case OPENSTACK_NODE_UPDATED:
                 case OPENSTACK_NODE_REMOVED:
                     eventExecutor.execute(() -> {
-                        log.info("Reconfigure routers for {}", osNode.hostname());
-
                         if (!isRelevantHelper()) {
                             return;
                         }
-
-                        reconfigureRouters();
+                        reconfigureRouters(osNode);
                     });
                     break;
                 case OPENSTACK_NODE_CREATED:
@@ -1079,13 +1129,14 @@ public class OpenstackRoutingHandler {
             }
         }
 
-        private void reconfigureRouters() {
+        private void reconfigureRouters(OpenstackNode osNode) {
             osRouterService.routers().forEach(osRouter -> {
                 routerUpdated(osRouter);
                 osRouterService.routerInterfaces(osRouter.getId()).forEach(iface -> {
                     routerIfaceAdded(osRouter, iface);
                 });
             });
+            log.info("Reconfigure routers for {}", osNode.hostname());
         }
     }
 
@@ -1101,66 +1152,76 @@ public class OpenstackRoutingHandler {
             switch (event.type()) {
                 case OPENSTACK_INSTANCE_PORT_DETECTED:
                 case OPENSTACK_INSTANCE_PORT_UPDATED:
-                    log.info("RoutingHandler: Instance port detected MAC:{} IP:{}",
-                                                            instPort.macAddress(),
-                                                            instPort.ipAddress());
-
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper(event)) {
-                            return;
-                        }
-
-                        instPortDetected(event.subject());
-                    });
-
+                    eventExecutor.execute(() ->
+                                processInstancePortDetection(event, instPort));
                     break;
                 case OPENSTACK_INSTANCE_PORT_VANISHED:
-                    log.info("RoutingHandler: Instance port vanished MAC:{} IP:{}",
-                                                            instPort.macAddress(),
-                                                            instPort.ipAddress());
-
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper(event)) {
-                            return;
-                        }
-
-                        instPortRemoved(event.subject());
-                    });
-
+                    eventExecutor.execute(() ->
+                                processInstancePortRemoval(event, instPort));
                     break;
                 case OPENSTACK_INSTANCE_MIGRATION_STARTED:
-                    log.info("RoutingHandler: Migration started for MAC:{} IP:{}",
-                                                            instPort.macAddress(),
-                                                            instPort.ipAddress());
-
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper(event)) {
-                            return;
-                        }
-
-                        instPortDetected(instPort);
-                    });
-
+                    eventExecutor.execute(() ->
+                                processInstanceMigrationStart(event, instPort));
                     break;
                 case OPENSTACK_INSTANCE_MIGRATION_ENDED:
-                    log.info("RoutingHandler: Migration finished for MAC:{} IP:{}",
-                                                            instPort.macAddress(),
-                                                            instPort.ipAddress());
-                    eventExecutor.execute(() -> {
-                        // TODO: need to reconfigure rules to point to update VM
-                    });
-
+                    eventExecutor.execute(() ->
+                                processInstanceMigrationEnd(event, instPort));
                     break;
                 default:
                     break;
             }
         }
 
+        private void processInstancePortDetection(InstancePortEvent event,
+                                                  InstancePort instPort) {
+            if (!isRelevantHelper(event)) {
+                return;
+            }
+
+            log.info("RoutingHandler: Instance port detected MAC:{} IP:{}",
+                                                    instPort.macAddress(),
+                                                    instPort.ipAddress());
+
+            instPortDetected(event.subject());
+        }
+
+        private void processInstancePortRemoval(InstancePortEvent event,
+                                                InstancePort instPort) {
+            if (!isRelevantHelper(event)) {
+                return;
+            }
+
+            log.info("RoutingHandler: Instance port vanished MAC:{} IP:{}",
+                                                    instPort.macAddress(),
+                                                    instPort.ipAddress());
+
+            instPortRemoved(event.subject());
+        }
+
+        private void processInstanceMigrationStart(InstancePortEvent event,
+                                                   InstancePort instPort) {
+            if (!isRelevantHelper(event)) {
+                return;
+            }
+
+            log.info("RoutingHandler: Migration started for MAC:{} IP:{}",
+                                                    instPort.macAddress(),
+                                                    instPort.ipAddress());
+
+            instPortDetected(instPort);
+        }
+
+        private void processInstanceMigrationEnd(InstancePortEvent event,
+                                                 InstancePort instPort) {
+            log.info("RoutingHandler: Migration finished for MAC:{} IP:{}",
+                                                    instPort.macAddress(),
+                                                    instPort.ipAddress());
+            // TODO: need to reconfigure rules to point to update VM
+        }
+
         private void instPortDetected(InstancePort instPort) {
-            if (osNetworkAdminService.network(instPort.networkId()).getNetworkType() == FLAT) {
+            Network network = osNetworkAdminService.network(instPort.networkId());
+            if (network.getNetworkType() == FLAT) {
                 return;
             }
 
@@ -1168,15 +1229,15 @@ public class OpenstackRoutingHandler {
                 osNodeService.completeNodes(GATEWAY)
                         .forEach(gwNode -> setRulesForSnatIngressRule(
                                 gwNode.intgBridge(),
-                                Long.parseLong(osNetworkAdminService
-                                        .network(instPort.networkId()).getProviderSegID()),
-                                IpPrefix.valueOf(instPort.ipAddress(), 32),
+                                Long.parseLong(network.getProviderSegID()),
+                                IpPrefix.valueOf(instPort.ipAddress(), VM_PREFIX),
                                 instPort.deviceId(), true));
             }
         }
 
         private void instPortRemoved(InstancePort instPort) {
-            if (osNetworkAdminService.network(instPort.networkId()).getNetworkType() == FLAT) {
+            Network network = osNetworkAdminService.network(instPort.networkId());
+            if (network.getNetworkType() == FLAT) {
                 return;
             }
 
@@ -1184,9 +1245,8 @@ public class OpenstackRoutingHandler {
                 osNodeService.completeNodes(GATEWAY)
                         .forEach(gwNode -> setRulesForSnatIngressRule(
                                 gwNode.intgBridge(),
-                                Long.parseLong(osNetworkAdminService
-                                        .network(instPort.networkId()).getProviderSegID()),
-                                IpPrefix.valueOf(instPort.ipAddress(), 32),
+                                Long.parseLong(network.getProviderSegID()),
+                                IpPrefix.valueOf(instPort.ipAddress(), VM_PREFIX),
                                 instPort.deviceId(), false));
             }
         }
