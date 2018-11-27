@@ -107,6 +107,7 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ACL_RUL
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_CT_DROP_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_CT_HOOK_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_CT_RULE;
+import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_PRE_REMOVE;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.swapStaleLocation;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.computeCtMaskFlag;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.computeCtStateFlag;
@@ -126,6 +127,16 @@ public class OpenstackSecurityGroupHandler {
 
     private static final int VM_IP_PREFIX = 32;
 
+    private static final String STR_ZERO = "0";
+    private static final String STR_ONE = "1";
+    private static final String STR_NULL = "null";
+    private static final String STR_PADDING = "0000000000000000";
+    private static final int MASK_BEGIN_IDX = 0;
+    private static final int MASK_MAX_IDX = 16;
+    private static final int MASK_RADIX = 2;
+    private static final int PORT_RADIX = 16;
+
+    // Apply OpenStack security group rule for VM traffic.
     @Property(name = "useSecurityGroup", boolValue = USE_SECURITY_GROUP,
             label = "Apply OpenStack security group rule for VM traffic")
     private boolean useSecurityGroup = USE_SECURITY_GROUP;
@@ -321,35 +332,6 @@ public class OpenstackSecurityGroupHandler {
         }
     }
 
-    private void setSecurityGroupRules(InstancePort instPort,
-                                       Port port, boolean install) {
-
-        if (!install) {
-            Port rmvPort = removedOsPortStore.asJavaMap().get(instPort.portId());
-            if (port == null && rmvPort == null) {
-                return;
-            }
-
-            if (port == null) {
-                port = rmvPort;
-            }
-        }
-
-        final Port finalPort = port;
-
-        port.getSecurityGroups().forEach(sgId -> {
-            SecurityGroup sg = securityGroupService.securityGroup(sgId);
-            if (sg == null) {
-                log.error("Security Group Not Found : {}", sgId);
-                return;
-            }
-            sg.getRules().forEach(sgRule ->
-                    updateSecurityGroupRule(instPort, finalPort, sgRule, install));
-            final String action = install ? "Installed " : "Removed ";
-            log.debug(action + "security group rule ID : " + sgId);
-        });
-    }
-
     private void updateSecurityGroupRule(InstancePort instPort, Port port,
                                          SecurityGroupRule sgRule, boolean install) {
 
@@ -369,8 +351,8 @@ public class OpenstackSecurityGroupHandler {
                                 new NeutronSecurityGroupRule
                                         .SecurityGroupRuleConcreteBuilder()
                                         .from(sgRule)
-                                        .direction(sgRule.getDirection().toUpperCase()
-                                                .equals(EGRESS) ? INGRESS : EGRESS)
+                                        .direction(sgRule.getDirection()
+                                                .equalsIgnoreCase(EGRESS) ? INGRESS : EGRESS)
                                         .build();
                         populateSecurityGroupRule(rSgRule, instPort,
                                 rInstPort.ipAddress().toIpPrefix(), install);
@@ -405,7 +387,7 @@ public class OpenstackSecurityGroupHandler {
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
 
         int aclTable;
-        if (sgRule.getDirection().toUpperCase().equals(EGRESS)) {
+        if (sgRule.getDirection().equalsIgnoreCase(EGRESS)) {
             aclTable = ACL_EGRESS_TABLE;
             tBuilder.transition(ACL_RECIRC_TABLE);
         } else {
@@ -548,14 +530,14 @@ public class OpenstackSecurityGroupHandler {
                             sgRule.getPortRangeMax());
             portRangeMatchMap.forEach((key, value) -> {
 
-                if (sgRule.getProtocol().toUpperCase().equals(PROTO_TCP)) {
-                    if (sgRule.getDirection().toUpperCase().equals(EGRESS)) {
+                if (sgRule.getProtocol().equalsIgnoreCase(PROTO_TCP)) {
+                    if (sgRule.getDirection().equalsIgnoreCase(EGRESS)) {
                         sBuilder.matchTcpSrcMasked(key, value);
                     } else {
                         sBuilder.matchTcpDstMasked(key, value);
                     }
-                } else if (sgRule.getProtocol().toUpperCase().equals(PROTO_UDP)) {
-                    if (sgRule.getDirection().toUpperCase().equals(EGRESS)) {
+                } else if (sgRule.getProtocol().equalsIgnoreCase(PROTO_UDP)) {
+                    if (sgRule.getDirection().equalsIgnoreCase(EGRESS)) {
                         sBuilder.matchUdpSrcMasked(key, value);
                     } else {
                         sBuilder.matchUdpDstMasked(key, value);
@@ -600,7 +582,7 @@ public class OpenstackSecurityGroupHandler {
     private void buildMatchDirection(TrafficSelector.Builder sBuilder,
                                      String direction,
                                      Ip4Address vmIp) {
-        if (direction.toUpperCase().equals(EGRESS)) {
+        if (direction.equalsIgnoreCase(EGRESS)) {
             sBuilder.matchIPSrc(IpPrefix.valueOf(vmIp, VM_IP_PREFIX));
         } else {
             sBuilder.matchIPDst(IpPrefix.valueOf(vmIp, VM_IP_PREFIX));
@@ -610,8 +592,8 @@ public class OpenstackSecurityGroupHandler {
     private void buildMatchEthType(TrafficSelector.Builder sBuilder, String etherType) {
         // Either IpSrc or IpDst (or both) is set by default, and we need to set EthType as IPv4.
         sBuilder.matchEthType(Ethernet.TYPE_IPV4);
-        if (etherType != null && !Objects.equals(etherType, "null") &&
-                !etherType.toUpperCase().equals(ETHTYPE_IPV4)) {
+        if (etherType != null && !Objects.equals(etherType, STR_NULL) &&
+                !etherType.equalsIgnoreCase(ETHTYPE_IPV4)) {
             log.debug("EthType {} is not supported yet in Security Group", etherType);
         }
     }
@@ -620,7 +602,7 @@ public class OpenstackSecurityGroupHandler {
                                     IpPrefix remoteIpPrefix, String direction) {
         if (remoteIpPrefix != null &&
                 !remoteIpPrefix.getIp4Prefix().equals(IP_PREFIX_ANY)) {
-            if (direction.toUpperCase().equals(EGRESS)) {
+            if (direction.equalsIgnoreCase(EGRESS)) {
                 sBuilder.matchIPDst(remoteIpPrefix);
             } else {
                 sBuilder.matchIPSrc(remoteIpPrefix);
@@ -649,14 +631,14 @@ public class OpenstackSecurityGroupHandler {
                                 String protocol, String direction,
                                 int portMin, int portMax) {
         if (portMin > 0 && portMax > 0 && portMin == portMax) {
-            if (protocol.toUpperCase().equals(PROTO_TCP)) {
-                if (direction.toUpperCase().equals(EGRESS)) {
+            if (protocol.equalsIgnoreCase(PROTO_TCP)) {
+                if (direction.equalsIgnoreCase(EGRESS)) {
                     sBuilder.matchTcpSrc(TpPort.tpPort(portMax));
                 } else {
                     sBuilder.matchTcpDst(TpPort.tpPort(portMax));
                 }
-            } else if (protocol.toUpperCase().equals(PROTO_UDP)) {
-                if (direction.toUpperCase().equals(EGRESS)) {
+            } else if (protocol.equalsIgnoreCase(PROTO_UDP)) {
+                if (direction.equalsIgnoreCase(EGRESS)) {
                     sBuilder.matchUdpSrc(TpPort.tpPort(portMax));
                 } else {
                     sBuilder.matchUdpDst(TpPort.tpPort(portMax));
@@ -722,26 +704,28 @@ public class OpenstackSecurityGroupHandler {
     }
 
     private int binLower(String binStr, int bits) {
-        StringBuilder outBin = new StringBuilder(binStr.substring(0, 16 - bits));
+        StringBuilder outBin = new StringBuilder(
+                        binStr.substring(MASK_BEGIN_IDX, MASK_MAX_IDX - bits));
         for (int i = 0; i < bits; i++) {
-            outBin.append("0");
+            outBin.append(STR_ZERO);
         }
 
-        return Integer.parseInt(outBin.toString(), 2);
+        return Integer.parseInt(outBin.toString(), MASK_RADIX);
     }
 
     private int binHigher(String binStr, int bits) {
-        StringBuilder outBin = new StringBuilder(binStr.substring(0, 16 - bits));
+        StringBuilder outBin = new StringBuilder(
+                        binStr.substring(MASK_BEGIN_IDX, MASK_MAX_IDX - bits));
         for (int i = 0; i < bits; i++) {
-            outBin.append("1");
+            outBin.append(STR_ONE);
         }
 
-        return Integer.parseInt(outBin.toString(), 2);
+        return Integer.parseInt(outBin.toString(), MASK_RADIX);
     }
 
     private int testMasks(String binStr, int start, int end) {
-        int mask = 0;
-        for (; mask <= 16; mask++) {
+        int mask = MASK_BEGIN_IDX;
+        for (; mask <= MASK_MAX_IDX; mask++) {
             int maskStart = binLower(binStr, mask);
             int maskEnd = binHigher(binStr, mask);
             if (maskStart < start || maskEnd > end) {
@@ -782,7 +766,7 @@ public class OpenstackSecurityGroupHandler {
         Map<TpPort, TpPort> portMaskMap = Maps.newHashMap();
         while (processing) {
             String minStr = Integer.toBinaryString(start);
-            String binStrMinPadded = "0000000000000000".substring(minStr.length()) + minStr;
+            String binStrMinPadded = STR_PADDING.substring(minStr.length()) + minStr;
 
             int mask = testMasks(binStrMinPadded, start, portMax);
             int maskStart = binLower(binStrMinPadded, mask);
@@ -790,7 +774,7 @@ public class OpenstackSecurityGroupHandler {
 
             log.debug("start : {} port/mask = {} / {} ", start, getMask(mask), maskStart);
             portMaskMap.put(TpPort.tpPort(maskStart), TpPort.tpPort(
-                    Integer.parseInt(Objects.requireNonNull(getMask(mask)), 16)));
+                    Integer.parseInt(Objects.requireNonNull(getMask(mask)), PORT_RADIX)));
 
             start = maskEnd + 1;
             if (start > portMax) {
@@ -814,50 +798,55 @@ public class OpenstackSecurityGroupHandler {
 
         @Override
         public void event(InstancePortEvent event) {
-            InstancePort instPort = event.subject();
             switch (event.type()) {
                 case OPENSTACK_INSTANCE_PORT_UPDATED:
                 case OPENSTACK_INSTANCE_PORT_DETECTED:
                 case OPENSTACK_INSTANCE_MIGRATION_STARTED:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper(event)) {
-                            return;
-                        }
-
-                        installSecurityGroupRules(event, instPort);
-                        setAclRecircRules(instPort, true);
-                    });
+                    eventExecutor.execute(() -> processInstanceMigrationStart(event));
                     break;
                 case OPENSTACK_INSTANCE_PORT_VANISHED:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper(event)) {
-                            return;
-                        }
-
-                        Port osPort = removedOsPortStore.asJavaMap().get(instPort.portId());
-                        setSecurityGroupRules(instPort, osPort, false);
-                        removedOsPortStore.remove(instPort.portId());
-                        setAclRecircRules(instPort, false);
-                    });
+                    eventExecutor.execute(() -> processInstancePortVanish(event));
                     break;
                 case OPENSTACK_INSTANCE_MIGRATION_ENDED:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper(event)) {
-                            return;
-                        }
-
-                        InstancePort revisedInstPort = swapStaleLocation(instPort);
-                        Port port = osNetService.port(instPort.portId());
-                        setSecurityGroupRules(revisedInstPort, port, false);
-                        setAclRecircRules(revisedInstPort, false);
-                    });
+                    eventExecutor.execute(() -> processInstanceMigrationEnd(event));
                     break;
                 default:
                     break;
             }
+        }
+
+        private void processInstanceMigrationStart(InstancePortEvent event) {
+            if (!isRelevantHelper(event)) {
+                return;
+            }
+
+            InstancePort instPort = event.subject();
+            installSecurityGroupRules(event, instPort);
+            setAclRecircRules(instPort, true);
+        }
+
+        private void processInstancePortVanish(InstancePortEvent event) {
+            if (!isRelevantHelper(event)) {
+                return;
+            }
+
+            InstancePort instPort = event.subject();
+            Port osPort = removedOsPortStore.asJavaMap().get(instPort.portId());
+            setSecurityGroupRules(instPort, osPort, false);
+            removedOsPortStore.remove(instPort.portId());
+            setAclRecircRules(instPort, false);
+        }
+
+        private void processInstanceMigrationEnd(InstancePortEvent event) {
+            if (!isRelevantHelper(event)) {
+                return;
+            }
+
+            InstancePort instPort = event.subject();
+            InstancePort revisedInstPort = swapStaleLocation(instPort);
+            Port port = osNetService.port(instPort.portId());
+            setSecurityGroupRules(revisedInstPort, port, false);
+            setAclRecircRules(revisedInstPort, false);
         }
 
         private void installSecurityGroupRules(InstancePortEvent event,
@@ -868,6 +857,36 @@ public class OpenstackSecurityGroupHandler {
             eventExecutor.execute(() ->
                     setSecurityGroupRules(instPort,
                             osNetService.port(event.subject().portId()), true));
+        }
+
+        private void setSecurityGroupRules(InstancePort instPort,
+                                           Port port, boolean install) {
+            Port osPort = port;
+
+            if (!install) {
+                Port rmvPort = removedOsPortStore.asJavaMap().get(instPort.portId());
+                if (osPort == null && rmvPort == null) {
+                    return;
+                }
+
+                if (port == null) {
+                    osPort = rmvPort;
+                }
+            }
+
+            final Port finalPort = osPort;
+
+            osPort.getSecurityGroups().forEach(sgId -> {
+                SecurityGroup sg = securityGroupService.securityGroup(sgId);
+                if (sg == null) {
+                    log.error("Security Group {} not found", sgId);
+                    return;
+                }
+                sg.getRules().forEach(sgRule ->
+                        updateSecurityGroupRule(instPort, finalPort, sgRule, install));
+                final String action = install ? "Installed " : "Removed ";
+                log.debug(action + "Security Group Rule ID : " + sgId);
+            });
         }
 
         private void setAclRecircRules(InstancePort instPort, boolean install) {
@@ -929,23 +948,19 @@ public class OpenstackSecurityGroupHandler {
         @Override
         public void event(OpenstackNetworkEvent event) {
             log.debug("openstack port event received {}", event);
-            Port osPort = event.port();
 
-            switch (event.type()) {
-                case OPENSTACK_PORT_PRE_REMOVE:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper(event)) {
-                            return;
-                        }
-
-                        removedOsPortStore.put(osPort.getId(), osPort);
-                    });
-                    break;
-                default:
-                    // do nothing for the other events
-                    break;
+            if (event.type() == OPENSTACK_PORT_PRE_REMOVE) {
+                eventExecutor.execute(() -> processPortPreRemove(event));
             }
+        }
+
+        private void processPortPreRemove(OpenstackNetworkEvent event) {
+            if (!isRelevantHelper(event)) {
+                return;
+            }
+
+            Port osPort = event.port();
+            removedOsPortStore.put(osPort.getId(), osPort);
         }
     }
 
@@ -978,47 +993,48 @@ public class OpenstackSecurityGroupHandler {
         @Override
         public void event(OpenstackNetworkEvent event) {
             log.debug("security group event received {}", event);
-            Port osPort = event.port();
 
             switch (event.type()) {
                 case OPENSTACK_PORT_SECURITY_GROUP_ADDED:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper(event)) {
-                            return;
-                        }
-
-                        InstancePort instPort = instancePortService.instancePort(osPort.getId());
-                        SecurityGroup osSg = securityGroupService.securityGroup(event.securityGroupId());
-
-                        osSg.getRules().forEach(sgRule -> {
-                            updateSecurityGroupRule(instPort, osPort, sgRule, true);
-                        });
-                        log.info("Added security group {} to port {}",
-                                event.securityGroupId(), event.port().getId());
-                    });
+                    eventExecutor.execute(() -> processPortSgAdd(event));
                     break;
                 case OPENSTACK_PORT_SECURITY_GROUP_REMOVED:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper(event)) {
-                            return;
-                        }
-
-                        InstancePort instPort = instancePortService.instancePort(osPort.getId());
-                        SecurityGroup osSg = securityGroupService.securityGroup(event.securityGroupId());
-
-                        osSg.getRules().forEach(sgRule -> {
-                            updateSecurityGroupRule(instPort, osPort, sgRule, false);
-                        });
-                        log.info("Removed security group {} from port {}",
-                                event.securityGroupId(), event.port().getId());
-                    });
+                    eventExecutor.execute(() -> processPortSgRemove(event));
                     break;
                 default:
                     // do nothing for the other events
                     break;
             }
+        }
+
+        private void processPortSgAdd(OpenstackNetworkEvent event) {
+            if (!isRelevantHelper(event)) {
+                return;
+            }
+
+            InstancePort instPort = instancePortService.instancePort(event.port().getId());
+            SecurityGroup osSg = securityGroupService.securityGroup(event.securityGroupId());
+
+            osSg.getRules().forEach(sgRule -> {
+                updateSecurityGroupRule(instPort, event.port(), sgRule, true);
+            });
+            log.info("Added security group {} to port {}",
+                    event.securityGroupId(), event.port().getId());
+        }
+
+        private void processPortSgRemove(OpenstackNetworkEvent event) {
+            if (!isRelevantHelper(event)) {
+                return;
+            }
+
+            InstancePort instPort = instancePortService.instancePort(event.port().getId());
+            SecurityGroup osSg = securityGroupService.securityGroup(event.securityGroupId());
+
+            osSg.getRules().forEach(sgRule -> {
+                updateSecurityGroupRule(instPort, event.port(), sgRule, false);
+            });
+            log.info("Removed security group {} from port {}",
+                    event.securityGroupId(), event.port().getId());
         }
     }
 
@@ -1037,31 +1053,10 @@ public class OpenstackSecurityGroupHandler {
         public void event(OpenstackSecurityGroupEvent event) {
             switch (event.type()) {
                 case OPENSTACK_SECURITY_GROUP_RULE_CREATED:
-                    SecurityGroupRule sgRuleToAdd = event.securityGroupRule();
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        securityGroupRuleAdded(sgRuleToAdd);
-                        log.info("Applied new security group rule {} to ports",
-                                sgRuleToAdd.getId());
-                    });
+                    eventExecutor.execute(() -> processSgRuleCreate(event));
                     break;
-
                 case OPENSTACK_SECURITY_GROUP_RULE_REMOVED:
-                    SecurityGroupRule sgRuleToRemove = event.securityGroupRule();
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        securityGroupRuleRemoved(sgRuleToRemove);
-                        log.info("Removed security group rule {} from ports",
-                                sgRuleToRemove.getId());
-                    });
+                    eventExecutor.execute(() -> processSgRuleRemove(event));
                     break;
                 case OPENSTACK_SECURITY_GROUP_REMOVED:
                 case OPENSTACK_SECURITY_GROUP_CREATED:
@@ -1069,6 +1064,26 @@ public class OpenstackSecurityGroupHandler {
                     // do nothing
                     break;
             }
+        }
+
+        private void processSgRuleCreate(OpenstackSecurityGroupEvent event) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            SecurityGroupRule sgRuleToAdd = event.securityGroupRule();
+            securityGroupRuleAdded(sgRuleToAdd);
+            log.info("Applied new security group rule {} to ports", sgRuleToAdd.getId());
+        }
+
+        private void processSgRuleRemove(OpenstackSecurityGroupEvent event) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            SecurityGroupRule sgRuleToRemove = event.securityGroupRule();
+            securityGroupRuleRemoved(sgRuleToRemove);
+            log.info("Removed security group rule {} from ports", sgRuleToRemove.getId());
         }
     }
 
@@ -1087,14 +1102,7 @@ public class OpenstackSecurityGroupHandler {
         public void event(OpenstackNodeEvent event) {
             switch (event.type()) {
                 case OPENSTACK_NODE_COMPLETE:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        OpenstackSecurityGroupHandler.this.resetSecurityGroupRules();
-                    });
+                    eventExecutor.execute(this::processNodeComplete);
                     break;
                 case OPENSTACK_NODE_CREATED:
                 case OPENSTACK_NODE_REMOVED:
@@ -1103,6 +1111,14 @@ public class OpenstackSecurityGroupHandler {
                 default:
                     break;
             }
+        }
+
+        private void processNodeComplete() {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            OpenstackSecurityGroupHandler.this.resetSecurityGroupRules();
         }
     }
 }

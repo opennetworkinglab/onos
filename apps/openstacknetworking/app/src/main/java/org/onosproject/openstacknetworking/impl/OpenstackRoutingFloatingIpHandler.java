@@ -103,6 +103,8 @@ public class OpenstackRoutingFloatingIpHandler {
     private static final String ERR_FLOW = "Failed set flows for floating IP %s: ";
     private static final String ERR_UNSUPPORTED_NET_TYPE = "Unsupported network type %s";
 
+    private static final String NO_EXT_PEER_ROUTER_MSG = "no external peer router found";
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
 
@@ -188,7 +190,7 @@ public class OpenstackRoutingFloatingIpHandler {
         ExternalPeerRouter externalPeerRouter = externalPeerRouterForNetwork(osNet,
                 osNetworkService, osRouterAdminService);
         if (externalPeerRouter == null) {
-            final String errorFormat = ERR_FLOW + "no external peer router found";
+            final String errorFormat = ERR_FLOW + NO_EXT_PEER_ROUTER_MSG;
             throw new IllegalStateException(errorFormat);
         }
 
@@ -252,11 +254,9 @@ public class OpenstackRoutingFloatingIpHandler {
                 }
             } else {
                 if (!completedGws.contains(gateway)) {
-                    if (completedGws.size() >= 1) {
-                        if (fip.getPortId() != null) {
-                            setDownstreamExternalRulesHelper(fip, osNet, instPort, router,
+                    if (!completedGws.isEmpty() && fip.getPortId() != null) {
+                        setDownstreamExternalRulesHelper(fip, osNet, instPort, router,
                                     ImmutableSet.copyOf(finalGws), true);
-                        }
                     }
                 } else {
                     log.warn("Detected node should NOT be included in completed gateway set");
@@ -301,7 +301,7 @@ public class OpenstackRoutingFloatingIpHandler {
                     setComputeNodeToGatewayHelper(instPort, osNet,
                             ImmutableSet.copyOf(finalGws), false);
                     finalGws.remove(gateway);
-                    if (completedGws.size() >= 1) {
+                    if (!completedGws.isEmpty()) {
                         setComputeNodeToGatewayHelper(instPort, osNet,
                                 ImmutableSet.copyOf(finalGws), true);
                     }
@@ -523,8 +523,8 @@ public class OpenstackRoutingFloatingIpHandler {
         ExternalPeerRouter externalPeerRouter =
                 externalPeerRouterForNetwork(osNet, osNetworkService, osRouterAdminService);
         if (externalPeerRouter == null) {
-            log.error("Failed to process GARP packet for floating ip {} " +
-                                        "because no external peer router found");
+            log.error("Failed to process GARP packet for floating ip {}, because " +
+                                                            NO_EXT_PEER_ROUTER_MSG);
             return;
         }
 
@@ -563,92 +563,90 @@ public class OpenstackRoutingFloatingIpHandler {
         public void event(OpenstackRouterEvent event) {
             switch (event.type()) {
                 case OPENSTACK_FLOATING_IP_ASSOCIATED:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        NetFloatingIP osFip = event.floatingIp();
-                        if (instancePortService.instancePort(osFip.getPortId()) != null) {
-                            associateFloatingIp(osFip);
-                            log.info("Associated floating IP {}:{}",
-                                    osFip.getFloatingIpAddress(),
-                                    osFip.getFixedIpAddress());
-                        }
-                    });
+                    eventExecutor.execute(() -> processFloatingIpAssociation(event));
                     break;
                 case OPENSTACK_FLOATING_IP_DISASSOCIATED:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        NetFloatingIP osFip = event.floatingIp();
-                        if (instancePortService.instancePort(event.portId()) != null) {
-                            disassociateFloatingIp(osFip, event.portId());
-                            log.info("Disassociated floating IP {}:{}",
-                                    osFip.getFloatingIpAddress(),
-                                    osFip.getFixedIpAddress());
-                        }
-                    });
+                    eventExecutor.execute(() -> processFloatingIpDisassociation(event));
                     break;
                 case OPENSTACK_FLOATING_IP_CREATED:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        NetFloatingIP osFip = event.floatingIp();
-                        String portId = osFip.getPortId();
-                        if (!Strings.isNullOrEmpty(portId) &&
-                                instancePortService.instancePort(portId) != null) {
-                            associateFloatingIp(event.floatingIp());
-                        }
-                        log.info("Created floating IP {}", osFip.getFloatingIpAddress());
-                    });
+                    eventExecutor.execute(() -> processFloatingIpCreation(event));
                     break;
                 case OPENSTACK_FLOATING_IP_REMOVED:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        NetFloatingIP osFip = event.floatingIp();
-                        String portId = osFip.getPortId();
-                        if (!Strings.isNullOrEmpty(osFip.getPortId())) {
-                            // in case the floating IP is not associated with any port due to
-                            // port removal, we simply do not execute floating IP disassociation
-                            if (osNetworkService.port(portId) != null &&
-                                    instancePortService.instancePort(portId) != null) {
-                                disassociateFloatingIp(osFip, portId);
-                            }
-
-                            // since we skip floating IP disassociation, we need to
-                            // manually unsubscribe the port pre-remove event
-                            preCommitPortService.unsubscribePreCommit(osFip.getPortId(),
-                                    OPENSTACK_PORT_PRE_REMOVE, instancePortService,
-                                    this.getClass().getName());
-                            log.info("Unsubscribed the port {} on listening pre-remove event",
-                                     osFip.getPortId());
-                        }
-                        log.info("Removed floating IP {}", osFip.getFloatingIpAddress());
-                    });
+                    eventExecutor.execute(() -> processFloatingIpRemoval(event));
                     break;
                 case OPENSTACK_FLOATING_IP_UPDATED:
-                case OPENSTACK_ROUTER_CREATED:
-                case OPENSTACK_ROUTER_UPDATED:
-                case OPENSTACK_ROUTER_REMOVED:
-                case OPENSTACK_ROUTER_INTERFACE_ADDED:
-                case OPENSTACK_ROUTER_INTERFACE_UPDATED:
-                case OPENSTACK_ROUTER_INTERFACE_REMOVED:
                 default:
                     // do nothing for the other events
                     break;
             }
+        }
+
+        private void processFloatingIpAssociation(OpenstackRouterEvent event) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            NetFloatingIP osFip = event.floatingIp();
+            if (instancePortService.instancePort(osFip.getPortId()) != null) {
+                associateFloatingIp(osFip);
+                log.info("Associated floating IP {}:{}",
+                                                    osFip.getFloatingIpAddress(),
+                                                    osFip.getFixedIpAddress());
+            }
+        }
+
+        private void processFloatingIpDisassociation(OpenstackRouterEvent event) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            NetFloatingIP osFip = event.floatingIp();
+            if (instancePortService.instancePort(event.portId()) != null) {
+                disassociateFloatingIp(osFip, event.portId());
+                log.info("Disassociated floating IP {}:{}",
+                                                    osFip.getFloatingIpAddress(),
+                                                    osFip.getFixedIpAddress());
+            }
+        }
+
+        private void processFloatingIpCreation(OpenstackRouterEvent event) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            NetFloatingIP osFip = event.floatingIp();
+            String portId = osFip.getPortId();
+            if (!Strings.isNullOrEmpty(portId) &&
+                    instancePortService.instancePort(portId) != null) {
+                associateFloatingIp(event.floatingIp());
+            }
+            log.info("Created floating IP {}", osFip.getFloatingIpAddress());
+        }
+
+        private void processFloatingIpRemoval(OpenstackRouterEvent event) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            NetFloatingIP osFip = event.floatingIp();
+            String portId = osFip.getPortId();
+            if (!Strings.isNullOrEmpty(osFip.getPortId())) {
+                // in case the floating IP is not associated with any port due to
+                // port removal, we simply do not execute floating IP disassociation
+                if (osNetworkService.port(portId) != null &&
+                        instancePortService.instancePort(portId) != null) {
+                    disassociateFloatingIp(osFip, portId);
+                }
+
+                // since we skip floating IP disassociation, we need to
+                // manually unsubscribe the port pre-remove event
+                preCommitPortService.unsubscribePreCommit(osFip.getPortId(),
+                        OPENSTACK_PORT_PRE_REMOVE, instancePortService,
+                        this.getClass().getName());
+                log.info("Unsubscribed the port {} on listening pre-remove event",
+                        osFip.getPortId());
+            }
+            log.info("Removed floating IP {}", osFip.getFloatingIpAddress());
         }
     }
 
@@ -668,81 +666,83 @@ public class OpenstackRoutingFloatingIpHandler {
 
             switch (event.type()) {
                 case OPENSTACK_NODE_COMPLETE:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        for (NetFloatingIP fip : osRouterAdminService.floatingIps()) {
-
-                            if (Strings.isNullOrEmpty(fip.getPortId())) {
-                                continue;
-                            }
-
-                            Port osPort = osNetworkService.port(fip.getPortId());
-                            InstancePort instPort = instancePortService.instancePort(fip.getPortId());
-
-                            // we check both Openstack Port and Instance Port
-                            if (osPort == null || instPort == null) {
-                                continue;
-                            }
-
-                            setFloatingIpRules(fip, instPort, event.subject(), true);
-                        }
-                    });
+                    eventExecutor.execute(() -> processNodeCompletion(event));
                     break;
                 case OPENSTACK_NODE_INCOMPLETE:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        for (NetFloatingIP fip : osRouterAdminService.floatingIps()) {
-                            if (Strings.isNullOrEmpty(fip.getPortId())) {
-                                continue;
-                            }
-                            Port osPort = osNetworkService.port(fip.getPortId());
-                            if (osPort == null) {
-                                log.warn("Failed to set floating IP {}", fip.getId());
-                                continue;
-                            }
-                            Network osNet = osNetworkService.network(osPort.getNetworkId());
-                            if (osNet == null) {
-                                final String errorFormat = ERR_FLOW + "no network(%s) exists";
-                                final String error = String.format(errorFormat,
-                                        fip.getFloatingIpAddress(),
-                                        osPort.getNetworkId());
-                                throw new IllegalStateException(error);
-                            }
-                            MacAddress srcMac = MacAddress.valueOf(osPort.getMacAddress());
-                            log.trace("Mac address of openstack port: {}", srcMac);
-                            InstancePort instPort = instancePortService.instancePort(srcMac);
-
-                            if (instPort == null) {
-                                final String errorFormat = ERR_FLOW + "no host(MAC:%s) found";
-                                final String error = String.format(errorFormat,
-                                        fip.getFloatingIpAddress(), srcMac);
-                                throw new IllegalStateException(error);
-                            }
-
-                            ExternalPeerRouter externalPeerRouter = externalPeerRouterForNetwork(osNet,
-                                    osNetworkService, osRouterAdminService);
-                            if (externalPeerRouter == null) {
-                                final String errorFormat = ERR_FLOW + "no external peer router found";
-                                throw new IllegalStateException(errorFormat);
-                            }
-
-                            updateComputeNodeRules(instPort, osNet, event.subject(), false);
-                            updateGatewayNodeRules(fip, instPort, osNet,
-                                    externalPeerRouter, event.subject(), false);
-                        }
-                    });
+                    eventExecutor.execute(() -> processNodeIncompletion(event));
                     break;
                 default:
                     // do nothing
                     break;
+            }
+        }
+
+        private void processNodeCompletion(OpenstackNodeEvent event) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            for (NetFloatingIP fip : osRouterAdminService.floatingIps()) {
+
+                if (Strings.isNullOrEmpty(fip.getPortId())) {
+                    continue;
+                }
+
+                Port osPort = osNetworkService.port(fip.getPortId());
+                InstancePort instPort = instancePortService.instancePort(fip.getPortId());
+
+                // we check both Openstack Port and Instance Port
+                if (osPort == null || instPort == null) {
+                    continue;
+                }
+
+                setFloatingIpRules(fip, instPort, event.subject(), true);
+            }
+        }
+
+        private void processNodeIncompletion(OpenstackNodeEvent event) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            for (NetFloatingIP fip : osRouterAdminService.floatingIps()) {
+                if (Strings.isNullOrEmpty(fip.getPortId())) {
+                    continue;
+                }
+                Port osPort = osNetworkService.port(fip.getPortId());
+                if (osPort == null) {
+                    log.warn("Failed to set floating IP {}", fip.getId());
+                    continue;
+                }
+                Network osNet = osNetworkService.network(osPort.getNetworkId());
+                if (osNet == null) {
+                    final String errorFormat = ERR_FLOW + "no network(%s) exists";
+                    final String error = String.format(errorFormat,
+                            fip.getFloatingIpAddress(),
+                            osPort.getNetworkId());
+                    throw new IllegalStateException(error);
+                }
+                MacAddress srcMac = MacAddress.valueOf(osPort.getMacAddress());
+                log.trace("Mac address of openstack port: {}", srcMac);
+                InstancePort instPort = instancePortService.instancePort(srcMac);
+
+                if (instPort == null) {
+                    final String errorFormat = ERR_FLOW + "no host(MAC:%s) found";
+                    final String error = String.format(errorFormat,
+                            fip.getFloatingIpAddress(), srcMac);
+                    throw new IllegalStateException(error);
+                }
+
+                ExternalPeerRouter externalPeerRouter = externalPeerRouterForNetwork(osNet,
+                        osNetworkService, osRouterAdminService);
+                if (externalPeerRouter == null) {
+                    final String errorFormat = ERR_FLOW + NO_EXT_PEER_ROUTER_MSG;
+                    throw new IllegalStateException(errorFormat);
+                }
+
+                updateComputeNodeRules(instPort, osNet, event.subject(), false);
+                updateGatewayNodeRules(fip, instPort, osNet,
+                        externalPeerRouter, event.subject(), false);
             }
         }
     }
@@ -769,128 +769,127 @@ public class OpenstackRoutingFloatingIpHandler {
 
         @Override
         public void event(InstancePortEvent event) {
-            InstancePort instPort = event.subject();
-
             switch (event.type()) {
                 case OPENSTACK_INSTANCE_PORT_DETECTED:
-
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper(event)) {
-                            return;
-                        }
-
-                        if (instPort != null && instPort.portId() != null) {
-                            osRouterAdminService.floatingIps().stream()
-                                    .filter(f -> f.getPortId() != null)
-                                    .filter(f -> f.getPortId().equals(instPort.portId()))
-                                    .forEach(f -> setFloatingIpRules(f,
-                                            instPort, null, true));
-                        }
-                    });
+                    eventExecutor.execute(() -> processInstancePortDetection(event));
                     break;
-
                 case OPENSTACK_INSTANCE_MIGRATION_STARTED:
-
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper(event)) {
-                            return;
-                        }
-
-                        Set<OpenstackNode> gateways = osNodeService.completeNodes(GATEWAY);
-                        Set<NetFloatingIP> ips = osRouterAdminService.floatingIps();
-                        NetFloatingIP fip = associatedFloatingIp(event.subject(), ips);
-
-                        if (fip == null) {
-                            return;
-                        }
-
-                        Port osPort = osNetworkService.port(fip.getPortId());
-                        Network osNet = osNetworkService.network(osPort.getNetworkId());
-                        ExternalPeerRouter externalPeerRouter = externalPeerRouterForNetwork(osNet,
-                                osNetworkService, osRouterAdminService);
-
-                        if (externalPeerRouter == null) {
-                            final String errorFormat = ERR_FLOW + "no external peer router found";
-                            throw new IllegalStateException(errorFormat);
-                        }
-
-                        // since DownstreamExternal rules should only be placed in
-                        // corresponding gateway node, we need to install new rule to
-                        // the corresponding gateway node
-                        setDownstreamExternalRulesHelper(fip, osNet,
-                                event.subject(), externalPeerRouter, gateways, true);
-
-                        // since ComputeNodeToGateway rules should only be placed in
-                        // corresponding compute node, we need to install new rule to
-                        // the target compute node, and remove rules from original node
-                        setComputeNodeToGatewayHelper(event.subject(), osNet, gateways, true);
-                    });
+                    eventExecutor.execute(() -> processInstanceMigrationStart(event));
                     break;
                 case OPENSTACK_INSTANCE_MIGRATION_ENDED:
-
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper(event)) {
-                            return;
-                        }
-
-                        InstancePort oldInstPort = swapStaleLocation(event.subject());
-
-                        Set<NetFloatingIP> ips = osRouterAdminService.floatingIps();
-                        NetFloatingIP fip = associatedFloatingIp(oldInstPort, ips);
-
-                        if (fip == null) {
-                            return;
-                        }
-
-                        Set<OpenstackNode> gateways = osNodeService.completeNodes(GATEWAY);
-                        Port osPort = osNetworkService.port(fip.getPortId());
-                        Network osNet = osNetworkService.network(osPort.getNetworkId());
-                        ExternalPeerRouter externalPeerRouter = externalPeerRouterForNetwork(osNet,
-                                osNetworkService, osRouterAdminService);
-
-                        if (externalPeerRouter == null) {
-                            final String errorFormat = ERR_FLOW + "no external peer router found";
-                            throw new IllegalStateException(errorFormat);
-                        }
-
-                        // We need to remove the old ComputeNodeToGateway rules from
-                        // original compute node
-                        setComputeNodeToGatewayHelper(oldInstPort, osNet, gateways, false);
-
-                        // If we only have one gateway, we simply do not remove any
-                        // flow rules from either gateway or compute node
-                        if (gateways.size() == 1) {
-                            return;
-                        }
-
-                        // Checks whether the destination compute node's device id
-                        // has identical gateway hash or not
-                        // if it is true, we simply do not remove the rules, as
-                        // it has been overwritten at port detention event
-                        // if it is false, we will remove the rules
-                        DeviceId newDeviceId = event.subject().deviceId();
-                        DeviceId oldDeviceId = oldInstPort.deviceId();
-
-                        OpenstackNode oldGateway = getGwByComputeDevId(gateways, oldDeviceId);
-                        OpenstackNode newGateway = getGwByComputeDevId(gateways, newDeviceId);
-
-                        if (oldGateway != null && oldGateway.equals(newGateway)) {
-                            return;
-                        }
-
-                        // Since DownstreamExternal rules should only be placed in
-                        // corresponding gateway node, we need to remove old rule from
-                        // the corresponding gateway node
-                        setDownstreamExternalRulesHelper(fip, osNet, oldInstPort,
-                                externalPeerRouter, gateways, false);
-                    });
+                    eventExecutor.execute(() -> processInstanceMigrationEnd(event));
                     break;
                 default:
                     break;
             }
+        }
+
+        private void processInstancePortDetection(InstancePortEvent event) {
+            if (!isRelevantHelper(event)) {
+                return;
+            }
+
+            InstancePort instPort = event.subject();
+
+            if (instPort != null && instPort.portId() != null) {
+                osRouterAdminService.floatingIps().stream()
+                        .filter(f -> f.getPortId() != null)
+                        .filter(f -> f.getPortId().equals(instPort.portId()))
+                        .forEach(f -> setFloatingIpRules(f,
+                                instPort, null, true));
+            }
+        }
+
+        private void processInstanceMigrationStart(InstancePortEvent event) {
+            if (!isRelevantHelper(event)) {
+                return;
+            }
+
+            Set<OpenstackNode> gateways = osNodeService.completeNodes(GATEWAY);
+            Set<NetFloatingIP> ips = osRouterAdminService.floatingIps();
+            NetFloatingIP fip = associatedFloatingIp(event.subject(), ips);
+
+            if (fip == null) {
+                return;
+            }
+
+            Port osPort = osNetworkService.port(fip.getPortId());
+            Network osNet = osNetworkService.network(osPort.getNetworkId());
+            ExternalPeerRouter externalPeerRouter = externalPeerRouterForNetwork(osNet,
+                    osNetworkService, osRouterAdminService);
+
+            if (externalPeerRouter == null) {
+                final String errorFormat = ERR_FLOW + NO_EXT_PEER_ROUTER_MSG;
+                throw new IllegalStateException(errorFormat);
+            }
+
+            // since DownstreamExternal rules should only be placed in
+            // corresponding gateway node, we need to install new rule to
+            // the corresponding gateway node
+            setDownstreamExternalRulesHelper(fip, osNet,
+                    event.subject(), externalPeerRouter, gateways, true);
+
+            // since ComputeNodeToGateway rules should only be placed in
+            // corresponding compute node, we need to install new rule to
+            // the target compute node, and remove rules from original node
+            setComputeNodeToGatewayHelper(event.subject(), osNet, gateways, true);
+        }
+
+        private void processInstanceMigrationEnd(InstancePortEvent event) {
+            if (!isRelevantHelper(event)) {
+                return;
+            }
+
+            InstancePort oldInstPort = swapStaleLocation(event.subject());
+
+            Set<NetFloatingIP> ips = osRouterAdminService.floatingIps();
+            NetFloatingIP fip = associatedFloatingIp(oldInstPort, ips);
+
+            if (fip == null) {
+                return;
+            }
+
+            Set<OpenstackNode> gateways = osNodeService.completeNodes(GATEWAY);
+            Port osPort = osNetworkService.port(fip.getPortId());
+            Network osNet = osNetworkService.network(osPort.getNetworkId());
+            ExternalPeerRouter externalPeerRouter = externalPeerRouterForNetwork(osNet,
+                    osNetworkService, osRouterAdminService);
+
+            if (externalPeerRouter == null) {
+                final String errorFormat = ERR_FLOW + NO_EXT_PEER_ROUTER_MSG;
+                throw new IllegalStateException(errorFormat);
+            }
+
+            // We need to remove the old ComputeNodeToGateway rules from
+            // original compute node
+            setComputeNodeToGatewayHelper(oldInstPort, osNet, gateways, false);
+
+            // If we only have one gateway, we simply do not remove any
+            // flow rules from either gateway or compute node
+            if (gateways.size() == 1) {
+                return;
+            }
+
+            // Checks whether the destination compute node's device id
+            // has identical gateway hash or not
+            // if it is true, we simply do not remove the rules, as
+            // it has been overwritten at port detention event
+            // if it is false, we will remove the rules
+            DeviceId newDeviceId = event.subject().deviceId();
+            DeviceId oldDeviceId = oldInstPort.deviceId();
+
+            OpenstackNode oldGateway = getGwByComputeDevId(gateways, oldDeviceId);
+            OpenstackNode newGateway = getGwByComputeDevId(gateways, newDeviceId);
+
+            if (oldGateway != null && oldGateway.equals(newGateway)) {
+                return;
+            }
+
+            // Since DownstreamExternal rules should only be placed in
+            // corresponding gateway node, we need to remove old rule from
+            // the corresponding gateway node
+            setDownstreamExternalRulesHelper(fip, osNet, oldInstPort,
+                    externalPeerRouter, gateways, false);
         }
     }
 
@@ -902,23 +901,19 @@ public class OpenstackRoutingFloatingIpHandler {
 
         @Override
         public void event(OpenstackNetworkEvent event) {
-            switch (event.type()) {
-                case OPENSTACK_PORT_PRE_REMOVE:
-                    eventExecutor.execute(() -> {
+            if (event.type() == OPENSTACK_PORT_PRE_REMOVE) {
+                eventExecutor.execute(() -> {
 
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
+                    if (!isRelevantHelper()) {
+                        return;
+                    }
 
-                        processPortPreRemove(event);
-                    });
-                    break;
-                default:
-                    break;
+                    processPortPreRemoval(event);
+                });
             }
         }
 
-        private void processPortPreRemove(OpenstackNetworkEvent event) {
+        private void processPortPreRemoval(OpenstackNetworkEvent event) {
             InstancePort instPort = instancePortService.instancePort(
                                                         event.port().getId());
             if (instPort == null) {

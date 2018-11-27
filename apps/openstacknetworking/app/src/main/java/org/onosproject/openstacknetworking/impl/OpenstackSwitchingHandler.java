@@ -90,12 +90,14 @@ import static org.slf4j.LoggerFactory.getLogger;
  * virtual instances in the same network.
  */
 @Component(immediate = true)
-public final class OpenstackSwitchingHandler {
+public class OpenstackSwitchingHandler {
 
     private final Logger log = getLogger(getClass());
 
     private static final String ARP_MODE = "arpMode";
-    private static final String ERR_SET_FLOWS_VNI = "Failed to set flows for %s: Failed to get VNI for %s";
+    private static final String ERR_SET_FLOWS_VNI = "Failed to set flows for " +
+                                                    "%s: Failed to get VNI for %s";
+    private static final String STR_NONE = "<none>";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -139,7 +141,7 @@ public final class OpenstackSwitchingHandler {
     private NodeId localNodeId;
 
     @Activate
-    void activate() {
+    protected void activate() {
         appId = coreService.registerApplication(OPENSTACK_NETWORKING_APP_ID);
         localNodeId = clusterService.getLocalNode().id();
         instancePortService.addListener(instancePortListener);
@@ -149,87 +151,12 @@ public final class OpenstackSwitchingHandler {
     }
 
     @Deactivate
-    void deactivate() {
+    protected void deactivate() {
         osNetworkService.removeListener(osNetworkListener);
         instancePortService.removeListener(instancePortListener);
         eventExecutor.shutdown();
 
         log.info("Stopped");
-    }
-
-    /**
-     * Configures L2 forwarding rules.
-     * Currently, SONA supports Flat, VXLAN and VLAN modes.
-     *
-     * @param instPort instance port object
-     * @param install install flag, add the rule if true, remove it otherwise
-     */
-    private void setNetworkRules(InstancePort instPort, boolean install) {
-        NetworkType type = osNetworkService.network(instPort.networkId()).getNetworkType();
-        switch (type) {
-            case VXLAN:
-                setTunnelTagIpFlowRules(instPort, install);
-                setForwardingRulesForVxlan(instPort, install);
-
-                if (ARP_BROADCAST_MODE.equals(getArpMode())) {
-                    setTunnelTagArpFlowRules(instPort, install);
-                }
-
-                break;
-            case VLAN:
-                setVlanTagIpFlowRules(instPort, install);
-                setForwardingRulesForVlan(instPort, install);
-
-                if (ARP_BROADCAST_MODE.equals(getArpMode())) {
-                    setVlanTagArpFlowRules(instPort, install);
-                }
-
-                break;
-            case FLAT:
-                setFlatJumpRules(instPort, install);
-                setDownstreamRulesForFlat(instPort, install);
-                setUpstreamRulesForFlat(instPort, install);
-                break;
-            default:
-                log.warn("Unsupported network tunnel type {}", type.name());
-                break;
-        }
-    }
-
-    /**
-     * Removes virtual port.
-     *
-     * @param instPort instance port
-     */
-    private void removeVportRules(InstancePort instPort) {
-        NetworkType type = osNetworkService.network(instPort.networkId()).getNetworkType();
-
-        switch (type) {
-            case VXLAN:
-                setTunnelTagIpFlowRules(instPort, false);
-
-                if (ARP_BROADCAST_MODE.equals(getArpMode())) {
-                    setTunnelTagArpFlowRules(instPort, false);
-                }
-
-                break;
-            case VLAN:
-                setVlanTagIpFlowRules(instPort, false);
-
-                if (ARP_BROADCAST_MODE.equals(getArpMode())) {
-                    setVlanTagArpFlowRules(instPort, false);
-                }
-
-                break;
-            case FLAT:
-                setFlatJumpRules(instPort, false);
-                setUpstreamRulesForFlat(instPort, false);
-                setDownstreamRulesForFlat(instPort, false);
-                break;
-            default:
-                log.warn("Unsupported network type {}", type.name());
-                break;
-        }
     }
 
     private void setFlatJumpRules(InstancePort port, boolean install) {
@@ -657,7 +584,7 @@ public final class OpenstackSwitchingHandler {
         if (osNet == null || Strings.isNullOrEmpty(osNet.getProviderSegID())) {
             final String error =
                     String.format(ERR_SET_FLOWS_VNI,
-                        instPort, osNet == null ? "<none>" : osNet.getName());
+                        instPort, osNet == null ? STR_NONE : osNet.getName());
             throw new IllegalStateException(error);
         }
 
@@ -675,7 +602,7 @@ public final class OpenstackSwitchingHandler {
         if (osNet == null || Strings.isNullOrEmpty(osNet.getProviderSegID())) {
             final String error =
                     String.format(ERR_SET_FLOWS_VNI,
-                        instPort, osNet == null ? "<none>" : osNet.getName());
+                        instPort, osNet == null ? STR_NONE : osNet.getName());
             throw new IllegalStateException(error);
         }
         return Long.valueOf(osNet.getProviderSegID());
@@ -709,87 +636,194 @@ public final class OpenstackSwitchingHandler {
                 case OPENSTACK_INSTANCE_PORT_UPDATED:
                 case OPENSTACK_INSTANCE_MIGRATION_STARTED:
                 case OPENSTACK_INSTANCE_RESTARTED:
-
-                    if (event.type() == OPENSTACK_INSTANCE_MIGRATION_STARTED) {
-                        log.info("SwitchingHandler: Migration started at MAC:{} IP:{}",
-                                                        instPort.macAddress(),
-                                                        instPort.ipAddress());
-                    } else {
-                        log.info("SwitchingHandler: Instance port detected MAC:{} IP:{}",
-                                                        instPort.macAddress(),
-                                                        instPort.ipAddress());
-                    }
-
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper(event)) {
-                            return;
-                        }
-
-                        instPortDetected(instPort);
-
-                        Port osPort = osNetworkService.port(instPort.portId());
-
-                        if (osPort != null) {
-                            setPortBlockRules(instPort, !osPort.isAdminStateUp());
-                        }
-                    });
-
+                    eventExecutor.execute(() ->
+                                    processInstanceDetection(event, instPort));
                     break;
                 case OPENSTACK_INSTANCE_TERMINATED:
-                    log.info("SwitchingHandler: Instance port terminated MAC:{} IP:{}",
-                                                        instPort.macAddress(),
-                                                        instPort.ipAddress());
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper(event)) {
-                            return;
-                        }
-
-                        removeVportRules(instPort);
-                    });
-
+                    eventExecutor.execute(() ->
+                                    processInstanceTermination(event, instPort));
                     break;
                 case OPENSTACK_INSTANCE_PORT_VANISHED:
-                    log.info("SwitchingHandler: Instance port vanished MAC:{} IP:{}",
-                                                        instPort.macAddress(),
-                                                        instPort.ipAddress());
-
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper(event)) {
-                            return;
-                        }
-
-                        instPortRemoved(instPort);
-
-                        Port osPort = osNetworkService.port(instPort.portId());
-
-                        if (osPort != null) {
-                            setPortBlockRules(instPort, false);
-                        }
-                    });
-
+                    eventExecutor.execute(() ->
+                                    processInstanceRemoval(event, instPort));
                     break;
                 case OPENSTACK_INSTANCE_MIGRATION_ENDED:
-                    log.info("SwitchingHandler: Migration finished for MAC:{} IP:{}",
-                                                        instPort.macAddress(),
-                                                        instPort.ipAddress());
-
-                    InstancePort revisedInstPort = swapStaleLocation(instPort);
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper(event)) {
-                            return;
-                        }
-
-                        removeVportRules(revisedInstPort);
-                    });
-
+                    eventExecutor.execute(() ->
+                                    processInstanceMigrationEnd(event, instPort));
                     break;
                 default:
                     break;
             }
+        }
+
+        private void processInstanceDetection(InstancePortEvent event,
+                                              InstancePort instPort) {
+            if (!isRelevantHelper(event)) {
+                return;
+            }
+
+            if (event.type() == OPENSTACK_INSTANCE_MIGRATION_STARTED) {
+                log.info("SwitchingHandler: Migration started at MAC:{} IP:{}",
+                                                        instPort.macAddress(),
+                                                        instPort.ipAddress());
+            } else {
+                log.info("SwitchingHandler: Instance port detected MAC:{} IP:{}",
+                                                        instPort.macAddress(),
+                                                        instPort.ipAddress());
+            }
+
+            instPortDetected(instPort);
+
+            Port osPort = osNetworkService.port(instPort.portId());
+
+            if (osPort != null) {
+                setPortBlockRules(instPort, !osPort.isAdminStateUp());
+            }
+        }
+
+        private void processInstanceTermination(InstancePortEvent event,
+                                                InstancePort instPort) {
+            if (!isRelevantHelper(event)) {
+                return;
+            }
+
+            log.info("SwitchingHandler: Instance port terminated MAC:{} IP:{}",
+                                                        instPort.macAddress(),
+                                                        instPort.ipAddress());
+
+            removeVportRules(instPort);
+        }
+
+        private void processInstanceRemoval(InstancePortEvent event,
+                                            InstancePort instPort) {
+            if (!isRelevantHelper(event)) {
+                return;
+            }
+
+            log.info("SwitchingHandler: Instance port vanished MAC:{} IP:{}",
+                                                        instPort.macAddress(),
+                                                        instPort.ipAddress());
+
+            instPortRemoved(instPort);
+
+            Port osPort = osNetworkService.port(instPort.portId());
+
+            if (osPort != null) {
+                setPortBlockRules(instPort, false);
+            }
+        }
+
+        private void processInstanceMigrationEnd(InstancePortEvent event,
+                                                 InstancePort instPort) {
+            if (!isRelevantHelper(event)) {
+                return;
+            }
+
+            log.info("SwitchingHandler: Migration finished for MAC:{} IP:{}",
+                                                        instPort.macAddress(),
+                                                        instPort.ipAddress());
+
+            InstancePort revisedInstPort = swapStaleLocation(instPort);
+
+            removeVportRules(revisedInstPort);
+        }
+
+        /**
+         * Configures L2 forwarding rules.
+         * Currently, SONA supports Flat, VXLAN and VLAN modes.
+         *
+         * @param instPort instance port object
+         * @param install install flag, add the rule if true, remove it otherwise
+         */
+        private void setNetworkRules(InstancePort instPort, boolean install) {
+            Network network = osNetworkService.network(instPort.networkId());
+            NetworkType type = network.getNetworkType();
+
+            switch (type) {
+                case VXLAN:
+                    setNetworkRulesForVxlan(instPort, install);
+                    break;
+                case VLAN:
+                    setNetworkRulesForVlan(instPort, install);
+                    break;
+                case FLAT:
+                    setNetworkRulesForFlat(instPort, install);
+                    break;
+                default:
+                    log.warn("Unsupported network tunnel type {}", type.name());
+                    break;
+            }
+        }
+
+        private void setNetworkRulesForVxlan(InstancePort instPort, boolean install) {
+            setTunnelTagIpFlowRules(instPort, install);
+            setForwardingRulesForVxlan(instPort, install);
+
+            if (ARP_BROADCAST_MODE.equals(getArpMode())) {
+                setTunnelTagArpFlowRules(instPort, install);
+            }
+        }
+
+        private void setNetworkRulesForVlan(InstancePort instPort, boolean install) {
+            setVlanTagIpFlowRules(instPort, install);
+            setForwardingRulesForVlan(instPort, install);
+
+            if (ARP_BROADCAST_MODE.equals(getArpMode())) {
+                setVlanTagArpFlowRules(instPort, install);
+            }
+        }
+
+        private void setNetworkRulesForFlat(InstancePort instPort, boolean install) {
+            setFlatJumpRules(instPort, install);
+            setDownstreamRulesForFlat(instPort, install);
+            setUpstreamRulesForFlat(instPort, install);
+        }
+
+        /**
+         * Removes virtual port related flow rules.
+         *
+         * @param instPort instance port
+         */
+        private void removeVportRules(InstancePort instPort) {
+            Network network = osNetworkService.network(instPort.networkId());
+            NetworkType type = network.getNetworkType();
+
+            switch (type) {
+                case VXLAN:
+                    removeVportRulesForVxlan(instPort);
+                    break;
+                case VLAN:
+                    removeVportRulesForVlan(instPort);
+                    break;
+                case FLAT:
+                    removeVportRulesForFlat(instPort);
+                    break;
+                default:
+                    log.warn("Unsupported network type {}", type.name());
+                    break;
+            }
+        }
+
+        private void removeVportRulesForVxlan(InstancePort instPort) {
+            setTunnelTagIpFlowRules(instPort, false);
+
+            if (ARP_BROADCAST_MODE.equals(getArpMode())) {
+                setTunnelTagArpFlowRules(instPort, false);
+            }
+        }
+
+        private void removeVportRulesForVlan(InstancePort instPort) {
+            setVlanTagIpFlowRules(instPort, false);
+
+            if (ARP_BROADCAST_MODE.equals(getArpMode())) {
+                setVlanTagArpFlowRules(instPort, false);
+            }
+        }
+
+        private void removeVportRulesForFlat(InstancePort instPort) {
+            setFlatJumpRules(instPort, false);
+            setUpstreamRulesForFlat(instPort, false);
+            setDownstreamRulesForFlat(instPort, false);
         }
 
         private void instPortDetected(InstancePort instPort) {
@@ -816,63 +850,65 @@ public final class OpenstackSwitchingHandler {
 
         @Override
         public void event(OpenstackNetworkEvent event) {
-
-            boolean isNwAdminStateUp = event.subject().isAdminStateUp();
-            boolean isPortAdminStateUp = event.port().isAdminStateUp();
-
-            String portId = event.port().getId();
-
             switch (event.type()) {
                 case OPENSTACK_NETWORK_CREATED:
                 case OPENSTACK_NETWORK_UPDATED:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        setNetworkBlockRules(event.subject(), !isNwAdminStateUp);
-                    });
+                    eventExecutor.execute(() -> processNetworkAddition(event));
                     break;
                 case OPENSTACK_NETWORK_REMOVED:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        setNetworkBlockRules(event.subject(), false);
-                    });
+                    eventExecutor.execute(() -> processNetworkRemoval(event));
                     break;
                 case OPENSTACK_PORT_CREATED:
                 case OPENSTACK_PORT_UPDATED:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        InstancePort instPort = instancePortService.instancePort(portId);
-                        if (instPort != null) {
-                            setPortBlockRules(instPort, !isPortAdminStateUp);
-                        }
-                    });
+                    eventExecutor.execute(() -> processPortAddition(event));
                     break;
                 case OPENSTACK_PORT_REMOVED:
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        InstancePort instPort = instancePortService.instancePort(portId);
-                        if (instPort != null) {
-                            setPortBlockRules(instPort, false);
-                        }
-                    });
+                    eventExecutor.execute(() -> processPortRemoval(event));
                     break;
                 default:
                     break;
+            }
+        }
+
+        private void processNetworkAddition(OpenstackNetworkEvent event) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            boolean isNwAdminStateUp = event.subject().isAdminStateUp();
+            setNetworkBlockRules(event.subject(), !isNwAdminStateUp);
+        }
+
+        private void processNetworkRemoval(OpenstackNetworkEvent event) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            setNetworkBlockRules(event.subject(), false);
+        }
+
+        private void processPortAddition(OpenstackNetworkEvent event) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            boolean isPortAdminStateUp = event.port().isAdminStateUp();
+            String portId = event.port().getId();
+            InstancePort instPort = instancePortService.instancePort(portId);
+            if (instPort != null) {
+                setPortBlockRules(instPort, !isPortAdminStateUp);
+            }
+        }
+
+        private void processPortRemoval(OpenstackNetworkEvent event) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            String portId = event.port().getId();
+            InstancePort instPort = instancePortService.instancePort(portId);
+            if (instPort != null) {
+                setPortBlockRules(instPort, false);
             }
         }
     }
