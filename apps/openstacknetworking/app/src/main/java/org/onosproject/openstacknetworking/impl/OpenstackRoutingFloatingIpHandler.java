@@ -335,6 +335,10 @@ public class OpenstackRoutingFloatingIpHandler {
                     log.warn(ERR_FLOW + "no tunnel port");
                     return;
                 }
+                if (selectedGatewayNode == null) {
+                    log.warn(ERR_FLOW + "no gateway node");
+                    return;
+                }
                 sBuilder.matchTunnelId(Long.parseLong(osNet.getProviderSegID()));
                 tBuilder.extension(buildExtension(
                         deviceService,
