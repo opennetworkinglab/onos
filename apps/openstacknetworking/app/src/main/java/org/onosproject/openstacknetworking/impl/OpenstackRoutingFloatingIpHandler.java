@@ -329,6 +329,7 @@ public class OpenstackRoutingFloatingIpHandler {
 
         if (selectedGatewayNode == null) {
             log.warn(ERR_FLOW + "no gateway node selected");
+            return;
         }
 
         switch (osNet.getNetworkType()) {
