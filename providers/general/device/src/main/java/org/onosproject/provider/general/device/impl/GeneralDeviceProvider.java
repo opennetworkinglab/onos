@@ -32,6 +32,7 @@ import org.onlab.util.ItemNotFoundException;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.CoreService;
+import org.onosproject.gnmi.api.GnmiController;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
@@ -159,6 +160,16 @@ public class GeneralDeviceProvider extends AbstractProvider
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private PiPipeconfWatchdogService pipeconfWatchdogService;
 
+    // FIXME: no longer general if we add a dependency to a protocol-specific
+    // service. Possible solutions are: rename this provider to
+    // StratumDeviceProvider, find a way to allow this provider to register for
+    // protocol specific events (e.g. port events) via drivers (similar to
+    // DeviceAgentListener).
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    private GnmiController gnmiController;
+
+    private GnmiDeviceStateSubscriber gnmiDeviceStateSubscriber;
+
     private static final String STATS_POLL_FREQUENCY = "deviceStatsPollFrequency";
     private static final int DEFAULT_STATS_POLL_FREQUENCY = 10;
     @Property(name = STATS_POLL_FREQUENCY, intValue = DEFAULT_STATS_POLL_FREQUENCY,
@@ -224,6 +235,9 @@ public class GeneralDeviceProvider extends AbstractProvider
         pipeconfWatchdogService.addListener(pipeconfWatchdogListener);
         rescheduleProbeTask(false);
         modified(context);
+        gnmiDeviceStateSubscriber = new GnmiDeviceStateSubscriber(gnmiController,
+                deviceService, mastershipService, providerService);
+        gnmiDeviceStateSubscriber.activate();
         log.info("Started");
     }
 
@@ -312,6 +326,8 @@ public class GeneralDeviceProvider extends AbstractProvider
         providerRegistry.unregister(this);
         providerService = null;
         cfgService.unregisterConfigFactory(factory);
+        gnmiDeviceStateSubscriber.deactivate();
+        gnmiDeviceStateSubscriber = null;
         log.info("Stopped");
     }
 
