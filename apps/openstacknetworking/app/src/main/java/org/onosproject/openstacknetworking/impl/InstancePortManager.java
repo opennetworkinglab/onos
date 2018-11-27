@@ -309,77 +309,86 @@ public class InstancePortManager
                     updateInstancePort(instPort);
                     break;
                 case HOST_ADDED:
-                    InstancePort existingPort = instancePort(instPort.portId());
-                    if (existingPort == null) {
-                        // first time to add instance
-                        createInstancePort(instPort);
-                    } else {
-                        if (existingPort.state() == INACTIVE) {
-
-                            if (instPort.deviceId().equals(existingPort.deviceId())) {
-
-                                // VM RESTART case
-                                // if the ID of switch where VM is attached to is
-                                // identical, we can assume that the VM was
-                                // restarted in the same location;
-                                // note that the switch port number where VM is
-                                // attached can be varied per each restart
-                                updateInstancePort(instPort);
-                            } else {
-
-                                // VM COLD MIGRATION case
-                                // if the ID of switch where VM is attached to is
-                                // varied, we can assume that the VM was migrated
-                                // to a new location
-                                updateInstancePort(instPort.updateState(MIGRATING));
-                                InstancePort updated = instPort.updateState(MIGRATED);
-                                updateInstancePort(updated.updatePrevLocation(
-                                        existingPort.deviceId(), existingPort.portNumber()));
-                            }
-                        }
-                    }
+                    processHostAddition(instPort);
                     break;
                 case HOST_REMOVED:
-
-                    // in case the instance port cannot be found in the store,
-                    // this indicates that the instance port was removed due to
-                    // the removal of openstack port; in some cases, openstack
-                    // port removal message arrives before ovs port removal message
-                    if (instancePortStore.instancePort(instPort.portId()) == null) {
-                        log.debug("instance port was removed before ovs port removal");
-                        break;
-                    }
-
-                    // we will remove instance port from persistent store,
-                    // only if we receive port removal signal from neutron.
-                    // by default, we update the instance port state to INACTIVE
-                    // to indicate the instance is terminated
-                    updateInstancePort(instPort.updateState(INACTIVE));
+                    processHostRemoval(instPort);
                     break;
                 case HOST_MOVED:
-                    Host oldHost = event.prevSubject();
-                    Host currHost = event.subject();
-
-                    // in the middle of VM migration
-                    if (oldHost.locations().size() < currHost.locations().size()) {
-                        updateInstancePort(instPort.updateState(MIGRATING));
-                    }
-
-                    // finish of VM migration
-                    if (oldHost.locations().size() > currHost.locations().size()) {
-                        Set<HostLocation> diff =
-                                Sets.difference(oldHost.locations(), currHost.locations());
-                        HostLocation location = diff.stream().findFirst().orElse(null);
-
-                        if (location != null) {
-                            InstancePort updated = instPort.updateState(MIGRATED);
-                            updateInstancePort(updated.updatePrevLocation(
-                                        location.deviceId(), location.port()));
-                        }
-                    }
+                    processHostMove(event, instPort);
                     break;
                 default:
                     break;
+            }
+        }
+
+        private void processHostAddition(InstancePort instPort) {
+            InstancePort existingPort = instancePort(instPort.portId());
+            if (existingPort == null) {
+                // first time to add instance
+                createInstancePort(instPort);
+            } else {
+                if (existingPort.state() == INACTIVE) {
+
+                    if (instPort.deviceId().equals(existingPort.deviceId())) {
+                        // VM RESTART case
+                        // if the ID of switch where VM is attached to is
+                        // identical, we can assume that the VM was
+                        // restarted in the same location;
+                        // note that the switch port number where VM is
+                        // attached can be varied per each restart
+                        updateInstancePort(instPort);
+                    } else {
+                        // VM COLD MIGRATION case
+                        // if the ID of switch where VM is attached to is
+                        // varied, we can assume that the VM was migrated
+                        // to a new location
+                        updateInstancePort(instPort.updateState(MIGRATING));
+                        InstancePort updated = instPort.updateState(MIGRATED);
+                        updateInstancePort(updated.updatePrevLocation(
+                                existingPort.deviceId(), existingPort.portNumber()));
+                    }
+                }
+            }
+        }
+
+        private void processHostRemoval(InstancePort instPort) {
+            /* in case the instance port cannot be found in the store,
+               this indicates that the instance port was removed due to
+               the removal of openstack port; in some cases, openstack
+               port removal message arrives before ovs port removal message */
+            if (instancePortStore.instancePort(instPort.portId()) == null) {
+                log.debug("instance port was removed before ovs port removal");
+                return;
+            }
+
+            /* we will remove instance port from persistent store,
+               only if we receive port removal signal from neutron.
+               by default, we update the instance port state to INACTIVE
+               to indicate the instance is terminated */
+            updateInstancePort(instPort.updateState(INACTIVE));
+        }
+
+        private void processHostMove(HostEvent event, InstancePort instPort) {
+            Host oldHost = event.prevSubject();
+            Host currHost = event.subject();
+
+            // in the middle of VM migration
+            if (oldHost.locations().size() < currHost.locations().size()) {
+                updateInstancePort(instPort.updateState(MIGRATING));
+            }
+
+            // finish of VM migration
+            if (oldHost.locations().size() > currHost.locations().size()) {
+                Set<HostLocation> diff =
+                        Sets.difference(oldHost.locations(), currHost.locations());
+                HostLocation location = diff.stream().findFirst().orElse(null);
+
+                if (location != null) {
+                    InstancePort updated = instPort.updateState(MIGRATED);
+                    updateInstancePort(updated.updatePrevLocation(
+                            location.deviceId(), location.port()));
+                }
             }
         }
 

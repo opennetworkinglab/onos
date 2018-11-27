@@ -78,7 +78,7 @@ import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.CONTROLLE
 
 @Service
 @Component(immediate = true)
-public final class OpenstackSwitchingHostProvider
+public class OpenstackSwitchingHostProvider
         extends AbstractProvider implements HostProvider {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -124,7 +124,7 @@ public final class OpenstackSwitchingHostProvider
     }
 
     @Activate
-    void activate() {
+    protected void activate() {
         coreService.registerApplication(OPENSTACK_NETWORKING_APP_ID);
         deviceService.addListener(internalDeviceListener);
         osNodeService.addListener(internalNodeListener);
@@ -134,7 +134,7 @@ public final class OpenstackSwitchingHostProvider
     }
 
     @Deactivate
-    void deactivate() {
+    protected void deactivate() {
         hostProviderRegistry.unregister(this);
         osNodeService.removeListener(internalNodeListener);
         deviceService.removeListener(internalDeviceListener);
@@ -155,7 +155,7 @@ public final class OpenstackSwitchingHostProvider
      *
      * @param event device event
      */
-    protected void portAddedHelper(DeviceEvent event) {
+    void portAddedHelper(DeviceEvent event) {
         log.debug("Instance port {} is detected from {}",
                 event.port().annotations().value(PORT_NAME),
                 event.subject().id());
@@ -168,7 +168,7 @@ public final class OpenstackSwitchingHostProvider
      *
      * @param event device event
      */
-    protected void portRemovedHelper(DeviceEvent event) {
+    void portRemovedHelper(DeviceEvent event) {
         log.debug("Instance port {} is removed from {}",
                 event.port().annotations().value(PORT_NAME),
                 event.subject().id());
@@ -183,7 +183,7 @@ public final class OpenstackSwitchingHostProvider
      *
      * @param port port object used in ONOS
      */
-    protected void processPortAdded(Port port) {
+    void processPortAdded(Port port) {
         // TODO check the node state is COMPLETE
         org.openstack4j.model.network.Port osPort = osNetworkService.port(port);
         if (osPort == null) {
@@ -206,9 +206,9 @@ public final class OpenstackSwitchingHostProvider
         MacAddress mac = MacAddress.valueOf(osPort.getMacAddress());
         HostId hostId = HostId.hostId(mac);
 
-        // typically one openstack port should only be bound to one fix IP address;
-        // however, openstack4j binds multiple fixed IPs to one port, this might
-        // be a defect of openstack4j implementation
+        /* typically one openstack port should only be bound to one fix IP address;
+           however, openstack4j binds multiple fixed IPs to one port, this might
+           be a defect of openstack4j implementation */
 
         // TODO: we need to find a way to bind multiple ports from multiple
         // openstack networks into one host sooner or later
@@ -252,7 +252,7 @@ public final class OpenstackSwitchingHostProvider
 
             // newly added location is not in the existing location list,
             // therefore, we simply add this into the location list
-            if (locations.size() == 0) {
+            if (locations.isEmpty()) {
                 hostProviderService.addLocationToHost(hostId,
                         new HostLocation(connectPoint, createTime));
             }
@@ -275,7 +275,7 @@ public final class OpenstackSwitchingHostProvider
      *
      * @param port ONOS port
      */
-    protected void processPortRemoved(Port port) {
+    private void processPortRemoved(Port port) {
         ConnectPoint connectPoint = new ConnectPoint(port.element().id(), port.number());
 
         Set<Host> hosts = hostService.getConnectedHosts(connectPoint);
@@ -332,42 +332,45 @@ public final class OpenstackSwitchingHostProvider
             log.info("Device event occurred with type {}", event.type());
             switch (event.type()) {
                 case PORT_UPDATED:
-                    executor.execute(() -> {
-                        if (!isRelevantHelper(event)) {
-                            return;
-                        }
-
-                        if (!event.port().isEnabled()) {
-                            portRemovedHelper(event);
-                        } else if (event.port().isEnabled()) {
-                            portAddedHelper(event);
-                        }
-                    });
-
+                    executor.execute(() -> processPortUpdate(event));
                     break;
                 case PORT_ADDED:
-                    executor.execute(() -> {
-
-                        if (!isRelevantHelper(event)) {
-                            return;
-                        }
-
-                        portAddedHelper(event);
-                    });
+                    executor.execute(() -> processPortAddition(event));
                     break;
                 case PORT_REMOVED:
-                    executor.execute(() -> {
-
-                        if (!isRelevantHelper(event)) {
-                            return;
-                        }
-
-                        portRemovedHelper(event);
-                    });
+                    executor.execute(() -> processPortRemoval(event));
                     break;
                 default:
                     break;
             }
+        }
+
+        private void processPortUpdate(DeviceEvent event) {
+            if (!isRelevantHelper(event)) {
+                return;
+            }
+
+            if (!event.port().isEnabled()) {
+                portRemovedHelper(event);
+            } else if (event.port().isEnabled()) {
+                portAddedHelper(event);
+            }
+        }
+
+        private void processPortAddition(DeviceEvent event) {
+            if (!isRelevantHelper(event)) {
+                return;
+            }
+
+            portAddedHelper(event);
+        }
+
+        private void processPortRemoval(DeviceEvent event) {
+            if (!isRelevantHelper(event)) {
+                return;
+            }
+
+            portRemovedHelper(event);
         }
     }
 
@@ -393,15 +396,7 @@ public final class OpenstackSwitchingHostProvider
 
             switch (event.type()) {
                 case OPENSTACK_NODE_COMPLETE:
-                    log.info("COMPLETE node {} is detected", osNode.hostname());
-                    executor.execute(() -> {
-
-                        if (!isRelevantHelper(event)) {
-                            return;
-                        }
-
-                        processCompleteNode(event.subject());
-                    });
+                    executor.execute(() -> processCompleteNode(event, event.subject()));
                     break;
                 case OPENSTACK_NODE_INCOMPLETE:
                     log.warn("{} is changed to INCOMPLETE state", osNode);
@@ -409,14 +404,20 @@ public final class OpenstackSwitchingHostProvider
                 case OPENSTACK_NODE_CREATED:
                 case OPENSTACK_NODE_UPDATED:
                 case OPENSTACK_NODE_REMOVED:
-                    // not reacts to the events other than complete and incomplete states
-                    break;
                 default:
                     break;
             }
         }
 
-        private void processCompleteNode(OpenstackNode osNode) {
+        private void processCompleteNode(OpenstackNodeEvent event,
+                                         OpenstackNode osNode) {
+
+            if (!isRelevantHelper(event)) {
+                return;
+            }
+
+            log.info("COMPLETE node {} is detected", osNode.hostname());
+
             deviceService.getPorts(osNode.intgBridge()).stream()
                     .filter(port -> vnicType(port.annotations().value(PORT_NAME))
                                     .equals(Constants.VnicType.NORMAL) ||

@@ -101,7 +101,6 @@ public class OpenstackNetworkManager
 
     private static final String ERR_NULL_NETWORK  = "OpenStack network cannot be null";
     private static final String ERR_NULL_NETWORK_ID  = "OpenStack network ID cannot be null";
-    private static final String ERR_NULL_NETWORK_NAME  = "OpenStack network name cannot be null";
     private static final String ERR_NULL_SUBNET = "OpenStack subnet cannot be null";
     private static final String ERR_NULL_SUBNET_ID = "OpenStack subnet ID cannot be null";
     private static final String ERR_NULL_SUBNET_NET_ID = "OpenStack subnet network ID cannot be null";
@@ -110,9 +109,7 @@ public class OpenstackNetworkManager
     private static final String ERR_NULL_PORT_ID = "OpenStack port ID cannot be null";
     private static final String ERR_NULL_PORT_NET_ID = "OpenStack port network ID cannot be null";
 
-    private static final String ERR_NOT_FOUND = " does not exist";
     private static final String ERR_IN_USE = " still in use";
-    private static final String ERR_DUPLICATE = " already exists";
 
     private static final int PREFIX_LENGTH = 32;
 
@@ -333,7 +330,6 @@ public class OpenstackNetworkManager
                             .filter(p -> p.getId().contains(portName.substring(3)))
                             .findFirst();
                     return osPort.orElse(null);
-
                 case DIRECT:
                     //Additional prefixes will be added
                     osPort = osNetworkStore.ports()
@@ -342,7 +338,6 @@ public class OpenstackNetworkManager
                             .filter(p -> Objects.requireNonNull(getIntfNameFromPciAddress(p)).equals(portName))
                             .findFirst();
                     return osPort.orElse(null);
-
                 default:
                     return null;
             }
@@ -534,10 +529,9 @@ public class OpenstackNetworkManager
             log.info("Updated external peer router map {}",
                     externalPeerRouterMap.get(ipAddress.toString()).value().toString());
         } catch (Exception e) {
-            log.error("Exception occurred because of {}", e.toString());
+            log.error("Exception occurred because of {}", e);
         }
     }
-
 
     @Override
     public void updateExternalPeerRouter(IpAddress ipAddress, MacAddress macAddress, VlanId vlanId) {
@@ -550,7 +544,7 @@ public class OpenstackNetworkManager
                             .build());
 
         } catch (Exception e) {
-            log.error("Exception occurred because of {}", e.toString());
+            log.error("Exception occurred because of {}", e);
         }
     }
 
@@ -579,7 +573,7 @@ public class OpenstackNetworkManager
                             .vlanId(vlanId).build());
 
         } catch (Exception e) {
-            log.error("Exception occurred because of {}", e.toString());
+            log.error("Exception occurred because of {}", e);
         }
     }
 

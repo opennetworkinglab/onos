@@ -455,9 +455,6 @@ public class OpenstackMetadataProxyHandler {
             log.info("Sending HTTP {} request to metadata endpoint {}...", method, url);
 
             switch (method) {
-                case HTTP_GET_METHOD:
-                    request = new HttpGet(url);
-                    break;
                 case HTTP_POST_METHOD:
                     request = new HttpPost(url);
                     HttpEntityEnclosingRequest postRequest =
@@ -473,6 +470,7 @@ public class OpenstackMetadataProxyHandler {
                 case HTTP_DELETE_METHOD:
                     request = new HttpDelete(url);
                     break;
+                case HTTP_GET_METHOD:
                 default:
                     request = new HttpGet(url);
                     break;
@@ -533,6 +531,17 @@ public class OpenstackMetadataProxyHandler {
                     ByteBuffer.wrap(ethReply.serialize())));
             context.block();
         }
+
+        private String metadataSecret() {
+            OpenstackNode controller = osNodeService.completeNodes(CONTROLLER)
+                    .stream().findFirst().orElse(null);
+
+            if (controller != null && controller.neutronConfig() != null) {
+                return controller.neutronConfig().metadataProxySecret();
+            }
+
+            return null;
+        }
     }
 
     private class InternalNodeEventListener implements OpenstackNodeListener {
@@ -551,28 +560,10 @@ public class OpenstackMetadataProxyHandler {
             OpenstackNode osNode = event.subject();
             switch (event.type()) {
                 case OPENSTACK_NODE_COMPLETE:
-
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        setMetadataRule(osNode, true);
-                    });
-
+                    eventExecutor.execute(() -> processNodeCompletion(osNode));
                     break;
                 case OPENSTACK_NODE_INCOMPLETE:
-
-                    eventExecutor.execute(() -> {
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        setMetadataRule(osNode, false);
-                    });
-
+                    eventExecutor.execute(() -> processNodeIncompletion(osNode));
                     break;
                 case OPENSTACK_NODE_CREATED:
                 case OPENSTACK_NODE_UPDATED:
@@ -580,6 +571,22 @@ public class OpenstackMetadataProxyHandler {
                 default:
                     break;
             }
+        }
+
+        private void processNodeCompletion(OpenstackNode osNode) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            setMetadataRule(osNode, true);
+        }
+
+        private void processNodeIncompletion(OpenstackNode osNode) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            setMetadataRule(osNode, false);
         }
 
         /**
@@ -621,17 +628,6 @@ public class OpenstackMetadataProxyHandler {
         }
 
         return false;
-    }
-
-    private String metadataSecret() {
-        OpenstackNode controller = osNodeService.completeNodes(CONTROLLER)
-                .stream().findFirst().orElse(null);
-
-        if (controller != null && controller.neutronConfig() != null) {
-            return controller.neutronConfig().metadataProxySecret();
-        }
-
-        return null;
     }
 
     /**
