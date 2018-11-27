@@ -18,7 +18,8 @@ package org.onosproject.net.flowobjective.impl;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.RemovalNotification;
+import com.google.common.cache.RemovalListener;
+import com.google.common.cache.RemovalListeners;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
@@ -37,6 +38,7 @@ import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveContext;
 import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.flowobjective.ObjectiveEvent;
+import org.onosproject.net.flowobjective.ObjectiveQueueKey;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -45,11 +47,14 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 
@@ -64,6 +69,9 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
     private Cache<ForwardingObjQueueKey, Objective> fwdObjQueueHead;
     private Cache<NextObjQueueKey, Objective> nextObjQueueHead;
     private ScheduledExecutorService cacheCleaner;
+    private ExecutorService filtCacheEventExecutor;
+    private ExecutorService fwdCacheEventExecutor;
+    private ExecutorService nextCacheEventExecutor;
 
     private ListMultimap<FilteringObjQueueKey, Objective> filtObjQueue =
             Multimaps.synchronizedListMultimap(ArrayListMultimap.create());
@@ -78,55 +86,36 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
     protected void activate() {
         super.activate();
 
-        // TODO Clean up duplicated code
+        filtCacheEventExecutor = newSingleThreadExecutor(groupedThreads("onos/flowobj", "cache-event-filt", log));
+        fwdCacheEventExecutor = newSingleThreadExecutor(groupedThreads("onos/flowobj", "cache-event-fwd", log));
+        nextCacheEventExecutor = newSingleThreadExecutor(groupedThreads("onos/flowobj", "cache-event-next", log));
+
+        RemovalListener<ObjectiveQueueKey, Objective> removalListener = notification -> {
+            Objective obj = notification.getValue();
+            switch (notification.getCause()) {
+                case EXPIRED:
+                case COLLECTED:
+                case SIZE:
+                    obj.context().ifPresent(c -> c.onError(obj, ObjectiveError.INSTALLATIONTIMEOUT));
+                    break;
+                case EXPLICIT: // No action when the objective completes correctly
+                case REPLACED: // No action when a pending forward or next objective gets executed
+                default:
+                    break;
+            }
+        };
         filtObjQueueHead = CacheBuilder.newBuilder()
                 .expireAfterWrite(OBJ_TIMEOUT_MS, TimeUnit.MILLISECONDS)
-                .removalListener((RemovalNotification<FilteringObjQueueKey, Objective> notification) -> {
-                    Objective obj = notification.getValue();
-                    switch (notification.getCause()) {
-                        case EXPIRED:
-                        case COLLECTED:
-                        case SIZE:
-                            obj.context().ifPresent(c -> c.onError(obj, ObjectiveError.INSTALLATIONTIMEOUT));
-                            break;
-                        case EXPLICIT: // No action when the objective completes correctly
-                        case REPLACED: // No action when a pending forward or next objective gets executed
-                        default:
-                            break;
-                    }
-                }).build();
+                .removalListener(RemovalListeners.asynchronous(removalListener, filtCacheEventExecutor))
+                .build();
         fwdObjQueueHead = CacheBuilder.newBuilder()
                 .expireAfterWrite(OBJ_TIMEOUT_MS, TimeUnit.MILLISECONDS)
-                .removalListener((RemovalNotification<ForwardingObjQueueKey, Objective> notification) -> {
-                    Objective obj = notification.getValue();
-                    switch (notification.getCause()) {
-                        case EXPIRED:
-                        case COLLECTED:
-                        case SIZE:
-                            obj.context().ifPresent(c -> c.onError(obj, ObjectiveError.INSTALLATIONTIMEOUT));
-                            break;
-                        case EXPLICIT: // No action when the objective completes correctly
-                        case REPLACED: // No action when a pending forward or next objective gets executed
-                        default:
-                            break;
-                    }
-                }).build();
+                .removalListener(RemovalListeners.asynchronous(removalListener, fwdCacheEventExecutor))
+                .build();
         nextObjQueueHead = CacheBuilder.newBuilder()
                 .expireAfterWrite(OBJ_TIMEOUT_MS, TimeUnit.MILLISECONDS)
-                .removalListener((RemovalNotification<NextObjQueueKey, Objective> notification) -> {
-                    Objective obj = notification.getValue();
-                    switch (notification.getCause()) {
-                        case EXPIRED:
-                        case COLLECTED:
-                        case SIZE:
-                            obj.context().ifPresent(c -> c.onError(obj, ObjectiveError.INSTALLATIONTIMEOUT));
-                            break;
-                        case EXPLICIT: // No action when the objective completes correctly
-                        case REPLACED: // No action when a pending forward or next objective gets executed
-                        default:
-                            break;
-                    }
-                }).build();
+                .removalListener(RemovalListeners.asynchronous(removalListener, nextCacheEventExecutor))
+                .build();
 
         cacheCleaner = newSingleThreadScheduledExecutor(groupedThreads("onos/flowobj", "cache-cleaner", log));
         cacheCleaner.scheduleAtFixedRate(() -> {
@@ -145,6 +134,10 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
     protected void deactivate() {
         cacheCleaner.shutdown();
         clearQueue();
+
+        filtCacheEventExecutor.shutdown();
+        fwdCacheEventExecutor.shutdown();
+        nextCacheEventExecutor.shutdown();
 
         super.deactivate();
     }
@@ -318,7 +311,7 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
 
         if (obj instanceof FilteringObjective) {
             FilteringObjQueueKey k = new FilteringObjQueueKey(deviceId, priority, ((FilteringObjective) obj).key());
-            if (!ObjectiveError.INSTALLATIONTIMEOUT.equals(error)) {
+            if (!Objects.equals(ObjectiveError.INSTALLATIONTIMEOUT, error)) {
                 filtObjQueueHead.invalidate(k);
             }
             filtObjQueue.remove(k, obj);
@@ -326,7 +319,7 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
         } else if (obj instanceof ForwardingObjective) {
             ForwardingObjQueueKey k =
                     new ForwardingObjQueueKey(deviceId, priority, ((ForwardingObjective) obj).selector());
-            if (!ObjectiveError.INSTALLATIONTIMEOUT.equals(error)) {
+            if (!Objects.equals(ObjectiveError.INSTALLATIONTIMEOUT, error)) {
                 fwdObjQueueHead.invalidate(k);
             }
             fwdObjQueue.remove(k, obj);
@@ -349,7 +342,7 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
                 }
             }
             NextObjQueueKey k = new NextObjQueueKey(deviceId, obj.id());
-            if (!ObjectiveError.INSTALLATIONTIMEOUT.equals(error)) {
+            if (!Objects.equals(ObjectiveError.INSTALLATIONTIMEOUT, error)) {
                 nextObjQueueHead.invalidate(k);
             }
             nextObjQueue.remove(k, obj);
