@@ -9,7 +9,7 @@ set -e
 cd $ONOS_ROOT
 
 REPO=${M2_REPO:-~/.m2/repository}
-VER=1.5
+VER=2.1
 ARTIFACT=org/onosproject/onos-libgen/$VER/onos-libgen-$VER.jar
 JAR=$REPO/$ARTIFACT
 
@@ -21,5 +21,4 @@ if [ ! -f $JAR ]; then
     [ -f $JAR ] && printf "Done.\n"
 fi
 
-[ -z "$1" -o "$1" = "bazel" ] && java -jar $JAR lib/deps.json tools/build/bazel/generate_workspace.bzl --bazel
-[ -z "$1" -o "$1" = "buck" ] && java -jar $JAR lib/deps.json lib/BUCK
+java -jar $JAR lib/deps.json tools/build/bazel/generate_workspace.bzl

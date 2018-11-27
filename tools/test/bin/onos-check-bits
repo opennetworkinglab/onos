@@ -6,16 +6,7 @@
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults
 
-# If the bazel-built bits are newer than the buck-built bits, use the former.
-BUCK_TAR=$ONOS_ROOT/buck-out/gen/tools/package/onos-package/onos.tar.gz
-BAZEL_TAR=$ONOS_ROOT/bazel-bin/onos.tar.gz
-if [ -f $BAZEL_TAR ] && [ $BAZEL_TAR -nt $ONOS_TAR ]; then
-    rm -f $ONOS_TAR >/dev/null; ln -s $BAZEL_TAR $ONOS_TAR
-else
-    if [ -f $BUCK_TAR ] && [ $BUCK_TAR -nt $ONOS_TAR ]; then
-        rm -f $ONOS_TAR >/dev/null; ln -s $BUCK_TAR $ONOS_TAR
-    fi
-fi
+ONOS_TAR=$ONOS_ROOT/bazel-bin/onos.tar.gz
 
 ls -lL $ONOS_TAR  && cksum $ONOS_TAR
 if [ $? -ne 0 ]; then

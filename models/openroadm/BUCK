@@ -1,5 +1,0 @@
-
-yang_model(
-  app_name = 'org.onosproject.models.openroadm',
-  title = 'Open ROADM YANG Models',
-)

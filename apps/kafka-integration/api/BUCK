@@ -1,8 +1,0 @@
-COMPILE_DEPS = [
-    '//lib:CORE_DEPS',
-    '//lib:kafka-clients',
-]
-
-osgi_jar_with_tests (
-    deps = COMPILE_DEPS,
-)

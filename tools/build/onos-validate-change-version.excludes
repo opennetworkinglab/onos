@@ -37,8 +37,6 @@
 \./providers/snmp/
 \./sonar-project.properties
 \./tools/build/bazel
-\./tools/build/buck-plugin/BUCK
-\./tools/build/buck-publish-api
 \./tools/build/conf/pom.xml
 \./tools/build/libgen
 \./tools/build/onos-buck
