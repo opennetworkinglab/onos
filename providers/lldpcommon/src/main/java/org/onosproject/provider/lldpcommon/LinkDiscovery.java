@@ -28,7 +28,6 @@ import org.onlab.util.Tools;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
-import org.onosproject.net.DefaultPort;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link.Type;
@@ -348,13 +347,7 @@ public class LinkDiscovery implements TimerTask {
         if (remotePort.isPresent()) {
             return remotePort;
         } else {
-            int portNumber = Integer.parseInt(remotePortName.replaceAll("\\D+", ""));
-            DefaultAnnotations.Builder annotations = DefaultAnnotations.builder()
-                    .set(AnnotationKeys.PORT_NAME, remotePortName);
-
-            return Optional.of(new DefaultPort(remoteDevice, PortNumber.portNumber(portNumber),
-                    true,
-                    annotations.build()));
+            return Optional.empty();
         }
     }
 
