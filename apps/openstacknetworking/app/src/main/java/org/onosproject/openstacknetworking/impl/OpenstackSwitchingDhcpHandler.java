@@ -91,6 +91,7 @@ import static org.onosproject.openstacknetworking.api.Constants.DHCP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_DHCP_RULE;
 import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.DHCP_SERVER_MAC;
 import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.DHCP_SERVER_MAC_DEFAULT;
+import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -545,6 +546,11 @@ public class OpenstackSwitchingDhcpHandler {
     }
 
     private class InternalNodeEventListener implements OpenstackNodeListener {
+        @Override
+        public boolean isRelevant(OpenstackNodeEvent event) {
+            return event.subject().type() == COMPUTE;
+        }
+
         private boolean isRelevantHelper() {
             return Objects.equals(localNodeId, leadershipService.getLeader(appId.name()));
         }

@@ -753,6 +753,11 @@ public final class OpenstackSwitchingArpHandler {
      * default ARP rule to handle ARP request.
      */
     private class InternalNodeEventListener implements OpenstackNodeListener {
+        @Override
+        public boolean isRelevant(OpenstackNodeEvent event) {
+            return event.subject().type() == COMPUTE;
+        }
+
         private boolean isRelevantHelper() {
             return Objects.equals(localNodeId, leadershipService.getLeader(appId.name()));
         }

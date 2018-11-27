@@ -268,10 +268,11 @@ public class OpenstackFlowRuleManager implements OpenstackFlowRuleService {
 
         @Override
         public boolean isRelevant(OpenstackNodeEvent event) {
-            // do not allow to proceed without leadership
-            NodeId leader = leadershipService.getLeader(appId.name());
-            return Objects.equals(localNodeId, leader) &&
-                    event.subject().type().equals(COMPUTE);
+            return event.subject().type().equals(COMPUTE);
+        }
+
+        private boolean isRelevantHelper() {
+            return Objects.equals(localNodeId, leadershipService.getLeader(appId.name()));
         }
 
         @Override
@@ -282,6 +283,11 @@ public class OpenstackFlowRuleManager implements OpenstackFlowRuleService {
                 case OPENSTACK_NODE_COMPLETE:
                     deviceEventExecutor.execute(() -> {
                         log.info("COMPLETE node {} is detected", osNode.hostname());
+
+                        if (!isRelevantHelper()) {
+                            return;
+                        }
+
                         initializePipeline(osNode.intgBridge());
                     });
                     break;

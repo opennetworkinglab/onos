@@ -327,16 +327,13 @@ public class OpenstackRoutingFloatingIpHandler {
 
         if (selectedGatewayNode == null) {
             log.warn(ERR_FLOW + "no gateway node selected");
+            return;
         }
 
         switch (osNet.getNetworkType()) {
             case VXLAN:
                 if (osNodeService.node(instPort.deviceId()).tunnelPortNum() == null) {
                     log.warn(ERR_FLOW + "no tunnel port");
-                    return;
-                }
-                if (selectedGatewayNode == null) {
-                    log.warn(ERR_FLOW + "no gateway node");
                     return;
                 }
                 sBuilder.matchTunnelId(Long.parseLong(osNet.getProviderSegID()));
