@@ -20,6 +20,8 @@
                    impl="org.onosproject.drivers.gnmi.OpenConfigGnmiDeviceDescriptionDiscovery"/>
         <behaviour api="org.onosproject.net.device.DeviceHandshaker"
                    impl="org.onosproject.drivers.gnmi.GnmiHandshaker"/>
+        <behaviour api="org.onosproject.net.device.PortStatisticsDiscovery"
+                   impl="org.onosproject.drivers.gnmi.OpenConfigGnmiPortStatisticsDiscovery"/>
     </driver>
 </drivers>
 

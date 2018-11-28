@@ -37,9 +37,9 @@ import org.onosproject.gnmi.api.GnmiUtils;
 import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
-import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
@@ -60,6 +60,8 @@ import java.util.concurrent.locks.Lock;
  */
 @Beta
 class GnmiDeviceStateSubscriber {
+
+    private static final String LAST_CHANGE = "last-change";
 
     private static Logger log = LoggerFactory.getLogger(GnmiDeviceStateSubscriber.class);
 
@@ -199,14 +201,15 @@ class GnmiDeviceStateSubscriber {
 
             // Use last element to identify which state updated
             if ("oper-status".equals(lastElem.getName())) {
-                handleOperStatusUpdate(eventSubject.deviceId(), update);
+                handleOperStatusUpdate(eventSubject.deviceId(), update,
+                                       notification.getTimestamp());
             } else {
                 log.debug("Unrecognized update {}", GnmiUtils.pathToString(path));
             }
         });
     }
 
-    private void handleOperStatusUpdate(DeviceId deviceId, Update update) {
+    private void handleOperStatusUpdate(DeviceId deviceId, Update update, long timestamp) {
         Path path = update.getPath();
         // first element should be "interface"
         String interfaceName = path.getElem(1).getKeyOrDefault("name", null);
@@ -222,6 +225,11 @@ class GnmiDeviceStateSubscriber {
                 return;
             }
 
+            DefaultAnnotations portAnnotations = DefaultAnnotations.builder()
+                    .putAll(port.annotations())
+                    .set(LAST_CHANGE, String.valueOf(timestamp))
+                    .build();
+
             // Port/Interface name is identical in OpenConfig model, but not in ONOS
             // This might cause some problem if we use one name to different port
             PortDescription portDescription = DefaultPortDescription.builder()
@@ -229,7 +237,7 @@ class GnmiDeviceStateSubscriber {
                     .withPortNumber(port.number())
                     .isEnabled(update.getVal().getStringVal().equals("UP"))
                     .type(port.type())
-                    .annotations((SparseAnnotations) port.annotations())
+                    .annotations(portAnnotations)
                     .build();
             providerService.portStatusChanged(deviceId, portDescription);
         });
