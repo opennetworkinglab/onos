@@ -82,6 +82,13 @@ public final class DefaultInstancePort implements InstancePort {
         this.oldPortNumber = oldPortNumber;
     }
 
+    /**
+     * A constructor fed by host and state.
+     *
+     * @param host  host object
+     * @param state instance port state
+     * @return instance port
+     */
     public static DefaultInstancePort from(Host host, State state) {
         checkNotNull(host);
         checkArgument(!Strings.isNullOrEmpty(
@@ -94,6 +101,15 @@ public final class DefaultInstancePort implements InstancePort {
         return new DefaultInstancePort(host, state, null, null);
     }
 
+    /**
+     * A constructor fed by host, state, device ID and port number.
+     *
+     * @param host  host object
+     * @param state instance port state
+     * @param oldDeviceId device identifier
+     * @param oldPortNumber port number
+     * @return instance port
+     */
     public static DefaultInstancePort from(Host host,
                                            State state,
                                            DeviceId oldDeviceId,
