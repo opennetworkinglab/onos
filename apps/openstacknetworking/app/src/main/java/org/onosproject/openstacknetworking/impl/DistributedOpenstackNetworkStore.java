@@ -282,33 +282,39 @@ public class DistributedOpenstackNetworkStore
         public void event(MapEvent<String, Network> event) {
             switch (event.type()) {
                 case UPDATE:
-                    log.debug("OpenStack network updated");
-                    eventExecutor.execute(() ->
-                        notifyDelegate(new OpenstackNetworkEvent(
-                                OPENSTACK_NETWORK_UPDATED,
-                                event.newValue().value()))
-                    );
+                    eventExecutor.execute(() -> processNetworkMapUpdate(event));
                     break;
                 case INSERT:
-                    log.debug("OpenStack network created");
-                    eventExecutor.execute(() ->
-                        notifyDelegate(new OpenstackNetworkEvent(
-                                OPENSTACK_NETWORK_CREATED,
-                                event.newValue().value()))
-                    );
+                    eventExecutor.execute(() -> processNetworkMapInsertion(event));
                     break;
                 case REMOVE:
-                    log.debug("OpenStack network removed");
-                    eventExecutor.execute(() ->
-                        notifyDelegate(new OpenstackNetworkEvent(
-                                OPENSTACK_NETWORK_REMOVED,
-                                event.oldValue().value()))
-                    );
+                    eventExecutor.execute(() -> processNetworkMapRemoval(event));
                     break;
                 default:
                     log.error("Unsupported openstack network event type");
                     break;
             }
+        }
+
+        private void processNetworkMapUpdate(MapEvent<String, Network> event) {
+            log.debug("OpenStack network updated");
+            notifyDelegate(new OpenstackNetworkEvent(
+                    OPENSTACK_NETWORK_UPDATED,
+                    event.newValue().value()));
+        }
+
+        private void processNetworkMapInsertion(MapEvent<String, Network> event) {
+            log.debug("OpenStack network created");
+            notifyDelegate(new OpenstackNetworkEvent(
+                    OPENSTACK_NETWORK_CREATED,
+                    event.newValue().value()));
+        }
+
+        private void processNetworkMapRemoval(MapEvent<String, Network> event) {
+            log.debug("OpenStack network removed");
+            notifyDelegate(new OpenstackNetworkEvent(
+                    OPENSTACK_NETWORK_REMOVED,
+                    event.oldValue().value()));
         }
     }
 
@@ -318,36 +324,42 @@ public class DistributedOpenstackNetworkStore
         public void event(MapEvent<String, Subnet> event) {
             switch (event.type()) {
                 case UPDATE:
-                    log.debug("OpenStack subnet updated");
-                    eventExecutor.execute(() ->
-                        notifyDelegate(new OpenstackNetworkEvent(
-                                OPENSTACK_SUBNET_UPDATED,
-                                network(event.newValue().value().getNetworkId()),
-                                event.newValue().value()))
-                    );
+                    eventExecutor.execute(() -> processSubnetMapUpdate(event));
                     break;
                 case INSERT:
-                    log.debug("OpenStack subnet created");
-                    eventExecutor.execute(() ->
-                        notifyDelegate(new OpenstackNetworkEvent(
-                                OPENSTACK_SUBNET_CREATED,
-                                network(event.newValue().value().getNetworkId()),
-                                event.newValue().value()))
-                    );
+                    eventExecutor.execute(() -> processSubnetMapInsertion(event));
                     break;
                 case REMOVE:
-                    log.debug("OpenStack subnet removed");
-                    eventExecutor.execute(() ->
-                        notifyDelegate(new OpenstackNetworkEvent(
-                                OPENSTACK_SUBNET_REMOVED,
-                                network(event.oldValue().value().getNetworkId()),
-                                event.oldValue().value()))
-                    );
+                    eventExecutor.execute(() -> processSubnetMapRemoval(event));
                     break;
                 default:
                     log.error("Unsupported openstack subnet event type");
                     break;
             }
+        }
+
+        private void processSubnetMapUpdate(MapEvent<String, Subnet> event) {
+            log.debug("OpenStack subnet updated");
+            notifyDelegate(new OpenstackNetworkEvent(
+                    OPENSTACK_SUBNET_UPDATED,
+                    network(event.newValue().value().getNetworkId()),
+                    event.newValue().value()));
+        }
+
+        private void processSubnetMapInsertion(MapEvent<String, Subnet> event) {
+            log.debug("OpenStack subnet created");
+            notifyDelegate(new OpenstackNetworkEvent(
+                    OPENSTACK_SUBNET_CREATED,
+                    network(event.newValue().value().getNetworkId()),
+                    event.newValue().value()));
+        }
+
+        private void processSubnetMapRemoval(MapEvent<String, Subnet> event) {
+            log.debug("OpenStack subnet removed");
+            notifyDelegate(new OpenstackNetworkEvent(
+                    OPENSTACK_SUBNET_REMOVED,
+                    network(event.oldValue().value().getNetworkId()),
+                    event.oldValue().value()));
         }
     }
 
@@ -357,45 +369,49 @@ public class DistributedOpenstackNetworkStore
         public void event(MapEvent<String, Port> event) {
             switch (event.type()) {
                 case UPDATE:
-                    eventExecutor.execute(() -> {
-                        Port oldPort = event.oldValue().value();
-                        Port newPort = event.newValue().value();
-                        notifyDelegate(new OpenstackNetworkEvent(
-                                OPENSTACK_PORT_UPDATED,
-                                network(event.newValue().value().getNetworkId()), newPort));
-                        processSecurityGroupUpdate(oldPort, newPort);
-                    });
+                    eventExecutor.execute(() -> processPortMapUpdate(event));
                     break;
                 case INSERT:
-                    log.debug("OpenStack port created");
-                    eventExecutor.execute(() ->
-                        notifyDelegate(new OpenstackNetworkEvent(
-                                OPENSTACK_PORT_CREATED,
-                                network(event.newValue().value().getNetworkId()),
-                                event.newValue().value()))
-                    );
+                    eventExecutor.execute(() -> processPortMapInsertion(event));
                     break;
                 case REMOVE:
-                    log.debug("OpenStack port removed");
-
-                    eventExecutor.execute(() ->
-                            notifyDelegate(new OpenstackNetworkEvent(
-                                    OPENSTACK_PORT_PRE_REMOVE,
-                                    network(event.oldValue().value().getNetworkId()),
-                                    event.oldValue().value()))
-                    );
-
-                    eventExecutor.execute(() ->
-                        notifyDelegate(new OpenstackNetworkEvent(
-                                OPENSTACK_PORT_REMOVED,
-                                network(event.oldValue().value().getNetworkId()),
-                                event.oldValue().value()))
-                    );
+                    eventExecutor.execute(() -> processPortMapRemoval(event));
                     break;
                 default:
                     log.error("Unsupported openstack port event type");
                     break;
             }
+        }
+
+        private void processPortMapUpdate(MapEvent<String, Port> event) {
+            log.debug("OpenStack port updated");
+            Port oldPort = event.oldValue().value();
+            Port newPort = event.newValue().value();
+            notifyDelegate(new OpenstackNetworkEvent(
+                    OPENSTACK_PORT_UPDATED,
+                    network(event.newValue().value().getNetworkId()), newPort));
+            processSecurityGroupUpdate(oldPort, newPort);
+        }
+
+        private void processPortMapInsertion(MapEvent<String, Port> event) {
+            log.debug("OpenStack port created");
+            notifyDelegate(new OpenstackNetworkEvent(
+                    OPENSTACK_PORT_CREATED,
+                    network(event.newValue().value().getNetworkId()),
+                    event.newValue().value()));
+        }
+
+        private void processPortMapRemoval(MapEvent<String, Port> event) {
+            log.debug("OpenStack port removed");
+            notifyDelegate(new OpenstackNetworkEvent(
+                    OPENSTACK_PORT_PRE_REMOVE,
+                    network(event.oldValue().value().getNetworkId()),
+                    event.oldValue().value()));
+
+            notifyDelegate(new OpenstackNetworkEvent(
+                    OPENSTACK_PORT_REMOVED,
+                    network(event.oldValue().value().getNetworkId()),
+                    event.oldValue().value()));
         }
 
         private void processSecurityGroupUpdate(Port oldPort, Port newPort) {

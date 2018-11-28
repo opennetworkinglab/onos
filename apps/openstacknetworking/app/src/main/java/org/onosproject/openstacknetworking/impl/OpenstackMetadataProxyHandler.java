@@ -634,6 +634,9 @@ public class OpenstackMetadataProxyHandler {
      */
     protected static class Http extends BasePacket {
 
+        /**
+         * HTTP packet type.
+         */
         public enum Type {
 
             /**
@@ -649,6 +652,9 @@ public class OpenstackMetadataProxyHandler {
 
         private Type type;
         private HttpMessage message;
+
+        Http() {
+        }
 
         /**
          * Obtains the Http type.

@@ -160,29 +160,37 @@ public class DistributedInstancePortStore
         public void event(MapEvent<String, InstancePort> event) {
             switch (event.type()) {
                 case INSERT:
-                    log.debug("Instance port created");
-                    eventExecutor.execute(() ->
-                            notifyDelegate(new InstancePortEvent(
-                                    OPENSTACK_INSTANCE_PORT_DETECTED,
-                                    event.newValue().value()))
-                    );
+                    eventExecutor.execute(() -> processInstancePortMapInsertion(event));
                     break;
                 case UPDATE:
-                    log.debug("Instance port updated");
-                    eventExecutor.execute(() -> processInstancePortUpdate(event));
+                    eventExecutor.execute(() -> processInstancePortMapUpdate(event));
                     break;
                 case REMOVE:
-                    log.debug("Instance port removed");
-                    eventExecutor.execute(() ->
-                            notifyDelegate(new InstancePortEvent(
-                                    OPENSTACK_INSTANCE_PORT_VANISHED,
-                                    event.oldValue().value()))
-                    );
+                    eventExecutor.execute(() -> processInstancePortMapRemoval(event));
                     break;
                 default:
                     log.error("Unsupported instance port event type");
                     break;
             }
+        }
+
+        private void processInstancePortMapUpdate(MapEvent<String, InstancePort> event) {
+            log.debug("Instance port updated");
+            processInstancePortUpdate(event);
+        }
+
+        private void processInstancePortMapInsertion(MapEvent<String, InstancePort> event) {
+            log.debug("Instance port created");
+            notifyDelegate(new InstancePortEvent(
+                    OPENSTACK_INSTANCE_PORT_DETECTED,
+                    event.newValue().value()));
+        }
+
+        private void processInstancePortMapRemoval(MapEvent<String, InstancePort> event) {
+            log.debug("Instance port removed");
+            notifyDelegate(new InstancePortEvent(
+                    OPENSTACK_INSTANCE_PORT_VANISHED,
+                    event.oldValue().value()));
         }
 
         private void processInstancePortUpdate(MapEvent<String, InstancePort> event) {

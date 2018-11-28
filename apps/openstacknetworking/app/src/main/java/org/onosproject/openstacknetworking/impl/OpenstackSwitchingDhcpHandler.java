@@ -120,6 +120,11 @@ public class OpenstackSwitchingDhcpHandler {
     private static final int V4_CIDR_UPPER_BOUND = 33;
     private static final int PADDING_SIZE = 4;
 
+    private static final byte HARDWARE_ADDR_LENGTH = (byte) 6;
+    private static final byte DHCP_OPTION_DATA_LENGTH = (byte) 4;
+    private static final int DHCP_OPTION_DNS_LENGTH = 8;
+    private static final int DHCP_OPTION_MTU_LENGTH = 2;
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
@@ -361,7 +366,7 @@ public class OpenstackSwitchingDhcpHandler {
             DHCP dhcpReply = new DHCP();
             dhcpReply.setOpCode(DHCP.OPCODE_REPLY);
             dhcpReply.setHardwareType(DHCP.HWTYPE_ETHERNET);
-            dhcpReply.setHardwareAddressLength((byte) 6);
+            dhcpReply.setHardwareAddressLength(HARDWARE_ADDR_LENGTH);
             dhcpReply.setTransactionId(request.getTransactionId());
             dhcpReply.setFlags(request.getFlags());
             dhcpReply.setYourIPAddress(yourIp.toInt());
@@ -422,7 +427,7 @@ public class OpenstackSwitchingDhcpHandler {
         private DhcpOption doServerId(IpAddress gatewayIp) {
             DhcpOption option = new DhcpOption();
             option.setCode(OptionCode_DHCPServerIp.getValue());
-            option.setLength((byte) 4);
+            option.setLength(DHCP_OPTION_DATA_LENGTH);
             option.setData(gatewayIp.toOctets());
             return option;
         }
@@ -430,7 +435,7 @@ public class OpenstackSwitchingDhcpHandler {
         private DhcpOption doLeaseTime() {
             DhcpOption option = new DhcpOption();
             option.setCode(OptionCode_LeaseTime.getValue());
-            option.setLength((byte) 4);
+            option.setLength(DHCP_OPTION_DATA_LENGTH);
             option.setData(DHCP_DATA_LEASE_INFINITE);
             return option;
         }
@@ -439,7 +444,7 @@ public class OpenstackSwitchingDhcpHandler {
             Ip4Address subnetMask = Ip4Address.makeMaskPrefix(subnetPrefixLen);
             DhcpOption option = new DhcpOption();
             option.setCode(OptionCode_SubnetMask.getValue());
-            option.setLength((byte) 4);
+            option.setLength(DHCP_OPTION_DATA_LENGTH);
             option.setData(subnetMask.toOctets());
             return option;
         }
@@ -448,7 +453,7 @@ public class OpenstackSwitchingDhcpHandler {
             Ip4Address broadcast = Ip4Address.makeMaskedAddress(yourIp, subnetPrefixLen);
             DhcpOption option = new DhcpOption();
             option.setCode(OptionCode_BroadcastAddress.getValue());
-            option.setLength((byte) 4);
+            option.setLength(DHCP_OPTION_DATA_LENGTH);
             option.setData(broadcast.toOctets());
             return option;
         }
@@ -460,8 +465,8 @@ public class OpenstackSwitchingDhcpHandler {
             option.setCode(OptionCode_DomainServer.getValue());
 
             if (dnsServers.isEmpty()) {
-                option.setLength((byte) 8);
-                ByteBuffer dnsByteBuf = ByteBuffer.allocate(8);
+                option.setLength((byte) DHCP_OPTION_DNS_LENGTH);
+                ByteBuffer dnsByteBuf = ByteBuffer.allocate(DHCP_OPTION_DNS_LENGTH);
                 dnsByteBuf.put(DEFAULT_PRIMARY_DNS.toOctets());
                 dnsByteBuf.put(DEFAULT_SECONDARY_DNS.toOctets());
 
@@ -471,7 +476,7 @@ public class OpenstackSwitchingDhcpHandler {
 
                 option.setLength((byte) dnsLength);
 
-                ByteBuffer dnsByteBuf = ByteBuffer.allocate(8);
+                ByteBuffer dnsByteBuf = ByteBuffer.allocate(DHCP_OPTION_DNS_LENGTH);
 
                 for (String dnsServer : dnsServers) {
                     dnsByteBuf.put(IpAddress.valueOf(dnsServer).toOctets());
@@ -485,12 +490,13 @@ public class OpenstackSwitchingDhcpHandler {
         private DhcpOption doMtu(Subnet osSubnet) {
             DhcpOption option = new DhcpOption();
             option.setCode(DHCP_OPTION_MTU);
-            option.setLength((byte) 2);
+            option.setLength((byte) DHCP_OPTION_MTU_LENGTH);
             Network osNetwork = osNetworkService.network(osSubnet.getNetworkId());
             checkNotNull(osNetwork);
             checkNotNull(osNetwork.getMTU());
 
-            option.setData(ByteBuffer.allocate(2).putShort(osNetwork.getMTU().shortValue()).array());
+            option.setData(ByteBuffer.allocate(DHCP_OPTION_MTU_LENGTH)
+                            .putShort(osNetwork.getMTU().shortValue()).array());
 
             return option;
         }
@@ -526,7 +532,7 @@ public class OpenstackSwitchingDhcpHandler {
         private DhcpOption doRouterAddr(Subnet osSubnet) {
             DhcpOption option = new DhcpOption();
             option.setCode(OptionCode_RouterAddress.getValue());
-            option.setLength((byte) 4);
+            option.setLength(DHCP_OPTION_DATA_LENGTH);
             option.setData(Ip4Address.valueOf(osSubnet.getGateway()).toOctets());
             return option;
         }
