@@ -41,8 +41,9 @@ public final class OpenConfigConnectionCache {
     private Map<DeviceId, Set<FlowRule>> smp = Collections.synchronizedMap(mp);
 
     private static OpenConfigConnectionCache cache = null;
+    private static final Object CACHE_LOCK = new Object();
 
-    //banning public contraction
+    //banning public construction
     private OpenConfigConnectionCache() {
     }
 
@@ -53,8 +54,10 @@ public final class OpenConfigConnectionCache {
      * @return single instance of cache
      */
     public static OpenConfigConnectionCache init() {
-        if (cache == null) {
-            cache = new OpenConfigConnectionCache();
+        synchronized (CACHE_LOCK) {
+            if (cache == null) {
+                cache = new OpenConfigConnectionCache();
+            }
         }
         return cache;
     }
