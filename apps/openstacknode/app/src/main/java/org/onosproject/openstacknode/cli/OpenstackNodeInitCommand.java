@@ -50,10 +50,7 @@ public class OpenstackNodeInitCommand extends AbstractShellCommand {
         OpenstackNodeService osNodeService = get(OpenstackNodeService.class);
         OpenstackNodeAdminService osNodeAdminService = get(OpenstackNodeAdminService.class);
 
-        if ((!isAll && !isIncomplete && hostnames == null) ||
-                (isAll && isIncomplete) ||
-                (isIncomplete && hostnames != null) ||
-                (hostnames != null && isAll)) {
+        if (isAll && isIncomplete) {
             print("Please specify one of hostname, --all, and --incomplete options.");
             return;
         }
@@ -65,6 +62,11 @@ public class OpenstackNodeInitCommand extends AbstractShellCommand {
             hostnames = osNodeService.nodes().stream()
                     .filter(osNode -> osNode.state() != NodeState.COMPLETE)
                     .map(OpenstackNode::hostname).toArray(String[]::new);
+        }
+
+        if (hostnames == null) {
+            print("Please specify one of hostname, --all, and --incomplete options.");
+            return;
         }
 
         for (String hostname : hostnames) {

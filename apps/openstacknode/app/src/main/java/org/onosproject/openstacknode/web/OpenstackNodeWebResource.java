@@ -162,16 +162,11 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
              JsonNode jsonTree = readTreeFromStream(mapper().enable(INDENT_OUTPUT), input);
              ArrayNode nodes = (ArrayNode) jsonTree.path(NODES);
              nodes.forEach(node -> {
-                 try {
                      ObjectNode objectNode = node.deepCopy();
                      OpenstackNode openstackNode =
                              codec(OpenstackNode.class).decode(objectNode, this);
 
                      nodeSet.add(openstackNode);
-                 } catch (Exception e) {
-                     log.error("Exception occurred due to {}", e);
-                     throw new IllegalArgumentException();
-                 }
              });
         } catch (Exception e) {
             throw new IllegalArgumentException(e);

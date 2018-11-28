@@ -116,6 +116,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
     private static final String AUTO_RECOVERY = "autoRecovery";
     private static final String DEFAULT_OF_PROTO = "tcp";
     private static final int DEFAULT_OVSDB_PORT = 6640;
+    private static final String NO_OVSDB_CLIENT_MSG = "Failed to get ovsdb client";
     private static final int DEFAULT_OFPORT = 6653;
     private static final boolean DEFAULT_AUTO_RECOVERY = true;
     private static final int DPID_BEGIN = 3;
@@ -277,7 +278,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
 
     @Override
     public void processIncompleteState(OpenstackNode osNode) {
-        //TODO
+        //Do nothing for now
     }
 
     private boolean hasDpdkTunnelBridge(OpenstackNode osNode) {
@@ -292,7 +293,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
 
         OvsdbClientService client = getOvsdbClient(osNode, ovsdbPort, ovsdbController);
         if (client == null) {
-            log.info("Failed to get ovsdb client");
+            log.info(NO_OVSDB_CLIENT_MSG);
             return false;
         }
 
@@ -452,6 +453,58 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                                 port.isEnabled());
     }
 
+
+    private boolean initStateDone(OpenstackNode osNode) {
+        if (!isOvsdbConnected(osNode, ovsdbPort, ovsdbController, deviceService)) {
+            return false;
+        }
+
+        boolean initStateDone = deviceService.isAvailable(osNode.intgBridge());
+        if (hasDpdkTunnelBridge(osNode)) {
+            initStateDone = initStateDone && dpdkTunnelBridgeCreated(osNode);
+        }
+
+        return initStateDone;
+    }
+
+    private boolean deviceCreatedStateDone(OpenstackNode osNode) {
+
+        if (osNode.dataIp() != null &&
+                !isIntfEnabled(osNode, VXLAN_TUNNEL)) {
+            return false;
+        }
+        if (osNode.dataIp() != null &&
+                !isIntfEnabled(osNode, GRE_TUNNEL)) {
+            return false;
+        }
+        if (osNode.dataIp() != null &&
+                !isIntfEnabled(osNode, GENEVE_TUNNEL)) {
+            return false;
+        }
+        if (osNode.vlanIntf() != null &&
+                !isIntfEnabled(osNode, osNode.vlanIntf())) {
+            return false;
+        }
+        if (osNode.type() == GATEWAY &&
+                !isIntfEnabled(osNode, osNode.uplinkPort())) {
+            return false;
+        }
+        if (osNode.dpdkConfig() != null &&
+                osNode.dpdkConfig().dpdkIntfs() != null &&
+                !isDpdkIntfsCreated(osNode, osNode.dpdkConfig().dpdkIntfs())) {
+            return false;
+        }
+
+        for (OpenstackPhyInterface intf : osNode.phyIntfs()) {
+            if (intf != null && !isIntfEnabled(osNode, intf.intf())) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
     /**
      * Checks whether all requirements for this state are fulfilled or not.
      *
@@ -461,50 +514,9 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
     private boolean isCurrentStateDone(OpenstackNode osNode) {
         switch (osNode.state()) {
             case INIT:
-                if (!isOvsdbConnected(osNode, ovsdbPort,
-                                                ovsdbController, deviceService)) {
-                    return false;
-                }
-
-                boolean initStateDone = deviceService.isAvailable(osNode.intgBridge());
-                if (hasDpdkTunnelBridge(osNode)) {
-                    initStateDone = initStateDone && dpdkTunnelBridgeCreated(osNode);
-                }
-                return initStateDone;
+                return initStateDone(osNode);
             case DEVICE_CREATED:
-                if (osNode.dataIp() != null &&
-                        !isIntfEnabled(osNode, VXLAN_TUNNEL)) {
-                    return false;
-                }
-                if (osNode.dataIp() != null &&
-                        !isIntfEnabled(osNode, GRE_TUNNEL)) {
-                    return false;
-                }
-                if (osNode.dataIp() != null &&
-                        !isIntfEnabled(osNode, GENEVE_TUNNEL)) {
-                    return false;
-                }
-                if (osNode.vlanIntf() != null &&
-                        !isIntfEnabled(osNode, osNode.vlanIntf())) {
-                    return false;
-                }
-                if (osNode.type() == GATEWAY &&
-                        !isIntfEnabled(osNode, osNode.uplinkPort())) {
-                    return false;
-                }
-                if (osNode.dpdkConfig() != null &&
-                        osNode.dpdkConfig().dpdkIntfs() != null &&
-                        !isDpdkIntfsCreated(osNode, osNode.dpdkConfig().dpdkIntfs())) {
-                    return false;
-                }
-
-                for (OpenstackPhyInterface intf : osNode.phyIntfs()) {
-                    if (intf != null && !isIntfEnabled(osNode, intf.intf())) {
-                        return false;
-                    }
-                }
-
-                return true;
+                return deviceCreatedStateDone(osNode);
             case COMPLETE:
             case INCOMPLETE:
                 // always return false
@@ -631,41 +643,6 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
         }
     }
 
-    private void processOpenstackNodeRemoved(OpenstackNode osNode) {
-        OvsdbClientService client = getOvsdbClient(osNode, ovsdbPort, ovsdbController);
-        if (client == null) {
-            log.info("Failed to get ovsdb client");
-            return;
-        }
-
-        //delete physical interfaces from the node
-        removePhysicalInterface(osNode);
-
-        //delete vlan interface from the node
-        removeVlanInterface(osNode);
-
-        //delete dpdk interfaces from the node
-        if (osNode.dpdkConfig() != null) {
-            osNode.dpdkConfig().dpdkIntfs().forEach(dpdkInterface -> {
-                if (isDpdkIntfsCreated(osNode, Lists.newArrayList(dpdkInterface))) {
-                    addOrRemoveDpdkInterface(osNode, dpdkInterface, ovsdbPort,
-                                                ovsdbController, false);
-                }
-            });
-        }
-
-        //delete tunnel bridge from the node
-        if (hasDpdkTunnelBridge(osNode)) {
-            client.dropBridge(TUNNEL_BRIDGE);
-        }
-
-        //delete integration bridge from the node
-        client.dropBridge(INTEGRATION_BRIDGE);
-
-        //disconnect ovsdb
-        client.disconnect();
-    }
-
     /**
      * Checks the validity of the given endpoint.
      *
@@ -741,21 +718,10 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                 case DEVICE_AVAILABILITY_CHANGED:
                 case DEVICE_ADDED:
                     eventExecutor.execute(() -> {
-
                         if (!isRelevantHelper()) {
                             return;
                         }
-
-                        OpenstackNode osNode = osNodeService.node(device.id());
-
-                        if (osNode == null || osNode.type() == CONTROLLER) {
-                            return;
-                        }
-
-                        if (deviceService.isAvailable(device.id())) {
-                            log.debug("OVSDB {} detected", device.id());
-                            bootstrapNode(osNode);
-                        }
+                        processDeviceAddedOfOvsdbDevice(osNodeService.node(device.id()), device);
                     });
                     break;
                 case PORT_ADDED:
@@ -764,6 +730,17 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                 default:
                     // do nothing
                     break;
+            }
+        }
+
+        private void processDeviceAddedOfOvsdbDevice(OpenstackNode osNode, Device device) {
+            if (osNode == null || osNode.type() == CONTROLLER) {
+                return;
+            }
+
+            if (deviceService.isAvailable(device.id())) {
+                log.debug("OVSDB {} detected", device.id());
+                bootstrapNode(osNode);
             }
         }
     }
@@ -793,92 +770,27 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                 case DEVICE_AVAILABILITY_CHANGED:
                 case DEVICE_ADDED:
                     eventExecutor.execute(() -> {
-
                         if (!isRelevantHelper()) {
                             return;
                         }
-
-                        OpenstackNode osNode = osNodeService.node(device.id());
-
-                        if (osNode == null || osNode.type() == CONTROLLER) {
-                            return;
-                        }
-
-                        if (deviceService.isAvailable(device.id())) {
-                            log.debug("Integration bridge created on {}", osNode.hostname());
-                            bootstrapNode(osNode);
-                        } else if (osNode.state() == COMPLETE) {
-                            log.info("Device {} disconnected", device.id());
-                            setState(osNode, INCOMPLETE);
-                        }
-
-                        if (autoRecovery) {
-                            if (osNode.state() == INCOMPLETE ||
-                                    osNode.state() == DEVICE_CREATED) {
-                                log.info("Device {} is reconnected", device.id());
-                                osNodeAdminService.updateNode(
-                                        osNode.updateState(NodeState.INIT));
-                            }
-                        }
+                        processDeviceAddedOfBridge(osNodeService.node(device.id()), device);
                     });
                     break;
                 case PORT_UPDATED:
                 case PORT_ADDED:
                     eventExecutor.execute(() -> {
-
                         if (!isRelevantHelper()) {
                             return;
                         }
-
-                        OpenstackNode osNode = osNodeService.node(device.id());
-
-                        if (osNode == null || osNode.type() == CONTROLLER) {
-                            return;
-                        }
-
-                        Port port = event.port();
-                        String portName = port.annotations().value(PORT_NAME);
-                        if (osNode.state() == DEVICE_CREATED && (
-                                Objects.equals(portName, VXLAN_TUNNEL) ||
-                                Objects.equals(portName, GRE_TUNNEL) ||
-                                Objects.equals(portName, GENEVE_TUNNEL) ||
-                                Objects.equals(portName, osNode.vlanIntf()) ||
-                                Objects.equals(portName, osNode.uplinkPort()) ||
-                                        containsPhyIntf(osNode, portName)) ||
-                                containsDpdkIntfs(osNode, portName)) {
-                            log.info("Interface {} added or updated to {}",
-                                                portName, device.id());
-                            bootstrapNode(osNode);
-                        }
+                        processPortAddedOfBridge(osNodeService.node(device.id()), event.port());
                     });
                     break;
                 case PORT_REMOVED:
                     eventExecutor.execute(() -> {
-
                         if (!isRelevantHelper()) {
                             return;
                         }
-
-                        OpenstackNode osNode = osNodeService.node(device.id());
-
-                        if (osNode == null || osNode.type() == CONTROLLER) {
-                            return;
-                        }
-
-                        Port port = event.port();
-                        String portName = port.annotations().value(PORT_NAME);
-                        if (osNode.state() == COMPLETE && (
-                                Objects.equals(portName, VXLAN_TUNNEL) ||
-                                Objects.equals(portName, GRE_TUNNEL) ||
-                                Objects.equals(portName, GENEVE_TUNNEL) ||
-                                Objects.equals(portName, osNode.vlanIntf()) ||
-                                Objects.equals(portName, osNode.uplinkPort()) ||
-                                        containsPhyIntf(osNode, portName)) ||
-                                containsDpdkIntfs(osNode, portName)) {
-                            log.warn("Interface {} removed from {}",
-                                                portName, event.subject().id());
-                            setState(osNode, INCOMPLETE);
-                        }
+                        processPortRemovedOfBridge(osNodeService.node(device.id()), event.port());
                     });
                     break;
                 case DEVICE_REMOVED:
@@ -887,36 +799,103 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                     break;
             }
         }
-    }
 
-    /**
-     * Checks whether the openstack node contains the given physical interface.
-     *
-     * @param osNode openstack node
-     * @param portName physical interface
-     * @return true if openstack node contains the given physical interface,
-     *          false otherwise
-     */
-    private boolean containsPhyIntf(OpenstackNode osNode, String portName) {
-        return osNode.phyIntfs().stream()
-                .anyMatch(phyInterface -> phyInterface.intf().equals(portName));
-    }
+        private void processDeviceAddedOfBridge(OpenstackNode osNode, Device device) {
 
-    /**
-     * Checks whether the openstack node contains the given dpdk interface.
-     *
-     * @param osNode openstack node
-     * @param portName dpdk interface
-     * @return true if openstack node contains the given dpdk interface,
-     *          false otherwise
-     */
-    private boolean containsDpdkIntfs(OpenstackNode osNode, String portName) {
-        if (osNode.dpdkConfig() == null) {
-            return false;
+            if (osNode == null || osNode.type() == CONTROLLER) {
+                return;
+            }
+
+            if (deviceService.isAvailable(device.id())) {
+                log.debug("Integration bridge created on {}", osNode.hostname());
+                bootstrapNode(osNode);
+            } else if (osNode.state() == COMPLETE) {
+                log.info("Device {} disconnected", device.id());
+                setState(osNode, INCOMPLETE);
+            }
+
+            if (autoRecovery) {
+                if (osNode.state() == INCOMPLETE ||
+                        osNode.state() == DEVICE_CREATED) {
+                    log.info("Device {} is reconnected", device.id());
+                    osNodeAdminService.updateNode(
+                            osNode.updateState(NodeState.INIT));
+                }
+            }
         }
-        return osNode.dpdkConfig().dpdkIntfs().stream()
-                .anyMatch(dpdkInterface -> dpdkInterface.intf().equals(portName));
+
+        private void processPortAddedOfBridge(OpenstackNode osNode, Port port) {
+
+            if (osNode == null || osNode.type() == CONTROLLER) {
+                return;
+            }
+
+            String portName = port.annotations().value(PORT_NAME);
+            if (osNode.state() == DEVICE_CREATED && (
+                    Objects.equals(portName, VXLAN_TUNNEL) ||
+                            Objects.equals(portName, GRE_TUNNEL) ||
+                            Objects.equals(portName, GENEVE_TUNNEL) ||
+                            Objects.equals(portName, osNode.vlanIntf()) ||
+                            Objects.equals(portName, osNode.uplinkPort()) ||
+                            containsPhyIntf(osNode, portName)) ||
+                    containsDpdkIntfs(osNode, portName)) {
+                log.info("Interface {} added or updated to {}",
+                        portName, osNode.intgBridge());
+                bootstrapNode(osNode);
+            }
+        }
+
+        private void processPortRemovedOfBridge(OpenstackNode osNode, Port port) {
+            if (osNode == null || osNode.type() == CONTROLLER) {
+                return;
+            }
+
+            String portName = port.annotations().value(PORT_NAME);
+            if (osNode.state() == COMPLETE && (
+                    Objects.equals(portName, VXLAN_TUNNEL) ||
+                            Objects.equals(portName, GRE_TUNNEL) ||
+                            Objects.equals(portName, GENEVE_TUNNEL) ||
+                            Objects.equals(portName, osNode.vlanIntf()) ||
+                            Objects.equals(portName, osNode.uplinkPort()) ||
+                            containsPhyIntf(osNode, portName)) ||
+                    containsDpdkIntfs(osNode, portName)) {
+                log.warn("Interface {} removed from {}",
+                        portName, osNode.intgBridge());
+                setState(osNode, INCOMPLETE);
+            }
+        }
+
+
+        /**
+         * Checks whether the openstack node contains the given physical interface.
+         *
+         * @param osNode openstack node
+         * @param portName physical interface
+         * @return true if openstack node contains the given physical interface,
+         *          false otherwise
+         */
+        private boolean containsPhyIntf(OpenstackNode osNode, String portName) {
+            return osNode.phyIntfs().stream()
+                    .anyMatch(phyInterface -> phyInterface.intf().equals(portName));
+        }
+
+        /**
+         * Checks whether the openstack node contains the given dpdk interface.
+         *
+         * @param osNode openstack node
+         * @param portName dpdk interface
+         * @return true if openstack node contains the given dpdk interface,
+         *          false otherwise
+         */
+        private boolean containsDpdkIntfs(OpenstackNode osNode, String portName) {
+            if (osNode.dpdkConfig() == null) {
+                return false;
+            }
+            return osNode.dpdkConfig().dpdkIntfs().stream()
+                    .anyMatch(dpdkInterface -> dpdkInterface.intf().equals(portName));
+        }
     }
+
 
     /**
      * An internal openstack node listener.
@@ -948,7 +927,6 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                         if (!isRelevantHelper()) {
                             return;
                         }
-
                         processOpenstackNodeRemoved(event.subject());
                     });
                     break;
@@ -956,6 +934,41 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                 default:
                     break;
             }
+        }
+
+        private void processOpenstackNodeRemoved(OpenstackNode osNode) {
+            OvsdbClientService client = getOvsdbClient(osNode, ovsdbPort, ovsdbController);
+            if (client == null) {
+                log.info("Failed to get ovsdb client");
+                return;
+            }
+
+            //delete physical interfaces from the node
+            removePhysicalInterface(osNode);
+
+            //delete vlan interface from the node
+            removeVlanInterface(osNode);
+
+            //delete dpdk interfaces from the node
+            if (osNode.dpdkConfig() != null) {
+                osNode.dpdkConfig().dpdkIntfs().forEach(dpdkInterface -> {
+                    if (isDpdkIntfsCreated(osNode, Lists.newArrayList(dpdkInterface))) {
+                        addOrRemoveDpdkInterface(osNode, dpdkInterface, ovsdbPort,
+                                ovsdbController, false);
+                    }
+                });
+            }
+
+            //delete tunnel bridge from the node
+            if (hasDpdkTunnelBridge(osNode)) {
+                client.dropBridge(TUNNEL_BRIDGE);
+            }
+
+            //delete integration bridge from the node
+            client.dropBridge(INTEGRATION_BRIDGE);
+
+            //disconnect ovsdb
+            client.disconnect();
         }
     }
 }
