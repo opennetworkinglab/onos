@@ -53,7 +53,7 @@ public class AbstractGnmiHandlerBehaviour extends AbstractHandlerBehaviour {
 
     protected boolean setupBehaviour() {
         deviceId = handler().data().deviceId();
-
+        deviceService = handler().get(DeviceService.class);
         controller = handler().get(GnmiController.class);
         client = controller.getClient(deviceId);
 

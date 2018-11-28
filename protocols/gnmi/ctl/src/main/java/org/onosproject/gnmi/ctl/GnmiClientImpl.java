@@ -106,7 +106,7 @@ public class GnmiClientImpl extends AbstractGrpcClient implements GnmiClient {
             return blockingStub.capabilities(request);
         } catch (StatusRuntimeException e) {
             log.warn("Unable to get capability from {}: {}", deviceId, e.getMessage());
-            return null;
+            return CapabilityResponse.getDefaultInstance();
         }
     }
 
@@ -115,7 +115,7 @@ public class GnmiClientImpl extends AbstractGrpcClient implements GnmiClient {
             return blockingStub.get(request);
         } catch (StatusRuntimeException e) {
             log.warn("Unable to get data from {}: {}", deviceId, e.getMessage());
-            return null;
+            return GetResponse.getDefaultInstance();
         }
     }
 
@@ -124,7 +124,7 @@ public class GnmiClientImpl extends AbstractGrpcClient implements GnmiClient {
             return blockingStub.set(request);
         } catch (StatusRuntimeException e) {
             log.warn("Unable to set data to {}: {}", deviceId, e.getMessage());
-            return null;
+            return SetResponse.getDefaultInstance();
         }
     }
 
