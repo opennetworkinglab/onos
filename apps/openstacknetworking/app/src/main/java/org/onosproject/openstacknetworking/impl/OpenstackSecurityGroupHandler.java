@@ -87,6 +87,7 @@ import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -375,6 +376,16 @@ public class OpenstackSecurityGroupHandler {
                                     remoteIp, instPort.networkId());
         if (selectors == null || selectors.isEmpty()) {
             return;
+        }
+
+        // in case a port is bound to multiple security groups, we do NOT remove
+        // egress rules unless all security groups bound to the port to be removed
+        Port osPort = osNetService.port(instPort.portId());
+        if (!install && osPort != null && sgRule.getDirection().equalsIgnoreCase(EGRESS)) {
+            List<String> sgIds = osPort.getSecurityGroups();
+            if (!sgIds.contains(sgRule.getSecurityGroupId()) && !sgIds.isEmpty()) {
+                return;
+            }
         }
 
         // XXX All egress traffic needs to go through connection tracking module,
