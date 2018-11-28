@@ -48,7 +48,6 @@ public final class RulePopulatorUtil {
     private static final String CT_FLAGS = "flags";
     private static final String CT_ZONE = "zone";
     private static final String CT_TABLE = "recircTable";
-    private static final String CT = "niciraCt";
     private static final String CT_STATE = "ctState";
     private static final String CT_STATE_MASK = "ctStateMask";
     private static final String CT_PRESENT_FLAGS = "presentFlags";
@@ -108,7 +107,7 @@ public final class RulePopulatorUtil {
             treatment.setPropertyValue(TUNNEL_DST, remoteIp);
             return treatment;
         } catch (ExtensionPropertyException e) {
-            log.warn("Failed to get tunnelDst extension treatment for {}", deviceId);
+            log.warn("Failed to get tunnelDst extension treatment for {} because of {}", deviceId, e);
             return null;
         }
     }
@@ -133,7 +132,7 @@ public final class RulePopulatorUtil {
             extensionSelector.setPropertyValue(CT_STATE, ctState);
             extensionSelector.setPropertyValue(CT_STATE_MASK, ctSateMask);
         } catch (Exception e) {
-            log.error("Failed to set nicira match CT state");
+            log.error("Failed to set nicira match CT state because of {}", e);
             return null;
         }
 
@@ -292,7 +291,7 @@ public final class RulePopulatorUtil {
                     natTreatment.setPropertyValue(CT_PRESENT_FLAGS, 0);
                 }
             } catch (Exception e) {
-                log.error("Failed to set NAT due to error : {}", e.getMessage());
+                log.error("Failed to set NAT due to error : {}", e);
                 return null;
             }
 
@@ -308,7 +307,7 @@ public final class RulePopulatorUtil {
                 ctTreatment.setPropertyValue(CT_TABLE, table > -1 ? table : 0xff);
                 ctTreatment.setPropertyValue("nestedActions", nat);
             } catch (Exception e) {
-                log.error("Failed to set CT due to error : {}", e.getMessage());
+                log.error("Failed to set CT due to error : {}", e);
                 return null;
             }
 
