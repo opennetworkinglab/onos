@@ -184,56 +184,60 @@ public class DistributedOpenstackNodeStore
      */
     private class OpenstackNodeMapListener
                             implements MapEventListener<String, OpenstackNode> {
-
         @Override
         public void event(MapEvent<String, OpenstackNode> event) {
-
             switch (event.type()) {
                 case INSERT:
                     log.debug("OpenStack node created {}", event.newValue());
-                    eventExecutor.execute(() ->
-                            notifyDelegate(new OpenstackNodeEvent(
-                                OPENSTACK_NODE_CREATED, event.newValue().value()
-                    )));
+                    eventExecutor.execute(() -> processNodeCreation(event));
                     break;
                 case UPDATE:
                     log.debug("OpenStack node updated {}", event.newValue());
-                    eventExecutor.execute(() -> {
-                        notifyDelegate(new OpenstackNodeEvent(
-                                OPENSTACK_NODE_UPDATED,
-                                event.newValue().value()
-                        ));
-
-                        // if the event is about controller node, we will not
-                        // process COMPLETE and INCOMPLETE state
-                        if (isControllerNode(event)) {
-                            return;
-                        }
-
-                        if (event.newValue().value().state() == COMPLETE) {
-                            notifyDelegate(new OpenstackNodeEvent(
-                                    OPENSTACK_NODE_COMPLETE,
-                                    event.newValue().value()
-                            ));
-                        } else if (event.newValue().value().state() == INCOMPLETE) {
-                            notifyDelegate(new OpenstackNodeEvent(
-                                    OPENSTACK_NODE_INCOMPLETE,
-                                    event.newValue().value()
-                            ));
-                        }
-                    });
+                    eventExecutor.execute(() -> processNodeUpdate(event));
                     break;
                 case REMOVE:
                     log.debug("OpenStack node removed {}", event.oldValue());
-                    eventExecutor.execute(() ->
-                            notifyDelegate(new OpenstackNodeEvent(
-                                OPENSTACK_NODE_REMOVED, event.oldValue().value()
-                    )));
+                    eventExecutor.execute(() -> processNodeRemoval(event));
                     break;
                 default:
                     // do nothing
                     break;
             }
+        }
+
+        private void processNodeCreation(MapEvent<String, OpenstackNode> event) {
+            notifyDelegate(new OpenstackNodeEvent(
+                    OPENSTACK_NODE_CREATED, event.newValue().value()));
+        }
+
+        private void processNodeUpdate(MapEvent<String, OpenstackNode> event) {
+            notifyDelegate(new OpenstackNodeEvent(
+                    OPENSTACK_NODE_UPDATED,
+                    event.newValue().value()
+            ));
+
+            // if the event is about controller node, we will not
+            // process COMPLETE and INCOMPLETE state
+            if (isControllerNode(event)) {
+                return;
+            }
+
+            if (event.newValue().value().state() == COMPLETE) {
+                notifyDelegate(new OpenstackNodeEvent(
+                        OPENSTACK_NODE_COMPLETE,
+                        event.newValue().value()
+                ));
+            } else if (event.newValue().value().state() == INCOMPLETE) {
+                notifyDelegate(new OpenstackNodeEvent(
+                        OPENSTACK_NODE_INCOMPLETE,
+                        event.newValue().value()
+                ));
+            }
+        }
+
+        private void processNodeRemoval(MapEvent<String, OpenstackNode> event) {
+            notifyDelegate(new OpenstackNodeEvent(
+                    OPENSTACK_NODE_REMOVED, event.oldValue().value()));
         }
 
         /**

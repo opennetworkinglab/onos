@@ -20,12 +20,13 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
+import org.onosproject.openstacknode.api.DefaultDpdkConfig;
 import org.onosproject.openstacknode.api.DpdkConfig;
 import org.onosproject.openstacknode.api.DpdkInterface;
-import org.onosproject.openstacknode.api.DefaultDpdkConfig;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.IntStream;
 
 import static org.onlab.util.Tools.nullIsIllegal;
@@ -70,7 +71,7 @@ public class DpdkConfigCodec extends JsonCodec<DpdkConfig> {
                 DATA_PATH_TYPE + MISSING_MESSAGE);
 
         DefaultDpdkConfig.Builder builder = DefaultDpdkConfig.builder()
-                .datapathType(DpdkConfig.DatapathType.valueOf(datapathType.toUpperCase()));
+                .datapathType(DpdkConfig.DatapathType.valueOf(datapathType.toUpperCase(Locale.ENGLISH)));
 
         if (json.get(SOCKET_DIR) != null) {
             builder.socketDir(json.get(SOCKET_DIR).asText());

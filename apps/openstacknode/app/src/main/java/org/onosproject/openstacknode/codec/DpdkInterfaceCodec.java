@@ -19,17 +19,23 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
+import org.onosproject.openstacknode.api.DefaultDpdkInterface;
 import org.onosproject.openstacknode.api.DpdkInterface;
 import org.onosproject.openstacknode.api.DpdkInterface.Type;
-import org.onosproject.openstacknode.api.DefaultDpdkInterface;
+import org.slf4j.Logger;
+
+import java.util.Locale;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.nullIsIllegal;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * DPDK interface codec used for serializing and de-serializing JSON string.
  */
 public class DpdkInterfaceCodec extends JsonCodec<DpdkInterface> {
+    protected final Logger log = getLogger(getClass());
+
     private static final String DEVICE_NAME = "deviceName";
     private static final String INTF = "intf";
     private static final String PCI_ADDRESS = "pciAddress";
@@ -68,9 +74,10 @@ public class DpdkInterfaceCodec extends JsonCodec<DpdkInterface> {
 
         Type type;
         try {
-            type = Type.valueOf(typeString.toUpperCase());
+            type = Type.valueOf(typeString.toUpperCase(Locale.ENGLISH));
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException(TYPE + MISSING_MESSAGE);
+            log.error(TYPE + MISSING_MESSAGE);
+            throw new IllegalArgumentException(e);
         }
 
         DpdkInterface.Builder builder = DefaultDpdkInterface.builder()

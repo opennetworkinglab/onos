@@ -20,18 +20,14 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.net.behaviour.ControllerInfo;
-import org.slf4j.Logger;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.nullIsIllegal;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Openstack controller codec used for serializing and de-serializing JSON string.
  */
 public class OpenstackControllerCodec extends JsonCodec<ControllerInfo> {
-
-    private final Logger log = getLogger(getClass());
 
     private static final String IP = "ip";
     private static final String PORT = "port";

@@ -18,20 +18,16 @@ package org.onosproject.openstacknode.codec;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
-import org.onosproject.openstacknode.api.OpenstackPhyInterface;
 import org.onosproject.openstacknode.api.DefaultOpenstackPhyInterface;
-import org.slf4j.Logger;
+import org.onosproject.openstacknode.api.OpenstackPhyInterface;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.nullIsIllegal;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Openstack physical interface codec used for serializing and de-serializing JSON string.
  */
 public final class OpenstackPhyInterfaceCodec extends JsonCodec<OpenstackPhyInterface> {
-
-    private final Logger log = getLogger(getClass());
 
     private static final String NETWORK = "network";
     private static final String INTERFACE = "intf";

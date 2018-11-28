@@ -18,21 +18,17 @@ package org.onosproject.openstacknode.codec;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
-import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.DefaultOpenstackAuth;
-import org.slf4j.Logger;
+import org.onosproject.openstacknode.api.OpenstackAuth;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.nullIsIllegal;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Openstack keystone authentication codec used for serializing and
  * de-serializing JSON string.
  */
 public class OpenstackAuthCodec extends JsonCodec<OpenstackAuth> {
-
-    private final Logger log = getLogger(getClass());
 
     private static final String VERSION = "version";
     private static final String PROTOCOL = "protocol";
