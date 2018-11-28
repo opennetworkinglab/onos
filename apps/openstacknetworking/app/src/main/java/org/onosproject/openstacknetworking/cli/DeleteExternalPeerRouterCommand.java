@@ -50,7 +50,7 @@ public class DeleteExternalPeerRouterCommand extends AbstractShellCommand {
         try {
             service.deleteExternalPeerRouter(ipAddress);
         } catch (IllegalArgumentException e) {
-            log.error("Exception occurred because of {}", e.toString());
+            log.error("Exception occurred because of {}", e);
         }
         print(FORMAT, "Router IP", "Mac Address", "VLAN ID");
         List<ExternalPeerRouter> routers = Lists.newArrayList(service.externalPeerRouters());

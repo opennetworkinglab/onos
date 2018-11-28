@@ -38,6 +38,9 @@ import static org.onosproject.openstacknetworking.api.Constants.DHCP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FORCED_ACL_RULE;
 
+/**
+ * Removes the registered acl.
+ */
 @Command(scope = "onos", name = "openstack-remove-acl",
         description = "Remove acl rules to VM")
 public class OpenstackRemoveAclCommand extends AbstractShellCommand {
@@ -72,7 +75,7 @@ public class OpenstackRemoveAclCommand extends AbstractShellCommand {
 
             dstIpAddress = IpAddress.valueOf(dstIpStr);
         } catch (IllegalArgumentException e) {
-            log.error("IllegalArgumentException occurred because of {}", e.toString());
+            log.error("IllegalArgumentException occurred because of {}", e);
             return;
         }
 

@@ -47,7 +47,7 @@ public class DirectPortListCompleter implements Completer {
         Iterator<String> it = set.iterator();
 
         while (it.hasNext()) {
-            strings.add(it.next().toString());
+            strings.add(it.next());
         }
         return delegate.complete(buffer, cursor, candidates);
     }

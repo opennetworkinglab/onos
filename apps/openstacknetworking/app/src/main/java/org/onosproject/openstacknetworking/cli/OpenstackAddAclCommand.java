@@ -39,7 +39,7 @@ import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWOR
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FORCED_ACL_RULE;
 
 /**
- * Add acl.
+ * Adds a acl.
  */
 @Command(scope = "onos", name = "openstack-add-acl",
         description = "Add acl rules to VM")
@@ -66,16 +66,16 @@ public class OpenstackAddAclCommand extends AbstractShellCommand {
 
         InstancePortService instancePortService = AbstractShellCommand.get(InstancePortService.class);
 
-        IpAddress srcIpAddress = null;
+        IpAddress srcIpAddress;
 
-        IpAddress dstIpAddress = null;
+        IpAddress dstIpAddress;
 
         try {
             srcIpAddress = IpAddress.valueOf(srcIpStr);
 
             dstIpAddress = IpAddress.valueOf(dstIpStr);
         } catch (IllegalArgumentException e) {
-            log.error("IllegalArgumentException occurred because of {}", e.toString());
+            log.error("IllegalArgumentException occurred because of {}", e);
             return;
         }
 
