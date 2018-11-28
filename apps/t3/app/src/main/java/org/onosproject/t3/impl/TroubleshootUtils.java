@@ -42,6 +42,7 @@ final class TroubleshootUtils {
             .put("as5912-54x-premium", true)
             .put("as5916-54x-premium", true)
             .put("accton-ofdpa3", true)
+            .put("delta-ofdpa3", true)
             .put("znyx-ofdpa", true)
             .build();
 

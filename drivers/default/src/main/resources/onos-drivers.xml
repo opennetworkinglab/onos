@@ -137,6 +137,11 @@
             manufacturer="Accton Corp\." hwVersion=".*" swVersion="ofdpa .*">
     </driver>
 
+    <!-- OFDPA drivers from vendors -->
+    <driver name="delta-ofdpa3" extends="ofdpa3"
+            manufacturer="Delta Electronics\." hwVersion=".*" swVersion="ofdpa .*">
+    </driver>
+
     <driver name="znyx-ofdpa" extends="ofdpa3"
             manufacturer="ZNYX Networks" hwVersion=".*" swVersion=".*OF-DPA.*">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
