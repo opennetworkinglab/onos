@@ -41,6 +41,8 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flowobjective.DefaultNextObjective;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.NextObjective;
@@ -63,10 +65,12 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -511,24 +515,7 @@ public class L2LbManager implements L2LbService, L2LbAdminService {
         public void onSuccess(Objective objective) {
             NextObjective nextObj = (NextObjective) objective;
             log.debug("Success {} nextobj {} for L2 load balancer {}", nextObj.op(), nextObj, l2LbId);
-            // Operation done
-            L2LbData oldl2LbData = new L2LbData(l2LbId);
-            L2LbData newl2LbData = new L2LbData(l2LbId);
-            l2LbProvExecutor.execute(() -> {
-                // Other operations will not lead to a generation of an event
-                switch (nextObj.op()) {
-                    case ADD:
-                        newl2LbData.setNextId(nextObj.id());
-                        post(new L2LbEvent(L2LbEvent.Type.INSTALLED, newl2LbData, oldl2LbData));
-                        break;
-                    case REMOVE:
-                        oldl2LbData.setNextId(nextObj.id());
-                        post(new L2LbEvent(L2LbEvent.Type.UNINSTALLED, newl2LbData, oldl2LbData));
-                        break;
-                    default:
-                        break;
-                }
-            });
+            l2LbProvExecutor.execute(() -> onSuccessHandler(nextObj, l2LbId));
         }
 
         @Override
@@ -536,25 +523,82 @@ public class L2LbManager implements L2LbService, L2LbAdminService {
             NextObjective nextObj = (NextObjective) objective;
             log.debug("Failed {} nextobj {} for L2 load balancer {} due to {}", nextObj.op(), nextObj,
                       l2LbId, error);
-            l2LbProvExecutor.execute(() -> {
-                // Init the data structure
-                L2LbData l2LbData = new L2LbData(l2LbId);
-                // Update the next id and send the event;
-                switch (nextObj.op()) {
-                    case ADD:
-                        // If ADD is failing apps do not know the next id; let's update the store
-                        l2LbNextStore.remove(l2LbId);
-                        post(new L2LbEvent(L2LbEvent.Type.FAILED, l2LbData, l2LbData));
-                        break;
-                    case REMOVE:
-                        // If REMOVE is failing let's send also the info about the next id; no need to update the store
-                        l2LbData.setNextId(nextObj.id());
-                        post(new L2LbEvent(L2LbEvent.Type.FAILED, l2LbData, l2LbData));
-                        break;
-                    default:
-                        break;
-                }
-            });
+            l2LbProvExecutor.execute(() -> onErrorHandler(nextObj, l2LbId));
+        }
+    }
+
+    private void onSuccessHandler(NextObjective nextObjective, L2LbId l2LbId) {
+        // Operation done
+        L2LbData oldl2LbData = new L2LbData(l2LbId);
+        L2LbData newl2LbData = new L2LbData(l2LbId);
+        // Other operations will not lead to a generation of an event
+        switch (nextObjective.op()) {
+            case ADD:
+                newl2LbData.setNextId(nextObjective.id());
+                post(new L2LbEvent(L2LbEvent.Type.INSTALLED, newl2LbData, oldl2LbData));
+                break;
+            case REMOVE:
+                oldl2LbData.setNextId(nextObjective.id());
+                post(new L2LbEvent(L2LbEvent.Type.UNINSTALLED, newl2LbData, oldl2LbData));
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void onErrorHandler(NextObjective nextObjective, L2LbId l2LbId) {
+        // There was a failure
+        L2LbData l2LbData = new L2LbData(l2LbId);
+        // send FAILED event;
+        switch (nextObjective.op()) {
+            case ADD:
+                // If ADD is failing apps do not know the next id; let's update the store
+                l2LbNextStore.remove(l2LbId);
+                l2LbResStore.remove(l2LbId);
+                l2LbStore.remove(l2LbId);
+                post(new L2LbEvent(L2LbEvent.Type.FAILED, l2LbData, l2LbData));
+                break;
+            case ADD_TO_EXISTING:
+                // If ADD_TO_EXISTING is failing let's remove the failed ports
+                Collection<PortNumber> addedPorts = nextObjective.next().stream()
+                        .flatMap(t -> t.allInstructions().stream())
+                        .filter(i -> i.type() == Instruction.Type.OUTPUT)
+                        .map(i -> ((Instructions.OutputInstruction) i).port())
+                        .collect(Collectors.toList());
+                l2LbStore.compute(l2LbId, (key, value) -> {
+                    if (value != null && value.ports() != null && !value.ports().isEmpty()) {
+                        value.ports().removeAll(addedPorts);
+                    }
+                    return value;
+                });
+                l2LbData.setNextId(nextObjective.id());
+                post(new L2LbEvent(L2LbEvent.Type.FAILED, l2LbData, l2LbData));
+                break;
+            case REMOVE_FROM_EXISTING:
+                // If REMOVE_TO_EXISTING is failing let's re-add the failed ports
+                Collection<PortNumber> removedPorts = nextObjective.next().stream()
+                        .flatMap(t -> t.allInstructions().stream())
+                        .filter(i -> i.type() == Instruction.Type.OUTPUT)
+                        .map(i -> ((Instructions.OutputInstruction) i).port())
+                        .collect(Collectors.toList());
+                l2LbStore.compute(l2LbId, (key, value) -> {
+                    if (value != null && value.ports() != null) {
+                        value.ports().addAll(removedPorts);
+                    }
+                    return value;
+                });
+                l2LbData.setNextId(nextObjective.id());
+                post(new L2LbEvent(L2LbEvent.Type.FAILED, l2LbData, l2LbData));
+                break;
+            case VERIFY:
+            case REMOVE:
+                // If ADD/REMOVE_TO_EXISTING, REMOVE and VERIFY are failing let's send
+                // also the info about the next id
+                l2LbData.setNextId(nextObjective.id());
+                post(new L2LbEvent(L2LbEvent.Type.FAILED, l2LbData, l2LbData));
+                break;
+            default:
+                break;
         }
 
     }

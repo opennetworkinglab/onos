@@ -728,6 +728,12 @@ public class Ofdpa2GroupHandler {
             log.debug("prepareL2UnfilteredGroup");
         }
 
+        if (groupInfos == null || groupInfos.isEmpty()) {
+            log.warn("No buckets for Broadcast NextObj {}", nextObj);
+            fail(nextObj, ObjectiveError.GROUPMISSING);
+            return;
+        }
+
         IpPrefix ipDst = readIpDstFromSelector(nextObj.meta());
         if (ipDst != null) {
             if (ipDst.isMulticast()) {
@@ -785,18 +791,29 @@ public class Ofdpa2GroupHandler {
                     deviceId, Integer.toHexString(l2UnfilteredGroupId), l2UnfilterGroupKey, nextObj.id());
             groupInfoBuilder.add(new GroupInfo(l2UnfilteredGroupDesc, l2UnfilteredGroupDesc));
         });
-
+        // Save the current count
+        int counts = groupInfoBuilder.build().size();
         // Lookup each nextId in the store and obtain the group information
         nextIds.forEach(nextId -> {
-            List<Deque<GroupKey>> allActiveKeys = appKryo.deserialize(flowObjectiveStore.getNextGroup(nextId).data());
-            GroupKey topGroupKey = allActiveKeys.get(0).getFirst();
-            GroupDescription groupDesc = groupService.getGroup(deviceId, topGroupKey);
-            log.debug("Trying L2-Interface: device:{} gid:{}, gkey:{} nextid:{}",
-                    deviceId, Integer.toHexString(((Group) groupDesc).id().id()), topGroupKey, nextId);
-            groupInfoBuilder.add(new GroupInfo(groupDesc, groupDesc));
+            NextGroup nextGroup = flowObjectiveStore.getNextGroup(nextId);
+            if (nextGroup != null) {
+                List<Deque<GroupKey>> allActiveKeys = appKryo.deserialize(nextGroup.data());
+                GroupKey topGroupKey = allActiveKeys.get(0).getFirst();
+                GroupDescription groupDesc = groupService.getGroup(deviceId, topGroupKey);
+                if (groupDesc != null) {
+                    log.debug("Trying L2-Hash device:{} gid:{}, gkey:{}, nextid:{}",
+                              deviceId, Integer.toHexString(((Group) groupDesc).id().id()), topGroupKey, nextId);
+                    groupInfoBuilder.add(new GroupInfo(groupDesc, groupDesc));
+                } else {
+                    log.error("Not found L2-Hash device:{}, gkey:{}, nextid:{}", deviceId, topGroupKey, nextId);
+                }
+            } else {
+                log.error("Not found NextGroup device:{}, nextid:{}", deviceId, nextId);
+            }
         });
-
-        return groupInfoBuilder.build();
+        // Compare the size before and after to detect problems during the creation
+        ImmutableList<GroupInfo> groupInfos = groupInfoBuilder.build();
+        return (counts + nextIds.size()) == groupInfos.size() ? groupInfos : ImmutableList.of();
     }
 
     private List<GroupInfo> prepareL2InterfaceGroup(NextObjective nextObj, VlanId assignedVlan) {
