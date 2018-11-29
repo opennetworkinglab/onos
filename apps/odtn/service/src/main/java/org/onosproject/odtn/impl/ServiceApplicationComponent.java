@@ -161,8 +161,7 @@ public class ServiceApplicationComponent {
         @Override
         public void event(DeviceEvent event) {
 
-            log.info("Device event type: {}", event.type());
-            log.info("Device event subject: {}", event.subject());
+            log.debug("Device event type: {}, subject: {}", event.type(), event.subject());
             switch (event.type()) {
                 case DEVICE_ADDED:
                     tapiTopologyManager.addDevice(event.subject());
@@ -248,8 +247,7 @@ public class ServiceApplicationComponent {
         @Override
         public void event(NetworkConfigEvent event) {
 
-            log.info("type: {}", event.type());
-            log.info("subject: {}", event.subject());
+            log.debug("Event type: {}, subject: {}", event.type(), event.subject());
             DeviceId did = ((ConnectPoint) event.subject()).deviceId();
 
             DefaultOdtnTerminalDeviceDriver driver = DefaultOdtnTerminalDeviceDriver.create();
@@ -259,12 +257,12 @@ public class ServiceApplicationComponent {
                 case CONFIG_ADDED:
                 case CONFIG_UPDATED:
                     config = (TerminalDeviceConfig) event.config().get();
-                    log.info("config: {}", config);
+                    log.debug("config: {}", config);
                     driver.apply(did, config.clientCp().port(), config.subject().port(), config.isEnabled());
                     break;
                 case CONFIG_REMOVED:
                     config = (TerminalDeviceConfig) event.prevConfig().get();
-                    log.info("config: {}", config);
+                    log.debug("config: {}", config);
                     driver.apply(did, config.clientCp().port(), config.subject().port(), false);
                     break;
                 default:

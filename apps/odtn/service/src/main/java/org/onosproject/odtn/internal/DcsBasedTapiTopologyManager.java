@@ -83,7 +83,7 @@ public class DcsBasedTapiTopologyManager implements TapiTopologyManager {
 
     @Override
     public void addDevice(Device device) {
-        log.info("Add device: {}", device);
+        log.debug("Add device: {}", device);
         DeviceId deviceId = device.id();
         if (tapiResolver.hasNodeRef(deviceId)) {
             return;
@@ -95,12 +95,13 @@ public class DcsBasedTapiTopologyManager implements TapiTopologyManager {
 
     @Override
     public void removeDevice(Device device) {
-        log.info("Remove device: {}", device);
+        //TODO Implement
+        log.warn("NOT-IMPLEMENTED, Remove device: {}", device);
     }
 
     @Override
     public void addLink(Link link) {
-        log.info("Add link: {}", link);
+        log.debug("Add link: {}", link);
 
         // TODO: existence check
 
@@ -116,12 +117,13 @@ public class DcsBasedTapiTopologyManager implements TapiTopologyManager {
 
     @Override
     public void removeLink(Link link) {
-        log.info("Remove link: {}", link);
+        //TODO Implement
+        log.warn("NOT-IMPLEMENTED, Remove link: {}", link);
     }
 
     @Override
     public void addPort(Port port) {
-        log.info("Add port: {}", port);
+        log.debug("Add port: {}", port);
 
         ConnectPoint cp = new ConnectPoint(port.element().id(), port.number());
         if (tapiResolver.hasNepRef(cp)) {
@@ -157,7 +159,8 @@ public class DcsBasedTapiTopologyManager implements TapiTopologyManager {
 
     @Override
     public void removePort(Port port) {
-        log.info("Remove port: {}", port);
+        //TODO implement
+        log.warn("NOT-IMPLEMENTED, Remove port: {}", port);
     }
 
     /**
