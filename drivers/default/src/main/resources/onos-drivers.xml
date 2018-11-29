@@ -139,7 +139,7 @@
 
     <!-- OFDPA drivers from vendors -->
     <driver name="delta-ofdpa3" extends="ofdpa3"
-            manufacturer="Delta Electronics\." hwVersion=".*" swVersion="ofdpa .*">
+            manufacturer="Delta Electronics" hwVersion=".*" swVersion="ofdpa .*">
     </driver>
 
     <driver name="znyx-ofdpa" extends="ofdpa3"
