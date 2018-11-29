@@ -456,12 +456,60 @@ final class P4RuntimeClientImpl implements P4RuntimeClient {
         }
         if (!resp.getConfig().hasCookie()) {
             log.warn("{} returned GetForwardingPipelineConfigResponse " +
-                             "with 'cookie' field unset",
+                             "with 'cookie' field unset. " +
+                             "Will try by comparing 'device_data'...",
                      deviceId);
-            return false;
+            return doIsPipelineConfigSetWithData(pipeconf, deviceData);
         }
 
         return resp.getConfig().getCookie().getCookie() == pipeconf.fingerprint();
+    }
+
+    private boolean doIsPipelineConfigSetWithData(PiPipeconf pipeconf, ByteBuffer deviceData) {
+
+        GetForwardingPipelineConfigRequest request = GetForwardingPipelineConfigRequest
+                .newBuilder()
+                .setDeviceId(p4DeviceId)
+                .build();
+
+        GetForwardingPipelineConfigResponse resp;
+        try {
+            resp = this.blockingStub
+                    .getForwardingPipelineConfig(request);
+        } catch (StatusRuntimeException ex) {
+            checkGrpcException(ex);
+            return false;
+        }
+
+        ForwardingPipelineConfig expectedConfig = getPipelineConfig(
+                pipeconf, deviceData);
+
+        if (expectedConfig == null) {
+            return false;
+        }
+        if (!resp.hasConfig()) {
+            log.warn("{} returned GetForwardingPipelineConfigResponse " +
+                             "with 'config' field unset",
+                     deviceId);
+            return false;
+        }
+        if (resp.getConfig().getP4DeviceConfig().isEmpty()
+                && !expectedConfig.getP4DeviceConfig().isEmpty()) {
+            // Don't bother with a warn or error since we don't really allow
+            // updating the pipeline to a different one. So the P4Info should be
+            // enough for us.
+            log.debug("{} returned GetForwardingPipelineConfigResponse " +
+                              "with empty 'p4_device_config' field, " +
+                              "equality will be based only on P4Info",
+                      deviceId);
+            return resp.getConfig().getP4Info().equals(
+                    expectedConfig.getP4Info());
+        } else {
+            return resp.getConfig().getP4DeviceConfig()
+                    .equals(expectedConfig.getP4DeviceConfig())
+                    && resp.getConfig().getP4Info()
+                    .equals(expectedConfig.getP4Info());
+        }
     }
 
     private boolean doSetPipelineConfig(PiPipeconf pipeconf, ByteBuffer deviceData) {
