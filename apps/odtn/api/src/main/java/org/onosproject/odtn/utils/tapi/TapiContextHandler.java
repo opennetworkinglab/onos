@@ -23,7 +23,7 @@ import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.DefaultCont
 import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.Uuid;
 import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.connectivitycontext.DefaultConnectivityService;
 import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.context.DefaultAugmentedTapiCommonContext;
-import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.topologycontext.DefaultTopology;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.context.augmentedtapicommoncontext.DefaultTopologyContext;
 import org.onosproject.yang.model.DefaultModelObjectData;
 import org.onosproject.yang.model.ModelObjectData;
 import org.onosproject.yang.model.ModelObjectId;
@@ -64,7 +64,7 @@ public final class TapiContextHandler extends TapiObjectHandler<DefaultContext> 
                 .addChild(DefaultContext.class)
                 .build();
 
-        DefaultTopology mObj = new DefaultTopology();
+        DefaultTopologyContext mObj = new DefaultTopologyContext();
 
         return DefaultModelObjectData.builder()
                 .addModelObject(mObj)

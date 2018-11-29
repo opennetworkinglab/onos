@@ -1,0 +1,1 @@
+curl -X POST http://localhost:8181/onos/restconf/operations/tapi-common:get-service-interface-point-list -H 'cache-control: no-cache' -H 'content-type: application/json' --user onos:rocks -d '{}'
