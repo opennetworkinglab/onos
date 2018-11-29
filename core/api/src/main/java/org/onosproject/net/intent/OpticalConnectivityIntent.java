@@ -22,6 +22,7 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.OduSignalType;
 import org.onosproject.net.ResourceGroup;
+import org.onosproject.net.Path;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -31,6 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * An optical layer intent for connectivity between two OCh ports.
  * No traffic selector or traffic treatment are needed.
+ * OchSignal and suggestedPath are optional.
  */
 @Beta
 public final class OpticalConnectivityIntent extends Intent {
@@ -38,7 +40,9 @@ public final class OpticalConnectivityIntent extends Intent {
     private final ConnectPoint dst;
     private final OduSignalType signalType;
     private final boolean isBidirectional;
+
     private final Optional<OchSignal> ochSignal;
+    private final Optional<Path> suggestedPath;
 
     /**
      * Creates an optical connectivity intent between the specified
@@ -51,6 +55,7 @@ public final class OpticalConnectivityIntent extends Intent {
      * @param signalType signal type
      * @param isBidirectional indicates if intent is unidirectional
      * @param ochSignal optional OCh signal
+     * @param suggestedPath optional suggested path
      * @param priority priority to use for flows from this intent
      * @param resourceGroup resource group of this intent
      */
@@ -61,6 +66,7 @@ public final class OpticalConnectivityIntent extends Intent {
                                         OduSignalType signalType,
                                         boolean isBidirectional,
                                         Optional<OchSignal> ochSignal,
+                                        Optional<Path> suggestedPath,
                                         int priority,
                                         ResourceGroup resourceGroup) {
         super(appId, key, Collections.emptyList(), priority, resourceGroup);
@@ -69,6 +75,7 @@ public final class OpticalConnectivityIntent extends Intent {
         this.signalType = checkNotNull(signalType);
         this.isBidirectional = isBidirectional;
         this.ochSignal = ochSignal;
+        this.suggestedPath = suggestedPath;
     }
 
     /**
@@ -90,6 +97,7 @@ public final class OpticalConnectivityIntent extends Intent {
         private OduSignalType signalType;
         private boolean isBidirectional;
         private Optional<OchSignal> ochSignal = Optional.empty();
+        private Optional<Path> suggestedPath = Optional.empty();
 
         @Override
         public Builder appId(ApplicationId appId) {
@@ -167,6 +175,17 @@ public final class OpticalConnectivityIntent extends Intent {
         }
 
         /**
+         * Sets the suggestedPath of the intent.
+         *
+         * @param suggestedPath the path
+         * @return this builder
+         */
+        public Builder suggestedPath(Path suggestedPath) {
+            this.suggestedPath = Optional.ofNullable(suggestedPath);
+            return this;
+        }
+
+        /**
          * Builds an optical connectivity intent from the accumulated parameters.
          *
          * @return point to point intent
@@ -181,6 +200,7 @@ public final class OpticalConnectivityIntent extends Intent {
                     signalType,
                     isBidirectional,
                     ochSignal,
+                    suggestedPath,
                     priority,
                     resourceGroup
             );
@@ -197,6 +217,7 @@ public final class OpticalConnectivityIntent extends Intent {
         this.signalType = null;
         this.isBidirectional = false;
         this.ochSignal = null;
+        this.suggestedPath = null;
     }
 
     /**
@@ -240,8 +261,18 @@ public final class OpticalConnectivityIntent extends Intent {
      *
      * @return the lambda
      */
+
     public Optional<OchSignal> ochSignal() {
         return ochSignal;
+    }
+
+    /**
+     * Returns the suggestedPath of the intent.
+     *
+     * @return the suggestedPath
+     */
+    public Optional<Path> suggestedPath() {
+        return suggestedPath;
     }
 
     @Override
@@ -257,6 +288,7 @@ public final class OpticalConnectivityIntent extends Intent {
                 .add("signalType", signalType)
                 .add("isBidirectional", isBidirectional)
                 .add("ochSignal", ochSignal)
+                .add("suggestedPath", suggestedPath)
                 .add("resourceGroup", resourceGroup())
                 .toString();
     }

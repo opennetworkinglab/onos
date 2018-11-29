@@ -8,7 +8,7 @@
   "properties": {
     "appId": {
       "type": "string",
-      "example": "org.onosproject.ovsdb"
+      "example": "org.onosproject.optical-rest"
     },
     "ingressPoint": {
       "type": "object",
@@ -20,11 +20,11 @@
       "properties": {
         "device": {
           "type": "string",
-          "example": "of:0000000000000001" 
+          "example": "netconf:10.255.255.14:2022"
         },
         "port": {
           "type": "string",
-          "example": "1" 
+          "example": "101"
         }
       }
     },
@@ -38,17 +38,17 @@
       "properties": {
         "device": {
           "type": "string",
-          "example": "of:0000000000000002"
+          "example": "netconf:10.255.255.17:2022"
         },
         "port": {
           "type": "string",
-          "example": "200"
+          "example": "201"
         }
       }
     },
     "bidirection": {
       "type": "boolean",
-      "example": true
+      "example": false
     },
     "signal": {
       "type": "object",
@@ -62,12 +62,22 @@
       "properties": {
         "channelSpacing": {
           "type": "string",
-          "enum": ["CHL_100GHZ", "CHL_50GHZ", "CHL_25GHZ", "CHL_12P5GHZ", "CHL_6P25GHZ"],
+          "enum": [
+            "CHL_100GHZ",
+            "CHL_50GHZ",
+            "CHL_25GHZ",
+            "CHL_12P5GHZ",
+            "CHL_6P25GHZ"
+          ],
           "example": "CHL_50GHZ"
         },
         "gridType": {
           "type": "string",
-          "enum": ["DWDM", "CWDM", "FLEX"],
+          "enum": [
+            "DWDM",
+            "CWDM",
+            "FLEX"
+          ],
           "example": "DWDM"
         },
         "spacingMultiplier": {
@@ -79,6 +89,40 @@
           "type": "integer",
           "format": "int32",
           "example": 4
+        }
+      }
+    },
+    "suggestedPath": {
+      "type": "object",
+      "title": "suggestedPath",
+      "required": [
+        "links"
+      ],
+      "properties": {
+        "links": {
+          "type": "array",
+          "title": "suggestedPath",
+          "required": [
+            "link"
+          ],
+          "items": {
+            "type": "object",
+            "title": "link",
+            "required": [
+              "src",
+              "dst"
+            ],
+            "properties" : {
+              "src": {
+                "type": "string",
+                "example": "netconf:10.255.255.14:2022/101"
+              },
+              "dst": {
+                "type": "string",
+                "example": "netconf:10.255.255.9:2022/201"
+              }
+            }
+          }
         }
       }
     }

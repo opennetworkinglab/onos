@@ -25,6 +25,7 @@ import org.onosproject.net.Device;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.OduSignalType;
 import org.onosproject.net.Port;
+import org.onosproject.net.Path;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.Key;
@@ -84,7 +85,7 @@ public final class OpticalIntentUtility {
 
             // continue only if both OduClt port's Devices are of the same type
             if (!(srcDevice.type().equals(dstDevice.type()))) {
-                log.debug("Devices without same deviceType: SRC=%s and DST=%s", srcDevice.type(), dstDevice.type());
+                log.debug("Devices without same deviceType: SRC {} and DST={}", srcDevice.type(), dstDevice.type());
                 return intent;
             }
 
@@ -109,7 +110,7 @@ public final class OpticalIntentUtility {
                         .bidirectional(bidirectional)
                         .build();
             } else {
-                log.debug("Wrong Device Type for connect points %s and %s", ingress, egress);
+                log.debug("Wrong Device Type for connect points {} and {}", ingress, egress);
             }
         } else if (srcPort instanceof OchPort && dstPort instanceof OchPort) {
             OduSignalType signalType = ((OchPort) srcPort).signalType();
@@ -123,7 +124,92 @@ public final class OpticalIntentUtility {
                     .ochSignal(signal)
                     .build();
         } else {
-            log.debug("Unable to create optical intent between connect points %s and %s", ingress, egress);
+            log.debug("Unable to create optical intent between connect points {} and {}", ingress, egress);
+        }
+
+        return intent;
+    }
+
+    /**
+     * Returns a new optical intent created from the method parameters, strict suggestedPath is specified.
+     *
+     * @param ingress ingress description (device/port)
+     * @param egress egress description (device/port)
+     * @param deviceService device service
+     * @param key intent key
+     * @param appId application id
+     * @param bidirectional if this argument is true, the optical link created
+     * will be bidirectional, otherwise the link will be unidirectional.
+     * @param signal optical signal
+     * @param path suggested path for the intent
+     *
+     * @return created intent
+     */
+    public static Intent createExplicitOpticalIntent(ConnectPoint ingress, ConnectPoint
+            egress, DeviceService deviceService, Key key, ApplicationId appId, boolean
+                                                     bidirectional, OchSignal signal, Path path) {
+
+        Intent intent = null;
+
+        if (ingress == null || egress == null) {
+            log.error("Invalid endpoint(s); could not create optical intent");
+            return intent;
+        }
+
+        DeviceService ds = opticalView(deviceService);
+
+        Port srcPort = ds.getPort(ingress.deviceId(), ingress.port());
+        Port dstPort = ds.getPort(egress.deviceId(), egress.port());
+
+        if (srcPort instanceof OduCltPort && dstPort instanceof OduCltPort) {
+            Device srcDevice = ds.getDevice(ingress.deviceId());
+            Device dstDevice = ds.getDevice(egress.deviceId());
+
+            // continue only if both OduClt port's Devices are of the same type
+            if (!(srcDevice.type().equals(dstDevice.type()))) {
+                log.debug("Devices without same deviceType: SRC={} and DST={}", srcDevice.type(), dstDevice.type());
+                return intent;
+            }
+
+            CltSignalType signalType = ((OduCltPort) srcPort).signalType();
+            if (Device.Type.ROADM.equals(srcDevice.type()) ||
+                    Device.Type.ROADM_OTN.equals(srcDevice.type())) {
+                intent = OpticalCircuitIntent.builder()
+                        .appId(appId)
+                        .key(key)
+                        .src(ingress)
+                        .dst(egress)
+                        .signalType(signalType)
+                        .bidirectional(bidirectional)
+                        .build();
+            } else if (Device.Type.OTN.equals(srcDevice.type())) {
+                intent = OpticalOduIntent.builder()
+                        .appId(appId)
+                        .key(key)
+                        .src(ingress)
+                        .dst(egress)
+                        .signalType(signalType)
+                        .bidirectional(bidirectional)
+                        .build();
+            } else {
+                log.error("Wrong Device Type for connect points: " +
+                        "ingress {} of type {}; egress {} of type {}",
+                        ingress, srcDevice.type(), egress, dstDevice.type());
+            }
+        } else if (srcPort instanceof OchPort && dstPort instanceof OchPort) {
+            OduSignalType signalType = ((OchPort) srcPort).signalType();
+            intent = OpticalConnectivityIntent.builder()
+                    .appId(appId)
+                    .key(key)
+                    .src(ingress)
+                    .dst(egress)
+                    .signalType(signalType)
+                    .bidirectional(bidirectional)
+                    .ochSignal(signal)
+                    .suggestedPath(path)
+                    .build();
+        } else {
+            log.error("Unable to create explicit optical intent between connect points {} and {}", ingress, egress);
         }
 
         return intent;

@@ -60,13 +60,13 @@ import org.onosproject.net.topology.TopologyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -139,8 +139,15 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         resources.add(srcPortResource);
         resources.add(dstPortResource);
 
+        // If there is a suggestedPath, use this path without further checking, otherwise trigger path computation
+        Stream<Path> paths;
+        if (intent.suggestedPath().isPresent()) {
+            paths = Stream.of(intent.suggestedPath().get());
+        } else {
+            paths = getOpticalPaths(intent);
+        }
+
         // Find first path that has the required resources
-        Stream<Path> paths = getOpticalPaths(intent);
         Optional<Map.Entry<Path, List<OchSignal>>> found = paths
                 .map(path -> Maps.immutableEntry(path, findFirstAvailableLambda(intent, path)))
                 .filter(entry -> !entry.getValue().isEmpty())
@@ -350,8 +357,16 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
                 return ScalarWeight.NON_VIABLE_WEIGHT;
             }
 
+            /**
+             *
+             * @param edge edge to be weighed
+             * @return the metric retrieved from the annotations otherwise 1
+             */
             @Override
             public Weight weight(TopologyEdge edge) {
+
+                log.debug("Link {} metric {}", edge.link(), edge.link().annotations().value("metric"));
+
                 // Disregard inactive or non-optical links
                 if (edge.link().state() == Link.State.INACTIVE) {
                     return ScalarWeight.toWeight(-1);
@@ -375,7 +390,13 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
                     }
                 }
 
-                return ScalarWeight.toWeight(1);
+                String metricString = edge.link().annotations().value("metric");
+                if (!metricString.isEmpty()) {
+                    double metric = Double.parseDouble(metricString);
+                    return ScalarWeight.toWeight(metric);
+                } else {
+                    return ScalarWeight.toWeight(1);
+                }
             }
         };
 
@@ -418,6 +439,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
                         return path;
                     });
         }
+
         return paths;
     }
 }
