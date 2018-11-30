@@ -507,11 +507,13 @@ module tapi-eth {
         }
         grouping traffic-conditioning-pac {
             list prio-config-list {
+                key 'queue-id';
                 config false;
                 uses priority-configuration;
                 description "This attribute indicates the Priority Splitter function for the mapping of the Ethernet frame priority (ETH_CI_P) values to the output queue.";
             }
             list cond-config-list {
+                key 'queue-id';
                 config false;
                 uses traffic-conditioning-configuration;
                 description "This attribute indicates for the conditioner process the conditioning parameters:
@@ -533,11 +535,13 @@ module tapi-eth {
         }
         grouping traffic-shaping-pac {
             list prio-config-list {
+                key 'queue-id';
                 config false;
                 uses priority-configuration;
                 description "This attribute configures the Priority Splitter function for the mapping of the Ethernet frame priority (ETH_CI_P) values to the output queue.";
             }
             list queue-config-list {
+                key 'queue-id';
                 config false;
                 uses queue-configuration;
                 description "This attribute configures the Queue depth and Dropping threshold parameters of the Queue process. The Queue depth sets the maximum size of the queue in bytes. An incoming ETH_CI traffic unit is dropped if there is insufficient space in the queue to hold the whole unit. The Dropping threshold sets the threshold of the queue. If the queue is filled beyond this threshold, incoming ETH_CI traffic units accompanied by the ETH_CI_DE signal set are dropped.";
@@ -1134,6 +1138,7 @@ module tapi-eth {
         }
         grouping eth-link-trace-result-data {
             list result-list {
+                key 'source-address';
                 config false;
                 uses link-trace-result;
                 description "G.8052: This parameter returns the results of the LT process. It contains a list of the result received from the individual LTR frames.

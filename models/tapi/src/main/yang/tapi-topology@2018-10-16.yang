@@ -705,6 +705,7 @@ module tapi-topology {
             description "none";
             output {
                 list topology {
+                	key 'uuid';
                     uses topology;
                     description "none";
                 }

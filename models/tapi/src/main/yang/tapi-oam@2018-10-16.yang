@@ -546,6 +546,7 @@ module tapi-oam {
             description "none";
             input {
                 list end-point {
+                	key 'local-id';
                     min-elements 2;
                     uses oam-service-end-point;
                     description "none";
@@ -598,6 +599,7 @@ module tapi-oam {
                     description "none";
                 }
                 list oam-service-end-point {
+                	key 'local-id';
                     min-elements 2;
                     uses oam-service-end-point;
                     description "none";
@@ -641,6 +643,7 @@ module tapi-oam {
             description "none";
             output {
                 list service {
+                	key 'uuid';
                     uses oam-service;
                     description "none";
                 }
@@ -669,6 +672,7 @@ module tapi-oam {
                     description "none";
                 }
                 list end-point {
+                	key 'local-id';
                     uses oam-service-end-point;
                     description "none";
                 }

@@ -237,4 +237,16 @@ public class DcsBasedTapiConnectivityRpc implements TapiConnectivityService {
         return new RpcOutput(RpcOutput.Status.RPC_FAILURE, null);
     }
 
+    /**
+     * Service interface of getConnectionEndPointDetails.
+     *
+     * @param inputVar input of service interface getConnectionEndPointDetails
+     * @return output of service interface getConnectionEndPointDetails
+     */
+    @Override
+    public RpcOutput getConnectionEndPointDetails(RpcInput inputVar) {
+        log.error("Not implemented");
+        return new RpcOutput(RpcOutput.Status.RPC_FAILURE, null);
+
+    }
 }

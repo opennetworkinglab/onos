@@ -609,6 +609,7 @@ module tapi-common {
         }
         grouping time-interval {
             list period {
+                key 'unit';
                 min-elements 1;
                 max-elements 5;
                 uses time-period;
@@ -654,6 +655,7 @@ module tapi-common {
             description "none";
             output {
                 list sip {
+                	key 'uuid';
                     uses service-interface-point;
                     description "none";
                 }

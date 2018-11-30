@@ -566,6 +566,7 @@ module tapi-notification {
             description "none";
             output {
                 list subscription-service {
+                	key 'uuid';
                     uses notification-subscription-service;
                     description "none";
                 }
@@ -585,6 +586,7 @@ module tapi-notification {
             }
             output {
                 list notification {
+                	key 'uuid';
                     uses notification;
                     description "none";
                 }

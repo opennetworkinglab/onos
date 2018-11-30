@@ -605,10 +605,6 @@ module tapi-connectivity {
         rpc get-connection-details {
             description "none";
             input {
-                leaf service-id-or-name {
-                    type string;
-                    description "none";
-                }
                 leaf connection-id-or-name {
                     type string;
                     description "none";
@@ -625,6 +621,7 @@ module tapi-connectivity {
             description "none";
             output {
                 list service {
+                	key 'uuid';
                     uses connectivity-service;
                     description "none";
                 }
@@ -666,7 +663,7 @@ module tapi-connectivity {
                     uses tapi-path-computation:topology-constraint;
                     description "none";
                 }
-                list resilience-constraint {
+                container resilience-constraint {
                     uses resilience-constraint;
                     description "none";
                 }
@@ -689,7 +686,8 @@ module tapi-connectivity {
                     type string;
                     description "none";
                 }
-                container end-point {
+                list end-point {
+                	key 'local-id';
                     uses connectivity-service-end-point;
                     description "none";
                 }
@@ -705,7 +703,7 @@ module tapi-connectivity {
                     uses tapi-path-computation:topology-constraint;
                     description "none";
                 }
-                list resilience-constraint {
+                container resilience-constraint {
                     uses resilience-constraint;
                     description "none";
                 }
@@ -726,6 +724,33 @@ module tapi-connectivity {
             input {
                 leaf service-id-or-name {
                     type string;
+                    description "none";
+                }
+            }
+        }
+        rpc get-connection-end-point-details {
+            description "none";
+            input {
+                leaf topology-id-or-name {
+                    type string;
+                    description "none";
+                }
+                leaf node-id-or-name {
+                    type string;
+                    description "none";
+                }
+                leaf nep-id-or-name {
+                    type string;
+                    description "none";
+                }
+                leaf cep-id-or-name {
+                    type string;
+                    description "none";
+                }
+            }
+            output {
+                container connection-end-point {
+                    uses connection-end-point;
                     description "none";
                 }
             }

@@ -202,6 +202,7 @@ module tapi-virtual-network {
             description "none";
             input {
                 list sep {
+                	key 'local-id';
                     min-elements 2;
                     uses virtual-network-service-end-point;
                     description "none";
@@ -256,6 +257,7 @@ module tapi-virtual-network {
             description "none";
             output {
                 list service {
+                	key 'uuid';
                     uses virtual-network-service;
                     description "none";
                 }

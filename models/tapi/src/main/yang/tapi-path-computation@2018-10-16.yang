@@ -378,6 +378,7 @@ module tapi-path-computation {
             description "none";
             input {
                 list sep {
+                	key 'local-id';
                     min-elements 2;
                     max-elements 2;
                     uses path-service-end-point;

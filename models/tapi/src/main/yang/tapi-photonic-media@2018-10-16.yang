@@ -129,6 +129,146 @@ module tapi-photonic-media {
         }
         description "none";
     }
+    augment "/tapi-common:get-service-interface-point-list/tapi-common:output/tapi-common:sip" {
+        container otsi-service-interface-point-spec {
+            uses otsi-service-interface-point-spec;
+            description "none";
+        }
+        description "none";
+    }
+    augment "/tapi-common:get-service-interface-point-details/tapi-common:output/tapi-common:sip" {
+        container otsi-service-interface-point-spec {
+            uses otsi-service-interface-point-spec;
+            description "none";
+        }
+        description "none";
+    }
+    augment "/tapi-topology:get-node-edge-point-details/tapi-topology:output/tapi-topology:node-edge-point" {
+        container media-channel-node-edge-point-spec {
+            uses media-channel-node-edge-point-spec;
+            description "none";
+        }
+        description "none";
+    }
+    augment "/tapi-connectivity:get-connectivity-service-list/tapi-connectivity:output/tapi-connectivity:service/tapi-connectivity:end-point" {
+        container otsi-connectivity-service-end-point-spec {
+            uses otsi-connectivity-service-end-point-spec;
+            description "none";
+        }
+        description "none";
+    }
+    augment "/tapi-connectivity:get-connectivity-service-details/tapi-connectivity:output/tapi-connectivity:service/tapi-connectivity:end-point" {
+        container otsi-connectivity-service-end-point-spec {
+            uses otsi-connectivity-service-end-point-spec;
+            description "none";
+        }
+        description "none";
+    }
+    augment "/tapi-connectivity:create-connectivity-service/tapi-connectivity:output/tapi-connectivity:service/tapi-connectivity:end-point" {
+        container media-channel-connectivity-service-end-point-spec {
+            uses media-channel-connectivity-service-end-point-spec;
+            description "none";
+        }
+        description "none";
+    }
+    augment "/tapi-connectivity:update-connectivity-service/tapi-connectivity:output/tapi-connectivity:service/tapi-connectivity:end-point" {
+        container media-channel-connectivity-service-end-point-spec {
+            uses media-channel-connectivity-service-end-point-spec;
+            description "none";
+        }
+        description "none";
+    }
+    augment "/tapi-connectivity:get-connectivity-service-details/tapi-connectivity:output/tapi-connectivity:service/tapi-connectivity:end-point" {
+        container media-channel-connectivity-service-end-point-spec {
+            uses media-channel-connectivity-service-end-point-spec;
+            description "none";
+        }
+        description "none";
+    }
+    augment "/tapi-connectivity:get-connectivity-service-list/tapi-connectivity:output/tapi-connectivity:service/tapi-connectivity:end-point" {
+        container media-channel-connectivity-service-end-point-spec {
+            uses media-channel-connectivity-service-end-point-spec;
+            description "none";
+        }
+        description "none";
+    }
+    augment "/tapi-connectivity:create-connectivity-service/tapi-connectivity:input/tapi-connectivity:end-point" {
+        container otsi-connectivity-service-end-point-spec {
+            uses otsi-connectivity-service-end-point-spec;
+            description "none";
+        }
+        description "none";
+    }
+    augment "/tapi-connectivity:update-connectivity-service/tapi-connectivity:input/tapi-connectivity:end-point" {
+        container otsi-connectivity-service-end-point-spec {
+            uses otsi-connectivity-service-end-point-spec;
+            description "none";
+        }
+        description "none";
+    }
+    augment "/tapi-connectivity:update-connectivity-service/tapi-connectivity:input/tapi-connectivity:end-point" {
+        container media-channel-connectivity-service-end-point-spec {
+            uses media-channel-connectivity-service-end-point-spec;
+            description "none";
+        }
+        description "none";
+    }
+    augment "/tapi-connectivity:create-connectivity-service/tapi-connectivity:output/tapi-connectivity:service/tapi-connectivity:end-point" {
+        container otsi-connectivity-service-end-point-spec {
+            uses otsi-connectivity-service-end-point-spec;
+            description "none";
+        }
+        description "none";
+    }
+    augment "/tapi-connectivity:create-connectivity-service/tapi-connectivity:input/tapi-connectivity:end-point" {
+        container media-channel-connectivity-service-end-point-spec {
+            uses media-channel-connectivity-service-end-point-spec;
+            description "none";
+        }
+        description "none";
+    }
+    augment "/tapi-connectivity:update-connectivity-service/tapi-connectivity:output/tapi-connectivity:service/tapi-connectivity:end-point" {
+        container otsi-connectivity-service-end-point-spec {
+            uses otsi-connectivity-service-end-point-spec;
+            description "none";
+        }
+        description "none";
+    }
+    augment "/tapi-common:get-service-interface-point-details/tapi-common:output/tapi-common:sip" {
+        container media-channel-service-interface-point-spec {
+            uses media-channel-service-interface-point-spec;
+            description "none";
+        }
+        description "none";
+    }
+    augment "/tapi-common:get-service-interface-point-list/tapi-common:output/tapi-common:sip" {
+        container media-channel-service-interface-point-spec {
+            uses media-channel-service-interface-point-spec;
+            description "none";
+        }
+        description "none";
+    }
+    augment "/tapi-connectivity:get-connection-end-point-details/tapi-connectivity:output/tapi-connectivity:connection-end-point" {
+        container media-channel-connection-end-point-spec {
+            uses media-channel-connection-end-point-spec;
+            description "none";
+        }
+        description "none";
+    }
+    augment "/tapi-connectivity:get-connection-end-point-details/tapi-connectivity:output/tapi-connectivity:connection-end-point" {
+        container otsi-assembly-connection-end-point-spec {
+            uses otsi-assembly-connection-end-point-spec;
+            description "none";
+        }
+        description "none";
+    }
+    augment "/tapi-connectivity:get-connection-end-point-details/tapi-connectivity:output/tapi-connectivity:connection-end-point" {
+        container otsi-connection-end-point-spec {
+            uses otsi-connection-end-point-spec;
+            description "none";
+        }
+        description "none";
+    }
     /***********************
     * package object-classes
     **********************/ 
@@ -188,16 +328,19 @@ module tapi-photonic-media {
         }
         grouping media-channel-pool-capability-pac {
             list supportable-spectrum {
+                key 'upper-frequency lower-frequency';
                 config false;
                 uses spectrum-band;
                 description "none";
             }
             list available-spectrum {
+                key 'upper-frequency lower-frequency';
                 config false;
                 uses spectrum-band;
                 description "none";
             }
             list occupied-spectrum {
+                key 'upper-frequency lower-frequency';
                 config false;
                 uses spectrum-band;
                 description "none";
@@ -251,16 +394,19 @@ module tapi-photonic-media {
         }
         grouping otsi-capability-pac {
             list supportable-lower-central-frequency {
+                key 'central-frequency';
                 config false;
                 uses central-frequency;
                 description "The lower frequency of the channel spectrum";
             }
             list supportable-upper-central-frequency {
+                key 'central-frequency';
                 config false;
                 uses central-frequency;
                 description "The Upper frequency of the channel spectrum";
             }
             list supportable-application-identifier {
+                key 'application-code';
                 config false;
                 uses application-identifier;
                 description "The list of supportable ApplicationIdentifiers.";
