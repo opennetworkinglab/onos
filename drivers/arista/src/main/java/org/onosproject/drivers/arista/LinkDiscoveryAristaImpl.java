@@ -170,6 +170,12 @@ public class LinkDiscoveryAristaImpl extends AbstractHandlerBehaviour implements
                     continue;
                 }
 
+                if (!localPort.get().isEnabled() || !remotePort.get().isEnabled()) {
+                    log.debug("Ports are disabled. Cannot create a link between {}/{} and {}/{}",
+                            localDeviceId, localPort.get(), remoteDevice.get().id(), remotePort.get());
+                    continue;
+                }
+
                 linkDescriptions
                         .addAll(buildLinkPair(localDeviceId, localPort.get(),
                                 remoteDevice.get().id(), remotePort.get()));

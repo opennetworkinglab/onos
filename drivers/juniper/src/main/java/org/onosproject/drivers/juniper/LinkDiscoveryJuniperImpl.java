@@ -136,6 +136,12 @@ public class LinkDiscoveryJuniperImpl extends AbstractHandlerBehaviour
                 continue;
             }
 
+            if (!localPort.get().isEnabled() || !remotePort.get().isEnabled()) {
+                log.debug("Ports are disabled. Cannot create a link between {}/{} and {}/{}",
+                        localDeviceId, localPort.get(), remoteDevice.id(), remotePort.get());
+                continue;
+            }
+
             JuniperUtils.createOneWayLinkDescription(localDeviceId,
                                                      localPort.get(),
                                                      remoteDevice.id(),

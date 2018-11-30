@@ -280,6 +280,12 @@ public class LinkDiscovery implements TimerTask {
             DeviceId srcDeviceId = srcDevice.get().id();
             DeviceId dstDeviceId = packetContext.inPacket().receivedFrom().deviceId();
 
+            if (!sourcePort.get().isEnabled()) {
+                log.debug("Ports are disabled. Cannot create a link between {}/{} and {}/{}",
+                        srcDeviceId, sourcePort.get(), dstDeviceId, dstPort);
+                return false;
+            }
+
             ConnectPoint src = new ConnectPoint(srcDeviceId, srcPort);
             ConnectPoint dst = new ConnectPoint(dstDeviceId, dstPort);
 
