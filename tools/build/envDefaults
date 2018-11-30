@@ -33,15 +33,9 @@ export ONOS_RPM_VERSION=${ONOS_POM_VERSION//-/.}
 export ONOS_TAR=$ONOS_STAGE.tar.gz
 export ONOS_ZIP=$ONOS_STAGE.zip
 
-# If the bazel-built bits are newer than the buck-built bits, use the former.
-BUCK_TAR=$ONOS_ROOT/buck-out/gen/tools/package/onos-package/onos.tar.gz
 BAZEL_TAR=$ONOS_ROOT/bazel-bin/onos.tar.gz
 if [ -f $BAZEL_TAR ] && [ $BAZEL_TAR -nt $ONOS_TAR ]; then
     rm -f $ONOS_TAR >/dev/null; ln -s $BAZEL_TAR $ONOS_TAR
-else
-    if [ -f $BUCK_TAR ] && [ $BUCK_TAR -nt $ONOS_TAR ]; then
-        rm -f $ONOS_TAR >/dev/null; ln -s $BUCK_TAR $ONOS_TAR
-    fi
 fi
 
 # ONOS test bits (onos-test.tar.gz) staging environment
