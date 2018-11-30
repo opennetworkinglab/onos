@@ -307,7 +307,6 @@ public class ONOSLLDP extends LLDP {
         if (type == PORT_TLV_INTERFACE_NAME_SUBTYPE) {
             return new String(portBB.array(), portBB.position(), portBB.remaining(), StandardCharsets.UTF_8);
         } else {
-            log.error("Cannot find the port name tlv type.");
             return null;
         }
     }
