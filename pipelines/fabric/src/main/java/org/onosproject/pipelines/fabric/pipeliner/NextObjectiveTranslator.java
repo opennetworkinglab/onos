@@ -17,6 +17,7 @@
 package org.onosproject.pipelines.fabric.pipeliner;
 
 import com.google.common.collect.Lists;
+import org.onlab.packet.VlanId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -27,6 +28,7 @@ import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.PiCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
 import org.onosproject.net.flowobjective.DefaultNextTreatment;
 import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.flowobjective.NextTreatment;
@@ -55,6 +57,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.VLAN_ID;
 import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.VLAN_POP;
 import static org.onosproject.pipelines.fabric.FabricUtils.criterion;
 import static org.onosproject.pipelines.fabric.FabricUtils.l2Instruction;
@@ -109,23 +112,43 @@ class NextObjectiveTranslator
     private void nextVlan(NextObjective obj,
                           ObjectiveTranslation.Builder resultBuilder)
             throws FabricPipelinerException {
-        if (obj.meta() == null) {
-            // Do nothing if there is no metadata in the NextObjective.
+
+        // Set the egress VLAN for this next ID. Expect either a VLAN_ID
+        // criterion in meta, or a VLAN_ID instruction in the treatment (if
+        // SIMPLE, e.g. for a routing rule).
+
+        final VlanIdCriterion vlanIdCriterion = obj.meta() == null ? null
+                : (VlanIdCriterion) criterion(obj.meta().criteria(), Criterion.Type.VLAN_VID);
+        final ModVlanIdInstruction vlanIdInstruction;
+        if (obj.type() == NextObjective.Type.SIMPLE) {
+            final TrafficTreatment treatment = getFirstDefaultNextTreatmentIfAny(
+                    obj.nextTreatments());
+            vlanIdInstruction = treatment == null ? null
+                    : (ModVlanIdInstruction) l2Instruction(treatment, VLAN_ID);
+        } else {
+            vlanIdInstruction = null;
+        }
+
+        if (vlanIdCriterion == null && vlanIdInstruction == null) {
+            // Do nothing.
             return;
         }
 
-        final VlanIdCriterion vlanIdCriterion = (VlanIdCriterion) criterion(
-                obj.meta().criteria(), Criterion.Type.VLAN_VID);
-        if (vlanIdCriterion == null) {
-            // Do nothing if we can't find vlan from NextObjective metadata.
-            return;
+        if (vlanIdCriterion != null && vlanIdInstruction != null) {
+            if (!vlanIdCriterion.vlanId().equals(vlanIdInstruction.vlanId())) {
+                throw new FabricPipelinerException(
+                        "Found both meta VLAN_ID criterion and VLAN_ID " +
+                                "treatment, but they have different ID " +
+                                "values. Cannot process next_vlan rule.");
+            }
         }
 
-        // A VLAN ID as meta of a NextObjective indicates that packets matching
-        // the given next ID should be set with such VLAN ID.
+        final VlanId vlanId = vlanIdCriterion != null
+                ? vlanIdCriterion.vlanId() : vlanIdInstruction.vlanId();
+
         final TrafficSelector selector = nextIdSelector(obj.id());
         final TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setVlanId(vlanIdCriterion.vlanId())
+                .setVlanId(vlanId)
                 .build();
 
         resultBuilder.addFlowRule(flowRule(
@@ -155,8 +178,8 @@ class NextObjectiveTranslator
 
         final TrafficSelector selector = nextIdSelector(obj.id());
 
-        final List<DefaultNextTreatment> treatments = defaultNextTreatmentsOrFail(
-                obj.nextTreatments());
+        final List<DefaultNextTreatment> treatments = defaultNextTreatments(
+                obj.nextTreatments(), true);
 
         if (forceSimple && treatments.size() > 1) {
             log.warn("Forcing SIMPLE behavior for NextObjective with {} treatments []",
@@ -164,8 +187,8 @@ class NextObjectiveTranslator
         }
 
         // If not forcing, we are essentially extracting the only available treatment.
-        final TrafficTreatment treatment = defaultNextTreatmentsOrFail(
-                obj.nextTreatments()).get(0).treatment();
+        final TrafficTreatment treatment = defaultNextTreatments(
+                obj.nextTreatments(), true).get(0).treatment();
 
         resultBuilder.addFlowRule(flowRule(
                 obj, FabricConstants.FABRIC_INGRESS_NEXT_SIMPLE,
@@ -269,7 +292,7 @@ class NextObjectiveTranslator
             throws FabricPipelinerException {
 
         final Collection<DefaultNextTreatment> defaultNextTreatments =
-                defaultNextTreatmentsOrFail(obj.nextTreatments());
+                defaultNextTreatments(obj.nextTreatments(), true);
 
         final List<PortNumber> outPorts = defaultNextTreatments.stream()
                 .map(DefaultNextTreatment::treatment)
@@ -341,7 +364,7 @@ class NextObjectiveTranslator
 
         final PiTableId hashedTableId = FabricConstants.FABRIC_INGRESS_NEXT_HASHED;
         final List<DefaultNextTreatment> defaultNextTreatments =
-                defaultNextTreatmentsOrFail(obj.nextTreatments());
+                defaultNextTreatments(obj.nextTreatments(), true);
         final List<TrafficTreatment> piTreatments = Lists.newArrayList();
 
         for (DefaultNextTreatment t : defaultNextTreatments) {
@@ -377,7 +400,7 @@ class NextObjectiveTranslator
             throws FabricPipelinerException {
 
         final Collection<DefaultNextTreatment> defaultNextTreatments =
-                defaultNextTreatmentsOrFail(obj.nextTreatments());
+                defaultNextTreatments(obj.nextTreatments(), true);
         // No need to map treatments to PI as translation of ALL groups to PRE
         // multicast entries is based solely on the output port.
         for (DefaultNextTreatment t : defaultNextTreatments) {
@@ -435,8 +458,8 @@ class NextObjectiveTranslator
         return groupId;
     }
 
-    private List<DefaultNextTreatment> defaultNextTreatmentsOrFail(
-            Collection<NextTreatment> nextTreatments)
+    private List<DefaultNextTreatment> defaultNextTreatments(
+            Collection<NextTreatment> nextTreatments, boolean strict)
             throws FabricPipelinerException {
         final List<DefaultNextTreatment> defaultNextTreatments = Lists.newArrayList();
         final List<NextTreatment> unsupportedNextTreatments = Lists.newArrayList();
@@ -447,12 +470,19 @@ class NextObjectiveTranslator
                 unsupportedNextTreatments.add(n);
             }
         }
-        if (!unsupportedNextTreatments.isEmpty()) {
+        if (strict && !unsupportedNextTreatments.isEmpty()) {
             throw new FabricPipelinerException(format(
                     "Unsupported NextTreatments: %s",
                     unsupportedNextTreatments));
         }
         return defaultNextTreatments;
+    }
+
+    private TrafficTreatment getFirstDefaultNextTreatmentIfAny(
+            Collection<NextTreatment> nextTreatments)
+            throws FabricPipelinerException {
+        final Collection<DefaultNextTreatment> nexts = defaultNextTreatments(nextTreatments, false);
+        return nexts.isEmpty() ? null : nexts.iterator().next().treatment();
     }
 
     private boolean isGroupModifyOp(NextObjective obj) {
