@@ -8,6 +8,9 @@ onos_app(
     category = "Traffic Engineering",
     description = "Virtual Network Subsystem extension",
     included_bundles = BUNDLES,
+    required_apps = [
+        "org.onosproject.tunnel",
+    ],
     title = "Virtual Network Subsystem",
     url = "http://onosproject.org",
 )
