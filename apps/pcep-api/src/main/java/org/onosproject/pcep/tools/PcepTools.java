@@ -53,11 +53,11 @@ public abstract class PcepTools {
      * @return a decimal string
      */
     public static String toDecimalString(byte[] bytes) {
-        String str = "";
+        StringBuffer buf = new StringBuffer();
         for (int i = 0; i < bytes.length; i++) {
-            str += String.valueOf(bytes[i]);
+            buf.append(bytes[i]);
         }
-        return str;
+        return buf.toString();
     }
 
     /**
