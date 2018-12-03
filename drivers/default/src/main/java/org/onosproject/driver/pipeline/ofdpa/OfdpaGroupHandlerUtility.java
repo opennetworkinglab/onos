@@ -679,13 +679,9 @@ public final class OfdpaGroupHandlerUtility {
                 keys.forEach(key -> groupHandler.processPendingUpdateNextObjs(key));
 
                 Set<GroupKey> k = Sets.newHashSet();
-                groupHandler.pendingRemoveNextObjectives
-                    .asMap().values().stream().forEach(keylist -> {
-                        k.addAll(keylist.stream()
-                                 .filter(key -> groupHandler.groupService
-                                         .getGroup(groupHandler.deviceId, key) == null)
-                                 .collect(Collectors.toSet()));
-                    });
+                groupHandler.pendingRemoveNextObjectives.asMap().values().forEach(keylist -> keylist.stream()
+                        .filter(key -> groupHandler.groupService.getGroup(groupHandler.deviceId, key) == null)
+                        .forEach(k::add));
                 k.forEach(key -> groupHandler.processPendingRemoveNextObjs(key));
 
             } catch (Exception exception) {
