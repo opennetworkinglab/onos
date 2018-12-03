@@ -1281,6 +1281,10 @@ public class McastHandler {
 
     private void installPath(IpAddress mcastIp, ConnectPoint source, Path mcastPath) {
         List<Link> links = mcastPath.links();
+        if (links.isEmpty()) {
+            log.warn("There is no link that can be used. Stopping installation.");
+            return;
+        }
         // Setup new ingress mcast role
         mcastRoleStore.put(new McastRoleStoreKey(mcastIp, links.get(0).src().deviceId(), source),
                            INGRESS);
