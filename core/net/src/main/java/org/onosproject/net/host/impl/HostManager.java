@@ -349,7 +349,8 @@ public class HostManager
         }
 
         @Override
-        public void hostDetected(HostId hostId, HostDescription hostDescription, boolean replaceIps) {
+        public void hostDetected(HostId hostId, HostDescription initialHostDescription, boolean replaceIps) {
+            HostDescription hostDescription = initialHostDescription;
             checkNotNull(hostId, HOST_ID_NULL);
             checkValidity();
             hostDescription = validateHost(hostDescription, hostId);
@@ -364,7 +365,7 @@ public class HostManager
                 return;
             }
 
-            hostDescription = BasicHostOperator.combine(cfg, hostDescription);
+            hostDescription = BasicHostOperator.combine(cfg, initialHostDescription);
             HostAnnotationConfig annoConfig = networkConfigService.getConfig(hostId, HostAnnotationConfig.class);
             if (annoConfig != null) {
                 hostDescription = hostAnnotationOperator.combine(hostId, hostDescription, Optional.of(annoConfig));
@@ -550,7 +551,7 @@ public class HostManager
                 }
             } else if (event.configClass().equals(HostAnnotationConfig.class)) {
                 Host host = getHost(hostId);
-                HostProvider hp = getProvider(host.providerId());
+                HostProvider hp = (host == null) ? null : getProvider(host.providerId());
                 HostDescription desc = (host == null) ? null : BasicHostOperator.descriptionOf(host);
                 Optional<Config> prevConfig = event.prevConfig();
                 log.debug("Host annotations: {} prevconfig {} desc {}", hostId, prevConfig, desc);
