@@ -22,7 +22,9 @@ package org.onosproject.acl;
 
 import com.google.common.base.MoreObjects;
 import org.onlab.packet.IPv4;
+import org.onlab.packet.IPv6;
 import org.onlab.packet.Ip4Prefix;
+import org.onlab.packet.Ip6Prefix;
 import org.onlab.packet.MacAddress;
 import org.onosproject.core.IdGenerator;
 
@@ -42,6 +44,8 @@ public final class AclRule {
     private final MacAddress dstMac;
     private final Ip4Prefix srcIp;
     private final Ip4Prefix dstIp;
+    private final Ip6Prefix srcIp6;
+    private final Ip6Prefix dstIp6;
     private final byte ipProto;
     private final short srcTpPort;
     private final short dstTpPort;
@@ -67,6 +71,8 @@ public final class AclRule {
         this.dstMac = null;
         this.srcIp = null;
         this.dstIp = null;
+        this.srcIp6 = null;
+        this.dstIp6 = null;
         this.dscp = 0;
         this.ipProto = 0;
         this.dstTpPort = 0;
@@ -87,8 +93,9 @@ public final class AclRule {
      * @param srcTpPort source transport layer port
      * @param action    ACL rule's action
      */
-    private AclRule(MacAddress srcMac, MacAddress dstMac, Ip4Prefix srcIp, Ip4Prefix dstIp, byte ipProto,
-                    byte dscp, short dstTpPort, short srcTpPort, Action action) {
+    private AclRule(MacAddress srcMac, MacAddress dstMac, Ip4Prefix srcIp, Ip4Prefix dstIp,
+                    Ip6Prefix srcIp6, Ip6Prefix dstIp6, byte ipProto, byte dscp,
+                    short dstTpPort, short srcTpPort, Action action) {
         synchronized (ID_GENERATOR_LOCK) {
             checkState(idGenerator != null, "Id generator is not bound.");
             this.id = RuleId.valueOf(idGenerator.getNewId());
@@ -97,6 +104,8 @@ public final class AclRule {
         this.dstMac = dstMac;
         this.srcIp = srcIp;
         this.dstIp = dstIp;
+        this.srcIp6 = srcIp6;
+        this.dstIp6 = dstIp6;
         this.ipProto = ipProto;
         this.dscp = dscp;
         this.dstTpPort = dstTpPort;
@@ -161,6 +170,8 @@ public final class AclRule {
 
         private Ip4Prefix srcIp = null;
         private Ip4Prefix dstIp = null;
+        private Ip6Prefix srcIp6 = null;
+        private Ip6Prefix dstIp6 =  null;
         private MacAddress srcMac = null;
         private MacAddress dstMac = null;
         private byte ipProto = 0;
@@ -218,6 +229,28 @@ public final class AclRule {
         }
 
         /**
+         * Sets the source IP address for the ACL rule that will be built.
+         *
+         * @param srcIp6 source IP address to use for built ACL rule
+         * @return this builder
+         */
+        public Builder srcIp6(Ip6Prefix srcIp6) {
+            this.srcIp6 = srcIp6;
+            return this;
+        }
+
+        /**
+         * Sets the destination IP address for the ACL rule that will be built.
+         *
+         * @param dstIp6 destination IP address to use for built ACL rule
+         * @return this builder
+         */
+        public Builder dstIp6(Ip6Prefix dstIp6) {
+            this.dstIp6 = dstIp6;
+            return this;
+        }
+
+        /**
          * Sets the IP protocol for the ACL rule that will be built.
          *
          * @param ipProto IP protocol to use for built ACL rule
@@ -247,7 +280,8 @@ public final class AclRule {
          * @return this builder
          */
         public Builder dstTpPort(short dstTpPort) {
-            if ((ipProto == IPv4.PROTOCOL_TCP || ipProto == IPv4.PROTOCOL_UDP)) {
+            if (ipProto == IPv4.PROTOCOL_TCP || ipProto == IPv4.PROTOCOL_UDP ||
+                    ipProto == IPv6.PROTOCOL_TCP || ipProto == IPv6.PROTOCOL_UDP) {
                 this.dstTpPort = dstTpPort;
             }
             return this;
@@ -260,7 +294,8 @@ public final class AclRule {
          * @return this builder
          */
         public Builder srcTpPort(short srcTpPort) {
-            if ((ipProto == IPv4.PROTOCOL_TCP || ipProto == IPv4.PROTOCOL_UDP)) {
+            if (ipProto == IPv4.PROTOCOL_TCP || ipProto == IPv4.PROTOCOL_UDP ||
+                    ipProto == IPv6.PROTOCOL_TCP || ipProto == IPv6.PROTOCOL_UDP) {
                 this.srcTpPort = srcTpPort;
             }
             return this;
@@ -283,15 +318,20 @@ public final class AclRule {
          * @return ACL rule instance
          */
         public AclRule build() {
-            checkState(srcIp != null && dstIp != null, "Either srcIp or dstIp must be assigned.");
-            checkState(ipProto == 0 || ipProto == IPv4.PROTOCOL_ICMP
-                               || ipProto == IPv4.PROTOCOL_TCP || ipProto == IPv4.PROTOCOL_UDP,
+            boolean assigned = true, notAssigned = false;
+            checkState(!((srcIp != null || dstIp != null) && (srcIp6 != null || dstIp6 != null)),
+                       "Either Ipv4 or Ipv6 must be assigned.");
+            checkState((srcIp != null || dstIp != null) ?
+                               assigned : (srcIp6 != null || dstIp6 != null) ? assigned : notAssigned,
+                       "Either srcIp or dstIp must be assigned.");
+            checkState(ipProto == 0 || ipProto == IPv4.PROTOCOL_ICMP || ipProto == IPv4.PROTOCOL_TCP ||
+                               ipProto == IPv4.PROTOCOL_UDP || ipProto == IPv6.PROTOCOL_ICMP6 ||
+                               ipProto == IPv6.PROTOCOL_TCP || ipProto == IPv6.PROTOCOL_UDP,
                        "ipProto must be assigned to TCP, UDP, or ICMP.");
-            return new AclRule(srcMac, dstMac, srcIp, dstIp, ipProto, dscp, dstTpPort, srcTpPort, action);
+            return new AclRule(srcMac, dstMac, srcIp, dstIp, srcIp6, dstIp6,
+                               ipProto, dscp, dstTpPort, srcTpPort, action);
         }
-
     }
-
     /**
      * Binds an id generator for unique ACL rule id generation.
      * <p>
@@ -326,6 +366,13 @@ public final class AclRule {
         return this.dstIp;
     }
 
+    public Ip6Prefix srcIp6() {
+        return srcIp6;
+    }
+
+    public Ip6Prefix dstIp6() {
+        return dstIp6;
+    }
     public byte ipProto() {
         return ipProto;
     }
@@ -349,7 +396,7 @@ public final class AclRule {
     @Override
     public int hashCode() {
         return Objects.hash(action, id.fingerprint(), srcMac, dstMac, ipProto, dscp,
-                srcIp, dstIp, dstTpPort, srcTpPort);
+                srcIp, dstIp, srcIp6, dstIp6, dstTpPort, srcTpPort);
     }
 
     @Override
@@ -364,6 +411,8 @@ public final class AclRule {
                     Objects.equals(dstMac, that.dstMac) &&
                     Objects.equals(srcIp, that.srcIp) &&
                     Objects.equals(dstIp, that.dstIp) &&
+                    Objects.equals(srcIp6, that.srcIp6) &&
+                    Objects.equals(dstIp6, that.dstIp6) &&
                     Objects.equals(ipProto, that.ipProto) &&
                     Objects.equals(dscp, that.dscp) &&
                     Objects.equals(dstTpPort, that.dstTpPort) &&
@@ -382,6 +431,8 @@ public final class AclRule {
                 .add("dstMac", dstMac)
                 .add("srcIp", srcIp)
                 .add("dstIp", dstIp)
+                .add("srcIp6", srcIp6)
+                .add("dstIp6", dstIp6)
                 .add("ipProto", ipProto)
                 .add("dscp", dscp)
                 .add("dstTpPort", dstTpPort)

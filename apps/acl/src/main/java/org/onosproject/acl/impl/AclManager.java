@@ -271,15 +271,28 @@ public class AclManager implements AclService {
             selectorBuilder.matchEthDst(rule.dstMac());
         }
 
-        selectorBuilder.matchEthType(Ethernet.TYPE_IPV4);
-        if (rule.srcIp() != null) {
-            selectorBuilder.matchIPSrc(rule.srcIp());
-            if (rule.dstIp() != null) {
+        if (rule.srcIp() != null || rule.dstIp() != null) {
+            selectorBuilder.matchEthType(Ethernet.TYPE_IPV4);
+            if (rule.srcIp() != null) {
+                selectorBuilder.matchIPSrc(rule.srcIp());
+                if (rule.dstIp() != null) {
+                    selectorBuilder.matchIPDst(rule.dstIp());
+                }
+            } else {
                 selectorBuilder.matchIPDst(rule.dstIp());
             }
         } else {
-            selectorBuilder.matchIPDst(rule.dstIp());
+            selectorBuilder.matchEthType(Ethernet.TYPE_IPV6);
+            if (rule.srcIp6() != null) {
+                selectorBuilder.matchIPv6Src(rule.srcIp6());
+                if (rule.dstIp6() != null) {
+                    selectorBuilder.matchIPv6Dst(rule.dstIp6());
+                }
+            } else {
+                selectorBuilder.matchIPv6Dst(rule.dstIp6());
+            }
         }
+
         if (rule.ipProto() != 0) {
             selectorBuilder.matchIPProtocol(Integer.valueOf(rule.ipProto()).byteValue());
         }
