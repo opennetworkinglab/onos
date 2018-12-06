@@ -7,8 +7,13 @@ ONOS_TAR=
 
 [ -f $ONOS_TAR ] || (echo "$ONOS_TAR not found" && exit 1)
 
+function killServer() {
+    echo "Killing ONOS server..."
+    ps -ef | grep apache.karaf.main.Main | grep -v grep | awk '{print $2}' | xargs kill -9 &>/dev/null
+}
+
 # Kill any running instances
-[ -f /tmp/onos.pid ] && kill -9 $(cat /tmp/onos.pid) &>/dev/null
+killServer
 
 ONOS_DIR=/tmp/$(tar tf $ONOS_TAR | head -n 1 | cut -d/ -f1)
 ONOS_MD5=$ONOS_DIR/CHECKSUM
