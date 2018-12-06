@@ -104,6 +104,9 @@ public class CoreManager implements CoreService {
     protected void activate() {
         registerApplication(CORE_APP_NAME);
         cfgService.registerProperties(getClass());
+        log.info("ONOS starting up on Java version {}, JVM version {}",
+            System.getProperty("java.version"),
+            System.getProperty("java.vm.version"));
     }
 
     @Deactivate
