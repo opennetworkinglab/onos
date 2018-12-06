@@ -49,166 +49,166 @@ module tapi-dsr {
         reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 6020, RFC 6087 and ONF TAPI UML model
                   <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.0.0/UML>";
     }
-    /***********************
-    * package type-definitions
-    **********************/ 
-        identity DIGITAL_SIGNAL_TYPE {
-        	base tapi-common:LAYER_PROTOCOL_QUALIFIER;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_GigE {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_10_GigE_LAN {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_10_GigE_WAN {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_40_GigE {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_100_GigE {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_FC_100 {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_FC_200 {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_FC_400 {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_FC_800 {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_FC_1200 {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_FC_1600 {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_FC_3200 {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_STM_1 {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_STM_4 {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_STM_16 {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_STM_64 {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_STM_256 {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_OC_3 {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_OC_12 {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_OC_48 {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_OC_192 {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_OC_768 {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_OTU_1 {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_OTU_2 {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_OTU_2E {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_OTU_3 {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_OTU_4 {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_GPON {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_XGPON {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_IB_SDR {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_IB_DDR {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_IB_QDR {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_SBCON_ESCON {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_DVB_ASI {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_SDI {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_SDI_1G5 {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        identity DIGITAL_SIGNAL_TYPE_SDI_3G {
-            base DIGITAL_SIGNAL_TYPE;
-            description "none";
-        }
-        typedef digital-signal-type {
-            type identityref {
-                base DIGITAL_SIGNAL_TYPE;
-            }
-            description "none";
-        }
 
+   /**************************
+    * package type-definitions
+    **************************/
+    identity DIGITAL_SIGNAL_TYPE {
+        base tapi-common:LAYER_PROTOCOL_QUALIFIER;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_GigE {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_10_GigE_LAN {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_10_GigE_WAN {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_40_GigE {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_100_GigE {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_FC_100 {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_FC_200 {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_FC_400 {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_FC_800 {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_FC_1200 {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_FC_1600 {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_FC_3200 {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_STM_1 {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_STM_4 {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_STM_16 {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_STM_64 {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_STM_256 {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_OC_3 {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_OC_12 {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_OC_48 {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_OC_192 {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_OC_768 {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_OTU_1 {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_OTU_2 {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_OTU_2E {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_OTU_3 {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_OTU_4 {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_GPON {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_XGPON {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_IB_SDR {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_IB_DDR {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_IB_QDR {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_SBCON_ESCON {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_DVB_ASI {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_SDI {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_SDI_1G5 {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    identity DIGITAL_SIGNAL_TYPE_SDI_3G {
+        base DIGITAL_SIGNAL_TYPE;
+        description "none";
+    }
+    typedef digital-signal-type {
+        type identityref {
+            base DIGITAL_SIGNAL_TYPE;
+        }
+        description "none";
+    }
 }
