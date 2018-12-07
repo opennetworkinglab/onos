@@ -16,6 +16,7 @@
 
 package org.onosproject.odtn.internal;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.onosproject.config.DynamicConfigService;
@@ -43,6 +44,7 @@ import org.onosproject.yang.model.RpcOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.util.Collections.disjoint;
 import static org.onlab.osgi.DefaultServiceDirectory.getService;
 
 
@@ -75,8 +77,14 @@ public class DcsBasedTapiConnectivityRpc implements TapiConnectivityService {
         try {
             TapiCreateConnectivityInputHandler input = new TapiCreateConnectivityInputHandler();
             input.setRpcInput(inputVar);
-            // TODO validation check
             log.info("input SIPs: {}", input.getSips());
+
+            // check SIP validation
+            if (!disjoint(getUsedSips(), input.getSips())) {
+                log.error("check SIP validation : NG");
+                return new RpcOutput(RpcOutput.Status.RPC_FAILURE, null);
+            }
+            log.debug("check SIP validation : OK");
 
             List<TapiNepRef> nepRefs = input.getSips().stream()
                     .map(sipId -> resolver.getNepRef(sipId))
@@ -115,7 +123,6 @@ public class DcsBasedTapiConnectivityRpc implements TapiConnectivityService {
         }
 
     }
-
 
     /**
      * Service interface of deleteConnectivityService.
@@ -195,7 +202,6 @@ public class DcsBasedTapiConnectivityRpc implements TapiConnectivityService {
         }
     }
 
-
     /**
      * Service interface of getConnectivityServiceDetails.
      *
@@ -248,5 +254,24 @@ public class DcsBasedTapiConnectivityRpc implements TapiConnectivityService {
         log.error("Not implemented");
         return new RpcOutput(RpcOutput.Status.RPC_FAILURE, null);
 
+    }
+
+    /**
+     * Get used SIPs.
+     *
+     * @return list of used SIPs
+     */
+    private List<String> getUsedSips() {
+        TapiContextHandler handler = TapiContextHandler.create();
+        handler.read();
+
+        List<String> usedSips = new ArrayList();
+        handler.getConnectivityServices().stream()
+            .forEach(connectivityService -> connectivityService.getEndPoint().stream()
+                .forEach(endPoint -> usedSips.add(endPoint.serviceInterfacePoint()
+                                                  .serviceInterfacePointUuid().toString())));
+
+        log.debug("usedSips: {}", usedSips);
+        return usedSips;
     }
 }

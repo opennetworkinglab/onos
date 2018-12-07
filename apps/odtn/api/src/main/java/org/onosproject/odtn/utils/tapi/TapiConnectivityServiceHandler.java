@@ -16,6 +16,7 @@
 
 package org.onosproject.odtn.utils.tapi;
 
+import java.util.List;
 import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.DefaultContext;
 import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.Uuid;
 import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.connectivitycontext.ConnectivityServiceKeys;
@@ -80,6 +81,10 @@ public final class TapiConnectivityServiceHandler extends TapiObjectHandler<Defa
                 .addModelObject(mObj)
                 .identifier(mId)
                 .build();
+    }
+
+    public List<EndPoint> getEndPoint() {
+        return obj.endPoint();
     }
 
     public TapiConnectivityServiceHandler addSep(EndPoint sep) {
