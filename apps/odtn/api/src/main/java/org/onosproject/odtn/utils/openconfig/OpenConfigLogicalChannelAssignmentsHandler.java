@@ -15,7 +15,7 @@
  */
 package org.onosproject.odtn.utils.openconfig;
 
-import org.onosproject.yang.gen.v1.openconfigterminaldevice.rev20161222.openconfigterminaldevice.terminallogicalchanassignmenttop.DefaultLogicalChannelAssignments;
+import org.onosproject.yang.gen.v1.openconfigterminaldevice.rev20170708.openconfigterminaldevice.terminallogicalchanassignmenttop.DefaultLogicalChannelAssignments;
 
 /**
  * Utility class to deal with OPENCONFIG LogicalChannelAssignments ModelObject & Annotation.

@@ -29,7 +29,7 @@ import org.onosproject.odtn.utils.openconfig.OpenConfigConfigOfChannelHandler;
 import org.onosproject.odtn.utils.openconfig.OpenConfigLogicalChannelAssignmentsHandler;
 import org.onosproject.odtn.utils.openconfig.OpenConfigLogicalChannelsHandler;
 import org.onosproject.odtn.utils.openconfig.OpenConfigTerminalDeviceHandler;
-import org.onosproject.yang.gen.v1.openconfigterminaldevice.rev20161222.openconfigterminaldevice.terminallogicalchanassignmentconfig.AssignmentTypeEnum;
+import org.onosproject.yang.gen.v1.openconfigterminaldevice.rev20170708.openconfigterminaldevice.terminallogicalchanassignmentconfig.AssignmentTypeEnum;
 
 import org.slf4j.Logger;
 
@@ -86,12 +86,12 @@ public class InfineraTransceiver extends AbstractHandlerBehaviour
 
         // add <channel><index>"clientName"</index></channel>
         OpenConfigChannelHandler channel =
-            new OpenConfigChannelHandler(clientName, logicalChannels);
+            new OpenConfigChannelHandler(Integer.parseInt(clientName), logicalChannels);
 
         // add <config><index>"clientName"</index></config>
         OpenConfigConfigOfChannelHandler configOfChannel =
             new OpenConfigConfigOfChannelHandler(channel);
-        configOfChannel.addIndex(clientName);
+        configOfChannel.addIndex(Integer.parseInt(clientName));
 
         // add <logical-channel-assignments xc:operation="merge/delete">
         OpenConfigLogicalChannelAssignmentsHandler logicalChannelAssignments =
@@ -104,7 +104,7 @@ public class InfineraTransceiver extends AbstractHandlerBehaviour
 
         // add <assignment><index>"clientName"</index></assignment>
         OpenConfigAssignmentHandler assignment =
-            new OpenConfigAssignmentHandler(clientName, logicalChannelAssignments);
+            new OpenConfigAssignmentHandler(Integer.parseInt(clientName), logicalChannelAssignments);
 
         // add <config><assignment-type>LOGICAL_CHANNEL</assignment-type>
         //             <logical-channel>"lineName"</logical-channel>

@@ -2,7 +2,6 @@ COMPILE_DEPS = CORE_DEPS + ONOS_YANG + CLI + JACKSON + [
     "//apps/odtn/api:onos-apps-odtn-api",
     "//apps/config:onos-apps-config",
     "//models/tapi:onos-models-tapi",
-    "//models/openconfig:onos-models-openconfig",
     "//apps/yang:onos-apps-yang",
     "//protocols/netconf/api:onos-protocols-netconf-api",
 ]
@@ -18,7 +17,6 @@ APPS = [
     "org.onosproject.config",
     "org.onosproject.configsync",
     "org.onosproject.models.tapi",
-    "org.onosproject.models.openconfig",
     "org.onosproject.odtn-api",
 
     # strictly speaking following are not mandatory

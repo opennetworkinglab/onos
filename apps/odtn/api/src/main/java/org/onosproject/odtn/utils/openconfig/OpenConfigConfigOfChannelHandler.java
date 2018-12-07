@@ -15,7 +15,7 @@
  */
 package org.onosproject.odtn.utils.openconfig;
 
-import org.onosproject.yang.gen.v1.openconfigterminaldevice.rev20161222.openconfigterminaldevice.terminallogicalchanneltop.logicalchannels.channel.DefaultConfig;
+import org.onosproject.yang.gen.v1.openconfigterminaldevice.rev20170708.openconfigterminaldevice.terminallogicalchanneltop.logicalchannels.channel.DefaultConfig;
 
 /**
  * Utility class to deal with OPENCONFIG Channel/Config ModelObject & Annotation.
@@ -45,7 +45,7 @@ public final class OpenConfigConfigOfChannelHandler
      * @param index String to be set for modelObject
      * @return OpenConfigConfigOfChannelHandler of target OPENCONFIG
      */
-    public OpenConfigConfigOfChannelHandler addIndex(String index) {
+    public OpenConfigConfigOfChannelHandler addIndex(Integer index) {
         modelObject.index(index);
         return this;
     }

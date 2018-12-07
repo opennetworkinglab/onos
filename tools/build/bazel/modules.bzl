@@ -264,6 +264,7 @@ MODELS = [
     "//models/huawei:onos-models-huawei-oar",
     "//models/openconfig:onos-models-openconfig-oar",
     "//models/openconfig-infinera:onos-models-openconfig-infinera-oar",
+    "//models/openconfig-odtn:onos-models-openconfig-odtn-oar",
     "//models/openroadm:onos-models-openroadm-oar",
     "//models/tapi:onos-models-tapi-oar",
     "//models/l3vpn:onos-models-l3vpn-oar",

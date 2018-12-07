@@ -15,8 +15,8 @@
  */
 package org.onosproject.odtn.utils.openconfig;
 
-import org.onosproject.yang.gen.v1.openconfigterminaldevice.rev20161222.openconfigterminaldevice.terminallogicalchanassignmentconfig.AssignmentTypeEnum;
-import org.onosproject.yang.gen.v1.openconfigterminaldevice.rev20161222.openconfigterminaldevice.terminallogicalchanassignmenttop.logicalchannelassignments.assignment.DefaultConfig;
+import org.onosproject.yang.gen.v1.openconfigterminaldevice.rev20170708.openconfigterminaldevice.terminallogicalchanassignmentconfig.AssignmentTypeEnum;
+import org.onosproject.yang.gen.v1.openconfigterminaldevice.rev20170708.openconfigterminaldevice.terminallogicalchanassignmenttop.logicalchannelassignments.assignment.DefaultConfig;
 
 import java.math.BigDecimal;
 
@@ -40,6 +40,17 @@ public final class OpenConfigConfigOfAssignmentHandler
         annotatedNodeInfos = parent.getAnnotatedNodeInfoList();
 
         parent.addConfig(this);
+    }
+
+    /**
+     * Add child OPENCONFIG(index).
+     *
+     * @param index Long to be set for modelObject
+     * @return OpenConfigConfigOfAssignmentHandler of target OPENCONFIG
+     */
+    public OpenConfigConfigOfAssignmentHandler addIndex(Long index) {
+        modelObject.index(index);
+        return this;
     }
 
     /**

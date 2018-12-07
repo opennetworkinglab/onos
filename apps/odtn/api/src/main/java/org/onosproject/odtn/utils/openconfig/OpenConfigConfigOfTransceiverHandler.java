@@ -15,7 +15,7 @@
  */
 package org.onosproject.odtn.utils.openconfig;
 
-import org.onosproject.yang.gen.v1.openconfigplatformtransceiver.rev20170708.openconfigplatformtransceiver.porttransceivertop.transceiver.DefaultConfig;
+import org.onosproject.yang.gen.v1.openconfigplatformtransceiver.rev20180515.openconfigplatformtransceiver.porttransceivertop.transceiver.DefaultConfig;
 
 /**
  * Utility class to deal with OPENCONFIG Transceiver/Config ModelObject & Annotation.

@@ -85,7 +85,7 @@ public abstract class AbstractOdtnTerminalDeviceDriver {
                 .map(NetconfDevice::getSession)
                 .ifPresent(session -> {
                     try {
-                        session.rpc(toCharSequence(doc, false).toString()).join();
+                        session.rpc(toCharSequence(doc).toString()).join();
                     } catch (NetconfException e) {
                         log.error("Exception thrown", e);
                     }

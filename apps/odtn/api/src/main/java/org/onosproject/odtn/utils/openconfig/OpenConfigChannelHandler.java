@@ -15,7 +15,7 @@
  */
 package org.onosproject.odtn.utils.openconfig;
 
-import org.onosproject.yang.gen.v1.openconfigterminaldevice.rev20161222.openconfigterminaldevice.terminallogicalchanneltop.logicalchannels.DefaultChannel;
+import org.onosproject.yang.gen.v1.openconfigterminaldevice.rev20170708.openconfigterminaldevice.terminallogicalchanneltop.logicalchannels.DefaultChannel;
 
 import org.onosproject.yang.model.KeyLeaf;
 
@@ -35,7 +35,7 @@ public final class OpenConfigChannelHandler
      * @param keyValue String of target OPENCONFIG's key
      * @param parent OpenConfigLogicalChannelsHandler of parent OPENCONFIG(logical-channels)
      */
-    public OpenConfigChannelHandler(String keyValue, OpenConfigLogicalChannelsHandler parent) {
+    public OpenConfigChannelHandler(Integer keyValue, OpenConfigLogicalChannelsHandler parent) {
         modelObject = new DefaultChannel();
         modelObject.index(keyValue);
         setResourceId(OPENCONFIG_NAME, NAME_SPACE,

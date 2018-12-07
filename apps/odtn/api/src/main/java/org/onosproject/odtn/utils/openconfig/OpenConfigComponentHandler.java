@@ -15,8 +15,8 @@
  */
 package org.onosproject.odtn.utils.openconfig;
 
-import org.onosproject.yang.gen.v1.openconfigplatform.rev20161222.openconfigplatform.platformcomponenttop.components.DefaultComponent;
-import org.onosproject.yang.gen.v1.openconfigplatformtransceiver.rev20170708.openconfigplatformtransceiver.components.component.DefaultAugmentedOcPlatformComponent;
+import org.onosproject.yang.gen.v1.openconfigplatform.rev20180603.openconfigplatform.platformcomponenttop.components.DefaultComponent;
+import org.onosproject.yang.gen.v1.openconfigplatformtransceiver.rev20180515.openconfigplatformtransceiver.components.component.DefaultAugmentedOcPlatformComponent;
 
 import org.onosproject.yang.model.KeyLeaf;
 

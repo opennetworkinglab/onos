@@ -15,7 +15,7 @@
  */
 package org.onosproject.odtn.utils.openconfig;
 
-import org.onosproject.yang.gen.v1.openconfigterminaldevice.rev20161222.openconfigterminaldevice.terminallogicalchanassignmenttop.logicalchannelassignments.DefaultAssignment;
+import org.onosproject.yang.gen.v1.openconfigterminaldevice.rev20170708.openconfigterminaldevice.terminallogicalchanassignmenttop.logicalchannelassignments.DefaultAssignment;
 
 import org.onosproject.yang.model.KeyLeaf;
 
@@ -36,7 +36,7 @@ public final class OpenConfigAssignmentHandler
      * @param parent OpenConfigLogicalChannelAssignmentsHandler of
      *               parent OPENCONFIG(logical-channel-assignments)
      */
-    public OpenConfigAssignmentHandler(String keyValue,
+    public OpenConfigAssignmentHandler(Integer keyValue,
                                        OpenConfigLogicalChannelAssignmentsHandler parent) {
         modelObject = new DefaultAssignment();
         modelObject.index(keyValue);

@@ -15,7 +15,7 @@
  */
 package org.onosproject.odtn.utils.openconfig;
 
-import org.onosproject.yang.gen.v1.openconfigterminaldevice.rev20161222.openconfigterminaldevice.terminaldevicetop.DefaultTerminalDevice;
+import org.onosproject.yang.gen.v1.openconfigterminaldevice.rev20170708.openconfigterminaldevice.terminaldevicetop.DefaultTerminalDevice;
 
 import org.onosproject.yang.model.ModelObject;
 import org.onosproject.yang.model.ResourceId;

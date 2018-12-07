@@ -5,6 +5,7 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + ONOS_YANG + [
     "//apps/yang:onos-apps-yang",
     "//apps/config:onos-apps-config",
     "//models/openconfig-infinera:onos-models-openconfig-infinera",
+    "//models/openconfig-odtn:onos-models-openconfig-odtn",
     "//protocols/netconf/api:onos-protocols-netconf-api",
 ]
 
@@ -18,6 +19,7 @@ APPS = [
     "org.onosproject.models.tapi",
     "org.onosproject.models.openconfig",
     "org.onosproject.models.openconfig-infinera",
+    "org.onosproject.models.openconfig-odtn",
     "org.onosproject.netconf",
 ]
 

@@ -15,7 +15,7 @@
  */
 package org.onosproject.odtn.utils.openconfig;
 
-import org.onosproject.yang.gen.v1.openconfigplatform.rev20161222.openconfigplatform.platformcomponenttop.components.component.DefaultConfig;
+import org.onosproject.yang.gen.v1.openconfigplatform.rev20180603.openconfigplatform.platformcomponenttop.components.component.DefaultConfig;
 
 /**
  * Utility class to deal with OPENCONFIG Componet/Config ModelObject & Annotation.

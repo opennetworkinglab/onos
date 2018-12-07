@@ -15,7 +15,7 @@
  */
 package org.onosproject.odtn.utils.openconfig;
 
-import org.onosproject.yang.gen.v1.openconfigplatform.rev20161222.openconfigplatform.platformcomponenttop.DefaultComponents;
+import org.onosproject.yang.gen.v1.openconfigplatform.rev20180603.openconfigplatform.platformcomponenttop.DefaultComponents;
 import org.onosproject.yang.model.ModelObject;
 import org.onosproject.yang.model.ResourceId;
 import org.onosproject.yang.runtime.AnnotatedNodeInfo;
