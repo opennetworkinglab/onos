@@ -13,11 +13,11 @@
 ~ See the License for the specific language governing permissions and
 ~ limitations under the License.
 -->
-<svg:g  xmlns:svg="http://www.w3.org/2000/svg" [attr.transform]="'translate(' + host?.x + ',' + host?.y + ')'">>
-  <svg:circle
-          cx="0"
-          cy="0"
-          r="5">
-  </svg:circle>
-  <svg:text>{{host?.id}}</svg:text>
+<svg:g  xmlns:svg="http://www.w3.org/2000/svg"
+        [attr.transform]="'translate(' + host?.x + ',' + host?.y + '), scale(' + scale + ')'"
+        [ngClass]="['node', 'host', 'endstation', 'fixed', selected?'selected':'', 'hovered']"
+        (click)="toggleSelected(host)">
+    <svg:circle r="15"></svg:circle>
+    <svg:use xlink:href="#m_endstation" width="22.5" height="22.5" x="-11.25" y="-11.25" style="transform: scale(1);"></svg:use>
+    <svg:text *ngIf="labelToggle != 0" dy="24" text-anchor="middle" style="transform: scale(1);">{{hostName()}}</svg:text>
 </svg:g>

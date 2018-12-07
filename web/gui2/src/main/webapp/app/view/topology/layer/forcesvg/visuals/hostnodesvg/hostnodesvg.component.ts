@@ -15,32 +15,37 @@
  */
 import {
     Component,
+    EventEmitter,
     Input,
     OnChanges,
+    Output,
     SimpleChanges
 } from '@angular/core';
-import { Host } from '../../models';
+import {Host, HostLabelToggle, Node} from '../../models';
 import {LogService} from 'gui2-fw-lib';
+import {NodeVisual} from '../nodevisual';
 
 /**
  * The Host node in the force graph
  *
- * Note 1: here the selector is given square brackets [] so that it can be
+ * Note: here the selector is given square brackets [] so that it can be
  * inserted in SVG element like a directive
- * Note 2: the selector is exactly the same as the @Input alias to make this
- * directive trick work
  */
 @Component({
     selector: '[onos-hostnodesvg]',
     templateUrl: './hostnodesvg.component.html',
     styleUrls: ['./hostnodesvg.component.css']
 })
-export class HostNodeSvgComponent implements OnChanges {
+export class HostNodeSvgComponent extends NodeVisual implements OnChanges {
     @Input() host: Host;
+    @Input() scale: number = 1.0;
+    @Input() labelToggle: HostLabelToggle = HostLabelToggle.IP;
+    @Output() selectedEvent = new EventEmitter<Node>();
 
     constructor(
         protected log: LogService
     ) {
+        super();
     }
 
     ngOnChanges(changes: SimpleChanges) {
@@ -48,5 +53,23 @@ export class HostNodeSvgComponent implements OnChanges {
             this.host.x = 0;
             this.host.y = 0;
         }
+
+        if (changes['labelToggle']) {
+            this.labelToggle = changes['labelToggle'].currentValue;
+        }
+        // this.ref.markForCheck();
+    }
+
+    hostName(): string {
+        if (this.host === undefined) {
+            return undefined;
+        } else if (this.labelToggle === HostLabelToggle.IP) {
+            return this.host.ips.join(',');
+        } else if (this.labelToggle === HostLabelToggle.MAC) {
+            return this.host.id;
+        } else {
+            return this.host.id; // Todo - replace with a friendly name
+        }
+
     }
 }

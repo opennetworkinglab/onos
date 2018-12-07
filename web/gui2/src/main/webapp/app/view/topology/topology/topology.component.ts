@@ -16,7 +16,7 @@
 import {
     Component,
     OnDestroy,
-    OnInit,
+    OnInit, SimpleChange,
     ViewChild
 } from '@angular/core';
 import * as d3 from 'd3';
@@ -38,7 +38,7 @@ import {DetailsComponent} from '../panel/details/details.component';
 import {BackgroundSvgComponent} from '../layer/backgroundsvg/backgroundsvg.component';
 import {ForceSvgComponent} from '../layer/forcesvg/forcesvg.component';
 import {TopologyService} from '../topology.service';
-import {Node} from '../layer/forcesvg/models';
+import {HostLabelToggle, LabelToggle, Node} from '../layer/forcesvg/models';
 
 /**
  * ONOS GUI Topology View
@@ -96,6 +96,23 @@ export class TopologyComponent implements OnInit, OnDestroy {
     ) {
 
         this.log.debug('Topology component constructed');
+    }
+
+    private static deviceLabelFlashMessage(index: number): string {
+        switch (index) {
+            case 0: return 'Hide device labels';
+            case 1: return 'Show friendly device labels';
+            case 2: return 'Show device ID labels';
+        }
+    }
+
+    private static hostLabelFlashMessage(index: number): string {
+        switch (index) {
+            case 0: return 'Hide host labels';
+            case 1: return 'Show friendly host labels';
+            case 2: return 'Show host IP labels';
+            case 3: return 'Show host MAC Address labels';
+        }
     }
 
     ngOnInit() {
@@ -228,43 +245,22 @@ export class TopologyComponent implements OnInit, OnDestroy {
         this.ps.setPrefs('topo2_prefs', this.prefsState);
     }
 
-    deviceLabelFlashMessage(index) {
-        switch (index) {
-            case 0: return 'Hide device labels';
-            case 1: return 'Show friendly device labels';
-            case 2: return 'Show device ID labels';
-        }
-    }
-
-    hostLabelFlashMessage(index) {
-        switch (index) {
-            case 0: return 'Hide host labels';
-            case 1: return 'Show friendly host labels';
-            case 2: return 'Show host IP labels';
-            case 3: return 'Show host MAC Address labels';
-        }
-    }
-
     protected cycleDeviceLabels() {
-        this.log.debug('Cycling device labels');
-        // TODO: Reinstate with components
-        this.force.updateDeviceLabelToggle();
-        // let deviceLabelIndex = t2ps.get('dlbls') + 1;
-        // let newDeviceLabelIndex = deviceLabelIndex % 3;
-        //
-        // t2ps.set('dlbls', newDeviceLabelIndex);
-        // t2fs.updateNodes();
-        // flash.flash(deviceLabelFlashMessage(newDeviceLabelIndex));
+        const old: LabelToggle = this.force.deviceLabelToggle;
+        const next = LabelToggle.next(old);
+        this.force.ngOnChanges({'deviceLabelToggle':
+                new SimpleChange(old, next, false)});
+        this.flashMsg = TopologyComponent.deviceLabelFlashMessage(next);
+        this.log.debug('Cycling device labels', old, next);
     }
 
     protected cycleHostLabels() {
-        const hostLabelIndex = this.hostLabelIdx + 1;
-        this.hostLabelIdx = hostLabelIndex % 4;
-        this.flashMsg = this.hostLabelFlashMessage(this.hostLabelIdx);
-        this.log.debug('Cycling host labels');
-        // TODO: Reinstate with components
-        // t2ps.set('hlbls', newHostLabelIndex);
-        // t2fs.updateNodes();
+        const old: HostLabelToggle = this.force.hostLabelToggle;
+        const next = HostLabelToggle.next(old);
+        this.force.ngOnChanges({'hostLabelToggle':
+                new SimpleChange(old, next, false)});
+        this.flashMsg = TopologyComponent.hostLabelFlashMessage(next);
+        this.log.debug('Cycling host labels', old, next);
     }
 
     protected toggleBackground(token: KeysToken) {
@@ -346,11 +342,11 @@ export class TopologyComponent implements OnInit, OnDestroy {
     }
 
     protected toggleHosts() {
-        // this.flashMsg = on ? 'Show': 'Hide', 'Hosts';
-        this.log.debug('toggling hosts');
-        // TODO: Reinstate with components
-        // let on = t2rs.toggleHosts();
-        // this.actionedFlashed(on ? 'Show': 'Hide', 'Hosts');
+        const old: boolean = this.force.showHosts;
+        const current = !this.force.showHosts;
+        this.force.ngOnChanges({'showHosts': new SimpleChange(old, current, false)});
+        this.flashMsg = (this.force.showHosts ? 'Show' : 'Hide') + ' Hosts';
+        this.log.debug('toggling hosts: ', this.force.showHosts ? 'Show' : 'Hide');
     }
 
     protected toggleOfflineDevices() {

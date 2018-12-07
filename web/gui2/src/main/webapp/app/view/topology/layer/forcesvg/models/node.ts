@@ -23,7 +23,7 @@ import {
 } from './regions';
 
 /**
- * Toggle state for how labels should be displayed
+ * Toggle state for how device labels should be displayed
  */
 export enum LabelToggle {
     NONE,
@@ -31,6 +31,9 @@ export enum LabelToggle {
     NAME
 }
 
+/**
+ * Add the method 'next()' to the LabelToggle enum above
+ */
 export namespace LabelToggle {
     export function next(current: LabelToggle) {
         if (current === LabelToggle.NONE) {
@@ -39,6 +42,33 @@ export namespace LabelToggle {
             return LabelToggle.NAME;
         } else if (current === LabelToggle.NAME) {
             return LabelToggle.NONE;
+        }
+    }
+}
+
+/**
+ * Toggle state for how host labels should be displayed
+ */
+export enum HostLabelToggle {
+    NONE,
+    NAME,
+    IP,
+    MAC
+}
+
+/**
+ * Add the method 'next()' to the HostLabelToggle enum above
+ */
+export namespace HostLabelToggle {
+    export function next(current: HostLabelToggle) {
+        if (current === HostLabelToggle.NONE) {
+            return HostLabelToggle.NAME;
+        } else if (current === HostLabelToggle.NAME) {
+            return HostLabelToggle.IP;
+        } else if (current === HostLabelToggle.IP) {
+            return HostLabelToggle.MAC;
+        } else if (current === HostLabelToggle.MAC) {
+            return HostLabelToggle.NONE;
         }
     }
 }

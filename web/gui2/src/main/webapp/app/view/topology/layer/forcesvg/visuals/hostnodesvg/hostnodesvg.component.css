@@ -18,3 +18,26 @@
 /*
  ONOS GUI -- Topology View (forces host visual) -- CSS file
  */
+.node.host text {
+    stroke: none;
+    font-size: 13px;
+    fill: #846;
+}
+
+.node.host circle {
+    stroke: #a3a596;
+    fill: #e0dfd6;
+}
+
+.node.host.selected > circle {
+    stroke-width: 2.0;
+    stroke: #009fdb;
+}
+
+.node.host use {
+    fill: #3c3a3a;
+}
+
+.node.host rect {
+    fill: #ffffff;
+}

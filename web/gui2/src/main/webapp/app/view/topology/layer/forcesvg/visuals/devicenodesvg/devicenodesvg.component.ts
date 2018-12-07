@@ -22,8 +22,9 @@ import {
     SimpleChanges,
     ViewChild
 } from '@angular/core';
-import {Device, LabelToggle} from '../../models';
+import {Node, Device, LabelToggle} from '../../models';
 import {LogService} from 'gui2-fw-lib';
+import {NodeVisual} from '../nodevisual';
 
 /**
  * The Device node in the force graph
@@ -50,19 +51,18 @@ import {LogService} from 'gui2-fw-lib';
     //     ])
     // ]
 })
-export class DeviceNodeSvgComponent implements OnChanges {
+export class DeviceNodeSvgComponent extends NodeVisual implements OnChanges {
     @Input() device: Device;
     @Input() scale: number = 1.0;
     @Input() labelToggle: LabelToggle = LabelToggle.NONE;
-    selected: boolean;
-    @Output() selectedEvent = new EventEmitter<string>();
+    @Output() selectedEvent = new EventEmitter<Node>();
     textWidth: number = 36;
     @ViewChild('idTxt') idTxt: ElementRef;
-
     constructor(
         protected log: LogService,
         private ref: ChangeDetectorRef
     ) {
+        super();
     }
 
     /**
@@ -84,18 +84,4 @@ export class DeviceNodeSvgComponent implements OnChanges {
         }
         this.ref.markForCheck();
     }
-
-    toggleSelected() {
-        this.selected = !this.selected;
-        if (this.selected) {
-            this.selectedEvent.emit(this.device.id);
-        } else {
-            this.selectedEvent.emit();
-        }
-    }
-
-    deselect() {
-        this.selected = false;
-    }
-
 }

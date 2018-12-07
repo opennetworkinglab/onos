@@ -42,6 +42,9 @@ export const glyphMapping = new Map<string, string>([
 
     ['m_ports', 'm_ports'],
     ['m_switch', 'm_switch'],
+    ['m_roadm', 'm_roadm'],
+    ['m_router', 'm_router'],
+    ['m_endstation', 'm_endstation'],
 
     ['topo', 'topo'],
     ['bird', 'bird'],

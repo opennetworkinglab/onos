@@ -16,20 +16,55 @@
 <svg:g class="topo2-force" xmlns:svg="http://www.w3.org/2000/svg">
     <svg:g id="new-zoom-layer">
         <svg:g class="topo2-links">
-            <svg:g onos-linkvisual [link]="link" *ngFor="let link of regionData.links">
+            <!-- Template explanation: Creates an SVG Group and in
+                line 1) use the svg component onos-linkvisual, setting it's link
+                 Input parameter to the link item from the next line
+                line 2) Use the built in NgFor directive to iterate through the
+                 set of links filtered by the filteredLinks() function.
+            -->
+            <svg:g onos-linkvisual [link]="link"
+                   *ngFor="let link of filteredLinks()">
             </svg:g>
         </svg:g>
         <svg:g class="topo2-linkLabels" />
         <svg:g class="topo2-numLinkLabels" />
         <svg:g class="topo2-nodes">
+            <!-- Template explanation - create an SVG Group and
+                line 1) use the svg component onos-devicenodesvg, setting it's device
+                 Input parameter to the device item from the next line
+                line 2) Use the built in NgFor directive to iterate through all
+                 of the devices in the chosen layer index. The current iteration
+                 is in the device variable
+                line 3) Use the onosDraggable directive and pass this device in to
+                 its draggableNode Input parameter and setting the draggableInGraph
+                 Input parameter to 'graph'
+                line 4) when the onos-devicenodesvg component emits the selectedEvent
+                 call the updateSelected() method of this (forcesvg) component
+            -->
             <svg:g onos-devicenodesvg [device]="device"
                    *ngFor="let device of regionData.devices[visibleLayerIdx()]"
                    onosDraggableNode [draggableNode]="device" [draggableInGraph]="graph"
                    (selectedEvent)="updateSelected($event)">
             </svg:g>
-            <svg:g onos-hostnodesvg [host]="host"
-                   *ngFor="let host of regionData.hosts[visibleLayerIdx()]"
-                   onosDraggableNode [draggableNode]="host" [draggableInGraph]="graph">
+            <!-- Template explanation - only display the hosts if 'showHosts' is set true -->
+            <svg:g *ngIf="showHosts">
+                <!-- Template explanation - create an SVG Group and
+                    line 1) use the svg component onos-hostnodesvg, setting it's host
+                     Input parameter to the host item from the next line
+                    line 2) Use the built in NgFor directive to iterate through all
+                     of the hosts in the chosen layer index. The current iteration
+                     is in the 'host' variable
+                    line 3) Use the onosDraggable directive and pass this host in to
+                     its draggableNode Input parameter and setting the draggableInGraph
+                     Input parameter to 'graph'
+                    line 4) when the onos-hostnodesvg component emits the selectedEvent
+                     call the updateSelected() method of this (forcesvg) component
+                -->
+                <svg:g onos-hostnodesvg [host]="host"
+                       *ngFor="let host of regionData.hosts[visibleLayerIdx()]"
+                       onosDraggableNode [draggableNode]="host" [draggableInGraph]="graph"
+                       (selectedEvent)="updateSelected($event)">
+                </svg:g>
             </svg:g>
             <svg:g onos-subregionnodesvg [subRegion]="subRegion"
                    *ngFor="let subRegion of regionData.subregions"
