@@ -112,7 +112,7 @@ public class ObjectiveTracker implements ObjectiveTrackerService {
                 bind = "bindComponentConfigService",
                 unbind = "unbindComponentConfigService",
                 policy = ReferencePolicy.DYNAMIC)
-    protected IntentService intentService;
+    protected volatile IntentService intentService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected WorkPartitionService partitionService;
