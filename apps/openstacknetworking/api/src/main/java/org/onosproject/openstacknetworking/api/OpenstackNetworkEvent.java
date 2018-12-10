@@ -26,7 +26,8 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 /**
  * Describes OpenStack network service event.
  */
-public class OpenstackNetworkEvent extends AbstractEvent<OpenstackNetworkEvent.Type, Network> {
+public class OpenstackNetworkEvent
+        extends AbstractEvent<OpenstackNetworkEvent.Type, Network> {
 
     private final Port port;
     private final Subnet subnet;

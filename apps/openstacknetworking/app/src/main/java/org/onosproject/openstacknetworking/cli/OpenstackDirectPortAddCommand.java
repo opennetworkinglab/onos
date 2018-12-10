@@ -29,6 +29,7 @@ import org.openstack4j.model.network.Port;
 
 import java.util.Optional;
 
+import static org.onosproject.cli.AbstractShellCommand.get;
 import static org.onosproject.openstacknetworking.api.Constants.UNSUPPORTED_VENDOR;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getIntfNameFromPciAddress;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
@@ -48,9 +49,9 @@ public class OpenstackDirectPortAddCommand extends AbstractShellCommand {
 
     @Override
     protected void doExecute() {
-        OpenstackNetworkService osNetService = AbstractShellCommand.get(OpenstackNetworkService.class);
-        OpenstackNodeService osNodeService = AbstractShellCommand.get(OpenstackNodeService.class);
-        DeviceService deviceService = AbstractShellCommand.get(DeviceService.class);
+        OpenstackNetworkService osNetService = get(OpenstackNetworkService.class);
+        OpenstackNodeService osNodeService = get(OpenstackNodeService.class);
+        DeviceService deviceService = get(DeviceService.class);
 
         Port port = osNetService.port(portId);
         if (port == null) {

@@ -27,7 +27,8 @@ import static com.google.common.base.MoreObjects.toStringHelper;
 /**
  * Describes OpenStack router service events.
  */
-public class OpenstackRouterEvent extends AbstractEvent<OpenstackRouterEvent.Type, Router> {
+public class OpenstackRouterEvent
+        extends AbstractEvent<OpenstackRouterEvent.Type, Router> {
 
     private final ExternalGateway exGateway;
     private final RouterInterface routerIface;

@@ -39,14 +39,17 @@ public final class Constants {
     public static final String PORT_NAME_PREFIX_VM = "tap";
     public static final String PORT_NAME_VHOST_USER_PREFIX_VM = "vhu";
 
-    public static final String OPENSTACK_NETWORKING_APP_ID = "org.onosproject.openstacknetworking";
+    public static final String OPENSTACK_NETWORKING_APP_ID =
+                                            "org.onosproject.openstacknetworking";
 
     public static final String ARP_BROADCAST_MODE = "broadcast";
     public static final String ARP_PROXY_MODE = "proxy";
 
     public static final String DEFAULT_GATEWAY_MAC_STR = "fe:00:00:00:00:02";
-    public static final MacAddress DEFAULT_GATEWAY_MAC = MacAddress.valueOf(DEFAULT_GATEWAY_MAC_STR);
-    public static final MacAddress DEFAULT_EXTERNAL_ROUTER_MAC = MacAddress.valueOf("fe:00:00:00:00:01");
+    public static final MacAddress DEFAULT_GATEWAY_MAC =
+                                            MacAddress.valueOf(DEFAULT_GATEWAY_MAC_STR);
+    public static final MacAddress DEFAULT_EXTERNAL_ROUTER_MAC =
+                                            MacAddress.valueOf("fe:00:00:00:00:01");
 
     public static final String PCI_VENDOR_INFO = "pci_vendor_info";
     public static final String DIRECT = "direct";

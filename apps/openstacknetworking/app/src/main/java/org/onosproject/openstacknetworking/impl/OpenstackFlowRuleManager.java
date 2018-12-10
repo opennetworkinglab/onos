@@ -219,12 +219,16 @@ public class OpenstackFlowRuleManager implements OpenstackFlowRuleService {
         setupJumpTable(deviceId);
 
         // for outbound table transition
-        connectTables(deviceId, Constants.STAT_OUTBOUND_TABLE, Constants.VTAP_OUTBOUND_TABLE);
-        connectTables(deviceId, Constants.VTAP_OUTBOUND_TABLE, Constants.FORWARDING_TABLE);
+        connectTables(deviceId, Constants.STAT_OUTBOUND_TABLE,
+                                Constants.VTAP_OUTBOUND_TABLE);
+        connectTables(deviceId, Constants.VTAP_OUTBOUND_TABLE,
+                                Constants.FORWARDING_TABLE);
 
         // for FLAT outbound table transition
-        connectTables(deviceId, Constants.STAT_FLAT_OUTBOUND_TABLE, Constants.VTAP_FLAT_OUTBOUND_TABLE);
-        connectTables(deviceId, Constants.VTAP_FLAT_OUTBOUND_TABLE, Constants.FLAT_TABLE);
+        connectTables(deviceId, Constants.STAT_FLAT_OUTBOUND_TABLE,
+                                Constants.VTAP_FLAT_OUTBOUND_TABLE);
+        connectTables(deviceId, Constants.VTAP_FLAT_OUTBOUND_TABLE,
+                                Constants.FLAT_TABLE);
     }
 
     private void setupJumpTable(DeviceId deviceId) {

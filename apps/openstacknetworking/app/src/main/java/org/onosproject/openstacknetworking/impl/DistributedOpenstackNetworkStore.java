@@ -121,9 +121,12 @@ public class DistributedOpenstackNetworkStore
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
 
-    private final MapEventListener<String, Network> networkMapListener = new OpenstackNetworkMapListener();
-    private final MapEventListener<String, Subnet> subnetMapListener = new OpenstackSubnetMapListener();
-    private final MapEventListener<String, Port> portMapListener = new OpenstackPortMapListener();
+    private final MapEventListener<String, Network>
+                        networkMapListener = new OpenstackNetworkMapListener();
+    private final MapEventListener<String, Subnet>
+                        subnetMapListener = new OpenstackSubnetMapListener();
+    private final MapEventListener<String, Port>
+                        portMapListener = new OpenstackPortMapListener();
 
     private ConsistentMap<String, Network> osNetworkStore;
     private ConsistentMap<String, Subnet> osSubnetStore;
@@ -276,7 +279,8 @@ public class DistributedOpenstackNetworkStore
         osNetworkStore.clear();
     }
 
-    private class OpenstackNetworkMapListener implements MapEventListener<String, Network> {
+    private class OpenstackNetworkMapListener
+                                implements MapEventListener<String, Network> {
 
         @Override
         public void event(MapEvent<String, Network> event) {
@@ -421,7 +425,8 @@ public class DistributedOpenstackNetworkStore
                     ImmutableList.of() : newPort.getSecurityGroups();
 
             oldSecurityGroups.stream()
-                    .filter(sgId -> !Objects.requireNonNull(newPort.getSecurityGroups()).contains(sgId))
+                    .filter(sgId -> !Objects.requireNonNull(
+                                    newPort.getSecurityGroups()).contains(sgId))
                     .forEach(sgId -> notifyDelegate(new OpenstackNetworkEvent(
                             OPENSTACK_PORT_SECURITY_GROUP_REMOVED, newPort, sgId
                     )));

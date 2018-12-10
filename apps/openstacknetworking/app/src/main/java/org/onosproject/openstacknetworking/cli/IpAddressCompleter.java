@@ -21,7 +21,6 @@ import org.apache.karaf.shell.api.console.Completer;
 import org.apache.karaf.shell.api.console.Session;
 import org.apache.karaf.shell.support.completers.StringsCompleter;
 import org.onlab.packet.IpAddress;
-import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.ExternalPeerRouter;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 
@@ -30,6 +29,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.stream.Collectors;
+
+import static org.onosproject.cli.AbstractShellCommand.get;
 
 /**
  * IP Address Completer.
@@ -40,7 +41,7 @@ public class IpAddressCompleter implements Completer {
     @Override
     public int complete(Session session, CommandLine commandLine, List<String> candidates) {
         StringsCompleter delegate = new StringsCompleter();
-        OpenstackNetworkService osNetService = AbstractShellCommand.get(OpenstackNetworkService.class);
+        OpenstackNetworkService osNetService = get(OpenstackNetworkService.class);
         Set<IpAddress> set = osNetService.externalPeerRouters().stream()
                 .map(ExternalPeerRouter::ipAddress)
                 .collect(Collectors.toSet());

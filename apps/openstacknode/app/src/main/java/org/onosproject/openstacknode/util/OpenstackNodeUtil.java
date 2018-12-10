@@ -279,7 +279,8 @@ public final class OpenstackNodeUtil {
         }
 
         if (addOrRemove) {
-            Map<String, String> options = ImmutableMap.of(DPDK_DEVARGS, dpdkInterface.pciAddress());
+            Map<String, String> options =
+                    ImmutableMap.of(DPDK_DEVARGS, dpdkInterface.pciAddress());
 
             OvsdbInterface.Builder builder = OvsdbInterface.builder()
                     .name(dpdkInterface.intf())
@@ -302,7 +303,8 @@ public final class OpenstackNodeUtil {
      * @param openstackNode      device identifier
      * @return the hostname of selected gateway node
      */
-    public static String getGwByComputeNode(Set<OpenstackNode> gws, OpenstackNode openstackNode) {
+    public static String getGwByComputeNode(Set<OpenstackNode> gws,
+                                            OpenstackNode openstackNode) {
         int numOfGw = gws.size();
 
         if (numOfGw == 0) {

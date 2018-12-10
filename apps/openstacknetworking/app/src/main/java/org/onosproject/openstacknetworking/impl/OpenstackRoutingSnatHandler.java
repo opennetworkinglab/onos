@@ -222,8 +222,10 @@ public class OpenstackRoutingSnatHandler {
         return osNetworkService.subnet(fixedIp.getSubnetId());
     }
 
-    private void populateSnatFlowRules(InboundPacket packetIn, InstancePort srcInstPort,
-                                       TpPort patPort, IpAddress externalIp, ExternalPeerRouter externalPeerRouter) {
+    private void populateSnatFlowRules(InboundPacket packetIn,
+                                       InstancePort srcInstPort,
+                                       TpPort patPort, IpAddress externalIp,
+                                       ExternalPeerRouter externalPeerRouter) {
         Network osNet = osNetworkService.network(srcInstPort.networkId());
         if (osNet == null) {
             final String error = String.format("%s network %s not found",
@@ -344,8 +346,10 @@ public class OpenstackRoutingSnatHandler {
         return tmpBuilder.build();
     }
 
-    private void setUpstreamRules(String segmentId, NetworkType networkType,
-                                  IpAddress externalIp, ExternalPeerRouter externalPeerRouter,
+    private void setUpstreamRules(String segmentId,
+                                  NetworkType networkType,
+                                  IpAddress externalIp,
+                                  ExternalPeerRouter externalPeerRouter,
                                   TpPort patPort,
                                   InboundPacket packetIn) {
         IPv4 iPacket = (IPv4) packetIn.parsed().getPayload();

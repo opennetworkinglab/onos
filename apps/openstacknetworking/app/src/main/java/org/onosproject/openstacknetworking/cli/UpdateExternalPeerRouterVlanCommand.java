@@ -33,6 +33,8 @@ import org.openstack4j.model.network.Subnet;
 
 import java.util.List;
 
+import static org.onosproject.cli.AbstractShellCommand.get;
+
 /**
  * Updates external peer router macc address.
  */
@@ -51,13 +53,14 @@ public class UpdateExternalPeerRouterVlanCommand extends AbstractShellCommand {
     private String vlanId = null;
 
     private static final String FORMAT = "%-20s%-20s%-20s";
-    private static final String NO_ELEMENT = "There's no external peer router information with given ip address";
+    private static final String NO_ELEMENT =
+            "There's no external peer router information with given ip address";
     private static final String NONE = "None";
 
     @Override
     protected void doExecute() {
-        OpenstackNetworkAdminService osNetAdminService = AbstractShellCommand.get(OpenstackNetworkAdminService.class);
-        OpenstackRouterService osRouterService = AbstractShellCommand.get(OpenstackRouterService.class);
+        OpenstackNetworkAdminService osNetAdminService = get(OpenstackNetworkAdminService.class);
+        OpenstackRouterService osRouterService = get(OpenstackRouterService.class);
 
         IpAddress externalPeerIpAddress = IpAddress.valueOf(
                 IpAddress.Version.INET, Ip4Address.valueOf(ipAddress).toOctets());
@@ -93,10 +96,13 @@ public class UpdateExternalPeerRouterVlanCommand extends AbstractShellCommand {
 
         try {
             if (vlanId.equals(NONE)) {
-                osNetAdminService.updateExternalPeerRouterVlan(externalPeerIpAddress, VlanId.NONE);
-                osNetAdminService.deriveExternalPeerRouterMac(router.getExternalGatewayInfo(), router, VlanId.NONE);
+                osNetAdminService.updateExternalPeerRouterVlan(
+                        externalPeerIpAddress, VlanId.NONE);
+                osNetAdminService.deriveExternalPeerRouterMac(
+                        router.getExternalGatewayInfo(), router, VlanId.NONE);
             } else {
-                osNetAdminService.updateExternalPeerRouterVlan(externalPeerIpAddress, VlanId.vlanId(vlanId));
+                osNetAdminService.updateExternalPeerRouterVlan(
+                        externalPeerIpAddress, VlanId.vlanId(vlanId));
                 osNetAdminService.deriveExternalPeerRouterMac(
                         router.getExternalGatewayInfo(), router, VlanId.vlanId(vlanId));
 
@@ -106,7 +112,8 @@ public class UpdateExternalPeerRouterVlanCommand extends AbstractShellCommand {
         }
 
         print(FORMAT, "Router IP", "Mac Address", "VLAN ID");
-        List<ExternalPeerRouter> routers = Lists.newArrayList(osNetAdminService.externalPeerRouters());
+        List<ExternalPeerRouter> routers =
+                Lists.newArrayList(osNetAdminService.externalPeerRouters());
 
         for (ExternalPeerRouter r: routers) {
             print(FORMAT, r.ipAddress(),

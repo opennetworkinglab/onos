@@ -20,7 +20,6 @@ import org.apache.karaf.shell.api.console.CommandLine;
 import org.apache.karaf.shell.api.console.Completer;
 import org.apache.karaf.shell.api.console.Session;
 import org.apache.karaf.shell.support.completers.StringsCompleter;
-import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
 
@@ -28,6 +27,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.stream.Collectors;
+
+import static org.onosproject.cli.AbstractShellCommand.get;
 
 /**
  * Openstack host completer.
@@ -38,7 +39,7 @@ public class OpenstackHostnameCompleter implements Completer {
     @Override
     public int complete(Session session, CommandLine commandLine, List<String> candidates) {
         StringsCompleter delegate = new StringsCompleter();
-        OpenstackNodeService osNodeService = AbstractShellCommand.get(OpenstackNodeService.class);
+        OpenstackNodeService osNodeService = get(OpenstackNodeService.class);
 
         Set<String> hostnames = osNodeService.nodes().stream()
                                     .map(OpenstackNode::hostname)

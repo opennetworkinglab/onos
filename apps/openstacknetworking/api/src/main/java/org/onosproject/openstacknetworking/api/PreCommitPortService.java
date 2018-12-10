@@ -20,5 +20,6 @@ import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type;
 /**
  * Handles port precommit request.
  */
-public interface PreCommitPortService extends PreCommitService<String, Type, InstancePortAdminService> {
+public interface PreCommitPortService
+        extends PreCommitService<String, Type, InstancePortAdminService> {
 }

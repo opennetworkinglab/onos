@@ -55,7 +55,8 @@ public class OpenstackSecurityGroupEvent
      * @param type SecurityGroupEvent type
      * @param sg SecurityGroup object
      */
-    public OpenstackSecurityGroupEvent(OpenstackSecurityGroupEvent.Type type, SecurityGroup sg) {
+    public OpenstackSecurityGroupEvent(OpenstackSecurityGroupEvent.Type type,
+                                       SecurityGroup sg) {
         super(type, sg);
     }
 
@@ -66,7 +67,8 @@ public class OpenstackSecurityGroupEvent
      * @param sg security group
      * @param sgRule SecurityGroup object
      */
-    public OpenstackSecurityGroupEvent(OpenstackSecurityGroupEvent.Type type, SecurityGroup sg,
+    public OpenstackSecurityGroupEvent(OpenstackSecurityGroupEvent.Type type,
+                                       SecurityGroup sg,
                                        SecurityGroupRule sgRule) {
         super(type, sg);
         this.sgRule = sgRule;

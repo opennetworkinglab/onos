@@ -20,5 +20,6 @@ import org.onosproject.store.StoreDelegate;
 /**
  * OpenStack network store delegate abstraction.
  */
-public interface OpenstackNetworkStoreDelegate extends StoreDelegate<OpenstackNetworkEvent> {
+public interface OpenstackNetworkStoreDelegate
+        extends StoreDelegate<OpenstackNetworkEvent> {
 }

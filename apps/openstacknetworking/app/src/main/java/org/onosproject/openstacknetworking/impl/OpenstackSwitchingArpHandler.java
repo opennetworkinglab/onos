@@ -634,7 +634,8 @@ public class OpenstackSwitchingArpHandler {
         }
 
         for (OpenstackNode remoteNode : osNodeService.completeNodes(COMPUTE)) {
-            if (!remoteNode.intgBridge().equals(port.deviceId()) && remoteNode.vlanIntf() != null) {
+            if (!remoteNode.intgBridge().equals(port.deviceId()) &&
+                    remoteNode.vlanIntf() != null) {
                 TrafficTreatment treatmentToRemote = DefaultTrafficTreatment.builder()
                         .setOutput(remoteNode.vlanPortNum())
                         .build();

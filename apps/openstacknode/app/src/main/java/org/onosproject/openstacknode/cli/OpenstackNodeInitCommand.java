@@ -51,10 +51,8 @@ public class OpenstackNodeInitCommand extends AbstractShellCommand {
 
     @Override
     protected void doExecute() {
-        OpenstackNodeService osNodeService =
-                AbstractShellCommand.get(OpenstackNodeService.class);
-        OpenstackNodeAdminService osNodeAdminService =
-                AbstractShellCommand.get(OpenstackNodeAdminService.class);
+        OpenstackNodeService osNodeService = get(OpenstackNodeService.class);
+        OpenstackNodeAdminService osNodeAdminService = get(OpenstackNodeAdminService.class);
 
         if ((!isAll && !isIncomplete && hostnames == null) ||
                 (isAll && isIncomplete) ||

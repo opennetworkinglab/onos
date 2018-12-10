@@ -26,6 +26,7 @@ import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 
 import java.util.List;
 
+import static org.onosproject.cli.AbstractShellCommand.get;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.prettyJson;
 
 /**
@@ -40,8 +41,9 @@ public class ExternalPeerRouterListCommand extends AbstractShellCommand {
 
     @Override
     protected void doExecute() {
-        OpenstackNetworkService service = AbstractShellCommand.get(OpenstackNetworkService.class);
-        List<ExternalPeerRouter> routers = Lists.newArrayList(service.externalPeerRouters());
+        OpenstackNetworkService service = get(OpenstackNetworkService.class);
+        List<ExternalPeerRouter> routers =
+                            Lists.newArrayList(service.externalPeerRouters());
 
         if (outputJson()) {
             print("%s", json(this, routers));

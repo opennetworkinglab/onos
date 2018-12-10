@@ -66,9 +66,11 @@ public class OpenstackConfigArpModeCommand extends AbstractShellCommand {
             // reinstall all rules only if the arpMode is changed to the configured one
             while (true) {
                 String switchingValue =
-                        getPropertyValue(service.getProperties(switchingComponent), ARP_MODE_NAME);
+                        getPropertyValue(
+                                service.getProperties(switchingComponent), ARP_MODE_NAME);
                 String routingValue =
-                        getPropertyValue(service.getProperties(routingComponent), ARP_MODE_NAME);
+                        getPropertyValue(
+                                service.getProperties(routingComponent), ARP_MODE_NAME);
 
                 if (arpMode.equals(switchingValue) && arpMode.equals(routingValue)) {
                     break;

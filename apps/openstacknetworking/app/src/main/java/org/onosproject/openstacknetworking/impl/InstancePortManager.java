@@ -67,7 +67,10 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Provides implementation of administering and interfacing instance ports.
  * It also provides instance port events for the hosts mapped to OpenStack VM interface.
  */
-@Component(immediate = true, service = { InstancePortService.class, InstancePortAdminService.class })
+@Component(
+    immediate = true,
+    service = { InstancePortService.class, InstancePortAdminService.class }
+)
 public class InstancePortManager
         extends ListenerRegistry<InstancePortEvent, InstancePortListener>
         implements InstancePortService, InstancePortAdminService {
@@ -155,7 +158,8 @@ public class InstancePortManager
         // in case OpenStack removes the port prior to OVS, we will not update
         // the instance port as it does not exist in the store
         if (instancePortStore.instancePort(instancePort.portId()) == null) {
-            log.warn("Unable to update instance port {}, as it does not exist", instancePort.portId());
+            log.warn("Unable to update instance port {}, as it does not exist",
+                                                        instancePort.portId());
             return;
         }
 

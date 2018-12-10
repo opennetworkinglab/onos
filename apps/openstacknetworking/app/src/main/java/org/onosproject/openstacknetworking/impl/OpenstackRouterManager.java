@@ -48,7 +48,10 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Provides implementation of administering and interfacing OpenStack router and
  * floating IP address.
  */
-@Component(immediate = true, service = { OpenstackRouterAdminService.class, OpenstackRouterService.class })
+@Component(
+    immediate = true,
+    service = { OpenstackRouterAdminService.class, OpenstackRouterService.class }
+)
 public class OpenstackRouterManager
         extends ListenerRegistry<OpenstackRouterEvent, OpenstackRouterListener>
         implements OpenstackRouterAdminService, OpenstackRouterService {
@@ -62,14 +65,22 @@ public class OpenstackRouterManager
     private static final String MSG_UPDATED = "updated";
     private static final String MSG_REMOVED = "removed";
 
-    private static final String ERR_NULL_ROUTER = "OpenStack router cannot be null";
-    private static final String ERR_NULL_ROUTER_ID = "OpenStack router ID cannot be null";
-    private static final String ERR_NULL_ROUTER_NAME = "OpenStack router name cannot be null";
-    private static final String ERR_NULL_IFACE = "OpenStack router interface cannot be null";
-    private static final String ERR_NULL_IFACE_ROUTER_ID = "OpenStack router interface router ID cannot be null";
-    private static final String ERR_NULL_IFACE_PORT_ID = "OpenStack router interface port ID cannot be null";
-    private static final String ERR_NULL_FLOATING = "OpenStack floating IP cannot be null";
-    private static final String ERR_NULL_FLOATING_ID = "OpenStack floating IP cannot be null";
+    private static final String ERR_NULL_ROUTER =
+                                "OpenStack router cannot be null";
+    private static final String ERR_NULL_ROUTER_ID =
+                                "OpenStack router ID cannot be null";
+    private static final String ERR_NULL_ROUTER_NAME =
+                                "OpenStack router name cannot be null";
+    private static final String ERR_NULL_IFACE =
+                                "OpenStack router interface cannot be null";
+    private static final String ERR_NULL_IFACE_ROUTER_ID =
+                                "OpenStack router interface router ID cannot be null";
+    private static final String ERR_NULL_IFACE_PORT_ID =
+                                "OpenStack router interface port ID cannot be null";
+    private static final String ERR_NULL_FLOATING =
+                                "OpenStack floating IP cannot be null";
+    private static final String ERR_NULL_FLOATING_ID =
+                                "OpenStack floating IP cannot be null";
 
     private static final String ERR_IN_USE = " still in use";
 
@@ -79,7 +90,8 @@ public class OpenstackRouterManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OpenstackRouterStore osRouterStore;
 
-    private final OpenstackRouterStoreDelegate delegate = new InternalRouterStoreDelegate();
+    private final OpenstackRouterStoreDelegate
+                                    delegate = new InternalRouterStoreDelegate();
 
     @Activate
     protected void activate() {

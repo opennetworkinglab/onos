@@ -152,14 +152,16 @@ public class DistributedSecurityGroupStore
         osSecurityGroupStore.clear();
     }
 
-    private class OpenstackSecurityGroupMapListener implements MapEventListener<String, SecurityGroup> {
+    private class OpenstackSecurityGroupMapListener
+                            implements MapEventListener<String, SecurityGroup> {
 
         @Override
         public void event(MapEvent<String, SecurityGroup> event) {
             switch (event.type()) {
                 case INSERT:
                     log.debug("OpenStack security group created {}", event.newValue());
-                    eventExecutor.execute(() -> notifyDelegate(new OpenstackSecurityGroupEvent(
+                    eventExecutor.execute(() ->
+                                notifyDelegate(new OpenstackSecurityGroupEvent(
                                     OPENSTACK_SECURITY_GROUP_CREATED,
                                     event.newValue().value())));
                     break;
@@ -171,7 +173,8 @@ public class DistributedSecurityGroupStore
                     break;
                 case REMOVE:
                     log.debug("OpenStack security group removed {}", event.oldValue());
-                    eventExecutor.execute(() -> notifyDelegate(new OpenstackSecurityGroupEvent(
+                    eventExecutor.execute(() ->
+                                notifyDelegate(new OpenstackSecurityGroupEvent(
                                     OPENSTACK_SECURITY_GROUP_REMOVED,
                                     event.oldValue().value())));
                     break;

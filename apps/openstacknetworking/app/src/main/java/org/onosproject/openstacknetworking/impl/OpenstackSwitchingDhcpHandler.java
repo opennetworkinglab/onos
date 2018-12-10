@@ -318,7 +318,8 @@ public class OpenstackSwitchingDhcpHandler {
             IPv4 ipv4Request = (IPv4) ethRequest.getPayload();
             IPv4 ipv4Reply = new IPv4();
 
-            ipv4Reply.setSourceAddress(clusterService.getLocalNode().ip().getIp4Address().toString());
+            ipv4Reply.setSourceAddress(
+                    clusterService.getLocalNode().ip().getIp4Address().toString());
             ipv4Reply.setDestinationAddress(reqInstPort.ipAddress().getIp4Address().toInt());
             ipv4Reply.setTtl(PACKET_TTL);
 
@@ -575,7 +576,8 @@ public class OpenstackSwitchingDhcpHandler {
                     .split("/")[0]
                     .split("\\.");
 
-            // retrieve destination descriptor and put this to bytebuffer according to RFC 3442
+            // retrieve destination descriptor and put this to byte buffer
+            // according to RFC 3442
             // ex) 0.0.0.0/0 -> 0
             // ex) 10.0.0.0/8 -> 8.10
             // ex) 10.17.0.0/16 -> 16.10.17

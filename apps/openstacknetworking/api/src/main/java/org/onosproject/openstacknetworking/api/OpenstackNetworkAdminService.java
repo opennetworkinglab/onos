@@ -104,7 +104,8 @@ public interface OpenstackNetworkAdminService extends OpenstackNetworkService {
      * @param router router which owns externalGateway
      * @param vlanId vlan id of external network
      */
-    void deriveExternalPeerRouterMac(ExternalGateway externalGateway, Router router, VlanId vlanId);
+    void deriveExternalPeerRouterMac(ExternalGateway externalGateway,
+                                     Router router, VlanId vlanId);
 
     /**
      * Deletes external router with supplied external gateway.

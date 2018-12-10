@@ -28,6 +28,7 @@ import org.onosproject.openstacknode.api.OpenstackNodeAdminService;
 
 import java.util.Optional;
 
+import static org.onosproject.cli.AbstractShellCommand.get;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.sendTraceRequestToNode;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.traceRequestString;
 
@@ -49,16 +50,19 @@ public class OpenstackFlowTraceCommand extends AbstractShellCommand {
     @Completion(InstanceIpAddressCompleter.class)
     private String dstIp = null;
 
-    private static final String NO_ELEMENT = "There's no instance port information with given ip address";
-    private static final String FLOW_TRACE_REQUEST_STRING_UPLINK = "Flow trace request string for uplink: ";
-    private static final String FLOW_TRACE_REQUEST_STRING_DOWNLINK = "Flow trace request string for downlink: ";
+    private static final String NO_ELEMENT =
+                "There's no instance port information with given ip address";
+    private static final String FLOW_TRACE_REQUEST_STRING_UPLINK =
+                "Flow trace request string for uplink: ";
+    private static final String FLOW_TRACE_REQUEST_STRING_DOWNLINK =
+                "Flow trace request string for downlink: ";
 
 
     @Override
     protected void doExecute() {
-        OpenstackNodeAdminService osNodeService = AbstractShellCommand.get(OpenstackNodeAdminService.class);
-        InstancePortAdminService instancePortService = AbstractShellCommand.get(InstancePortAdminService.class);
-        OpenstackNetworkAdminService osNetService = AbstractShellCommand.get(OpenstackNetworkAdminService.class);
+        OpenstackNodeAdminService osNodeService = get(OpenstackNodeAdminService.class);
+        InstancePortAdminService instancePortService = get(InstancePortAdminService.class);
+        OpenstackNetworkAdminService osNetService = get(OpenstackNetworkAdminService.class);
 
         Optional<InstancePort> srcInstance = instancePortService.instancePorts().stream()
                 .filter(port -> port.ipAddress().toString().equals(srcIp)).findAny();
@@ -71,8 +75,9 @@ public class OpenstackFlowTraceCommand extends AbstractShellCommand {
         OpenstackNode srcNode = osNodeService.node(srcInstance.get().deviceId());
         if (srcNode == null || srcNode.sshAuthInfo() == null) {
             log.error("Openstack node {} is null or has no SSH authentication information.\n" +
-                            " Please refers to the sample network-cfg.json in OpenstackNode app to push" +
-                            "SSH authentication information", srcNode == null ? "" : srcNode.hostname());
+                            " Please refers to the sample network-cfg.json in " +
+                            "OpenstackNode app to push SSH authentication information",
+                            srcNode == null ? "" : srcNode.hostname());
 
             return;
         }

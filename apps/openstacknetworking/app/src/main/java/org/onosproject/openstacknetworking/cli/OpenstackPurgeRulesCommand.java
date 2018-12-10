@@ -25,6 +25,7 @@ import org.onosproject.openstacknetworking.api.Constants;
 
 import static java.lang.Thread.sleep;
 import static java.util.stream.StreamSupport.stream;
+import static org.onosproject.cli.AbstractShellCommand.get;
 
 /**
  * Purges all existing network states.
@@ -39,8 +40,8 @@ public class OpenstackPurgeRulesCommand extends AbstractShellCommand {
 
     @Override
     protected void doExecute() {
-        FlowRuleService flowRuleService = AbstractShellCommand.get(FlowRuleService.class);
-        CoreService coreService = AbstractShellCommand.get(CoreService.class);
+        FlowRuleService flowRuleService = get(FlowRuleService.class);
+        CoreService coreService = get(CoreService.class);
         ApplicationId appId = coreService.getAppId(Constants.OPENSTACK_NETWORKING_APP_ID);
 
         if (appId == null) {
@@ -49,7 +50,7 @@ public class OpenstackPurgeRulesCommand extends AbstractShellCommand {
         }
 
         flowRuleService.removeFlowRulesById(appId);
-        print("Successfully purged flow rules installed by OpenStack networking application.");
+        print("Successfully purged flow rules installed by OpenStack networking app.");
 
         boolean result = true;
         long timeoutExpiredMs = System.currentTimeMillis() + TIMEOUT_MS;

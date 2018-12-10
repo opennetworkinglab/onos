@@ -107,8 +107,8 @@ public class OpenstackSwitchingHostProvider
 
     private HostProviderService hostProviderService;
 
-    private final ExecutorService executor =
-            Executors.newSingleThreadExecutor(groupedThreads(this.getClass().getSimpleName(), "device-event"));
+    private final ExecutorService executor = Executors.newSingleThreadExecutor(
+            groupedThreads(this.getClass().getSimpleName(), "device-event"));
     private final InternalDeviceListener internalDeviceListener =
             new InternalDeviceListener();
     private final InternalOpenstackNodeListener internalNodeListener =

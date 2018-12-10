@@ -21,9 +21,9 @@ import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
-import org.onosproject.net.Device;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackNode;
@@ -55,8 +55,8 @@ public class OpenstackNodeCheckCommand extends AbstractShellCommand {
 
     @Override
     protected void doExecute() {
-        OpenstackNodeService osNodeService = AbstractShellCommand.get(OpenstackNodeService.class);
-        DeviceService deviceService = AbstractShellCommand.get(DeviceService.class);
+        OpenstackNodeService osNodeService = get(OpenstackNodeService.class);
+        DeviceService deviceService = get(DeviceService.class);
 
         OpenstackNode osNode = osNodeService.node(hostname);
         if (osNode == null) {
@@ -110,7 +110,8 @@ public class OpenstackNodeCheckCommand extends AbstractShellCommand {
         }
     }
 
-    private void printPortState(DeviceService deviceService, DeviceId deviceId, String portName) {
+    private void printPortState(DeviceService deviceService,
+                                DeviceId deviceId, String portName) {
         Port port = deviceService.getPorts(deviceId).stream()
                 .filter(p -> p.annotations().value(PORT_NAME).equals(portName) &&
                         p.isEnabled())

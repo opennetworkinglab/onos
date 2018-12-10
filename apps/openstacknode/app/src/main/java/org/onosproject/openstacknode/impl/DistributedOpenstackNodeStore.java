@@ -82,8 +82,10 @@ public class DistributedOpenstackNodeStore
 
     private static final String ERR_NOT_FOUND = " does not exist";
     private static final String ERR_DUPLICATE = " already exists";
+    private static final String APP_ID = "org.onosproject.openstacknode";
 
-    private static final KryoNamespace SERIALIZER_OPENSTACK_NODE = KryoNamespace.newBuilder()
+    private static final KryoNamespace
+            SERIALIZER_OPENSTACK_NODE = KryoNamespace.newBuilder()
             .register(KryoNamespaces.API)
             .register(OpenstackNode.class)
             .register(DefaultOpenstackNode.class)
@@ -122,7 +124,7 @@ public class DistributedOpenstackNodeStore
 
     @Activate
     protected void activate() {
-        ApplicationId appId = coreService.registerApplication("org.onosproject.openstacknode");
+        ApplicationId appId = coreService.registerApplication(APP_ID);
         osNodeStore = storageService.<String, OpenstackNode>consistentMapBuilder()
                 .withSerializer(Serializer.using(SERIALIZER_OPENSTACK_NODE))
                 .withName("openstack-nodestore")
@@ -180,7 +182,8 @@ public class DistributedOpenstackNodeStore
     /**
      * An internal openstack node map listener.
      */
-    private class OpenstackNodeMapListener implements MapEventListener<String, OpenstackNode> {
+    private class OpenstackNodeMapListener
+                            implements MapEventListener<String, OpenstackNode> {
 
         @Override
         public void event(MapEvent<String, OpenstackNode> event) {

@@ -58,7 +58,8 @@ public class OpenstackPortWebResource extends AbstractWebResource {
     private static final String VHOSTUSER = "vhostuser";
     private static final String SOCKET_DIR = "socket_dir";
 
-    private final OpenstackNetworkAdminService adminService = get(OpenstackNetworkAdminService.class);
+    private final OpenstackNetworkAdminService
+                        adminService = get(OpenstackNetworkAdminService.class);
     private final OpenstackNodeService nodeService = get(OpenstackNodeService.class);
 
     @Context

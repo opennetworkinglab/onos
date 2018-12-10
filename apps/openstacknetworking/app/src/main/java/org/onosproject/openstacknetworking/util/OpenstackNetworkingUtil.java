@@ -113,6 +113,7 @@ import java.util.concurrent.TimeUnit;
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static org.onlab.packet.Ip4Address.valueOf;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_MAC_STR;
 import static org.onosproject.openstacknetworking.api.Constants.PCISLOT;
@@ -292,7 +293,8 @@ public final class OpenstackNetworkingUtil {
      * @param deviceId      device identifier
      * @return a gateway node
      */
-    public static OpenstackNode getGwByComputeDevId(Set<OpenstackNode> gws, DeviceId deviceId) {
+    public static OpenstackNode getGwByComputeDevId(Set<OpenstackNode> gws,
+                                                    DeviceId deviceId) {
         int numOfGw = gws.size();
 
         if (numOfGw == 0) {
@@ -372,7 +374,8 @@ public final class OpenstackNetworkingUtil {
 
         if (!port.getProfile().containsKey(PCISLOT) ||
                 Strings.isNullOrEmpty(port.getProfile().get(PCISLOT).toString())) {
-            log.error("Failed to retrieve the interface name because of no pci_slot information from the port");
+            log.error("Failed to retrieve the interface name because of no " +
+                    "pci_slot information from the port");
             return null;
         }
 
@@ -416,12 +419,14 @@ public final class OpenstackNetworkingUtil {
      * @param deviceService device service
      * @return true if the given interface is added to the given device or false otherwise
      */
-    public static boolean hasIntfAleadyInDevice(DeviceId deviceId, String intfName, DeviceService deviceService) {
+    public static boolean hasIntfAleadyInDevice(DeviceId deviceId,
+                                                String intfName,
+                                                DeviceService deviceService) {
         checkNotNull(deviceId);
         checkNotNull(intfName);
 
-        return deviceService.getPorts(deviceId).stream()
-                .anyMatch(port -> Objects.equals(port.annotations().value(PORT_NAME), intfName));
+        return deviceService.getPorts(deviceId).stream().anyMatch(port ->
+                Objects.equals(port.annotations().value(PORT_NAME), intfName));
     }
 
     /**
@@ -430,7 +435,8 @@ public final class OpenstackNetworkingUtil {
      * @param osPort        port
      * @param adminService  openstack admin service
      */
-    public static void addRouterIface(Port osPort, OpenstackRouterAdminService adminService) {
+    public static void addRouterIface(Port osPort,
+                                      OpenstackRouterAdminService adminService) {
         osPort.getFixedIps().forEach(p -> {
             JsonNode jsonTree = new ObjectMapper().createObjectNode()
                     .put("id", osPort.getDeviceId())
@@ -459,7 +465,8 @@ public final class OpenstackNetworkingUtil {
      * @param name          key name
      * @return mapping value
      */
-    public static String getPropertyValue(Set<ConfigProperty> properties, String name) {
+    public static String getPropertyValue(Set<ConfigProperty> properties,
+                                          String name) {
         Optional<ConfigProperty> property =
                 properties.stream().filter(p -> p.name().equals(name)).findFirst();
         return property.map(ConfigProperty::value).orElse(null);
@@ -472,7 +479,8 @@ public final class OpenstackNetworkingUtil {
      * @param name          key name
      * @return mapping value
      */
-    public static boolean getPropertyValueAsBoolean(Set<ConfigProperty> properties, String name) {
+    public static boolean getPropertyValueAsBoolean(Set<ConfigProperty> properties,
+                                                    String name) {
         Optional<ConfigProperty> property =
                 properties.stream().filter(p -> p.name().equals(name)).findFirst();
 
@@ -598,7 +606,8 @@ public final class OpenstackNetworkingUtil {
                 new SessionInputBufferImpl(
                         new HttpTransportMetricsImpl(), HTTP_PAYLOAD_BUFFER);
         sessionInputBuffer.bind(new ByteArrayInputStream(rawData));
-        DefaultHttpRequestParser requestParser = new DefaultHttpRequestParser(sessionInputBuffer);
+        DefaultHttpRequestParser requestParser =
+                                new DefaultHttpRequestParser(sessionInputBuffer);
         try {
             return requestParser.parse();
         } catch (IOException | HttpException e) {
@@ -623,8 +632,8 @@ public final class OpenstackNetworkingUtil {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             sessionOutputBuffer.bind(baos);
 
-            HttpMessageWriter<HttpRequest> requestWriter = new DefaultHttpRequestWriter(
-                    sessionOutputBuffer);
+            HttpMessageWriter<HttpRequest> requestWriter =
+                                new DefaultHttpRequestWriter(sessionOutputBuffer);
             requestWriter.write(request);
             sessionOutputBuffer.flush();
 
@@ -647,7 +656,8 @@ public final class OpenstackNetworkingUtil {
                 new SessionInputBufferImpl(
                         new HttpTransportMetricsImpl(), HTTP_PAYLOAD_BUFFER);
         sessionInputBuffer.bind(new ByteArrayInputStream(rawData));
-        DefaultHttpResponseParser responseParser = new DefaultHttpResponseParser(sessionInputBuffer);
+        DefaultHttpResponseParser responseParser =
+                            new DefaultHttpResponseParser(sessionInputBuffer);
         try {
             return responseParser.parse();
         } catch (IOException | HttpException e) {
@@ -741,7 +751,8 @@ public final class OpenstackNetworkingUtil {
     public static String traceRequestString(String srcIp,
                                             String dstIp,
                                             InstancePort srcInstancePort,
-                                            OpenstackNetworkService osNetService, boolean uplink) {
+                                            OpenstackNetworkService osNetService,
+                                            boolean uplink) {
 
         StringBuilder requestStringBuilder = new StringBuilder(DEFAULT_REQUEST_STRING);
 
@@ -762,7 +773,8 @@ public final class OpenstackNetworkingUtil {
                     modifiedDstIp = osNetService.gatewayIp(srcInstancePort.portId());
                     requestStringBuilder.append(DL_DST)
                             .append(DEFAULT_GATEWAY_MAC_STR).append(COMMA);
-                } else if (!osNetService.ipPrefix(srcInstancePort.portId()).contains(IpAddress.valueOf(dstIp))) {
+                } else if (!osNetService.ipPrefix(srcInstancePort.portId()).contains(
+                        IpAddress.valueOf(dstIp))) {
                     requestStringBuilder.append(DL_DST)
                             .append(DEFAULT_GATEWAY_MAC_STR)
                             .append(COMMA);
@@ -824,7 +836,7 @@ public final class OpenstackNetworkingUtil {
                     final InputStream inputStream =
                             new ByteArrayInputStream(requestString.getBytes(Charsets.UTF_8));
 
-                    OutputStream outputStream = new ByteArrayOutputStream();
+                    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                     OutputStream errStream = new ByteArrayOutputStream();
 
                     channel.setIn(new NoCloseInputStream(inputStream));
@@ -848,7 +860,7 @@ public final class OpenstackNetworkingUtil {
                         }
                         TimeUnit.SECONDS.sleep(WAIT_OUTPUT_STREAM_SECOND);
 
-                        traceResult = ((ByteArrayOutputStream) outputStream).toString(Charsets.UTF_8.name());
+                        traceResult = outputStream.toString(Charsets.UTF_8.name());
 
                         channel.close();
                     }
@@ -874,7 +886,8 @@ public final class OpenstackNetworkingUtil {
      * @return floating ip
      */
     public static NetFloatingIP floatingIpByInstancePort(InstancePort instancePort,
-                                                         OpenstackRouterAdminService osRouterAdminService) {
+                                                         OpenstackRouterAdminService
+                                                                 osRouterAdminService) {
         return osRouterAdminService.floatingIps().stream()
                 .filter(netFloatingIP -> netFloatingIP.getPortId() != null)
                 .filter(netFloatingIP -> netFloatingIP.getPortId().equals(instancePort.portId()))
@@ -913,8 +926,10 @@ public final class OpenstackNetworkingUtil {
      * @return external peer router
      */
     public static ExternalPeerRouter externalPeerRouterForNetwork(Network network,
-                                                                  OpenstackNetworkService osNetworkService,
-                                                                  OpenstackRouterAdminService osRouterAdminService) {
+                                                                  OpenstackNetworkService
+                                                                          osNetworkService,
+                                                                  OpenstackRouterAdminService
+                                                                          osRouterAdminService) {
         if (network == null) {
             return null;
         }
@@ -950,8 +965,11 @@ public final class OpenstackNetworkingUtil {
      * @param osNetworkService openstack network service
      * @return external peer router
      */
-    public static ExternalPeerRouter externalPeerRouterFromSubnet(Subnet subnet, OpenstackRouterService osRouterService,
-                                                                  OpenstackNetworkService osNetworkService) {
+    public static ExternalPeerRouter externalPeerRouterFromSubnet(Subnet subnet,
+                                                                  OpenstackRouterService
+                                                                          osRouterService,
+                                                                  OpenstackNetworkService
+                                                                          osNetworkService) {
         Router osRouter = getRouterFromSubnet(subnet, osRouterService);
         if (osRouter == null) {
             return null;
@@ -975,8 +993,10 @@ public final class OpenstackNetworkingUtil {
      * @return external ip address
      */
     public static IpAddress externalIpFromSubnet(Subnet srcSubnet,
-                                                 OpenstackRouterService osRouterService,
-                                                 OpenstackNetworkService osNetworkService) {
+                                                 OpenstackRouterService
+                                                         osRouterService,
+                                                 OpenstackNetworkService
+                                                         osNetworkService) {
 
         Router osRouter = getRouterFromSubnet(srcSubnet, osRouterService);
 
@@ -997,14 +1017,16 @@ public final class OpenstackNetworkingUtil {
      * @param osNetworkService openstack network service
      * @return external ip address
      */
-    public static IpAddress getExternalIp(Router router, OpenstackNetworkService osNetworkService) {
+    public static IpAddress getExternalIp(Router router,
+                                          OpenstackNetworkService osNetworkService) {
         if (router == null) {
             return null;
         }
 
         ExternalGateway externalGateway = router.getExternalGatewayInfo();
         if (externalGateway == null || !externalGateway.isEnableSnat()) {
-            log.trace("Failed to get externalIp for router {} because externalGateway is null or SNAT is disabled",
+            log.trace("Failed to get externalIp for router {} because " +
+                            "externalGateway is null or SNAT is disabled",
                     router.getId());
             return null;
         }
@@ -1023,7 +1045,8 @@ public final class OpenstackNetworkingUtil {
                 .findAny().get().getIpAddress());
     }
 
-    private static Router getRouterFromSubnet(Subnet subnet, OpenstackRouterService osRouterService) {
+    private static Router getRouterFromSubnet(Subnet subnet,
+                                              OpenstackRouterService osRouterService) {
         RouterInterface osRouterIface = osRouterService.routerInterfaces().stream()
                 .filter(i -> Objects.equals(i.getSubnetId(), subnet.getId()))
                 .findAny().orElse(null);
@@ -1066,8 +1089,8 @@ public final class OpenstackNetworkingUtil {
         arp.setSenderHardwareAddress(instancePort.macAddress().toBytes());
         arp.setTargetHardwareAddress(MacAddress.BROADCAST.toBytes());
 
-        arp.setSenderProtocolAddress(Ip4Address.valueOf(floatingIP.getFloatingIpAddress()).toInt());
-        arp.setTargetProtocolAddress(Ip4Address.valueOf(floatingIP.getFloatingIpAddress()).toInt());
+        arp.setSenderProtocolAddress(valueOf(floatingIP.getFloatingIpAddress()).toInt());
+        arp.setTargetProtocolAddress(valueOf(floatingIP.getFloatingIpAddress()).toInt());
 
         ethernet.setPayload(arp);
 

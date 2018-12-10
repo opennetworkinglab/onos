@@ -93,10 +93,12 @@ public class OpenStackSwitchingDirectPortProvider {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MastershipService mastershipService;
 
-    private final ExecutorService executor =
-            Executors.newSingleThreadExecutor(groupedThreads(this.getClass().getSimpleName(), "direct-port-event"));
-    private final OpenstackNetworkListener openstackNetworkListener = new InternalOpenstackNetworkListener();
-    private final InternalOpenstackNodeListener internalNodeListener = new InternalOpenstackNodeListener();
+    private final ExecutorService executor = Executors.newSingleThreadExecutor(
+            groupedThreads(this.getClass().getSimpleName(), "direct-port-event"));
+    private final OpenstackNetworkListener
+            openstackNetworkListener = new InternalOpenstackNetworkListener();
+    private final InternalOpenstackNodeListener
+            internalNodeListener = new InternalOpenstackNodeListener();
 
     private NodeId localNodeId;
     private ApplicationId appId;
@@ -173,7 +175,8 @@ public class OpenStackSwitchingDirectPortProvider {
                         .filter(node -> node.hostname().equals(port.getHostId()))
                         .findAny();
                 if (!osNode.isPresent()) {
-                    log.error("AddPort failed because openstackNode doesn't exist that matches hostname {}",
+                    log.error("AddPort failed because openstackNode doesn't " +
+                                    "exist that matches hostname {}",
                             port.getHostId());
                     return;
                 }
@@ -189,15 +192,18 @@ public class OpenStackSwitchingDirectPortProvider {
                 log.trace("Retrieved interface name: {}", intfName);
 
                 try {
-                    //If the VF port has been already added to the device for some reason, we remove it first,
-                    //and then add VF so that other handlers run their logic.
+                    // if the VF port has been already added to the device for
+                    // some reason, we remove it first, and then add VF so that
+                    // other handlers run their logic.
                     if (hasIntfAleadyInDevice(osNode.get().intgBridge(),
                             intfName, deviceService)) {
                         log.trace("Device {} has already has VF interface {}, so remove first.",
                                 osNode.get().intgBridge(),
                                 intfName);
                         osNodeService.removeVfPort(osNode.get(), intfName);
-                        //we wait 3000ms because the ovsdb client can't deal with removal/add at the same time.
+
+                        // we wait 3000ms because the ovsdb client can't deal
+                        // with removal/add at the same time.
                         sleep(SLEEP_MS);
                     }
                 } catch (InterruptedException e) {
@@ -212,7 +218,8 @@ public class OpenStackSwitchingDirectPortProvider {
             if (!port.getvNicType().equals(DIRECT)) {
                 return;
             } else if (instancePortService.instancePort(port.getId()) == null) {
-                log.trace("RemovePort skipped because no instance port exist for portId: {}", port.getId());
+                log.trace("RemovePort skipped because no instance port exist for portId: {}",
+                        port.getId());
                 return;
             } else {
                 InstancePort instancePort = instancePortService.instancePort(port.getId());
@@ -228,7 +235,8 @@ public class OpenStackSwitchingDirectPortProvider {
                     return;
                 }
 
-                Optional<org.onosproject.net.Port> removedPort = deviceService.getPorts(deviceId).stream()
+                Optional<org.onosproject.net.Port> removedPort =
+                        deviceService.getPorts(deviceId).stream()
                         .filter(p -> Objects.equals(p.number(), instancePort.portNumber()))
                         .findAny();
 
@@ -309,15 +317,17 @@ public class OpenStackSwitchingDirectPortProvider {
             if (intfName == null) {
                 log.error("Failed to retrieve interface name from a port {}", port.getId());
             } else if (intfName.equals(UNSUPPORTED_VENDOR)) {
-                log.warn("Failed to retrieve interface name from a port {} because of unsupported ovs-based sr-iov");
+                log.warn("Failed to retrieve interface name from a port {} " +
+                                "because of unsupported ovs-based sr-iov");
                 return;
             }
 
             if (!hasIntfAleadyInDevice(node.intgBridge(), intfName, deviceService)) {
-                log.debug("Port {} is bound to the interface {} but not added in the bridge {}. Adding it..",
-                        port.getId(),
-                        intfName,
-                        node.intgBridge());
+                log.debug("Port {} is bound to the interface {} but not " +
+                                "added in the bridge {}. Adding it..",
+                                port.getId(),
+                                intfName,
+                                node.intgBridge());
                 osNodeService.addVfPort(node, intfName);
             }
         }
