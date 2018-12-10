@@ -185,8 +185,8 @@ public class ConsistentDeviceMastershipStore
     @Override
     public RoleInfo getNodes(DeviceId deviceId) {
         checkArgument(deviceId != null, DEVICE_ID_NULL);
-        Leadership leadership = leadershipService.getLeadership(createDeviceMastershipTopic(deviceId));
-        return new RoleInfo(leadership.leaderNodeId(), leadership.candidates());
+        MastershipInfo mastership = getMastership(deviceId);
+        return new RoleInfo(mastership.master().orElse(null), mastership.backups());
     }
 
     @Override
