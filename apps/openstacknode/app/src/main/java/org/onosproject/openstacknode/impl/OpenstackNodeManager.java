@@ -73,7 +73,8 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Service
 @Component(immediate = true)
-public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, OpenstackNodeListener>
+public class OpenstackNodeManager
+        extends ListenerRegistry<OpenstackNodeEvent, OpenstackNodeListener>
         implements OpenstackNodeService, OpenstackNodeAdminService {
 
     private final Logger log = getLogger(getClass());
@@ -208,8 +209,8 @@ public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, O
             }
 
             if (!intfsRemovedFromExistNode(existingNode)) {
-                log.error("Updated node failed because intfs of existingNode {} are not removed properly",
-                        existingNode.toString());
+                log.error("Updated node failed because intfs of existingNode {} " +
+                                "are not removed properly", existingNode.toString());
                 return;
             }
 
@@ -289,7 +290,8 @@ public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, O
 
         connectSwitch(osNode);
 
-        addOrRemoveSystemInterface(osNode, INTEGRATION_BRIDGE, portName, deviceService, true);
+        addOrRemoveSystemInterface(osNode, INTEGRATION_BRIDGE, portName,
+                                    deviceService, true);
     }
 
     @Override
@@ -298,7 +300,8 @@ public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, O
 
         connectSwitch(osNode);
 
-        addOrRemoveSystemInterface(osNode, INTEGRATION_BRIDGE, portName, deviceService, false);
+        addOrRemoveSystemInterface(osNode, INTEGRATION_BRIDGE, portName,
+                                    deviceService, false);
     }
 
     private boolean intfsRemovedFromExistNode(OpenstackNode osNode) {
@@ -345,8 +348,8 @@ public class OpenstackNodeManager extends ListenerRegistry<OpenstackNodeEvent, O
             try {
                 ovsdbController.connect(osNode.managementIp(), tpPort(ovsdbPort));
             } catch (Exception e) {
-                log.error("Failed to connect to the openstackNode via ovsdb protocol because of exception {}",
-                        e.toString());
+                log.error("Failed to connect to the openstackNode via ovsdb " +
+                                "protocol because of exception {}", e);
             }
         }
     }

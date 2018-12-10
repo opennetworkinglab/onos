@@ -28,6 +28,8 @@ import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 
 import java.util.List;
 
+import static org.onosproject.cli.AbstractShellCommand.get;
+
 /**
  * Updates external peer router.
  */
@@ -48,12 +50,13 @@ public class UpdateExternalPeerRouterCommand extends AbstractShellCommand {
     private String vlanId = null;
 
     private static final String FORMAT = "%-20s%-20s%-20s";
-    private static final String NO_ELEMENT = "There's no external peer router information with given ip address";
+    private static final String NO_ELEMENT =
+            "There's no external peer router information with given ip address";
     private static final String NONE = "None";
 
     @Override
     protected void execute() {
-        OpenstackNetworkAdminService service = AbstractShellCommand.get(OpenstackNetworkAdminService.class);
+        OpenstackNetworkAdminService service = get(OpenstackNetworkAdminService.class);
 
         IpAddress externalPeerIpAddress = IpAddress.valueOf(
                 IpAddress.Version.INET, Ip4Address.valueOf(ipAddress).toOctets());
@@ -92,4 +95,3 @@ public class UpdateExternalPeerRouterCommand extends AbstractShellCommand {
         }
     }
 }
-

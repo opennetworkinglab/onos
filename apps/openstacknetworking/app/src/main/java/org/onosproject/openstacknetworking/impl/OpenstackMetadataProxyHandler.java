@@ -494,7 +494,8 @@ public class OpenstackMetadataProxyHandler {
 
             request.addHeader(new BasicHeader(INSTANCE_ID_HEADER, port.getDeviceId()));
             request.addHeader(new BasicHeader(TENANT_ID_HEADER, port.getTenantId()));
-            request.addHeader(new BasicHeader(FORWARDED_FOR_HEADER, instPort.ipAddress().toString()));
+            request.addHeader(new BasicHeader(FORWARDED_FOR_HEADER,
+                                                instPort.ipAddress().toString()));
             if (metadataSecret() != null) {
                 request.addHeader(new BasicHeader(INSTANCE_ID_SIGNATURE_HEADER,
                         hmacEncrypt(metadataSecret(), port.getDeviceId())));

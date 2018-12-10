@@ -25,6 +25,7 @@ import org.openstack4j.model.network.Port;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.onosproject.cli.AbstractShellCommand.get;
 import static org.onosproject.openstacknetworking.api.Constants.DIRECT;
 import static org.onosproject.openstacknetworking.api.Constants.PCISLOT;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getIntfNameFromPciAddress;
@@ -40,7 +41,7 @@ public class OpenstackDirectPortListCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        OpenstackNetworkService service = AbstractShellCommand.get(OpenstackNetworkService.class);
+        OpenstackNetworkService service = get(OpenstackNetworkService.class);
 
         List<Port> ports = service.ports().stream()
                 .filter(port -> port.getvNicType().equals(DIRECT))
@@ -65,7 +66,8 @@ public class OpenstackDirectPortListCommand extends AbstractShellCommand {
                         osNet.getName(),
                         port.getMacAddress(),
                         fixedIps.isEmpty() ? "" : fixedIps,
-                        port.getProfile().containsKey(PCISLOT) ? port.getProfile().get(PCISLOT).toString() : "",
+                        port.getProfile().containsKey(PCISLOT) ?
+                                port.getProfile().get(PCISLOT).toString() : "",
                         getIntfNameFromPciAddress(port));
             }
 

@@ -64,12 +64,15 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        OpenstackSecurityGroupAdminService osSgAdminService = get(OpenstackSecurityGroupAdminService.class);
-        OpenstackNetworkAdminService osNetAdminService = get(OpenstackNetworkAdminService.class);
-        OpenstackRouterAdminService osRouterAdminService = get(OpenstackRouterAdminService.class);
+        OpenstackSecurityGroupAdminService osSgAdminService =
+                                    get(OpenstackSecurityGroupAdminService.class);
+        OpenstackNetworkAdminService osNetAdminService =
+                                    get(OpenstackNetworkAdminService.class);
+        OpenstackRouterAdminService osRouterAdminService =
+                                    get(OpenstackRouterAdminService.class);
         OpenstackNodeService osNodeService = get(OpenstackNodeService.class);
 
-        Map<String, String> headerMap = new HashMap();
+        Map<String, String> headerMap = new HashMap<>();
         headerMap.put(HTTP_HEADER_ACCEPT, HTTP_HEADER_VALUE_JSON);
 
         Optional<OpenstackNode> node = osNodeService.nodes(CONTROLLER).stream().findFirst();

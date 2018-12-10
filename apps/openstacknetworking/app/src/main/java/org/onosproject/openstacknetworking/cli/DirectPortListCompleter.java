@@ -17,7 +17,6 @@ package org.onosproject.openstacknetworking.cli;
 
 import org.apache.karaf.shell.console.Completer;
 import org.apache.karaf.shell.console.completer.StringsCompleter;
-import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.openstack4j.model.network.Port;
 
@@ -27,6 +26,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.stream.Collectors;
 
+import static org.onosproject.cli.AbstractShellCommand.get;
 import static org.onosproject.openstacknetworking.api.Constants.DIRECT;
 
 /**
@@ -37,7 +37,7 @@ public class DirectPortListCompleter implements Completer {
     @Override
     public int complete(String buffer, int cursor, List<String> candidates) {
         StringsCompleter delegate = new StringsCompleter();
-        OpenstackNetworkService osNetService = AbstractShellCommand.get(OpenstackNetworkService.class);
+        OpenstackNetworkService osNetService = get(OpenstackNetworkService.class);
         Set<String> set = osNetService.ports().stream()
                 .filter(port -> port.getvNicType().equals(DIRECT))
                 .map(Port::getId)

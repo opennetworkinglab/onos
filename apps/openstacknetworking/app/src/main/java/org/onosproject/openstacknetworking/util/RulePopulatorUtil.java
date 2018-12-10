@@ -76,7 +76,8 @@ public final class RulePopulatorUtil {
      * @param id DeviceId
      * @return a builder for OVS Connection Tracking feature actions
      */
-    public static NiriraConnTrackTreatmentBuilder niciraConnTrackTreatmentBuilder(DriverService ds, DeviceId id) {
+    public static NiriraConnTrackTreatmentBuilder
+                    niciraConnTrackTreatmentBuilder(DriverService ds, DeviceId id) {
         return new NiriraConnTrackTreatmentBuilder(ds, id);
     }
 
@@ -102,12 +103,14 @@ public final class RulePopulatorUtil {
         }
 
         ExtensionTreatmentResolver resolver = device.as(ExtensionTreatmentResolver.class);
-        ExtensionTreatment treatment = resolver.getExtensionInstruction(NICIRA_SET_TUNNEL_DST.type());
+        ExtensionTreatment treatment =
+                resolver.getExtensionInstruction(NICIRA_SET_TUNNEL_DST.type());
         try {
             treatment.setPropertyValue(TUNNEL_DST, remoteIp);
             return treatment;
         } catch (ExtensionPropertyException e) {
-            log.warn("Failed to get tunnelDst extension treatment for {} because of {}", deviceId, e);
+            log.warn("Failed to get tunnelDst extension treatment for {} " +
+                    "because of {}", deviceId, e);
             return null;
         }
     }
@@ -121,8 +124,10 @@ public final class RulePopulatorUtil {
      * @param ctSateMask connection tracking sate masking value
      * @return OVS ConnTrack extension match
      */
-    public static ExtensionSelector buildCtExtensionSelector(DriverService driverService, DeviceId deviceId,
-                                                             long ctState, long ctSateMask) {
+    public static ExtensionSelector buildCtExtensionSelector(DriverService driverService,
+                                                             DeviceId deviceId,
+                                                             long ctState,
+                                                             long ctSateMask) {
         DriverHandler handler = driverService.createHandler(deviceId);
         ExtensionSelectorResolver esr = handler.behaviour(ExtensionSelectorResolver.class);
 
@@ -147,7 +152,9 @@ public final class RulePopulatorUtil {
      * @param isEstablished true for +est, false for nothing
      * @return ConnTrack State flags
      */
-    public static long computeCtStateFlag(boolean isTracking, boolean isNew, boolean isEstablished) {
+    public static long computeCtStateFlag(boolean isTracking,
+                                          boolean isNew,
+                                          boolean isEstablished) {
         long ctMaskFlag = 0x00;
 
         if (isTracking) {
@@ -175,7 +182,9 @@ public final class RulePopulatorUtil {
      * @param isEstablished true for setting +est value, false for otherwise
      * @return ConnTrack State Mask value
      */
-    public static long computeCtMaskFlag(boolean isTracking, boolean isNew, boolean isEstablished) {
+    public static long computeCtMaskFlag(boolean isTracking,
+                                         boolean isNew,
+                                         boolean isEstablished) {
         long ctMaskFlag = 0x00;
 
         if (isTracking) {
@@ -209,7 +218,8 @@ public final class RulePopulatorUtil {
         private boolean natAction;
 
 
-        private NiriraConnTrackTreatmentBuilder(DriverService driverService, DeviceId deviceId) {
+        private NiriraConnTrackTreatmentBuilder(DriverService driverService,
+                                                DeviceId deviceId) {
             this.driverService = driverService;
             this.deviceId = deviceId;
         }
@@ -278,12 +288,13 @@ public final class RulePopulatorUtil {
             DriverHandler handler = driverService.createHandler(deviceId);
             ExtensionTreatmentResolver etr = handler.behaviour(ExtensionTreatmentResolver.class);
 
-            ExtensionTreatment natTreatment
-                    = etr.getExtensionInstruction(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_NAT.type());
+            ExtensionTreatment natTreatment = etr.getExtensionInstruction(
+                    ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_NAT.type());
             try {
                 if (natAddress != null) {
                     natTreatment.setPropertyValue(CT_FLAGS, 1);
-                    natTreatment.setPropertyValue(CT_PRESENT_FLAGS, buildPresentFlag(false, true));
+                    natTreatment.setPropertyValue(CT_PRESENT_FLAGS,
+                            buildPresentFlag(false, true));
                     natTreatment.setPropertyValue(CT_IPADDRESS_MIN, natAddress);
                     natTreatment.setPropertyValue(CT_IPADDRESS_MAX, natAddress);
                 } else {
@@ -295,8 +306,8 @@ public final class RulePopulatorUtil {
                 return null;
             }
 
-            ExtensionTreatment ctTreatment
-                    = etr.getExtensionInstruction(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_CT.type());
+            ExtensionTreatment ctTreatment = etr.getExtensionInstruction(
+                    ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_CT.type());
             try {
                 List<ExtensionTreatment> nat = new ArrayList<>();
                 if (natAction) {

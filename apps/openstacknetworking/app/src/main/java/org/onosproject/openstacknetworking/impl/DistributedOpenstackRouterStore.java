@@ -111,11 +111,12 @@ public class DistributedOpenstackRouterStore
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
-    private final MapEventListener<String, Router> routerMapListener = new OpenstackRouterMapListener();
-    private final MapEventListener<String, RouterInterface> routerInterfaceMapListener =
-            new OpenstackRouterInterfaceMapListener();
-    private final MapEventListener<String, NetFloatingIP> floatingIpMapListener =
-            new OpenstackFloatingIpMapListener();
+    private final MapEventListener<String, Router>
+                            routerMapListener = new OpenstackRouterMapListener();
+    private final MapEventListener<String, RouterInterface>
+            routerInterfaceMapListener = new OpenstackRouterInterfaceMapListener();
+    private final MapEventListener<String, NetFloatingIP>
+            floatingIpMapListener = new OpenstackFloatingIpMapListener();
 
     private ConsistentMap<String, Router> osRouterStore;
     private ConsistentMap<String, RouterInterface> osRouterInterfaceStore;

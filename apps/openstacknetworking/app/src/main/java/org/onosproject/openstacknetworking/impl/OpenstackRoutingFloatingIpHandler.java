@@ -140,11 +140,16 @@ public class OpenstackRoutingFloatingIpHandler {
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
-    private final OpenstackRouterListener floatingIpListener = new InternalFloatingIpListener();
-    private final InstancePortListener instancePortListener = new InternalInstancePortListener();
-    private final OpenstackNodeListener osNodeListener = new InternalNodeListener();
-    private final OpenstackNetworkListener osNetworkListener = new InternalOpenstackNetworkListener();
-    private final InstancePortListener instPortListener = new InternalInstancePortListener();
+    private final OpenstackRouterListener
+                            floatingIpListener = new InternalFloatingIpListener();
+    private final InstancePortListener
+                            instancePortListener = new InternalInstancePortListener();
+    private final OpenstackNodeListener
+                            osNodeListener = new InternalNodeListener();
+    private final OpenstackNetworkListener
+                            osNetworkListener = new InternalOpenstackNetworkListener();
+    private final InstancePortListener
+                            instPortListener = new InternalInstancePortListener();
 
     private ApplicationId appId;
     private NodeId localNodeId;
@@ -325,7 +330,8 @@ public class OpenstackRoutingFloatingIpHandler {
 
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
 
-        OpenstackNode selectedGatewayNode = getGwByComputeDevId(gateways, instPort.deviceId());
+        OpenstackNode selectedGatewayNode =
+                            getGwByComputeDevId(gateways, instPort.deviceId());
 
         if (selectedGatewayNode == null) {
             log.warn(ERR_FLOW + "no gateway node selected");

@@ -28,6 +28,7 @@ import org.openstack4j.openstack.networking.domain.NeutronSecurityGroup;
 import java.util.Comparator;
 import java.util.List;
 
+import static org.onosproject.cli.AbstractShellCommand.get;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.modelEntityToJson;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.prettyJson;
 
@@ -45,8 +46,7 @@ public class OpenstackSecurityGroupListCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        OpenstackSecurityGroupService service =
-                AbstractShellCommand.get(OpenstackSecurityGroupService.class);
+        OpenstackSecurityGroupService service = get(OpenstackSecurityGroupService.class);
 
         List<SecurityGroup> sgs = Lists.newArrayList(service.securityGroups());
         sgs.sort(Comparator.comparing(SecurityGroup::getId));

@@ -28,6 +28,7 @@ import org.openstack4j.openstack.networking.domain.NeutronFloatingIP;
 import java.util.Comparator;
 import java.util.List;
 
+import static org.onosproject.cli.AbstractShellCommand.get;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.modelEntityToJson;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.prettyJson;
 
@@ -42,7 +43,7 @@ public class OpenstackFloatingIpListCommand extends AbstractShellCommand {
 
     @Override
     protected void execute() {
-        OpenstackRouterService service = AbstractShellCommand.get(OpenstackRouterService.class);
+        OpenstackRouterService service = get(OpenstackRouterService.class);
         List<NetFloatingIP> floatingIps = Lists.newArrayList(service.floatingIps());
         floatingIps.sort(Comparator.comparing(NetFloatingIP::getFloatingIpAddress));
 

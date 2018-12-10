@@ -15,6 +15,6 @@
  */
 
 /**
- * CLI implementation for refresh/reprogram the data plane for the existing VM(OpenStackInstance).
+ * CLI implementation for refresh/reprogram the data plane for the existing VM.
  */
 package org.onosproject.openstacknetworking.cli;

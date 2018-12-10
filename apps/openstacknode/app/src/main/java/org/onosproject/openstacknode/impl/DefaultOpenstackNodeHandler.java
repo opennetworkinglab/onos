@@ -228,14 +228,14 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
 
             if (osNode.dpdkConfig() != null && osNode.dpdkConfig().dpdkIntfs() != null) {
                 osNode.dpdkConfig().dpdkIntfs().stream()
-                        .filter(dpdkInterface -> dpdkInterface.deviceName().equals(TUNNEL_BRIDGE))
-                        .forEach(dpdkInterface -> addOrRemoveDpdkInterface(
-                                osNode, dpdkInterface, ovsdbPort, ovsdbController, true));
+                        .filter(dpdkintf -> dpdkintf.deviceName().equals(TUNNEL_BRIDGE))
+                        .forEach(dpdkintf -> addOrRemoveDpdkInterface(
+                                osNode, dpdkintf, ovsdbPort, ovsdbController, true));
 
                 osNode.dpdkConfig().dpdkIntfs().stream()
-                        .filter(dpdkInterface -> dpdkInterface.deviceName().equals(INTEGRATION_BRIDGE))
-                        .forEach(dpdkInterface -> addOrRemoveDpdkInterface(
-                                osNode, dpdkInterface, ovsdbPort, ovsdbController, true));
+                        .filter(dpdkintf -> dpdkintf.deviceName().equals(INTEGRATION_BRIDGE))
+                        .forEach(dpdkintf -> addOrRemoveDpdkInterface(
+                                osNode, dpdkintf, ovsdbPort, ovsdbController, true));
             }
 
             osNode.phyIntfs().forEach(i -> {
@@ -248,7 +248,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
             if (osNode.vlanIntf() != null &&
                     !isIntfEnabled(osNode, osNode.vlanIntf())) {
                 addOrRemoveSystemInterface(osNode, INTEGRATION_BRIDGE,
-                                        osNode.vlanIntf(), deviceService, true);
+                            osNode.vlanIntf(), deviceService, true);
             }
         } catch (Exception e) {
             log.error("Exception occurred because of {}", e.toString());
@@ -366,7 +366,8 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
     }
 
     /**
-     * Checks whether a given network interface in a given openstack node is enabled or not.
+     * Checks whether a given network interface in a given openstack node
+     * is enabled or not.
      *
      * @param osNode openstack node
      * @param intf network interface name
@@ -389,7 +390,8 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
     private boolean isCurrentStateDone(OpenstackNode osNode) {
         switch (osNode.state()) {
             case INIT:
-                if (!isOvsdbConnected(osNode, ovsdbPort, ovsdbController, deviceService)) {
+                if (!isOvsdbConnected(osNode, ovsdbPort,
+                                                ovsdbController, deviceService)) {
                     return false;
                 }
 
@@ -444,15 +446,15 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
 
         Set<OvsdbPort> ports = client.getPorts();
 
-        for (DpdkInterface dpdkInterface : dpdkInterfaces) {
+        for (DpdkInterface dpdkIntf : dpdkInterfaces) {
             Optional<OvsdbPort> port = ports.stream()
-                    .filter(ovsdbPort -> ovsdbPort.portName().value().equals(dpdkInterface.intf()))
+                    .filter(ovsdbPort -> ovsdbPort.portName().value().equals(dpdkIntf.intf()))
                     .findAny();
 
             if (!port.isPresent()) {
                 return false;
             }
-            Interface intf = client.getInterface(dpdkInterface.intf());
+            Interface intf = client.getInterface(dpdkIntf.intf());
             if (intf == null) {
                 return false;
             }
@@ -467,8 +469,8 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                 return false;
             }
 
-            if (!mtu.set().contains(dpdkInterface.mtu().intValue()) ||
-                    !option.toString().contains(dpdkInterface.pciAddress())) {
+            if (!mtu.set().contains(dpdkIntf.mtu().intValue()) ||
+                    !option.toString().contains(dpdkIntf.pciAddress())) {
                 log.trace("The dpdk interface {} was created but mtu or " +
                           "pci address is different from the config.");
                 return false;
@@ -515,21 +517,23 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
 
     private void removeVlanInterface(OpenstackNode osNode) {
         if (osNode.vlanIntf() != null) {
-            Optional<DpdkInterface> dpdkInterface = dpdkInterfaceByIntfName(osNode, osNode.vlanIntf());
+            Optional<DpdkInterface> dpdkIntf =
+                                dpdkInterfaceByIntfName(osNode, osNode.vlanIntf());
 
-            removeInterfaceOnIntegrationBridge(osNode, osNode.vlanIntf(), dpdkInterface);
+            removeInterfaceOnIntegrationBridge(osNode, osNode.vlanIntf(), dpdkIntf);
         }
     }
 
     private void removePhysicalInterface(OpenstackNode osNode) {
         osNode.phyIntfs().forEach(phyIntf -> {
-            Optional<DpdkInterface> dpdkInterface = dpdkInterfaceByIntfName(osNode, phyIntf.intf());
+            Optional<DpdkInterface> dpdkIntf = dpdkInterfaceByIntfName(osNode, phyIntf.intf());
 
-            removeInterfaceOnIntegrationBridge(osNode, phyIntf.intf(), dpdkInterface);
+            removeInterfaceOnIntegrationBridge(osNode, phyIntf.intf(), dpdkIntf);
         });
     }
 
-    private Optional<DpdkInterface> dpdkInterfaceByIntfName(OpenstackNode osNode, String intf) {
+    private Optional<DpdkInterface> dpdkInterfaceByIntfName(OpenstackNode osNode,
+                                                            String intf) {
         return osNode.dpdkConfig() == null ? Optional.empty() :
                 osNode.dpdkConfig().dpdkIntfs().stream()
                         .filter(dpdkIntf -> dpdkIntf.intf().equals(intf))

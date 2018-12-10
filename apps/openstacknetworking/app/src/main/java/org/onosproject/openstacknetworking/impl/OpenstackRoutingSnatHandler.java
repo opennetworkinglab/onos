@@ -75,7 +75,7 @@ import static org.onosproject.openstacknetworking.api.Constants.GW_COMMON_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SNAT_RULE;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.externalPeerRouterFromSubnet;
-import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getExternalIpFromSubnet;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.externalIpFromSubnet;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -186,7 +186,7 @@ public class OpenstackRoutingSnatHandler {
 
         IpAddress srcIp = IpAddress.valueOf(iPacket.getSourceAddress());
         Subnet srcSubnet = getSourceSubnet(srcInstPort, srcIp);
-        IpAddress externalGatewayIp = getExternalIpFromSubnet(srcSubnet, osRouterService, osNetworkService);
+        IpAddress externalGatewayIp = externalIpFromSubnet(srcSubnet, osRouterService, osNetworkService);
 
         if (externalGatewayIp == null) {
             return;
@@ -221,8 +221,10 @@ public class OpenstackRoutingSnatHandler {
         return osNetworkService.subnet(fixedIp.getSubnetId());
     }
 
-    private void populateSnatFlowRules(InboundPacket packetIn, InstancePort srcInstPort,
-                                       TpPort patPort, IpAddress externalIp, ExternalPeerRouter externalPeerRouter) {
+    private void populateSnatFlowRules(InboundPacket packetIn,
+                                       InstancePort srcInstPort,
+                                       TpPort patPort, IpAddress externalIp,
+                                       ExternalPeerRouter externalPeerRouter) {
         Network osNet = osNetworkService.network(srcInstPort.networkId());
         if (osNet == null) {
             final String error = String.format("%s network %s not found",
@@ -343,8 +345,10 @@ public class OpenstackRoutingSnatHandler {
         return tmpBuilder.build();
     }
 
-    private void setUpstreamRules(String segmentId, NetworkType networkType,
-                                  IpAddress externalIp, ExternalPeerRouter externalPeerRouter,
+    private void setUpstreamRules(String segmentId,
+                                  NetworkType networkType,
+                                  IpAddress externalIp,
+                                  ExternalPeerRouter externalPeerRouter,
                                   TpPort patPort,
                                   InboundPacket packetIn) {
         IPv4 iPacket = (IPv4) packetIn.parsed().getPayload();

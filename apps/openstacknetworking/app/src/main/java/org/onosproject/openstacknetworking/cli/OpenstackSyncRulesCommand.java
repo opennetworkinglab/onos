@@ -22,6 +22,7 @@ import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeAdminService;
 
 import static java.lang.Thread.sleep;
+import static org.onosproject.cli.AbstractShellCommand.get;
 import static org.onosproject.openstacknode.api.NodeState.COMPLETE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
@@ -40,7 +41,7 @@ public class OpenstackSyncRulesCommand extends AbstractShellCommand {
     protected void execute() {
         // All handlers in this application reacts the node complete event and
         // tries to re-configure flow rules for the complete node.
-        OpenstackNodeAdminService osNodeService = AbstractShellCommand.get(OpenstackNodeAdminService.class);
+        OpenstackNodeAdminService osNodeService = get(OpenstackNodeAdminService.class);
         if (osNodeService == null) {
             error("Failed to re-install flow rules for OpenStack networking.");
             return;

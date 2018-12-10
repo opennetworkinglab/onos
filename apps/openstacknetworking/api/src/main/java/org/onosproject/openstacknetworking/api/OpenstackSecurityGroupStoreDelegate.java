@@ -20,5 +20,6 @@ import org.onosproject.store.StoreDelegate;
 /**
  * OpenStack security group store delegate abstraction.
  */
-public interface OpenstackSecurityGroupStoreDelegate extends StoreDelegate<OpenstackSecurityGroupEvent> {
+public interface OpenstackSecurityGroupStoreDelegate
+        extends StoreDelegate<OpenstackSecurityGroupEvent> {
 }

@@ -83,7 +83,7 @@ import static org.onosproject.openstacknetworking.api.Constants.GW_COMMON_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_INTERNAL_ROUTING_RULE;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.externalPeerRouterFromSubnet;
-import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getExternalIpFromSubnet;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.externalIpFromSubnet;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -307,8 +307,9 @@ public class OpenstackRoutingIcmpHandler {
 
         private boolean handleEchoRequest(DeviceId srcDevice, MacAddress srcMac, IPv4 ipPacket,
                                           ICMP icmp) {
-            //We only handles a request from an instance port
-            //In case of ehco request to SNAT ip address from an external router, we intentionally ignore it
+            // we only handles a request from an instance port
+            // in case of ehco request to SNAT ip address from an external router,
+            // we intentionally ignore it
             InstancePort instPort = instancePortService.instancePort(srcMac);
             if (instPort == null) {
                 log.warn(ERR_REQ + "unknown source host(MAC:{})", srcMac);
@@ -339,15 +340,16 @@ public class OpenstackRoutingIcmpHandler {
                 // this is a request to an external network
                 log.trace("Icmp request to external {} from {}", dstIp, srcIp);
 
-
-                IpAddress externalIp = getExternalIpFromSubnet(srcSubnet, osRouterService, osNetworkService);
+                IpAddress externalIp = externalIpFromSubnet(srcSubnet,
+                                            osRouterService, osNetworkService);
                 if (externalIp == null) {
                     log.warn(ERR_REQ + "failed to get external ip");
                     return false;
                 }
 
                 ExternalPeerRouter externalPeerRouter =
-                        externalPeerRouterFromSubnet(srcSubnet, osRouterService, osNetworkService);
+                        externalPeerRouterFromSubnet(srcSubnet,
+                                            osRouterService, osNetworkService);
                 if (externalPeerRouter == null) {
                     log.warn(ERR_REQ + "failed to get external peer router");
                     return false;
@@ -414,7 +416,8 @@ public class OpenstackRoutingIcmpHandler {
             }
 
             Router osRouter = osRouterService.router(osRouterIface.getId());
-            Set<IpAddress> routableGateways = osRouterService.routerInterfaces(osRouter.getId())
+            Set<IpAddress> routableGateways =
+                    osRouterService.routerInterfaces(osRouter.getId())
                     .stream()
                     .map(iface -> osNetworkService.subnet(iface.getSubnetId()).getGateway())
                     .map(IpAddress::valueOf)
@@ -444,8 +447,10 @@ public class OpenstackRoutingIcmpHandler {
             sendReply(icmpReply, instPort);
         }
 
-        private void sendRequestForExternal(IPv4 ipPacket, DeviceId srcDevice,
-                                            IpAddress srcNatIp, ExternalPeerRouter externalPeerRouter) {
+        private void sendRequestForExternal(IPv4 ipPacket,
+                                            DeviceId srcDevice,
+                                            IpAddress srcNatIp,
+                                            ExternalPeerRouter externalPeerRouter) {
             ICMP icmpReq = (ICMP) ipPacket.getPayload();
             icmpReq.resetChecksum();
             ipPacket.setSourceAddress(srcNatIp.getIp4Address().toInt()).resetChecksum();
