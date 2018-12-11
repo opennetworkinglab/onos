@@ -86,7 +86,7 @@
               exec="onos-mininet wait 10"/>
 
         <!-- clean up local routing repo if necessary -->
-        <step name="Trellis-Net-P4-Setup.Clean-Routing"
+        <step delay="10" name="Trellis-Net-P4-Setup.Clean-Routing"
               requires="Trellis-Net-P4-Setup.Start-Mininet"
               exec="onos-clean-routing ${routing_root}"/>
     </group>
