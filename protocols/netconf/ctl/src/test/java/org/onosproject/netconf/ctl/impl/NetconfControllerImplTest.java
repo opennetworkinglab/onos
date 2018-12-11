@@ -26,6 +26,8 @@ import org.onlab.osgi.ComponentContextAdapter;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.mastership.MastershipService;
+import org.onosproject.mastership.MastershipServiceAdapter;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.config.ConfigApplyDelegate;
@@ -117,6 +119,7 @@ public class NetconfControllerImplTest {
     private static DeviceService deviceService = new NetconfDeviceServiceMock();
     private static DeviceKeyService deviceKeyService = new NetconfDeviceKeyServiceMock();
     private final NetworkConfigRegistry netCfgService = new MockNetworkConfigRegistry();
+    private final MastershipService mastershipService = new MockmastershipService();
 
     private final ComponentContext context = new MockComponentContext();
 
@@ -128,6 +131,7 @@ public class NetconfControllerImplTest {
         ctrl.deviceService = deviceService;
         ctrl.deviceKeyService = deviceKeyService;
         ctrl.netCfgService = netCfgService;
+        ctrl.mastershipService = mastershipService;
         NetconfControllerImpl.netconfConnectTimeout = NETCONF_CONNECT_TIMEOUT_DEFAULT;
         NetconfControllerImpl.netconfIdleTimeout = NETCONF_IDLE_TIMEOUT_DEFAULT;
         NetconfControllerImpl.netconfReplyTimeout = NETCONF_REPLY_TIMEOUT_DEFAULT;
@@ -534,6 +538,13 @@ public class NetconfControllerImplTest {
     private class MockDelegate implements ConfigApplyDelegate {
         @Override
         public void onApply(Config configFile) {
+        }
+    }
+
+    private class MockmastershipService extends MastershipServiceAdapter {
+        @Override
+        public boolean isLocalMaster(DeviceId deviceId) {
+            return true;
         }
     }
 }
