@@ -29,6 +29,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -114,6 +115,9 @@ public class NetconfControllerImpl implements NetconfController {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigRegistry netCfgService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MastershipService mastershipService;
 
     public static final Logger log = LoggerFactory
             .getLogger(NetconfControllerImpl.class);
@@ -320,7 +324,7 @@ public class NetconfControllerImpl implements NetconfController {
     @Override
     public void disconnectDevice(DeviceId deviceId, boolean remove) {
         if (!netconfDeviceMap.containsKey(deviceId)) {
-            log.warn("Device {} is not present", deviceId);
+            log.debug("Device {} is not present", deviceId);
         } else {
             stopDevice(deviceId, remove);
         }
@@ -408,7 +412,8 @@ public class NetconfControllerImpl implements NetconfController {
         @Override
         public void event(NetconfDeviceOutputEvent event) {
             DeviceId did = event.getDeviceInfo().getDeviceId();
-            if (event.type().equals(NetconfDeviceOutputEvent.Type.DEVICE_UNREGISTERED)) {
+            if (event.type().equals(NetconfDeviceOutputEvent.Type.DEVICE_UNREGISTERED) ||
+                    !mastershipService.isLocalMaster(did)) {
                 removeDevice(did);
             } else if (event.type().equals(NetconfDeviceOutputEvent.Type.SESSION_CLOSED)) {
                 log.info("Trying to reestablish connection with device {}", did);

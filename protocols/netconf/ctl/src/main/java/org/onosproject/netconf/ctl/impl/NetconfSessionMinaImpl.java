@@ -35,6 +35,7 @@ import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceDirectory;
+import org.onlab.util.ItemNotFoundException;
 import org.onlab.util.SharedExecutors;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.Driver;
@@ -185,17 +186,22 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
     public Set<String> getClientCapabilites(DeviceId deviceId) {
         Set<String> capabilities = new LinkedHashSet<>();
         DriverService driverService = directory.get(DriverService.class);
-        Driver driver = driverService.getDriver(deviceId);
-        if (driver == null) {
+        try {
+            Driver driver = driverService.getDriver(deviceId);
+            if (driver == null) {
+                return capabilities;
+            }
+            String clientCapabilities = driver.getProperty(NETCONF_CLIENT_CAPABILITY);
+            if (clientCapabilities == null) {
+                return capabilities;
+            }
+            String[] textStr = clientCapabilities.split("\\|");
+            capabilities.addAll(Arrays.asList(textStr));
+            return capabilities;
+        } catch (ItemNotFoundException e) {
+            log.warn("Driver for device {} currently not available", deviceId);
             return capabilities;
         }
-        String clientCapabilities = driver.getProperty(NETCONF_CLIENT_CAPABILITY);
-        if (clientCapabilities == null) {
-            return capabilities;
-        }
-        String[] textStr = clientCapabilities.split("\\|");
-        capabilities.addAll(Arrays.asList(textStr));
-        return capabilities;
     }
 
     private void startConnection() throws NetconfException {
