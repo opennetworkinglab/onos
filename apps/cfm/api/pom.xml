@@ -20,7 +20,7 @@
     <parent>
         <artifactId>onos-apps-cfm</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.13.7</version>
+        <version>1.13.8-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -28,7 +28,7 @@
 
     <packaging>bundle</packaging>
     <description>API for CFM applications</description>
-    <version>1.13.7</version>
+    <version>1.13.8-SNAPSHOT</version>
 
     <dependencies>
         <dependency>

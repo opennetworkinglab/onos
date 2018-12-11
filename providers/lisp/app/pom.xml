@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-lisp-providers</artifactId>
-        <version>1.13.7</version>
+        <version>1.13.8-SNAPSHOT</version>
     </parent>
 
     <artifactId>onos-lisp-app</artifactId>
