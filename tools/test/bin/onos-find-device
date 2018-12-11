@@ -1,0 +1,26 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Finds a device in the system.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+aux=/tmp/stc/stc-$$.log
+trap "rm -f $aux 2>/dev/null" EXIT
+
+echo onos-find-device: $*
+
+target=${1:-$OCI}
+id=$2
+
+onos $target "onos:devices" | tee $aux
+cat $aux | fgrep "id=$id"
+
+if [ $? -ne 0 ]
+then
+    exit 1;
+fi
+
+exit 0
+
