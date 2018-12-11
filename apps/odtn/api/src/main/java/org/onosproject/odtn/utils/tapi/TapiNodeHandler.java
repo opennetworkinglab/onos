@@ -25,13 +25,13 @@ import static org.onosproject.odtn.utils.tapi.TapiGlobalClassUtil.getUuid;
 import static org.onosproject.odtn.utils.tapi.TapiGlobalClassUtil.setUuid;
 
 import org.onosproject.net.DeviceId;
-import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.DefaultContext;
-import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.Uuid;
-import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.context.augmentedtapicommoncontext.DefaultTopologyContext;
-import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.node.OwnedNodeEdgePoint;
-import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.topology.DefaultNode;
-import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.topologycontext.DefaultTopology;
-import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.topologycontext.TopologyKeys;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181210.tapicommon.DefaultContext;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181210.tapicommon.Uuid;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181210.tapitopology.context.augmentedtapicommoncontext.DefaultTopologyContext;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181210.tapitopology.node.OwnedNodeEdgePoint;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181210.tapitopology.topology.DefaultNode;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181210.tapitopology.topologycontext.DefaultTopology;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181210.tapitopology.topologycontext.TopologyKeys;
 import org.onosproject.yang.model.ModelObjectId;
 
 /**

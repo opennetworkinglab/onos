@@ -35,17 +35,17 @@ import org.onosproject.odtn.utils.tapi.TapiSepHandler;
 import org.onosproject.odtn.utils.tapi.TapiSipHandler;
 import org.onosproject.odtn.utils.tapi.TapiTopologyContextHandler;
 import org.onosproject.odtn.utils.tapi.TapiTopologyHandler;
-import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.DefaultContext;
-import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.Uuid;
-import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.tapicontext.DefaultServiceInterfacePoint;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.connectivitycontext.DefaultConnection;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.connectivitycontext.DefaultConnectivityService;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.connectivityservice.DefaultEndPoint;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.context.augmentedtapicommoncontext.DefaultConnectivityContext;
-import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.context.augmentedtapicommoncontext.DefaultTopologyContext;
-import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.node.DefaultOwnedNodeEdgePoint;
-import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.topology.DefaultNode;
-import org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.topologycontext.DefaultTopology;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181210.tapicommon.DefaultContext;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181210.tapicommon.Uuid;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181210.tapicommon.tapicontext.DefaultServiceInterfacePoint;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181210.tapiconnectivity.connectivitycontext.DefaultConnection;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181210.tapiconnectivity.connectivitycontext.DefaultConnectivityService;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181210.tapiconnectivity.connectivityservice.DefaultEndPoint;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181210.tapiconnectivity.context.augmentedtapicommoncontext.DefaultConnectivityContext;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181210.tapitopology.context.augmentedtapicommoncontext.DefaultTopologyContext;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181210.tapitopology.node.DefaultOwnedNodeEdgePoint;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181210.tapitopology.topology.DefaultNode;
+import org.onosproject.yang.gen.v1.tapitopology.rev20181210.tapitopology.topologycontext.DefaultTopology;
 import org.onosproject.yang.model.Augmentable;
 import org.onosproject.yang.model.DataNode;
 import org.onosproject.yang.model.ModelConverter;
@@ -127,16 +127,16 @@ public class OdtnTapiHandlersTestCommand extends AbstractShellCommand {
         Augmentable augmentableContext = context;
 
         // context augmentation with topologyContext
-        org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology.context
+        org.onosproject.yang.gen.v1.tapitopology.rev20181210.tapitopology.context
                 .DefaultAugmentedTapiCommonContext augmentedTopologyContext
-                = new org.onosproject.yang.gen.v1.tapitopology.rev20181016.tapitopology
+                = new org.onosproject.yang.gen.v1.tapitopology.rev20181210.tapitopology
                 .context.DefaultAugmentedTapiCommonContext();
         augmentableContext.addAugmentation(augmentedTopologyContext);
 
         // context augmentation with connectivityServiceContext
-        org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.context
+        org.onosproject.yang.gen.v1.tapiconnectivity.rev20181210.tapiconnectivity.context
                 .DefaultAugmentedTapiCommonContext augmentedConnectivityContext
-                = new org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity
+                = new org.onosproject.yang.gen.v1.tapiconnectivity.rev20181210.tapiconnectivity
                 .context.DefaultAugmentedTapiCommonContext();
         augmentableContext.addAugmentation(augmentedConnectivityContext);
 
@@ -249,7 +249,7 @@ public class OdtnTapiHandlersTestCommand extends AbstractShellCommand {
         // ceps
         TapiCepHandler cepHandler11 = TapiCepHandler.create();
         cepHandler11.setId(Uuid.of("00000000-0000-0000-0007-000000000011"));
-        org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity
+        org.onosproject.yang.gen.v1.tapiconnectivity.rev20181210.tapiconnectivity
                 .ceplist.DefaultConnectionEndPoint
                 cep11 = cepHandler11
                 .setTopologyUuid(topology.uuid())
@@ -258,7 +258,7 @@ public class OdtnTapiHandlersTestCommand extends AbstractShellCommand {
                 .setParentNep()
                 .getModelObject();
         nepHandler11.addCep(cep11);
-        org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity
+        org.onosproject.yang.gen.v1.tapiconnectivity.rev20181210.tapiconnectivity
                 .connection.DefaultConnectionEndPoint
                 cepRef11 = TapiCepRefHandler.create()
                 .setCep(cep11)
@@ -267,7 +267,7 @@ public class OdtnTapiHandlersTestCommand extends AbstractShellCommand {
 
         TapiCepHandler cepHandler21 = TapiCepHandler.create();
         cepHandler21.setId(Uuid.of("00000000-0000-0000-0007-000000000021"));
-        org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity
+        org.onosproject.yang.gen.v1.tapiconnectivity.rev20181210.tapiconnectivity
                 .ceplist.DefaultConnectionEndPoint
                 cep21 = cepHandler21
                 .setTopologyUuid(topology.uuid())
@@ -276,7 +276,7 @@ public class OdtnTapiHandlersTestCommand extends AbstractShellCommand {
                 .setParentNep()
                 .getModelObject();
         nepHandler21.addCep(cep21);
-        org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity
+        org.onosproject.yang.gen.v1.tapiconnectivity.rev20181210.tapiconnectivity
                 .connection.DefaultConnectionEndPoint
                 cepRef21 = TapiCepRefHandler.create()
                 .setCep(cep21)

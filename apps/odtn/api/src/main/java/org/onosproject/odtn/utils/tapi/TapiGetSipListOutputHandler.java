@@ -16,10 +16,10 @@
 
 package org.onosproject.odtn.utils.tapi;
 
-import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.Uuid;
-import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.getserviceinterfacepointlist.DefaultGetServiceInterfacePointListOutput;
-import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.getserviceinterfacepointlist.getserviceinterfacepointlistoutput.DefaultSip;
-import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.getserviceinterfacepointlist.getserviceinterfacepointlistoutput.Sip;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181210.tapicommon.Uuid;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181210.tapicommon.getserviceinterfacepointlist.DefaultGetServiceInterfacePointListOutput;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181210.tapicommon.getserviceinterfacepointlist.getserviceinterfacepointlistoutput.DefaultSip;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181210.tapicommon.getserviceinterfacepointlist.getserviceinterfacepointlistoutput.Sip;
 
 /**
  * Utility class to deal with TAPI RPC output with DCS.

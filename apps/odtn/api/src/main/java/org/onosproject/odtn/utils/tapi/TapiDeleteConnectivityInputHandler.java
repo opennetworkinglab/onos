@@ -17,8 +17,8 @@
 package org.onosproject.odtn.utils.tapi;
 
 import java.util.UUID;
-import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.Uuid;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.deleteconnectivityservice.DefaultDeleteConnectivityServiceInput;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181210.tapicommon.Uuid;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181210.tapiconnectivity.deleteconnectivityservice.DefaultDeleteConnectivityServiceInput;
 
 /**
  * Utility class to deal with TAPI RPC input with DCS.

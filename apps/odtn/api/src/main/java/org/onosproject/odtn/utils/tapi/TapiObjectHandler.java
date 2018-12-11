@@ -23,7 +23,7 @@ import org.onlab.util.XmlString;
 import org.onosproject.config.DynamicConfigService;
 import org.onosproject.config.FailedException;
 import org.onosproject.config.Filter;
-import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.Uuid;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181210.tapicommon.Uuid;
 import org.onosproject.yang.model.DataNode;
 import org.onosproject.yang.model.DefaultModelObjectData;
 import org.onosproject.yang.model.DefaultResourceData;

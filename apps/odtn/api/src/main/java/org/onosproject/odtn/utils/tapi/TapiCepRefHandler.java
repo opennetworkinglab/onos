@@ -16,10 +16,10 @@
 
 package org.onosproject.odtn.utils.tapi;
 
-import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.Uuid;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.ceplist.ConnectionEndPoint;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.connection.DefaultConnectionEndPoint;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.connectionendpoint.ParentNodeEdgePoint;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181210.tapicommon.Uuid;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181210.tapiconnectivity.ceplist.ConnectionEndPoint;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181210.tapiconnectivity.connection.DefaultConnectionEndPoint;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181210.tapiconnectivity.connectionendpoint.ParentNodeEdgePoint;
 import org.onosproject.yang.model.ModelObjectId;
 
 /**

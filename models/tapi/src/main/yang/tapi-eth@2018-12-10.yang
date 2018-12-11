@@ -21,22 +21,29 @@ module tapi-eth {
                  <mailto:karthik.sethuraman@necam.com>";
     description "This module contains TAPI ETH Model definitions.
         Source: TapiEth.uml
+        - The TAPI YANG models included in this TAPI release are a *normative* part of the TAPI SDK.
+        - The YANG specifications have been generated from the corresponding UML model using the [ONF EAGLE UML2YANG mapping tool]
+          <https://github.com/OpenNetworkingFoundation/EagleUmlYang>
+          and further edited manually to comply with the [ONF IISOMI UML2YANG mapping guidelines]
+          <https://wiki.opennetworking.org/display/OIMT/UML+-+YANG+Guidelines>
+        - Status of YANG model artifacts can be determined by referring to the corresponding UML artifacts.
+          As described in the UML models, some artifacts are considered *experimental*, and thus the corresponding YANG artifacts.
+        - The ONF TAPI release process does not guarantee backward compatibility of YANG models across major versions of TAPI releases.
+          The YANG model backward compatibility criteria are outlined in section 11 of <https://tools.ietf.org/html/rfc7950>.
+          YANG models included in this release may not be backward compatible with previous TAPI releases.
         Copyright (c) 2018 Open Networking Foundation (ONF). All rights reserved.
         License: This module is distributed under the Apache License 2.0";
+    revision 2018-12-10 {
+        description "ONF Transport API version 2.1.1.
+                   Changes included in this TAPI release (v2.1.1) are listed in
+                   <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.1.1.md>";
+        reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 7950, RFC 6087 and ONF TAPI UML model
+                  <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.1.0/UML>";
+    }
     revision 2018-10-16 {
         description "ONF Transport API version 2.1.0.
-          - The TAPI YANG models included in this TAPI release (v2.1.0) are a *normative* part of the TAPI SDK.
-          - The YANG specifications have been generated from the corresponding UML model using the [ONF EAGLE UML2YANG mapping tool]
-            <https://github.com/OpenNetworkingFoundation/EagleUmlYang>
-            and further edited manually to comply with the [ONF IISOMI UML2YANG mapping guidelines]
-            <https://wiki.opennetworking.org/display/OIMT/UML+-+YANG+Guidelines>
-          - Status of YANG model artifacts can be determined by referring to the corresponding UML artifacts.
-            As described in the UML models, some artifacts are considered *experimental*, and thus the corresponding YANG artifacts.
-          - The ONF TAPI release process does not guarantee backward compatibility of YANG models across major versions of TAPI releases.
-            The YANG model backward compatibility criteria are outlined in section 11 of <https://tools.ietf.org/html/rfc7950>.
-            YANG models included in this release are not backward compatible with previous TAPI releases.
-          - Changes included in this TAPI release (v2.1.0) are listed in
-            <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.1.0.md>";
+                   Changes included in this TAPI release (v2.1.0) are listed in
+                   <https://github.com/OpenNetworkingFoundation/TAPI/blob/develop/CHANGE_LOG/change-log.2.1.0.md>";
         reference "ONF-TR-527, ONF-TR-512, ONF-TR-531, RFC 7950, RFC 6087 and ONF TAPI UML model
                   <https://github.com/OpenNetworkingFoundation/TAPI/tree/v2.1.0/UML>";
     }

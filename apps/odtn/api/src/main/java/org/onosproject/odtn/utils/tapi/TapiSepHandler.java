@@ -16,9 +16,9 @@
 
 package org.onosproject.odtn.utils.tapi;
 
-import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.Uuid;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.connectivityservice.DefaultEndPoint;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.connectivityserviceendpoint.DefaultServiceInterfacePoint;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181210.tapicommon.Uuid;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181210.tapiconnectivity.connectivityservice.DefaultEndPoint;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181210.tapiconnectivity.connectivityserviceendpoint.DefaultServiceInterfacePoint;
 import org.onosproject.yang.model.ModelObjectId;
 
 import static org.onosproject.odtn.utils.tapi.TapiLocalClassUtil.getLocalId;

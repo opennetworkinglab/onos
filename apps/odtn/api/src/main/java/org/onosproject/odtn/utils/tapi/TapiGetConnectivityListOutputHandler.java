@@ -16,9 +16,9 @@
 
 package org.onosproject.odtn.utils.tapi;
 
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.connectivitycontext.ConnectivityService;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.getconnectivityservicelist.DefaultGetConnectivityServiceListOutput;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.getconnectivityservicelist.getconnectivityservicelistoutput.DefaultService;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181210.tapiconnectivity.connectivitycontext.ConnectivityService;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181210.tapiconnectivity.getconnectivityservicelist.DefaultGetConnectivityServiceListOutput;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181210.tapiconnectivity.getconnectivityservicelist.getconnectivityservicelistoutput.DefaultService;
 
 /**
  * Utility class to deal with TAPI RPC output with DCS.

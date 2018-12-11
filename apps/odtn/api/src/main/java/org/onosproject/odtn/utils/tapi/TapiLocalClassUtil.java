@@ -20,8 +20,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.globalclass.DefaultName;
-import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.globalclass.Name;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181210.tapicommon.globalclass.DefaultName;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181210.tapicommon.globalclass.Name;
 import org.onosproject.yang.model.ModelObject;
 import org.slf4j.Logger;
 

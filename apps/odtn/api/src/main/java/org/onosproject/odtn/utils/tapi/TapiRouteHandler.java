@@ -16,14 +16,14 @@
 
 package org.onosproject.odtn.utils.tapi;
 
-import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.DefaultContext;
-import org.onosproject.yang.gen.v1.tapicommon.rev20181016.tapicommon.Uuid;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.connection.DefaultRoute;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.connectivitycontext.ConnectionKeys;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.connectivitycontext.DefaultConnection;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.context.augmentedtapicommoncontext.DefaultConnectivityContext;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.route.ConnectionEndPoint;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.route.DefaultConnectionEndPoint;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181210.tapicommon.DefaultContext;
+import org.onosproject.yang.gen.v1.tapicommon.rev20181210.tapicommon.Uuid;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181210.tapiconnectivity.connection.DefaultRoute;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181210.tapiconnectivity.connectivitycontext.ConnectionKeys;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181210.tapiconnectivity.connectivitycontext.DefaultConnection;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181210.tapiconnectivity.context.augmentedtapicommoncontext.DefaultConnectivityContext;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181210.tapiconnectivity.route.ConnectionEndPoint;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181210.tapiconnectivity.route.DefaultConnectionEndPoint;
 import org.onosproject.yang.model.ModelObjectId;
 
 import static org.onosproject.odtn.utils.tapi.TapiLocalClassUtil.getLocalId;

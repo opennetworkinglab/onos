@@ -19,9 +19,9 @@ package org.onosproject.odtn.utils.tapi;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.createconnectivityservice.CreateConnectivityServiceInput;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.createconnectivityservice.DefaultCreateConnectivityServiceInput;
-import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181016.tapiconnectivity.createconnectivityservice.createconnectivityserviceinput.EndPoint;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181210.tapiconnectivity.createconnectivityservice.CreateConnectivityServiceInput;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181210.tapiconnectivity.createconnectivityservice.DefaultCreateConnectivityServiceInput;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181210.tapiconnectivity.createconnectivityservice.createconnectivityserviceinput.EndPoint;
 
 /**
  * Utility class to deal with TAPI RPC input with DCS.
