@@ -27,7 +27,7 @@ shift $OPC
 
 # Check arguments and environment
 branch=${branch:-origin/master}
-baseCommit=${1:-$(git log | grep $branch | head -n1 | cut -d\  -f2)}
+baseCommit=$(git log -n 1 --pretty=format:"%H" $branch)
 
 # Create a patch file
 git diff $baseCommit > /tmp/$baseCommit.patch
