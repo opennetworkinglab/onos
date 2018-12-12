@@ -43,7 +43,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.List;
@@ -70,8 +69,7 @@ public class DhcpRelayWebResource extends AbstractWebResource {
      * Corresponding route from the route store
      *
      * @param prefix IpPrefix
-     * @return 204 NO CONTENT
-     * @throws IOException to signify bad request
+     * @return 204 NO CONTENT, 404; 401
      */
     @DELETE
     @Path("{prefix}")
