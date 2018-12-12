@@ -30,12 +30,10 @@ RUN apt-get update && apt-get install -y zip python git bzip2 build-essential &&
         rm -rf /src/onos/bazel-* .git
 
 # Second stage is the runtime environment
-FROM anapsix/alpine-java:8_server-jre
+FROM adoptopenjdk/openjdk11:x86_64-ubuntu-jdk-11.0.1.13-slim
 
 # Change to /root directory
-RUN apk update && \
-        apk add curl && \
-        mkdir -p /root/onos
+RUN     mkdir -p /root/onos
 WORKDIR /root/onos
 
 # Install ONOS
