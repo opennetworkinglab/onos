@@ -226,7 +226,6 @@ ONOS_APPS = [
     "//apps/l3vpn:onos-apps-l3vpn-oar",
     "//apps/openroadm:onos-apps-openroadm-oar",
     "//apps/artemis:onos-apps-artemis-oar",
-    "//apps/pi-demo/ecmp:onos-apps-pi-demo-ecmp-oar",
     "//apps/gluon:onos-apps-gluon-oar",
     "//apps/evpnopenflow:onos-apps-evpnopenflow-oar",
     "//apps/route-service:onos-apps-route-service-oar",
