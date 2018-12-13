@@ -28,6 +28,7 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -87,6 +88,7 @@ import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.g
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.isAssociatedWithVM;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.processGarpPacketForFloatingIp;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.swapStaleLocation;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.tunnelPortNumByNetId;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildExtension;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 
@@ -338,17 +340,23 @@ public class OpenstackRoutingFloatingIpHandler {
 
         switch (osNet.getNetworkType()) {
             case VXLAN:
-                if (osNodeService.node(instPort.deviceId()).tunnelPortNum() == null) {
+            case GRE:
+                PortNumber portNum = tunnelPortNumByNetId(instPort.networkId(),
+                        osNetworkService, osNodeService.node(instPort.deviceId()));
+
+                if (portNum == null) {
                     log.warn(ERR_FLOW + "no tunnel port");
                     return;
                 }
+
                 sBuilder.matchTunnelId(Long.parseLong(osNet.getProviderSegID()));
+
                 tBuilder.extension(buildExtension(
                         deviceService,
                         instPort.deviceId(),
                         selectedGatewayNode.dataIp().getIp4Address()),
                         instPort.deviceId())
-                        .setOutput(osNodeService.node(instPort.deviceId()).tunnelPortNum());
+                        .setOutput(portNum);
                 break;
             case VLAN:
                 if (osNodeService.node(instPort.deviceId()).vlanPortNum() == null) {
@@ -389,6 +397,11 @@ public class OpenstackRoutingFloatingIpHandler {
             final String error = String.format(errorFormat, floatingIp, cNode.hostname());
             throw new IllegalStateException(error);
         }
+        if (osNet.getNetworkType() == NetworkType.GRE && cNode.dataIp() == null) {
+            final String errorFormat = ERR_FLOW + "GRE mode is not ready for %s";
+            final String error = String.format(errorFormat, floatingIp, cNode.hostname());
+            throw new IllegalStateException(error);
+        }
         if (osNet.getNetworkType() == NetworkType.VLAN && cNode.vlanIntf() == null) {
             final String errorFormat = ERR_FLOW + "VLAN mode is not ready for %s";
             final String error = String.format(errorFormat, floatingIp, cNode.hostname());
@@ -421,13 +434,16 @@ public class OpenstackRoutingFloatingIpHandler {
 
         switch (osNet.getNetworkType()) {
             case VXLAN:
+            case GRE:
+                PortNumber portNum = tunnelPortNumByNetId(instPort.networkId(),
+                        osNetworkService, selectedGatewayNode);
                 externalTreatmentBuilder.setTunnelId(Long.valueOf(osNet.getProviderSegID()))
                         .extension(buildExtension(
                                 deviceService,
                                 selectedGatewayNode.intgBridge(),
                                 cNode.dataIp().getIp4Address()),
                                 selectedGatewayNode.intgBridge())
-                        .setOutput(selectedGatewayNode.tunnelPortNum());
+                        .setOutput(portNum);
                 break;
             case VLAN:
                 externalTreatmentBuilder.pushVlan()
@@ -461,6 +477,7 @@ public class OpenstackRoutingFloatingIpHandler {
 
         switch (osNet.getNetworkType()) {
             case VXLAN:
+            case GRE:
                 sBuilder.matchTunnelId(Long.valueOf(osNet.getProviderSegID()));
                 break;
             case VLAN:

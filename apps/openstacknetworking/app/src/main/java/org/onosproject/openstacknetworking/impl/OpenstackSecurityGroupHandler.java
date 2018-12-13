@@ -218,6 +218,7 @@ public class OpenstackSecurityGroupHandler {
     private static final IpPrefix IP_PREFIX_ANY = Ip4Prefix.valueOf("0.0.0.0/0");
 
     private static final String VXLAN = "VXLAN";
+    private static final String GRE = "GRE";
     private static final String VLAN = "VLAN";
 
     // We expose pipeline structure to SONA application considering removing pipeline soon.
@@ -585,7 +586,7 @@ public class OpenstackSecurityGroupHandler {
 
         if (VLAN.equals(netType)) {
             sBuilder.matchVlanId(VlanId.vlanId(segId));
-        } else if (VXLAN.equals(netType)) {
+        } else if (VXLAN.equals(netType) || GRE.equals(netType)) {
             sBuilder.matchTunnelId(Long.valueOf(segId));
         } else {
             log.warn("Cannot tag the VID due to lack of support of virtual network type {}", netType);
@@ -911,6 +912,7 @@ public class OpenstackSecurityGroupHandler {
 
             switch (netType) {
                 case VXLAN:
+                case GRE:
                     sBuilder.matchTunnelId(Long.valueOf(segId));
                     break;
                 case VLAN:

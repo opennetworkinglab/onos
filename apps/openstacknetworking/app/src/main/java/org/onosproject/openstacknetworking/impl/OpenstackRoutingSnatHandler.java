@@ -27,6 +27,7 @@ import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -76,6 +77,7 @@ import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWOR
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SNAT_RULE;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.externalIpFromSubnet;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.externalPeerRouterFromSubnet;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.tunnelPortNumByNetType;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -275,6 +277,7 @@ public class OpenstackRoutingSnatHandler {
 
         switch (networkType) {
             case VXLAN:
+            case GRE:
                 tBuilder.setTunnelId(Long.parseLong(segmentId));
                 break;
             case VLAN:
@@ -328,11 +331,13 @@ public class OpenstackRoutingSnatHandler {
                 DefaultTrafficTreatment.builder(tBuilder.build());
         switch (networkType) {
             case VXLAN:
+            case GRE:
+                PortNumber portNum = tunnelPortNumByNetType(networkType.name(), gNode);
                 tmpBuilder.extension(RulePopulatorUtil.buildExtension(
                         deviceService,
                         gNode.intgBridge(),
                         srcNode.dataIp().getIp4Address()), gNode.intgBridge())
-                        .setOutput(gNode.tunnelPortNum());
+                        .setOutput(portNum);
                 break;
             case VLAN:
                 tmpBuilder.setOutput(gNode.vlanPortNum());
@@ -364,6 +369,7 @@ public class OpenstackRoutingSnatHandler {
 
         switch (networkType) {
             case VXLAN:
+            case GRE:
                 sBuilder.matchTunnelId(Long.parseLong(segmentId));
                 break;
             case VLAN:

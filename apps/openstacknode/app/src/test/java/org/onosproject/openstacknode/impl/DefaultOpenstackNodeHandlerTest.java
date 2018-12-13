@@ -99,7 +99,7 @@ import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_ADDED;
 import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED;
 import static org.onosproject.net.device.DeviceEvent.Type.PORT_ADDED;
 import static org.onosproject.net.device.DeviceEvent.Type.PORT_REMOVED;
-import static org.onosproject.openstacknode.api.Constants.DEFAULT_TUNNEL;
+import static org.onosproject.openstacknode.api.Constants.VXLAN_TUNNEL;
 import static org.onosproject.openstacknode.api.Constants.INTEGRATION_BRIDGE;
 import static org.onosproject.openstacknode.api.Constants.PATCH_INTG_BRIDGE;
 import static org.onosproject.openstacknode.api.Constants.PATCH_ROUT_BRIDGE;
@@ -369,7 +369,7 @@ public class DefaultOpenstackNodeHandlerTest {
         assertEquals(ERR_STATE_NOT_MATCH, COMPLETE,
                 testNodeManager.node(COMPUTE_3_HOSTNAME).state());
         TEST_DEVICE_SERVICE.removePort(COMPUTE_3_INTG_DEVICE, createPort(
-                COMPUTE_3_INTG_DEVICE, DEFAULT_TUNNEL));
+                COMPUTE_3_INTG_DEVICE, VXLAN_TUNNEL));
         assertEquals(ERR_STATE_NOT_MATCH, INCOMPLETE,
                 testNodeManager.node(COMPUTE_3_HOSTNAME).state());
 
@@ -523,7 +523,7 @@ public class DefaultOpenstackNodeHandlerTest {
         }
 
         @Override
-        public PortNumber tunnelPortNum() {
+        public PortNumber vxlanTunnelPortNum() {
             return PortNumber.portNumber(1);
         }
 
