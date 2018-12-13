@@ -155,7 +155,7 @@ class GnmiDeviceStateSubscriber {
 
         GnmiClient client = gnmiController.getClient(deviceId);
         if (client == null) {
-            log.warn("Cannot find gNMI client for device {}", deviceId);
+            log.debug("Cannot find gNMI client for device {}, ignoring.", deviceId);
             return;
         }
 
