@@ -17,7 +17,6 @@
 package org.onosproject.p4runtime.ctl;
 
 import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.Striped;
 import io.grpc.ManagedChannel;
 import org.onosproject.grpc.ctl.AbstractGrpcClientController;
 import org.onosproject.net.DeviceId;
@@ -39,7 +38,6 @@ import org.slf4j.Logger;
 
 import java.math.BigInteger;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.locks.Lock;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -57,7 +55,6 @@ public class P4RuntimeControllerImpl
 
     private final ConcurrentMap<DeviceId, ConcurrentMap<ProviderId, DeviceAgentListener>>
             deviceAgentListeners = Maps.newConcurrentMap();
-    private final Striped<Lock> stripedLocks = Striped.lock(30);
 
     private DistributedElectionIdGenerator electionIdGenerator;
 
