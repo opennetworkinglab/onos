@@ -29,6 +29,7 @@ import org.onosproject.net.Annotations;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.security.AuditService;
 import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -43,62 +44,11 @@ public abstract class AbstractShellCommand implements Action, CodecContext {
 
     protected static final Logger log = getLogger(AbstractShellCommand.class);
 
+    private final ObjectMapper mapper = new ObjectMapper();
+
     @Option(name = "-j", aliases = "--json", description = "Output JSON",
             required = false, multiValued = false)
     private boolean json = false;
-
-    private static String auditFile = "all";
-    private static boolean auditEnabled = false;
-
-    /**
-     * To check if CLI Audit is enabled.
-     *
-     * @return true if the CLI Audit is enabled.
-     */
-    private static boolean isEnabled() {
-        return auditEnabled;
-    }
-
-    /**
-     * To enable CLI Audit.
-     */
-    public static void enableAudit() {
-        auditEnabled = true;
-    }
-
-    /**
-     * To disable CLI Audit.
-     */
-    public static void disableAudit() {
-        auditEnabled = false;
-    }
-
-    /**
-     * To set audit file type which CLI Audit logs must be saved.
-     *
-     * @param auditFile file that CLI Audit logs must be saved.
-     */
-    public static void setAuditFile(String auditFile) {
-        AbstractShellCommand.auditFile = auditFile;
-    }
-
-    /**
-     * To save audit logs into the log file.
-     *
-     * @param msg audit message.
-     */
-    private static void saveAuditLog(String msg) {
-        if (isEnabled()) {
-            if (auditFile.equals("all")) {
-                log.info(msg);
-                log.info("AuditLog : " + msg);
-            } else if (auditFile.equals("karaf")) {
-                log.info(msg);
-            } else if (auditFile.equals("audit")) {
-                log.info("AuditLog : " + msg);
-            }
-        }
-    }
 
     /**
      * Returns the reference to the implementation of the specified service.
@@ -109,7 +59,6 @@ public abstract class AbstractShellCommand implements Action, CodecContext {
      * @throws org.onlab.osgi.ServiceNotFoundException if service is unavailable
      */
     public static <T> T get(Class<T> serviceClass) {
-        saveAuditLog("Audit ");
         return DefaultServiceDirectory.getService(serviceClass);
     }
 
@@ -204,8 +153,9 @@ public abstract class AbstractShellCommand implements Action, CodecContext {
     }
 
     @Override
-    public Object execute() throws Exception {
+    public final Object execute() throws Exception {
         try {
+            auditCommand();
             doExecute();
         } catch (ServiceNotFoundException e) {
             error(e.getMessage());
@@ -213,15 +163,23 @@ public abstract class AbstractShellCommand implements Action, CodecContext {
         return null;
     }
 
-    protected void doExecute() throws Exception {
-        try {
-            execute();
-        } catch (ServiceNotFoundException e) {
-            error(e.getMessage());
+    // Handles auditing
+    private void auditCommand() {
+        AuditService auditService = get(AuditService.class);
+        if (auditService != null && auditService.isAuditing()) {
+            // FIXME: Compose and log audit message here; this is a hack
+            String user = "foo"; // FIXME
+            String action = Thread.currentThread().getName().substring(5); // FIXME
+            auditService.logUserAction(user, action);
         }
     }
 
-    private final ObjectMapper mapper = new ObjectMapper();
+    /**
+     * Body of the shell command.
+     *
+     * @throws Exception thrown when problem is encountered
+     */
+    protected abstract void doExecute() throws Exception;
 
     @Override
     public ObjectMapper mapper() {

@@ -17,4 +17,4 @@
 /**
  * Implementation of Audit Configuration.
  */
-package org.onosproject.net.audit.impl;
+package org.onosproject.audit.impl;
