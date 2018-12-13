@@ -17,12 +17,15 @@
 <scenario name="net-setup-trellis-p4" description="Trellis P4 based network setup steps">
 
     <group name="Trellis-Net-P4-Setup">
-        <step name="Trellis-Net-P4-Setup.Push-Topos" exec="onos-push-topos ${OCN}"/>
         <step name="Trellis-Net-P4-Setup.Push-Routing" exec="onos-push-routing ${OCN}"/>
         <step name="Trellis-Net-P4-Setup.Push-Bmv2" exec="onos-push-bmv2 ${OCN}"/>
 
+        <!-- Stop/cleanup mininet -->
         <step name="Trellis-Net-P4-Setup.Stop-Mininet-If-Needed" env="~" exec="onos-mininet stop"/>
         <step name="Trellis-Net-P4-Setup.Clean-Mininet-If-Needed" env="~" exec="onos-mininet cleanup" requires="^"/>
+        <!-- Set up the trellis env on the net machine -->
+        <step name="Trellis-Net-P4-Setup.Set-Up-Trellis" exec="set-up-trellis ${OCN}" requires="^"/>
+
         <step name="Trellis-Net-P4-Setup.Wipe-Out-Data-Before" exec="onos-wipe-out" requires="^"/>
 
         <!-- Make sure that there is no data in the system -->
@@ -70,24 +73,35 @@
                   requires="Trellis-Net-P4-Setup.Deactivate-Apps"/>
         </group>
 
-        <!-- set up the trellis environment -->
-        <step name="Trellis-Net-P4-Setup.Set-Up-Trellis" exec="set-up-trellis ${OCN}" requires="Trellis-Net-P4-Setup.Activate-Apps"/>
+        <group name="Trellis-Net-P4-Setup.Verify-Apps" requires="Trellis-Net-P4-Setup.Activate-Apps">
+            <parallel var="${OC#}">
+                <step name="Check-Apps-${#}" exec="onos-check-apps ${OC#} drivers.bmv2,pipelines.fabric,generaldeviceprovider includes"
+                      requires="Trellis-Net-P4-Setup.Activate-Apps"/>
+            </parallel>
+        </group>
 
-        <!-- configure the trellis topology in ONOS -->
-        <step name="Trellis-Net-P4-Setup.Config-Topo"
-              requires="Trellis-Net-P4-Setup.Set-Up-Trellis,Trellis-Net-P4-Setup.Push-Topos,Trellis-Net-P4-Setup.Push-Routing"
-              exec="onos-netcfg ${OC1} ${routing}/trellis/trellisp4.json"/>
+        <group name="Trellis-Net-P4-Setup.Verify-Pipeconfs" requires="Trellis-Net-P4-Setup.Verify-Apps">
+            <parallel var="${OC#}">
+                <step name="Check-Pipeconfs-${#}" exec="onos-check-pipeconfs ${OC#} org.onosproject.pipelines.fabric includes"
+                      requires="Trellis-Net-P4-Setup.Verify-Apps"/>
+            </parallel>
+        </group>
 
         <!-- Bring up mininet -->
         <step name="Trellis-Net-P4-Setup.Start-Mininet"
-              requires="Trellis-Net-P4-Setup.Config-Topo,Trellis-Net-P4-Setup.Push-Topos,Trellis-Net-P4-Setup.Stop-Mininet-If-Needed"
+              requires="Trellis-Net-P4-Setup.Verify-Apps,Trellis-Net-P4-Setup.Verify-Pipeconfs,Trellis-Net-P4-Setup.Set-Up-Trellis"
               exec="mininet-p4-trellis ${ONOS_INSTANCES}"/>
         <step name="Trellis-Net-P4-Setup.Wait-For-Mininet" requires="Trellis-Net-P4-Setup.Start-Mininet"
               exec="onos-mininet wait 10"/>
 
+        <!-- Push the trellis netcfg -->
+        <step name="Trellis-Net-P4-Setup.Config-Topo"
+              requires="Trellis-Net-P4-Setup.Wait-For-Mininet,Trellis-Net-P4-Setup.Push-Routing"
+              exec="onos-netcfg ${OC1} ${routing}/trellis/trellisp4.json"/>
+
         <!-- clean up local routing repo if necessary -->
         <step delay="10" name="Trellis-Net-P4-Setup.Clean-Routing"
-              requires="Trellis-Net-P4-Setup.Start-Mininet"
+              requires="Trellis-Net-P4-Setup.Config-Topo"
               exec="onos-clean-routing ${routing_root}"/>
     </group>
 </scenario>
