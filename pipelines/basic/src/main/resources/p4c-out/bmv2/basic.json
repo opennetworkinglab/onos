@@ -6,11 +6,11 @@
       "fields" : [
         ["tmp", 32, false],
         ["tmp_0", 32, false],
-        ["port_meters_ingress_ingress_color_0", 8, false],
-        ["host_meter_control_meter_tag_0", 8, false],
+        ["port_meters_ingress_ingress_color", 8, false],
+        ["host_meter_control_meter_tag", 8, false],
         ["tmp_1", 32, false],
         ["tmp_2", 32, false],
-        ["port_meters_egress_egress_color_0", 8, false],
+        ["port_meters_egress_egress_color", 8, false],
         ["local_metadata_t.l4_src_port", 16, false],
         ["local_metadata_t.l4_dst_port", 16, false],
         ["local_metadata_t.next_hop_id", 16, false]
@@ -459,7 +459,7 @@
       "type" : "bytes",
       "size" : 1024,
       "binding" : "ingress.host_meter_control.host_meter_table",
-      "result_target" : ["scalars", "host_meter_control_meter_tag_0"]
+      "result_target" : ["scalars", "host_meter_control_meter_tag"]
     },
     {
       "name" : "egress.port_meters_egress.egress_port_meter",
@@ -802,7 +802,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "port_meters_ingress_ingress_color_0"]
+              "value" : ["scalars", "port_meters_ingress_ingress_color"]
             }
           ],
           "source_info" : {
@@ -865,7 +865,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "host_meter_control_meter_tag_0"]
+              "value" : ["scalars", "host_meter_control_meter_tag"]
             },
             {
               "type" : "hexstr",
@@ -1016,7 +1016,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "port_meters_egress_egress_color_0"]
+              "value" : ["scalars", "port_meters_egress_egress_color"]
             }
           ],
           "source_info" : {
@@ -1408,7 +1408,7 @@
               "op" : "==",
               "left" : {
                 "type" : "field",
-                "value" : ["scalars", "port_meters_ingress_ingress_color_0"]
+                "value" : ["scalars", "port_meters_ingress_ingress_color"]
               },
               "right" : {
                 "type" : "hexstr",
@@ -1460,7 +1460,7 @@
               "op" : "==",
               "left" : {
                 "type" : "field",
-                "value" : ["scalars", "host_meter_control_meter_tag_0"]
+                "value" : ["scalars", "host_meter_control_meter_tag"]
               },
               "right" : {
                 "type" : "hexstr",
@@ -1597,7 +1597,7 @@
               "op" : "==",
               "left" : {
                 "type" : "field",
-                "value" : ["scalars", "port_meters_egress_egress_color_0"]
+                "value" : ["scalars", "port_meters_egress_egress_color"]
               },
               "right" : {
                 "type" : "hexstr",

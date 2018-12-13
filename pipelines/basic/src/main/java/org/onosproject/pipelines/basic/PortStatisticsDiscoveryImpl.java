@@ -44,8 +44,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static org.onosproject.net.pi.model.PiCounterType.INDIRECT;
-import static org.onosproject.pipelines.basic.BasicConstants.CNT_EGRESS_PORT_COUNTER_ID;
-import static org.onosproject.pipelines.basic.BasicConstants.CNT_INGRESS_PORT_COUNTER_ID;
+import static org.onosproject.pipelines.basic.BasicConstants.EGRESS_PORT_COUNTERS_EGRESS_EGRESS_PORT_COUNTER;
+import static org.onosproject.pipelines.basic.BasicConstants.INGRESS_PORT_COUNTERS_INGRESS_INGRESS_PORT_COUNTER;
 
 /**
  * Implementation of the PortStatisticsBehaviour for basic.p4.
@@ -63,7 +63,7 @@ public class PortStatisticsDiscoveryImpl extends AbstractHandlerBehaviour implem
      * @return counter ID
      */
     public PiCounterId ingressCounterId() {
-        return CNT_INGRESS_PORT_COUNTER_ID;
+        return INGRESS_PORT_COUNTERS_INGRESS_INGRESS_PORT_COUNTER;
     }
 
     /**
@@ -72,7 +72,7 @@ public class PortStatisticsDiscoveryImpl extends AbstractHandlerBehaviour implem
      * @return counter ID
      */
     public PiCounterId egressCounterId() {
-        return CNT_EGRESS_PORT_COUNTER_ID;
+        return EGRESS_PORT_COUNTERS_EGRESS_EGRESS_PORT_COUNTER;
     }
 
     @Override

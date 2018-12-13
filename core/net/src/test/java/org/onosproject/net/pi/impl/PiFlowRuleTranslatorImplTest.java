@@ -42,11 +42,11 @@ import java.util.Random;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.onosproject.pipelines.basic.BasicConstants.HDR_ETH_DST_ID;
-import static org.onosproject.pipelines.basic.BasicConstants.HDR_ETH_SRC_ID;
-import static org.onosproject.pipelines.basic.BasicConstants.HDR_ETH_TYPE_ID;
-import static org.onosproject.pipelines.basic.BasicConstants.HDR_IN_PORT_ID;
-import static org.onosproject.pipelines.basic.BasicConstants.TBL_TABLE0_ID;
+import static org.onosproject.pipelines.basic.BasicConstants.HDR_HDR_ETHERNET_DST_ADDR;
+import static org.onosproject.pipelines.basic.BasicConstants.HDR_HDR_ETHERNET_ETHER_TYPE;
+import static org.onosproject.pipelines.basic.BasicConstants.HDR_HDR_ETHERNET_SRC_ADDR;
+import static org.onosproject.pipelines.basic.BasicConstants.HDR_STANDARD_METADATA_INGRESS_PORT;
+import static org.onosproject.pipelines.basic.BasicConstants.INGRESS_TABLE0_CONTROL_TABLE0;
 
 /**
  * Test for {@link PiFlowRuleTranslatorImpl}.
@@ -69,7 +69,6 @@ public class PiFlowRuleTranslatorImplTest {
     public void testTranslateFlowRules() throws Exception {
 
         ApplicationId appId = new DefaultApplicationId(1, "test");
-        int tableId = 0;
         MacAddress ethDstMac = MacAddress.valueOf(random.nextLong());
         MacAddress ethSrcMac = MacAddress.valueOf(random.nextLong());
         short ethType = (short) (0x0000FFFF & random.nextInt());
@@ -96,7 +95,7 @@ public class PiFlowRuleTranslatorImplTest {
 
         FlowRule rule1 = DefaultFlowRule.builder()
                 .forDevice(DEVICE_ID)
-                .forTable(tableId)
+                .forTable(INGRESS_TABLE0_CONTROL_TABLE0)
                 .fromApp(appId)
                 .withSelector(matchInPort1)
                 .withTreatment(outPort2)
@@ -106,7 +105,7 @@ public class PiFlowRuleTranslatorImplTest {
 
         FlowRule rule2 = DefaultFlowRule.builder()
                 .forDevice(DEVICE_ID)
-                .forTable(tableId)
+                .forTable(INGRESS_TABLE0_CONTROL_TABLE0)
                 .fromApp(appId)
                 .withSelector(matchInPort1)
                 .withTreatment(outPort2)
@@ -116,7 +115,7 @@ public class PiFlowRuleTranslatorImplTest {
 
         FlowRule defActionRule = DefaultFlowRule.builder()
                 .forDevice(DEVICE_ID)
-                .forTable(tableId)
+                .forTable(INGRESS_TABLE0_CONTROL_TABLE0)
                 .fromApp(appId)
                 .withSelector(emptySelector)
                 .withTreatment(outPort2)
@@ -135,11 +134,16 @@ public class PiFlowRuleTranslatorImplTest {
                 .testEquals();
 
         // parse values stored in entry1
-        PiTernaryFieldMatch inPortParam = (PiTernaryFieldMatch) entry1.matchKey().fieldMatch(HDR_IN_PORT_ID).get();
-        PiTernaryFieldMatch ethDstParam = (PiTernaryFieldMatch) entry1.matchKey().fieldMatch(HDR_ETH_DST_ID).get();
-        PiTernaryFieldMatch ethSrcParam = (PiTernaryFieldMatch) entry1.matchKey().fieldMatch(HDR_ETH_SRC_ID).get();
-        PiTernaryFieldMatch ethTypeParam = (PiTernaryFieldMatch) entry1.matchKey().fieldMatch(HDR_ETH_TYPE_ID).get();
-        Optional<Double> expectedTimeout = pipeconf.pipelineModel().table(TBL_TABLE0_ID).get().supportsAging()
+        PiTernaryFieldMatch inPortParam = (PiTernaryFieldMatch) entry1.matchKey()
+                .fieldMatch(HDR_STANDARD_METADATA_INGRESS_PORT).get();
+        PiTernaryFieldMatch ethDstParam = (PiTernaryFieldMatch) entry1.matchKey()
+                .fieldMatch(HDR_HDR_ETHERNET_DST_ADDR).get();
+        PiTernaryFieldMatch ethSrcParam = (PiTernaryFieldMatch) entry1.matchKey()
+                .fieldMatch(HDR_HDR_ETHERNET_SRC_ADDR).get();
+        PiTernaryFieldMatch ethTypeParam = (PiTernaryFieldMatch) entry1.matchKey()
+                .fieldMatch(HDR_HDR_ETHERNET_ETHER_TYPE).get();
+        Optional<Double> expectedTimeout = pipeconf.pipelineModel()
+                .table(INGRESS_TABLE0_CONTROL_TABLE0).get().supportsAging()
                 ? Optional.of((double) rule1.timeout()) : Optional.empty();
 
         // check that values stored in entry are the same used for the flow rule

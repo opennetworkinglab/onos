@@ -42,8 +42,8 @@ import java.util.List;
 import java.util.Set;
 
 import static org.onosproject.net.group.GroupDescription.Type.ALL;
-import static org.onosproject.pipelines.basic.BasicConstants.ACT_PRF_WCMP_SELECTOR_ID;
-import static org.onosproject.pipelines.basic.BasicConstants.TBL_WCMP_TABLE_ID;
+import static org.onosproject.pipelines.basic.BasicConstants.INGRESS_WCMP_CONTROL_WCMP_SELECTOR;
+import static org.onosproject.pipelines.basic.BasicConstants.INGRESS_WCMP_CONTROL_WCMP_TABLE;
 
 /**
  * Test for {@link PiMulticastGroupTranslatorImpl}.
@@ -53,7 +53,7 @@ public class PiMulticastGroupTranslatorImplTest {
     private static final ApplicationId APP_ID = TestApplicationId.create("dummy");
     private static final GroupId GROUP_ID = GroupId.valueOf(1);
     private static final PiGroupKey GROUP_KEY = new PiGroupKey(
-            TBL_WCMP_TABLE_ID, ACT_PRF_WCMP_SELECTOR_ID, GROUP_ID.id());
+            INGRESS_WCMP_CONTROL_WCMP_TABLE, INGRESS_WCMP_CONTROL_WCMP_SELECTOR, GROUP_ID.id());
 
     private static final List<GroupBucket> BUCKET_LIST = ImmutableList.of(
             allOutputBucket(1),
