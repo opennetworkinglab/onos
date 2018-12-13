@@ -3,6 +3,7 @@ COMPILE_DEPS = CORE_DEPS + [
     "//protocols/grpc/proto:onos-protocols-grpc-proto",
     "@io_grpc_grpc_java//core",
     "@io_grpc_grpc_java//netty",
+    "@io_netty_netty_handler//jar",
 ]
 
 osgi_jar(
