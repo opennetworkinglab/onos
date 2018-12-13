@@ -1,0 +1,33 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Checks whether the given pipeconfs are registered.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+aux=/tmp/stc/stc-$$.log
+trap "rm -f $aux $aux.1 $aux.2 2>/dev/null" EXIT
+
+for attempt in {1..30}; do
+    onos ${1:-$OCI} "onos:pipeconfs -s" > $aux
+    cat $aux
+
+    # Normalize the registered pipeconfs
+    cut -d '=' -f2 $aux | sort > $aux.1
+
+    # Expected pipeconfs
+    pipeconfs=${2-org.onosproject.pipelines.basic}
+    (for pipeconf in ${pipeconfs//,/ }; do echo ${pipeconf}; done) | sort > $aux.2
+
+    # Check for differences
+    case ${3:-equals} in
+    equals) diff $aux.1 $aux.2;;
+    includes) [ $(egrep -c -f $aux.2 $aux.1) -ge $(wc -l $aux.2 | sed "s|$aux.2||g") ];;
+    excludes) ! egrep -f $aux.2 $aux.1;;
+    esac
+
+    [ $? -eq 0 ] && exit 0 || sleep 1
+done
+
+exit 1;
