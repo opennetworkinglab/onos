@@ -31,7 +31,6 @@ import org.onosproject.grpc.api.GrpcClientController;
 import org.onosproject.grpc.api.GrpcClientKey;
 import org.onosproject.net.DeviceId;
 import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
@@ -54,7 +53,6 @@ import static org.slf4j.LoggerFactory.getLogger;
  * @param <E> the event type of the gRPC client
  * @param <L> the event listener of event {@link E}
  */
-@Component
 public abstract class AbstractGrpcClientController
         <K extends GrpcClientKey, C extends GrpcClient, E extends Event, L extends EventListener<E>>
         extends AbstractListenerManager<E, L>
@@ -74,7 +72,7 @@ public abstract class AbstractGrpcClientController
     private final Striped<Lock> stripedLocks = Striped.lock(DEFAULT_DEVICE_LOCK_SIZE);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    private GrpcChannelController grpcChannelController;
+    protected GrpcChannelController grpcChannelController;
 
     @Activate
     public void activate() {

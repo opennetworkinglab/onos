@@ -25,7 +25,7 @@ import org.osgi.service.component.annotations.Component;
 /**
  * Distributed implementation of a P4Runtime action profile member mirror.
  */
-@Component(immediate = true, service = AbstractDistributedP4RuntimeMirror.class)
+@Component(immediate = true, service = P4RuntimeActionProfileMemberMirror.class)
 public class DistributedP4RuntimeActionProfileMemberMirror
         extends AbstractDistributedP4RuntimeMirror
         <PiActionGroupMemberHandle, PiActionGroupMember>

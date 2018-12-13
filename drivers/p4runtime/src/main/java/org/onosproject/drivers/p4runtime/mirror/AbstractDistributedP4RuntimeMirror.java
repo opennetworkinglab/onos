@@ -18,12 +18,6 @@ package org.onosproject.drivers.p4runtime.mirror;
 
 import com.google.common.annotations.Beta;
 import com.google.common.collect.Maps;
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
-
 import org.onlab.util.KryoNamespace;
 import org.onlab.util.SharedExecutors;
 import org.onosproject.net.Annotations;
@@ -36,6 +30,10 @@ import org.onosproject.net.pi.service.PiPipeconfWatchdogService;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Collection;
@@ -56,7 +54,6 @@ import static org.slf4j.LoggerFactory.getLogger;
  * @param <E> entry class
  */
 @Beta
-@Component(immediate = true)
 public abstract class AbstractDistributedP4RuntimeMirror
         <H extends PiHandle, E extends PiEntity>
         implements P4RuntimeMirror<H, E> {
@@ -64,10 +61,10 @@ public abstract class AbstractDistributedP4RuntimeMirror
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    private StorageService storageService;
+    protected StorageService storageService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    private PiPipeconfWatchdogService pipeconfWatchdogService;
+    protected PiPipeconfWatchdogService pipeconfWatchdogService;
 
     private EventuallyConsistentMap<H, TimedEntry<E>> mirrorMap;
 

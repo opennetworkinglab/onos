@@ -19,6 +19,7 @@ package org.onosproject.cli.net;
 
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Option;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.driver.Behaviour;
 import org.onosproject.net.pi.model.PiPipeconf;
@@ -31,8 +32,9 @@ import java.util.Collection;
 /**
  * Query registered pipeconfs.
  */
+@Service
 @Command(scope = "onos", name = "pipeconfs",
-        description = "Query registered pipeconfs.")
+        description = "List registered pipeconfs")
 public class PipeconfCommand extends AbstractShellCommand {
 
     protected PiPipeconfService piPipeconfService;

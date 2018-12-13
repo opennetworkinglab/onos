@@ -36,6 +36,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class GnmiControllerImpl
         extends AbstractGrpcClientController<GnmiClientKey, GnmiClient, GnmiEvent, GnmiEventListener>
         implements GnmiController {
+
     private final Logger log = getLogger(getClass());
 
     @Activate

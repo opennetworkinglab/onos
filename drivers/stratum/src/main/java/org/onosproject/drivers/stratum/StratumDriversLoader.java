@@ -20,7 +20,7 @@ import org.onosproject.net.driver.AbstractDriverLoader;
 import org.osgi.service.component.annotations.Component;
 
 /**
- * Loader for Stratum Switch device drivers.
+ * Loader for Stratum device drivers.
  */
 @Component(immediate = true)
 public class StratumDriversLoader extends AbstractDriverLoader {
