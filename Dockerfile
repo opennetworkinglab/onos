@@ -34,7 +34,7 @@ FROM anapsix/alpine-java:8_server-jre
 
 # Change to /root directory
 RUN apk update && \
-        apk add curl && \
+        apk add curl openssh && \
         mkdir -p /root/onos
 WORKDIR /root/onos
 
