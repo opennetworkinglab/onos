@@ -23,7 +23,6 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onosproject.core.CoreService;
-import org.onosproject.driver.pipeline.DefaultSingleTablePipeline;
 import org.onosproject.inbandtelemetry.api.IntProgrammable;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.device.PortStatisticsDiscovery;
@@ -89,7 +88,7 @@ public final class PipeconfLoader {
                 .withId(BASIC_PIPECONF_ID)
                 .withPipelineModel(parseP4Info(p4InfoUrl))
                 .addBehaviour(PiPipelineInterpreter.class, BasicInterpreterImpl.class)
-                .addBehaviour(Pipeliner.class, DefaultSingleTablePipeline.class)
+                .addBehaviour(Pipeliner.class, BasicPipelinerImpl.class)
                 .addBehaviour(PortStatisticsDiscovery.class, PortStatisticsDiscoveryImpl.class)
                 .addExtension(P4_INFO_TEXT, p4InfoUrl)
                 .addExtension(BMV2_JSON, jsonUrl)
@@ -108,7 +107,7 @@ public final class PipeconfLoader {
                 .withId(INT_PIPECONF_ID)
                 .withPipelineModel(parseP4Info(p4InfoUrl))
                 .addBehaviour(PiPipelineInterpreter.class, BasicInterpreterImpl.class)
-                .addBehaviour(Pipeliner.class, DefaultSingleTablePipeline.class)
+                .addBehaviour(Pipeliner.class, BasicPipelinerImpl.class)
                 .addBehaviour(PortStatisticsDiscovery.class, PortStatisticsDiscoveryImpl.class)
                 .addBehaviour(IntProgrammable.class, IntProgrammableImpl.class)
                 .addExtension(P4_INFO_TEXT, p4InfoUrl)

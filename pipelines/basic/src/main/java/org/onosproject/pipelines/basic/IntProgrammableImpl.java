@@ -199,7 +199,7 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
 
         // process_set_source_sink.tb_set_source for each host-facing port
         PiCriterion ingressCriterion = PiCriterion.builder()
-                .matchExact(BasicConstants.HDR_IN_PORT_ID, port.toLong())
+                .matchExact(BasicConstants.HDR_STANDARD_METADATA_INGRESS_PORT, port.toLong())
                 .build();
         TrafficSelector srcSelector = DefaultTrafficSelector.builder()
                 .matchPi(ingressCriterion)

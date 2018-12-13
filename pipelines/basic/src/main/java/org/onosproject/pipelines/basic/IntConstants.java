@@ -22,8 +22,6 @@ import org.onosproject.net.pi.model.PiCounterId;
 import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiTableId;
 
-import static org.onosproject.pipelines.basic.BasicConstants.*;
-
 /**
  * Constants for INT pipeline.
  */
@@ -32,6 +30,11 @@ public final class IntConstants {
     // Hide default constructor
     private IntConstants() {
     }
+
+    private static final String HDR = "hdr";
+    private static final String DOT = ".";
+    private static final String STANDARD_METADATA = "standard_metadata";
+    private static final String LOCAL_METADATA = "local_metadata";
 
     // Strings
     private static final String EGRESS = "egress";

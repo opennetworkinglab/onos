@@ -73,7 +73,6 @@ tables {
   const_default_action_id: 16784184
   direct_resource_ids: 318816189
   size: 1024
-  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -142,7 +141,6 @@ tables {
   }
   direct_resource_ids: 318829828
   size: 256
-  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -165,7 +163,6 @@ tables {
   }
   direct_resource_ids: 318811186
   size: 256
-  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -206,7 +203,6 @@ tables {
   }
   direct_resource_ids: 318796349
   size: 1024
-  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -223,7 +219,6 @@ tables {
   }
   direct_resource_ids: 318803385
   size: 2
-  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -291,7 +286,6 @@ tables {
   }
   direct_resource_ids: 318805102
   size: 16
-  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -359,7 +353,6 @@ tables {
   }
   direct_resource_ids: 318775631
   size: 16
-  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {

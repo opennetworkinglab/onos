@@ -73,7 +73,6 @@ tables {
   const_default_action_id: 16784184
   direct_resource_ids: 318816189
   size: 1024
-  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -95,7 +94,6 @@ tables {
   }
   direct_resource_ids: 352337889
   size: 1024
-  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -119,7 +117,6 @@ tables {
   implementation_id: 285253634
   direct_resource_ids: 318811794
   size: 1024
-  idle_timeout_behavior: NO_TIMEOUT
 }
 actions {
   preamble {
@@ -238,6 +235,28 @@ direct_counters {
     unit: BOTH
   }
   direct_table_id: 33594717
+}
+meters {
+  preamble {
+    id: 335581151
+    name: "ingress.port_meters_ingress.ingress_port_meter"
+    alias: "ingress_port_meter"
+  }
+  spec {
+    unit: BYTES
+  }
+  size: 511
+}
+meters {
+  preamble {
+    id: 335569641
+    name: "egress.port_meters_egress.egress_port_meter"
+    alias: "egress_port_meter"
+  }
+  spec {
+    unit: BYTES
+  }
+  size: 511
 }
 direct_meters {
   preamble {
