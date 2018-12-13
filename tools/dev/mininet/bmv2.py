@@ -1,14 +1,14 @@
-import json
 import multiprocessing
 import os
+
+import json
 import random
 import re
 import socket
 import threading
+import time
 import urllib2
 from contextlib import closing
-
-import time
 from mininet.log import info, warn
 from mininet.node import Switch, Host
 
@@ -148,10 +148,10 @@ class ONOSBmv2Switch(Switch):
                     "deviceId": BMV2_DEFAULT_DEVICE_ID,
                     "deviceKeyId": "p4runtime:%s" % self.onosDeviceId
                 },
-                "bmv2-thrift": {
-                    "ip": srcIP,
-                    "port": self.thriftPort
-                }
+                # "bmv2-thrift": {
+                #     "ip": srcIP,
+                #     "port": self.thriftPort
+                # }
             },
             "piPipeconf": {
                 "piPipeconfId": self.pipeconfId

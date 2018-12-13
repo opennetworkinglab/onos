@@ -342,3 +342,6 @@ alias atttopo='onos-netcfg $OCI $ONOS_ROOT/tools/test/topos/attmpls-cfg.json'
 
 # Load UK topo GEO data
 alias uktopo='onos-netcfg $OCI $ONOS_ROOT/tools/test/topos/uk-cfg.json'
+
+# Mininet command that uses BMv2 instead of OVS
+alias mn-p4='sudo -E mn --custom $BMV2_MN_PY --switch onosbmv2 --controller remote,ip=$OC1'
