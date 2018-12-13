@@ -1,6 +1,5 @@
 build --nouse_ijars
 build --experimental_strict_action_env
-build --incompatible_remove_native_git_repository=false
 test --test_summary=terse
 test --test_output=errors
 test --test_verbose_timeout_warnings
