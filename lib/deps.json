@@ -240,6 +240,7 @@
     "io_netty_netty_common": "mvn:io.netty:netty-common:4.1.27.Final",
     "io_netty_netty_handler": "mvn:io.netty:netty-handler:4.1.27.Final",
     "io_netty_netty_handler_proxy": "mvn:io.netty:netty-handler-proxy:4.1.27.Final",
+    "io_netty_netty_tcnative_boringssl": "mvn:io.netty:netty-tcnative-boringssl-static:2.0.12.Final",
     "io_netty_netty_transport": "mvn:io.netty:netty-transport:4.1.27.Final",
     "io_netty_netty_transport_native_unix_common": "mvn:io.netty:netty-transport-native-unix-common:4.1.27.Final",
     "io_netty_netty_transport-native-epoll": "mvn:io.netty:netty-transport-native-epoll:4.1.27.Final",

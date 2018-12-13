@@ -19,8 +19,11 @@ package org.onosproject.grpc.ctl;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Striped;
 import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
+import io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.NettyChannelBuilder;
+import io.netty.handler.ssl.NotSslRecordException;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -37,12 +40,14 @@ import org.onosproject.grpc.api.GrpcClientKey;
 import org.onosproject.net.DeviceId;
 import org.slf4j.Logger;
 
+import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -93,10 +98,15 @@ public abstract class AbstractGrpcClientController
     @Override
     public boolean createClient(K clientKey) {
         checkNotNull(clientKey);
-        return withDeviceLock(() -> doCreateClient(clientKey), clientKey.deviceId());
+        /*
+            FIXME we might want to move "useTls" and "fallback" to properties of the netcfg and clientKey
+                  For now, we will first try to connect with TLS (accepting any cert), then fall back to
+                  plaintext for every device
+         */
+        return withDeviceLock(() -> doCreateClient(clientKey, true, true), clientKey.deviceId());
     }
 
-    private boolean doCreateClient(K clientKey) {
+    private boolean doCreateClient(K clientKey, boolean useTls, boolean fallbackToPlainText) {
         DeviceId deviceId = clientKey.deviceId();
         String serverAddr = clientKey.serverAddr();
         int serverPort = clientKey.serverPort();
@@ -114,20 +124,57 @@ public abstract class AbstractGrpcClientController
                 doRemoveClient(deviceId);
             }
         }
-        log.info("Creating client for {} (server={}:{})...",
-                deviceId, serverAddr, serverPort);
+        log.info("Creating client for {} (server={}:{})...", deviceId, serverAddr, serverPort);
+
+        SslContext sslContext = null;
+        if (useTls) {
+            try {
+                // Accept any server certificate; this is insecure and should not be used in production
+                sslContext = GrpcSslContexts.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build();
+            } catch (SSLException e) {
+                log.error("Failed to build SSL Context", e);
+                return false;
+            }
+        }
+
         GrpcChannelId channelId = GrpcChannelId.of(clientKey.deviceId(), clientKey.toString());
-        ManagedChannelBuilder channelBuilder = NettyChannelBuilder
+        NettyChannelBuilder channelBuilder = NettyChannelBuilder
                 .forAddress(serverAddr, serverPort)
-                .maxInboundMessageSize(DEFAULT_MAX_INBOUND_MSG_SIZE * MEGABYTES)
-                .usePlaintext();
+                .maxInboundMessageSize(DEFAULT_MAX_INBOUND_MSG_SIZE * MEGABYTES);
+        if (sslContext != null) {
+            log.debug("Using SSL for gRPC connection to {}", deviceId);
+            channelBuilder
+                    .sslContext(sslContext)
+                    .useTransportSecurity();
+        } else {
+            checkState(!useTls,
+                    "Not authorized to use plaintext for gRPC connection to {}", deviceId);
+            log.debug("Using plaintext TCP for gRPC connection to {}", deviceId);
+            channelBuilder.usePlaintext();
+        }
 
         ManagedChannel channel;
         try {
             channel = grpcChannelController.connectChannel(channelId, channelBuilder);
         } catch (IOException e) {
-            log.warn("Unable to connect to gRPC server of {}: {}",
-                    clientKey.deviceId(), e.getMessage());
+            for (Throwable cause = e; cause != null; cause = cause.getCause()) {
+                if (useTls && cause instanceof NotSslRecordException) {
+                    // Likely root cause is that server is using plaintext
+                    log.info("Failed to connect to server (device={}) using TLS", deviceId);
+                    log.debug("TLS connection exception", e);
+                    if (fallbackToPlainText) {
+                        log.info("Falling back to plaintext for connection to {}", deviceId);
+                        return doCreateClient(clientKey, false, false);
+                    }
+                }
+                if (!useTls && "Connection reset by peer".equals(cause.getMessage())) {
+                    // Not a great signal, but could indicate the server is expected a TLS connection
+                    log.error("Failed to connect to server (device={}) using plaintext TCP; is the server using TLS?",
+                            deviceId);
+                    break;
+                }
+            }
+            log.warn("Unable to connect to gRPC server for {}", deviceId, e);
             return false;
         }
 
