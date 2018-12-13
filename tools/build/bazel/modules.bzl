@@ -299,6 +299,7 @@ APP_JARS = [
 ]
 
 FEATURES = [
+    "//tools/package/features:onos-netty",
     "//tools/package/features:onos-thirdparty-base",
     "//tools/package/features:onos-thirdparty-web",
     "//tools/package/features:onos-api",

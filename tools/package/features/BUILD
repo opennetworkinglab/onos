@@ -8,6 +8,27 @@ osgi_feature_repo(
 )
 
 osgi_feature(
+    name = "onos-netty",
+    description = "ONOS Netty dependencies",
+    included_bundles = [
+        "@io_netty_netty//jar",
+        "@io_netty_netty_common//jar",
+        "@io_netty_netty_buffer//jar",
+        "@io_netty_netty_handler//jar",
+        "@io_netty_netty_tcnative_boringssl//jar",
+        "@io_netty_netty_codec//jar",
+        "@io_netty_netty_codec_http//jar",
+        "@io_netty_netty_codec_http2//jar",
+        "@io_netty_netty_transport//jar",
+        "@io_netty_netty_transport_native_epoll//jar",
+        "@io_netty_netty_transport_native_unix_common//jar",
+        "@io_netty_netty_resolver//jar",
+    ],
+    required_features = [],
+    visibility = ["//visibility:public"],
+)
+
+osgi_feature(
     name = "onos-thirdparty-base",
     description = "ONOS 3rd party dependencies",
     included_bundles = ATOMIX + [
@@ -17,15 +38,6 @@ osgi_feature(
         "@commons_codec//jar",
         "@commons_configuration//jar",
         "@com_google_guava_guava//jar",
-        "@io_netty_netty//jar",
-        "@io_netty_netty_common//jar",
-        "@io_netty_netty_buffer//jar",
-        "@io_netty_netty_transport//jar",
-        "@io_netty_netty_handler//jar",
-        "@io_netty_netty_codec//jar",
-        "@io_netty_netty_transport_native_epoll//jar",
-        "@io_netty_netty_transport_native_unix_common//jar",
-        "@io_netty_netty_resolver//jar",
         "@commons_pool//jar",
         "@commons_math3//jar",
         "@joda_time//jar",
@@ -53,7 +65,7 @@ osgi_feature(
         "@org_osgi_util_function//jar",
         "@org_osgi_util_promise//jar",
     ],
-    required_features = [],
+    required_features = ["onos-netty"],
     visibility = ["//visibility:public"],
 )
 
