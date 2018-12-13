@@ -18,6 +18,7 @@
         <step name="Check-Environment"
               exec="test -n ${ONOS_ROOT} -a -n ${ONOS_NIC} -a -n ${OC1}"/>
         <step name="Check-ONOS-Bits" exec="onos-check-bits"/>
+        <step name="Set-OpenJDK-11-As-Default" if="${stcOpenJDK}" exec="stc-set-openjdk11"/>
         <parallel var="${OC#}">
             <step name="Check-Passwordless-Login-${#}"
                   exec="ssh -n -o ConnectTimeout=3 -o PasswordAuthentication=no ${ONOS_USER}@${OC#} date"/>
