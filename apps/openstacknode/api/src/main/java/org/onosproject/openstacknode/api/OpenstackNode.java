@@ -30,16 +30,6 @@ import java.util.Collection;
 public interface OpenstackNode {
 
     /**
-     * List of valid network modes.
-     * This includes both physical and virtual network types.
-     */
-    enum NetworkMode {
-        VXLAN,
-        VLAN,
-        FLAT
-    }
-
-    /**
      * List of valid node types.
      */
     enum NodeType {
@@ -105,11 +95,18 @@ public interface OpenstackNode {
     NodeState state();
 
     /**
-     * Returns the tunnel port number.
+     * Returns the GRE tunnel port number.
      *
-     * @return port number; null if tunnel port does not exist
+     * @return GRE port number; null if the GRE tunnel port does not exist
      */
-    PortNumber tunnelPortNum();
+    PortNumber greTunnelPortNum();
+
+    /**
+     * Returns the VXLAN tunnel port number.
+     *
+     * @return VXLAN port number; null if tunnel port does not exist
+     */
+    PortNumber vxlanTunnelPortNum();
 
     /**
      * Returns the vlan port number.

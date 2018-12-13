@@ -395,6 +395,11 @@ public class OpenstackNetworkManager
                         .filter(n -> n.getNetworkType() == NetworkType.VXLAN)
                         .map(IdEntity::getId).collect(Collectors.toSet());
                 break;
+            case "GRE" :
+                networkIds = networks.stream()
+                        .filter(n -> n.getNetworkType() == NetworkType.GRE)
+                        .map(IdEntity::getId).collect(Collectors.toSet());
+                break;
             case "VLAN" :
                 networkIds = networks.stream()
                         .filter(n -> n.getNetworkType() == NetworkType.VLAN)

@@ -103,6 +103,7 @@ public class OpenstackRoutingIcmpHandler {
     private static final String ERR_DUPLICATE = " already exists";
 
     private static final String VXLAN = "VXLAN";
+    private static final String GRE = "GRE";
     private static final String VLAN = "VLAN";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -517,6 +518,7 @@ public class OpenstackRoutingIcmpHandler {
 
             switch (osNetworkService.networkType(netId)) {
                 case VXLAN:
+                case GRE:
                     tBuilder.setTunnelId(Long.valueOf(segId));
                     break;
                 case VLAN:
@@ -538,4 +540,5 @@ public class OpenstackRoutingIcmpHandler {
             return ((ICMPEcho) icmp.getPayload()).getIdentifier();
         }
     }
+
 }

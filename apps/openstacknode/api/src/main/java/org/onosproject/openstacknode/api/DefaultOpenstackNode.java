@@ -35,7 +35,8 @@ import java.util.Optional;
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.onosproject.net.AnnotationKeys.PORT_MAC;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
-import static org.onosproject.openstacknode.api.Constants.DEFAULT_TUNNEL;
+import static org.onosproject.openstacknode.api.Constants.GRE_TUNNEL;
+import static org.onosproject.openstacknode.api.Constants.VXLAN_TUNNEL;
 import static org.onosproject.openstacknode.api.Constants.PATCH_INTG_BRIDGE;
 
 /**
@@ -185,15 +186,26 @@ public class DefaultOpenstackNode implements OpenstackNode {
         return port != null ? port.number() : null;
 
     }
+
     @Override
-    public PortNumber tunnelPortNum() {
+    public PortNumber vxlanTunnelPortNum() {
+        return tunnelPortNum(VXLAN_TUNNEL);
+    }
+
+    @Override
+    public PortNumber greTunnelPortNum() {
+        return tunnelPortNum(GRE_TUNNEL);
+
+    }
+
+    private PortNumber tunnelPortNum(String tunnelType) {
         if (dataIp == null) {
             return null;
         }
         DeviceService deviceService = DefaultServiceDirectory.getService(DeviceService.class);
         Port port = deviceService.getPorts(intgBridge).stream()
                 .filter(p -> p.isEnabled() &&
-                        Objects.equals(p.annotations().value(PORT_NAME), DEFAULT_TUNNEL))
+                        Objects.equals(p.annotations().value(PORT_NAME), tunnelType))
                 .findAny().orElse(null);
         return port != null ? port.number() : null;
     }

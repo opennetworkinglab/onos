@@ -50,6 +50,7 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
@@ -155,6 +156,7 @@ public final class OpenstackNetworkingUtil {
     private static final String ERR_FLOW = "Failed set flows for floating IP %s: ";
 
     private static final String VXLAN = "VXLAN";
+    private static final String GRE = "GRE";
     private static final String VLAN = "VLAN";
     private static final String DL_DST = "dl_dst=";
     private static final String NW_DST = "nw_dst=";
@@ -768,6 +770,7 @@ public final class OpenstackNetworkingUtil {
 
             String modifiedDstIp = dstIp;
             if (osNetService.networkType(srcInstancePort.networkId()).equals(VXLAN) ||
+                    osNetService.networkType(srcInstancePort.networkId()).equals(GRE) ||
                     osNetService.networkType(srcInstancePort.networkId()).equals(VLAN)) {
                 if (srcIp.equals(dstIp)) {
                     modifiedDstIp = osNetService.gatewayIp(srcInstancePort.portId());
@@ -795,6 +798,7 @@ public final class OpenstackNetworkingUtil {
                     .append(COMMA);
 
             if (osNetService.networkType(srcInstancePort.networkId()).equals(VXLAN) ||
+                    osNetService.networkType(srcInstancePort.networkId()).equals(GRE) ||
                     osNetService.networkType(srcInstancePort.networkId()).equals(VLAN)) {
                 requestStringBuilder.append(TUN_ID)
                         .append(osNetService.segmentId(srcInstancePort.networkId()))
@@ -1044,6 +1048,44 @@ public final class OpenstackNetworkingUtil {
 
         return IpAddress.valueOf(exGatewayPort.getFixedIps().stream()
                 .findAny().get().getIpAddress());
+    }
+
+    /**
+     * Returns the tunnel port number with specified net ID and openstack node.
+     *
+     * @param netId network ID
+     * @param netService network service
+     * @param osNode openstack node
+     * @return tunnel port number
+     */
+    public static PortNumber tunnelPortNumByNetId(String netId,
+                                                  OpenstackNetworkService netService,
+                                                  OpenstackNode osNode) {
+        String netType = netService.networkType(netId);
+
+        if (netType == null) {
+            return null;
+        }
+
+        return tunnelPortNumByNetType(netType, osNode);
+    }
+
+    /**
+     * Returns the tunnel port number with specified net type and openstack node.
+     *
+     * @param netType network type
+     * @param osNode openstack node
+     * @return tunnel port number
+     */
+    public static PortNumber tunnelPortNumByNetType(String netType, OpenstackNode osNode) {
+        switch (netType) {
+            case VXLAN:
+                return osNode.vxlanTunnelPortNum();
+            case GRE:
+                return osNode.greTunnelPortNum();
+            default:
+                return null;
+        }
     }
 
     private static Router getRouterFromSubnet(Subnet subnet,

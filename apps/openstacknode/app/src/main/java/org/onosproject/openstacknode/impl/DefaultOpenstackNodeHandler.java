@@ -64,6 +64,7 @@ import org.onosproject.ovsdb.rfc.notation.OvsdbMap;
 import org.onosproject.ovsdb.rfc.notation.OvsdbSet;
 import org.onosproject.ovsdb.rfc.table.Interface;
 import org.openstack4j.api.OSClient;
+import org.openstack4j.model.network.NetworkType;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
@@ -80,7 +81,8 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.packet.TpPort.tpPort;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
-import static org.onosproject.openstacknode.api.Constants.DEFAULT_TUNNEL;
+import static org.onosproject.openstacknode.api.Constants.GRE_TUNNEL;
+import static org.onosproject.openstacknode.api.Constants.VXLAN_TUNNEL;
 import static org.onosproject.openstacknode.api.Constants.INTEGRATION_BRIDGE;
 import static org.onosproject.openstacknode.api.Constants.TUNNEL_BRIDGE;
 import static org.onosproject.openstacknode.api.DpdkConfig.DatapathType.NETDEV;
@@ -222,8 +224,13 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
             }
 
             if (osNode.dataIp() != null &&
-                    !isIntfEnabled(osNode, DEFAULT_TUNNEL)) {
-                createTunnelInterface(osNode);
+                    !isIntfEnabled(osNode, VXLAN_TUNNEL)) {
+                createVxlanTunnelInterface(osNode);
+            }
+
+            if (osNode.dataIp() != null &&
+                    !isIntfEnabled(osNode, GRE_TUNNEL)) {
+                createGreTunnelInterface(osNode);
             }
 
             if (osNode.dpdkConfig() != null && osNode.dpdkConfig().dpdkIntfs() != null) {
@@ -338,12 +345,31 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
     }
 
     /**
+     * Creates a VXLAN tunnel interface in a given openstack node.
+     *
+     * @param osNode openstack node
+     */
+    private void createVxlanTunnelInterface(OpenstackNode osNode) {
+        createTunnelInterface(osNode, NetworkType.VXLAN, VXLAN_TUNNEL);
+    }
+
+    /**
+     * Creates a GRE tunnel interface in a given openstack node.
+     *
+     * @param osNode openstack node
+     */
+    private void createGreTunnelInterface(OpenstackNode osNode) {
+        createTunnelInterface(osNode, NetworkType.GRE, GRE_TUNNEL);
+    }
+
+    /**
      * Creates a tunnel interface in a given openstack node.
      *
      * @param osNode openstack node
      */
-    private void createTunnelInterface(OpenstackNode osNode) {
-        if (isIntfEnabled(osNode, DEFAULT_TUNNEL)) {
+    private void createTunnelInterface(OpenstackNode osNode,
+                                       NetworkType type, String intfName) {
+        if (isIntfEnabled(osNode, intfName)) {
             return;
         }
 
@@ -353,16 +379,41 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
             return;
         }
 
-        TunnelDescription tunnelDesc = DefaultTunnelDescription.builder()
-                .deviceId(INTEGRATION_BRIDGE)
-                .ifaceName(DEFAULT_TUNNEL)
-                .type(TunnelDescription.Type.VXLAN)
-                .remote(TunnelEndPoints.flowTunnelEndpoint())
-                .key(TunnelKeys.flowTunnelKey())
-                .build();
+        TunnelDescription tunnelDesc = buildTunnelDesc(type, intfName);
 
         InterfaceConfig ifaceConfig = device.as(InterfaceConfig.class);
-        ifaceConfig.addTunnelMode(DEFAULT_TUNNEL, tunnelDesc);
+        ifaceConfig.addTunnelMode(intfName, tunnelDesc);
+    }
+
+    /**
+     * Builds tunnel description according to the network type.
+     *
+     * @param type network type
+     * @return tunnel description
+     */
+    private TunnelDescription buildTunnelDesc(NetworkType type, String intfName) {
+        if (type ==  NetworkType.VXLAN || type == NetworkType.GRE) {
+            TunnelDescription.Builder tdBuilder =
+                    DefaultTunnelDescription.builder()
+                    .deviceId(INTEGRATION_BRIDGE)
+                    .ifaceName(intfName)
+                    .remote(TunnelEndPoints.flowTunnelEndpoint())
+                    .key(TunnelKeys.flowTunnelKey());
+
+            switch (type) {
+                case VXLAN:
+                    tdBuilder.type(TunnelDescription.Type.VXLAN);
+                    break;
+                case GRE:
+                    tdBuilder.type(TunnelDescription.Type.GRE);
+                    break;
+                default:
+                    return null;
+            }
+
+            return tdBuilder.build();
+        }
+        return null;
     }
 
     /**
@@ -402,7 +453,11 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                 return initStateDone;
             case DEVICE_CREATED:
                 if (osNode.dataIp() != null &&
-                        !isIntfEnabled(osNode, DEFAULT_TUNNEL)) {
+                        !isIntfEnabled(osNode, VXLAN_TUNNEL)) {
+                    return false;
+                }
+                if (osNode.dataIp() != null &&
+                        !isIntfEnabled(osNode, GRE_TUNNEL)) {
                     return false;
                 }
                 if (osNode.vlanIntf() != null &&
@@ -760,7 +815,8 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                         Port port = event.port();
                         String portName = port.annotations().value(PORT_NAME);
                         if (osNode.state() == DEVICE_CREATED && (
-                                Objects.equals(portName, DEFAULT_TUNNEL) ||
+                                Objects.equals(portName, VXLAN_TUNNEL) ||
+                                Objects.equals(portName, GRE_TUNNEL) ||
                                 Objects.equals(portName, osNode.vlanIntf()) ||
                                 Objects.equals(portName, osNode.uplinkPort()) ||
                                         containsPhyIntf(osNode, portName)) ||
@@ -787,7 +843,8 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                         Port port = event.port();
                         String portName = port.annotations().value(PORT_NAME);
                         if (osNode.state() == COMPLETE && (
-                                Objects.equals(portName, DEFAULT_TUNNEL) ||
+                                Objects.equals(portName, VXLAN_TUNNEL) ||
+                                Objects.equals(portName, GRE_TUNNEL) ||
                                 Objects.equals(portName, osNode.vlanIntf()) ||
                                 Objects.equals(portName, osNode.uplinkPort()) ||
                                         containsPhyIntf(osNode, portName)) ||
