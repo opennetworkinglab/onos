@@ -64,7 +64,6 @@ import org.onosproject.ovsdb.rfc.notation.OvsdbMap;
 import org.onosproject.ovsdb.rfc.notation.OvsdbSet;
 import org.onosproject.ovsdb.rfc.table.Interface;
 import org.openstack4j.api.OSClient;
-import org.openstack4j.model.network.NetworkType;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
@@ -81,10 +80,12 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.packet.TpPort.tpPort;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
+import static org.onosproject.openstacknode.api.Constants.GRE;
 import static org.onosproject.openstacknode.api.Constants.GRE_TUNNEL;
-import static org.onosproject.openstacknode.api.Constants.VXLAN_TUNNEL;
 import static org.onosproject.openstacknode.api.Constants.INTEGRATION_BRIDGE;
 import static org.onosproject.openstacknode.api.Constants.TUNNEL_BRIDGE;
+import static org.onosproject.openstacknode.api.Constants.VXLAN;
+import static org.onosproject.openstacknode.api.Constants.VXLAN_TUNNEL;
 import static org.onosproject.openstacknode.api.DpdkConfig.DatapathType.NETDEV;
 import static org.onosproject.openstacknode.api.NodeState.COMPLETE;
 import static org.onosproject.openstacknode.api.NodeState.DEVICE_CREATED;
@@ -350,7 +351,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
      * @param osNode openstack node
      */
     private void createVxlanTunnelInterface(OpenstackNode osNode) {
-        createTunnelInterface(osNode, NetworkType.VXLAN, VXLAN_TUNNEL);
+        createTunnelInterface(osNode, VXLAN, VXLAN_TUNNEL);
     }
 
     /**
@@ -359,7 +360,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
      * @param osNode openstack node
      */
     private void createGreTunnelInterface(OpenstackNode osNode) {
-        createTunnelInterface(osNode, NetworkType.GRE, GRE_TUNNEL);
+        createTunnelInterface(osNode, GRE, GRE_TUNNEL);
     }
 
     /**
@@ -368,7 +369,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
      * @param osNode openstack node
      */
     private void createTunnelInterface(OpenstackNode osNode,
-                                       NetworkType type, String intfName) {
+                                       String type, String intfName) {
         if (isIntfEnabled(osNode, intfName)) {
             return;
         }
@@ -391,8 +392,8 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
      * @param type network type
      * @return tunnel description
      */
-    private TunnelDescription buildTunnelDesc(NetworkType type, String intfName) {
-        if (type ==  NetworkType.VXLAN || type == NetworkType.GRE) {
+    private TunnelDescription buildTunnelDesc(String type, String intfName) {
+        if (VXLAN.equals(type) || GRE.equals(type)) {
             TunnelDescription.Builder tdBuilder =
                     DefaultTunnelDescription.builder()
                     .deviceId(INTEGRATION_BRIDGE)

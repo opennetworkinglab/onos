@@ -55,6 +55,7 @@ import org.onosproject.openstacknetworking.api.InstancePortAdminService;
 import org.onosproject.openstacknetworking.api.InstancePortEvent;
 import org.onosproject.openstacknetworking.api.InstancePortListener;
 import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
+import org.onosproject.openstacknetworking.api.OpenstackNetwork.Type;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkListener;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
@@ -70,7 +71,6 @@ import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.openstack4j.model.network.Network;
-import org.openstack4j.model.network.NetworkType;
 import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.SecurityGroup;
 import org.openstack4j.model.network.SecurityGroupRule;
@@ -108,6 +108,9 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ACL_RUL
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_CT_DROP_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_CT_HOOK_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_CT_RULE;
+import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.GRE;
+import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.VLAN;
+import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.VXLAN;
 import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_PRE_REMOVE;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.swapStaleLocation;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.computeCtMaskFlag;
@@ -214,10 +217,6 @@ public class OpenstackSecurityGroupHandler {
     private static final String EGRESS = "EGRESS";
     private static final String INGRESS = "INGRESS";
     private static final IpPrefix IP_PREFIX_ANY = Ip4Prefix.valueOf("0.0.0.0/0");
-
-    private static final String VXLAN = "VXLAN";
-    private static final String GRE = "GRE";
-    private static final String VLAN = "VLAN";
 
     // We expose pipeline structure to SONA application considering removing pipeline soon.
     private static final int GOTO_CONNTRACK_TABLE = CT_TABLE;
@@ -580,11 +579,11 @@ public class OpenstackSecurityGroupHandler {
 
     private void buildTunnelId(TrafficSelector.Builder sBuilder, String netId) {
         String segId = osNetService.segmentId(netId);
-        String netType = osNetService.networkType(netId);
+        Type netType = osNetService.networkType(netId);
 
-        if (VLAN.equals(netType)) {
+        if (netType == VLAN) {
             sBuilder.matchVlanId(VlanId.vlanId(segId));
-        } else if (VXLAN.equals(netType) || GRE.equals(netType)) {
+        } else if (netType == VXLAN || netType == GRE) {
             sBuilder.matchTunnelId(Long.valueOf(segId));
         } else {
             log.warn("Cannot tag the VID due to lack of support of virtual network type {}", netType);
@@ -905,7 +904,7 @@ public class OpenstackSecurityGroupHandler {
             TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
 
             Network net = osNetService.network(instPort.networkId());
-            NetworkType netType = net.getNetworkType();
+            Type netType = osNetService.networkType(instPort.networkId());
             String segId = net.getProviderSegID();
 
             switch (netType) {

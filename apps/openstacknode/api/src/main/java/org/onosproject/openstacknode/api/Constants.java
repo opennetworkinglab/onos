@@ -38,4 +38,10 @@ public final class Constants {
     public static final String DATA_IP = "dataIp";
     public static final String VLAN_INTF_NAME = "vlanPort";
     public static final String UPLINK_PORT = "uplinkPort";
+
+    public static final String FLAT = "flat";
+    public static final String VLAN = "vlan";
+    public static final String VXLAN = "vxlan";
+    public static final String GRE = "gre";
+    public static final String GENEVE = "geneve";
 }

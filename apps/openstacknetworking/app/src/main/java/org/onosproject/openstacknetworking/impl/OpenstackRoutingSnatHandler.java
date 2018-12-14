@@ -47,6 +47,7 @@ import org.onosproject.openstacknetworking.api.ExternalPeerRouter;
 import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.InstancePortService;
 import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
+import org.onosproject.openstacknetworking.api.OpenstackNetwork.Type;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterService;
 import org.onosproject.openstacknetworking.util.RulePopulatorUtil;
@@ -59,7 +60,6 @@ import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.openstack4j.model.network.IP;
 import org.openstack4j.model.network.Network;
-import org.openstack4j.model.network.NetworkType;
 import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.Subnet;
 import org.slf4j.Logger;
@@ -228,6 +228,8 @@ public class OpenstackRoutingSnatHandler {
                                        TpPort patPort, IpAddress externalIp,
                                        ExternalPeerRouter externalPeerRouter) {
         Network osNet = osNetworkService.network(srcInstPort.networkId());
+        Type netType = osNetworkService.networkType(srcInstPort.networkId());
+
         if (osNet == null) {
             final String error = String.format("%s network %s not found",
                                         ERR_PACKETIN, srcInstPort.networkId());
@@ -236,14 +238,14 @@ public class OpenstackRoutingSnatHandler {
 
         setDownstreamRules(srcInstPort,
                 osNet.getProviderSegID(),
-                osNet.getNetworkType(),
+                netType,
                 externalIp,
                 externalPeerRouter,
                 patPort,
                 packetIn);
 
         setUpstreamRules(osNet.getProviderSegID(),
-                osNet.getNetworkType(),
+                netType,
                 externalIp,
                 externalPeerRouter,
                 patPort,
@@ -251,7 +253,7 @@ public class OpenstackRoutingSnatHandler {
     }
 
     private void setDownstreamRules(InstancePort srcInstPort, String segmentId,
-                                    NetworkType networkType,
+                                    Type networkType,
                                     IpAddress externalIp,
                                     ExternalPeerRouter externalPeerRouter,
                                     TpPort patPort,
@@ -322,7 +324,7 @@ public class OpenstackRoutingSnatHandler {
         });
     }
 
-    private TrafficTreatment getDownStreamTreatment(NetworkType networkType,
+    private TrafficTreatment getDownStreamTreatment(Type networkType,
                                                     TrafficTreatment.Builder tBuilder,
                                                     OpenstackNode gNode,
                                                     OpenstackNode srcNode) {
@@ -331,7 +333,7 @@ public class OpenstackRoutingSnatHandler {
         switch (networkType) {
             case VXLAN:
             case GRE:
-                PortNumber portNum = tunnelPortNumByNetType(networkType.name(), gNode);
+                PortNumber portNum = tunnelPortNumByNetType(networkType, gNode);
                 tmpBuilder.extension(RulePopulatorUtil.buildExtension(
                         deviceService,
                         gNode.intgBridge(),
@@ -351,7 +353,7 @@ public class OpenstackRoutingSnatHandler {
     }
 
     private void setUpstreamRules(String segmentId,
-                                  NetworkType networkType,
+                                  Type networkType,
                                   IpAddress externalIp,
                                   ExternalPeerRouter externalPeerRouter,
                                   TpPort patPort,

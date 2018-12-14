@@ -41,6 +41,8 @@ import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.openstacknetworking.api.Constants;
 import org.onosproject.openstacknetworking.api.ExternalPeerRouter;
+import org.onosproject.openstacknetworking.api.OpenstackNetwork;
+import org.onosproject.openstacknetworking.api.OpenstackNetwork.Type;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkListener;
@@ -53,17 +55,17 @@ import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
-import org.openstack4j.model.common.IdEntity;
+import org.onosproject.store.service.Versioned;
 import org.openstack4j.model.network.ExternalGateway;
 import org.openstack4j.model.network.IP;
 import org.openstack4j.model.network.Network;
-import org.openstack4j.model.network.NetworkType;
 import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.Router;
 import org.openstack4j.model.network.Subnet;
 import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
@@ -76,6 +78,12 @@ import static java.util.Objects.requireNonNull;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.onosproject.openstacknetworking.api.Constants.DIRECT;
 import static org.onosproject.openstacknetworking.api.Constants.PCISLOT;
+import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.FLAT;
+import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.GENEVE;
+import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.GRE;
+import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.LOCAL;
+import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.VLAN;
+import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.VXLAN;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getIntfNameFromPciAddress;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.vnicType;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
@@ -95,11 +103,15 @@ public class OpenstackNetworkManager
     protected final Logger log = getLogger(getClass());
 
     private static final String MSG_NETWORK  = "OpenStack network %s %s";
+    private static final String MSG_NETWORK_TYPE  = "OpenStack network type %s %s";
     private static final String MSG_SUBNET  = "OpenStack subnet %s %s";
     private static final String MSG_PORT = "OpenStack port %s %s";
     private static final String MSG_CREATED = "created";
     private static final String MSG_UPDATED = "updated";
     private static final String MSG_REMOVED = "removed";
+
+    private static final String ERR_NOT_FOUND = " does not exist";
+    private static final String ERR_DUPLICATE = " already exists";
 
     private static final String ERR_NULL_NETWORK  =
                                 "OpenStack network cannot be null";
@@ -147,6 +159,7 @@ public class OpenstackNetworkManager
                                 delegate = new InternalNetworkStoreDelegate();
 
     private ConsistentMap<String, ExternalPeerRouter> externalPeerRouterMap;
+    private ConsistentMap<String, OpenstackNetwork> augmentedNetworkMap;
 
     private static final KryoNamespace
             SERIALIZER_EXTERNAL_PEER_ROUTER_MAP = KryoNamespace.newBuilder()
@@ -156,6 +169,14 @@ public class OpenstackNetworkManager
             .register(MacAddress.class)
             .register(IpAddress.class)
             .register(VlanId.class)
+            .build();
+
+    private static final KryoNamespace
+            SERIALIZER_AUGMENTED_NETWORK_MAP = KryoNamespace.newBuilder()
+            .register(KryoNamespaces.API)
+            .register(OpenstackNetwork.Type.class)
+            .register(OpenstackNetwork.class)
+            .register(DefaultOpenstackNetwork.class)
             .build();
 
     private ApplicationId appId;
@@ -173,6 +194,12 @@ public class OpenstackNetworkManager
                 .withName("external-routermap")
                 .withApplicationId(appId)
                 .build();
+
+        augmentedNetworkMap = storageService.<String, OpenstackNetwork>consistentMapBuilder()
+                .withSerializer(Serializer.using(SERIALIZER_AUGMENTED_NETWORK_MAP))
+                .withName("augmented-networkmap")
+                .withApplicationId(appId)
+                .build();
     }
 
     @Deactivate
@@ -187,6 +214,14 @@ public class OpenstackNetworkManager
         checkArgument(!Strings.isNullOrEmpty(osNet.getId()), ERR_NULL_NETWORK_ID);
 
         osNetworkStore.createNetwork(osNet);
+
+        OpenstackNetwork finalAugmentedNetwork = buildAugmentedNetworkFromType(osNet);
+        augmentedNetworkMap.compute(osNet.getId(), (id, existing) -> {
+            final String error = osNet.getId() + ERR_DUPLICATE;
+            checkArgument(existing == null, error);
+            return finalAugmentedNetwork;
+        });
+
         log.info(String.format(MSG_NETWORK, osNet.getName(), MSG_CREATED));
     }
 
@@ -196,6 +231,14 @@ public class OpenstackNetworkManager
         checkArgument(!Strings.isNullOrEmpty(osNet.getId()), ERR_NULL_NETWORK_ID);
 
         osNetworkStore.updateNetwork(osNet);
+
+        OpenstackNetwork finalAugmentedNetwork = buildAugmentedNetworkFromType(osNet);
+        augmentedNetworkMap.compute(osNet.getId(), (id, existing) -> {
+            final String error = osNet.getId() + ERR_NOT_FOUND;
+            checkArgument(existing != null, error);
+            return finalAugmentedNetwork;
+        });
+
         log.info(String.format(MSG_NETWORK, osNet.getId(), MSG_UPDATED));
     }
 
@@ -210,6 +253,12 @@ public class OpenstackNetworkManager
             Network osNet = osNetworkStore.removeNetwork(netId);
             if (osNet != null) {
                 log.info(String.format(MSG_NETWORK, osNet.getName(), MSG_REMOVED));
+            }
+
+            Versioned<OpenstackNetwork> augmentedNetwork = augmentedNetworkMap.remove(netId);
+            if (augmentedNetwork != null) {
+                log.info(String.format(MSG_NETWORK_TYPE,
+                                    augmentedNetwork.value().type(), MSG_REMOVED));
             }
         }
     }
@@ -381,29 +430,28 @@ public class OpenstackNetworkManager
             return Sets.newHashSet();
         }
 
-        Set<Network> networks = osNetworkStore.networks();
         Set<String> networkIds = Sets.newConcurrentHashSet();
 
         switch (type.toUpperCase()) {
             case "FLAT" :
-                networkIds = networks.stream()
-                        .filter(n -> n.getNetworkType() == NetworkType.FLAT)
-                        .map(IdEntity::getId).collect(Collectors.toSet());
+                networkIds = augmentedNetworkMap.asJavaMap().entrySet().stream()
+                        .filter(e -> e.getValue().type() == FLAT)
+                        .map(Map.Entry::getKey).collect(Collectors.toSet());
                 break;
             case "VXLAN" :
-                networkIds = networks.stream()
-                        .filter(n -> n.getNetworkType() == NetworkType.VXLAN)
-                        .map(IdEntity::getId).collect(Collectors.toSet());
+                networkIds = augmentedNetworkMap.asJavaMap().entrySet().stream()
+                        .filter(e -> e.getValue().type() == Type.VXLAN)
+                        .map(Map.Entry::getKey).collect(Collectors.toSet());
                 break;
             case "GRE" :
-                networkIds = networks.stream()
-                        .filter(n -> n.getNetworkType() == NetworkType.GRE)
-                        .map(IdEntity::getId).collect(Collectors.toSet());
+                networkIds = augmentedNetworkMap.asJavaMap().entrySet().stream()
+                        .filter(e -> e.getValue().type() == Type.GRE)
+                        .map(Map.Entry::getKey).collect(Collectors.toSet());
                 break;
             case "VLAN" :
-                networkIds = networks.stream()
-                        .filter(n -> n.getNetworkType() == NetworkType.VLAN)
-                        .map(IdEntity::getId).collect(Collectors.toSet());
+                networkIds = augmentedNetworkMap.asJavaMap().entrySet().stream()
+                        .filter(e -> e.getValue().type() == VLAN)
+                        .map(Map.Entry::getKey).collect(Collectors.toSet());
                 break;
             default:
                 break;
@@ -632,12 +680,12 @@ public class OpenstackNetworkManager
     }
 
     @Override
-    public String networkType(String netId) {
-        Network network = network(netId);
+    public Type networkType(String netId) {
+        OpenstackNetwork network = augmentedNetworkMap.asJavaMap().get(netId);
 
         checkNotNull(network);
 
-        return network.getNetworkType().toString();
+        return network.type();
     }
 
     @Override
@@ -671,6 +719,35 @@ public class OpenstackNetworkManager
         checkNotNull(network);
 
         return network.getProviderSegID();
+    }
+
+    private OpenstackNetwork buildAugmentedNetworkFromType(Network osNet) {
+        OpenstackNetwork augmentedNetwork = null;
+        if (osNet.getNetworkType() == null) {
+            augmentedNetwork = new DefaultOpenstackNetwork(osNet.getId(), GENEVE);
+        } else {
+            switch (osNet.getNetworkType()) {
+                case FLAT:
+                    augmentedNetwork = new DefaultOpenstackNetwork(osNet.getId(), FLAT);
+                    break;
+                case VLAN:
+                    augmentedNetwork = new DefaultOpenstackNetwork(osNet.getId(), VLAN);
+                    break;
+                case VXLAN:
+                    augmentedNetwork = new DefaultOpenstackNetwork(osNet.getId(), VXLAN);
+                    break;
+                case GRE:
+                    augmentedNetwork = new DefaultOpenstackNetwork(osNet.getId(), GRE);
+                    break;
+                case LOCAL:
+                    augmentedNetwork = new DefaultOpenstackNetwork(osNet.getId(), LOCAL);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        return augmentedNetwork;
     }
 
     private boolean isNetworkInUse(String netId) {

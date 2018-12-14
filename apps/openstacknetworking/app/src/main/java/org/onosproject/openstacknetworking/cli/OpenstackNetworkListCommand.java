@@ -29,7 +29,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.onosproject.cli.AbstractShellCommand.get;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.modelEntityToJson;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.prettyJson;
 
@@ -51,7 +50,7 @@ public class OpenstackNetworkListCommand extends AbstractShellCommand {
         if (outputJson()) {
             print("%s", json(networks));
         } else {
-            print(FORMAT, "ID", "Name", "Network Mode", "SegId", "Subnets", "HostRoutes");
+            print(FORMAT, "ID", "Name", "Type", "SegId", "Subnets", "HostRoutes");
             for (Network net: networks) {
                 List<Subnet> subnets = service.subnets().stream()
                         .filter(subnet -> subnet.getNetworkId().equals(net.getId()))
@@ -69,7 +68,7 @@ public class OpenstackNetworkListCommand extends AbstractShellCommand {
 
                 print(FORMAT, net.getId(),
                         net.getName(),
-                        net.getNetworkType().toString(),
+                        service.networkType(net.getId()).toString(),
                         net.getProviderSegID(),
                         subnets.isEmpty() ? "" : subnetsString,
                         hostRoutes.isEmpty() ? "" : hostRoutes);
