@@ -52,6 +52,10 @@ public final class OvsdbInterface {
          */
         GRE,
         /**
+         * An Ethernet over draft-ietf-nvo3-geneve-08 Generic Network Virtualization Encapsulation tunnel.
+         */
+        GENEVE,
+        /**
          * An Ethernet tunnel over the experimental, UDP-based VXLAN protocol.
          */
         VXLAN,
