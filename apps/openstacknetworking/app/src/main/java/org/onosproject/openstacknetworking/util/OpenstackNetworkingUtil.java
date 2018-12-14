@@ -156,9 +156,6 @@ public final class OpenstackNetworkingUtil {
 
     private static final String ERR_FLOW = "Failed set flows for floating IP %s: ";
 
-    private static final String VXLAN = "VXLAN";
-    private static final String GRE = "GRE";
-    private static final String VLAN = "VLAN";
     private static final String DL_DST = "dl_dst=";
     private static final String NW_DST = "nw_dst=";
     private static final String DEFAULT_REQUEST_STRING = "sudo ovs-appctl ofproto/trace br-int ip";
@@ -770,9 +767,9 @@ public final class OpenstackNetworkingUtil {
                     .append(COMMA);
 
             String modifiedDstIp = dstIp;
-            if (osNetService.networkType(srcInstancePort.networkId()) == Type.VXLAN ||
-                    osNetService.networkType(srcInstancePort.networkId()) == Type.GRE ||
-                    osNetService.networkType(srcInstancePort.networkId()) == Type.VLAN) {
+            Type netType = osNetService.networkType(srcInstancePort.networkId());
+            if (netType == Type.VXLAN || netType == Type.GRE ||
+                    netType == Type.VLAN || netType == Type.GENEVE) {
                 if (srcIp.equals(dstIp)) {
                     modifiedDstIp = osNetService.gatewayIp(srcInstancePort.portId());
                     requestStringBuilder.append(DL_DST)
@@ -798,9 +795,10 @@ public final class OpenstackNetworkingUtil {
                     .append(dstIp)
                     .append(COMMA);
 
-            if (osNetService.networkType(srcInstancePort.networkId()) == Type.VXLAN ||
-                    osNetService.networkType(srcInstancePort.networkId()) == Type.GRE ||
-                    osNetService.networkType(srcInstancePort.networkId()) == Type.VLAN) {
+            Type netType = osNetService.networkType(srcInstancePort.networkId());
+
+            if (netType == Type.VXLAN || netType == Type.GRE ||
+                    netType == Type.VLAN || netType == Type.GENEVE) {
                 requestStringBuilder.append(TUN_ID)
                         .append(osNetService.segmentId(srcInstancePort.networkId()))
                         .append(COMMA);
@@ -1083,6 +1081,8 @@ public final class OpenstackNetworkingUtil {
                 return osNode.vxlanTunnelPortNum();
             case GRE:
                 return osNode.greTunnelPortNum();
+            case GENEVE:
+                return osNode.geneveTunnelPortNum();
             default:
                 return null;
         }

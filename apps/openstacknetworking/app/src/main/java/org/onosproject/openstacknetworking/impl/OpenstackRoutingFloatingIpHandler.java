@@ -83,6 +83,7 @@ import static org.onosproject.openstacknetworking.api.InstancePortEvent.Type.OPE
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.GRE;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.VLAN;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.VXLAN;
+import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.GENEVE;
 import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_PRE_REMOVE;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.associatedFloatingIp;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.externalPeerRouterForNetwork;
@@ -341,9 +342,12 @@ public class OpenstackRoutingFloatingIpHandler {
             return;
         }
 
-        switch (osNet.getNetworkType()) {
+        Type netType = osNetworkService.networkType(osNet.getId());
+
+        switch (netType) {
             case VXLAN:
             case GRE:
+            case GENEVE:
                 PortNumber portNum = tunnelPortNumByNetId(instPort.networkId(),
                         osNetworkService, osNodeService.node(instPort.deviceId()));
 
@@ -406,6 +410,11 @@ public class OpenstackRoutingFloatingIpHandler {
             final String error = String.format(errorFormat, floatingIp, cNode.hostname());
             throw new IllegalStateException(error);
         }
+        if (netType == GENEVE && cNode.dataIp() == null) {
+            final String errorFormat = ERR_FLOW + "GENEVE mode is not ready for %s";
+            final String error = String.format(errorFormat, floatingIp, cNode.hostname());
+            throw new IllegalStateException(error);
+        }
         if (netType == VLAN && cNode.vlanIntf() == null) {
             final String errorFormat = ERR_FLOW + "VLAN mode is not ready for %s";
             final String error = String.format(errorFormat, floatingIp, cNode.hostname());
@@ -436,9 +445,10 @@ public class OpenstackRoutingFloatingIpHandler {
             externalTreatmentBuilder.popVlan();
         }
 
-        switch (osNet.getNetworkType()) {
+        switch (netType) {
             case VXLAN:
             case GRE:
+            case GENEVE:
                 PortNumber portNum = tunnelPortNumByNetId(instPort.networkId(),
                         osNetworkService, selectedGatewayNode);
                 externalTreatmentBuilder.setTunnelId(Long.valueOf(osNet.getProviderSegID()))
@@ -479,9 +489,12 @@ public class OpenstackRoutingFloatingIpHandler {
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPSrc(instPort.ipAddress().toIpPrefix());
 
-        switch (osNet.getNetworkType()) {
+        Type netType = osNetworkService.networkType(osNet.getId());
+
+        switch (netType) {
             case VXLAN:
             case GRE:
+            case GENEVE:
                 sBuilder.matchTunnelId(Long.valueOf(osNet.getProviderSegID()));
                 break;
             case VLAN:
@@ -494,7 +507,6 @@ public class OpenstackRoutingFloatingIpHandler {
         }
 
         TrafficSelector selector = sBuilder.build();
-        Type netType = osNetworkService.networkType(osNet.getId());
 
         osNodeService.completeNodes(GATEWAY).forEach(gNode -> {
             TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()

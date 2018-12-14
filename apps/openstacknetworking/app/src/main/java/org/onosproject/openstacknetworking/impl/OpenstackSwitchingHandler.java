@@ -500,6 +500,7 @@ public class OpenstackSwitchingHandler {
         switch (type) {
             case VXLAN:
             case GRE:
+            case GENEVE:
                 setNetworkBlockRulesForTunnel(network.getProviderSegID(), install);
                 break;
             case VLAN:
@@ -734,7 +735,7 @@ public class OpenstackSwitchingHandler {
 
         /**
          * Configures L2 forwarding rules.
-         * Currently, SONA supports Flat, VXLAN, GRE and VLAN modes.
+         * Currently, SONA supports Flat, VXLAN, GRE, GENEVE and VLAN modes.
          *
          * @param instPort instance port object
          * @param install install flag, add the rule if true, remove it otherwise
@@ -745,6 +746,7 @@ public class OpenstackSwitchingHandler {
             switch (type) {
                 case VXLAN:
                 case GRE:
+                case GENEVE:
                     setNetworkRulesForTunnel(instPort, install);
                     break;
                 case VLAN:
@@ -794,6 +796,7 @@ public class OpenstackSwitchingHandler {
             switch (type) {
                 case VXLAN:
                 case GRE:
+                case GENEVE:
                     removeVportRulesForTunnel(instPort);
                     break;
                 case VLAN:

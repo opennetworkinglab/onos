@@ -86,6 +86,7 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_REP
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_REQUEST_RULE;
 import static org.onosproject.openstacknetworking.api.InstancePort.State.ACTIVE;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.FLAT;
+import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.GENEVE;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.GRE;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.VLAN;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.VXLAN;
@@ -316,7 +317,7 @@ public class OpenstackSwitchingArpHandler {
             if (netType == VLAN) {
                 sBuilder.matchVlanId(VlanId.vlanId(network.getProviderSegID()));
                 tBuilder.popVlan();
-            } else if (netType == VXLAN || netType == GRE) {
+            } else if (netType == VXLAN || netType == GRE || netType == GENEVE) {
                 // do not remove fake gateway ARP rules, if there is another gateway
                 // which has the same subnet that to be removed
                 // this only occurs if we have duplicated subnets associated with
@@ -381,6 +382,7 @@ public class OpenstackSwitchingArpHandler {
         switch (netType) {
             case VXLAN:
             case GRE:
+            case GENEVE:
                 setRemoteArpRequestRuleForTunnel(port, install);
                 break;
             case VLAN:
@@ -406,6 +408,9 @@ public class OpenstackSwitchingArpHandler {
                 break;
             case GRE:
                 setArpReplyRuleForGre(port, install);
+                break;
+            case GENEVE:
+                setArpReplyRuleForGeneve(port, install);
                 break;
             case VLAN:
                 setArpReplyRuleForVlan(port, install);
@@ -500,6 +505,22 @@ public class OpenstackSwitchingArpHandler {
     }
 
     /**
+     * Installs flow rules to match ARP reply packets only for GENEVE.
+     *
+     * @param port      instance port
+     * @param install   installation flag
+     */
+    private void setArpReplyRuleForGeneve(InstancePort port, boolean install) {
+
+        OpenstackNode localNode = osNodeService.node(port.deviceId());
+
+        TrafficSelector selector = getArpReplySelectorForGeneve(port);
+
+        setLocalArpReplyTreatmentForGeneve(selector, port, install);
+        setRemoteArpTreatmentForTunnel(selector, port, localNode, install);
+    }
+
+    /**
      * Installs flow rules to match ARP reply packets only for VLAN.
      *
      * @param port      instance port
@@ -521,6 +542,11 @@ public class OpenstackSwitchingArpHandler {
     // a helper method
     private TrafficSelector getArpReplySelectorForGre(InstancePort port) {
         return getArpReplySelectorForVnet(port, GRE);
+    }
+
+    // a helper method
+    private TrafficSelector getArpReplySelectorForGeneve(InstancePort port) {
+        return getArpReplySelectorForVnet(port, GENEVE);
     }
 
     // a helper method
@@ -559,6 +585,13 @@ public class OpenstackSwitchingArpHandler {
                                                  InstancePort port,
                                                  boolean install) {
         setLocalArpReplyTreatmentForVnet(selector, port, GRE, install);
+    }
+
+    // a helper method
+    private void setLocalArpReplyTreatmentForGeneve(TrafficSelector selector,
+                                                    InstancePort port,
+                                                    boolean install) {
+        setLocalArpReplyTreatmentForVnet(selector, port, GENEVE, install);
     }
 
     // a helper method

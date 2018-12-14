@@ -107,6 +107,7 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ACL_RUL
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_CT_DROP_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_CT_HOOK_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_CT_RULE;
+import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.GENEVE;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.GRE;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.VLAN;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.VXLAN;
@@ -585,7 +586,7 @@ public class OpenstackSecurityGroupHandler {
 
         if (netType == VLAN) {
             sBuilder.matchVlanId(VlanId.vlanId(segId));
-        } else if (netType == VXLAN || netType == GRE) {
+        } else if (netType == VXLAN || netType == GRE || netType == GENEVE) {
             sBuilder.matchTunnelId(Long.valueOf(segId));
         } else {
             log.warn("Cannot tag the VID due to lack of support of virtual network type {}", netType);
@@ -912,6 +913,7 @@ public class OpenstackSecurityGroupHandler {
             switch (netType) {
                 case VXLAN:
                 case GRE:
+                case GENEVE:
                     sBuilder.matchTunnelId(Long.valueOf(segId));
                     break;
                 case VLAN:

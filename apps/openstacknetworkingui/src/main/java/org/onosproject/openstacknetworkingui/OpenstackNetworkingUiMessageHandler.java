@@ -43,7 +43,7 @@ import org.onosproject.net.host.HostService;
 import org.onosproject.net.topology.PathService;
 import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.InstancePortService;
-import org.onosproject.openstacknetworking.api.OpenstackNetwork;
+import org.onosproject.openstacknetworking.api.OpenstackNetwork.Type;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
@@ -75,6 +75,7 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
 import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_MAC_STR;
+import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.GENEVE;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.GRE;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.VLAN;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.VXLAN;
@@ -505,9 +506,9 @@ public class OpenstackNetworkingUiMessageHandler extends UiMessageHandler {
                     .append(srcIp)
                     .append(COMMA);
 
-            OpenstackNetwork.Type netType = osNetService.networkType(srcInstancePort.networkId());
+            Type netType = osNetService.networkType(srcInstancePort.networkId());
 
-            if (netType == VXLAN || netType == VLAN || netType == GRE) {
+            if (netType == VXLAN || netType == VLAN || netType == GRE || netType == GENEVE) {
                 if (srcIp.equals(dstIp)) {
                     dstIp = osNetService.gatewayIp(srcInstancePort.portId());
                     requestStringBuilder.append(DL_DST)

@@ -109,6 +109,13 @@ public interface OpenstackNode {
     PortNumber vxlanTunnelPortNum();
 
     /**
+     * Returns the GENEVE tunnel port number.
+     *
+     * @return GENEVE port number; null if the GRE tunnel port does not exist
+     */
+    PortNumber geneveTunnelPortNum();
+
+    /**
      * Returns the vlan port number.
      *
      * @return port number; null if vlan port does not exist
