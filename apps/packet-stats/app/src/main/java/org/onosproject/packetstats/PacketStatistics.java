@@ -23,6 +23,8 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
+import org.onlab.packet.IPv6;
+import org.onlab.packet.ICMP6;
 import org.onlab.packet.UDP;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
@@ -63,7 +65,7 @@ public class  PacketStatistics {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MetricsService metricService;
 
-    private ReactivePacketProcessor processor = new ReactivePacketProcessor();
+    private PacketCounter processor = new PacketCounter();
     private final Logger log = getLogger(getClass());
 
     private ApplicationId appId;
@@ -82,6 +84,12 @@ public class  PacketStatistics {
     private Counter tcpCounter;
     private MetricsFeature icmpFeature;
     private Counter icmpCounter;
+    private MetricsFeature icmp6Feature;
+    private Counter icmp6Counter;
+    private MetricsFeature nbrSolicitFeature;
+    private Counter nbrSolicitCounter;
+    private MetricsFeature nbrAdvertFeature;
+    private Counter nbrAdvertCounter;
     private MetricsFeature igmpFeature;
     private Counter igmpCounter;
     private MetricsFeature pimFeature;
@@ -94,8 +102,6 @@ public class  PacketStatistics {
     private Counter mplsCounter;
     private MetricsFeature unknownFeature;
     private Counter unknownCounter;
-
-
 
     @Activate
     public void activate(ComponentContext context) {
@@ -113,6 +119,12 @@ public class  PacketStatistics {
                 packetStatisticsComponent.registerFeature("tcpFeature");
         this.icmpFeature =
                 packetStatisticsComponent.registerFeature("icmpFeature");
+        this.icmp6Feature =
+                packetStatisticsComponent.registerFeature("icmp6Feature");
+        this.nbrSolicitFeature =
+                packetStatisticsComponent.registerFeature("nbrSolicitFeature");
+        this.nbrAdvertFeature =
+                packetStatisticsComponent.registerFeature("nbrAdvertFeature");
         this.igmpFeature =
                 packetStatisticsComponent.registerFeature("igmpFeature");
         this.pimFeature =
@@ -135,6 +147,12 @@ public class  PacketStatistics {
                 metricService.createCounter(packetStatisticsComponent, vlanFeature, "vlanPC");
         this.icmpCounter =
                 metricService.createCounter(packetStatisticsComponent, icmpFeature, "icmpPC");
+        this.icmp6Counter =
+                metricService.createCounter(packetStatisticsComponent, icmp6Feature, "icmp6PC");
+        this.nbrSolicitCounter =
+                metricService.createCounter(packetStatisticsComponent, nbrSolicitFeature, "nbrSolicitPC");
+        this.nbrAdvertCounter =
+                metricService.createCounter(packetStatisticsComponent, nbrAdvertFeature, "nbrAdvertPC");
         this.igmpCounter =
                 metricService.createCounter(packetStatisticsComponent, igmpFeature, "igmpPC");
         this.pimCounter =
@@ -146,13 +164,10 @@ public class  PacketStatistics {
         this.unknownCounter =
                 metricService.createCounter(packetStatisticsComponent, unknownFeature, "unknownPC");
 
-
         appId = coreService.registerApplication("org.onosproject.packet-stats");
 
         packetService.addProcessor(processor, PacketProcessor.director(0));
         log.info("Started", appId.id());
-
-
     }
 
     @Deactivate
@@ -166,9 +181,9 @@ public class  PacketStatistics {
 
 
     /**
-     * Packet processor responsible for forwarding packets along their paths.
+     * Packet processor responsible for counting various types of packets.
      */
-    private class ReactivePacketProcessor implements PacketProcessor {
+    private class PacketCounter implements PacketProcessor {
         @Override
         public void process(PacketContext context) {
             InboundPacket pkt = context.inPacket();
@@ -217,12 +232,21 @@ public class  PacketStatistics {
                             dhcpCounter.inc();
                         }
                     }
-
-                } else {
-                    log.info("Packet is unknown.");
+            } else if (ethPkt.getEtherType() == Ethernet.TYPE_IPV6) {
+                   IPv6 ipv6Pkt = (IPv6) ethPkt.getPayload();
+                   if (ipv6Pkt.getNextHeader() == IPv6.PROTOCOL_ICMP6) {
+                       icmp6Counter.inc();
+                       ICMP6 icmpv6 = (ICMP6) ipv6Pkt.getPayload();
+                       if (icmpv6.getIcmpType() == ICMP6.NEIGHBOR_SOLICITATION) {
+                          nbrSolicitCounter.inc();
+                       } else if (icmpv6.getIcmpType() == ICMP6.NEIGHBOR_ADVERTISEMENT) {
+                          nbrAdvertCounter.inc();
+                       }
+                   }
+            } else {
+                    log.debug("Packet is unknown.");
                     unknownCounter.inc();
               }
             }
-            }
-
         }
+}
