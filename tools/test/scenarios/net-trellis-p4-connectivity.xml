@@ -1,0 +1,61 @@
+<!--
+  ~ Copyright 2018-present Open Networking Foundation
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+
+<scenario name="net-trellis-p4-connectivity"
+          description="Trellis P4 network connectivity test steps">
+
+    <group name="Net-Trellis-P4-Connectivity-Host-Discovery">
+        <step name="Net-Trellis-P4-Connectivity-Host-Discovery.h1"
+              exec="onos-mininet sendAndExpect h1 ping -c1 10.0.2.254 --expect \ 0% packet loss"/>
+        <step name="Net-Trellis-P4-Connectivity-Host-Discovery.h2"
+              exec="onos-mininet sendAndExpect h2 ping -c1 10.0.2.254 --expect \ 0% packet loss"
+              requires="~^"/>
+        <step name="Net-Trellis-P4-Connectivity-Host-Discovery.h3"
+              exec="onos-mininet sendAndExpect h3 ping -c1 10.0.3.254 --expect \ 0% packet loss"
+              requires="~^"/>
+        <step name="Net-Trellis-P4-Connectivity-Host-Discovery.h4"
+              exec="onos-mininet sendAndExpect h4 ping -c1 10.0.3.254 --expect \ 0% packet loss"
+              requires="~^"/>
+    </group>
+
+    <group name="Net-Trellis-P4-Connectivity-Bridging"
+           requires="Net-Trellis-P4-Connectivity-Host-Discovery">
+        <step name="Net-Trellis-P4-Connectivity-Bridging.IP4Ping1"
+              exec="onos-mininet sendAndExpect h1 ping -c1 h2 --expect \ 0% packet loss"
+              requires="Net-Trellis-P4-Connectivity-Host-Discovery"/>
+        <step name="Net-Trellis-P4-Connectivity-Bridging.IP4Ping2"
+              exec="onos-mininet sendAndExpect h3 ping -c1 h4 --expect \ 0% packet loss"
+              requires="~^"/>
+    </group>
+
+    <group name="Net-Trellis-P4-Connectivity-Routing"
+           requires="~Net-Trellis-P4-Connectivity-Bridging">
+        <step name="Net-Trellis-P4-Connectivity-Routing.IP4Ping1"
+              exec="onos-mininet sendAndExpect h1 ping -c1 h3 --expect \ 0% packet loss"
+              requires="~Net-Trellis-P4-Connectivity-Bridging"/>
+        <step name="Net-Trellis-P4-Connectivity-Routing.IP4Ping2"
+              exec="onos-mininet sendAndExpect h1 ping -c1 h4 --expect \ 0% packet loss"
+              requires="~^"/>
+        <step name="Net-Trellis-P4-Connectivity-Routing.IP4Ping3"
+              exec="onos-mininet sendAndExpect h2 ping -c1 h3 --expect \ 0% packet loss"
+              requires="~^"/>
+        <step name="Net-Trellis-P4-Connectivity-Routing.IP4Ping4"
+              exec="onos-mininet sendAndExpect h2 ping -c1 h4 --expect \ 0% packet loss"
+              requires="~^"/>
+    </group>
+
+</scenario>
