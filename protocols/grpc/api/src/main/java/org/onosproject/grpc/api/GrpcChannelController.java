@@ -42,12 +42,16 @@ public interface GrpcChannelController {
      * <p>
      * This method blocks until the channel is open or a timeout expires. By
      * default the timeout is {@link #CONNECTION_TIMEOUT_SECONDS} seconds. If
-     * the timeout expires, a IOException is thrown.
+     * the timeout expires, an {@link IOException} is thrown. If another channel
+     * with the same ID already exists, an {@link IllegalArgumentException} is
+     * thrown.
      *
      * @param channelId      ID of the channel
      * @param channelBuilder builder of the managed channel
      * @return the managed channel created
-     * @throws IOException if the channel cannot be opened
+     * @throws IOException              if the channel cannot be opened
+     * @throws IllegalArgumentException if a channel with the same ID already
+     *                                  exists
      */
     ManagedChannel connectChannel(GrpcChannelId channelId,
                                   ManagedChannelBuilder<?> channelBuilder)
@@ -55,7 +59,7 @@ public interface GrpcChannelController {
 
     /**
      * Closes the gRPC managed channel (i.e., disconnects from the gRPC server)
-     * and removed the channel from this controller.
+     * and removes any internal state associated to it.
      *
      * @param channelId ID of the channel to remove
      */
@@ -72,8 +76,7 @@ public interface GrpcChannelController {
 
     /**
      * Returns true if the channel associated with the given identifier is open,
-     * i.e. the server is able to successfully replies to RPCs, false
-     * otherwise.
+     * i.e. the server is able to successfully reply to RPCs, false otherwise.
      *
      * @param channelId channel ID
      * @return true if channel is open, false otherwise.
@@ -81,7 +84,7 @@ public interface GrpcChannelController {
     boolean isChannelOpen(GrpcChannelId channelId);
 
     /**
-     * Returns all channel associated to the given device ID.
+     * Returns all channels associated to the given device ID.
      *
      * @param deviceId device ID
      * @return collection of channels
