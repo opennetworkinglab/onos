@@ -9,6 +9,6 @@ for node in $nodes; do
     echo $node:
     ssh -n -o ConnectTimeout=3 -o PasswordAuthentication=no ${ONOS_USER}@$node "
         sudo update-java-alternatives -s java-1.11.0-openjdk-amd64
-        echo 'export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64' > .bash_aliases
+        echo 'export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64' >> .bash_aliases
     "
 done

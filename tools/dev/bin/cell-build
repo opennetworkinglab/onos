@@ -60,5 +60,5 @@ ssh -t -t $ONOS_USER@$OCN "
     # Run the build (neutralizing known environment mutations in SSH sessions)
     set -e
     [ $noBuild = false ] && SHLVL=1 SSH_CLIENT=0 SSH_CONNECTION=0 bazel build onos
-    [ $runTests = true ] && bazel query 'tests(//...)' | SHLVL=1 SSH_CLIENT=0 SSH_CONNECTION=0 xargs bazel test
+    [ $runTests = true ] && bazel query 'tests(//...)' | SHLVL=1 SSH_CLIENT=0 SSH_CONNECTION=0 xargs bazel test || true
 "
