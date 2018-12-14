@@ -30,10 +30,10 @@ ssh -tt $remote "
     sudo service onos stop  1>/dev/null 2>/dev/null
     # Wait for onos to stop up to 5 seconds
     for i in \$(seq 1 5); do
-      [ -z \"\$(ps -ef | grep karaf.jar | grep -v grep)\" ] && break
+      [ -z \"\$(ps -ef | grep org.apache.karaf.main.Main | grep -v grep)\" ] && break
       sleep 1
     done
-    [ -z \"\$(ps -ef | grep karaf.jar | grep -v grep)\" ] || \
+    [ -z \"\$(ps -ef | grep org.apache.karaf.main.Main | grep -v grep)\" ] || \
         (echo 'ONOS failed to stop.'; status=1)
 
     # Remove onos directory and init file
