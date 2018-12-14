@@ -80,6 +80,8 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.packet.TpPort.tpPort;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
+import static org.onosproject.openstacknode.api.Constants.GENEVE;
+import static org.onosproject.openstacknode.api.Constants.GENEVE_TUNNEL;
 import static org.onosproject.openstacknode.api.Constants.GRE;
 import static org.onosproject.openstacknode.api.Constants.GRE_TUNNEL;
 import static org.onosproject.openstacknode.api.Constants.INTEGRATION_BRIDGE;
@@ -234,6 +236,11 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                 createGreTunnelInterface(osNode);
             }
 
+            if (osNode.dataIp() != null &&
+                    !isIntfEnabled(osNode, GENEVE_TUNNEL)) {
+                createGeneveTunnelInterface(osNode);
+            }
+
             if (osNode.dpdkConfig() != null && osNode.dpdkConfig().dpdkIntfs() != null) {
                 osNode.dpdkConfig().dpdkIntfs().stream()
                         .filter(dpdkintf -> dpdkintf.deviceName().equals(TUNNEL_BRIDGE))
@@ -259,7 +266,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                             osNode.vlanIntf(), deviceService, true);
             }
         } catch (Exception e) {
-            log.error("Exception occurred because of {}", e.toString());
+            log.error("Exception occurred because of {}", e);
         }
     }
 
@@ -364,6 +371,15 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
     }
 
     /**
+     * Creates a GENEVE tunnel interface in a given openstack node.
+     *
+     * @param osNode openstack node
+     */
+    private void createGeneveTunnelInterface(OpenstackNode osNode) {
+        createTunnelInterface(osNode, GENEVE, GENEVE_TUNNEL);
+    }
+
+    /**
      * Creates a tunnel interface in a given openstack node.
      *
      * @param osNode openstack node
@@ -393,7 +409,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
      * @return tunnel description
      */
     private TunnelDescription buildTunnelDesc(String type, String intfName) {
-        if (VXLAN.equals(type) || GRE.equals(type)) {
+        if (VXLAN.equals(type) || GRE.equals(type) || GENEVE.equals(type)) {
             TunnelDescription.Builder tdBuilder =
                     DefaultTunnelDescription.builder()
                     .deviceId(INTEGRATION_BRIDGE)
@@ -407,6 +423,9 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                     break;
                 case GRE:
                     tdBuilder.type(TunnelDescription.Type.GRE);
+                    break;
+                case GENEVE:
+                    tdBuilder.type(TunnelDescription.Type.GENEVE);
                     break;
                 default:
                     return null;
@@ -459,6 +478,10 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                 }
                 if (osNode.dataIp() != null &&
                         !isIntfEnabled(osNode, GRE_TUNNEL)) {
+                    return false;
+                }
+                if (osNode.dataIp() != null &&
+                        !isIntfEnabled(osNode, GENEVE_TUNNEL)) {
                     return false;
                 }
                 if (osNode.vlanIntf() != null &&
@@ -818,6 +841,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                         if (osNode.state() == DEVICE_CREATED && (
                                 Objects.equals(portName, VXLAN_TUNNEL) ||
                                 Objects.equals(portName, GRE_TUNNEL) ||
+                                Objects.equals(portName, GENEVE_TUNNEL) ||
                                 Objects.equals(portName, osNode.vlanIntf()) ||
                                 Objects.equals(portName, osNode.uplinkPort()) ||
                                         containsPhyIntf(osNode, portName)) ||
@@ -846,6 +870,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                         if (osNode.state() == COMPLETE && (
                                 Objects.equals(portName, VXLAN_TUNNEL) ||
                                 Objects.equals(portName, GRE_TUNNEL) ||
+                                Objects.equals(portName, GENEVE_TUNNEL) ||
                                 Objects.equals(portName, osNode.vlanIntf()) ||
                                 Objects.equals(portName, osNode.uplinkPort()) ||
                                         containsPhyIntf(osNode, portName)) ||

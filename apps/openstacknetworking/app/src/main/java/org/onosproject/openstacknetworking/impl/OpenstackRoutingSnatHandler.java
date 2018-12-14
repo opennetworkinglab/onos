@@ -279,6 +279,7 @@ public class OpenstackRoutingSnatHandler {
         switch (networkType) {
             case VXLAN:
             case GRE:
+            case GENEVE:
                 tBuilder.setTunnelId(Long.parseLong(segmentId));
                 break;
             case VLAN:
@@ -333,6 +334,7 @@ public class OpenstackRoutingSnatHandler {
         switch (networkType) {
             case VXLAN:
             case GRE:
+            case GENEVE:
                 PortNumber portNum = tunnelPortNumByNetType(networkType, gNode);
                 tmpBuilder.extension(RulePopulatorUtil.buildExtension(
                         deviceService,
@@ -371,6 +373,7 @@ public class OpenstackRoutingSnatHandler {
         switch (networkType) {
             case VXLAN:
             case GRE:
+            case GENEVE:
                 sBuilder.matchTunnelId(Long.parseLong(segmentId));
                 break;
             case VLAN:

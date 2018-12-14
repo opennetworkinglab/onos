@@ -121,6 +121,13 @@ public final class Constants {
     public static final int VTAP_FLAT_OUTBOUND_GROUP_TABLE = 2;
     public static final int VTAP_OUTBOUND_GROUP_TABLE = 3;
 
+    // network type
+    public static final String VXLAN = "VXLAN";
+    public static final String VLAN = "VLAN";
+    public static final String FLAT = "FLAT";
+    public static final String GRE = "GRE";
+    public static final String GENEVE = "GENEVE";
+
     public static Map<String, String> portNamePrefixMap() {
         return PORT_NAME_PREFIX_MAP;
     }

@@ -35,6 +35,7 @@ import java.util.Optional;
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.onosproject.net.AnnotationKeys.PORT_MAC;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
+import static org.onosproject.openstacknode.api.Constants.GENEVE_TUNNEL;
 import static org.onosproject.openstacknode.api.Constants.GRE_TUNNEL;
 import static org.onosproject.openstacknode.api.Constants.VXLAN_TUNNEL;
 import static org.onosproject.openstacknode.api.Constants.PATCH_INTG_BRIDGE;
@@ -190,6 +191,11 @@ public class DefaultOpenstackNode implements OpenstackNode {
     @Override
     public PortNumber vxlanTunnelPortNum() {
         return tunnelPortNum(VXLAN_TUNNEL);
+    }
+
+    @Override
+    public PortNumber geneveTunnelPortNum() {
+        return tunnelPortNum(GENEVE_TUNNEL);
     }
 
     @Override

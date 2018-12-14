@@ -97,7 +97,10 @@ import static org.onosproject.openstacknetworking.api.Constants.ROUTING_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.STAT_OUTBOUND_TABLE;
 import static org.onosproject.openstacknetworking.api.InstancePort.State.ACTIVE;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.FLAT;
+import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.GENEVE;
+import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.GRE;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.VLAN;
+import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.VXLAN;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.tunnelPortNumByNetType;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildExtension;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
@@ -456,21 +459,25 @@ public class OpenstackRoutingHandler {
 
         // take ICMP request to a subnet gateway through gateway node group
         Network net = osNetworkAdminService.network(osSubnet.getNetworkId());
+        Type netType = osNetworkAdminService.networkType(osSubnet.getNetworkId());
         Set<Subnet> routableSubnets = routableSubnets(osRouter, osSubnet.getId());
 
-        switch (net.getNetworkType()) {
+        switch (netType) {
             case VXLAN:
                 setGatewayIcmpForVxlan(osSubnet, srcNatGw, net, routableSubnets, install);
                 break;
             case GRE:
                 setGatewayIcmpForGre(osSubnet, srcNatGw, net, routableSubnets, install);
                 break;
+            case GENEVE:
+                setGatewayIcmpForGeneve(osSubnet, srcNatGw, net, routableSubnets, install);
+                break;
             case VLAN:
                 setGatewayIcmpForVlan(osSubnet, srcNatGw, net, routableSubnets, install);
                 break;
             default:
                 final String error = String.format("%s %s", ERR_UNSUPPORTED_NET_TYPE,
-                                                            net.getNetworkType().toString());
+                                                            netType.toString());
                 throw new IllegalStateException(error);
         }
 
@@ -498,7 +505,7 @@ public class OpenstackRoutingHandler {
                         network.getProviderSegID(),
                         osSubnet,
                         routableSubnets,
-                        Type.VXLAN,
+                        VXLAN,
                         install));
     }
 
@@ -515,7 +522,24 @@ public class OpenstackRoutingHandler {
                         network.getProviderSegID(),
                         osSubnet,
                         routableSubnets,
-                        Type.GRE,
+                        GRE,
+                        install));
+    }
+
+    private void setGatewayIcmpForGeneve(Subnet osSubnet,
+                                         OpenstackNode srcNatGw,
+                                         Network network,
+                                         Set<Subnet> routableSubnets,
+                                         boolean install) {
+        osNodeService.completeNodes(COMPUTE).stream()
+                .filter(cNode -> cNode.dataIp() != null)
+                .forEach(cNode -> setRulesToGatewayWithRoutableSubnets(
+                        cNode,
+                        srcNatGw,
+                        network.getProviderSegID(),
+                        osSubnet,
+                        routableSubnets,
+                        GENEVE,
                         install));
     }
 
@@ -625,6 +649,7 @@ public class OpenstackRoutingHandler {
         switch (networkType) {
             case VXLAN:
             case GRE:
+            case GENEVE:
                 setInternalRouterRulesForTunnel(deviceId, srcSegId, dstSegId,
                                                 srcSubnet, dstSubnet, install);
                 break;
@@ -762,6 +787,7 @@ public class OpenstackRoutingHandler {
         switch (networkType) {
             case VXLAN:
             case GRE:
+            case GENEVE:
                 sBuilder.matchTunnelId(Long.parseLong(segmentId));
                 break;
             case VLAN:
@@ -779,6 +805,7 @@ public class OpenstackRoutingHandler {
         switch (networkType) {
             case VXLAN:
             case GRE:
+            case GENEVE:
                 PortNumber portNum = tunnelPortNumByNetType(networkType, osNode);
                 tBuilder.extension(buildExtension(
                                 deviceService,
@@ -879,6 +906,7 @@ public class OpenstackRoutingHandler {
         switch (networkType) {
             case VXLAN:
             case GRE:
+            case GENEVE:
                 sBuilder.matchTunnelId(Long.parseLong(segmentId));
 
                 PortNumber portNum = tunnelPortNumByNetType(networkType, osNode);
@@ -990,6 +1018,7 @@ public class OpenstackRoutingHandler {
         switch (networkType) {
             case VXLAN:
             case GRE:
+            case GENEVE:
                 sBuilder.matchTunnelId(Long.parseLong(segmentId));
                 break;
             case VLAN:
@@ -1030,6 +1059,7 @@ public class OpenstackRoutingHandler {
         switch (networkType) {
             case VXLAN:
             case GRE:
+            case GENEVE:
                 sBuilder.matchTunnelId(Long.parseLong(segmentId));
                 break;
             case VLAN:

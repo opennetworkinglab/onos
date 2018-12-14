@@ -433,24 +433,29 @@ public class OpenstackNetworkManager
         Set<String> networkIds = Sets.newConcurrentHashSet();
 
         switch (type.toUpperCase()) {
-            case "FLAT" :
+            case Constants.FLAT :
                 networkIds = augmentedNetworkMap.asJavaMap().entrySet().stream()
                         .filter(e -> e.getValue().type() == FLAT)
                         .map(Map.Entry::getKey).collect(Collectors.toSet());
                 break;
-            case "VXLAN" :
+            case Constants.VXLAN :
                 networkIds = augmentedNetworkMap.asJavaMap().entrySet().stream()
-                        .filter(e -> e.getValue().type() == Type.VXLAN)
+                        .filter(e -> e.getValue().type() == VXLAN)
                         .map(Map.Entry::getKey).collect(Collectors.toSet());
                 break;
-            case "GRE" :
+            case Constants.GRE :
                 networkIds = augmentedNetworkMap.asJavaMap().entrySet().stream()
-                        .filter(e -> e.getValue().type() == Type.GRE)
+                        .filter(e -> e.getValue().type() == GRE)
                         .map(Map.Entry::getKey).collect(Collectors.toSet());
                 break;
-            case "VLAN" :
+            case Constants.VLAN :
                 networkIds = augmentedNetworkMap.asJavaMap().entrySet().stream()
                         .filter(e -> e.getValue().type() == VLAN)
+                        .map(Map.Entry::getKey).collect(Collectors.toSet());
+                break;
+            case Constants.GENEVE :
+                networkIds = augmentedNetworkMap.asJavaMap().entrySet().stream()
+                        .filter(e -> e.getValue().type() == GENEVE)
                         .map(Map.Entry::getKey).collect(Collectors.toSet());
                 break;
             default:
