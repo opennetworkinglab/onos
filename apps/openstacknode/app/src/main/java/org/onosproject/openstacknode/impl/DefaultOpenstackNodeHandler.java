@@ -149,8 +149,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
     /** OVSDB server listen port. */
     private int ovsdbPortNum = OVSDB_PORT_NUM_DEFAULT;
 
-    /** A flag which indicates whether auto-recover openstack node status on
-     *  switch reconnecting event. */
+    /** Indicates whether auto-recover openstack node status on switch re-conn event. */
     private boolean autoRecovery = AUTO_RECOVERY_DEFAULT;
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(

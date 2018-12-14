@@ -57,7 +57,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Manages the inventory of OpenStack security group using a {@code ConsistentMap}.
- *
  */
 @Component(immediate = true, service = OpenstackSecurityGroupStore.class)
 public class DistributedSecurityGroupStore

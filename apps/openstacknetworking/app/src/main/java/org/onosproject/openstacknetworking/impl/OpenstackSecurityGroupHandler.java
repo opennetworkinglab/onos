@@ -141,7 +141,7 @@ public class OpenstackSecurityGroupHandler {
     private static final int MASK_RADIX = 2;
     private static final int PORT_RADIX = 16;
 
-    // Apply OpenStack security group rule for VM traffic.
+    /** Apply OpenStack security group rule for VM traffic. */
     private boolean useSecurityGroup = USE_SECURITY_GROUP_DEFAULT;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
