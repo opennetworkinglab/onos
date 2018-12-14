@@ -59,6 +59,7 @@ import org.onosproject.net.packet.PacketService;
 import org.onosproject.openstacknetworking.api.Constants.VnicType;
 import org.onosproject.openstacknetworking.api.ExternalPeerRouter;
 import org.onosproject.openstacknetworking.api.InstancePort;
+import org.onosproject.openstacknetworking.api.OpenstackNetwork.Type;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterService;
@@ -769,9 +770,9 @@ public final class OpenstackNetworkingUtil {
                     .append(COMMA);
 
             String modifiedDstIp = dstIp;
-            if (osNetService.networkType(srcInstancePort.networkId()).equals(VXLAN) ||
-                    osNetService.networkType(srcInstancePort.networkId()).equals(GRE) ||
-                    osNetService.networkType(srcInstancePort.networkId()).equals(VLAN)) {
+            if (osNetService.networkType(srcInstancePort.networkId()) == Type.VXLAN ||
+                    osNetService.networkType(srcInstancePort.networkId()) == Type.GRE ||
+                    osNetService.networkType(srcInstancePort.networkId()) == Type.VLAN) {
                 if (srcIp.equals(dstIp)) {
                     modifiedDstIp = osNetService.gatewayIp(srcInstancePort.portId());
                     requestStringBuilder.append(DL_DST)
@@ -797,9 +798,9 @@ public final class OpenstackNetworkingUtil {
                     .append(dstIp)
                     .append(COMMA);
 
-            if (osNetService.networkType(srcInstancePort.networkId()).equals(VXLAN) ||
-                    osNetService.networkType(srcInstancePort.networkId()).equals(GRE) ||
-                    osNetService.networkType(srcInstancePort.networkId()).equals(VLAN)) {
+            if (osNetService.networkType(srcInstancePort.networkId()) == Type.VXLAN ||
+                    osNetService.networkType(srcInstancePort.networkId()) == Type.GRE ||
+                    osNetService.networkType(srcInstancePort.networkId()) == Type.VLAN) {
                 requestStringBuilder.append(TUN_ID)
                         .append(osNetService.segmentId(srcInstancePort.networkId()))
                         .append(COMMA);
@@ -1060,7 +1061,7 @@ public final class OpenstackNetworkingUtil {
     public static PortNumber tunnelPortNumByNetId(String netId,
                                                   OpenstackNetworkService netService,
                                                   OpenstackNode osNode) {
-        String netType = netService.networkType(netId);
+        Type netType = netService.networkType(netId);
 
         if (netType == null) {
             return null;
@@ -1076,7 +1077,7 @@ public final class OpenstackNetworkingUtil {
      * @param osNode openstack node
      * @return tunnel port number
      */
-    public static PortNumber tunnelPortNumByNetType(String netType, OpenstackNode osNode) {
+    public static PortNumber tunnelPortNumByNetType(Type netType, OpenstackNode osNode) {
         switch (netType) {
             case VXLAN:
                 return osNode.vxlanTunnelPortNum();

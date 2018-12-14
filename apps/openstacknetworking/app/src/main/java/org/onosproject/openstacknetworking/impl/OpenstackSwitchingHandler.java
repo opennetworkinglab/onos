@@ -39,13 +39,13 @@ import org.onosproject.openstacknetworking.api.InstancePortEvent;
 import org.onosproject.openstacknetworking.api.InstancePortListener;
 import org.onosproject.openstacknetworking.api.InstancePortService;
 import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
+import org.onosproject.openstacknetworking.api.OpenstackNetwork.Type;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkListener;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.openstack4j.model.network.Network;
-import org.openstack4j.model.network.NetworkType;
 import org.openstack4j.model.network.Port;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -492,7 +492,7 @@ public class OpenstackSwitchingHandler {
 
     private void setNetworkBlockRules(Network network, boolean install) {
 
-        NetworkType type = network.getNetworkType();
+        Type type = osNetworkService.networkType(network.getId());
 
         // TODO: we block a network traffic by referring to segment ID for now
         // we might need to find a better way to block the traffic of a network
@@ -740,8 +740,7 @@ public class OpenstackSwitchingHandler {
          * @param install install flag, add the rule if true, remove it otherwise
          */
         private void setNetworkRules(InstancePort instPort, boolean install) {
-            Network network = osNetworkService.network(instPort.networkId());
-            NetworkType type = network.getNetworkType();
+            Type type = osNetworkService.networkType(instPort.networkId());
 
             switch (type) {
                 case VXLAN:
@@ -790,8 +789,7 @@ public class OpenstackSwitchingHandler {
          * @param instPort instance port
          */
         private void removeVportRules(InstancePort instPort) {
-            Network network = osNetworkService.network(instPort.networkId());
-            NetworkType type = network.getNetworkType();
+            Type type = osNetworkService.networkType(instPort.networkId());
 
             switch (type) {
                 case VXLAN:

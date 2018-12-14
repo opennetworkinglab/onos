@@ -102,10 +102,6 @@ public class OpenstackRoutingIcmpHandler {
     private static final String ERR_REQ = "Failed to handle ICMP request: ";
     private static final String ERR_DUPLICATE = " already exists";
 
-    private static final String VXLAN = "VXLAN";
-    private static final String GRE = "GRE";
-    private static final String VLAN = "VLAN";
-
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 

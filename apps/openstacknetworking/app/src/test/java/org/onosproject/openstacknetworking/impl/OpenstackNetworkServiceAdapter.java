@@ -20,6 +20,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onosproject.openstacknetworking.api.ExternalPeerRouter;
+import org.onosproject.openstacknetworking.api.OpenstackNetwork.Type;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkListener;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.openstack4j.model.network.ExternalGateway;
@@ -109,7 +110,7 @@ public class OpenstackNetworkServiceAdapter implements OpenstackNetworkService {
     }
 
     @Override
-    public String networkType(String netId) {
+    public Type networkType(String netId) {
         return null;
     }
 
