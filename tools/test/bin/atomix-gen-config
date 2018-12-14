@@ -142,7 +142,10 @@ if __name__ == '__main__':
               'type': 'raft',
               'partitions': num_partitions,
               'partitionSize': partition_size,
-              'members': [node['id'] for node in nodes]
+              'members': [node['id'] for node in nodes],
+              'storage': {
+                  'level': 'mapped'
+              }
           }
       }
   }
