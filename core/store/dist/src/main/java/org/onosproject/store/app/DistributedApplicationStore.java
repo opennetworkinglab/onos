@@ -206,6 +206,7 @@ public class DistributedApplicationStore extends ApplicationArchive
         apps.addStatusChangeListener(statusChangeListener);
         coreAppId = getId(CoreService.CORE_APP_NAME);
 
+        downloadMissingApplications();
         activateExistingApplications();
         log.info("Started");
     }
@@ -240,6 +241,13 @@ public class DistributedApplicationStore extends ApplicationArchive
                 .build();
         }
         return app;
+    }
+
+    /**
+     * Downloads any missing bits for installed applications.
+     */
+    private void downloadMissingApplications() {
+        apps.asJavaMap().forEach((appId, holder) -> fetchBitsIfNeeded(holder.app));
     }
 
     /**
