@@ -17,7 +17,7 @@ COPY . /src/onos/
 # build problems
 WORKDIR /src/onos
 RUN apt-get update && apt-get install -y zip python git bzip2 build-essential && \
-        curl -L -o bazel.sh https://github.com/bazelbuild/bazel/releases/download/0.15.2/bazel-0.15.2-installer-linux-x86_64.sh && \
+        curl -L -o bazel.sh https://github.com/bazelbuild/bazel/releases/download/0.19.0/bazel-0.19.0-installer-linux-x86_64.sh && \
         chmod +x bazel.sh && \
         ./bazel.sh --user && \
         export ONOS_ROOT=/src/onos && \
