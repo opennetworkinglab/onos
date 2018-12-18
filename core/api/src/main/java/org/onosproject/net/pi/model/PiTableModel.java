@@ -101,15 +101,6 @@ public interface PiTableModel {
     Optional<PiActionModel> constDefaultAction();
 
     /**
-     * Returns true if the default action has mutable parameters that can be
-     * changed at runtime, false otherwise.
-     *
-     * @return true if the default action has mutable parameters, false
-     * otherwise
-     */
-    boolean hasDefaultMutableParams();
-
-    /**
      * Returns true if the table is populated with static entries that cannot be
      * modified by the control plane at runtime.
      *
