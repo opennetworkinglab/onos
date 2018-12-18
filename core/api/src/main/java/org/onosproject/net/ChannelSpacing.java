@@ -25,7 +25,8 @@ public enum ChannelSpacing {
     CHL_50GHZ(50_000),          // 50 GHz
     CHL_25GHZ(25_000),          // 25 GHz
     CHL_12P5GHZ(12_500),        // 12.5 GHz
-    CHL_6P25GHZ(6_250);         // 6.25 GHz
+    CHL_6P25GHZ(6_250),         // 6.25 GHz
+    CHL_0GHZ(0);                // 0 GHz (Unknown)
 
     private final Frequency frequency;
 
