@@ -41,7 +41,7 @@ import static org.onosproject.net.OsgiPropertyConstants.AUDIT_ENABLED_DEFAULT;
  */
 @Component(
         immediate = true,
-        service = { AuditService.class },
+        service = {AuditService.class},
         property = {
                 AUDIT_ENABLED + ":Boolean=" + AUDIT_ENABLED_DEFAULT,
                 AUDIT_LOGGER + "=" + AUDIT_LOGGER_DEFAULT,
@@ -52,11 +52,15 @@ public class AuditManager implements AuditService {
 
     private Logger auditLog = log;
 
-    /** Specifies whether or not audit logging is enabled. */
+    /**
+     * Specifies whether or not audit logging is enabled.
+     */
     private boolean auditEnabled = AUDIT_ENABLED_DEFAULT;
 
-    /** Name of the audit logger. */
-    private String auditFile = AUDIT_LOGGER_DEFAULT;
+    /**
+     * Name of the audit logger.
+     */
+    private String auditLogger = AUDIT_LOGGER_DEFAULT;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
@@ -78,9 +82,9 @@ public class AuditManager implements AuditService {
         Dictionary<?, ?> properties = ctx.getProperties();
         if (properties != null) {
             auditEnabled = Boolean.parseBoolean(get(properties, AUDIT_ENABLED));
-            auditFile = get(properties, AUDIT_LOGGER);
-            auditLog = LoggerFactory.getLogger(auditFile);
-            log.info("Reconfigured; auditEnabled={}; auditFile={}", auditEnabled, auditFile);
+            auditLogger = get(properties, AUDIT_LOGGER);
+            auditLog = LoggerFactory.getLogger(auditLogger);
+            log.info("Reconfigured; auditEnabled={}; auditLogger={}", auditEnabled, auditLogger);
         }
     }
 

@@ -36,7 +36,8 @@ import static org.onlab.util.Tools.readTreeFromStream;
 public class AuditFilter implements ContainerRequestFilter, ContainerResponseFilter {
 
     private ObjectMapper mapper = new ObjectMapper();
-    private final String separator = "  |  ";
+    private final String separator = "\", \"";
+    private final String logCompSeperator = "\" : \"";
 
     private static boolean disableForTests = false;
     private static ServiceDirectory services = new DefaultServiceDirectory();
@@ -55,13 +56,15 @@ public class AuditFilter implements ContainerRequestFilter, ContainerResponseFil
                     (readTreeFromStream(mapper, requestContext.getEntityStream()).toString()) : "");
             requestContext.setProperty("requestBody", requestBody);
             // FIXME: audit message should be better structured
-            requestContext.setProperty("auditMessage", "Path: " + requestContext.getUriInfo().getPath() + separator
-                    + "Method: " + requestContext.getMethod() + separator
+            requestContext.setProperty("auditMessage", "{\"Path" + logCompSeperator
+                    + requestContext.getUriInfo().getPath() + separator + "Method"
+                    + logCompSeperator + requestContext.getMethod() + separator
                     + (requestContext.getMethod().equals("PUT") ?
                     // FIXME: is there really a need to differentiate based on method?
-                    ("Path_Parameters: " + requestContext.getUriInfo().getPathParameters().toString() + separator
-                            + "Query_Parameters: " + requestContext.getUriInfo().getQueryParameters().toString()
-                            + separator + "Request_Body: " + requestBody) : ""));
+                    ("Path_Parameters" + logCompSeperator + requestContext.getUriInfo().getPathParameters().toString()
+                            + separator + "Query_Parameters" + logCompSeperator
+                            + requestContext.getUriInfo().getQueryParameters().toString()
+                            + separator + "Request_Body" + logCompSeperator + requestBody) : ""));
             requestContext.setEntityStream(IOUtils.toInputStream(requestBody));
         }
     }
@@ -72,7 +75,8 @@ public class AuditFilter implements ContainerRequestFilter, ContainerResponseFil
         AuditService auditService = auditService();
         if (auditService != null) {
             containerRequestContext.setProperty("auditMessage", containerRequestContext.getProperty("auditMessage")
-                    + separator + "Status: " + containerResponseContext.getStatusInfo().toString());
+                    + separator + "Status" + logCompSeperator + containerResponseContext.getStatusInfo().toString()
+                    + "\"}");
             // FIXME: Audit record should indicate who did it, not just what was done and when
             String user = containerRequestContext.getSecurityContext().getUserPrincipal().getName();
             String action = containerRequestContext.getProperty("auditMessage").toString();

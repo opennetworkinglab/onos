@@ -169,7 +169,7 @@ public abstract class AbstractShellCommand implements Action, CodecContext {
         if (auditService != null && auditService.isAuditing()) {
             // FIXME: Compose and log audit message here; this is a hack
             String user = "foo"; // FIXME
-            String action = Thread.currentThread().getName().substring(5); // FIXME
+            String action = "{\"command\" : \"" + Thread.currentThread().getName().substring(5) + "\"}";
             auditService.logUserAction(user, action);
         }
     }
