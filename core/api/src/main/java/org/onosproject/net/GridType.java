@@ -25,5 +25,6 @@ package org.onosproject.net;
 public enum GridType {
     DWDM,               // Dense Wavelength Division Multiplexing
     CWDM,               // Coarse WDM
-    FLEX                // Flex Grid
+    FLEX,               // Flex Grid
+    UNKNOWN             // Unknown
 }

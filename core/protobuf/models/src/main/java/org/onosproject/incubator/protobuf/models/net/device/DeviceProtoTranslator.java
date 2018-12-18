@@ -115,6 +115,8 @@ public final class DeviceProtoTranslator {
                 return Type.ROUTER;
             case SWITCH:
                 return Type.SWITCH;
+            case OLS:
+                return Type.OLS;
             case VIRTUAL_DEVICE:
                 return Type.VIRTUAL;
 

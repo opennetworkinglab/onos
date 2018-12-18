@@ -91,7 +91,8 @@ public final class OpticalIntentUtility {
 
             CltSignalType signalType = ((OduCltPort) srcPort).signalType();
             if (Device.Type.ROADM.equals(srcDevice.type()) ||
-                    Device.Type.ROADM_OTN.equals(srcDevice.type())) {
+                    Device.Type.ROADM_OTN.equals(srcDevice.type()) ||
+                    Device.Type.OLS.equals(srcDevice.type())) {
                 intent = OpticalCircuitIntent.builder()
                         .appId(appId)
                         .key(key)
@@ -173,7 +174,8 @@ public final class OpticalIntentUtility {
 
             CltSignalType signalType = ((OduCltPort) srcPort).signalType();
             if (Device.Type.ROADM.equals(srcDevice.type()) ||
-                    Device.Type.ROADM_OTN.equals(srcDevice.type())) {
+                    Device.Type.ROADM_OTN.equals(srcDevice.type()) ||
+                    Device.Type.OLS.equals(srcDevice.type())) {
                 intent = OpticalCircuitIntent.builder()
                         .appId(appId)
                         .key(key)

@@ -566,7 +566,8 @@ public class OpticalPathProvisioner
      * @return true if in packet layer, false otherwise
      */
     private boolean isTransportLayer(Device.Type type) {
-        return type == Device.Type.ROADM || type == Device.Type.OTN || type == Device.Type.ROADM_OTN;
+        return type == Device.Type.ROADM || type == Device.Type.OTN || type == Device.Type.ROADM_OTN ||
+                type == Device.Type.OLS;
     }
 
     /**

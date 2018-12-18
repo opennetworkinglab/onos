@@ -708,7 +708,7 @@ public class DeviceManager
                 return;
             }
             if ((Device.Type.ROADM.equals(device.type())) ||
-                    (Device.Type.OTN.equals(device.type()))) {
+                    (Device.Type.OTN.equals(device.type())) || (Device.Type.OLS.equals(device.type()))) {
                 // FIXME This is ignoring all other info in portDescription given as input??
                 PortDescription storedPortDesc = store.getPortDescription(provider().id(),
                                                                           deviceId,
