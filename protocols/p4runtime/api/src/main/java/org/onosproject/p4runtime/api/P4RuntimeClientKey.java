@@ -27,7 +27,7 @@ import java.util.Objects;
  */
 @Beta
 public final class P4RuntimeClientKey extends GrpcClientKey {
-    private static final String P4R_SERVICE_NAME = "p4runtime";
+    private static final String P4RUNTIME = "P4Runtime";
     private final long p4DeviceId;
 
     /**
@@ -40,7 +40,7 @@ public final class P4RuntimeClientKey extends GrpcClientKey {
      */
     public P4RuntimeClientKey(DeviceId deviceId, String serverAddr,
                               int serverPort, long p4DeviceId) {
-        super(P4R_SERVICE_NAME, deviceId, serverAddr, serverPort);
+        super(P4RUNTIME, deviceId, serverAddr, serverPort);
         this.p4DeviceId = p4DeviceId;
     }
 
@@ -75,8 +75,6 @@ public final class P4RuntimeClientKey extends GrpcClientKey {
 
     @Override
     public String toString() {
-        return super.toStringHelper()
-                .add("p4DeviceId", p4DeviceId)
-                .toString();
+        return super.toString() + "/" + p4DeviceId;
     }
 }

@@ -50,7 +50,6 @@ import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.HashSet;
@@ -118,8 +117,7 @@ public class GrpcChannelControllerImpl implements GrpcChannelController {
 
     @Override
     public ManagedChannel connectChannel(GrpcChannelId channelId,
-                                         ManagedChannelBuilder<?> channelBuilder)
-            throws IOException {
+                                         ManagedChannelBuilder<?> channelBuilder) {
         checkNotNull(channelId);
         checkNotNull(channelBuilder);
 
@@ -140,8 +138,8 @@ public class GrpcChannelControllerImpl implements GrpcChannelController {
             try {
                 doDummyMessage(channel);
             } catch (StatusRuntimeException e) {
-                channel.shutdownNow();
-                throw new IOException(e);
+                shutdownNowAndWait(channel, channelId);
+                throw e;
             }
             // If here, channel is open.
             channels.put(channelId, channel);
@@ -202,24 +200,25 @@ public class GrpcChannelControllerImpl implements GrpcChannelController {
         lock.lock();
         try {
             final ManagedChannel channel = channels.remove(channelId);
-            if (channel == null) {
-                // Nothing to do.
-                return;
-            }
-
-            try {
-                if (!channel.shutdownNow()
-                        .awaitTermination(5, TimeUnit.SECONDS)) {
-                    log.error("Channel '{}' didn't terminate, although we " +
-                                      "triggered a shut down and waited",
-                              channelId);
-                }
-            } catch (InterruptedException e) {
-                log.warn("Channel {} didn't shut down in time", channelId);
-                Thread.currentThread().interrupt();
+            if (channel != null) {
+                shutdownNowAndWait(channel, channelId);
             }
         } finally {
             lock.unlock();
+        }
+    }
+
+    private void shutdownNowAndWait(ManagedChannel channel, GrpcChannelId channelId) {
+        try {
+            if (!channel.shutdownNow()
+                    .awaitTermination(5, TimeUnit.SECONDS)) {
+                log.error("Channel '{}' didn't terminate, although we " +
+                                  "triggered a shutdown and waited",
+                          channelId);
+            }
+        } catch (InterruptedException e) {
+            log.warn("Channel {} didn't shutdown in time", channelId);
+            Thread.currentThread().interrupt();
         }
     }
 

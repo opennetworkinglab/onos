@@ -17,12 +17,12 @@
 package org.onosproject.grpc.api;
 
 import com.google.common.annotations.Beta;
-import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import org.onosproject.net.DeviceId;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.String.format;
 
 /**
  * Key that uniquely identifies a gRPC client.
@@ -113,16 +113,8 @@ public class GrpcClientKey {
         return Objects.hashCode(serviceName, deviceId, serverAddr, serverPort);
     }
 
-    protected MoreObjects.ToStringHelper toStringHelper() {
-        return MoreObjects.toStringHelper(this)
-                .add("serviceName", serviceName)
-                .add("deviceId", deviceId)
-                .add("serverAddr", serverAddr)
-                .add("serverPort", serverPort);
-    }
-
     @Override
     public String toString() {
-        return toStringHelper().toString();
+        return format("%s/%s@%s:%s", deviceId, serviceName, serverAddr, serverPort);
     }
 }

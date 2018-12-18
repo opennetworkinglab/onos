@@ -497,9 +497,9 @@ public class GeneralDeviceProvider extends AbstractProvider
                 (description.isDefaultAvailable() &&
                         !deviceService.isAvailable(deviceId))) {
             if (!isPipelineReady) {
-                log.info("Advertising device to core with available={} as " +
+                log.info("Advertising device {} to core with available={} as " +
                                  "device pipeline is not ready yet",
-                         description.isDefaultAvailable());
+                         deviceId, description.isDefaultAvailable());
             }
             providerService.deviceConnected(deviceId, description);
         }

@@ -161,7 +161,7 @@ public class AbstractP4RuntimeHandlerBehaviour extends AbstractHandlerBehaviour 
         final P4RuntimeClientKey clientKey = new P4RuntimeClientKey(
                 deviceId, serverAddr, serverPort, p4DeviceId);
         if (!controller.createClient(clientKey)) {
-            log.warn("Unable to create client for {}, aborting operation", deviceId);
+            log.debug("Unable to create client for {}, aborting operation", deviceId);
             return null;
         }
 
