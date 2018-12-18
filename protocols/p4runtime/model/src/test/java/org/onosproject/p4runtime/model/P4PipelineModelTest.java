@@ -271,20 +271,17 @@ public class P4PipelineModelTest {
     private static final boolean SUPPORT_AGING_1 = true;
     private static final boolean SUPPORT_AGING_2 = false;
 
-    private static final boolean HAS_DEFAULT_MUTABLE_PARAMS_1 = true;
-    private static final boolean HAS_DEFAULT_MUTABLE_PARAMS_2 = false;
-
     private static final boolean IS_CONST_TABLE_1 = true;
     private static final boolean IS_CONST_TABLE_2 = false;
 
     private static final PiTableModel P4_TABLE_MODEL_1 =
             new P4TableModel(PI_TABLE_ID_1, PI_TABLE_TYPE_1, P4_ACTION_PROFILE_MODEL_1, MAX_SIZE_1, COUNTERS_1,
                              METERS_1, SUPPORT_AGING_1, MATCH_FIELDS_1, ACTIONS_1, P4_ACTION_MODEL_DEFAULT_1,
-                             HAS_DEFAULT_MUTABLE_PARAMS_1, IS_CONST_TABLE_1);
+                             IS_CONST_TABLE_1);
     private static final PiTableModel P4_TABLE_MODEL_2 =
             new P4TableModel(PI_TABLE_ID_2, PI_TABLE_TYPE_2, P4_ACTION_PROFILE_MODEL_2, MAX_SIZE_2, COUNTERS_2,
                              METERS_2, SUPPORT_AGING_2, MATCH_FIELDS_2, ACTIONS_2, P4_ACTION_MODEL_DEFAULT_2,
-                             HAS_DEFAULT_MUTABLE_PARAMS_2, IS_CONST_TABLE_2);
+                             IS_CONST_TABLE_2);
 
     /* Packet operations */
     private static final PiPacketOperationType PI_PACKET_OPERATION_TYPE_1 = PiPacketOperationType.PACKET_IN;
