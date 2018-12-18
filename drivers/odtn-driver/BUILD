@@ -2,7 +2,10 @@ COMPILE_DEPS = CORE_DEPS + [
     "@commons_jxpath//jar",
     "//drivers/utilities:onos-drivers-utilities",
     "//protocols/netconf/api:onos-protocols-netconf-api",
+    "//protocols/rest/api:onos-protocols-rest-api",
     "//apps/odtn/api:onos-apps-odtn-api",
+    "@jackson_databind//jar",
+    "@javax_ws_rs_api//jar",
     "//apps/optical-model:onos-apps-optical-model",
     "//drivers/optical:onos-drivers-optical",
 ]
@@ -30,6 +33,7 @@ onos_app(
     description = "Drivers related to ODTN",
     included_bundles = BUNDLES,
     required_apps = [
+        "org.onosproject.restsb",
         "org.onosproject.netconf",
         "org.onosproject.config",
         "org.onosproject.odtn-api",

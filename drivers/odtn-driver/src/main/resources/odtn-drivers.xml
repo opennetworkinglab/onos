@@ -15,6 +15,12 @@
   ~ limitations under the License.
   -->
 <drivers>
+    <driver name="ols" manufacturer="tapi-swagger" hwVersion="0" swVersion="2.1">
+        <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
+                   impl="org.onosproject.drivers.odtn.tapi.TapiDeviceDescriptionDiscovery"/>
+        <!--<behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
+                   impl="org.onosproject.drivers.odtn.TapiFlowRuleProgrammable-->
+    </driver>
     <driver name="odtn" manufacturer="" hwVersion="" swVersion="">
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
                   impl="org.onosproject.drivers.odtn.OpenConfigDeviceDiscovery"/>
