@@ -26,7 +26,7 @@ import org.onosproject.net.DeviceId;
 @Beta
 public class GnmiClientKey extends GrpcClientKey {
 
-    private static final String GNMI = "gnmi";
+    private static final String GNMI = "gNMI";
 
     /**
      * Creates a new gNMI client key.
