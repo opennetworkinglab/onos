@@ -37,7 +37,8 @@ import java.util.Map;
 
 
 /**
- * Component to register the TAPI 2.0 service model and its dependencies.
+ * Component to register the TAPI 2.1.X service (NBI) model and its
+ * dependencies.
  */
 @Component(immediate = true)
 public class TapiModelRegistrator extends AbstractYangModelRegistrator {
@@ -49,19 +50,19 @@ public class TapiModelRegistrator extends AbstractYangModelRegistrator {
     private static Map<YangModuleId, AppModuleInfo> getAppInfo() {
         Map<YangModuleId, AppModuleInfo> appInfo = new HashMap<>();
 
-        appInfo.put(new DefaultYangModuleId("tapi-connectivity", "2018-10-16"),
+        appInfo.put(new DefaultYangModuleId("tapi-connectivity", "2018-12-10"),
                     new DefaultAppModuleInfo(TapiConnectivity.class, null));
 
-        appInfo.put(new DefaultYangModuleId("tapi-common", "2018-10-16"),
+        appInfo.put(new DefaultYangModuleId("tapi-common", "2018-12-10"),
                     new DefaultAppModuleInfo(TapiCommon.class, null));
 
-        appInfo.put(new DefaultYangModuleId("tapi-topology", "2018-10-16"),
+        appInfo.put(new DefaultYangModuleId("tapi-topology", "2018-12-10"),
                     new DefaultAppModuleInfo(TapiTopology.class, null));
 
-        appInfo.put(new DefaultYangModuleId("tapi-photonic-media", "2018-10-16"),
+        appInfo.put(new DefaultYangModuleId("tapi-photonic-media", "2018-12-10"),
                     new DefaultAppModuleInfo(TapiPhotonicMedia.class, null));
 
-        appInfo.put(new DefaultYangModuleId("tapi-path-computation", "2018-10-16"),
+        appInfo.put(new DefaultYangModuleId("tapi-path-computation", "2018-12-10"),
                     new DefaultAppModuleInfo(TapiPathComputation.class, null));
 
         return ImmutableMap.copyOf(appInfo);
