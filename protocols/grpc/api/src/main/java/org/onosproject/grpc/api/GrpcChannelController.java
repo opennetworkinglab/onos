@@ -19,9 +19,9 @@ package org.onosproject.grpc.api;
 import com.google.common.annotations.Beta;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.StatusRuntimeException;
 import org.onosproject.net.DeviceId;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -42,20 +42,19 @@ public interface GrpcChannelController {
      * <p>
      * This method blocks until the channel is open or a timeout expires. By
      * default the timeout is {@link #CONNECTION_TIMEOUT_SECONDS} seconds. If
-     * the timeout expires, an {@link IOException} is thrown. If another channel
-     * with the same ID already exists, an {@link IllegalArgumentException} is
-     * thrown.
+     * the timeout expires, a {@link StatusRuntimeException} is thrown. If
+     * another channel with the same ID already exists, an {@link
+     * IllegalArgumentException} is thrown.
      *
      * @param channelId      ID of the channel
      * @param channelBuilder builder of the managed channel
      * @return the managed channel created
-     * @throws IOException              if the channel cannot be opened
+     * @throws StatusRuntimeException   if the channel cannot be opened
      * @throws IllegalArgumentException if a channel with the same ID already
      *                                  exists
      */
     ManagedChannel connectChannel(GrpcChannelId channelId,
-                                  ManagedChannelBuilder<?> channelBuilder)
-            throws IOException;
+                                  ManagedChannelBuilder<?> channelBuilder);
 
     /**
      * Closes the gRPC managed channel (i.e., disconnects from the gRPC server)
