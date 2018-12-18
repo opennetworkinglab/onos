@@ -21,9 +21,9 @@ set -e
 BUILD_DIR=~/p4tools
 # in case BMV2_COMMIT value is updated, the same variable in
 # protocols/bmv2/thrift-api/BUCK file should also be updated
-BMV2_COMMIT="ae87b4d4523488ac935133b4aef437796ad1bbd1"
-PI_COMMIT="539e4624f16aac39f8890a6dfb11c65040e735ad"
-P4C_COMMIT="380830f6c26135d1d65e1312e3ba2da628c18145"
+BMV2_COMMIT="7fd3b39519ca892c2e160b8be358d3f487b1b00e"
+PI_COMMIT="a95222eca9b039f6398c048d7e1a1bf7f49b7235"
+P4C_COMMIT="264da2c524c849df0d9ba478cdd1d61b29d64722"
 PROTOBUF_COMMIT="tags/v3.2.0"
 GRPC_COMMIT="tags/v1.3.2"
 LIBYANG_COMMIT="v0.14-r1"
@@ -154,6 +154,9 @@ function do_protobuf-c {
 }
 
 function do_protobuf {
+    if check_lib libprotobuf; then
+        return
+    fi
     cd ${BUILD_DIR}
     if [ ! -d protobuf ]; then
       git clone https://github.com/google/protobuf.git
@@ -177,6 +180,9 @@ function do_protobuf {
 }
 
 function do_grpc {
+    if check_lib libgrpc; then
+        return
+    fi
     cd ${BUILD_DIR}
     if [ ! -d grpc ]; then
       git clone https://github.com/grpc/grpc.git
@@ -369,6 +375,15 @@ function version_ge {
     [ "$1" == "$latest" ]
 }
 
+function check_lib {
+    ldconfig -p | grep $1 &> /dev/null
+    if [ $? == 0 ]; then
+        echo "$1 found!"
+        return 0 # true
+    fi
+    return 1 # false
+}
+
 MUST_DO_ALL=false
 DID_REQUIREMENTS=false
 function check_and_do {
@@ -402,9 +417,13 @@ function check_and_do {
             DID_REQUIREMENTS=true
         fi
         eval ${func_name}
-        echo ${commit_id} > ${commit_file}
-        # Build all next projects as they might depend on this one.
-        MUST_DO_ALL=true
+        if [[ -d ${BUILD_DIR}/${proj_dir} ]]; then
+            # If project was built, we expect its dir. Otherwise, we assume
+            # build was skipped.
+            echo ${commit_id} > ${commit_file}
+            # Build all next projects as they might depend on this one.
+            MUST_DO_ALL=true
+        fi
         # Disable printing to reduce output
         set +x
     else
