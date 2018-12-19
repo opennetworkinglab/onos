@@ -495,13 +495,8 @@ public class NetconfSshdTestSubsystem extends Thread implements Command, Runnabl
         outputStream.close();
     }
 
-    @Override
-    public void destroy() {
-        //Handled by interrupt
-    }
-
     protected void process(Buffer buffer) throws IOException {
-        log.warn("Receieved buffer:" + buffer);
+        log.warn("Received buffer:" + buffer);
     }
 
     public static String getTestHelloReply(Collection<String> capabilities, Optional<Long> sessionId) {
