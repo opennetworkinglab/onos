@@ -67,7 +67,6 @@ public class ConnectPointTest {
 
         expectDeviceParseException("");
         expectDeviceParseException("1/");
-        expectDeviceParseException("1/1/1");
         expectDeviceParseException("of:0011223344556677/word");
     }
 
@@ -90,7 +89,7 @@ public class ConnectPointTest {
     private static void expectDeviceParseException(String string) {
         try {
             ConnectPoint.deviceConnectPoint(string);
-            fail("Expected exception was not thrown");
+            fail(String.format("Expected exception was not thrown for '%s'", string));
         } catch (Exception e) {
             assertTrue(true);
         }
