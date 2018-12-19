@@ -18,6 +18,18 @@ BUNDLES = [
     "@io_opencensus_opencensus_api//jar",
     "@io_opencensus_opencensus_contrib_grpc_metrics//jar",
     "@com_google_code_gson_gson//jar",
+    # Lazily adding all netty-related packages.
+    # Some of them might not be necessary.
+    "@io_netty_netty//jar",
+    "@io_netty_netty_buffer//jar",
+    "@io_netty_netty_codec//jar",
+    "@io_netty_netty_codec_http//jar",
+    "@io_netty_netty_codec_http2//jar",
+    "@io_netty_netty_common//jar",
+    "@io_netty_netty_handler//jar",
+    "@io_netty_netty_transport//jar",
+    "@io_netty_netty_transport_native_epoll//jar",
+    "@io_netty_netty_resolver//jar",
 ]
 
 onos_app(
