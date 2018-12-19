@@ -319,7 +319,9 @@ public class NetconfControllerImplTest {
         reflectedDeviceMap.clear();
         NetconfDevice device1 = ctrl.connectDevice(deviceInfo1.getDeviceId());
         NetconfDevice device2 = ctrl.connectDevice(deviceInfo2.getDeviceId());
-        assertTrue("Incorrect device connection", ctrl.getDevicesMap().containsKey(deviceId1));
+        assertTrue(String.format("Incorrect device connection from '%s' we get '%s' contains '%s'",
+                    deviceInfo1, ctrl.getDevicesMap(), deviceId1),
+                ctrl.getDevicesMap().containsKey(deviceId1));
         assertTrue("Incorrect device connection", ctrl.getDevicesMap().containsKey(deviceId2));
         assertEquals("Incorrect device connection", 2, ctrl.getDevicesMap().size());
     }

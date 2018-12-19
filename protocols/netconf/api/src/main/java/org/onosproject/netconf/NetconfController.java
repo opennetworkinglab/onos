@@ -97,4 +97,14 @@ public interface NetconfController {
      * @return NetconfDevice Netconf device
      */
     NetconfDevice getNetconfDevice(IpAddress ip, int port);
+
+    /**
+     * Gets a Netconf Device by node identifier.
+     *
+     * @param ip   device ip
+     * @param port device port
+     * @param path device path
+     * @return NetconfDevice Netconf device
+     */
+    NetconfDevice getNetconfDevice(IpAddress ip, int port, String path);
 }

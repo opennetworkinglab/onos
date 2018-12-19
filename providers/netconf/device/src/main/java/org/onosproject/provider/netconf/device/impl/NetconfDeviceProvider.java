@@ -19,6 +19,7 @@ package org.onosproject.provider.netconf.device.impl;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.Striped;
+import org.apache.commons.lang3.tuple.Triple;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -76,7 +77,6 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Map;
@@ -95,6 +95,7 @@ import java.util.function.Supplier;
 
 import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.netconf.NetconfDeviceInfo.extractIpPortPath;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -139,6 +140,7 @@ public class NetconfDeviceProvider extends AbstractProvider
     private static final String IPADDRESS = "ipaddress";
     private static final String NETCONF = "netconf";
     private static final String PORT = "port";
+    private static final String PATH = "path";
     private static final int CORE_POOL_SIZE = 10;
 
     private static final int DEFAULT_POLL_FREQUENCY_SECONDS = 30;
@@ -316,18 +318,9 @@ public class NetconfDeviceProvider extends AbstractProvider
             ip = device.annotations().value(IPADDRESS);
             port = Integer.parseInt(device.annotations().value(PORT));
         } else {
-            String[] info = deviceId.toString().split(":");
-            if (info.length == 3) {
-                ip = info[1];
-                port = Integer.parseInt(info[2]);
-            } else {
-                ip = Arrays.asList(info).stream().filter(el -> !el.equals(info[0])
-                        && !el.equals(info[info.length - 1]))
-                        .reduce((t, u) -> t + ":" + u)
-                        .get();
-                log.debug("ip v6 {}", ip);
-                port = Integer.parseInt(info[info.length - 1]);
-            }
+            Triple<String, Integer, Optional<String>> info = extractIpPortPath(deviceId);
+            ip = info.getLeft();
+            port = info.getMiddle();
         }
         // FIXME just opening TCP session probably is not the appropriate
         // method to test reachability.
@@ -441,8 +434,10 @@ public class NetconfDeviceProvider extends AbstractProvider
             return;
         }
         DeviceDescription deviceDescription = createDeviceRepresentation(deviceId, config);
-        log.debug("Connecting NETCONF device {}, on {}:{} with username {}",
-                  deviceId, config.ip(), config.port(), config.username());
+        log.debug("Connecting NETCONF device {}, on {}:{}{} with username {}",
+                  deviceId, config.ip(), config.port(),
+                 (config.path().isPresent() ? "/" + config.path().get() : ""),
+                 config.username());
         storeDeviceKey(config.sshKey(), config.username(), config.password(), deviceId);
         retriedPortDiscoveryMap.put(deviceId, new AtomicInteger(0));
         if (deviceService.getDevice(deviceId) == null) {
@@ -546,19 +541,22 @@ public class NetconfDeviceProvider extends AbstractProvider
         //Netconf configuration object
         ChassisId cid = new ChassisId();
         String ipAddress = config.ip().toString();
-        SparseAnnotations annotations = DefaultAnnotations.builder()
+        DefaultAnnotations.Builder annotations = DefaultAnnotations.builder()
                 .set(IPADDRESS, ipAddress)
                 .set(PORT, String.valueOf(config.port()))
                 .set(AnnotationKeys.PROTOCOL, SCHEME_NAME.toUpperCase())
-                .set(AnnotationKeys.PROVIDER_MARK_ONLINE, String.valueOf(true))
-                .build();
+                .set(AnnotationKeys.PROVIDER_MARK_ONLINE, String.valueOf(true));
+        if (config.path().isPresent()) {
+            annotations.set(PATH, config.path().get());
+        }
+
         return new DefaultDeviceDescription(
                 deviceId.uri(),
                 Device.Type.SWITCH,
                 UNKNOWN, UNKNOWN,
                 UNKNOWN, UNKNOWN,
                 cid, false,
-                annotations);
+                annotations.build());
     }
 
     private void storeDeviceKey(String sshKey, String username, String password, DeviceId deviceId) {
@@ -619,14 +617,16 @@ public class NetconfDeviceProvider extends AbstractProvider
      *
      * @param ip   IP address
      * @param port port number
+     * @param path path aspect
      * @return DeviceId
      */
-    public DeviceId getDeviceId(String ip, int port) {
+    public DeviceId getDeviceId(String ip, int port, Optional<String> path) {
         try {
-            return DeviceId.deviceId(new URI(NETCONF, ip + ":" + port, null));
+            return DeviceId.deviceId(new URI(NETCONF, ip + ":" + port +
+                        (path.isPresent() ? "/" + path : ""), null));
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("Unable to build deviceID for device "
-                                                       + ip + ":" + port, e);
+                    + ip + ":" + port + (path.isPresent() ? "/" + path : ""), e);
         }
     }
 
@@ -652,7 +652,6 @@ public class NetconfDeviceProvider extends AbstractProvider
      * Listener for configuration events.
      */
     private class InternalNetworkConfigListener implements NetworkConfigListener {
-
 
         @Override
         public void event(NetworkConfigEvent event) {
