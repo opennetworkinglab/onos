@@ -16,6 +16,7 @@
 
 package org.onosproject.netconf;
 
+import org.apache.commons.lang3.tuple.Triple;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.netconf.config.NetconfDeviceConfig;
@@ -44,13 +45,13 @@ public class NetconfDeviceInfo {
     private String password;
     private IpAddress ipAddress;
     private int port;
+    private Optional<String> path;
     private char[] key;
     private Optional<NetconfSshClientLib> sshClientLib;
     private OptionalInt connectTimeoutSec;
     private OptionalInt replyTimeoutSec;
     private OptionalInt idleTimeoutSec;
     private DeviceId deviceId;
-
 
     /**
      * Information for contacting the controller.
@@ -59,9 +60,10 @@ public class NetconfDeviceInfo {
      * @param password  the password for the device
      * @param ipAddress the ip address
      * @param port      the tcp port
+     * @param path      the path part
      */
     public NetconfDeviceInfo(String name, String password, IpAddress ipAddress,
-                             int port) {
+                             int port, String path) {
         checkArgument(!name.equals(""), "Empty device username");
         checkArgument(port > 0, "Negative port");
         checkNotNull(ipAddress, "Null ip address");
@@ -69,6 +71,11 @@ public class NetconfDeviceInfo {
         this.password = password;
         this.ipAddress = ipAddress;
         this.port = port;
+        if (path == null || path.isEmpty()) {
+            this.path = Optional.empty();
+        } else {
+            this.path = Optional.of(path);
+        }
         this.sshClientLib = Optional.empty();
         this.connectTimeoutSec = OptionalInt.empty();
         this.replyTimeoutSec = OptionalInt.empty();
@@ -82,11 +89,25 @@ public class NetconfDeviceInfo {
      * @param password  the password for the device
      * @param ipAddress the ip address
      * @param port      the tcp port
+     */
+    public NetconfDeviceInfo(String name, String password, IpAddress ipAddress,
+                             int port) {
+        this(name, password, ipAddress, port, null);
+    }
+
+    /**
+     * Information for contacting the controller.
+     *
+     * @param name      the connection type
+     * @param password  the password for the device
+     * @param ipAddress the ip address
+     * @param port      the tcp port
+     * @param path      the path part
      * @param keyString the string containing a DSA or RSA private key
      *                  of the user in OpenSSH key format
      */
     public NetconfDeviceInfo(String name, String password, IpAddress ipAddress,
-                             int port, String keyString) {
+                             int port, String path, String keyString) {
         checkArgument(!name.equals(""), "Empty device name");
         checkArgument(port > 0, "Negative port");
         checkNotNull(ipAddress, "Null ip address");
@@ -94,6 +115,7 @@ public class NetconfDeviceInfo {
         this.password = password;
         this.ipAddress = ipAddress;
         this.port = port;
+        this.path = Optional.ofNullable(path);
         this.key = keyString.toCharArray();
         this.sshClientLib = Optional.empty();
         this.connectTimeoutSec = OptionalInt.empty();
@@ -114,6 +136,7 @@ public class NetconfDeviceInfo {
         this.password = netconfConfig.password();
         this.ipAddress = netconfConfig.ip();
         this.port = netconfConfig.port();
+        this.path = netconfConfig.path();
         if (netconfConfig.sshKey() != null && !netconfConfig.sshKey().isEmpty()) {
             this.key = netconfConfig.sshKey().toCharArray();
         }
@@ -164,6 +187,15 @@ public class NetconfDeviceInfo {
     }
 
     /**
+     * Allows the path aspect of the device URI to be set.
+     *
+     * @param path path aspect value
+     */
+    public void setPath(Optional<String> path) {
+        this.path = path;
+    }
+
+    /**
      * Exposes the name of the controller.
      *
      * @return String name
@@ -197,6 +229,15 @@ public class NetconfDeviceInfo {
      */
     public int port() {
         return port;
+    }
+
+    /*
+     * Exposes the path of the aspect.
+     *
+     * @return path aspect
+     */
+    public Optional<String> path() {
+        return path;
     }
 
     /**
@@ -265,7 +306,8 @@ public class NetconfDeviceInfo {
     public DeviceId getDeviceId() {
         if (deviceId == null) {
             try {
-                deviceId = DeviceId.deviceId(new URI("netconf", ipAddress.toString() + ":" + port, null));
+                deviceId = DeviceId.deviceId(new URI("netconf", ipAddress.toString() + ":" + port +
+                            (path.isPresent() ? "/" + path.get() : ""), null));
             } catch (URISyntaxException e) {
                 throw new IllegalArgumentException("Unable to build deviceID for device " + toString(), e);
             }
@@ -275,7 +317,11 @@ public class NetconfDeviceInfo {
 
     @Override
     public int hashCode() {
-        return Objects.hash(ipAddress, port, name);
+        if (path.isPresent()) {
+            return Objects.hash(ipAddress, port, path.get(), name);
+        } else {
+            return Objects.hash(ipAddress, port, name);
+        }
     }
 
     @Override
@@ -285,10 +331,40 @@ public class NetconfDeviceInfo {
             if (netconfDeviceInfo.name().equals(name)
                     && netconfDeviceInfo.ip().equals(ipAddress)
                     && netconfDeviceInfo.port() == port
+                    && netconfDeviceInfo.path().equals(path)
                     && netconfDeviceInfo.password().equals(password)) {
                 return true;
             }
         }
         return false;
+    }
+
+    public static Triple<String, Integer, Optional<String>> extractIpPortPath(DeviceId deviceId) {
+        /*
+         * We can expect the following formats:
+         *
+         * netconf:ip:port/path
+         * netconf:ip:port
+         */
+        String string = deviceId.toString();
+
+        /*
+         * The first ':' is the separation between the scheme and the IP.
+         *
+         * The last ':' will represent the separator between the IP and the port.
+         */
+        int first = string.indexOf(':');
+        int last = string.lastIndexOf(':');
+        String ip = string.substring(first + 1, last);
+        String port = string.substring(last + 1);
+        String path = null;
+        int pathSep = port.indexOf('/');
+        if (pathSep != -1) {
+            path = port.substring(pathSep + 1);
+            port = port.substring(0, pathSep);
+        }
+
+        return Triple.of(ip, new Integer(port),
+                (path == null || path.isEmpty() ? Optional.empty() : Optional.of(path)));
     }
 }

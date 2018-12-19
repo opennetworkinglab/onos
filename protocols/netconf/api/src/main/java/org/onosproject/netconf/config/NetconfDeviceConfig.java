@@ -17,21 +17,33 @@
 package org.onosproject.netconf.config;
 
 import com.google.common.annotations.Beta;
-import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.Config;
+import org.slf4j.Logger;
 
 import java.util.Optional;
 import java.util.OptionalInt;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.netconf.NetconfDeviceInfo.extractIpPortPath;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Configuration for Netconf provider.
+ *
+ * The URI for a netconf device is of the format
+ *
+ * {@code netconf:<ip>[:<port>][/<path>]}
+ *
+ * The {@code ip} and {@code port} are used to create a netconf connection
+ * to the device. The {@code path} is an optional component that is not used
+ * by the default netconf driver, but is leveragable by custom drivers.
  */
 @Beta
 public class NetconfDeviceConfig extends Config<DeviceId> {
+
+    private final Logger log = getLogger(getClass());
 
     /**
      * netcfg ConfigKey.
@@ -40,6 +52,7 @@ public class NetconfDeviceConfig extends Config<DeviceId> {
 
     public static final String IP = "ip";
     public static final String PORT = "port";
+    public static final String PATH = "path";
     public static final String USERNAME = "username";
     public static final String PASSWORD = "password";
     public static final String SSHKEY = "sshkey";
@@ -50,7 +63,7 @@ public class NetconfDeviceConfig extends Config<DeviceId> {
 
     @Override
     public boolean isValid() {
-        return hasOnlyFields(IP, PORT, USERNAME, PASSWORD, SSHKEY, SSHCLIENT,
+        return hasOnlyFields(IP, PORT, PATH, USERNAME, PASSWORD, SSHKEY, SSHCLIENT,
                 CONNECT_TIMEOUT, REPLY_TIMEOUT, IDLE_TIMEOUT) && ip() != null;
     }
 
@@ -60,7 +73,7 @@ public class NetconfDeviceConfig extends Config<DeviceId> {
      * @return ip
      */
     public IpAddress ip() {
-        return IpAddress.valueOf(get(IP, checkNotNull(extractIpPort()).getKey()));
+        return IpAddress.valueOf(get(IP, checkNotNull(extractIpPortPath(subject)).getLeft()));
     }
 
     /**
@@ -69,7 +82,20 @@ public class NetconfDeviceConfig extends Config<DeviceId> {
      * @return port
      */
     public int port() {
-        return get(PORT, checkNotNull(extractIpPort()).getValue());
+        return get(PORT, checkNotNull(extractIpPortPath(subject)).getMiddle());
+    }
+
+    /**
+     * Gets the path of the NETCONF device.
+     *
+     * @return path
+     */
+    public Optional<String> path() {
+        String val = get(PATH, "");
+        if (val.isEmpty()) {
+            return extractIpPortPath(subject).getRight();
+        }
+        return Optional.ofNullable(val);
     }
 
     /**
@@ -161,6 +187,16 @@ public class NetconfDeviceConfig extends Config<DeviceId> {
     }
 
     /**
+     * Sets the path for the device.
+     *
+     * @param path the path
+     * @return instance for chaining
+     */
+    public NetconfDeviceConfig setPath(String path) {
+        return (NetconfDeviceConfig) setOrClear(PATH, path);
+    }
+
+    /**
      * Sets the username for the Device.
      *
      * @param username username
@@ -240,23 +276,5 @@ public class NetconfDeviceConfig extends Config<DeviceId> {
      */
     public NetconfDeviceConfig setIdleTimeout(Integer idleTimeout) {
         return (NetconfDeviceConfig) setOrClear(IDLE_TIMEOUT, idleTimeout);
-    }
-
-
-    private Pair<String, Integer> extractIpPort() {
-        // Assuming one of
-        //  - netconf:ip:port
-        //  - netconf:ip
-
-        // foo:schemespecifcpart
-        String info = subject.uri().getSchemeSpecificPart();
-        int portSeparator = info.lastIndexOf(':');
-        if (portSeparator == -1) {
-            // assume default port
-            return Pair.of(info, 830);
-        }
-        String ip = info.substring(0, portSeparator);
-        int port = Integer.parseInt(info.substring(portSeparator + 1));
-        return Pair.of(ip, port);
     }
 }

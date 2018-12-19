@@ -16,6 +16,8 @@
 
 package org.onosproject.netconf.ctl.impl;
 
+import org.apache.commons.lang3.tuple.Triple;
+
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cfg.ComponentConfigService;
@@ -49,9 +51,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.Security;
-import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -62,6 +64,7 @@ import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.getIntegerProperty;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.netconf.ctl.impl.OsgiPropertyConstants.*;
+import static org.onosproject.netconf.NetconfDeviceInfo.extractIpPortPath;
 
 /**
  * The implementation of NetconfController.
@@ -204,13 +207,15 @@ public class NetconfControllerImpl implements NetconfController {
     }
 
     @Override
+    public NetconfDevice getNetconfDevice(IpAddress ip, int port, String path) {
+        return getNetconfDevice(DeviceId.deviceId(
+                    String.format("netconf:%s:%d%s",
+                        ip.toString(), port, (path != null && !path.isEmpty() ? "/" + path : ""))));
+    }
+
+    @Override
     public NetconfDevice getNetconfDevice(IpAddress ip, int port) {
-        for (DeviceId info : netconfDeviceMap.keySet()) {
-            if (info.uri().getSchemeSpecificPart().equals(ip.toString() + ":" + port)) {
-                return netconfDeviceMap.get(info);
-            }
-        }
-        return null;
+        return getNetconfDevice(ip, port, null);
     }
 
     @Override
@@ -225,28 +230,19 @@ public class NetconfControllerImpl implements NetconfController {
         } else if (netCfg != null) {
             log.debug("Device {} is present in NetworkConfig", deviceId);
             deviceInfo = new NetconfDeviceInfo(netCfg);
-
         } else {
             log.debug("Creating NETCONF device {}", deviceId);
             Device device = deviceService.getDevice(deviceId);
-            String ip;
+            String ip, path = null;
             int port;
             if (device != null) {
                 ip = device.annotations().value("ipaddress");
                 port = Integer.parseInt(device.annotations().value("port"));
             } else {
-                String[] info = deviceId.toString().split(":");
-                if (info.length == 3) {
-                    ip = info[1];
-                    port = Integer.parseInt(info[2]);
-                } else {
-                    ip = Arrays.asList(info).stream().filter(el -> !el.equals(info[0])
-                            && !el.equals(info[info.length - 1]))
-                            .reduce((t, u) -> t + ":" + u)
-                            .get();
-                    log.debug("ip v6 {}", ip);
-                    port = Integer.parseInt(info[info.length - 1]);
-                }
+                Triple<String, Integer, Optional<String>> info = extractIpPortPath(deviceId);
+                ip = info.getLeft();
+                port = info.getMiddle();
+                path = (info.getRight().isPresent() ? info.getRight().get() : null);
             }
             try {
                 DeviceKey deviceKey = deviceKeyService.getDeviceKey(
@@ -257,7 +253,8 @@ public class NetconfControllerImpl implements NetconfController {
                     deviceInfo = new NetconfDeviceInfo(usernamepasswd.username(),
                                                        usernamepasswd.password(),
                                                        IpAddress.valueOf(ip),
-                                                       port);
+                                                       port,
+                                                       path);
 
                 } else if (deviceKey.type() == DeviceKey.Type.SSL_KEY) {
                     String username = deviceKey.annotations().value(AnnotationKeys.USERNAME);
@@ -268,6 +265,7 @@ public class NetconfControllerImpl implements NetconfController {
                                                        password,
                                                        IpAddress.valueOf(ip),
                                                        port,
+                                                       path,
                                                        sshkey);
                 } else {
                     log.error("Unknown device key for device {}", deviceId);

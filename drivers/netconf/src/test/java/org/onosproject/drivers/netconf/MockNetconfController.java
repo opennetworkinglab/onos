@@ -55,7 +55,7 @@ public class MockNetconfController implements NetconfController {
         String[] nameParts = deviceId.uri().toASCIIString().split(":");
         IpAddress ipAddress = Ip4Address.valueOf(nameParts[1]);
         int port = Integer.parseInt(nameParts[2]);
-        NetconfDeviceInfo ncdi = new NetconfDeviceInfo("mock", "mock", ipAddress, port);
+        NetconfDeviceInfo ncdi = new NetconfDeviceInfo("mock", "mock", ipAddress, port, null);
 
         mockNetconfDevice = new MockNetconfDevice(ncdi);
         devicesMap.put(deviceId, mockNetconfDevice);
@@ -96,4 +96,9 @@ public class MockNetconfController implements NetconfController {
         return null;
     }
 
+    @Override
+    public NetconfDevice getNetconfDevice(IpAddress ip, int port, String path) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }
