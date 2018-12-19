@@ -26,6 +26,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class ConnectPoint implements Comparable<ConnectPoint> {
 
+    private static final String NO_SEP_SPECIFIED =
+        "Connect point not specified, Connect point must be in \"deviceUri/portNumber\" format";
+
+    private static final String SEP_NO_VALUE =
+        "Connect point separator specified, but no port number included, connect point must "
+            + " be in \"deviceUri/portNumber\" format";
+
+
     private final ElementId elementId;
     private final PortNumber portNumber;
 
@@ -116,13 +124,24 @@ public class ConnectPoint implements Comparable<ConnectPoint> {
      * @return a ConnectPoint based on the information in the string.
      */
     public static ConnectPoint deviceConnectPoint(String string) {
+        /*
+         * As device IDs may have a path component, we are expecting one
+         * of:
+         * - scheme:ip:port/cp
+         * - scheme:ip:port/path/cp
+         *
+         * The assumption is the last `/` will separate the device ID
+         * from the connection point number.
+         */
         checkNotNull(string);
-        String[] splitted = string.split("/");
-        checkArgument(splitted.length == 2,
-                      "Connect point must be in \"deviceUri/portNumber\" format");
+        int idx = string.lastIndexOf("/");
+        checkArgument(idx != -1, NO_SEP_SPECIFIED);
 
-        return new ConnectPoint(DeviceId.deviceId(splitted[0]),
-                                PortNumber.portNumber(splitted[1]));
+        String id = string.substring(0, idx);
+        String cp = string.substring(idx + 1);
+        checkArgument(!cp.isEmpty(), SEP_NO_VALUE);
+
+        return new ConnectPoint(DeviceId.deviceId(id), PortNumber.portNumber(cp));
     }
 
     /**
@@ -152,13 +171,24 @@ public class ConnectPoint implements Comparable<ConnectPoint> {
      * @return a ConnectPoint based on the information in the string.
      */
     public static ConnectPoint fromString(String string) {
+        /*
+         * As device IDs may have a path component, we are expecting one
+         * of:
+         * - scheme:ip:port/cp
+         * - scheme:ip:port/path/cp
+         *
+         * The assumption is the last `/` will separate the device ID
+         * from the connection point number.
+         */
         checkNotNull(string);
-        String[] splitted = string.split("/");
-        checkArgument(splitted.length == 2,
-                "Connect point must be in \"deviceUri/portNumber\" format");
+        int idx = string.lastIndexOf("/");
+        checkArgument(idx != -1, NO_SEP_SPECIFIED);
 
-        return new ConnectPoint(DeviceId.deviceId(splitted[0]),
-                PortNumber.fromString(splitted[1]));
+        String id = string.substring(0, idx);
+        String cp = string.substring(idx + 1);
+        checkArgument(!cp.isEmpty(), SEP_NO_VALUE);
+
+        return new ConnectPoint(DeviceId.deviceId(id), PortNumber.fromString(cp));
     }
 
     @Override
