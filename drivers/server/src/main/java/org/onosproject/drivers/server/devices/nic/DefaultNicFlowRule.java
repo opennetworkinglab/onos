@@ -169,7 +169,7 @@ public abstract class DefaultNicFlowRule extends DefaultFlowRule implements NicF
         }
 
         // This action provides basic rule match counters
-        this.actions.add(new NicRuleAction(NicRuleAction.Action.COUNT));
+        // this.actions.add(new NicRuleAction(NicRuleAction.Action.COUNT));
     }
 
     @Override
@@ -304,6 +304,16 @@ public abstract class DefaultNicFlowRule extends DefaultFlowRule implements NicF
     @Override
     public boolean hasTransport() {
         return (sourcePort() > 0) || (destinationPort() > 0);
+    }
+
+    @Override
+    public boolean isFullWildcard() {
+        if (((ipv4SrcAddress() != null) && !ipv4SrcAddress().isZero()) ||
+            ((ipv4DstAddress() != null) && !ipv4DstAddress().isZero()) ||
+            (ipv4Protocol() > 0) || (sourcePort() > 0) || (destinationPort() > 0)) {
+            return true;
+        }
+        return false;
     }
 
     @Override
