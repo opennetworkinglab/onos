@@ -34,6 +34,7 @@ enum DeviceTypeProto {
     FIBER_SWITCH = 12;
     MICROWAVE = 13;
     OLS = 14;
+    TERMINAL_DEVICE = 15;
 }
 
 enum DeviceEventTypeProto {

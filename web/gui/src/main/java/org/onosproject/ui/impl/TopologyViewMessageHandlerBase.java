@@ -142,6 +142,7 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
         DEVICE_GLYPHS.put(Device.Type.ROADM, "m_roadm");
         DEVICE_GLYPHS.put(Device.Type.OLS, "m_roadm");
         DEVICE_GLYPHS.put(Device.Type.OTN, "m_otn");
+        DEVICE_GLYPHS.put(Device.Type.TERMINAL_DEVICE, "m_otn");
         DEVICE_GLYPHS.put(Device.Type.ROADM_OTN, "m_roadm_otn");
         DEVICE_GLYPHS.put(Device.Type.BALANCER, "m_balancer");
         DEVICE_GLYPHS.put(Device.Type.IPS, "m_ips");

@@ -563,11 +563,11 @@ public class OpticalPathProvisioner
      * Verifies if given device type is NOT in packet layer, i.e., switch or router device.
      *
      * @param type device type
-     * @return true if in packet layer, false otherwise
+     * @return true if in optical layer, false otherwise
      */
     private boolean isTransportLayer(Device.Type type) {
         return type == Device.Type.ROADM || type == Device.Type.OTN || type == Device.Type.ROADM_OTN ||
-                type == Device.Type.OLS;
+                type == Device.Type.OLS ||  type == Device.Type.TERMINAL_DEVICE;
     }
 
     /**

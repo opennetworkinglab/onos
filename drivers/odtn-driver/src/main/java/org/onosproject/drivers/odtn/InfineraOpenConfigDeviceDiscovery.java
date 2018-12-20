@@ -64,7 +64,7 @@ public class InfineraOpenConfigDeviceDiscovery
     @Override
     public DeviceDescription discoverDeviceDetails() {
         return new DefaultDeviceDescription(handler().data().deviceId().uri(),
-                Device.Type.OTN, "Infinera", "XT-3300",
+                Device.Type.TERMINAL_DEVICE, "Infinera", "XT-3300",
                 "unknown", "unknown", new ChassisId());
     }
 

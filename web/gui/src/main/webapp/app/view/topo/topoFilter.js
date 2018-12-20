@@ -52,6 +52,9 @@
                 router: 'pkt',
                 roadm: 'opt',
                 otn: 'opt',
+                ols: 'opt',
+                terminal_device: 'opt',
+                roadm_otn: 'opt',
             },
             link: {
                 hostLink: 'pkt',

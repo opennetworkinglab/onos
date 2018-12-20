@@ -707,8 +707,8 @@ public class DeviceManager
                 log.trace("Device not found: {}", deviceId);
                 return;
             }
-            if ((Device.Type.ROADM.equals(device.type())) ||
-                    (Device.Type.OTN.equals(device.type())) || (Device.Type.OLS.equals(device.type()))) {
+            if ((Type.ROADM.equals(device.type())) || (Type.OTN.equals(device.type())) ||
+                    (Type.OLS.equals(device.type())) || (Type.TERMINAL_DEVICE.equals(device.type()))) {
                 // FIXME This is ignoring all other info in portDescription given as input??
                 PortDescription storedPortDesc = store.getPortDescription(provider().id(),
                                                                           deviceId,

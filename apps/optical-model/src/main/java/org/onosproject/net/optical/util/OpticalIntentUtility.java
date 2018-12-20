@@ -34,6 +34,7 @@ import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.OpticalOduIntent;
 import org.onosproject.net.optical.OchPort;
 
+import static org.onosproject.net.Device.Type;
 import static org.onosproject.net.optical.device.OpticalDeviceServiceView.opticalView;
 
 import org.slf4j.Logger;
@@ -90,9 +91,9 @@ public final class OpticalIntentUtility {
             }
 
             CltSignalType signalType = ((OduCltPort) srcPort).signalType();
-            if (Device.Type.ROADM.equals(srcDevice.type()) ||
-                    Device.Type.ROADM_OTN.equals(srcDevice.type()) ||
-                    Device.Type.OLS.equals(srcDevice.type())) {
+            if (Type.ROADM.equals(srcDevice.type()) ||
+                    Type.ROADM_OTN.equals(srcDevice.type()) ||
+                    Type.OLS.equals(srcDevice.type())) {
                 intent = OpticalCircuitIntent.builder()
                         .appId(appId)
                         .key(key)
@@ -101,7 +102,7 @@ public final class OpticalIntentUtility {
                         .signalType(signalType)
                         .bidirectional(bidirectional)
                         .build();
-            } else if (Device.Type.OTN.equals(srcDevice.type())) {
+            } else if (Type.OTN.equals(srcDevice.type()) || Type.TERMINAL_DEVICE.equals(srcDevice.type())) {
                 intent = OpticalOduIntent.builder()
                         .appId(appId)
                         .key(key)
@@ -173,9 +174,9 @@ public final class OpticalIntentUtility {
             }
 
             CltSignalType signalType = ((OduCltPort) srcPort).signalType();
-            if (Device.Type.ROADM.equals(srcDevice.type()) ||
-                    Device.Type.ROADM_OTN.equals(srcDevice.type()) ||
-                    Device.Type.OLS.equals(srcDevice.type())) {
+            if (Type.ROADM.equals(srcDevice.type()) ||
+                    Type.ROADM_OTN.equals(srcDevice.type()) ||
+                    Type.OLS.equals(srcDevice.type())) {
                 intent = OpticalCircuitIntent.builder()
                         .appId(appId)
                         .key(key)
@@ -184,7 +185,7 @@ public final class OpticalIntentUtility {
                         .signalType(signalType)
                         .bidirectional(bidirectional)
                         .build();
-            } else if (Device.Type.OTN.equals(srcDevice.type())) {
+            } else if (Type.OTN.equals(srcDevice.type()) || Type.TERMINAL_DEVICE.equals(srcDevice.type())) {
                 intent = OpticalOduIntent.builder()
                         .appId(appId)
                         .key(key)
