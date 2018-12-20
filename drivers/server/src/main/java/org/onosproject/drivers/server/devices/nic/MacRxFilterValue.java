@@ -30,9 +30,10 @@ public final class MacRxFilterValue extends RxFilterValue implements Comparable 
 
     /**
      * Constructs a MAC-based Rx filter.
+     * @param cpuId CPU ID of the server this tag will lead to
      */
-    public MacRxFilterValue() {
-        super();
+    public MacRxFilterValue(int cpuId) {
+        super(cpuId);
         this.mac = null;
     }
 
@@ -40,9 +41,10 @@ public final class MacRxFilterValue extends RxFilterValue implements Comparable 
      * Constructs a MAC-based Rx filter with specific MAC address.
      *
      * @param mac a MAC address to use as a filter
+     * @param cpuId CPU ID of the server this tag will lead to
      */
-    public MacRxFilterValue(MacAddress mac) {
-        super();
+    public MacRxFilterValue(MacAddress mac, int cpuId) {
+        super(cpuId);
         setValue(mac);
     }
 
@@ -52,7 +54,7 @@ public final class MacRxFilterValue extends RxFilterValue implements Comparable 
      * @param other a source MacRxFilterValue object
      */
     public MacRxFilterValue(MacRxFilterValue other) {
-        super();
+        super(other.cpuId);
         setValue(other.value());
     }
 

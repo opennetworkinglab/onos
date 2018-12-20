@@ -206,6 +206,13 @@ public interface NicFlowRule extends FlowRule {
     boolean hasTransport();
 
     /**
+     * Returns whether this rule is a full wildcard or not.
+     *
+     * @return boolean full wildcard status
+     */
+    boolean isFullWildcard();
+
+    /**
      * Returns the set of actions of this rule.
      *
      * @return rule's set of actions
