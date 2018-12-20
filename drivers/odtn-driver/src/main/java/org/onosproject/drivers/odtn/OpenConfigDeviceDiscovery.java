@@ -64,7 +64,7 @@ public class OpenConfigDeviceDiscovery
     @Override
     public DeviceDescription discoverDeviceDetails() {
         return new DefaultDeviceDescription(handler().data().deviceId().uri(),
-                Device.Type.OTN, "unknown", "unknown",
+                Device.Type.TERMINAL_DEVICE, "unknown", "unknown",
                 "unknown", "unknown", new ChassisId());
     }
 

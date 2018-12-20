@@ -257,7 +257,7 @@ public class TerminalDeviceDiscovery
 
         // Other option "OTHER", we use ROADM for now
         org.onosproject.net.Device.Type type =
-            org.onosproject.net.Device.Type.ROADM;
+            Device.Type.TERMINAL_DEVICE;
 
         // Some defaults
         String vendor       = "NOVENDOR";

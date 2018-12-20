@@ -74,6 +74,8 @@
         'switch': 'm_switch',
         roadm: 'm_roadm',
         otn: 'm_otn',
+        ols: 'm_roadm',
+        terminal_device: 'm_otn',
         roadm_otn: 'm_roadm_otn',
         fiber_switch: 'm_fiberSwitch',
         microwave: 'm_microwave',

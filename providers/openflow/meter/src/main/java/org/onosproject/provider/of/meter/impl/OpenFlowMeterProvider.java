@@ -121,7 +121,9 @@ public class OpenFlowMeterProvider extends AbstractProvider implements MeterProv
             ImmutableSet.copyOf(EnumSet.of(Device.Type.ROADM,
                                            Device.Type.ROADM_OTN,
                                            Device.Type.FIBER_SWITCH,
-                                           Device.Type.OTN));
+                                           Device.Type.OTN,
+                                           Device.Type.OLS,
+                                           Device.Type.TERMINAL_DEVICE));
 
     /**
      * Creates a OpenFlow meter provider.
