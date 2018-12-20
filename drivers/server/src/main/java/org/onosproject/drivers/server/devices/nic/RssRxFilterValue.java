@@ -28,9 +28,11 @@ public final class RssRxFilterValue extends RxFilterValue implements Comparable 
 
     /**
      * Constructs an RSS-based Rx filter.
+     *
+     * @param cpuId CPU ID of the server this tag will lead to
      */
-    public RssRxFilterValue() {
-        super();
+    public RssRxFilterValue(int cpuId) {
+        super(cpuId);
         setValue(0);
     }
 
@@ -38,9 +40,10 @@ public final class RssRxFilterValue extends RxFilterValue implements Comparable 
      * Constructs an RSS-based Rx filter with specific hash.
      *
      * @param rssHash a hash value
+     * @param cpuId CPU ID of the server this tag will lead to
      */
-    public RssRxFilterValue(int rssHash) {
-        super();
+    public RssRxFilterValue(int rssHash, int cpuId) {
+        super(cpuId);
         setValue(rssHash);
     }
 
@@ -50,7 +53,7 @@ public final class RssRxFilterValue extends RxFilterValue implements Comparable 
      * @param other a source RssRxFilterValue object
      */
     public RssRxFilterValue(RssRxFilterValue other) {
-        super();
+        super(other.cpuId);
         setValue(other.value());
     }
 

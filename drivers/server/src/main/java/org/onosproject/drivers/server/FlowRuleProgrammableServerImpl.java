@@ -251,16 +251,26 @@ public class FlowRuleProgrammableServerImpl extends BasicServerDriver
 
         rules.forEach(rule -> {
             if (!(rule instanceof FlowEntry)) {
-                NicFlowRule nicRule = (NicFlowRule) rule;
-                String tcId = nicRule.trafficClassId();
+                NicFlowRule nicRule = null;
 
-                // Create a bucket of flow rules for this traffic class
-                if (!rulesPerTc.containsKey(tcId)) {
-                    rulesPerTc.put(tcId, Sets.<FlowRule>newConcurrentHashSet());
+                // Only NicFlowRules are accepted
+                try {
+                    nicRule = (NicFlowRule) rule;
+                } catch (ClassCastException cEx) {
+                    log.warn("Skipping rule not crafted for NIC: {}", rule);
                 }
 
-                Set<FlowRule> tcRuleSet = rulesPerTc.get(tcId);
-                tcRuleSet.add(nicRule);
+                if (nicRule != null) {
+                    String tcId = nicRule.trafficClassId();
+
+                    // Create a bucket of flow rules for this traffic class
+                    if (!rulesPerTc.containsKey(tcId)) {
+                        rulesPerTc.put(tcId, Sets.<FlowRule>newConcurrentHashSet());
+                    }
+
+                    Set<FlowRule> tcRuleSet = rulesPerTc.get(tcId);
+                    tcRuleSet.add(nicRule);
+                }
             }
         });
 
@@ -322,6 +332,11 @@ public class FlowRuleProgrammableServerImpl extends BasicServerDriver
 
         for (FlowRule rule : rules) {
             NicFlowRule nicRule = (NicFlowRule) rule;
+            if (nicRule.isFullWildcard() && (rules.size() > 1)) {
+                log.warn("Skipping wildcard rule: {}", nicRule);
+                continue;
+            }
+
             long coreIndex = nicRule.cpuCoreIndex();
 
             // Keep the ID of the target NIC
