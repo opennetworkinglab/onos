@@ -1226,10 +1226,9 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
         if (directlyConnected(dhcpPayload)) {
             udpPacket.setDestinationPort(UDP.DHCP_CLIENT_PORT);
         } else {
-            // forward to another dhcp relay
-            // FIXME: Currently we assume the DHCP comes from a L2 relay with
-            // Option 82, this might not work if DHCP message comes from
-            // L3 relay.
+            // TODO Implement component config to support for both L2 and L3 relay
+            // L2 relay expects destination port to be CLIENT_PORT while L3 relay expects SERVER_PORT
+            // Currently we only support L2 relay for DHCPv4
             udpPacket.setDestinationPort(UDP.DHCP_CLIENT_PORT);
         }
 
