@@ -98,7 +98,7 @@ public class InOrderFlowObjectiveManagerTest {
     // Delay flow objectives OFFSET + rand(0, BOUND) millis
     private static final int DEFAULT_OFFSET = 10; // ms
     private static final int DEFAULT_BOUND = 40; // ms
-    private static final int TIMEOUT_THRESH = 100; // ms
+    private static final int TIMEOUT_THRESH = 500; // ms
     private static int offset = DEFAULT_OFFSET;
     private static int bound = DEFAULT_BOUND;
 
@@ -186,7 +186,12 @@ public class InOrderFlowObjectiveManagerTest {
 
     @Before
     public void setUp() {
+        internalSetup(InOrderFlowObjectiveManager.DEFAULT_OBJ_TIMEOUT);
+    }
+
+    private void internalSetup(int objTimeoutMs) {
         mgr = new InOrderFlowObjectiveManager();
+        mgr.objTimeoutMs = objTimeoutMs;
         mgr.pipeliners.put(DEV1, pipeliner);
         mgr.executorService = newFixedThreadPool(4, groupedThreads("foo", "bar"));
         mgr.cfgService = createMock(ComponentConfigService.class);
@@ -251,15 +256,14 @@ public class InOrderFlowObjectiveManagerTest {
                 Lists.newArrayList(fwdTimeout, FWD1, FWD2));
 
         // Reduce timeout so the unit test doesn't have to wait many seconds
-        InOrderFlowObjectiveManager.objTimeoutMs = TIMEOUT_THRESH;
-        setUp();
+        internalSetup(TIMEOUT_THRESH);
 
         expect(mgr.flowObjectiveStore.getNextGroup(NID1)).andReturn(NGRP1).times(2);
         expect(mgr.flowObjectiveStore.getNextGroup(NID2)).andReturn(NGRP2).times(2);
         replay(mgr.flowObjectiveStore);
 
         // Force this objective to time out
-        offset = InOrderFlowObjectiveManager.objTimeoutMs * 2;
+        offset = mgr.objTimeoutMs * 2;
 
         expectFwdObjsTimeout.forEach(fwdObj -> mgr.forward(DEV1, fwdObj));
 
@@ -267,7 +271,7 @@ public class InOrderFlowObjectiveManagerTest {
         int expectedTime = (bound + offset) * 3;
         assertAfter(expectedTime, expectedTime * 5, () -> assertEquals(expectFwdObjsTimeout.size(), actualObjs.size()));
 
-        assertTrue(counter.get() != 0);
+        assertAfter(expectedTime, expectedTime * 5, () -> assertTrue(counter.get() != 0));
         assertTrue(actualObjs.indexOf(fwdTimeout) < actualObjs.indexOf(FWD1));
 
         verify(mgr.flowObjectiveStore);
