@@ -51,6 +51,7 @@ public class ResourceTest extends JerseyTest {
     private void configureProperties() {
         set(TestProperties.CONTAINER_PORT, 0);
         AuthorizationFilter.disableForTests();
+        AuditFilter.disableForTests();
     }
 
     /**
