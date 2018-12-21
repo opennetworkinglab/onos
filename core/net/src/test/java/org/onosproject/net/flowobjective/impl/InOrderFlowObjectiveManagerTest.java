@@ -98,7 +98,7 @@ public class InOrderFlowObjectiveManagerTest {
     // Delay flow objectives OFFSET + rand(0, BOUND) millis
     private static final int DEFAULT_OFFSET = 10; // ms
     private static final int DEFAULT_BOUND = 40; // ms
-    private static final int TIMEOUT_THRESH = 100; // ms
+    private static final int TIMEOUT_THRESH = 500; // ms
     private static int offset = DEFAULT_OFFSET;
     private static int bound = DEFAULT_BOUND;
 
@@ -269,7 +269,7 @@ public class InOrderFlowObjectiveManagerTest {
         int expectedTime = (bound + offset) * 3;
         assertAfter(expectedTime, expectedTime * 5, () -> assertEquals(expectFwdObjsTimeout.size(), actualObjs.size()));
 
-        assertTrue(counter.get() != 0);
+        assertAfter(expectedTime, expectedTime * 5, () -> assertTrue(counter.get() != 0));
         assertTrue(actualObjs.indexOf(fwdTimeout) < actualObjs.indexOf(FWD1));
 
         verify(mgr.flowObjectiveStore);
