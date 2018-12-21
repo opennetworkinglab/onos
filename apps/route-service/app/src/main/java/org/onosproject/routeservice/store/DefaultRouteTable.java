@@ -19,6 +19,7 @@ package org.onosproject.routeservice.store;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -42,6 +43,7 @@ import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.Versioned;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -234,5 +236,34 @@ public class DefaultRouteTable implements RouteTable {
         Route route() {
             return new Route(source, IpPrefix.valueOf(prefix), IpAddress.valueOf(nextHop), sourceNode);
         }
+
+        public int hashCode() {
+            return Objects.hash(prefix, nextHop);
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if (this == other) {
+                return true;
+            }
+
+            if (!(other instanceof RawRoute)) {
+                return false;
+            }
+
+            RawRoute that = (RawRoute) other;
+
+            return Objects.equals(this.prefix, that.prefix) &&
+                    Objects.equals(this.nextHop, that.nextHop);
+        }
+
+        @Override
+        public String toString() {
+            return toStringHelper(this)
+                    .add("prefix", prefix)
+                    .add("nextHop", nextHop)
+                    .toString();
+        }
+
     }
 }
