@@ -184,7 +184,12 @@ public class InOrderFlowObjectiveManagerTest {
 
     @Before
     public void setUp() {
+        internalSetup(InOrderFlowObjectiveManager.DEFAULT_OBJ_TIMEOUT);
+    }
+
+    private void internalSetup(int objTimeoutMs) {
         mgr = new InOrderFlowObjectiveManager();
+        mgr.objTimeoutMs = objTimeoutMs;
         mgr.pipeliners.put(DEV1, pipeliner);
         mgr.executorService = newFixedThreadPool(4, groupedThreads("foo", "bar"));
         mgr.cfgService = createMock(ComponentConfigService.class);
@@ -249,15 +254,14 @@ public class InOrderFlowObjectiveManagerTest {
                 Lists.newArrayList(fwdTimeout, FWD1, FWD2));
 
         // Reduce timeout so the unit test doesn't have to wait many seconds
-        InOrderFlowObjectiveManager.objTimeoutMs = TIMEOUT_THRESH;
-        setUp();
+        internalSetup(TIMEOUT_THRESH);
 
         expect(mgr.flowObjectiveStore.getNextGroup(NID1)).andReturn(NGRP1).times(1);
         expect(mgr.flowObjectiveStore.getNextGroup(NID2)).andReturn(NGRP2).times(2);
         replay(mgr.flowObjectiveStore);
 
         // Force this objective to time out
-        offset = InOrderFlowObjectiveManager.objTimeoutMs * 2;
+        offset = mgr.objTimeoutMs * 2;
 
         expectFwdObjsTimeout.forEach(fwdObj -> mgr.forward(DEV1, fwdObj));
 
