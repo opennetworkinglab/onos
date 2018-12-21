@@ -19,7 +19,7 @@
             <step name="Stop-Service-${#}" exec="onos-service ${OC#} stop"/>
             <step name="Wait-for-Stop-${#}" exec="onos-wait-for-stop ${OC#}"
                   requires="~Stop-Service-${#}"/>
-            <step name="Check-Logs-${#}" exec="onos-check-logs ${OC#}"
+            <step name="Shutdown-ONOS.Check-Logs-${#}" exec="onos-check-logs ${OC#}"
                   requires="~Wait-for-Stop-${#}"/>
         </parallel>
     </group>

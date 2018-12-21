@@ -226,7 +226,8 @@ public abstract class TapiObjectHandler<T extends ModelObject> {
             try {
                 dcs.createNode(rid, node);
             } catch (FailedException e) {
-                log.warn("Failed to add resource", e);
+                    log.warn("Failed to add resource {}", rid);
+                    log.debug("Exception", e);
             }
         }
     }
