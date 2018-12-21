@@ -64,7 +64,8 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     // TODO Make queue timeout configurable
-    static int objTimeoutMs = 15000;
+    static final int DEFAULT_OBJ_TIMEOUT = 15000;
+    int objTimeoutMs = DEFAULT_OBJ_TIMEOUT;
 
     private Cache<FilteringObjQueueKey, Objective> filtObjQueueHead;
     private Cache<ForwardingObjQueueKey, Objective> fwdObjQueueHead;
