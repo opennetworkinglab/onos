@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Injectable, SimpleChanges, SimpleChange} from '@angular/core';
+import {Injectable, SimpleChange} from '@angular/core';
 import {
     LogService, WebSocketService,
 } from 'gui2-fw-lib';
 import { InstanceComponent } from './panel/instance/instance.component';
 import { BackgroundSvgComponent } from './layer/backgroundsvg/backgroundsvg.component';
 import { ForceSvgComponent } from './layer/forcesvg/forcesvg.component';
-import {Region} from './layer/forcesvg/models';
+import {
+    ModelEventMemo,
+    ModelEventType,
+    Region
+} from './layer/forcesvg/models';
 
 /**
  * ONOS GUI -- Topology Service Module.
@@ -51,7 +55,9 @@ export class TopologyService {
             ],
             ['topo2CurrentLayout', (data) => {
                     this.log.warn('Add fn for topo2CurrentLayout callback', data);
-                    background.layoutData = data;
+                    if (background) {
+                        background.layoutData = data;
+                    }
                 }
             ],
             ['topo2CurrentRegion', (data) => {
@@ -63,15 +69,22 @@ export class TopologyService {
                 }
             ],
             ['topo2PeerRegions', (data) => { this.log.warn('Add fn for topo2PeerRegions callback', data); } ],
-            ['topo2UiModelEvent', (data) => { this.log.warn('Add fn for topo2UiModelEvent callback', data); } ],
-            ['topo2Highlights', (data) => { this.log.warn('Add fn for topo2Highlights callback', data); } ],
+            ['topo2UiModelEvent', (event) => {
+                    // this.log.debug('Handling', event);
+                    force.handleModelEvent(
+                        <ModelEventType><unknown>(ModelEventType[event.type]),
+                        <ModelEventMemo>(event.memo),
+                        event.subject, event.data);
+                }
+            ],
+            // ['topo2Highlights', (data) => { this.log.warn('Add fn for topo2Highlights callback', data); } ],
         ]));
         this.handlers.push('topo2AllInstances');
         this.handlers.push('topo2CurrentLayout');
         this.handlers.push('topo2CurrentRegion');
         this.handlers.push('topo2PeerRegions');
         this.handlers.push('topo2UiModelEvent');
-        this.handlers.push('topo2Highlights');
+        // this.handlers.push('topo2Highlights');
 
         // in case we fail over to a new server,
         // listen for wsock-open events

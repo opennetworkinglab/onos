@@ -22,6 +22,7 @@ import {
     FnService,
     LogService
 } from 'gui2-fw-lib';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 
 class MockActivatedRoute extends ActivatedRoute {
     constructor(params: Params) {
@@ -58,6 +59,7 @@ describe('ToolbarComponent', () => {
         };
         fs = new FnService(ar, logSpy, windowMock);
         TestBed.configureTestingModule({
+            imports: [ BrowserAnimationsModule ],
             declarations: [ ToolbarComponent ],
             providers: [
                 { provide: FnService, useValue: fs },

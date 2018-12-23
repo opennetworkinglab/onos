@@ -13,17 +13,75 @@
 ~ See the License for the specific language governing permissions and
 ~ limitations under the License.
 -->
-<svg:g xmlns:svg="http://www.w3.org/2000/svg" #devSvg
+<svg:defs xmlns:svg="http://www.w3.org/2000/svg">
+    <!-- Template explanation: Define an SVG Filter that in
+        line 1) render the target object in to a bit map and apply a blur to it
+            based on its alpha channel
+        line 2) take that blurred layer and shift it down and to the right by 4
+        line 3) Merge this blurred and shifted layer and overlay it with the
+            original target object
+    -->
+    <svg:filter id="drop-shadow">
+        <svg:feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur" />
+        <svg:feOffset in="blur" dx="4" dy="4" result="offsetBlur"/>
+        <svg:feMerge >
+            <svg:feMergeNode in="offsetBlur" />
+            <svg:feMergeNode in="SourceGraphic" />
+        </svg:feMerge>
+    </svg:filter>
+    <svg:linearGradient id="diagonal_blue" x1="0%" y1="0%" x2="100%" y2="100%">
+        <svg:stop offset= "0%" style="stop-color: #5b99d2;" />
+        <svg:stop offset= "100%" style="stop-color: #3b79b2;" />
+    </svg:linearGradient>
+</svg:defs>
+<!-- Template explanation: Creates an SVG Group and in
+    line 1) transform it to the position calculated by the d3 force graph engine
+    line 2) Give it various CSS styles depending on attributes
+    line 3) When it is clicked, call the method that toggles the selection and
+        emits an event.
+    Other child objects have their own description
+-->
+<svg:g xmlns:svg="http://www.w3.org/2000/svg"
        [attr.transform]="'translate(' + device?.x + ',' + device?.y + '), scale(' + scale + ')'"
         [ngClass]="['node', 'device', device.online?'online':'', selected?'selected':'']"
         (click)="toggleSelected(device)">
-    <svg:rect class="node-container" x="-18" y="-18" width="36" height="36">
-              <!--[attr.width]="devText.getComputedTextLength()+36" -->
-              <!--[@deviceLabelToggle]="{ value: labelToggle, params: {txtWidth: devSvg.getBBox().width+'px' }}">-->
+    <svg:desc>Device {{device.id}}</svg:desc>
+    <!-- Template explanation: Creates an SVG Rectangle and in
+        line 1) set a css style and shift so that it's centred
+        line 2) set the initial width and height - width changes with label
+        line 3) link to the animation 'deviceLabelToggle', pass in to it a width
+            calculated from the width of the text, and additional padding at the end
+        line 4) Apply the filter defined above to this rectangle (even as its
+            width changes
+    -->
+    <svg:rect
+            class="node-container" x="-18" y="-18"
+            width="36" height="36"
+            [@deviceLabelToggle]="{ value: labelToggle, params: {txtWidth: (36 + labelTextLen() * 1.05)+'px' }}"
+            filter= "url(#drop-shadow)">
     </svg:rect>
-    <svg:rect x="-16" y="-16" width="32" height="32" [ngStyle]="{'fill': 'rgb(91, 153, 210)'}">
+    <!-- Template explanation: Creates an SVG Rectangle slightly smaller and
+        overlaid on the above. This is the blue box, and its width and height does
+        not change
+    -->
+    <svg:rect x="-16" y="-16" width="32" height="32" style="fill: url(#diagonal_blue)">
     </svg:rect>
-    <svg:text #devText text-anchor="start" y="0.3em" x="22" [ngStyle]="{'transform': 'scale(' + scale + ')'}">
+    <!-- Template explanation: Creates an SVG Text element and in
+        line 1) make it left aligned and slightly down and to the right of the last rect
+        line 2) set its text length to be the calculated value - see that function
+        line 3) because of kerning the actual text might be shorter or longer than
+            the pre-calculated value - if so change the spacing between the letters
+            (and not the letter width to compensate)
+        line 4) link to the animation deviceLabelToggleTxt, so that the text appears
+            in gently
+        line 5) The text will be one of 3 values - blank, the id or the name
+    -->
+    <svg:text
+            text-anchor="start" y="0.3em" x="22"
+            [attr.textLength]= "labelTextLen()"
+            lengthAdjust= "spacing"
+            [ngStyle]="{'transform': 'scale(' + scale + ')'}"
+            [@deviceLabelToggleTxt]="labelToggle">
         {{ labelToggle == 0 ? '': labelToggle == 1 ? device.id:device.props.name }}
     </svg:text>
     <!-- It's not possible to drive the following xref dynamically -->

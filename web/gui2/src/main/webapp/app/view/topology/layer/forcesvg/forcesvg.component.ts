@@ -24,6 +24,7 @@ import {
     OnInit,
     Output,
     QueryList,
+    SimpleChange,
     SimpleChanges,
     ViewChildren
 } from '@angular/core';
@@ -31,15 +32,24 @@ import {IconService, LogService} from 'gui2-fw-lib';
 import {
     Device,
     ForceDirectedGraph,
-    Host, HostLabelToggle,
+    Host,
+    HostLabelToggle,
     LabelToggle,
     LayerType,
-    Node,
+    Link,
+    LinkHighlight,
+    ModelEventMemo,
+    ModelEventType,
     Region,
     RegionLink,
-    SubRegion
+    SubRegion,
+    UiElement
 } from './models';
-import {DeviceNodeSvgComponent, HostNodeSvgComponent} from './visuals';
+import {
+    DeviceNodeSvgComponent,
+    HostNodeSvgComponent,
+    LinkSvgComponent
+} from './visuals';
 
 
 /**
@@ -58,7 +68,7 @@ export class ForceSvgComponent implements OnInit, OnChanges {
     @Input() onosInstMastership: string = '';
     @Input() visibleLayer: LayerType = LayerType.LAYER_DEFAULT;
     @Output() linkSelected = new EventEmitter<RegionLink>();
-    @Output() selectedNodeEvent = new EventEmitter<Node>();
+    @Output() selectedNodeEvent = new EventEmitter<UiElement>();
     @Input() selectedLink: RegionLink = null;
     @Input() showHosts: boolean = false;
     @Input() deviceLabelToggle: LabelToggle = LabelToggle.NONE;
@@ -71,6 +81,7 @@ export class ForceSvgComponent implements OnInit, OnChanges {
     // template view with the *ngFor and we get them by a query here
     @ViewChildren(DeviceNodeSvgComponent) devices: QueryList<DeviceNodeSvgComponent>;
     @ViewChildren(HostNodeSvgComponent) hosts: QueryList<HostNodeSvgComponent>;
+    @ViewChildren(LinkSvgComponent) links: QueryList<LinkSvgComponent>;
 
     constructor(
         protected log: LogService,
@@ -115,7 +126,7 @@ export class ForceSvgComponent implements OnInit, OnChanges {
      */
     ngOnInit() {
         // Receiving an initialized simulated graph from our custom d3 service
-        this.graph = new ForceDirectedGraph(this.options);
+        this.graph = new ForceDirectedGraph(this.options, this.log);
 
         /** Binding change detection check on each tick
          * This along with an onPush change detection strategy should enforce
@@ -186,6 +197,7 @@ export class ForceSvgComponent implements OnInit, OnChanges {
 
             this.graph.initSimulation(this.options);
             this.graph.initNodes();
+            this.graph.initLinks();
             this.log.debug('ForceSvgComponent input changed',
                 this.graph.nodes.length, 'nodes,', this.graph.links.length, 'links');
         }
@@ -245,8 +257,8 @@ export class ForceSvgComponent implements OnInit, OnChanges {
      * changed.
      * @param selectedNode the newly selected node
      */
-    updateSelected(selectedNode: Node): void {
-        this.log.debug('Device selected', selectedNode);
+    updateSelected(selectedNode: UiElement): void {
+        this.log.debug('Node or link selected', selectedNode);
         this.devices
             .filter((d) =>
                 selectedNode === undefined || d.device.id !== selectedNode.id)
@@ -256,19 +268,156 @@ export class ForceSvgComponent implements OnInit, OnChanges {
                 selectedNode === undefined || h.host.id !== selectedNode.id)
             .forEach((h) => h.deselect());
 
+        this.links
+            .filter((l) =>
+                selectedNode === undefined || l.link.id !== selectedNode.id)
+            .forEach((l) => l.deselect());
+
         this.selectedNodeEvent.emit(selectedNode);
     }
 
     /**
      * We want to filter links to show only those not related to hosts if the
-     * 'showHosts' flag has been switched off. If 'shwoHosts' is true, then
+     * 'showHosts' flag has been switched off. If 'showHosts' is true, then
      * display all links.
      */
-    filteredLinks() {
+    filteredLinks(): Link[] {
         return this.regionData.links.filter((h) =>
             this.showHosts ||
             ((<Host>h.source).nodeType !== 'host' &&
             (<Host>h.target).nodeType !== 'host'));
+    }
+
+    /**
+     * When changes happen in the model, then model events are sent up through the
+     * Web Socket
+     * @param type - the type of the change
+     * @param memo - a qualifier on the type
+     * @param subject - the item that the update is for
+     * @param data - the new definition of the item
+     */
+    handleModelEvent(type: ModelEventType, memo: ModelEventMemo, subject: string, data: UiElement): void {
+        switch (type) {
+            case ModelEventType.DEVICE_ADDED_OR_UPDATED:
+                if (memo === ModelEventMemo.ADDED) {
+                    this.regionData.devices[this.visibleLayerIdx()].push(<Device>data);
+                } else if (memo === ModelEventMemo.UPDATED) {
+                    const oldDevice: Device =
+                        this.regionData.devices[this.visibleLayerIdx()]
+                            .find((d) => d.id === subject);
+                    this.compareDevice(oldDevice, <Device>data);
+                } else {
+                    this.log.warn('Device ', memo, ' - not yet implemented', data);
+                }
+                this.log.warn('Device ', memo, ' - not yet implemented', data);
+                break;
+            case ModelEventType.HOST_ADDED_OR_UPDATED:
+                if (memo === ModelEventMemo.ADDED) {
+                    this.regionData.hosts[this.visibleLayerIdx()].push(<Host>data);
+                    this.log.warn('Host added - not yet implemented', data);
+                } else if (memo === ModelEventMemo.UPDATED) {
+                    const oldHost: Host = this.regionData.hosts[this.visibleLayerIdx()]
+                        .find((h) => h.id === subject);
+                    this.compareHost(oldHost, <Host>data);
+                    this.log.warn('Host updated - not yet implemented', data);
+                } else {
+                    this.log.warn('Host change', memo, ' - unexpected');
+                }
+                break;
+            case ModelEventType.DEVICE_REMOVED:
+                if (memo === ModelEventMemo.REMOVED || memo === undefined) {
+                    const removeIdx: number =
+                        this.regionData.devices[this.visibleLayerIdx()]
+                            .findIndex((d) => d.id === subject);
+                    const removeCmpt: DeviceNodeSvgComponent =
+                        this.devices.find((dc) => dc.device.id === subject);
+                    this.log.warn('Device ', subject, 'removed - not yet implemented', removeIdx, removeCmpt.device.id);
+                } else {
+                    this.log.warn('Device removed - unexpected memo', memo);
+                }
+                break;
+            case ModelEventType.HOST_REMOVED:
+                if (memo === ModelEventMemo.REMOVED || memo === undefined) {
+                    const removeIdx: number =
+                        this.regionData.hosts[this.visibleLayerIdx()]
+                            .findIndex((h) => h.id === subject);
+                    const removeCmpt: HostNodeSvgComponent =
+                        this.hosts.find((hc) => hc.host.id === subject);
+                    this.log.warn('Host ', subject, 'removed - not yet implemented', removeIdx, removeCmpt.host.id);
+                } else {
+                    this.log.warn('Host removed - unexpected memo', memo);
+                }
+                break;
+            case ModelEventType.LINK_ADDED_OR_UPDATED:
+                this.log.warn('link added or updated - not yet implemented', subject);
+                break;
+            default:
+                this.log.error('Unexpected model event', type, 'for', subject);
+        }
+    }
+
+    private compareDevice(oldDevice: Device, updatedDevice: Device) {
+        if (oldDevice.master !== updatedDevice.master) {
+            this.log.debug('Mastership has changed for', updatedDevice.id, 'to', updatedDevice.master);
+        }
+        if (oldDevice.online !== updatedDevice.online) {
+            this.log.debug('Status has changed for', updatedDevice.id, 'to', updatedDevice.online);
+        }
+    }
+
+    private compareHost(oldHost: Host, updatedHost: Host) {
+        if (oldHost.configured !== updatedHost.configured) {
+            this.log.debug('Configured has changed for', updatedHost.id, 'to', updatedHost.configured);
+        }
+    }
+
+    /**
+     * When traffic monitoring is turned on (A key) highlights will be sent back
+     * from the WebSocket through the Traffic Service
+     * @param devices - an array of device highlights
+     * @param hosts - an array of host highlights
+     * @param links - an array of link highlights
+     */
+    handleHighlights(devices: Device[], hosts: Host[], links: LinkHighlight[]): void {
+
+        if (devices.length > 0) {
+            this.log.debug(devices.length, 'Devices highlighted');
+            devices.forEach((dh) => {
+                const deviceComponent: DeviceNodeSvgComponent = this.devices.find((d) => d.device.id === dh.id );
+                if (deviceComponent) {
+                    deviceComponent.ngOnChanges(
+                        {'deviceHighlight': new SimpleChange(<Device>{}, dh, true)}
+                    );
+                    this.log.debug('Highlighting device', deviceComponent.device.id);
+                } else {
+                    this.log.warn('Device component not found', dh.id);
+                }
+            });
+        }
+        if (hosts.length > 0) {
+            this.log.debug(hosts.length, 'Hosts highlighted');
+            hosts.forEach((hh) => {
+                const hostComponent: HostNodeSvgComponent = this.hosts.find((h) => h.host.id === hh.id );
+                if (hostComponent) {
+                    hostComponent.ngOnChanges(
+                        {'hostHighlight': new SimpleChange(<Host>{}, hh, true)}
+                    );
+                    this.log.debug('Highlighting host', hostComponent.host.id);
+                }
+            });
+        }
+        if (links.length > 0) {
+            this.log.debug(links.length, 'Links highlighted');
+            links.forEach((lh) => {
+                const linkComponent: LinkSvgComponent = this.links.find((l) => l.link.id === lh.id );
+                if (linkComponent) { // A link might not be present is hosts viewing is switched off
+                    linkComponent.ngOnChanges(
+                        {'linkHighlight': new SimpleChange(<LinkHighlight>{}, lh, true)}
+                    );
+                    // this.log.debug('Highlighting link', linkComponent.link.id, lh.css, lh.label);
+                }
+            });
+        }
     }
 }
 

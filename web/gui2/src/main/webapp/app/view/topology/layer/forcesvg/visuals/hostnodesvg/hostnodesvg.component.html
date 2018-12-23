@@ -13,11 +13,57 @@
 ~ See the License for the specific language governing permissions and
 ~ limitations under the License.
 -->
+<svg:defs xmlns:svg="http://www.w3.org/2000/svg">
+    <!-- Template explanation: Define an SVG Filter that in
+        line 1) render the target object in to a bit map and apply a blur to it
+            based on its alpha channel
+        line 2) take that blurred layer and shift it down and to the right by 4
+        line 3) Merge this blurred and shifted layer and overlay it with the
+            original target object
+    -->
+    <svg:filter id="drop-shadow-host">
+        <svg:feGaussianBlur in="SourceAlpha" stdDeviation="1" result="blur" />
+        <svg:feOffset in="blur" dx="2" dy="2" result="offsetBlur"/>
+        <svg:feMerge >
+            <svg:feMergeNode in="offsetBlur" />
+            <svg:feMergeNode in="SourceGraphic" />
+        </svg:feMerge>
+    </svg:filter>
+    <svg:radialGradient id="three_stops_radial">
+        <svg:stop offset= "0%" style="stop-color: #e3e5d6;" />
+        <svg:stop offset= "70%" style="stop-color: #c3c5b6;" />
+        <svg:stop offset="100%" style="stop-color: #a3a596;" />
+    </svg:radialGradient>
+</svg:defs>
+<!-- Template explanation: Creates an SVG Group and in
+    line 1) transform it to the position calculated by the d3 force graph engine
+    line 2) Give it various CSS styles depending on attributes
+    line 3) When it is clicked, call the method that toggles the selection and
+        emits an event.
+    Other child objects have their own description
+-->
 <svg:g  xmlns:svg="http://www.w3.org/2000/svg"
         [attr.transform]="'translate(' + host?.x + ',' + host?.y + '), scale(' + scale + ')'"
         [ngClass]="['node', 'host', 'endstation', 'fixed', selected?'selected':'', 'hovered']"
         (click)="toggleSelected(host)">
-    <svg:circle r="15"></svg:circle>
+    <svg:desc>Host {{host.id}}</svg:desc>
+    <!-- Template explanation: Creates an SVG Circle and in
+        line 1) Apply the drop shadow defined above to this circle
+        line 2) Apply the radial gradient defined above to the circle
+    -->
+    <svg:circle r="15"
+        filter="url(#drop-shadow-host)"
+        style="fill: url(#three_stops_radial)">
+    </svg:circle>
     <svg:use xlink:href="#m_endstation" width="22.5" height="22.5" x="-11.25" y="-11.25" style="transform: scale(1);"></svg:use>
-    <svg:text *ngIf="labelToggle != 0" dy="24" text-anchor="middle" style="transform: scale(1);">{{hostName()}}</svg:text>
+    <!-- Template explanation: Creates an SVG Text
+        line 1) if the labelToggle is not 0
+        line 2) shift it below the circle, and have it centred with the circle
+        line 3) apply a scale and call on the hostName(0 method to get the
+            displayed value
+    -->
+    <svg:text
+        *ngIf="labelToggle != 0"
+        dy="30" text-anchor="middle"
+        style="transform: scale(1);">{{hostName()}}</svg:text>
 </svg:g>

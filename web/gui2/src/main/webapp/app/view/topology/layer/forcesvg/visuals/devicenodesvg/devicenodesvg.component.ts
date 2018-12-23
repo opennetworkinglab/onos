@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 import {
+    ChangeDetectionStrategy,
     ChangeDetectorRef,
     Component,
-    ElementRef, EventEmitter,
+    EventEmitter,
     Input,
     OnChanges, Output,
     SimpleChanges,
-    ViewChild
 } from '@angular/core';
-import {Node, Device, LabelToggle} from '../../models';
+import {Device, LabelToggle, UiElement} from '../../models';
 import {LogService} from 'gui2-fw-lib';
 import {NodeVisual} from '../nodevisual';
+import {animate, state, style, transition, trigger} from '@angular/animations';
 
 /**
  * The Device node in the force graph
@@ -36,28 +37,38 @@ import {NodeVisual} from '../nodevisual';
     selector: '[onos-devicenodesvg]',
     templateUrl: './devicenodesvg.component.html',
     styleUrls: ['./devicenodesvg.component.css'],
-    // changeDetection: ChangeDetectionStrategy.Default,
-    // animations: [
-    //     trigger('deviceLabelToggle', [
-    //         state('0', style({ // none
-    //             width: '36px',
-    //         })),
-    //         state('1, 2', // id
-    //             style({ width: '{{ txtWidth }}'}),
-    //             { params: {'txtWidth': '36px'}}
-    //         ), // default
-    //         transition('0 => *', animate('1000ms ease-in')),
-    //         transition('* => 0', animate('1000ms ease-out'))
-    //     ])
-    // ]
+    changeDetection: ChangeDetectionStrategy.Default,
+    animations: [
+        trigger('deviceLabelToggle', [
+            state('0', style({ // none
+                width: '36px',
+            })),
+            state('1, 2', // id
+                style({ width: '{{ txtWidth }}'}),
+                { params: {'txtWidth': '36px'}}
+            ), // default
+            transition('0 => 1', animate('250ms ease-in')),
+            transition('1 => 2', animate('250ms ease-in')),
+            transition('* => 0', animate('250ms ease-out'))
+        ]),
+        trigger('deviceLabelToggleTxt', [
+            state('0', style( {
+                opacity: 0,
+            })),
+            state( '1,2', style({
+                opacity: 1.0
+            })),
+            transition('0 => 1', animate('250ms ease-in')),
+            transition('* => 0', animate('250ms ease-out'))
+        ])
+    ]
 })
 export class DeviceNodeSvgComponent extends NodeVisual implements OnChanges {
     @Input() device: Device;
     @Input() scale: number = 1.0;
     @Input() labelToggle: LabelToggle = LabelToggle.NONE;
-    @Output() selectedEvent = new EventEmitter<Node>();
+    @Output() selectedEvent = new EventEmitter<UiElement>();
     textWidth: number = 36;
-    @ViewChild('idTxt') idTxt: ElementRef;
     constructor(
         protected log: LogService,
         private ref: ChangeDetectorRef
@@ -83,5 +94,32 @@ export class DeviceNodeSvgComponent extends NodeVisual implements OnChanges {
             this.labelToggle = changes['labelToggle'].currentValue;
         }
         this.ref.markForCheck();
+    }
+
+    /**
+     * Calculate the text length in advance as well as possible
+     *
+     * The length of SVG text cannot be exactly estimated, because depending on
+     * the letters kerning might mean that it is shorter or longer than expected
+     *
+     * This takes the approach of 8px width per letter of this size, that on average
+     * evens out over words. A word like 'ilj' will be much shorter than 'wm0'
+     * because of kerning
+     *
+     *
+     * In addition in the template, the <svg:text> properties
+     * textLength and lengthAdjust ensure that the text becomes long with extra
+     * wide spacing created as necessary.
+     *
+     * Other approaches like getBBox() of the text
+     */
+    labelTextLen() {
+        if (this.labelToggle === 1) {
+            return this.device.id.length * 8 * this.scale;
+        } else if (this.labelToggle === 2 && this.device && this.device.props.name && this.device.props.name.trim().length > 0) {
+            return this.device.props.name.length * 8 * this.scale;
+        } else {
+            return 0;
+        }
     }
 }

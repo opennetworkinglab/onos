@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Node } from './node';
+import {Node, UiElement} from './node';
 import * as d3 from 'd3';
 
 export enum LinkType {
@@ -38,9 +38,15 @@ export interface RegionRollup {
 /**
  * Implementing SimulationLinkDatum interface into our custom Link class
  */
-export class Link implements d3.SimulationLinkDatum<Node> {
+export class Link implements UiElement, d3.SimulationLinkDatum<Node> {
     // Optional - defining optional implementation properties - required for relevant typing assistance
     index?: number;
+    id: string; // The id of the link in the format epA/portA~epB/portB
+    epA: string; // The name of the device or host at one end
+    epB: string; // The name of the device or host at the other end
+    portA: string; // The number of the port at one end
+    portB: string; // The number of the port at the other end
+    type: LinkType;
 
     // Must - defining enforced implementation properties
     source: Node;
@@ -50,21 +56,29 @@ export class Link implements d3.SimulationLinkDatum<Node> {
         this.source = source;
         this.target = target;
     }
+
+    linkTypeStr(): string {
+        return LinkType[this.type];
+    }
 }
 
 /**
- * model of the topo2CurrentRegion region link from Region below
+ * model of the topo2CurrentRegion region link from Region
  */
 export class RegionLink extends Link {
-    id: string; // The id of the link in the format epA/portA~epB/portB
-    epA: string; // The name of the device or host at one end
-    epB: string; // The name of the device or host at the other end
-    portA: string; // The number of the port at one end
-    portB: string; // The number of the port at the other end
     rollup: RegionRollup[]; // Links in sub regions represented by this one link
-    type: LinkType;
 
     constructor(type: LinkType, nodeA: Node, nodeB: Node) {
         super(nodeA, nodeB);
+        this.type = type;
     }
+}
+
+/**
+ * model of the highlights that are sent back from WebSocket when traffic is shown
+ */
+export interface LinkHighlight {
+    id: string;
+    css: string;
+    label: string;
 }

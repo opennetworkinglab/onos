@@ -19,7 +19,7 @@ import { ForceSvgComponent } from './forcesvg.component';
 import {IconService, LogService} from 'gui2-fw-lib';
 import {
     DeviceNodeSvgComponent,
-    HostNodeSvgComponent, LinkVisualComponent,
+    HostNodeSvgComponent, LinkSvgComponent,
     SubRegionNodeSvgComponent
 } from './visuals';
 import {DraggableDirective} from './draggable/draggable.directive';
@@ -66,7 +66,7 @@ describe('ForceSvgComponent', () => {
                 DeviceNodeSvgComponent,
                 HostNodeSvgComponent,
                 SubRegionNodeSvgComponent,
-                LinkVisualComponent,
+                LinkSvgComponent,
                 DraggableDirective
             ],
             providers: [

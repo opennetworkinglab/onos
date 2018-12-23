@@ -22,6 +22,11 @@ import {
     RegionProps
 } from './regions';
 
+export interface UiElement {
+    index?: number;
+    id: string;
+}
+
 /**
  * Toggle state for how device labels should be displayed
  */
@@ -112,7 +117,7 @@ export interface HostProps {
 /**
  * Implementing SimulationNodeDatum interface into our custom Node class
  */
-export abstract class Node implements d3.SimulationNodeDatum {
+export abstract class Node implements UiElement, d3.SimulationNodeDatum {
     // Optional - defining optional implementation properties - required for relevant typing assistance
     index?: number;
     x: number;
@@ -121,7 +126,7 @@ export abstract class Node implements d3.SimulationNodeDatum {
     vy?: number;
     fx?: number | null;
     fy?: number | null;
-
+    nodeType: NodeType;
     id: string;
 
     protected constructor(id) {
@@ -140,7 +145,6 @@ export class Device extends Node {
     location: LocationType;
     metaUi: MetaUi;
     master: string;
-    nodeType: NodeType;
     online: boolean;
     props: DeviceProps;
     type: string;
@@ -150,12 +154,14 @@ export class Device extends Node {
     }
 }
 
+/**
+ * Model of the ONOS Host element in the topology
+ */
 export class Host extends Node {
     configured: boolean;
     id: string;
     ips: string[];
     layer: LayerType;
-    nodeType: NodeType;
     props: HostProps;
 
     constructor(id: string) {
@@ -173,10 +179,30 @@ export class SubRegion extends Node {
     nDevs: number;
     nHosts: number;
     name: string;
-    nodeType: NodeType;
     props: RegionProps;
 
     constructor(id: string) {
         super(id);
     }
 }
+
+/**
+ * Enumerated values for topology update event types
+ */
+export enum ModelEventType {
+    HOST_ADDED_OR_UPDATED,
+    LINK_ADDED_OR_UPDATED,
+    DEVICE_ADDED_OR_UPDATED,
+    DEVICE_REMOVED,
+    HOST_REMOVED
+}
+
+/**
+ * Enumerated values for topology update event memo field
+ */
+export enum ModelEventMemo {
+    ADDED = 'added',
+    REMOVED = 'removed',
+    UPDATED = 'updated'
+}
+

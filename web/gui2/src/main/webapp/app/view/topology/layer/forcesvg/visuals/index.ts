@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './linkvisual.component';
+export * from './linksvg/linksvg.component';
 export * from './devicenodesvg/devicenodesvg.component';
 export * from './hostnodesvg/hostnodesvg.component';
 export * from './subregionnodesvg/subregionnodesvg.component';

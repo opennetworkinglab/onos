@@ -19,7 +19,7 @@
  ONOS GUI -- Topology View (forces device visual) -- CSS file
  */
 g.node.device rect {
-    fill: #f0f0f0;
+    fill: #f0f0f070;
 }
 g.node.device text {
     fill: #bbb;
@@ -30,7 +30,7 @@ g.node.device use {
 
 
 g.node.device.online rect {
-    fill: #ffffff;
+    fill: #fafafad0;
 }
 g.node.device.online text {
     fill: #3c3a3a;

@@ -17,13 +17,14 @@
     <svg:g id="new-zoom-layer">
         <svg:g class="topo2-links">
             <!-- Template explanation: Creates an SVG Group and in
-                line 1) use the svg component onos-linkvisual, setting it's link
+                line 1) use the svg component onos-linksvg, setting it's link
                  Input parameter to the link item from the next line
                 line 2) Use the built in NgFor directive to iterate through the
                  set of links filtered by the filteredLinks() function.
             -->
-            <svg:g onos-linkvisual [link]="link"
-                   *ngFor="let link of filteredLinks()">
+            <svg:g onos-linksvg [link]="link"
+                   *ngFor="let link of filteredLinks()"
+                   (selectedEvent)="updateSelected($event)">
             </svg:g>
         </svg:g>
         <svg:g class="topo2-linkLabels" />

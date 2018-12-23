@@ -15,12 +15,11 @@
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { DeviceNodeSvgComponent } from './devicenodesvg.component';
+import { LinkSvgComponent } from './linksvg.component';
 import {LogService} from 'gui2-fw-lib';
 import {ActivatedRoute, Params} from '@angular/router';
 import {of} from 'rxjs';
-import {ChangeDetectorRef} from '@angular/core';
-import {Device} from '../../models';
+import {Device, Link, RegionLink, LinkType} from '../../models';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 
 class MockActivatedRoute extends ActivatedRoute {
@@ -30,27 +29,34 @@ class MockActivatedRoute extends ActivatedRoute {
     }
 }
 
-describe('DeviceNodeSvgComponent', () => {
+describe('LinkVisualComponent', () => {
     let logServiceSpy: jasmine.SpyObj<LogService>;
-    let component: DeviceNodeSvgComponent;
-    let fixture: ComponentFixture<DeviceNodeSvgComponent>;
+    let component: LinkSvgComponent;
+    let fixture: ComponentFixture<LinkSvgComponent>;
     let ar: MockActivatedRoute;
-    let testDevice: Device;
-
+    let testLink: Link;
+    let testDeviceA: Device;
+    let testDeviceB: Device;
 
     beforeEach(async(() => {
         const logSpy = jasmine.createSpyObj('LogService', ['info', 'debug', 'warn', 'error']);
         ar = new MockActivatedRoute({ 'debug': 'txrx' });
-        testDevice = new Device('test:1');
-        testDevice.online = true;
+
+        testDeviceA = new Device('test:A');
+        testDeviceA.online = true;
+
+        testDeviceB = new Device('test:B');
+        testDeviceB.online = true;
+
+        testLink = new RegionLink(LinkType.UiDeviceLink, testDeviceA, testDeviceB);
+        testLink.id = 'test:A/1-test:B/1';
 
         TestBed.configureTestingModule({
             imports: [ BrowserAnimationsModule ],
-            declarations: [ DeviceNodeSvgComponent ],
+            declarations: [ LinkSvgComponent ],
             providers: [
                 { provide: LogService, useValue: logSpy },
                 { provide: ActivatedRoute, useValue: ar },
-                { provide: ChangeDetectorRef, useClass: ChangeDetectorRef }
             ]
         })
         .compileComponents();
@@ -58,9 +64,9 @@ describe('DeviceNodeSvgComponent', () => {
     }));
 
     beforeEach(() => {
-        fixture = TestBed.createComponent(DeviceNodeSvgComponent);
+        fixture = TestBed.createComponent(LinkSvgComponent);
         component = fixture.componentInstance;
-        component.device = testDevice;
+        component.link = testLink;
         fixture.detectChanges();
     });
 

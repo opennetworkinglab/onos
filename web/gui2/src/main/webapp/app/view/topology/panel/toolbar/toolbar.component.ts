@@ -20,6 +20,7 @@ import {
     FnService,
     PanelBaseImpl
 } from 'gui2-fw-lib';
+import {animate, state, style, transition, trigger} from '@angular/animations';
 
 /*
  ONOS GUI -- Topology Toolbar Module.
@@ -32,6 +33,20 @@ import {
         './toolbar.component.css', './toolbar.theme.css',
         '../../topology.common.css',
         '../../../../fw/widget/panel.css', '../../../../fw/widget/panel-theme.css'
+    ],
+    animations: [
+        trigger('toolbarState', [
+            state('true', style({
+                transform: 'translateX(0%)',
+                opacity: '1.0'
+            })),
+            state('false', style({
+                transform: 'translateX(-100%)',
+                opacity: '0.0'
+            })),
+            transition('0 => 1', animate('100ms ease-in')),
+            transition('1 => 0', animate('100ms ease-out'))
+        ])
     ]
 })
 export class ToolbarComponent extends PanelBaseImpl implements OnInit {
@@ -42,6 +57,7 @@ export class ToolbarComponent extends PanelBaseImpl implements OnInit {
         protected ls: LoadingService,
     ) {
         super(fs, ls, log);
+        this.on = false;
         this.log.debug('ToolbarComponent constructed');
     }
 

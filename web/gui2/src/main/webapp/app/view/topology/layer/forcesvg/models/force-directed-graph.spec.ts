@@ -16,6 +16,8 @@
 import {ForceDirectedGraph, Options} from './force-directed-graph';
 import {Node} from './node';
 import {Link} from './link';
+import {LogService} from 'gui2-fw-lib';
+import {TestBed} from '@angular/core/testing';
 
 export class TestNode extends Node {
     constructor(id: string) {
@@ -33,13 +35,15 @@ export class TestLink extends Link {
  * ONOS GUI -- ForceDirectedGraph - Unit Tests
  */
 describe('ForceDirectedGraph', () => {
+    let logServiceSpy: jasmine.SpyObj<LogService>;
     let fdg: ForceDirectedGraph;
     const options: Options = {width: 1000, height: 1000};
 
     beforeEach(() => {
+        const logSpy = jasmine.createSpyObj('LogService', ['info', 'debug', 'warn', 'error']);
         const nodes: Node[] = [];
         const links: Link[] = [];
-        fdg = new ForceDirectedGraph(options);
+        fdg = new ForceDirectedGraph(options, logSpy);
 
         for (let i = 0; i < 10; i++) {
             const newNode: TestNode = new TestNode('id' + i);
@@ -53,7 +57,7 @@ describe('ForceDirectedGraph', () => {
         fdg.links = links;
         fdg.initSimulation(options);
         fdg.initNodes();
-
+        logServiceSpy = TestBed.get(LogService);
     });
 
     afterEach(() => {

@@ -212,8 +212,14 @@ genrule(
           " export PATH=$$ROOT/$$(dirname $${NODE}):$$ROOT/web/gui2/node_modules/@angular/cli/bin:$$PATH &&" +
           " node -v > ../../$(location onos-gui2-ng-ver.log) &&" +
           " npm -v >> ../../$(location onos-gui2-ng-ver.log) &&" +
-          " ng version >> ../../$(location onos-gui2-ng-ver.log) &&" +
-          " ng lint > ../../$(location onos-gui2-ng-lint.log);" +
+          " ng version >> ../../$(location onos-gui2-ng-ver.log);" +
+          " ng lint > ../../$(location onos-gui2-ng-lint.log) 2>&1 ||" +
+          " if [ $$? -eq 0 ]; then echo 'Successfully ran lint';" +
+          " else " +
+          "   echo 'Error running \'ng lint\' on \'//web/gui2:onos-gui2-ng-test\'. \\\n" +
+          "     See bazel-genfiles/web/gui2/onos-gui2-ng-lint.log for more details' >&2;" +
+          "   exit 1;" +
+          " fi;" +
           " if [ -f /usr/bin/chromium-browser ]; then " +  # Add to this for Mac and Chrome
           "   export CHROME_BIN=/usr/bin/chromium-browser; " +
           " elif [ -f /opt/google/chrome/chrome ]; then " +

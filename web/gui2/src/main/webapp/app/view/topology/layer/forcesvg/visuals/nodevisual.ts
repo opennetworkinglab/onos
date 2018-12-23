@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 import {EventEmitter} from '@angular/core';
-import {Node} from '../models';
+import {UiElement} from '../models';
 
+/**
+ * A base class for the Host and Device components
+ */
 export abstract class NodeVisual {
     selected: boolean;
-    selectedEvent = new EventEmitter<Node>();
+    selectedEvent = new EventEmitter<UiElement>();
 
-    toggleSelected(node: Node) {
+    toggleSelected(uiElement: UiElement) {
         this.selected = !this.selected;
         if (this.selected) {
-            this.selectedEvent.emit(node);
+            this.selectedEvent.emit(uiElement);
         } else {
             this.selectedEvent.emit();
         }

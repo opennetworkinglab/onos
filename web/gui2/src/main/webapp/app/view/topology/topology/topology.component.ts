@@ -28,8 +28,6 @@ import {
     PrefsService,
     SvgUtilService,
     WebSocketService,
-    Zoomer,
-    ZoomOpts,
     ZoomService
 } from 'gui2-fw-lib';
 import {InstanceComponent} from '../panel/instance/instance.component';
@@ -39,6 +37,8 @@ import {BackgroundSvgComponent} from '../layer/backgroundsvg/backgroundsvg.compo
 import {ForceSvgComponent} from '../layer/forcesvg/forcesvg.component';
 import {TopologyService} from '../topology.service';
 import {HostLabelToggle, LabelToggle, Node} from '../layer/forcesvg/models';
+import {ToolbarComponent} from '../panel/toolbar/toolbar.component';
+import {TrafficService} from '../traffic.service';
 
 /**
  * ONOS GUI Topology View
@@ -74,15 +74,14 @@ export class TopologyComponent implements OnInit, OnDestroy {
     @ViewChild(InstanceComponent) instance: InstanceComponent;
     @ViewChild(SummaryComponent) summary: SummaryComponent;
     @ViewChild(DetailsComponent) details: DetailsComponent;
+    @ViewChild(ToolbarComponent) toolbar: ToolbarComponent;
     @ViewChild(BackgroundSvgComponent) background: BackgroundSvgComponent;
     @ViewChild(ForceSvgComponent) force: ForceSvgComponent;
 
     flashMsg: string = '';
     prefsState = {};
     hostLabelIdx: number = 1;
-
-    zoomer: Zoomer;
-    zoomEventListeners: any[];
+    showBackground: boolean = false;
 
     constructor(
         protected log: LogService,
@@ -93,6 +92,7 @@ export class TopologyComponent implements OnInit, OnDestroy {
         protected wss: WebSocketService,
         protected zs: ZoomService,
         protected ts: TopologyService,
+        protected trs: TrafficService
     ) {
 
         this.log.debug('Topology component constructed');
@@ -117,15 +117,6 @@ export class TopologyComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
         this.bindCommands();
-        this.zoomer = this.createZoomer(<ZoomOpts>{
-            svg: d3.select('svg#topo2'),
-            zoomLayer: d3.select('g#topo-zoomlayer'),
-            zoomEnabled: () => true,
-            zoomMin: 0.25,
-            zoomMax: 10.0,
-            zoomCallback: (() => { return; })
-        });
-        this.zoomEventListeners = [];
         // The components from the template are handed over to TopologyService here
         // so that WebSocket responses can be passed back in to them
         // The handling of the WebSocket call is delegated out to the Topology
@@ -141,14 +132,13 @@ export class TopologyComponent implements OnInit, OnDestroy {
 
     actionMap() {
         return {
+            A: [() => {this.monitorAllTraffic(); }, 'Monitor all traffic'],
             L: [() => {this.cycleDeviceLabels(); }, 'Cycle device labels'],
             B: [(token) => {this.toggleBackground(token); }, 'Toggle background'],
             D: [(token) => {this.toggleDetails(token); }, 'Toggle details panel'],
             I: [(token) => {this.toggleInstancePanel(token); }, 'Toggle ONOS Instance Panel'],
             O: [() => {this.toggleSummary(); }, 'Toggle the Summary Panel'],
             R: [() => {this.resetZoom(); }, 'Reset pan / zoom'],
-            'shift-Z': [() => {this.panAndZoom([0, 0], this.zoomer.scale() * 2); }, 'Zoom x2'],
-            'alt-Z': [() => {this.panAndZoom([0, 0], this.zoomer.scale() / 2); }, 'Zoom x0.5'],
             P: [(token) => {this.togglePorts(token); }, 'Toggle Port Highlighting'],
             E: [() => {this.equalizeMasters(); }, 'Equalize mastership roles'],
             X: [() => {this.resetNodeLocation(); }, 'Reset Node Location'],
@@ -156,6 +146,7 @@ export class TopologyComponent implements OnInit, OnDestroy {
             H: [() => {this.toggleHosts(); }, 'Toggle host visibility'],
             M: [() => {this.toggleOfflineDevices(); }, 'Toggle offline visibility'],
             dot: [() => {this.toggleToolbar(); }, 'Toggle Toolbar'],
+            0: [() => {this.cancelTraffic(); }, 'Cancel traffic monitoring'],
             'shift-L': [() => {this.cycleHostLabels(); }, 'Cycle host labels'],
 
             // -- instance color palette debug
@@ -188,21 +179,6 @@ export class TopologyComponent implements OnInit, OnDestroy {
 
         const am = this.actionMap();
         const add = this.fs.isO(additional);
-
-        // TODO: Reimplement when we have a use case
-        // if (add) {
-        //     _.each(add, function (value, key) {
-        //         // filter out meta properties (e.g. _keyOrder)
-        //         if (!(_.startsWith(key, '_'))) {
-        //             // don't allow re-definition of existing key bindings
-        //             if (am[key]) {
-        //                 this.log.warn('keybind: ' + key + ' already exists');
-        //             } else {
-        //                 am[key] = [value.cb, value.tt];
-        //             }
-        //         }
-        //     });
-        // }
 
         this.ks.keyBindings(am);
 
@@ -265,6 +241,7 @@ export class TopologyComponent implements OnInit, OnDestroy {
 
     protected toggleBackground(token: KeysToken) {
         this.flashMsg = 'Toggling background';
+        this.showBackground = !this.showBackground;
         this.log.debug('Toggling background', token);
         // TODO: Reinstate with components
         // t2bgs.toggle(x);
@@ -293,7 +270,7 @@ export class TopologyComponent implements OnInit, OnDestroy {
     }
 
     protected resetZoom() {
-        this.zoomer.reset();
+        // this.zoomer.reset();
         this.log.debug('resetting zoom');
         // TODO: Reinstate with components
         // t2bgs.resetZoom();
@@ -331,8 +308,8 @@ export class TopologyComponent implements OnInit, OnDestroy {
 
     protected toggleToolbar() {
         this.log.debug('toggling toolbar');
-        // TODO: Reinstate with components
-        // t2tbs.toggle();
+        this.flashMsg = ('Toggle toolbar');
+        this.toolbar.on = !this.toolbar.on;
     }
 
     protected actionedFlashed(action, message) {
@@ -377,70 +354,22 @@ export class TopologyComponent implements OnInit, OnDestroy {
         return this.fs.isA(entry) || [entry, ''];
     }
 
-
-
-    protected createZoomer(options: ZoomOpts) {
-        // need to wrap the original zoom callback to extend its behavior
-        const origCallback = this.fs.isF(options.zoomCallback) ? options.zoomCallback : () => {};
-
-        options.zoomCallback = () => {
-            origCallback([0, 0], 1);
-
-            this.zoomEventListeners.forEach((ev) => ev(this.zoomer));
-        };
-
-        return this.zs.createZoomer(options);
-    }
-
-    getZoomer() {
-        return this.zoomer;
-    }
-
-    findZoomEventListener(ev) {
-        for (let i = 0, len = this.zoomEventListeners.length; i < len; i++) {
-            if (this.zoomEventListeners[i] === ev) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    addZoomEventListener(callback) {
-        this.zoomEventListeners.push(callback);
-    }
-
-    removeZoomEventListener(callback) {
-        const evIndex = this.findZoomEventListener(callback);
-
-        if (evIndex !== -1) {
-            this.zoomEventListeners.splice(evIndex);
-        }
-    }
-
-    adjustmentScale(min: number, max: number): number {
-        let _scale = 1;
-        const size = (min + max) / 2;
-
-        if (size * this.scale() < max) {
-            _scale = min / (size * this.scale());
-        } else if (size * this.scale() > max) {
-            _scale = min / (size * this.scale());
-        }
-
-        return _scale;
-    }
-
-    scale(): number {
-        return this.zoomer.scale();
-    }
-
-    panAndZoom(translate: number[], scale: number, transition?: number) {
-        this.zoomer.panZoom(translate, scale, transition);
-    }
-
     nodeSelected(node: Node) {
         this.details.selectedNode = node;
         this.details.on = Boolean(node);
     }
 
+    /**
+     * Enable traffic monitoring
+     */
+    monitorAllTraffic() {
+        this.trs.init(this.force);
+    }
+
+    /**
+     * Cancel traffic monitoring
+     */
+    cancelTraffic() {
+        this.trs.destroy();
+    }
 }

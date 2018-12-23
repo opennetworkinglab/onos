@@ -31,10 +31,9 @@ import { TopologyService } from './topology.service';
 import { DraggableDirective } from './layer/forcesvg/draggable/draggable.directive';
 import { ZoomableDirective } from './layer/zoomable.directive';
 import {
-    LinkVisualComponent,
     SubRegionNodeSvgComponent,
     DeviceNodeSvgComponent,
-    HostNodeSvgComponent,
+    HostNodeSvgComponent, LinkSvgComponent,
 } from './layer/forcesvg/visuals';
 
 /**
@@ -62,7 +61,7 @@ import {
         MapSvgComponent,
         ZoomableDirective,
         DraggableDirective,
-        LinkVisualComponent,
+        LinkSvgComponent,
         DeviceNodeSvgComponent,
         HostNodeSvgComponent,
         SubRegionNodeSvgComponent
