@@ -28,6 +28,8 @@ import org.onosproject.net.Annotations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.security.AuditService;
 
 import java.util.Set;
 import java.util.TreeSet;
@@ -36,6 +38,8 @@ import java.util.TreeSet;
  * Base abstraction of Karaf shell commands.
  */
 public abstract class AbstractShellCommand extends AbstractAction implements CodecContext {
+
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @Option(name = "-j", aliases = "--json", description = "Output JSON",
             required = false, multiValued = false)
@@ -60,7 +64,7 @@ public abstract class AbstractShellCommand extends AbstractAction implements Cod
      */
     protected ApplicationId appId() {
         return get(CoreService.class)
-               .registerApplication("org.onosproject.cli");
+                .registerApplication("org.onosproject.cli");
     }
 
     /**
@@ -90,8 +94,12 @@ public abstract class AbstractShellCommand extends AbstractAction implements Cod
      * @return string image with ", k1=v1, k2=v2, ..." pairs
      */
     public static String annotations(Annotations annotations) {
+        if (annotations == null) {
+            annotations = DefaultAnnotations.EMPTY;
+        }
         StringBuilder sb = new StringBuilder();
-        for (String key : annotations.keys()) {
+        Set<String> keys = new TreeSet<>(annotations.keys());
+        for (String key : keys) {
             sb.append(", ").append(key).append('=').append(annotations.value(key));
         }
         return sb.toString();
@@ -147,6 +155,7 @@ public abstract class AbstractShellCommand extends AbstractAction implements Cod
     @Override
     protected Object doExecute() throws Exception {
         try {
+            auditCommand();
             execute();
         } catch (ServiceNotFoundException e) {
             error(e.getMessage());
@@ -155,8 +164,16 @@ public abstract class AbstractShellCommand extends AbstractAction implements Cod
     }
 
 
-
-    private final ObjectMapper mapper = new ObjectMapper();
+    // Handles auditing
+    private void auditCommand() {
+        AuditService auditService = get(AuditService.class);
+        if (auditService != null && auditService.isAuditing()) {
+            // FIXME: Compose and log audit message here; this is a hack
+            String user = "foo"; // FIXME
+            String action = "{\"command\" : \"" + Thread.currentThread().getName().substring(5) + "\"}";
+            auditService.logUserAction(user, action);
+        }
+    }
 
     @Override
     public ObjectMapper mapper() {
