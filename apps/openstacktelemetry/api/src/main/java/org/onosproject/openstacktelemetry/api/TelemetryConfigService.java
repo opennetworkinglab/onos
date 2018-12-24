@@ -15,17 +15,39 @@
  */
 package org.onosproject.openstacktelemetry.api;
 
+import org.onosproject.event.ListenerService;
 import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
+import org.onosproject.openstacktelemetry.api.config.TelemetryConfig.ConfigType;
+
+import java.util.Set;
 
 /**
  * Telemetry configuration service interface.
  */
-public interface TelemetryConfigService {
+public interface TelemetryConfigService
+        extends ListenerService<TelemetryConfigEvent, TelemetryConfigListener> {
 
     /**
-     * Obtains the telemetry configuration.
+     * Obtains the telemetry configuration with the given telemetry
+     * configuration name.
      *
-     * @return telemetry configuration
+     * @param name telemetry configuration name
+     * @return provided telemetry configuration
      */
-    TelemetryConfig getConfig();
+    TelemetryConfig getConfig(String name);
+
+    /**
+     * Obtains the telemetry configuration with the given telemetry config type.
+     *
+     * @param type telemetry configuration type
+     * @return provided telemetry configurations
+     */
+    Set<TelemetryConfig> getConfigsByType(ConfigType type);
+
+    /**
+     * Returns the overall set of telemetry configurations being provided.
+     *
+     * @return provided telemetry configurations
+     */
+    Set<TelemetryConfig> getConfigs();
 }

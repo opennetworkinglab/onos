@@ -32,6 +32,12 @@ public final class Constants {
     public static final String VLAN = "VLAN";
     public static final String FLAT = "FLAT";
 
+    public static final String GRPC_SCHEME = "grpc";
+    public static final String KAFKA_SCHEME = "kafka";
+    public static final String INFLUXDB_SCHEME = "influxdb";
+    public static final String PROMETHEUS_SCHEME = "prometheus";
+    public static final String REST_SCHEME = "rest";
+
     // default configuration variables for ONOS GUI
     public static final int DEFAULT_DATA_POINT_SIZE = 17280;
 }

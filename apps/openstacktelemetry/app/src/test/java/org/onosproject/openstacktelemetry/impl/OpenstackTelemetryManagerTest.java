@@ -18,7 +18,7 @@ package org.onosproject.openstacktelemetry.impl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onosproject.openstacktelemetry.api.TelemetryService;
+import org.onosproject.openstacktelemetry.api.TelemetryAdminService;
 
 import static org.junit.Assert.assertEquals;
 
@@ -27,11 +27,11 @@ import static org.junit.Assert.assertEquals;
  */
 public final class OpenstackTelemetryManagerTest {
 
-    private static final TelemetryService GRPC_SERVICE = new GrpcTelemetryManager();
-    private static final TelemetryService INFLUXDB_SERVICE = new InfluxDbTelemetryManager();
-    private static final TelemetryService KAFKA_SERVICE = new KafkaTelemetryManager();
-    private static final TelemetryService PROMETHEUS_SERVICE = new PrometheusTelemetryManager();
-    private static final TelemetryService REST_SERVICE = new PrometheusTelemetryManager();
+    private static final TelemetryAdminService GRPC_SERVICE = new GrpcTelemetryManager();
+    private static final TelemetryAdminService INFLUXDB_SERVICE = new InfluxDbTelemetryManager();
+    private static final TelemetryAdminService KAFKA_SERVICE = new KafkaTelemetryManager();
+    private static final TelemetryAdminService PROMETHEUS_SERVICE = new PrometheusTelemetryManager();
+    private static final TelemetryAdminService REST_SERVICE = new PrometheusTelemetryManager();
 
     private OpenstackTelemetryManager manager;
 
@@ -41,6 +41,8 @@ public final class OpenstackTelemetryManagerTest {
     @Before
     public void setUp() {
         manager = new OpenstackTelemetryManager();
+
+        manager.telemetryConfigService = new TelemetryConfigManager();
 
         manager.activate();
     }
@@ -52,7 +54,7 @@ public final class OpenstackTelemetryManagerTest {
     public void testAddTelemetryService() {
         addDefaultServices();
 
-        TelemetryService kafkaService = new KafkaTelemetryManager();
+        TelemetryAdminService kafkaService = new KafkaTelemetryManager();
 
         assertEquals(5, manager.telemetryServices().size());
 

@@ -15,8 +15,10 @@
  */
 package org.onosproject.openstacktelemetry.api;
 
+import org.onosproject.store.StoreDelegate;
+
 /**
- * Configuration service API for publishing openstack telemetry through InfluxDB producer.
+ * Telemetry config store delegate abstraction.
  */
-public interface InfluxDbTelemetryConfigService extends TelemetryConfigService {
+public interface TelemetryConfigStoreDelegate extends StoreDelegate<TelemetryConfigEvent> {
 }

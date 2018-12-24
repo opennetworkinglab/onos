@@ -17,8 +17,6 @@ package org.onosproject.openstacktelemetry.impl;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import org.apache.kafka.clients.producer.ProducerRecord;
-import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.openstacktelemetry.api.FlowInfo;
 import org.onosproject.openstacktelemetry.api.GrpcTelemetryService;
 import org.onosproject.openstacktelemetry.api.InfluxDbTelemetryService;
@@ -26,8 +24,10 @@ import org.onosproject.openstacktelemetry.api.KafkaTelemetryService;
 import org.onosproject.openstacktelemetry.api.OpenstackTelemetryService;
 import org.onosproject.openstacktelemetry.api.PrometheusTelemetryService;
 import org.onosproject.openstacktelemetry.api.RestTelemetryService;
-import org.onosproject.openstacktelemetry.api.TelemetryService;
-import org.onosproject.openstacktelemetry.codec.TinaMessageByteBufferCodec;
+import org.onosproject.openstacktelemetry.api.TelemetryAdminService;
+import org.onosproject.openstacktelemetry.api.TelemetryConfigEvent;
+import org.onosproject.openstacktelemetry.api.TelemetryConfigListener;
+import org.onosproject.openstacktelemetry.api.TelemetryConfigService;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -36,14 +36,10 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Set;
 
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_INFLUXDB_MEASUREMENT;
-import static org.onosproject.openstacktelemetry.codec.TinaMessageByteBufferCodec.KAFKA_KEY;
-import static org.onosproject.openstacktelemetry.codec.TinaMessageByteBufferCodec.KAFKA_TOPIC;
-import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.getPropertyValueAsBoolean;
 
 /**
  * Openstack telemetry manager.
@@ -53,63 +49,57 @@ public class OpenstackTelemetryManager implements OpenstackTelemetryService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final String ENABLE_SERVICE = "enableService";
-
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    protected ComponentConfigService componentConfigService;
+    protected TelemetryConfigService telemetryConfigService;
 
-    private List<TelemetryService> telemetryServices = Lists.newArrayList();
+    private List<TelemetryAdminService> telemetryServices = Lists.newArrayList();
+    private InternalTelemetryConfigListener
+                        configListener = new InternalTelemetryConfigListener();
 
     @Activate
     protected void activate() {
+        telemetryConfigService.addListener(configListener);
+
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
+        telemetryConfigService.removeListener(configListener);
+
         log.info("Stopped");
     }
 
     @Override
-    public void addTelemetryService(TelemetryService telemetryService) {
+    public void addTelemetryService(TelemetryAdminService telemetryService) {
         telemetryServices.add(telemetryService);
     }
 
     @Override
-    public void removeTelemetryService(TelemetryService telemetryService) {
+    public void removeTelemetryService(TelemetryAdminService telemetryService) {
         telemetryServices.remove(telemetryService);
     }
 
     @Override
     public void publish(Set<FlowInfo> flowInfos) {
         telemetryServices.forEach(service -> {
-            if (service instanceof GrpcTelemetryManager &&
-                    getPropertyValueAsBoolean(componentConfigService.getProperties(
-                            GrpcTelemetryConfigManager.class.getName()), ENABLE_SERVICE)) {
+            if (service instanceof GrpcTelemetryManager) {
                 invokeGrpcPublisher((GrpcTelemetryService) service, flowInfos);
             }
 
-            if (service instanceof InfluxDbTelemetryManager &&
-                    getPropertyValueAsBoolean(componentConfigService.getProperties(
-                            InfluxDbTelemetryConfigManager.class.getName()), ENABLE_SERVICE)) {
+            if (service instanceof InfluxDbTelemetryManager) {
                 invokeInfluxDbPublisher((InfluxDbTelemetryService) service, flowInfos);
             }
 
-            if (service instanceof PrometheusTelemetryManager &&
-                    getPropertyValueAsBoolean(componentConfigService.getProperties(
-                            PrometheusTelemetryConfigManager.class.getName()), ENABLE_SERVICE)) {
+            if (service instanceof PrometheusTelemetryManager) {
                 invokePrometheusPublisher((PrometheusTelemetryService) service, flowInfos);
             }
 
-            if (service instanceof KafkaTelemetryManager &&
-                    getPropertyValueAsBoolean(componentConfigService.getProperties(
-                            KafkaTelemetryConfigManager.class.getName()), ENABLE_SERVICE)) {
+            if (service instanceof KafkaTelemetryManager) {
                 invokeKafkaPublisher((KafkaTelemetryService) service, flowInfos);
             }
 
-            if (service instanceof RestTelemetryManager &&
-                    getPropertyValueAsBoolean(componentConfigService.getProperties(
-                            RestTelemetryConfigManager.class.getName()), ENABLE_SERVICE)) {
+            if (service instanceof RestTelemetryManager) {
                 invokeRestPublisher((RestTelemetryService) service, flowInfos);
             }
 
@@ -118,31 +108,55 @@ public class OpenstackTelemetryManager implements OpenstackTelemetryService {
     }
 
     @Override
-    public Set<TelemetryService> telemetryServices() {
+    public Set<TelemetryAdminService> telemetryServices() {
         return ImmutableSet.copyOf(telemetryServices);
     }
 
-    private void invokeGrpcPublisher(GrpcTelemetryService service, Set<FlowInfo> flowInfos) {
+    @Override
+    public TelemetryAdminService telemetryService(String type) {
+        return telemetryServices.stream()
+                .filter(s -> s.type().name().equalsIgnoreCase(type))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private void invokeGrpcPublisher(GrpcTelemetryService service,
+                                     Set<FlowInfo> flowInfos) {
         // TODO: need provide implementation
     }
 
-    private void invokeInfluxDbPublisher(InfluxDbTelemetryService service, Set<FlowInfo> flowInfos) {
+    private void invokeInfluxDbPublisher(InfluxDbTelemetryService service,
+                                         Set<FlowInfo> flowInfos) {
         DefaultInfluxRecord<String, Set<FlowInfo>> influxRecord
                 = new DefaultInfluxRecord<>(DEFAULT_INFLUXDB_MEASUREMENT, flowInfos);
         service.publish(influxRecord);
     }
 
-    private void invokePrometheusPublisher(PrometheusTelemetryService service, Set<FlowInfo> flowInfos) {
+    private void invokePrometheusPublisher(PrometheusTelemetryService service,
+                                           Set<FlowInfo> flowInfos) {
         service.publish(flowInfos);
     }
 
-    private void invokeKafkaPublisher(KafkaTelemetryService service, Set<FlowInfo> flowInfos) {
-        TinaMessageByteBufferCodec codec = new TinaMessageByteBufferCodec();
-        ByteBuffer buffer = codec.encode(flowInfos);
-        service.publish(new ProducerRecord<>(KAFKA_TOPIC, KAFKA_KEY, buffer.array()));
+    private void invokeKafkaPublisher(KafkaTelemetryService service,
+                                      Set<FlowInfo> flowInfos) {
+        service.publish(flowInfos);
     }
 
-    private void invokeRestPublisher(RestTelemetryService service, Set<FlowInfo> flowInfos) {
+    private void invokeRestPublisher(RestTelemetryService service,
+                                     Set<FlowInfo> flowInfos) {
         // TODO: need provide implementation
+    }
+
+    private class InternalTelemetryConfigListener implements TelemetryConfigListener {
+
+        @Override
+        public void event(TelemetryConfigEvent event) {
+            TelemetryAdminService service =
+                    telemetryService(event.subject().type().name());
+
+            if (service != null) {
+                service.restart();
+            }
+        }
     }
 }

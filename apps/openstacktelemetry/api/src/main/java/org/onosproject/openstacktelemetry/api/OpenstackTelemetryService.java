@@ -27,14 +27,14 @@ public interface OpenstackTelemetryService {
      *
      * @param telemetryService telemetry service
      */
-    void addTelemetryService(TelemetryService telemetryService);
+    void addTelemetryService(TelemetryAdminService telemetryService);
 
     /**
      * Unregisters an existing northbound telemetry service.
      *
      * @param telemetryService telemetry service
      */
-    void removeTelemetryService(TelemetryService telemetryService);
+    void removeTelemetryService(TelemetryAdminService telemetryService);
 
     /**
      * Publishes new flow information to off-platform application through
@@ -49,5 +49,13 @@ public interface OpenstackTelemetryService {
      *
      * @return telemetry services
      */
-    Set<TelemetryService> telemetryServices();
+    Set<TelemetryAdminService> telemetryServices();
+
+    /**
+     * Obtains a specific openstack telemetry service.
+     *
+     * @param type telemetry type
+     * @return telemetry service instance
+     */
+    TelemetryAdminService telemetryService(String type);
 }

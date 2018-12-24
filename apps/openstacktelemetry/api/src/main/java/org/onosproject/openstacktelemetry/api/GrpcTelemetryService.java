@@ -27,4 +27,14 @@ public interface GrpcTelemetryService extends TelemetryService {
      * @return a response from gRPC server
      */
     Object publish(Object record);
+
+    /**
+     * Returns GRPC telemetry service type.
+     *
+     * @return GRPC telemetry service type
+     */
+    @Override
+    default ServiceType type() {
+        return ServiceType.GRPC;
+    }
 }

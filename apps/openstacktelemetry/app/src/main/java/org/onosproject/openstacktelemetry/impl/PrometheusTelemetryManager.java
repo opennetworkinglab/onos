@@ -15,13 +15,19 @@
  */
 package org.onosproject.openstacktelemetry.impl;
 
+import com.google.common.collect.Sets;
+import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
+import io.prometheus.client.exporter.MetricsServlet;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.onlab.packet.TpPort;
 import org.onosproject.openstacktelemetry.api.FlowInfo;
 import org.onosproject.openstacktelemetry.api.OpenstackTelemetryService;
 import org.onosproject.openstacktelemetry.api.PrometheusTelemetryAdminService;
+import org.onosproject.openstacktelemetry.api.TelemetryConfigService;
 import org.onosproject.openstacktelemetry.api.config.PrometheusTelemetryConfig;
-import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -30,14 +36,12 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.prometheus.client.Counter;
-import io.prometheus.client.exporter.MetricsServlet;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-
 import java.util.Arrays;
 import java.util.Set;
+
+import static org.onosproject.openstacktelemetry.api.Constants.PROMETHEUS_SCHEME;
+import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.ConfigType.PROMETHEUS;
+import static org.onosproject.openstacktelemetry.config.DefaultPrometheusTelemetryConfig.fromTelemetryConfig;
 
 /**
  * Prometheus telemetry manager.
@@ -47,7 +51,7 @@ public class PrometheusTelemetryManager implements PrometheusTelemetryAdminServi
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private Server prometheusExporter;
+    private Set<Server> prometheusExporters = Sets.newConcurrentHashSet();
 
     private static final String FLOW_TYPE = "flowType";
     private static final String DEVICE_ID = "deviceId";
@@ -134,6 +138,9 @@ public class PrometheusTelemetryManager implements PrometheusTelemetryAdminServi
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OpenstackTelemetryService openstackTelemetryService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected TelemetryConfigService telemetryConfigService;
+
     @Activate
     protected void activate() {
         openstackTelemetryService.addTelemetryService(this);
@@ -148,38 +155,51 @@ public class PrometheusTelemetryManager implements PrometheusTelemetryAdminServi
     }
 
     @Override
-    public void start(TelemetryConfig config) {
+    public void start() {
         log.info("Prometheus exporter starts.");
 
-        PrometheusTelemetryConfig prometheusConfig = (PrometheusTelemetryConfig) config;
+        telemetryConfigService.getConfigsByType(PROMETHEUS).forEach(c -> {
+            PrometheusTelemetryConfig prometheusConfig = fromTelemetryConfig(c);
 
-        try {
-            prometheusExporter = new Server(prometheusConfig.port());
-            ServletContextHandler context = new ServletContextHandler();
-            context.setContextPath("/");
-            prometheusExporter.setHandler(context);
-            context.addServlet(new ServletHolder(new MetricsServlet()), "/metrics");
-            log.info("Prometeus server start (Server port:{})", prometheusConfig.port());
-            prometheusExporter.start();
-        } catch (Exception ex) {
-            log.warn("Exception: {}", ex.toString());
-        }
+            if (prometheusConfig != null &&
+                    !c.name().equals(PROMETHEUS_SCHEME) && c.enabled()) {
+                try {
+                    // TODO  Offer a 'Authentication'
+                    Server prometheusExporter = new Server(prometheusConfig.port());
+                    ServletContextHandler context = new ServletContextHandler();
+                    context.setContextPath("/");
+                    prometheusExporter.setHandler(context);
+                    context.addServlet(new ServletHolder(new MetricsServlet()), "/metrics");
+
+                    log.info("Prometheus server start");
+
+                    prometheusExporter.start();
+
+                    prometheusExporters.add(prometheusExporter);
+
+                } catch (Exception ex) {
+                    log.warn("Exception: {}", ex);
+                }
+            }
+        });
     }
 
     @Override
     public void stop() {
-        try {
-            prometheusExporter.stop();
-        } catch (Exception ex) {
-            log.warn("Exception: {}", ex.toString());
-        }
+        prometheusExporters.forEach(pe -> {
+            try {
+                pe.stop();
+            } catch (Exception e) {
+                log.warn("Failed to stop prometheus server due to {}", e);
+            }
+        });
         log.info("Prometheus exporter has stopped");
     }
 
     @Override
-    public void restart(TelemetryConfig config) {
+    public void restart() {
         stop();
-        start(config);
+        start();
     }
 
     @Override
@@ -247,6 +267,6 @@ public class PrometheusTelemetryManager implements PrometheusTelemetryAdminServi
 
     @Override
     public boolean isRunning() {
-        return prometheusExporter.isRunning();
+        return !prometheusExporters.isEmpty();
     }
 }

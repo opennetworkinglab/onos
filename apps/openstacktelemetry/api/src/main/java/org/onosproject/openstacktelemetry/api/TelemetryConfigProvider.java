@@ -15,8 +15,19 @@
  */
 package org.onosproject.openstacktelemetry.api;
 
+import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
+
+import java.util.Set;
+
 /**
- * Configuration service API for publishing openstack telemetry through REST producer.
+ * Represents entity capable of providing telemetry configurations.
  */
-public interface RestTelemetryConfigService extends TelemetryConfigService {
+public interface TelemetryConfigProvider {
+
+    /**
+     * Returns the set of telemetry configuration to be made available by this provider.
+     *
+     * @return set of telemetry configurations
+     */
+    Set<TelemetryConfig> getTelemetryConfigs();
 }

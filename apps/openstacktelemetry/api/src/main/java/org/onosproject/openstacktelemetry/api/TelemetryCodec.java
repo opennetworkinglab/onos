@@ -15,8 +15,19 @@
  */
 package org.onosproject.openstacktelemetry.api;
 
+import java.nio.ByteBuffer;
+import java.util.Set;
+
 /**
- * Configuration service API for publishing openstack telemetry through Kafka producer.
+ * Telemetry codec interface.
  */
-public interface KafkaTelemetryConfigService extends TelemetryConfigService {
+public interface TelemetryCodec {
+
+    /**
+     * Encodes a collection flow infos into byte buffer.
+     *
+     * @param flowInfos a collection of flow info
+     * @return encoded byte buffer
+     */
+    ByteBuffer encode(Set<FlowInfo> flowInfos);
 }

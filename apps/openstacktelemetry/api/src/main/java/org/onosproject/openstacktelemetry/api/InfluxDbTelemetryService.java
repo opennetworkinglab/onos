@@ -28,4 +28,14 @@ public interface InfluxDbTelemetryService extends TelemetryService {
      * @param record a network metric to be published
      */
     void publish(InfluxRecord<String, Set<FlowInfo>> record);
+
+    /**
+     * Returns influxDB telemetry service type.
+     *
+     * @return influxDB telemetry service type
+     */
+    @Override
+    default ServiceType type() {
+        return ServiceType.INFLUXDB;
+    }
 }

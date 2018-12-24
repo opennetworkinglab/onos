@@ -15,10 +15,12 @@
  */
 package org.onosproject.openstacktelemetry.config;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.onosproject.openstacktelemetry.api.config.InfluxDbTelemetryConfig;
 import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
+import org.onosproject.openstacktelemetry.api.config.TelemetryConfigProperties;
 
 import java.util.Map;
 import java.util.Objects;
@@ -30,6 +32,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * A configuration file contains InfluxDB telemetry parameters.
  */
 public final class DefaultInfluxDbTelemetryConfig implements InfluxDbTelemetryConfig {
+
+    protected static final String ADDRESS = "address";
+    protected static final String PORT = "port";
+    protected static final String USERNAME = "username";
+    protected static final String PASSWORD = "password";
+    protected static final String DATABASE = "database";
+    protected static final String MEASUREMENT = "measurement";
+    protected static final String ENABLE_BATCH = "enableBatch";
+    protected static final String CONFIG_MAP = "configMap";
 
     private final String address;
     private final int port;
@@ -122,26 +133,51 @@ public final class DefaultInfluxDbTelemetryConfig implements InfluxDbTelemetryCo
     @Override
     public int hashCode() {
         return Objects.hash(address, port, username, password, database,
-                            measurement, enableBatch, configMap);
+                measurement, enableBatch, configMap);
     }
 
     @Override
     public String toString() {
         return toStringHelper(this)
-                .add("address", address)
-                .add("port", port)
-                .add("username", username)
-                .add("password", password)
-                .add("database", database)
-                .add("measurement", measurement)
-                .add("enableBatch", enableBatch)
-                .add("configMap", configMap)
+                .add(ADDRESS, address)
+                .add(PORT, port)
+                .add(USERNAME, username)
+                .add(PASSWORD, password)
+                .add(DATABASE, database)
+                .add(MEASUREMENT, measurement)
+                .add(ENABLE_BATCH, enableBatch)
+                .add(CONFIG_MAP, configMap)
                 .toString();
     }
 
     @Override
-    public TelemetryConfig.Builder createBuilder() {
+    public TelemetryConfigProperties.Builder createBuilder() {
         return new DefaultBuilder();
+    }
+
+    /**
+     * Builds an influxDB telemetry config from telemetry config instance.
+     *
+     * @param config telemetry config
+     * @return influxDB telemetry config
+     */
+    public static InfluxDbTelemetryConfig fromTelemetryConfig(TelemetryConfig config) {
+        if (config.type() != TelemetryConfig.ConfigType.INFLUXDB) {
+            return null;
+        }
+
+        boolean enableBatch = Strings.isNullOrEmpty(config.getProperty(ENABLE_BATCH)) ? false :
+                Boolean.valueOf(config.getProperty(ENABLE_BATCH));
+
+        return new DefaultBuilder()
+                .withAddress(config.getProperty(ADDRESS))
+                .withPort(Integer.valueOf(config.getProperty(PORT)))
+                .withUsername(config.getProperty(USERNAME))
+                .withPassword(config.getProperty(PASSWORD))
+                .withDatabase(config.getProperty(DATABASE))
+                .withMeasurement(config.getProperty(MEASUREMENT))
+                .withEnableBatch(enableBatch)
+                .build();
     }
 
     /**
@@ -211,11 +247,10 @@ public final class DefaultInfluxDbTelemetryConfig implements InfluxDbTelemetryCo
             checkNotNull(address, "InfluxDB server address cannot be null");
             checkNotNull(username, "InfluxDB server username cannot be null");
             checkNotNull(password, "InfluxDB server password cannot be null");
-            checkNotNull(database, "InfluxDB server database cannot be null");
-            checkNotNull(measurement, "InfluxDB server measurement cannot be null");
 
             return new DefaultInfluxDbTelemetryConfig(address, port, username,
                     password, database, measurement, enableBatch, configMap);
         }
+
     }
 }

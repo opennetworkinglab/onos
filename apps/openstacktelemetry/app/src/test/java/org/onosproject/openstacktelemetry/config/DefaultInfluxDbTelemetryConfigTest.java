@@ -15,17 +15,30 @@
  */
 package org.onosproject.openstacktelemetry.config;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.google.common.testing.EqualsTester;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.openstacktelemetry.api.config.InfluxDbTelemetryConfig;
+import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
+import org.onosproject.openstacktelemetry.impl.DefaultTelemetryConfig;
 
 import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
+import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.ConfigType.INFLUXDB;
+import static org.onosproject.openstacktelemetry.config.DefaultInfluxDbTelemetryConfig.ADDRESS;
+import static org.onosproject.openstacktelemetry.config.DefaultInfluxDbTelemetryConfig.DATABASE;
+import static org.onosproject.openstacktelemetry.config.DefaultInfluxDbTelemetryConfig.ENABLE_BATCH;
+import static org.onosproject.openstacktelemetry.config.DefaultInfluxDbTelemetryConfig.MEASUREMENT;
+import static org.onosproject.openstacktelemetry.config.DefaultInfluxDbTelemetryConfig.PASSWORD;
+import static org.onosproject.openstacktelemetry.config.DefaultInfluxDbTelemetryConfig.PORT;
+import static org.onosproject.openstacktelemetry.config.DefaultInfluxDbTelemetryConfig.USERNAME;
+import static org.onosproject.openstacktelemetry.config.DefaultInfluxDbTelemetryConfig.fromTelemetryConfig;
 
 /**
  * Unit tests for DefaultInfluxDbTelemetryConfig class.
@@ -57,6 +70,8 @@ public final class DefaultInfluxDbTelemetryConfigTest {
             ImmutableMap.of("key1", "value1");
     private static final Map<String, Object> CONFIG_MAP_2 =
             ImmutableMap.of("key2", "value2");
+
+    private static final String DUMMY = "dummy";
 
     private InfluxDbTelemetryConfig config1;
     private InfluxDbTelemetryConfig sameAsConfig1;
@@ -142,5 +157,32 @@ public final class DefaultInfluxDbTelemetryConfigTest {
         assertThat(config.password(), is(PASSWORD_1));
         assertThat(config.enableBatch(), is(ENABLE_BATCH_1));
         assertThat(config.configMap(), is(CONFIG_MAP_1));
+    }
+
+    /**
+     * Tests props extraction.
+     */
+    @Test
+    public void testPropsExtraction() {
+        Map<String, String> props = Maps.newConcurrentMap();
+        props.put(ADDRESS, IP_ADDRESS_1);
+        props.put(PORT, String.valueOf(PORT_1));
+        props.put(USERNAME, USERNAME_1);
+        props.put(PASSWORD, PASSWORD_1);
+        props.put(DATABASE, DATABASE_1);
+        props.put(ENABLE_BATCH, String.valueOf(ENABLE_BATCH_1));
+        props.put(MEASUREMENT, MEASUREMENT_1);
+
+        TelemetryConfig config = new DefaultTelemetryConfig(DUMMY, INFLUXDB,
+                ImmutableList.of(), DUMMY, DUMMY, false, props);
+
+        InfluxDbTelemetryConfig influxDbConfig = fromTelemetryConfig(config);
+        assertThat(influxDbConfig.address(), is(IP_ADDRESS_1));
+        assertThat(influxDbConfig.port(), is(PORT_1));
+        assertThat(influxDbConfig.database(), is(DATABASE_1));
+        assertThat(influxDbConfig.measurement(), is(MEASUREMENT_1));
+        assertThat(influxDbConfig.username(), is(USERNAME_1));
+        assertThat(influxDbConfig.password(), is(PASSWORD_1));
+        assertThat(influxDbConfig.enableBatch(), is(ENABLE_BATCH_1));
     }
 }
