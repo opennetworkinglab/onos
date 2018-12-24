@@ -177,7 +177,7 @@ public class ControllerConfigCiscoImpl extends AbstractHandlerBehaviour implemen
 
     public boolean checkSwitchN7K(DriverHandler handler) {
 
-        String response = NxApiRequest.postClis(handler, SHOW_VERSION);
+        String response = NxApiRequest.postCli(handler, SHOW_VERSION);
 
         String msg = "";
 
