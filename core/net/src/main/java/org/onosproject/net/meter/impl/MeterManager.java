@@ -363,7 +363,7 @@ public class MeterManager
                     post(new MeterEvent(MeterEvent.Type.METER_REMOVED, event.subject()));
                     break;
                 case METER_REFERENCE_COUNT_ZERO:
-                    log.info("Meter reference count zero {}", event.subject());
+                    log.debug("Meter reference count zero {}", event.subject());
                     post(new MeterEvent(MeterEvent.Type.METER_REFERENCE_COUNT_ZERO, event.subject()));
                     break;
                 default:
