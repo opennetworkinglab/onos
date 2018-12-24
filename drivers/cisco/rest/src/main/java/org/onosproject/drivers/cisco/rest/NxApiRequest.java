@@ -22,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.IntStream;
 
+import com.google.common.collect.Lists;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.protocol.rest.RestSBController;
@@ -31,7 +32,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import javax.ws.rs.core.MediaType;
-import com.google.common.collect.Lists;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -128,6 +128,21 @@ public final class NxApiRequest {
     /**
      * Sends NX-API request message to the device.
      * @param handler device's driver handler
+     * @param cmds NX-API list of command strings
+     * @return the response string
+     */
+    public static String postClis(DriverHandler handler, List<String> cmds) {
+        RestSBController controller = checkNotNull(handler.get(RestSBController.class));
+        DeviceId deviceId = handler.data().deviceId();
+
+        String request = generate(cmds, CommandType.CLI);
+        InputStream stream = new ByteArrayInputStream(request.getBytes(StandardCharsets.UTF_8));
+        return controller.post(deviceId, API_URI, stream, MediaType.valueOf(APP_JSON_RPC), String.class);
+    }
+
+    /**
+     * Sends NX-API request message to the device.
+     * @param handler device's driver handler
      * @param command NX-API command string
      * @param type response message format
      * @return the response string
@@ -139,33 +154,14 @@ public final class NxApiRequest {
         String request = generate(command, type);
         return post(controller, deviceId, request);
     }
-    /**
-     * Sends NX-API request message to the device.
-     * @param handler device's driver handler
-     * @param cmd NX-API command string
-     * @return the response string
-     */
-    static String postClis(DriverHandler handler, String cmd) {
-        RestSBController controller = checkNotNull(handler.get(RestSBController.class));
-        DeviceId deviceId = handler.data().deviceId();
-
-        String request = generate(cmd, CommandType.CLI);
-        InputStream stream = new ByteArrayInputStream(request.getBytes(StandardCharsets.UTF_8));
-        return controller.post(deviceId, API_URI, stream, MediaType.valueOf(APP_JSON_RPC), String.class);
-    }
 
     /**
-     * Sends NX-API request message to the device.
-     * @param handler device's driver handler
-     * @param cmds NX-API list of command strings
+     * Sends NX-API request message to the device with CLI command.
+     * @param handler device handler
+     * @param command NX-API command string
      * @return the response string
      */
-    static String postClis(DriverHandler handler, List<String> cmds) {
-        RestSBController controller = checkNotNull(handler.get(RestSBController.class));
-        DeviceId deviceId = handler.data().deviceId();
-
-        String request = generate(cmds, CommandType.CLI);
-        InputStream stream = new ByteArrayInputStream(request.getBytes(StandardCharsets.UTF_8));
-        return controller.post(deviceId, API_URI, stream, MediaType.valueOf(APP_JSON_RPC), String.class);
+    public static String postCli(DriverHandler handler, String command) {
+        return post(handler, command, CommandType.CLI);
     }
 }

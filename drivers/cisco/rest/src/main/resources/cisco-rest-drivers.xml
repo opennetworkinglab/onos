@@ -23,4 +23,11 @@
         <behaviour api="org.onosproject.net.behaviour.ControllerConfig"
                    impl="org.onosproject.drivers.cisco.rest.ControllerConfigCiscoImpl"/>
     </driver>
+
+    <driver name="cisco-rest" manufacturer="Cisco" hwVersion="Nexus 9000" swVersion="NXOS">
+        <behaviour api="org.onosproject.net.device.PortStatisticsDiscovery"
+                   impl="org.onosproject.drivers.cisco.rest.CiscoNxosPortStatistics"/>
+        <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
+                   impl="org.onosproject.drivers.cisco.rest.DeviceDescriptionDiscoveryCisco9kImpl"/>
+    </driver>
 </drivers>
