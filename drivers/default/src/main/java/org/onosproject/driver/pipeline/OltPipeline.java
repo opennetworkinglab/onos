@@ -95,9 +95,9 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
     private static final Integer QQ_TABLE = 1;
-    private static final short MCAST_VLAN = 4000;
-    private static final String OLTCOOKIES = "olt-cookies-must-be-unique";
     private static final int NO_ACTION_PRIORITY = 500;
+    private static final String DOWNSTREAM = "downstream";
+    private static final String UPSTREAM = "upstream";
     private final Logger log = getLogger(getClass());
 
     private ServiceDirectory serviceDirectory;
@@ -384,7 +384,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
     }
 
     private void installNoModificationRules(ForwardingObjective fwd) {
-        Instructions.OutputInstruction output = (Instructions.OutputInstruction) fetchOutput(fwd, "downstream");
+        Instructions.OutputInstruction output = (Instructions.OutputInstruction) fetchOutput(fwd, DOWNSTREAM);
 
         TrafficSelector selector = fwd.selector();
 
@@ -413,7 +413,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
     }
 
     private void installDownstreamRules(ForwardingObjective fwd) {
-        Instructions.OutputInstruction output = (Instructions.OutputInstruction) fetchOutput(fwd, "downstream");
+        Instructions.OutputInstruction output = (Instructions.OutputInstruction) fetchOutput(fwd, DOWNSTREAM);
 
         if (output == null) {
             return;
@@ -434,11 +434,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         VlanId innerVlan = ((VlanIdCriterion) innerVlanCriterion).vlanId();
         Criterion innerVid = Criteria.matchVlanId(innerVlan);
 
-        long cvid = innerVlan.toShort();
-        long outPort = output.port().toLong() & 0x0FFFFFFFFL;
-        Criterion metadata = Criteria.matchMetadata((cvid << 32) | outPort);
-
-        TrafficSelector outerSelector = buildSelector(inport, outerVlan, metadata);
+        TrafficSelector outerSelector = buildSelector(inport, outerVlan);
 
         if (innerVlan.toShort() == VlanId.ANY_VALUE) {
             installDownstreamRulesForAnyVlan(fwd, output, outerSelector, buildSelector(inport,
@@ -464,26 +460,26 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         TrafficTreatment innerTreatment;
         VlanId setVlanId = ((L2ModificationInstruction.ModVlanIdInstruction) popAndRewrite.getRight()).vlanId();
         if (VlanId.NONE.equals(setVlanId)) {
-            innerTreatment = (buildTreatment(true, output, popAndRewrite.getLeft(), fetchMeter(fwd),
-                    fetchTransition(fwd)));
+            innerTreatment = (buildTreatment(popAndRewrite.getLeft(), fetchMeter(fwd),
+                    writeMetadataIncludingOnlyTp(fwd), output));
         } else {
-            innerTreatment = (buildTreatment(true, output, popAndRewrite.getLeft(), popAndRewrite.getRight(),
-                    fetchMeter(fwd), fetchTransition(fwd)));
+            innerTreatment = (buildTreatment(popAndRewrite.getLeft(), popAndRewrite.getRight(),
+                    fetchMeter(fwd), writeMetadataIncludingOnlyTp(fwd), output));
         }
 
-        //match: in port (nni), s-tag, metadata
-        //action: pop vlan (s-tag), go to table 1
+        //match: in port (nni), s-tag
+        //action: pop vlan (s-tag), write metadata, go to table 1, meter
         FlowRule.Builder outer = DefaultFlowRule.builder()
                 .fromApp(fwd.appId())
                 .forDevice(deviceId)
                 .makePermanent()
                 .withPriority(fwd.priority())
                 .withSelector(outerSelector)
-                .withTreatment(buildTreatment(popAndRewrite.getLeft(),
+                .withTreatment(buildTreatment(popAndRewrite.getLeft(), fetchMeter(fwd), fetchWriteMetadata(fwd),
                         Instructions.transition(QQ_TABLE)));
 
         //match: in port (nni), c-tag
-        //action: deferred: output, immediate: pop, meter, go to 64 - 127 (technology profile)
+        //action: immediate: write metadata and pop, meter, output
         FlowRule.Builder inner = DefaultFlowRule.builder()
                 .fromApp(fwd.appId())
                 .forDevice(deviceId)
@@ -498,19 +494,19 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
     private void installDownstreamRulesForAnyVlan(ForwardingObjective fwd, Instruction output,
                                                   TrafficSelector outerSelector, TrafficSelector innerSelector) {
 
-        //match: in port (nni), s-tag and metadata
-        //action: deferred: pop vlan (s-tag), immediate: go to table 1
+        //match: in port (nni), s-tag
+        //action: immediate: write metadata, pop vlan, meter and go to table 1
         FlowRule.Builder outer = DefaultFlowRule.builder()
                 .fromApp(fwd.appId())
                 .forDevice(deviceId)
                 .makePermanent()
                 .withPriority(fwd.priority())
                 .withSelector(outerSelector)
-                .withTreatment(buildTreatment(true, Instructions.popVlan(),
-                        Instructions.transition(QQ_TABLE)));
+                .withTreatment(buildTreatment(Instructions.popVlan(), fetchMeter(fwd),
+                        fetchWriteMetadata(fwd), Instructions.transition(QQ_TABLE)));
 
         //match: in port (nni) and s-tag
-        //action: deferred: output, immediate : none, meter, go to 64 - 127 (technology profile)
+        //action: immediate : write metadata, meter and output
         FlowRule.Builder inner = DefaultFlowRule.builder()
                 .fromApp(fwd.appId())
                 .forDevice(deviceId)
@@ -518,7 +514,8 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 .makePermanent()
                 .withPriority(fwd.priority())
                 .withSelector(innerSelector)
-                .withTreatment(buildTreatment(true, output, fetchMeter(fwd), fetchTransition(fwd)));
+                .withTreatment(buildTreatment(fetchMeter(fwd),
+                        writeMetadataIncludingOnlyTp(fwd), output));
 
         applyRules(fwd, inner, outer);
     }
@@ -532,7 +529,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
             return;
         }
 
-        Instruction output = fetchOutput(fwd, "upstream");
+        Instruction output = fetchOutput(fwd, UPSTREAM);
 
         if (output == null) {
             return;
@@ -557,16 +554,17 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
         TrafficTreatment innerTreatment;
         if (noneValueVlanStatus) {
-            innerTreatment = buildTreatment(innerPair.getLeft(), innerPair.getRight(),
-                    Instructions.transition(QQ_TABLE));
+            innerTreatment = buildTreatment(innerPair.getLeft(), innerPair.getRight(), fetchMeter(fwd),
+                    fetchWriteMetadata(fwd), Instructions.transition(QQ_TABLE));
         } else {
-            innerTreatment = buildTreatment(innerPair.getRight(), Instructions.transition(QQ_TABLE));
+            innerTreatment = buildTreatment(innerPair.getRight(), fetchMeter(fwd), fetchWriteMetadata(fwd),
+                    Instructions.transition(QQ_TABLE));
         }
 
         //match: in port, vlanId (0 or None)
         //action:
         //if vlanId None, push & set c-tag go to table 1
-        //if vlanId 0 or any specific vlan, set c-tag go to table 1
+        //if vlanId 0 or any specific vlan, set c-tag, write metadata, meter and go to table 1
         FlowRule.Builder inner = DefaultFlowRule.builder()
                 .fromApp(fwd.appId())
                 .forDevice(deviceId)
@@ -582,7 +580,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 innerPair.getRight()).vlanId();
 
         //match: in port, c-tag
-        //action: deferred: output, immediate: push s-tag, meter, go to 64 - 127 (technology profile id)
+        //action: immediate: push s-tag, write metadata, meter and output
         FlowRule.Builder outer = DefaultFlowRule.builder()
                 .fromApp(fwd.appId())
                 .forDevice(deviceId)
@@ -590,8 +588,8 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 .makePermanent()
                 .withPriority(fwd.priority())
                 .withSelector(buildSelector(inPort, Criteria.matchVlanId(cVlanId)))
-                .withTreatment(buildTreatment(true, output, outerPair.getLeft(), outerPair.getRight(),
-                        fetchMeter(fwd), fetchTransition(fwd)));
+                .withTreatment(buildTreatment(outerPair.getLeft(), outerPair.getRight(),
+                        fetchMeter(fwd), writeMetadataIncludingOnlyTp(fwd), output));
 
         applyRules(fwd, inner, outer);
     }
@@ -602,14 +600,15 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         log.debug("Installing upstream rules for any value vlan");
 
         //match: in port and any-vlan (coming from OLT app.)
-        //action: go to table 1
+        //action: write metadata, go to table 1 and meter
         FlowRule.Builder inner = DefaultFlowRule.builder()
                 .fromApp(fwd.appId())
                 .forDevice(deviceId)
                 .makePermanent()
                 .withPriority(fwd.priority())
                 .withSelector(fwd.selector())
-                .withTreatment(buildTreatment(Instructions.transition(QQ_TABLE)));
+                .withTreatment(buildTreatment(Instructions.transition(QQ_TABLE), fetchMeter(fwd),
+                        fetchWriteMetadata(fwd)));
 
 
         TrafficSelector defaultSelector = DefaultTrafficSelector.builder()
@@ -630,7 +629,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         Instruction qinqInstruction = Instructions.pushVlan(EthType.EtherType.QINQ.ethType());
 
         //match: in port and any-vlan (coming from OLT app.)
-        //action: deferred: output, immediate: push:QinQ, vlanId (s-tag), meter, go to 64-127 (technology profile id)
+        //action: immediate: push:QinQ, vlanId (s-tag), write metadata, meter and output
         FlowRule.Builder outer = DefaultFlowRule.builder()
                 .fromApp(fwd.appId())
                 .forDevice(deviceId)
@@ -638,8 +637,8 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 .makePermanent()
                 .withPriority(fwd.priority())
                 .withSelector(fwd.selector())
-                .withTreatment(buildTreatment(true, output, qinqInstruction, outerPair.getRight(),
-                        fetchMeter(fwd), fetchTransition(fwd)));
+                .withTreatment(buildTreatment(qinqInstruction, outerPair.getRight(),
+                        fetchMeter(fwd), writeMetadataIncludingOnlyTp(fwd), output));
 
         applyRules(fwd, inner, defaultInner, outer);
     }
@@ -693,16 +692,17 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         return meter;
     }
 
-    private Instruction fetchTransition(ForwardingObjective fwd) {
-        Instruction transition = fwd.treatment().tableTransition();
+    private Instructions.MetadataInstruction fetchWriteMetadata(ForwardingObjective fwd) {
+        Instructions.MetadataInstruction writeMetadata = fwd.treatment().writeMetadata();
 
-        if (transition == null) {
-            log.debug("Table / transition instruction is not found for the forwarding objective {}", fwd);
+        if (writeMetadata == null) {
+            log.warn("Write metadata is not found for the forwarding obj");
+            fail(fwd, ObjectiveError.BADPARAMS);
             return null;
         }
 
-        log.debug("Transition instruction is found.");
-        return transition;
+        log.debug("Write metadata is found {}", writeMetadata);
+        return writeMetadata;
     }
 
     private List<Pair<Instruction, Instruction>> vlanOps(ForwardingObjective fwd,
@@ -713,7 +713,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
         if (vlanOps == null || vlanOps.isEmpty()) {
             String direction = type == L2ModificationInstruction.L2SubType.VLAN_POP
-                    ? "downstream" : "upstream";
+                    ? DOWNSTREAM : UPSTREAM;
             log.error("Missing vlan operations in {} forwarding: {}", direction, fwd);
             fail(fwd, ObjectiveError.BADPARAMS);
             return ImmutableList.of();
@@ -756,8 +756,11 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                                              EthTypeCriterion ethType,
                                              Instructions.OutputInstruction output) {
 
+        Instruction meter = filter.meta().metered();
+        Instruction writeMetadata = filter.meta().writeMetadata();
+
         TrafficSelector selector = buildSelector(filter.key(), ethType);
-        TrafficTreatment treatment = buildTreatment(output);
+        TrafficTreatment treatment = buildTreatment(output, meter, writeMetadata);
         buildAndApplyRule(filter, selector, treatment);
 
     }
@@ -867,32 +870,21 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         return sBuilder.build();
     }
 
-    private TrafficTreatment buildTreatment(boolean isDeferred, Instruction deferredInst, Instruction... instructions) {
-
-        TrafficTreatment.Builder dBuilder = DefaultTrafficTreatment.builder();
-
-        Arrays.stream(instructions).filter(Objects::nonNull).forEach(treatment -> dBuilder.add(treatment));
-
-        if (isDeferred) {
-            dBuilder.deferred();
-            dBuilder.add(deferredInst);
-        }
-
-        return dBuilder.build();
-    }
-
     private TrafficTreatment buildTreatment(Instruction... instructions) {
 
 
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
 
-        for (Instruction i : instructions) {
-            tBuilder.add(i);
-        }
+        Arrays.stream(instructions).filter(Objects::nonNull).forEach(tBuilder::add);
 
         return tBuilder.build();
     }
 
+    private Instruction writeMetadataIncludingOnlyTp(ForwardingObjective fwd) {
+
+        return Instructions.writeMetadata(
+                fetchWriteMetadata(fwd).metadata() & 0xFFFF00000000L, 0L);
+    }
 
     private void fail(Objective obj, ObjectiveError error) {
         obj.context().ifPresent(context -> context.onError(obj, error));
