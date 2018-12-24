@@ -20,7 +20,7 @@ import java.util.Map;
 /**
  * Configuration API of Kafka for publishing openstack telemetry.
  */
-public interface KafkaTelemetryConfig extends TelemetryConfig {
+public interface KafkaTelemetryConfig extends TelemetryConfigProperties {
 
     /**
      * Obtains kafka IP address.
@@ -86,6 +86,27 @@ public interface KafkaTelemetryConfig extends TelemetryConfig {
     String valueSerializer();
 
     /**
+     * Obtains kafka key.
+     *
+     * @return kafka key
+     */
+    String key();
+
+    /**
+     * Obtains kafka topic.
+     *
+     * @return kafka topic
+     */
+    String topic();
+
+    /**
+     * Obtains kafka message codec.
+     *
+     * @return kafka message codec
+     */
+    String codec();
+
+    /**
      * Obtains kafka config maps.
      *
      * @return kafka config map
@@ -95,7 +116,7 @@ public interface KafkaTelemetryConfig extends TelemetryConfig {
     /**
      * Builder class of KafkaTelemetryConfig.
      */
-    interface Builder extends TelemetryConfig.Builder {
+    interface Builder extends TelemetryConfigProperties.Builder {
 
         /**
          * Sets kafka IP address.
@@ -168,6 +189,30 @@ public interface KafkaTelemetryConfig extends TelemetryConfig {
          * @return builder instance
          */
         Builder withValueSerializer(String valueSerializer);
+
+        /**
+         * Sets kafka key.
+         *
+         * @param key kafka key
+         * @return builder instance
+         */
+        Builder withKey(String key);
+
+        /**
+         * Sets kafka topic.
+         *
+         * @param topic kafka topic
+         * @return builder instance
+         */
+        Builder withTopic(String topic);
+
+        /**
+         * Sets kafka message codec.
+         *
+         * @param codec kafka message codec
+         * @return builder instance
+         */
+        Builder withCodec(String codec);
 
         /**
          * Sets other kafka configuration map.

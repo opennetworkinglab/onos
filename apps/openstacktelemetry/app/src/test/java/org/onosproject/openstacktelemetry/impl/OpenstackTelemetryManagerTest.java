@@ -18,7 +18,7 @@ package org.onosproject.openstacktelemetry.impl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onosproject.openstacktelemetry.api.TelemetryService;
+import org.onosproject.openstacktelemetry.api.TelemetryAdminService;
 
 import static org.junit.Assert.assertEquals;
 
@@ -27,8 +27,8 @@ import static org.junit.Assert.assertEquals;
  */
 public final class OpenstackTelemetryManagerTest {
 
-    private static final TelemetryService GRPC_SERVICE = new GrpcTelemetryManager();
-    private static final TelemetryService INFLUXDB_SERVICE = new InfluxDbTelemetryManager();
+    private static final TelemetryAdminService GRPC_SERVICE = new GrpcTelemetryManager();
+    private static final TelemetryAdminService INFLUXDB_SERVICE = new InfluxDbTelemetryManager();
 
     private OpenstackTelemetryManager manager;
 
@@ -38,6 +38,8 @@ public final class OpenstackTelemetryManagerTest {
     @Before
     public void setUp() {
         manager = new OpenstackTelemetryManager();
+
+        manager.telemetryConfigService = new TelemetryConfigManager();
 
         manager.activate();
     }
@@ -49,7 +51,7 @@ public final class OpenstackTelemetryManagerTest {
     public void testAddTelemetryService() {
         addDefaultServices();
 
-        TelemetryService kafkaService = new KafkaTelemetryManager();
+        TelemetryAdminService kafkaService = new KafkaTelemetryManager();
 
         assertEquals(2, manager.telemetryServices().size());
 

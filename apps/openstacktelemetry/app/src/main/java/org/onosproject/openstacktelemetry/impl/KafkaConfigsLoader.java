@@ -13,10 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstacktelemetry.api;
+package org.onosproject.openstacktelemetry.impl;
+
+import org.apache.felix.scr.annotations.Component;
 
 /**
- * Configuration service API for publishing openstack telemetry through Prometheus producer.
+ * Loader for kafka telemetry configurations.
  */
-public interface PrometheusTelemetryConfigService extends TelemetryConfigService {
+@Component(immediate = true)
+public class KafkaConfigsLoader extends AbstractTelemetryConfigLoader {
+    public KafkaConfigsLoader() {
+        super("kafka-configs.xml");
+    }
 }

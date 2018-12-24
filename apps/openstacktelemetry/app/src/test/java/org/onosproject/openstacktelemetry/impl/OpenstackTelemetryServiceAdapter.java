@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.onosproject.openstacktelemetry.api.FlowInfo;
 import org.onosproject.openstacktelemetry.api.OpenstackTelemetryService;
-import org.onosproject.openstacktelemetry.api.TelemetryService;
+import org.onosproject.openstacktelemetry.api.TelemetryAdminService;
 
 import java.util.Set;
 
@@ -28,15 +28,15 @@ import java.util.Set;
  */
 public class OpenstackTelemetryServiceAdapter implements OpenstackTelemetryService {
 
-    Set<TelemetryService> services = Sets.newConcurrentHashSet();
+    Set<TelemetryAdminService> services = Sets.newConcurrentHashSet();
 
     @Override
-    public void addTelemetryService(TelemetryService telemetryService) {
+    public void addTelemetryService(TelemetryAdminService telemetryService) {
         services.add(telemetryService);
     }
 
     @Override
-    public void removeTelemetryService(TelemetryService telemetryService) {
+    public void removeTelemetryService(TelemetryAdminService telemetryService) {
         services.remove(telemetryService);
     }
 
@@ -46,7 +46,12 @@ public class OpenstackTelemetryServiceAdapter implements OpenstackTelemetryServi
     }
 
     @Override
-    public Set<TelemetryService> telemetryServices() {
+    public Set<TelemetryAdminService> telemetryServices() {
         return ImmutableSet.copyOf(services);
+    }
+
+    @Override
+    public TelemetryAdminService telemetryService(String type) {
+        return null;
     }
 }

@@ -19,17 +19,23 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.onosproject.openstacktelemetry.api.config.PrometheusTelemetryConfig;
 import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
+import org.onosproject.openstacktelemetry.api.config.TelemetryConfigProperties;
 
 import java.util.Map;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.ConfigType.PROMETHEUS;
 
 /**
  * A configuration file contains Prometheus telemetry parameters.
  */
 public final class DefaultPrometheusTelemetryConfig implements PrometheusTelemetryConfig {
+
+    protected static final String ADDRESS = "address";
+    protected static final String PORT = "port";
+    protected static final String CONFIG_MAP = "configMap";
 
     private final String address;
     private final int port;
@@ -85,15 +91,32 @@ public final class DefaultPrometheusTelemetryConfig implements PrometheusTelemet
     @Override
     public String toString() {
         return toStringHelper(this)
-                .add("address", address)
-                .add("port", port)
-                .add("configMap", configMap)
+                .add(ADDRESS, address)
+                .add(PORT, port)
+                .add(CONFIG_MAP, configMap)
                 .toString();
     }
 
     @Override
-    public TelemetryConfig.Builder createBuilder() {
+    public TelemetryConfigProperties.Builder createBuilder() {
         return new DefaultBuilder();
+    }
+
+    /**
+     * Builds a prometheus telemetry config from telemetry config instance.
+     *
+     * @param config telemetry config
+     * @return prometheus telemetry config
+     */
+    public static PrometheusTelemetryConfig fromTelemetryConfig(TelemetryConfig config) {
+        if (config.type() != PROMETHEUS) {
+            return null;
+        }
+
+        return new DefaultBuilder()
+                .withAddress(config.getProperty(ADDRESS))
+                .withPort(Integer.valueOf(config.getProperty(PORT)))
+                .build();
     }
 
     /**
@@ -121,6 +144,7 @@ public final class DefaultPrometheusTelemetryConfig implements PrometheusTelemet
             this.configMap = configMap;
             return this;
         }
+
         @Override
         public PrometheusTelemetryConfig build() {
             checkNotNull(address, "Prometheus exporter binding address cannot be null");

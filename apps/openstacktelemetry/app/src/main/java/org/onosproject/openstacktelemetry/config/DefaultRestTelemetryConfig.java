@@ -19,17 +19,27 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.onosproject.openstacktelemetry.api.config.RestTelemetryConfig;
 import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
+import org.onosproject.openstacktelemetry.api.config.TelemetryConfigProperties;
 
 import java.util.Map;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.ConfigType.REST;
 
 /**
  * A configuration file contains REST telemetry parameters.
  */
 public final class DefaultRestTelemetryConfig implements RestTelemetryConfig {
+
+    protected static final String ADDRESS = "address";
+    protected static final String PORT = "port";
+    protected static final String ENDPOINT = "endpoint";
+    protected static final String METHOD = "method";
+    protected static final String REQUEST_MEDIA_TYPE = "requestMediaType";
+    protected static final String RESPONSE_MEDIA_TYPE = "responseMediaType";
+    protected static final String CONFIG_MAP = "configMap";
 
     private final String address;
     private final int port;
@@ -119,19 +129,40 @@ public final class DefaultRestTelemetryConfig implements RestTelemetryConfig {
     @Override
     public String toString() {
         return toStringHelper(this)
-                .add("address", address)
-                .add("port", port)
-                .add("endpoint", endpoint)
-                .add("method", method)
-                .add("requestMediaType", requestMediaType)
-                .add("responseMediaType", responseMediaType)
-                .add("configMap", configMap)
+                .add(ADDRESS, address)
+                .add(PORT, port)
+                .add(ENDPOINT, endpoint)
+                .add(METHOD, method)
+                .add(REQUEST_MEDIA_TYPE, requestMediaType)
+                .add(RESPONSE_MEDIA_TYPE, responseMediaType)
+                .add(CONFIG_MAP, configMap)
                 .toString();
     }
 
     @Override
-    public TelemetryConfig.Builder createBuilder() {
+    public TelemetryConfigProperties.Builder createBuilder() {
         return new DefaultBuilder();
+    }
+
+    /**
+     * Builds a REST telemetry config from telemetry config instance.
+     *
+     * @param config telemetry config
+     * @return REST telemetry config
+     */
+    public static RestTelemetryConfig fromTelemetryConfig(TelemetryConfig config) {
+        if (config.type() != REST) {
+            return null;
+        }
+
+        return new DefaultBuilder()
+                .withAddress(config.getProperty(ADDRESS))
+                .withPort(Integer.valueOf(config.getProperty(PORT)))
+                .withEndpoint(config.getProperty(ENDPOINT))
+                .withMethod(config.getProperty(METHOD))
+                .withRequestMediaType(config.getProperty(REQUEST_MEDIA_TYPE))
+                .withResponseMediaType(config.getProperty(RESPONSE_MEDIA_TYPE))
+                .build();
     }
 
     /**

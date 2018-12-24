@@ -19,17 +19,25 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.onosproject.openstacktelemetry.api.config.GrpcTelemetryConfig;
 import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
+import org.onosproject.openstacktelemetry.api.config.TelemetryConfigProperties;
 
 import java.util.Map;
 import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.ConfigType.GRPC;
 
 /**
  * A configuration file contains gRPC telemetry parameters.
  */
 public final class DefaultGrpcTelemetryConfig implements GrpcTelemetryConfig {
+
+    protected static final String ADDRESS = "address";
+    protected static final String PORT = "port";
+    protected static final String USE_PLAINTEXT = "usePlaintext";
+    protected static final String MAX_INBOUND_MSG_SIZE = "maxInboundMsgSize";
+    protected static final String CONFIG_MAP = "configMap";
 
     private final String address;
     private final int port;
@@ -101,17 +109,36 @@ public final class DefaultGrpcTelemetryConfig implements GrpcTelemetryConfig {
     @Override
     public String toString() {
         return toStringHelper(this)
-                .add("address", address)
-                .add("port", port)
-                .add("usePlaintext", usePlaintext)
-                .add("maxInboundMsgSize", maxInboundMsgSize)
-                .add("configMap", configMap)
+                .add(ADDRESS, address)
+                .add(PORT, port)
+                .add(USE_PLAINTEXT, usePlaintext)
+                .add(MAX_INBOUND_MSG_SIZE, maxInboundMsgSize)
+                .add(CONFIG_MAP, configMap)
                 .toString();
     }
 
     @Override
-    public TelemetryConfig.Builder createBuilder() {
+    public TelemetryConfigProperties.Builder createBuilder() {
         return new DefaultBuilder();
+    }
+
+    /**
+     * Builds a gRPC telemetry config from telemetry config instance.
+     *
+     * @param config telemetry config
+     * @return gRPC telemetry config
+     */
+    public static GrpcTelemetryConfig fromTelemetryConfig(TelemetryConfig config) {
+        if (config.type() != GRPC) {
+            return null;
+        }
+
+        return new DefaultBuilder()
+                .withAddress(config.getProperty(ADDRESS))
+                .withPort(Integer.valueOf(config.getProperty(PORT)))
+                .withUsePlaintext(Boolean.valueOf(config.getProperty(USE_PLAINTEXT)))
+                .withMaxInboundMsgSize(Integer.valueOf(config.getProperty(MAX_INBOUND_MSG_SIZE)))
+                .build();
     }
 
     /**

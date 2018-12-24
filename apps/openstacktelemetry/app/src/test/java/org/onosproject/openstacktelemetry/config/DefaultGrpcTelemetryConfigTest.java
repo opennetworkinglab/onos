@@ -15,17 +15,27 @@
  */
 package org.onosproject.openstacktelemetry.config;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.google.common.testing.EqualsTester;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.openstacktelemetry.api.config.GrpcTelemetryConfig;
+import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
+import org.onosproject.openstacktelemetry.impl.DefaultTelemetryConfig;
 
 import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
+import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.ConfigType.GRPC;
+import static org.onosproject.openstacktelemetry.config.DefaultGrpcTelemetryConfig.ADDRESS;
+import static org.onosproject.openstacktelemetry.config.DefaultGrpcTelemetryConfig.MAX_INBOUND_MSG_SIZE;
+import static org.onosproject.openstacktelemetry.config.DefaultGrpcTelemetryConfig.PORT;
+import static org.onosproject.openstacktelemetry.config.DefaultGrpcTelemetryConfig.USE_PLAINTEXT;
+import static org.onosproject.openstacktelemetry.config.DefaultGrpcTelemetryConfig.fromTelemetryConfig;
 
 /**
  * Unit tests for DefaultGrpcTelemetryConfig class.
@@ -45,9 +55,11 @@ public final class DefaultGrpcTelemetryConfigTest {
     private static final boolean USE_PLAIN_TEXT_2 = true;
 
     private static final Map<String, Object> CONFIG_MAP_1 =
-                                    ImmutableMap.of("key1", "value1");
+            ImmutableMap.of("key1", "value1");
     private static final Map<String, Object> CONFIG_MAP_2 =
-                                    ImmutableMap.of("key2", "value2");
+            ImmutableMap.of("key2", "value2");
+
+    private static final String DUMMY = "dummy";
 
     private GrpcTelemetryConfig config1;
     private GrpcTelemetryConfig sameAsConfig1;
@@ -121,5 +133,25 @@ public final class DefaultGrpcTelemetryConfigTest {
         assertThat(config.maxInboundMsgSize(), is(MSG_SIZE_1));
         assertThat(config.usePlaintext(), is(USE_PLAIN_TEXT_1));
         assertThat(config.configMap(), is(CONFIG_MAP_1));
+    }
+
+    /**
+     * Tests props extraction.
+     */
+    @Test
+    public void testPropsExtraction() {
+        Map<String, String> props = Maps.newConcurrentMap();
+        props.put(ADDRESS, IP_ADDRESS_1);
+        props.put(PORT, String.valueOf(PORT_1));
+        props.put(MAX_INBOUND_MSG_SIZE, String.valueOf(MSG_SIZE_1));
+        props.put(USE_PLAINTEXT, String.valueOf(USE_PLAIN_TEXT_1));
+        TelemetryConfig config = new DefaultTelemetryConfig(DUMMY, GRPC,
+                ImmutableList.of(), DUMMY, DUMMY, false, props);
+
+        GrpcTelemetryConfig grpcConfig = fromTelemetryConfig(config);
+        assertThat(grpcConfig.address(), is(IP_ADDRESS_1));
+        assertThat(grpcConfig.port(), is(PORT_1));
+        assertThat(grpcConfig.maxInboundMsgSize(), is(MSG_SIZE_1));
+        assertThat(grpcConfig.usePlaintext(), is(USE_PLAIN_TEXT_1));
     }
 }

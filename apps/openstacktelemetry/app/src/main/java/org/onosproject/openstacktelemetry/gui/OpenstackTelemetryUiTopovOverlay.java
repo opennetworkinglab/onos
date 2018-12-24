@@ -17,6 +17,9 @@ package org.onosproject.openstacktelemetry.gui;
 
 import org.onosproject.ui.UiTopoOverlay;
 
+/**
+ * Openstack telemetry UI topology implementation.
+ */
 public class OpenstackTelemetryUiTopovOverlay extends UiTopoOverlay {
     private static final String OVERLAY_ID = "ostelemetry-overlay";
 

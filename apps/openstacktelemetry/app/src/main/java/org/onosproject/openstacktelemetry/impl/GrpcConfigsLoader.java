@@ -13,10 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstacktelemetry.api;
+package org.onosproject.openstacktelemetry.impl;
+
+import org.apache.felix.scr.annotations.Component;
 
 /**
- * Configuration service API for publishing openstack telemetry through gRPC producer.
+ * Loader for gRPC telemetry configurations.
  */
-public interface GrpcTelemetryConfigService extends TelemetryConfigService {
+@Component(immediate = true)
+public class GrpcConfigsLoader extends AbstractTelemetryConfigLoader {
+    public GrpcConfigsLoader() {
+        super("grpc-configs.xml");
+    }
 }

@@ -27,4 +27,14 @@ public interface PrometheusTelemetryService extends TelemetryService {
      * @param flowInfos a network metric to be published
      */
     void publish(Set<FlowInfo> flowInfos);
+
+    /**
+     * Returns prometheus telemetry service type.
+     *
+     * @return prometheus telemetry service type
+     */
+    @Override
+    default ServiceType type() {
+        return ServiceType.PROMETHEUS;
+    }
 }

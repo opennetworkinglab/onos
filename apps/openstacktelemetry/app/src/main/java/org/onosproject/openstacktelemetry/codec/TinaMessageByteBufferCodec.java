@@ -16,6 +16,7 @@
 package org.onosproject.openstacktelemetry.codec;
 
 import org.onosproject.openstacktelemetry.api.FlowInfo;
+import org.onosproject.openstacktelemetry.api.TelemetryCodec;
 
 import java.nio.ByteBuffer;
 import java.util.Set;
@@ -23,10 +24,7 @@ import java.util.Set;
 /**
  * Tina Message ByteBuffer Codec.
  */
-public class TinaMessageByteBufferCodec {
-
-    public static final String KAFKA_TOPIC = "sona.flow";
-    public static final String KAFKA_KEY = "flowdata";
+public class TinaMessageByteBufferCodec implements TelemetryCodec {
 
     private static final int HEADER_SIZE = 8;
     private static final int ENTRY_SIZE = 88;
@@ -39,6 +37,7 @@ public class TinaMessageByteBufferCodec {
      * @param flowInfos a collection of flow info
      * @return encoded byte buffer
      */
+    @Override
     public ByteBuffer encode(Set<FlowInfo> flowInfos) {
         ByteBuffer byteBuffer =
                 ByteBuffer.allocate(HEADER_SIZE + flowInfos.size() * ENTRY_SIZE);

@@ -13,10 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstacktelemetry.api;
+package org.onosproject.openstacktelemetry.impl;
+
+
+import org.apache.felix.scr.annotations.Component;
 
 /**
- * Configuration service API for publishing openstack telemetry through Kafka producer.
+ * Loader for REST telemetry configurations.
  */
-public interface KafkaTelemetryConfigService extends TelemetryConfigService {
+@Component(immediate = true)
+public class RestConfigsLoader extends AbstractTelemetryConfigLoader {
+    public RestConfigsLoader() {
+        super("rest-configs.xml");
+    }
 }

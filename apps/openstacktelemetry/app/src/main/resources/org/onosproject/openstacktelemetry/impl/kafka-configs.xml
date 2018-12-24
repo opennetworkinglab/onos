@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2018-present Open Networking Foundation
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<configs>
+    <config name="kafka" type="kafka" manufacturer="kafka.apache.org" swVersion="master">
+        <property name="address">127.0.0.1</property>
+        <property name="port">9092</property>
+        <property name="retries">0</property>
+    </config>
+    <config name="tina-kafka-exporter" manufacturer="SK Telecom"
+            swVersion="1.0" extends="kafka" enabled="false">
+        <property name="batchSize">16384</property>
+        <property name="lingerMs">1</property>
+        <property name="memoryBuffer">33554432</property>
+        <property name="requiredAcks">all</property>
+        <property name="keySerializer">
+            org.apache.kafka.common.serialization.StringSerializer
+        </property>
+        <property name="valueSerializer">
+            org.apache.kafka.common.serialization.ByteArraySerializer
+        </property>
+        <property name="topic">sona.flow</property>
+        <property name="key">flowdata</property>
+        <property name="codec">TinaMessageByteBufferCodec</property>
+    </config>
+</configs>

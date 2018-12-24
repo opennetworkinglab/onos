@@ -16,30 +16,12 @@
 package org.onosproject.openstacktelemetry.api;
 
 import javax.ws.rs.core.Response;
+import java.util.Set;
 
 /**
  * Service API for publishing openstack telemetry through REST producer.
  */
 public interface RestTelemetryService extends TelemetryService {
-
-    /**
-     * Publishes openstack telemetry to REST server.
-     *
-     * @param endpoint  an endpoint URL
-     * @param method    HTTP method
-     * @param record    network metrics
-     * @return response from REST server
-     */
-    Response publish(String endpoint, String method, String record);
-
-    /**
-     * Publishes openstack telemetry to REST server.
-     *
-     * @param method    HTTP method
-     * @param record    network metrics
-     * @return response from REST server
-     */
-    Response publish(String method, String record);
 
     /**
      * Publishes openstack telemetry to REST server.
@@ -49,5 +31,15 @@ public interface RestTelemetryService extends TelemetryService {
      * @param record network metrics
      * @return response from REST server
      */
-    Response publish(String record);
+    Set<Response> publish(String record);
+
+    /**
+     * Returns REST telemetry service type.
+     *
+     * @return REST telemetry service type
+     */
+    @Override
+    default ServiceType type() {
+        return ServiceType.REST;
+    }
 }

@@ -13,10 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.openstacktelemetry.api;
+package org.onosproject.openstacktelemetry.impl;
+
+import org.apache.felix.scr.annotations.Component;
 
 /**
- * Configuration service API for publishing openstack telemetry through InfluxDB producer.
+ * Loader for InfluxDB telemetry configurations.
  */
-public interface InfluxDbTelemetryConfigService extends TelemetryConfigService {
+@Component(immediate = true)
+public class InfluxDbConfigsLoader extends AbstractTelemetryConfigLoader {
+    public InfluxDbConfigsLoader() {
+        super("influxdb-configs.xml");
+    }
 }

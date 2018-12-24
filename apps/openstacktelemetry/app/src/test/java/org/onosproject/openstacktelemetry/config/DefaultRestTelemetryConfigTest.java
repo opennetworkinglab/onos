@@ -15,17 +15,28 @@
  */
 package org.onosproject.openstacktelemetry.config;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.google.common.testing.EqualsTester;
 import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.openstacktelemetry.api.config.RestTelemetryConfig;
+import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
+import org.onosproject.openstacktelemetry.impl.DefaultTelemetryConfig;
 
 import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
+import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.ConfigType.REST;
+import static org.onosproject.openstacktelemetry.config.DefaultRestTelemetryConfig.ADDRESS;
+import static org.onosproject.openstacktelemetry.config.DefaultRestTelemetryConfig.ENDPOINT;
+import static org.onosproject.openstacktelemetry.config.DefaultRestTelemetryConfig.METHOD;
+import static org.onosproject.openstacktelemetry.config.DefaultRestTelemetryConfig.PORT;
+import static org.onosproject.openstacktelemetry.config.DefaultRestTelemetryConfig.REQUEST_MEDIA_TYPE;
+import static org.onosproject.openstacktelemetry.config.DefaultRestTelemetryConfig.RESPONSE_MEDIA_TYPE;
 
 public final class DefaultRestTelemetryConfigTest {
 
@@ -51,6 +62,8 @@ public final class DefaultRestTelemetryConfigTest {
             ImmutableMap.of("key1", "value1");
     private static final Map<String, Object> CONFIG_MAP_2 =
             ImmutableMap.of("key2", "value2");
+
+    private static final String DUMMY = "dummy";
 
     private RestTelemetryConfig config1;
     private RestTelemetryConfig sameAsConfig1;
@@ -132,5 +145,29 @@ public final class DefaultRestTelemetryConfigTest {
         assertThat(config.requestMediaType(), is(REQUEST_MEDIA_TYPE_1));
         assertThat(config.responseMediaType(), is(RESPONSE_MEDIA_TYPE_1));
         assertThat(config.configMap(), is(CONFIG_MAP_1));
+    }
+
+    /**
+     * Tests props extraction.
+     */
+    @Test
+    public void testPropsExtraction() {
+        Map<String, String> props = Maps.newConcurrentMap();
+        props.put(ADDRESS, IP_ADDRESS_1);
+        props.put(PORT, String.valueOf(PORT_1));
+        props.put(ENDPOINT, ENDPOINT_1);
+        props.put(METHOD, METHOD_1);
+        props.put(REQUEST_MEDIA_TYPE, REQUEST_MEDIA_TYPE_1);
+        props.put(RESPONSE_MEDIA_TYPE, RESPONSE_MEDIA_TYPE_1);
+
+        TelemetryConfig config = new DefaultTelemetryConfig(DUMMY, REST,
+                ImmutableList.of(), DUMMY, DUMMY, false, props);
+        RestTelemetryConfig restConfig = DefaultRestTelemetryConfig.fromTelemetryConfig(config);
+        assertThat(restConfig.address(), is(IP_ADDRESS_1));
+        assertThat(restConfig.port(), is(PORT_1));
+        assertThat(restConfig.endpoint(), is(ENDPOINT_1));
+        assertThat(restConfig.method(), is(METHOD_1));
+        assertThat(restConfig.requestMediaType(), is(REQUEST_MEDIA_TYPE_1));
+        assertThat(restConfig.responseMediaType(), is(RESPONSE_MEDIA_TYPE_1));
     }
 }

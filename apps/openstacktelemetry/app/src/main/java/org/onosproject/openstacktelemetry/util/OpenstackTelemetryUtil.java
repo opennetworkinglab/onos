@@ -18,8 +18,6 @@ package org.onosproject.openstacktelemetry.util;
 import com.google.common.base.Strings;
 import org.onlab.packet.IPv4;
 import org.onosproject.cfg.ConfigProperty;
-import org.onosproject.openstacktelemetry.api.TelemetryAdminService;
-import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
 
 import java.util.Dictionary;
 import java.util.Optional;
@@ -110,29 +108,6 @@ public final class OpenstackTelemetryUtil {
                 return PROTOCOL_NAME_ANY;
             default:
                 return PROTOCOL_NAME_ANY;
-        }
-    }
-
-    /**
-     * Initializes the telemetry service due tue configuration changes.
-     *
-     *
-     * @param adminService  telemetry admin service
-     * @param config        telemetry configuration
-     * @param enable        service enable flag
-     */
-    public static void initTelemetryService(TelemetryAdminService adminService,
-                                            TelemetryConfig config, boolean enable) {
-        if (enable) {
-            if (adminService.isRunning()) {
-                adminService.restart(config);
-            } else {
-                adminService.start(config);
-            }
-        } else {
-            if (adminService.isRunning()) {
-                adminService.stop();
-            }
         }
     }
 }

@@ -17,7 +17,7 @@ package org.onosproject.openstacktelemetry.api.config;
 
 import java.util.Map;
 
-public interface PrometheusTelemetryConfig extends TelemetryConfig {
+public interface PrometheusTelemetryConfig extends TelemetryConfigProperties {
 
     /**
      * Obtains prometheus exporter IP address.
@@ -44,7 +44,7 @@ public interface PrometheusTelemetryConfig extends TelemetryConfig {
     /**
      * Builder class of PrometheusTelemetryConfig.
      */
-    interface Builder extends TelemetryConfig.Builder {
+    interface Builder extends TelemetryConfigProperties.Builder {
 
         /**
          * Sets prometheus exporter IP address.

@@ -15,9 +15,9 @@
  */
 package org.onosproject.openstacktelemetry.api;
 
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 
+import java.util.Set;
 import java.util.concurrent.Future;
 
 /**
@@ -28,8 +28,18 @@ public interface KafkaTelemetryService extends TelemetryService {
     /**
      * Publishes openstack telemetry to Kafka server.
      *
-     * @param record a network metric to be published
+     * @param flowInfos network metrics to be published
      * @return metadata for a record that has been acknowledged
      */
-    Future<RecordMetadata> publish(ProducerRecord<String, byte[]> record);
+    Set<Future<RecordMetadata>> publish(Set<FlowInfo> flowInfos);
+
+    /**
+     * Returns kafka telemetry service type.
+     *
+     * @return kafka telemetry service type
+     */
+    @Override
+    default ServiceType type() {
+        return ServiceType.KAFKA;
+    }
 }

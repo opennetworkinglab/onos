@@ -24,6 +24,9 @@ import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+/**
+ * Implementation of StatsFlowRule.
+ */
 public final class DefaultStatsFlowRule implements StatsFlowRule {
     private final IpPrefix srcIpPrefix;
     private final IpPrefix dstIpPrefix;

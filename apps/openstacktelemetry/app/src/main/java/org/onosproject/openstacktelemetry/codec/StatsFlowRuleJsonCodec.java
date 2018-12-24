@@ -30,6 +30,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.getProtocolTypeFromString;
 import static org.slf4j.LoggerFactory.getLogger;
 
+/**
+ * JSON codec for StatsFlowRule.
+ */
 public class StatsFlowRuleJsonCodec extends JsonCodec<StatsFlowRule> {
 
     private final Logger log = getLogger(getClass());
@@ -40,6 +43,7 @@ public class StatsFlowRuleJsonCodec extends JsonCodec<StatsFlowRule> {
     public static final String SRC_TP_PORT   = "srcTpPort";
     public static final String DST_TP_PORT   = "dstTpPort";
 
+    @Override
     public ObjectNode encode(StatsFlowRule flowRule, CodecContext context) {
         checkNotNull(flowRule, "FlowInfo cannot be null");
         ObjectNode result = context.mapper().createObjectNode()

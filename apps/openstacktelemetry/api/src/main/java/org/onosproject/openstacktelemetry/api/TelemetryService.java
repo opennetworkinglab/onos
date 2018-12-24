@@ -21,9 +21,51 @@ package org.onosproject.openstacktelemetry.api;
 public interface TelemetryService {
 
     /**
+     * Telemetry service type.
+     */
+    enum ServiceType {
+        /**
+         * Indicates KAFKA telemetry service.
+         */
+        KAFKA,
+
+        /**
+         * Indicates GRPC telemetry service.
+         */
+        GRPC,
+
+        /**
+         * Indicates REST telemetry service.
+         */
+        REST,
+
+        /**
+         * Indicates InfluxDB telemetry service.
+         */
+        INFLUXDB,
+
+        /**
+         * Indicates prometheus telemetry service.
+         */
+        PROMETHEUS,
+
+        /**
+         * Indicates unknown telemetry service.
+         */
+        UNKNOWN
+    }
+
+    /**
      * Checks whether the telemetry service is running or not.
      *
      * @return telemetry service running status
      */
     boolean isRunning();
+
+    /**
+     * Obtains the service type.
+     *
+     * @return service type
+     */
+    ServiceType type();
 }
