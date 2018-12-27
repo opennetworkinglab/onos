@@ -21,9 +21,15 @@
         <property name="username">onos</property>
         <property name="password">onos</property>
     </config>
-    <config name="sona-influxdb-connector" manufacturer="SK Telecom"
+    <config name="sona-influxdb-connector-1" manufacturer="SK Telecom"
             swVersion="1.0" extends="influxdb" enabled="false">
         <property name="database">ost</property>
+        <property name="measurement">sonaflow</property>
+        <property name="enableBatch">true</property>
+    </config>
+    <config name="sona-influxdb-connector-2" manufacturer="SK Telecom"
+            swVersion="1.0" extends="influxdb" enabled="false">
+        <property name="database">ost2</property>
         <property name="measurement">sonaflow</property>
         <property name="enableBatch">true</property>
     </config>

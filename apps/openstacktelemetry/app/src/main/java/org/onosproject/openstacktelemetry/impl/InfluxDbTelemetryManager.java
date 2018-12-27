@@ -15,6 +15,7 @@
  */
 package org.onosproject.openstacktelemetry.impl;
 
+import com.google.common.collect.Maps;
 import org.influxdb.InfluxDB;
 import org.influxdb.InfluxDBFactory;
 import org.influxdb.dto.BatchPoints;
@@ -80,7 +81,7 @@ public class InfluxDbTelemetryManager implements InfluxDbTelemetryAdminService {
     protected TelemetryConfigService telemetryConfigService;
 
     private static final String INFLUX_PROTOCOL = "http";
-    private Map<String, InfluxDB> producers = null;
+    private Map<String, InfluxDB> producers = Maps.newConcurrentMap();
 
     @Activate
     protected void activate() {

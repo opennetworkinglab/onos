@@ -159,6 +159,19 @@ public final class DefaultTelemetryConfig implements TelemetryConfig {
     }
 
     @Override
+    public TelemetryConfig updateProperties(Map<String, String> properties) {
+
+        return new DefaultTelemetryConfig(name, type, parents, manufacturer,
+                swVersion, enabled, properties);
+    }
+
+    @Override
+    public TelemetryConfig updateEnabled(boolean enabled) {
+        return new DefaultTelemetryConfig(name, type, parents, manufacturer,
+                swVersion, enabled, properties);
+    }
+
+    @Override
     public Set<String> keys() {
         return properties.keySet();
     }
