@@ -15,6 +15,7 @@
  */
 package org.onosproject.openstacktelemetry.impl;
 
+import com.google.common.collect.Maps;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -82,7 +83,7 @@ public class InfluxDbTelemetryManager implements InfluxDbTelemetryAdminService {
     protected TelemetryConfigService telemetryConfigService;
 
     private static final String INFLUX_PROTOCOL = "http";
-    private Map<String, InfluxDB> producers = null;
+    private Map<String, InfluxDB> producers = Maps.newConcurrentMap();
 
     @Activate
     protected void activate() {

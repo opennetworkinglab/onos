@@ -143,4 +143,20 @@ public interface TelemetryConfig extends Annotations {
      * @return merged configuration
      */
     TelemetryConfig merge(TelemetryConfig other);
+
+    /**
+     * Obtains the cloned instance with updated properties.
+     *
+     * @param properties telemetry config properties
+     * @return a cloned instance
+     */
+    TelemetryConfig updateProperties(Map<String, String> properties);
+
+    /**
+     * Obtains the cloned instance with updated enabled value.
+     *
+     * @param enabled service flag
+     * @return a cloned instance
+     */
+    TelemetryConfig updateEnabled(boolean enabled);
 }

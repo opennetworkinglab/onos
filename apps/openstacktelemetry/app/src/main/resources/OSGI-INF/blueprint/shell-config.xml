@@ -18,5 +18,31 @@
         <command>
             <action class="org.onosproject.openstacktelemetry.cli.TelemetryConfigListCommand"/>
         </command>
+        <command>
+            <action class="org.onosproject.openstacktelemetry.cli.TelemetryConfigUpdateAddressCommand"/>
+            <completers>
+                <ref component-id="configNameCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onosproject.openstacktelemetry.cli.TelemetryConfigViewCommand"/>
+            <completers>
+                <ref component-id="configNameCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onosproject.openstacktelemetry.cli.TelemetryServiceDisableCommand"/>
+            <completers>
+                <ref component-id="configNameCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onosproject.openstacktelemetry.cli.TelemetryServiceEnableCommand"/>
+            <completers>
+                <ref component-id="configNameCompleter"/>
+            </completers>
+        </command>
     </command-bundle>
+
+    <bean id="configNameCompleter" class="org.onosproject.openstacktelemetry.cli.TelemetryConfigNameCompleter"/>
 </blueprint>
