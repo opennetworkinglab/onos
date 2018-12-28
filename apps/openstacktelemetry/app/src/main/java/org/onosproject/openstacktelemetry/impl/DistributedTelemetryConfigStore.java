@@ -52,6 +52,8 @@ import static org.onosproject.openstacktelemetry.api.Constants.OPENSTACK_TELEMET
 import static org.onosproject.openstacktelemetry.api.TelemetryConfigEvent.Type.CONFIG_ADDED;
 import static org.onosproject.openstacktelemetry.api.TelemetryConfigEvent.Type.CONFIG_DELETED;
 import static org.onosproject.openstacktelemetry.api.TelemetryConfigEvent.Type.CONFIG_UPDATED;
+import static org.onosproject.openstacktelemetry.api.TelemetryConfigEvent.Type.SERVICE_DISABLED;
+import static org.onosproject.openstacktelemetry.api.TelemetryConfigEvent.Type.SERVICE_ENABLED;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -190,6 +192,9 @@ public class DistributedTelemetryConfigStore
         private void processTelemetryConfigMapUpdate(MapEvent<String,
                                                      TelemetryConfig> event) {
             log.debug("Telemetry config updated");
+
+            processTelemetryServiceStatusChange(event);
+
             notifyDelegate(new TelemetryConfigEvent(
                     CONFIG_UPDATED, event.newValue().value()));
         }
@@ -199,6 +204,22 @@ public class DistributedTelemetryConfigStore
             log.debug("Telemetry config removed");
             notifyDelegate(new TelemetryConfigEvent(
                     CONFIG_DELETED, event.oldValue().value()));
+        }
+
+        private void processTelemetryServiceStatusChange(
+                                    MapEvent<String, TelemetryConfig> event) {
+            TelemetryConfig oldValue = event.oldValue().value();
+            TelemetryConfig newValue = event.newValue().value();
+
+            if (oldValue.enabled() && !newValue.enabled()) {
+                log.debug("Telemetry service {} has been disabled!", newValue.name());
+                notifyDelegate(new TelemetryConfigEvent(SERVICE_DISABLED, newValue));
+            }
+
+            if (!oldValue.enabled() && newValue.enabled()) {
+                log.debug("Telemetry service {} has been enabled!", newValue.name());
+                notifyDelegate(new TelemetryConfigEvent(SERVICE_ENABLED, newValue));
+            }
         }
     }
 }

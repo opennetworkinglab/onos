@@ -85,57 +85,11 @@ public class KafkaTelemetryManager implements KafkaTelemetryAdminService {
 
     @Deactivate
     protected void deactivate() {
-        stop();
+        stopAll();
 
         openstackTelemetryService.removeTelemetryService(this);
 
         log.info("Stopped");
-    }
-
-    @Override
-    public void start() {
-        telemetryConfigService.getConfigsByType(KAFKA).forEach(c -> {
-            KafkaTelemetryConfig kafkaConfig = fromTelemetryConfig(c);
-
-            if (kafkaConfig != null && !c.name().equals(KAFKA_SCHEME) && c.enabled()) {
-                StringBuilder kafkaServerBuilder = new StringBuilder();
-                kafkaServerBuilder.append(kafkaConfig.address());
-                kafkaServerBuilder.append(":");
-                kafkaServerBuilder.append(kafkaConfig.port());
-
-                // Configure Kafka server properties
-                Properties prop = new Properties();
-                prop.put(BOOTSTRAP_SERVERS, kafkaServerBuilder.toString());
-                prop.put(RETRIES, kafkaConfig.retries());
-                prop.put(ACKS, kafkaConfig.requiredAcks());
-                prop.put(BATCH_SIZE, kafkaConfig.batchSize());
-                prop.put(LINGER_MS, kafkaConfig.lingerMs());
-                prop.put(MEMORY_BUFFER, kafkaConfig.memoryBuffer());
-                prop.put(KEY_SERIALIZER, kafkaConfig.keySerializer());
-                prop.put(VALUE_SERIALIZER, kafkaConfig.valueSerializer());
-
-                producers.put(c.name(), new KafkaProducer<>(prop));
-            }
-        });
-
-        log.info("Kafka producer has Started");
-    }
-
-    @Override
-    public void stop() {
-        if (!producers.isEmpty()) {
-            producers.values().forEach(Producer::close);
-        }
-
-        producers.clear();
-
-        log.info("Kafka producer has Stopped");
-    }
-
-    @Override
-    public void restart() {
-        stop();
-        start();
     }
 
     @Override
@@ -171,5 +125,71 @@ public class KafkaTelemetryManager implements KafkaTelemetryAdminService {
     @Override
     public boolean isRunning() {
         return !producers.isEmpty();
+    }
+
+    @Override
+    public void start(String name) {
+        TelemetryConfig config = telemetryConfigService.getConfig(name);
+        KafkaTelemetryConfig kafkaConfig = fromTelemetryConfig(config);
+
+        if (kafkaConfig != null &&
+                !config.name().equals(KAFKA_SCHEME) && config.enabled()) {
+            StringBuilder kafkaServerBuilder = new StringBuilder();
+            kafkaServerBuilder.append(kafkaConfig.address());
+            kafkaServerBuilder.append(":");
+            kafkaServerBuilder.append(kafkaConfig.port());
+
+            // Configure Kafka server properties
+            Properties prop = new Properties();
+            prop.put(BOOTSTRAP_SERVERS, kafkaServerBuilder.toString());
+            prop.put(RETRIES, kafkaConfig.retries());
+            prop.put(ACKS, kafkaConfig.requiredAcks());
+            prop.put(BATCH_SIZE, kafkaConfig.batchSize());
+            prop.put(LINGER_MS, kafkaConfig.lingerMs());
+            prop.put(MEMORY_BUFFER, kafkaConfig.memoryBuffer());
+            prop.put(KEY_SERIALIZER, kafkaConfig.keySerializer());
+            prop.put(VALUE_SERIALIZER, kafkaConfig.valueSerializer());
+
+            producers.put(config.name(), new KafkaProducer<>(prop));
+        }
+    }
+
+    @Override
+    public void stop(String name) {
+        Producer<String, byte[]> producer = producers.get(name);
+
+        if (producer != null) {
+            producer.close();
+            producers.remove(name);
+        }
+    }
+
+    @Override
+    public void restart(String name) {
+        stop(name);
+        start(name);
+    }
+
+    @Override
+    public void startAll() {
+        telemetryConfigService.getConfigsByType(KAFKA).forEach(c -> start(c.name()));
+        log.info("Kafka producer has Started");
+    }
+
+    @Override
+    public void stopAll() {
+        if (!producers.isEmpty()) {
+            producers.values().forEach(Producer::close);
+        }
+
+        producers.clear();
+
+        log.info("Kafka producer has Stopped");
+    }
+
+    @Override
+    public void restartAll() {
+        stopAll();
+        startAll();
     }
 }

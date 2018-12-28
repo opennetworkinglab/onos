@@ -156,8 +156,15 @@ public class OpenstackTelemetryManager implements OpenstackTelemetryService {
             TelemetryAdminService service =
                                 telemetryService(event.subject().type().name());
 
-            if (service != null) {
-                service.restart();
+            switch (event.type()) {
+                case SERVICE_ENABLED:
+                    service.start(event.subject().name());
+                    break;
+                case SERVICE_DISABLED:
+                    service.stop(event.subject().name());
+                    break;
+                default:
+                    break;
             }
         }
     }
