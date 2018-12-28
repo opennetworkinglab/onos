@@ -15,13 +15,14 @@
  */
 package org.onosproject.openstacktelemetry.impl;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Maps;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.onosproject.openstacktelemetry.api.GrpcTelemetryAdminService;
 import org.onosproject.openstacktelemetry.api.OpenstackTelemetryService;
 import org.onosproject.openstacktelemetry.api.TelemetryConfigService;
 import org.onosproject.openstacktelemetry.api.config.GrpcTelemetryConfig;
+import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -30,7 +31,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Set;
+import java.util.Map;
 
 import static org.onosproject.openstacktelemetry.api.Constants.GRPC_SCHEME;
 import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.ConfigType.GRPC;
@@ -50,7 +51,7 @@ public class GrpcTelemetryManager implements GrpcTelemetryAdminService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected TelemetryConfigService telemetryConfigService;
 
-    private Set<ManagedChannel> channels = Sets.newConcurrentHashSet();
+    private Map<String, ManagedChannel> channels = Maps.newConcurrentMap();
 
     @Activate
     protected void activate() {
@@ -62,7 +63,7 @@ public class GrpcTelemetryManager implements GrpcTelemetryAdminService {
 
     @Deactivate
     protected void deactivate() {
-        stop();
+        stopAll();
 
         openstackTelemetryService.removeTelemetryService(this);
 
@@ -70,34 +71,53 @@ public class GrpcTelemetryManager implements GrpcTelemetryAdminService {
     }
 
     @Override
-    public void start() {
-        telemetryConfigService.getConfigsByType(GRPC).forEach(c -> {
-            GrpcTelemetryConfig grpcConfig = fromTelemetryConfig(c);
+    public void start(String name) {
+        TelemetryConfig config = telemetryConfigService.getConfig(name);
+        GrpcTelemetryConfig grpcConfig = fromTelemetryConfig(config);
 
-            if (grpcConfig != null && !c.name().equals(GRPC_SCHEME) && c.enabled()) {
-                ManagedChannel channel = ManagedChannelBuilder
-                        .forAddress(grpcConfig.address(), grpcConfig.port())
-                        .maxInboundMessageSize(grpcConfig.maxInboundMsgSize())
-                        .usePlaintext(grpcConfig.usePlaintext())
-                        .build();
+        if (grpcConfig != null && !config.name().equals(GRPC_SCHEME) && config.enabled()) {
+            ManagedChannel channel = ManagedChannelBuilder
+                    .forAddress(grpcConfig.address(), grpcConfig.port())
+                    .maxInboundMessageSize(grpcConfig.maxInboundMsgSize())
+                    .usePlaintext(grpcConfig.usePlaintext())
+                    .build();
 
-                channels.add(channel);
-            }
-        });
+            channels.put(name, channel);
+        }
+    }
 
+    @Override
+    public void stop(String name) {
+        ManagedChannel channel = channels.get(name);
+
+        if (channel != null) {
+            channel.shutdown();
+            channels.remove(name);
+        }
+    }
+
+    @Override
+    public void restart(String name) {
+        stop(name);
+        start(name);
+    }
+
+    @Override
+    public void startAll() {
+        telemetryConfigService.getConfigsByType(GRPC).forEach(c -> start(c.name()));
         log.info("gRPC producer has Started");
     }
 
     @Override
-    public void stop() {
-        channels.forEach(ManagedChannel::shutdown);
+    public void stopAll() {
+        channels.values().forEach(ManagedChannel::shutdown);
         log.info("gRPC producer has Stopped");
     }
 
     @Override
-    public void restart() {
-        stop();
-        start();
+    public void restartAll() {
+        stopAll();
+        startAll();
     }
 
     @Override

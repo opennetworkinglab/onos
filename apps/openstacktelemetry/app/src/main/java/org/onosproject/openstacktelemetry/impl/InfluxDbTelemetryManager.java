@@ -93,52 +93,11 @@ public class InfluxDbTelemetryManager implements InfluxDbTelemetryAdminService {
 
     @Deactivate
     protected void deactivate() {
-        stop();
+        stopAll();
 
         openstackTelemetryService.removeTelemetryService(this);
 
         log.info("Stopped");
-    }
-
-    @Override
-    public void start() {
-
-        telemetryConfigService.getConfigsByType(INFLUXDB).forEach(c -> {
-            InfluxDbTelemetryConfig influxDbConfig = fromTelemetryConfig(c);
-
-            if (influxDbConfig != null && !c.name().equals(INFLUXDB_SCHEME) && c.enabled()) {
-                StringBuilder influxDbServerBuilder = new StringBuilder();
-                influxDbServerBuilder.append(INFLUX_PROTOCOL);
-                influxDbServerBuilder.append(":");
-                influxDbServerBuilder.append("//");
-                influxDbServerBuilder.append(influxDbConfig.address());
-                influxDbServerBuilder.append(":");
-                influxDbServerBuilder.append(influxDbConfig.port());
-
-                InfluxDB producer = InfluxDBFactory.connect(influxDbServerBuilder.toString(),
-                        influxDbConfig.username(), influxDbConfig.password());
-                producers.put(c.name(), producer);
-
-                createDB(producer, influxDbConfig.database());
-            }
-        });
-
-        log.info("InfluxDB producer has Started");
-    }
-
-    @Override
-    public void stop() {
-        if (producers != null) {
-            producers.values().forEach(InfluxDB::close);
-        }
-
-        log.info("InfluxDB producer has stopped");
-    }
-
-    @Override
-    public void restart() {
-        stop();
-        start();
     }
 
     @Override
@@ -223,5 +182,64 @@ public class InfluxDbTelemetryManager implements InfluxDbTelemetryAdminService {
             return "";
         }
         return tpPort.toString();
+    }
+
+    @Override
+    public void start(String name) {
+        TelemetryConfig config = telemetryConfigService.getConfig(name);
+        InfluxDbTelemetryConfig influxDbConfig = fromTelemetryConfig(config);
+
+        if (influxDbConfig != null &&
+                !config.name().equals(INFLUXDB_SCHEME) && config.enabled()) {
+            StringBuilder influxDbServerBuilder = new StringBuilder();
+            influxDbServerBuilder.append(INFLUX_PROTOCOL);
+            influxDbServerBuilder.append(":");
+            influxDbServerBuilder.append("//");
+            influxDbServerBuilder.append(influxDbConfig.address());
+            influxDbServerBuilder.append(":");
+            influxDbServerBuilder.append(influxDbConfig.port());
+
+            InfluxDB producer = InfluxDBFactory.connect(influxDbServerBuilder.toString(),
+                    influxDbConfig.username(), influxDbConfig.password());
+            producers.put(config.name(), producer);
+
+            createDB(producer, influxDbConfig.database());
+        }
+    }
+
+    @Override
+    public void stop(String name) {
+        InfluxDB producer = producers.get(name);
+
+        if (producer != null) {
+            producer.close();
+            producers.remove(name);
+        }
+    }
+
+    @Override
+    public void restart(String name) {
+        stop(name);
+        start(name);
+    }
+
+    @Override
+    public void startAll() {
+        telemetryConfigService.getConfigsByType(INFLUXDB).forEach(c -> start(c.name()));
+        log.info("InfluxDB producer has Started");    }
+
+    @Override
+    public void stopAll() {
+        if (producers != null) {
+            producers.values().forEach(InfluxDB::close);
+        }
+
+        log.info("InfluxDB producer has stopped");
+    }
+
+    @Override
+    public void restartAll() {
+        stopAll();
+        startAll();
     }
 }

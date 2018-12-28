@@ -21,7 +21,8 @@ import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
 /**
  * Describes telemetry config event.
  */
-public class TelemetryConfigEvent extends AbstractEvent<TelemetryConfigEvent.Type, TelemetryConfig> {
+public class TelemetryConfigEvent
+        extends AbstractEvent<TelemetryConfigEvent.Type, TelemetryConfig> {
 
     /**
      * Telemetry config event type.
@@ -38,7 +39,15 @@ public class TelemetryConfigEvent extends AbstractEvent<TelemetryConfigEvent.Typ
         /**
          * Signifies that an existing telemetry config is removed.
          */
-        CONFIG_DELETED
+        CONFIG_DELETED,
+        /**
+         * Signifies that a telemetry service is enabled.
+         */
+        SERVICE_ENABLED,
+        /**
+         * Signifies that a telemetry service is disabled.
+         */
+        SERVICE_DISABLED
     }
 
     /**

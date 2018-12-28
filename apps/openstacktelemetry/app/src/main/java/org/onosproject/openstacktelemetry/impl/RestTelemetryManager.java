@@ -72,7 +72,7 @@ public class RestTelemetryManager implements RestTelemetryAdminService {
 
     @Deactivate
     protected void deactivate() {
-        stop();
+        stopAll();
 
         openstackTelemetryService.removeTelemetryService(this);
 
@@ -80,42 +80,23 @@ public class RestTelemetryManager implements RestTelemetryAdminService {
     }
 
     @Override
-    public void start() {
+    public void startAll() {
 
-        telemetryConfigService.getConfigsByType(REST).forEach(c -> {
-            RestTelemetryConfig restConfig = fromTelemetryConfig(c);
-
-            if (restConfig != null && !c.name().equals(REST_SCHEME) && c.enabled()) {
-                StringBuilder restServerBuilder = new StringBuilder();
-                restServerBuilder.append(PROTOCOL);
-                restServerBuilder.append(":");
-                restServerBuilder.append("//");
-                restServerBuilder.append(restConfig.address());
-                restServerBuilder.append(":");
-                restServerBuilder.append(restConfig.port());
-                restServerBuilder.append("/");
-
-                Client client = ClientBuilder.newBuilder().build();
-
-                WebTarget target = client.target(restServerBuilder.toString()).path(restConfig.endpoint());
-
-                targets.put(c.name(), target);
-            }
-        });
+        telemetryConfigService.getConfigsByType(REST).forEach(c -> start(c.name()));
 
         log.info("REST producer has Started");
     }
 
     @Override
-    public void stop() {
+    public void stopAll() {
         targets.values().forEach(t -> t = null);
         log.info("REST producer has Stopped");
     }
 
     @Override
-    public void restart() {
-        stop();
-        start();
+    public void restartAll() {
+        stopAll();
+        startAll();
     }
 
     @Override
@@ -146,5 +127,46 @@ public class RestTelemetryManager implements RestTelemetryAdminService {
     @Override
     public boolean isRunning() {
         return !targets.isEmpty();
+    }
+
+    @Override
+    public void start(String name) {
+        TelemetryConfig config = telemetryConfigService.getConfig(name);
+        RestTelemetryConfig restConfig = fromTelemetryConfig(config);
+
+        if (restConfig != null &&
+                !config.name().equals(REST_SCHEME) && config.enabled()) {
+            StringBuilder restServerBuilder = new StringBuilder();
+            restServerBuilder.append(PROTOCOL);
+            restServerBuilder.append(":");
+            restServerBuilder.append("//");
+            restServerBuilder.append(restConfig.address());
+            restServerBuilder.append(":");
+            restServerBuilder.append(restConfig.port());
+            restServerBuilder.append("/");
+
+            Client client = ClientBuilder.newBuilder().build();
+
+            WebTarget target = client.target(
+                    restServerBuilder.toString()).path(restConfig.endpoint());
+
+            targets.put(config.name(), target);
+        }
+    }
+
+    @Override
+    public void stop(String name) {
+        WebTarget target = targets.get(name);
+
+        if (target != null) {
+            target = null;
+            targets.remove(name);
+        }
+    }
+
+    @Override
+    public void restart(String name) {
+        stop(name);
+        start(name);
     }
 }
