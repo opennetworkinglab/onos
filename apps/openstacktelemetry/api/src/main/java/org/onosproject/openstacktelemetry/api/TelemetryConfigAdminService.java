@@ -51,4 +51,11 @@ public interface TelemetryConfigAdminService extends TelemetryConfigService {
      * @param config telemetry configuration
      */
     void updateTelemetryConfig(TelemetryConfig config);
+
+    /**
+     * Removes an existing telemetry configuration with the given config name.
+     *
+     * @param name configuration name
+     */
+    void removeTelemetryConfig(String name);
 }

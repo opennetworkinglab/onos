@@ -25,6 +25,8 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.DeviceId;
+import org.onosproject.openstacktelemetry.api.DefaultFlowInfo;
+import org.onosproject.openstacktelemetry.api.DefaultStatsInfo;
 import org.onosproject.openstacktelemetry.api.FlowInfo;
 import org.onosproject.openstacktelemetry.api.InfluxRecord;
 import org.onosproject.openstacktelemetry.api.StatsInfo;

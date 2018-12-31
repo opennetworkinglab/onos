@@ -30,7 +30,7 @@ import org.onosproject.net.host.HostService;
 import org.onosproject.openstacktelemetry.api.FlowInfo;
 import org.onosproject.openstacktelemetry.api.StatsFlowRule;
 import org.onosproject.openstacktelemetry.api.StatsFlowRuleAdminService;
-import org.onosproject.openstacktelemetry.impl.DefaultStatsFlowRule;
+import org.onosproject.openstacktelemetry.api.DefaultStatsFlowRule;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiConnection;
 import org.onosproject.ui.UiMessageHandler;

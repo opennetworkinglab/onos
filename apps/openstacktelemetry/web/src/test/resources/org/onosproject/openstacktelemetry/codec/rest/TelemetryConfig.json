@@ -1,0 +1,17 @@
+{
+  "name": "grpc-config",
+  "type": "GRPC",
+  "manufacturer": "grpc.io",
+  "swVersion": "1.0",
+  "enabled": true,
+  "props": [
+    {
+      "key": "address",
+      "value": "127.0.0.1"
+    },
+    {
+      "key": "port",
+      "value": "9092"
+    }
+  ]
+}

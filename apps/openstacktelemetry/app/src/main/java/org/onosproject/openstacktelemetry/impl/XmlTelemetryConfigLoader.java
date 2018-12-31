@@ -21,6 +21,7 @@ import com.google.common.collect.Maps;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
+import org.onosproject.openstacktelemetry.api.DefaultTelemetryConfig;
 import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
 
 import java.io.IOException;
@@ -45,8 +46,8 @@ import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.Conf
  * </p>
  * <pre>
  *     &lt;configs&gt;
- *         &lt;config name=“...” [manufacturer="..." swVersion="..."]&gt;
- *            [&lt;property name=“key”&gt;value&lt;/key&gt;]
+ *         &lt;config name="..." [manufacturer="..." swVersion="..."]&gt;
+ *            [&lt;property name="key"&gt;value&lt;/key&gt;]
  *            ...
  *        &lt;/config&gt;
  *        ...
@@ -203,10 +204,16 @@ public class XmlTelemetryConfigLoader {
         ImmutableMap.Builder<String, String> properties = ImmutableMap.builder();
 
         // note that, we only allow the inheritance from single source
-        Map<String, String> parentConfigs = Maps.newHashMap();
+        final Map<String, String> parentConfigs = Maps.newHashMap();
         if (!parents.isEmpty()) {
             TelemetryConfig parent = parents.get(0);
-            parentConfigs = parent.properties();
+            parent.properties().forEach(parentConfigs::put);
+        }
+
+        for (HierarchicalConfiguration b : config.configurationsAt(PROPERTY)) {
+            if (parentConfigs.keySet().contains(b.getString(NAME))) {
+                parentConfigs.remove(b.getString(NAME));
+            }
         }
 
         properties.putAll(parentConfigs);
@@ -214,6 +221,7 @@ public class XmlTelemetryConfigLoader {
         for (HierarchicalConfiguration b : config.configurationsAt(PROPERTY)) {
             properties.put(b.getString(NAME), (String) b.getRootNode().getValue());
         }
+
         return properties.build();
     }
 }

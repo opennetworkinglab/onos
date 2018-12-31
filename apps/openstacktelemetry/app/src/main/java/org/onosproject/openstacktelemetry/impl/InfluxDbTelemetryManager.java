@@ -201,7 +201,7 @@ public class InfluxDbTelemetryManager implements InfluxDbTelemetryAdminService {
 
             InfluxDB producer = InfluxDBFactory.connect(influxDbServerBuilder.toString(),
                     influxDbConfig.username(), influxDbConfig.password());
-            producers.put(config.name(), producer);
+            producers.put(name, producer);
 
             createDB(producer, influxDbConfig.database());
         }

@@ -22,6 +22,7 @@ import org.junit.Test;
 import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreServiceAdapter;
+import org.onosproject.openstacktelemetry.api.DefaultTelemetryConfig;
 import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
 import org.onosproject.openstacktelemetry.api.config.TelemetryConfig.ConfigType;
 import org.onosproject.store.service.TestStorageService;

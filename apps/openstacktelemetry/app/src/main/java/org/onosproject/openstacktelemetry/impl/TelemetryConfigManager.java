@@ -23,6 +23,7 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.ListenerRegistry;
+import org.onosproject.openstacktelemetry.api.DefaultTelemetryConfig;
 import org.onosproject.openstacktelemetry.api.TelemetryConfigAdminService;
 import org.onosproject.openstacktelemetry.api.TelemetryConfigEvent;
 import org.onosproject.openstacktelemetry.api.TelemetryConfigListener;
@@ -74,6 +75,7 @@ public class TelemetryConfigManager
 
     private static final String ERR_NULL_CONFIG = "Telemetry config cannot be null";
     private static final String NO_CONFIG = "Telemetry config not found";
+    private static final String ERR_NULL_CONFIG_NAME = "Telemetry config name cannot be null";
 
     private static final KryoNamespace SERIALIZER_TELEMETRY_CONFIG =
             KryoNamespace.newBuilder()
@@ -172,6 +174,14 @@ public class TelemetryConfigManager
 
         telemetryConfigStore.updateTelemetryConfig(config);
         log.info(String.format(MSG_TELEMETRY_CONFIG, config.name(), MSG_UPDATED));
+    }
+
+    @Override
+    public void removeTelemetryConfig(String name) {
+        checkNotNull(name, ERR_NULL_CONFIG_NAME);
+
+        telemetryConfigStore.removeTelemetryConfig(name);
+        log.info(String.format(MSG_TELEMETRY_CONFIG, name, MSG_REMOVED));
     }
 
     @Override
