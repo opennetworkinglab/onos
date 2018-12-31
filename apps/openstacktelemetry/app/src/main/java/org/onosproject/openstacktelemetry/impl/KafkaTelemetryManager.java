@@ -56,8 +56,6 @@ public class KafkaTelemetryManager implements KafkaTelemetryAdminService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final String CODEC_PREFIX = "org.onosproject.openstacktelemetry.codec.";
-
     private static final String BOOTSTRAP_SERVERS = "bootstrap.servers";
     private static final String RETRIES = "retries";
     private static final String ACKS = "acks";
@@ -104,11 +102,10 @@ public class KafkaTelemetryManager implements KafkaTelemetryAdminService {
         Set<Future<RecordMetadata>> futureSet = Sets.newHashSet();
         producers.forEach((k, v) -> {
             TelemetryConfig config = telemetryConfigService.getConfig(k);
-            KafkaTelemetryConfig kafkaConfig =
-                    fromTelemetryConfig(config);
+            KafkaTelemetryConfig kafkaConfig = fromTelemetryConfig(config);
 
             try {
-                Class codecClazz = Class.forName(CODEC_PREFIX + kafkaConfig.codec());
+                Class codecClazz = Class.forName(kafkaConfig.codec());
                 TelemetryCodec codec = (TelemetryCodec) codecClazz.newInstance();
 
                 ByteBuffer buffer = codec.encode(flowInfos);
@@ -150,7 +147,7 @@ public class KafkaTelemetryManager implements KafkaTelemetryAdminService {
             prop.put(KEY_SERIALIZER, kafkaConfig.keySerializer());
             prop.put(VALUE_SERIALIZER, kafkaConfig.valueSerializer());
 
-            producers.put(config.name(), new KafkaProducer<>(prop));
+            producers.put(name, new KafkaProducer<>(prop));
         }
     }
 

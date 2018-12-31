@@ -1,0 +1,53 @@
+{
+  "type": "object",
+  "required": [
+    "name",
+    "type",
+    "manufacturer",
+    "swVersion",
+    "enabled",
+    "properties"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "example": "grpc config"
+    },
+    "type": {
+      "type": "string",
+      "example": "GRPC"
+    },
+    "manufacturer": {
+      "type": "string",
+      "example": "grpc.io"
+    },
+    "swVersion": {
+      "type": "string",
+      "example": "1.0"
+    },
+    "enabled": {
+      "type": "boolean",
+      "example": true
+    },
+    "props": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "key",
+          "value"
+        ],
+        "properties": {
+          "key": {
+            "type": "string",
+            "example": "address"
+          },
+          "value": {
+            "type": "string",
+            "example": "127.0.0.1"
+          }
+        }
+      }
+    }
+  }
+}

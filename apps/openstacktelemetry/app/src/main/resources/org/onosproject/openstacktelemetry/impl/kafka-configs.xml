@@ -34,6 +34,8 @@
         </property>
         <property name="topic">sona.flow</property>
         <property name="key">flowdata</property>
-        <property name="codec">TinaMessageByteBufferCodec</property>
+        <property name="codec">
+            org.onosproject.openstacktelemetry.codec.bytebuffer.TinaMessageByteBufferCodec
+        </property>
     </config>
 </configs>

@@ -101,7 +101,7 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
     }
 
     /**
-     * Creates a set of openstack nodes' config from the JSON input stream.
+     * Updates a set of openstack nodes' config from the JSON input stream.
      *
      * @param input openstack nodes JSON input stream
      * @return 200 OK with the updated openstack node's config, 400 BAD_REQUEST

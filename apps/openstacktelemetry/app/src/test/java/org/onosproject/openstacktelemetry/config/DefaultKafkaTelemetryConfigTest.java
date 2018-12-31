@@ -23,7 +23,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onosproject.openstacktelemetry.api.config.KafkaTelemetryConfig;
 import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
-import org.onosproject.openstacktelemetry.impl.DefaultTelemetryConfig;
+import org.onosproject.openstacktelemetry.api.DefaultTelemetryConfig;
 
 import java.util.Map;
 

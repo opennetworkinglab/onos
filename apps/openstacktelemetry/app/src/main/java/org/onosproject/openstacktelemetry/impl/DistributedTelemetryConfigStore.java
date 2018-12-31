@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.openstacktelemetry.api.DefaultTelemetryConfig;
 import org.onosproject.openstacktelemetry.api.TelemetryConfigEvent;
 import org.onosproject.openstacktelemetry.api.TelemetryConfigProvider;
 import org.onosproject.openstacktelemetry.api.TelemetryConfigStore;

@@ -39,6 +39,7 @@ BUNDLES = [
     "@com_google_code_gson_gson//jar",
     "//apps/openstacktelemetry/api:onos-apps-openstacktelemetry-api",
     "//apps/openstacktelemetry/app:onos-apps-openstacktelemetry-app",
+    "//apps/openstacktelemetry/web:onos-apps-openstacktelemetry-web",
 ]
 
 onos_app(
