@@ -19,8 +19,8 @@ import { of } from 'rxjs';
 import { ToolbarComponent } from './toolbar.component';
 
 import {
-    FnService,
-    LogService
+    FnService, LionService,
+    LogService, IconComponent
 } from 'gui2-fw-lib';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 
@@ -42,6 +42,15 @@ describe('ToolbarComponent', () => {
     let component: ToolbarComponent;
     let fixture: ComponentFixture<ToolbarComponent>;
 
+    const bundleObj = {
+        'core.view.Topo': {
+            test: 'test1'
+        }
+    };
+    const mockLion = (key) => {
+        return bundleObj[key] || '%' + key + '%';
+    };
+
     beforeEach(async(() => {
         const logSpy = jasmine.createSpyObj('LogService', ['info', 'debug', 'warn', 'error']);
         ar = new MockActivatedRoute({ 'debug': 'txrx' });
@@ -60,10 +69,19 @@ describe('ToolbarComponent', () => {
         fs = new FnService(ar, logSpy, windowMock);
         TestBed.configureTestingModule({
             imports: [ BrowserAnimationsModule ],
-            declarations: [ ToolbarComponent ],
+            declarations: [ ToolbarComponent, IconComponent ],
             providers: [
                 { provide: FnService, useValue: fs },
                 { provide: LogService, useValue: logSpy },
+                {
+                    provide: LionService, useFactory: (() => {
+                        return {
+                            bundle: ((bundleId) => mockLion),
+                            ubercache: new Array(),
+                            loadCbs: new Map<string, () => void>([])
+                        };
+                    })
+                },
                 { provide: 'Window', useValue: windowMock },
             ]
         })

@@ -18,6 +18,40 @@
 /*
  ONOS GUI -- Topology Toolbar Panel -- CSS file
  */
+
+
+
+div.tbar-arrow {
+    position: absolute;
+    top: 53%;
+    left: 96%;
+    margin-right: -4%;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+}
+.safari div.tbar-arrow {
+    top: 46%;
+}
+.firefox div.tbar-arrow {
+    left: 97%;
+    margin-right: -3%;
+}
+
+.toolbar {
+    line-height: 125%;
+}
+.tbar-row {
+    display: inline-block;
+}
+
+.separator {
+    border: 1px solid;
+    margin: 0 4px 0 4px;
+    display: inline-block;
+    height: 23px;
+    width: 0;
+}
+
 #toolbar-topo2-toolbar {
     padding: 6px;
 }

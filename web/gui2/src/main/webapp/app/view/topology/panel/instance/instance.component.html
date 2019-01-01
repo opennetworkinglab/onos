@@ -13,7 +13,7 @@
 ~ See the License for the specific language governing permissions and
 ~ limitations under the License.
 -->
-<div id="topo-p-instance" class="floatpanel" [ngStyle]="{'left': '20px', 'top':divTopPx+'px', 'width': (onosInstances.length * 170)+'px', 'height': '85px'}" [@instancePanelState]="!on">
+<div id="topo-p-instance" class="floatpanel" [ngStyle]="{'left': '20px', 'top':divTopPx+'px', 'width': (onosInstances.length * 170)+'px', 'height': '85px'}" [@instancePanelState]="on">
     <div *ngFor="let inst of onosInstances | keyvalue ; let i=index"
          [ngClass]="['onosInst', inst.value.online?'online':'', inst.value.ready? 'ready': '', mastership?'mastership':'', 'affinity']"
             (click)="chooseMastership(inst.value.id)">
@@ -33,7 +33,7 @@
             <text class="instLabel ip" x="48" y="55">{{ inst.value.ip }}</text>
             <use width="20" height="20" class="glyph badgeIcon bird" xlink:href="#bird" transform="translate(15,10)"></use>
             <use *ngIf="inst.value.ready" width="16" height="16" class="glyph overlay badgeIcon readyBadge" xlink:href="#checkMark" transform="translate(18,40)"></use>
-            <text class="instLabel ns" x="48" y="73">Devices: {{ inst.value.switches }}</text>
+            <text class="instLabel ns" x="48" y="73">{{lionFn('devices')}} {{ inst.value.switches }}</text>
             <use *ngIf="inst.value.uiAttached" width="24" height="24" class="glyph overlay badgeIcon uiBadge" xlink:href="#uiAttached" transform="translate(14,54)"></use>
         </svg>
     </div>

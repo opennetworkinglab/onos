@@ -1,5 +1,5 @@
 <!--
-~ Copyright 2018-present Open Networking Foundation
+~ Copyright 2019-present Open Networking Foundation
 ~
 ~ Licensed under the Apache License, Version 2.0 (the "License");
 ~ you may not use this file except in compliance with the License.
@@ -15,112 +15,52 @@
 -->
 <div id="topo2-p-detail" class="floatpanel topo2-p"
      style="opacity: 1; right: 20px; width: 260px; top: 350px;" [@detailsPanelState]="on">
+    <!-- Template explanation - Create a HTML header which has an SVG icon along
+    side title text. -->
     <div class="header">
         <div class="icon clickable">
-            <svg>
-                <use width="26" height="26" class="glyph" xlink:href="#m_switch"></use>
-            </svg>
+            <onos-icon
+                    [iconSize]="26"
+                    [iconId]="showDetails?.glyphId">
+            </onos-icon>
         </div>
-        <h2 class="clickable">{{ selectedNode?.id }}</h2>
+        <h2 class="clickable">{{ showDetails?.title }}</h2>
     </div>
     <div class="body">
         <table>
             <tbody>
-            <tr>
-                <td class="label">URI :</td>
-                <td class="value">{{ selectedNode?.id }}</td>
-            </tr>
-            <tr>
-                <td class="label">Vendor :</td>
-                <td class="value">ONF</td>
-            </tr>
-            <tr>
-                <td class="label">H/W Version :</td>
-                <td class="value">0.1</td>
-            </tr>
-            <tr>
-                <td class="label">S/W Version :</td>
-                <td class="value">0.1</td>
-            </tr>
-            <tr>
-                <td class="label">Serial # :</td>
-                <td class="value">1234</td>
-            </tr>
-            <tr>
-                <td class="label">Protocol :</td>
-                <td class="value"></td>
-            </tr>
-            <tr>
-                <td colspan="2">
-                    <hr>
-                </td>
-            </tr>
-            <tr>
-                <td class="label">Ports :</td>
-                <td class="value">4</td>
-            </tr>
-            <tr>
-                <td class="label">Flows :</td>
-                <td class="value">4</td>
-            </tr>
-            <tr>
-                <td class="label">Tunnels :</td>
-                <td class="value">0</td>
-            </tr>
+            <!-- Template explanation - Inside a HTML table, create a row per
+            item in the propOrder array returned through the WSS showDetails.
+            If the row name contains only '-' then draw a horiz rule otherwise
+            create a cell for the name and another for the value -->
+                <tr *ngFor="let p of showDetails?.propOrder">
+                    <td *ngIf="showDetails?.propLabels[p] !== '-'"
+                        class="label">{{showDetails?.propLabels[p]}} :</td>
+                    <td *ngIf="showDetails?.propLabels[p] !== '-'"
+                        class="value">{{ showDetails?.propValues[p]}}</td>
+                    <!-- If the label is '-' then insert a horiz line -->
+                    <td *ngIf="showDetails?.propLabels[p] === '-'"
+                        colspan="2"><hr></td>
+                </tr>
             </tbody>
         </table>
     </div>
     <div class="footer">
         <hr>
         <div class="actionBtns">
-            <div class="actionBtn">
-                <div class="button" id="topo2-p-detail-core-showDeviceView">
-                    <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
-                        <g class="icon">
-                            <rect width="50" height="50" rx="5"></rect>
-                            <use width="50" height="50" class="glyph" xlink:href="#switch"></use>
-                        </g>
-                    </svg>
-                </div>
-            </div>
-            <div class="actionBtn">
-                <div class="button" id="topo2-p-detail-core-showFlowView">
-                    <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
-                        <g class="icon">
-                            <rect width="50" height="50" rx="5"></rect>
-                            <use width="50" height="50" class="glyph" xlink:href="#flowTable"></use>
-                        </g>
-                    </svg>
-                </div>
-            </div>
-            <div class="actionBtn">
-                <div class="button" id="topo2-p-detail-core-showPortView">
-                    <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
-                        <g class="icon">
-                            <rect width="50" height="50" rx="5"></rect>
-                            <use width="50" height="50" class="glyph" xlink:href="#portTable"></use>
-                        </g>
-                    </svg>
-                </div>
-            </div>
-            <div class="actionBtn">
-                <div class="button" id="topo2-p-detail-core-showGroupView">
-                    <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
-                        <g class="icon">
-                            <rect width="50" height="50" rx="5"></rect>
-                            <use width="50" height="50" class="glyph" xlink:href="#groupTable"></use>
-                        </g>
-                    </svg>
-                </div>
-            </div>
-            <div class="actionBtn">
-                <div class="button" id="topo2-p-detail-core-showMeterView">
-                    <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
-                        <g class="icon">
-                            <rect width="50" height="50" rx="5"></rect>
-                            <use width="50" height="50" class="glyph" xlink:href="#meterTable"></use>
-                        </g>
-                    </svg>
+            <!-- Template explanation - Inside the panel footer, create an SVG icon
+            per entry in the buttons array returned from the WSS showDetails
+            The icons used here are loaded in the ForceSvgComponent
+            -->
+            <div *ngFor="let btn of showDetails?.buttons" class="actionBtn">
+                <div class="button" id="topo2-p-detail-core-{{ btn }}"
+                     (click)="navto(buttonAttribs(btn).path, showDetails.navPath, showDetails.id)">
+                    <onos-icon
+                            [iconSize]="25"
+                            [iconId]="buttonAttribs(btn).gid"
+                            [toolTip]="lionFn(buttonAttribs(btn).tt)"
+                            classes="icon">
+                    </onos-icon>
                 </div>
             </div>
         </div>

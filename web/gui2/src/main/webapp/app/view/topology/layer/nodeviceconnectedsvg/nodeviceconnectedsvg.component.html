@@ -16,6 +16,6 @@
 <svg:g xmlns:svg="http://www.w3.org/2000/svg" id="topo-noDevsLayer" transform="translate(500,500)" style="visibility: visible;">
     <svg:g id="reposition" #reposition [attr.transform]="centre(reposition.getBBox())">
         <svg:use width="100" height="100" class="noDevsBird" href="#bird"></svg:use>
-        <svg:text x="120" y="80">No Devices Are Connected</svg:text>
+        <svg:text x="120" y="80">{{lionFn('no_devices_are_connected')}}</svg:text>
     </svg:g>
 </svg:g>

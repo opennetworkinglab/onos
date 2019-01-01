@@ -57,11 +57,12 @@ npm install
 This will install all the vendor Javascript implementations that are listed in package.json
  (including 'ng' - the Angular CLI command) in to ~/onos/web/gui2-fw-lib/node_modules
 
-After this you should be able to cd in to ~/onos/web/gui2-fw-lib and run 'ng -v' and see:
+After this you should be able to cd in to ~/onos/web/gui2-fw-lib and run 'ng version' and see:
 ```
-Angular CLI: 6.0.0
+Angular CLI: 7.0.4
 Node: 8.11.1
 OS: linux x64
+Angular: 7.0.2
 ```
 
 ## GUI FW Lib
@@ -77,7 +78,8 @@ pushd ~/onos/web/gui2-fw-lib && \
 ng build gui2-fw-lib && \
 cd dist/gui2-fw-lib && \
 npm pack && \
-popd
+popd && \
+npm install gui2-fw-lib
 ```
 
 To test and lint it use

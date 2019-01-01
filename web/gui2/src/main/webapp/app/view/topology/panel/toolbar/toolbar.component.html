@@ -15,117 +15,52 @@
 -->
 <div id="toolbar-topo2-toolbar" class="floatpanel toolbar" [@toolbarState]="on"
      style="opacity: 1; left: 0px; width: 261px; top: auto; bottom: 10px;">
-    <div class="tbar-arrow">
-        <svg class="embeddedIcon" width="10" height="10" viewBox="0 0 50 50">
-            <g class="icon" transform="translate(0 50) rotate(-90)">
-                <rect width="50" height="50" rx="5"></rect>
-                <use width="50" height="50" class="glyph" xlink:href="#triangleUp"></use>
-            </g>
-        </svg>
+    <div class="tbar-arrow" (click)="on =! on">
+        <onos-icon [iconSize]="10" [iconId]="on?'triangleLeft':'triangleRight'"></onos-icon>
     </div>
-    <div class="tbar-row">
-        <div class="toggleButton selected" id="toolbar-topo2-toolbar-topo2-instance-tog">
-            <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
-                <g class="icon">
-                    <rect width="50" height="50" rx="5"></rect>
-                    <use width="50" height="50" class="glyph" xlink:href="#m_uiAttached"></use>
-                </g>
-            </svg>
+    <div class="tbar-row ctrl-btns">
+        <div class="toggleButton" id="toolbar-topo2-toolbar-topo2-instance-tog" (click)="buttonClicked('instance-tog')">
+            <onos-icon [iconSize]="25" iconId="m_uiAttached" [toolTip]="lionFn('tbtt_tog_instances')" [classes]="['toggleButton', instancesVisible?'selected':'']"></onos-icon>
         </div>
-        <div class="toggleButton selected" id="toolbar-topo2-toolbar-topo2-summary-tog">
-            <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
-                <g class="icon">
-                    <rect width="50" height="50" rx="5"></rect>
-                    <use width="50" height="50" class="glyph" xlink:href="#m_summary"></use>
-                </g>
-            </svg>
+        <div class="toggleButton" id="toolbar-topo2-toolbar-topo2-summary-tog" (click)="buttonClicked('summary-tog')">
+            <onos-icon [iconSize]="25" iconId="m_summary" [toolTip]="lionFn('tbtt_tog_summary')" [classes]="['toggleButton', summaryVisible?'selected':'']"></onos-icon>
         </div>
-        <div class="toggleButton selected" id="toolbar-topo2-toolbar-details-tog">
-            <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
-                <g class="icon">
-                    <rect width="50" height="50" rx="5"></rect>
-                    <use width="50" height="50" class="glyph" xlink:href="#m_details"></use>
-                </g>
-            </svg>
+        <div class="toggleButton" id="toolbar-topo2-toolbar-details-tog" (click)="buttonClicked('details-tog')">
+            <onos-icon [iconSize]="25" iconId="m_details" [toolTip]="lionFn('tbtt_tog_use_detail')" [classes]="['toggleButton', detailsVisible?'selected':'']"></onos-icon>
         </div>
         <div class="separator"></div>
-        <div class="toggleButton" id="toolbar-topo2-toolbar-hosts-tog">
-            <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
-                <g class="icon">
-                    <rect width="50" height="50" rx="5"></rect>
-                    <use width="50" height="50" class="glyph" xlink:href="#m_endstation"></use>
-                </g>
-            </svg>
+        <div class="toggleButton" id="toolbar-topo2-toolbar-hosts-tog" (click)="buttonClicked('hosts-tog')">
+            <onos-icon [iconSize]="25" iconId="m_endstation" [toolTip]="lionFn('tbtt_tog_host')" [classes]="['toggleButton', hostsVisible?'selected':'']"></onos-icon>
         </div>
-        <div class="toggleButton selected" id="toolbar-topo2-toolbar-offline-tog">
-            <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
-                <g class="icon">
-                    <rect width="50" height="50" rx="5"></rect>
-                    <use width="50" height="50" class="glyph" xlink:href="#m_switch"></use>
-                </g>
-            </svg>
+        <div class="toggleButton" id="toolbar-topo2-toolbar-offline-tog" (click)="buttonClicked('offline-tog')">
+            <onos-icon [iconSize]="25" iconId="m_switch" [toolTip]="lionFn('tbtt_tog_offline')" classes="toggleButton selected"></onos-icon>
         </div>
-        <div class="toggleButton selected" id="toolbar-topo2-toolbar-topo2-ports-tog">
-            <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
-                <g class="icon">
-                    <rect width="50" height="50" rx="5"></rect>
-                    <use width="50" height="50" class="glyph" xlink:href="#m_ports"></use>
-                </g>
-            </svg>
+        <div class="toggleButton" id="toolbar-topo2-toolbar-topo2-ports-tog" (click)="buttonClicked('ports-tog')">
+            <onos-icon [iconSize]="25" iconId="m_ports" [toolTip]="lionFn('tbtt_tog_porthi')" classes="toggleButton selected" [classes]="['toggleButton', portsVisible?'selected':'']"></onos-icon>
         </div>
-        <div class="toggleButton selected" id="toolbar-topo2-toolbar-topo2-bkgrnd-tog">
-            <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
-                <g class="icon">
-                    <rect width="50" height="50" rx="5"></rect>
-                    <use width="50" height="50" class="glyph" xlink:href="#m_map"></use>
-                </g>
-            </svg>
+        <div class="toggleButton" id="toolbar-topo2-toolbar-topo2-bkgrnd-tog" (click)="buttonClicked('bkgrnd-tog')">
+            <onos-icon [iconSize]="25" iconId="m_map" [toolTip]="lionFn('tbtt_tog_map')" classes="toggleButton selected" [classes]="['toggleButton', backgroundVisible?'selected':'']"></onos-icon>
         </div>
     </div>
     <br>
     <div class="tbar-row">
-        <div class="button" id="toolbar-topo2-toolbar-topo2-cycleLabels-btn">
-            <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
-                <g class="icon">
-                    <rect width="50" height="50" rx="5"></rect>
-                    <use width="50" height="50" class="glyph" xlink:href="#m_cycleLabels"></use>
-                </g>
-            </svg>
+        <div class="button" id="toolbar-topo2-toolbar-topo2-cycleLabels-btn" (click)="buttonClicked('cycleLabels-btn')">
+            <onos-icon [iconSize]="25" iconId="m_cycleLabels" [toolTip]="lionFn('tbtt_cyc_dev_labs')" classes="button"></onos-icon>
         </div>
-        <div class="button" id="toolbar-topo2-toolbar-topo2-resetZoom-btn">
-            <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
-                <g class="icon">
-                    <rect width="50" height="50" rx="5"></rect>
-                    <use width="50" height="50" class="glyph" xlink:href="#m_resetZoom"></use>
-                </g>
-            </svg>
+        <div class="button" id="toolbar-topo2-toolbar-topo2-resetZoom-btn" (click)="buttonClicked('resetZoom-btn')">
+            <onos-icon [iconSize]="25" iconId="m_resetZoom" [toolTip]="lionFn('tbtt_reset_zoom')" classes="button"></onos-icon>
         </div>
         <div class="separator"></div>
-        <div class="button" id="toolbar-topo2-toolbar-topo2-eqMaster-btn">
-            <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
-                <g class="icon">
-                    <rect width="50" height="50" rx="5"></rect>
-                    <use width="50" height="50" class="glyph" xlink:href="#m_eqMaster"></use>
-                </g>
-            </svg>
+        <div class="button" id="toolbar-topo2-toolbar-topo2-eqMaster-btn" (click)="buttonClicked('eqMaster-btn')">
+            <onos-icon [iconSize]="25" iconId="m_eqMaster" [toolTip]="lionFn('tbtt_eq_master')" classes="button"></onos-icon>
         </div>
         <div class="separator"></div>
-        <div class="radioSet" id="toolbar-topo2-toolbar-topo-overlays">
-            <div class="radioButton selected" id="toolbar-topo2-toolbar-topo-overlays-0">
-                <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
-                    <g class="icon">
-                        <rect width="50" height="50" rx="5"></rect>
-                        <use width="50" height="50" class="glyph" xlink:href="#m_unknown"></use>
-                    </g>
-                </svg>
+        <div class="radioSet" id="toolbar-topo2-traffic">
+            <div class="radioButton selected" id="toolbar-topo2-cancel-traffic" (click)="buttonClicked('cancel-traffic')">
+                <onos-icon [iconSize]="25" iconId="m_unknown" [toolTip]="lionFn('tr_btn_cancel_monitoring')" classes="radioButton selected"></onos-icon>
             </div>
-            <div class="radioButton" id="toolbar-topo2-toolbar-topo-overlays-1">
-                <svg class="embeddedIcon" width="25" height="25" viewBox="0 0 50 50">
-                    <g class="icon">
-                        <rect width="50" height="50" rx="5"></rect>
-                        <use width="50" height="50" class="glyph" xlink:href="#m_allTraffic"></use>
-                    </g>
-                </svg>
+            <div class="radioButton" id="toolbar-topo2-all-traffic" (click)="buttonClicked('all-traffic')">
+                <onos-icon [iconSize]="25" iconId="m_allTraffic" [toolTip]="lionFn('tr_btn_show_related_traffic')" classes="radioButton selected"></onos-icon>
             </div>
         </div>
     </div>

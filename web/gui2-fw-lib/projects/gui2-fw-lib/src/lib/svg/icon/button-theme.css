@@ -1,0 +1,135 @@
+/*
+ * Copyright 2016-present Open Networking Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ ONOS GUI -- Button Service (theme) -- CSS file
+ */
+
+
+/* === SELECTED BUTTONS === */
+
+/* Selected toggle / radio button */
+svg.embeddedIcon .toggleButton.selected .icon rect,
+svg.embeddedIcon .radioButton.selected .icon rect {
+    fill: #e4f0f6;
+}
+
+/* Selected:hover (normal) button */
+svg.embeddedIcon .button:hover .icon rect {
+    stroke: black;
+    stroke-width: 1px;
+}
+
+/* Selected:hover toggle-button */
+svg.embeddedIcon .toggleButton.selected:hover .icon rect {
+    fill: #c0d8f0;
+    stroke: black;
+    stroke-width: 1px;
+}
+
+/* Selected toggle/radio button and normal button glyph color */
+svg.embeddedIcon .button .glyph,
+svg.embeddedIcon .toggleButton.selected .glyph,
+svg.embeddedIcon .radioButton.selected .glyph {
+    fill: #5b99d2;
+}
+
+
+/* === UNSELECTED BUTTONS === */
+
+/* Unselected toggle / radio button */
+svg.embeddedIcon .toggleButton.icon rect,
+svg.embeddedIcon .radioButton.icon rect {
+    /* no fill */
+}
+
+/* Unselected:hover toggle / radio button */
+svg.embeddedIcon .icon.toggleButton:hover rect,
+svg.embeddedIcon .icon.radioButton:hover:not(.selected) rect {
+    fill: #e4f0f6;
+    stroke: black;
+    stroke-width: 1px;
+}
+
+/* Unselected toggle / radio button */
+svg.embeddedIcon .toggleButton .glyph,
+svg.embeddedIcon .radioButton .glyph {
+    fill: #bbb;
+}
+
+/* Unselected:hover toggle / radio button */
+svg.embeddedIcon .toggleButton:hover:not(.selected) .glyph,
+svg.embeddedIcon .radioButton:hover:not(.selected) .glyph {
+    fill: #5b99d2;
+}
+
+
+/* ========== DARK Theme ========== */
+
+/* Selected toggle / radio button */
+.dark .toggleButton.selected svg.embeddedIcon .icon rect,
+.dark .radioButton.selected svg.embeddedIcon .icon rect {
+    fill: #353e45;
+}
+
+/* Selected:hover (normal) button */
+.dark .button:hover svg.embeddedIcon .icon rect {
+    stroke: white;
+    stroke-width: 1px;
+}
+
+/* Selected:hover toggle-button */
+.dark .toggleButton.selected:hover svg.embeddedIcon .icon rect {
+    fill: #444d54;
+    stroke: white;
+    stroke-width: 1px;
+}
+
+/* Selected toggle/radio button and normal button glyph color */
+.dark .button svg.embeddedIcon .glyph,
+.dark .toggleButton.selected svg.embeddedIcon .glyph,
+.dark .radioButton.selected svg.embeddedIcon .glyph {
+    fill: #5b99d2;
+}
+
+
+/* === UNSELECTED BUTTONS === */
+
+/* Unselected toggle / radio button */
+.dark .toggleButton svg.embeddedIcon .icon rect,
+.dark .radioButton svg.embeddedIcon .icon rect {
+    /* no fill */
+}
+
+/* Unselected:hover toggle / radio button */
+.dark .toggleButton:hover svg.embeddedIcon .icon rect,
+.dark .radioButton:hover:not(.selected) svg.embeddedIcon .icon rect {
+    fill: #353e45;
+    stroke: white;
+    stroke-width: 1px;
+}
+
+/* Unselected toggle / radio button */
+.dark .toggleButton svg.embeddedIcon .glyph,
+.dark .radioButton svg.embeddedIcon .glyph {
+    fill: #bbb;
+}
+
+/* Unselected:hover toggle / radio button */
+.dark .toggleButton:hover:not(.selected) svg.embeddedIcon .glyph,
+.dark .radioButton:hover:not(.selected) svg.embeddedIcon .glyph {
+    fill: #5b99d2;
+}

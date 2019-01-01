@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-present Open Networking Foundation
+ * Copyright 2019-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,10 @@ import { of } from 'rxjs';
 import { DetailsComponent } from './details.component';
 
 import {
-    FnService,
-    LogService
+    FnService, LionService,
+    LogService, IconComponent
 } from 'gui2-fw-lib';
+import {RouterTestingModule} from '@angular/router/testing';
 
 class MockActivatedRoute extends ActivatedRoute {
     constructor(params: Params) {
@@ -42,6 +43,15 @@ describe('DetailsComponent', () => {
     let component: DetailsComponent;
     let fixture: ComponentFixture<DetailsComponent>;
 
+    const bundleObj = {
+        'core.view.Flow': {
+            test: 'test1'
+        }
+    };
+    const mockLion = (key) => {
+        return bundleObj[key] || '%' + key + '%';
+    };
+
     beforeEach(async(() => {
         const logSpy = jasmine.createSpyObj('LogService', ['info', 'debug', 'warn', 'error']);
         ar = new MockActivatedRoute({ 'debug': 'txrx' });
@@ -60,11 +70,20 @@ describe('DetailsComponent', () => {
         fs = new FnService(ar, logSpy, windowMock);
 
         TestBed.configureTestingModule({
-            imports: [ BrowserAnimationsModule ],
-            declarations: [ DetailsComponent ],
+            imports: [ BrowserAnimationsModule, RouterTestingModule ],
+            declarations: [ DetailsComponent, IconComponent ],
             providers: [
                 { provide: FnService, useValue: fs },
                 { provide: LogService, useValue: logSpy },
+                {
+                    provide: LionService, useFactory: (() => {
+                        return {
+                            bundle: ((bundleId) => mockLion),
+                            ubercache: new Array(),
+                            loadCbs: new Map<string, () => void>([])
+                        };
+                    })
+                },
                 { provide: 'Window', useValue: windowMock },
             ]
         })

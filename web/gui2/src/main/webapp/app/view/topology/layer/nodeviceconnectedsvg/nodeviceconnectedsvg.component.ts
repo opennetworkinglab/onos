@@ -20,7 +20,7 @@ import {
     LogService,
     PrefsService,
     IconService,
-    SvgUtilService
+    SvgUtilService, LionService
 } from 'gui2-fw-lib';
 
 /**
@@ -37,16 +37,24 @@ import {
   styleUrls: ['./nodeviceconnectedsvg.component.css']
 })
 export class NoDeviceConnectedSvgComponent extends ViewControllerImpl implements OnInit {
+    lionFn; // Function
 
     constructor(
         protected fs: FnService,
         protected log: LogService,
         protected ps: PrefsService,
-        protected is: IconService,
-        protected sus: SvgUtilService
+        protected sus: SvgUtilService,
+        private lion: LionService
     ) {
         super(fs, log, ps);
-        this.is.loadIconDef('bird');
+
+        if (this.lion.ubercache.length === 0) {
+            this.lionFn = this.dummyLion;
+            this.lion.loadCbs.set('topo-nodevices', () => this.doLion());
+        } else {
+            this.doLion();
+        }
+
         this.log.debug('NoDeviceConnectedSvgComponent constructed');
     }
 
@@ -64,4 +72,19 @@ export class NoDeviceConnectedSvgComponent extends ViewControllerImpl implements
         return this.sus.translate([repositionBox.x, repositionBox.y]) + '' + this.sus.scale(scale, scale);
     }
 
+    /**
+     * Read the LION bundle for Details panel and set up the lionFn
+     */
+    doLion() {
+        this.lionFn = this.lion.bundle('core.view.Topo');
+
+    }
+
+    /**
+     * A dummy implementation of the lionFn until the response is received and the LION
+     * bundle is received from the WebSocket
+     */
+    dummyLion(key: string): string {
+        return '%' + key + '%';
+    }
 }

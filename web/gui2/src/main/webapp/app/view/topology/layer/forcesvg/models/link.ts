@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-present Open Networking Foundation
+ * Copyright 2019-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,13 @@ export class Link implements UiElement, d3.SimulationLinkDatum<Node> {
     // Must - defining enforced implementation properties
     source: Node;
     target: Node;
+
+    public static deviceNameFromEp(ep: string): string {
+        if (ep !== undefined && ep.lastIndexOf('/') > 0) {
+            return ep.substr(0, ep.lastIndexOf('/'));
+        }
+        return ep;
+    }
 
     constructor(source, target) {
         this.source = source;

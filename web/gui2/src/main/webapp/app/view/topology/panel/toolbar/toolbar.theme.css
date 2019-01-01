@@ -15,9 +15,39 @@
  */
 
 
-/*
- ONOS GUI -- Topology Toolbar Panel -- Theme CSS file
+/**
+ * ONOS GUI -- Topology Toolbar Panel -- Theme CSS file
  */
+.tbar-arrow svg.embeddedIcon .icon rect {
+    stroke: none;
+}
+
+.tbar-arrow svg.embeddedIcon .icon .glyph {
+    fill: #838383;
+}
+
+.tbar-arrow svg.embeddedIcon .icon rect {
+    fill: none;
+}
+
+.separator {
+    border-color: #ddd;
+}
+
+/* ========== DARK Theme ========== */
+
+.dark .tbar-arrow svg.embeddedIcon .icon .glyph {
+    fill: #B2B2B2;
+}
+
+.dark .tbar-arrow svg.embeddedIcon .icon rect {
+    fill: none;
+}
+
+.dark .separator {
+    border-color: #454545;
+}
+
 .dark #toolbar-topo2-toolbar .tbar-row.right {
     color: #666;
 }

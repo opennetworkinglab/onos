@@ -33,7 +33,7 @@ import { LogService } from '../../log.service';
   styleUrls: [
     './icon.component.css', './icon.theme.css',
     './glyph.css', './glyph-theme.css',
-    './tooltip.css', './tooltip-theme.css'
+    './tooltip.css', './button-theme.css'
     ]
 })
 export class IconComponent implements OnInit, OnChanges {

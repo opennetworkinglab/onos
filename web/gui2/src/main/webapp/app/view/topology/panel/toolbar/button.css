@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-present Open Networking Foundation
+ * Copyright 2015-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
 
-@Component({
-    selector: 'onos-layout',
-    templateUrl: './layout.component.html',
-    styleUrls: ['./layout.component.css']
-})
-export class LayoutComponent implements OnInit {
+/*
+ ONOS GUI -- Button Service (layout) -- CSS file
+ */
 
-    constructor() { }
+.button,
+.toggleButton,
+.radioSet {
+    display: inline-block;
+    padding: 0 4px;
+}
+.radioButton {
+    display: inline-block;
+    padding: 0 2px;
+}
 
-    ngOnInit() {
-    }
-
+.button svg.embeddedIcon,
+.toggleButton svg.embeddedIcon,
+.radioButton svg.embeddedIcon {
+    cursor: pointer;
+}
+.button svg.embeddedIcon .icon rect,
+.toggleButton svg.embeddedIcon .icon rect,
+.radioButton svg.embeddedIcon .icon rect{
+    stroke: none;
 }

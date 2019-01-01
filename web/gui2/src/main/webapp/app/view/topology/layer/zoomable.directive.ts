@@ -28,6 +28,9 @@ export class ZoomableDirective implements OnChanges {
         private log: LogService,
     ) {}
 
+    /**
+     * If the input object is changed then re-establish the zoom
+     */
     ngOnChanges() {
         let zoomed, zoom;
 
@@ -42,6 +45,15 @@ export class ZoomableDirective implements OnChanges {
         zoom = d3.zoom().on('zoom', zoomed);
         svg.call(zoom);
         this.log.debug('Applying zoomable behaviour on', this.zoomableOf, this._element.nativeElement);
+    }
+
+    /**
+     * Reset the zoom when the R key is pressed when in Topology view
+     */
+    resetZoom(): void {
+        const container = d3.select(this._element.nativeElement);
+        container.attr('transform', 'translate(0,0) scale(1.0)');
+        this.log.debug('Pan to 0,0 and zoom to 1.0');
     }
 
 }

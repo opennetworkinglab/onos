@@ -298,7 +298,7 @@ There are several things worth noting here:
   so that the enclosing context can be passed in to the lambda
 
 
-# Progress so far - Nov 2018
+# Progress so far - Dec 2018
 The following services are most migrated:
 * fw/util/FnService - full migrated with Unit tests
 * fw/svg/GlyphDataService - mostly migrated. Values are stored in maps as constants
@@ -388,13 +388,15 @@ have been logically grouped - all of the __panel__ components are together, as
 are the __layout__ components. In addition some are SVG components that are
 designed to extend an SVG element tree, rather than a HTML one.
 
+Also the icons have got a fresh new look with gradients and drop shadows done in SVG.
+
 All of this will ultimately lead to a framework that can support other paradigms
 especially ones like tiles background maps, such as this from Google and other
 providers.
 
-There is still quite a way to go to finish this consolidated Topology view (as of
-Nov '18), as there are updated vesions of the D3 Force library and the D3 Zoom
-library to migrate to.
+This has progressed a lot since the first version in Nov 18. Now traffic flows are 
+represented as well as node and host labels and link hovering etc. Zoom and Pan
+have been added as well as many of the keyboard shortcuts, familiar from Topo1
 
 The Topology view will eventually be broken out in to its own library, to promote
 reuse.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-present Open Networking Foundation
+ * Copyright 2019-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,18 +19,18 @@
     padding: 16px;
     top: 370px;
 }
-html[data-platform='iPad'] #topo2-p-detail {
+html[data-platform='iPad'] {
     top: 386px;
 }
 
-#topo2-p-detail .actionBtns .actionBtn {
+.actionBtns .actionBtn {
     display: inline-block;
 }
-#topo2-p-detail .actionBtns .actionBtn svg {
+.actionBtns .actionBtn svg {
     width: 28px;
     height: 28px;
 }
 
-#topo2-p-detail  div.actionBtns {
+div.actionBtns {
     padding-top: 6px;
 }

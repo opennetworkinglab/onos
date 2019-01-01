@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-present Open Networking Foundation
+ * Copyright 2019-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,12 +49,12 @@ export class TopologyService {
     init(instance: InstanceComponent, background: BackgroundSvgComponent, force: ForceSvgComponent) {
         this.wss.bindHandlers(new Map<string, (data) => void>([
             ['topo2AllInstances', (data) => {
-                    this.log.warn('Add fn for topo2AllInstances callback', data);
+                    this.log.debug('Instances updated through WSS as topo2AllInstances', data);
                     instance.onosInstances = data.members;
                 }
             ],
             ['topo2CurrentLayout', (data) => {
-                    this.log.warn('Add fn for topo2CurrentLayout callback', data);
+                    this.log.debug('Background Data updated from WSS as topo2CurrentLayout', data);
                     if (background) {
                         background.layoutData = data;
                     }
@@ -65,19 +65,20 @@ export class TopologyService {
                     force.ngOnChanges({
                         'regionData' : new SimpleChange(<Region>{}, data, true)
                     });
-                    this.log.warn('Add fn for topo2CurrentRegion callback', force.regionData);
+                    this.log.debug('Region Data replaced from WSS as topo2CurrentRegion', force.regionData);
                 }
             ],
             ['topo2PeerRegions', (data) => { this.log.warn('Add fn for topo2PeerRegions callback', data); } ],
             ['topo2UiModelEvent', (event) => {
                     // this.log.debug('Handling', event);
                     force.handleModelEvent(
-                        <ModelEventType><unknown>(ModelEventType[event.type]),
-                        <ModelEventMemo>(event.memo),
+                        <ModelEventType><unknown>(ModelEventType[event.type]), // Number based enum
+                        <ModelEventMemo>(event.memo), // String based enum
                         event.subject, event.data);
+                    this.log.debug('Region Data updated from WSS as topo2UiModelEvent', force.regionData);
                 }
             ],
-            // ['topo2Highlights', (data) => { this.log.warn('Add fn for topo2Highlights callback', data); } ],
+            // topo2Highlights is handled by TrafficService
         ]));
         this.handlers.push('topo2AllInstances');
         this.handlers.push('topo2CurrentLayout');

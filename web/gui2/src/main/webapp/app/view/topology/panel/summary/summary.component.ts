@@ -70,6 +70,7 @@ export class SummaryComponent extends TopoPanelBaseImpl implements OnInit, OnDes
     ) {
         super(fs, ls, log, 'summary');
         this.summaryData = <SummaryResponse>{};
+        this.on = true;
         this.log.debug('SummaryComponent constructed');
     }
 

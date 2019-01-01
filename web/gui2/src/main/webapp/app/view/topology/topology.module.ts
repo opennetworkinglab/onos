@@ -18,7 +18,6 @@ import { CommonModule } from '@angular/common';
 import { TopologyRoutingModule } from './topology-routing.module';
 import { TopologyComponent } from './topology/topology.component';
 import { NoDeviceConnectedSvgComponent } from './layer/nodeviceconnectedsvg/nodeviceconnectedsvg.component';
-import { LayoutComponent } from './layer/layout/layout.component';
 import { InstanceComponent } from './panel/instance/instance.component';
 import { SummaryComponent } from './panel/summary/summary.component';
 import { ToolbarComponent } from './panel/toolbar/toolbar.component';
@@ -39,6 +38,8 @@ import {
 /**
  * ONOS GUI -- Topology View Module
  *
+ * The main entry point is the TopologyComponent
+ *
  * Note: This has been updated from onos-gui-1.0.0 where it was called 'topo2'
  * whereas here it is now called 'topology'. This also merges in the old 'topo'
  */
@@ -51,7 +52,6 @@ import {
     declarations: [
         TopologyComponent,
         NoDeviceConnectedSvgComponent,
-        LayoutComponent,
         InstanceComponent,
         SummaryComponent,
         ToolbarComponent,

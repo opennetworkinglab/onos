@@ -1,5 +1,5 @@
 <!--
-~ Copyright 2018-present Open Networking Foundation
+~ Copyright 2019-present Open Networking Foundation
 ~
 ~ Licensed under the Apache License, Version 2.0 (the "License");
 ~ you may not use this file except in compliance with the License.
@@ -13,17 +13,42 @@
 ~ See the License for the specific language governing permissions and
 ~ limitations under the License.
 -->
+<!-- Template explaination - Add in the flash message component - and link it to
+the local variable - this is used to display messages when keyboard shortcuts are pressed
+-->
 <onos-flash id="topoMsgFlash" message="{{ flashMsg }}" (closed)="flashMsg = ''"></onos-flash>
 
+<!-- Template explanation - Add in the Panel components for the Topology view
+    These are referenced inside the typescript by @ViewChild and their label
+-->
 <onos-instance #instance [divTopPx]="80" (mastershipEvent)="force.onosInstMastership = $event"></onos-instance>
 <onos-summary #summary></onos-summary>
-<onos-toolbar #toolbar></onos-toolbar>
+<onos-toolbar #toolbar (buttonEvent)="toolbarButtonClicked($event)"></onos-toolbar>
 <onos-details #details></onos-details>
 
 <div id="ov-topo2">
+    <!-- Template explanation -
+    Line 0) This is the root of the whole SVG canvas of the Topology View - all
+        components beneath it are SVG components only (no HTML)
+    line 1) the No Devices Connected banner is shown if the force component
+        (from line 4) does not contain any devices
+    line 2) Create an SVG Grouping and apply the onosZoomableOf directive to it,
+        passing in the whole SVG canvas (#svgZoom)
+    line 3) Add in the Background Svg Component (if showBackground is true - toggled
+        by toolbar and by keyboard shortcut 'B'
+    line 4) Add in the layer of the Force Svg Component. If any item is selected on it, pass
+        to the details view and deselect all others. This is node and line graph
+        whose contents are supplied through the Topology Service, and whose positions
+        are driven by the d3.force engine
+    -->
     <svg:svg #svgZoom xmlns:svg="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" id="topo2">
-        <svg:g *ngIf="force.regionData?.devices.length === 0" onos-nodeviceconnected />
+        <svg:desc>The main SVG canvas of the Topology View</svg:desc>
+        <svg:g *ngIf="force.regionData?.devices[0].length +
+                        force.regionData?.devices[1].length +
+                        force.regionData?.devices[2].length=== 0"
+               onos-nodeviceconnected />
         <svg:g id="topo-zoomlayer" onosZoomableOf [zoomableOf]="svgZoom">
+            <svg:desc>A logical layer that allows the main SVG canvas to be zoomed and panned</svg:desc>
             <svg:g *ngIf="showBackground" onos-backgroundsvg/>
             <svg:g #force onos-forcesvg (selectedNodeEvent)="nodeSelected($event)"/>
         </svg:g>

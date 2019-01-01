@@ -26,7 +26,7 @@ import {
     FnService,
     PanelBaseImpl,
     IconService,
-    SvgUtilService
+    SvgUtilService, LionService
 } from 'gui2-fw-lib';
 
 /**
@@ -77,18 +77,26 @@ export class InstanceComponent extends PanelBaseImpl {
     @Output() mastershipEvent = new EventEmitter<string>();
     public onosInstances: Array<Instance>;
     protected mastership: string;
+    lionFn; // Function
 
     constructor(
         protected fs: FnService,
         protected log: LogService,
         protected ls: LoadingService,
         protected is: IconService,
-        protected sus: SvgUtilService
+        protected sus: SvgUtilService,
+        private lion: LionService
     ) {
         super(fs, ls, log);
         this.onosInstances = <Array<Instance>>[];
-        this.is.loadIconDef('active');
-        this.is.loadIconDef('uiAttached');
+
+        if (this.lion.ubercache.length === 0) {
+            this.lionFn = this.dummyLion;
+            this.lion.loadCbs.set('topo-inst', () => this.doLion());
+        } else {
+            this.doLion();
+        }
+        this.on = true;
         this.log.debug('InstanceComponent constructed');
     }
 
@@ -113,5 +121,13 @@ export class InstanceComponent extends PanelBaseImpl {
         }
         this.mastershipEvent.emit(this.mastership);
         this.log.debug('Instance', this.mastership, 'chosen on GUI');
+    }
+
+    /**
+     * Read the LION bundle for Details panel and set up the lionFn
+     */
+    doLion() {
+        this.lionFn = this.lion.bundle('core.view.Topo');
+
     }
 }

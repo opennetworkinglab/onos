@@ -26,7 +26,7 @@ import {
     UrlFnService,
     TableFilterPipe,
     IconComponent,
-    WebSocketService
+    WebSocketService, SvgUtilService, PrefsService
 } from 'gui2-fw-lib';
 import { of } from 'rxjs';
 
@@ -37,17 +37,21 @@ class MockActivatedRoute extends ActivatedRoute {
     }
 }
 
-class MockIconService {
-    classes = 'active-close';
-    loadIconDef() { }
-}
-
 class MockWebSocketService {
     createWebSocket() { }
     isConnected() { return false; }
     unbindHandlers() { }
     bindHandlers() { }
 }
+
+class MockSvgUtilService {
+    translate() {}
+    scale() {}
+}
+
+class MockPrefsService {
+}
+
 
 /**
  * ONOS GUI -- Topology NoDevicesConnected -- Unit Tests
@@ -73,9 +77,10 @@ describe('NoDeviceConnectedSvgComponent', () => {
             declarations: [ NoDeviceConnectedSvgComponent ],
             providers: [
                 { provide: FnService, useValue: fs },
-                { provide: IconService, useClass: MockIconService },
                 { provide: LogService, useValue: logSpy },
+                { provide: SvgUtilService, useClass: MockSvgUtilService },
                 { provide: WebSocketService, useClass: MockWebSocketService },
+                { provide: PrefsService, useClass: MockPrefsService },
                 { provide: 'Window', useValue: windowMock },
             ]
         }).compileComponents();

@@ -1,5 +1,5 @@
 <!--
-~ Copyright 2018-present Open Networking Foundation
+~ Copyright 2019-present Open Networking Foundation
 ~
 ~ Licensed under the Apache License, Version 2.0 (the "License");
 ~ you may not use this file except in compliance with the License.
@@ -84,9 +84,6 @@
             [@deviceLabelToggleTxt]="labelToggle">
         {{ labelToggle == 0 ? '': labelToggle == 1 ? device.id:device.props.name }}
     </svg:text>
-    <!-- It's not possible to drive the following xref dynamically -->
-    <svg:use *ngIf="device.type == 'switch'" xlink:href="#m_switch" width="36" height="36" x="-18" y="-18">
-    </svg:use>
-    <svg:use *ngIf="device.type == 'roadm'" xlink:href="#m_roadm" width="36" height="36" x="-18" y="-18">
+    <svg:use [attr.xlink:href]="'#m_' + device.type" width="36" height="36" x="-18" y="-18">
     </svg:use>
 </svg:g>

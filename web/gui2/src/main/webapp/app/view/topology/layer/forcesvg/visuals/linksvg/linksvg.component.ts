@@ -53,6 +53,7 @@ enum LinkEnd {
 export class LinkSvgComponent extends NodeVisual implements OnChanges {
     @Input() link: Link;
     @Input() highlighted: string = '';
+    @Input() highlightsEnabled: boolean = true;
     @Input() label: string;
     isHighlighted: boolean = false;
     @Output() selectedEvent = new EventEmitter<UiElement>();
@@ -86,6 +87,9 @@ export class LinkSvgComponent extends NodeVisual implements OnChanges {
     }
 
     enhance() {
+        if (!this.highlightsEnabled) {
+            return;
+        }
         this.enhancedEvent.emit(this.link);
         this.enhanced = true;
         this.repositionLabels();

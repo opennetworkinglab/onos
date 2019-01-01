@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-present Open Networking Foundation
+ * Copyright 2019-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,9 @@ import {
 } from '@angular/core';
 import * as d3 from 'd3';
 import {
-    FnService,
+    FnService, IconService,
     KeysService,
-    KeysToken,
+    KeysToken, LionService,
     LogService,
     PrefsService,
     SvgUtilService,
@@ -36,9 +36,14 @@ import {DetailsComponent} from '../panel/details/details.component';
 import {BackgroundSvgComponent} from '../layer/backgroundsvg/backgroundsvg.component';
 import {ForceSvgComponent} from '../layer/forcesvg/forcesvg.component';
 import {TopologyService} from '../topology.service';
-import {HostLabelToggle, LabelToggle, Node} from '../layer/forcesvg/models';
+import {
+    HostLabelToggle,
+    LabelToggle,
+    UiElement
+} from '../layer/forcesvg/models';
 import {ToolbarComponent} from '../panel/toolbar/toolbar.component';
 import {TrafficService} from '../traffic.service';
+import {ZoomableDirective} from '../layer/zoomable.directive';
 
 /**
  * ONOS GUI Topology View
@@ -77,11 +82,13 @@ export class TopologyComponent implements OnInit, OnDestroy {
     @ViewChild(ToolbarComponent) toolbar: ToolbarComponent;
     @ViewChild(BackgroundSvgComponent) background: BackgroundSvgComponent;
     @ViewChild(ForceSvgComponent) force: ForceSvgComponent;
+    @ViewChild(ZoomableDirective) zoomDirective: ZoomableDirective;
 
     flashMsg: string = '';
     prefsState = {};
     hostLabelIdx: number = 1;
     showBackground: boolean = false;
+    lionFn; // Function
 
     constructor(
         protected log: LogService,
@@ -92,29 +99,69 @@ export class TopologyComponent implements OnInit, OnDestroy {
         protected wss: WebSocketService,
         protected zs: ZoomService,
         protected ts: TopologyService,
-        protected trs: TrafficService
+        protected trs: TrafficService,
+        protected is: IconService,
+        private lion: LionService,
     ) {
+        if (this.lion.ubercache.length === 0) {
+            this.lionFn = this.dummyLion;
+            this.lion.loadCbs.set('topo-toolbar', () => this.doLion());
+        } else {
+            this.doLion();
+        }
 
+        this.is.loadIconDef('bird');
+        this.is.loadIconDef('active');
+        this.is.loadIconDef('uiAttached');
+        this.is.loadIconDef('m_switch');
+        this.is.loadIconDef('m_roadm');
+        this.is.loadIconDef('m_router');
+        this.is.loadIconDef('m_uiAttached');
+        this.is.loadIconDef('m_endstation');
+        this.is.loadIconDef('m_ports');
+        this.is.loadIconDef('m_summary');
+        this.is.loadIconDef('m_details');
+        this.is.loadIconDef('m_map');
+        this.is.loadIconDef('m_cycleLabels');
+        this.is.loadIconDef('m_resetZoom');
+        this.is.loadIconDef('m_eqMaster');
+        this.is.loadIconDef('m_unknown');
+        this.is.loadIconDef('m_allTraffic');
+        this.is.loadIconDef('deviceTable');
+        this.is.loadIconDef('flowTable');
+        this.is.loadIconDef('portTable');
+        this.is.loadIconDef('groupTable');
+        this.is.loadIconDef('meterTable');
+        this.is.loadIconDef('triangleUp');
         this.log.debug('Topology component constructed');
     }
 
+    /**
+     * Static functions must come before member variables
+     * @param index
+     */
     private static deviceLabelFlashMessage(index: number): string {
         switch (index) {
-            case 0: return 'Hide device labels';
-            case 1: return 'Show friendly device labels';
-            case 2: return 'Show device ID labels';
+            case 0: return 'fl_device_labels_hide';
+            case 1: return 'fl_device_labels_show_friendly';
+            case 2: return 'fl_device_labels_show_id';
         }
     }
 
     private static hostLabelFlashMessage(index: number): string {
         switch (index) {
-            case 0: return 'Hide host labels';
-            case 1: return 'Show friendly host labels';
-            case 2: return 'Show host IP labels';
-            case 3: return 'Show host MAC Address labels';
+            case 0: return 'fl_host_labels_hide';
+            case 1: return 'fl_host_labels_show_friendly';
+            case 2: return 'fl_host_labels_show_ip';
+            case 3: return 'fl_host_labels_show_mac';
         }
     }
 
+    /**
+     * Pass the list of Key Commands to the KeyService, and initialize the Topology
+     * Service - which communicates with through the WebSocket to the ONOS server
+     * to get the nodes and links.
+     */
     ngOnInit() {
         this.bindCommands();
         // The components from the template are handed over to TopologyService here
@@ -125,11 +172,72 @@ export class TopologyComponent implements OnInit, OnDestroy {
         this.log.debug('Topology component initialized');
     }
 
+    /**
+     * When this component is being stopped, disconnect the TopologyService from
+     * the WebSocket
+     */
     ngOnDestroy() {
         this.ts.destroy();
         this.log.debug('Topology component destroyed');
     }
 
+    /**
+     * When ever a toolbar button is clicked, an event is sent up from toolbar
+     * component which is caught and passed on to here.
+     * @param name The name of the button that was clicked
+     */
+    toolbarButtonClicked(name: string) {
+        switch (name) {
+            case 'instance-tog':
+                this.toggleInstancePanel();
+                break;
+            case 'summary-tog':
+                this.toggleSummary();
+                break;
+            case 'details-tog':
+                this.toggleDetails();
+                break;
+            case 'hosts-tog':
+                this.toggleHosts();
+                break;
+            case 'offline-tog':
+                this.toggleOfflineDevices();
+                break;
+            case 'ports-tog':
+                this.togglePorts();
+                break;
+            case 'bkgrnd-tog':
+                this.toggleBackground();
+                break;
+            case 'cycleLabels-btn':
+                this.cycleDeviceLabels();
+                break;
+            case 'cycleHostLabel-btn':
+                this.cycleHostLabels();
+                break;
+            case 'resetZoom-btn':
+                this.resetZoom();
+                break;
+            case 'eqMaster-btn':
+                this.equalizeMasters();
+                break;
+            case 'cancel-traffic':
+                this.cancelTraffic();
+                break;
+            case 'all-traffic':
+                this.monitorAllTraffic();
+                break;
+            default:
+                this.log.warn('Unhandled Toolbar action', name);
+        }
+    }
+
+    /**
+     * The list of key strokes that will be active in the Topology View.
+     *
+     * This action map is passed to the KeyService through the bindCommands()
+     * when this component is being initialized
+     */
     actionMap() {
         return {
             A: [() => {this.monitorAllTraffic(); }, 'Monitor all traffic'],
@@ -226,7 +334,7 @@ export class TopologyComponent implements OnInit, OnDestroy {
         const next = LabelToggle.next(old);
         this.force.ngOnChanges({'deviceLabelToggle':
                 new SimpleChange(old, next, false)});
-        this.flashMsg = TopologyComponent.deviceLabelFlashMessage(next);
+        this.flashMsg = this.lionFn(TopologyComponent.deviceLabelFlashMessage(next));
         this.log.debug('Cycling device labels', old, next);
     }
 
@@ -235,108 +343,112 @@ export class TopologyComponent implements OnInit, OnDestroy {
         const next = HostLabelToggle.next(old);
         this.force.ngOnChanges({'hostLabelToggle':
                 new SimpleChange(old, next, false)});
-        this.flashMsg = TopologyComponent.hostLabelFlashMessage(next);
+        this.flashMsg = this.lionFn(TopologyComponent.hostLabelFlashMessage(next));
         this.log.debug('Cycling host labels', old, next);
     }
 
-    protected toggleBackground(token: KeysToken) {
-        this.flashMsg = 'Toggling background';
+    protected toggleBackground(token?: KeysToken) {
         this.showBackground = !this.showBackground;
+        this.flashMsg = this.lionFn(this.showBackground ? 'show' : 'hide') +
+            ' ' + this.lionFn('fl_background_map');
+        this.toolbar.backgroundVisible = this.showBackground;
         this.log.debug('Toggling background', token);
-        // TODO: Reinstate with components
-        // t2bgs.toggle(x);
     }
 
-    protected toggleDetails(token: KeysToken) {
+    protected toggleDetails(token?: KeysToken) {
         if (this.details.selectedNode) {
-            this.flashMsg = 'Toggling details';
-            this.details.togglePanel(() => {
+            const on: boolean = this.details.togglePanel(() => {
             });
+            this.flashMsg = this.lionFn(on ? 'show' : 'hide') +
+                ' ' + this.lionFn('fl_panel_details');
+            this.toolbar.detailsVisible = on;
+
             this.log.debug('Toggling details', token);
         }
     }
 
-    protected toggleInstancePanel(token: KeysToken) {
-        this.flashMsg = 'Toggling instances';
-        this.instance.togglePanel(() => {});
-        this.log.debug('Toggling instances', token);
-        // TODO: Reinstate with components
-        // this.updatePrefsState('insts', t2is.toggle(x));
+    protected toggleInstancePanel(token?: KeysToken) {
+        const on: boolean = this.instance.togglePanel(() => {});
+        this.flashMsg = this.lionFn(on ? 'show' : 'hide') +
+            ' ' + this.lionFn('fl_panel_instances');
+        this.toolbar.instancesVisible = on;
+        this.log.debug('Toggling instances', token, on);
     }
 
     protected toggleSummary() {
-        this.flashMsg = 'Toggling summary';
-        this.summary.togglePanel(() => {});
+        const on: boolean = this.summary.togglePanel(() => {});
+        this.flashMsg = this.lionFn(on ? 'show' : 'hide') +
+            ' ' + this.lionFn('fl_panel_summary');
+        this.toolbar.summaryVisible = on;
     }
 
     protected resetZoom() {
-        // this.zoomer.reset();
-        this.log.debug('resetting zoom');
-        // TODO: Reinstate with components
-        // t2bgs.resetZoom();
-        // flash.flash('Pan and zoom reset');
+        this.zoomDirective.resetZoom();
+        this.flashMsg = this.lionFn('fl_pan_zoom_reset');
     }
 
-    protected togglePorts(token: KeysToken) {
-        this.log.debug('Toggling ports');
-        // TODO: Reinstate with components
-        // this.updatePrefsState('porthl', t2vs.togglePortHighlights(x));
-        // t2fs.updateLinks();
+    protected togglePorts(token?: KeysToken) {
+        const old: boolean = this.force.highlightPorts;
+        const current: boolean = !this.force.highlightPorts;
+        this.force.ngOnChanges({'highlightPorts': new SimpleChange(old, current, false)});
+        this.flashMsg = this.lionFn(current ? 'enable' : 'disable') +
+            ' ' + this.lionFn('fl_port_highlighting');
+        this.toolbar.portsVisible = current;
+        this.log.debug(current ? 'Enable' : 'Disable', 'port highlighting');
     }
 
     protected equalizeMasters() {
         this.wss.sendEvent('equalizeMasters', null);
-
+        this.flashMsg = this.lionFn('fl_eq_masters');
         this.log.debug('equalizing masters');
-        // TODO: Reinstate with components
-        // flash.flash('Equalizing master roles');
     }
 
     protected resetNodeLocation() {
+        // TODO: Implement reset locations
+        this.flashMsg = this.lionFn('fl_reset_node_locations');
         this.log.debug('resetting node location');
-        // TODO: Reinstate with components
-        // t2fs.resetNodeLocation();
-        // flash.flash('Reset node locations');
     }
 
     protected unpinNode() {
+        // TODO: Implement this
         this.log.debug('unpinning node');
-        // TODO: Reinstate with components
-        // t2fs.unpin();
-        // flash.flash('Unpin node');
     }
 
     protected toggleToolbar() {
         this.log.debug('toggling toolbar');
-        this.flashMsg = ('Toggle toolbar');
         this.toolbar.on = !this.toolbar.on;
-    }
-
-    protected actionedFlashed(action, message) {
-        this.log.debug('action flashed');
-        // TODO: Reinstate with components
-        // this.flash.flash(action + ' ' + message);
     }
 
     protected toggleHosts() {
         const old: boolean = this.force.showHosts;
         const current = !this.force.showHosts;
         this.force.ngOnChanges({'showHosts': new SimpleChange(old, current, false)});
-        this.flashMsg = (this.force.showHosts ? 'Show' : 'Hide') + ' Hosts';
+        this.flashMsg = this.lionFn('hosts') + ' ' +
+                        this.lionFn(this.force.showHosts ? 'visible' : 'hidden');
+        this.toolbar.hostsVisible = current;
         this.log.debug('toggling hosts: ', this.force.showHosts ? 'Show' : 'Hide');
     }
 
     protected toggleOfflineDevices() {
+        // TODO: Implement toggle offline visibility
+        const on: boolean = true;
+        this.flashMsg = this.lionFn(on ? 'show' : 'hide') +
+            ' ' + this.lionFn('fl_offline_devices');
         this.log.debug('toggling offline devices');
-        // TODO: Reinstate with components
-        // let on = t2rs.toggleOfflineDevices();
-        // this.actionedFlashed(on ? 'Show': 'Hide', 'offline devices');
     }
 
+    /**
+     * Check to see if this is needed anymore
+     * @param what
+     */
     protected notValid(what) {
         this.log.warn('topo.js getActionEntry(): Not a valid ' + what);
     }
 
+    /**
+     * Check to see if this is needed anymore
+     * @param what
+     */
     getActionEntry(key) {
         let entry;
 
@@ -354,15 +466,23 @@ export class TopologyComponent implements OnInit, OnDestroy {
         return this.fs.isA(entry) || [entry, ''];
     }
 
-    nodeSelected(node: Node) {
-        this.details.selectedNode = node;
-        this.details.on = Boolean(node);
+    /**
+     * An event handler that updates the details panel as items are
+     * selected in the forcesvg layer
+     * @param nodeOrLink the item to display details of
+     */
+    nodeSelected(nodeOrLink: UiElement) {
+        this.details.ngOnChanges({'selectedNode':
+            new SimpleChange(undefined, nodeOrLink, true)});
+        this.details.on = Boolean(nodeOrLink);
     }
 
     /**
      * Enable traffic monitoring
      */
     monitorAllTraffic() {
+        // TODO: Implement support for toggling between bits, packets and octets
+        this.flashMsg = this.lionFn('tr_fl_pstats_bits');
         this.trs.init(this.force);
     }
 
@@ -370,6 +490,22 @@ export class TopologyComponent implements OnInit, OnDestroy {
      * Cancel traffic monitoring
      */
     cancelTraffic() {
+        this.flashMsg = this.lionFn('fl_monitoring_canceled');
         this.trs.destroy();
+    }
+
+    /**
+     * Read the LION bundle for Toolbar and set up the lionFn
+     */
+    doLion() {
+        this.lionFn = this.lion.bundle('core.view.Topo');
+    }
+
+    /**
+     * A dummy implementation of the lionFn until the response is received and the LION
+     * bundle is received from the WebSocket
+     */
+    dummyLion(key: string): string {
+        return '%' + key + '%';
     }
 }

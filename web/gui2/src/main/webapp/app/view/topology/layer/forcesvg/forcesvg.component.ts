@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-present Open Networking Foundation
+ * Copyright 2019-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the 'License');
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import {
     SimpleChanges,
     ViewChildren
 } from '@angular/core';
-import {IconService, LogService} from 'gui2-fw-lib';
+import {LogService} from 'gui2-fw-lib';
 import {
     Device,
     ForceDirectedGraph,
@@ -71,6 +71,7 @@ export class ForceSvgComponent implements OnInit, OnChanges {
     @Output() selectedNodeEvent = new EventEmitter<UiElement>();
     @Input() selectedLink: RegionLink = null;
     @Input() showHosts: boolean = false;
+    @Input() highlightPorts: boolean = true;
     @Input() deviceLabelToggle: LabelToggle = LabelToggle.NONE;
     @Input() hostLabelToggle: HostLabelToggle = HostLabelToggle.NONE;
     @Input() regionData: Region = <Region>{devices: [ [], [], [] ], hosts: [ [], [], [] ], links: []};
@@ -85,7 +86,6 @@ export class ForceSvgComponent implements OnInit, OnChanges {
 
     constructor(
         protected log: LogService,
-        protected is: IconService,
         private ref: ChangeDetectorRef
     ) {
         this.selectedLink = null;
@@ -141,10 +141,6 @@ export class ForceSvgComponent implements OnInit, OnChanges {
         });
         this.log.debug('ForceSvgComponent initialized - waiting for nodes and links');
 
-        this.is.loadIconDef('m_switch');
-        this.is.loadIconDef('m_roadm');
-        this.is.loadIconDef('m_router');
-        this.is.loadIconDef('m_endstation');
     }
 
     /**
@@ -206,6 +202,10 @@ export class ForceSvgComponent implements OnInit, OnChanges {
             this.showHosts = changes['showHosts'].currentValue;
         }
 
+        if (changes['highlightPorts']) {
+            this.highlightPorts = changes['highlightPorts'].currentValue;
+        }
+
         // Pass on the changes to device
         if (changes['deviceLabelToggle']) {
             this.deviceLabelToggle = changes['deviceLabelToggle'].currentValue;
@@ -258,7 +258,7 @@ export class ForceSvgComponent implements OnInit, OnChanges {
      * @param selectedNode the newly selected node
      */
     updateSelected(selectedNode: UiElement): void {
-        this.log.debug('Node or link selected', selectedNode);
+        this.log.debug('Node or link selected', selectedNode ? selectedNode.id : 'none');
         this.devices
             .filter((d) =>
                 selectedNode === undefined || d.device.id !== selectedNode.id)
@@ -272,7 +272,7 @@ export class ForceSvgComponent implements OnInit, OnChanges {
             .filter((l) =>
                 selectedNode === undefined || l.link.id !== selectedNode.id)
             .forEach((l) => l.deselect());
-
+        // Push the changes back up to parent (Topology Component)
         this.selectedNodeEvent.emit(selectedNode);
     }
 

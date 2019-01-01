@@ -32,9 +32,11 @@ import { TopologyService } from '../topology.service';
 import {
     FlashComponent,
     FnService,
-    LogService
+    LogService,
+    IconService, IconComponent
 } from 'gui2-fw-lib';
 import {ZoomableDirective} from '../layer/zoomable.directive';
+import {RouterTestingModule} from '@angular/router/testing';
 
 
 class MockActivatedRoute extends ActivatedRoute {
@@ -72,6 +74,10 @@ class MockTopologyService {
     destroy() {}
 }
 
+class MockIconService {
+    loadIconDef() { }
+}
+
 /**
  * ONOS GUI -- Topology View -- Unit Tests
  */
@@ -101,7 +107,7 @@ describe('TopologyComponent', () => {
         fs = new FnService(ar, logSpy, windowMock);
 
         TestBed.configureTestingModule({
-            imports: [ BrowserAnimationsModule ],
+            imports: [ BrowserAnimationsModule, RouterTestingModule ],
             declarations: [
                 TopologyComponent,
                 InstanceComponent,
@@ -109,7 +115,8 @@ describe('TopologyComponent', () => {
                 ToolbarComponent,
                 DetailsComponent,
                 FlashComponent,
-                ZoomableDirective
+                ZoomableDirective,
+                IconComponent
             ],
             providers: [
                 { provide: FnService, useValue: fs },
@@ -117,6 +124,7 @@ describe('TopologyComponent', () => {
                 { provide: 'Window', useValue: windowMock },
                 { provide: HttpClient, useClass: MockHttpClient },
                 { provide: TopologyService, useClass: MockTopologyService },
+                { provide: IconService, useClass: MockIconService },
             ]
         }).compileComponents();
         logServiceSpy = TestBed.get(LogService);

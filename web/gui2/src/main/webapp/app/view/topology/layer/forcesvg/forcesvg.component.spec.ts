@@ -16,7 +16,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ForceSvgComponent } from './forcesvg.component';
-import {IconService, LogService} from 'gui2-fw-lib';
+import {LogService} from 'gui2-fw-lib';
 import {
     DeviceNodeSvgComponent,
     HostNodeSvgComponent, LinkSvgComponent,
@@ -31,10 +31,6 @@ class MockActivatedRoute extends ActivatedRoute {
         super();
         this.queryParams = of(params);
     }
-}
-
-class MockIconService {
-    loadIconDef() { }
 }
 
 describe('ForceSvgComponent', () => {
@@ -71,7 +67,6 @@ describe('ForceSvgComponent', () => {
             ],
             providers: [
                 { provide: LogService, useValue: logSpy },
-                { provide: IconService, useClass: MockIconService },
             ]
         })
         .compileComponents();
