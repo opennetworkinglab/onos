@@ -1,0 +1,33 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Publishes the Apache Karaf tar.gz into Maven central repository.
+# -----------------------------------------------------------------------------
+
+[ $# -ne 2 ] && echo "usage: $(basename $0) karaf-tar-file karaf-version" >&2 && exit 1
+[ -z "$SONATYPE_USER" ] && echo "SONATYPE_USER not defined" >&2 && exit 1
+[ -z "$SONATYPE_PASSWORD" ] && echo "SONATYPE_PASSWORD not defined" >&2 && exit 1
+
+TAR=$1
+VERSION=$2
+
+[ ! -f $TAR ] && echo "$TAR is not a valid file" >&2 && exit 1
+
+BASE_ARTIFACT_NAME="apache-karaf-offline"
+UPLOAD_BASE="https://oss.sonatype.org/service/local/staging/deploy/maven2/org/onosproject/apache-karaf-offline/$VERSION"
+
+# Make the signature file
+gpg --armor --detach-sig $TAR
+
+# Make the MD5 checksum file
+md5 -q $TAR >$TAR.md5
+
+# Make the SHA1 checksum file
+( shasum $TAR | cut -d' ' -f1 ) > $TAR.sha1
+
+curl -v -u "$SONATYPE_USER:$SONATYPE_PASSWORD" --upload-file $TAR $UPLOAD_BASE/$BASE_ARTIFACT_NAME-$VERSION.tar.gz
+curl -v -u "$SONATYPE_USER:$SONATYPE_PASSWORD" --upload-file $TAR.asc $UPLOAD_BASE/$BASE_ARTIFACT_NAME-$VERSION.tar.gz.asc
+curl -v -u "$SONATYPE_USER:$SONATYPE_PASSWORD" --upload-file $TAR.md5 $UPLOAD_BASE/$BASE_ARTIFACT_NAME-$VERSION.tar.gz.md5
+curl -v -u "$SONATYPE_USER:$SONATYPE_PASSWORD" --upload-file $TAR.sha1 $UPLOAD_BASE/$BASE_ARTIFACT_NAME-$VERSION.tar.gz.sha1
+
+echo "$TAR has been uploaded as version $VERSION."
+echo "Please inspect the Nexus staging repository before closing it and releasing it."
