@@ -1239,8 +1239,9 @@ public class XconnectManager implements XconnectService {
         }
 
         String l2LbKey = port.substring("L2LB(".length(), port.length() - 1);
+        L2LbId l2LbId = new L2LbId(deviceId, Integer.parseInt(l2LbKey));
         try {
-            return Sets.newHashSet(l2LbService.getL2Lb(deviceId, Integer.parseInt(l2LbKey)).ports());
+            return Sets.newHashSet(l2LbService.getL2Lb(l2LbId).ports());
         } catch (NumberFormatException e) {
             log.debug("Port {} is not load balancer key either. Ignore", port);
         } catch (NullPointerException e) {
@@ -1262,11 +1263,11 @@ public class XconnectManager implements XconnectService {
 
         String l2LbKey = port.substring("L2LB(".length(), port.length() - 1);
         try {
+            L2LbId l2LbId = new L2LbId(deviceId, Integer.parseInt(l2LbKey));
             NextTreatment idNextTreatment =  IdNextTreatment.of(
-                    l2LbService.getL2LbNext(deviceId, Integer.parseInt(l2LbKey)));
+                    l2LbService.getL2LbNext(l2LbId));
             // Reserve only one time during next objective creation
             if (reserve) {
-                L2LbId l2LbId = new L2LbId(deviceId, Integer.parseInt(l2LbKey));
                 if (!l2LbService.reserve(new L2LbId(deviceId, Integer.parseInt(l2LbKey)), appId)) {
                     log.warn("Reservation failed for {}", l2LbId);
                     idNextTreatment = null;

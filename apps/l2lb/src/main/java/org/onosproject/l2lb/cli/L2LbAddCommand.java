@@ -63,15 +63,16 @@ public class L2LbAddCommand extends AbstractShellCommand {
     @Override
     protected void doExecute() {
         DeviceId deviceId = DeviceId.deviceId(deviceIdStr);
-        int l2LbPort = Integer.parseInt(keyStr);
+        int l2LbKey = Integer.parseInt(keyStr);
 
         L2LbMode mode = L2LbMode.valueOf(modeStr.toUpperCase());
         Set<PortNumber> ports = Sets.newHashSet(portsStr).stream()
                 .map(PortNumber::fromString).collect(Collectors.toSet());
 
         L2LbAdminService l2LbAdminService = get(L2LbAdminService.class);
-        L2Lb l2Lb = l2LbAdminService.createOrUpdate(deviceId, l2LbPort, ports, mode);
-        print("%s of %s executed", l2Lb == null ? CREATE : UPDATE, new L2LbId(deviceId, l2LbPort));
+        L2LbId l2LbId = new L2LbId(deviceId, l2LbKey);
+        L2Lb l2Lb = l2LbAdminService.createOrUpdate(l2LbId, ports, mode);
+        print("%s of %s executed", l2Lb == null ? CREATE : UPDATE, l2LbId);
 
     }
 }

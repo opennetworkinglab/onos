@@ -16,6 +16,7 @@
 
 package org.onosproject.l2lb.app;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.cluster.ClusterService;
@@ -44,13 +45,12 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flowobjective.DefaultNextObjective;
+import org.onosproject.net.flowobjective.DefaultNextTreatment;
 import org.onosproject.net.flowobjective.FlowObjectiveService;
 import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveContext;
 import org.onosproject.net.flowobjective.ObjectiveError;
-import org.onosproject.net.intf.InterfaceService;
-import org.onosproject.net.packet.PacketService;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.MapEvent;
@@ -86,12 +86,6 @@ public class L2LbManager implements L2LbService, L2LbAdminService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private CoreService coreService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    private PacketService packetService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    private InterfaceService interfaceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private StorageService storageService;
@@ -198,15 +192,13 @@ public class L2LbManager implements L2LbService, L2LbAdminService {
     }
 
     @Override
-    public L2Lb createOrUpdate(DeviceId deviceId, int key, Set<PortNumber> ports, L2LbMode mode) {
-        L2LbId l2LbId = new L2LbId(deviceId, key);
+    public L2Lb createOrUpdate(L2LbId l2LbId, Set<PortNumber> ports, L2LbMode mode) {
         log.debug("Putting {} -> {} {} into L2 load balancer store", l2LbId, mode, ports);
         return Versioned.valueOrNull(l2LbStore.put(l2LbId, new L2Lb(l2LbId, ports, mode)));
     }
 
     @Override
-    public L2Lb remove(DeviceId deviceId, int key) {
-        L2LbId l2LbId = new L2LbId(deviceId, key);
+    public L2Lb remove(L2LbId l2LbId) {
         ApplicationId reservation = Versioned.valueOrNull(l2LbResStore.get(l2LbId));
         // Remove only if it is not used - otherwise it is necessary to release first
         if (reservation == null) {
@@ -220,22 +212,22 @@ public class L2LbManager implements L2LbService, L2LbAdminService {
 
     @Override
     public Map<L2LbId, L2Lb> getL2Lbs() {
-        return l2LbStore.asJavaMap();
+        return ImmutableMap.copyOf(l2LbStore.asJavaMap());
     }
 
     @Override
-    public L2Lb getL2Lb(DeviceId deviceId, int key) {
-        return Versioned.valueOrNull(l2LbStore.get(new L2LbId(deviceId, key)));
+    public L2Lb getL2Lb(L2LbId l2LbId) {
+        return Versioned.valueOrNull(l2LbStore.get(l2LbId));
     }
 
     @Override
     public Map<L2LbId, Integer> getL2LbNexts() {
-        return l2LbNextStore.asJavaMap();
+        return ImmutableMap.copyOf(l2LbNextStore.asJavaMap());
     }
 
     @Override
-    public int getL2LbNext(DeviceId deviceId, int key) {
-        return Versioned.valueOrNull(l2LbNextStore.get(new L2LbId(deviceId, key)));
+    public int getL2LbNext(L2LbId l2LbId) {
+        return Versioned.valueOrNull(l2LbNextStore.get(l2LbId));
     }
 
     @Override
@@ -473,7 +465,10 @@ public class L2LbManager implements L2LbService, L2LbAdminService {
         if (nextId == null) {
             nextId = flowObjService.allocateNextId();
         }
-        // TODO replace logical l2lb port
+        // This metadata is used to pass the key to the driver.
+        // Some driver, e.g. OF-DPA, will use that information while creating load balancing group.
+        // TODO This is not an actual LAG port. In the future, we should extend metadata structure to carry
+        //      generic information. We should avoid using in_port in the metadata once generic metadata is available.
         TrafficSelector meta = DefaultTrafficSelector.builder()
                 .matchInPort(PortNumber.portNumber(l2LbId.key())).build();
         NextObjective.Builder nextObjBuilder = DefaultNextObjective.builder()
@@ -483,7 +478,7 @@ public class L2LbManager implements L2LbService, L2LbAdminService {
                 .fromApp(appId);
         ports.forEach(port -> {
             TrafficTreatment treatment = DefaultTrafficTreatment.builder().setOutput(port).build();
-            nextObjBuilder.addTreatment(treatment);
+            nextObjBuilder.addTreatment(DefaultNextTreatment.of(treatment));
         });
         return nextObjBuilder;
     }
@@ -514,15 +509,16 @@ public class L2LbManager implements L2LbService, L2LbAdminService {
         @Override
         public void onSuccess(Objective objective) {
             NextObjective nextObj = (NextObjective) objective;
-            log.debug("Success {} nextobj {} for L2 load balancer {}", nextObj.op(), nextObj, l2LbId);
+            log.debug("Successfully {} nextobj {} for L2 load balancer {}. NextObj={}",
+                    nextObj.op(), nextObj.id(), l2LbId, nextObj);
             l2LbProvExecutor.execute(() -> onSuccessHandler(nextObj, l2LbId));
         }
 
         @Override
         public void onError(Objective objective, ObjectiveError error) {
             NextObjective nextObj = (NextObjective) objective;
-            log.debug("Failed {} nextobj {} for L2 load balancer {} due to {}", nextObj.op(), nextObj,
-                      l2LbId, error);
+            log.warn("Failed to {} nextobj {} for L2 load balancer {} due to {}. NextObj={}",
+                    nextObj.op(), nextObj.id(), l2LbId, error, nextObj);
             l2LbProvExecutor.execute(() -> onErrorHandler(nextObj, l2LbId));
         }
     }
