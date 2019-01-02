@@ -19,8 +19,17 @@ import org.onosproject.net.DeviceId;
 
 import java.util.Objects;
 
+/**
+ * L2 load balancer identifier.
+ * It is used to identify a load balancer across the entire system and therefore has to be unique system-wide.
+ */
 public class L2LbId {
     private final DeviceId deviceId;
+
+    /**
+     * L2 load balancer key.
+     * It is used to identify a load balancer on a specific device and therefore has to be unique device-wide.
+     */
     private final int key;
 
     /**
@@ -73,6 +82,6 @@ public class L2LbId {
 
     @Override
     public String toString() {
-        return deviceId.toString() + " (" + key + ")";
+        return deviceId.toString() + ":" + key;
     }
 }

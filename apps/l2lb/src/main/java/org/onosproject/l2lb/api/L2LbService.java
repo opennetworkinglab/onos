@@ -18,7 +18,6 @@ package org.onosproject.l2lb.api;
 
 import org.onosproject.core.ApplicationId;
 import org.onosproject.event.ListenerService;
-import org.onosproject.net.DeviceId;
 
 import java.util.Map;
 
@@ -36,14 +35,14 @@ public interface L2LbService extends ListenerService<L2LbEvent, L2LbListener> {
     /**
      * Gets L2 load balancer that matches given device ID and key, or null if not found.
      *
-     * @param deviceId Device ID
-     * @param key L2 load balancer key
+     * @param l2LbId L2 load balancer id
      * @return L2 load balancer information
      */
-    L2Lb getL2Lb(DeviceId deviceId, int key);
+    L2Lb getL2Lb(L2LbId l2LbId);
 
     /**
-     * Gets L2 load balancer next ids from the store.
+     * Gets the mapping between L2 load balancer id and
+     * the next objective id that represents the L2 load balancer.
      *
      * @return L2 load balancer id and next id mapping
      */
@@ -52,11 +51,10 @@ public interface L2LbService extends ListenerService<L2LbEvent, L2LbListener> {
     /**
      * Gets L2 load balancer next id that matches given device Id and key, or null if not found.
      *
-     * @param deviceId Device ID
-     * @param key L2 load balancer key
+     * @param l2LbId L2 load balancer id
      * @return next ID
      */
-    int getL2LbNext(DeviceId deviceId, int key);
+    int getL2LbNext(L2LbId l2LbId);
 
     /**
      * Reserves a l2 load balancer. Only one application

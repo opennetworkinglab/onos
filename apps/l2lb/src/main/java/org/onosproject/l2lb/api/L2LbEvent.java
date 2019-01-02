@@ -22,6 +22,9 @@ import java.util.Objects;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 
+/**
+ * L2 load balancer event.
+ */
 public class L2LbEvent extends AbstractEvent<L2LbEvent.Type, L2LbData> {
 
     private L2LbData prevSubject;

@@ -47,10 +47,11 @@ public class L2LbRemoveCommand extends AbstractShellCommand {
     @Override
     protected void doExecute() {
         DeviceId deviceId = DeviceId.deviceId(deviceIdStr);
-        int l2LbPort = Integer.parseInt(keyStr);
+        int l2LbKey = Integer.parseInt(keyStr);
 
         L2LbAdminService l2LbAdminService = get(L2LbAdminService.class);
-        L2Lb l2Lb = l2LbAdminService.remove(deviceId, l2LbPort);
-        print("Removal of %s %s", new L2LbId(deviceId, l2LbPort), l2Lb != null ? EXECUTED : FAILED);
+        L2LbId l2LbId = new L2LbId(deviceId, l2LbKey);
+        L2Lb l2Lb = l2LbAdminService.remove(l2LbId);
+        print("Removal of %s %s", l2LbId, l2Lb != null ? EXECUTED : FAILED);
     }
 }
