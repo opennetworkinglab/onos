@@ -110,7 +110,7 @@ else
             # Sanctioned exclusions for exceptions in third-party code; one pattern per exclusion
             /at org\.apache\.felix\.scr\.impl\.ComponentRegistry\.getComponentHolders\(ComponentRegistry\.java:356\)/ { exclusion = 1; }
             /at org\.apache\.karaf\.service\.guard\.impl\.GuardProxyCatalog.1.run\(GuardProxyCatalog\.java:253\)/ { exclusion = 1; }
-
+            /at org\.apache\.sshd\.server\.SshServer\.start/ { exclusion = 1; }
 
         END { exit fail; }
         ' > $aux
