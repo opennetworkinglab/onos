@@ -26,11 +26,11 @@ import org.onosproject.cli.PlaceholderCompleter;
 import org.onosproject.cli.net.DeviceIdCompleter;
 import org.onosproject.cli.net.PortNumberCompleter;
 import org.onosproject.net.DeviceId;
+import org.onosproject.segmentrouting.xconnect.api.XconnectEndpoint;
+import org.onosproject.segmentrouting.xconnect.api.XconnectPortEndpoint;
 import org.onosproject.segmentrouting.xconnect.api.XconnectService;
 
 import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Creates Xconnect.
@@ -38,6 +38,10 @@ import static com.google.common.base.Preconditions.checkArgument;
 @Service
 @Command(scope = "onos", name = "sr-xconnect-add", description = "Create Xconnect")
 public class XconnectAddCommand extends AbstractShellCommand {
+    private static final String EP_DESC = "Can be a physical port number or a load balancer key. " +
+            "Use integer to specify physical port number. " +
+            "Use " + XconnectPortEndpoint.LB_KEYWORD + "key to specify load balancer key";
+
     @Argument(index = 0, name = "deviceId",
             description = "Device ID",
             required = true, multiValued = false)
@@ -50,17 +54,17 @@ public class XconnectAddCommand extends AbstractShellCommand {
     @Completion(PlaceholderCompleter.class)
     private String vlanIdStr;
 
-    @Argument(index = 2, name = "port1",
-            description = "Port 1. Can also specify L2 load balancer by L2LB(<key>)",
+    @Argument(index = 2, name = "ep1",
+            description = "First endpoint. " + EP_DESC,
             required = true, multiValued = false)
     @Completion(PortNumberCompleter.class)
-    private String port1Str;
+    private String ep1Str;
 
-    @Argument(index = 3, name = "port2",
-            description = "Port 2. Can also specify L2 load balancer by L2LB(<key>)",
+    @Argument(index = 3, name = "ep2",
+            description = "Second endpoint. " + EP_DESC,
             required = true, multiValued = false)
     @Completion(PortNumberCompleter.class)
-    private String port2Str;
+    private String ep2Str;
 
     private static final String L2LB_PATTERN = "^(\\d*|L2LB\\(\\d*\\))$";
 
@@ -68,12 +72,15 @@ public class XconnectAddCommand extends AbstractShellCommand {
     protected void doExecute() {
         DeviceId deviceId = DeviceId.deviceId(deviceIdStr);
         VlanId vlanId = VlanId.vlanId(vlanIdStr);
-        Set<String> ports = Sets.newHashSet(port1Str, port2Str);
 
-        checkArgument(port1Str.matches(L2LB_PATTERN), "Wrong L2 load balancer format " + port1Str);
-        checkArgument(port2Str.matches(L2LB_PATTERN), "Wrong L2 load balancer format " + port2Str);
+        XconnectEndpoint ep1 = XconnectEndpoint.fromString(ep1Str);
+        XconnectEndpoint ep2 = XconnectEndpoint.fromString(ep2Str);
+
+        Set<XconnectEndpoint> endpoints = Sets.newHashSet(ep1, ep2);
 
         XconnectService xconnectService = get(XconnectService.class);
-        xconnectService.addOrUpdateXconnect(deviceId, vlanId, ports);
+        xconnectService.addOrUpdateXconnect(deviceId, vlanId, endpoints);
     }
+
+
 }
