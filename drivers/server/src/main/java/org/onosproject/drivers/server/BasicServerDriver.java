@@ -194,6 +194,22 @@ public class BasicServerDriver extends AbstractHandlerBehaviour {
     }
 
     /**
+     * Raise a connect event by setting the
+     * activity flag of this device.
+     *
+     * @param device a device to connect
+     */
+    protected void raiseDeviceReconnect(RestSBDevice device) {
+        // Already done!
+        if (device.isActive()) {
+            return;
+        }
+
+        log.debug("Setting device {} active", device.deviceId());
+        device.setActive(true);
+    }
+
+    /**
      * Upon a failure to contact a device, the driver
      * raises a disconnect event by resetting the
      * activity flag of this device.

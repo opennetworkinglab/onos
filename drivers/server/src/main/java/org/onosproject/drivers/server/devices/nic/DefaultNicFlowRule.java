@@ -144,9 +144,8 @@ public abstract class DefaultNicFlowRule extends DefaultFlowRule implements NicF
         this.ipv4ProtoCriterion = (IPProtocolCriterion) this.selector().getCriterion(IP_PROTO);
         this.ipv4SrcAddrCriterion = (IPCriterion) this.selector().getCriterion(IPV4_SRC);
         this.ipv4DstAddrCriterion = (IPCriterion) this.selector().getCriterion(IPV4_DST);
-        // Is there a criterion for IP masks?
-        this.ipv4SrcMaskCriterion = (IPCriterion) null;
-        this.ipv4DstMaskCriterion = (IPCriterion) null;
+        this.ipv4SrcMaskCriterion = (IPCriterion) this.selector().getCriterion(IPV4_SRC);
+        this.ipv4DstMaskCriterion = (IPCriterion) this.selector().getCriterion(IPV4_DST);
         this.udpSrcPortCriterion = (UdpPortCriterion) this.selector().getCriterion(UDP_SRC);
         this.udpDstPortCriterion = (UdpPortCriterion) this.selector().getCriterion(UDP_DST);
         this.tcpSrcPortCriterion = (TcpPortCriterion) this.selector().getCriterion(TCP_SRC);
@@ -168,6 +167,9 @@ public abstract class DefaultNicFlowRule extends DefaultFlowRule implements NicF
                     new NicRuleAction(NicRuleAction.Action.METER, meterInstruction.meterId().id()));
             }
         }
+
+        // This action provides basic rule match counters
+        // this.actions.add(new NicRuleAction(NicRuleAction.Action.COUNT));
     }
 
     @Override
@@ -302,6 +304,16 @@ public abstract class DefaultNicFlowRule extends DefaultFlowRule implements NicF
     @Override
     public boolean hasTransport() {
         return (sourcePort() > 0) || (destinationPort() > 0);
+    }
+
+    @Override
+    public boolean isFullWildcard() {
+        if (((ipv4SrcAddress() != null) && !ipv4SrcAddress().isZero()) ||
+            ((ipv4DstAddress() != null) && !ipv4DstAddress().isZero()) ||
+            (ipv4Protocol() > 0) || (sourcePort() > 0) || (destinationPort() > 0)) {
+            return true;
+        }
+        return false;
     }
 
     @Override

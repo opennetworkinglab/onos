@@ -36,6 +36,7 @@
 
         <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
                    impl="org.onosproject.drivers.server.FlowRuleProgrammableServerImpl"/>
+        <property name="ruleDeleteBatchSize">500</property>
     </driver>
 </drivers>
 

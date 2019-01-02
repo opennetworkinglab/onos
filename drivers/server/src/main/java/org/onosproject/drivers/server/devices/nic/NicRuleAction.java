@@ -196,7 +196,7 @@ public class NicRuleAction {
         ACTION_FIELD.put(Action.JUMP, "group");
         ACTION_FIELD.put(Action.MARK, "id");
         ACTION_FIELD.put(Action.FLAG, "");
-        ACTION_FIELD.put(Action.COUNT, "id");
+        ACTION_FIELD.put(Action.COUNT, "");
         ACTION_FIELD.put(Action.QUEUE, "index");
         ACTION_FIELD.put(Action.RSS, "queue");
         ACTION_FIELD.put(Action.PF, "");

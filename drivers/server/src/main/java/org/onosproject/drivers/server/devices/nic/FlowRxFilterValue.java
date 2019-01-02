@@ -26,26 +26,29 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public final class FlowRxFilterValue extends RxFilterValue
         implements Comparable {
 
-    private long cpuCoreId;
+    private long value;
     private String flowRule;
 
     /**
      * Constructs a flow-based Rx filter.
+     *
+     * @param cpuId CPU ID of the server this tag will lead to
      */
-    public FlowRxFilterValue() {
-        super();
+    public FlowRxFilterValue(int cpuId) {
+        super(cpuId);
         setValue(0);
         setRule("");
     }
 
     /**
-     * Constructs a flow-based Rx filter with CPU core ID.
+     * Constructs a flow-based Rx filter with physical CPU core ID.
      *
-     * @param cpuCoreId a CPU core ID when the flow ends up
+     * @param value Flow tag
+     * @param cpuId CPU ID of the server this tag will lead to
      */
-    public FlowRxFilterValue(long cpuCoreId) {
-        super();
-        setValue(cpuCoreId);
+    public FlowRxFilterValue(long value, int cpuId) {
+        super(cpuId);
+        setValue(value);
         setRule("");
     }
 
@@ -53,12 +56,13 @@ public final class FlowRxFilterValue extends RxFilterValue
      * Constructs a flow-based Rx filter with CPU core ID
      * and an associated rule.
      *
-     * @param cpuCoreId a CPU core ID
+     * @param value Flow tag
+     * @param cpuId CPU ID of the server this tag will lead to
      * @param flowRule a flow rule as a string
      */
-    public FlowRxFilterValue(long cpuCoreId, String flowRule) {
-        super();
-        setValue(cpuCoreId);
+    public FlowRxFilterValue(long value, int cpuId, String flowRule) {
+        super(cpuId);
+        setValue(value);
         setRule(flowRule);
     }
 
@@ -68,7 +72,7 @@ public final class FlowRxFilterValue extends RxFilterValue
      * @param other a source FlowRxFilterValue object
      */
     public FlowRxFilterValue(FlowRxFilterValue other) {
-        super();
+        super(other.cpuId);
         setValue(other.value());
         setRule(other.rule());
     }
@@ -79,18 +83,18 @@ public final class FlowRxFilterValue extends RxFilterValue
      * @return Flow Rx filter value
      */
     public long value() {
-        return this.cpuCoreId;
+        return this.value;
     }
 
     /**
      * Sets the value of this Rx filter.
      *
-     * @param cpuCoreId a CPU core ID for this Rx filter
+     * @param value a CPU core ID for this Rx filter
      */
-    public void setValue(long cpuCoreId) {
-        checkArgument(cpuCoreId >= 0,
+    private void setValue(long value) {
+        checkArgument(value >= 0,
             "NIC flow Rx filter has invalid CPU core ID");
-        this.cpuCoreId = cpuCoreId;
+        this.value = value;
     }
 
     /**
@@ -115,7 +119,7 @@ public final class FlowRxFilterValue extends RxFilterValue
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.cpuCoreId, this.flowRule);
+        return Objects.hash(this.value, this.flowRule, this.cpuId);
     }
 
     @Override
@@ -130,8 +134,8 @@ public final class FlowRxFilterValue extends RxFilterValue
 
         FlowRxFilterValue other = (FlowRxFilterValue) obj;
 
-        return (this.value() == other.value()) &&
-                this.rule().equals(other.rule());
+        return this.value() == other.value() &&
+                this.rule().equals(other.rule()) && ((RxFilterValue) this).equals(other);
     }
 
     @Override
@@ -147,15 +151,15 @@ public final class FlowRxFilterValue extends RxFilterValue
         if (other instanceof FlowRxFilterValue) {
             FlowRxFilterValue otherRxVal = (FlowRxFilterValue) other;
 
-            long thisCoreId  = this.value();
-            long otherCoreId = otherRxVal.value();
+            long thisCpuId  = this.value();
+            long otherCpuId = otherRxVal.value();
 
-            if (thisCoreId > otherCoreId) {
+            if (thisCpuId > otherCpuId) {
                 return 1;
-            } else if (thisCoreId < otherCoreId) {
+            } else if (thisCpuId < otherCpuId) {
                 return -1;
             } else {
-                return 0;
+                return this.cpuId - otherRxVal.cpuId;
             }
         }
 
