@@ -44,9 +44,9 @@ public interface XconnectService {
      *
      * @param deviceId device ID
      * @param vlanId VLAN ID
-     * @param ports set of ports
+     * @param endpoints set of endpoints
      */
-    void addOrUpdateXconnect(DeviceId deviceId, VlanId vlanId, Set<String> ports);
+    void addOrUpdateXconnect(DeviceId deviceId, VlanId vlanId, Set<XconnectEndpoint> endpoints);
 
     /**
      * Deletes Xconnect.

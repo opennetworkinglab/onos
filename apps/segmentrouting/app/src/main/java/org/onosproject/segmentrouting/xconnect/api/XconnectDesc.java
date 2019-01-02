@@ -25,17 +25,17 @@ import java.util.Set;
  */
 public class XconnectDesc {
     private XconnectKey key;
-    private Set<String> ports;
+    private Set<XconnectEndpoint> endpoints;
 
     /**
      * Constructs new Xconnect description with given device ID and VLAN ID.
      *
      * @param key Xconnect key
-     * @param ports set of ports
+     * @param endpoints set of endpoints
      */
-    public XconnectDesc(XconnectKey key, Set<String> ports) {
+    public XconnectDesc(XconnectKey key, Set<XconnectEndpoint> endpoints) {
         this.key = key;
-        this.ports = ports;
+        this.endpoints = endpoints;
     }
 
     /**
@@ -48,12 +48,12 @@ public class XconnectDesc {
     }
 
     /**
-     * Gets ports.
+     * Gets endpoints.
      *
-     * @return set of ports
+     * @return set of endpoints
      */
-    public Set<String> ports() {
-        return ports;
+    public Set<XconnectEndpoint> endpoints() {
+        return endpoints;
     }
 
     @Override
@@ -69,19 +69,19 @@ public class XconnectDesc {
         }
         final XconnectDesc other = (XconnectDesc) obj;
         return Objects.equals(this.key, other.key) &&
-                Objects.equals(this.ports, other.ports);
+                Objects.equals(this.endpoints, other.endpoints);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(key, ports);
+        return Objects.hash(key, endpoints);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(getClass())
                 .add("key", key)
-                .add("ports", ports)
+                .add("endpoints", endpoints)
                 .toString();
     }
 }

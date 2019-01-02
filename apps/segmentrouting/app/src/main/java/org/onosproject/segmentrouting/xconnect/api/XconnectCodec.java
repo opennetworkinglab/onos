@@ -28,10 +28,13 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 
+/**
+ * Codec for Xconnect.
+ */
 public class XconnectCodec extends JsonCodec<XconnectDesc> {
     private static final String DEVICE_ID = "deviceId";
     private static final String VLAN_ID = "vlanId";
-    private static final String PORTS = "ports";
+    private static final String ENDPOINTS = "endpoints";
 
     private static Logger log = LoggerFactory.getLogger(XconnectCodec.class);
 
@@ -40,8 +43,8 @@ public class XconnectCodec extends JsonCodec<XconnectDesc> {
         final ObjectNode result = context.mapper().createObjectNode();
         result.put(DEVICE_ID, desc.key().deviceId().toString());
         result.put(VLAN_ID, desc.key().vlanId().toString());
-        final ArrayNode portNode = result.putArray(PORTS);
-        desc.ports().forEach(port -> portNode.add(port.toString()));
+        final ArrayNode portNode = result.putArray(ENDPOINTS);
+        desc.endpoints().forEach(endpoint -> portNode.add(endpoint.toString()));
 
         return result;
     }
@@ -51,13 +54,14 @@ public class XconnectCodec extends JsonCodec<XconnectDesc> {
         DeviceId deviceId = DeviceId.deviceId(json.path(DEVICE_ID).asText());
         VlanId vlanId = VlanId.vlanId(json.path(VLAN_ID).asText());
 
-        Set<String> ports = Sets.newHashSet();
-        JsonNode portNodes = json.get(PORTS);
-        if (portNodes != null) {
-            portNodes.forEach(portNode -> ports.add(portNode.asText()));
+        Set<XconnectEndpoint> endpoints = Sets.newHashSet();
+        JsonNode endpointNodes = json.get(ENDPOINTS);
+        if (endpointNodes != null) {
+            XconnectEndpoint endpoint = XconnectEndpoint.fromString(endpointNodes.asText());
+            endpointNodes.forEach(endpointNode -> endpoints.add(endpoint));
         }
 
         XconnectKey key = new XconnectKey(deviceId, vlanId);
-        return new XconnectDesc(key, ports);
+        return new XconnectDesc(key, endpoints);
     }
 }

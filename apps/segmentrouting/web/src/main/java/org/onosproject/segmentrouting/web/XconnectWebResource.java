@@ -75,12 +75,12 @@ public class XconnectWebResource extends AbstractWebResource {
         ObjectNode json = readTreeFromStream(mapper, input);
         XconnectDesc desc = codec(XconnectDesc.class).decode(json, this);
 
-        if (desc.ports().size() != 2) {
+        if (desc.endpoints().size() != 2) {
             throw new IllegalArgumentException("Ports should have only two items.");
         }
 
         XconnectService xconnectService = get(XconnectService.class);
-        xconnectService.addOrUpdateXconnect(desc.key().deviceId(), desc.key().vlanId(), desc.ports());
+        xconnectService.addOrUpdateXconnect(desc.key().deviceId(), desc.key().vlanId(), desc.endpoints());
 
         return Response.ok().build();
     }
