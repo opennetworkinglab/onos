@@ -87,10 +87,10 @@ public class YangWebResource extends AbstractWebResource {
      */
     public static String getValidModelId(String id) throws
             IllegalArgumentException {
-        // checking weather modelId contains the alphanumeric character or not.
+        // checking whether modelId contains the alphanumeric character or not.
         if (id.matches(".*[A-Za-z0-9].*")) {
             // replacing special characters with '_'
-            id = id.replaceAll("[\\s\\/:*?\"\\[\\]<>|$@!#%&(){}';.,-]", "_");
+            id = id.replaceAll("[\\s\\/:*?\"\\[\\]<>|$@!#%&(){}'`;.,-]", "_");
             // remove leading and trailing underscore
             id = id.replaceAll("^_+|_+$", "");
             // replacing the consecutive underscores '_' to single _
