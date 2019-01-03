@@ -1,6 +1,9 @@
 build --nouse_ijars
 build --experimental_strict_action_env
 build --incompatible_package_name_is_a_function=false
+query --incompatible_package_name_is_a_function=false
+test --incompatible_package_name_is_a_function=false
+run --incompatible_package_name_is_a_function=false
 test --test_summary=terse
 test --test_output=errors
 test --test_verbose_timeout_warnings
