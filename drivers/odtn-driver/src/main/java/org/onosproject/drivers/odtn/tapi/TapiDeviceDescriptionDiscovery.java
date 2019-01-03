@@ -76,6 +76,7 @@ public class TapiDeviceDescriptionDiscovery
     public static final String LOWER_FREQUENCY = "lower-frequency";
     public static final String AVAILABLE_SPECTRUM = "available-spectrum";
     private static PortNumber nPort = PortNumber.portNumber(1);
+    private static final Object N_PORT_LOCK = new Object();
     private static final long BASE_FREQUENCY = 193100000;   //Working in Mhz
 
     /**
@@ -149,14 +150,16 @@ public class TapiDeviceDescriptionDiscovery
                 JsonNode mcPool = sipAttributes.get(MEDIA_CHANNEL_SERVICE_INTERFACE_POINT_SPEC).get(MC_POOL);
 
                 OchSignal ochSignal = getOchSignal(mcPool);
-                //annotations(portNumber-uuid)
-                annotations.set(nPort.toString(), uuid);
+                synchronized (N_PORT_LOCK) {
+                    //annotations(portNumber-uuid)
+                    annotations.set(nPort.toString(), uuid);
 
-                //add och port
-                ports.add(ochPortDescription(nPort, true, OduSignalType.ODU4,
-                        false, ochSignal, annotations.build()));
+                    //add och port
+                    ports.add(ochPortDescription(nPort, true, OduSignalType.ODU4,
+                              false, ochSignal, annotations.build()));
 
-                nPort = PortNumber.portNumber(counter++);
+                    nPort = PortNumber.portNumber(counter++);
+                }
             } else {
                 log.error("SIP {} is not valid", sipAttributes);
             }
