@@ -30,16 +30,12 @@ import static org.onosproject.store.atomix.primitives.impl.AtomixFutures.adaptFu
 /**
  * Atomix work queue.
  */
-public class AtomixWorkQueue<E> implements WorkQueue<E> {
+public class AtomixWorkQueue<E> extends AtomixPrimitive implements WorkQueue<E> {
     private final io.atomix.core.workqueue.AsyncWorkQueue<E> atomixWorkQueue;
 
     public AtomixWorkQueue(io.atomix.core.workqueue.AsyncWorkQueue<E> atomixWorkQueue) {
+        super(atomixWorkQueue);
         this.atomixWorkQueue = atomixWorkQueue;
-    }
-
-    @Override
-    public String name() {
-        return atomixWorkQueue.name();
     }
 
     @Override

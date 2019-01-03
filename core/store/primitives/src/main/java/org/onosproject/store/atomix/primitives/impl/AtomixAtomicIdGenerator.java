@@ -24,16 +24,12 @@ import static org.onosproject.store.atomix.primitives.impl.AtomixFutures.adaptFu
 /**
  * Atomix atomic ID generator.
  */
-public class AtomixAtomicIdGenerator implements AsyncAtomicIdGenerator {
+public class AtomixAtomicIdGenerator extends AtomixPrimitive implements AsyncAtomicIdGenerator {
     private final io.atomix.core.idgenerator.AsyncAtomicIdGenerator atomixIdGenerator;
 
     public AtomixAtomicIdGenerator(io.atomix.core.idgenerator.AsyncAtomicIdGenerator atomixIdGenerator) {
+        super(atomixIdGenerator);
         this.atomixIdGenerator = atomixIdGenerator;
-    }
-
-    @Override
-    public String name() {
-        return atomixIdGenerator.name();
     }
 
     @Override

@@ -31,18 +31,14 @@ import static org.onosproject.store.atomix.primitives.impl.AtomixFutures.adaptFu
 /**
  * Atomix distributed set.
  */
-public class AtomixDistributedSet<E> implements AsyncDistributedSet<E> {
+public class AtomixDistributedSet<E> extends AtomixPrimitive implements AsyncDistributedSet<E> {
     private final io.atomix.core.set.AsyncDistributedSet<E> atomixSet;
     private final Map<SetEventListener<E>, io.atomix.core.collection.CollectionEventListener<E>> listenerMap =
         Maps.newIdentityHashMap();
 
     public AtomixDistributedSet(io.atomix.core.set.AsyncDistributedSet<E> atomixSet) {
+        super(atomixSet);
         this.atomixSet = atomixSet;
-    }
-
-    @Override
-    public String name() {
-        return atomixSet.name();
     }
 
     @Override

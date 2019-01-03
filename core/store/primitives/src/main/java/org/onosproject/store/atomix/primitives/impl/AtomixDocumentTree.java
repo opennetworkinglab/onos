@@ -37,18 +37,14 @@ import static org.onosproject.store.atomix.primitives.impl.AtomixFutures.adaptTr
 /**
  * Atomix document tree.
  */
-public class AtomixDocumentTree<V> implements AsyncDocumentTree<V> {
+public class AtomixDocumentTree<V> extends AtomixPrimitive implements AsyncDocumentTree<V> {
     private final io.atomix.core.tree.AsyncAtomicDocumentTree<V> atomixTree;
     private final Map<DocumentTreeListener<V>, io.atomix.core.tree.DocumentTreeEventListener<V>> listenerMap =
         Maps.newIdentityHashMap();
 
     public AtomixDocumentTree(io.atomix.core.tree.AsyncAtomicDocumentTree<V> atomixTree) {
+        super(atomixTree);
         this.atomixTree = atomixTree;
-    }
-
-    @Override
-    public String name() {
-        return atomixTree.name();
     }
 
     @Override

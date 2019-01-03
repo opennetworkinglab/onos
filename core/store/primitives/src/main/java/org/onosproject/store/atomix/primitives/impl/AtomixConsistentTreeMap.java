@@ -45,18 +45,14 @@ import static org.onosproject.store.atomix.primitives.impl.AtomixFutures.adaptMa
 /**
  * Atomix consistent tree map.
  */
-public class AtomixConsistentTreeMap<V> implements AsyncConsistentTreeMap<V> {
+public class AtomixConsistentTreeMap<V> extends AtomixPrimitive implements AsyncConsistentTreeMap<V> {
     private final io.atomix.core.map.AsyncAtomicNavigableMap<String, V> atomixTreeMap;
     private final Map<MapEventListener<String, V>, io.atomix.core.map.AtomicMapEventListener<String, V>> listenerMap =
         Maps.newIdentityHashMap();
 
     public AtomixConsistentTreeMap(io.atomix.core.map.AsyncAtomicNavigableMap<String, V> atomixTreeMap) {
+        super(atomixTreeMap);
         this.atomixTreeMap = atomixTreeMap;
-    }
-
-    @Override
-    public String name() {
-        return atomixTreeMap.name();
     }
 
     @Override

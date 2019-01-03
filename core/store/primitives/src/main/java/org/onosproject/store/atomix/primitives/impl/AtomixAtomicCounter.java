@@ -24,16 +24,12 @@ import static org.onosproject.store.atomix.primitives.impl.AtomixFutures.adaptFu
 /**
  * Atomix atomic counter.
  */
-public class AtomixAtomicCounter implements AsyncAtomicCounter {
+public class AtomixAtomicCounter extends AtomixPrimitive implements AsyncAtomicCounter {
     private final io.atomix.core.counter.AsyncAtomicCounter atomixCounter;
 
     public AtomixAtomicCounter(io.atomix.core.counter.AsyncAtomicCounter atomixCounter) {
+        super(atomixCounter);
         this.atomixCounter = atomixCounter;
-    }
-
-    @Override
-    public String name() {
-        return atomixCounter.name();
     }
 
     @Override

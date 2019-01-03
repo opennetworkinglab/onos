@@ -33,18 +33,14 @@ import static org.onosproject.store.atomix.primitives.impl.AtomixFutures.adaptFu
  *
  * @param <T> topic message type.
  */
-public class AtomixDistributedTopic<T> implements Topic<T> {
+public class AtomixDistributedTopic<T> extends AtomixPrimitive implements Topic<T> {
 
     private final AsyncAtomicValue<T> atomixValue;
     private final Map<Consumer<T>, AtomicValueEventListener<T>> callbacks = Maps.newIdentityHashMap();
 
     AtomixDistributedTopic(AsyncAtomicValue<T> atomixValue) {
+        super(atomixValue);
         this.atomixValue = atomixValue;
-    }
-
-    @Override
-    public String name() {
-        return atomixValue.name();
     }
 
     @Override
@@ -74,10 +70,5 @@ public class AtomixDistributedTopic<T> implements Topic<T> {
             return adaptFuture(atomixValue.removeListener(valueListener));
         }
         return CompletableFuture.completedFuture(null);
-    }
-
-    @Override
-    public CompletableFuture<Void> destroy() {
-        return atomixValue.close();
     }
 }

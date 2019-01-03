@@ -26,7 +26,6 @@ import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.mastership.MastershipService;
-import org.onosproject.mastership.MastershipTermService;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.AnnotationsUtil;
 import org.onosproject.net.DefaultAnnotations;
@@ -163,9 +162,6 @@ public class GossipDeviceStore
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MastershipService mastershipService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    protected MastershipTermService termService;
 
     private static final Timestamp DEFAULT_TIMESTAMP = new MastershipBasedTimestamp(0, 0);
 

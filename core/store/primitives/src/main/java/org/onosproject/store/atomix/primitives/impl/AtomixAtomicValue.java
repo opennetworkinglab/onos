@@ -28,18 +28,14 @@ import static org.onosproject.store.atomix.primitives.impl.AtomixFutures.adaptFu
 /**
  * Atomix atomic value.
  */
-public class AtomixAtomicValue<V> implements AsyncAtomicValue<V> {
+public class AtomixAtomicValue<V> extends AtomixPrimitive implements AsyncAtomicValue<V> {
     private final io.atomix.core.value.AsyncAtomicValue<V> atomixValue;
     private final Map<AtomicValueEventListener<V>, io.atomix.core.value.AtomicValueEventListener<V>> listenerMap =
         Maps.newIdentityHashMap();
 
     public AtomixAtomicValue(io.atomix.core.value.AsyncAtomicValue<V> atomixValue) {
+        super(atomixValue);
         this.atomixValue = atomixValue;
-    }
-
-    @Override
-    public String name() {
-        return atomixValue.name();
     }
 
     @Override

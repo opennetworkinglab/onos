@@ -24,16 +24,12 @@ import static org.onosproject.store.atomix.primitives.impl.AtomixFutures.adaptMa
 /**
  * Atomix atomic counter map.
  */
-public class AtomixAtomicCounterMap<K> implements AsyncAtomicCounterMap<K> {
+public class AtomixAtomicCounterMap<K> extends AtomixPrimitive implements AsyncAtomicCounterMap<K> {
     private final io.atomix.core.map.AsyncAtomicCounterMap<K> atomixMap;
 
     public AtomixAtomicCounterMap(io.atomix.core.map.AsyncAtomicCounterMap<K> atomixMap) {
+        super(atomixMap);
         this.atomixMap = atomixMap;
-    }
-
-    @Override
-    public String name() {
-        return atomixMap.name();
     }
 
     @Override

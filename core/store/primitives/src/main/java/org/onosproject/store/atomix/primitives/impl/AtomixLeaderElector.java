@@ -33,20 +33,16 @@ import static org.onosproject.store.atomix.primitives.impl.AtomixFutures.adaptFu
 /**
  * Atomix leader elector.
  */
-public class AtomixLeaderElector implements AsyncLeaderElector {
+public class AtomixLeaderElector extends AtomixPrimitive implements AsyncLeaderElector {
     private final io.atomix.core.election.AsyncLeaderElector<NodeId> atomixElector;
     private final NodeId localNodeId;
     private final Map<Consumer<Change<Leadership>>, LeadershipEventListener<NodeId>> listenerMap =
         Maps.newIdentityHashMap();
 
     public AtomixLeaderElector(io.atomix.core.election.AsyncLeaderElector<NodeId> atomixElector, NodeId localNodeId) {
+        super(atomixElector);
         this.atomixElector = atomixElector;
         this.localNodeId = localNodeId;
-    }
-
-    @Override
-    public String name() {
-        return atomixElector.name();
     }
 
     @Override

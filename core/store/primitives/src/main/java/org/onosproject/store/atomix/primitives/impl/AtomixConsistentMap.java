@@ -42,18 +42,14 @@ import static org.onosproject.store.atomix.primitives.impl.AtomixFutures.adaptMa
 /**
  * Atomix consistent map.
  */
-public class AtomixConsistentMap<K, V> implements AsyncConsistentMap<K, V> {
+public class AtomixConsistentMap<K, V> extends AtomixPrimitive implements AsyncConsistentMap<K, V> {
     private final io.atomix.core.map.AsyncAtomicMap<K, V> atomixMap;
     private final Map<MapEventListener<K, V>, io.atomix.core.map.AtomicMapEventListener<K, V>> listenerMap =
         Maps.newIdentityHashMap();
 
     public AtomixConsistentMap(io.atomix.core.map.AsyncAtomicMap<K, V> atomixMap) {
+        super(atomixMap);
         this.atomixMap = atomixMap;
-    }
-
-    @Override
-    public String name() {
-        return atomixMap.name();
     }
 
     @Override

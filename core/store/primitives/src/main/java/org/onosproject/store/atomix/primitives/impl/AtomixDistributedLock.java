@@ -27,16 +27,12 @@ import static org.onosproject.store.atomix.primitives.impl.AtomixFutures.adaptFu
 /**
  * Atomix distributed lock.
  */
-public class AtomixDistributedLock implements AsyncDistributedLock {
+public class AtomixDistributedLock extends AtomixPrimitive implements AsyncDistributedLock {
     private final io.atomix.core.lock.AsyncAtomicLock atomixLock;
 
     public AtomixDistributedLock(io.atomix.core.lock.AsyncAtomicLock atomixLock) {
+        super(atomixLock);
         this.atomixLock = atomixLock;
-    }
-
-    @Override
-    public String name() {
-        return atomixLock.name();
     }
 
     @Override

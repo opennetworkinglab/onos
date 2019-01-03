@@ -37,18 +37,14 @@ import static org.onosproject.store.atomix.primitives.impl.AtomixFutures.adaptMa
 /**
  * Atomix consistent map.
  */
-public class AtomixConsistentMultimap<K, V> implements AsyncConsistentMultimap<K, V> {
+public class AtomixConsistentMultimap<K, V> extends AtomixPrimitive implements AsyncConsistentMultimap<K, V> {
     private final io.atomix.core.multimap.AsyncAtomicMultimap<K, V> atomixMultimap;
     private final Map<MultimapEventListener<K, V>, io.atomix.core.multimap.AtomicMultimapEventListener<K, V>>
         listenerMap = Maps.newIdentityHashMap();
 
     public AtomixConsistentMultimap(io.atomix.core.multimap.AsyncAtomicMultimap<K, V> atomixMultimap) {
+        super(atomixMultimap);
         this.atomixMultimap = atomixMultimap;
-    }
-
-    @Override
-    public String name() {
-        return atomixMultimap.name();
     }
 
     @Override
