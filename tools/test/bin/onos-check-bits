@@ -32,7 +32,7 @@ if [ $? -ne 0 ]; then
   echo "ONOS archive does not contain the proper version file" && exit 1
 fi
 
-tar tzf ${ONOS_TAR} | grep -q apache-karaf-4.2.1
+tar tzf ${ONOS_TAR} | grep -q apache-karaf-4.2.2
 if [ $? -ne 0 ]; then
   echo "ONOS archive does not contain karaf" && exit 1
 fi
