@@ -22,17 +22,13 @@ fi
 
 export MAVEN=${MAVEN:-~/Applications/apache-maven-3.3.9}
 
-export KARAF_VERSION=4.2.1
-export KARAF_ROOT=${KARAF_ROOT:-~/Applications/apache-karaf-$KARAF_VERSION}
-export KARAF_LOG=$KARAF_ROOT/data/log/karaf.log
-
 # Setup a path
 export PATH="$PATH:$ONOS_ROOT/tools/dev/bin"
 export PATH="$PATH:$ONOS_ROOT/tools/test/bin:$ONOS_ROOT/tools/test/scenarios/bin"
 export RUN_PACK_PATH=${RUN_PACK_PATH:-$ONOS_ROOT/tools/package/runtime/bin}
 export PATH="$RUN_PACK_PATH:$PATH"
 export PATH="$PATH:$ONOS_ROOT/tools/build"
-export PATH="$PATH:$MAVEN/bin:$KARAF_ROOT/bin"
+export PATH="$PATH:$MAVEN/bin"
 
 # Setup cell enviroment
 export ONOS_CELL=${ONOS_CELL:-local}
@@ -74,7 +70,7 @@ alias oi='setPrimaryInstance'
 
 # Short-hand for tailing and searching the ONOS (karaf) log
 alias tl='$ONOS_ROOT/tools/dev/bin/onos-local-log'
-alias gl='grep $KARAF_LOG --colour=auto -E -e '
+# alias gl='grep $KARAF_LOG --colour=auto -E -e '
 
 function filterLocalLog {
     tl | grep --colour=always -E -e "${1-org.onlab|org.onosproject}"
