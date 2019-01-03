@@ -24,6 +24,7 @@ import org.onosproject.grpc.net.device.models.DeviceEventProto.DeviceNotificatio
 import org.onosproject.grpc.net.device.models.PortEnumsProto;
 import org.onosproject.grpc.net.models.DeviceProtoOuterClass.DeviceProto;
 import org.onosproject.grpc.net.models.PortProtoOuterClass;
+import org.onosproject.incubator.protobuf.models.net.AnnotationsTranslator;
 import org.onosproject.net.device.DeviceEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,6 +82,7 @@ public class DeviceEventConverter implements EventConverter {
                         .setSwVersion(deviceEvent.subject().swVersion())
                         .setType(DeviceTypeProto
                                          .valueOf(deviceEvent.subject().type().name()))
+                        .putAllAnnotations(AnnotationsTranslator.asMap(deviceEvent.subject().annotations()))
                         .build();
 
         PortProtoOuterClass.PortProto portProto = null;
