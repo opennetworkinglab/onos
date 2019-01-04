@@ -463,11 +463,9 @@ public class GossipDeviceStore
 
     private DeviceEvent markOffline(DeviceId deviceId, Timestamp timestamp) {
         final DeviceEvent event = markOfflineInternal(deviceId, timestamp);
-        if (event != null) {
-            log.debug("Notifying peers of a device offline topology event for deviceId: {} {}",
-                     deviceId, timestamp);
-            notifyPeers(new InternalDeviceStatusChangeEvent(deviceId, timestamp, false));
-        }
+        // Always notify peers of device availability change and allow them to determine the latest state.
+        log.debug("Notifying peers of a device offline topology event for deviceId: {} {}", deviceId, timestamp);
+        notifyPeers(new InternalDeviceStatusChangeEvent(deviceId, timestamp, false));
         return event;
     }
 
@@ -524,9 +522,9 @@ public class GossipDeviceStore
      */
     private DeviceEvent markOnline(DeviceId deviceId, Timestamp timestamp, boolean notifyPeers) {
         final DeviceEvent event = markOnlineInternal(deviceId, timestamp);
-        if (event != null && notifyPeers) {
-            log.debug("Notifying peers of a device online topology event for deviceId: {} {}",
-                      deviceId, timestamp);
+        // Always notify peers of device availability change and allow them to determine the latest state.
+        if (notifyPeers) {
+            log.debug("Notifying peers of a device online topology event for deviceId: {} {}", deviceId, timestamp);
             notifyPeers(new InternalDeviceStatusChangeEvent(deviceId, timestamp, true));
         }
         return event;
