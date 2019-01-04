@@ -498,6 +498,11 @@ public class DeviceManager
                 continue;
             }
 
+            // If this node is the master, ensure the device is marked online.
+            if (myRole == MASTER) {
+                post(store.markOnline(deviceId));
+            }
+
             if (myRole != NONE) {
                 continue;
             }
