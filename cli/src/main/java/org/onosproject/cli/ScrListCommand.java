@@ -38,25 +38,32 @@ public class ScrListCommand extends AbstractShellCommand {
 
         scrService.getComponentDescriptionDTOs()
             .forEach(componentDto -> {
-                scrService.getComponentConfigurationDTOs(componentDto)
-                    .forEach(configurationDto -> {
-                        String state;
-                        switch (configurationDto.state) {
-                            case ComponentConfigurationDTO.ACTIVE: {
-                                state = "ACTIVE";
-                                break;
+                try {
+                    scrService.getComponentConfigurationDTOs(componentDto)
+                        .forEach(configurationDto -> {
+                            String state;
+                            switch (configurationDto.state) {
+                                case ComponentConfigurationDTO.ACTIVE: {
+                                    state = "ACTIVE";
+                                    break;
+                                }
+                                case ComponentConfigurationDTO.SATISFIED: {
+                                    state = "SATISFIED";
+                                    break;
+                                }
+                                default: {
+                                    state = "UNKNOWN";
+                                }
                             }
-                            case ComponentConfigurationDTO.SATISFIED: {
-                                state = "SATISFIED";
-                                break;
-                            }
-                            default: {
-                                state = "UNKNOWN";
-                            }
-                        }
-                        formatter.format("%3d | %9s | %s\n", configurationDto.id, state, componentDto.name);
-                    });
-                });
+                            formatter.format("%3d | %9s | %s\n", configurationDto.id, state, componentDto.name);
+                        });
+                } catch (NullPointerException npe) {
+                    // Work around for a race condition inside of the SCR runtime.
+                    // In certain conditions, the SCR code gets an NPE due to a
+                    // null bundle pointer
+                    // Nothing we can do with the data, skip this entry
+                }
+            });
         print(output.toString());
     }
 
