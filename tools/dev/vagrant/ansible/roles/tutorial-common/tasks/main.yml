@@ -145,7 +145,7 @@
       Name=ONOS
       Name[en_US]=ONOS
       Icon=konsole
-      Exec=/home/ubuntu/run_onos.sh
+      Exec=sudo -H -u ubuntu -E /home/ubuntu/run_onos.sh
       Comment[en_US]=
       Terminal=true
       X-KeepTerminal=true

@@ -124,5 +124,7 @@
       Name=LINC-OE
       Name[en_US]=LINC-OE
       Icon=konsole
-      Exec=gnome-terminal -x bash -c "{{ tutorials.optical.lincoe_exec  }}; exec $SHELL"
+      Exec="{{ tutorials.optical.lincoe_exec }}"
       Comment[en_US]=
+      Terminal=true
+      X-KeepTerminal=true

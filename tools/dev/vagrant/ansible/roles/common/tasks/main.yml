@@ -24,3 +24,7 @@
     name: lxc-python2
     state: present
   tags: [common]
+
+- name: Update pip
+  shell: "easy_install -U pip"
+  tags: [common]

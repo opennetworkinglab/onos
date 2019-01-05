@@ -46,11 +46,12 @@ basic_packages:
 # ONOS
 onos_repo_url: "https://gerrit.onosproject.org/onos"
 onos_dir: "/home/ubuntu/onos"
-onos_version: "1.13"
+onos_version: "1.15"
 onos_nic: "10.100.198.*"
 onos_variables:
   - "export ONOS_ROOT=~/onos"
   - "source $ONOS_ROOT/tools/dev/bash_profile"
+bazel_url: "https://github.com/bazelbuild/bazel/releases/download/0.19.2/bazel-0.19.2-installer-linux-x86_64.sh"
 
 # Tutorial reset files
 reset_files:
@@ -80,8 +81,8 @@ google_chrome_repo: "deb http://dl.google.com/linux/chrome/deb/ stable main"
 
 # IDEs configuration
 intellij:
-  dir_name: "idea-IC-173.4674.33"
-  url: "https://download.jetbrains.com/idea/ideaIC-2017.3.5.tar.gz"
+  dir_name: "idea-IC-183.4886.37"
+  url: "https://download.jetbrains.com/idea/ideaIC-2018.3.2.tar.gz"
 
 # Tutorials configuration
 tutorials:
@@ -90,7 +91,7 @@ tutorials:
     pass: $6$rounds=656000$LB/idnMb2Yy9UqSj$28Tb6R.JU3E3O.IHNWp1cQCDlWO.niFjdInKkZz0hck7eAUII.2TywPL.3PVAIPnlSjTEcUz/qjPGas4vnS56/
     mininet_exec: sudo mn --custom /home/ubuntu/onos/tools/test/topos/tower.py --topo tower --controller remote,{{ lxc.lxc_one.ip }} --mac
     cell: "1node"
-    reset_exec: /home/ubuntu/reset-to-1.sh
+    reset_exec: sudo -H -u ubuntu -E /home/ubuntu/reset-to-1.sh
     url: "https://wiki.onosproject.org/display/ONOS/Basic+ONOS+Tutorial"
 
   sdnip:
@@ -98,7 +99,7 @@ tutorials:
     pass: $6$rounds=656000$PFDQnzQR8r0zusoI$kM.LQFdDkAMLm7rHRh94K.VqtmTVj9fb8jwaFm2jZsF9SUGJTuMxt6IUdPp445seAOcmnVpzwk3v85bPHZtLL/
     cell: "1node"
     mininet_exec: sudo mn --custom /home/sdnip/sdnip/tutorial.py --topo sdnip --controller remote,{{ lxc.lxc_one.ip }} --nolistenport
-    reset_exec: /home/ubuntu/reset-to-1.sh
+    reset_exec: sudo -H -u ubuntu -E /home/ubuntu/reset-to-1.sh
     url: "https://wiki.onosproject.org/display/ONOS/SDN-IP+Tutorial"
     packages: [ "quagga" ]
 
@@ -108,7 +109,7 @@ tutorials:
     cell: "1node"
     mininet_exec: sudo -E python /home/ubuntu/onos/tools/test/topos/opticalTest.py {{ lxc.lxc_one.ip }}
     lincoe_exec: sudo /home/ubuntu/linc-oe/rel/linc/bin/linc attach
-    reset_exec: /home/ubuntu/reset-to-1.sh proxyarp,optical
+    reset_exec: sudo -H -u ubuntu -E /home/ubuntu/reset-to-1.sh proxyarp,optical
     url: "https://wiki.onosproject.org/display/ONOS/Packet+Optical+Tutorial"
     packages: [ "make", "libncurses5-dev" ]
     erlang:
@@ -127,7 +128,7 @@ tutorials:
     pass: $6$rounds=656000$OR9O9v15WVPqoXyu$eaBtzH9xhqi9E10U2kSlT2ltFzgpPU81yRBE6mCY.Ln9YzIYDnNys5gnPtflw1OJqa8L.8h6mPB.sIETd.oTm0
     cell: "3node"
     mininet_exec: cd /home/distributed/onos-byon/ && ./startmn.sh
-    reset_exec: /home/ubuntu/reset-to-3.sh
+    reset_exec: sudo -H -u ubuntu -E /home/ubuntu/reset-to-3.sh
     url: "https://wiki.onosproject.org/display/ONOS/Distributed+ONOS+Tutorial"
     byon_app_repo_url: "https://github.com/bocon13/onos-byon.git"
     byon_app_version: "starter-{{ onos_version }}.0"

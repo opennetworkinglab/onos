@@ -28,11 +28,11 @@
   environment:
     ONOS_ROOT: /home/ubuntu/onos
   args:
-    chdir: "/home/ubuntu/onos/tools/build"
+    chdir: "/home/ubuntu/onos"
   become: yes
   become_user: ubuntu
   with_items:
-    - "./onos-buck build onos"
+    - "~/bin/bazel build onos"
 
 - name: Creating 1 node ONOS cell
   template:
@@ -82,6 +82,7 @@
     ONOS_ROOT: /home/ubuntu/onos
   args:
     executable: /bin/bash
+  ignore_errors: yes
 
 - name: Adding ONOS to startup
   become: yes

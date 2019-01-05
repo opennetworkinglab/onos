@@ -1,0 +1,14 @@
+- name: Download bazel binary installer
+  get_url:
+    url: "{{ bazel_url }}"
+    dest: /home/ubuntu/bazel.sh
+    owner: ubuntu
+    group: ubuntu
+    mode: 0550
+
+- name: Install bazel
+  shell: "./bazel.sh --user"
+  args:
+    chdir: "/home/ubuntu"
+  become: yes
+  become_user: ubuntu
