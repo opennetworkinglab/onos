@@ -211,6 +211,15 @@ public class ApplicationArchive
                     stageSelfContainedJar(bis, desc);
                 }
 
+                /*
+                 * Reset the ZIP file and reparse the app description now
+                 * that the ZIP is expanded onto the filesystem. This way any
+                 * file referenced as part of the description (i.e. app.png)
+                 * can be loaded into the app description.
+                 */
+                bis.reset();
+                desc = parseZippedAppDescription(bis);
+
                 bis.reset();
                 saveApplication(bis, desc, isSelfContainedJar);
             }
@@ -386,7 +395,11 @@ public class ApplicationArchive
     // features.xml, .jar or a directory; false if anything else.
     private boolean isTopLevel(File file) {
         String name = file.getName();
-        return name.equals(APP_XML) || name.endsWith(FEATURES_XML) || name.endsWith(JAR) || file.isDirectory();
+        return name.equals(APP_PNG)
+            || name.equals(APP_XML)
+            || name.endsWith(FEATURES_XML)
+            || name.endsWith(JAR)
+            || file.isDirectory();
     }
 
     // Expands the self-contained JAR stream into the app-specific directory,
