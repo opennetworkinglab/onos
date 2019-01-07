@@ -24,7 +24,6 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.apache.karaf.features.Feature;
 import org.apache.karaf.features.FeaturesService;
-import org.onlab.util.SharedScheduledExecutors;
 import org.onosproject.cluster.ClusterAdminService;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -34,8 +33,12 @@ import org.osgi.service.component.runtime.dto.ComponentDescriptionDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+
+import static org.onlab.util.Tools.groupedThreads;
 
 /**
  * Monitors the system to make sure that all bundles and their components
@@ -59,20 +62,22 @@ public class ComponentsMonitor {
     protected ClusterAdminService clusterAdminService;
 
     private BundleContext bundleContext;
+
+    private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor(
+            groupedThreads("components-monitor", "%d", log));
     private ScheduledFuture<?> poller;
 
     @Activate
     protected void activate(ComponentContext context) {
         bundleContext = context.getBundleContext();
-        poller = SharedScheduledExecutors.getSingleThreadExecutor()
-                .scheduleAtFixedRate(this::checkStartedState, PERIOD,
-                                     PERIOD, TimeUnit.MILLISECONDS);
+        poller = executor.scheduleAtFixedRate(this::checkStartedState, PERIOD, PERIOD, TimeUnit.MILLISECONDS);
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
         poller.cancel(false);
+        executor.shutdownNow();
         log.info("Stopped");
     }
 
