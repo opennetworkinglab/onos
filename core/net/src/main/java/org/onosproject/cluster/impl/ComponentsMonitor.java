@@ -143,16 +143,26 @@ public class ComponentsMonitor {
         }
     }
 
+    private boolean needToCheck(Feature feature) {
+        // We only need to check core ONOS features, not external ones.
+        return feature.getId().startsWith("onos-") &&
+               !feature.getId().contains("thirdparty");
+    }
+
     private boolean isFullyStarted(Feature feature) {
-        try {
-            return feature.getBundles().stream()
+        if (needToCheck(feature)) {
+            try {
+                return feature.getBundles().stream()
                     .map(info -> bundleContext.getBundle())
                     .allMatch(this::isFullyStarted);
-        } catch (NullPointerException npe) {
-            // FIXME: Remove this catch block when Felix fixes the bug
-            // Due to a bug in the Felix implementation, this can throw an NPE.
-            // Catch the error and do something sensible with it.
-            return false;
+            } catch (NullPointerException npe) {
+                // FIXME: Remove this catch block when Felix fixes the bug
+                // Due to a bug in the Felix implementation, this can throw an NPE.
+                // Catch the error and do something sensible with it.
+                return false;
+            }
+        } else {
+            return true;
         }
     }
 
