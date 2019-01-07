@@ -21,7 +21,7 @@
         <property name="requestMediaType">application/json</property>
         <property name="responseMediaType">application/json</property>
     </config>
-    <config name="rest-connector" swVersion="1.0" extends="rest" enabled="false">
+    <config name="rest-connector" swVersion="1.0" extends="rest" status="disabled">
         <property name="endpoint">telemetry</property>
         <property name="method">POST</property>
     </config>

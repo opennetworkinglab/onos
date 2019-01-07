@@ -24,8 +24,9 @@ public interface TelemetryAdminService extends TelemetryService {
      * Prepares and launches the telemetry producer.
      *
      * @param name telemetry service name
+     * @return true if the service is successfully started, false otherwise
      */
-    void start(String name);
+    boolean start(String name);
 
     /**
      * Terminates the telemetry producer.
@@ -38,8 +39,9 @@ public interface TelemetryAdminService extends TelemetryService {
      * Restarts the telemetry producer.
      *
      * @param name telemetry service name
+     * @return true if the service is successfully restarted, false otherwise
      */
-    void restart(String name);
+    boolean restart(String name);
 
     /**
      * Launches all telemetry services.

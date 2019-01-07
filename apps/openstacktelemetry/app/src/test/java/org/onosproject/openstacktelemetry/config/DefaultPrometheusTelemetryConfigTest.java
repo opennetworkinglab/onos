@@ -31,6 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.ConfigType.PROMETHEUS;
+import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.Status.DISABLED;
 import static org.onosproject.openstacktelemetry.config.DefaultPrometheusTelemetryConfig.ADDRESS;
 import static org.onosproject.openstacktelemetry.config.DefaultPrometheusTelemetryConfig.PORT;
 import static org.onosproject.openstacktelemetry.config.DefaultPrometheusTelemetryConfig.fromTelemetryConfig;
@@ -128,7 +129,7 @@ public class DefaultPrometheusTelemetryConfigTest {
         props.put(PORT, String.valueOf(PORT_1));
 
         TelemetryConfig config = new DefaultTelemetryConfig(DUMMY, PROMETHEUS,
-                ImmutableList.of(), DUMMY, DUMMY, false, props);
+                ImmutableList.of(), DUMMY, DUMMY, DISABLED, props);
 
         PrometheusTelemetryConfig prometheusConfig = fromTelemetryConfig(config);
         assertThat(prometheusConfig.address(), is(IP_ADDRESS_1));

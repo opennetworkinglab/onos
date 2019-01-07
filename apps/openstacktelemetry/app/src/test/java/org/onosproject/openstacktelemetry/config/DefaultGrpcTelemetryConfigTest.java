@@ -31,6 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.ConfigType.GRPC;
+import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.Status.ENABLED;
 import static org.onosproject.openstacktelemetry.config.DefaultGrpcTelemetryConfig.ADDRESS;
 import static org.onosproject.openstacktelemetry.config.DefaultGrpcTelemetryConfig.MAX_INBOUND_MSG_SIZE;
 import static org.onosproject.openstacktelemetry.config.DefaultGrpcTelemetryConfig.PORT;
@@ -146,7 +147,7 @@ public final class DefaultGrpcTelemetryConfigTest {
         props.put(MAX_INBOUND_MSG_SIZE, String.valueOf(MSG_SIZE_1));
         props.put(USE_PLAINTEXT, String.valueOf(USE_PLAIN_TEXT_1));
         TelemetryConfig config = new DefaultTelemetryConfig(DUMMY, GRPC,
-                ImmutableList.of(), DUMMY, DUMMY, false, props);
+                ImmutableList.of(), DUMMY, DUMMY, ENABLED, props);
 
         GrpcTelemetryConfig grpcConfig = fromTelemetryConfig(config);
         assertThat(grpcConfig.address(), is(IP_ADDRESS_1));

@@ -21,7 +21,7 @@
         <property name="retries">0</property>
     </config>
     <config name="tina-kafka-exporter" manufacturer="SK Telecom"
-            swVersion="1.0" extends="kafka" enabled="false">
+            swVersion="1.0" extends="kafka" status="disabled">
         <property name="batchSize">16384</property>
         <property name="lingerMs">1</property>
         <property name="memoryBuffer">33554432</property>

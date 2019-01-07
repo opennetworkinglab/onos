@@ -47,7 +47,11 @@ public class TelemetryConfigEvent
         /**
          * Signifies that a telemetry service is disabled.
          */
-        SERVICE_DISABLED
+        SERVICE_DISABLED,
+        /**
+         * Signifies that a telemetry service in a pending status due to previous error.
+         */
+        SERVICE_PENDING
     }
 
     /**

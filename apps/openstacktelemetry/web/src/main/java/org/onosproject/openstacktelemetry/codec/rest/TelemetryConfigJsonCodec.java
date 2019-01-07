@@ -40,7 +40,7 @@ public final class TelemetryConfigJsonCodec extends JsonCodec<TelemetryConfig> {
     private static final String TYPE = "type";
     private static final String MANUFACTURER = "manufacturer";
     private static final String SW_VERSION = "swVersion";
-    private static final String ENABLED = "enabled";
+    private static final String STATUS = "status";
     private static final String PROPS = "props";
     private static final String KEY = "key";
     private static final String VALUE = "value";
@@ -56,7 +56,7 @@ public final class TelemetryConfigJsonCodec extends JsonCodec<TelemetryConfig> {
                 .put(TYPE, config.type().name())
                 .put(MANUFACTURER, config.manufacturer())
                 .put(SW_VERSION, config.swVersion())
-                .put(ENABLED, config.enabled());
+                .put(STATUS, config.status().name());
 
         Map<String, String> props = config.properties();
         ArrayNode propsJson = context.mapper().createArrayNode();
@@ -94,9 +94,9 @@ public final class TelemetryConfigJsonCodec extends JsonCodec<TelemetryConfig> {
         String swVersion = nullIsIllegal(json.get(SW_VERSION),
                 SW_VERSION + MISSING_MESSAGE).asText();
 
-        // parse enabled flag
-        boolean enabled = nullIsIllegal(json.get(ENABLED),
-                ENABLED + MISSING_MESSAGE).asBoolean();
+        // parse status
+        TelemetryConfig.Status status = status(nullIsIllegal(json.get(STATUS),
+                STATUS + MISSING_MESSAGE).asText());
 
         JsonNode propertiesJson = json.get(PROPS);
         Map<String, String> properties = Maps.newConcurrentMap();
@@ -109,7 +109,20 @@ public final class TelemetryConfigJsonCodec extends JsonCodec<TelemetryConfig> {
         }
 
         return new DefaultTelemetryConfig(name, configType,
-                ImmutableList.of(), manufacturer, swVersion, enabled, properties);
+                ImmutableList.of(), manufacturer, swVersion, status, properties);
+    }
+
+    private TelemetryConfig.Status status(String status) {
+        switch (status.toUpperCase()) {
+            case "ENABLED" :
+                return TelemetryConfig.Status.ENABLED;
+            case "DISABLED" :
+                return TelemetryConfig.Status.DISABLED;
+            case "PENDING" :
+                return TelemetryConfig.Status.PENDING;
+            default:
+                return TelemetryConfig.Status.UNKNOWN;
+        }
     }
 
     private TelemetryConfig.ConfigType configType(String type) {

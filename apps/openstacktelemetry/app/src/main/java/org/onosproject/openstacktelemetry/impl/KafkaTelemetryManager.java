@@ -44,7 +44,9 @@ import java.util.concurrent.Future;
 
 import static org.onosproject.openstacktelemetry.api.Constants.KAFKA_SCHEME;
 import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.ConfigType.KAFKA;
+import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.Status.ENABLED;
 import static org.onosproject.openstacktelemetry.config.DefaultKafkaTelemetryConfig.fromTelemetryConfig;
+import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.testConnectivity;
 
 /**
  * Kafka telemetry manager.
@@ -123,12 +125,13 @@ public class KafkaTelemetryManager implements KafkaTelemetryAdminService {
     }
 
     @Override
-    public void start(String name) {
+    public boolean start(String name) {
+        boolean success = false;
         TelemetryConfig config = telemetryConfigService.getConfig(name);
         KafkaTelemetryConfig kafkaConfig = fromTelemetryConfig(config);
 
-        if (kafkaConfig != null &&
-                !config.name().equals(KAFKA_SCHEME) && config.enabled()) {
+        if (kafkaConfig != null && !config.name().equals(KAFKA_SCHEME) &&
+                config.status() == ENABLED) {
             StringBuilder kafkaServerBuilder = new StringBuilder();
             kafkaServerBuilder.append(kafkaConfig.address());
             kafkaServerBuilder.append(":");
@@ -145,8 +148,17 @@ public class KafkaTelemetryManager implements KafkaTelemetryAdminService {
             prop.put(KEY_SERIALIZER, kafkaConfig.keySerializer());
             prop.put(VALUE_SERIALIZER, kafkaConfig.valueSerializer());
 
-            producers.put(name, new KafkaProducer<>(prop));
+            if (testConnectivity(kafkaConfig.address(), kafkaConfig.port())) {
+                producers.put(name, new KafkaProducer<>(prop));
+                success = true;
+            } else {
+                log.warn("Unable to connect to {}:{}, " +
+                            "please check the connectivity manually",
+                            kafkaConfig.address(), kafkaConfig.port());
+            }
         }
+
+        return success;
     }
 
     @Override
@@ -160,9 +172,9 @@ public class KafkaTelemetryManager implements KafkaTelemetryAdminService {
     }
 
     @Override
-    public void restart(String name) {
+    public boolean restart(String name) {
         stop(name);
-        start(name);
+        return start(name);
     }
 
     @Override

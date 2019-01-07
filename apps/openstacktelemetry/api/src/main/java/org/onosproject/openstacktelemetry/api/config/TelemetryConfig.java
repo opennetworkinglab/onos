@@ -61,6 +61,28 @@ public interface TelemetryConfig extends Annotations {
         UNKNOWN
     }
 
+    enum Status {
+        /**
+         * Signifies that the service is in enable status.
+         */
+        ENABLED,
+
+        /**
+         * Signifies that the service is in disable status.
+         */
+        DISABLED,
+
+        /**
+         * Signifies that the service is in pending status.
+         */
+        PENDING,
+
+        /**
+         * Signifies that the service is in unknown status.
+         */
+        UNKNOWN,
+    }
+
     /**
      * Returns the telemetry configuration name.
      *
@@ -98,11 +120,11 @@ public interface TelemetryConfig extends Annotations {
     String swVersion();
 
     /**
-     * Returns the service enable flag.
+     * Returns the service status.
      *
-     * @return enable flag
+     * @return service status
      */
-    boolean enabled();
+    Status status();
 
     /**
      * Returns the set of annotations as map of key/value properties.
@@ -153,10 +175,10 @@ public interface TelemetryConfig extends Annotations {
     TelemetryConfig updateProperties(Map<String, String> properties);
 
     /**
-     * Obtains the cloned instance with updated enabled value.
+     * Obtains the cloned instance with updated status.
      *
-     * @param enabled service flag
+     * @param status service status
      * @return a cloned instance
      */
-    TelemetryConfig updateEnabled(boolean enabled);
+    TelemetryConfig updateStatus(Status status);
 }

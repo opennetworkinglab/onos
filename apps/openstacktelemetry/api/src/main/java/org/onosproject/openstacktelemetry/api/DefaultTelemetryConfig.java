@@ -41,7 +41,7 @@ public final class DefaultTelemetryConfig implements TelemetryConfig {
 
     private final String manufacturer;
     private final String swVersion;
-    private final boolean enabled;
+    private final Status status;
 
     private final Map<String, String> properties;
 
@@ -53,20 +53,20 @@ public final class DefaultTelemetryConfig implements TelemetryConfig {
      * @param parents       optional parent configurations
      * @param manufacturer  off-platform application manufacturer
      * @param swVersion     off-platform application software version
-     * @param enabled       service enable flag
+     * @param status        service status
      * @param properties    properties for telemetry configuration
      */
     public DefaultTelemetryConfig(String name, ConfigType type,
                                   List<TelemetryConfig> parents,
                                   String manufacturer, String swVersion,
-                                  boolean enabled, Map<String, String> properties) {
+                                  Status status, Map<String, String> properties) {
         this.name = checkNotNull(name, "Name cannot be null");
         this.type = checkNotNull(type, "type cannot be null");
         this.parents = parents == null ? ImmutableList.of() : ImmutableList.copyOf(parents);
         this.manufacturer = checkNotNull(manufacturer, "Manufacturer cannot be null");
         this.swVersion = checkNotNull(swVersion, "SW version cannot be null");
         this.properties = copyOf(checkNotNull(properties, "Properties cannot be null"));
-        this.enabled = enabled;
+        this.status = checkNotNull(status, "status cannot be null");
     }
 
     @Override
@@ -99,8 +99,8 @@ public final class DefaultTelemetryConfig implements TelemetryConfig {
     }
 
     @Override
-    public boolean enabled() {
-        return enabled;
+    public Status status() {
+        return status;
     }
 
     @Override
@@ -155,20 +155,20 @@ public final class DefaultTelemetryConfig implements TelemetryConfig {
 
         return new DefaultTelemetryConfig(name, type,
                 !completeParents.isEmpty() ? completeParents : other.parents(),
-                manufacturer, swVersion, enabled, properties.build());
+                manufacturer, swVersion, status, properties.build());
     }
 
     @Override
     public TelemetryConfig updateProperties(Map<String, String> properties) {
 
         return new DefaultTelemetryConfig(name, type, parents, manufacturer,
-                swVersion, enabled, properties);
+                swVersion, status, properties);
     }
 
     @Override
-    public TelemetryConfig updateEnabled(boolean enabled) {
+    public TelemetryConfig updateStatus(Status status) {
         return new DefaultTelemetryConfig(name, type, parents, manufacturer,
-                swVersion, enabled, properties);
+                swVersion, status, properties);
     }
 
     @Override
@@ -189,7 +189,7 @@ public final class DefaultTelemetryConfig implements TelemetryConfig {
                 .add("parents", parents)
                 .add("manufacturer", manufacturer)
                 .add("swVersion", swVersion)
-                .add("enabled", enabled)
+                .add("status", status)
                 .add("properties", properties)
                 .toString();
     }

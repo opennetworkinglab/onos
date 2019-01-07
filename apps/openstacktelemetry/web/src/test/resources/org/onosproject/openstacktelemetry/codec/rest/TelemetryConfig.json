@@ -3,7 +3,7 @@
   "type": "GRPC",
   "manufacturer": "grpc.io",
   "swVersion": "1.0",
-  "enabled": true,
+  "status": "enabled",
   "props": [
     {
       "key": "address",

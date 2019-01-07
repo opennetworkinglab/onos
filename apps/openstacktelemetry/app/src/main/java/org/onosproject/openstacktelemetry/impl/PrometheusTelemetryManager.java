@@ -43,6 +43,7 @@ import java.util.Set;
 
 import static org.onosproject.openstacktelemetry.api.Constants.PROMETHEUS_SCHEME;
 import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.ConfigType.PROMETHEUS;
+import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.Status.ENABLED;
 import static org.onosproject.openstacktelemetry.config.DefaultPrometheusTelemetryConfig.fromTelemetryConfig;
 
 /**
@@ -207,55 +208,19 @@ public class PrometheusTelemetryManager implements PrometheusTelemetryAdminServi
         }
     }
 
-    private String[] getLabelValues(FlowInfo flowInfo) {
-        String[] labelValues = new String[LABEL_TAGS.length];
-
-        labelValues[Arrays.asList(LABEL_TAGS).indexOf(FLOW_TYPE)]
-                    = String.valueOf(flowInfo.flowType());
-        labelValues[Arrays.asList(LABEL_TAGS).indexOf(DEVICE_ID)]
-                    = flowInfo.deviceId().toString();
-        labelValues[Arrays.asList(LABEL_TAGS).indexOf(INPUT_INTERFACE_ID)]
-                    = String.valueOf(flowInfo.inputInterfaceId());
-        labelValues[Arrays.asList(LABEL_TAGS).indexOf(OUTPUT_INTERFACE_ID)]
-                    = String.valueOf(flowInfo.outputInterfaceId());
-        labelValues[Arrays.asList(LABEL_TAGS).indexOf(VXLAN_ID)]
-                    = String.valueOf(flowInfo.vxlanId());
-        labelValues[Arrays.asList(LABEL_TAGS).indexOf(SRC_IP)]
-                    = flowInfo.srcIp().toString();
-        labelValues[Arrays.asList(LABEL_TAGS).indexOf(DST_IP)]
-                    = flowInfo.dstIp().toString();
-        labelValues[Arrays.asList(LABEL_TAGS).indexOf(SRC_PORT)]
-                    = getTpPort(flowInfo.srcPort());
-        labelValues[Arrays.asList(LABEL_TAGS).indexOf(DST_PORT)]
-                    = getTpPort(flowInfo.dstPort());
-        labelValues[Arrays.asList(LABEL_TAGS).indexOf(PROTOCOL)]
-                    = String.valueOf(flowInfo.protocol());
-        if (flowInfo.vlanId() != null) {
-            labelValues[Arrays.asList(LABEL_TAGS).indexOf(VLAN_ID)]
-                    = flowInfo.vlanId().toString();
-        }
-        return labelValues;
-    }
-
-    private String getTpPort(TpPort tpPort) {
-        if (tpPort == null) {
-            return "";
-        }
-        return tpPort.toString();
-    }
-
     @Override
     public boolean isRunning() {
         return !prometheusExporters.isEmpty();
     }
 
     @Override
-    public void start(String name) {
+    public boolean start(String name) {
+        boolean success = false;
         TelemetryConfig config = telemetryConfigService.getConfig(name);
         PrometheusTelemetryConfig prometheusConfig = fromTelemetryConfig(config);
 
-        if (prometheusConfig != null &&
-                !config.name().equals(PROMETHEUS_SCHEME) && config.enabled()) {
+        if (prometheusConfig != null && !config.name().equals(PROMETHEUS_SCHEME) &&
+                config.status() == ENABLED) {
             try {
                 // TODO  Offer a 'Authentication'
                 Server prometheusExporter = new Server(prometheusConfig.port());
@@ -270,10 +235,14 @@ public class PrometheusTelemetryManager implements PrometheusTelemetryAdminServi
 
                 prometheusExporters.put(name, prometheusExporter);
 
+                success = true;
+
             } catch (Exception ex) {
-                log.warn("Exception: {}", ex);
+                log.warn("Failed to start prometheus server due to {}", ex);
             }
         }
+
+        return success;
     }
 
     @Override
@@ -290,8 +259,45 @@ public class PrometheusTelemetryManager implements PrometheusTelemetryAdminServi
     }
 
     @Override
-    public void restart(String name) {
+    public boolean restart(String name) {
         stop(name);
-        start(name);
+        return start(name);
+    }
+
+    private String[] getLabelValues(FlowInfo flowInfo) {
+        String[] labelValues = new String[LABEL_TAGS.length];
+
+        labelValues[Arrays.asList(LABEL_TAGS).indexOf(FLOW_TYPE)]
+                = String.valueOf(flowInfo.flowType());
+        labelValues[Arrays.asList(LABEL_TAGS).indexOf(DEVICE_ID)]
+                = flowInfo.deviceId().toString();
+        labelValues[Arrays.asList(LABEL_TAGS).indexOf(INPUT_INTERFACE_ID)]
+                = String.valueOf(flowInfo.inputInterfaceId());
+        labelValues[Arrays.asList(LABEL_TAGS).indexOf(OUTPUT_INTERFACE_ID)]
+                = String.valueOf(flowInfo.outputInterfaceId());
+        labelValues[Arrays.asList(LABEL_TAGS).indexOf(VXLAN_ID)]
+                = String.valueOf(flowInfo.vxlanId());
+        labelValues[Arrays.asList(LABEL_TAGS).indexOf(SRC_IP)]
+                = flowInfo.srcIp().toString();
+        labelValues[Arrays.asList(LABEL_TAGS).indexOf(DST_IP)]
+                = flowInfo.dstIp().toString();
+        labelValues[Arrays.asList(LABEL_TAGS).indexOf(SRC_PORT)]
+                = getTpPort(flowInfo.srcPort());
+        labelValues[Arrays.asList(LABEL_TAGS).indexOf(DST_PORT)]
+                = getTpPort(flowInfo.dstPort());
+        labelValues[Arrays.asList(LABEL_TAGS).indexOf(PROTOCOL)]
+                = String.valueOf(flowInfo.protocol());
+        if (flowInfo.vlanId() != null) {
+            labelValues[Arrays.asList(LABEL_TAGS).indexOf(VLAN_ID)]
+                    = flowInfo.vlanId().toString();
+        }
+        return labelValues;
+    }
+
+    private String getTpPort(TpPort tpPort) {
+        if (tpPort == null) {
+            return "";
+        }
+        return tpPort.toString();
     }
 }

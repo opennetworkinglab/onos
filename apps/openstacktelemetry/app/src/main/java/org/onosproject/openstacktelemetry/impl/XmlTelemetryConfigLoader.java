@@ -36,7 +36,6 @@ import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.Conf
 import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.ConfigType.KAFKA;
 import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.ConfigType.PROMETHEUS;
 import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.ConfigType.REST;
-import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.ConfigType.UNKNOWN;
 
 /**
  * Utility capable of reading telemetry configuration XML resources and producing
@@ -61,14 +60,12 @@ public class XmlTelemetryConfigLoader {
 
     private static final String PROPERTY = "property";
 
-    private static final String TRUE = "true";
-
     private static final String NAME = "[@name]";
     private static final String TYPE = "[@type]";
     private static final String EXTENDS = "[@extends]";
     private static final String MFG = "[@manufacturer]";
     private static final String SW = "[@swVersion]";
-    private static final String ENABLED = "[@enabled]";
+    private static final String STATUS = "[@status]";
 
     private Map<String, TelemetryConfig> configs = Maps.newHashMap();
 
@@ -148,9 +145,9 @@ public class XmlTelemetryConfigLoader {
         String swVersion = telemetryCfg.getString(SW, getParentAttribute(parents, SW));
 
         // note that we do not inherits enabled property from parent
-        String enabledStr = telemetryCfg.getString(ENABLED);
-
-        boolean enabled = enabledStr != null && enabledStr.equalsIgnoreCase(TRUE);
+        String statusStr = telemetryCfg.getString(STATUS);
+        TelemetryConfig.Status status =
+                statusStr == null ? TelemetryConfig.Status.UNKNOWN : status(statusStr);
 
         TelemetryConfig.ConfigType type = type(typeStr);
 
@@ -159,7 +156,7 @@ public class XmlTelemetryConfigLoader {
         }
 
         return new DefaultTelemetryConfig(name, type, parents, manufacturer,
-                swVersion, enabled, parseProperties(parents, telemetryCfg));
+                swVersion, status, parseProperties(parents, telemetryCfg));
     }
 
     private TelemetryConfig.ConfigType type(String typeStr) {
@@ -176,7 +173,7 @@ public class XmlTelemetryConfigLoader {
                 return PROMETHEUS;
             case "UNKNOWN":
             default:
-                return UNKNOWN;
+                return TelemetryConfig.ConfigType.UNKNOWN;
         }
     }
 
@@ -223,5 +220,18 @@ public class XmlTelemetryConfigLoader {
         }
 
         return properties.build();
+    }
+
+    private TelemetryConfig.Status status(String status) {
+        switch (status.toUpperCase()) {
+            case "ENABLED" :
+                return TelemetryConfig.Status.ENABLED;
+            case "DISABLED" :
+                return TelemetryConfig.Status.DISABLED;
+            case "PENDING" :
+                return TelemetryConfig.Status.PENDING;
+            default:
+                return TelemetryConfig.Status.UNKNOWN;
+        }
     }
 }

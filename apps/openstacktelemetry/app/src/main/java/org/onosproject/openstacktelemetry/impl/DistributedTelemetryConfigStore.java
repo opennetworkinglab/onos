@@ -54,6 +54,10 @@ import static org.onosproject.openstacktelemetry.api.TelemetryConfigEvent.Type.C
 import static org.onosproject.openstacktelemetry.api.TelemetryConfigEvent.Type.CONFIG_UPDATED;
 import static org.onosproject.openstacktelemetry.api.TelemetryConfigEvent.Type.SERVICE_DISABLED;
 import static org.onosproject.openstacktelemetry.api.TelemetryConfigEvent.Type.SERVICE_ENABLED;
+import static org.onosproject.openstacktelemetry.api.TelemetryConfigEvent.Type.SERVICE_PENDING;
+import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.Status.DISABLED;
+import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.Status.ENABLED;
+import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.Status.PENDING;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -76,6 +80,7 @@ public class DistributedTelemetryConfigStore
                     .register(DefaultTelemetryConfigProvider.class)
                     .register(TelemetryConfig.class)
                     .register(TelemetryConfig.ConfigType.class)
+                    .register(TelemetryConfig.Status.class)
                     .register(DefaultTelemetryConfig.class)
                     .build();
 
@@ -210,14 +215,19 @@ public class DistributedTelemetryConfigStore
             TelemetryConfig oldValue = event.oldValue().value();
             TelemetryConfig newValue = event.newValue().value();
 
-            if (oldValue.enabled() && !newValue.enabled()) {
+            if (oldValue.status() != DISABLED && newValue.status() == DISABLED) {
                 log.debug("Telemetry service {} has been disabled!", newValue.name());
                 notifyDelegate(new TelemetryConfigEvent(SERVICE_DISABLED, newValue));
             }
 
-            if (!oldValue.enabled() && newValue.enabled()) {
+            if (oldValue.status() != ENABLED && newValue.status() == ENABLED) {
                 log.debug("Telemetry service {} has been enabled!", newValue.name());
                 notifyDelegate(new TelemetryConfigEvent(SERVICE_ENABLED, newValue));
+            }
+
+            if (oldValue.status() != PENDING && newValue.status() == PENDING) {
+                log.debug("Telemetry service {} was pended!", newValue.name());
+                notifyDelegate(new TelemetryConfigEvent(SERVICE_PENDING, newValue));
             }
         }
     }

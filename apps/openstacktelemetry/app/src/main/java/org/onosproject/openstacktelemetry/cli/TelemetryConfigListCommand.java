@@ -48,7 +48,7 @@ public class TelemetryConfigListCommand extends AbstractShellCommand {
         for (TelemetryConfig config : configs) {
             print(FORMAT, config.name(),
                     config.type(),
-                    config.enabled() ? "ENABLED" : "DISABLED",
+                    config.status().name(),
                     config.manufacturer(),
                     config.swVersion());
         }

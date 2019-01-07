@@ -31,6 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.ConfigType.INFLUXDB;
+import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.Status.DISABLED;
 import static org.onosproject.openstacktelemetry.config.DefaultInfluxDbTelemetryConfig.ADDRESS;
 import static org.onosproject.openstacktelemetry.config.DefaultInfluxDbTelemetryConfig.DATABASE;
 import static org.onosproject.openstacktelemetry.config.DefaultInfluxDbTelemetryConfig.ENABLE_BATCH;
@@ -174,7 +175,7 @@ public final class DefaultInfluxDbTelemetryConfigTest {
         props.put(MEASUREMENT, MEASUREMENT_1);
 
         TelemetryConfig config = new DefaultTelemetryConfig(DUMMY, INFLUXDB,
-                ImmutableList.of(), DUMMY, DUMMY, false, props);
+                ImmutableList.of(), DUMMY, DUMMY, DISABLED, props);
 
         InfluxDbTelemetryConfig influxDbConfig = fromTelemetryConfig(config);
         assertThat(influxDbConfig.address(), is(IP_ADDRESS_1));

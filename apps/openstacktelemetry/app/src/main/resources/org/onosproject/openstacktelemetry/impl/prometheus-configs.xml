@@ -21,6 +21,6 @@
     </config>
 
     <config name="sona-prometheus-exporter" manufacturer="SK Telecom"
-            swVersion="1.0" extends="prometheus" enabled="false">
+            swVersion="1.0" extends="prometheus" status="disabled">
     </config>
 </configs>

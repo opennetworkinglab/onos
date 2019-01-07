@@ -25,9 +25,9 @@ import org.onosproject.openstacktelemetry.api.OpenstackTelemetryService;
 import org.onosproject.openstacktelemetry.api.PrometheusTelemetryService;
 import org.onosproject.openstacktelemetry.api.RestTelemetryService;
 import org.onosproject.openstacktelemetry.api.TelemetryAdminService;
+import org.onosproject.openstacktelemetry.api.TelemetryConfigAdminService;
 import org.onosproject.openstacktelemetry.api.TelemetryConfigEvent;
 import org.onosproject.openstacktelemetry.api.TelemetryConfigListener;
-import org.onosproject.openstacktelemetry.api.TelemetryConfigService;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.onosproject.openstacktelemetry.api.Constants.DEFAULT_INFLUXDB_MEASUREMENT;
+import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.Status.PENDING;
 
 /**
  * Openstack telemetry manager.
@@ -50,7 +51,7 @@ public class OpenstackTelemetryManager implements OpenstackTelemetryService {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    protected TelemetryConfigService telemetryConfigService;
+    protected TelemetryConfigAdminService telemetryConfigService;
 
     private List<TelemetryAdminService> telemetryServices = Lists.newArrayList();
     private InternalTelemetryConfigListener
@@ -156,7 +157,12 @@ public class OpenstackTelemetryManager implements OpenstackTelemetryService {
 
             switch (event.type()) {
                 case SERVICE_ENABLED:
-                    service.start(event.subject().name());
+                    if (!service.start(event.subject().name())) {
+                        // we enforce to make the service in PENDING status,
+                        // if we encountered a failure during service start
+                        telemetryConfigService.updateTelemetryConfig(
+                                event.subject().updateStatus(PENDING));
+                    }
                     break;
                 case SERVICE_DISABLED:
                     service.stop(event.subject().name());
