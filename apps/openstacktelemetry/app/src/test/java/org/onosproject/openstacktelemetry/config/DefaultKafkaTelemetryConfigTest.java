@@ -31,6 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.ConfigType.KAFKA;
+import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.Status.DISABLED;
 import static org.onosproject.openstacktelemetry.config.DefaultKafkaTelemetryConfig.ADDRESS;
 import static org.onosproject.openstacktelemetry.config.DefaultKafkaTelemetryConfig.BATCH_SIZE;
 import static org.onosproject.openstacktelemetry.config.DefaultKafkaTelemetryConfig.CODEC;
@@ -215,7 +216,7 @@ public final class DefaultKafkaTelemetryConfigTest {
         props.put(CODEC, CODEC_1);
 
         TelemetryConfig config = new DefaultTelemetryConfig(DUMMY, KAFKA,
-                ImmutableList.of(), DUMMY, DUMMY, false, props);
+                ImmutableList.of(), DUMMY, DUMMY, DISABLED, props);
 
         KafkaTelemetryConfig kafkaConfig = fromTelemetryConfig(config);
         assertThat(kafkaConfig.address(), is(IP_ADDRESS_1));

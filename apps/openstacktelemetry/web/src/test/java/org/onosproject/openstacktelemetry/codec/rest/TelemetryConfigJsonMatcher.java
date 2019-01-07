@@ -32,7 +32,7 @@ public final class TelemetryConfigJsonMatcher extends TypeSafeDiagnosingMatcher<
     private static final String TYPE = "type";
     private static final String MANUFACTURER = "manufacturer";
     private static final String SW_VERSION = "swVersion";
-    private static final String ENABLED = "enabled";
+    private static final String STATUS = "status";
     private static final String PROPS = "props";
     private static final String KEY = "key";
     private static final String VALUE = "value";
@@ -76,11 +76,11 @@ public final class TelemetryConfigJsonMatcher extends TypeSafeDiagnosingMatcher<
             return false;
         }
 
-        // check enabled
-        JsonNode jsonEnabled = jsonNode.get(ENABLED);
-        boolean enabled = telemetryConfig.enabled();
-        if (jsonEnabled == null || jsonEnabled.asBoolean() != enabled) {
-            description.appendText("Enabled was " + jsonEnabled);
+        // check status
+        JsonNode jsonStatus = jsonNode.get(STATUS);
+        TelemetryConfig.Status status = telemetryConfig.status();
+        if (jsonStatus == null || !jsonStatus.asText().equals(status.name())) {
+            description.appendText("Enabled was " + jsonStatus);
             return false;
         }
 

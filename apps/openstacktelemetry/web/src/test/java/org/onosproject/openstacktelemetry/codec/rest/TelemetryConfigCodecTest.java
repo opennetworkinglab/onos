@@ -36,13 +36,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertTrue;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.onosproject.net.NetTestTools.APP_ID;
+import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.Status.ENABLED;
 import static org.onosproject.openstacktelemetry.codec.rest.TelemetryConfigJsonMatcher.matchesTelemetryConfig;
 
 /**
@@ -80,14 +80,14 @@ public class TelemetryConfigCodecTest {
         TelemetryConfig.ConfigType type = TelemetryConfig.ConfigType.GRPC;
         String manufacturer = "grpc.io";
         String swVersion = "1.0";
-        boolean enabled = true;
+        TelemetryConfig.Status status = ENABLED;
 
         Map<String, String> properties = Maps.newConcurrentMap();
         properties.put("key1", "value1");
         properties.put("key2", "value2");
 
         TelemetryConfig config = new DefaultTelemetryConfig(name, type,
-                ImmutableList.of(), manufacturer, swVersion, enabled, properties);
+                ImmutableList.of(), manufacturer, swVersion, status, properties);
 
         ObjectNode configJson = telemetryConfigCodec.encode(config, context);
         assertThat(configJson, matchesTelemetryConfig(config));
@@ -104,7 +104,7 @@ public class TelemetryConfigCodecTest {
         assertEquals(config.type().name(), "GRPC");
         assertEquals(config.manufacturer(), "grpc.io");
         assertEquals(config.swVersion(), "1.0");
-        assertTrue(config.enabled());
+        assertEquals(config.status().name(), "ENABLED");
 
         config.properties().forEach((k, v) -> {
             if (k.equals("address")) {

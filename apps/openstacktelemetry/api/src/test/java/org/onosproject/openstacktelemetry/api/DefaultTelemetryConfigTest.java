@@ -26,6 +26,8 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
+import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.Status.DISABLED;
+import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.Status.ENABLED;
 
 /**
  * Unit tests for DefaultTelemetryConfig class.
@@ -56,8 +58,8 @@ public final class DefaultTelemetryConfigTest {
     private static final String PROP_2_VALUE_1 = "value21";
     private static final String PROP_2_VALUE_2 = "value22";
 
-    private static final boolean ENABLED_1 = true;
-    private static final boolean ENABLED_2 = false;
+    private static final TelemetryConfig.Status STATUS_1 = ENABLED;
+    private static final TelemetryConfig.Status STATUS_2 = DISABLED;
 
     private TelemetryConfig config1;
     private TelemetryConfig sameAsConfig1;
@@ -74,11 +76,11 @@ public final class DefaultTelemetryConfigTest {
         PROP_2.put(PROP_2_KEY_2, PROP_2_VALUE_2);
 
         config1 = new DefaultTelemetryConfig(NAME_1, TYPE_1, null,
-                MANUFACTURER_1, SW_VERSION_1, ENABLED_1, PROP_1);
+                MANUFACTURER_1, SW_VERSION_1, STATUS_1, PROP_1);
         sameAsConfig1 = new DefaultTelemetryConfig(NAME_1, TYPE_1, null,
-                MANUFACTURER_1, SW_VERSION_1, ENABLED_1, PROP_1);
+                MANUFACTURER_1, SW_VERSION_1, STATUS_1, PROP_1);
         config2 = new DefaultTelemetryConfig(NAME_2, TYPE_2, null,
-                MANUFACTURER_2, SW_VERSION_2, ENABLED_2, PROP_2);
+                MANUFACTURER_2, SW_VERSION_2, STATUS_2, PROP_2);
     }
 
     /**
@@ -111,6 +113,6 @@ public final class DefaultTelemetryConfigTest {
         assertEquals(config.manufacturer(), MANUFACTURER_1);
         assertEquals(config.swVersion(), SW_VERSION_1);
         assertEquals(config.properties(), PROP_1);
-        assertEquals(config.enabled(), ENABLED_1);
+        assertEquals(config.status(), STATUS_1);
     }
 }

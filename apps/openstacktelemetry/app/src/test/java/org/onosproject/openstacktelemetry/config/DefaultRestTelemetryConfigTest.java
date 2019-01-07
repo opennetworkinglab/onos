@@ -31,6 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.ConfigType.REST;
+import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.Status.DISABLED;
 import static org.onosproject.openstacktelemetry.config.DefaultRestTelemetryConfig.ADDRESS;
 import static org.onosproject.openstacktelemetry.config.DefaultRestTelemetryConfig.ENDPOINT;
 import static org.onosproject.openstacktelemetry.config.DefaultRestTelemetryConfig.METHOD;
@@ -161,7 +162,7 @@ public final class DefaultRestTelemetryConfigTest {
         props.put(RESPONSE_MEDIA_TYPE, RESPONSE_MEDIA_TYPE_1);
 
         TelemetryConfig config = new DefaultTelemetryConfig(DUMMY, REST,
-                ImmutableList.of(), DUMMY, DUMMY, false, props);
+                ImmutableList.of(), DUMMY, DUMMY, DISABLED, props);
         RestTelemetryConfig restConfig = DefaultRestTelemetryConfig.fromTelemetryConfig(config);
         assertThat(restConfig.address(), is(IP_ADDRESS_1));
         assertThat(restConfig.port(), is(PORT_1));

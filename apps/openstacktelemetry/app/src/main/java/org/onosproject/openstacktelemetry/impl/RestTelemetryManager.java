@@ -41,7 +41,9 @@ import java.util.Set;
 
 import static org.onosproject.openstacktelemetry.api.Constants.REST_SCHEME;
 import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.ConfigType.REST;
+import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.Status.ENABLED;
 import static org.onosproject.openstacktelemetry.config.DefaultRestTelemetryConfig.fromTelemetryConfig;
+import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.testConnectivity;
 
 /**
  * REST telemetry manager.
@@ -132,12 +134,13 @@ public class RestTelemetryManager implements RestTelemetryAdminService {
     }
 
     @Override
-    public void start(String name) {
+    public boolean start(String name) {
+        boolean success = false;
         TelemetryConfig config = telemetryConfigService.getConfig(name);
         RestTelemetryConfig restConfig = fromTelemetryConfig(config);
 
-        if (restConfig != null &&
-                !config.name().equals(REST_SCHEME) && config.enabled()) {
+        if (restConfig != null && !config.name().equals(REST_SCHEME) &&
+                config.status() == ENABLED) {
             StringBuilder restServerBuilder = new StringBuilder();
             restServerBuilder.append(PROTOCOL);
             restServerBuilder.append(":");
@@ -147,13 +150,23 @@ public class RestTelemetryManager implements RestTelemetryAdminService {
             restServerBuilder.append(restConfig.port());
             restServerBuilder.append("/");
 
-            Client client = ClientBuilder.newBuilder().build();
+            if (testConnectivity(restConfig.address(), restConfig.port())) {
+                Client client = ClientBuilder.newBuilder().build();
 
-            WebTarget target = client.target(
-                    restServerBuilder.toString()).path(restConfig.endpoint());
+                WebTarget target = client.target(
+                        restServerBuilder.toString()).path(restConfig.endpoint());
 
-            targets.put(config.name(), target);
+                targets.put(config.name(), target);
+
+                success = true;
+            } else {
+                log.warn("Unable to connect to {}:{}, " +
+                                "please check the connectivity manually",
+                                restConfig.address(), restConfig.port());
+            }
         }
+
+        return success;
     }
 
     @Override
@@ -167,8 +180,8 @@ public class RestTelemetryManager implements RestTelemetryAdminService {
     }
 
     @Override
-    public void restart(String name) {
+    public boolean restart(String name) {
         stop(name);
-        start(name);
+        return start(name);
     }
 }

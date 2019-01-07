@@ -21,6 +21,9 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacktelemetry.api.TelemetryConfigAdminService;
 import org.onosproject.openstacktelemetry.api.config.TelemetryConfig;
 
+import static java.lang.Thread.sleep;
+import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.Status.DISABLED;
+
 /**
  * Disables a telemetry service.
  */
@@ -32,7 +35,9 @@ public class TelemetryServiceDisableCommand extends AbstractShellCommand {
             required = true, multiValued = false)
     private String configName = null;
 
-    private static final String FORMAT = "Successfully disabled telemetry service %s!";
+    private static final long SLEEP_MS = 2000; // wait 2s for checking status
+    private static final String SUCCESS_FORMAT = "Successfully disabled telemetry service %s!";
+    private static final String FAIL_FORMAT = "Failed to disable telemetry service %s!";
     private static final String NO_ELEMENT =
             "No telemetry config is found with the given name";
 
@@ -46,9 +51,22 @@ public class TelemetryServiceDisableCommand extends AbstractShellCommand {
             return;
         }
 
-        TelemetryConfig updatedConfig = config.updateEnabled(false);
+        TelemetryConfig updatedConfig = config.updateStatus(DISABLED);
 
         service.updateTelemetryConfig(updatedConfig);
-        print(FORMAT, config.name());
+
+        try {
+            sleep(SLEEP_MS);
+        } catch (InterruptedException e) {
+            error("Exception caused during status checking...");
+        }
+
+        TelemetryConfig finalConfig = service.getConfig(configName);
+
+        if (finalConfig.status() == DISABLED) {
+            print(SUCCESS_FORMAT, config.name());
+        } else {
+            print(FAIL_FORMAT, config.name());
+        }
     }
 }

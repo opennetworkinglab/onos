@@ -82,6 +82,7 @@ public class TelemetryConfigManager
                     .register(DefaultTelemetryConfigProvider.class)
                     .register(TelemetryConfig.class)
                     .register(TelemetryConfig.ConfigType.class)
+                    .register(TelemetryConfig.Status.class)
                     .register(DefaultTelemetryConfig.class)
                     .build();
 

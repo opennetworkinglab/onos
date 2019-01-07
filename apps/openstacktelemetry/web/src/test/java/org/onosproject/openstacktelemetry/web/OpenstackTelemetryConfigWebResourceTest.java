@@ -39,6 +39,7 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.ConfigType.GRPC;
+import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.Status.ENABLED;
 
 /**
  * Unit tests for openstack telemetry config REST API.
@@ -60,7 +61,7 @@ public class OpenstackTelemetryConfigWebResourceTest extends ResourceTest {
     private static final String PROP_VALUE_1 = "value11";
     private static final String PROP_VALUE_2 = "value12";
 
-    private static final boolean ENABLED = true;
+    private static final TelemetryConfig.Status STATUS = ENABLED;
 
     private final TelemetryConfigAdminService mockConfigAdminService =
             createMock(TelemetryConfigAdminService.class);
@@ -90,7 +91,7 @@ public class OpenstackTelemetryConfigWebResourceTest extends ResourceTest {
         PROP.put(PROP_KEY_2, PROP_VALUE_2);
 
         telemetryConfig = new DefaultTelemetryConfig(NAME, TYPE, null,
-                MANUFACTURER, SW_VERSION, ENABLED, PROP);
+                MANUFACTURER, SW_VERSION, STATUS, PROP);
     }
 
     /**

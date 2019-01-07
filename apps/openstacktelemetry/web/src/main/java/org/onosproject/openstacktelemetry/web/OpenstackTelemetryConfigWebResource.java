@@ -38,6 +38,8 @@ import java.util.Map;
 
 import static org.onlab.util.Tools.nullIsIllegal;
 import static org.onlab.util.Tools.nullIsNotFound;
+import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.Status.DISABLED;
+import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.Status.ENABLED;
 
 /**
  * Handles REST API call of openstack telemetry configuration.
@@ -175,7 +177,7 @@ public class OpenstackTelemetryConfigWebResource extends AbstractWebResource {
             log.warn("There is no config found to enable for {}", configName);
             return Response.notModified().build();
         } else {
-            TelemetryConfig updatedConfig = config.updateEnabled(true);
+            TelemetryConfig updatedConfig = config.updateStatus(ENABLED);
             configService.updateTelemetryConfig(updatedConfig);
             return Response.ok().build();
         }
@@ -204,7 +206,7 @@ public class OpenstackTelemetryConfigWebResource extends AbstractWebResource {
             log.warn("There is no config found to disable for {}", configName);
             return Response.notModified().build();
         } else {
-            TelemetryConfig updatedConfig = config.updateEnabled(false);
+            TelemetryConfig updatedConfig = config.updateStatus(DISABLED);
             configService.updateTelemetryConfig(updatedConfig);
             return Response.ok().build();
         }

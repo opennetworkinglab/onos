@@ -42,7 +42,9 @@ import java.util.Set;
 
 import static org.onosproject.openstacktelemetry.api.Constants.INFLUXDB_SCHEME;
 import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.ConfigType.INFLUXDB;
+import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.Status.ENABLED;
 import static org.onosproject.openstacktelemetry.config.DefaultInfluxDbTelemetryConfig.fromTelemetryConfig;
+import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.testConnectivity;
 
 /**
  * InfluxDB telemetry manager.
@@ -170,29 +172,14 @@ public class InfluxDbTelemetryManager implements InfluxDbTelemetryAdminService {
         return !producers.isEmpty();
     }
 
-    private void createDB(InfluxDB producer, String database) {
-        if (producer.databaseExists(database)) {
-            log.debug("Database {} is already created", database);
-        } else {
-            producer.createDatabase(database);
-            log.debug("Database {} is created", database);
-        }
-    }
-
-    private String getTpPort(TpPort tpPort) {
-        if (tpPort == null) {
-            return "";
-        }
-        return tpPort.toString();
-    }
-
     @Override
-    public void start(String name) {
+    public boolean start(String name) {
+        boolean success = false;
         TelemetryConfig config = telemetryConfigService.getConfig(name);
         InfluxDbTelemetryConfig influxDbConfig = fromTelemetryConfig(config);
 
-        if (influxDbConfig != null &&
-                !config.name().equals(INFLUXDB_SCHEME) && config.enabled()) {
+        if (influxDbConfig != null && !config.name().equals(INFLUXDB_SCHEME) &&
+                config.status() == ENABLED) {
             StringBuilder influxDbServerBuilder = new StringBuilder();
             influxDbServerBuilder.append(INFLUX_PROTOCOL);
             influxDbServerBuilder.append(":");
@@ -201,12 +188,20 @@ public class InfluxDbTelemetryManager implements InfluxDbTelemetryAdminService {
             influxDbServerBuilder.append(":");
             influxDbServerBuilder.append(influxDbConfig.port());
 
-            InfluxDB producer = InfluxDBFactory.connect(influxDbServerBuilder.toString(),
-                    influxDbConfig.username(), influxDbConfig.password());
-            producers.put(name, producer);
-
-            createDB(producer, influxDbConfig.database());
+            if (testConnectivity(influxDbConfig.address(), influxDbConfig.port())) {
+                InfluxDB producer = InfluxDBFactory.connect(influxDbServerBuilder.toString(),
+                        influxDbConfig.username(), influxDbConfig.password());
+                producers.put(name, producer);
+                createDB(producer, influxDbConfig.database());
+                success = true;
+            } else {
+                log.warn("Unable to connect to {}:{}, " +
+                                "please check the connectivity manually",
+                                influxDbConfig.address(), influxDbConfig.port());
+            }
         }
+
+        return success;
     }
 
     @Override
@@ -220,15 +215,16 @@ public class InfluxDbTelemetryManager implements InfluxDbTelemetryAdminService {
     }
 
     @Override
-    public void restart(String name) {
+    public boolean restart(String name) {
         stop(name);
-        start(name);
+        return start(name);
     }
 
     @Override
     public void startAll() {
         telemetryConfigService.getConfigsByType(INFLUXDB).forEach(c -> start(c.name()));
-        log.info("InfluxDB producer has Started");    }
+        log.info("InfluxDB producer has Started");
+    }
 
     @Override
     public void stopAll() {
@@ -243,5 +239,22 @@ public class InfluxDbTelemetryManager implements InfluxDbTelemetryAdminService {
     public void restartAll() {
         stopAll();
         startAll();
+    }
+
+
+    private void createDB(InfluxDB producer, String database) {
+        if (producer.databaseExists(database)) {
+            log.debug("Database {} is already created", database);
+        } else {
+            producer.createDatabase(database);
+            log.debug("Database {} is created", database);
+        }
+    }
+
+    private String getTpPort(TpPort tpPort) {
+        if (tpPort == null) {
+            return "";
+        }
+        return tpPort.toString();
     }
 }

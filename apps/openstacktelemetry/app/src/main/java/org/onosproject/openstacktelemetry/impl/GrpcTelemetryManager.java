@@ -36,7 +36,9 @@ import java.util.Map;
 
 import static org.onosproject.openstacktelemetry.api.Constants.GRPC_SCHEME;
 import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.ConfigType.GRPC;
+import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.Status.ENABLED;
 import static org.onosproject.openstacktelemetry.config.DefaultGrpcTelemetryConfig.fromTelemetryConfig;
+import static org.onosproject.openstacktelemetry.util.OpenstackTelemetryUtil.testConnectivity;
 
 /**
  * gRPC telemetry manager.
@@ -73,19 +75,29 @@ public class GrpcTelemetryManager implements GrpcTelemetryAdminService {
     }
 
     @Override
-    public void start(String name) {
+    public boolean start(String name) {
+        boolean success = false;
         TelemetryConfig config = telemetryConfigService.getConfig(name);
         GrpcTelemetryConfig grpcConfig = fromTelemetryConfig(config);
 
-        if (grpcConfig != null && !config.name().equals(GRPC_SCHEME) && config.enabled()) {
+        if (grpcConfig != null && !config.name().equals(GRPC_SCHEME) &&
+                config.status() == ENABLED) {
             ManagedChannel channel = ManagedChannelBuilder
                     .forAddress(grpcConfig.address(), grpcConfig.port())
                     .maxInboundMessageSize(grpcConfig.maxInboundMsgSize())
                     .usePlaintext(grpcConfig.usePlaintext())
                     .build();
 
-            channels.put(name, channel);
+            if (testConnectivity(grpcConfig.address(), grpcConfig.port())) {
+                channels.put(name, channel);
+                success = true;
+            } else {
+                log.warn("Unable to connect to {}:{}, " +
+                                "please check the connectivity manually",
+                                grpcConfig.address(), grpcConfig.port());
+            }
         }
+        return success;
     }
 
     @Override
@@ -99,9 +111,9 @@ public class GrpcTelemetryManager implements GrpcTelemetryAdminService {
     }
 
     @Override
-    public void restart(String name) {
+    public boolean restart(String name) {
         stop(name);
-        start(name);
+        return start(name);
     }
 
     @Override
