@@ -251,7 +251,7 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
                 int cInt = bufferReader.read();
                 if (cInt == -1) {
                     log.debug("Netconf device {}  sent error char in session," +
-                            " will need to be reopend", netconfDeviceInfo);
+                            " will need to be reopened", netconfDeviceInfo);
                     NetconfDeviceOutputEvent event = new NetconfDeviceOutputEvent(
                             NetconfDeviceOutputEvent.Type.SESSION_CLOSED,
                             null, null, Optional.of(-1), netconfDeviceInfo);

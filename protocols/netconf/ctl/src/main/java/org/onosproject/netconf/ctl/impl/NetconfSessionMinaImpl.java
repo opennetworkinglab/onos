@@ -224,10 +224,12 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
                  deviceInfo.getDeviceId());
 
         client = SshClient.setUpDefaultClient();
-        client.getProperties().putIfAbsent(FactoryManager.IDLE_TIMEOUT,
-                TimeUnit.SECONDS.toMillis(idleTimeout));
-        client.getProperties().putIfAbsent(FactoryManager.NIO2_READ_TIMEOUT,
-                TimeUnit.SECONDS.toMillis(idleTimeout + 15L));
+        if (idleTimeout != NetconfControllerImpl.netconfIdleTimeout) {
+            client.getProperties().putIfAbsent(FactoryManager.IDLE_TIMEOUT,
+                    TimeUnit.SECONDS.toMillis(idleTimeout));
+            client.getProperties().putIfAbsent(FactoryManager.NIO2_READ_TIMEOUT,
+                    TimeUnit.SECONDS.toMillis(idleTimeout + 15L));
+        }
         client.start();
         client.setKeyPairProvider(new SimpleGeneratorHostKeyProvider());
         startSession();
@@ -294,6 +296,7 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
                 streamHandler = new NetconfStreamThread(channel.getInvertedOut(), channel.getInvertedIn(),
                         channel.getInvertedErr(), deviceInfo,
                         new NetconfSessionDelegateImpl(), replies);
+                primaryListeners.forEach(l -> streamHandler.addDeviceEventListener(l));
             } else {
                 throw new NetconfException("Failed to open channel with device " +
                         deviceInfo);
