@@ -50,7 +50,8 @@ public class ComponentsMonitor {
 
     private Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final long PERIOD = 2500;
+    private static final long STARTUP_PERIOD = 2500;
+    private static final long ACTIVE_PERIOD = 60000;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected FeaturesService featuresService;
@@ -66,11 +67,13 @@ public class ComponentsMonitor {
     private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor(
             groupedThreads("components-monitor", "%d", log));
     private ScheduledFuture<?> poller;
+    private boolean pollerBackedOff;
 
     @Activate
     protected void activate(ComponentContext context) {
         bundleContext = context.getBundleContext();
-        poller = executor.scheduleAtFixedRate(this::checkStartedState, PERIOD, PERIOD, TimeUnit.MILLISECONDS);
+        poller = executor.scheduleAtFixedRate(
+                this::checkStartedState, STARTUP_PERIOD, STARTUP_PERIOD, TimeUnit.MILLISECONDS);
         log.info("Started");
     }
 
@@ -81,8 +84,44 @@ public class ComponentsMonitor {
         log.info("Stopped");
     }
 
+    /**
+     * Increases the rate at which {@link #checkStartedState()} is called once the node has been fully started.
+     */
+    private void backoffPoller() {
+        if (!pollerBackedOff) {
+            poller.cancel(false);
+            poller = executor.scheduleAtFixedRate(
+                    this::checkStartedState, ACTIVE_PERIOD, ACTIVE_PERIOD, TimeUnit.MILLISECONDS);
+            pollerBackedOff = true;
+        }
+    }
+
+    /**
+     * Decreases the rate at which {@link #checkStartedState()} is called when the node becomes unready.
+     */
+    private void revertPoller() {
+        if (pollerBackedOff) {
+            poller.cancel(false);
+            poller = executor.scheduleAtFixedRate(
+                    this::checkStartedState, STARTUP_PERIOD, STARTUP_PERIOD, TimeUnit.MILLISECONDS);
+            pollerBackedOff = false;
+        }
+    }
+
+    /**
+     * Checks whether all components are active and marks the node READY if so.
+     */
     private void checkStartedState() {
-        clusterAdminService.markFullyStarted(isFullyStarted());
+        boolean isFullyStarted = isFullyStarted();
+        clusterAdminService.markFullyStarted(isFullyStarted);
+
+        // If the node is fully started, decrease the rate at which we poll component states.
+        // Otherwise, increase the rate at which we poll component states until the node becomes ready.
+        if (isFullyStarted) {
+            backoffPoller();
+        } else {
+            revertPoller();
+        }
     }
 
     /**
