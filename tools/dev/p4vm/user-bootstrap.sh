@@ -1,12 +1,14 @@
 #!/bin/bash
 set -xe
 
+ONOS_BRANCH=${1:-master}
+
 cp /etc/skel/.bashrc ~/
 cp /etc/skel/.profile ~/
 cp /etc/skel/.bash_logout ~/
 
 # ONOS
-git clone https://github.com/opennetworkinglab/onos.git
+git clone https://github.com/opennetworkinglab/onos.git --depth 1 -b ${ONOS_BRANCH}
 tee -a ~/.bashrc <<EOF
 
 # ONOS
@@ -49,7 +51,7 @@ sudo /etc/init.d/apparmor start
 git clone https://github.com/opennetworkinglab/fabric-p4test.git
 
 # Set Python path for bmv2 in fabric.p4
-echo 'export PYTHONPATH=$PYTHONPATH:~/onos/tools/dev/mininet/bmv2.py' >> ~/.bashrc
+echo 'export PYTHONPATH=$PYTHONPATH:$ONOS_ROOT/tools/dev/mininet' >> ~/.bashrc
 
 # FIXME: for some reason protobuf python bindings are not properly installed
 cd ~/p4tools/protobuf/python
