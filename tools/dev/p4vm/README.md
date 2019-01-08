@@ -1,7 +1,7 @@
 # ONOS-P4 Developer Virtual Machine
 
 This directory contains files necessary to build and provision a VM to test and
-develop ONOS support for P4 Runtime.
+develop ONOS support for P4Runtime.
 
 For more information on P4 support in ONOS please visit the following web page:
 <https://wiki.onosproject.org/x/FYnV>
@@ -20,7 +20,7 @@ The VM is based on Ubuntu 16.04 (server) and contains the following software:
 ### Tutorial VM
 
 It is possible to generate a variant of the VM to be used during tutorials. This
-version of the VM comes with a Lubuntu desktop environment and various code
+version of the VM comes with a desktop environment and various code
 editors with P4 syntax highlighting (vim, Sublime Text, and Atom).
 
 ## Recommended system requirements
@@ -66,8 +66,8 @@ Use these credentials to log in the guest Ubuntu system.
 To build the VM you will need the following software installed in your host
 machine:
 
-- [Vagrant](https://www.vagrantup.com/) (tested v2.1.1)
-- [VirtualBox](https://www.virtualbox.org/wiki/Downloads) (tested with v5.2.10)
+- [Vagrant](https://www.vagrantup.com/) (tested v2.2.2)
+- [VirtualBox](https://www.virtualbox.org/wiki/Downloads) (tested with v5.2.22)
 
 Optionally, to export the VM as an OVA package you will also need
 [sshpass](https://gist.github.com/arunoda/7790979).
