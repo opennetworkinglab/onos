@@ -261,7 +261,7 @@ public class InOrderFlowObjectiveManagerTest {
         replay(mgr.flowObjectiveStore);
 
         // Force this objective to time out
-        offset = mgr.objTimeoutMs * 2;
+        offset = mgr.objTimeoutMs * 3;
 
         expectFwdObjsTimeout.forEach(fwdObj -> mgr.forward(DEV1, fwdObj));
 
