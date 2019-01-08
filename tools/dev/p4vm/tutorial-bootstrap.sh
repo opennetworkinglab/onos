@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Installs Lubuntu desktop and code editors.
+# Installs desktop utilities and code editors.
 # Largely inspired by the P4.org tutorial VM scripts:
 # https://github.com/p4lang/tutorials/
 
@@ -54,26 +54,7 @@ sudo apt-get -y --no-install-recommends install \
     sublime-text-installer \
     vim
 
-# Disable screensaver
-gsettings set org.gnome.desktop.screensaver lock-delay 3600
-gsettings set org.gnome.desktop.screensaver lock-enabled false
-gsettings set org.gnome.desktop.screensaver idle-activation-enabled false
-
-# Automatically log into the SDN user
-cat << EOF | sudo tee /etc/lightdm/lightdm.conf
-[SeatDefaults]
-autologin-user=sdn
-EOF
-
-# Vim
-cd /home/sdn
-mkdir -p .vim
-mkdir -p .vim/ftdetect
-mkdir -p .vim/syntax
-echo "au BufRead,BufNewFile *.p4      set filetype=p4" >> .vim/ftdetect/p4.vim
-echo "set bg=dark" >> .vimrc
-wget https://github.com/p4lang/tutorials/blob/master/vm/p4.vim
-mv p4.vim .vim/syntax/p4.vim
+# TODO: Disable screensaver and automatically log into the SDN user
 
 # Sublime
 cd /home/sdn
