@@ -1,10 +1,19 @@
 #!/bin/bash
 set -xe
 
+ONOS_BRANCH_DEV="master"
+ONOS_BRANCH_TUTORIAL="onos-1.14"
+BAZEL_VER="0.19.2"
+
 VM_TYPE=${1:-dev}
 
-BAZEL_VER="0.15.2"
-BAZEL_SH="bazel-${BAZEL_VER}-installer-linux-x86_64.sh"
+if [[ ${VM_TYPE} = "tutorial" ]]
+then
+    ONOS_BRANCH=${ONOS_BRANCH_TUTORIAL}
+else
+    ONOS_BRANCH=${ONOS_BRANCH_DEV}
+fi
+
 # Create user sdn
 useradd -m -d /home/sdn -s /bin/bash sdn
 echo "sdn:rocks" | chpasswd
@@ -13,7 +22,7 @@ chmod 440 /etc/sudoers.d/99_sdn
 usermod -aG vboxsf sdn
 update-locale LC_ALL="en_US.UTF-8"
 
-if [ ${VM_TYPE} = "tutorial" ]
+if [[ ${VM_TYPE} = "tutorial" ]]
 then
     su sdn <<'EOF'
 cd /home/sdn
@@ -58,6 +67,7 @@ apt-get -y --no-install-recommends install \
 DEBIAN_FRONTEND=noninteractive apt-get -yq install wireshark
 
 # Install Bazel
+BAZEL_SH="bazel-${BAZEL_VER}-installer-linux-x86_64.sh"
 wget https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VER}/${BAZEL_SH}
 chmod +x ${BAZEL_SH}
 ./${BAZEL_SH}
@@ -76,5 +86,5 @@ EOF
 
 su sdn <<'EOF'
 cd /home/sdn
-bash /vagrant/user-bootstrap.sh
+bash /vagrant/user-bootstrap.sh ${ONOS_BRANCH}
 EOF
