@@ -258,12 +258,12 @@ public class InOrderFlowObjectiveManagerTest {
         // Reduce timeout so the unit test doesn't have to wait many seconds
         internalSetup(TIMEOUT_THRESH);
 
-        expect(mgr.flowObjectiveStore.getNextGroup(NID1)).andReturn(NGRP1).times(2);
+        expect(mgr.flowObjectiveStore.getNextGroup(NID1)).andReturn(NGRP1).times(1);
         expect(mgr.flowObjectiveStore.getNextGroup(NID2)).andReturn(NGRP2).times(2);
         replay(mgr.flowObjectiveStore);
 
         // Force this objective to time out
-        offset = mgr.objTimeoutMs * 2;
+        offset = mgr.objTimeoutMs * 3;
 
         expectFwdObjsTimeout.forEach(fwdObj -> mgr.forward(DEV1, fwdObj));
 
