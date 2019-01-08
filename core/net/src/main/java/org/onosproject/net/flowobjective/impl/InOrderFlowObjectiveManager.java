@@ -53,6 +53,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
@@ -155,20 +156,7 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
         // Inject ObjectiveContext such that we can get notified when it is completed
         Objective.Builder objBuilder = originalObjective.copy();
         Optional<ObjectiveContext> originalContext = originalObjective.context();
-        ObjectiveContext context = new ObjectiveContext() {
-            @Override
-            public void onSuccess(Objective objective) {
-                log.trace("Flow objective onSuccess {}", objective);
-                dequeue(deviceId, objective, null);
-                originalContext.ifPresent(c -> c.onSuccess(objective));
-            }
-            @Override
-            public void onError(Objective objective, ObjectiveError error) {
-                log.warn("Flow objective onError {}. Reason = {}", objective, error);
-                dequeue(deviceId, objective, error);
-                originalContext.ifPresent(c -> c.onError(objective, error));
-            }
-        };
+        ObjectiveContext context = new InOrderObjectiveContext(deviceId, originalContext.orElse(null));
 
         // Preserve Objective.Operation
         Objective objective;
@@ -428,6 +416,44 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
                             pendNexts.size(), event.subject());
                     // execute pending nexts one by one
                     pendNexts.forEach(p -> execute(p.deviceId(), p.flowObjective()));
+                }
+            }
+        }
+    }
+
+    final class InOrderObjectiveContext implements ObjectiveContext {
+        private final DeviceId deviceId;
+        private final ObjectiveContext originalContext;
+        // Prevent context from being executed multiple times.
+        // E.g. when the context actually succeed after the cache timeout
+        private final AtomicBoolean done;
+
+        InOrderObjectiveContext(DeviceId deviceId, ObjectiveContext originalContext) {
+            this.deviceId = deviceId;
+            this.originalContext = originalContext;
+            this.done = new AtomicBoolean(false);
+        }
+
+        @Override
+        public void onSuccess(Objective objective) {
+            log.trace("Flow objective onSuccess {}", objective);
+
+            if (!done.getAndSet(true)) {
+                dequeue(deviceId, objective, null);
+                if (originalContext != null) {
+                    originalContext.onSuccess(objective);
+                }
+            }
+
+        }
+        @Override
+        public void onError(Objective objective, ObjectiveError error) {
+            log.warn("Flow objective onError {}. Reason = {}", objective, error);
+
+            if (!done.getAndSet(true)) {
+                dequeue(deviceId, objective, error);
+                if (originalContext != null) {
+                    originalContext.onError(objective, error);
                 }
             }
         }
