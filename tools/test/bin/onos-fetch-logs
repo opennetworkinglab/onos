@@ -38,6 +38,22 @@ fi
 # Execute the remote commands
 for node in $nodes; do
     echo "fetching from ${node}..."
+    USE_RSYNC=${USE_RSYNC:-'false'}
+    # Check if RSYNC is installed
+    if [ "$USE_RSYNC" = "true" ]; then
+      if ssh $ONOS_USER@${node} $SSH_OPTIONS which rsync >&2 > /dev/null; then
+        echo "Using rsync"
+      else
+        echo "Installing rsync"
+        # TODO check remote OS and use proper method to install rsync
+        ssh $ONOS_USER@${node} sudo apt-get install -y rsync || USE_RSYNC='false'
+      fi
+    fi
+
     mkdir -p ${node}
-    scp -p $ONOS_USER@[${node}]:$ONOS_INSTALL_DIR/log/karaf.log* ./${node}/
+    if [ "$USE_RSYNC" = "true" ]; then
+        rsync -avhz --progress [$ONOS_USER@${node}]:$ONOS_INSTALL_DIR/log/karaf.log* ./${node}/
+    else
+        scp -p $ONOS_USER@[${node}]:$ONOS_INSTALL_DIR/log/karaf.log* ./${node}/
+    fi
 done
