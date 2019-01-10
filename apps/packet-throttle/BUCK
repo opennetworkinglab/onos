@@ -1,0 +1,12 @@
+BUNDLES = [
+    '//apps/packet-throttle/app:onos-apps-packet-throttle-app',
+]
+
+onos_app (
+    app_name = 'org.onosproject.packetthrottle',
+    title = 'Packet Throttler',
+    category = 'Traffic Steering',
+    url = 'http://onosproject.org',
+    description = 'Packet throttle application to make ONOS drop packets crossing threshold',
+    included_bundles = BUNDLES,
+)
