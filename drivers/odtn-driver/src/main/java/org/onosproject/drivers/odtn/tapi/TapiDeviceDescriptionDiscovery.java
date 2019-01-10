@@ -46,6 +46,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.*;
 import static org.onosproject.net.optical.device.OchPortHelper.ochPortDescription;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -60,24 +61,8 @@ public class TapiDeviceDescriptionDiscovery
 
     private static final Logger log = getLogger(TapiDeviceDescriptionDiscovery.class);
     private static final String SIP_REQUEST_DATA_API = "/data/context/";
-    public static final String SERVICE_INTERFACE_POINT = "service-interface-point";
-    public static final String UUID = "uuid";
-    public static final String MEDIA_CHANNEL_SERVICE_INTERFACE_POINT_SPEC =
-            "media-channel-service-interface-point-spec";
-    public static final String MC_POOL = "mc-pool";
-    public static final String LAYER_PROTOCOL_NAME = "layer-protocol-name";
-    public static final String PHOTONIC_MEDIA = "PHOTONIC_MEDIA";
-    public static final String SUPPORTED_LAYER_PROTOCOL_QUALIFIER = "supported-layer-protocol-qualifier";
-    public static final String PHOTONIC_LAYER_QUALIFIER_NMC = "PHOTONIC_LAYER_QUALIFIER_NMC";
-    public static final String FREQUENCY_CONSTRAINT = "frequency-constraint";
-    public static final String GRID_TYPE = "grid-type";
-    public static final String ADJUSTMENT_GRANULARITY = "adjustment-granularity";
-    public static final String UPPER_FREQUENCY = "upper-frequency";
-    public static final String LOWER_FREQUENCY = "lower-frequency";
-    public static final String AVAILABLE_SPECTRUM = "available-spectrum";
     private static PortNumber nPort = PortNumber.portNumber(1);
     private static final Object N_PORT_LOCK = new Object();
-    private static final long BASE_FREQUENCY = 193100000;   //Working in Mhz
 
     /**
      * Get the deviceId for which the methods apply.
@@ -149,6 +134,11 @@ public class TapiDeviceDescriptionDiscovery
                 String uuid = sipAttributes.get(UUID).textValue();
                 JsonNode mcPool = sipAttributes.get(MEDIA_CHANNEL_SERVICE_INTERFACE_POINT_SPEC).get(MC_POOL);
 
+                /*We create a sample OChSignal in the first position of the 50GHz DWDM Grid,
+                this should be replace for a OChSignal construct which has undefined spectrum.
+                OchSignal ochSignal = new OchSignal(GridType.DWDM, ChannelSpacing.CHL_50GHZ,
+                        0, 1);*/
+
                 OchSignal ochSignal = getOchSignal(mcPool);
                 synchronized (N_PORT_LOCK) {
                     //annotations(portNumber-uuid)
@@ -156,7 +146,7 @@ public class TapiDeviceDescriptionDiscovery
 
                     //add och port
                     ports.add(ochPortDescription(nPort, true, OduSignalType.ODU4,
-                              false, ochSignal, annotations.build()));
+                            false, ochSignal, annotations.build()));
 
                     nPort = PortNumber.portNumber(counter++);
                 }
@@ -187,8 +177,10 @@ public class TapiDeviceDescriptionDiscovery
      * and spectrum-occupied tapi objects.
      **/
     private OchSignal getOchSignal(JsonNode mcPool) {
-        long availableUpperFrec = 0, availableLowerFrec = 0;
-        String availableAdjustmentGranularity = "", availableGridType = "";
+        long availableUpperFrec = 0;
+        long availableLowerFrec = 0;
+        String availableAdjustmentGranularity = "";
+        String availableGridType = "";
         JsonNode availableSpectrum = mcPool.get(AVAILABLE_SPECTRUM);
 
         /**At this time only the latest availableSpectrum is used**/
@@ -202,12 +194,13 @@ public class TapiDeviceDescriptionDiscovery
             availableGridType = availableSpec.get(FREQUENCY_CONSTRAINT).get(GRID_TYPE).textValue();
         }
 
-        int spacingMult = 0, slotGranularity = 1;
+        int spacingMult = 0;
+        int slotGranularity = 1;
         ChannelSpacing chSpacing = getChannelSpacing(availableAdjustmentGranularity);
         long spacingFrequency = chSpacing.frequency().asHz();
         long centralFrequency = (availableUpperFrec - (availableUpperFrec - availableLowerFrec) / 2);
 
-        GridType gridType = getGridType(availableGridType);
+        GridType gridType = GridType.valueOf(availableGridType);
         if (gridType == GridType.DWDM) {
             spacingMult = (int) ((centralFrequency - BASE_FREQUENCY) / toMbpsFromHz(spacingFrequency));
         } else if (gridType == GridType.CWDM) {
@@ -219,54 +212,6 @@ public class TapiDeviceDescriptionDiscovery
             log.warn("Unknown GridType");
         }
         return new OchSignal(gridType, chSpacing, spacingMult, slotGranularity);
-    }
-
-    private int getSlotGranularity(ChannelSpacing chSpacing) {
-        if (chSpacing.equals(ChannelSpacing.CHL_100GHZ)) {
-            return 8;
-        } else if (chSpacing.equals(ChannelSpacing.CHL_50GHZ)) {
-            return 4;
-        } else if (chSpacing.equals(ChannelSpacing.CHL_25GHZ)) {
-            return 2;
-        } else if (chSpacing.equals(ChannelSpacing.CHL_12P5GHZ)) {
-            return 1;
-        } else {
-            return 0;
-        }
-    }
-
-    private GridType getGridType(String gridType) {
-        switch (gridType) {
-            case "DWDM":
-                return GridType.DWDM;
-            case "CWDM":
-                return GridType.CWDM;
-            case "FLEX":
-                return GridType.FLEX;
-            default:
-                return GridType.UNKNOWN;
-        }
-    }
-
-    private ChannelSpacing getChannelSpacing(String adjustmentGranularity) {
-        switch (adjustmentGranularity) {
-            case "G_100GHZ ":
-                return ChannelSpacing.CHL_100GHZ;
-            case "G_50GHZ":
-                return ChannelSpacing.CHL_50GHZ;
-            case "G_25GHZ":
-                return ChannelSpacing.CHL_25GHZ;
-            case "G_12_5GHZ ":
-                return ChannelSpacing.CHL_12P5GHZ;
-            case "G_6_25GHZ ":
-                return ChannelSpacing.CHL_6P25GHZ;
-            default:
-                return ChannelSpacing.CHL_0GHZ;
-        }
-    }
-
-    private static long toMbpsFromHz(long speed) {
-        return speed / 1000000;
     }
 
 }

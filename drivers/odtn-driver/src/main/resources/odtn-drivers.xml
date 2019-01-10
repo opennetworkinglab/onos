@@ -18,6 +18,8 @@
     <driver name="ols" manufacturer="tapi-swagger" hwVersion="0" swVersion="2.1">
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
                    impl="org.onosproject.drivers.odtn.tapi.TapiDeviceDescriptionDiscovery"/>
+        <behaviour api ="org.onosproject.net.behaviour.LambdaQuery"
+                   impl="org.onosproject.drivers.odtn.tapi.TapiDeviceLambdaQuery"/>
         <!--<behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
                    impl="org.onosproject.drivers.odtn.TapiFlowRuleProgrammable-->
     </driver>
