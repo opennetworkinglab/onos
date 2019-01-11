@@ -310,12 +310,14 @@
                    impl="org.onosproject.driver.handshaker.JuniperSwitchHandshaker"/>
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.JuniperQfx5100Pipeliner"/>
+        <property name="meterCapable">false</property>
     </driver>
 
     <driver name="ciscoof" extends="default"
         manufacturer="Cisco Systems, Inc." hwVersion=".*" swVersion="7.0\(3\).*">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
            impl="org.onosproject.driver.pipeline.CiscoN9kPipeliner" />
+        <property name="meterCapable">false</property>
     </driver>
 
 </drivers>
