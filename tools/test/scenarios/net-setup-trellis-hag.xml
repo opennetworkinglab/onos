@@ -16,77 +16,77 @@
 
 <scenario name="net-setup-trellis-hag" description="Trellis HAG network setup steps">
 
-    <group name="Trellis-Net-HAG-Setup">
-        <step name="Trellis-Net-HAG-Setup.Push-Topos" exec="onos-push-topos ${OCN}"/>
-        <step name="Trellis-Net-HAG-Setup.Push-Routing" exec="onos-push-routing ${OCN}"/>
+    <group name="Net-Trellis-HAG-Setup">
+        <step name="Net-Trellis-HAG-Setup.Push-Topos" exec="onos-push-topos ${OCN}"/>
+        <step name="Net-Trellis-HAG-Setup.Push-Routing" exec="onos-push-routing ${OCN}"/>
 
-        <step name="Trellis-Net-HAG-Setup.Stop-Mininet-If-Needed" env="~" exec="onos-mininet stop"/>
-        <step name="Trellis-Net-HAG-Setup.Clean-Mininet-If-Needed" env="~" exec="onos-mininet cleanup" requires="^"/>
-        <step name="Trellis-Net-HAG-Setup.Wipe-Out-Data-Before" exec="onos-wipe-out" requires="^"/>
+        <step name="Net-Trellis-HAG-Setup.Stop-Mininet-If-Needed" env="~" exec="onos-mininet stop"/>
+        <step name="Net-Trellis-HAG-Setup.Clean-Mininet-If-Needed" env="~" exec="onos-mininet cleanup" requires="^"/>
+        <step name="Net-Trellis-HAG-Setup.Wipe-Out-Data-Before" exec="onos-wipe-out" requires="^"/>
 
         <!-- Make sure that there is no data in the system -->
-        <step name="Trellis-Net-HAG-Setup.Initial-Summary-Check" requires="~Trellis-Net-HAG-Setup.Wipe-Out-Data-Before"
+        <step name="Net-Trellis-HAG-Setup.Initial-Summary-Check" requires="~Net-Trellis-HAG-Setup.Wipe-Out-Data-Before"
               exec="onos-check-summary ${OC1} [0-9]* 0 0 0"/>
 
         <!-- Deactivate unneeded apps -->
-        <group name="Trellis-Net-HAG-Setup.Deactivate-Apps" requires="Trellis-Net-HAG-Setup.Initial-Summary-Check">
+        <group name="Net-Trellis-HAG-Setup.Deactivate-Apps" requires="Net-Trellis-HAG-Setup.Initial-Summary-Check">
             <step name="App-Deactivate-PathPainter"
                   exec="onos ${OCI} app deactivate org.onosproject.pathpainter"
-                  requires="Trellis-Net-HAG-Setup.Initial-Summary-Check"/>
+                  requires="Net-Trellis-HAG-Setup.Initial-Summary-Check"/>
             <step name="App-Deactivate-Mobility"
                   exec="onos ${OCI} app deactivate org.onosproject.mobility"
-                  requires="Trellis-Net-HAG-Setup.Initial-Summary-Check"/>
+                  requires="Net-Trellis-HAG-Setup.Initial-Summary-Check"/>
             <step name="App-Deactivate-ProxyArp"
                   exec="onos ${OCI} app deactivate org.onosproject.proxyarp"
-                  requires="Trellis-Net-HAG-Setup.Initial-Summary-Check"/>
+                  requires="Net-Trellis-HAG-Setup.Initial-Summary-Check"/>
             <step name="App-Deactivate-RouteService"
                   exec="onos ${OCI} app deactivate org.onosproject.route-service"
-                  requires="Trellis-Net-HAG-Setup.Initial-Summary-Check"/>
+                  requires="Net-Trellis-HAG-Setup.Initial-Summary-Check"/>
         </group>
 
         <!-- Active required apps -->
-        <group name="Trellis-Net-HAG-Setup.Activate-Apps" requires="Trellis-Net-HAG-Setup.Deactivate-Apps">
+        <group name="Net-Trellis-HAG-Setup.Activate-Apps" requires="Net-Trellis-HAG-Setup.Deactivate-Apps">
             <step name="App-Activate-Openflow"
                   exec="onos ${OCI} app activate org.onosproject.openflow"
-                  requires="Trellis-Net-HAG-Setup.Deactivate-Apps"/>
+                  requires="Net-Trellis-HAG-Setup.Deactivate-Apps"/>
             <step name="App-Activate-SegmentRouting"
                   exec="onos ${OCI} app activate org.onosproject.segmentrouting"
-                  requires="Trellis-Net-HAG-Setup.Deactivate-Apps"/>
+                  requires="Net-Trellis-HAG-Setup.Deactivate-Apps"/>
             <step name="App-Activate-Fpm"
                   exec="onos ${OCI} app activate org.onosproject.fpm"
-                  requires="Trellis-Net-HAG-Setup.Deactivate-Apps"/>
+                  requires="Net-Trellis-HAG-Setup.Deactivate-Apps"/>
             <step name="App-Activate-DhcpRelay"
                   exec="onos ${OCI} app activate org.onosproject.dhcprelay"
-                  requires="Trellis-Net-HAG-Setup.Deactivate-Apps"/>
+                  requires="Net-Trellis-HAG-Setup.Deactivate-Apps"/>
             <step name="App-Activate-NetCfgHostProvider"
                   exec="onos ${OCI} app activate org.onosproject.netcfghostprovider"
-                  requires="Trellis-Net-HAG-Setup.Deactivate-Apps"/>
+                  requires="Net-Trellis-HAG-Setup.Deactivate-Apps"/>
             <step name="App-Activate-RouterAdvertisement"
                   exec="onos ${OCI} app activate org.onosproject.routeradvertisement"
-                  requires="Trellis-Net-HAG-Setup.Deactivate-Apps"/>
+                  requires="Net-Trellis-HAG-Setup.Deactivate-Apps"/>
             <step name="App-Activate-Mcast"
                   exec="onos ${OCI} app activate org.onosproject.mcast"
-                  requires="Trellis-Net-HAG-Setup.Deactivate-Apps"/>
+                  requires="Net-Trellis-HAG-Setup.Deactivate-Apps"/>
         </group>
 
         <!-- set up the trellis environment -->
-        <step name="Trellis-Net-HAG-Setup.Set-Up-Trellis" exec="set-up-trellis ${OCN}" requires="Trellis-Net-HAG-Setup.Activate-Apps"/>
+        <step name="Net-Trellis-HAG-Setup.Set-Up-Trellis" exec="set-up-trellis ${OCN}" requires="Net-Trellis-HAG-Setup.Activate-Apps"/>
 
         <!-- configure the trellis topology in ONOS -->
-        <step name="Trellis-Net-HAG-Setup.Config-Topo"
-              requires="Trellis-Net-HAG-Setup.Set-Up-Trellis,Trellis-Net-HAG-Setup.Push-Topos,Trellis-Net-HAG-Setup.Push-Routing"
+        <step name="Net-Trellis-HAG-Setup.Config-Topo"
+              requires="Net-Trellis-HAG-Setup.Set-Up-Trellis,Net-Trellis-HAG-Setup.Push-Topos,Net-Trellis-HAG-Setup.Push-Routing"
               exec="onos-netcfg ${OC1} ${routing}/trellis/trellis_hag.json"/>
 
         <!-- Bring up mininet -->
-        <step name="Trellis-Net-HAG-Setup.Start-Mininet"
-              requires="Trellis-Net-HAG-Setup.Config-Topo,Trellis-Net-HAG-Setup.Push-Topos,Trellis-Net-HAG-Setup.Stop-Mininet-If-Needed"
+        <step name="Net-Trellis-HAG-Setup.Start-Mininet"
+              requires="Net-Trellis-HAG-Setup.Config-Topo,Net-Trellis-HAG-Setup.Push-Topos,Net-Trellis-HAG-Setup.Stop-Mininet-If-Needed"
               exec="mininet-trellis ${ONOS_INSTANCES}"/>
-        <step name="Trellis-Net-HAG-Setup.Wait-For-Mininet" requires="Trellis-Net-HAG-Setup.Start-Mininet"
+        <step name="Net-Trellis-HAG-Setup.Wait-For-Mininet" requires="Net-Trellis-HAG-Setup.Start-Mininet"
               exec="onos-mininet wait 10"/>
 
         <!-- clean up local routing repo if necessary -->
-        <step name="Trellis-Net-HAG-Setup.Clean-Routing"
-              requires="Trellis-Net-HAG-Setup.Start-Mininet"
+        <step name="Net-Trellis-HAG-Setup.Clean-Routing"
+              requires="Net-Trellis-HAG-Setup.Start-Mininet"
               exec="onos-clean-routing ${routing_root}"/>
     </group>
 </scenario>

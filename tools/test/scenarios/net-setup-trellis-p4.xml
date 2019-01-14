@@ -75,14 +75,14 @@
 
         <group name="Trellis-Net-P4-Setup.Verify-Apps" requires="Trellis-Net-P4-Setup.Activate-Apps">
             <parallel var="${OC#}">
-                <step name="Check-Apps-${#}" exec="onos-check-apps ${OC#} drivers.bmv2,pipelines.fabric,generaldeviceprovider includes"
+                <step name="Trellis-Net-P4-Setup.Check-Apps-${#}" exec="onos-check-apps ${OC#} drivers.bmv2,pipelines.fabric,generaldeviceprovider includes"
                       requires="Trellis-Net-P4-Setup.Activate-Apps"/>
             </parallel>
         </group>
 
         <group name="Trellis-Net-P4-Setup.Verify-Pipeconfs" requires="Trellis-Net-P4-Setup.Verify-Apps">
             <parallel var="${OC#}">
-                <step name="Check-Pipeconfs-${#}" exec="onos-check-pipeconfs ${OC#} org.onosproject.pipelines.fabric includes"
+                <step name="Trellis-Net-P4-Setup.Check-Pipeconfs-${#}" exec="onos-check-pipeconfs ${OC#} org.onosproject.pipelines.fabric includes"
                       requires="Trellis-Net-P4-Setup.Verify-Apps"/>
             </parallel>
         </group>

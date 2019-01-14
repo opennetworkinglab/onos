@@ -18,46 +18,49 @@
 <scenario name="net-trellis-p4-smoke"
           description="Trellis P4 network connectivity test steps">
 
-    <import file="${ONOS_SCENARIOS}/net-setup-trellis-p4.xml"/>
+    <group name="Net-Trellis-P4-Setup">
 
-    <step name="Net-Trellis-P4-Smoke.Check-Summary"
-          requires="Trellis-Net-P4-Setup.Wait-For-Mininet" delay="5"
-          exec="onos-check-summary ${OC1} [0-9]* 4 8 0 112"/>
+        <import file="${ONOS_SCENARIOS}/net-setup-trellis-p4.xml"/>
 
-    <import file="${ONOS_SCENARIOS}/net-trellis-p4-devices.xml"/>
-    <dependency name="Net-Trellis-P4-Devices"
-                requires="Net-Trellis-P4-Smoke.Check-Summary"/>
+        <step name="Net-Trellis-P4-Smoke.Check-Summary"
+              requires="Trellis-Net-P4-Setup.Wait-For-Mininet" delay="5"
+              exec="onos-check-summary ${OC1} [0-9]* 4 8 0 112"/>
 
-    <import file="${ONOS_SCENARIOS}/net-trellis-p4-links.xml"/>
-    <dependency name="Net-Trellis-P4-Links"
-                requires="Net-Trellis-P4-Smoke.Check-Summary"/>
+        <import file="${ONOS_SCENARIOS}/net-trellis-p4-devices.xml"/>
+        <dependency name="Net-Trellis-P4-Devices"
+                    requires="Net-Trellis-P4-Smoke.Check-Summary"/>
 
-    <import file="${ONOS_SCENARIOS}/net-trellis-p4-connectivity.xml"/>
-    <dependency name="Net-Trellis-P4-Connectivity-Host-Discovery"
-                requires="Net-Trellis-P4-Smoke.Check-Summary"/>
+        <import file="${ONOS_SCENARIOS}/net-trellis-p4-links.xml"/>
+        <dependency name="Net-Trellis-P4-Links"
+                    requires="Net-Trellis-P4-Smoke.Check-Summary"/>
 
-    <import file="${ONOS_SCENARIOS}/net-trellis-p4-hosts.xml"/>
-    <dependency name="Net-Trellis-P4-Hosts"
-                requires="Net-Trellis-P4-Connectivity-Host-Discovery"/>
+        <import file="${ONOS_SCENARIOS}/net-trellis-p4-connectivity.xml"/>
+        <dependency name="Net-Trellis-P4-Connectivity-Host-Discovery"
+                    requires="Net-Trellis-P4-Smoke.Check-Summary"/>
 
-    <!-- Check additional flow rules for discovered hosts -->
-    <step name="Net-Trellis-P4-Smoke.Check-Summary-2"
-          requires="Net-Trellis-P4-Connectivity-Host-Discovery" delay="3"
-          exec="onos-check-summary ${OC1} [0-9]* 4 8 4 136"/>
+        <import file="${ONOS_SCENARIOS}/net-trellis-p4-hosts.xml"/>
+        <dependency name="Net-Trellis-P4-Hosts"
+                    requires="Net-Trellis-P4-Connectivity-Host-Discovery"/>
 
-    <dependency name="Net-Trellis-P4-Connectivity-Bridging"
-                requires="Net-Trellis-P4-Smoke.Check-Summary-2"/>
-    <dependency name="Net-Trellis-P4-Connectivity-Routing"
-                requires="Net-Trellis-P4-Smoke.Check-Summary-2,~Net-Trellis-P4-Connectivity-Bridging"/>
+        <!-- Check additional flow rules for discovered hosts -->
+        <step name="Net-Trellis-P4-Smoke.Check-Summary-2"
+              requires="Net-Trellis-P4-Connectivity-Host-Discovery" delay="3"
+              exec="onos-check-summary ${OC1} [0-9]* 4 8 4 136"/>
 
-    <import file="${ONOS_SCENARIOS}/net-teardown.xml"/>
-    <dependency name="Net-Teardown"
-                requires="~Net-Trellis-P4-Devices,~Net-Trellis-P4-Links,~Net-Trellis-P4-Hosts,~Net-Trellis-P4-Connectivity-Bridging,~Net-Trellis-P4-Connectivity-Routing"/>
+        <dependency name="Net-Trellis-P4-Connectivity-Bridging"
+                    requires="Net-Trellis-P4-Smoke.Check-Summary-2"/>
+        <dependency name="Net-Trellis-P4-Connectivity-Routing"
+                    requires="Net-Trellis-P4-Smoke.Check-Summary-2,~Net-Trellis-P4-Connectivity-Bridging"/>
 
-    <parallel var="${OC#}">
-        <step name="Net-Trellis-P4-Smoke-Check-Logs-${#}"
-              requires="~Net-Teardown"
-              exec="onos-check-logs ${OC#}"/>
-    </parallel>
+        <import file="${ONOS_SCENARIOS}/net-teardown.xml"/>
+        <dependency name="Net-Teardown"
+                    requires="~Net-Trellis-P4-Devices,~Net-Trellis-P4-Links,~Net-Trellis-P4-Hosts,~Net-Trellis-P4-Connectivity-Bridging,~Net-Trellis-P4-Connectivity-Routing"/>
+
+        <parallel var="${OC#}">
+            <step name="Net-Trellis-P4-Smoke-Check-Logs-${#}"
+                  requires="~Net-Teardown"
+                  exec="onos-check-logs ${OC#}"/>
+        </parallel>
+    </group>
 
 </scenario>

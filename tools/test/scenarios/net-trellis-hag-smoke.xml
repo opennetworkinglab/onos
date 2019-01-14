@@ -20,7 +20,7 @@
 
     <import file="${ONOS_SCENARIOS}/net-setup-trellis-hag.xml"/>
 
-    <step name="Check-Summary" requires="Trellis-Net-HAG-Setup.Wait-For-Mininet" delay="15"
+    <step name="Check-Summary" requires="Net-Trellis-HAG-Setup.Wait-For-Mininet" delay="15"
           exec="onos-check-summary ${OC1} [0-9]* 10 48 22"/>
 
     <import file="${ONOS_SCENARIOS}/net-trellis-hag-connectivity.xml"/>
