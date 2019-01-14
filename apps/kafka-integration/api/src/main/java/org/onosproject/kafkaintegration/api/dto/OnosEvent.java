@@ -46,6 +46,11 @@ public class OnosEvent extends AbstractEvent<OnosEvent.Type, byte[]> {
         /**
          * Signifies Link events.
          */
-        LINK
+        LINK,
+
+        /**
+         * Signifies Host events.
+         */
+        HOST
     }
 }

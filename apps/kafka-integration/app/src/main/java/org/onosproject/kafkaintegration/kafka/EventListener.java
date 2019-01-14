@@ -34,6 +34,9 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.link.LinkEvent;
 import org.onosproject.net.link.LinkListener;
 import org.onosproject.net.link.LinkService;
+import org.onosproject.net.host.HostEvent;
+import org.onosproject.net.host.HostListener;
+import org.onosproject.net.host.HostService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +47,7 @@ import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.kafkaintegration.api.dto.OnosEvent.Type.DEVICE;
 import static org.onosproject.kafkaintegration.api.dto.OnosEvent.Type.LINK;
+import static org.onosproject.kafkaintegration.api.dto.OnosEvent.Type.HOST;
 
 
 /**
@@ -66,6 +70,9 @@ public class EventListener {
     protected LinkService linkService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected HostService hostService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected KafkaEventStorageService kafkaStoreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
@@ -76,6 +83,7 @@ public class EventListener {
 
     private final DeviceListener deviceListener = new InternalDeviceListener();
     private final LinkListener linkListener = new InternalLinkListener();
+    private final HostListener hostListener = new InternalHostListener();
 
     protected ExecutorService eventExecutor;
 
@@ -89,6 +97,7 @@ public class EventListener {
         eventExecutor = newSingleThreadScheduledExecutor(groupedThreads("onos/onosEvents", "events-%d", log));
         deviceService.addListener(deviceListener);
         linkService.addListener(linkListener);
+        hostService.addListener(hostListener);
 
         localNodeId = clusterService.getLocalNode().id();
 
@@ -101,6 +110,7 @@ public class EventListener {
     protected void deactivate() {
         deviceService.removeListener(deviceListener);
         linkService.removeListener(linkListener);
+        hostService.removeListener(hostListener);
 
         eventExecutor.shutdownNow();
         eventExecutor = null;
@@ -144,6 +154,29 @@ public class EventListener {
             }
 
             if (!eventSubscriptionService.getEventSubscribers(LINK).isEmpty()) {
+                OnosEvent onosEvent = eventConversionService.convertEvent(event);
+                eventExecutor.execute(() -> {
+                    kafkaStoreService.publishEvent(onosEvent);
+                });
+                log.debug("Pushed event {} to kafka storage", onosEvent);
+            }
+
+        }
+    }
+
+    private class InternalHostListener implements HostListener {
+
+        @Override
+        public void event(HostEvent event) {
+
+            // do not allow to proceed without leadership
+            NodeId leaderNodeId = leadershipService.getLeader(PUBLISHER_TOPIC);
+            if (!Objects.equals(localNodeId, leaderNodeId)) {
+                log.debug("Not a Leader, cannot publish!");
+                return;
+            }
+
+            if (!eventSubscriptionService.getEventSubscribers(HOST).isEmpty()) {
                 OnosEvent onosEvent = eventConversionService.convertEvent(event);
                 eventExecutor.execute(() -> {
                     kafkaStoreService.publishEvent(onosEvent);
