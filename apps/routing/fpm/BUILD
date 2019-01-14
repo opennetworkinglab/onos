@@ -3,6 +3,7 @@ BUNDLES = [
     "//apps/routing-api:onos-apps-routing-api",
     "//apps/routing/fpm/api:onos-apps-routing-fpm-api",
     "//apps/routing/fpm/app:onos-apps-routing-fpm-app",
+    "//apps/routing/fpm/web:onos-apps-routing-fpm-web",
 ]
 
 onos_app(
