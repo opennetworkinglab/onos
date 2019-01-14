@@ -20,6 +20,8 @@ provides a handy way to create a bunch of test rules for the specified test
 files.
 """
 
+load("//tools/build/bazel:deps_files.bzl", "deps_files")
+
 def testIsExcluded(exclude_tests, test):
     for excluded_test in exclude_tests:
         normalized_excluded_test = excluded_test.replace(".", "/")
@@ -64,19 +66,40 @@ def generate_test_rules(
             native.package_name() + "/" + _strip_right(test, ".java"),
         )
         package = java_class[:java_class.rfind(".")]
+
         native.java_test(
+            data = ["@jacoco_agent_runtime//jar"],
             name = prefix + test,
             runtime_deps = deps,
             resources = resources,
             size = test_size,
-            jvm_flags = jvm_flags,
+            #jvm_flags = jvm_flags,
             args = args,
             flaky = flaky,
             tags = tags,
             test_class = java_class,
             visibility = visibility,
             shard_count = shard_count,
+            jvm_flags = jvm_flags,
         )
+
+        jacoco_agent = "$(location @jacoco_agent_runtime//jar)"
+        native.java_test(
+            data = ["@jacoco_agent_runtime//jar"],
+            name = prefix + test + "-coverage",
+            runtime_deps = deps,
+            resources = resources,
+            size = "large",
+            #jvm_flags = jvm_flags,
+            args = args,
+            flaky = flaky,
+            tags = tags,
+            test_class = java_class,
+            visibility = visibility,
+            shard_count = shard_count,
+            jvm_flags = jvm_flags + ["-javaagent:" + jacoco_agent + "=destfile=/tmp/jacoco.exec"],
+        )
+    deps_files(name = name + "-deps", deps = deps)
 
 def _get_test_names(test_files):
     test_names = []
