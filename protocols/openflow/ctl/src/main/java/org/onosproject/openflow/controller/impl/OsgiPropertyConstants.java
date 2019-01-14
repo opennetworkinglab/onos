@@ -46,4 +46,26 @@ public final class OsgiPropertyConstants {
     public static final String TRUST_STORE_PASSWORD = "trustStorePassword";
     public static final String TRUST_STORE_PASSWORD_DEFAULT = "";
 
+    public static final String DEFAULT_QUEUE_SIZE = "defaultQueueSize";
+    public static final String DEBAULT_BULK_SIZE = "defaultBulkSize";
+    public static final String QUEUE_SIZE_N0 = "queueSizeN0";
+    public static final String BULK_SIZE_N0 = "bulkSizeN0";
+    public static final String QUEUE_SIZE_N1 = "queueSizeN1";
+    public static final String BULK_SIZE_N1 = "bulkSizeN1";
+    public static final String QUEUE_SIZE_N2 = "queueSizeN2";
+    public static final String BULK_SIZE_N2 = "bulkSizeN2";
+    public static final String QUEUE_SIZE_N3 = "queueSizeN3";
+    public static final String BULK_SIZE_N3 = "bulkSizeN3";
+    public static final String QUEUE_SIZE_N4 = "queueSizeN4";
+    public static final String BULK_SIZE_N4 = "bulkSizeN4";
+    public static final String QUEUE_SIZE_N5 = "queueSizeN5";
+    public static final String BULK_SIZE_N5 = "bulkSizeN5";
+    public static final String QUEUE_SIZE_N6 = "queueSizeN6";
+    public static final String BULK_SIZE_N6 = "bulkSizeN6";
+
+    public static final int DEFAULT_QUEUE_SIZE_DEFAULT = 5000;
+    public static final int QUEUE_SIZE_N0_DEFAULT = 1000;
+    public static final int BULK_SIZE_DEFAULT = 100;
+    public static final int QUEUE_SIZE_DEFAULT = 1;
+
 }

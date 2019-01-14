@@ -152,4 +152,18 @@ public interface OpenFlowController {
      * @param dpid the switch to set the role for.
      */
     void setRole(Dpid dpid, RoleState role);
+
+    /**
+     * Remove OpenFlow classifier listener from runtime store of classifiers listener.
+     *
+     * @param listener the OpenFlow classifier to remove
+     */
+    void removeClassifierListener(OpenFlowClassifierListener listener);
+
+    /**
+     * Add OpenFlow classifier listener to runtime store of classifiers listener.
+     *
+     * @param listener the OpenFlow classifier listener
+     */
+    void addClassifierListener(OpenFlowClassifierListener listener);
 }

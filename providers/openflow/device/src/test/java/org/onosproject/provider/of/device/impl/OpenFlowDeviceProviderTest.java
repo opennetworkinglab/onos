@@ -38,6 +38,7 @@ import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.driver.DriverServiceAdapter;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.openflow.controller.Dpid;
+import org.onosproject.openflow.controller.OpenFlowClassifierListener;
 import org.onosproject.openflow.controller.OpenFlowController;
 import org.onosproject.openflow.controller.OpenFlowEventListener;
 import org.onosproject.openflow.controller.OpenFlowMessageListener;
@@ -332,6 +333,14 @@ public class OpenFlowDeviceProviderTest {
         @Override
         public void setRole(Dpid dpid, RoleState role) {
             roleMap.put(dpid, role);
+        }
+
+        @Override
+        public void removeClassifierListener(OpenFlowClassifierListener listener) {
+        }
+
+        @Override
+        public void addClassifierListener(OpenFlowClassifierListener listener) {
         }
     }
 

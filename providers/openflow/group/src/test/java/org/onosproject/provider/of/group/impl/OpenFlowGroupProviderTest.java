@@ -40,6 +40,7 @@ import org.onosproject.net.group.GroupProviderService;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.openflow.controller.Dpid;
+import org.onosproject.openflow.controller.OpenFlowClassifierListener;
 import org.onosproject.openflow.controller.OpenFlowController;
 import org.onosproject.openflow.controller.OpenFlowEventListener;
 import org.onosproject.openflow.controller.OpenFlowMessageListener;
@@ -177,7 +178,6 @@ public class OpenFlowGroupProviderTest {
     }
 
 
-
     @After
     public void tearDown() {
         provider.deactivate();
@@ -312,6 +312,14 @@ public class OpenFlowGroupProviderTest {
         @Override
         public OpenFlowSwitch getEqualSwitch(Dpid dpid) {
             return null;
+        }
+
+        @Override
+        public void removeClassifierListener(OpenFlowClassifierListener listener) {
+        }
+
+        @Override
+        public void addClassifierListener(OpenFlowClassifierListener listener) {
         }
     }
 
