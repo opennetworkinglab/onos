@@ -1,0 +1,17 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:JACKSON',
+    '//utils/rest:onlab-rest',
+    '//lib:javax.ws.rs-api',
+    '//apps/routing/fpm/app:onos-apps-routing-fpm-app',
+    '//apps/routing/fpm/api:onos-apps-routing-fpm-api',
+]
+
+osgi_jar (
+   deps = COMPILE_DEPS,
+   web_context = '/onos/v1/fpm',
+   api_title = 'FPM API',
+   api_version = '1.0',
+   api_description = 'REST API for FPM',
+   api_package = 'org.onosproject.fpm.web',
+)
