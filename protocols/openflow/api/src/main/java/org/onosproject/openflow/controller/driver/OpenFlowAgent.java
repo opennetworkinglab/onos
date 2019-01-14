@@ -16,6 +16,7 @@
 package org.onosproject.openflow.controller.driver;
 
 import org.onosproject.openflow.controller.Dpid;
+import org.onosproject.openflow.controller.OpenFlowClassifierListener;
 import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.onosproject.openflow.controller.RoleState;
 import org.projectfloodlight.openflow.protocol.OFMessage;
@@ -109,4 +110,18 @@ public interface OpenFlowAgent {
      * @param response role reply from the switch
      */
     void returnRoleReply(Dpid dpid, RoleState requested, RoleState response);
+
+    /**
+     * Add OpenFlow classifier listener.
+     *
+     * @param listener the OpenFlow classifier listener
+     */
+    void addClassifierListener(OpenFlowClassifierListener listener);
+
+    /**
+     * Remove OpenFlow classifier listener.
+     *
+     * @param listener the OpenFlow classifier listener
+     */
+    void removeClassifierListener(OpenFlowClassifierListener listener);
 }

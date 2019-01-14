@@ -38,6 +38,7 @@ import org.onosproject.openflow.controller.Dpid;
 import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.onosproject.openflow.controller.OpenFlowSwitchListener;
 import org.onosproject.openflow.controller.RoleState;
+import org.onosproject.openflow.controller.OpenFlowService;
 import org.osgi.service.component.ComponentContext;
 import org.projectfloodlight.openflow.protocol.OFPortStatus;
 
@@ -138,6 +139,10 @@ public class OpenFlowControllerImplTest {
         CoreService mockCoreService =
                 EasyMock.createMock(CoreService.class);
         controller.coreService = mockCoreService;
+
+        OpenFlowService mockOpenFlowService =
+                EasyMock.createMock(OpenFlowService.class);
+        controller.openFlowManager = mockOpenFlowService;
 
         ComponentConfigService mockConfigService =
                 EasyMock.createMock(ComponentConfigService.class);

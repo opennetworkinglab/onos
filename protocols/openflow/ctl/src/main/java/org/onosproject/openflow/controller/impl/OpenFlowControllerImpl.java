@@ -30,12 +30,16 @@ import org.onosproject.net.driver.DriverService;
 import org.onosproject.openflow.config.OpenFlowDeviceConfig;
 import org.onosproject.openflow.controller.DefaultOpenFlowPacketContext;
 import org.onosproject.openflow.controller.Dpid;
+import org.onosproject.openflow.controller.OpenFlowClassifierListener;
 import org.onosproject.openflow.controller.OpenFlowController;
 import org.onosproject.openflow.controller.OpenFlowEventListener;
 import org.onosproject.openflow.controller.OpenFlowMessageListener;
 import org.onosproject.openflow.controller.OpenFlowPacketContext;
 import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.onosproject.openflow.controller.OpenFlowSwitchListener;
+import org.onosproject.openflow.controller.OpenFlowListener;
+import org.onosproject.openflow.controller.OpenFlowService;
+import org.onosproject.openflow.controller.OpenFlowEvent;
 import org.onosproject.openflow.controller.PacketListener;
 import org.onosproject.openflow.controller.RoleState;
 import org.onosproject.openflow.controller.driver.OpenFlowAgent;
@@ -104,8 +108,25 @@ import static org.onosproject.openflow.controller.impl.OsgiPropertyConstants.*;
                 KEY_STORE_PASSWORD + "=" + KEY_STORE_PASSWORD_DEFAULT,
                 TRUST_STORE + "=" + TRUST_STORE_DEFAULT,
                 TRUST_STORE_PASSWORD + "=" + TRUST_STORE_PASSWORD_DEFAULT,
+                DEFAULT_QUEUE_SIZE + ":Integer=" + DEFAULT_QUEUE_SIZE_DEFAULT,
+                DEBAULT_BULK_SIZE + ":Integer=" + BULK_SIZE_DEFAULT,
+                QUEUE_SIZE_N0 + ":Integer=" + QUEUE_SIZE_N0_DEFAULT,
+                BULK_SIZE_N0 + ":Integer=" + BULK_SIZE_DEFAULT,
+                QUEUE_SIZE_N1 + ":Integer=" + QUEUE_SIZE_DEFAULT,
+                BULK_SIZE_N1 + ":Integer=" + BULK_SIZE_DEFAULT,
+                QUEUE_SIZE_N2 + ":Integer=" + QUEUE_SIZE_DEFAULT,
+                BULK_SIZE_N2 + ":Integer=" + BULK_SIZE_DEFAULT,
+                QUEUE_SIZE_N3 + ":Integer=" + QUEUE_SIZE_DEFAULT,
+                BULK_SIZE_N3 + ":Integer=" + BULK_SIZE_DEFAULT,
+                QUEUE_SIZE_N4 + ":Integer=" + QUEUE_SIZE_DEFAULT,
+                BULK_SIZE_N4 + ":Integer=" + BULK_SIZE_DEFAULT,
+                QUEUE_SIZE_N5 + ":Integer=" + QUEUE_SIZE_DEFAULT,
+                BULK_SIZE_N5 + ":Integer=" + BULK_SIZE_DEFAULT,
+                QUEUE_SIZE_N6 + ":Integer=" + QUEUE_SIZE_DEFAULT,
+                BULK_SIZE_N6 + ":Integer=" + BULK_SIZE_DEFAULT,
         }
 )
+
 public class OpenFlowControllerImpl implements OpenFlowController {
     private static final String APP_ID = "org.onosproject.openflow-base";
     protected static final String SCHEME = "of";
@@ -131,11 +152,16 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     /** Number of controller worker threads. */
     private int workerThreads = WORKER_THREADS_DEFAULT;
 
-      /** TLS mode for OpenFlow channel; options are: disabled [default], enabled, strict. */
+    /** TLS mode for OpenFlow channel; options are: disabled [default], enabled, strict. */
     private String tlsMode;
 
     /** File path to key store for TLS connections. */
     private String keyStore;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected OpenFlowService openFlowManager;
+
+    private final OpenFlowListener openFlowListener = new InternalOpenFlowListener();
 
     /** Key store password. */
     private String keyStorePassword;
@@ -145,6 +171,54 @@ public class OpenFlowControllerImpl implements OpenFlowController {
 
     /** Trust store password. */
     private String trustStorePassword;
+
+    /** Size of deafult queue. */
+    private int defaultQueueSize = DEFAULT_QUEUE_SIZE_DEFAULT;
+
+    /** Size of deafult bulk. */
+    private int defaultBulkSize = BULK_SIZE_DEFAULT;
+
+    /** Size of queue N0. */
+    private int queueSizeN0 = QUEUE_SIZE_N0_DEFAULT;
+
+    /** Size of bulk N0. */
+    private int bulkSizeN0 = BULK_SIZE_DEFAULT;
+
+    /** Size of queue N1. */
+    private int queueSizeN1 = QUEUE_SIZE_DEFAULT;
+
+    /** Size of bulk N1. */
+    private int bulkSizeN1 = BULK_SIZE_DEFAULT;
+
+    /** Size of queue N2. */
+    private int queueSizeN2 = QUEUE_SIZE_DEFAULT;
+
+    /** Size of bulk N2. */
+    private int bulkSizeN2 = BULK_SIZE_DEFAULT;
+
+    /** Size of queue N3. */
+    private int queueSizeN3 = QUEUE_SIZE_DEFAULT;
+
+    /** Size of bulk N3. */
+    private int bulkSizeN3 = BULK_SIZE_DEFAULT;
+
+    /** Size of queue N4. */
+    private int queueSizeN4 = QUEUE_SIZE_DEFAULT;
+
+    /** Size of bulk N4. */
+    private int bulkSizeN4 = BULK_SIZE_DEFAULT;
+
+    /** Size of queue N5. */
+    private int queueSizeN5 = QUEUE_SIZE_DEFAULT;
+
+    /** Size of bulk N5. */
+    private int bulkSizeN5 = BULK_SIZE_DEFAULT;
+
+    /** Size of queue N6. */
+    private int queueSizeN6 = QUEUE_SIZE_DEFAULT;
+
+    /** Size of bulk N6. */
+    private int bulkSizeN6 = BULK_SIZE_DEFAULT;
 
     protected ExecutorService executorMsgs =
         Executors.newFixedThreadPool(32, groupedThreads("onos/of", "event-stats-%d", log));
@@ -178,6 +252,8 @@ public class OpenFlowControllerImpl implements OpenFlowController {
             ArrayListMultimap.create();
 
     protected Set<OpenFlowEventListener> ofEventListener = new CopyOnWriteArraySet<>();
+
+    protected Set<OpenFlowClassifierListener> ofClassifierListener = new CopyOnWriteArraySet<>();
 
     protected Set<OpenFlowMessageListener> ofMessageListener = new CopyOnWriteArraySet<>();
 
@@ -266,6 +342,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
         netCfgService.addListener(netCfgListener);
         ctrl.setConfigParams(context.getProperties());
         ctrl.start(agent, driverService, netCfgService);
+        openFlowManager.addListener(openFlowListener);
     }
 
     private void cleanup() {
@@ -276,6 +353,7 @@ public class OpenFlowControllerImpl implements OpenFlowController {
         connectedSwitches.clear();
         activeMasterSwitches.clear();
         activeEqualSwitches.clear();
+        openFlowManager.removeListener(openFlowListener);
     }
 
     @Deactivate
@@ -331,6 +409,16 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     @Override
     public void removeListener(OpenFlowSwitchListener listener) {
         this.ofSwitchListener.remove(listener);
+    }
+
+    @Override
+    public void addClassifierListener(OpenFlowClassifierListener listener) {
+        this.ofClassifierListener.add(listener);
+    }
+
+    @Override
+    public void removeClassifierListener(OpenFlowClassifierListener listener) {
+        this.ofClassifierListener.remove(listener);
     }
 
     @Override
@@ -840,6 +928,16 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                 l.receivedRoleReply(dpid, requested, response);
             }
         }
+
+        @Override
+        public void addClassifierListener(OpenFlowClassifierListener listener) {
+            ofClassifierListener.add(listener);
+        }
+
+        @Override
+        public void removeClassifierListener(OpenFlowClassifierListener listener) {
+            ofClassifierListener.remove(listener);
+        }
     }
 
     /**
@@ -859,6 +957,30 @@ public class OpenFlowControllerImpl implements OpenFlowController {
         public void run() {
             for (OpenFlowEventListener listener : ofEventListener) {
                 listener.handleMessage(dpid, msg);
+            }
+        }
+    }
+
+    private class InternalOpenFlowListener implements OpenFlowListener {
+        public void event(OpenFlowEvent event) {
+            try {
+                switch (event.type()) {
+                case INSERT:
+                    for (OpenFlowClassifierListener listener : ofClassifierListener) {
+                        listener.handleClassifiersAdd(event.subject());
+                    }
+                    break;
+                case REMOVE:
+                    for (OpenFlowClassifierListener listener : ofClassifierListener) {
+                        listener.handleClassifiersRemove(event.subject());
+                    }
+                    break;
+                default:
+                    log.warn("Unknown OpenFlow classifier event type: {}", event.type());
+                    break;
+                }
+            } catch (Exception e) {
+                log.error("Internal OpenFlowListener exception: {}", e.getMessage());
             }
         }
     }

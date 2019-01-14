@@ -38,6 +38,7 @@ import org.onosproject.net.packet.PacketProviderService;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.openflow.controller.DefaultOpenFlowPacketContext;
 import org.onosproject.openflow.controller.Dpid;
+import org.onosproject.openflow.controller.OpenFlowClassifierListener;
 import org.onosproject.openflow.controller.OpenFlowController;
 import org.onosproject.openflow.controller.OpenFlowEventListener;
 import org.onosproject.openflow.controller.OpenFlowMessageListener;
@@ -383,6 +384,14 @@ public class OpenFlowPacketProviderTest {
         public void setRole(Dpid dpid, RoleState role) {
         }
 
+        @Override
+        public void removeClassifierListener(OpenFlowClassifierListener listener) {
+        }
+
+        @Override
+        public void addClassifierListener(OpenFlowClassifierListener listener) {
+        }
+
     }
 
     private class TestOpenFlowSwitch implements OpenFlowSwitch {
@@ -476,6 +485,7 @@ public class OpenFlowPacketProviderTest {
         @Override
         public void returnRoleReply(RoleState requested, RoleState reponse) {
         }
+
         @Override
         public Device.Type deviceType() {
             return Device.Type.SWITCH;

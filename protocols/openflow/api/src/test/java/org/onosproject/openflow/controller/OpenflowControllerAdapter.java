@@ -103,4 +103,12 @@ public class OpenflowControllerAdapter implements OpenFlowController {
     @Override
     public void removeEventListener(OpenFlowEventListener listener) {
     }
+
+    @Override
+    public void removeClassifierListener(OpenFlowClassifierListener listener) {
+    }
+
+    @Override
+    public void addClassifierListener(OpenFlowClassifierListener listener) {
+    }
 }
