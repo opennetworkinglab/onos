@@ -503,10 +503,12 @@ public class ECFlowRuleStore
                 switch (op.operator()) {
                     case ADD:
                         entry = new DefaultFlowEntry(op.target());
+                        log.debug("Adding flow rule: {}", entry);
                         flowTable.add(entry);
                         return op;
                     case MODIFY:
                         entry = new DefaultFlowEntry(op.target());
+                        log.debug("Updating flow rule: {}", entry);
                         flowTable.update(entry);
                         return op;
                     case REMOVE:
@@ -615,6 +617,7 @@ public class ECFlowRuleStore
     private FlowRuleEvent removeFlowRuleInternal(FlowEntry rule) {
         // This is where one could mark a rule as removed and still keep it in the store.
         final FlowEntry removed = flowTable.remove(rule);
+        log.debug("Removed flow rule: {}", removed);
         // rule may be partial rule that is missing treatment, we should use rule from store instead
         return removed != null ? new FlowRuleEvent(RULE_REMOVED, removed) : null;
     }
