@@ -644,7 +644,7 @@ public class FpmManager implements FpmInfoService {
             raLength =  Ip4Address.BYTE_LENGTH + RouteAttribute.ROUTE_ATTRIBUTE_HEADER_LENGTH;
             addrFamily = RtNetlink.RT_ADDRESS_FAMILY_INET;
             for (Ip4Address pdPushNextHop: pdPushNextHopList) {
-                log.debug("IPv4 next hop is:" + pdPushNextHop);
+                log.trace("IPv4 next hop is:" + pdPushNextHop);
                 updateRoute(pdPushNextHop, isAdd, prefix, ch, raLength, addrFamily);
             }
         } else {
@@ -657,7 +657,7 @@ public class FpmManager implements FpmInfoService {
             raLength =  Ip6Address.BYTE_LENGTH + RouteAttribute.ROUTE_ATTRIBUTE_HEADER_LENGTH;
             addrFamily = RtNetlink.RT_ADDRESS_FAMILY_INET6;
             for (Ip6Address pdPushNextHop: pdPushNextHopList) {
-                log.debug("IPv6 next hop is:" + pdPushNextHop);
+                log.trace("IPv6 next hop is:" + pdPushNextHop);
                 updateRoute(pdPushNextHop, isAdd, prefix, ch, raLength, addrFamily);
             }
         }
