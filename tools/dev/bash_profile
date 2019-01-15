@@ -22,6 +22,9 @@ fi
 
 export MAVEN=${MAVEN:-~/Applications/apache-maven-3.3.9}
 
+# Clean up Karaf environment variables to avoid issues when switching from ONOS 1.x to 2.x
+unset KARAF_VERSION KARAF_ROOT KARAF_LOG
+
 # Setup a path
 export PATH="$PATH:$ONOS_ROOT/tools/dev/bin"
 export PATH="$PATH:$ONOS_ROOT/tools/test/bin:$ONOS_ROOT/tools/test/scenarios/bin"
