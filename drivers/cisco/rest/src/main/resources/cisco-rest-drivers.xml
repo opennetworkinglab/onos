@@ -15,19 +15,14 @@
   ~ limitations under the License.
   -->
 <drivers>
-    <driver name="cisco-rest" manufacturer="Cisco" hwVersion="" swVersion="NXOS">
-        <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
-                   impl="org.onosproject.drivers.cisco.rest.CiscoNxosDeviceDescription"/>
+    <driver name="cisco-rest" manufacturer="Cisco.*" hwVersion="Nexus.*" swVersion="NXOS">
         <behaviour api="org.onosproject.net.device.PortStatisticsDiscovery"
                    impl="org.onosproject.drivers.cisco.rest.CiscoNxosPortStatistics"/>
         <behaviour api="org.onosproject.net.behaviour.ControllerConfig"
                    impl="org.onosproject.drivers.cisco.rest.ControllerConfigCiscoImpl"/>
-    </driver>
-
-    <driver name="cisco-rest" manufacturer="Cisco" hwVersion="Nexus 9000" swVersion="NXOS">
-        <behaviour api="org.onosproject.net.device.PortStatisticsDiscovery"
-                   impl="org.onosproject.drivers.cisco.rest.CiscoNxosPortStatistics"/>
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
                    impl="org.onosproject.drivers.cisco.rest.DeviceDescriptionDiscoveryCisco9kImpl"/>
+        <behaviour api="org.onosproject.net.behaviour.LinkDiscovery"
+                   impl="org.onosproject.drivers.cisco.rest.LinkDiscoveryCisco9kImpl"/>
     </driver>
 </drivers>
