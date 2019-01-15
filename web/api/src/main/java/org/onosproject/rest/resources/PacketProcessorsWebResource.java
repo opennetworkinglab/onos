@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.net.packet.PacketProcessorEntry;
 import org.onosproject.net.packet.PacketService;
-import org.slf4j.Logger;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -30,7 +29,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import java.util.List;
-import static org.slf4j.LoggerFactory.getLogger;
 import static org.onosproject.net.packet.PacketProcessor.ADVISOR_MAX;
 import static org.onosproject.net.packet.PacketProcessor.DIRECTOR_MAX;
 
@@ -41,11 +39,6 @@ import static org.onosproject.net.packet.PacketProcessor.DIRECTOR_MAX;
 @Path("packet/processors")
 public class PacketProcessorsWebResource extends AbstractWebResource {
 
-    private final Logger log = getLogger(getClass());
-    PacketService service = get(PacketService.class);
-    private final ObjectNode root = mapper().createObjectNode();
-    private final ArrayNode pktProcNode = root.putArray("packet-processors");
-
     /**
      * Gets packet processors. Returns array of all packet processors.
 
@@ -55,6 +48,9 @@ public class PacketProcessorsWebResource extends AbstractWebResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getPacketProcessors() {
+      PacketService service = get(PacketService.class);
+      ObjectNode root = mapper().createObjectNode();
+      ArrayNode pktProcNode = root.putArray("packet-processors");
       List<PacketProcessorEntry> processors = service.getProcessors();
       ObjectMapper mapper = new ObjectMapper();
       for (PacketProcessorEntry p : processors) {
