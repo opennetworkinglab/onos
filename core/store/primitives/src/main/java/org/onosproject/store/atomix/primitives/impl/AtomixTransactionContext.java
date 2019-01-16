@@ -99,6 +99,6 @@ public class AtomixTransactionContext implements TransactionContext {
                 .withMaxRetries(MAX_RETRIES)
                 .build())
             .withSerializer(new AtomixSerializerAdapter(serializer))
-            .build());
+            .get());
     }
 }
