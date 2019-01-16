@@ -424,21 +424,21 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
     final class InOrderObjectiveContext implements ObjectiveContext {
         private final DeviceId deviceId;
         private final ObjectiveContext originalContext;
-        // Prevent context from being executed multiple times.
-        // E.g. when the context actually succeed after the cache timeout
-        private final AtomicBoolean done;
+        // Prevent onSuccess from being executed after onError is called
+        // i.e. when the context actually succeed after the cache timeout
+        private final AtomicBoolean failed;
 
         InOrderObjectiveContext(DeviceId deviceId, ObjectiveContext originalContext) {
             this.deviceId = deviceId;
             this.originalContext = originalContext;
-            this.done = new AtomicBoolean(false);
+            this.failed = new AtomicBoolean(false);
         }
 
         @Override
         public void onSuccess(Objective objective) {
             log.trace("Flow objective onSuccess {}", objective);
 
-            if (!done.getAndSet(true)) {
+            if (!failed.get()) {
                 dequeue(deviceId, objective, null);
                 if (originalContext != null) {
                     originalContext.onSuccess(objective);
@@ -450,7 +450,7 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
         public void onError(Objective objective, ObjectiveError error) {
             log.warn("Flow objective onError {}. Reason = {}", objective, error);
 
-            if (!done.getAndSet(true)) {
+            if (!failed.getAndSet(true)) {
                 dequeue(deviceId, objective, error);
                 if (originalContext != null) {
                     originalContext.onError(objective, error);
