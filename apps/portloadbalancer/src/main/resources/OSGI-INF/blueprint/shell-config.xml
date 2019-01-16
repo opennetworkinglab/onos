@@ -18,13 +18,13 @@
     <command-bundle xmlns="http://karaf.apache.org/xmlns/shell/v1.1.0">
 
         <command>
-            <action class="org.onosproject.l2lb.cli.L2LbListCommand"/>
+            <action class="org.onosproject.portloadbalancer.cli.PortLoadBalancerListCommand"/>
         </command>
         <command>
-            <action class="org.onosproject.l2lb.cli.L2LbAddCommand"/>
+            <action class="org.onosproject.portloadbalancer.cli.PortLoadBalancerAddCommand"/>
         </command>
         <command>
-            <action class="org.onosproject.l2lb.cli.L2LbRemoveCommand"/>
+            <action class="org.onosproject.portloadbalancer.cli.PortLoadBalancerRemoveCommand"/>
         </command>
 
     </command-bundle>

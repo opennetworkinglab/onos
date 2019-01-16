@@ -15,9 +15,9 @@ osgi_jar_with_tests (
 )
 
 onos_app (
-    app_name = 'org.onosproject.l2lb',
+    app_name = 'org.onosproject.portloadbalancer',
     category = 'Utilities',
-    description = 'L2 Load Balance Service',
-    title = 'L2 Load Balance Service',
+    description = 'Port Load Balance Service',
+    title = 'Port Load Balance Service',
     url = 'http://onosproject.org',
 )

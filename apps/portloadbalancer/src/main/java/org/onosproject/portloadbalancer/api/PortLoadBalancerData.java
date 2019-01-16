@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.l2lb.api;
+package org.onosproject.portloadbalancer.api;
 
 
 import java.util.Objects;
@@ -21,57 +21,57 @@ import java.util.Objects;
 import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
- * Represents L2 load balancer event data.
+ * Represents port load balancer event data.
  */
-public class L2LbData {
+public class PortLoadBalancerData {
 
     // We exchange only id and nextid in the events
-    private L2LbId l2LbId;
+    private PortLoadBalancerId portLoadBalancerId;
     private int nextId;
 
     /**
-     * Constructs a L2 load balancer data.
+     * Constructs a port load balancer data.
      *
-     * @param l2LbId L2 load balancer ID
+     * @param portLoadBalancerId port load balancer ID
      */
-    public L2LbData(L2LbId l2LbId) {
-        this.l2LbId = l2LbId;
+    public PortLoadBalancerData(PortLoadBalancerId portLoadBalancerId) {
+        this.portLoadBalancerId = portLoadBalancerId;
         this.nextId = -1;
     }
 
     /**
-     * Constructs a L2 load balancer data.
+     * Constructs a port load balancer data.
      *
-     * @param l2LbId L2 load balancer ID
-     * @param nextId L2 load balancer next id
+     * @param portLoadBalancerId port load balancer ID
+     * @param nextId port load balancer next id
      */
-    public L2LbData(L2LbId l2LbId, int nextId) {
-        this.l2LbId = l2LbId;
+    public PortLoadBalancerData(PortLoadBalancerId portLoadBalancerId, int nextId) {
+        this.portLoadBalancerId = portLoadBalancerId;
         this.nextId = nextId;
     }
 
     /**
-     * Gets L2 load balancer ID.
+     * Gets port load balancer ID.
      *
-     * @return L2 load balancer ID
+     * @return port load balancer ID
      */
-    public L2LbId l2LbId() {
-        return l2LbId;
+    public PortLoadBalancerId portLoadBalancerId() {
+        return portLoadBalancerId;
     }
 
     /**
-     * Gets L2 load balancer next id.
+     * Gets port load balancer next id.
      *
-     * @return L2 load balancer next id
+     * @return port load balancer next id
      */
     public int nextId() {
         return nextId;
     }
 
     /**
-     * Sets L2 load balancer next id.
+     * Sets port load balancer next id.
      *
-     * @param nextId L2 load balancer next id
+     * @param nextId port load balancer next id
      */
     public void setNextId(int nextId) {
         this.nextId = nextId;
@@ -79,7 +79,7 @@ public class L2LbData {
 
     @Override
     public int hashCode() {
-        return Objects.hash(l2LbId, nextId);
+        return Objects.hash(portLoadBalancerId, nextId);
     }
 
     @Override
@@ -87,19 +87,19 @@ public class L2LbData {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof L2LbData)) {
+        if (!(obj instanceof PortLoadBalancerData)) {
             return false;
         }
-        final L2LbData other = (L2LbData) obj;
+        final PortLoadBalancerData other = (PortLoadBalancerData) obj;
 
-        return Objects.equals(this.l2LbId, other.l2LbId) &&
+        return Objects.equals(this.portLoadBalancerId, other.portLoadBalancerId) &&
                 this.nextId == other.nextId;
     }
 
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("l2LbId", l2LbId)
+                .add("portLoadBalancerId", portLoadBalancerId)
                 .add("nextId", nextId)
                 .toString();
     }

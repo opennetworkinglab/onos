@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.l2lb.api;
+package org.onosproject.portloadbalancer.api;
 
 import org.onlab.util.Tools;
 import org.onosproject.event.AbstractEvent;
@@ -23,42 +23,66 @@ import java.util.Objects;
 import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
- * L2 load balancer event.
+ * Port load balancer event.
  */
-public class L2LbEvent extends AbstractEvent<L2LbEvent.Type, L2LbData> {
+public class PortLoadBalancerEvent extends AbstractEvent<PortLoadBalancerEvent.Type, PortLoadBalancerData> {
 
-    private L2LbData prevSubject;
+    private PortLoadBalancerData prevSubject;
 
     /**
-     * L2 load balancer event type.
+     * Port load balancer event type.
      */
     public enum Type {
+        /**
+         * Port load balancer creation is requested.
+         */
         ADDED,
+
+        /**
+         * Port load balancer deletion is requested.
+         */
         REMOVED,
+
+        /**
+         * Port load balancer update is requested.
+         * E.g. member change.
+         */
         UPDATED,
+
+        /**
+         * Port load balancer creation/update is completed successfully.
+         */
         INSTALLED,
+
+        /**
+         * Port load balancer deletion is completed successfully.
+         */
         UNINSTALLED,
+
+        /**
+         * Error occurs during creation/update/deletion of a port load balancer.
+         */
         FAILED
     }
 
     /**
-     * Constructs a L2 load balancer event.
+     * Constructs a port load balancer event.
      *
      * @param type event type
-     * @param subject current L2 load balancer information
-     * @param prevSubject previous L2 load balancer information
+     * @param subject current port load balancer information
+     * @param prevSubject previous port load balancer information
      */
-    public L2LbEvent(Type type, L2LbData subject, L2LbData prevSubject) {
+    public PortLoadBalancerEvent(Type type, PortLoadBalancerData subject, PortLoadBalancerData prevSubject) {
         super(type, subject);
         this.prevSubject = prevSubject;
     }
 
     /**
-     * Gets previous L2 load balancer information.
+     * Gets previous port load balancer information.
      *
      * @return previous subject
      */
-    public L2LbData prevSubject() {
+    public PortLoadBalancerData prevSubject() {
         return prevSubject;
     }
 
@@ -73,11 +97,11 @@ public class L2LbEvent extends AbstractEvent<L2LbEvent.Type, L2LbData> {
             return true;
         }
 
-        if (!(other instanceof L2LbEvent)) {
+        if (!(other instanceof PortLoadBalancerEvent)) {
             return false;
         }
 
-        L2LbEvent that = (L2LbEvent) other;
+        PortLoadBalancerEvent that = (PortLoadBalancerEvent) other;
         return Objects.equals(this.subject(), that.subject()) &&
                 Objects.equals(this.type(), that.type()) &&
                 Objects.equals(this.prevSubject, that.prevSubject);
