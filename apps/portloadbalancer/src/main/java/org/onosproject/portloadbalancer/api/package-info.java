@@ -15,6 +15,6 @@
  */
 
 /**
- * L2 load balancer app.
+ * Port load balancer API.
  */
-package org.onosproject.l2lb.app;
+package org.onosproject.portloadbalancer.api;

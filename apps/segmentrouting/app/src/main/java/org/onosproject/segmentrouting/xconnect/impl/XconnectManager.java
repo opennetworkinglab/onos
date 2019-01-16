@@ -33,10 +33,10 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.codec.CodecService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.l2lb.api.L2LbEvent;
-import org.onosproject.l2lb.api.L2LbId;
-import org.onosproject.l2lb.api.L2LbListener;
-import org.onosproject.l2lb.api.L2LbService;
+import org.onosproject.portloadbalancer.api.PortLoadBalancerEvent;
+import org.onosproject.portloadbalancer.api.PortLoadBalancerId;
+import org.onosproject.portloadbalancer.api.PortLoadBalancerListener;
+import org.onosproject.portloadbalancer.api.PortLoadBalancerService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
@@ -150,7 +150,7 @@ public class XconnectManager implements XconnectService {
     HostService hostService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    private L2LbService l2LbService;
+    private PortLoadBalancerService portLoadBalancerService;
 
     private static final String APP_NAME = "org.onosproject.xconnect";
     private static final String ERROR_NOT_LEADER = "Not leader controller";
@@ -177,12 +177,12 @@ public class XconnectManager implements XconnectService {
 
     // Wait time for the cache
     private static final int WAIT_TIME_MS = 15000;
-    //The cache is implemented as buffer for waiting the installation of L2Lb when present
-    private Cache<L2LbId, XconnectKey> l2LbCache;
+    //The cache is implemented as buffer for waiting the installation of PortLoadBalancer when present
+    private Cache<PortLoadBalancerId, XconnectKey> portLoadBalancerCache;
     // Executor for the cache
-    private ScheduledExecutorService l2lbExecutor;
-    // We need to listen for some events to properly installed the xconnect with l2lb
-    private final L2LbListener l2LbListener = new InternalL2LbListener();
+    private ScheduledExecutorService portLoadBalancerExecutor;
+    // We need to listen for some events to properly installed the xconnect with portloadbalancer
+    private final PortLoadBalancerListener portLoadBalancerListener = new InternalPortLoadBalancerListener();
 
     @Activate
     void activate() {
@@ -230,17 +230,17 @@ public class XconnectManager implements XconnectService {
                 groupedThreads("sr-xconnect-host-event", "%d", log));
         hostService.addListener(hostListener);
 
-        l2LbCache = CacheBuilder.newBuilder()
+        portLoadBalancerCache = CacheBuilder.newBuilder()
                 .expireAfterWrite(WAIT_TIME_MS, TimeUnit.MILLISECONDS)
-                .removalListener((RemovalNotification<L2LbId, XconnectKey> notification) ->
-                                         log.debug("L2Lb cache removal event. l2LbId={}, xConnectKey={}",
+                .removalListener((RemovalNotification<PortLoadBalancerId, XconnectKey> notification) ->
+                        log.debug("PortLoadBalancer cache removal event. portLoadBalancerId={}, xConnectKey={}",
                                                    notification.getKey(), notification.getValue())).build();
-        l2lbExecutor = newScheduledThreadPool(1,
-                                              groupedThreads("l2LbCacheWorker", "l2LbCacheWorker-%d", log));
+        portLoadBalancerExecutor = newScheduledThreadPool(1,
+                                              groupedThreads("portLoadBalancerCacheWorker", "-%d", log));
         // Let's schedule the cleanup of the cache
-        l2lbExecutor.scheduleAtFixedRate(l2LbCache::cleanUp, 0,
+        portLoadBalancerExecutor.scheduleAtFixedRate(portLoadBalancerCache::cleanUp, 0,
                                          WAIT_TIME_MS, TimeUnit.MILLISECONDS);
-        l2LbService.addListener(l2LbListener);
+        portLoadBalancerService.addListener(portLoadBalancerListener);
 
         log.info("Started");
     }
@@ -255,7 +255,7 @@ public class XconnectManager implements XconnectService {
         deviceEventExecutor.shutdown();
         hostEventExecutor.shutdown();
         xConnectExecutor.shutdown();
-        l2lbExecutor.shutdown();
+        portLoadBalancerExecutor.shutdown();
 
         log.info("Stopped");
     }
@@ -524,7 +524,7 @@ public class XconnectManager implements XconnectService {
      */
     private void populateFilter(XconnectKey key, Set<XconnectEndpoint> endpoints) {
         // FIXME Improve the logic
-        //       If L2 load balancer is not involved, use filtered port. Otherwise, use unfiltered port.
+        //       If port load balancer is not involved, use filtered port. Otherwise, use unfiltered port.
         //       The purpose is to make sure existing XConnect logic can still work on a configured port.
         boolean filtered = endpoints.stream()
                 .map(ep -> getNextTreatment(key.deviceId(), ep, false))
@@ -639,7 +639,7 @@ public class XconnectManager implements XconnectService {
      */
     private void revokeFilter(XconnectKey key, Set<XconnectEndpoint> endpoints) {
         // FIXME Improve the logic
-        //       If L2 load balancer is not involved, use filtered port. Otherwise, use unfiltered port.
+        //       If port load balancer is not involved, use filtered port. Otherwise, use unfiltered port.
         //       The purpose is to make sure existing XConnect logic can still work on a configured port.
         boolean filtered = endpoints.stream()
                 .map(ep -> getNextTreatment(key.deviceId(), ep, false))
@@ -693,12 +693,13 @@ public class XconnectManager implements XconnectService {
             log.warn("Fail to revokeNext {}: {}", key, ERROR_NEXT_OBJ_BUILDER);
             return;
         }
-        // Release the L2Lbs if present
+        // Release the port load balancer if present
         endpoints.stream()
                 .filter(endpoint -> endpoint.type() == XconnectEndpoint.Type.LOAD_BALANCER)
                 .forEach(endpoint -> {
-                    String l2LbKey = String.valueOf(((XconnectLoadBalancerEndpoint) endpoint).key());
-                    l2LbService.release(new L2LbId(key.deviceId(), Integer.parseInt(l2LbKey)), appId);
+                    String portLoadBalancerKey = String.valueOf(((XconnectLoadBalancerEndpoint) endpoint).key());
+                    portLoadBalancerService.release(new PortLoadBalancerId(key.deviceId(),
+                            Integer.parseInt(portLoadBalancerKey)), appId);
                 });
         flowObjectiveService.next(key.deviceId(), nextObjBuilder.remove(context));
         xconnectNextObjStore.remove(key);
@@ -819,12 +820,12 @@ public class XconnectManager implements XconnectService {
         for (XconnectEndpoint endpoint : endpoints) {
             NextTreatment nextTreatment = getNextTreatment(key.deviceId(), endpoint, true);
             if (nextTreatment == null) {
-                // If a L2Lb is used in the XConnect - putting on hold
+                // If a PortLoadBalancer is used in the XConnect - putting on hold
                 if (endpoint.type() == XconnectEndpoint.Type.LOAD_BALANCER) {
-                    log.warn("Unable to create nextObj. L2Lb not ready");
-                    String l2LbKey = String.valueOf(((XconnectLoadBalancerEndpoint) endpoint).key());
-                    l2LbCache.asMap().putIfAbsent(new L2LbId(key.deviceId(), Integer.parseInt(l2LbKey)),
-                                                  key);
+                    log.warn("Unable to create nextObj. PortLoadBalancer not ready");
+                    String portLoadBalancerKey = String.valueOf(((XconnectLoadBalancerEndpoint) endpoint).key());
+                    portLoadBalancerCache.asMap().putIfAbsent(new PortLoadBalancerId(key.deviceId(),
+                                    Integer.parseInt(portLoadBalancerKey)), key);
                 } else {
                     log.warn("Unable to create nextObj. Null NextTreatment");
                 }
@@ -1246,8 +1247,9 @@ public class XconnectManager implements XconnectService {
             return Sets.newHashSet(port);
         }
         if (endpoint.type() == XconnectEndpoint.Type.LOAD_BALANCER) {
-            L2LbId l2LbId = new L2LbId(deviceId, ((XconnectLoadBalancerEndpoint) endpoint).key());
-            Set<PortNumber> ports = l2LbService.getL2Lb(l2LbId).ports();
+            PortLoadBalancerId portLoadBalancerId = new PortLoadBalancerId(deviceId,
+                    ((XconnectLoadBalancerEndpoint) endpoint).key());
+            Set<PortNumber> ports = portLoadBalancerService.getPortLoadBalancer(portLoadBalancerId).ports();
             return Sets.newHashSet(ports);
         }
         return Sets.newHashSet();
@@ -1259,12 +1261,14 @@ public class XconnectManager implements XconnectService {
             return DefaultNextTreatment.of(DefaultTrafficTreatment.builder().setOutput(port).build());
         }
         if (endpoint.type() == XconnectEndpoint.Type.LOAD_BALANCER) {
-            L2LbId l2LbId = new L2LbId(deviceId, ((XconnectLoadBalancerEndpoint) endpoint).key());
-            NextTreatment idNextTreatment =  IdNextTreatment.of(l2LbService.getL2LbNext(l2LbId));
+            PortLoadBalancerId portLoadBalancerId = new PortLoadBalancerId(deviceId,
+                    ((XconnectLoadBalancerEndpoint) endpoint).key());
+            NextTreatment idNextTreatment =  IdNextTreatment.of(portLoadBalancerService
+                    .getPortLoadBalancerNext(portLoadBalancerId));
             // Reserve only one time during next objective creation
             if (reserve) {
-                if (!l2LbService.reserve(l2LbId, appId)) {
-                    log.warn("Reservation failed for {}", l2LbId);
+                if (!portLoadBalancerService.reserve(portLoadBalancerId, appId)) {
+                    log.warn("Reservation failed for {}", portLoadBalancerId);
                     idNextTreatment = null;
                 }
             }
@@ -1273,35 +1277,35 @@ public class XconnectManager implements XconnectService {
         return null;
     }
 
-    private class InternalL2LbListener implements L2LbListener {
-        // Populate xconnect once l2lb is available
+    private class InternalPortLoadBalancerListener implements PortLoadBalancerListener {
+        // Populate xconnect once portloadbalancer is available
         @Override
-        public void event(L2LbEvent event) {
-            l2lbExecutor.execute(() -> dequeue(event.subject().l2LbId()));
+        public void event(PortLoadBalancerEvent event) {
+            portLoadBalancerExecutor.execute(() -> dequeue(event.subject().portLoadBalancerId()));
         }
-        // When we receive INSTALLED l2 load balancing is ready
+        // When we receive INSTALLED port load balancing is ready
         @Override
-        public boolean isRelevant(L2LbEvent event) {
-            return event.type() == L2LbEvent.Type.INSTALLED;
+        public boolean isRelevant(PortLoadBalancerEvent event) {
+            return event.type() == PortLoadBalancerEvent.Type.INSTALLED;
         }
     }
 
     // Invalidate the cache and re-start the xconnect installation
-    private void dequeue(L2LbId l2LbId) {
-        XconnectKey xconnectKey = l2LbCache.getIfPresent(l2LbId);
+    private void dequeue(PortLoadBalancerId portLoadBalancerId) {
+        XconnectKey xconnectKey = portLoadBalancerCache.getIfPresent(portLoadBalancerId);
         if (xconnectKey == null) {
-            log.trace("{} not present in the cache", l2LbId);
+            log.trace("{} not present in the cache", portLoadBalancerId);
             return;
         }
-        log.debug("Dequeue {}", l2LbId);
-        l2LbCache.invalidate(l2LbId);
+        log.debug("Dequeue {}", portLoadBalancerId);
+        portLoadBalancerCache.invalidate(portLoadBalancerId);
         Set<XconnectEndpoint> endpoints = Versioned.valueOrNull(xconnectStore.get(xconnectKey));
         if (endpoints == null || endpoints.isEmpty()) {
             log.warn("Endpoints not found for XConnect {}", xconnectKey);
             return;
         }
         populateXConnect(xconnectKey, endpoints);
-        log.trace("L2Lb cache size {}", l2LbCache.size());
+        log.trace("PortLoadBalancer cache size {}", portLoadBalancerCache.size());
     }
 
 }

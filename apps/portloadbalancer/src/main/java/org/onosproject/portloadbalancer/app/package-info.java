@@ -13,24 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.l2lb.api;
 
 /**
- * L2 load balancer mode.
+ * Port load balancer app.
  */
-public enum L2LbMode {
-    /**
-     * Static L2 load balancer.
-     *
-     * In STATIC mode, all member ports of this load balancer will be used to transmit data as long as it is enabled.
-     */
-    STATIC,
-
-    /**
-     * L2 load balancer based on LACP.
-     *
-     * In LACP mode, we decide whether to use a member port to transmit data or not according to
-     * the LACP negotiation result.
-     */
-    LACP
-}
+package org.onosproject.portloadbalancer.app;

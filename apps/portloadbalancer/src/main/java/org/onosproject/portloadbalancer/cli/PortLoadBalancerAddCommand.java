@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.l2lb.cli;
+package org.onosproject.portloadbalancer.cli;
 
 import com.google.common.collect.Sets;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.l2lb.api.L2Lb;
-import org.onosproject.l2lb.api.L2LbAdminService;
-import org.onosproject.l2lb.api.L2LbId;
-import org.onosproject.l2lb.api.L2LbMode;
+import org.onosproject.portloadbalancer.api.PortLoadBalancer;
+import org.onosproject.portloadbalancer.api.PortLoadBalancerAdminService;
+import org.onosproject.portloadbalancer.api.PortLoadBalancerId;
+import org.onosproject.portloadbalancer.api.PortLoadBalancerMode;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 
@@ -31,28 +31,28 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Command to add a L2 load balancer.
+ * Command to add a port load balancer.
  */
 @Service
-@Command(scope = "onos", name = "l2lb-add", description = "Create or update L2 load balancer")
-public class L2LbAddCommand extends AbstractShellCommand {
+@Command(scope = "onos", name = "plb-add", description = "Create or update port load balancer ")
+public class PortLoadBalancerAddCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "deviceId",
             description = "Device ID",
             required = true, multiValued = false)
     private String deviceIdStr;
 
     @Argument(index = 1, name = "key",
-            description = "L2 load balancer key",
+            description = "port load balancer key",
             required = true, multiValued = false)
     private String keyStr;
 
     @Argument(index = 2, name = "mode",
-            description = "L2 load balancer mode. STATIC or LACP",
+            description = "port load balancer mode. STATIC or LACP",
             required = true, multiValued = false)
     private String modeStr;
 
     @Argument(index = 3, name = "ports",
-            description = "L2 load balancer physical ports",
+            description = "port load balancer physical ports",
             required = true, multiValued = true)
     private String[] portsStr;
 
@@ -63,16 +63,17 @@ public class L2LbAddCommand extends AbstractShellCommand {
     @Override
     protected void doExecute() {
         DeviceId deviceId = DeviceId.deviceId(deviceIdStr);
-        int l2LbKey = Integer.parseInt(keyStr);
+        int portLoadBalancerKey = Integer.parseInt(keyStr);
 
-        L2LbMode mode = L2LbMode.valueOf(modeStr.toUpperCase());
+        PortLoadBalancerMode mode = PortLoadBalancerMode.valueOf(modeStr.toUpperCase());
         Set<PortNumber> ports = Sets.newHashSet(portsStr).stream()
                 .map(PortNumber::fromString).collect(Collectors.toSet());
 
-        L2LbAdminService l2LbAdminService = get(L2LbAdminService.class);
-        L2LbId l2LbId = new L2LbId(deviceId, l2LbKey);
-        L2Lb l2Lb = l2LbAdminService.createOrUpdate(l2LbId, ports, mode);
-        print("%s of %s executed", l2Lb == null ? CREATE : UPDATE, l2LbId);
+        PortLoadBalancerAdminService portLoadBalancerAdminService = get(PortLoadBalancerAdminService.class);
+        PortLoadBalancerId portLoadBalancerId = new PortLoadBalancerId(deviceId, portLoadBalancerKey);
+        PortLoadBalancer portLoadBalancer = portLoadBalancerAdminService
+                .createOrUpdate(portLoadBalancerId, ports, mode);
+        print("%s of %s executed", portLoadBalancer == null ? CREATE : UPDATE, portLoadBalancerId);
 
     }
 }

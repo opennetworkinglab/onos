@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.l2lb.api;
+package org.onosproject.portloadbalancer.api;
 
 import org.onosproject.net.PortNumber;
 
@@ -23,33 +23,33 @@ import java.util.Set;
 import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
- * Represents L2 load balancer information.
+ * Represents port load balancer information.
  */
-public class L2Lb {
-    private L2LbId l2LbId;
+public class PortLoadBalancer {
+    private PortLoadBalancerId portLoadBalancerId;
     private Set<PortNumber> ports;
-    private L2LbMode mode;
+    private PortLoadBalancerMode mode;
 
     /**
-     * Constructs a L2 load balancer.
+     * Constructs a port load balancer.
      *
-     * @param l2LbId L2 load balancer ID
+     * @param portLoadBalancerId port load balancer ID
      * @param ports Set of member ports
-     * @param mode L2 load balancer mode
+     * @param mode port load balancer mode
      */
-    public L2Lb(L2LbId l2LbId, Set<PortNumber> ports, L2LbMode mode) {
-        this.l2LbId = l2LbId;
+    public PortLoadBalancer(PortLoadBalancerId portLoadBalancerId, Set<PortNumber> ports, PortLoadBalancerMode mode) {
+        this.portLoadBalancerId = portLoadBalancerId;
         this.ports = ports;
         this.mode = mode;
     }
 
     /**
-     * Gets L2 load balancer ID.
+     * Gets port load balancer ID.
      *
-     * @return L2 load balancer ID
+     * @return port load balancer ID
      */
-    public L2LbId l2LbId() {
-        return l2LbId;
+    public PortLoadBalancerId portLoadBalancerId() {
+        return portLoadBalancerId;
     }
 
     /**
@@ -62,26 +62,26 @@ public class L2Lb {
     }
 
     /**
-     * Gets L2 load balancer mode.
+     * Gets port load balancer mode.
      *
-     * @return L2 load balancer mode.
+     * @return port load balancer mode.
      */
-    public L2LbMode mode() {
+    public PortLoadBalancerMode mode() {
         return mode;
     }
 
     /**
-     * Gets L2 load balancer data.
+     * Gets port load balancer data.
      *
-     * @return L2 load balancer data
+     * @return port load balancer data
      */
-    public L2LbData data() {
-        return new L2LbData(l2LbId);
+    public PortLoadBalancerData data() {
+        return new PortLoadBalancerData(portLoadBalancerId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(l2LbId, ports, mode);
+        return Objects.hash(portLoadBalancerId, ports, mode);
     }
 
     @Override
@@ -89,12 +89,12 @@ public class L2Lb {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof L2Lb)) {
+        if (!(obj instanceof PortLoadBalancer)) {
             return false;
         }
-        final L2Lb other = (L2Lb) obj;
+        final PortLoadBalancer other = (PortLoadBalancer) obj;
 
-        return Objects.equals(this.l2LbId, other.l2LbId) &&
+        return Objects.equals(this.portLoadBalancerId, other.portLoadBalancerId) &&
                 Objects.equals(this.ports, other.ports) &&
                 this.mode == other.mode;
     }
@@ -102,7 +102,7 @@ public class L2Lb {
     @Override
     public String toString() {
         return toStringHelper(getClass())
-                .add("l2LbId", l2LbId)
+                .add("id", portLoadBalancerId)
                 .add("ports", ports)
                 .add("mode", mode)
                 .toString();
