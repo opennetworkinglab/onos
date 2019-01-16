@@ -59,7 +59,7 @@ export class KeysService {
         enter: 1,
         esc: 1,
     };
-    qhs: any; // Quick Help Service ??
+    quickHelpShown: boolean = false;
 
     constructor(
         protected log: LogService,
@@ -68,10 +68,6 @@ export class KeysService {
         protected ns: NavService
     ) {
         this.log.debug('KeyService constructed');
-    }
-
-    bindQhs(_qhs_) {
-        this.qhs = _qhs_;
     }
 
     installOn(elem) {
@@ -314,14 +310,14 @@ export class KeysService {
         if (!this.globalEnabled) {
             return false;
         }
-        this.qhs.showQuickHelp(this.keyHandler);
+        this.quickHelpShown = !this.quickHelpShown;
         return true;
     }
 
     // returns true if we 'consumed' the ESC keypress, false otherwise
     protected escapeKey(view, key, code, ev) {
+        this.quickHelpShown = false;
         return this.ns.hideNav();
-        // TODO - also hide this.qhs.hideQuickHelp();
     }
 
     protected toggleTheme(view, key, code, ev) {

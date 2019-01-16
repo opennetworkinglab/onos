@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-present Open Networking Foundation
+ * Copyright 2016-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,32 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* --- Topo Details Panel --- */
 
-#topo2-p-detail {
-    padding: 16px;
-    opacity: 1;
-    right: 20px;
-    width: 260px;
-    top: 390px;
+/*
+ ONOS GUI -- Quickhelp Panel -- CSS file
+ */
+
+/*
+ ONOS GUI -- Quick Help Service (layout) -- CSS file
+ */
+
+#quickhelp {
+    top: 100px;
+    z-index: 5000;
+    position: relative;
 }
 
-#topo2-p-detail  div.actionBtns {
-    padding-top: 6px;
+#quickhelp div.help {
+    background: black;
+    opacity: 0.8;
 }
 
-html[data-platform='iPad'] {
-    top: 386px;
+#quickhelp div.help table {
+    vertical-align: top;
 }
 
-.actionBtns .actionBtn {
-    display: inline-block;
-}
-.actionBtns .actionBtn svg {
-    width: 28px;
-    height: 28px;
+#quickhelp div.help p {
+    text-align: center;
+    color: white;
+    font-weight: bold;
 }
 
-div.actionBtns {
-    padding-top: 6px;
+#quickhelp td.key {
+    color: #add;
+    padding-left: 8px;
+    padding-right: 4px;
+}
+
+#quickhelp td.desc {
+    color: white;
 }

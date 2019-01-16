@@ -21,9 +21,9 @@
         line 3) Merge this blurred and shifted layer and overlay it with the
             original target object
     -->
-    <svg:filter id="drop-shadow-host">
-        <svg:feGaussianBlur in="SourceAlpha" stdDeviation="1" result="blur" />
-        <svg:feOffset in="blur" dx="2" dy="2" result="offsetBlur"/>
+    <svg:filter id="drop-shadow-host" x="-25%" y="-25%" width="200%" height="200%">
+        <svg:feGaussianBlur in="SourceAlpha" stdDeviation="4" result="blur" />
+        <svg:feOffset in="blur" dx="4" dy="4" result="offsetBlur"/>
         <svg:feMerge >
             <svg:feMergeNode in="offsetBlur" />
             <svg:feMergeNode in="SourceGraphic" />

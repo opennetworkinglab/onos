@@ -210,10 +210,20 @@ osgi_jar_with_tests(
 genrule(
     name = "onos-gui-java-for-gui2",
     srcs = glob([
-        "src/main/java/org/onosproject/ui/impl/Main*Resource.java",
-        "src/main/java/org/onosproject/ui/impl/ApplicationResource.java",
+        "src/main/java/org/onosproject/ui/impl/**/*.java",
     ]),
     outs = ["onos-gui-java-for-gui2.srcjar"],
+    cmd = "jar cf $@ $(SRCS)",
+    visibility = ["//visibility:public"],
+)
+
+genrule(
+    name = "onos-gui-lion-for-gui2",
+    srcs = glob([
+        "src/main/resources/org/onosproject/ui/lion/**/*",
+        "src/main/resources/core/**/*",
+    ]),
+    outs = ["onos-gui-lion-for-gui2.srcjar"],
     cmd = "jar cf $@ $(SRCS)",
     visibility = ["//visibility:public"],
 )

@@ -23,6 +23,7 @@ import { ConfirmComponent } from './layer/confirm/confirm.component';
 import { MastComponent } from './mast/mast/mast.component';
 import { TableFilterPipe } from './widget/tablefilter.pipe';
 import { TableResizeDirective } from './widget/tableresize.directive';
+import { QuickhelpComponent } from './layer/quickhelp/quickhelp.component';
 
 @NgModule({
   imports: [
@@ -35,6 +36,7 @@ import { TableResizeDirective } from './widget/tableresize.directive';
     VeilComponent,
     FlashComponent,
     ConfirmComponent,
+    QuickhelpComponent,
     MastComponent,
     TableFilterPipe
   ],
@@ -45,6 +47,7 @@ import { TableResizeDirective } from './widget/tableresize.directive';
     VeilComponent,
     FlashComponent,
     ConfirmComponent,
+    QuickhelpComponent,
     MastComponent,
     TableFilterPipe
   ]

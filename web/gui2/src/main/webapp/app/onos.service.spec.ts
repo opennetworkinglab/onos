@@ -23,13 +23,26 @@ import { OnosService } from './onos.service';
  */
 describe('OnosService', () => {
     let log: LogService;
+    let windowMock: Window;
 
     beforeEach(() => {
         log = new ConsoleLoggerService();
+        windowMock = <any>{
+            location: <any> {
+                hostname: 'foo',
+                host: 'foo',
+                port: '80',
+                protocol: 'http',
+                search: { debug: 'true'},
+                href: 'ws://foo:123/onos/ui2/websock/path',
+                absUrl: 'ws://foo:123/onos/ui2/websock/path'
+            }
+        };
 
         TestBed.configureTestingModule({
             providers: [OnosService,
                 { provide: LogService, useValue: log },
+                { provide: 'Window', useFactory: (() => windowMock ) },
             ]
         });
     });

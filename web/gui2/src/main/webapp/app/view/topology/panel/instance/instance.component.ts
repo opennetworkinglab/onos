@@ -74,6 +74,7 @@ export interface Instance {
 })
 export class InstanceComponent extends PanelBaseImpl {
     @Input() divTopPx: number = 100;
+    @Input() on: boolean = false; // Override the parent class attribute
     @Output() mastershipEvent = new EventEmitter<string>();
     public onosInstances: Array<Instance>;
     protected mastership: string;
@@ -96,7 +97,6 @@ export class InstanceComponent extends PanelBaseImpl {
         } else {
             this.doLion();
         }
-        this.on = true;
         this.log.debug('InstanceComponent constructed');
     }
 

@@ -31,7 +31,6 @@ import {
     ZoomService
 } from 'gui2-fw-lib';
 import {InstanceComponent} from '../panel/instance/instance.component';
-import {SummaryComponent} from '../panel/summary/summary.component';
 import {DetailsComponent} from '../panel/details/details.component';
 import {BackgroundSvgComponent} from '../layer/backgroundsvg/backgroundsvg.component';
 import {ForceSvgComponent} from '../layer/forcesvg/forcesvg.component';
@@ -41,9 +40,46 @@ import {
     LabelToggle,
     UiElement
 } from '../layer/forcesvg/models';
-import {ToolbarComponent} from '../panel/toolbar/toolbar.component';
+import {
+    INSTANCE_TOGGLE, SUMMARY_TOGGLE, DETAILS_TOGGLE,
+    HOSTS_TOGGLE, OFFLINE_TOGGLE, PORTS_TOGGLE,
+    BKGRND_TOGGLE, CYCLELABELS_BTN, CYCLEHOSTLABEL_BTN,
+    RESETZOOM_BTN, EQMASTER_BTN,
+    CANCEL_TRAFFIC, ALL_TRAFFIC, QUICKHELP_BTN
+} from '../panel/toolbar/toolbar.component';
 import {TrafficService} from '../traffic.service';
 import {ZoomableDirective} from '../layer/zoomable.directive';
+
+const TOPO2_PREFS = 'topo2_prefs';
+const PREF_BG = 'bg';
+const PREF_DETAIL = 'detail';
+const PREF_DLBLS = 'dlbls';
+const PREF_HLBLS = 'hlbls';
+const PREF_HOSTS = 'hosts';
+const PREF_INSTS = 'insts';
+const PREF_OFFDEV = 'offdev';
+const PREF_PORTHL = 'porthl';
+const PREF_SUMMARY = 'summary';
+const PREF_TOOLBAR = 'toolbar';
+
+/**
+ * model of the topo2_prefs object - this is a subset of the overall Prefs returned
+ * by the server
+ */
+export interface Topo2Prefs {
+    bg: number;
+    detail: number;
+    dlbls: number;
+    hlbls: number;
+    hosts: number;
+    insts: number;
+    offdev: number;
+    porthl: number;
+    spr: number;
+    ovid: string;
+    summary: number;
+    toolbar: number;
+}
 
 /**
  * ONOS GUI Topology View
@@ -77,17 +113,27 @@ import {ZoomableDirective} from '../layer/zoomable.directive';
 export class TopologyComponent implements OnInit, OnDestroy {
     // These are references to the components inserted in the template
     @ViewChild(InstanceComponent) instance: InstanceComponent;
-    @ViewChild(SummaryComponent) summary: SummaryComponent;
     @ViewChild(DetailsComponent) details: DetailsComponent;
-    @ViewChild(ToolbarComponent) toolbar: ToolbarComponent;
     @ViewChild(BackgroundSvgComponent) background: BackgroundSvgComponent;
     @ViewChild(ForceSvgComponent) force: ForceSvgComponent;
     @ViewChild(ZoomableDirective) zoomDirective: ZoomableDirective;
 
     flashMsg: string = '';
-    prefsState = {};
-    hostLabelIdx: number = 1;
-    showBackground: boolean = false;
+    // These are used as defaults if nothing is set on the server
+    prefsState: Topo2Prefs = <Topo2Prefs>{
+        bg: 0,
+        detail: 1,
+        dlbls: 0,
+        hlbls: 2,
+        hosts: 0,
+        insts: 1,
+        offdev: 1,
+        ovid: 'traffic', // default to traffic overlay
+        porthl: 1,
+        spr: 0,
+        summary: 1,
+        toolbar: 0,
+    };
     lionFn; // Function
 
     constructor(
@@ -97,7 +143,6 @@ export class TopologyComponent implements OnInit, OnDestroy {
         protected sus: SvgUtilService,
         protected ps: PrefsService,
         protected wss: WebSocketService,
-        protected zs: ZoomService,
         protected ts: TopologyService,
         protected trs: TrafficService,
         protected is: IconService,
@@ -169,7 +214,22 @@ export class TopologyComponent implements OnInit, OnDestroy {
         // The handling of the WebSocket call is delegated out to the Topology
         // Service just to compartmentalize things a bit
         this.ts.init(this.instance, this.background, this.force);
+
+        this.ps.addListener((data) => this.prefsUpdateHandler(data));
+        this.prefsState = this.ps.getPrefs(TOPO2_PREFS, this.prefsState);
         this.log.debug('Topology component initialized');
+    }
+
+    /**
+     * Callback function that's called whenever new Prefs are received from WebSocket
+     *
+     * Note: At present the backend server does not filter updated by logged in user,
+     * so you might get updates pertaining to a different user
+     */
+    prefsUpdateHandler(data: any): void {
+        // Extract the TOPO2 prefs from it
+        this.prefsState = data[TOPO2_PREFS];
+        this.log.debug('Updated topo2 prefs', this.prefsState);
     }
 
     /**
@@ -178,6 +238,7 @@ export class TopologyComponent implements OnInit, OnDestroy {
      */
     ngOnDestroy() {
         this.ts.destroy();
+        this.ps.removeListener((data) => this.prefsUpdateHandler(data));
         this.log.debug('Topology component destroyed');
     }
 
@@ -188,44 +249,47 @@ export class TopologyComponent implements OnInit, OnDestroy {
      */
     toolbarButtonClicked(name: string) {
         switch (name) {
-            case 'instance-tog':
+            case INSTANCE_TOGGLE:
                 this.toggleInstancePanel();
                 break;
-            case 'summary-tog':
+            case SUMMARY_TOGGLE:
                 this.toggleSummary();
                 break;
-            case 'details-tog':
+            case DETAILS_TOGGLE:
                 this.toggleDetails();
                 break;
-            case 'hosts-tog':
+            case HOSTS_TOGGLE:
                 this.toggleHosts();
                 break;
-            case 'offline-tog':
+            case OFFLINE_TOGGLE:
                 this.toggleOfflineDevices();
                 break;
-            case 'ports-tog':
+            case PORTS_TOGGLE:
                 this.togglePorts();
                 break;
-            case 'bkgrnd-tog':
+            case BKGRND_TOGGLE:
                 this.toggleBackground();
                 break;
-            case 'cycleLabels-btn':
+            case CYCLELABELS_BTN:
                 this.cycleDeviceLabels();
                 break;
-            case 'cycleHostLabel-btn':
+            case CYCLEHOSTLABEL_BTN:
                 this.cycleHostLabels();
                 break;
-            case 'resetZoom-btn':
+            case RESETZOOM_BTN:
                 this.resetZoom();
                 break;
-            case 'eqMaster-btn':
+            case EQMASTER_BTN:
                 this.equalizeMasters();
                 break;
-            case 'cancel-traffic':
+            case CANCEL_TRAFFIC:
                 this.cancelTraffic();
                 break;
-            case 'all-traffic':
+            case ALL_TRAFFIC:
                 this.monitorAllTraffic();
+                break;
+            case QUICKHELP_BTN:
+                this.ks.quickHelpShown = true;
                 break;
             default:
                 this.log.warn('Unhandled Toolbar action', name);
@@ -262,7 +326,7 @@ export class TopologyComponent implements OnInit, OnDestroy {
                 this.sus.cat7().testCard(d3.select('svg#topo2'));
             },
 
-            esc: this.handleEscape,
+            esc: [() => {this.handleEscape(); }, 'Cancel commands'],
 
             // TODO update after adding in Background Service
             // topology overlay selections
@@ -306,6 +370,7 @@ export class TopologyComponent implements OnInit, OnDestroy {
             // TODO: Cancel Active overlay
             // TODO: Reinstate with components
         } else {
+            this.nodeSelected(undefined);
             this.log.debug('Handling escape');
             // } else if (t2rs.deselectAllNodes()) {
             //     // else if we have node selections, deselect them all
@@ -322,79 +387,116 @@ export class TopologyComponent implements OnInit, OnDestroy {
         }
     }
 
-
-
-    updatePrefsState(what, b) {
-        this.prefsState[what] = b ? 1 : 0;
-        this.ps.setPrefs('topo2_prefs', this.prefsState);
+    /**
+     * Updates the cache of preferences locally and onwards to the PrefsService
+     * @param what The attribute of the local topo2-prefs cache to update
+     * @param b the value to update it with
+     */
+    updatePrefsState(what: string, b: number) {
+        this.prefsState[what] = b;
+        this.ps.setPrefs(TOPO2_PREFS, this.prefsState);
     }
 
+    /**
+     * When the button is clicked on the toolbar or the L key is pressed
+     * 1) cycle through options
+     * 2) flash up a message
+     * 3a) Update the local prefs cache
+     * 3b) And passes on to the global prefs service which sends back to the server
+     * 3c) It also has a knock on effect of passing it on to ForceSvgComponent
+     *      because prefsState.dlbls is given as an input to it
+     * 3d) This will in turn pass it down to the DeviceSvgComponent which
+     *       displays the label
+     */
     protected cycleDeviceLabels() {
-        const old: LabelToggle = this.force.deviceLabelToggle;
+        const old: LabelToggle = this.prefsState.dlbls;
         const next = LabelToggle.next(old);
-        this.force.ngOnChanges({'deviceLabelToggle':
-                new SimpleChange(old, next, false)});
         this.flashMsg = this.lionFn(TopologyComponent.deviceLabelFlashMessage(next));
+        this.updatePrefsState(PREF_DLBLS, next);
         this.log.debug('Cycling device labels', old, next);
     }
 
     protected cycleHostLabels() {
-        const old: HostLabelToggle = this.force.hostLabelToggle;
+        const old: HostLabelToggle = this.prefsState.hlbls;
         const next = HostLabelToggle.next(old);
-        this.force.ngOnChanges({'hostLabelToggle':
-                new SimpleChange(old, next, false)});
         this.flashMsg = this.lionFn(TopologyComponent.hostLabelFlashMessage(next));
+        this.updatePrefsState(PREF_HLBLS, next);
         this.log.debug('Cycling host labels', old, next);
     }
 
+    /**
+     * When the button is clicked on the toolbar or the B key is pressed
+     * 1) Find the inverse of the current state (held as 1 or 0)
+     * 2) Flash up a message on screen
+     * 3b) And passes on to the global prefs service which sends back to the server
+     * 3c) It also has a knock on effect of passing it on to ToolbarComponent
+     *      because prefsState.bg is given as an input to it
+     * @param token
+     */
     protected toggleBackground(token?: KeysToken) {
-        this.showBackground = !this.showBackground;
-        this.flashMsg = this.lionFn(this.showBackground ? 'show' : 'hide') +
+        const bg: boolean = !Boolean(this.prefsState.bg);
+        this.flashMsg = this.lionFn(bg ? 'show' : 'hide') +
             ' ' + this.lionFn('fl_background_map');
-        this.toolbar.backgroundVisible = this.showBackground;
-        this.log.debug('Toggling background', token);
+        this.updatePrefsState(PREF_BG, bg ? 1 : 0);
+        this.log.debug('Toggling background', token, bg ? 'shown' : 'hidden');
     }
 
     protected toggleDetails(token?: KeysToken) {
-        if (this.details.selectedNode) {
-            const on: boolean = this.details.togglePanel(() => {
-            });
-            this.flashMsg = this.lionFn(on ? 'show' : 'hide') +
-                ' ' + this.lionFn('fl_panel_details');
-            this.toolbar.detailsVisible = on;
-
-            this.log.debug('Toggling details', token);
-        }
+        const on: boolean = !Boolean(this.prefsState.detail);
+        this.flashMsg = this.lionFn(on ? 'show' : 'hide') +
+            ' ' + this.lionFn('fl_panel_details');
+        this.updatePrefsState(PREF_DETAIL, on ? 1 : 0);
+        this.log.debug('Toggling details', token);
     }
 
     protected toggleInstancePanel(token?: KeysToken) {
-        const on: boolean = this.instance.togglePanel(() => {});
+        const on: boolean = !Boolean(this.prefsState.insts);
         this.flashMsg = this.lionFn(on ? 'show' : 'hide') +
             ' ' + this.lionFn('fl_panel_instances');
-        this.toolbar.instancesVisible = on;
+        this.updatePrefsState(PREF_INSTS, on ? 1 : 0);
         this.log.debug('Toggling instances', token, on);
     }
 
     protected toggleSummary() {
-        const on: boolean = this.summary.togglePanel(() => {});
+        const on: boolean = !Boolean(this.prefsState.summary);
         this.flashMsg = this.lionFn(on ? 'show' : 'hide') +
             ' ' + this.lionFn('fl_panel_summary');
-        this.toolbar.summaryVisible = on;
+        this.updatePrefsState(PREF_SUMMARY, on ? 1 : 0);
+    }
+
+    protected togglePorts(token?: KeysToken) {
+        const current: boolean = !Boolean(this.prefsState.porthl);
+        this.flashMsg = this.lionFn(current ? 'enable' : 'disable') +
+            ' ' + this.lionFn('fl_port_highlighting');
+        this.updatePrefsState(PREF_PORTHL, current ? 1 : 0);
+        this.log.debug(current ? 'Enable' : 'Disable', 'port highlighting');
+    }
+
+    protected toggleToolbar() {
+        const on: boolean = !Boolean(this.prefsState.toolbar);
+        this.updatePrefsState(PREF_TOOLBAR, on ? 1 : 0);
+        this.log.debug('toggling toolbar', on ? 'shown' : 'hidden');
+    }
+
+    protected toggleHosts() {
+        const current: boolean = !Boolean(this.prefsState.hosts);
+        this.flashMsg = this.lionFn('hosts') + ' ' +
+                        this.lionFn(this.force.showHosts ? 'visible' : 'hidden');
+        this.updatePrefsState(PREF_HOSTS, current ? 1 : 0);
+        this.log.debug('toggling hosts: ', this.prefsState.hosts ? 'Show' : 'Hide');
+    }
+
+    protected toggleOfflineDevices() {
+        const on: boolean = !Boolean(this.prefsState.offdev);
+        this.flashMsg = this.lionFn(on ? 'show' : 'hide') +
+            ' ' + this.lionFn('fl_offline_devices');
+        this.updatePrefsState(PREF_OFFDEV, on ? 1 : 0);
+        this.log.debug('toggling offline devices', this.prefsState.offdev);
     }
 
     protected resetZoom() {
         this.zoomDirective.resetZoom();
         this.flashMsg = this.lionFn('fl_pan_zoom_reset');
-    }
-
-    protected togglePorts(token?: KeysToken) {
-        const old: boolean = this.force.highlightPorts;
-        const current: boolean = !this.force.highlightPorts;
-        this.force.ngOnChanges({'highlightPorts': new SimpleChange(old, current, false)});
-        this.flashMsg = this.lionFn(current ? 'enable' : 'disable') +
-            ' ' + this.lionFn('fl_port_highlighting');
-        this.toolbar.portsVisible = current;
-        this.log.debug(current ? 'Enable' : 'Disable', 'port highlighting');
     }
 
     protected equalizeMasters() {
@@ -412,29 +514,6 @@ export class TopologyComponent implements OnInit, OnDestroy {
     protected unpinNode() {
         // TODO: Implement this
         this.log.debug('unpinning node');
-    }
-
-    protected toggleToolbar() {
-        this.log.debug('toggling toolbar');
-        this.toolbar.on = !this.toolbar.on;
-    }
-
-    protected toggleHosts() {
-        const old: boolean = this.force.showHosts;
-        const current = !this.force.showHosts;
-        this.force.ngOnChanges({'showHosts': new SimpleChange(old, current, false)});
-        this.flashMsg = this.lionFn('hosts') + ' ' +
-                        this.lionFn(this.force.showHosts ? 'visible' : 'hidden');
-        this.toolbar.hostsVisible = current;
-        this.log.debug('toggling hosts: ', this.force.showHosts ? 'Show' : 'Hide');
-    }
-
-    protected toggleOfflineDevices() {
-        // TODO: Implement toggle offline visibility
-        const on: boolean = true;
-        this.flashMsg = this.lionFn(on ? 'show' : 'hide') +
-            ' ' + this.lionFn('fl_offline_devices');
-        this.log.debug('toggling offline devices');
     }
 
     /**
@@ -474,7 +553,6 @@ export class TopologyComponent implements OnInit, OnDestroy {
     nodeSelected(nodeOrLink: UiElement) {
         this.details.ngOnChanges({'selectedNode':
             new SimpleChange(undefined, nodeOrLink, true)});
-        this.details.on = Boolean(nodeOrLink);
     }
 
     /**

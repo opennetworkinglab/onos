@@ -91,6 +91,7 @@ export class WebSocketService {
      */
     private bootstrap(data: Bootstrap) {
         this.loggedInUser = data.user;
+        this.log.info('Websocket connection bootstraped', data);
 
         this.clusterNodes = data.clusterNodes;
         this.clusterNodes.forEach((d, i) => {

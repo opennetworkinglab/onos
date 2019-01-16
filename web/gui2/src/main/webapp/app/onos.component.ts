@@ -84,7 +84,7 @@ export class OnosComponent implements OnInit, AfterViewInit, OnDestroy {
         private ks: KeysService,
         public wss: WebSocketService,
         private log: LogService,
-        private onos: OnosService
+        public onos: OnosService
     ) {
 
 // This is not like onos.js of AngularJS 1.x In this new structure modules are

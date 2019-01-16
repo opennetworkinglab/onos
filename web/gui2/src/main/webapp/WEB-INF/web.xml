@@ -147,7 +147,7 @@
             <param-value>
                 org.glassfish.jersey.media.multipart.MultiPartFeature,
                 org.onosproject.ui.impl.gui2.LogoutResource,
-                <!--org.onosproject.ui.impl.TopologyResource,-->
+                org.onosproject.ui.impl.TopologyResource,
                 org.onosproject.ui.impl.ApplicationResource,
                 org.onosproject.ui.impl.gui2.NavResource
             </param-value>
@@ -160,16 +160,15 @@
         <url-pattern>/rs/*</url-pattern>
     </servlet-mapping>
 
-    <!--<servlet>-->
-        <!--<servlet-name>Web Socket Service</servlet-name>-->
-        <!--<servlet-class>org.onosproject.ui.impl.UiWebSocketServlet-->
-        <!--</servlet-class>-->
-        <!--<load-on-startup>2</load-on-startup>-->
-    <!--</servlet>-->
+    <servlet>
+        <servlet-name>Web Socket Service</servlet-name>
+        <servlet-class>org.onosproject.ui.impl.UiWebSocketServlet</servlet-class>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
 
-    <!--<servlet-mapping>-->
-        <!--<servlet-name>Web Socket Service</servlet-name>-->
-        <!--<url-pattern>/websock/*</url-pattern>-->
-    <!--</servlet-mapping>-->
+    <servlet-mapping>
+        <servlet-name>Web Socket Service</servlet-name>
+        <url-pattern>/websock/*</url-pattern>
+    </servlet-mapping>
 
 </web-app>

@@ -51,7 +51,6 @@ import {
     LinkSvgComponent
 } from './visuals';
 
-
 /**
  * ONOS GUI -- Topology Forces Graph Layer View.
  *
@@ -65,16 +64,16 @@ import {
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ForceSvgComponent implements OnInit, OnChanges {
-    @Input() onosInstMastership: string = '';
-    @Input() visibleLayer: LayerType = LayerType.LAYER_DEFAULT;
-    @Output() linkSelected = new EventEmitter<RegionLink>();
-    @Output() selectedNodeEvent = new EventEmitter<UiElement>();
-    @Input() selectedLink: RegionLink = null;
-    @Input() showHosts: boolean = false;
-    @Input() highlightPorts: boolean = true;
     @Input() deviceLabelToggle: LabelToggle = LabelToggle.NONE;
     @Input() hostLabelToggle: HostLabelToggle = HostLabelToggle.NONE;
+    @Input() showHosts: boolean = false;
+    @Input() highlightPorts: boolean = true;
+    @Input() onosInstMastership: string = '';
+    @Input() visibleLayer: LayerType = LayerType.LAYER_DEFAULT;
+    @Input() selectedLink: RegionLink = null;
     @Input() regionData: Region = <Region>{devices: [ [], [], [] ], hosts: [ [], [], [] ], links: []};
+    @Output() linkSelected = new EventEmitter<RegionLink>();
+    @Output() selectedNodeEvent = new EventEmitter<UiElement>();
     private graph: ForceDirectedGraph;
     private _options: { width, height } = { width: 800, height: 600 };
 
@@ -196,30 +195,6 @@ export class ForceSvgComponent implements OnInit, OnChanges {
             this.graph.initLinks();
             this.log.debug('ForceSvgComponent input changed',
                 this.graph.nodes.length, 'nodes,', this.graph.links.length, 'links');
-        }
-
-        if (changes['showHosts']) {
-            this.showHosts = changes['showHosts'].currentValue;
-        }
-
-        if (changes['highlightPorts']) {
-            this.highlightPorts = changes['highlightPorts'].currentValue;
-        }
-
-        // Pass on the changes to device
-        if (changes['deviceLabelToggle']) {
-            this.deviceLabelToggle = changes['deviceLabelToggle'].currentValue;
-            this.devices.forEach((d) => {
-                d.ngOnChanges({'labelToggle': changes['deviceLabelToggle']});
-            });
-        }
-
-        // Pass on the changes to host
-        if (changes['hostLabelToggle']) {
-            this.hostLabelToggle = changes['hostLabelToggle'].currentValue;
-            this.hosts.forEach((h) => {
-                h.ngOnChanges({'labelToggle': changes['hostLabelToggle']});
-            });
         }
 
         this.ref.markForCheck();

@@ -26,3 +26,11 @@
 #topo2-p-summary  td.label {
     width: 50%;
 }
+
+#topo2-p div.header div.icon {
+    padding: 10px
+}
+
+#topo2-p-summary div.header h2 {
+    padding: 10px;
+}

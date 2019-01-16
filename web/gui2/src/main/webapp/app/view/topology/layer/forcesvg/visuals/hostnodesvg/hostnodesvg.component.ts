@@ -53,11 +53,6 @@ export class HostNodeSvgComponent extends NodeVisual implements OnChanges {
             this.host.x = 0;
             this.host.y = 0;
         }
-
-        if (changes['labelToggle']) {
-            this.labelToggle = changes['labelToggle'].currentValue;
-        }
-        // this.ref.markForCheck();
     }
 
     hostName(): string {

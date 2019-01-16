@@ -47,7 +47,8 @@
     <svg:g onos-devicenodesvg [device]="device"
            *ngFor="let device of regionData.devices[visibleLayerIdx()]"
            onosDraggableNode [draggableNode]="device" [draggableInGraph]="graph"
-           (selectedEvent)="updateSelected($event)">
+           (selectedEvent)="updateSelected($event)"
+            [labelToggle]="deviceLabelToggle">
         <svg:desc>Device nodes</svg:desc>
     </svg:g>
     <!-- Template explanation - only display the hosts if 'showHosts' is set true -->
@@ -67,7 +68,8 @@
         <svg:g onos-hostnodesvg [host]="host"
                *ngFor="let host of regionData.hosts[visibleLayerIdx()]"
                onosDraggableNode [draggableNode]="host" [draggableInGraph]="graph"
-               (selectedEvent)="updateSelected($event)">
+               (selectedEvent)="updateSelected($event)"
+               [labelToggle]="hostLabelToggle">
             <svg:desc>Host nodes</svg:desc>
         </svg:g>
     </svg:g>

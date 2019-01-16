@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
+import {Inject, Injectable} from '@angular/core';
 import { FnService } from './fn.service';
 import { LogService } from '../log.service';
 import { WebSocketService } from '../remote/websocket.service';
 
+const UPDATE_PREFS: string = 'updatePrefs';
+const UPDATE_PREFS_REQ: string = 'updatePrefReq';
 /**
  * ONOS GUI -- Util -- User Preference Service
  */
@@ -25,32 +27,36 @@ import { WebSocketService } from '../remote/websocket.service';
     providedIn: 'root',
 })
 export class PrefsService {
-    protected Prefs;
     protected handlers: string[] = [];
-    cache: any;
-    listeners: any;
+    cache: Object;
+    listeners: ((data) => void)[] = [];
     constructor(
         protected fs: FnService,
         protected log: LogService,
-        protected wss: WebSocketService
+        protected wss: WebSocketService,
+        @Inject('Window') private window: any
     ) {
-        this.cache = {};
         this.wss.bindHandlers(new Map<string, (data) => void>([
-            [this.Prefs, (data) => this.updatePrefs(data)]
+            [UPDATE_PREFS, (data) => this.updatePrefs(data)]
         ]));
-        this.handlers.push(this.Prefs);
+        this.handlers.push(UPDATE_PREFS);
+
+        // When index.html is fetched it is served up by MainIndexResource.java
+        // which fetches userPrefs in to the global scope.
+        // After that updates are done through WebSocket
+        this.cache = Object.assign({}, this.window['userPrefs']);
 
         this.log.debug('PrefsService constructed');
     }
 
-    setPrefs(name: string, obj: any) {
+    setPrefs(name: string, obj: Object) {
         // keep a cached copy of the object and send an update to server
         this.cache[name] = obj;
-        this.wss.sendEvent('updatePrefReq', { key: name, value: obj });
+        this.wss.sendEvent(UPDATE_PREFS_REQ, { key: name, value: obj });
     }
     updatePrefs(data: any) {
         this.cache = data;
-        this.listeners.forEach(function (lsnr) { lsnr(); });
+        this.listeners.forEach((lsnr) => lsnr(data) );
     }
 
     asNumbers(obj: any, keys?: any, not?: any) {
@@ -101,17 +107,22 @@ export class PrefsService {
     //  defined keys should overwrite the corresponding values, but any
     //  existing keys that are NOT explicitly defined here should be left
     //  alone (not deleted).
-    mergePrefs(name: string, obj: any) {
+    mergePrefs(name: string, obj: any): void {
         const merged = this.cache[name] || {};
         this.setPrefs(name, Object.assign(merged, obj));
     }
 
-    addListener(listener: any) {
+    /**
+     * Add a listener function
+     * This will get called back when an 'updatePrefs' message is received on WSS
+     * @param listener a function that can accept one param - data
+     */
+    addListener(listener: (data) => void): void {
         this.listeners.push(listener);
     }
 
-    removeListener(listener: any) {
-        this.listeners = this.listeners.filter(function (obj) { return obj === listener; });
+    removeListener(listener: (data) => void) {
+        this.listeners = this.listeners.filter((obj) => obj !== listener);
     }
 
 }

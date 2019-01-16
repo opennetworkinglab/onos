@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-present Open Networking Foundation
+ * Copyright 2019-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,12 +31,20 @@ import { TopologyService } from '../topology.service';
 
 import {
     FlashComponent,
+    QuickhelpComponent,
     FnService,
     LogService,
-    IconService, IconComponent
+    IconService, IconComponent, PrefsService, KeysService, LionService
 } from 'gui2-fw-lib';
 import {ZoomableDirective} from '../layer/zoomable.directive';
 import {RouterTestingModule} from '@angular/router/testing';
+import {TrafficService} from '../traffic.service';
+import {ForceSvgComponent} from '../layer/forcesvg/forcesvg.component';
+import {
+    DeviceNodeSvgComponent, HostNodeSvgComponent,
+    LinkSvgComponent, SubRegionNodeSvgComponent
+} from '../layer/forcesvg/visuals';
+import {DraggableDirective} from '../layer/forcesvg/draggable/draggable.directive';
 
 
 class MockActivatedRoute extends ActivatedRoute {
@@ -78,6 +86,37 @@ class MockIconService {
     loadIconDef() { }
 }
 
+class MockKeysService {
+    quickHelpShown: boolean = true;
+
+    keyBindings(x) {
+        return {};
+    }
+
+    gestureNotes() {
+        return {};
+    }
+}
+
+class MockTrafficService {}
+
+class MockPrefsService {
+    listeners: ((data) => void)[] = [];
+
+    getPrefs() {
+        return { 'topo2_prefs': ''};
+    }
+
+    addListener(listener: (data) => void): void {
+        this.listeners.push(listener);
+    }
+
+    removeListener(listener: (data) => void) {
+        this.listeners = this.listeners.filter((obj) => obj !== listener);
+    }
+
+}
+
 /**
  * ONOS GUI -- Topology View -- Unit Tests
  */
@@ -88,6 +127,16 @@ describe('TopologyComponent', () => {
     let logServiceSpy: jasmine.SpyObj<LogService>;
     let component: TopologyComponent;
     let fixture: ComponentFixture<TopologyComponent>;
+
+    const bundleObj = {
+        'core.fw.QuickHelp': {
+            test: 'test1',
+            tt_help: 'Help!'
+        }
+    };
+    const mockLion = (key) =>  {
+        return bundleObj[key] || '%' + key + '%';
+    };
 
     beforeEach(async(() => {
         const logSpy = jasmine.createSpyObj('LogService', ['info', 'debug', 'warn', 'error']);
@@ -116,7 +165,15 @@ describe('TopologyComponent', () => {
                 DetailsComponent,
                 FlashComponent,
                 ZoomableDirective,
-                IconComponent
+                IconComponent,
+                QuickhelpComponent,
+                ForceSvgComponent,
+                LinkSvgComponent,
+                DeviceNodeSvgComponent,
+                HostNodeSvgComponent,
+                DraggableDirective,
+                ZoomableDirective,
+                SubRegionNodeSvgComponent
             ],
             providers: [
                 { provide: FnService, useValue: fs },
@@ -124,7 +181,18 @@ describe('TopologyComponent', () => {
                 { provide: 'Window', useValue: windowMock },
                 { provide: HttpClient, useClass: MockHttpClient },
                 { provide: TopologyService, useClass: MockTopologyService },
+                { provide: TrafficService, useClass: MockTrafficService },
                 { provide: IconService, useClass: MockIconService },
+                { provide: PrefsService, useClass: MockPrefsService },
+                { provide: KeysService, useClass: MockKeysService },
+                { provide: LionService, useFactory: (() => {
+                        return {
+                            bundle: ((bundleId) => mockLion),
+                            ubercache: new Array(),
+                            loadCbs: new Map<string, () => void>([])
+                        };
+                    })
+                },
             ]
         }).compileComponents();
         logServiceSpy = TestBed.get(LogService);

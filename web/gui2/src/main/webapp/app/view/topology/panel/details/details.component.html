@@ -14,7 +14,7 @@
 ~ limitations under the License.
 -->
 <div id="topo2-p-detail" class="floatpanel topo2-p"
-     style="opacity: 1; right: 20px; width: 260px; top: 350px;" [@detailsPanelState]="on">
+     [@detailsPanelState]="on && selectedNode !== undefined">
     <!-- Template explanation - Create a HTML header which has an SVG icon along
     side title text. -->
     <div class="header">
@@ -53,15 +53,13 @@
             The icons used here are loaded in the ForceSvgComponent
             -->
             <div *ngFor="let btn of showDetails?.buttons" class="actionBtn">
-                <div class="button" id="topo2-p-detail-core-{{ btn }}"
-                     (click)="navto(buttonAttribs(btn).path, showDetails.navPath, showDetails.id)">
-                    <onos-icon
-                            [iconSize]="25"
-                            [iconId]="buttonAttribs(btn).gid"
-                            [toolTip]="lionFn(buttonAttribs(btn).tt)"
-                            classes="icon">
-                    </onos-icon>
-                </div>
+                <onos-icon id="topo2-p-detail-core-{{ btn }}"
+                           (click)="navto(buttonAttribs(btn).path, showDetails.navPath, showDetails.id)"
+                        [iconSize]="25"
+                        [iconId]="buttonAttribs(btn).gid"
+                        [toolTip]="lionFn(buttonAttribs(btn).tt)"
+                        classes="button icon selected">
+                </onos-icon>
             </div>
         </div>
     </div>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-present Open Networking Foundation
+ * Copyright 2019-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,24 @@ import {
     FnService,
     PanelBaseImpl, LionService
 } from 'gui2-fw-lib';
+
 import {animate, state, style, transition, trigger} from '@angular/animations';
+
+export const INSTANCE_TOGGLE = 'instance-tog';
+export const SUMMARY_TOGGLE = 'summary-tog';
+export const DETAILS_TOGGLE = 'details-tog';
+export const HOSTS_TOGGLE = 'hosts-tog';
+export const OFFLINE_TOGGLE = 'offline-tog';
+export const PORTS_TOGGLE = 'ports-tog';
+export const BKGRND_TOGGLE = 'bkgrnd-tog';
+export const CYCLELABELS_BTN = 'cycleLabels-btn';
+export const CYCLEHOSTLABEL_BTN = 'cycleHostLabel-btn';
+export const RESETZOOM_BTN = 'resetZoom-btn';
+export const EQMASTER_BTN = 'eqMaster-btn';
+export const CANCEL_TRAFFIC = 'cancel-traffic';
+export const ALL_TRAFFIC = 'all-traffic';
+export const QUICKHELP_BTN = 'quickhelp-btn';
+
 
 /*
  ONOS GUI -- Topology Toolbar Module.
@@ -50,7 +67,8 @@ import {animate, state, style, transition, trigger} from '@angular/animations';
         ])
     ]
 })
-export class ToolbarComponent extends PanelBaseImpl implements OnInit {
+export class ToolbarComponent extends PanelBaseImpl {
+    @Input() on: boolean = false; // Override the parent class attribute
     // deferred localization strings
     lionFn; // Function
     // Used to drive the display of the hosts icon - there is also another such variable on the forcesvg
@@ -70,7 +88,6 @@ export class ToolbarComponent extends PanelBaseImpl implements OnInit {
         private lion: LionService
     ) {
         super(fs, ls, log);
-        this.on = false;
 
         if (this.lion.ubercache.length === 0) {
             this.lionFn = this.dummyLion;
@@ -80,9 +97,6 @@ export class ToolbarComponent extends PanelBaseImpl implements OnInit {
         }
 
         this.log.debug('ToolbarComponent constructed');
-    }
-
-    ngOnInit() {
     }
 
     /**
@@ -103,23 +117,22 @@ export class ToolbarComponent extends PanelBaseImpl implements OnInit {
      */
     buttonClicked(name: string): void {
         switch (name) {
-            case 'hosts-tog':
+            case HOSTS_TOGGLE:
                 this.hostsVisible = !this.hostsVisible;
                 break;
-            case 'instance-tog':
+            case INSTANCE_TOGGLE:
                 this.instancesVisible = !this.instancesVisible;
                 break;
-            case 'summary-tog':
+            case SUMMARY_TOGGLE:
                 this.summaryVisible = !this.summaryVisible;
                 break;
-            case 'details-tog':
+            case DETAILS_TOGGLE:
                 this.detailsVisible = !this.detailsVisible;
                 break;
-            case 'bkgrnd-tog':
+            case BKGRND_TOGGLE:
                 this.backgroundVisible = !this.backgroundVisible;
                 break;
             default:
-                this.log.warn('Unhandled toolbar click', name);
         }
         // Send a message up to let TopologyComponent know of the event
         this.buttonEvent.emit(name);

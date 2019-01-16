@@ -19,6 +19,8 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AppComponent } from './app.component';
 import { Gui2FwLibModule, ConsoleLoggerService, LogService } from 'gui2-fw-lib';
+import {HttpClientModule} from "@angular/common/http";
+import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
 
 const appRoutes: Routes = [
   { path: '**', component: AppComponent }
@@ -31,6 +33,8 @@ const appRoutes: Routes = [
   imports: [
     RouterModule.forRoot(appRoutes),
     BrowserModule,
+    BrowserAnimationsModule,
+    HttpClientModule,
     Gui2FwLibModule
   ],
   providers: [

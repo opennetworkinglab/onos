@@ -110,6 +110,7 @@ interface ShowDetails {
 })
 export class DetailsComponent extends DetailsPanelBaseImpl implements OnInit, OnDestroy, OnChanges {
     @Input() selectedNode: UiElement = undefined; // Populated when user selects node or link
+    @Input() on: boolean = false; // Override the parent class attribute
 
     // deferred localization strings
     lionFn; // Function
@@ -141,7 +142,6 @@ export class DetailsComponent extends DetailsPanelBaseImpl implements OnInit, On
      * is made
      */
     ngOnInit(): void {
-        this.on = false;
         this.wss.bindHandlers(new Map<string, (data) => void>([
             ['showDetails', (data) => {
                     this.showDetails = data;
@@ -211,8 +211,6 @@ export class DetailsComponent extends DetailsPanelBaseImpl implements OnInit, On
             } else {
                 this.log.warn('Unexpected type for selected element', this.selectedNode);
             }
-        } else {
-            this.log.warn('Unexpected change in Topo DetailsComponent');
         }
     }
 

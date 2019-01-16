@@ -21,8 +21,8 @@
         line 3) Merge this blurred and shifted layer and overlay it with the
             original target object
     -->
-    <svg:filter id="drop-shadow">
-        <svg:feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur" />
+    <svg:filter id="drop-shadow" x="-25%" y="-25%" width="200%" height="200%">
+        <svg:feGaussianBlur in="SourceAlpha" stdDeviation="4" result="blur" />
         <svg:feOffset in="blur" dx="4" dy="4" result="offsetBlur"/>
         <svg:feMerge >
             <svg:feMergeNode in="offsetBlur" />
@@ -30,8 +30,8 @@
         </svg:feMerge>
     </svg:filter>
     <svg:linearGradient id="diagonal_blue" x1="0%" y1="0%" x2="100%" y2="100%">
-        <svg:stop offset= "0%" style="stop-color: #5b99d2;" />
-        <svg:stop offset= "100%" style="stop-color: #3b79b2;" />
+        <svg:stop offset= "0%" style="stop-color: #7fabdb;" />
+        <svg:stop offset= "100%" style="stop-color: #5b99d2;" />
     </svg:linearGradient>
 </svg:defs>
 <!-- Template explanation: Creates an SVG Group and in
@@ -57,7 +57,7 @@
     <svg:rect
             class="node-container" x="-18" y="-18"
             width="36" height="36"
-            [@deviceLabelToggle]="{ value: labelToggle, params: {txtWidth: (36 + labelTextLen() * 1.05)+'px' }}"
+            [@deviceLabelToggle]="{ value: labelToggle, params: {txtWidth: (36 + labelTextLen() * 1.1)+'px' }}"
             filter= "url(#drop-shadow)">
     </svg:rect>
     <!-- Template explanation: Creates an SVG Rectangle slightly smaller and

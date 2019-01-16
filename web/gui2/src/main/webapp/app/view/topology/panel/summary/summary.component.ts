@@ -13,7 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, OnDestroy, OnInit, ViewEncapsulation} from '@angular/core';
+import {
+    Component,
+    Input,
+    OnDestroy,
+    OnInit,
+    ViewEncapsulation
+} from '@angular/core';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import * as d3 from 'd3';
 import { TopoPanelBaseImpl } from '../topopanel.base';
@@ -28,9 +34,12 @@ import {
 export interface SummaryResponse {
     title: string;
 }
-/*
- ONOS GUI -- Topology Summary Module.
- Defines modeling of ONOS Summary Panel.
+/**
+ * ONOS GUI -- Topology Summary Module.
+ * Defines modeling of ONOS Summary Panel.
+ * Note: This component uses the d3 DOM building technique from the old GUI - this
+ * is not the Angular way of building components and should be avoided generally
+ * See DetailsPanelComponent for a better way of doing this kind of thing
  */
 @Component({
     selector: 'onos-summary',
@@ -57,6 +66,7 @@ export interface SummaryResponse {
     ]
 })
 export class SummaryComponent extends TopoPanelBaseImpl implements OnInit, OnDestroy {
+    @Input() on: boolean = false; // Override the parent class attribute
     private handlers: string[] = [];
     private resp: string = 'showSummary';
     private summaryData: SummaryResponse;
@@ -70,7 +80,6 @@ export class SummaryComponent extends TopoPanelBaseImpl implements OnInit, OnDes
     ) {
         super(fs, ls, log, 'summary');
         this.summaryData = <SummaryResponse>{};
-        this.on = true;
         this.log.debug('SummaryComponent constructed');
     }
 
@@ -82,7 +91,6 @@ export class SummaryComponent extends TopoPanelBaseImpl implements OnInit, OnDes
         this.handlers.push(this.resp);
 
         this.init(d3.select('#topo2-p-summary'));
-        this.on = true;
 
         this.wss.sendEvent('requestSummary', {});
     }

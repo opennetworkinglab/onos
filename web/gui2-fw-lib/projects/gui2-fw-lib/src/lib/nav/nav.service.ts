@@ -48,10 +48,8 @@ export class NavService {
     }
 
     hideNav() {
-        this.showNav = !this.showNav;
-        if (!this.showNav) {
-            this.log.debug('Hiding Nav menu');
-        }
+        this.showNav = false;
+        this.log.debug('Hiding Nav menu');
     }
 
     toggleNav() {

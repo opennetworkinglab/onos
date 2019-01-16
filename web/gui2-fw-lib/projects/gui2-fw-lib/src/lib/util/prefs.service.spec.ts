@@ -35,6 +35,19 @@ class MockWebSocketService {
  */
 describe('PrefsService', () => {
     let log: LogService;
+    let windowMock: Window;
+
+    windowMock = <any>{
+        location: <any> {
+            hostname: 'foo',
+            host: 'foo',
+            port: '80',
+            protocol: 'http',
+            search: { debug: 'true'},
+            href: 'ws://foo:123/onos/ui/websock/path',
+            absUrl: 'ws://foo:123/onos/ui/websock/path'
+        }
+    };
 
     beforeEach(() => {
         log = new ConsoleLoggerService();
@@ -43,6 +56,7 @@ describe('PrefsService', () => {
             providers: [PrefsService,
                 { provide: LogService, useValue: log },
                 { provide: FnService, useClass: MockFnService },
+                { provide: 'Window', useFactory: (() => windowMock ) },
                 { provide: WebSocketService, useClass: MockWebSocketService },
             ]
         });

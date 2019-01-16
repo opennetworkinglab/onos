@@ -37,10 +37,11 @@
     the build is still hermetic since those files are referred to as dependencies in the genrule.
 """
 
-COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + [
+COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + CLI + [
     "@javax_ws_rs_api//jar",
     "@servlet_api//jar",
     "@jetty_websocket//jar",
+    "@jetty_websocket_api//jar",
     "@jetty_util//jar",
     "@jersey_media_multipart//jar",
     "@jersey_server//jar",
@@ -318,6 +319,14 @@ osgi_jar_with_tests(
         ]) + [
             "//web/gui:onos-gui-java-for-gui2",
         ],
+    exclude_tests = [
+        "org.onosproject.ui.impl.AbstractUiImplTest",
+        "org.onosproject.ui.impl.topo.model.AbstractTopoModelTest",
+    ],
+    karaf_command_packages = [
+        "org.onosproject.ui.impl.cli",
+        "org.onosproject.ui.impl.topo",
+    ],
     suppress_checkstyle = True,
     test_deps = TEST_DEPS,
     web_context = "/onos/ui2",
@@ -334,6 +343,7 @@ genrule(
         ":_onos-gui2-ng-build",
         ":_onos-gui2-base-jar",
         ":_web_inf_classes_files",
+        "//web/gui:onos-gui-lion-for-gui2",
         "src/main/webapp/WEB-INF/web.xml",
     ],
     outs = ["onos-gui2.jar"],
@@ -344,8 +354,11 @@ genrule(
           " for i in $(locations :_web_inf_classes_files); do cp $$ROOT/$$i ./WEB-INF/classes/; done &&" +
           " (cd WEB-INF/classes && jar xf $$ROOT/$${BUILD_FILES[1]}) &&" +
           " jar xf $$ROOT/$(location :_onos-gui2-base-jar) &&" +
-          " find . -type f -exec touch -t 201808280000 {} \; &&" +
-          " jar cmf META-INF/MANIFEST.MF $$ROOT/$@ WEB-INF/web.xml WEB-INF/classes",
+          " unzip -q $$ROOT/$(location //web/gui:onos-gui-lion-for-gui2) web/gui/src/main/resources/**/* &&" +
+          " mv web/gui/src/main/resources/org/onosproject/ui/lion* WEB-INF/classes/org/onosproject/ui/ &&" +
+          " mv web/gui/src/main/resources/core WEB-INF/classes/ &&" +
+          " find . -type f -exec touch -t 201901200000 {} \; &&" +
+          " jar cmf META-INF/MANIFEST.MF $$ROOT/$@ WEB-INF/web.xml WEB-INF/classes OSGI-INF/*.xml",
     output_to_bindir = 1,
     visibility = ["//visibility:public"],
 )

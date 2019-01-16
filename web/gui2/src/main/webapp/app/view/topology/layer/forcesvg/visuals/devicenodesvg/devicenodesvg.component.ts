@@ -90,9 +90,6 @@ export class DeviceNodeSvgComponent extends NodeVisual implements OnChanges {
                 this.device.y = 0;
             }
         }
-        if (changes['labelToggle']) {
-            this.labelToggle = changes['labelToggle'].currentValue;
-        }
         this.ref.markForCheck();
     }
 

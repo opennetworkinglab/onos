@@ -49,6 +49,7 @@ export * from './lib/mast/mast/mast.component';
 export * from './lib/layer/veil/veil.component';
 export * from './lib/layer/flash/flash.component';
 export * from './lib/layer/confirm/confirm.component';
+export * from './lib/layer/quickhelp/quickhelp.component';
 export * from './lib/svg/icon/icon.component';
 
 export * from './lib/widget/tableresize.directive';

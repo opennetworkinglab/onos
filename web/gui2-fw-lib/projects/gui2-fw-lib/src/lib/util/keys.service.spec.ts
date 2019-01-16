@@ -89,7 +89,6 @@ describe('KeysService', () => {
         });
         ks = TestBed.get(KeysService);
         ks.installOn(d3Elem);
-        ks.bindQhs(qhs);
         logServiceSpy = TestBed.get(LogService);
     });
 
@@ -103,7 +102,7 @@ describe('KeysService', () => {
 
     it('should define api functions', () => {
         expect(fs.areFunctions(ks, [
-            'bindQhs', 'installOn', 'keyBindings', 'unbindKeys', 'dialogKeys',
+            'installOn', 'keyBindings', 'unbindKeys', 'dialogKeys',
             'addSeq', 'remSeq', 'gestureNotes', 'enableKeys', 'enableGlobalKeys',
             'checkNotGlobal', 'getKeyBindings',
             'matchSeq', 'whatKey', 'textFieldInput', 'keyIn', 'qhlion', 'qhlionShowHide',

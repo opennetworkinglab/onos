@@ -1,0 +1,160 @@
+<!--
+~ Copyright 2019-present Open Networking Foundation
+~
+~ Licensed under the Apache License, Version 2.0 (the "License");
+~ you may not use this file except in compliance with the License.
+~ You may obtain a copy of the License at
+~
+~     http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS,
+~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~ See the License for the specific language governing permissions and
+~ limitations under the License.
+-->
+<div id="quickhelp" [@quickHelpState]="ks.quickHelpShown">
+    <div class="help" *ngIf="ks.quickHelpShown">
+        <p class="title">{{lionFn("qh_title")}}</p>
+        <!-- TODO: drive this through the keys service keyHandler -->
+        <table class="qhrow">
+            <tr>
+                <td class="key">&#92;</td>
+                <td class="desc">Afficher/cacher l'aide rapide</td>
+            </tr>
+            <tr>
+                <td class="key">/</td>
+                <td class="desc">Afficher/cacher l'aide rapide</td>
+            </tr>
+            <tr>
+                <td class="key">Esc</td>
+                <td class="desc">ignorer la boîte de dialogue ou annuler les
+                    sélections
+                </td>
+            </tr>
+            <tr>
+                <td class="key">T</td>
+                <td class="desc">basculer de thème</td>
+            </tr>
+        </table>
+        <hr class="qhrowsep">
+        <table class="qhrow">
+            <tr>
+                <td class="key">I</td>
+                <td class="desc">Basculer au panneau de instance
+                    ONOS
+                </td>
+                <td class="key">O</td>
+                <td class="desc">Baculer au panneau récapitulatif
+                    ONOS
+                </td>
+                <td class="key">D</td>
+                <td class="desc">Basculer le panneau de détails</td>
+            </tr>
+            <tr>
+                <td class="key">H</td>
+                <td class="desc">Basculer la visibilité de l'hôte
+                </td>
+                <td class="key">M</td>
+                <td class="desc">Basculer la visibilité hors-ligne
+                </td>
+                <td class="key">P</td>
+                <td class="desc">Basculer le port mis en évidence
+                </td>
+            </tr>
+            <tr>
+                <td class="key">Dash</td>
+                <td class="desc">Montrer les mauvais liens</td>
+                <td class="key">B</td>
+                <td class="desc">Basculer la carte géo de fond</td>
+                <td class="key">G</td>
+                <td class="desc">Sélectionner la carte géo de fond
+                </td>
+            </tr>
+            <tr>
+                <td class="key">S</td>
+                <td class="desc">Toggle sprite layer</td>
+                <td class="key" y="0">X</td>
+                <td class="desc" y="0" x="33.53125">réinitialiser la
+                    carte des noeuds
+                </td>
+                <td class="key">Z</td>
+                <td class="desc">Basculer la vue oblique
+                    (expérimental)
+                </td>
+            </tr>
+            <tr>
+                <td class="key">N</td>
+                <td class="desc">cycle couche de noeuds</td>
+                <td class="key">L</td>
+                <td class="desc">Parcourir étiquettes appareils</td>
+                <td class="key">Shift-l</td>
+                <td class="desc">Parcourir étiquettes hôte</td>
+            </tr>
+            <tr>
+                <td class="key">U</td>
+                <td class="desc">survoler avec la souris</td>
+                <td class="key">R</td>
+                <td class="desc">réinitialiser le zoom et le
+                    panoramique
+                </td>
+                <td class="key">E</td>
+                <td class="desc">Egaliser les rôles de maîtrises
+                </td>
+            </tr>
+            <tr>
+                <td class="key">Dot</td>
+                <td class="desc">Basculer a la barre d'outils</td>
+                <td class="key">0</td>
+                <td class="desc">Annuler la surveillance du trafic
+                </td>
+                <td class="key">A</td>
+                <td class="desc">Surveiller tout le trafic</td>
+            </tr>
+            <tr>
+                <td class="key">F</td>
+                <td class="desc">Afficher les flux de liaison de périphérique
+                </td>
+                <td class="key">V</td>
+                <td class="desc">Show all related intents</td>
+                <td class="key">L-arrow</td>
+                <td class="desc">Show previous related intent</td>
+            </tr>
+            <tr>
+                <td class="key">R-arrow</td>
+                <td class="desc">Show next related intent</td>
+                <td class="key">W</td>
+                <td class="desc">Monitor traffic of selected intent</td>
+            </tr>
+        </table>
+        <hr>
+        <div class="qhrow">
+            <table class="qh-r4-c0">
+                <tr>
+                    <td class="key">cliquer</td>
+                    <td class="desc">Sélectionner l'article et montrer les
+                        détails
+                    </td>
+                </tr>
+                <tr>
+                    <td class="key">Cliquer sur MAJ</td>
+                    <td class="desc">Basculer l'état de sélection</td>
+                </tr>
+                <tr>
+                    <td class="key">Glisser</td>
+                    <td class="desc">Repositionner (et épingler) le périphérique
+                        / l'hôte
+                    </td>
+                </tr>
+                <tr>
+                    <td class="key">cmd défiler</td>
+                    <td class="desc">Zoom avant/arrière</td>
+                </tr>
+                <tr>
+                    <td class="key" y="48">cmd-glisser</td>
+                    <td class="desc" y="48" x="74.84375">Pan
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>

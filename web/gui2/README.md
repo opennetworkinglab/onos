@@ -16,7 +16,7 @@ and the gui will be accessible at [http://localhost:8181/onos/ui2](http://localh
 As usual with ONOS if you want to run it in a different language set the __ONOS_LOCALE__ environment variable
 to the locale you want before starting onos. e.g.
 ```
-ONOS_LOCALE=fr_FR SHLVL=1 bazel run onos-local
+ONOS_LOCALE=fr_FR SHLVL=1 bazel run onos-local -- clean debug
 ```
 
 # Development
