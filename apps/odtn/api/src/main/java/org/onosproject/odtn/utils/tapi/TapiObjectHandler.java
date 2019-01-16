@@ -240,6 +240,9 @@ public abstract class TapiObjectHandler<T extends ModelObject> {
         if (modelObjectData.modelObjects().size() > 1) {
             throw new IllegalStateException("Multiple modelObject found.");
         }
+        if (modelObjectData.modelObjects().isEmpty()) {
+            throw new IllegalStateException("ModelObject must not be empty.");
+        }
         return (T) modelObjectData.modelObjects().get(0);
     }
 
