@@ -13,30 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.l2lb.cli;
+package org.onosproject.portloadbalancer.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.l2lb.api.L2Lb;
-import org.onosproject.l2lb.api.L2LbAdminService;
-import org.onosproject.l2lb.api.L2LbId;
+import org.onosproject.portloadbalancer.api.PortLoadBalancer;
+import org.onosproject.portloadbalancer.api.PortLoadBalancerAdminService;
+import org.onosproject.portloadbalancer.api.PortLoadBalancerId;
 import org.onosproject.net.DeviceId;
 
 /**
- * Command to remove a L2 load balancer.
+ * Command to remove a port load balancer.
  */
 @Service
-@Command(scope = "onos", name = "l2lb-remove", description = "Remove L2 load balancers ")
-public class L2LbRemoveCommand extends AbstractShellCommand {
+@Command(scope = "onos", name = "plb-remove", description = "Remove port load balancers ")
+public class PortLoadBalancerRemoveCommand extends AbstractShellCommand {
     @Argument(index = 0, name = "deviceId",
             description = "Device ID",
             required = true, multiValued = false)
     private String deviceIdStr;
 
     @Argument(index = 1, name = "key",
-            description = "L2 load balancer key",
+            description = "port load balancer key",
             required = true, multiValued = false)
     private String keyStr;
 
@@ -47,11 +47,11 @@ public class L2LbRemoveCommand extends AbstractShellCommand {
     @Override
     protected void doExecute() {
         DeviceId deviceId = DeviceId.deviceId(deviceIdStr);
-        int l2LbKey = Integer.parseInt(keyStr);
+        int portLoadBalancerKey = Integer.parseInt(keyStr);
 
-        L2LbAdminService l2LbAdminService = get(L2LbAdminService.class);
-        L2LbId l2LbId = new L2LbId(deviceId, l2LbKey);
-        L2Lb l2Lb = l2LbAdminService.remove(l2LbId);
-        print("Removal of %s %s", l2LbId, l2Lb != null ? EXECUTED : FAILED);
+        PortLoadBalancerAdminService portLoadBalancerAdminService = get(PortLoadBalancerAdminService.class);
+        PortLoadBalancerId portLoadBalancerId = new PortLoadBalancerId(deviceId, portLoadBalancerKey);
+        PortLoadBalancer portLoadBalancer = portLoadBalancerAdminService.remove(portLoadBalancerId);
+        print("Removal of %s %s", portLoadBalancerId, portLoadBalancer != null ? EXECUTED : FAILED);
     }
 }

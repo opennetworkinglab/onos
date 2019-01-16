@@ -13,49 +13,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.l2lb.api;
+package org.onosproject.portloadbalancer.api;
 
 import org.onosproject.net.DeviceId;
 
 import java.util.Objects;
 
 /**
- * L2 load balancer identifier.
+ * Port load balancer identifier.
  * It is used to identify a load balancer across the entire system and therefore has to be unique system-wide.
  */
-public class L2LbId {
+public class PortLoadBalancerId {
     private final DeviceId deviceId;
 
     /**
-     * L2 load balancer key.
+     * Port load balancer key.
      * It is used to identify a load balancer on a specific device and therefore has to be unique device-wide.
      */
     private final int key;
 
     /**
-     * Constructs L2 load balancer ID.
+     * Constructs port load balancer ID.
      *
      * @param deviceId device ID
-     * @param key L2 load balancer key
+     * @param key port load balancer key
      */
-    public L2LbId(DeviceId deviceId, int key) {
+    public PortLoadBalancerId(DeviceId deviceId, int key) {
         this.deviceId = deviceId;
         this.key = key;
     }
 
     /**
-     * Returns L2 load balancer device ID.
+     * Returns port load balancer device ID.
      *
-     * @return L2 load balancer device ID
+     * @return port load balancer device ID
      */
     public DeviceId deviceId() {
         return deviceId;
     }
 
     /**
-     * Returns L2 load balancer key.
+     * Returns port load balancer key.
      *
-     * @return L2 load balancer key
+     * @return port load balancer key
      */
     public int key() {
         return key;
@@ -71,10 +71,10 @@ public class L2LbId {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof L2LbId)) {
+        if (!(obj instanceof PortLoadBalancerId)) {
             return false;
         }
-        final L2LbId other = (L2LbId) obj;
+        final PortLoadBalancerId other = (PortLoadBalancerId) obj;
 
         return Objects.equals(this.deviceId, other.deviceId) &&
                 Objects.equals(this.key, other.key);

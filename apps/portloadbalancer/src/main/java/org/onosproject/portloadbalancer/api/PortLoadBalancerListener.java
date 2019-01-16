@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.onosproject.l2lb.api;
+package org.onosproject.portloadbalancer.api;
 
 import org.onosproject.event.EventListener;
 
 /**
- * L2 load balancer event listener.
+ * Port load balancer event listener.
  */
-public interface L2LbListener extends EventListener<L2LbEvent> {
+public interface PortLoadBalancerListener extends EventListener<PortLoadBalancerEvent> {
 }

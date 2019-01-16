@@ -159,7 +159,7 @@ ONOS_APPS = [
     "//apps/flowanalyzer:onos-apps-flowanalyzer-oar",
     "//apps/intentsync:onos-apps-intentsync-oar",
     "//apps/influxdbmetrics:onos-apps-influxdbmetrics-oar",
-    "//apps/l2lb:onos-apps-l2lb-oar",
+    "//apps/portloadbalancer:onos-apps-portloadbalancer-oar",
     "//apps/metrics:onos-apps-metrics-oar",
     "//apps/mfwd:onos-apps-mfwd-oar",
     "//apps/mlb:onos-apps-mlb-oar",

@@ -13,8 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.onosproject.portloadbalancer.api;
 
 /**
- * L2 load balancer CLI.
+ * Port load balancer mode.
  */
-package org.onosproject.l2lb.cli;
+public enum PortLoadBalancerMode {
+    /**
+     * Static port load balancer.
+     *
+     * In STATIC mode, all member ports of this load balancer will be used to transmit data as long as it is enabled.
+     */
+    STATIC,
+
+    /**
+     * Port load balancer based on LACP.
+     *
+     * In LACP mode, we decide whether to use a member port to transmit data or not according to
+     * the LACP negotiation result.
+     */
+    LACP
+}
