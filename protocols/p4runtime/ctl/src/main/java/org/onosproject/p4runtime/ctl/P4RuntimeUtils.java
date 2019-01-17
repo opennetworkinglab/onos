@@ -31,20 +31,21 @@ final class P4RuntimeUtils {
     }
 
     static void assertSize(String entityDescr, ByteString value, int bitWidth)
-            throws EncodeException {
+            throws CodecException {
 
         int byteWidth = (int) Math.ceil((float) bitWidth / 8);
         if (value.size() != byteWidth) {
-            throw new EncodeException(format("Wrong size for %s, expected %d bytes, but found %d",
-                                             entityDescr, byteWidth, value.size()));
+            throw new CodecException(format(
+                    "Wrong size for %s, expected %d bytes, but found %d",
+                    entityDescr, byteWidth, value.size()));
         }
     }
 
     static void assertPrefixLen(String entityDescr, int prefixLength, int bitWidth)
-            throws EncodeException {
+            throws CodecException {
 
         if (prefixLength > bitWidth) {
-            throw new EncodeException(format(
+            throw new CodecException(format(
                     "wrong prefix length for %s, field size is %d bits, but found one is %d",
                     entityDescr, bitWidth, prefixLength));
         }

@@ -84,15 +84,19 @@ public class P4RuntimeGroupTest {
     private static final PiActionParamId PORT_PARAM_ID = PiActionParamId.of("port");
     private static final int BASE_MEM_ID = 65535;
     private static final List<Integer> MEMBER_IDS = ImmutableList.of(65536, 65537, 65538);
-    private static final List<PiActionProfileMember> GROUP_MEMBERS =
+    private static final List<PiActionProfileMember> GROUP_MEMBER_INSTANCES =
             Lists.newArrayList(
                     outputMember((short) 1),
                     outputMember((short) 2),
                     outputMember((short) 3)
             );
+    private static final List<PiActionProfileGroup.WeightedMember> GROUP_WEIGHTED_MEMBERS =
+            GROUP_MEMBER_INSTANCES.stream()
+                    .map(m -> new PiActionProfileGroup.WeightedMember(m, DEFAULT_MEMBER_WEIGHT))
+                    .collect(Collectors.toList());
     private static final PiActionProfileGroup GROUP = PiActionProfileGroup.builder()
             .withId(GROUP_ID)
-            .addMembers(GROUP_MEMBERS)
+            .addMembers(GROUP_MEMBER_INSTANCES)
             .withActionProfileId(ACT_PROF_ID)
             .build();
     private static final DeviceId DEVICE_ID = DeviceId.deviceId("device:p4runtime:1");
@@ -121,7 +125,6 @@ public class P4RuntimeGroupTest {
                 .forActionProfile(ACT_PROF_ID)
                 .withAction(piAction)
                 .withId(PiActionProfileMemberId.of(BASE_MEM_ID + portNum))
-                .withWeight(DEFAULT_MEMBER_WEIGHT)
                 .build();
     }
 
@@ -163,7 +166,7 @@ public class P4RuntimeGroupTest {
     @Test
     public void testInsertPiActionProfileGroup() throws Exception {
         CompletableFuture<Void> complete = p4RuntimeServerImpl.expectRequests(1);
-        client.writeActionProfileGroup(GROUP, INSERT, PIPECONF, 3);
+        client.writeActionProfileGroup(GROUP, INSERT, PIPECONF);
         complete.get(DEFAULT_TIMEOUT_TIME, TimeUnit.SECONDS);
         WriteRequest result = p4RuntimeServerImpl.getWriteReqs().get(0);
         assertEquals(1, result.getDeviceId());
@@ -192,7 +195,7 @@ public class P4RuntimeGroupTest {
     @Test
     public void testInsertPiActionMembers() throws Exception {
         CompletableFuture<Void> complete = p4RuntimeServerImpl.expectRequests(1);
-        client.writeActionProfileMembers(GROUP_MEMBERS, INSERT, PIPECONF);
+        client.writeActionProfileMembers(GROUP_MEMBER_INSTANCES, INSERT, PIPECONF);
         complete.get(DEFAULT_TIMEOUT_TIME, TimeUnit.SECONDS);
         WriteRequest result = p4RuntimeServerImpl.getWriteReqs().get(0);
         assertEquals(1, result.getDeviceId());
@@ -224,15 +227,41 @@ public class P4RuntimeGroupTest {
                 .setGroupId(GROUP_ID.id())
                 .setActionProfileId(P4_INFO_ACT_PROF_ID);
 
-        List<ActionProfileMember> members = Lists.newArrayList();
-
         MEMBER_IDS.forEach(id -> {
             ActionProfileGroup.Member member = ActionProfileGroup.Member.newBuilder()
                     .setMemberId(id)
                     .setWeight(DEFAULT_MEMBER_WEIGHT)
                     .build();
             group.addMembers(member);
+        });
 
+        List<ReadResponse> responses = Lists.newArrayList();
+        responses.add(ReadResponse.newBuilder()
+                              .addEntities(Entity.newBuilder().setActionProfileGroup(group))
+                              .build()
+        );
+
+        p4RuntimeServerImpl.willReturnReadResult(responses);
+        CompletableFuture<Void> complete = p4RuntimeServerImpl.expectRequests(1);
+        CompletableFuture<List<PiActionProfileGroup>> groupsComplete = client.dumpActionProfileGroups(
+                ACT_PROF_ID, PIPECONF);
+        complete.get(DEFAULT_TIMEOUT_TIME, TimeUnit.SECONDS);
+
+        Collection<PiActionProfileGroup> groups = groupsComplete.get(DEFAULT_TIMEOUT_TIME, TimeUnit.SECONDS);
+        assertEquals(1, groups.size());
+        PiActionProfileGroup piActionGroup = groups.iterator().next();
+        assertEquals(ACT_PROF_ID, piActionGroup.actionProfile());
+        assertEquals(GROUP_ID, piActionGroup.id());
+        assertEquals(3, piActionGroup.members().size());
+        assertTrue(GROUP_WEIGHTED_MEMBERS.containsAll(piActionGroup.members()));
+        assertTrue(piActionGroup.members().containsAll(GROUP_WEIGHTED_MEMBERS));
+    }
+
+    @Test
+    public void testReadMembers() throws Exception {
+        List<ActionProfileMember> members = Lists.newArrayList();
+
+        MEMBER_IDS.forEach(id -> {
             byte outPort = (byte) (id - BASE_MEM_ID);
             ByteString bs = ByteString.copyFrom(new byte[]{0, outPort});
             Action.Param param = Action.Param.newBuilder()
@@ -256,11 +285,6 @@ public class P4RuntimeGroupTest {
 
         List<ReadResponse> responses = Lists.newArrayList();
         responses.add(ReadResponse.newBuilder()
-                              .addEntities(Entity.newBuilder().setActionProfileGroup(group))
-                              .build()
-        );
-
-        responses.add(ReadResponse.newBuilder()
                               .addAllEntities(members.stream()
                                                       .map(m -> Entity.newBuilder()
                                                               .setActionProfileMember(m).build())
@@ -268,18 +292,14 @@ public class P4RuntimeGroupTest {
                               .build());
 
         p4RuntimeServerImpl.willReturnReadResult(responses);
-        CompletableFuture<Void> complete = p4RuntimeServerImpl.expectRequests(2);
-        CompletableFuture<List<PiActionProfileGroup>> groupsComplete = client.dumpActionProfileGroups(
+        CompletableFuture<Void> complete = p4RuntimeServerImpl.expectRequests(1);
+        CompletableFuture<List<PiActionProfileMember>> membersComplete = client.dumpActionProfileMembers(
                 ACT_PROF_ID, PIPECONF);
         complete.get(DEFAULT_TIMEOUT_TIME, TimeUnit.SECONDS);
 
-        Collection<PiActionProfileGroup> groups = groupsComplete.get(DEFAULT_TIMEOUT_TIME, TimeUnit.SECONDS);
-        assertEquals(1, groups.size());
-        PiActionProfileGroup piActionGroup = groups.iterator().next();
-        assertEquals(ACT_PROF_ID, piActionGroup.actionProfileId());
-        assertEquals(GROUP_ID, piActionGroup.id());
-        assertEquals(3, piActionGroup.members().size());
-        assertTrue(GROUP_MEMBERS.containsAll(piActionGroup.members()));
-        assertTrue(piActionGroup.members().containsAll(GROUP_MEMBERS));
+        Collection<PiActionProfileMember> piMembers = membersComplete.get(DEFAULT_TIMEOUT_TIME, TimeUnit.SECONDS);
+        assertEquals(3, piMembers.size());
+        assertTrue(GROUP_MEMBER_INSTANCES.containsAll(piMembers));
+        assertTrue(piMembers.containsAll(GROUP_MEMBER_INSTANCES));
     }
 }

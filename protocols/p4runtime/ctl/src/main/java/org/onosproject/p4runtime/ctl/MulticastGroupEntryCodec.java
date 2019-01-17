@@ -40,9 +40,9 @@ final class MulticastGroupEntryCodec {
      *
      * @param piEntry PiMulticastGroupEntry
      * @return P4Runtime MulticastGroupEntry message
-     * @throws EncodeException if the PiMulticastGroupEntry cannot be encoded.
+     * @throws CodecException if the PiMulticastGroupEntry cannot be encoded.
      */
-    static MulticastGroupEntry encode(PiMulticastGroupEntry piEntry) throws EncodeException {
+    static MulticastGroupEntry encode(PiMulticastGroupEntry piEntry) throws CodecException {
         final MulticastGroupEntry.Builder msgBuilder = MulticastGroupEntry.newBuilder();
         msgBuilder.setMulticastGroupId(piEntry.groupId());
         for (PiPreReplica replica : piEntry.replicas()) {
@@ -50,7 +50,7 @@ final class MulticastGroupEntryCodec {
             try {
                 p4PortId = Math.toIntExact(replica.egressPort().toLong());
             } catch (ArithmeticException e) {
-                throw new EncodeException(format(
+                throw new CodecException(format(
                         "Cannot cast 64bit port value '%s' to 32bit",
                         replica.egressPort()));
             }

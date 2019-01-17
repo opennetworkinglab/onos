@@ -75,10 +75,19 @@ public interface P4RuntimeMirror
     void remove(H handle);
 
     /**
+     * Returns a map of handles and corresponding PI entities for the given
+     * device.
+     *
+     * @param deviceId device ID
+     * @return map of handles and corresponding PI entities
+     */
+    Map<H, E> deviceHandleMap(DeviceId deviceId);
+
+    /**
      * Stores the given annotations associating it to the given handle.
      *
-     * @param handle handle
-     * @param annotations  entry
+     * @param handle      handle
+     * @param annotations entry
      */
     void putAnnotations(H handle, Annotations annotations);
 
