@@ -30,6 +30,7 @@ import java.util.Map;
 /**
  * Packet Stats REST API.
  */
+@Path("")
 public class PacketStatsWebResource extends AbstractWebResource {
     private final ObjectMapper mapper = new ObjectMapper();
     private static final String METRIC_NAME = null;
