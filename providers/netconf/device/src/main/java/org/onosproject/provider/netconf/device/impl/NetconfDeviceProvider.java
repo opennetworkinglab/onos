@@ -274,6 +274,8 @@ public class NetconfDeviceProvider extends AbstractProvider
                 case STANDBY:
                     //TODO this issue a warning on the first election/connection
                     controller.disconnectDevice(deviceId, false);
+                    withDeviceLock(
+                            () -> initiateConnection(deviceId, newRole), deviceId).run();
                     providerService.receivedRoleReply(deviceId, newRole, MastershipRole.STANDBY);
                     //else no-op
                     break;
@@ -529,6 +531,42 @@ public class NetconfDeviceProvider extends AbstractProvider
         }
         return new DefaultDeviceDescription(deviceId.uri(), Device.Type.SWITCH,
                 UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, cid, true, annotations.build());
+    }
+
+    /**
+     * Will appropriately create connections with the device.
+     * For Master role: will create secure transport and proxy sessions.
+     * For Standby role: will create only proxy session and disconnect secure transport session.
+     * For none role: will disconnect all sessions.
+     *
+     * @param deviceId device id
+     * @param newRole new role
+     */
+    private void initiateConnection(DeviceId deviceId, MastershipRole newRole) {
+        try {
+            if (isReachable(deviceId)) {
+                NetconfDevice device = null;
+                if (newRole.equals(MastershipRole.MASTER)) {
+                    device = controller.connectDevice(deviceId, true);
+                } else if (newRole.equals(MastershipRole.STANDBY)) {
+                    device = controller.connectDevice(deviceId, false);
+                }
+
+                if (device != null) {
+                    providerService.receivedRoleReply(deviceId, newRole, newRole);
+                } else {
+                    providerService.receivedRoleReply(deviceId, newRole, MastershipRole.NONE);
+                }
+
+            }
+        } catch (Exception e) {
+            if (deviceService.getDevice(deviceId) != null) {
+                providerService.deviceDisconnected(deviceId);
+            }
+            deviceKeyAdminService.removeKey(DeviceKeyId.deviceKeyId(deviceId.toString()));
+            throw new IllegalStateException(new NetconfException(
+                    "Can't connect to NETCONF device " + deviceId, e));
+        }
     }
 
 

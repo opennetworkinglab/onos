@@ -16,15 +16,28 @@
 
 package org.onosproject.netconf.ctl.impl;
 
+
 import org.apache.commons.lang3.tuple.Triple;
+
+import com.google.common.annotations.Beta;
+import com.google.common.collect.Lists;
+
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.onlab.packet.IpAddress;
+import org.onlab.util.KryoNamespace;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.MastershipRole;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.key.DeviceKey;
@@ -39,29 +52,37 @@ import org.onosproject.netconf.NetconfDeviceListener;
 import org.onosproject.netconf.NetconfDeviceOutputEvent;
 import org.onosproject.netconf.NetconfDeviceOutputEventListener;
 import org.onosproject.netconf.NetconfException;
+import org.onosproject.netconf.NetconfProxyMessage;
+import org.onosproject.netconf.NetconfProxyMessageHandler;
+import org.onosproject.netconf.NetconfSession;
 import org.onosproject.netconf.config.NetconfDeviceConfig;
 import org.onosproject.netconf.config.NetconfSshClientLib;
+import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
+import org.onosproject.store.cluster.messaging.MessageSubject;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.Serializer;
 import org.osgi.service.component.ComponentContext;
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Modified;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.security.Security;
+
+import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.getIntegerProperty;
@@ -95,6 +116,16 @@ public class NetconfControllerImpl implements NetconfController {
 
     protected NetconfSshClientLib sshClientLib = NetconfSshClientLib.APACHE_MINA;
 
+
+    private static final String APACHE_MINA_STR = "apache-mina";
+
+
+    private static final MessageSubject SEND_REQUEST_SUBJECT_STRING =
+            new MessageSubject("netconf-session-master-send-message-string");
+
+    private static final MessageSubject SEND_REQUEST_SUBJECT_SET_STRING =
+            new MessageSubject("netconf-session-master-send-message-set-string");
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
@@ -110,6 +141,9 @@ public class NetconfControllerImpl implements NetconfController {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MastershipService mastershipService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected ClusterCommunicationService clusterCommunicator;
+
     public static final Logger log = LoggerFactory
             .getLogger(NetconfControllerImpl.class);
 
@@ -120,26 +154,56 @@ public class NetconfControllerImpl implements NetconfController {
     private final NetconfDeviceOutputEventListener downListener = new DeviceDownEventListener();
 
     protected Set<NetconfDeviceListener> netconfDeviceListeners = new CopyOnWriteArraySet<>();
-    protected NetconfDeviceFactory deviceFactory = DefaultNetconfDevice::new;
+    protected NetconfDeviceFactory deviceFactory = new DefaultNetconfDeviceFactory();
+
+    protected NetconfProxyMessageHandler netconfProxyMessageHandler = new NetconfProxyMessageHandlerImpl();
+
 
     protected final ExecutorService executor =
             Executors.newCachedThreadPool(groupedThreads("onos/netconfdevicecontroller",
                                                          "connection-reopen-%d", log));
+
+    public static final Serializer SERIALIZER = Serializer.using(
+            KryoNamespace.newBuilder()
+                    .register(KryoNamespaces.API)
+                    .register(NetconfProxyMessage.class)
+                    .register(NetconfProxyMessage.SubjectType.class)
+                    .register(DefaultNetconfProxyMessage.class)
+                    .register(String.class)
+                    .build("NetconfProxySession"));
 
     @Activate
     public void activate(ComponentContext context) {
         cfgService.registerProperties(getClass());
         modified(context);
         Security.addProvider(new BouncyCastleProvider());
+        clusterCommunicator.<NetconfProxyMessage, String>addSubscriber(
+                SEND_REQUEST_SUBJECT_STRING,
+                SERIALIZER::decode,
+                this::handleProxyMessage,
+                SERIALIZER::encode);
+        clusterCommunicator.<NetconfProxyMessage, Set<String>>addSubscriber(
+                SEND_REQUEST_SUBJECT_SET_STRING,
+                SERIALIZER::decode,
+                this::handleProxyMessage,
+                SERIALIZER::encode);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
         netconfDeviceMap.values().forEach(device -> {
-            device.getSession().removeDeviceOutputListener(downListener);
+            if (device.isMasterSession()) {
+                try {
+                    device.getSession().removeDeviceOutputListener(downListener);
+                } catch (NetconfException e) {
+                    log.error("removeDeviceOutputListener Failed {}", e.getMessage());
+                }
+            }
             device.disconnect();
         });
+        clusterCommunicator.removeSubscriber(SEND_REQUEST_SUBJECT_STRING);
+        clusterCommunicator.removeSubscriber(SEND_REQUEST_SUBJECT_SET_STRING);
         cfgService.unregisterProperties(getClass(), false);
         netconfDeviceListeners.clear();
         netconfDeviceMap.clear();
@@ -228,6 +292,11 @@ public class NetconfControllerImpl implements NetconfController {
 
     @Override
     public NetconfDevice connectDevice(DeviceId deviceId) throws NetconfException {
+        return connectDevice(deviceId, true);
+    }
+
+    @Override
+    public NetconfDevice connectDevice(DeviceId deviceId, boolean isMaster) throws NetconfException {
         NetconfDeviceConfig netCfg  = netCfgService.getConfig(
                 deviceId, NetconfDeviceConfig.class);
         NetconfDeviceInfo deviceInfo = null;
@@ -256,62 +325,74 @@ public class NetconfControllerImpl implements NetconfController {
         mutex.lock();
         try {
             if (netconfDeviceMap.containsKey(deviceId)) {
-                log.debug("Device {} is already present", deviceId);
-                return netconfDeviceMap.get(deviceId);
-            } else if (netCfg != null) {
+                //If not master or already has session: return, otherwise create device again.
+                if (!isMaster || netconfDeviceMap.get(deviceId).isMasterSession()) {
+                    log.debug("Device {} is already present", deviceId);
+                    return netconfDeviceMap.get(deviceId);
+                }
+            }
+
+            if (netCfg != null) {
                 log.debug("Device {} is present in NetworkConfig", deviceId);
                 deviceInfo = new NetconfDeviceInfo(netCfg);
             } else {
                 log.debug("Creating NETCONF device {}", deviceId);
-                Device device = deviceService.getDevice(deviceId);
-                String ip, path = null;
-                int port;
-                if (device != null) {
-                    ip = device.annotations().value("ipaddress");
-                    port = Integer.parseInt(device.annotations().value("port"));
-                    path = device.annotations().value("path");
-                } else {
-                    Triple<String, Integer, Optional<String>> info = extractIpPortPath(deviceId);
-                    ip = info.getLeft();
-                    port = info.getMiddle();
-                    path = (info.getRight().isPresent() ? info.getRight().get() : null);
-                }
-                try {
-                    DeviceKey deviceKey = deviceKeyService.getDeviceKey(
-                            DeviceKeyId.deviceKeyId(deviceId.toString()));
-                    if (deviceKey.type() == DeviceKey.Type.USERNAME_PASSWORD) {
-                        UsernamePassword usernamepasswd = deviceKey.asUsernamePassword();
-
-                        deviceInfo = new NetconfDeviceInfo(usernamepasswd.username(),
-                                                           usernamepasswd.password(),
-                                                           IpAddress.valueOf(ip),
-                                                           port,
-                                                           path);
-
-                    } else if (deviceKey.type() == DeviceKey.Type.SSL_KEY) {
-                        String username = deviceKey.annotations().value(AnnotationKeys.USERNAME);
-                        String password = deviceKey.annotations().value(AnnotationKeys.PASSWORD);
-                        String sshkey = deviceKey.annotations().value(AnnotationKeys.SSHKEY);
-
-                        deviceInfo = new NetconfDeviceInfo(username,
-                                                           password,
-                                                           IpAddress.valueOf(ip),
-                                                           port,
-                                                           path,
-                                                           sshkey);
-                    } else {
-                        log.error("Unknown device key for device {}", deviceId);
-                    }
-                } catch (NullPointerException e) {
-                    throw new NetconfException("No Device Key for device " + deviceId, e);
-                }
+                deviceInfo = createDeviceInfo(deviceId);
             }
-            NetconfDevice netconfDevicedevice = createDevice(deviceInfo);
-            netconfDevicedevice.getSession().addDeviceOutputListener(downListener);
-            return netconfDevicedevice;
+            NetconfDevice netconfDevice = createDevice(deviceInfo, isMaster);
+            if (isMaster) {
+                netconfDevice.getSession().addDeviceOutputListener(downListener);
+            }
+            return netconfDevice;
         } finally {
 
             mutex.unlock();
+        }
+    }
+
+    private NetconfDeviceInfo createDeviceInfo(DeviceId deviceId) throws NetconfException {
+            Device device = deviceService.getDevice(deviceId);
+            String ip, path = null;
+            int port;
+            if (device != null) {
+                ip = device.annotations().value("ipaddress");
+                port = Integer.parseInt(device.annotations().value("port"));
+            } else {
+                Triple<String, Integer, Optional<String>> info = extractIpPortPath(deviceId);
+                ip = info.getLeft();
+                port = info.getMiddle();
+                path = (info.getRight().isPresent() ? info.getRight().get() : null);
+            }
+            try {
+                DeviceKey deviceKey = deviceKeyService.getDeviceKey(
+                        DeviceKeyId.deviceKeyId(deviceId.toString()));
+                if (deviceKey.type() == DeviceKey.Type.USERNAME_PASSWORD) {
+                    UsernamePassword usernamepasswd = deviceKey.asUsernamePassword();
+
+                    return new NetconfDeviceInfo(usernamepasswd.username(),
+                                                       usernamepasswd.password(),
+                                                       IpAddress.valueOf(ip),
+                                                       port,
+                                                       path);
+
+                } else if (deviceKey.type() == DeviceKey.Type.SSL_KEY) {
+                    String username = deviceKey.annotations().value(AnnotationKeys.USERNAME);
+                    String password = deviceKey.annotations().value(AnnotationKeys.PASSWORD);
+                    String sshkey = deviceKey.annotations().value(AnnotationKeys.SSHKEY);
+
+                    return new NetconfDeviceInfo(username,
+                                                       password,
+                                                       IpAddress.valueOf(ip),
+                                                       port,
+                                                       path,
+                                                       sshkey);
+                } else {
+                    log.error("Unknown device key for device {}", deviceId);
+                    throw new NetconfException("Unknown device key for device " + deviceId);
+                }
+            } catch (NullPointerException e) {
+                log.error("No Device Key for device {}, {}", deviceId, e);
+                throw new NetconfException("No Device Key for device " + deviceId, e);
         }
     }
 
@@ -364,7 +445,12 @@ public class NetconfControllerImpl implements NetconfController {
     }
 
     private NetconfDevice createDevice(NetconfDeviceInfo deviceInfo) throws NetconfException {
-        NetconfDevice netconfDevice = deviceFactory.createNetconfDevice(deviceInfo);
+        return createDevice(deviceInfo, true);
+    }
+
+    private NetconfDevice createDevice(NetconfDeviceInfo deviceInfo,
+                                       boolean isMaster) throws NetconfException {
+        NetconfDevice netconfDevice = deviceFactory.createNetconfDevice(deviceInfo, isMaster);
         netconfDeviceMap.put(deviceInfo.getDeviceId(), netconfDevice);
         for (NetconfDeviceListener l : netconfDeviceListeners) {
             l.deviceAdded(deviceInfo.getDeviceId());
@@ -383,6 +469,102 @@ public class NetconfControllerImpl implements NetconfController {
         return netconfDeviceMap.keySet();
     }
 
+    @Override
+    public <T> CompletableFuture<T> executeAtMaster(NetconfProxyMessage proxyMessage) throws NetconfException {
+        DeviceId deviceId = proxyMessage.deviceId();
+        if (deviceService.getRole(deviceId).equals(MastershipRole.MASTER)) {
+            return CompletableFuture.completedFuture(
+                    netconfProxyMessageHandler.handleIncomingMessage(proxyMessage));
+        } else {
+            MessageSubject subject;
+            switch (proxyMessage.subjectType()) {
+                case GET_DEVICE_CAPABILITIES_SET:
+                    subject = SEND_REQUEST_SUBJECT_SET_STRING;
+                    break;
+                default:
+                    subject = SEND_REQUEST_SUBJECT_STRING;
+                    break;
+            }
+
+            return clusterCommunicator
+                    .sendAndReceive(proxyMessage,
+                                    subject,
+                                    SERIALIZER::encode,
+                                    SERIALIZER::decode,
+                                    mastershipService.getMasterFor(deviceId));
+        }
+    }
+
+    private <T> CompletableFuture<T> handleProxyMessage(NetconfProxyMessage proxyMessage) {
+        try {
+            return CompletableFuture.completedFuture(
+                    netconfProxyMessageHandler.handleIncomingMessage(proxyMessage));
+        } catch (NetconfException e) {
+            CompletableFuture<T> errorFuture = new CompletableFuture<>();
+            errorFuture.completeExceptionally(e);
+            return errorFuture;
+        }
+    }
+
+    /**
+     * Netconf Proxy Message Handler Implementation class.
+     */
+    private class NetconfProxyMessageHandlerImpl implements NetconfProxyMessageHandler {
+
+        @Override
+        public <T> T handleIncomingMessage(NetconfProxyMessage proxyMessage) throws NetconfException {
+            //TODO: Should throw Netconf Exception in error cases?
+            DeviceId deviceId = proxyMessage.deviceId();
+            NetconfProxyMessage.SubjectType subjectType = proxyMessage.subjectType();
+            NetconfSession secureTransportSession;
+            if (netconfDeviceMap.get(deviceId).isMasterSession()) {
+                secureTransportSession = netconfDeviceMap.get(deviceId).getSession();
+            } else {
+                throw new NetconfException("Ssh session not present");
+            }
+            T reply = null;
+            ArrayList<String> arguments = Lists.newArrayList(proxyMessage.arguments());
+            try {
+                switch (subjectType) {
+                    case RPC:
+                        reply = (T) secureTransportSession.rpc(arguments.get(0))
+                                .get(netconfReplyTimeout, TimeUnit.SECONDS);
+                        break;
+                    case REQUEST_SYNC:
+                        reply = (T) secureTransportSession.requestSync(arguments.get(0));
+                        break;
+                    case START_SUBSCRIPTION:
+                        secureTransportSession.startSubscription(arguments.get(0));
+                        break;
+                    case END_SUBSCRIPTION:
+                        secureTransportSession.endSubscription();
+                        break;
+                    case REQUEST:
+                        reply = (T) secureTransportSession.request(arguments.get(0))
+                                .get(netconfReplyTimeout, TimeUnit.SECONDS);
+                        break;
+                    case GET_SESSION_ID:
+                        reply = (T) secureTransportSession.getSessionId();
+                        break;
+                    case SET_ONOS_CAPABILITIES:
+                        secureTransportSession.setOnosCapabilities(arguments);
+                        break;
+                    case GET_DEVICE_CAPABILITIES_SET:
+                        reply = (T) secureTransportSession.getDeviceCapabilitiesSet();
+                        break;
+                    default:
+                        log.error("Not yet supported for session method {}", subjectType);
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new NetconfException(e.getMessage(), e.getCause());
+            } catch (ExecutionException | TimeoutException e) {
+                throw new NetconfException(e.getMessage(), e.getCause());
+            }
+
+            return reply;
+        }
+    }
 
     /**
      * Device factory for the specific NetconfDeviceImpl.
@@ -393,9 +575,20 @@ public class NetconfControllerImpl implements NetconfController {
     private class DefaultNetconfDeviceFactory implements NetconfDeviceFactory {
 
         @Override
-        public NetconfDevice createNetconfDevice(NetconfDeviceInfo netconfDeviceInfo)
+        public NetconfDevice createNetconfDevice(NetconfDeviceInfo netconfDeviceInfo) throws NetconfException {
+            return createNetconfDevice(netconfDeviceInfo, true);
+        }
+
+        @Beta
+        @Override
+        public NetconfDevice createNetconfDevice(NetconfDeviceInfo netconfDeviceInfo,
+                                                 boolean isMaster)
                 throws NetconfException {
-            return new DefaultNetconfDevice(netconfDeviceInfo);
+            if (isMaster) {
+                log.info("Creating NETCONF session to {} with {}",
+                         netconfDeviceInfo.getDeviceId(), NetconfSshClientLib.APACHE_MINA);
+            }
+            return new DefaultNetconfDevice(netconfDeviceInfo, isMaster, NetconfControllerImpl.this);
         }
     }
 

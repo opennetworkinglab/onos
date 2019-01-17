@@ -18,6 +18,7 @@ package org.onosproject.provider.netconf.alarm;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
+import org.onosproject.netconf.NetconfException;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -95,10 +96,16 @@ public class NetconfAlarmProvider extends AbstractProvider implements AlarmProvi
         providerService = providerRegistry.register(this);
         controller.getNetconfDevices().forEach(id -> {
             NetconfDevice device = controller.getNetconfDevice(id);
-            NetconfSession session = device.getSession();
-            InternalNotificationListener listener = new InternalNotificationListener(device.getDeviceInfo());
-            session.addDeviceOutputListener(listener);
-            idNotificationListenerMap.put(id, listener);
+            if (device.isMasterSession()) {
+                NetconfSession session = device.getSession();
+                InternalNotificationListener listener = new InternalNotificationListener(device.getDeviceInfo());
+                try {
+                    session.addDeviceOutputListener(listener);
+                } catch (NetconfException e) {
+                    log.error("addDeviceOutputListener Error {} ", e.getMessage());
+                }
+                idNotificationListenerMap.put(id, listener);
+            }
         });
         controller.addDeviceListener(deviceListener);
         log.info("NetconfAlarmProvider Started");
@@ -108,9 +115,14 @@ public class NetconfAlarmProvider extends AbstractProvider implements AlarmProvi
     public void deactivate() {
         providerRegistry.unregister(this);
         idNotificationListenerMap.forEach((id, listener) -> {
-            controller.getNetconfDevice(id)
-                    .getSession()
-                    .removeDeviceOutputListener(listener);
+            NetconfDevice device = controller.getNetconfDevice(id);
+            if (device.isMasterSession()) {
+                try {
+                    device.getSession().removeDeviceOutputListener(listener);
+                } catch (NetconfException e) {
+                    log.error("RemoveDeviceOutputListener Error {}", e.getMessage());
+                }
+            }
         });
         controller.removeDeviceListener(deviceListener);
         providerService = null;
@@ -161,11 +173,15 @@ public class NetconfAlarmProvider extends AbstractProvider implements AlarmProvi
 
         @Override
         public void deviceAdded(DeviceId deviceId) {
-            NetconfDevice device = controller.getNetconfDevice(deviceId);
-            NetconfSession session = device.getSession();
-            InternalNotificationListener listener = new InternalNotificationListener(device.getDeviceInfo());
-            session.addDeviceOutputListener(listener);
-            idNotificationListenerMap.put(deviceId, listener);
+            try {
+                NetconfDevice device = controller.getNetconfDevice(deviceId);
+                NetconfSession session = device.getSession();
+                InternalNotificationListener listener = new InternalNotificationListener(device.getDeviceInfo());
+                session.addDeviceOutputListener(listener);
+                idNotificationListenerMap.put(deviceId, listener);
+            } catch (NetconfException e) {
+                log.error("Device add fail {}", e.getMessage());
+            }
         }
 
         @Override

@@ -21,6 +21,7 @@ import org.onosproject.net.DeviceId;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Abstraction of an NETCONF controller. Serves as a one stop shop for obtaining
@@ -51,6 +52,20 @@ public interface NetconfController {
      * @throws NetconfException when device is not available
      */
     NetconfDevice connectDevice(DeviceId deviceId) throws NetconfException;
+
+    /**
+     * Tries to connect to a specific NETCONF device, if the connection is succesful
+     * it creates and adds the device to the ONOS core as a NetconfDevice.
+     * If isMaster true: Will create two sessions for a device : secure transport session and proxy session.
+     * If isMaster false: Will create only proxy session.
+     * @param deviceId deviceId of the device to connect
+     * @param isMaster if the controller is master for the device
+     * @return NetconfDevice Netconf device
+     * @throws NetconfException when device is not available
+     */
+    default NetconfDevice connectDevice(DeviceId deviceId, boolean isMaster) throws NetconfException {
+        return connectDevice(deviceId);
+    }
 
     /**
      * Disconnects a Netconf device and removes it from the core.
@@ -107,4 +122,20 @@ public interface NetconfController {
      * @return NetconfDevice Netconf device
      */
     NetconfDevice getNetconfDevice(IpAddress ip, int port, String path);
+
+    /**
+     * If master, will execute the call locally else will use
+     * clusterCommunicationManager to execute at master controller.
+     * Meant only for internal synchronization and not to be used by applications.
+     *
+     * @param proxyMessage proxy message
+     * @param <T> return type
+     * @return Completable future of class T
+     * @throws NetconfException netconf exception
+     */
+    default <T> CompletableFuture<T> executeAtMaster(NetconfProxyMessage proxyMessage) throws NetconfException {
+        CompletableFuture<T> errorFuture = new CompletableFuture<>();
+        errorFuture.completeExceptionally(new NetconfException("Method executeAtMaster not implemented"));
+        return errorFuture;
+    }
 }

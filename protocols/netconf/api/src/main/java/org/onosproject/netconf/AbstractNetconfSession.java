@@ -80,6 +80,21 @@ public abstract class AbstractNetconfSession implements NetconfSession {
     @Override
     public abstract CompletableFuture<String> rpc(String request) throws NetconfException;
 
+    protected CompletableFuture<CharSequence> executeRpc(String rpcString) throws NetconfException {
+        return rpc(rpcString)
+                .thenApply(msg -> {
+                    // crude way of removing rpc-reply envelope
+                    int begin = msg.indexOf("<data>");
+                    int end = msg.lastIndexOf("</data>");
+                    if (begin != -1 && end != -1) {
+                        return msg.subSequence(begin, end + "</data>".length());
+                    } else {
+                        // FIXME probably should exceptionally fail here.
+                        return msg;
+                    }
+                });
+    }
+
     @Override
     public CompletableFuture<CharSequence> asyncGetConfig(DatastoreId datastore) throws NetconfException {
         StringBuilder rpc = new StringBuilder();
@@ -102,7 +117,6 @@ public abstract class AbstractNetconfSession implements NetconfSession {
     @Override
     public CompletableFuture<CharSequence> asyncGet() throws NetconfException {
         StringBuilder rpc = new StringBuilder();
-
         rpc.append(RPC_OPEN);
         rpc.append(NETCONF_BASE_NAMESPACE).append(">\n");
         rpc.append(GET_OPEN).append(NEW_LINE);
@@ -111,22 +125,6 @@ public abstract class AbstractNetconfSession implements NetconfSession {
         rpc.append(RPC_CLOSE).append(NEW_LINE);
 
         return executeRpc(rpc.toString());
-    }
-
-    protected CompletableFuture<CharSequence> executeRpc(String rpcString) throws NetconfException {
-        return rpc(rpcString)
-                .thenApply(msg -> {
-                    // crude way of removing rpc-reply envelope
-                    int begin = msg.indexOf("<data>");
-                    int end = msg.lastIndexOf("</data>");
-                    if (begin != -1 && end != -1) {
-                        return msg.subSequence(begin, end + "</data>".length());
-                    } else {
-                        // FIXME probably should exceptionally fail here.
-                        return msg;
-                    }
-                });
-
     }
 
     @Override
@@ -362,10 +360,14 @@ public abstract class AbstractNetconfSession implements NetconfSession {
     public abstract Set<String> getDeviceCapabilitiesSet();
 
     @Override
-    public abstract void addDeviceOutputListener(NetconfDeviceOutputEventListener listener);
+    public void addDeviceOutputListener(NetconfDeviceOutputEventListener listener) throws NetconfException {
+        throw new NetconfException("Only master session can call addDeviceOutputListener");
+    }
 
     @Override
-    public abstract void removeDeviceOutputListener(NetconfDeviceOutputEventListener listener);
+    public void removeDeviceOutputListener(NetconfDeviceOutputEventListener listener) throws NetconfException {
+        throw new NetconfException("Only master session can call removeDeviceOutputListener");
+    }
 
     /**
      * Checks errors in reply from the session.

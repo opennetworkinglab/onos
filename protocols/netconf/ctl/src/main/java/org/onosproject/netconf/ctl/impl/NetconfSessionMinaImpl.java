@@ -41,6 +41,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.Driver;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.netconf.AbstractNetconfSession;
+import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfDeviceInfo;
 import org.onosproject.netconf.NetconfDeviceOutputEvent;
 import org.onosproject.netconf.NetconfDeviceOutputEvent.Type;
@@ -505,10 +506,15 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
 
     @Override
     public String requestSync(String request) throws NetconfException {
-        String reply = sendRequest(request);
+        return requestSync(request, replyTimeout);
+    }
+
+    @Override
+    public String requestSync(String request, int timeout) throws NetconfException {
+        String reply = sendRequest(request, timeout);
         if (!checkReply(reply)) {
             throw new NetconfException("Request not successful with device "
-                    + deviceInfo + " with reply " + reply);
+                                               + deviceInfo + " with reply " + reply);
         }
         return reply;
     }
@@ -621,13 +627,23 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
         return streamHandler.sendMessage(request, messageId);
     }
 
+    private String sendRequest(String request, boolean isHello) throws NetconfException {
+        return sendRequest(request, isHello, replyTimeout);
+    }
+
     private String sendRequest(String request) throws NetconfException {
         // FIXME probably chunk-encoding too early
         request = formatNetconfMessage(request);
-        return sendRequest(request, false);
+        return sendRequest(request, false, replyTimeout);
     }
 
-    private String sendRequest(String request, boolean isHello) throws NetconfException {
+    private String sendRequest(String request, int timeout) throws NetconfException {
+        // FIXME probably chunk-encoding too early
+        request = formatNetconfMessage(request);
+        return sendRequest(request, false, timeout);
+    }
+
+    private String sendRequest(String request, boolean isHello, int timeout) throws NetconfException {
         checkAndReestablish();
         int messageId = -1;
         if (!isHello) {
@@ -859,7 +875,8 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
     public static class MinaSshNetconfSessionFactory implements NetconfSessionFactory {
 
         @Override
-        public NetconfSession createNetconfSession(NetconfDeviceInfo netconfDeviceInfo) throws NetconfException {
+        public NetconfSession createNetconfSession(NetconfDeviceInfo netconfDeviceInfo,
+                                                   NetconfController netconfController) throws NetconfException {
             return new NetconfSessionMinaImpl(netconfDeviceInfo);
         }
     }

@@ -46,6 +46,8 @@ import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
 import org.onosproject.netconf.config.NetconfDeviceConfig;
 import org.onosproject.netconf.config.NetconfSshClientLib;
+import org.onosproject.store.cluster.messaging.ClusterCommunicationService;
+import org.onosproject.store.cluster.messaging.ClusterCommunicationServiceAdapter;
 import org.osgi.service.component.ComponentContext;
 
 import java.io.ByteArrayInputStream;
@@ -120,6 +122,8 @@ public class NetconfControllerImplTest {
     private static DeviceKeyService deviceKeyService = new NetconfDeviceKeyServiceMock();
     private final NetworkConfigRegistry netCfgService = new MockNetworkConfigRegistry();
     private final MastershipService mastershipService = new MockmastershipService();
+    private final ClusterCommunicationService clusterCommunicationService =
+            new ClusterCommunicationServiceMock();
 
     private final ComponentContext context = new MockComponentContext();
 
@@ -135,6 +139,7 @@ public class NetconfControllerImplTest {
         NetconfControllerImpl.netconfConnectTimeout = NETCONF_CONNECT_TIMEOUT_DEFAULT;
         NetconfControllerImpl.netconfIdleTimeout = NETCONF_IDLE_TIMEOUT_DEFAULT;
         NetconfControllerImpl.netconfReplyTimeout = NETCONF_REPLY_TIMEOUT_DEFAULT;
+        ctrl.clusterCommunicator = clusterCommunicationService;
 
         //Creating mock devices
         deviceInfo1 = new NetconfDeviceInfo("device1", "001", IpAddress.valueOf(DEVICE_1_IP), DEVICE_1_PORT);
@@ -546,5 +551,7 @@ public class NetconfControllerImplTest {
         public boolean isLocalMaster(DeviceId deviceId) {
             return true;
         }
+    }
+    private class ClusterCommunicationServiceMock extends ClusterCommunicationServiceAdapter {
     }
 }

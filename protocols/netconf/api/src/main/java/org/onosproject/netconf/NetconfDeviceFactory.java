@@ -16,6 +16,8 @@
 
 package org.onosproject.netconf;
 
+import com.google.common.annotations.Beta;
+
 /**
  * Abstract interface for the creation of a NETCONF device.
  */
@@ -31,4 +33,19 @@ public interface NetconfDeviceFactory {
      */
     NetconfDevice createNetconfDevice(NetconfDeviceInfo netconfDeviceInfo)
             throws NetconfException;
+
+    /**
+     * Creates a new NETCONF device based on the supplied information.
+     * @param netconfDeviceInfo information of the device to create.
+     * @param isMaster if true create secure transport session with the device,
+     *                 else just create a proxy session
+     * @return Instance of NetconfDevice.
+     * @throws NetconfException when problems arise creating the device and establishing
+     * the connection.
+     */
+    @Beta
+    default NetconfDevice createNetconfDevice(NetconfDeviceInfo netconfDeviceInfo,
+                                              boolean isMaster) throws NetconfException {
+        return createNetconfDevice(netconfDeviceInfo);
+    }
 }

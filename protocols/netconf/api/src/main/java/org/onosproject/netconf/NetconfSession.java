@@ -122,6 +122,19 @@ public interface NetconfSession {
     String requestSync(String request) throws NetconfException;
 
     /**
+     * Executes an synchronous RPC to the server with specific reply TIMEOUT.
+     *
+     * @param request the XML containing the RPC for the server.
+     * @param timeout the reply timeout.
+     * @return Server response or ERROR
+     * @throws NetconfException when there is a problem in the communication process on
+     * the underlying connection
+     */
+    default String requestSync(String request, int timeout) throws NetconfException {
+        return "";
+    }
+
+    /**
      * Retrieves the specified configuration.
      *
      * @param netconfTargetConfig the type of configuration to retrieve.
@@ -341,15 +354,17 @@ public interface NetconfSession {
      * Add a listener to the underlying stream handler implementation.
      *
      * @param listener event listener.
+     * @throws NetconfException when this method will be called by STANDBY or NONE node.
      */
-    void addDeviceOutputListener(NetconfDeviceOutputEventListener listener);
+    void addDeviceOutputListener(NetconfDeviceOutputEventListener listener) throws NetconfException;
 
     /**
      * Remove a listener from the underlying stream handler implementation.
      *
      * @param listener event listener.
+     * @throws NetconfException when this method will be called by STANDBY or NONE node.
      */
-    void removeDeviceOutputListener(NetconfDeviceOutputEventListener listener);
+    void removeDeviceOutputListener(NetconfDeviceOutputEventListener listener) throws NetconfException;
 
     /**
      * Read the connect timeout that this session was created with.

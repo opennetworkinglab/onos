@@ -24,11 +24,20 @@ public interface NetconfDevice {
 
     /**
      * Returns whether a device is a NETCONF device with a capabilities list
-     * and is accessible.
+     * and is accessible, through a secure transport session or a proxy session.
      *
      * @return true if device is accessible, false otherwise
      */
     boolean isActive();
+
+    /**
+     * Returns whether the device has secure transport session.
+     *
+     * @return true if secure transport session exists, false otherwise
+     */
+    default boolean isMasterSession() {
+        return isActive();
+    }
 
     /**
      * Returns a NETCONF session context for this device.

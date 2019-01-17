@@ -1,8 +1,10 @@
-COMPILE_DEPS = CORE_DEPS + JACKSON + CLI + [
+COMPILE_DEPS = CORE_DEPS + JACKSON + CLI + KRYO + [
     "@ganymed_ssh2//jar",
     "@sshd_core//jar",
     "@bcpkix_jdk15on//jar",
     "@bcprov_jdk15on//jar",
+    "@org_osgi_service_cm//jar",
+    "//core/store/serializers:onos-core-serializers",
     "//protocols/netconf/api:onos-protocols-netconf-api",
 ]
 
