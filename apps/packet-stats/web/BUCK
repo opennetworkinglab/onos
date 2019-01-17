@@ -1,0 +1,16 @@
+COMPILE_DEPS = [
+    '//lib:CORE_DEPS',
+    '//lib:JACKSON',
+    '//utils/rest:onlab-rest',
+    '//lib:javax.ws.rs-api',
+    '//lib:METRICS',
+]
+
+osgi_jar (
+   deps = COMPILE_DEPS,
+   web_context = '/onos/v1/packet-stats',
+   api_title = 'Packet Stats API',
+   api_version = '1.0',
+   api_description = 'REST API for Packet Stats',
+   api_package = 'org.onosproject.packetstats.web',
+)
