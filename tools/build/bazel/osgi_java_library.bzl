@@ -410,7 +410,8 @@ def osgi_jar_with_tests(
 
     native_srcs = srcs
     native_resources = resources
-    if web_context != None and api_title != "" and len(resources) != 0:
+
+    if web_context != None and api_title != "":
         # generate Swagger files if needed
         _swagger_java(
             name = name + "_swagger_java",
