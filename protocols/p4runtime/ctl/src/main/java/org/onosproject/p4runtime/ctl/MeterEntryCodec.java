@@ -80,7 +80,7 @@ final class MeterEntryCodec {
                 .map(cellConfig -> {
                     try {
                         return encodePiMeterCellConfig(cellConfig, pipeconf, browser);
-                    } catch (P4InfoBrowser.NotFoundException | EncodeException e) {
+                    } catch (P4InfoBrowser.NotFoundException | CodecException e) {
                         log.warn("Unable to encode PI meter cell id: {}", e.getMessage());
                         log.debug("exception", e);
                         return null;
@@ -115,7 +115,7 @@ final class MeterEntryCodec {
                 .map(meterId -> {
                     try {
                         return readAllCellsEntity(meterId, pipeconf, browser);
-                    } catch (P4InfoBrowser.NotFoundException | EncodeException e) {
+                    } catch (P4InfoBrowser.NotFoundException | CodecException e) {
                         log.warn("Unable to encode meter ID to read-all-cells entity: {}",
                                  e.getMessage());
                         return null;
@@ -152,7 +152,7 @@ final class MeterEntryCodec {
                 .map(entity -> {
                     try {
                         return decodeMeterEntity(entity, pipeconf, browser);
-                    } catch (EncodeException | P4InfoBrowser.NotFoundException e) {
+                    } catch (CodecException | P4InfoBrowser.NotFoundException e) {
                         log.warn("Unable to decode meter entity message: {}", e.getMessage());
                         return null;
                     }
@@ -164,7 +164,7 @@ final class MeterEntryCodec {
     private static Entity encodePiMeterCellConfig(PiMeterCellConfig config,
                                                   PiPipeconf pipeconf,
                                                   P4InfoBrowser browser)
-            throws P4InfoBrowser.NotFoundException, EncodeException {
+            throws P4InfoBrowser.NotFoundException, CodecException {
 
         int meterId;
         Entity entity;
@@ -198,7 +198,7 @@ final class MeterEntryCodec {
             // When reading meter cells.
             meterConfig = null;
         } else {
-            throw new EncodeException("number of meter bands should be either 2 or 0");
+            throw new CodecException("number of meter bands should be either 2 or 0");
         }
 
         switch (config.cellId().meterType()) {
@@ -226,8 +226,8 @@ final class MeterEntryCodec {
                         .setDirectMeterEntry(dirEntryBuilder.build()).build();
                 break;
             default:
-                throw new EncodeException(format("unrecognized PI meter type '%s'",
-                                                 config.cellId().meterType()));
+                throw new CodecException(format("unrecognized PI meter type '%s'",
+                                                config.cellId().meterType()));
         }
 
         return entity;
@@ -236,10 +236,10 @@ final class MeterEntryCodec {
     private static Entity readAllCellsEntity(PiMeterId meterId,
                                              PiPipeconf pipeconf,
                                              P4InfoBrowser browser)
-            throws P4InfoBrowser.NotFoundException, EncodeException {
+            throws P4InfoBrowser.NotFoundException, CodecException {
 
         if (!pipeconf.pipelineModel().meter(meterId).isPresent()) {
-            throw new EncodeException(format(
+            throw new CodecException(format(
                     "not such meter '%s' in pipeline model", meterId));
         }
         final PiMeterType meterType = pipeconf.pipelineModel()
@@ -260,7 +260,7 @@ final class MeterEntryCodec {
                 final PiTableId tableId = pipeconf.pipelineModel()
                         .meter(meterId).get().table();
                 if (tableId == null) {
-                    throw new EncodeException(format(
+                    throw new CodecException(format(
                             "null table for direct meter '%s'", meterId));
                 }
                 final int p4TableId = browser.tables().getByName(tableId.id())
@@ -275,7 +275,7 @@ final class MeterEntryCodec {
                                 .build())
                         .build();
             default:
-                throw new EncodeException(format(
+                throw new CodecException(format(
                         "unrecognized PI meter type '%s'", meterType));
         }
     }
@@ -283,7 +283,7 @@ final class MeterEntryCodec {
     private static PiMeterCellConfig decodeMeterEntity(Entity entity,
                                                        PiPipeconf pipeconf,
                                                        P4InfoBrowser browser)
-            throws EncodeException, P4InfoBrowser.NotFoundException {
+            throws CodecException, P4InfoBrowser.NotFoundException {
 
         MeterConfig meterConfig;
         PiMeterCellId piCellId;
@@ -304,7 +304,7 @@ final class MeterEntryCodec {
             piCellId = PiMeterCellId.ofDirect(piTableEntry);
             meterConfig = entity.getDirectMeterEntry().getConfig();
         } else {
-            throw new EncodeException(format(
+            throw new CodecException(format(
                     "unrecognized entity type '%s' in P4Runtime message",
                     entity.getEntityCase().name()));
         }

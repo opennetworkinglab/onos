@@ -34,7 +34,7 @@ public final class PiActionProfileGroupHandle extends PiHandle<PiActionProfileGr
 
     private PiActionProfileGroupHandle(DeviceId deviceId, PiActionProfileGroup group) {
         super(deviceId);
-        actionProfileId = group.actionProfileId();
+        actionProfileId = group.actionProfile();
         groupId = group.id();
     }
 
@@ -81,7 +81,7 @@ public final class PiActionProfileGroupHandle extends PiHandle<PiActionProfileGr
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("deviceId", deviceId())
-                .add("actionProfileId", actionProfileId)
+                .add("actionProfile", actionProfileId)
                 .add("groupId", groupId)
                 .toString();
     }

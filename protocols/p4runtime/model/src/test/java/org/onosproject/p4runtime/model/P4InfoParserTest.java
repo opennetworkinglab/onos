@@ -70,6 +70,7 @@ public class P4InfoParserTest {
 
     private static final Long DEFAULT_MAX_TABLE_SIZE = 1024L;
     private static final Long DEFAULT_MAX_ACTION_PROFILE_SIZE = 64L;
+    private static final int DEFAULT_MAX_GROUP_SIZE = 0;
 
     /**
      * Tests parse method.
@@ -205,7 +206,8 @@ public class P4InfoParserTest {
         ImmutableSet<PiTableId> tableIds = new ImmutableSet.Builder<PiTableId>().add(tableId).build();
         PiActionProfileId actionProfileId = PiActionProfileId.of("wcmp_control.wcmp_selector");
         PiActionProfileModel wcmpSelector3 = new P4ActionProfileModel(actionProfileId, tableIds,
-                                                                      true, DEFAULT_MAX_ACTION_PROFILE_SIZE);
+                                                                      true, DEFAULT_MAX_ACTION_PROFILE_SIZE,
+                                                                      DEFAULT_MAX_GROUP_SIZE);
         PiActionProfileModel wcmpSelector = model.actionProfiles(actionProfileId).orElse(null);
         PiActionProfileModel wcmpSelector2 = model2.actionProfiles(actionProfileId).orElse(null);
 

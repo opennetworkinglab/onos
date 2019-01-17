@@ -29,6 +29,8 @@ import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
 import static org.onosproject.net.pi.runtime.PiConstantsTest.DST_ADDR;
 import static org.onosproject.net.pi.runtime.PiConstantsTest.MOD_NW_DST;
+import static org.onosproject.net.pi.runtime.PiConstantsTest.MOD_VLAN_VID;
+import static org.onosproject.net.pi.runtime.PiConstantsTest.VID;
 
 /**
  * Unit tests for PiActionProfileMember class.
@@ -37,34 +39,34 @@ public class PiActionProfileMemberTest {
 
     private final PiActionProfileId actionProfileId1 = PiActionProfileId.of("foo");
     private final PiActionProfileId actionProfileId2 = PiActionProfileId.of("bar");
-    private final PiActionProfileMemberId piActionProfileMemberId = PiActionProfileMemberId.of(10);
-    private final PiAction piAction = PiAction.builder().withId(PiActionId.of(MOD_NW_DST))
+    private final PiActionProfileMemberId piActionProfileMemberId1 = PiActionProfileMemberId.of(10);
+    private final PiActionProfileMemberId piActionProfileMemberId2 = PiActionProfileMemberId.of(20);
+    private final PiAction piAction1 = PiAction.builder().withId(PiActionId.of(MOD_NW_DST))
             .withParameter(new PiActionParam(PiActionParamId.of(DST_ADDR), copyFrom(0x0a010101)))
+            .build();
+    private final PiAction piAction2 = PiAction.builder().withId(PiActionId.of(MOD_VLAN_VID))
+            .withParameter(new PiActionParam(PiActionParamId.of(VID), copyFrom(0x0b)))
             .build();
 
     private final PiActionProfileMember piActionProfileMember1 = PiActionProfileMember.builder()
             .forActionProfile(actionProfileId1)
-            .withId(piActionProfileMemberId)
-            .withAction(piAction)
-            .withWeight(10)
+            .withId(piActionProfileMemberId1)
+            .withAction(piAction1)
             .build();
     private final PiActionProfileMember sameAsPiActionProfileMember1 = PiActionProfileMember.builder()
             .forActionProfile(actionProfileId1)
-            .withId(piActionProfileMemberId)
-            .withAction(piAction)
-            .withWeight(10)
+            .withId(piActionProfileMemberId1)
+            .withAction(piAction1)
             .build();
     private final PiActionProfileMember piActionProfileMember2 = PiActionProfileMember.builder()
             .forActionProfile(actionProfileId1)
-            .withId(piActionProfileMemberId)
-            .withAction(piAction)
-            .withWeight(20)
+            .withId(piActionProfileMemberId2)
+            .withAction(piAction2)
             .build();
-    private final PiActionProfileMember piActionGroupMember1ForOtherProfile = PiActionProfileMember.builder()
+    private final PiActionProfileMember piActionProfileMember3 = PiActionProfileMember.builder()
             .forActionProfile(actionProfileId2)
-            .withId(piActionProfileMemberId)
-            .withAction(piAction)
-            .withWeight(10)
+            .withId(piActionProfileMemberId1)
+            .withAction(piAction1)
             .build();
 
     /**
@@ -85,7 +87,7 @@ public class PiActionProfileMemberTest {
         new EqualsTester()
                 .addEqualityGroup(piActionProfileMember1, sameAsPiActionProfileMember1)
                 .addEqualityGroup(piActionProfileMember2)
-                .addEqualityGroup(piActionGroupMember1ForOtherProfile)
+                .addEqualityGroup(piActionProfileMember3)
                 .testEquals();
     }
 
@@ -96,8 +98,7 @@ public class PiActionProfileMemberTest {
     public void testMethods() {
 
         assertThat(piActionProfileMember1, is(notNullValue()));
-        assertThat(piActionProfileMember1.weight(), is(10));
-        assertThat(piActionProfileMember1.id(), is(piActionProfileMemberId));
-        assertThat(piActionProfileMember1.action(), is(piAction));
+        assertThat(piActionProfileMember1.id(), is(piActionProfileMemberId1));
+        assertThat(piActionProfileMember1.action(), is(piAction1));
     }
 }

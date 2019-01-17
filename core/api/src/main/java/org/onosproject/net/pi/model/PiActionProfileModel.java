@@ -41,16 +41,28 @@ public interface PiActionProfileModel {
     Collection<PiTableId> tables();
 
     /**
-     * Returns true if this action profile implements dynamic selection, false otherwise.
+     * Returns true if this action profile implements dynamic selection, false
+     * otherwise.
      *
-     * @return true if action profile implements dynamic selection, false otherwise
+     * @return true if action profile implements dynamic selection, false
+     * otherwise
      */
     boolean hasSelector();
 
     /**
-     * Returns the maximum number of member entries of this action profile.
+     * Returns the maximum number of member entries that this action profile can
+     * hold.
      *
      * @return maximum number of member entries
      */
-    long maxSize();
+    long size();
+
+    /**
+     * Returns the maximum number of members a group of this action profile can
+     * hold. This method is meaningful only if the action profile implements
+     * dynamic selection. 0 signifies that an explicit limit is not set.
+     *
+     * @return maximum number of members a group can hold
+     */
+    int maxGroupSize();
 }

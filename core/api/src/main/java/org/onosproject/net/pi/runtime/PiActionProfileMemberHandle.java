@@ -24,17 +24,17 @@ import org.onosproject.net.pi.model.PiActionProfileId;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Global identifier of a PI action profile group member, uniquely defined by a
+ * Global identifier of a PI action profile member, uniquely defined by a
  * device ID, action profile ID, and member ID.
  */
 public final class PiActionProfileMemberHandle extends PiHandle<PiActionProfileMember> {
 
-    private final PiActionProfileMemberId memberId;
     private final PiActionProfileId actionProfileId;
+    private final PiActionProfileMemberId memberId;
 
     private PiActionProfileMemberHandle(DeviceId deviceId,
-                                      PiActionProfileId actionProfileId,
-                                      PiActionProfileMemberId memberId) {
+                                        PiActionProfileId actionProfileId,
+                                        PiActionProfileMemberId memberId) {
         super(deviceId);
         this.actionProfileId = actionProfileId;
         this.memberId = memberId;
@@ -119,7 +119,7 @@ public final class PiActionProfileMemberHandle extends PiHandle<PiActionProfileM
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("deviceId", deviceId())
-                .add("actionProfileId", actionProfileId)
+                .add("actionProfile", actionProfileId)
                 .add("memberId", memberId)
                 .toString();
     }

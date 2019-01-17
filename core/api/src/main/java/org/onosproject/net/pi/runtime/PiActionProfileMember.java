@@ -32,19 +32,13 @@ public final class PiActionProfileMember implements PiEntity {
     private final PiActionProfileId actionProfileId;
     private final PiActionProfileMemberId memberId;
     private final PiAction action;
-    // FIXME: in P4Runtime weight is an attribute of the member reference in a
-    // group. Either remove it from this class or define the containing group
-    // ID.
-    private final int weight;
 
     private PiActionProfileMember(PiActionProfileId actionProfileId,
                                   PiActionProfileMemberId memberId,
-                                  PiAction action,
-                                  int weight) {
+                                  PiAction action) {
         this.actionProfileId = actionProfileId;
         this.memberId = memberId;
         this.action = action;
-        this.weight = weight;
     }
 
     /**
@@ -74,15 +68,6 @@ public final class PiActionProfileMember implements PiEntity {
         return action;
     }
 
-    /**
-     * Returns the weight associated to this member.
-     *
-     * @return weight
-     */
-    public int weight() {
-        return weight;
-    }
-
     @Override
     public PiEntityType piEntityType() {
         return PiEntityType.ACTION_PROFILE_MEMBER;
@@ -97,15 +82,14 @@ public final class PiActionProfileMember implements PiEntity {
             return false;
         }
         PiActionProfileMember that = (PiActionProfileMember) o;
-        return weight == that.weight &&
-                Objects.equal(actionProfileId, that.actionProfileId) &&
+        return Objects.equal(actionProfileId, that.actionProfileId) &&
                 Objects.equal(memberId, that.memberId) &&
                 Objects.equal(action, that.action);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(actionProfileId, memberId, action, weight);
+        return Objects.hashCode(actionProfileId, memberId, action);
     }
 
     @Override
@@ -114,7 +98,6 @@ public final class PiActionProfileMember implements PiEntity {
                 .add("actionProfile", actionProfileId)
                 .add("id", memberId)
                 .add("action", action)
-                .add("weight", weight)
                 .toString();
     }
 
@@ -133,9 +116,8 @@ public final class PiActionProfileMember implements PiEntity {
     public static final class Builder {
 
         private PiActionProfileId actionProfileId;
-        private PiActionProfileMemberId id;
+        private PiActionProfileMemberId memberId;
         private PiAction action;
-        private int weight;
 
         private Builder() {
             // Hides constructor.
@@ -159,7 +141,7 @@ public final class PiActionProfileMember implements PiEntity {
          * @return this
          */
         public Builder withId(PiActionProfileMemberId id) {
-            this.id = id;
+            this.memberId = id;
             return this;
         }
 
@@ -175,28 +157,15 @@ public final class PiActionProfileMember implements PiEntity {
         }
 
         /**
-         * Sets the weight of this member.
-         * <p>
-         * Default value is 0.
-         *
-         * @param weight weight
-         * @return this
-         */
-        public Builder withWeight(int weight) {
-            this.weight = weight;
-            return this;
-        }
-
-        /**
          * Creates a new action profile member.
          *
          * @return action profile member
          */
         public PiActionProfileMember build() {
             checkNotNull(actionProfileId);
-            checkNotNull(id);
+            checkNotNull(memberId);
             checkNotNull(action);
-            return new PiActionProfileMember(actionProfileId, id, action, weight);
+            return new PiActionProfileMember(actionProfileId, memberId, action);
         }
     }
 }

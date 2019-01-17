@@ -48,12 +48,15 @@ import org.onosproject.pipelines.basic.PipeconfLoader;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
 import static org.onosproject.net.group.GroupDescription.Type.SELECT;
+import static org.onosproject.net.pi.runtime.PiActionProfileGroup.WeightedMember.DEFAULT_WEIGHT;
 import static org.onosproject.pipelines.basic.BasicConstants.INGRESS_WCMP_CONTROL_SET_EGRESS_PORT;
 import static org.onosproject.pipelines.basic.BasicConstants.INGRESS_WCMP_CONTROL_WCMP_SELECTOR;
 import static org.onosproject.pipelines.basic.BasicConstants.INGRESS_WCMP_CONTROL_WCMP_TABLE;
@@ -80,16 +83,21 @@ public class PiGroupTranslatorImplTest {
     private static final int DEFAULT_MEMBER_WEIGHT = 1;
     private static final int BASE_MEM_ID = 65535;
     private static final int PORT_BITWIDTH = 9;
-    private Collection<PiActionProfileMember> expectedMembers;
+    private Collection<PiActionProfileMember> expectedMemberInstances;
+    private Collection<PiActionProfileGroup.WeightedMember> expectedWeightedMembers;
 
     private PiPipeconf pipeconf;
 
     @Before
     public void setUp() throws Exception {
         pipeconf = PipeconfLoader.BASIC_PIPECONF;
-        expectedMembers = ImmutableSet.of(outputMember(1),
-                                          outputMember(2),
-                                          outputMember(3));
+        expectedMemberInstances = ImmutableSet.of(outputMember(1),
+                                                  outputMember(2),
+                                                  outputMember(3));
+        expectedWeightedMembers = expectedMemberInstances.stream()
+                .map(m -> new PiActionProfileGroup.WeightedMember(m, DEFAULT_WEIGHT))
+                .collect(Collectors.toSet());
+
     }
 
     private static GroupBucket selectOutputBucket(int portNum) {
@@ -114,7 +122,6 @@ public class PiGroupTranslatorImplTest {
                 .forActionProfile(INGRESS_WCMP_CONTROL_WCMP_SELECTOR)
                 .withAction(piAction)
                 .withId(PiActionProfileMemberId.of(BASE_MEM_ID + portNum))
-                .withWeight(DEFAULT_MEMBER_WEIGHT)
                 .build();
     }
 
@@ -134,13 +141,22 @@ public class PiGroupTranslatorImplTest {
         assertThat("Group ID must be equal",
                    piGroup1.id().id(), is(equalTo(GROUP_ID.id())));
         assertThat("Action profile ID must be equal",
-                   piGroup1.actionProfileId(), is(equalTo(INGRESS_WCMP_CONTROL_WCMP_SELECTOR)));
+                   piGroup1.actionProfile(), is(equalTo(INGRESS_WCMP_CONTROL_WCMP_SELECTOR)));
 
         // members installed
-        Collection<PiActionProfileMember> members = piGroup1.members();
+        Collection<PiActionProfileGroup.WeightedMember> weightedMembers = piGroup1.members();
+        Collection<PiActionProfileMember> memberInstances = weightedMembers.stream()
+                .map(PiActionProfileGroup.WeightedMember::instance)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
         assertThat("The number of group members must be equal",
-                   piGroup1.members().size(), is(expectedMembers.size()));
-        assertThat("Group members must be equal",
-                   members.containsAll(expectedMembers) && expectedMembers.containsAll(members));
+                   piGroup1.members().size(), is(expectedWeightedMembers.size()));
+        assertThat("Group weighted members must be equal",
+                   weightedMembers.containsAll(expectedWeightedMembers)
+                           && expectedWeightedMembers.containsAll(weightedMembers));
+        assertThat("Group member instances must be equal",
+                   memberInstances.containsAll(expectedMemberInstances)
+                           && expectedMemberInstances.containsAll(memberInstances));
+
     }
 }

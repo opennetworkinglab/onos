@@ -75,12 +75,17 @@ public class P4PipelineModelTest {
     private static final long ACTION_MAX_SIZE_1 = 100;
     private static final long ACTION_MAX_SIZE_2 = 200;
 
+    private static final int ACTION_MAX_GROUP_SIZE_1 = 10;
+    private static final int ACTION_MAX_GROUP_SIZE_2 = 20;
+
     private static final PiActionProfileModel P4_ACTION_PROFILE_MODEL_1 =
             new P4ActionProfileModel(PI_ACTION_PROFILE_ID_1, ACTION_TABLES_1,
-                                     ACTION_HAS_SELECTOR_1, ACTION_MAX_SIZE_1);
+                                     ACTION_HAS_SELECTOR_1, ACTION_MAX_SIZE_1,
+                                     ACTION_MAX_GROUP_SIZE_1);
     private static final PiActionProfileModel P4_ACTION_PROFILE_MODEL_2 =
             new P4ActionProfileModel(PI_ACTION_PROFILE_ID_2, ACTION_TABLES_2,
-                                     ACTION_HAS_SELECTOR_2, ACTION_MAX_SIZE_2);
+                                     ACTION_HAS_SELECTOR_2, ACTION_MAX_SIZE_2,
+                                     ACTION_MAX_GROUP_SIZE_2);
 
     /* Counters */
     private static final PiCounterId PI_COUNTER_ID_1 = PiCounterId.of("Counter1");

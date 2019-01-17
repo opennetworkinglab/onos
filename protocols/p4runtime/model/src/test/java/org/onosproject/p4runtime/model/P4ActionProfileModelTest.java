@@ -21,7 +21,6 @@ import org.junit.Test;
 import org.onosproject.net.pi.model.PiActionProfileId;
 import org.onosproject.net.pi.model.PiTableId;
 
-
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 
 /**
@@ -52,17 +51,17 @@ public class P4ActionProfileModelTest {
     private final PiActionProfileId id2 = PiActionProfileId.of("name2");
 
     private final P4ActionProfileModel metadataModel = new P4ActionProfileModel(id, tables,
-                                                                                true, 64);
+                                                                                true, 64, 10);
     private final P4ActionProfileModel sameAsMetadataModel = new P4ActionProfileModel(id, sameAsTables,
-                                                                                      true, 64);
+                                                                                      true, 64, 10);
     private final P4ActionProfileModel metadataModel2 = new P4ActionProfileModel(id, tables2,
-                                                                                 true, 64);
+                                                                                 true, 64, 10);
     private final P4ActionProfileModel metadataModel3 = new P4ActionProfileModel(id2, tables,
-                                                                                 true, 64);
+                                                                                 true, 64, 10);
     private final P4ActionProfileModel metadataModel4 = new P4ActionProfileModel(id, tables,
-                                                                                 false, 64);
+                                                                                 false, 64, 10);
     private final P4ActionProfileModel metadataModel5 = new P4ActionProfileModel(id, tables,
-                                                                                 true, 32);
+                                                                                 true, 32, 5);
 
     /**
      * Checks that the P4ActionProfileModel class is immutable.
