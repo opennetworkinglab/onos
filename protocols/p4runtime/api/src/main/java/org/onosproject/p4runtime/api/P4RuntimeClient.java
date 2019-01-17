@@ -188,9 +188,9 @@ public interface P4RuntimeClient extends GrpcClient {
      * Performs the given write operation for the given action profile members
      * and pipeconf.
      *
-     * @param members   action profile members
-     * @param opType    write operation type
-     * @param pipeconf  the pipeconf currently deployed on the device
+     * @param members  action profile members
+     * @param opType   write operation type
+     * @param pipeconf the pipeconf currently deployed on the device
      * @return true if the operation was successful, false otherwise
      */
     CompletableFuture<Boolean> writeActionProfileMembers(
@@ -204,19 +204,15 @@ public interface P4RuntimeClient extends GrpcClient {
      * @param group         the action profile group
      * @param opType        write operation type
      * @param pipeconf      the pipeconf currently deployed on the device
-     * @param maxMemberSize the maximum number of members that can be added to
-     *                      the group. This is meaningful only if it's an INSERT
-     *                      operation, otherwise its value should be 0
      * @return true if the operation was successful, false otherwise
      */
     CompletableFuture<Boolean> writeActionProfileGroup(
             PiActionProfileGroup group,
             WriteOperationType opType,
-            PiPipeconf pipeconf,
-            int maxMemberSize);
+            PiPipeconf pipeconf);
 
     /**
-     * Dumps all groups currently installed in the given action profile.
+     * Dumps all groups for a given action profile.
      *
      * @param actionProfileId the action profile id
      * @param pipeconf        the pipeconf currently deployed on the device
@@ -226,13 +222,13 @@ public interface P4RuntimeClient extends GrpcClient {
             PiActionProfileId actionProfileId, PiPipeconf pipeconf);
 
     /**
-     * Dumps all action profile member IDs for a given action profile.
+     * Dumps all members for a given action profile.
      *
      * @param actionProfileId action profile ID
      * @param pipeconf        pipeconf
      * @return future of list of action profile member ID
      */
-    CompletableFuture<List<PiActionProfileMemberId>> dumpActionProfileMemberIds(
+    CompletableFuture<List<PiActionProfileMember>> dumpActionProfileMembers(
             PiActionProfileId actionProfileId, PiPipeconf pipeconf);
 
     /**

@@ -81,16 +81,16 @@ final class TableEntryEncoder {
      * @param piTableEntries PI table entries
      * @param pipeconf       PI pipeconf
      * @return collection of P4Runtime table entry protobuf messages
-     * @throws EncodeException if a PI table entry cannot be encoded
+     * @throws CodecException if a PI table entry cannot be encoded
      */
     static List<TableEntry> encode(List<PiTableEntry> piTableEntries,
                                                 PiPipeconf pipeconf)
-            throws EncodeException {
+            throws CodecException {
 
         P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
 
         if (browser == null) {
-            throw new EncodeException(format(
+            throw new CodecException(format(
                     "Unable to get a P4Info browser for pipeconf %s", pipeconf.id()));
         }
 
@@ -100,7 +100,7 @@ final class TableEntryEncoder {
             try {
                 tableEntryMsgListBuilder.add(encodePiTableEntry(piTableEntry, browser));
             } catch (P4InfoBrowser.NotFoundException e) {
-                throw new EncodeException(e.getMessage());
+                throw new CodecException(e.getMessage());
             }
         }
 
@@ -113,15 +113,15 @@ final class TableEntryEncoder {
      * @param piTableEntry table entry
      * @param pipeconf     pipeconf
      * @return encoded table entry message
-     * @throws EncodeException                 if entry cannot be encoded
+     * @throws CodecException                 if entry cannot be encoded
      * @throws P4InfoBrowser.NotFoundException if the required information cannot be find in the pipeconf's P4info
      */
     static TableEntry encode(PiTableEntry piTableEntry, PiPipeconf pipeconf)
-            throws EncodeException, P4InfoBrowser.NotFoundException {
+            throws CodecException, P4InfoBrowser.NotFoundException {
 
         P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
         if (browser == null) {
-            throw new EncodeException(format("Unable to get a P4Info browser for pipeconf %s", pipeconf.id()));
+            throw new CodecException(format("Unable to get a P4Info browser for pipeconf %s", pipeconf.id()));
         }
 
         return encodePiTableEntry(piTableEntry, browser);
@@ -152,7 +152,7 @@ final class TableEntryEncoder {
         for (TableEntry tableEntryMsg : tableEntryMsgs) {
             try {
                 piTableEntryListBuilder.add(decodeTableEntryMsg(tableEntryMsg, browser));
-            } catch (P4InfoBrowser.NotFoundException | EncodeException e) {
+            } catch (P4InfoBrowser.NotFoundException | CodecException e) {
                 log.error("Unable to decode table entry message: {}", e.getMessage());
             }
         }
@@ -166,15 +166,15 @@ final class TableEntryEncoder {
      * @param tableEntryMsg table entry message
      * @param pipeconf      pipeconf
      * @return decoded PI table entry
-     * @throws EncodeException                 if message cannot be decoded
+     * @throws CodecException                 if message cannot be decoded
      * @throws P4InfoBrowser.NotFoundException if the required information cannot be find in the pipeconf's P4info
      */
     static PiTableEntry decode(TableEntry tableEntryMsg, PiPipeconf pipeconf)
-            throws EncodeException, P4InfoBrowser.NotFoundException {
+            throws CodecException, P4InfoBrowser.NotFoundException {
 
         P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
         if (browser == null) {
-            throw new EncodeException(format("Unable to get a P4Info browser for pipeconf %s", pipeconf.id()));
+            throw new CodecException(format("Unable to get a P4Info browser for pipeconf %s", pipeconf.id()));
         }
         return decodeTableEntryMsg(tableEntryMsg, browser);
     }
@@ -188,11 +188,11 @@ final class TableEntryEncoder {
      * @param matchKey match key
      * @param pipeconf pipeconf
      * @return table entry message
-     * @throws EncodeException                 if message cannot be encoded
+     * @throws CodecException                 if message cannot be encoded
      * @throws P4InfoBrowser.NotFoundException if the required information cannot be find in the pipeconf's P4info
      */
     static TableEntry encode(PiTableId tableId, PiMatchKey matchKey, PiPipeconf pipeconf)
-            throws EncodeException, P4InfoBrowser.NotFoundException {
+            throws CodecException, P4InfoBrowser.NotFoundException {
 
         P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
         TableEntry.Builder tableEntryMsgBuilder = TableEntry.newBuilder();
@@ -215,7 +215,7 @@ final class TableEntryEncoder {
     }
 
     private static TableEntry encodePiTableEntry(PiTableEntry piTableEntry, P4InfoBrowser browser)
-            throws P4InfoBrowser.NotFoundException, EncodeException {
+            throws P4InfoBrowser.NotFoundException, CodecException {
 
         TableEntry.Builder tableEntryMsgBuilder = TableEntry.newBuilder();
 
@@ -259,7 +259,7 @@ final class TableEntryEncoder {
     }
 
     private static PiTableEntry decodeTableEntryMsg(TableEntry tableEntryMsg, P4InfoBrowser browser)
-            throws P4InfoBrowser.NotFoundException, EncodeException {
+            throws P4InfoBrowser.NotFoundException, CodecException {
 
         PiTableEntry.Builder piTableEntryBuilder = PiTableEntry.builder();
 
@@ -295,7 +295,7 @@ final class TableEntryEncoder {
 
     private static FieldMatch encodePiFieldMatch(PiFieldMatch piFieldMatch, P4InfoOuterClass.Table tableInfo,
                                                  P4InfoBrowser browser)
-            throws P4InfoBrowser.NotFoundException, EncodeException {
+            throws P4InfoBrowser.NotFoundException, CodecException {
 
         FieldMatch.Builder fieldMatchMsgBuilder = FieldMatch.newBuilder();
 
@@ -359,7 +359,7 @@ final class TableEntryEncoder {
                                 .build())
                         .build();
             default:
-                throw new EncodeException(format(
+                throw new CodecException(format(
                         "Building of match type %s not implemented", piFieldMatch.type()));
         }
     }
@@ -370,11 +370,11 @@ final class TableEntryEncoder {
      * @param tableEntryMsg table entry message
      * @param pipeconf      pipeconf
      * @return PI match key
-     * @throws EncodeException                 if message cannot be decoded
+     * @throws CodecException                 if message cannot be decoded
      * @throws P4InfoBrowser.NotFoundException if the required information cannot be find in the pipeconf's P4info
      */
     static PiMatchKey decodeMatchKey(TableEntry tableEntryMsg, PiPipeconf pipeconf)
-            throws P4InfoBrowser.NotFoundException, EncodeException {
+            throws P4InfoBrowser.NotFoundException, CodecException {
         P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
         P4InfoOuterClass.Table tableInfo = browser.tables().getById(tableEntryMsg.getTableId());
         if (tableEntryMsg.getMatchCount() == 0) {
@@ -386,7 +386,7 @@ final class TableEntryEncoder {
 
     private static PiMatchKey decodeFieldMatchMsgs(List<FieldMatch> fieldMatchs, P4InfoOuterClass.Table tableInfo,
                                                    P4InfoBrowser browser)
-            throws P4InfoBrowser.NotFoundException, EncodeException {
+            throws P4InfoBrowser.NotFoundException, CodecException {
         // Match key for field matches.
         PiMatchKey.Builder piMatchKeyBuilder = PiMatchKey.builder();
         for (FieldMatch fieldMatchMsg : fieldMatchs) {
@@ -397,7 +397,7 @@ final class TableEntryEncoder {
 
     private static PiFieldMatch decodeFieldMatchMsg(FieldMatch fieldMatchMsg, P4InfoOuterClass.Table tableInfo,
                                                     P4InfoBrowser browser)
-            throws P4InfoBrowser.NotFoundException, EncodeException {
+            throws P4InfoBrowser.NotFoundException, CodecException {
 
         int tableId = tableInfo.getPreamble().getId();
         String fieldMatchName = browser.matchFields(tableId).getById(fieldMatchMsg.getFieldId()).getName();
@@ -426,13 +426,13 @@ final class TableEntryEncoder {
                 ImmutableByteSequence rangeLowValue = copyFrom(rangeFieldMatch.getLow().asReadOnlyByteBuffer());
                 return new PiRangeFieldMatch(headerFieldId, rangeLowValue, rangeHighValue);
             default:
-                throw new EncodeException(format(
+                throw new CodecException(format(
                         "Decoding of field match type '%s' not implemented", typeCase.name()));
         }
     }
 
     static TableAction encodePiTableAction(PiTableAction piTableAction, P4InfoBrowser browser)
-            throws P4InfoBrowser.NotFoundException, EncodeException {
+            throws P4InfoBrowser.NotFoundException, CodecException {
         checkNotNull(piTableAction, "Cannot encode null PiTableAction");
         TableAction.Builder tableActionMsgBuilder = TableAction.newBuilder();
 
@@ -451,7 +451,7 @@ final class TableEntryEncoder {
                 tableActionMsgBuilder.setActionProfileMemberId(actionProfileMemberId.id());
                 break;
             default:
-                throw new EncodeException(
+                throw new CodecException(
                         format("Building of table action type %s not implemented", piTableAction.type()));
         }
 
@@ -459,7 +459,7 @@ final class TableEntryEncoder {
     }
 
     static PiTableAction decodeTableActionMsg(TableAction tableActionMsg, P4InfoBrowser browser)
-            throws P4InfoBrowser.NotFoundException, EncodeException {
+            throws P4InfoBrowser.NotFoundException, CodecException {
         TableAction.TypeCase typeCase = tableActionMsg.getTypeCase();
         switch (typeCase) {
             case ACTION:
@@ -470,13 +470,13 @@ final class TableEntryEncoder {
             case ACTION_PROFILE_MEMBER_ID:
                 return PiActionProfileMemberId.of(tableActionMsg.getActionProfileMemberId());
             default:
-                throw new EncodeException(
+                throw new CodecException(
                         format("Decoding of table action type %s not implemented", typeCase.name()));
         }
     }
 
     static Action encodePiAction(PiAction piAction, P4InfoBrowser browser)
-            throws P4InfoBrowser.NotFoundException, EncodeException {
+            throws P4InfoBrowser.NotFoundException, CodecException {
 
         int actionId = browser.actions().getByName(piAction.id().toString()).getPreamble().getId();
 

@@ -332,7 +332,8 @@ public final class P4InfoParser {
                             PiActionProfileId.of(actProfileMsg.getPreamble().getName()),
                             tableIdSetBuilder.build(),
                             actProfileMsg.getWithSelector(),
-                            actProfileMsg.getSize()));
+                            actProfileMsg.getSize(),
+                            actProfileMsg.getMaxGroupSize()));
         }
         return actProfileMap;
     }

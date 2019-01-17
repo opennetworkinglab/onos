@@ -32,14 +32,17 @@ final class P4ActionProfileModel implements PiActionProfileModel {
     private final PiActionProfileId id;
     private final ImmutableSet<PiTableId> tables;
     private final boolean hasSelector;
-    private final long maxSize;
+    private final long size;
+    private final int maxGroupSize;
 
     P4ActionProfileModel(PiActionProfileId id,
-                         ImmutableSet<PiTableId> tables, boolean hasSelector, long maxSize) {
+                         ImmutableSet<PiTableId> tables, boolean hasSelector,
+                         long size, int maxGroupSize) {
         this.id = id;
         this.tables = tables;
         this.hasSelector = hasSelector;
-        this.maxSize = maxSize;
+        this.size = size;
+        this.maxGroupSize = maxGroupSize;
     }
 
     @Override
@@ -58,13 +61,18 @@ final class P4ActionProfileModel implements PiActionProfileModel {
     }
 
     @Override
-    public long maxSize() {
-        return maxSize;
+    public long size() {
+        return size;
+    }
+
+    @Override
+    public int maxGroupSize() {
+        return maxGroupSize;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, tables, hasSelector, maxSize);
+        return Objects.hash(id, tables, hasSelector, size, maxGroupSize);
     }
 
     @Override
@@ -79,6 +87,7 @@ final class P4ActionProfileModel implements PiActionProfileModel {
         return Objects.equals(this.id, other.id)
                 && Objects.equals(this.tables, other.tables)
                 && Objects.equals(this.hasSelector, other.hasSelector)
-                && Objects.equals(this.maxSize, other.maxSize);
+                && Objects.equals(this.size, other.size)
+                && Objects.equals(this.maxGroupSize, other.maxGroupSize);
     }
 }

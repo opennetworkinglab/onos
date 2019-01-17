@@ -21,6 +21,8 @@ import org.onosproject.net.Device;
 import org.onosproject.net.group.Group;
 import org.onosproject.net.group.GroupBucket;
 import org.onosproject.net.group.GroupDescription;
+import org.onosproject.net.pi.model.PiActionProfileId;
+import org.onosproject.net.pi.model.PiActionProfileModel;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.runtime.PiAction;
@@ -55,7 +57,8 @@ final class PiGroupTranslatorImpl {
     }
 
     /**
-     * Returns a PI action profile group equivalent to the given group, for the given pipeconf and device.
+     * Returns a PI action profile group equivalent to the given group, for the
+     * given pipeconf and device.
      *
      * @param group    group
      * @param pipeconf pipeconf
@@ -71,60 +74,90 @@ final class PiGroupTranslatorImpl {
                     "group type %s not supported", group.type()));
         }
 
-        final PiPipelineInterpreter interpreter = getInterpreterOrNull(device, pipeconf);
-
-        final PiActionProfileGroup.Builder piActionGroupBuilder = PiActionProfileGroup.builder()
-                .withId(PiActionProfileGroupId.of(group.id().id()));
-
+        // Get action profile from group key.
+        // TODO: define proper field in group class.
         if (!(group.appCookie() instanceof PiGroupKey)) {
-            throw new PiTranslationException("group app cookie is not PI (class should be PiGroupKey)");
+            throw new PiTranslationException(
+                    "group app cookie is not PI (class should be PiGroupKey)");
         }
         final PiGroupKey groupKey = (PiGroupKey) group.appCookie();
+        final PiActionProfileId actionProfileId = groupKey.actionProfileId();
 
-        piActionGroupBuilder.withActionProfileId(groupKey.actionProfileId());
+        // Check validity of action profile against pipeconf.
+        final PiActionProfileModel actionProfileModel = pipeconf.pipelineModel()
+                .actionProfiles(actionProfileId)
+                .orElseThrow(() -> new PiTranslationException(format(
+                        "no such action profile '%s'", actionProfileId)));
+        if (!actionProfileModel.hasSelector()) {
+            throw new PiTranslationException(format(
+                    "action profile '%s' does not support dynamic selection",
+                    actionProfileId));
+        }
+
+        // Check group validity.
+        if (actionProfileModel.maxGroupSize() > 0
+                && group.buckets().buckets().size() > actionProfileModel.maxGroupSize()) {
+            throw new PiTranslationException(format(
+                    "too many buckets, max group size for action profile '%s' is %d",
+                    actionProfileId, actionProfileModel.maxGroupSize()));
+        }
+
+        final PiActionProfileGroup.Builder piActionGroupBuilder = PiActionProfileGroup.builder()
+                .withId(PiActionProfileGroupId.of(group.id().id()))
+                .withActionProfileId(groupKey.actionProfileId())
+                // We set the maximum group size as specified in the model,
+                // however this might be highly inefficient for some HW targets
+                // which pre-allocate resources for the whole group.
+                .withMaxSize(actionProfileModel.maxGroupSize());
 
         // Translate group buckets to PI group members
+        final PiPipelineInterpreter interpreter = getInterpreterOrNull(device, pipeconf);
         short bucketIdx = 0;
         for (GroupBucket bucket : group.buckets().buckets()) {
             /*
             FIXME: the way member IDs are computed can cause collisions!
-            Problem:
-            In P4Runtime action profile members, i.e. action buckets, are associated to a numeric ID chosen
-            at member insertion time. This ID must be unique for the whole action profile (i.e. the group table in
-            OpenFlow). In ONOS, GroupBucket doesn't specify any ID.
+            Problem: In P4Runtime action profile members, i.e. action buckets,
+            are associated to a numeric ID chosen at member insertion time. This
+            ID must be unique for the whole action profile (i.e. the group table
+            in OpenFlow). In ONOS, GroupBucket doesn't specify any ID.
 
             Solutions:
-            - Change GroupBucket API to force application wanting to perform group operations to specify a member id.
-            - Maintain state to dynamically allocate/deallocate member IDs, e.g. in a dedicated service, or in a
-            P4Runtime Group Provider.
+            - Change GroupBucket API to force application wanting to perform
+            group operations to specify a member id.
+            - Maintain state to dynamically allocate/deallocate member IDs, e.g.
+            in a dedicated service, or in a P4Runtime Group Provider.
 
-            Hack:
-            Statically derive member ID by combining groupId and position of the bucket in the list.
+            Hack: Statically derive member ID by combining groupId and position
+            of the bucket in the list.
              */
-            ByteBuffer bb = ByteBuffer.allocate(4)
+            final ByteBuffer bb = ByteBuffer.allocate(4)
                     .putShort((short) (group.id().id() & 0xffff))
                     .putShort(bucketIdx);
             bb.rewind();
-            int memberId = bb.getInt();
+            final int memberId = bb.getInt();
             bucketIdx++;
 
-            final PiTableAction tableAction = translateTreatment(bucket.treatment(), interpreter, groupKey.tableId(),
-                                                                 pipeconf.pipelineModel());
+            final PiTableAction tableAction = translateTreatment(
+                    bucket.treatment(), interpreter,
+                    groupKey.tableId(), pipeconf.pipelineModel());
             if (tableAction == null) {
-                throw new PiTranslationException("The PI table action returned by the interpreter is null");
+                throw new PiTranslationException(
+                        "bucket treatment translator returned null");
             }
 
             if (tableAction.type() != ACTION) {
                 throw new PiTranslationException(format(
-                        "PI table action of type %s is not supported in groups", tableAction.type()));
+                        "action of type '%s' cannot be used in action profile members",
+                        tableAction.type()));
             }
 
-            piActionGroupBuilder.addMember(PiActionProfileMember.builder()
-                                                   .forActionProfile(groupKey.actionProfileId())
-                                                   .withId(PiActionProfileMemberId.of(memberId))
-                                                   .withAction((PiAction) tableAction)
-                                                   .withWeight(bucket.weight())
-                                                   .build());
+            final PiActionProfileMember member = PiActionProfileMember.builder()
+                    .forActionProfile(groupKey.actionProfileId())
+                    .withId(PiActionProfileMemberId.of(memberId))
+                    .withAction((PiAction) tableAction)
+                    .build();
+
+            piActionGroupBuilder.addMember(member, bucket.weight());
         }
 
         return piActionGroupBuilder.build();

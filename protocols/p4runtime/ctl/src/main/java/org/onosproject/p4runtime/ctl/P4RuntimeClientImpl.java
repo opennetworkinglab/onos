@@ -16,10 +16,8 @@
 
 package org.onosproject.p4runtime.ctl;
 
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -86,14 +84,21 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
+import java.util.stream.Stream;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
+import static org.onosproject.p4runtime.ctl.P4RuntimeCodecs.CODECS;
 import static p4.v1.P4RuntimeOuterClass.Entity.EntityCase.ACTION_PROFILE_GROUP;
 import static p4.v1.P4RuntimeOuterClass.Entity.EntityCase.ACTION_PROFILE_MEMBER;
+import static p4.v1.P4RuntimeOuterClass.Entity.EntityCase.COUNTER_ENTRY;
+import static p4.v1.P4RuntimeOuterClass.Entity.EntityCase.DIRECT_COUNTER_ENTRY;
+import static p4.v1.P4RuntimeOuterClass.Entity.EntityCase.DIRECT_METER_ENTRY;
+import static p4.v1.P4RuntimeOuterClass.Entity.EntityCase.METER_ENTRY;
 import static p4.v1.P4RuntimeOuterClass.Entity.EntityCase.PACKET_REPLICATION_ENGINE_ENTRY;
 import static p4.v1.P4RuntimeOuterClass.Entity.EntityCase.TABLE_ENTRY;
 import static p4.v1.P4RuntimeOuterClass.PacketIn;
@@ -106,10 +111,13 @@ import static p4.v1.P4RuntimeOuterClass.SetForwardingPipelineConfigRequest.Actio
  */
 final class P4RuntimeClientImpl extends AbstractGrpcClient implements P4RuntimeClient {
 
+    private static final String MISSING_P4INFO_BROWSER = "Unable to get a P4Info browser for pipeconf {}";
+
     private static final Metadata.Key<com.google.rpc.Status> STATUS_DETAILS_KEY =
-            Metadata.Key.of("grpc-status-details-bin",
-                            ProtoLiteUtils.metadataMarshaller(
-                                    com.google.rpc.Status.getDefaultInstance()));
+            Metadata.Key.of(
+                    "grpc-status-details-bin",
+                    ProtoLiteUtils.metadataMarshaller(
+                            com.google.rpc.Status.getDefaultInstance()));
 
     private static final Map<WriteOperationType, Update.Type> UPDATE_TYPES = ImmutableMap.of(
             WriteOperationType.UNSPECIFIED, Update.Type.UNSPECIFIED,
@@ -229,9 +237,8 @@ final class P4RuntimeClientImpl extends AbstractGrpcClient implements P4RuntimeC
     @Override
     public CompletableFuture<Boolean> writeActionProfileGroup(PiActionProfileGroup group,
                                                               WriteOperationType opType,
-                                                              PiPipeconf pipeconf,
-                                                       int maxMemberSize) {
-        return supplyInContext(() -> doWriteActionProfileGroup(group, opType, pipeconf, maxMemberSize),
+                                                              PiPipeconf pipeconf) {
+        return supplyInContext(() -> doWriteActionProfileGroup(group, opType, pipeconf),
                                "writeActionProfileGroup-" + opType.name());
     }
 
@@ -243,10 +250,10 @@ final class P4RuntimeClientImpl extends AbstractGrpcClient implements P4RuntimeC
     }
 
     @Override
-    public CompletableFuture<List<PiActionProfileMemberId>> dumpActionProfileMemberIds(
+    public CompletableFuture<List<PiActionProfileMember>> dumpActionProfileMembers(
             PiActionProfileId actionProfileId, PiPipeconf pipeconf) {
-        return supplyInContext(() -> doDumpActionProfileMemberIds(actionProfileId, pipeconf),
-                               "dumpActionProfileMemberIds-" + actionProfileId.id());
+        return supplyInContext(() -> doDumpActionProfileMembers(actionProfileId, pipeconf),
+                               "dumpActionProfileMembers-" + actionProfileId.id());
     }
 
     @Override
@@ -484,8 +491,8 @@ final class P4RuntimeClientImpl extends AbstractGrpcClient implements P4RuntimeC
                                                             .build())
                                          .setType(UPDATE_TYPES.get(opType))
                                          .build())
-                    .collect(Collectors.toList());
-        } catch (EncodeException e) {
+                    .collect(toList());
+        } catch (CodecException e) {
             log.error("Unable to encode table entries, aborting {} operation: {}",
                       opType.name(), e.getMessage());
             return false;
@@ -507,7 +514,7 @@ final class P4RuntimeClientImpl extends AbstractGrpcClient implements P4RuntimeC
         } else {
             P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
             if (browser == null) {
-                log.warn("Unable to get a P4Info browser for pipeconf {}", pipeconf);
+                log.error(MISSING_P4INFO_BROWSER, pipeconf);
                 return Collections.emptyList();
             }
             piTableIds.forEach(piTableId -> {
@@ -523,36 +530,18 @@ final class P4RuntimeClientImpl extends AbstractGrpcClient implements P4RuntimeC
             return Collections.emptyList();
         }
 
-        ReadRequest.Builder requestMsgBuilder = ReadRequest.newBuilder()
-                .setDeviceId(p4DeviceId);
-        tableIds.forEach(tableId -> requestMsgBuilder.addEntities(
-                Entity.newBuilder()
-                        .setTableEntry(
-                                TableEntry.newBuilder()
-                                        .setTableId(tableId)
-                                        .setIsDefaultAction(defaultEntries)
-                                        .setCounterData(P4RuntimeOuterClass.CounterData.getDefaultInstance())
-                                        .build())
+        final List<Entity> entities = tableIds.stream()
+                .map(tableId ->  TableEntry.newBuilder()
+                        .setTableId(tableId)
+                        .setIsDefaultAction(defaultEntries)
+                        .setCounterData(P4RuntimeOuterClass.CounterData.getDefaultInstance())
                         .build())
-                .build());
+                .map(e -> Entity.newBuilder().setTableEntry(e).build())
+                .collect(toList());
 
-        Iterator<ReadResponse> responses;
-        try {
-            responses = blockingStub.read(requestMsgBuilder.build());
-        } catch (StatusRuntimeException e) {
-            checkGrpcException(e);
-            log.warn("Unable to dump tables from {}: {}", deviceId, e.getMessage());
-            return Collections.emptyList();
-        }
-
-        Iterable<ReadResponse> responseIterable = () -> responses;
-        List<TableEntry> tableEntryMsgs = StreamSupport
-                .stream(responseIterable.spliterator(), false)
-                .map(ReadResponse::getEntitiesList)
-                .flatMap(List::stream)
-                .filter(entity -> entity.getEntityCase() == TABLE_ENTRY)
+        final List<TableEntry> tableEntryMsgs = blockingRead(entities, TABLE_ENTRY)
                 .map(Entity::getTableEntry)
-                .collect(Collectors.toList());
+                .collect(toList());
 
         log.debug("Retrieved {} entries from {} tables on {}...",
                   tableEntryMsgs.size(), tableIds.size(), deviceId);
@@ -641,61 +630,32 @@ final class P4RuntimeClientImpl extends AbstractGrpcClient implements P4RuntimeC
     private List<PiCounterCell> doReadCounterEntities(
             List<Entity> counterEntities, PiPipeconf pipeconf) {
 
-        if (counterEntities.size() == 0) {
-            return Collections.emptyList();
-        }
-
-        final ReadRequest request = ReadRequest.newBuilder()
-                .setDeviceId(p4DeviceId)
-                .addAllEntities(counterEntities)
-                .build();
-
-        final Iterable<ReadResponse> responses;
-        try {
-            responses = () -> blockingStub.read(request);
-        } catch (StatusRuntimeException e) {
-            checkGrpcException(e);
-            log.warn("Unable to read counter cells from {}: {}", deviceId, e.getMessage());
-            return Collections.emptyList();
-        }
-
-        List<Entity> entities = StreamSupport.stream(responses.spliterator(), false)
-                .map(ReadResponse::getEntitiesList)
-                .flatMap(List::stream)
-                .collect(Collectors.toList());
+        final List<Entity> entities = blockingRead(
+                counterEntities, COUNTER_ENTRY, DIRECT_COUNTER_ENTRY)
+                .collect(toList());
 
         return CounterEntryCodec.decodeCounterEntities(entities, pipeconf);
     }
 
     private boolean doWriteActionProfileMembers(List<PiActionProfileMember> members,
                                                 WriteOperationType opType, PiPipeconf pipeconf) {
-        final List<ActionProfileMember> actionProfileMembers = Lists.newArrayList();
-
-        for (PiActionProfileMember member : members) {
-            try {
-                actionProfileMembers.add(ActionProfileMemberEncoder.encode(member, pipeconf));
-            } catch (EncodeException | P4InfoBrowser.NotFoundException e) {
-                log.warn("Unable to encode action profile member, aborting {} operation: {} [{}]",
-                         opType.name(), e.getMessage(), member.toString());
-                return false;
-            }
+        final List<ActionProfileMember> actionProfileMembers;
+        try {
+            actionProfileMembers = CODECS.actionProfileMember()
+                    .encodeAllOrFail(members, pipeconf);
+        } catch (CodecException e) {
+            log.warn("Unable to {} action profile members: {}",
+                     opType.name(), e.getMessage());
+            return false;
         }
-
         final List<Update> updateMsgs = actionProfileMembers.stream()
-                .map(actionProfileMember ->
-                             Update.newBuilder()
-                                     .setEntity(Entity.newBuilder()
-                                                        .setActionProfileMember(actionProfileMember)
-                                                        .build())
-                                     .setType(UPDATE_TYPES.get(opType))
-                                     .build())
-                .collect(Collectors.toList());
-
-        if (updateMsgs.size() == 0) {
-            // Nothing to update.
-            return true;
-        }
-
+                .map(m -> Update.newBuilder()
+                        .setEntity(Entity.newBuilder()
+                                           .setActionProfileMember(m)
+                                           .build())
+                        .setType(UPDATE_TYPES.get(opType))
+                        .build())
+                .collect(toList());
         return write(updateMsgs, members, opType, "action profile member");
     }
 
@@ -705,7 +665,7 @@ final class P4RuntimeClientImpl extends AbstractGrpcClient implements P4RuntimeC
 
         final P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
         if (browser == null) {
-            log.warn("Unable to get a P4Info browser for pipeconf {}, aborting dump action profile", pipeconf);
+            log.warn(MISSING_P4INFO_BROWSER, pipeconf);
             return Collections.emptyList();
         }
 
@@ -721,117 +681,29 @@ final class P4RuntimeClientImpl extends AbstractGrpcClient implements P4RuntimeC
             return Collections.emptyList();
         }
 
-        // Prepare read request to read all groups from the given action profile.
-        final ReadRequest groupRequestMsg = ReadRequest.newBuilder()
-                .setDeviceId(p4DeviceId)
-                .addEntities(Entity.newBuilder()
-                                     .setActionProfileGroup(
-                                             ActionProfileGroup.newBuilder()
-                                                     .setActionProfileId(actionProfileId)
-                                                     .build())
-                                     .build())
+        // Read all groups from the given action profile.
+        final Entity entityToRead = Entity.newBuilder()
+                .setActionProfileGroup(
+                        ActionProfileGroup.newBuilder()
+                                .setActionProfileId(actionProfileId)
+                                .build())
                 .build();
-
-        // Read groups.
-        final Iterator<ReadResponse> groupResponses;
-        try {
-            groupResponses = blockingStub.read(groupRequestMsg);
-        } catch (StatusRuntimeException e) {
-            checkGrpcException(e);
-            log.warn("Unable to dump action profile {} from {}: {}", piActionProfileId, deviceId, e.getMessage());
-            return Collections.emptyList();
-        }
-
-        final List<ActionProfileGroup> groupMsgs = Tools.stream(() -> groupResponses)
-                .map(ReadResponse::getEntitiesList)
-                .flatMap(List::stream)
-                .filter(entity -> entity.getEntityCase() == ACTION_PROFILE_GROUP)
+        final List<ActionProfileGroup> groupMsgs = blockingRead(entityToRead, ACTION_PROFILE_GROUP)
                 .map(Entity::getActionProfileGroup)
-                .collect(Collectors.toList());
+                .collect(toList());
 
         log.debug("Retrieved {} groups from action profile {} on {}...",
                   groupMsgs.size(), piActionProfileId.id(), deviceId);
 
-        // Returned groups contain only a minimal description of their members.
-        // We need to issue a new request to get the full description of each member.
-
-        // Keep a map of all member IDs for each group ID, will need it later.
-        final Multimap<Integer, Integer> groupIdToMemberIdsMap = HashMultimap.create();
-        groupMsgs.forEach(g -> groupIdToMemberIdsMap.putAll(
-                g.getGroupId(),
-                g.getMembersList().stream()
-                        .map(ActionProfileGroup.Member::getMemberId)
-                        .collect(Collectors.toList())));
-
-        // Prepare one big read request to read all members in one shot.
-        final Set<Entity> entityMsgs = groupMsgs.stream()
-                .flatMap(g -> g.getMembersList().stream())
-                .map(ActionProfileGroup.Member::getMemberId)
-                // Prevent issuing many read requests for the same member.
-                .distinct()
-                .map(id -> ActionProfileMember.newBuilder()
-                        .setActionProfileId(actionProfileId)
-                        .setMemberId(id)
-                        .build())
-                .map(m -> Entity.newBuilder()
-                        .setActionProfileMember(m)
-                        .build())
-                .collect(Collectors.toSet());
-        final ReadRequest memberRequestMsg = ReadRequest.newBuilder().setDeviceId(p4DeviceId)
-                .addAllEntities(entityMsgs)
-                .build();
-
-        // Read members.
-        final Iterator<ReadResponse> memberResponses;
-        try {
-            memberResponses = blockingStub.read(memberRequestMsg);
-        } catch (StatusRuntimeException e) {
-            checkGrpcException(e);
-            log.warn("Unable to read members of action profile {} from {}: {}",
-                     piActionProfileId, deviceId, e.getMessage());
-            return Collections.emptyList();
-        }
-
-        final Multimap<Integer, ActionProfileMember> groupIdToMembersMap = HashMultimap.create();
-        Tools.stream(() -> memberResponses)
-                .map(ReadResponse::getEntitiesList)
-                .flatMap(List::stream)
-                .filter(e -> e.getEntityCase() == ACTION_PROFILE_MEMBER)
-                .map(Entity::getActionProfileMember)
-                .forEach(member -> groupIdToMemberIdsMap.asMap()
-                        // Get all group IDs that contain this member.
-                        .entrySet()
-                        .stream()
-                        .filter(entry -> entry.getValue().contains(member.getMemberId()))
-                        .map(Map.Entry::getKey)
-                        .forEach(gid -> groupIdToMembersMap.put(gid, member)));
-
-        log.debug("Retrieved {} members from action profile {} on {}...",
-                  groupIdToMembersMap.size(), piActionProfileId.id(), deviceId);
-
-        return groupMsgs.stream()
-                .map(groupMsg -> {
-                    try {
-                        return ActionProfileGroupEncoder.decode(groupMsg,
-                                                                groupIdToMembersMap.get(groupMsg.getGroupId()),
-                                                                pipeconf);
-                    } catch (P4InfoBrowser.NotFoundException | EncodeException e) {
-                        log.warn("Unable to decode group: {}\n {}", e.getMessage(), groupMsg);
-                        return null;
-                    }
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+        return CODECS.actionProfileGroup().decodeAll(groupMsgs, pipeconf);
     }
 
-    private List<PiActionProfileMemberId> doDumpActionProfileMemberIds(
+    private List<PiActionProfileMember> doDumpActionProfileMembers(
             PiActionProfileId actionProfileId, PiPipeconf pipeconf) {
 
         final P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
         if (browser == null) {
-            log.warn("Unable to get a P4Info browser for pipeconf {}, " +
-                             "aborting cleanup of action profile members",
-                     pipeconf);
+            log.error(MISSING_P4INFO_BROWSER, pipeconf);
             return Collections.emptyList();
         }
 
@@ -843,40 +715,24 @@ final class P4RuntimeClientImpl extends AbstractGrpcClient implements P4RuntimeC
                     .getPreamble()
                     .getId();
         } catch (P4InfoBrowser.NotFoundException e) {
-            log.warn("Unable to cleanup action profile members: {}", e.getMessage());
+            log.warn("Unable to dump action profile members: {}", e.getMessage());
             return Collections.emptyList();
         }
 
-        final ReadRequest memberRequestMsg = ReadRequest.newBuilder()
-                .setDeviceId(p4DeviceId)
-                .addEntities(Entity.newBuilder().setActionProfileMember(
+        Entity entityToRead = Entity.newBuilder()
+                .setActionProfileMember(
                         ActionProfileMember.newBuilder()
                                 .setActionProfileId(p4ActProfId)
-                                .build()).build())
+                                .build())
                 .build();
-
-        // Read members.
-        final Iterator<ReadResponse> memberResponses;
-        try {
-            memberResponses = blockingStub.read(memberRequestMsg);
-        } catch (StatusRuntimeException e) {
-            checkGrpcException(e);
-            log.warn("Unable to read members of action profile {} from {}: {}",
-                     actionProfileId, deviceId, e.getMessage());
-            return Collections.emptyList();
-        }
-
-        return Tools.stream(() -> memberResponses)
-                .map(ReadResponse::getEntitiesList)
-                .flatMap(List::stream)
-                .filter(e -> e.getEntityCase() == ACTION_PROFILE_MEMBER)
+        final List<ActionProfileMember> memberMsgs = blockingRead(entityToRead, ACTION_PROFILE_MEMBER)
                 .map(Entity::getActionProfileMember)
-                // Perhaps not needed, but better to double check to avoid
-                // removing members of other groups.
-                .filter(m -> m.getActionProfileId() == p4ActProfId)
-                .map(ActionProfileMember::getMemberId)
-                .map(PiActionProfileMemberId::of)
-                .collect(Collectors.toList());
+                .collect(toList());
+
+        log.debug("Retrieved {} members from action profile {} on {}...",
+                  memberMsgs.size(), actionProfileId.id(), deviceId);
+
+        return CODECS.actionProfileMember().decodeAll(memberMsgs, pipeconf);
     }
 
     private List<PiActionProfileMemberId> doRemoveActionProfileMembers(
@@ -890,9 +746,7 @@ final class P4RuntimeClientImpl extends AbstractGrpcClient implements P4RuntimeC
 
         final P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(pipeconf);
         if (browser == null) {
-            log.warn("Unable to get a P4Info browser for pipeconf {}, " +
-                             "aborting cleanup of action profile members",
-                     pipeconf);
+            log.error(MISSING_P4INFO_BROWSER, pipeconf);
             return Collections.emptyList();
         }
 
@@ -912,7 +766,7 @@ final class P4RuntimeClientImpl extends AbstractGrpcClient implements P4RuntimeC
                 .map(m -> Entity.newBuilder().setActionProfileMember(m).build())
                 .map(e -> Update.newBuilder().setEntity(e)
                         .setType(Update.Type.DELETE).build())
-                .collect(Collectors.toList());
+                .collect(toList());
 
         log.debug("Removing {} members of action profile '{}'...",
                   memberIds.size(), actionProfileId);
@@ -923,23 +777,19 @@ final class P4RuntimeClientImpl extends AbstractGrpcClient implements P4RuntimeC
     }
 
     private boolean doWriteActionProfileGroup(
-            PiActionProfileGroup group, WriteOperationType opType, PiPipeconf pipeconf,
-                                       int maxMemberSize) {
-        final ActionProfileGroup actionProfileGroup;
-        if (opType == P4RuntimeClient.WriteOperationType.INSERT && maxMemberSize < group.members().size()) {
-            log.warn("Unable to encode group, since group member larger than maximum member size");
-            return false;
-        }
+            PiActionProfileGroup group, WriteOperationType opType, PiPipeconf pipeconf) {
+        final ActionProfileGroup groupMsg;
         try {
-            actionProfileGroup = ActionProfileGroupEncoder.encode(group, pipeconf, maxMemberSize);
-        } catch (EncodeException | P4InfoBrowser.NotFoundException e) {
-            log.warn("Unable to encode group, aborting {} operation: {}", e.getMessage(), opType.name());
+            groupMsg = CODECS.actionProfileGroup().encode(group, pipeconf);
+        } catch (CodecException e) {
+            log.warn("Unable to encode group, aborting {} operation: {}",
+                     opType.name(), e.getMessage());
             return false;
         }
 
         final Update updateMsg = Update.newBuilder()
                 .setEntity(Entity.newBuilder()
-                                   .setActionProfileGroup(actionProfileGroup)
+                                   .setActionProfileGroup(groupMsg)
                                    .build())
                 .setType(UPDATE_TYPES.get(opType))
                 .build();
@@ -961,7 +811,7 @@ final class P4RuntimeClientImpl extends AbstractGrpcClient implements P4RuntimeC
                 .map(cellId -> PiMeterCellConfig.builder()
                         .withMeterCellId(cellId)
                         .build())
-                .collect(Collectors.toList());
+                .collect(toList());
 
         return doReadMeterEntities(MeterEntryCodec.encodePiMeterCellConfigs(
                 piMeterCellConfigs, pipeconf), pipeconf);
@@ -970,30 +820,9 @@ final class P4RuntimeClientImpl extends AbstractGrpcClient implements P4RuntimeC
     private List<PiMeterCellConfig> doReadMeterEntities(
             List<Entity> entitiesToRead, PiPipeconf pipeconf) {
 
-        if (entitiesToRead.size() == 0) {
-            return Collections.emptyList();
-        }
-
-        final ReadRequest request = ReadRequest.newBuilder()
-                .setDeviceId(p4DeviceId)
-                .addAllEntities(entitiesToRead)
-                .build();
-
-        final Iterable<ReadResponse> responses;
-        try {
-            responses = () -> blockingStub.read(request);
-        } catch (StatusRuntimeException e) {
-            checkGrpcException(e);
-            log.warn("Unable to read meter cells: {}", e.getMessage());
-            log.debug("exception", e);
-            return Collections.emptyList();
-        }
-
-        List<Entity> responseEntities = StreamSupport
-                .stream(responses.spliterator(), false)
-                .map(ReadResponse::getEntitiesList)
-                .flatMap(List::stream)
-                .collect(Collectors.toList());
+        final List<Entity> responseEntities = blockingRead(
+                entitiesToRead, METER_ENTRY, DIRECT_METER_ENTRY)
+                .collect(toList());
 
         return MeterEntryCodec.decodeMeterEntities(responseEntities, pipeconf);
     }
@@ -1007,7 +836,7 @@ final class P4RuntimeClientImpl extends AbstractGrpcClient implements P4RuntimeC
                                      .setEntity(meterEntryMsg)
                                      .setType(UPDATE_TYPES.get(WriteOperationType.MODIFY))
                                      .build())
-                .collect(Collectors.toList());
+                .collect(toList());
 
         if (updateMsgs.size() == 0) {
             return true;
@@ -1024,7 +853,7 @@ final class P4RuntimeClientImpl extends AbstractGrpcClient implements P4RuntimeC
                 .map(piEntry -> {
                     try {
                         return MulticastGroupEntryCodec.encode(piEntry);
-                    } catch (EncodeException e) {
+                    } catch (CodecException e) {
                         log.warn("Unable to encode PiMulticastGroupEntry: {}", e.getMessage());
                         return null;
                     }
@@ -1040,7 +869,7 @@ final class P4RuntimeClientImpl extends AbstractGrpcClient implements P4RuntimeC
                         .setEntity(entityMsg)
                         .setType(UPDATE_TYPES.get(opType))
                         .build())
-                .collect(Collectors.toList());
+                .collect(toList());
         return write(updateMsgs, entries, opType, "multicast group entry");
     }
 
@@ -1055,32 +884,12 @@ final class P4RuntimeClientImpl extends AbstractGrpcClient implements P4RuntimeC
                                 .build())
                 .build();
 
-        final ReadRequest req = ReadRequest.newBuilder()
-                .setDeviceId(p4DeviceId)
-                .addEntities(entity)
-                .build();
-
-        Iterator<ReadResponse> responses;
-        try {
-            responses = blockingStub.read(req);
-        } catch (StatusRuntimeException e) {
-            checkGrpcException(e);
-            log.warn("Unable to read multicast group entries from {}: {}", deviceId, e.getMessage());
-            return Collections.emptyList();
-        }
-
-        Iterable<ReadResponse> responseIterable = () -> responses;
-        final List<PiMulticastGroupEntry> mcEntries = StreamSupport
-                .stream(responseIterable.spliterator(), false)
-                .map(ReadResponse::getEntitiesList)
-                .flatMap(List::stream)
-                .filter(e -> e.getEntityCase()
-                        .equals(PACKET_REPLICATION_ENGINE_ENTRY))
+        final List<PiMulticastGroupEntry> mcEntries = blockingRead(entity, PACKET_REPLICATION_ENGINE_ENTRY)
                 .map(Entity::getPacketReplicationEngineEntry)
                 .filter(e -> e.getTypeCase().equals(MULTICAST_GROUP_ENTRY))
                 .map(PacketReplicationEngineEntry::getMulticastGroupEntry)
                 .map(MulticastGroupEntryCodec::decode)
-                .collect(Collectors.toList());
+                .collect(toList());
 
         log.debug("Retrieved {} multicast group entries from {}...",
                   mcEntries.size(), deviceId);
@@ -1124,6 +933,46 @@ final class P4RuntimeClientImpl extends AbstractGrpcClient implements P4RuntimeC
                 .setElectionId(clientElectionId)
                 .addAllUpdates(updateMsgs)
                 .build();
+    }
+
+    private Stream<Entity> blockingRead(Entity entity, Entity.EntityCase entityCase) {
+        return blockingRead(singletonList(entity), entityCase);
+    }
+
+    private Stream<Entity> blockingRead(Iterable<Entity> entities,
+                                        Entity.EntityCase... entityCases) {
+        // Build read request making sure we are reading what declared.
+        final ReadRequest.Builder reqBuilder = ReadRequest.newBuilder()
+                .setDeviceId(p4DeviceId);
+        final Set<Entity.EntityCase> entityCaseSet = Sets.newHashSet(entityCases);
+        for (Entity e : entities) {
+            checkArgument(entityCaseSet.contains(e.getEntityCase()),
+                          "Entity case mismatch");
+            reqBuilder.addEntities(e);
+        }
+        final ReadRequest readRequest = reqBuilder.build();
+        if (readRequest.getEntitiesCount() == 0) {
+            return Stream.empty();
+        }
+        // Issue read.
+        final Iterator<ReadResponse> responseIterator;
+        try {
+            responseIterator = blockingStub.read(readRequest);
+        } catch (StatusRuntimeException e) {
+            checkGrpcException(e);
+            final String caseString = entityCaseSet.stream()
+                    .map(Entity.EntityCase::name)
+                    .collect(joining("/"));
+            log.warn("Unable to read {} from {}: {}",
+                     caseString, deviceId, e.getMessage());
+            log.debug("Exception during read", e);
+            return Stream.empty();
+        }
+        // Filter results.
+        return Tools.stream(() -> responseIterator)
+                .map(ReadResponse::getEntitiesList)
+                .flatMap(List::stream)
+                .filter(e -> entityCaseSet.contains(e.getEntityCase()));
     }
 
     protected Void doShutdown() {
@@ -1195,7 +1044,7 @@ final class P4RuntimeClientImpl extends AbstractGrpcClient implements P4RuntimeC
                     }
                 })
                 .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     private String parseP4Error(P4RuntimeOuterClass.Error err) {

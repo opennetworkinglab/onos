@@ -80,7 +80,7 @@ final class CounterEntryCodec {
                 .map(cellId -> {
                     try {
                         return encodePiCounterCellId(cellId, pipeconf, browser);
-                    } catch (P4InfoBrowser.NotFoundException | EncodeException e) {
+                    } catch (P4InfoBrowser.NotFoundException | CodecException e) {
                         log.warn("Unable to encode PI counter cell id: {}", e.getMessage());
                         return null;
                     }
@@ -114,7 +114,7 @@ final class CounterEntryCodec {
                 .map(counterId -> {
                     try {
                         return readAllCellsEntity(counterId, pipeconf, browser);
-                    } catch (P4InfoBrowser.NotFoundException | EncodeException e) {
+                    } catch (P4InfoBrowser.NotFoundException | CodecException e) {
                         log.warn("Unable to encode counter ID to read-all-cells entity: {}",
                                  e.getMessage());
                         return null;
@@ -152,7 +152,7 @@ final class CounterEntryCodec {
                 .map(entity -> {
                     try {
                         return decodeCounterEntity(entity, pipeconf, browser);
-                    } catch (EncodeException | P4InfoBrowser.NotFoundException e) {
+                    } catch (CodecException | P4InfoBrowser.NotFoundException e) {
                         log.warn("Unable to decode counter entity message: {}",
                                  e.getMessage());
                         return null;
@@ -165,7 +165,7 @@ final class CounterEntryCodec {
     private static Entity encodePiCounterCellId(PiCounterCellId cellId,
                                                 PiPipeconf pipeconf,
                                                 P4InfoBrowser browser)
-            throws P4InfoBrowser.NotFoundException, EncodeException {
+            throws P4InfoBrowser.NotFoundException, CodecException {
 
         int counterId;
         Entity entity;
@@ -193,7 +193,7 @@ final class CounterEntryCodec {
                         .build();
                 break;
             default:
-                throw new EncodeException(format(
+                throw new CodecException(format(
                         "Unrecognized PI counter cell ID type '%s'",
                         cellId.counterType()));
         }
@@ -204,10 +204,10 @@ final class CounterEntryCodec {
     private static Entity readAllCellsEntity(PiCounterId counterId,
                                              PiPipeconf pipeconf,
                                              P4InfoBrowser browser)
-            throws P4InfoBrowser.NotFoundException, EncodeException {
+            throws P4InfoBrowser.NotFoundException, CodecException {
 
         if (!pipeconf.pipelineModel().counter(counterId).isPresent()) {
-            throw new EncodeException(format(
+            throw new CodecException(format(
                     "not such counter '%s' in pipeline model", counterId));
         }
         final PiCounterType counterType = pipeconf.pipelineModel()
@@ -228,7 +228,7 @@ final class CounterEntryCodec {
                 final PiTableId tableId = pipeconf.pipelineModel()
                         .counter(counterId).get().table();
                 if (tableId == null) {
-                    throw new EncodeException(format(
+                    throw new CodecException(format(
                             "null table for direct counter '%s'", counterId));
                 }
                 final int p4TableId = browser.tables().getByName(tableId.id())
@@ -243,7 +243,7 @@ final class CounterEntryCodec {
                                 .build())
                         .build();
             default:
-                throw new EncodeException(format(
+                throw new CodecException(format(
                         "unrecognized PI counter type '%s'", counterType));
         }
     }
@@ -251,7 +251,7 @@ final class CounterEntryCodec {
     private static PiCounterCell decodeCounterEntity(Entity entity,
                                                      PiPipeconf pipeconf,
                                                      P4InfoBrowser browser)
-            throws EncodeException, P4InfoBrowser.NotFoundException {
+            throws CodecException, P4InfoBrowser.NotFoundException {
 
         CounterData counterData;
         PiCounterCellId piCellId;
@@ -271,7 +271,7 @@ final class CounterEntryCodec {
             piCellId = PiCounterCellId.ofDirect(piTableEntry);
             counterData = entity.getDirectCounterEntry().getData();
         } else {
-            throw new EncodeException(format(
+            throw new CodecException(format(
                     "Unrecognized entity type '%s' in P4Runtime message",
                     entity.getEntityCase().name()));
         }

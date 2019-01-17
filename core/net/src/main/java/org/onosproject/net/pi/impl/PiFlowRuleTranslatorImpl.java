@@ -37,6 +37,7 @@ import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.model.PiPipelineModel;
 import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.model.PiTableModel;
+import org.onosproject.net.pi.model.PiTableType;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionParam;
 import org.onosproject.net.pi.runtime.PiExactFieldMatch;
@@ -227,9 +228,24 @@ final class PiFlowRuleTranslatorImpl {
         switch (piTableAction.type()) {
             case ACTION:
                 return checkPiAction((PiAction) piTableAction, table);
-            default:
-                // FIXME: should we check? how?
+            case ACTION_PROFILE_GROUP_ID:
+            case ACTION_PROFILE_MEMBER_ID:
+                if (!table.tableType().equals(PiTableType.INDIRECT)) {
+                    throw new PiTranslationException(format(
+                            "action is indirect of type '%s', but table '%s' is of type '%s'",
+                            piTableAction.type(), table.id(), table.tableType()));
+                }
+                if (piTableAction.type().equals(PiTableAction.Type.ACTION_PROFILE_GROUP_ID)
+                        && (table.actionProfile() == null || !table.actionProfile().hasSelector())) {
+                    throw new PiTranslationException(format(
+                            "action is of type '%s', but table '%s' does not" +
+                                    "implement an action profile with dynamic selection",
+                            piTableAction.type(), table.id()));
+                }
                 return piTableAction;
+            default:
+                throw new PiTranslationException(format(
+                        "Unknown table action type %s", piTableAction.type()));
 
         }
     }

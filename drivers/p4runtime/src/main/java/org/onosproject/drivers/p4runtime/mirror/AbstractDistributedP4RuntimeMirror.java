@@ -160,7 +160,7 @@ public abstract class AbstractDistributedP4RuntimeMirror
     @Override
     public void sync(DeviceId deviceId, Map<H, E> deviceState) {
         checkNotNull(deviceId);
-        final Map<H, E> localState = getMirrorMapForDevice(deviceId);
+        final Map<H, E> localState = deviceHandleMap(deviceId);
 
         final AtomicInteger removeCount = new AtomicInteger(0);
         final AtomicInteger updateCount = new AtomicInteger(0);
@@ -202,7 +202,8 @@ public abstract class AbstractDistributedP4RuntimeMirror
                 .collect(Collectors.toSet());
     }
 
-    private Map<H, E> getMirrorMapForDevice(DeviceId deviceId) {
+    @Override
+    public Map<H, E> deviceHandleMap(DeviceId deviceId) {
         final Map<H, E> deviceMap = Maps.newHashMap();
         mirrorMap.entrySet().stream()
                 .filter(e -> e.getKey().deviceId().equals(deviceId))
