@@ -30,6 +30,7 @@ import static org.onlab.osgi.DefaultServiceDirectory.getService;
 import static org.onosproject.odtn.utils.tapi.TapiObjectHandler.DEVICE_ID;
 import static org.onosproject.odtn.utils.tapi.TapiObjectHandler.ODTN_PORT_TYPE;
 import static org.onosproject.odtn.behaviour.OdtnDeviceDescriptionDiscovery.CONNECTION_ID;
+import static org.onosproject.odtn.behaviour.OdtnDeviceDescriptionDiscovery.OdtnPortType.LINE;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +65,24 @@ public class DefaultTapiPathComputer implements TapiPathComputer {
      * as list of Cep pair for each connection to be created
      */
     private TapiConnection pathComputeDetail(TapiNepPair neps) {
-        return mockPathCompute(neps);
+        log.debug("TapiNepPair {}", neps);
+        log.debug("Nep0 {}", neps.left());
+        log.debug("Nep1 {}", neps.right());
+
+        /*
+         * RCAS: 20190117 - We assume that if port type is LINE, it relies on intents.
+         * We construct just a single top-most connection object.
+         */
+        if (neps.left().getPortType() == LINE) {
+            log.info("Connection between line ports");
+            TapiConnection connection = TapiConnection.create(
+                TapiCepRef.create(neps.left(), neps.left().getCepIds().get(0)),
+                TapiCepRef.create(neps.right(), neps.right().getCepIds().get(0))
+                );
+            return connection;
+        } else {
+            return mockPathCompute(neps);
+        }
     }
 
 

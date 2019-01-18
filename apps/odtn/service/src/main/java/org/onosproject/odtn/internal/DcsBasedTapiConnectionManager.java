@@ -22,8 +22,9 @@ import java.util.List;
 
 import java.util.concurrent.atomic.AtomicReference;
 import org.onosproject.config.FailedException;
-import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.odtn.TapiResolver;
+import org.onosproject.odtn.TapiConnectivityConfig;
+import org.onosproject.odtn.TapiConnectivityService;
 import org.onosproject.odtn.behaviour.OdtnDeviceDescriptionDiscovery;
 import org.onosproject.odtn.utils.tapi.DcsBasedTapiObjectRefFactory;
 import org.onosproject.odtn.utils.tapi.TapiCepPair;
@@ -32,6 +33,11 @@ import org.onosproject.odtn.utils.tapi.TapiNepPair;
 import org.onosproject.odtn.utils.tapi.TapiCepRefHandler;
 import org.onosproject.odtn.utils.tapi.TapiConnectionHandler;
 
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181210.tapiconnectivity.connectivitycontext.DefaultConnection;
+import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181210.tapiconnectivity.connection.ConnectionEndPoint;
+
+import org.onosproject.net.ConnectPoint;
+
 import org.onosproject.odtn.utils.tapi.TapiNepRef;
 import org.onosproject.odtn.utils.tapi.TapiRouteHandler;
 import org.slf4j.Logger;
@@ -39,21 +45,23 @@ import org.slf4j.LoggerFactory;
 
 import static org.onlab.osgi.DefaultServiceDirectory.getService;
 
+
+
 /**
  * DCS-dependent Tapi connection manager implementation.
  */
 public final class DcsBasedTapiConnectionManager implements TapiConnectionManager {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
+
     protected TapiPathComputer connectionController;
     private TapiResolver resolver;
-    private NetworkConfigService netcfgService;
+    private TapiConnectivityService processor;
 
     private List<DcsBasedTapiConnectionManager> connectionManagerList = new ArrayList<>();
     private TapiConnection connection = null;
     private TapiConnectionHandler connectionHandler = TapiConnectionHandler.create();
     private Operation op = null;
-
 
     enum Operation {
         CREATE,
@@ -61,32 +69,83 @@ public final class DcsBasedTapiConnectionManager implements TapiConnectionManage
     }
 
     private DcsBasedTapiConnectionManager() {
+        connectionController = DefaultTapiPathComputer.create();
+        resolver = getService(TapiResolver.class);
+        processor = getService(TapiConnectivityService.class);
     }
 
     public static DcsBasedTapiConnectionManager create() {
-        DcsBasedTapiConnectionManager self = new DcsBasedTapiConnectionManager();
-        self.connectionController = DefaultTapiPathComputer.create();
-        self.resolver = getService(TapiResolver.class);
-        self.netcfgService = getService(NetworkConfigService.class);
-        return self;
+        return new DcsBasedTapiConnectionManager();
     }
+
 
     @Override
     public TapiConnectionHandler createConnection(TapiNepPair neps) {
 
         // Calculate route
         TapiConnection connection = connectionController.pathCompute(neps);
-        log.info("Calculated path: {}", connection);
-
+        log.debug("Calculated path: {}", connection);
         createConnectionRecursively(connection);
+
+        /*
+         * RCAS Create Intent: Assume that if the result of the pathCompute is flat
+         * and there are no lower connections, it has to be mapped to an intent
+         * It is a connection between line ports (OCh) with an OpticalConnectivity
+         * Intent.
+         */
+        if (connection.getLowerConnections().isEmpty()) {
+            TapiNepRef left  = neps.left();
+            TapiNepRef right = neps.right();
+            ConnectPoint leftConnectPoint = left.getConnectPoint();
+            ConnectPoint rightConnectPoint = right.getConnectPoint();
+            log.debug("Creating Intent from {} to {} {}",
+                leftConnectPoint,
+                rightConnectPoint,
+                connectionHandler.getId());
+            notifyTapiConnectivityChange(connectionHandler.getId().toString(),
+                leftConnectPoint,
+                rightConnectPoint,
+                true);
+        }
         return connectionHandler;
     }
 
     @Override
     public void deleteConnection(TapiConnectionHandler connectionHandler) {
+        // Retrieve the target to be deleted (right now we have the uuid)
+        connectionHandler.read();
 
+        // Remove Intent if exists
+        if (connectionHandler.getLowerConnections().isEmpty()) {
+            // Connection object
+            DefaultConnection connection = connectionHandler.getModelObject();
+            // These are two connection.ConnectionEndpoint (Actually Refs, mainly UUID)
+            ConnectionEndPoint cepLeft  = connection.connectionEndPoint().get(0);
+            ConnectionEndPoint cepRight = connection.connectionEndPoint().get(1);
+
+            TapiNepRef left = TapiNepRef.create(
+                    cepLeft.topologyUuid().toString(),
+                    cepLeft.nodeUuid().toString(),
+                    cepLeft.nodeEdgePointUuid().toString());
+
+            TapiNepRef right = TapiNepRef.create(
+                    cepRight.topologyUuid().toString(),
+                    cepRight.nodeUuid().toString(),
+                    cepRight.nodeEdgePointUuid().toString());
+
+            // update with latest data in DCS
+            left = resolver.getNepRef(left);
+            right = resolver.getNepRef(right);
+            log.debug("Removing intent connection: {}", connection);
+            notifyTapiConnectivityChange(
+                connectionHandler.getId().toString(),
+                left.getConnectPoint(),
+                right.getConnectPoint(),
+                false);
+        }
         deleteConnectionRecursively(connectionHandler);
     }
+
 
     @Override
     public void apply() {
@@ -105,6 +164,8 @@ public final class DcsBasedTapiConnectionManager implements TapiConnectionManage
                 throw new FailedException("Unknown operation type.");
         }
     }
+
+
 
     /**
      * Emit NetworkConfig event with parameters for device config,
@@ -135,6 +196,16 @@ public final class DcsBasedTapiConnectionManager implements TapiConnectionManage
 
         DeviceConfigEventEmitter eventEmitter = DeviceConfigEventEmitter.create();
         eventEmitter.emit(line.get(), client.get(), enable);
+    }
+
+
+
+    /**
+     * Request Application to setup / release Intent.
+     */
+    private void notifyTapiConnectivityChange(String uuid, ConnectPoint left, ConnectPoint right, boolean enable) {
+        TapiConnectivityConfig cfg = new TapiConnectivityConfig(uuid, left, right, enable);
+        processor.processTapiEvent(cfg);
     }
 
     /**
@@ -179,10 +250,7 @@ public final class DcsBasedTapiConnectionManager implements TapiConnectionManage
         op = Operation.DELETE;
         connectionManagerList.clear();
 
-        // read target to be deleted
-        connectionHandler.read();
         log.info("model: {}", connectionHandler.getModelObject());
-
         this.connection = TapiConnection.create(
                 TapiCepPair.create(
                         DcsBasedTapiObjectRefFactory.create(connectionHandler.getCeps().get(0)),
