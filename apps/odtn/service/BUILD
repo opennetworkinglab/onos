@@ -3,6 +3,7 @@ COMPILE_DEPS = CORE_DEPS + ONOS_YANG + CLI + JACKSON + [
     "//apps/config:onos-apps-config",
     "//models/tapi:onos-models-tapi",
     "//apps/yang:onos-apps-yang",
+    "//apps/optical-model:onos-apps-optical-model",
     "//protocols/netconf/api:onos-protocols-netconf-api",
 ]
 
@@ -24,6 +25,7 @@ APPS = [
     "org.onosproject.drivers.netconf",  # will need if using TemplateManager
     "org.onosproject.drivers.odtn-driver",
     "org.onosproject.netconf",
+    "org.onosproject.optical-model",
     "org.onosproject.configsync-netconf",
     "org.onosproject.protocols.restconfserver",
 ]

@@ -65,6 +65,7 @@ public class DcsBasedTapiConnectivityRpc implements TapiConnectivityService {
         resolver = getService(TapiResolver.class);
     }
 
+
     /**
      * Service interface of createConnectivityService.
      *
@@ -89,19 +90,21 @@ public class DcsBasedTapiConnectivityRpc implements TapiConnectivityService {
             List<TapiNepRef> nepRefs = input.getSips().stream()
                     .map(sipId -> resolver.getNepRef(sipId))
                     .collect(Collectors.toList());
-            // for test
-//            Map<String, String> filter = new HashMap<>();
-//            filter.put(ODTN_PORT_TYPE, OdtnDeviceDescriptionDiscovery.OdtnPortType.CLIENT.value());
-//            List<TapiNepRef> nepRefs = resolver.getNepRefs(filter);
 
             // setup connections
             TapiNepPair neps = TapiNepPair.create(nepRefs.get(0), nepRefs.get(1));
-            DcsBasedTapiConnectionManager connectionManager = DcsBasedTapiConnectionManager.create();
-            connectionManager.createConnection(neps);
 
-            // setup connectivity service
+            // Allocate a connectivity Service
             TapiConnectivityServiceHandler connectivityServiceHandler = TapiConnectivityServiceHandler.create();
-            connectivityServiceHandler.addConnection(connectionManager.getConnectionHandler().getModelObject().uuid());
+
+            // This connectivity service will be supported over a single end-to-end connection
+            // Allocate a manager for that connection
+            DcsBasedTapiConnectionManager connectionManager = DcsBasedTapiConnectionManager.create();
+            TapiConnectionHandler connectionHandler = connectionManager.createConnection(neps);
+
+            // Add the supporting connection uuid to the service
+            connectivityServiceHandler.addConnection(connectionHandler.getModelObject().uuid());
+
             neps.stream()
                     .map(nepRef -> TapiSepHandler.create().setSip(nepRef.getSipId()))
                     .forEach(sepBuilder -> {
@@ -113,7 +116,9 @@ public class DcsBasedTapiConnectivityRpc implements TapiConnectivityService {
             connectivityServiceHandler.add();
 
             // output
-            TapiCreateConnectivityOutputHandler output = TapiCreateConnectivityOutputHandler.create()
+            TapiCreateConnectivityOutputHandler output =
+                TapiCreateConnectivityOutputHandler
+                    .create()
                     .addService(connectivityServiceHandler.getModelObject());
             return new RpcOutput(RpcOutput.Status.RPC_SUCCESS, output.getDataNode());
 
@@ -136,17 +141,20 @@ public class DcsBasedTapiConnectivityRpc implements TapiConnectivityService {
         try {
             TapiDeleteConnectivityInputHandler input = new TapiDeleteConnectivityInputHandler();
             input.setRpcInput(inputVar);
-            log.info("input serviceId: {}", input.getId());
+            log.info("deleteConnectivityService - serviceId: {}", input.getId());
 
+            // Retrieve the Connectivity Service from the DCS, based on Id
             TapiConnectivityServiceHandler serviceHandler = TapiConnectivityServiceHandler.create();
             serviceHandler.setId(input.getId());
-
             DefaultConnectivityService service = serviceHandler.read();
 
+            // For each top-most connection of the service handler, delete that connection
+            // using a manager
             service.connection().stream().forEach(connection -> {
                 TapiConnectionHandler connectionHandler = TapiConnectionHandler.create();
                 connectionHandler.setId(Uuid.fromString(connection.connectionUuid().toString()));
                 DcsBasedTapiConnectionManager manager = DcsBasedTapiConnectionManager.create();
+                log.info("deleteConnectivityService - connectionId: {}", connectionHandler.getId());
                 manager.deleteConnection(connectionHandler);
                 manager.apply();
             });
