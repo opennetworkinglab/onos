@@ -89,6 +89,14 @@ public interface K8sNode {
     K8sNodeState state();
 
     /**
+     * Returns new kubernetes node instance with given state.
+     *
+     * @param newState updated state
+     * @return updated kubernetes node
+     */
+    K8sNode updateState(K8sNodeState newState);
+
+    /**
      * Returns the GRE tunnel port number.
      *
      * @return GRE port number; null if the GRE tunnel port does not exist
