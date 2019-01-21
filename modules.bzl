@@ -206,6 +206,7 @@ ONOS_APPS = [
     "//apps/openstacktroubleshoot:onos-apps-openstacktroubleshoot-oar",
     "//apps/openstackvtap:onos-apps-openstackvtap-oar",
     "//apps/k8s-node:onos-apps-k8s-node-oar",
+    "//apps/k8s-networking:onos-apps-k8s-networking-oar",
     "//apps/cpman/app:onos-apps-cpman-app-oar",
     "//apps/scalablegateway:onos-apps-scalablegateway-oar",
     "//apps/castor:onos-apps-castor-oar",
