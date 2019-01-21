@@ -3,6 +3,7 @@ COMPILE_DEPS = CORE_DEPS + KRYO + JACKSON + CLI + [
     "//apps/workflow/api:onos-apps-workflow-api",
 ]
 
-osgi_jar_with_tests(
+osgi_jar(
+    karaf_command_packages = ["org.onosproject.workflow.cli"],
     deps = COMPILE_DEPS,
 )
