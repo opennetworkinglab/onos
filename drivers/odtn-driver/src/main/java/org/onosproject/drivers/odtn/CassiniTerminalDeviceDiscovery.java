@@ -40,6 +40,10 @@ import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfDevice;
 import org.onosproject.netconf.NetconfSession;
 import org.onosproject.odtn.behaviour.OdtnDeviceDescriptionDiscovery;
+import org.onosproject.net.OchSignal;
+import org.onosproject.net.optical.device.OchPortHelper;
+import org.onosproject.net.OduSignalType;
+import org.onosproject.net.ChannelSpacing;
 import org.slf4j.Logger;
 
 import java.util.HashMap;
@@ -244,27 +248,32 @@ public class CassiniTerminalDeviceDiscovery
              HierarchicalConfiguration channel) {
 
          HierarchicalConfiguration config = channel.configurationAt("config");
-         String name = config.getString("index");
-         String portName = config.getString("description");
+         String logicalChannelIndex = config.getString("index");
+         String description = config.getString("description");
          String rateClass = config.getString("rate-class");
-         log.info("Parsing Component {} type {} rate {}", name, portName, rateClass);
+         log.info("Parsing Component {} type {} rate {}", logicalChannelIndex, description, rateClass);
 
          Map<String, String> annotations = new HashMap<>();
-         annotations.put(OdtnDeviceDescriptionDiscovery.OC_NAME, name);
-         annotations.put(OdtnDeviceDescriptionDiscovery.OC_TYPE, portName);
+         annotations.put(OdtnDeviceDescriptionDiscovery.OC_LOGICAL_CHANNEL, logicalChannelIndex);
+         annotations.put(OdtnDeviceDescriptionDiscovery.OC_NAME, description);
 
          // Store all properties as port properties
 
          Pattern clientPattern = Pattern.compile("ce(\\d*)/1"); // e.g. ce1/1
-         Pattern linePattern = Pattern.compile("oe(\\d*)"); // e.g. oe1
-         Matcher clientMatch = clientPattern.matcher(portName);
-         Matcher lineMatch = linePattern.matcher(portName);
+         Pattern linePattern = Pattern.compile("oc(\\d*)/(\\d*)"); // e.g. oe1
+         Matcher clientMatch = clientPattern.matcher(description);
+         Matcher lineMatch = linePattern.matcher(description);
 
          Pattern portSpeedPattern = Pattern.compile("TRIB_RATE_([0-9.]*)G");
          Matcher portSpeedMatch = portSpeedPattern.matcher(rateClass);
 
 
          Builder builder = DefaultPortDescription.builder();
+
+         if (portSpeedMatch.find()) {
+             Long speed = Long.parseLong(portSpeedMatch.group(1));
+             builder.portSpeed(speed * 1000);
+         }
 
          if (clientMatch.find()) {
              Long num = Long.parseLong(clientMatch.group(1));
@@ -275,10 +284,14 @@ public class CassiniTerminalDeviceDiscovery
              annotations.putIfAbsent(ONOS_PORT_INDEX, portNum.toString());
              annotations.putIfAbsent(CONNECTION_ID, connectionId);
 
-             builder.withPortNumber(PortNumber.portNumber(portNum, name));
+             builder.withPortNumber(PortNumber.portNumber(portNum));
              builder.type(Type.PACKET);
+
+             builder.annotations(DefaultAnnotations.builder().putAll(annotations).build());
+             return builder.build();
+
          } else if (lineMatch.find()) {
-             Long num = Long.parseLong(lineMatch.group(1));
+             Long num = (Long.parseLong(lineMatch.group(1)) - 1) * 2 + Long.parseLong(lineMatch.group(2));
              Long portNum = 200 + num;
              String connectionId = "connection:" + num.toString();
 
@@ -286,16 +299,19 @@ public class CassiniTerminalDeviceDiscovery
              annotations.putIfAbsent(ONOS_PORT_INDEX, portNum.toString());
              annotations.putIfAbsent(CONNECTION_ID, connectionId);
 
-             builder.withPortNumber(PortNumber.portNumber(portNum, name));
-             builder.type(Type.OCH);
+             OchSignal signalId = OchSignal.newDwdmSlot(ChannelSpacing.CHL_50GHZ, 1);
+             return OchPortHelper.ochPortDescription(
+                     PortNumber.portNumber(portNum),
+                     true,
+                     OduSignalType.ODU4, // TODO Client signal to be discovered
+                     true,
+                     signalId,
+                     DefaultAnnotations.builder().putAll(annotations).build());
+
+         } else {
+             log.warn("Unexpected component description: {}", description);
+             return null;
          }
 
-         if (portSpeedMatch.find()) {
-             Long speed = Long.parseLong(portSpeedMatch.group(1));
-             builder.portSpeed(speed * 1000);
-         }
-
-         builder.annotations(DefaultAnnotations.builder().putAll(annotations).build());
-         return builder.build();
      }
 }

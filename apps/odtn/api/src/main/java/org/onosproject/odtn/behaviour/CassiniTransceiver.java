@@ -36,7 +36,7 @@ import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 
-import static org.onosproject.odtn.behaviour.OdtnDeviceDescriptionDiscovery.OC_NAME;
+import static org.onosproject.odtn.behaviour.OdtnDeviceDescriptionDiscovery.OC_LOGICAL_CHANNEL;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -52,16 +52,15 @@ public class CassiniTransceiver extends AbstractHandlerBehaviour
     @Override
     public List<CharSequence> enable(PortNumber client, PortNumber line, boolean enable) {
 
-        log.debug("enable() cassini route");
         DeviceId did = this.data().deviceId();
         Port clientPort = handler().get(DeviceService.class).getPort(did, client);
         if (clientPort == null) {
             log.warn("{} does not exist on {}", client, did);
             return Collections.emptyList();
         }
-        String clientName = clientPort.annotations().value(OC_NAME);
+        String clientName = clientPort.annotations().value(OC_LOGICAL_CHANNEL);
         if (Strings.isNullOrEmpty(clientName)) {
-            log.warn("{} annotations not exist on {}@{}", OC_NAME, client, did);
+            log.warn("{} annotations not exist on {}@{}", OC_LOGICAL_CHANNEL, client, did);
             return Collections.emptyList();
         }
 
@@ -70,9 +69,9 @@ public class CassiniTransceiver extends AbstractHandlerBehaviour
             log.warn("{} does not exist on {}", line, did);
             return Collections.emptyList();
         }
-        String lineName = linePort.annotations().value(OC_NAME);
+        String lineName = linePort.annotations().value(OC_LOGICAL_CHANNEL);
         if (Strings.isNullOrEmpty(lineName)) {
-            log.warn("{} annotations not exist on {}@{}", OC_NAME, line, did);
+            log.warn("{} annotations not exist on {}@{}", OC_LOGICAL_CHANNEL, line, did);
             return Collections.emptyList();
         }
 
