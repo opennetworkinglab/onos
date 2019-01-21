@@ -48,6 +48,14 @@ public interface OdtnDeviceDescriptionDiscovery
     String OC_TYPE = "oc-type";
 
     /**
+     * Annotations key intended for a Port, which stores OpenConfig logical channel
+     * associated the port.
+     * <p>
+     * Optional; only for purpose of debugging.
+     */
+    String OC_LOGICAL_CHANNEL = "oc-logical-channel";
+
+    /**
      * Annotations key intended for a Port,
      * which stores string identifier used to
      * logically group Ports corresponding to a transponder, etc.

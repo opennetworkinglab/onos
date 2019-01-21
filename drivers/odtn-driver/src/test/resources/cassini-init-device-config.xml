@@ -1,0 +1,1098 @@
+<config xmlns="http://tail-f.com/ns/config/1.0">
+  <components xmlns="http://openconfig.net/yang/platform">
+    <component>
+      <name>oe1</name>
+      <config>
+        <name>oe1</name> <!-- must be the same as component/name -->
+      </config>
+      <transceiver xmlns="http://openconfig.net/yang/platform/transceiver">
+        <config>
+          <enabled>true</enabled>
+          <form-factor-preconf xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:CFP2_ACO</form-factor-preconf>
+        </config>
+      </transceiver>
+    </component>
+    <component>
+      <name>oe2</name>
+      <config>
+        <name>oe2</name> <!-- must be the same as component/name -->
+      </config>
+      <transceiver xmlns="http://openconfig.net/yang/platform/transceiver">
+        <config>
+          <enabled>true</enabled>
+          <form-factor-preconf xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:CFP2_ACO</form-factor-preconf>
+        </config>
+      </transceiver>
+    </component>
+    <component>
+      <name>oe3</name>
+      <config>
+        <name>oe3</name>
+      </config>
+      <transceiver xmlns="http://openconfig.net/yang/platform/transceiver">
+        <config>
+          <enabled>true</enabled>
+          <form-factor-preconf xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:CFP2_ACO</form-factor-preconf>
+        </config>
+      </transceiver>
+    </component>
+    <component>
+      <name>oe4</name>
+      <config>
+        <name>oe4</name>
+      </config>
+      <transceiver xmlns="http://openconfig.net/yang/platform/transceiver">
+        <config>
+          <enabled>true</enabled>
+          <form-factor-preconf xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:CFP2_ACO</form-factor-preconf>
+        </config>
+      </transceiver>
+    </component>
+    <component>
+      <name>oe5</name>
+      <config>
+        <name>oe5</name>
+      </config>
+      <transceiver xmlns="http://openconfig.net/yang/platform/transceiver">
+        <config>
+          <enabled>true</enabled>
+          <form-factor-preconf xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:CFP2_ACO</form-factor-preconf>
+        </config>
+      </transceiver>
+    </component>
+    <component>
+      <name>oe6</name>
+      <config>
+        <name>oe6</name>
+      </config>
+      <transceiver xmlns="http://openconfig.net/yang/platform/transceiver">
+        <config>
+          <enabled>true</enabled>
+          <form-factor-preconf xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:CFP2_ACO</form-factor-preconf>
+        </config>
+      </transceiver>
+    </component>
+    <component>
+      <name>oe7</name>
+      <config>
+        <name>oe7</name>
+      </config>
+      <transceiver xmlns="http://openconfig.net/yang/platform/transceiver">
+        <config>
+          <enabled>true</enabled>
+          <form-factor-preconf xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:CFP2_ACO</form-factor-preconf>
+        </config>
+      </transceiver>
+    </component>
+    <component>
+      <name>oe8</name>
+      <config>
+        <name>oe8</name>
+      </config>
+      <transceiver xmlns="http://openconfig.net/yang/platform/transceiver">
+        <config>
+          <enabled>true</enabled>
+          <form-factor-preconf xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:CFP2_ACO</form-factor-preconf>
+        </config>
+      </transceiver>
+    </component>
+
+    <!-- [NEW] optical channel components :: start -->
+    <component>
+      <name>oc1/1</name>
+      <config>
+        <name>oc1/1</name>
+      </config>
+      <optical-channel xmlns="http://openconfig.net/yang/terminal-device">
+        <config>
+          <frequency>194700000</frequency> <!-- MHz -->
+          <target-output-power>-10.0</target-output-power> <!-- dbm -->
+          <line-port>oe1</line-port> <!-- components/component/name (type:TRANSCEIVER) -->
+        </config>
+      </optical-channel>
+    </component>
+    <component>
+      <name>oc1/2</name>
+      <config>
+        <name>oc1/2</name>
+      </config>
+      <optical-channel xmlns="http://openconfig.net/yang/terminal-device">
+        <config>
+          <frequency>194750000</frequency> <!-- MHz -->
+          <target-output-power>-10.0</target-output-power> <!-- dbm -->
+          <line-port>oe1</line-port> <!-- components/component/name (type:TRANSCEIVER) -->
+        </config>
+      </optical-channel>
+    </component>
+    <component>
+      <name>oc2/1</name>
+      <config>
+        <name>oc2/1</name>
+      </config>
+      <optical-channel xmlns="http://openconfig.net/yang/terminal-device">
+        <config>
+          <frequency>194700000</frequency> <!-- MHz -->
+          <target-output-power>-10.0</target-output-power> <!-- dbm -->
+          <line-port>oe2</line-port> <!-- components/component/name (type:TRANSCEIVER) -->
+        </config>
+      </optical-channel>
+    </component>
+    <component>
+      <name>oc2/2</name>
+      <config>
+        <name>oc2/2</name>
+      </config>
+      <optical-channel xmlns="http://openconfig.net/yang/terminal-device">
+        <config>
+          <frequency>194750000</frequency> <!-- MHz -->
+          <target-output-power>-10.0</target-output-power> <!-- dbm -->
+          <line-port>oe2</line-port> <!-- components/component/name (type:TRANSCEIVER) -->
+        </config>
+      </optical-channel>
+    </component>
+    <component>
+      <name>oc3/1</name>
+      <config>
+        <name>oc3/1</name>
+      </config>
+      <optical-channel xmlns="http://openconfig.net/yang/terminal-device">
+        <config>
+          <frequency>194700000</frequency> <!-- MHz -->
+          <target-output-power>-10.0</target-output-power> <!-- dbm -->
+          <line-port>oe3</line-port> <!-- components/component/name (type:TRANSCEIVER) -->
+        </config>
+      </optical-channel>
+    </component>
+    <component>
+      <name>oc3/2</name>
+      <config>
+        <name>oc3/2</name>
+      </config>
+      <optical-channel xmlns="http://openconfig.net/yang/terminal-device">
+        <config>
+          <frequency>194750000</frequency> <!-- MHz -->
+          <target-output-power>-10.0</target-output-power> <!-- dbm -->
+          <line-port>oe3</line-port> <!-- components/component/name (type:TRANSCEIVER) -->
+        </config>
+      </optical-channel>
+    </component>
+    <component>
+      <name>oc4/1</name>
+      <config>
+        <name>oc4/1</name>
+      </config>
+      <optical-channel xmlns="http://openconfig.net/yang/terminal-device">
+        <config>
+          <frequency>194700000</frequency> <!-- MHz -->
+          <target-output-power>-10.0</target-output-power> <!-- dbm -->
+          <line-port>oe4</line-port> <!-- components/component/name (type:TRANSCEIVER) -->
+        </config>
+      </optical-channel>
+    </component>
+    <component>
+      <name>oc4/2</name>
+      <config>
+        <name>oc4/2</name>
+      </config>
+      <optical-channel xmlns="http://openconfig.net/yang/terminal-device">
+        <config>
+          <frequency>194750000</frequency> <!-- MHz -->
+          <target-output-power>-10.0</target-output-power> <!-- dbm -->
+          <line-port>oe4</line-port> <!-- components/component/name (type:TRANSCEIVER) -->
+        </config>
+      </optical-channel>
+    </component>
+    <component>
+      <name>oc5/1</name>
+      <config>
+        <name>oc5/1</name>
+      </config>
+      <optical-channel xmlns="http://openconfig.net/yang/terminal-device">
+        <config>
+          <frequency>194700000</frequency> <!-- MHz -->
+          <target-output-power>-10.0</target-output-power> <!-- dbm -->
+          <line-port>oe5</line-port> <!-- components/component/name (type:TRANSCEIVER) -->
+        </config>
+      </optical-channel>
+    </component>
+    <component>
+      <name>oc5/2</name>
+      <config>
+        <name>oc5/2</name>
+      </config>
+      <optical-channel xmlns="http://openconfig.net/yang/terminal-device">
+        <config>
+          <frequency>194750000</frequency> <!-- MHz -->
+          <target-output-power>-10.0</target-output-power> <!-- dbm -->
+          <line-port>oe5</line-port> <!-- components/component/name (type:TRANSCEIVER) -->
+        </config>
+      </optical-channel>
+    </component>
+    <component>
+      <name>oc6/1</name>
+      <config>
+        <name>oc6/1</name>
+      </config>
+      <optical-channel xmlns="http://openconfig.net/yang/terminal-device">
+        <config>
+          <frequency>194700000</frequency> <!-- MHz -->
+          <target-output-power>-10.0</target-output-power> <!-- dbm -->
+          <line-port>oe6</line-port> <!-- components/component/name (type:TRANSCEIVER) -->
+        </config>
+      </optical-channel>
+    </component>
+    <component>
+      <name>oc6/2</name>
+      <config>
+        <name>oc6/2</name>
+      </config>
+      <optical-channel xmlns="http://openconfig.net/yang/terminal-device">
+        <config>
+          <frequency>194750000</frequency> <!-- MHz -->
+          <target-output-power>-10.0</target-output-power> <!-- dbm -->
+          <line-port>oe6</line-port> <!-- components/component/name (type:TRANSCEIVER) -->
+        </config>
+      </optical-channel>
+    </component>
+    <component>
+      <name>oc7/1</name>
+      <config>
+        <name>oc7/1</name>
+      </config>
+      <optical-channel xmlns="http://openconfig.net/yang/terminal-device">
+        <config>
+          <frequency>194700000</frequency> <!-- MHz -->
+          <target-output-power>-10.0</target-output-power> <!-- dbm -->
+          <line-port>oe7</line-port> <!-- components/component/name (type:TRANSCEIVER) -->
+        </config>
+      </optical-channel>
+    </component>
+    <component>
+      <name>oc7/2</name>
+      <config>
+        <name>oc7/2</name>
+      </config>
+      <optical-channel xmlns="http://openconfig.net/yang/terminal-device">
+        <config>
+          <frequency>194750000</frequency> <!-- MHz -->
+          <target-output-power>-10.0</target-output-power> <!-- dbm -->
+          <line-port>oe7</line-port> <!-- components/component/name (type:TRANSCEIVER) -->
+        </config>
+      </optical-channel>
+    </component>
+    <component>
+      <name>oc8/1</name>
+      <config>
+        <name>oc8/1</name>
+      </config>
+      <optical-channel xmlns="http://openconfig.net/yang/terminal-device">
+        <config>
+          <frequency>194700000</frequency> <!-- MHz -->
+          <target-output-power>-10.0</target-output-power> <!-- dbm -->
+          <line-port>oe8</line-port> <!-- components/component/name (type:TRANSCEIVER) -->
+        </config>
+      </optical-channel>
+    </component>
+    <component>
+      <name>oc8/2</name>
+      <config>
+        <name>oc8/2</name>
+      </config>
+      <optical-channel xmlns="http://openconfig.net/yang/terminal-device">
+        <config>
+          <frequency>194750000</frequency> <!-- MHz -->
+          <target-output-power>-10.0</target-output-power> <!-- dbm -->
+          <line-port>oe8</line-port> <!-- components/component/name (type:TRANSCEIVER) -->
+        </config>
+      </optical-channel>
+    </component>
+    <!-- [NEW] optical channel components :: end -->
+
+    <component>
+      <name>ce1</name>
+      <config>
+        <name>ce1</name>
+      </config>
+      <transceiver xmlns="http://openconfig.net/yang/platform/transceiver">
+        <config>
+          <enabled>true</enabled>
+          <form-factor-preconf xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:QSFP28</form-factor-preconf>
+        </config>
+      </transceiver>
+    </component>
+    <component>
+      <name>ce2</name>
+      <config>
+        <name>ce2</name>
+      </config>
+      <transceiver xmlns="http://openconfig.net/yang/platform/transceiver">
+        <config>
+          <enabled>true</enabled>
+          <form-factor-preconf xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:QSFP28</form-factor-preconf>
+        </config>
+      </transceiver>
+    </component>
+    <component>
+      <name>ce3</name>
+      <config>
+        <name>ce3</name>
+      </config>
+      <transceiver xmlns="http://openconfig.net/yang/platform/transceiver">
+        <config>
+          <enabled>true</enabled>
+          <form-factor-preconf xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:QSFP28</form-factor-preconf>
+        </config>
+      </transceiver>
+    </component>
+    <component>
+      <name>ce4</name>
+      <config>
+        <name>ce4</name>
+      </config>
+      <transceiver xmlns="http://openconfig.net/yang/platform/transceiver">
+        <config>
+          <enabled>true</enabled>
+          <form-factor-preconf xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:QSFP28</form-factor-preconf>
+        </config>
+      </transceiver>
+    </component>
+    <component>
+      <name>ce5</name>
+      <config>
+        <name>ce5</name>
+      </config>
+      <transceiver xmlns="http://openconfig.net/yang/platform/transceiver">
+        <config>
+          <enabled>true</enabled>
+          <form-factor-preconf xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:QSFP28</form-factor-preconf>
+        </config>
+      </transceiver>
+    </component>
+    <component>
+      <name>ce6</name>
+      <config>
+        <name>ce6</name>
+      </config>
+      <transceiver xmlns="http://openconfig.net/yang/platform/transceiver">
+        <config>
+          <enabled>true</enabled>
+          <form-factor-preconf xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:QSFP28</form-factor-preconf>
+        </config>
+      </transceiver>
+    </component>
+    <component>
+      <name>ce7</name>
+      <config>
+        <name>ce7</name>
+      </config>
+      <transceiver xmlns="http://openconfig.net/yang/platform/transceiver">
+        <config>
+          <enabled>true</enabled>
+          <form-factor-preconf xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:QSFP28</form-factor-preconf>
+        </config>
+      </transceiver>
+    </component>
+    <component>
+      <name>ce8</name>
+      <config>
+        <name>ce8</name>
+      </config>
+      <transceiver xmlns="http://openconfig.net/yang/platform/transceiver">
+        <config>
+          <enabled>true</enabled>
+          <form-factor-preconf xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:QSFP28</form-factor-preconf>
+        </config>
+      </transceiver>
+    </component>
+    <component>
+      <name>ce9</name>
+      <config>
+        <name>ce9</name>
+      </config>
+      <transceiver xmlns="http://openconfig.net/yang/platform/transceiver">
+        <config>
+          <enabled>true</enabled>
+          <form-factor-preconf xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:QSFP28</form-factor-preconf>
+        </config>
+      </transceiver>
+    </component>
+    <component>
+      <name>ce10</name>
+      <config>
+        <name>ce10</name>
+      </config>
+      <transceiver xmlns="http://openconfig.net/yang/platform/transceiver">
+        <config>
+          <enabled>true</enabled>
+          <form-factor-preconf xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:QSFP28</form-factor-preconf>
+        </config>
+      </transceiver>
+    </component>
+    <component>
+      <name>ce11</name>
+      <config>
+        <name>ce11</name>
+      </config>
+      <transceiver xmlns="http://openconfig.net/yang/platform/transceiver">
+        <config>
+          <enabled>true</enabled>
+          <form-factor-preconf xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:QSFP28</form-factor-preconf>
+        </config>
+      </transceiver>
+    </component>
+    <component>
+      <name>ce12</name>
+      <config>
+        <name>ce12</name>
+      </config>
+      <transceiver xmlns="http://openconfig.net/yang/platform/transceiver">
+        <config>
+          <enabled>true</enabled>
+          <form-factor-preconf xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:QSFP28</form-factor-preconf>
+        </config>
+      </transceiver>
+    </component>
+    <component>
+      <name>ce13</name>
+      <config>
+        <name>ce13</name>
+      </config>
+      <transceiver xmlns="http://openconfig.net/yang/platform/transceiver">
+        <config>
+          <enabled>true</enabled>
+          <form-factor-preconf xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:QSFP28</form-factor-preconf>
+        </config>
+      </transceiver>
+    </component>
+    <component>
+      <name>ce14</name>
+      <config>
+        <name>ce14</name>
+      </config>
+      <transceiver xmlns="http://openconfig.net/yang/platform/transceiver">
+        <config>
+          <enabled>true</enabled>
+          <form-factor-preconf xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:QSFP28</form-factor-preconf>
+        </config>
+      </transceiver>
+    </component>
+    <component>
+      <name>ce15</name>
+      <config>
+        <name>ce15</name>
+      </config>
+      <transceiver xmlns="http://openconfig.net/yang/platform/transceiver">
+        <config>
+          <enabled>true</enabled>
+          <form-factor-preconf xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:QSFP28</form-factor-preconf>
+        </config>
+      </transceiver>
+    </component>
+    <component>
+      <name>ce16</name>
+      <config>
+        <name>ce16</name>
+      </config>
+      <transceiver xmlns="http://openconfig.net/yang/platform/transceiver">
+        <config>
+          <enabled>true</enabled>
+          <form-factor-preconf xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:QSFP28</form-factor-preconf>
+        </config>
+      </transceiver>
+    </component>
+  </components>
+  <terminal-device xmlns="http://openconfig.net/yang/terminal-device">
+    <logical-channels>
+      <channel>
+        <index>10101</index> <!-- must be uint32 -->
+        <config>
+          <index>10101</index>  <!-- must be the same as logical-channels/channel/index -->
+          <description>ce1/1</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <trib-protocol xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_100GE</trib-protocol>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+        <ingress>
+          <config>
+            <transceiver>ce1</transceiver>
+          </config>
+        </ingress>
+        <logical-channel-assignments>
+          <assignment>
+            <index>10101</index> <!-- the same value as parent channel's index -->
+            <config>
+              <index>10101</index>   <!-- must be the same as logical-channel-assignments/assignment/index -->
+              <assignment-type>LOGICAL_CHANNEL</assignment-type>
+              <logical-channel>20101</logical-channel>
+              <allocation>100.0</allocation>
+            </config>
+          </assignment>
+        </logical-channel-assignments>
+      </channel>
+      <channel>
+        <index>10201</index>
+        <config>
+          <index>10201</index>
+          <description>ce2/1</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <trib-protocol xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_100GE</trib-protocol>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+        <ingress>
+          <config>
+            <transceiver>ce2</transceiver>
+          </config>
+        </ingress>
+        <logical-channel-assignments>
+          <assignment>
+            <index>10201</index> <!-- the same value as parent channel's index -->
+            <config>
+              <index>10201</index>
+              <assignment-type>LOGICAL_CHANNEL</assignment-type>
+              <logical-channel>20102</logical-channel>
+              <allocation>100.0</allocation>
+            </config>
+          </assignment>
+        </logical-channel-assignments>
+      </channel>
+      <channel>
+        <index>10301</index>
+        <config>
+          <index>10301</index>
+          <description>ce3/1</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <trib-protocol xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_100GE</trib-protocol>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+        <ingress>
+          <config>
+            <transceiver>ce3</transceiver>
+          </config>
+        </ingress>
+        <logical-channel-assignments>
+          <assignment>
+            <index>10301</index> <!-- the same value as parent channel's index -->
+            <config>
+              <index>10301</index>
+              <assignment-type>LOGICAL_CHANNEL</assignment-type>
+              <logical-channel>20202</logical-channel>
+              <allocation>100.0</allocation>
+            </config>
+          </assignment>
+        </logical-channel-assignments>
+      </channel>
+      <channel>
+        <index>10401</index>
+        <config>
+          <index>10401</index>
+          <description>ce4/1</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <trib-protocol xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_100GE</trib-protocol>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+        <ingress>
+          <config>
+            <transceiver>ce4</transceiver>
+          </config>
+        </ingress>
+        <logical-channel-assignments>
+          <assignment>
+            <index>10401</index> <!-- the same value as parent channel's index -->
+            <config>
+              <index>10401</index>
+              <assignment-type>LOGICAL_CHANNEL</assignment-type>
+              <logical-channel>20201</logical-channel>
+              <allocation>100.0</allocation>
+            </config>
+          </assignment>
+        </logical-channel-assignments>
+      </channel>
+      <channel>
+        <index>10501</index>
+        <config>
+          <index>10501</index>
+          <description>ce5/1</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <trib-protocol xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_100GE</trib-protocol>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+        <ingress>
+          <config>
+            <transceiver>ce5</transceiver>
+          </config>
+        </ingress>
+      </channel>
+      <channel>
+        <index>10601</index>
+        <config>
+          <index>10601</index>
+          <description>ce6/1</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <trib-protocol xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_100GE</trib-protocol>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+        <ingress>
+          <config>
+            <transceiver>ce6</transceiver>
+          </config>
+        </ingress>
+      </channel>
+      <channel>
+        <index>10701</index>
+        <config>
+          <index>10701</index>
+          <description>ce7/1</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <trib-protocol xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_100GE</trib-protocol>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+        <ingress>
+          <config>
+            <transceiver>ce7</transceiver>
+          </config>
+        </ingress>
+      </channel>
+      <channel>
+        <index>10801</index>
+        <config>
+          <index>10801</index>
+          <description>ce8/1</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <trib-protocol xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_100GE</trib-protocol>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+        <ingress>
+          <config>
+            <transceiver>ce8</transceiver>
+          </config>
+        </ingress>
+      </channel>
+      <channel>
+        <index>10901</index>
+        <config>
+          <index>10901</index>
+          <description>ce9/1</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <trib-protocol xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_100GE</trib-protocol>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+        <ingress>
+          <config>
+            <transceiver>ce9</transceiver>
+          </config>
+        </ingress>
+      </channel>
+      <channel>
+        <index>11001</index>
+        <config>
+          <index>11001</index>
+          <description>ce10/1</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <trib-protocol xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_100GE</trib-protocol>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+        <ingress>
+          <config>
+            <transceiver>ce10</transceiver>
+          </config>
+        </ingress>
+      </channel>
+      <channel>
+        <index>11101</index>
+        <config>
+          <index>11101</index>
+          <description>ce11/1</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <trib-protocol xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_100GE</trib-protocol>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+        <ingress>
+          <config>
+            <transceiver>ce11</transceiver>
+          </config>
+        </ingress>
+      </channel>
+      <channel>
+        <index>11201</index>
+        <config>
+          <index>11201</index>
+          <description>ce12/1</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <trib-protocol xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_100GE</trib-protocol>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+        <ingress>
+          <config>
+            <transceiver>ce12</transceiver>
+          </config>
+        </ingress>
+      </channel>
+      <channel>
+        <index>11301</index>
+        <config>
+          <index>11301</index>
+          <description>ce13/1</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <trib-protocol xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_100GE</trib-protocol>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+        <ingress>
+          <config>
+            <transceiver>ce13</transceiver>
+          </config>
+        </ingress>
+      </channel>
+      <channel>
+        <index>11401</index>
+        <config>
+          <index>11401</index>
+          <description>ce14/1</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <trib-protocol xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_100GE</trib-protocol>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+        <ingress>
+          <config>
+            <transceiver>ce14</transceiver>
+          </config>
+        </ingress>
+      </channel>
+      <channel>
+        <index>11501</index>
+        <config>
+          <index>11501</index>
+          <description>ce15/1</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <trib-protocol xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_100GE</trib-protocol>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+        <ingress>
+          <config>
+            <transceiver>ce15</transceiver>
+          </config>
+        </ingress>
+      </channel>
+      <channel>
+        <index>11601</index>
+        <config>
+          <index>11601</index>
+          <description>ce16/1</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <trib-protocol xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_100GE</trib-protocol>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+        <ingress>
+          <config>
+            <transceiver>ce16</transceiver>
+          </config>
+        </ingress>
+      </channel>
+      <channel>
+        <index>20101</index>
+        <config>
+          <index>20101</index>
+          <description>oc1/1</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+
+        <!-- [NEW] association with optical channel component :: start -->
+        <logical-channel-assignments>
+          <assignment>
+            <index>20101</index>
+            <config>
+              <index>20101</index>
+              <assignment-type>OPTICAL_CHANNEL</assignment-type>
+              <optical-channel>oc1/1</optical-channel>
+            </config>
+          </assignment>
+        </logical-channel-assignments>
+        <!-- [NEW] association with optical channel component :: end -->
+
+      </channel>
+      <channel>
+        <index>20102</index>
+        <config>
+          <index>20102</index>
+          <description>oc1/2</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+        <!-- [NEW] association with optical channel component :: start -->
+        <logical-channel-assignments>
+          <assignment>
+            <index>20102</index>
+            <config>
+              <index>20102</index>
+              <assignment-type>OPTICAL_CHANNEL</assignment-type>
+              <optical-channel>oc1/2</optical-channel>
+            </config>
+          </assignment>
+        </logical-channel-assignments>
+        <!-- [NEW] association with optical channel component :: end -->
+      </channel>
+      <channel>
+        <index>20201</index>
+        <config>
+          <index>20201</index>
+          <description>oc2/1</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+        <!-- [NEW] association with optical channel component :: start -->
+        <logical-channel-assignments>
+          <assignment>
+            <index>20201</index>
+            <config>
+              <index>20201</index>
+              <assignment-type>OPTICAL_CHANNEL</assignment-type>
+              <optical-channel>oc2/1</optical-channel>
+            </config>
+          </assignment>
+        </logical-channel-assignments>
+        <!-- [NEW] association with optical channel component :: end -->
+      </channel>
+      <channel>
+        <index>20202</index>
+        <config>
+          <index>20202</index>
+          <description>oc2/2</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+        <!-- [NEW] association with optical channel component :: start -->
+        <logical-channel-assignments>
+          <assignment>
+            <index>20202</index>
+            <config>
+              <index>20202</index>
+              <assignment-type>OPTICAL_CHANNEL</assignment-type>
+              <optical-channel>oc2/2</optical-channel>
+            </config>
+          </assignment>
+        </logical-channel-assignments>
+        <!-- [NEW] association with optical channel component :: end -->
+      </channel>
+      <channel>
+        <index>20301</index>
+        <config>
+          <index>20301</index>
+          <description>oc3/1</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+      </channel>
+      <channel>
+        <index>20302</index>
+        <config>
+          <index>20302</index>
+          <description>oc3/2</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+      </channel>
+      <channel>
+        <index>20401</index>
+        <config>
+          <index>20401</index>
+          <description>oc4/1</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+      </channel>
+      <channel>
+        <index>20402</index>
+        <config>
+          <index>20402</index>
+          <description>oc4/2</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+      </channel>
+      <channel>
+        <index>20501</index>
+        <config>
+          <index>20501</index>
+          <description>oc5/1</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+        <logical-channel-assignments>
+          <assignment>
+            <index>20501</index>
+            <config>
+              <index>20501</index>
+              <assignment-type>OPTICAL_CHANNEL</assignment-type>
+              <optical-channel>oc5/1</optical-channel>
+            </config>
+          </assignment>
+        </logical-channel-assignments>
+      </channel>
+      <channel>
+        <index>20502</index>
+        <config>
+          <index>20502</index>
+          <description>oc5/2</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+        <logical-channel-assignments>
+          <assignment>
+            <index>20502</index>
+            <config>
+              <index>20502</index>
+              <assignment-type>OPTICAL_CHANNEL</assignment-type>
+              <optical-channel>oc5/2</optical-channel>
+            </config>
+          </assignment>
+        </logical-channel-assignments>
+      </channel>
+      <channel>
+        <index>20601</index>
+        <config>
+          <index>20601</index>
+          <description>oc6/1</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+        <logical-channel-assignments>
+          <assignment>
+            <index>20601</index>
+            <config>
+              <index>20601</index>
+              <assignment-type>OPTICAL_CHANNEL</assignment-type>
+              <optical-channel>oc6/1</optical-channel>
+            </config>
+          </assignment>
+        </logical-channel-assignments>
+      </channel>
+      <channel>
+        <index>20602</index>
+        <config>
+          <index>20602</index>
+          <description>oc6/2</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+        <logical-channel-assignments>
+          <assignment>
+            <index>20602</index>
+            <config>
+              <index>20602</index>
+              <assignment-type>OPTICAL_CHANNEL</assignment-type>
+              <optical-channel>oc6/2</optical-channel>
+            </config>
+          </assignment>
+        </logical-channel-assignments>
+      </channel>
+      <channel>
+        <index>20701</index>
+        <config>
+          <index>20701</index>
+          <description>oc7/1</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+        <logical-channel-assignments>
+          <assignment>
+            <index>20701</index>
+            <config>
+              <index>20701</index>
+              <assignment-type>OPTICAL_CHANNEL</assignment-type>
+              <optical-channel>oc7/1</optical-channel>
+            </config>
+          </assignment>
+        </logical-channel-assignments>
+      </channel>
+      <channel>
+        <index>20702</index>
+        <config>
+          <index>20702</index>
+          <description>oc7/2</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+        <logical-channel-assignments>
+          <assignment>
+            <index>20702</index>
+            <config>
+              <index>20702</index>
+              <assignment-type>OPTICAL_CHANNEL</assignment-type>
+              <optical-channel>oc7/2</optical-channel>
+            </config>
+          </assignment>
+        </logical-channel-assignments>
+      </channel>
+      <channel>
+        <index>20801</index>
+        <config>
+          <index>20801</index>
+          <description>oc8/1</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+        <logical-channel-assignments>
+          <assignment>
+            <index>20801</index>
+            <config>
+              <index>20801</index>
+              <assignment-type>OPTICAL_CHANNEL</assignment-type>
+              <optical-channel>oc8/1</optical-channel>
+            </config>
+          </assignment>
+        </logical-channel-assignments>
+      </channel>
+      <channel>
+        <index>20802</index>
+        <config>
+          <index>20802</index>
+          <description>oc8/2</description>
+          <admin-state>ENABLED</admin-state>
+          <rate-class xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:TRIB_RATE_100G</rate-class>
+          <logical-channel-type xmlns:oc-opt-types="http://openconfig.net/yang/transport-types">oc-opt-types:PROT_ETHERNET</logical-channel-type>
+        </config>
+        <logical-channel-assignments>
+          <assignment>
+            <index>20802</index>
+            <config>
+              <index>20802</index>
+              <assignment-type>OPTICAL_CHANNEL</assignment-type>
+              <optical-channel>oc8/2</optical-channel>
+            </config>
+          </assignment>
+        </logical-channel-assignments>
+      </channel>
+    </logical-channels>
+  </terminal-device>
+</config>

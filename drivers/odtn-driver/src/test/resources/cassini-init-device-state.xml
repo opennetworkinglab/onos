@@ -1,0 +1,246 @@
+<components xmlns="http://openconfig.net/yang/platform">
+  <component>
+    <name>oe1</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:TRANSCEIVER</type>
+    </state>
+  </component>
+  <component>
+    <name>oe2</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:TRANSCEIVER</type>
+    </state>
+  </component>
+  <component>
+    <name>oe3</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:TRANSCEIVER</type>
+    </state>
+  </component>
+  <component>
+    <name>oe4</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:TRANSCEIVER</type>
+    </state>
+  </component>
+  <component>
+    <name>oe5</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:TRANSCEIVER</type>
+    </state>
+  </component>
+  <component>
+    <name>oe6</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:TRANSCEIVER</type>
+    </state>
+  </component>
+  <component>
+    <name>oe7</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:TRANSCEIVER</type>
+    </state>
+  </component>
+  <component>
+    <name>oe8</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:TRANSCEIVER</type>
+    </state>
+  </component>
+
+  <!-- [NEW] optical channel components :: start -->
+  <component>
+    <name>oc1/1</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:OPTICAL_CHANNEL</type>
+    </state>
+  </component>
+  <component>
+    <name>oc1/2</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:OPTICAL_CHANNEL</type>
+    </state>
+  </component>
+  <component>
+    <name>oc2/1</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:OPTICAL_CHANNEL</type>
+    </state>
+  </component>
+  <component>
+    <name>oc2/2</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:OPTICAL_CHANNEL</type>
+    </state>
+  </component>
+  <component>
+    <name>oc3/1</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:OPTICAL_CHANNEL</type>
+    </state>
+  </component>
+  <component>
+    <name>oc3/2</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:OPTICAL_CHANNEL</type>
+    </state>
+  </component>
+  <component>
+    <name>oc4/1</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:OPTICAL_CHANNEL</type>
+    </state>
+  </component>
+  <component>
+    <name>oc4/2</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:OPTICAL_CHANNEL</type>
+    </state>
+  </component>
+  <component>
+    <name>oc5/1</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:OPTICAL_CHANNEL</type>
+    </state>
+  </component>
+  <component>
+    <name>oc5/2</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:OPTICAL_CHANNEL</type>
+    </state>
+  </component>
+  <component>
+    <name>oc6/1</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:OPTICAL_CHANNEL</type>
+    </state>
+  </component>
+  <component>
+    <name>oc6/2</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:OPTICAL_CHANNEL</type>
+    </state>
+  </component>
+  <component>
+    <name>oc7/1</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:OPTICAL_CHANNEL</type>
+    </state>
+  </component>
+  <component>
+    <name>oc7/2</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:OPTICAL_CHANNEL</type>
+    </state>
+  </component>
+  <component>
+    <name>oc8/1</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:OPTICAL_CHANNEL</type>
+    </state>
+  </component>
+  <component>
+    <name>oc8/2</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:OPTICAL_CHANNEL</type>
+    </state>
+  </component>
+  <!-- [NEW] optical channel components :: end -->
+
+  <component>
+    <name>xe1</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:TRANSCEIVER</type>
+    </state>
+  </component>
+  <component>
+    <name>xe2</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:TRANSCEIVER</type>
+    </state>
+  </component>
+  <component>
+    <name>xe3</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:TRANSCEIVER</type>
+    </state>
+  </component>
+  <component>
+    <name>xe4</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:TRANSCEIVER</type>
+    </state>
+  </component>
+  <component>
+    <name>xe5</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:TRANSCEIVER</type>
+    </state>
+  </component>
+  <component>
+    <name>xe6</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:TRANSCEIVER</type>
+    </state>
+  </component>
+  <component>
+    <name>xe7</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:TRANSCEIVER</type>
+    </state>
+  </component>
+  <component>
+    <name>xe8</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:TRANSCEIVER</type>
+    </state>
+  </component>
+  <component>
+    <name>xe9</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:TRANSCEIVER</type>
+    </state>
+  </component>
+  <component>
+    <name>xe10</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:TRANSCEIVER</type>
+    </state>
+  </component>
+  <component>
+    <name>xe11</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:TRANSCEIVER</type>
+    </state>
+  </component>
+  <component>
+    <name>ce12</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:TRANSCEIVER</type>
+    </state>
+  </component>
+  <component>
+    <name>ce13</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:TRANSCEIVER</type>
+    </state>
+  </component>
+  <component>
+    <name>ce14</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:TRANSCEIVER</type>
+    </state>
+  </component>
+  <component>
+    <name>ce15</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:TRANSCEIVER</type>
+    </state>
+  </component>
+  <component>
+    <name>ce16</name>
+    <state>
+      <type xmlns:oc-platform-types="http://openconfig.net/yang/platform-types">oc-platform-types:TRANSCEIVER</type>
+    </state>
+  </component>
+</components>
