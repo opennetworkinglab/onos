@@ -3,9 +3,10 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + CLI + REST + [
     "//apps/k8s-node/api:onos-apps-k8s-node-api",
 ]
 
-TEST_DEPS = TEST_ADAPTERS + [
+TEST_DEPS = TEST_ADAPTERS + TEST_REST + [
     "//core/api:onos-api-tests",
     "//core/common:onos-core-common-tests",
+    "//web/api:onos-rest-tests",
 ]
 
 osgi_jar_with_tests(

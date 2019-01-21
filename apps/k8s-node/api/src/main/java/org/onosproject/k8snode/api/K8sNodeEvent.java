@@ -59,7 +59,7 @@ public class K8sNodeEvent extends AbstractEvent<K8sNodeEvent.Type, K8sNode> {
      * @param type event type
      * @param subject kubernetes node
      */
-    protected K8sNodeEvent(Type type, K8sNode subject) {
+    public K8sNodeEvent(Type type, K8sNode subject) {
         super(type, subject);
     }
 }
