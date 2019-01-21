@@ -311,9 +311,9 @@ public abstract class DefaultNicFlowRule extends DefaultFlowRule implements NicF
         if (((ipv4SrcAddress() != null) && !ipv4SrcAddress().isZero()) ||
             ((ipv4DstAddress() != null) && !ipv4DstAddress().isZero()) ||
             (ipv4Protocol() > 0) || (sourcePort() > 0) || (destinationPort() > 0)) {
-            return true;
+            return false;
         }
-        return false;
+        return true;
     }
 
     @Override
