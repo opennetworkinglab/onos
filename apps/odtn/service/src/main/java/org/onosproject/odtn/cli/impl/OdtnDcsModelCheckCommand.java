@@ -40,7 +40,8 @@ import org.slf4j.Logger;
 import static org.slf4j.LoggerFactory.getLogger;
 
 @Service
-@Command(scope = "onos", name = "odtn-show-tapi-context")
+@Command(scope = "onos", name = "odtn-show-tapi-context",
+         description = "show tapi context command")
 public class OdtnDcsModelCheckCommand extends AbstractShellCommand {
 
     private static final Logger log = getLogger(OdtnDcsModelCheckCommand.class);
@@ -49,7 +50,7 @@ public class OdtnDcsModelCheckCommand extends AbstractShellCommand {
 
     private void printlog(String format, Object... objs) {
         print(format.replaceAll(Pattern.quote("{}"), "%s"), objs);
-        log.info(format, objs);
+        log.debug(format, objs);
     }
 
     @Override
