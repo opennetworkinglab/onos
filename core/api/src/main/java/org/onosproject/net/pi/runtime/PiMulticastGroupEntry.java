@@ -20,6 +20,7 @@ import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
+import org.onosproject.net.DeviceId;
 
 import java.util.Collection;
 import java.util.Set;
@@ -68,6 +69,11 @@ public final class PiMulticastGroupEntry implements PiPreEntry {
     @Override
     public PiEntityType piEntityType() {
         return PiEntityType.PRE_MULTICAST_GROUP_ENTRY;
+    }
+
+    @Override
+    public PiMulticastGroupEntryHandle handle(DeviceId deviceId) {
+        return PiMulticastGroupEntryHandle.of(deviceId, this);
     }
 
     @Override

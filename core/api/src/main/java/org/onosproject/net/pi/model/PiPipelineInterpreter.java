@@ -17,6 +17,7 @@
 package org.onosproject.net.pi.model;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.driver.HandlerBehaviour;
 import org.onosproject.net.flow.TrafficTreatment;
@@ -108,14 +109,16 @@ public interface PiPipelineInterpreter extends HandlerBehaviour {
             throws PiInterpreterException;
 
     /**
-     * Returns an inbound packet equivalent to the given PI packet operation.
+     * Returns an inbound packet equivalent to the given PI packet-in operation
+     * for the given device.
      *
      * @param packetOperation packet operation
+     * @param deviceId        ID of the device that originated the packet-in
      * @return inbound packet
      * @throws PiInterpreterException if the packet operation cannot be mapped
      *                                to an inbound packet
      */
-    InboundPacket mapInboundPacket(PiPacketOperation packetOperation)
+    InboundPacket mapInboundPacket(PiPacketOperation packetOperation, DeviceId deviceId)
             throws PiInterpreterException;
 
     /**

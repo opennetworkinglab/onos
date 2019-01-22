@@ -19,9 +19,11 @@ package org.onosproject.net.pi.runtime;
 import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.pi.model.PiTableId;
 
 import java.util.Optional;
+import java.util.OptionalInt;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -112,8 +114,8 @@ public final class PiTableEntry implements PiEntity {
      *
      * @return optional priority
      */
-    public Optional<Integer> priority() {
-        return priority == NO_PRIORITY ? Optional.empty() : Optional.of(priority);
+    public OptionalInt priority() {
+        return priority == NO_PRIORITY ? OptionalInt.empty() : OptionalInt.of(priority);
     }
 
     /**
@@ -201,6 +203,11 @@ public final class PiTableEntry implements PiEntity {
     @Override
     public PiEntityType piEntityType() {
         return PiEntityType.TABLE_ENTRY;
+    }
+
+    @Override
+    public PiTableEntryHandle handle(DeviceId deviceId) {
+        return PiTableEntryHandle.of(deviceId, this);
     }
 
     public static final class Builder {

@@ -35,11 +35,12 @@ public class P4RuntimeHandshaker extends AbstractP4RuntimeHandlerBehaviour imple
     public CompletableFuture<Boolean> connect() {
         return CompletableFuture
                 .supplyAsync(super::createClient)
-                .thenComposeAsync(client -> {
+                .thenApplyAsync(client -> {
                     if (client == null) {
-                        return CompletableFuture.completedFuture(false);
+                        return false;
                     }
-                    return client.startStreamChannel();
+                    client.openSession();
+                    return true;
                 });
     }
 
@@ -48,7 +49,7 @@ public class P4RuntimeHandshaker extends AbstractP4RuntimeHandlerBehaviour imple
         final P4RuntimeController controller = handler().get(P4RuntimeController.class);
         final DeviceId deviceId = handler().data().deviceId();
         final P4RuntimeClient client = controller.getClient(deviceId);
-        return client != null && client.isStreamChannelOpen();
+        return client != null && client.isSessionOpen();
     }
 
     @Override
@@ -85,12 +86,7 @@ public class P4RuntimeHandshaker extends AbstractP4RuntimeHandlerBehaviour imple
     @Override
     public void roleChanged(MastershipRole newRole) {
         if (setupBehaviour() && newRole.equals(MastershipRole.MASTER)) {
-            client.becomeMaster().thenAcceptAsync(result -> {
-                if (!result) {
-                    log.error("Unable to notify mastership role {} to {}",
-                              newRole, deviceId);
-                }
-            });
+            client.runForMastership();
         }
     }
 
@@ -99,7 +95,7 @@ public class P4RuntimeHandshaker extends AbstractP4RuntimeHandlerBehaviour imple
         final P4RuntimeController controller = handler().get(P4RuntimeController.class);
         final DeviceId deviceId = handler().data().deviceId();
         final P4RuntimeClient client = controller.getClient(deviceId);
-        if (client == null || !client.isStreamChannelOpen()) {
+        if (client == null || !client.isSessionOpen()) {
             return MastershipRole.NONE;
         }
         return client.isMaster() ? MastershipRole.MASTER : MastershipRole.STANDBY;

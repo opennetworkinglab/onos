@@ -42,17 +42,17 @@ public abstract class AbstractPiTranslatorImpl
     }
 
     @Override
-    public void learn(PiHandle<E> handle, PiTranslatedEntity<T, E> entity) {
+    public void learn(PiHandle handle, PiTranslatedEntity<T, E> entity) {
         store.addOrUpdate(handle, entity);
     }
 
     @Override
-    public Optional<PiTranslatedEntity<T, E>> lookup(PiHandle<E> handle) {
+    public Optional<PiTranslatedEntity<T, E>> lookup(PiHandle handle) {
         return Optional.ofNullable(store.get(handle));
     }
 
     @Override
-    public void forget(PiHandle<E> handle) {
+    public void forget(PiHandle handle) {
         store.remove(handle);
     }
 }

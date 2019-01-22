@@ -26,7 +26,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * the whole network.
  */
 @Beta
-public abstract class PiHandle<E extends PiEntity> {
+public abstract class PiHandle {
 
     private final DeviceId deviceId;
 

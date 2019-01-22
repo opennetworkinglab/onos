@@ -21,6 +21,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.pi.model.PiActionProfileId;
 
 import java.util.Collection;
@@ -141,6 +142,11 @@ public final class PiActionProfileGroup implements PiEntity {
     @Override
     public PiEntityType piEntityType() {
         return PiEntityType.ACTION_PROFILE_GROUP;
+    }
+
+    @Override
+    public PiActionProfileGroupHandle handle(DeviceId deviceId) {
+        return PiActionProfileGroupHandle.of(deviceId, this);
     }
 
     /**

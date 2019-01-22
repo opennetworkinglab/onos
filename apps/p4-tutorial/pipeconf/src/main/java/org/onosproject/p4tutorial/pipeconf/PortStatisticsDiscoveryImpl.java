@@ -27,6 +27,7 @@ import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.pi.model.PiCounterId;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.runtime.PiCounterCell;
+import org.onosproject.net.pi.runtime.PiCounterCellHandle;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
 import org.onosproject.net.pi.service.PiPipeconfService;
 import org.onosproject.p4runtime.api.P4RuntimeClient;
@@ -38,7 +39,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static org.onosproject.net.pi.model.PiCounterType.INDIRECT;
@@ -93,16 +93,14 @@ public final class PortStatisticsDiscoveryImpl extends AbstractHandlerBehaviour 
             counterCellIds.add(PiCounterCellId.ofIndirect(INGRESS_COUNTER_ID, p));
             counterCellIds.add(PiCounterCellId.ofIndirect(EGRESS_COUNTER_ID, p));
         });
+        Set<PiCounterCellHandle> counterCellHandles = counterCellIds.stream()
+                .map(id -> PiCounterCellHandle.of(deviceId, id))
+                .collect(Collectors.toSet());
 
         // Query the device.
-        Collection<PiCounterCell> counterEntryResponse;
-        try {
-            counterEntryResponse = client.readCounterCells(counterCellIds, pipeconf).get();
-        } catch (InterruptedException | ExecutionException e) {
-            log.warn("Exception while reading port counters from {}: {}", deviceId, e.toString());
-            log.debug("", e);
-            return Collections.emptyList();
-        }
+        Collection<PiCounterCell> counterEntryResponse = client.read(pipeconf)
+                    .handles(counterCellHandles).submitSync()
+                    .all(PiCounterCell.class);
 
         // Process response.
         counterEntryResponse.forEach(counterCell -> {

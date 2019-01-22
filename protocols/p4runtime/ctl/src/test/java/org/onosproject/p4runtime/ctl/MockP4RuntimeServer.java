@@ -79,6 +79,8 @@ public class MockP4RuntimeServer extends P4RuntimeGrpc.P4RuntimeImplBase {
     @Override
     public void write(WriteRequest request, StreamObserver<WriteResponse> responseObserver) {
         writeReqs.add(request);
+        responseObserver.onNext(WriteResponse.getDefaultInstance());
+        responseObserver.onCompleted();
         complete();
     }
 

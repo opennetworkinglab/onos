@@ -101,7 +101,7 @@ public abstract class AbstractP4RuntimePipelineProgrammable
             return false;
         }
 
-        return client.isPipelineConfigSet(pipeconf, deviceDataBuffer);
+        return client.isPipelineConfigSetSync(pipeconf, deviceDataBuffer);
     }
 
     @Override

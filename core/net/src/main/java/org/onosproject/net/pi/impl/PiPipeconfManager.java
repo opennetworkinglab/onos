@@ -169,6 +169,16 @@ public class PiPipeconfManager implements PiPipeconfService {
     }
 
     @Override
+    public Optional<PiPipeconf> getPipeconf(DeviceId deviceId) {
+        if (pipeconfMappingStore.getPipeconfId(deviceId) == null) {
+            return Optional.empty();
+        } else {
+            return Optional.ofNullable(pipeconfs.get(
+                    pipeconfMappingStore.getPipeconfId(deviceId)));
+        }
+    }
+
+    @Override
     public void bindToDevice(PiPipeconfId pipeconfId, DeviceId deviceId) {
         PiPipeconfId existingPipeconfId = pipeconfMappingStore.getPipeconfId(deviceId);
         if (existingPipeconfId != null && !existingPipeconfId.equals(pipeconfId)) {

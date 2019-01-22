@@ -39,7 +39,7 @@ public interface PiTranslationStore<T extends PiTranslatable, E extends PiEntity
      * @param handle PI entity handle
      * @param entity PI translated entity
      */
-    void addOrUpdate(PiHandle<E> handle, PiTranslatedEntity<T, E> entity);
+    void addOrUpdate(PiHandle handle, PiTranslatedEntity<T, E> entity);
 
     /**
      * Returns a PI translated entity for the given handle. Returns null if this
@@ -49,12 +49,12 @@ public interface PiTranslationStore<T extends PiTranslatable, E extends PiEntity
      * @param handle PI entity handle
      * @return PI translated entity
      */
-    PiTranslatedEntity<T, E> get(PiHandle<E> handle);
+    PiTranslatedEntity<T, E> get(PiHandle handle);
 
     /**
      * Removes a previously added mapping for the given PI entity handle.
      *
      * @param handle PI entity handle
      */
-    void remove(PiHandle<E> handle);
+    void remove(PiHandle handle);
 }

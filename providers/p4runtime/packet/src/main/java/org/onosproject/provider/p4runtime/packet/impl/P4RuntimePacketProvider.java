@@ -17,11 +17,6 @@
 package org.onosproject.provider.p4runtime.packet.impl;
 
 
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -44,6 +39,11 @@ import org.onosproject.p4runtime.api.P4RuntimeController;
 import org.onosproject.p4runtime.api.P4RuntimeEvent;
 import org.onosproject.p4runtime.api.P4RuntimeEventListener;
 import org.onosproject.p4runtime.api.P4RuntimePacketIn;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
@@ -177,7 +177,7 @@ public class P4RuntimePacketProvider extends AbstractProvider implements PacketP
             PiPacketOperation operation = eventSubject.packetOperation();
             InboundPacket inPkt;
             try {
-                inPkt = device.as(PiPipelineInterpreter.class).mapInboundPacket(operation);
+                inPkt = device.as(PiPipelineInterpreter.class).mapInboundPacket(operation, deviceId);
             } catch (PiPipelineInterpreter.PiInterpreterException e) {
                 log.warn("Unable to interpret inbound packet from {}: {}", deviceId, e.getMessage());
                 return;

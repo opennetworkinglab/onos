@@ -27,7 +27,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Global identifier of a PI action profile member, uniquely defined by a
  * device ID, action profile ID, and member ID.
  */
-public final class PiActionProfileMemberHandle extends PiHandle<PiActionProfileMember> {
+public final class PiActionProfileMemberHandle extends PiHandle {
 
     private final PiActionProfileId actionProfileId;
     private final PiActionProfileMemberId memberId;

@@ -56,11 +56,11 @@ public abstract class AbstractDistributedPiTranslationStore
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
-    private EventuallyConsistentMap<PiHandle<E>, PiTranslatedEntity<T, E>>
+    private EventuallyConsistentMap<PiHandle, PiTranslatedEntity<T, E>>
             translatedEntities;
 
     private final EventuallyConsistentMapListener
-            <PiHandle<E>, PiTranslatedEntity<T, E>> entityMapListener =
+            <PiHandle, PiTranslatedEntity<T, E>> entityMapListener =
             new InternalEntityMapListener();
 
     /**
@@ -75,7 +75,7 @@ public abstract class AbstractDistributedPiTranslationStore
     public void activate() {
         final String fullMapName = format(MAP_NAME_TEMPLATE, mapSimpleName());
         translatedEntities = storageService
-                .<PiHandle<E>, PiTranslatedEntity<T, E>>eventuallyConsistentMapBuilder()
+                .<PiHandle, PiTranslatedEntity<T, E>>eventuallyConsistentMapBuilder()
                 .withName(fullMapName)
                 .withSerializer(KryoNamespaces.API)
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
@@ -92,7 +92,7 @@ public abstract class AbstractDistributedPiTranslationStore
     }
 
     @Override
-    public void addOrUpdate(PiHandle<E> handle, PiTranslatedEntity<T, E> entity) {
+    public void addOrUpdate(PiHandle handle, PiTranslatedEntity<T, E> entity) {
         checkNotNull(handle);
         checkNotNull(entity);
         checkArgument(handle.entityType().equals(entity.entityType()),
@@ -101,13 +101,13 @@ public abstract class AbstractDistributedPiTranslationStore
     }
 
     @Override
-    public void remove(PiHandle<E> handle) {
+    public void remove(PiHandle handle) {
         checkNotNull(handle);
         translatedEntities.remove(handle);
     }
 
     @Override
-    public PiTranslatedEntity<T, E> get(PiHandle<E> handle) {
+    public PiTranslatedEntity<T, E> get(PiHandle handle) {
         checkNotNull(handle);
         return translatedEntities.get(handle);
     }
@@ -118,10 +118,10 @@ public abstract class AbstractDistributedPiTranslationStore
 
     private class InternalEntityMapListener
             implements EventuallyConsistentMapListener
-                               <PiHandle<E>, PiTranslatedEntity<T, E>> {
+                               <PiHandle, PiTranslatedEntity<T, E>> {
 
         @Override
-        public void event(EventuallyConsistentMapEvent<PiHandle<E>,
+        public void event(EventuallyConsistentMapEvent<PiHandle,
                 PiTranslatedEntity<T, E>> event) {
             final PiTranslationEvent.Type type;
             switch (event.type()) {
