@@ -26,7 +26,7 @@ imports = '''
 import org.onosproject.net.pi.model.PiActionId;
 import org.onosproject.net.pi.model.PiActionParamId;
 import org.onosproject.net.pi.model.PiActionProfileId;
-import org.onosproject.net.pi.model.PiControlMetadataId;
+import org.onosproject.net.pi.model.PiPacketMetadataId;
 import org.onosproject.net.pi.model.PiCounterId;
 import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiTableId;'''
@@ -70,8 +70,8 @@ PI_ACT_PRM_ID_CST = 'PiActionParamId.of("%s")'
 PI_ACT_PROF_ID = 'PiActionProfileId'
 PI_ACT_PROF_ID_CST = 'PiActionProfileId.of("%s")'
 
-PI_PKT_META_ID = 'PiControlMetadataId'
-PI_PKT_META_ID_CST = 'PiControlMetadataId.of("%s")'
+PI_PKT_META_ID = 'PiPacketMetadataId'
+PI_PKT_META_ID_CST = 'PiPacketMetadataId.of("%s")'
 
 HF_VAR_PREFIX = 'HDR_'
 

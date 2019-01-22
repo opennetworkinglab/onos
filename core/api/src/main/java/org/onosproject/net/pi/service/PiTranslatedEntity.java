@@ -32,7 +32,7 @@ public final class PiTranslatedEntity<T extends PiTranslatable, E extends PiEnti
 
     private final T original;
     private final E translated;
-    private final PiHandle<E> handle;
+    private final PiHandle handle;
 
     /**
      * Creates a new translated entity.
@@ -41,7 +41,7 @@ public final class PiTranslatedEntity<T extends PiTranslatable, E extends PiEnti
      * @param translated PI entity
      * @param handle PI entity handle
      */
-    public PiTranslatedEntity(T original, E translated, PiHandle<E> handle) {
+    public PiTranslatedEntity(T original, E translated, PiHandle handle) {
         this.original = checkNotNull(original);
         this.translated = checkNotNull(translated);
         this.handle = checkNotNull(handle);
@@ -79,7 +79,7 @@ public final class PiTranslatedEntity<T extends PiTranslatable, E extends PiEnti
      *
      * @return PI entity handle
      */
-    public final PiHandle<E> handle() {
+    public final PiHandle handle() {
         return handle;
     }
 }

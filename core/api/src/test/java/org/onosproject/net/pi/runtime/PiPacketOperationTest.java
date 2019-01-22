@@ -21,8 +21,7 @@ import com.google.common.testing.EqualsTester;
 import org.apache.commons.collections.CollectionUtils;
 import org.junit.Test;
 import org.onlab.util.ImmutableByteSequence;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.pi.model.PiControlMetadataId;
+import org.onosproject.net.pi.model.PiPacketMetadataId;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -37,34 +36,29 @@ import static org.onosproject.net.pi.runtime.PiConstantsTest.EGRESS_PORT;
  */
 public class PiPacketOperationTest {
 
-    private final DeviceId deviceId = DeviceId.deviceId("dummy");
-
     private final PiPacketOperation piPacketOperation1 = PiPacketOperation.builder()
-            .forDevice(deviceId)
             .withData(ImmutableByteSequence.ofOnes(512))
             .withType(PACKET_OUT)
-            .withMetadata(PiControlMetadata.builder()
-                                  .withId(PiControlMetadataId.of(EGRESS_PORT))
+            .withMetadata(PiPacketMetadata.builder()
+                                  .withId(PiPacketMetadataId.of(EGRESS_PORT))
                                   .withValue(copyFrom((short) 255))
                                   .build())
             .build();
 
     private final PiPacketOperation sameAsPiPacketOperation1 = PiPacketOperation.builder()
-            .forDevice(deviceId)
             .withData(ImmutableByteSequence.ofOnes(512))
             .withType(PACKET_OUT)
-            .withMetadata(PiControlMetadata.builder()
-                                  .withId(PiControlMetadataId.of(EGRESS_PORT))
+            .withMetadata(PiPacketMetadata.builder()
+                                  .withId(PiPacketMetadataId.of(EGRESS_PORT))
                                   .withValue(copyFrom((short) 255))
                                   .build())
             .build();
 
     private final PiPacketOperation piPacketOperation2 = PiPacketOperation.builder()
-            .forDevice(deviceId)
             .withData(ImmutableByteSequence.ofOnes(512))
             .withType(PACKET_OUT)
-            .withMetadata(PiControlMetadata.builder()
-                                  .withId(PiControlMetadataId.of(EGRESS_PORT))
+            .withMetadata(PiPacketMetadata.builder()
+                                  .withId(PiPacketMetadataId.of(EGRESS_PORT))
                                   .withValue(copyFrom((short) 200))
                                   .build())
             .build();
@@ -97,23 +91,21 @@ public class PiPacketOperationTest {
     public void testMethods() {
 
         final PiPacketOperation piPacketOperation = PiPacketOperation.builder()
-                .forDevice(deviceId)
                 .withData(ImmutableByteSequence.ofOnes(512))
                 .withType(PACKET_OUT)
-                .withMetadata(PiControlMetadata.builder()
-                                      .withId(PiControlMetadataId.of(EGRESS_PORT))
+                .withMetadata(PiPacketMetadata.builder()
+                                      .withId(PiPacketMetadataId.of(EGRESS_PORT))
                                       .withValue(copyFrom((short) 10))
                                       .build())
                 .build();
 
         assertThat(piPacketOperation, is(notNullValue()));
-        assertThat(piPacketOperation.deviceId(), is(deviceId));
         assertThat(piPacketOperation.type(), is(PACKET_OUT));
         assertThat(piPacketOperation.data(), is(ImmutableByteSequence.ofOnes(512)));
         assertThat("Incorrect metadatas value",
                    CollectionUtils.isEqualCollection(piPacketOperation.metadatas(),
-                                                     ImmutableList.of(PiControlMetadata.builder()
-                                                                              .withId(PiControlMetadataId
+                                                     ImmutableList.of(PiPacketMetadata.builder()
+                                                                              .withId(PiPacketMetadataId
                                                                                               .of(EGRESS_PORT))
                                                                               .withValue(copyFrom((short) 10))
                                                                               .build())));

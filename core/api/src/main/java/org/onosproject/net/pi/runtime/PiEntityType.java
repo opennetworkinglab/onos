@@ -26,35 +26,56 @@ public enum PiEntityType {
     /**
      * Table entry.
      */
-    TABLE_ENTRY,
+    TABLE_ENTRY("table entry"),
 
     /**
      * Action profile group.
      */
-    ACTION_PROFILE_GROUP,
+    ACTION_PROFILE_GROUP("action profile group"),
 
     /**
      * Action profile member.
      */
-    ACTION_PROFILE_MEMBER,
+    ACTION_PROFILE_MEMBER("action profile member"),
 
     /**
-     * Meter config.
+     * Meter cell config.
      */
-    METER_CELL_CONFIG,
+    METER_CELL_CONFIG("meter cell config"),
 
     /**
-     * Register entry.
+     * Register cell.
      */
-    REGISTER_CELL,
+    REGISTER_CELL("register cell"),
+
+    /**
+     * Counter cell.
+     */
+    COUNTER_CELL("counter cell"),
 
     /**
      * Packet Replication Engine (PRE) multicast group entry.
      */
-    PRE_MULTICAST_GROUP_ENTRY,
+    PRE_MULTICAST_GROUP_ENTRY("PRE multicast group entry"),
 
     /**
      * Packet Replication Engine (PRE) clone session entry.
      */
-    PRE_CLONE_SESSION_ENTRY
+    PRE_CLONE_SESSION_ENTRY("PRE clone session entry");
+
+    private final String humanReadableName;
+
+    PiEntityType(String humanReadableName) {
+        this.humanReadableName = humanReadableName;
+    }
+
+    /**
+     * Returns a human readable representation of this PI entity type (useful
+     * for logging).
+     *
+     * @return string
+     */
+    public String humanReadableName() {
+        return humanReadableName;
+    }
 }

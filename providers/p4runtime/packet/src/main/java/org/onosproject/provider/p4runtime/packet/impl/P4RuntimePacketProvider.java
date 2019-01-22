@@ -177,7 +177,7 @@ public class P4RuntimePacketProvider extends AbstractProvider implements PacketP
             PiPacketOperation operation = eventSubject.packetOperation();
             InboundPacket inPkt;
             try {
-                inPkt = device.as(PiPipelineInterpreter.class).mapInboundPacket(operation);
+                inPkt = device.as(PiPipelineInterpreter.class).mapInboundPacket(operation, deviceId);
             } catch (PiPipelineInterpreter.PiInterpreterException e) {
                 log.warn("Unable to interpret inbound packet from {}: {}", deviceId, e.getMessage());
                 return;

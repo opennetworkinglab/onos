@@ -19,21 +19,23 @@ package org.onosproject.net.pi.runtime;
 import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import org.onosproject.net.DeviceId;
 
 /**
  * Counter cell of a protocol-independent pipeline.
  */
 @Beta
-public final class PiCounterCell {
+public final class PiCounterCell implements PiEntity {
 
     private final PiCounterCellId cellId;
     private final PiCounterCellData counterData;
 
     /**
-     * Creates a new counter cell for the given cell identifier and counter cell data.
+     * Creates a new counter cell for the given cell identifier and counter cell
+     * data.
      *
-     * @param cellId  counter cell identifier
-     * @param piCounterCellData  counter cell data
+     * @param cellId            counter cell identifier
+     * @param piCounterCellData counter cell data
      */
     public PiCounterCell(PiCounterCellId cellId, PiCounterCellData piCounterCellData) {
         this.cellId = cellId;
@@ -41,11 +43,12 @@ public final class PiCounterCell {
     }
 
     /**
-     * Creates a new counter cell for the given cell identifier, number of packets and bytes.
+     * Creates a new counter cell for the given cell identifier, number of
+     * packets and bytes.
      *
      * @param cellId  counter cell identifier
-     * @param packets  number of packets
-     * @param bytes  number of bytes
+     * @param packets number of packets
+     * @param bytes   number of bytes
      */
     public PiCounterCell(PiCounterCellId cellId, long packets, long bytes) {
         this.cellId = cellId;
@@ -68,6 +71,16 @@ public final class PiCounterCell {
      */
     public PiCounterCellData data() {
         return counterData;
+    }
+
+    @Override
+    public PiEntityType piEntityType() {
+        return PiEntityType.COUNTER_CELL;
+    }
+
+    @Override
+    public PiCounterCellHandle handle(DeviceId deviceId) {
+        return PiCounterCellHandle.of(deviceId, this);
     }
 
     @Override

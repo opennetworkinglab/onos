@@ -34,11 +34,11 @@ public interface PiPacketOperationModel {
     PiPacketOperationType type();
 
     /**
-     * Returns a list of control metadata models for this packet operation. The metadata models are returned in the same
+     * Returns a list of packet metadata models for this packet operation. The metadata models are returned in the same
      * order as they would appear on the control header that is prepended to the packet.
      *
      * @return list of packet operation metadata models
      */
-    List<PiControlMetadataModel> metadatas();
+    List<PiPacketMetadataModel> metadatas();
 
 }

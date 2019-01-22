@@ -17,6 +17,7 @@
 package org.onosproject.net.pi.runtime;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.net.DeviceId;
 
 /**
  * Abstraction of an entity of a protocol-independent that can be read or write
@@ -31,4 +32,12 @@ public interface PiEntity {
      * @return entity type
      */
     PiEntityType piEntityType();
+
+    /**
+     * Returns a handle for this PI entity and the given device ID.
+     *
+     * @param deviceId device ID
+     * @return handle
+     */
+    PiHandle handle(DeviceId deviceId);
 }

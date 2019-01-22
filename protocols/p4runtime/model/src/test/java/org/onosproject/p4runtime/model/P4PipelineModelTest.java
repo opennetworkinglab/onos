@@ -27,8 +27,8 @@ import org.onosproject.net.pi.model.PiActionParamId;
 import org.onosproject.net.pi.model.PiActionParamModel;
 import org.onosproject.net.pi.model.PiActionProfileId;
 import org.onosproject.net.pi.model.PiActionProfileModel;
-import org.onosproject.net.pi.model.PiControlMetadataId;
-import org.onosproject.net.pi.model.PiControlMetadataModel;
+import org.onosproject.net.pi.model.PiPacketMetadataId;
+import org.onosproject.net.pi.model.PiPacketMetadataModel;
 import org.onosproject.net.pi.model.PiCounterId;
 import org.onosproject.net.pi.model.PiCounterModel;
 import org.onosproject.net.pi.model.PiCounterType;
@@ -287,16 +287,16 @@ public class P4PipelineModelTest {
     private static final PiPacketOperationType PI_PACKET_OPERATION_TYPE_1 = PiPacketOperationType.PACKET_IN;
     private static final PiPacketOperationType PI_PACKET_OPERATION_TYPE_2 = PiPacketOperationType.PACKET_OUT;
 
-    private static final PiControlMetadataId PI_CONTROL_METADATA_ID_1 = PiControlMetadataId.of("INGRESS PORT");
-    private static final PiControlMetadataId PI_CONTROL_METADATA_ID_2 = PiControlMetadataId.of("EGRESS PORT");
+    private static final PiPacketMetadataId PI_CONTROL_METADATA_ID_1 = PiPacketMetadataId.of("INGRESS PORT");
+    private static final PiPacketMetadataId PI_CONTROL_METADATA_ID_2 = PiPacketMetadataId.of("EGRESS PORT");
 
     private static final int META_BIT_WIDTH_1 = 32;
     private static final int META_BIT_WIDTH_2 = 64;
 
-    private static final PiControlMetadataModel P4_CONTROL_METADATA_MODEL_1 =
-            new P4ControlMetadataModel(PI_CONTROL_METADATA_ID_1, META_BIT_WIDTH_1);
-    private static final PiControlMetadataModel P4_CONTROL_METADATA_MODEL_2 =
-            new P4ControlMetadataModel(PI_CONTROL_METADATA_ID_2, META_BIT_WIDTH_2);
+    private static final PiPacketMetadataModel P4_CONTROL_METADATA_MODEL_1 =
+            new P4PacketMetadataModel(PI_CONTROL_METADATA_ID_1, META_BIT_WIDTH_1);
+    private static final PiPacketMetadataModel P4_CONTROL_METADATA_MODEL_2 =
+            new P4PacketMetadataModel(PI_CONTROL_METADATA_ID_2, META_BIT_WIDTH_2);
 
     /* Pipeline Models */
     private static final ImmutableMap<PiTableId, PiTableModel> TABLES_1 =
@@ -317,12 +317,12 @@ public class P4PipelineModelTest {
                     .put(PI_ACTION_PROFILE_ID_2, P4_ACTION_PROFILE_MODEL_2)
                     .build();
 
-    private static final ImmutableList<PiControlMetadataModel> METADATAS_1 =
-            new ImmutableList.Builder<PiControlMetadataModel>()
+    private static final ImmutableList<PiPacketMetadataModel> METADATAS_1 =
+            new ImmutableList.Builder<PiPacketMetadataModel>()
                     .add(P4_CONTROL_METADATA_MODEL_1)
                     .build();
-    private static final ImmutableList<PiControlMetadataModel> METADATAS_2 =
-            new ImmutableList.Builder<PiControlMetadataModel>()
+    private static final ImmutableList<PiPacketMetadataModel> METADATAS_2 =
+            new ImmutableList.Builder<PiPacketMetadataModel>()
                     .add(P4_CONTROL_METADATA_MODEL_2)
                     .build();
 

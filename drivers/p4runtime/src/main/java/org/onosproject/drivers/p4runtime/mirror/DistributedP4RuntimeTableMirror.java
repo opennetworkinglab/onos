@@ -18,10 +18,9 @@ package org.onosproject.drivers.p4runtime.mirror;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.util.KryoNamespace;
+import org.onosproject.net.pi.runtime.PiEntityType;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.runtime.PiTableEntryHandle;
-import org.onosproject.store.serializers.KryoNamespaces;
 
 /**
  * Distributed implementation of a P4Runtime table mirror.
@@ -33,18 +32,7 @@ public final class DistributedP4RuntimeTableMirror
                         <PiTableEntryHandle, PiTableEntry>
         implements P4RuntimeTableMirror {
 
-    private static final String DIST_MAP_NAME = "onos-p4runtime-table-mirror";
-
-    @Override
-    String mapName() {
-        return DIST_MAP_NAME;
-    }
-
-    @Override
-    KryoNamespace storeSerializer() {
-        return KryoNamespace.newBuilder()
-                .register(KryoNamespaces.API)
-                .register(TimedEntry.class)
-                .build();
+    public DistributedP4RuntimeTableMirror() {
+        super(PiEntityType.TABLE_ENTRY);
     }
 }

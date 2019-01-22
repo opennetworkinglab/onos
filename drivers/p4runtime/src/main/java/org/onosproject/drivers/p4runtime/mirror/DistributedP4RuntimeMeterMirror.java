@@ -16,12 +16,11 @@
 
 package org.onosproject.drivers.p4runtime.mirror;
 
-import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.util.KryoNamespace;
-import org.onosproject.net.pi.runtime.PiMeterHandle;
+import org.onosproject.net.pi.runtime.PiEntityType;
 import org.onosproject.net.pi.runtime.PiMeterCellConfig;
-import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.net.pi.runtime.PiMeterCellHandle;
+import org.osgi.service.component.annotations.Component;
 
 /**
  * Distributed implementation of a P4Runtime meter mirror.
@@ -30,21 +29,10 @@ import org.onosproject.store.serializers.KryoNamespaces;
 @Service
 public final class DistributedP4RuntimeMeterMirror
         extends AbstractDistributedP4RuntimeMirror
-        <PiMeterHandle, PiMeterCellConfig>
+        <PiMeterCellHandle, PiMeterCellConfig>
         implements P4RuntimeMeterMirror {
 
-    private static final String DIST_MAP_NAME = "onos-p4runtime-meter-mirror";
-
-    @Override
-    String mapName() {
-        return DIST_MAP_NAME;
-    }
-
-    @Override
-    KryoNamespace storeSerializer() {
-        return KryoNamespace.newBuilder()
-                .register(KryoNamespaces.API)
-                .register(TimedEntry.class)
-                .build();
+    public DistributedP4RuntimeMeterMirror() {
+        super(PiEntityType.METER_CELL_CONFIG);
     }
 }
