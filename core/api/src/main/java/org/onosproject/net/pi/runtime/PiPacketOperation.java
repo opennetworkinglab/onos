@@ -21,8 +21,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.util.ImmutableByteSequence;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.pi.model.PiControlMetadataId;
+import org.onosproject.net.pi.model.PiPacketMetadataId;
 import org.onosproject.net.pi.model.PiPacketOperationType;
 
 import java.util.Collection;
@@ -33,40 +32,30 @@ import java.util.Set;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Instance of a packet I/O operation, and its control metadatas, for a protocol-independent pipeline.
+ * Instance of a packet I/O operation that includes the packet body (frame) and
+ * its metadata, for a protocol-independent pipeline.
  */
 @Beta
 public final class PiPacketOperation {
 
-    private final DeviceId deviceId;
-    private final ImmutableByteSequence data;
-    private final Set<PiControlMetadata> packetMetadatas;
+    private final ImmutableByteSequence frame;
+    private final Set<PiPacketMetadata> packetMetadatas;
     private final PiPacketOperationType type;
 
     /**
-     * Creates a new packet I/O operation for the given device ID, data, control metadatas and operation type.
+     * Creates a new packet I/O operation for the given frame, packet metadata
+     * and operation type.
      *
-     * @param deviceId        device ID
-     * @param data            the packet raw data
-     * @param packetMetadatas collection of control metadata
-     * @param type            type of this packet operation
+     * @param frame     the packet raw data
+     * @param metadatas collection of packet metadata
+     * @param type      type of this packet operation
      */
-    private PiPacketOperation(DeviceId deviceId, ImmutableByteSequence data,
-                              Collection<PiControlMetadata> packetMetadatas,
+    private PiPacketOperation(ImmutableByteSequence frame,
+                              Collection<PiPacketMetadata> metadatas,
                               PiPacketOperationType type) {
-        this.deviceId = deviceId;
-        this.data = data;
-        this.packetMetadatas = ImmutableSet.copyOf(packetMetadatas);
+        this.frame = frame;
+        this.packetMetadatas = ImmutableSet.copyOf(metadatas);
         this.type = type;
-    }
-
-    /**
-     * Returns the device ID of this packet operation.
-     *
-     * @return device ID
-     */
-    public DeviceId deviceId() {
-        return deviceId;
     }
 
     /**
@@ -84,15 +73,16 @@ public final class PiPacketOperation {
      * @return packet data
      */
     public ImmutableByteSequence data() {
-        return data;
+        return frame;
     }
 
     /**
-     * Returns all metadatas of this packet. Returns an empty collection if the packet doesn't have any metadata.
+     * Returns all metadatas of this packet. Returns an empty collection if the
+     * packet doesn't have any metadata.
      *
      * @return collection of metadatas
      */
-    public Collection<PiControlMetadata> metadatas() {
+    public Collection<PiPacketMetadata> metadatas() {
         return packetMetadatas;
     }
 
@@ -106,22 +96,21 @@ public final class PiPacketOperation {
         }
         PiPacketOperation that = (PiPacketOperation) o;
         return Objects.equal(packetMetadatas, that.packetMetadatas) &&
-                Objects.equal(deviceId, that.deviceId) &&
-                Objects.equal(data, that.data()) &&
+                Objects.equal(frame, that.data()) &&
                 Objects.equal(type, that.type());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(deviceId, data, packetMetadatas, type);
+        return Objects.hashCode(frame, packetMetadatas, type);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("deviceId", deviceId)
-                .addValue(type.toString())
-                .addValue(packetMetadatas)
+                .add("type", type)
+                .add("metadata", packetMetadatas)
+                .add("frame", frame)
                 .toString();
     }
 
@@ -139,25 +128,12 @@ public final class PiPacketOperation {
      */
     public static final class Builder {
 
-        private DeviceId deviceId;
-        private Map<PiControlMetadataId, PiControlMetadata> packetMetadatas = new HashMap<>();
+        private Map<PiPacketMetadataId, PiPacketMetadata> packetMetadatas = new HashMap<>();
         private PiPacketOperationType type;
         private ImmutableByteSequence data;
 
         private Builder() {
             // hides constructor.
-        }
-
-        /**
-         * Sets the device ID.
-         *
-         * @param deviceId device ID
-         * @return this
-         */
-        public Builder forDevice(DeviceId deviceId) {
-            checkNotNull(deviceId);
-            this.deviceId = deviceId;
-            return this;
         }
 
         /**
@@ -173,13 +149,14 @@ public final class PiPacketOperation {
         }
 
         /**
-         * Adds a control metadata. Only one metadata is allowed for a given metadata id. If a metadata with same id
-         * already exists it will be replaced by the given one.
+         * Adds a packet metadata. Only one metadata is allowed for a given
+         * metadata id. If a metadata with same id already exists it will be
+         * replaced by the given one.
          *
          * @param metadata packet metadata
          * @return this
          */
-        public Builder withMetadata(PiControlMetadata metadata) {
+        public Builder withMetadata(PiPacketMetadata metadata) {
             checkNotNull(metadata);
             packetMetadatas.put(metadata.id(), metadata);
 
@@ -192,7 +169,7 @@ public final class PiPacketOperation {
          * @param metadatas collection of metadata
          * @return this
          */
-        public Builder withMetadatas(Collection<PiControlMetadata> metadatas) {
+        public Builder withMetadatas(Collection<PiPacketMetadata> metadatas) {
             checkNotNull(metadatas);
             metadatas.forEach(this::withMetadata);
             return this;
@@ -215,11 +192,10 @@ public final class PiPacketOperation {
          * @return packet operation
          */
         public PiPacketOperation build() {
-            checkNotNull(deviceId);
             checkNotNull(data);
             checkNotNull(packetMetadatas);
             checkNotNull(type);
-            return new PiPacketOperation(deviceId, data, packetMetadatas.values(), type);
+            return new PiPacketOperation(data, packetMetadatas.values(), type);
         }
     }
 }

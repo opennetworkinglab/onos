@@ -19,6 +19,7 @@ package org.onosproject.net.pi.runtime;
 import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.pi.model.PiActionProfileId;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -71,6 +72,11 @@ public final class PiActionProfileMember implements PiEntity {
     @Override
     public PiEntityType piEntityType() {
         return PiEntityType.ACTION_PROFILE_MEMBER;
+    }
+
+    @Override
+    public PiActionProfileMemberHandle handle(DeviceId deviceId) {
+        return PiActionProfileMemberHandle.of(deviceId, this);
     }
 
     @Override

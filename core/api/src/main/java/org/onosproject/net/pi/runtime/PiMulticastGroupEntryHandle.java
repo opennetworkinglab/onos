@@ -29,11 +29,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * ID.
  */
 @Beta
-public final class PiMulticastGroupEntryHandle extends PiHandle<PiMulticastGroupEntry> {
+public final class PiMulticastGroupEntryHandle extends PiHandle {
 
-    private final long groupId;
+    private final int groupId;
 
-    private PiMulticastGroupEntryHandle(DeviceId deviceId, long groupId) {
+    private PiMulticastGroupEntryHandle(DeviceId deviceId, int groupId) {
         super(deviceId);
         this.groupId = groupId;
     }
@@ -46,7 +46,7 @@ public final class PiMulticastGroupEntryHandle extends PiHandle<PiMulticastGroup
      * @return PI multicast group entry handle
      */
     public static PiMulticastGroupEntryHandle of(DeviceId deviceId,
-                                                 long groupId) {
+                                                 int groupId) {
         return new PiMulticastGroupEntryHandle(deviceId, groupId);
     }
 
@@ -62,6 +62,15 @@ public final class PiMulticastGroupEntryHandle extends PiHandle<PiMulticastGroup
                                                  PiMulticastGroupEntry entry) {
         checkNotNull(entry);
         return new PiMulticastGroupEntryHandle(deviceId, entry.groupId());
+    }
+
+    /**
+     * Returns the multicast group ID associated with this handle.
+     *
+     * @return group ID
+     */
+    public int groupId() {
+        return groupId;
     }
 
     @Override

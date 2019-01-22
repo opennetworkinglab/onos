@@ -52,7 +52,7 @@ public interface PiTranslator<T extends PiTranslatable, E extends PiEntity> {
      * @param handle PI entity handle
      * @param entity PI translated entity
      */
-    void learn(PiHandle<E> handle, PiTranslatedEntity<T, E> entity);
+    void learn(PiHandle handle, PiTranslatedEntity<T, E> entity);
 
     /**
      * Returns a PI translated entity that was previously associated with the
@@ -64,12 +64,12 @@ public interface PiTranslator<T extends PiTranslatable, E extends PiEntity> {
      * @param handle PI entity handle
      * @return optional PI translated entity
      */
-    Optional<PiTranslatedEntity<T, E>> lookup(PiHandle<E> handle);
+    Optional<PiTranslatedEntity<T, E>> lookup(PiHandle handle);
 
     /**
      * Removes any mapping for the given PI entity handle.
      *
      * @param handle PI entity handle.
      */
-    void forget(PiHandle<E> handle);
+    void forget(PiHandle handle);
 }

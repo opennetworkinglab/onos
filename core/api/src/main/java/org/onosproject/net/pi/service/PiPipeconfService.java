@@ -71,6 +71,16 @@ public interface PiPipeconfService {
     Optional<PiPipeconf> getPipeconf(PiPipeconfId id);
 
     /**
+     * Returns the pipeconf instance associated with the given device, if
+     * present. If not present, it means no pipeconf has been associated with
+     * that device so far.
+     *
+     * @param deviceId a device identifier
+     * @return an optional pipeconf
+     */
+    Optional<PiPipeconf> getPipeconf(DeviceId deviceId);
+
+    /**
      * Signals that the given pipeconf is associated to the given infrastructure
      * device. As a result of this method, the pipeconf for the given device can
      * be later retrieved using {@link #ofDevice(DeviceId)}
@@ -107,7 +117,9 @@ public interface PiPipeconfService {
      *
      * @param deviceId device identifier
      * @return an optional pipeconf identifier
+     * @deprecated in ONOS 2.1 use {@link #getPipeconf(DeviceId)} instead
      */
+    @Deprecated
     Optional<PiPipeconfId> ofDevice(DeviceId deviceId);
 
 }

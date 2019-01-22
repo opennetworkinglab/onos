@@ -31,7 +31,7 @@ import java.util.StringJoiner;
 @Beta
 public final class PiMatchKey {
 
-    public static final PiMatchKey EMPTY = builder().build();
+    public static final PiMatchKey EMPTY = new PiMatchKey(ImmutableMap.of());
 
     private final ImmutableMap<PiMatchFieldId, PiFieldMatch> fieldMatches;
 

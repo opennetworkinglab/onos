@@ -213,7 +213,7 @@ import org.onosproject.net.packet.PacketPriority;
 import org.onosproject.net.pi.model.PiActionId;
 import org.onosproject.net.pi.model.PiActionParamId;
 import org.onosproject.net.pi.model.PiActionProfileId;
-import org.onosproject.net.pi.model.PiControlMetadataId;
+import org.onosproject.net.pi.model.PiPacketMetadataId;
 import org.onosproject.net.pi.model.PiCounterId;
 import org.onosproject.net.pi.model.PiCounterType;
 import org.onosproject.net.pi.model.PiMatchFieldId;
@@ -232,7 +232,7 @@ import org.onosproject.net.pi.runtime.PiActionProfileGroupId;
 import org.onosproject.net.pi.runtime.PiActionProfileMember;
 import org.onosproject.net.pi.runtime.PiActionProfileMemberHandle;
 import org.onosproject.net.pi.runtime.PiActionProfileMemberId;
-import org.onosproject.net.pi.runtime.PiControlMetadata;
+import org.onosproject.net.pi.runtime.PiPacketMetadata;
 import org.onosproject.net.pi.runtime.PiCounterCell;
 import org.onosproject.net.pi.runtime.PiCounterCellData;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
@@ -676,7 +676,7 @@ public final class KryoNamespaces {
                     PiActionId.class,
                     PiActionParamId.class,
                     PiActionProfileId.class,
-                    PiControlMetadataId.class,
+                    PiPacketMetadataId.class,
                     PiCounterId.class,
                     PiCounterType.class,
                     PiMatchFieldId.class,
@@ -697,7 +697,7 @@ public final class KryoNamespaces {
                     PiActionProfileMemberHandle.class,
                     PiActionProfileMemberId.class,
                     PiActionParam.class,
-                    PiControlMetadata.class,
+                    PiPacketMetadata.class,
                     PiCounterCell.class,
                     PiCounterCellData.class,
                     PiCounterCellId.class,

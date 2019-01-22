@@ -18,12 +18,12 @@ package org.onosproject.drivers.p4runtime.mirror;
 
 import com.google.common.annotations.Beta;
 import org.onosproject.net.pi.runtime.PiMeterCellConfig;
-import org.onosproject.net.pi.runtime.PiMeterHandle;
+import org.onosproject.net.pi.runtime.PiMeterCellHandle;
 
 /**
  * Mirror of meters installed on a P4Runtime device.
  */
 @Beta
 public interface P4RuntimeMeterMirror
-        extends P4RuntimeMirror<PiMeterHandle, PiMeterCellConfig> {
+        extends P4RuntimeMirror<PiMeterCellHandle, PiMeterCellConfig> {
 }

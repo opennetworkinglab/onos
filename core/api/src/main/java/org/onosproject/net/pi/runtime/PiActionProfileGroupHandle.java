@@ -27,7 +27,7 @@ import org.onosproject.net.pi.model.PiActionProfileId;
  * defined by a device ID, action profile ID and group ID.
  */
 @Beta
-public final class PiActionProfileGroupHandle extends PiHandle<PiActionProfileGroup> {
+public final class PiActionProfileGroupHandle extends PiHandle {
 
     private final PiActionProfileId actionProfileId;
     private final PiActionProfileGroupId groupId;
@@ -39,15 +39,34 @@ public final class PiActionProfileGroupHandle extends PiHandle<PiActionProfileGr
     }
 
     /**
-     * Creates a new handle for the given device ID and PI action profile group.
+     * Creates a new handle for the given device ID and PI action profile
+     * group.
      *
      * @param deviceId device ID
-     * @param group PI action profile group
+     * @param group    PI action profile group
      * @return PI action profile group handle
      */
     public static PiActionProfileGroupHandle of(DeviceId deviceId,
                                                 PiActionProfileGroup group) {
         return new PiActionProfileGroupHandle(deviceId, group);
+    }
+
+    /**
+     * Returns the action profile ID of this handle.
+     *
+     * @return action profile ID
+     */
+    public PiActionProfileId actionProfile() {
+        return actionProfileId;
+    }
+
+    /**
+     * Returns the group ID of this handle.
+     *
+     * @return group ID
+     */
+    public PiActionProfileGroupId groupId() {
+        return groupId;
     }
 
     @Override

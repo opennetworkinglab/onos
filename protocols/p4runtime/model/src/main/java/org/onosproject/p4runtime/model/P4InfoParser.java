@@ -28,8 +28,8 @@ import org.onosproject.net.pi.model.PiActionParamId;
 import org.onosproject.net.pi.model.PiActionParamModel;
 import org.onosproject.net.pi.model.PiActionProfileId;
 import org.onosproject.net.pi.model.PiActionProfileModel;
-import org.onosproject.net.pi.model.PiControlMetadataId;
-import org.onosproject.net.pi.model.PiControlMetadataModel;
+import org.onosproject.net.pi.model.PiPacketMetadataId;
+import org.onosproject.net.pi.model.PiPacketMetadataModel;
 import org.onosproject.net.pi.model.PiCounterId;
 import org.onosproject.net.pi.model.PiCounterModel;
 import org.onosproject.net.pi.model.PiCounterType;
@@ -362,10 +362,10 @@ public final class P4InfoParser {
             throws P4InfoParserException {
         final Map<PiPacketOperationType, PiPacketOperationModel> packetOpMap = Maps.newHashMap();
         for (ControllerPacketMetadata ctrlPktMetaMsg : p4info.getControllerPacketMetadataList()) {
-            final ImmutableList.Builder<PiControlMetadataModel> metadataListBuilder =
+            final ImmutableList.Builder<PiPacketMetadataModel> metadataListBuilder =
                     ImmutableList.builder();
             ctrlPktMetaMsg.getMetadataList().forEach(metadataMsg -> metadataListBuilder.add(
-                    new P4ControlMetadataModel(PiControlMetadataId.of(metadataMsg.getName()),
+                    new P4PacketMetadataModel(PiPacketMetadataId.of(metadataMsg.getName()),
                                                metadataMsg.getBitwidth())));
             packetOpMap.put(
                     mapPacketOpType(ctrlPktMetaMsg.getPreamble().getName()),

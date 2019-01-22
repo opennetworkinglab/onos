@@ -37,7 +37,7 @@ import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiAction;
-import org.onosproject.net.pi.runtime.PiControlMetadata;
+import org.onosproject.net.pi.runtime.PiPacketMetadata;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
 
 import java.nio.ByteBuffer;
@@ -172,19 +172,18 @@ public class FabricInterpreter extends AbstractFabricHandlerBehavior
     private PiPacketOperation createPiPacketOperation(
             DeviceId deviceId, ByteBuffer data, long portNumber)
             throws PiInterpreterException {
-        PiControlMetadata metadata = createPacketMetadata(portNumber);
+        PiPacketMetadata metadata = createPacketMetadata(portNumber);
         return PiPacketOperation.builder()
-                .forDevice(deviceId)
                 .withType(PACKET_OUT)
                 .withData(copyFrom(data))
                 .withMetadatas(ImmutableList.of(metadata))
                 .build();
     }
 
-    private PiControlMetadata createPacketMetadata(long portNumber)
+    private PiPacketMetadata createPacketMetadata(long portNumber)
             throws PiInterpreterException {
         try {
-            return PiControlMetadata.builder()
+            return PiPacketMetadata.builder()
                     .withId(FabricConstants.EGRESS_PORT)
                     .withValue(copyFrom(portNumber).fit(PORT_BITWIDTH))
                     .build();
@@ -233,10 +232,9 @@ public class FabricInterpreter extends AbstractFabricHandlerBehavior
     }
 
     @Override
-    public InboundPacket mapInboundPacket(PiPacketOperation packetIn) throws PiInterpreterException {
+    public InboundPacket mapInboundPacket(PiPacketOperation packetIn, DeviceId deviceId) throws PiInterpreterException {
         // Assuming that the packet is ethernet, which is fine since fabric.p4
         // can deparse only ethernet packets.
-        DeviceId deviceId = packetIn.deviceId();
         Ethernet ethPkt;
         try {
             ethPkt = Ethernet.deserializer().deserialize(packetIn.data().asArray(), 0,
@@ -246,7 +244,7 @@ public class FabricInterpreter extends AbstractFabricHandlerBehavior
         }
 
         // Returns the ingress port packet metadata.
-        Optional<PiControlMetadata> packetMetadata = packetIn.metadatas()
+        Optional<PiPacketMetadata> packetMetadata = packetIn.metadatas()
                 .stream().filter(m -> m.id().equals(FabricConstants.INGRESS_PORT))
                 .findFirst();
 

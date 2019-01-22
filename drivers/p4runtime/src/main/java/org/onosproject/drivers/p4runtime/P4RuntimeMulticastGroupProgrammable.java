@@ -42,15 +42,17 @@ import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
 
-import static org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType.DELETE;
-import static org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType.INSERT;
-import static org.onosproject.p4runtime.api.P4RuntimeClient.WriteOperationType.MODIFY;
+import static org.onosproject.p4runtime.api.P4RuntimeWriteClient.UpdateType.DELETE;
+import static org.onosproject.p4runtime.api.P4RuntimeWriteClient.UpdateType.INSERT;
+import static org.onosproject.p4runtime.api.P4RuntimeWriteClient.UpdateType.MODIFY;
 
 /**
  * Implementation of GroupProgrammable to handle multicast groups in P4Runtime.
  */
 public class P4RuntimeMulticastGroupProgrammable
         extends AbstractP4RuntimeHandlerBehaviour implements GroupProgrammable {
+
+    // TODO: implement reading groups from device and mirror sync.
 
     // Needed to synchronize operations over the same group.
     private static final Striped<Lock> STRIPED_LOCKS = Striped.lock(30);
@@ -92,7 +94,7 @@ public class P4RuntimeMulticastGroupProgrammable
     }
 
     private Collection<Group> getMcGroups() {
-        // TODO: missing support for reading multicast groups is ready in PI/Stratum.
+        // TODO: missing support for reading multicast groups in PI/Stratum.
         return getMcGroupsFromMirror();
     }
 
@@ -160,17 +162,15 @@ public class P4RuntimeMulticastGroupProgrammable
         }
     }
 
-    private boolean writeMcGroupOnDevice(PiMulticastGroupEntry group, P4RuntimeClient.WriteOperationType opType) {
-        return getFutureWithDeadline(
-                client.writePreMulticastGroupEntries(
-                        Collections.singletonList(group), opType),
-                "performing multicast group " + opType, false);
+    private boolean writeMcGroupOnDevice(
+            PiMulticastGroupEntry group, P4RuntimeClient.UpdateType opType) {
+        return client.write(pipeconf).entity(group, opType).submitSync().isSuccess();
     }
 
     private boolean mcGroupApply(PiMulticastGroupEntryHandle handle,
                                  PiMulticastGroupEntry piGroup,
                                  Group pdGroup,
-                                 P4RuntimeClient.WriteOperationType opType) {
+                                 P4RuntimeClient.UpdateType opType) {
         switch (opType) {
             case DELETE:
                 if (writeMcGroupOnDevice(piGroup, DELETE)) {

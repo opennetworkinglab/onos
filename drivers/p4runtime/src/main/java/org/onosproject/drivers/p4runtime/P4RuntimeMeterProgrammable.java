@@ -31,7 +31,7 @@ import org.onosproject.net.pi.model.PiMeterId;
 import org.onosproject.net.pi.model.PiMeterModel;
 import org.onosproject.net.pi.model.PiPipelineModel;
 import org.onosproject.net.pi.runtime.PiMeterCellConfig;
-import org.onosproject.net.pi.runtime.PiMeterHandle;
+import org.onosproject.net.pi.runtime.PiMeterCellHandle;
 import org.onosproject.net.pi.service.PiMeterTranslator;
 import org.onosproject.net.pi.service.PiTranslationException;
 
@@ -40,13 +40,10 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
-
-import static com.google.common.collect.Lists.newArrayList;
 
 /**
  * Implementation of MeterProgrammable behaviour for P4Runtime.
@@ -54,12 +51,12 @@ import static com.google.common.collect.Lists.newArrayList;
 public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviour implements MeterProgrammable {
 
     private static final int METER_LOCK_EXPIRE_TIME_IN_MIN = 10;
-    private static final LoadingCache<PiMeterHandle, Lock>
+    private static final LoadingCache<PiMeterCellHandle, Lock>
             ENTRY_LOCKS = CacheBuilder.newBuilder()
             .expireAfterAccess(METER_LOCK_EXPIRE_TIME_IN_MIN, TimeUnit.MINUTES)
-            .build(new CacheLoader<PiMeterHandle, Lock>() {
+            .build(new CacheLoader<PiMeterCellHandle, Lock>() {
                 @Override
-                public Lock load(PiMeterHandle handle) {
+                public Lock load(PiMeterCellHandle handle) {
                     return new ReentrantLock();
                 }
             });
@@ -93,7 +90,7 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
     private boolean processMeterOp(MeterOperation meterOp) {
 
         if (meterOp.type() != MeterOperation.Type.MODIFY) {
-            log.warn("P4runtime meter operations must be MODIFY!");
+            log.warn("P4Runtime meter operations must be MODIFY!");
             return false;
         }
 
@@ -106,11 +103,10 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
             return false;
         }
 
-        final PiMeterHandle handle = PiMeterHandle.of(deviceId, piMeterCellConfig);
+        final PiMeterCellHandle handle = PiMeterCellHandle.of(deviceId, piMeterCellConfig);
         ENTRY_LOCKS.getUnchecked(handle).lock();
-        final boolean result = getFutureWithDeadline(
-                client.writeMeterCells(newArrayList(piMeterCellConfig), pipeconf),
-                "writing meter cells", false);
+        final boolean result = client.write(pipeconf)
+                .modify(piMeterCellConfig).submitSync().isSuccess();
         if (result) {
             meterMirror.put(handle, piMeterCellConfig);
         }
@@ -133,13 +129,8 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
             meterIds.add(mode.id());
         }
 
-        try {
-            piMeterCellConfigs = client.readAllMeterCells(meterIds, pipeconf).get();
-        } catch (InterruptedException | ExecutionException e) {
-            log.warn("Exception while reading meters from {}: {}", deviceId, e.toString());
-            log.debug("", e);
-            return CompletableFuture.completedFuture(Collections.emptyList());
-        }
+        piMeterCellConfigs = client.read(pipeconf)
+                .meterCells(meterIds).submitSync().all(PiMeterCellConfig.class);
 
         Collection<Meter> meters = piMeterCellConfigs.stream()
                 .map(p -> {

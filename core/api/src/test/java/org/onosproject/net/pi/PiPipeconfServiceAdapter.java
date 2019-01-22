@@ -49,6 +49,11 @@ public class PiPipeconfServiceAdapter implements PiPipeconfService {
     }
 
     @Override
+    public Optional<PiPipeconf> getPipeconf(DeviceId deviceId) {
+        return Optional.empty();
+    }
+
+    @Override
     public void bindToDevice(PiPipeconfId pipeconfId, DeviceId deviceId) {
 
     }

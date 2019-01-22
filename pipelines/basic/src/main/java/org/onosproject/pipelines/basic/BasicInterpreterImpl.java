@@ -22,6 +22,7 @@ import org.onlab.packet.DeserializationException;
 import org.onlab.packet.Ethernet;
 import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
@@ -38,7 +39,7 @@ import org.onosproject.net.pi.model.PiPipelineInterpreter;
 import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionParam;
-import org.onosproject.net.pi.runtime.PiControlMetadata;
+import org.onosproject.net.pi.runtime.PiPacketMetadata;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
 
 import java.nio.ByteBuffer;
@@ -173,7 +174,7 @@ public class BasicInterpreterImpl extends AbstractHandlerBehaviour
     }
 
     @Override
-    public InboundPacket mapInboundPacket(PiPacketOperation packetIn)
+    public InboundPacket mapInboundPacket(PiPacketOperation packetIn, DeviceId deviceId)
             throws PiInterpreterException {
         // Assuming that the packet is ethernet, which is fine since basic.p4
         // can deparse only ethernet packets.
@@ -186,37 +187,36 @@ public class BasicInterpreterImpl extends AbstractHandlerBehaviour
         }
 
         // Returns the ingress port packet metadata.
-        Optional<PiControlMetadata> packetMetadata = packetIn.metadatas()
+        Optional<PiPacketMetadata> packetMetadata = packetIn.metadatas()
                 .stream().filter(m -> m.id().equals(INGRESS_PORT))
                 .findFirst();
 
         if (packetMetadata.isPresent()) {
             ImmutableByteSequence portByteSequence = packetMetadata.get().value();
             short s = portByteSequence.asReadOnlyBuffer().getShort();
-            ConnectPoint receivedFrom = new ConnectPoint(packetIn.deviceId(), PortNumber.portNumber(s));
+            ConnectPoint receivedFrom = new ConnectPoint(deviceId, PortNumber.portNumber(s));
             ByteBuffer rawData = ByteBuffer.wrap(packetIn.data().asArray());
             return new DefaultInboundPacket(receivedFrom, ethPkt, rawData);
         } else {
             throw new PiInterpreterException(format(
                     "Missing metadata '%s' in packet-in received from '%s': %s",
-                    INGRESS_PORT, packetIn.deviceId(), packetIn));
+                    INGRESS_PORT, deviceId, packetIn));
         }
     }
 
     private PiPacketOperation createPiPacketOperation(ByteBuffer data, long portNumber)
             throws PiInterpreterException {
-        PiControlMetadata metadata = createPacketMetadata(portNumber);
+        PiPacketMetadata metadata = createPacketMetadata(portNumber);
         return PiPacketOperation.builder()
-                .forDevice(this.data().deviceId())
                 .withType(PACKET_OUT)
                 .withData(copyFrom(data))
                 .withMetadatas(ImmutableList.of(metadata))
                 .build();
     }
 
-    private PiControlMetadata createPacketMetadata(long portNumber) throws PiInterpreterException {
+    private PiPacketMetadata createPacketMetadata(long portNumber) throws PiInterpreterException {
         try {
-            return PiControlMetadata.builder()
+            return PiPacketMetadata.builder()
                     .withId(EGRESS_PORT)
                     .withValue(copyFrom(portNumber).fit(PORT_BITWIDTH))
                     .build();

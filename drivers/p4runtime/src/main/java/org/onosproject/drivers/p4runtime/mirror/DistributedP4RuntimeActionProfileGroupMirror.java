@@ -16,10 +16,9 @@
 
 package org.onosproject.drivers.p4runtime.mirror;
 
-import org.onlab.util.KryoNamespace;
 import org.onosproject.net.pi.runtime.PiActionProfileGroup;
 import org.onosproject.net.pi.runtime.PiActionProfileGroupHandle;
-import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.net.pi.runtime.PiEntityType;
 import org.osgi.service.component.annotations.Component;
 
 /**
@@ -31,18 +30,7 @@ public final class DistributedP4RuntimeActionProfileGroupMirror
         <PiActionProfileGroupHandle, PiActionProfileGroup>
         implements P4RuntimeActionProfileGroupMirror {
 
-    private static final String DIST_MAP_NAME = "onos-p4runtime-act-prof-group-mirror";
-
-    @Override
-    String mapName() {
-        return DIST_MAP_NAME;
-    }
-
-    @Override
-    KryoNamespace storeSerializer() {
-        return KryoNamespace.newBuilder()
-                .register(KryoNamespaces.API)
-                .register(TimedEntry.class)
-                .build();
+    public DistributedP4RuntimeActionProfileGroupMirror() {
+        super(PiEntityType.ACTION_PROFILE_GROUP);
     }
 }

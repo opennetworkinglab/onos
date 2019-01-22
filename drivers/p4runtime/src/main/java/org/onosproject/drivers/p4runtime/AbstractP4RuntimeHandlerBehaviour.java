@@ -65,7 +65,7 @@ public class AbstractP4RuntimeHandlerBehaviour extends AbstractHandlerBehaviour 
 
     /**
      * Initializes this behaviour attributes. Returns true if the operation was
-     * successful, false otherwise. This method assumes that the P4runtime
+     * successful, false otherwise. This method assumes that the P4Runtime
      * controller already has a client for this device and that the device has
      * been created in the core.
      *

@@ -16,10 +16,9 @@
 
 package org.onosproject.drivers.p4runtime.mirror;
 
-import org.onlab.util.KryoNamespace;
+import org.onosproject.net.pi.runtime.PiEntityType;
 import org.onosproject.net.pi.runtime.PiMulticastGroupEntry;
 import org.onosproject.net.pi.runtime.PiMulticastGroupEntryHandle;
-import org.onosproject.store.serializers.KryoNamespaces;
 import org.osgi.service.component.annotations.Component;
 
 /**
@@ -31,18 +30,7 @@ public final class DistributedP4RuntimeMulticastGroupMirror
                         <PiMulticastGroupEntryHandle, PiMulticastGroupEntry>
         implements P4RuntimeMulticastGroupMirror {
 
-    private static final String DIST_MAP_NAME = "onos-p4runtime-mc-group-mirror";
-
-    @Override
-    String mapName() {
-        return DIST_MAP_NAME;
-    }
-
-    @Override
-    KryoNamespace storeSerializer() {
-        return KryoNamespace.newBuilder()
-                .register(KryoNamespaces.API)
-                .register(TimedEntry.class)
-                .build();
+    public DistributedP4RuntimeMulticastGroupMirror() {
+        super(PiEntityType.PRE_MULTICAST_GROUP_ENTRY);
     }
 }

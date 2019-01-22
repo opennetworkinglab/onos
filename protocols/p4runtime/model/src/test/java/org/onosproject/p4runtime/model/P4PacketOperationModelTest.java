@@ -19,8 +19,8 @@ package org.onosproject.p4runtime.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;
-import org.onosproject.net.pi.model.PiControlMetadataId;
-import org.onosproject.net.pi.model.PiControlMetadataModel;
+import org.onosproject.net.pi.model.PiPacketMetadataId;
+import org.onosproject.net.pi.model.PiPacketMetadataModel;
 import org.onosproject.net.pi.model.PiPacketOperationType;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 
@@ -32,29 +32,29 @@ public class P4PacketOperationModelTest {
     private static final PiPacketOperationType PI_PACKET_OPERATION_TYPE_1 = PiPacketOperationType.PACKET_IN;
     private static final PiPacketOperationType PI_PACKET_OPERATION_TYPE_2 = PiPacketOperationType.PACKET_OUT;
 
-    private static final PiControlMetadataId PI_CONTROL_METADATA_ID_1 = PiControlMetadataId.of("Metadata1");
-    private static final PiControlMetadataId PI_CONTROL_METADATA_ID_2 = PiControlMetadataId.of("Metadata2");
+    private static final PiPacketMetadataId PI_CONTROL_METADATA_ID_1 = PiPacketMetadataId.of("Metadata1");
+    private static final PiPacketMetadataId PI_CONTROL_METADATA_ID_2 = PiPacketMetadataId.of("Metadata2");
 
     private static final int BIT_WIDTH_1 = 8;
     private static final int BIT_WIDTH_2 = 9;
 
-    private static final PiControlMetadataModel PI_CONTROL_METADATA_MODEL_1 =
-        new P4ControlMetadataModel(PI_CONTROL_METADATA_ID_1, BIT_WIDTH_1);
-    private static final PiControlMetadataModel PI_CONTROL_METADATA_MODEL_2 =
-        new P4ControlMetadataModel(PI_CONTROL_METADATA_ID_2, BIT_WIDTH_2);
+    private static final PiPacketMetadataModel PI_CONTROL_METADATA_MODEL_1 =
+        new P4PacketMetadataModel(PI_CONTROL_METADATA_ID_1, BIT_WIDTH_1);
+    private static final PiPacketMetadataModel PI_CONTROL_METADATA_MODEL_2 =
+        new P4PacketMetadataModel(PI_CONTROL_METADATA_ID_2, BIT_WIDTH_2);
 
-    private static final ImmutableList<PiControlMetadataModel> METADATAS_1 =
-        new ImmutableList.Builder<PiControlMetadataModel>()
+    private static final ImmutableList<PiPacketMetadataModel> METADATAS_1 =
+        new ImmutableList.Builder<PiPacketMetadataModel>()
             .add(PI_CONTROL_METADATA_MODEL_1)
             .build();
 
-    private static final ImmutableList<PiControlMetadataModel> METADATAS_2 =
-        new ImmutableList.Builder<PiControlMetadataModel>()
+    private static final ImmutableList<PiPacketMetadataModel> METADATAS_2 =
+        new ImmutableList.Builder<PiPacketMetadataModel>()
             .add(PI_CONTROL_METADATA_MODEL_2)
             .build();
 
-    private static final ImmutableList<PiControlMetadataModel> METADATAS_3 =
-        new ImmutableList.Builder<PiControlMetadataModel>()
+    private static final ImmutableList<PiPacketMetadataModel> METADATAS_3 =
+        new ImmutableList.Builder<PiPacketMetadataModel>()
             .add(PI_CONTROL_METADATA_MODEL_1)
             .add(PI_CONTROL_METADATA_MODEL_2)
             .build();

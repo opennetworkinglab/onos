@@ -47,9 +47,7 @@ public class P4RuntimePacketProgrammable
             Collection<PiPacketOperation> operations = interpreter.mapOutboundPacket(packet);
             operations.forEach(piPacketOperation -> {
                 log.debug("Doing PiPacketOperation {}", piPacketOperation);
-                getFutureWithDeadline(
-                        client.packetOut(piPacketOperation, pipeconf),
-                        "sending packet-out", false);
+                client.packetOut(piPacketOperation, pipeconf);
             });
         } catch (PiPipelineInterpreter.PiInterpreterException e) {
             log.error("Unable to translate outbound packet for {} with pipeconf {}: {}",

@@ -19,6 +19,7 @@ package org.onosproject.net.pi.runtime;
 import com.google.common.annotations.Beta;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.pi.model.PiData;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -58,6 +59,12 @@ public final class PiRegisterCell implements PiEntity {
     @Override
     public PiEntityType piEntityType() {
         return PiEntityType.REGISTER_CELL;
+    }
+
+    @Override
+    public PiHandle handle(DeviceId deviceId) {
+        // TODO: implement support for register cell handles
+        throw new UnsupportedOperationException("not implemented");
     }
 
     @Override
