@@ -15,6 +15,7 @@ osgi_jar_with_tests(
 )
 
 APPS = [
+    "org.onosproject.config",
     "org.onosproject.yang",
     "org.onosproject.models.tapi",
     "org.onosproject.models.openconfig",
