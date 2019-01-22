@@ -23,7 +23,7 @@ public final class Constants {
     private Constants() {
     }
 
-    public static final String INTEGRATION_BRIDGE = "br-int";
+    public static final String INTEGRATION_BRIDGE = "kbr-int";
     public static final String VXLAN_TUNNEL = "vxlan";
     public static final String GRE_TUNNEL = "gre";
     public static final String GENEVE_TUNNEL = "geneve";

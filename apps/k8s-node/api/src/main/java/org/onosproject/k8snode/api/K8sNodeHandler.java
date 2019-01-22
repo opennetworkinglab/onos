@@ -47,7 +47,7 @@ public interface K8sNodeHandler {
     /**
      * Processes the given node for incomplete state.
      *
-     * @param k8sNode kubernete node
+     * @param k8sNode kubernetes node
      */
     void processIncompleteState(K8sNode k8sNode);
 }
