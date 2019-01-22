@@ -10,7 +10,7 @@ APPS = [
 
 yang_model(
     app_name = "org.onosproject.models.openconfig-odtn",
-    custom_registrator = False,
+    custom_registrator = True,
     required_apps = APPS,
     title = "OpenConfig RD v0.3 YANG Models",
     deps = COMPILE_DEPS,
