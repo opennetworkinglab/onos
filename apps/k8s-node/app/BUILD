@@ -1,5 +1,7 @@
 COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + CLI + REST + [
     "//core/store/serializers:onos-core-serializers",
+    "//protocols/ovsdb/api:onos-protocols-ovsdb-api",
+    "//protocols/ovsdb/rfc:onos-protocols-ovsdb-rfc",
     "//apps/k8s-node/api:onos-apps-k8s-node-api",
 ]
 
@@ -10,6 +12,11 @@ TEST_DEPS = TEST_ADAPTERS + TEST_REST + [
 ]
 
 osgi_jar_with_tests(
+    api_description = "REST API for Kubernetes Node",
+    api_package = "org.onosproject.k8snode.web",
+    api_title = "Kubernetes Node API",
+    api_version = "1.0",
     test_deps = TEST_DEPS,
+    web_context = "/onos/k8snode",
     deps = COMPILE_DEPS,
 )
