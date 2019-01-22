@@ -17,6 +17,7 @@
 package org.onosproject.odtn.cli.impl;
 
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.util.XmlString;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.config.DynamicConfigService;
@@ -61,10 +62,12 @@ import java.util.regex.Pattern;
 import static org.onosproject.odtn.utils.YangToolUtil.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
-@Command(scope = "onos", name = "odtn-tapi-handlers-test")
+@Service
+@Command(scope = "onos", name = "odtn-tapi-handlers-test",
+         description = "TAPI Handlers test command")
 public class OdtnTapiHandlersTestCommand extends AbstractShellCommand {
 
-    private static final Logger log = getLogger(OdtnDcsModelCheckCommand.class);
+    private static final Logger log = getLogger(OdtnTapiHandlersTestCommand.class);
     private DynamicConfigService dcs;
     private ModelConverter modelConverter;
     private TapiContextHandler contextHandler;
@@ -82,15 +85,15 @@ public class OdtnTapiHandlersTestCommand extends AbstractShellCommand {
         StringBuilder exp = loadXml("/test-tapi-context.xml");
 
         if (XmlString.prettifyXml(strNode).toString().contentEquals(exp)) {
-            log.info("result: ok");
+            printlog("result: ok");
         } else {
-            log.info("result: failed");
+            printlog("result: failed");
         }
     }
 
     private void printlog(String format, Object... objs) {
         print(format.replaceAll(Pattern.quote("{}"), "%s"), objs);
-        log.info(format, objs);
+        log.debug(format, objs);
     }
 
     private static StringBuilder loadXml(final String fileName) {

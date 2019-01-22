@@ -23,11 +23,15 @@ import com.google.common.collect.ImmutableMap;
 import org.onosproject.yang.AbstractYangModelRegistrator;
 import org.onosproject.yang.gen.v1.tapicommon.rev20181210.TapiCommon;
 import org.onosproject.yang.gen.v1.tapiconnectivity.rev20181210.TapiConnectivity;
+import org.onosproject.yang.gen.v1.tapidsr.rev20181210.TapiDsr;
+import org.onosproject.yang.gen.v1.tapieth.rev20181210.TapiEth;
+import org.onosproject.yang.gen.v1.tapinotification.rev20181210.TapiNotification;
 import org.onosproject.yang.gen.v1.tapioam.rev20181210.TapiOam;
 import org.onosproject.yang.gen.v1.tapiodu.rev20181210.TapiOdu;
 import org.onosproject.yang.gen.v1.tapipathcomputation.rev20181210.TapiPathComputation;
 import org.onosproject.yang.gen.v1.tapiphotonicmedia.rev20181210.TapiPhotonicMedia;
 import org.onosproject.yang.gen.v1.tapitopology.rev20181210.TapiTopology;
+import org.onosproject.yang.gen.v1.tapivirtualnetwork.rev20181210.TapiVirtualNetwork;
 import org.onosproject.yang.model.DefaultYangModuleId;
 import org.onosproject.yang.model.YangModuleId;
 import org.onosproject.yang.runtime.AppModuleInfo;
@@ -72,6 +76,18 @@ public class TapiModelRegistrator extends AbstractYangModelRegistrator {
 
         appInfo.put(new DefaultYangModuleId("tapi-path-computation", "2018-12-10"),
                 new DefaultAppModuleInfo(TapiPathComputation.class, null));
+
+        appInfo.put(new DefaultYangModuleId("tapi-notification", "2018-12-10"),
+                new DefaultAppModuleInfo(TapiNotification.class, null));
+
+        appInfo.put(new DefaultYangModuleId("tapi-virtual-network", "2018-12-10"),
+                new DefaultAppModuleInfo(TapiVirtualNetwork.class, null));
+
+        appInfo.put(new DefaultYangModuleId("tapi-dsr", "2018-12-10"),
+                new DefaultAppModuleInfo(TapiDsr.class, null));
+
+        appInfo.put(new DefaultYangModuleId("tapi-eth", "2018-12-10"),
+                new DefaultAppModuleInfo(TapiEth.class, null));
 
         return ImmutableMap.copyOf(appInfo);
     }
