@@ -42,6 +42,10 @@ public class SegmentRoutingNeighbourDispatcher implements NeighbourMessageHandle
 
     @Override
     public void handleMessage(NeighbourMessageContext context, HostService hostService) {
+        manager.neighborExecutor.execute(() -> handleMessageInternal(context, hostService));
+    }
+
+    private void handleMessageInternal(NeighbourMessageContext context, HostService hostService) {
         log.trace("Received {} packet on {}: {}", context.protocol(),
                   context.inPort(), context.packet());
         switch (context.protocol()) {
