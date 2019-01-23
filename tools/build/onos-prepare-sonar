@@ -68,8 +68,14 @@ def find_bazel_project():
 
 
 def find_bazel_classes_directory(module_name, path):
-    return os.getcwd() + "/bazel-out/darwin-fastbuild/bin/" + path + \
-           "/_javac/" + module_name + "-native/lib" + module_name + "-native-class_classes"
+    bazel_bin_marker = "bazel-bin:"
+    bazel_bin_dir = ""
+    info = run_command(["bazel", "info"])
+    for bin_dir in info:
+        if bin_dir.startswith(bazel_bin_marker):
+            bazel_bin_dir = bin_dir.replace(bazel_bin_marker, "")
+            break
+    return bazel_bin_dir
 
 
 def capture_surefire_reports(module_path):
