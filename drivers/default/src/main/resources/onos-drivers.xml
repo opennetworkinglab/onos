@@ -158,7 +158,7 @@
             manufacturer="ONF"
             hwVersion="OFDPA OVS" swVersion="OFDPA OVS">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
-                   impl="org.onosproject.driver.pipeline.ofdpa.OvsOfdpa2Pipeline"/>
+                   impl="org.onosproject.driver.pipeline.ofdpa.OvsOfdpaPipeline"/>
         <behaviour api="org.onosproject.openflow.controller.ExtensionSelectorInterpreter"
                    impl="org.onosproject.driver.extensions.OvsOfdpaExtensionSelectorInterpreter" />
     </driver>
@@ -243,54 +243,6 @@
         <behaviour api="org.onosproject.net.behaviour.MeterQuery"
                    impl="org.onosproject.driver.query.FullMetersAvailable"/>
     </driver>
-
-    <!-- Deprecated CpqD drivers. CORD-1625 -->
-
-    <!-- Emulation of the spring-open pipeline using a CPqD OF 1.3 software switch.
-       ~ This driver is the default driver assigned to the CPqD switch.
-      -->
-    <driver name="spring-open-cpqd" extends="default"
-            manufacturer="Stanford University, Ericsson Research and CPqD Research"
-            hwVersion="OpenFlow 1.3 Reference Userspace Switch" swVersion=".*">
-        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
-                   impl="org.onosproject.driver.pipeline.SpringOpenTTP"/>
-    </driver>
-    <driver name="spring-open" extends="default"
-            manufacturer="Dell " hwVersion="OpenFlow switch HW ver. 1.0"
-            swVersion="OpenFlow switch SW ver. 1.0 and 1.3">
-        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
-                   impl="org.onosproject.driver.pipeline.SpringOpenTTPDell"/>
-    </driver>
-
-    <!-- Emulation of the OFDPA pipeline using a CPqD OF 1.3 software switch.
-       ~ Use this driver when MPLS functionality is required.
-       ~ To use this driver, configure ONOS with the dpid of the device.
-      -->
-    <driver name="ofdpa-cpqd" extends="default"
-            manufacturer="ONF"
-            hwVersion="OF1.3 Software Switch from CPqD" swVersion="for Group Chaining">
-        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
-                   impl="org.onosproject.driver.pipeline.ofdpa.CpqdOfdpa2Pipeline"/>
-    </driver>
-
-    <!-- Emulation of the OFDPA pipeline using a CPqD OF 1.3 software switch.
-       ~ Use this driver when VLAN functionality is required.
-       ~ To use this driver, configure ONOS with the dpid of the device.
-      -->
-    <driver name="ofdpa-cpqd-vlan" extends="default"
-            manufacturer="ONF"
-            hwVersion="OF1.3 Software Switch from CPqD" swVersion="for Group Chaining">
-        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
-                   impl="org.onosproject.driver.pipeline.ofdpa.CpqdOfdpa2VlanPipeline"/>
-    </driver>
-
-      <!-- The following is a demo-specific driver with very limited pipeline capabilities
-    <driver name="centec-V350" extends="default"
-            manufacturer=".*Centec.*" hwVersion=".*" swVersion="3.1.*">
-        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
-                   impl="org.onosproject.driver.pipeline.CentecV350Pipeline"/>
-    </driver>
-    -->
 
     <driver name="Arista" extends="default"
             manufacturer="Arista.*" hwVersion="DCS.*" swVersion=".*">
