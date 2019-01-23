@@ -47,10 +47,25 @@ import static org.onosproject.driver.pipeline.ofdpa.OfdpaGroupHandlerUtility.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Group handler for CpqD OFDPA pipeline.
+ * Group handler for Open vSwitch OFDPA pipeline.
  */
-public class CpqdOfdpa2GroupHandler extends Ofdpa2GroupHandler {
+public class OvsOfdpaGroupHandler extends Ofdpa2GroupHandler {
     private final Logger log = getLogger(getClass());
+
+    @Override
+    protected boolean supportCopyTtl() {
+        return false;
+    }
+
+    @Override
+    protected boolean supportSetMplsBos() {
+        return false;
+    }
+
+    @Override
+    protected boolean requireVlanPopBeforeMplsPush() {
+        return true;
+    }
 
     @Override
     protected GroupInfo createL2L3Chain(TrafficTreatment treatment, int nextId,
@@ -218,7 +233,7 @@ public class CpqdOfdpa2GroupHandler extends Ofdpa2GroupHandler {
 
     /**
      * In OFDPA2 we do not support the MPLS-ECMP, while we do in
-     * CPQD implementation.
+     * Open vSwitch implementation.
      *
      * @param nextObjective the hashed next objective to support.
      */
