@@ -323,6 +323,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private ScheduledExecutorService routeEventExecutor;
     private ScheduledExecutorService mcastEventExecutor;
     private ExecutorService packetExecutor;
+    ExecutorService neighborExecutor;
 
     Map<DeviceId, DefaultGroupHandler> groupHandlerMap = new ConcurrentHashMap<>();
     /**
@@ -407,6 +408,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     public static final int MIN_DUMMY_VLAN_ID = 2;
     public static final int MAX_DUMMY_VLAN_ID = 4093;
 
+    private static final int DEFAULT_POOL_SIZE = 32;
+
     Instant lastEdgePortEvent = Instant.EPOCH;
 
     protected void bindXconnectService(XconnectService xconnectService) {
@@ -431,11 +434,17 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     protected void activate(ComponentContext context) {
         appId = coreService.registerApplication(APP_NAME);
 
-        mainEventExecutor = Executors.newSingleThreadScheduledExecutor(groupedThreads("sr-event-main", "%d", log));
-        hostEventExecutor = Executors.newSingleThreadScheduledExecutor(groupedThreads("sr-event-host", "%d", log));
-        routeEventExecutor = Executors.newSingleThreadScheduledExecutor(groupedThreads("sr-event-route", "%d", log));
-        mcastEventExecutor = Executors.newSingleThreadScheduledExecutor(groupedThreads("sr-event-mcast", "%d", log));
-        packetExecutor = Executors.newSingleThreadExecutor(groupedThreads("sr-packet", "%d", log));
+        mainEventExecutor = Executors.newSingleThreadScheduledExecutor(
+                groupedThreads("onos/sr", "event-main-%d", log));
+        hostEventExecutor = Executors.newSingleThreadScheduledExecutor(
+                groupedThreads("onos/sr", "event-host-%d", log));
+        routeEventExecutor = Executors.newSingleThreadScheduledExecutor(
+                groupedThreads("onos/sr", "event-route-%d", log));
+        mcastEventExecutor = Executors.newSingleThreadScheduledExecutor(
+                groupedThreads("onos/sr", "event-mcast-%d", log));
+        packetExecutor = Executors.newSingleThreadExecutor(groupedThreads("onos/sr", "packet-%d", log));
+        neighborExecutor = Executors.newFixedThreadPool(DEFAULT_POOL_SIZE,
+                groupedThreads("onos/sr", "neighbor-%d", log));
 
         log.debug("Creating EC map nsnextobjectivestore");
         EventuallyConsistentMapBuilder<DestinationSetNextObjectiveStoreKey, NextNeighbors>
@@ -598,12 +607,14 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         routeEventExecutor.shutdown();
         mcastEventExecutor.shutdown();
         packetExecutor.shutdown();
+        neighborExecutor.shutdown();
 
         mainEventExecutor = null;
         hostEventExecutor = null;
         routeEventExecutor = null;
         mcastEventExecutor = null;
         packetExecutor = null;
+        neighborExecutor = null;
 
         cfgService.removeListener(cfgListener);
         cfgService.unregisterConfigFactory(deviceConfigFactory);
