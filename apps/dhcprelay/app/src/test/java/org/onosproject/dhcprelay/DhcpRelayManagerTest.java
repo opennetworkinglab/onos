@@ -104,9 +104,6 @@ import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketServiceAdapter;
 import org.onosproject.store.StoreDelegate;
 
-
-
-
 import org.osgi.service.component.ComponentContext;
 import org.onlab.packet.DHCP6;
 import org.onlab.packet.IPv6;
@@ -129,6 +126,7 @@ import static org.onosproject.dhcprelay.DhcpRelayManager.DHCP_RELAY_APP;
 
 public class DhcpRelayManagerTest {
     private static final int EVENT_PROCESSING_MS = 1000;
+    private static final int PKT_PROCESSING_MS = 500;
     private static final short VLAN_LEN = 2;
     private static final short SEPARATOR_LEN = 1;
     private static final String CONFIG_FILE_PATH = "dhcp-relay.json";
@@ -399,7 +397,7 @@ public class DhcpRelayManagerTest {
         verify(mockHostProviderService);
         reset(mockHostProviderService);
 
-        assertEquals(0, mockRouteStore.routes.size());
+        assertAfter(PKT_PROCESSING_MS, () -> assertEquals(0, mockRouteStore.routes.size()));
 
         HostId expectHostId = HostId.hostId(CLIENT_MAC, CLIENT_VLAN);
         Capture<HostDescription> capturedHostDesc = newCapture();
@@ -409,15 +407,15 @@ public class DhcpRelayManagerTest {
         packetService.processPacket(new TestDhcpAckPacketContext(CLIENT_CP, CLIENT_MAC,
                                                                  CLIENT_VLAN, INTERFACE_IP.ipAddress().getIp4Address(),
                                                                  false));
-        verify(mockHostProviderService);
-        assertEquals(0, mockRouteStore.routes.size());
+        assertAfter(PKT_PROCESSING_MS, () -> verify(mockHostProviderService));
+        assertAfter(PKT_PROCESSING_MS, () -> assertEquals(0, mockRouteStore.routes.size()));
 
         HostDescription host = capturedHostDesc.getValue();
-        assertEquals(false, host.configured());
-        assertEquals(CLIENT_CP.deviceId(), host.location().elementId());
-        assertEquals(CLIENT_CP.port(), host.location().port());
-        assertEquals(1, host.ipAddress().size());
-        assertEquals(IP_FOR_CLIENT, host.ipAddress().iterator().next());
+        assertAfter(PKT_PROCESSING_MS, () -> assertFalse(host.configured()));
+        assertAfter(PKT_PROCESSING_MS, () -> assertEquals(CLIENT_CP.deviceId(), host.location().elementId()));
+        assertAfter(PKT_PROCESSING_MS, () -> assertEquals(CLIENT_CP.port(), host.location().port()));
+        assertAfter(PKT_PROCESSING_MS, () -> assertEquals(1, host.ipAddress().size()));
+        assertAfter(PKT_PROCESSING_MS, () -> assertEquals(IP_FOR_CLIENT, host.ipAddress().iterator().next()));
     }
 
     /**
@@ -429,12 +427,16 @@ public class DhcpRelayManagerTest {
         // Assume outer dhcp relay agent exists in store already
         // send request
         packetService.processPacket(new TestDhcpRequestPacketContext(CLIENT2_MAC,
-                                                                     CLIENT2_VLAN,
-                                                                     CLIENT2_CP,
-                                                                     INTERFACE_IP.ipAddress().getIp4Address(),
-                                                                     true));
+                CLIENT2_VLAN,
+                CLIENT2_CP,
+                INTERFACE_IP.ipAddress().getIp4Address(),
+                true));
         // No routes
         assertEquals(0, mockRouteStore.routes.size());
+
+        // Make sure the REQUEST packet has been processed before start sending ACK
+        assertAfter(PKT_PROCESSING_MS, () -> assertNotNull(packetService.emittedPacket));
+
         // send ack
         packetService.processPacket(new TestDhcpAckPacketContext(CLIENT2_CP,
                                                                  CLIENT2_MAC,
@@ -445,13 +447,12 @@ public class DhcpRelayManagerTest {
         // won't trigger the host provider service
         verify(mockHostProviderService);
         reset(mockHostProviderService);
-
-        assertEquals(1, mockRouteStore.routes.size());
+        assertAfter(PKT_PROCESSING_MS, () -> assertEquals(1, mockRouteStore.routes.size()));
 
         Route route = mockRouteStore.routes.get(0);
-        assertEquals(OUTER_RELAY_IP, route.nextHop());
-        assertEquals(IP_FOR_CLIENT.toIpPrefix(), route.prefix());
-        assertEquals(Route.Source.DHCP, route.source());
+        assertAfter(PKT_PROCESSING_MS, () -> assertEquals(OUTER_RELAY_IP, route.nextHop()));
+        assertAfter(PKT_PROCESSING_MS, () -> assertEquals(IP_FOR_CLIENT.toIpPrefix(), route.prefix()));
+        assertAfter(PKT_PROCESSING_MS, () -> assertEquals(Route.Source.DHCP, route.source()));
     }
 
     @Test
@@ -465,25 +466,28 @@ public class DhcpRelayManagerTest {
                                                                      CLIENT2_CP,
                                                                      INTERFACE_IP.ipAddress().getIp4Address(),
                                                                      true));
+        assertAfter(PKT_PROCESSING_MS, () -> assertNotNull(packetService.emittedPacket));
         OutboundPacket outPacket = packetService.emittedPacket;
         byte[] outData = outPacket.data().array();
         Ethernet eth = Ethernet.deserializer().deserialize(outData, 0, outData.length);
         IPv4 ip = (IPv4) eth.getPayload();
         UDP udp = (UDP) ip.getPayload();
         DHCP dhcp = (DHCP) udp.getPayload();
-        assertEquals(RELAY_AGENT_IP.toInt(), dhcp.getGatewayIPAddress());
+        assertAfter(PKT_PROCESSING_MS, () -> assertEquals(RELAY_AGENT_IP.toInt(), dhcp.getGatewayIPAddress()));
     }
 
     @Test
     public void testArpRequest() throws Exception {
         packetService.processPacket(new TestArpRequestPacketContext(CLIENT_INTERFACE));
+        assertAfter(PKT_PROCESSING_MS, () -> assertNotNull(packetService.emittedPacket));
         OutboundPacket outboundPacket = packetService.emittedPacket;
         byte[] outPacketData = outboundPacket.data().array();
         Ethernet eth = Ethernet.deserializer().deserialize(outPacketData, 0, outPacketData.length);
 
-        assertEquals(eth.getEtherType(), Ethernet.TYPE_ARP);
+        assertAfter(PKT_PROCESSING_MS, () -> assertEquals(eth.getEtherType(), Ethernet.TYPE_ARP));
         ARP arp = (ARP) eth.getPayload();
-        assertArrayEquals(arp.getSenderHardwareAddress(), CLIENT_INTERFACE.mac().toBytes());
+        assertAfter(PKT_PROCESSING_MS, () ->
+                assertArrayEquals(arp.getSenderHardwareAddress(), CLIENT_INTERFACE.mac().toBytes()));
     }
 
     /**
@@ -665,7 +669,7 @@ public class DhcpRelayManagerTest {
 
         verify(mockHostProviderService);
         reset(mockHostProviderService);
-        assertEquals(0, mockRouteStore.routes.size());
+        assertAfter(PKT_PROCESSING_MS, () -> assertEquals(0, mockRouteStore.routes.size()));
 
         Capture<HostDescription> capturedHostDesc = newCapture();
         mockHostProviderService.hostDetected(eq(HostId.hostId(CLIENT_MAC, CLIENT_VLAN)),
@@ -677,15 +681,15 @@ public class DhcpRelayManagerTest {
                                                                     CLIENT_VLAN,
                                                                     INTERFACE_IP_V6.ipAddress().getIp6Address(),
                                                                     0, false, CLIENT_VLAN));
-        verify(mockHostProviderService);
-        assertEquals(0, mockRouteStore.routes.size());
+        assertAfter(PKT_PROCESSING_MS, () -> verify(mockHostProviderService));
+        assertAfter(PKT_PROCESSING_MS, () -> assertEquals(0, mockRouteStore.routes.size()));
 
         HostDescription host = capturedHostDesc.getValue();
-        assertEquals(CLIENT_VLAN, host.vlan());
-        assertEquals(CLIENT_CP.deviceId(), host.location().elementId());
-        assertEquals(CLIENT_CP.port(), host.location().port());
-        assertEquals(1, host.ipAddress().size());
-        assertEquals(IP_FOR_CLIENT_V6, host.ipAddress().iterator().next());
+        assertAfter(PKT_PROCESSING_MS, () -> assertEquals(CLIENT_VLAN, host.vlan()));
+        assertAfter(PKT_PROCESSING_MS, () -> assertEquals(CLIENT_CP.deviceId(), host.location().elementId()));
+        assertAfter(PKT_PROCESSING_MS, () -> assertEquals(CLIENT_CP.port(), host.location().port()));
+        assertAfter(PKT_PROCESSING_MS, () -> assertEquals(1, host.ipAddress().size()));
+        assertAfter(PKT_PROCESSING_MS, () -> assertEquals(IP_FOR_CLIENT_V6, host.ipAddress().iterator().next()));
 
         // send release
         packetService.processPacket(new TestDhcp6RequestPacketContext(DHCP6.MsgType.RELEASE.value(),
@@ -695,7 +699,8 @@ public class DhcpRelayManagerTest {
                 INTERFACE_IP_V6.ipAddress().getIp6Address(),
                 0));
 
-        assertEquals(null, manager.hostService.getHost(HostId.hostId(CLIENT_MAC, CLIENT_VLAN)));
+        assertAfter(PKT_PROCESSING_MS,
+                () -> assertNull(manager.hostService.getHost(HostId.hostId(CLIENT_MAC, CLIENT_VLAN))));
     }
 
     /**
@@ -715,6 +720,9 @@ public class DhcpRelayManagerTest {
 
         assertEquals(0, mockRouteStore.routes.size());
 
+        // Make sure the REQUEST packet has been processed before start sending ACK
+        assertAfter(PKT_PROCESSING_MS, () -> assertNotNull(packetService.emittedPacket));
+
         // send reply
         packetService.processPacket(new TestDhcp6ReplyPacketContext(DHCP6.MsgType.REPLY.value(), CLIENT2_CP,
                 CLIENT2_MAC,
@@ -725,19 +733,13 @@ public class DhcpRelayManagerTest {
         // won't trigger the host provider service
         verify(mockHostProviderService);
         reset(mockHostProviderService);
-        assertEquals(2, mockRouteStore.routes.size()); // ipAddress and prefix
+        assertAfter(PKT_PROCESSING_MS, () -> assertEquals(2, mockRouteStore.routes.size())); // ipAddress and prefix
 
-        Route aRoute = mockRouteStore.routes.stream()
-                             .filter(rt -> rt.prefix().contains(IP_FOR_CLIENT_V6))
-                             .findFirst()
-                             .orElse(null);
-        assertNotEquals(null, aRoute);
+        assertAfter(PKT_PROCESSING_MS, () ->
+                assertTrue(mockRouteStore.routes.stream().anyMatch(rt -> rt.prefix().contains(IP_FOR_CLIENT_V6))));
 
-        aRoute = mockRouteStore.routes.stream()
-                .filter(rt -> rt.prefix().contains(PREFIX_FOR_CLIENT_V6))
-                .findFirst()
-                .orElse(null);
-        assertNotEquals(null, aRoute);
+        assertAfter(PKT_PROCESSING_MS, () ->
+                assertTrue(mockRouteStore.routes.stream().anyMatch(rt -> rt.prefix().contains(PREFIX_FOR_CLIENT_V6))));
 
         // send release msg
         packetService.processPacket(new TestDhcp6RequestPacketContext(DHCP6.MsgType.RELEASE.value(),
@@ -746,20 +748,13 @@ public class DhcpRelayManagerTest {
                 CLIENT2_CP,
                 OUTER_RELAY_IP_V6,
                 1));
+        assertAfter(PKT_PROCESSING_MS, () ->
+                assertFalse(mockRouteStore.routes.stream().anyMatch(rt -> rt.prefix().contains(IP_FOR_CLIENT_V6))));
 
-        aRoute = mockRouteStore.routes.stream()
-                .filter(rt -> rt.prefix().contains(IP_FOR_CLIENT_V6))
-                .findFirst()
-                .orElse(null);
-        assertEquals(null, aRoute);
+        assertAfter(PKT_PROCESSING_MS, () ->
+                assertFalse(mockRouteStore.routes.stream().anyMatch(rt -> rt.prefix().contains(PREFIX_FOR_CLIENT_V6))));
 
-        aRoute = mockRouteStore.routes.stream()
-                .filter(rt -> rt.prefix().contains(PREFIX_FOR_CLIENT_V6))
-                .findFirst()
-                .orElse(null);
-        assertEquals(null, aRoute);
-
-        assertEquals(0, mockRouteStore.routes.size());
+        assertAfter(PKT_PROCESSING_MS, () -> assertEquals(0, mockRouteStore.routes.size()));
 
     }
 
@@ -779,7 +774,7 @@ public class DhcpRelayManagerTest {
                 INTERFACE_IP_V6.ipAddress().getIp6Address(),
                 1));
 
-        assertEquals(0, mockRouteStore.routes.size());
+        assertAfter(PKT_PROCESSING_MS, () -> assertEquals(0, mockRouteStore.routes.size()));
 
         // send reply
         packetService.processPacket(new TestDhcp6ReplyPacketContext(DHCP6.MsgType.REPLY.value(),
@@ -794,7 +789,7 @@ public class DhcpRelayManagerTest {
         // won't trigger the host provider service
         verify(mockHostProviderService);
         reset(mockHostProviderService);
-        assertEquals(0, mockRouteStore.routes.size()); // ipAddress and prefix
+        assertAfter(PKT_PROCESSING_MS, () -> assertEquals(0, mockRouteStore.routes.size())); // ipAddress and prefix
 
     }
 
@@ -811,13 +806,15 @@ public class DhcpRelayManagerTest {
         mockHostProviderService.hostDetected(eq(CLIENT_HOST_ID), capture(capturedHostDesc), eq(false));
         replay(mockHostProviderService, manager.hostService);
         packetService.processPacket(packetContext);
-        verify(mockHostProviderService);
+        assertAfter(PKT_PROCESSING_MS, () -> verify(mockHostProviderService));
 
+        assertAfter(PKT_PROCESSING_MS, () -> assertTrue(capturedHostDesc.hasCaptured()));
         HostDescription hostDesc = capturedHostDesc.getValue();
         Set<HostLocation> hostLocations = hostDesc.locations();
-        assertEquals(2, hostLocations.size());
-        assertTrue(hostLocations.contains(CLIENT_LOCATION));
-        assertTrue(hostLocations.contains(CLIENT_DH_LOCATION));
+
+        assertAfter(PKT_PROCESSING_MS, () -> assertEquals(2, hostLocations.size()));
+        assertAfter(PKT_PROCESSING_MS, () -> assertTrue(hostLocations.contains(CLIENT_LOCATION)));
+        assertAfter(PKT_PROCESSING_MS, () -> assertTrue(hostLocations.contains(CLIENT_DH_LOCATION)));
     }
 
     @Test
@@ -848,13 +845,14 @@ public class DhcpRelayManagerTest {
         expectLastCall().anyTimes();
         replay(mockHostProviderService, manager.hostService);
         packetService.processPacket(packetContext);
-        verify(mockHostProviderService);
+        assertAfter(PKT_PROCESSING_MS, () -> verify(mockHostProviderService));
 
+        assertAfter(PKT_PROCESSING_MS, () -> assertTrue(capturedHostDesc.hasCaptured()));
         HostDescription hostDesc = capturedHostDesc.getValue();
         Set<HostLocation> hostLocations = hostDesc.locations();
-        assertEquals(2, hostLocations.size());
-        assertTrue(hostLocations.contains(CLIENT_LOCATION));
-        assertTrue(hostLocations.contains(CLIENT_DH_LOCATION));
+        assertAfter(PKT_PROCESSING_MS, () -> assertEquals(2, hostLocations.size()));
+        assertAfter(PKT_PROCESSING_MS, () -> assertTrue(hostLocations.contains(CLIENT_LOCATION)));
+        assertAfter(PKT_PROCESSING_MS, () -> assertTrue(hostLocations.contains(CLIENT_DH_LOCATION)));
     }
 
     private static class MockDefaultDhcpRelayConfig extends DefaultDhcpRelayConfig {
@@ -939,6 +937,7 @@ public class DhcpRelayManagerTest {
             routes.remove(route);
         }
 
+        @Override
         public void replaceRoute(Route route) {
             routes.remove(route);
             routes.add(route);
