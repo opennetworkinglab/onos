@@ -296,6 +296,10 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         return true;
     }
 
+    protected boolean requirePuntTable() {
+        return false;
+    }
+
     //////////////////////////////////////
     //  Flow Objectives
     //////////////////////////////////////
@@ -1167,6 +1171,30 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             return Collections.emptySet();
         }
 
+        TrafficSelector.Builder sbuilder = versatileSelectorBuilder(fwd);
+        TrafficTreatment.Builder ttBuilder = versatileTreatmentBuilder(fwd);
+        if (ttBuilder == null) {
+            return Collections.emptySet();
+        }
+
+        FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
+                .fromApp(fwd.appId())
+                .withPriority(fwd.priority())
+                .forDevice(deviceId)
+                .withSelector(sbuilder.build())
+                .withTreatment(ttBuilder.build())
+                .makePermanent()
+                .forTable(ACL_TABLE);
+        return Collections.singletonList(ruleBuilder.build());
+    }
+
+    /**
+     * Helper function to create traffic selector builder for versatile forwarding objectives.
+     *
+     * @param fwd original forwarding objective
+     * @return selector builder for the flow rule
+     */
+    protected TrafficSelector.Builder versatileSelectorBuilder(ForwardingObjective fwd) {
         TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
         fwd.selector().criteria().forEach(criterion -> {
             if (criterion instanceof VlanIdCriterion) {
@@ -1210,7 +1238,16 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 sbuilder.add(criterion);
             }
         });
+        return sbuilder;
+    }
 
+    /**
+     * Helper function to create traffic treatment builder for versatile forwarding objectives.
+     *
+     * @param fwd original forwarding objective
+     * @return treatment builder for the flow rule, or null if there is an error.
+     */
+    protected TrafficTreatment.Builder versatileTreatmentBuilder(ForwardingObjective fwd) {
         // XXX driver does not currently do type checking as per Tables 65-67 in
         // OFDPA 2.0 spec. The only allowed treatment is a punt to the controller.
         TrafficTreatment.Builder ttBuilder = DefaultTrafficTreatment.builder();
@@ -1235,33 +1272,24 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             }
         }
         if (fwd.nextId() != null) {
-            // overide case
+            // Override case
             NextGroup next = getGroupForNextObjective(fwd.nextId());
             if (next == null) {
                 fail(fwd, ObjectiveError.BADPARAMS);
-                return Collections.emptySet();
+                return null;
             }
             List<Deque<GroupKey>> gkeys = appKryo.deserialize(next.data());
             // we only need the top level group's key to point the flow to it
             Group group = groupService.getGroup(deviceId, gkeys.get(0).peekFirst());
             if (group == null) {
                 log.warn("Group with key:{} for next-id:{} not found in dev:{}",
-                         gkeys.get(0).peekFirst(), fwd.nextId(), deviceId);
+                        gkeys.get(0).peekFirst(), fwd.nextId(), deviceId);
                 fail(fwd, ObjectiveError.GROUPMISSING);
-                return Collections.emptySet();
+                return null;
             }
             ttBuilder.deferred().group(group.id());
         }
-
-        FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
-                .fromApp(fwd.appId())
-                .withPriority(fwd.priority())
-                .forDevice(deviceId)
-                .withSelector(sbuilder.build())
-                .withTreatment(ttBuilder.build())
-                .makePermanent()
-                .forTable(ACL_TABLE);
-        return Collections.singletonList(ruleBuilder.build());
+        return ttBuilder;
     }
 
     /**
