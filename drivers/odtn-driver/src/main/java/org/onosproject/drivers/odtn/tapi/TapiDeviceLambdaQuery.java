@@ -85,10 +85,12 @@ public class TapiDeviceLambdaQuery extends AbstractHandlerBehaviour
         Device dev = deviceService.getDevice(deviceId);
         if (dev == null) {
             log.error("Device {} does not exist", deviceId);
+            return ImmutableSet.of();
         }
         Port p = deviceService.getPort(dev.id(), port);
         if (p == null) {
             log.error("Port {} does not exist", port);
+            return ImmutableSet.of();
         }
         String uuid = p.annotations().value(port.toString());
 
