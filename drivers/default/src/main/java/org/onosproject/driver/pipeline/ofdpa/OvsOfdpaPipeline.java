@@ -1296,7 +1296,7 @@ public class OvsOfdpaPipeline extends Ofdpa2Pipeline {
                 // this can happen outside of the lock but I think it is safer
                 // to include it here.
                 Group group = groupService.getGroup(deviceId, popVlanPuntGroupKey());
-                if (group != null) {
+                if (group != null && group.state() == Group.GroupState.ADDED) {
                     log.debug("PopVlanPuntGroupChecker: Installing {} missing rules at punt table.",
                               flowRuleQueue.size());
 
