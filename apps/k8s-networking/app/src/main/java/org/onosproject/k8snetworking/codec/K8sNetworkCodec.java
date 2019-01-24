@@ -35,6 +35,7 @@ public final class K8sNetworkCodec extends JsonCodec<K8sNetwork> {
     private final Logger log = getLogger(getClass());
 
     private static final String NETWORK_ID = "networkId";
+    private static final String NAME = "name";
     private static final String TYPE = "type";
     private static final String MTU = "mtu";
     private static final String SEGMENT_ID = "segmentId";
@@ -49,6 +50,7 @@ public final class K8sNetworkCodec extends JsonCodec<K8sNetwork> {
 
         ObjectNode result = context.mapper().createObjectNode()
                 .put(NETWORK_ID, network.networkId())
+                .put(NAME, network.name())
                 .put(TYPE, network.type().name())
                 .put(SEGMENT_ID, network.segmentId())
                 .put(GATEWAY_IP, network.gatewayIp().toString())
@@ -69,6 +71,8 @@ public final class K8sNetworkCodec extends JsonCodec<K8sNetwork> {
 
         String networkId = nullIsIllegal(json.get(NETWORK_ID).asText(),
                 NETWORK_ID + MISSING_MESSAGE);
+        String name = nullIsIllegal(json.get(NAME).asText(),
+                NAME + MISSING_MESSAGE);
         String type = nullIsIllegal(json.get(TYPE).asText(),
                 TYPE + MISSING_MESSAGE);
         String segmentId = nullIsIllegal(json.get(SEGMENT_ID).asText(),
@@ -80,6 +84,7 @@ public final class K8sNetworkCodec extends JsonCodec<K8sNetwork> {
 
         DefaultK8sNetwork.Builder networkBuilder = DefaultK8sNetwork.builder()
                 .networkId(networkId)
+                .name(name)
                 .type(K8sNetwork.Type.valueOf(type))
                 .segmentId(segmentId)
                 .gatewayIp(IpAddress.valueOf(gatewayIp))

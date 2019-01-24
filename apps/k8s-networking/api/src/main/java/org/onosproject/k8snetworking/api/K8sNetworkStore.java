@@ -62,7 +62,44 @@ public interface K8sNetworkStore extends Store<K8sNetworkEvent, K8sNetworkStoreD
     Set<K8sNetwork> networks();
 
     /**
-     * Removes all kubernetes networks.
+     * Creates a new kubernetes port.
+     *
+     * @param port kubernetes port
+     */
+    void createPort(K8sPort port);
+
+    /**
+     * Update the kubernetes port.
+     *
+     * @param port kubernetes port
+     */
+    void updatePort(K8sPort port);
+
+    /**
+     * Removes the kubernetes port with the given port identifier.
+     *
+     * @param portId port identifier
+     * @return port; null if not found
+     */
+    K8sPort removePort(String portId);
+
+    /**
+     * Returns all kubernetes ports.
+     *
+     * @return set of kubernetes ports
+     */
+    Set<K8sPort> ports();
+
+    /**
+     * Return the kubernetes port with the given port identifier.
+     *
+     * @param portId port identifier
+     * @return kubernetes port
+     */
+    K8sPort port(String portId);
+
+    /**
+     * Removes all kubernetes networks and ports.
      */
     void clear();
 }

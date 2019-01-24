@@ -58,6 +58,13 @@ public interface K8sNetwork {
     Type type();
 
     /**
+     * Returns kubernetes network name.
+     *
+     * @return kubernetes network name
+     */
+    String name();
+
+    /**
      * Returns maximum transmission unit (MTU) value to address fragmentation.
      *
      * @return maximum transmission unit (MTU) value to address fragmentation
@@ -104,6 +111,14 @@ public interface K8sNetwork {
          * @return network builder
          */
         Builder networkId(String networkId);
+
+        /**
+         * Returns network builder with supplied network name.
+         *
+         * @param name network name
+         * @return network builder
+         */
+        Builder name(String name);
 
         /**
          * Returns network builder with supplied network type.

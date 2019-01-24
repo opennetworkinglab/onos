@@ -38,9 +38,8 @@ public interface K8sNetworkAdminService extends K8sNetworkService {
      * Removes the network.
      *
      * @param networkId network identifier
-     * @return removed network; null if the network does not exist
      */
-    K8sNetwork removeNetwork(String networkId);
+    void removeNetwork(String networkId);
 
     /**
      * Creates a kubernetes port with the given information.
@@ -60,7 +59,11 @@ public interface K8sNetworkAdminService extends K8sNetworkService {
      * Removes the port.
      *
      * @param portId port identifier
-     * @return removed port; null if the port does not exist
      */
-    K8sPort removePort(String portId);
+    void removePort(String portId);
+
+    /**
+     * Clears the existing network and port states.
+     */
+    void clear();
 }

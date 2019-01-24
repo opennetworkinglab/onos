@@ -30,6 +30,8 @@ public class DefaultK8sNetworkTest {
 
     private static final String NETWORK_ID_1 = "network-1";
     private static final String NETWORK_ID_2 = "network-2";
+    private static final String NAME_1 = "network-1";
+    private static final String NAME_2 = "network-2";
     private static final K8sNetwork.Type TYPE_1 = K8sNetwork.Type.VXLAN;
     private static final K8sNetwork.Type TYPE_2 = K8sNetwork.Type.GENEVE;
     private static final Integer MTU_1 = 1500;
@@ -52,6 +54,7 @@ public class DefaultK8sNetworkTest {
     public void setUp() {
         k8sNetwork1 = DefaultK8sNetwork.builder()
                 .networkId(NETWORK_ID_1)
+                .name(NAME_1)
                 .type(TYPE_1)
                 .mtu(MTU_1)
                 .segmentId(SEGMENT_ID_1)
@@ -61,6 +64,7 @@ public class DefaultK8sNetworkTest {
 
         sameAsK8sNetwork1 = DefaultK8sNetwork.builder()
                 .networkId(NETWORK_ID_1)
+                .name(NAME_1)
                 .type(TYPE_1)
                 .mtu(MTU_1)
                 .segmentId(SEGMENT_ID_1)
@@ -70,6 +74,7 @@ public class DefaultK8sNetworkTest {
 
         k8sNetwork2 = DefaultK8sNetwork.builder()
                 .networkId(NETWORK_ID_2)
+                .name(NAME_2)
                 .type(TYPE_2)
                 .mtu(MTU_2)
                 .segmentId(SEGMENT_ID_2)
@@ -104,6 +109,7 @@ public class DefaultK8sNetworkTest {
         K8sNetwork k8sNetwork = k8sNetwork1;
 
         assertEquals(NETWORK_ID_1, k8sNetwork.networkId());
+        assertEquals(NAME_1, k8sNetwork.name());
         assertEquals(TYPE_1, k8sNetwork.type());
         assertEquals(MTU_1, k8sNetwork.mtu());
         assertEquals(SEGMENT_ID_1, k8sNetwork.segmentId());
