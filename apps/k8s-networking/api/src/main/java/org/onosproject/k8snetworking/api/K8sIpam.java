@@ -27,7 +27,7 @@ public interface K8sIpam {
      *
      * @return IP address
      */
-    IpAddress ipaddress();
+    IpAddress ipAddress();
 
     /**
      * Returns the kubernetes network ID.
