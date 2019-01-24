@@ -28,6 +28,7 @@ public final class K8sNetworkJsonMatcher extends TypeSafeDiagnosingMatcher<JsonN
     private final K8sNetwork network;
 
     private static final String NETWORK_ID = "networkId";
+    private static final String NAME = "name";
     private static final String TYPE = "type";
     private static final String MTU = "mtu";
     private static final String SEGMENT_ID = "segmentId";
@@ -46,6 +47,14 @@ public final class K8sNetworkJsonMatcher extends TypeSafeDiagnosingMatcher<JsonN
         String networkId = network.networkId();
         if (!jsonNetworkId.equals(networkId)) {
             description.appendText("network ID was " + jsonNetworkId);
+            return false;
+        }
+
+        // check network name
+        String jsonName = jsonNode.get(NAME).asText();
+        String name = network.name();
+        if (!jsonName.equals(name)) {
+            description.appendText("name was " + jsonName);
             return false;
         }
 

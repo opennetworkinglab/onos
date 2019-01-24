@@ -79,6 +79,7 @@ public class K8sNetworkCodecTest {
     public void testK8sNetworkEncode() {
         K8sNetwork network = DefaultK8sNetwork.builder()
                 .networkId("network-1")
+                .name("network-1")
                 .segmentId("1")
                 .type(K8sNetwork.Type.VXLAN)
                 .gatewayIp(IpAddress.valueOf("10.10.10.1"))
@@ -98,6 +99,7 @@ public class K8sNetworkCodecTest {
         K8sNetwork network = getK8sNetwork("K8sNetwork.json");
 
         assertEquals("network-1", network.networkId());
+        assertEquals("network-1", network.name());
         assertEquals("1", network.segmentId());
         assertEquals("VXLAN", network.type().name());
         assertEquals("10.10.10.1", network.gatewayIp().toString());

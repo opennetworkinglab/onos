@@ -29,6 +29,7 @@ public final class DefaultK8sNetwork implements K8sNetwork {
     private static final int DEFAULT_MTU = 1500;
 
     private final String networkId;
+    private final String name;
     private final Type type;
     private final Integer mtu;
     private final String segmentId;
@@ -38,9 +39,10 @@ public final class DefaultK8sNetwork implements K8sNetwork {
     private static final String NOT_NULL_MSG = "Network % cannot be null";
 
     // private constructor not intended for external invocation
-    private DefaultK8sNetwork(String networkId, Type type, Integer mtu,
+    private DefaultK8sNetwork(String networkId, String name, Type type, Integer mtu,
                               String segmentId, IpAddress gatewayIp, String cidr) {
         this.networkId = networkId;
+        this.name = name;
         this.type = type;
         this.mtu = mtu;
         this.segmentId = segmentId;
@@ -56,6 +58,11 @@ public final class DefaultK8sNetwork implements K8sNetwork {
     @Override
     public Type type() {
         return type;
+    }
+
+    @Override
+    public String name() {
+        return name;
     }
 
     @Override
@@ -88,6 +95,7 @@ public final class DefaultK8sNetwork implements K8sNetwork {
         }
         DefaultK8sNetwork that = (DefaultK8sNetwork) o;
         return Objects.equal(networkId, that.networkId) &&
+                Objects.equal(name, that.name) &&
                 type == that.type &&
                 Objects.equal(mtu, that.mtu) &&
                 Objects.equal(segmentId, that.segmentId) &&
@@ -97,13 +105,14 @@ public final class DefaultK8sNetwork implements K8sNetwork {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(networkId, type, mtu, segmentId, gatewayIp, cidr);
+        return Objects.hashCode(networkId, name, type, mtu, segmentId, gatewayIp, cidr);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("networkId", networkId)
+                .add("name", name)
                 .add("type", type)
                 .add("mtu", mtu)
                 .add("segmentId", segmentId)
@@ -127,6 +136,7 @@ public final class DefaultK8sNetwork implements K8sNetwork {
     public static final class Builder implements K8sNetwork.Builder {
 
         private String networkId;
+        private String name;
         private Type type;
         private Integer mtu;
         private String segmentId;
@@ -136,6 +146,7 @@ public final class DefaultK8sNetwork implements K8sNetwork {
         @Override
         public K8sNetwork build() {
             checkArgument(networkId != null, NOT_NULL_MSG, "networkId");
+            checkArgument(name != null, NOT_NULL_MSG, "name");
             checkArgument(type != null, NOT_NULL_MSG, "type");
             checkArgument(segmentId != null, NOT_NULL_MSG, "segmentId");
             checkArgument(gatewayIp != null, NOT_NULL_MSG, "gatewayIp");
@@ -145,12 +156,18 @@ public final class DefaultK8sNetwork implements K8sNetwork {
                 mtu = DEFAULT_MTU;
             }
 
-            return new DefaultK8sNetwork(networkId, type, mtu, segmentId, gatewayIp, cidr);
+            return new DefaultK8sNetwork(networkId, name, type, mtu, segmentId, gatewayIp, cidr);
         }
 
         @Override
         public Builder networkId(String networkId) {
             this.networkId = networkId;
+            return this;
+        }
+
+        @Override
+        public Builder name(String name) {
+            this.name = name;
             return this;
         }
 

@@ -15,22 +15,17 @@
  */
 package org.onosproject.k8snetworking.api;
 
+import org.onlab.util.Tools;
 import org.onosproject.event.AbstractEvent;
+
+import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
  * Describes kubernetes network service event.
  */
 public class K8sNetworkEvent extends AbstractEvent<K8sNetworkEvent.Type, K8sNetwork> {
 
-    /**
-     * Creates an event of a given type for the specified network.
-     *
-     * @param type kubernetes network event type
-     * @param subject kubernetes network
-     */
-    protected K8sNetworkEvent(Type type, K8sNetwork subject) {
-        super(type, subject);
-    }
+    private final K8sPort port;
 
     /**
      * Kubernetes network events.
@@ -51,5 +46,64 @@ public class K8sNetworkEvent extends AbstractEvent<K8sNetworkEvent.Type, K8sNetw
          * Signifies that the kubernetes network is removed.
          */
         K8S_NETWORK_REMOVED,
+
+        /**
+         * Signifies that a new kubernetes port is created.
+         */
+        K8S_PORT_CREATED,
+
+        /**
+         * Signifies that the kubernetes port is updated.
+         */
+        K8S_PORT_UPDATED,
+
+        /**
+         * Signifies that the kubernetes port is removed.
+         */
+        K8S_PORT_REMOVED,
+    }
+
+    /**
+     * Creates an event of a given type for the specified network.
+     *
+     * @param type kubernetes network event type
+     * @param network kubernetes network
+     */
+    public K8sNetworkEvent(Type type, K8sNetwork network) {
+        super(type, network);
+        this.port = null;
+    }
+
+    /**
+     * Creates an event of a given type for the specified network and port.
+     *
+     * @param type kubernetes network event type
+     * @param network kubernetes network
+     * @param port kubernetes port
+     */
+    public K8sNetworkEvent(Type type, K8sNetwork network, K8sPort port) {
+        super(type, network);
+        this.port = port;
+    }
+
+    /**
+     * Returns the kubernetes port of the network event.
+     *
+     * @return kubernetes port; null if the event is not port specific
+     */
+    public K8sPort port() {
+        return port;
+    }
+
+    @Override
+    public String toString() {
+        if (port == null) {
+            return super.toString();
+        }
+        return toStringHelper(this)
+                .add("time", Tools.defaultOffsetDataTime(time()))
+                .add("port", port)
+                .add("network", subject())
+                .toString();
     }
 }
