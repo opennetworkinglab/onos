@@ -132,7 +132,7 @@ public class K8sNodeWebResourceTest extends ResourceTest {
      * Tests the results of the REST API PUT method with modifying the nodes.
      */
     @Test
-    public void testUpdateNodesWithoutModifyOperation() {
+    public void testUpdateNodesWithModifyOperation() {
         expect(mockK8sNodeAdminService.node(anyString())).andReturn(k8sNode).once();
         mockK8sNodeAdminService.updateNode(anyObject());
         replay(mockK8sNodeAdminService);
@@ -153,7 +153,7 @@ public class K8sNodeWebResourceTest extends ResourceTest {
      * Tests the results of the REST API PUT method without modifying the nodes.
      */
     @Test
-    public void testUpdateNodesWithModifyOperation() {
+    public void testUpdateNodesWithoutModifyOperation() {
         expect(mockK8sNodeAdminService.node(anyString())).andReturn(null).once();
         replay(mockK8sNodeAdminService);
 

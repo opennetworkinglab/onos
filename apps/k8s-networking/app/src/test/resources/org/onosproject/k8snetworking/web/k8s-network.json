@@ -1,0 +1,9 @@
+{
+  "networkId": "network-1",
+  "name": "network-1",
+  "type": "VXLAN",
+  "mtu": 1500,
+  "segmentId": "1",
+  "gatewayIp": "10.10.10.1",
+  "cidr": "32"
+}
