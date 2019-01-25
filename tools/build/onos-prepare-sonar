@@ -271,8 +271,6 @@ def _main():
     for target in targets:
         colon = target.find(':')
         base_target = target[0:colon]
-        if target[colon+1] == '_':
-            continue
         target_query_result = run_command(['bazel', 'query', 'tests(' + base_target + ':*)'])
         for result_line in target_query_result:
             if "src/test" in result_line:
