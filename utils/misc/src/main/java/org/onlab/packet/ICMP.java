@@ -31,11 +31,6 @@ public class ICMP extends BasePacket {
 
     public static final byte TYPE_ECHO_REQUEST = 0x08;
     public static final byte TYPE_ECHO_REPLY = 0x00;
-    /**
-     * @deprecated since Peacock (1.15) - Use CODE_ECHO_REPLY instead.
-     */
-    @Deprecated
-    public static final byte SUBTYPE_ECHO_REPLY = 0x00;
 
     public static final byte CODE_ECHO_REPLY = 0x00;
     public static final byte CODE_ECHO_REQEUST = 0x00;

@@ -289,69 +289,6 @@ public class NeighborAdvertisement extends BasePacket {
      * @param srcMac  the MAC address to use as the reply source
      * @param request the Neighbor Solicitation request we got
      * @return an Ethernet frame containing the Neighbor Advertisement reply
-     * @deprecated since 1.11.0
-     */
-    @Deprecated
-    public static Ethernet buildNdpAdv(byte[] srcIp,
-                                   byte[] srcMac,
-                                   Ethernet request) {
-
-        if (srcIp.length != Ip6Address.BYTE_LENGTH ||
-                srcMac.length != MacAddress.MAC_ADDRESS_LENGTH) {
-            return null;
-        }
-
-        if (request.getEtherType() != Ethernet.TYPE_IPV6) {
-            return null;
-        }
-
-        IPv6 ipv6Request = (IPv6) request.getPayload();
-
-        if (ipv6Request.getNextHeader() != IPv6.PROTOCOL_ICMP6) {
-            return null;
-        }
-
-        ICMP6 icmpv6 = (ICMP6) ipv6Request.getPayload();
-
-        if (icmpv6.getIcmpType() != ICMP6.NEIGHBOR_SOLICITATION) {
-            return null;
-        }
-
-        Ethernet eth = new Ethernet();
-        eth.setDestinationMACAddress(request.getSourceMAC());
-        eth.setSourceMACAddress(srcMac);
-        eth.setEtherType(Ethernet.TYPE_IPV6);
-        eth.setVlanID(request.getVlanID());
-
-        IPv6 ipv6 = new IPv6();
-        ipv6.setSourceAddress(srcIp);
-        ipv6.setDestinationAddress(ipv6Request.getSourceAddress());
-        ipv6.setHopLimit((byte) 255);
-
-        ICMP6 icmp6 = new ICMP6();
-        icmp6.setIcmpType(ICMP6.NEIGHBOR_ADVERTISEMENT);
-        icmp6.setIcmpCode((byte) 0);
-
-        NeighborAdvertisement nadv = new NeighborAdvertisement();
-        nadv.setTargetAddress(srcIp);
-        nadv.setSolicitedFlag((byte) 1);
-        nadv.setOverrideFlag((byte) 1);
-        nadv.addOption(NeighborDiscoveryOptions.TYPE_TARGET_LL_ADDRESS,
-                       srcMac);
-
-        icmp6.setPayload(nadv);
-        ipv6.setPayload(icmp6);
-        eth.setPayload(ipv6);
-        return eth;
-    }
-
-    /**
-     * Builds an NDP reply based on a request.
-     *
-     * @param srcIp   the IP address to use as the reply source
-     * @param srcMac  the MAC address to use as the reply source
-     * @param request the Neighbor Solicitation request we got
-     * @return an Ethernet frame containing the Neighbor Advertisement reply
      */
     public static Ethernet buildNdpAdv(Ip6Address srcIp,
                                        MacAddress srcMac,

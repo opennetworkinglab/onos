@@ -452,11 +452,11 @@ public class IcmpHandler extends SegmentRoutingNeighbourHandler {
         byte[] dstMac = IPv6.getMCastMacAddress(dstIp);
         // Creates the request.
         Ethernet ndpRequest = NeighborSolicitation.buildNdpSolicit(
-                targetAddress.toOctets(),
-                senderIpAddress,
-                dstIp,
-                senderMacAddress,
-                dstMac,
+                targetAddress.getIp6Address(),
+                Ip6Address.valueOf(senderIpAddress),
+                Ip6Address.valueOf(dstIp),
+                MacAddress.valueOf(senderMacAddress),
+                MacAddress.valueOf(dstMac),
                 VlanId.NONE
         );
         flood(ndpRequest, inPort, targetAddress);

@@ -468,11 +468,11 @@ public class SimpleFabricManager extends ListenerRegistry<SimpleFabricEvent, Sim
             } else {
                 byte[] soliciteIp = IPv6.getSolicitNodeAddress(ip.toOctets());
                 neighbourReq = NeighborSolicitation.buildNdpSolicit(
-                                                   ip.toOctets(),
-                                                   fabricSubnet.gatewayIp().toOctets(),
-                                                   soliciteIp,
-                                                   fabricSubnet.gatewayMac().toBytes(),
-                                                   IPv6.getMCastMacAddress(soliciteIp),
+                                                   ip.getIp6Address(),
+                                                   fabricSubnet.gatewayIp().getIp6Address(),
+                                                   Ip6Address.valueOf(soliciteIp),
+                                                   MacAddress.valueOf(fabricSubnet.gatewayMac().toBytes()),
+                                                   MacAddress.valueOf(IPv6.getMCastMacAddress(soliciteIp)),
                                                    iface.vlan());
             }
             TrafficTreatment treatment = DefaultTrafficTreatment.builder()

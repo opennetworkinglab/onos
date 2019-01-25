@@ -227,11 +227,11 @@ public class HostMonitor implements Runnable {
              // and the multicast mac address as Ethernet destination.
             byte[] destIp = IPv6.getSolicitNodeAddress(targetIp.toOctets());
             probePacket = NeighborSolicitation.buildNdpSolicit(
-                    targetIp.toOctets(),
-                    sourceIp.toOctets(),
-                    destIp,
-                    sourceMac.toBytes(),
-                    IPv6.getMCastMacAddress(destIp),
+                    targetIp.getIp6Address(),
+                    sourceIp.getIp6Address(),
+                    Ip6Address.valueOf(destIp),
+                    sourceMac,
+                    MacAddress.valueOf(IPv6.getMCastMacAddress(destIp)),
                     vlan
             );
         }

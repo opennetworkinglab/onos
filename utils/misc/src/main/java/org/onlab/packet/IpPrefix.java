@@ -38,11 +38,6 @@ public class IpPrefix {
     /**
      * An IpPrefix that contains all IPv4 multicast addresses.
      */
-    @Deprecated
-    public static final IpPrefix MULTICAST_RANGE = IpPrefix.valueOf("224.0.0.0/4");
-    /**
-     * An IpPrefix that contains all IPv4 multicast addresses.
-     */
     public static final IpPrefix IPV4_MULTICAST_PREFIX = IpPrefix.valueOf("224.0.0.0/4");
     /**
      * An IpPrefix that contains all IPv6 multicast addresses.

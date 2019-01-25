@@ -38,13 +38,7 @@ public class LLDP extends BasePacket {
     public static final byte PORT_TLV_TYPE = 2;
     public static final short PORT_TLV_SIZE = 5;
 
-    /**
-     * @deprecated since 1.15. Use the PORT_TLV_COMPONENT_SUBTYPE instead of PORT_TLV_SUBTYPE.
-     */
-    @Deprecated
-    public static final byte PORT_TLV_SUBTYPE = 2;
-
-    public static final byte PORT_TLV_COMPONENT_SUBTYPE = PORT_TLV_SUBTYPE;
+    public static final byte PORT_TLV_COMPONENT_SUBTYPE = 2;
     public static final byte PORT_TLV_INTERFACE_NAME_SUBTYPE = 5;
 
     public static final byte TTL_TLV_TYPE = 3;
