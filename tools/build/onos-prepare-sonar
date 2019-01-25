@@ -17,6 +17,8 @@ from subprocess import check_output, STDOUT, CalledProcessError
 ONOS_VERSION = '2.0.0-SNAPSHOT'
 
 GENFILES = 'bazel-genfiles'
+BIN = 'bazel-bin'
+
 SONAR_PROJECT = GENFILES + '/sonar-project'
 SUREFIRE_REPORTS = 'surefire-reports'
 SONAR_PROPERTIES_FILE_NAME = SONAR_PROJECT + '/sonar-project.properties'
@@ -110,6 +112,29 @@ def capture_sources(module_path):
     os.symlink(os.getcwd() + '/' + source_path, destination_path)
 
 
+def capture_classes(module_name, path):
+    # module name: onos-core-net
+    # path: core/net
+
+    base_project_dir = os.getcwd() + "/" + SONAR_PROJECT + "/" + path + "/"
+    base_bin_dir = os.getcwd() + "/" + BIN + "/" + path + "/lib" + module_name
+    jar_file_path = base_bin_dir + ".jar"
+    test_jar_file_path = base_bin_dir + "-tests.jar"
+    classes_directory = base_project_dir + "classes"
+    test_classes_directory = base_project_dir + "test-classes"
+
+    make_dirs(classes_directory)
+    current_directory = os.getcwd()
+    os.chdir(classes_directory)
+    run_command(["jar", "xvf", jar_file_path])
+
+    make_dirs(test_classes_directory)
+    os.chdir(test_classes_directory)
+    run_command(["jar", "xvf", test_jar_file_path])
+
+    os.chdir(current_directory)
+
+
 """
     Writes out the properties for a given module and stages the files needed by the scanner.
 """
@@ -118,6 +143,7 @@ def capture_sources(module_path):
 def write_module(target, out):
     path, module_name = split_target(target)
     query = 'labels(srcs, "%s-native")' % target
+    tests_query = 'labels(srcs, "%s-tests")' % target
 
     # get rid of previous data
     try:
@@ -143,8 +169,11 @@ def write_module(target, out):
         run_coverage_command.append('--cache_test_results=no')
         run_command(run_coverage_command)
 
-        # Find the source files used by the tests
+        # Find the source files used by the base library
         sources = run_command(['bazel', 'query', query])
+
+        # Find the source files used by the tests
+        test_sources = run_command(['bazel', 'query', tests_query])
     except CalledProcessError as exc:
         print "Error running test files for target " + target
         raise exc
@@ -156,21 +185,32 @@ def write_module(target, out):
     # Filter out non-Java files
     sources = \
         [source_file for source_file in sources if "package-info" not in source_file and ".java" in source_file]
+    test_sources = \
+        [test_source_file for test_source_file in test_sources
+         if "package-info" not in test_source_file and ".java" in test_source_file]
 
     # Adjust source file paths to be relative to the root
     sources_filtered = []
     for source in sources:
         sources_filtered.append(source.replace('//' + path + ':', "", 1))
 
+    test_sources_filtered = []
+    for test_source in test_sources:
+        test_sources_filtered.append(test_source.replace('//' + path + ':', "", 1))
+
     # create a CSL of all the source files for use in the properties file
     sources_csl = ",".join(sources_filtered).replace("//", "").replace(":", "/")
+
+    # create a CSL of all the test source files for use in the properties file
+    test_sources_csl = ",".join(test_sources_filtered).replace("//", "").replace(":", "/")
 
     # Write out the properties for this package
     out.write('%s.sonar.projectBaseDir=%s\n' % (module_name, path))
     out.write('%(name)s.sonar.projectName=%(name)s\n' % {'name': module_name})
     out.write('%s.sonar.sources=%s\n' % (module_name, sources_csl))
-    binaries = find_bazel_classes_directory(module_name, path)
-    out.write('%s.sonar.java.binaries = %s\n' % (module_name, binaries))
+    out.write('%s.sonar.tests=%s\n' % (module_name, test_sources_csl))
+    out.write('%s.sonar.java.binaries = classes\n' % module_name)
+    out.write('%s.sonar.java.test.binaries = test-classes\n' % module_name)
 
     # Get the dependencies for this package using bazel
     deps_files = run_command_with_stderr(['bazel', 'build', '%s-tests-gen-deps' % target])
@@ -200,6 +240,7 @@ def write_module(target, out):
     capture_surefire_reports(path)
     capture_jacoco(path)
     capture_sources(path)
+    capture_classes(module_name, path)
 
 
 def _main():
