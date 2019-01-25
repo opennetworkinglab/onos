@@ -77,25 +77,31 @@ public final class K8sPortJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode
         // check device ID
         String jsonDeviceId = jsonNode.get(DEVICE_ID).asText();
         String deviceId = port.deviceId().toString();
-        if (!jsonDeviceId.equals(deviceId)) {
-            description.appendText("device ID was " + jsonDeviceId);
-            return false;
+        if (jsonDeviceId != null) {
+            if (!jsonDeviceId.equals(deviceId)) {
+                description.appendText("device ID was " + jsonDeviceId);
+                return false;
+            }
         }
 
         // check port number
         String jsonPortNumber = jsonNode.get(PORT_NUMBER).asText();
         String portNumber = port.portNumber().toString();
-        if (!jsonPortNumber.equals(portNumber)) {
-            description.appendText("port number was " + jsonPortNumber);
-            return false;
+        if (jsonPortNumber != null) {
+            if (!jsonPortNumber.equals(portNumber)) {
+                description.appendText("port number was " + jsonPortNumber);
+                return false;
+            }
         }
 
         // check state
         String jsonState = jsonNode.get(STATE).asText();
         String state = port.state().name();
-        if (!jsonState.equals(state)) {
-            description.appendText("state was " + jsonState);
-            return false;
+        if (jsonState != null) {
+            if (!jsonState.equals(state)) {
+                description.appendText("state was " + jsonState);
+                return false;
+            }
         }
 
         return true;

@@ -1,0 +1,32 @@
+{
+  "type": "object",
+  "description": "A port object.",
+  "required": [
+    "portId",
+    "networkId",
+    "macAddress",
+    "ipAddress"
+  ],
+  "properties": {
+    "portId": {
+      "type": "string",
+      "example": "65c0ee9f-d634-4522-8954-51021b570b0d",
+      "description": "The ID of the resource."
+    },
+    "networkId": {
+      "type": "string",
+      "example": "a87cc70a-3e15-4acf-8205-9b711a3531b7",
+      "description": "The ID of the attached network."
+    },
+    "macAddress": {
+      "type": "string",
+      "example": "fa:16:3e:c9:cb:f0",
+      "description": "The MAC address of the port."
+    },
+    "ipAddress": {
+      "type": "string",
+      "example": "10.10.10.10",
+      "description": "The IP address of the port."
+    }
+  }
+}

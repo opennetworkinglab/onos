@@ -15,6 +15,7 @@
  */
 package org.onosproject.k8snetworking.codec;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
@@ -52,14 +53,25 @@ public final class K8sPortCodec extends JsonCodec<K8sPort> {
     public ObjectNode encode(K8sPort port, CodecContext context) {
         checkNotNull(port, "Kubernetes port cannot be null");
 
-        return context.mapper().createObjectNode()
+        ObjectNode result =  context.mapper().createObjectNode()
                 .put(NETWORK_ID, port.networkId())
                 .put(PORT_ID, port.portId())
                 .put(MAC_ADDRESS, port.macAddress().toString())
-                .put(IP_ADDRESS, port.ipAddress().toString())
-                .put(DEVICE_ID, port.deviceId().toString())
-                .put(PORT_NUMBER, port.portNumber().toString())
-                .put(STATE, port.state().name());
+                .put(IP_ADDRESS, port.ipAddress().toString());
+
+        if (port.deviceId() != null) {
+            result.put(DEVICE_ID, port.deviceId().toString());
+        }
+
+        if (port.portNumber() != null) {
+            result.put(PORT_NUMBER, port.portNumber().toString());
+        }
+
+        if (port.state() != null) {
+            result.put(STATE, port.state().name());
+        }
+
+        return result;
     }
 
     @Override
@@ -76,21 +88,28 @@ public final class K8sPortCodec extends JsonCodec<K8sPort> {
                 MAC_ADDRESS + MISSING_MESSAGE);
         String ipAddress = nullIsIllegal(json.get(IP_ADDRESS).asText(),
                 IP_ADDRESS + MISSING_MESSAGE);
-        String deviceId = nullIsIllegal(json.get(DEVICE_ID).asText(),
-                DEVICE_ID + MISSING_MESSAGE);
-        String portNumber = nullIsIllegal(json.get(PORT_NUMBER).asText(),
-                PORT_NUMBER + MISSING_MESSAGE);
-        String state = nullIsIllegal(json.get(STATE).asText(),
-                STATE + MISSING_MESSAGE);
 
-        return DefaultK8sPort.builder()
+        K8sPort.Builder builder = DefaultK8sPort.builder()
                 .networkId(networkId)
                 .portId(portId)
                 .macAddress(MacAddress.valueOf(macAddress))
-                .ipAddress(IpAddress.valueOf(ipAddress))
-                .deviceId(DeviceId.deviceId(deviceId))
-                .portNumber(PortNumber.portNumber(portNumber))
-                .state(State.valueOf(state))
-                .build();
+                .ipAddress(IpAddress.valueOf(ipAddress));
+
+        JsonNode deviceIdJson = json.get(DEVICE_ID);
+        if (deviceIdJson != null) {
+            builder.deviceId(DeviceId.deviceId(deviceIdJson.asText()));
+        }
+
+        JsonNode portNumberJson = json.get(PORT_NUMBER);
+        if (portNumberJson != null) {
+            builder.portNumber(PortNumber.portNumber(portNumberJson.asText()));
+        }
+
+        JsonNode stateJson = json.get(STATE);
+        if (stateJson != null) {
+            builder.state(State.valueOf(stateJson.asText()));
+        }
+
+        return builder.build();
     }
 }

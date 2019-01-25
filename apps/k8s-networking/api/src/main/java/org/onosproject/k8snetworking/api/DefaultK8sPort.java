@@ -169,9 +169,6 @@ public final class DefaultK8sPort implements K8sPort {
             checkArgument(portId != null, NOT_NULL_MSG, "portId");
             checkArgument(macAddress != null, NOT_NULL_MSG, "macAddress");
             checkArgument(ipAddress != null, NOT_NULL_MSG, "ipAddress");
-            checkArgument(deviceId != null, NOT_NULL_MSG, "deviceId");
-            checkArgument(portNumber != null, NOT_NULL_MSG, "portNumber");
-            checkArgument(state != null, NOT_NULL_MSG, "state");
 
             return new DefaultK8sPort(networkId, portId, macAddress, ipAddress,
                     deviceId, portNumber, state);
