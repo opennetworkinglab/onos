@@ -34,6 +34,8 @@ public final class Constants {
     public static final MacAddress DEFAULT_GATEWAY_MAC =
                         MacAddress.valueOf(DEFAULT_GATEWAY_MAC_STR);
 
+    public static final String PORT_NAME_PREFIX_CONTAINER = "veth";
+
     public static final String ANNOTATION_NETWORK_ID = "networkId";
     public static final String ANNOTATION_PORT_ID = "portId";
     public static final String ANNOTATION_CREATE_TIME = "createTime";
