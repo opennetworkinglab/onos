@@ -41,10 +41,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class ClusterMetadata implements Provided {
 
+    private static final ProviderId NONE_PROVIDER_ID = new ProviderId("none", "none");
+    private static final String DEFAULT_CLUSTER_SECRET = "INSECURE!";
+
     private final ProviderId providerId;
     private final String name;
     private final ControllerNode localNode;
     private final Set<ControllerNode> controllerNodes;
+    private final String storageDnsService;
     private final Set<Node> storageNodes;
     private final String clusterSecret;
 
@@ -62,6 +66,7 @@ public final class ClusterMetadata implements Provided {
         name = null;
         localNode = null;
         controllerNodes = null;
+        storageDnsService = null;
         storageNodes = null;
         clusterSecret = null;
     }
@@ -72,6 +77,7 @@ public final class ClusterMetadata implements Provided {
      * @param name The cluster Name
      * @param localNode The local node
      * @param controllerNodes Set of nodes in cluster
+     * @param storageDnsService The storage DNS service name
      * @param storageNodes Set of storage nodes
      */
     @Deprecated
@@ -80,13 +86,19 @@ public final class ClusterMetadata implements Provided {
             String name,
             ControllerNode localNode,
             Set<ControllerNode> controllerNodes,
+            String storageDnsService,
             Set<Node> storageNodes) {
-        this.providerId = checkNotNull(providerId);
-        this.name = checkNotNull(name);
-        this.localNode = localNode;
-        this.controllerNodes = ImmutableSet.copyOf(checkNotNull(controllerNodes));
-        this.storageNodes = ImmutableSet.copyOf(checkNotNull(storageNodes));
-        this.clusterSecret = "INSECURE!";
+        this(providerId, name, localNode, controllerNodes, storageDnsService, storageNodes, DEFAULT_CLUSTER_SECRET);
+    }
+
+    public ClusterMetadata(
+            ProviderId providerId,
+            String name,
+            ControllerNode localNode,
+            Set<ControllerNode> controllerNodes,
+            Set<Node> storageNodes,
+            String clusterSecret) {
+        this(providerId, name, localNode, controllerNodes, null, storageNodes, clusterSecret);
     }
 
     public ClusterMetadata(
@@ -94,12 +106,14 @@ public final class ClusterMetadata implements Provided {
         String name,
         ControllerNode localNode,
         Set<ControllerNode> controllerNodes,
+        String storageDnsService,
         Set<Node> storageNodes,
         String clusterSecret) {
         this.providerId = checkNotNull(providerId);
         this.name = checkNotNull(name);
         this.localNode = localNode;
         this.controllerNodes = ImmutableSet.copyOf(checkNotNull(controllerNodes));
+        this.storageDnsService = storageDnsService;
         this.storageNodes = ImmutableSet.copyOf(checkNotNull(storageNodes));
         this.clusterSecret = clusterSecret;
     }
@@ -113,14 +127,20 @@ public final class ClusterMetadata implements Provided {
      */
     @Deprecated
     public ClusterMetadata(
-            String name, ControllerNode localNode, Set<ControllerNode> controllerNodes, Set<Node> storageNodes) {
-        this(new ProviderId("none", "none"), name, localNode, controllerNodes, storageNodes, "INSECURE!");
+            String name,
+            ControllerNode localNode,
+            Set<ControllerNode> controllerNodes,
+            Set<Node> storageNodes) {
+        this(NONE_PROVIDER_ID, name, localNode, controllerNodes, null, storageNodes, DEFAULT_CLUSTER_SECRET);
     }
 
     public ClusterMetadata(
-            String name, ControllerNode localNode, Set<ControllerNode> controllerNodes, Set<Node> storageNodes,
+            String name,
+            ControllerNode localNode,
+            Set<ControllerNode> controllerNodes,
+            Set<Node> storageNodes,
             String clusterSecret) {
-        this(new ProviderId("none", "none"), name, localNode, controllerNodes, storageNodes, clusterSecret);
+        this(NONE_PROVIDER_ID, name, localNode, controllerNodes, null, storageNodes, clusterSecret);
     }
 
     @Override
@@ -135,6 +155,15 @@ public final class ClusterMetadata implements Provided {
      */
     public String getName() {
         return this.name;
+    }
+
+    /**
+     * Returns the DNS service through which to locate storage nodes.
+     *
+     * @return the DNS service through which to locate storage nodes
+     */
+    public String getStorageDnsService() {
+        return storageDnsService;
     }
 
     /**

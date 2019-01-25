@@ -117,6 +117,7 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
                 .stream()
                 .map(this::toPrototype)
                 .collect(Collectors.toSet()));
+        prototype.setStorageDnsService(metadata.getStorageDnsService());
         prototype.setStorage(metadata.getStorageNodes()
                 .stream()
                 .map(this::toPrototype)
@@ -274,6 +275,7 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
                         .stream()
                         .map(node -> new DefaultControllerNode(getNodeId(node), getNodeHost(node), getNodePort(node)))
                         .collect(Collectors.toSet()),
+                    metadata.getStorageDnsService(),
                     metadata.getStorage()
                         .stream()
                         .map(node -> new DefaultControllerNode(getNodeId(node), getNodeHost(node), getNodePort(node)))
@@ -310,6 +312,7 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
         private String name;
         private NodePrototype node;
         private Set<NodePrototype> controller = Sets.newHashSet();
+        private String storageDnsService;
         private Set<NodePrototype> storage = Sets.newHashSet();
         private String clusterSecret;
 
@@ -335,6 +338,14 @@ public class ConfigFileBasedClusterMetadataProvider implements ClusterMetadataPr
 
         public void setController(Set<NodePrototype> controller) {
             this.controller = controller;
+        }
+
+        public String getStorageDnsService() {
+            return storageDnsService;
+        }
+
+        public void setStorageDnsService(String storageDnsService) {
+            this.storageDnsService = storageDnsService;
         }
 
         public Set<NodePrototype> getStorage() {

@@ -17,6 +17,8 @@ package org.onosproject.store.atomix.impl;
 
 import io.atomix.cluster.Node;
 import io.atomix.cluster.discovery.BootstrapDiscoveryProvider;
+import io.atomix.cluster.discovery.DnsDiscoveryProvider;
+import io.atomix.cluster.discovery.NodeDiscoveryProvider;
 import io.atomix.core.Atomix;
 import io.atomix.protocols.raft.partition.RaftPartitionGroup;
 import org.onosproject.cluster.ClusterMetadata;
@@ -72,6 +74,26 @@ public class AtomixManager {
 
     private Atomix createAtomix() {
         ClusterMetadata metadata = metadataService.getClusterMetadata();
+
+        // If a storage DNS service was provided, use the DNS service for service discovery.
+        // Otherwise, use a static list of storage nodes.
+        NodeDiscoveryProvider discovery;
+        if (metadata.getStorageDnsService() != null) {
+            discovery = DnsDiscoveryProvider.builder()
+                .withService(metadata.getStorageDnsService())
+                .build();
+        } else {
+            discovery = BootstrapDiscoveryProvider.builder()
+                .withNodes(metadata.getStorageNodes().stream()
+                    .map(node -> Node.builder()
+                        .withId(node.id().id())
+                        .withHost(node.host())
+                        .withPort(node.tcpPort())
+                        .build())
+                    .collect(Collectors.toList()))
+                .build();
+        }
+
         if (!metadata.getStorageNodes().isEmpty()) {
             // If storage nodes are defined, construct an instance that connects to them for service discovery.
             return Atomix.builder(getClass().getClassLoader())
@@ -80,15 +102,7 @@ public class AtomixManager {
                 .withHost(metadata.getLocalNode().host())
                 .withPort(metadata.getLocalNode().tcpPort())
                 .withProperty("type", "onos")
-                .withMembershipProvider(BootstrapDiscoveryProvider.builder()
-                    .withNodes(metadata.getStorageNodes().stream()
-                        .map(node -> Node.builder()
-                            .withId(node.id().id())
-                            .withHost(node.host())
-                            .withPort(node.tcpPort())
-                            .build())
-                        .collect(Collectors.toList()))
-                    .build())
+                .withMembershipProvider(discovery)
                 .build();
         } else {
             log.warn("No storage nodes found in cluster metadata!");
@@ -107,15 +121,7 @@ public class AtomixManager {
                 .withHost(metadata.getLocalNode().host())
                 .withPort(metadata.getLocalNode().tcpPort())
                 .withProperty("type", "onos")
-                .withMembershipProvider(BootstrapDiscoveryProvider.builder()
-                    .withNodes(metadata.getControllerNodes().stream()
-                        .map(node -> io.atomix.cluster.Node.builder()
-                            .withId(node.id().id())
-                            .withHost(node.host())
-                            .withPort(node.tcpPort())
-                            .build())
-                        .collect(Collectors.toList()))
-                    .build())
+                .withMembershipProvider(discovery)
                 .withManagementGroup(RaftPartitionGroup.builder("system")
                     .withNumPartitions(1)
                     .withDataDirectory(new File(LOCAL_DATA_DIR, "system"))
