@@ -132,7 +132,7 @@ public final class OpenstackVtapUtil {
      */
     public static int hostCompareIp(Host host1, Host host2, IpPrefix ipPrefix) {
         if ((host1 == null || host1.ipAddresses().stream().noneMatch(ipPrefix::contains)) &&
-                (host2 != null || host2.ipAddresses().stream().anyMatch(ipPrefix::contains))) {
+                (host2 == null || host2.ipAddresses().stream().anyMatch(ipPrefix::contains))) {
             return -1;
         } else if ((host1 != null && host1.ipAddresses().stream().anyMatch(ipPrefix::contains)) &&
                 (host2 == null || host2.ipAddresses().stream().noneMatch(ipPrefix::contains))) {

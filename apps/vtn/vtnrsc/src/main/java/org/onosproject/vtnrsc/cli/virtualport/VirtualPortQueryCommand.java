@@ -71,7 +71,7 @@ public class VirtualPortQueryCommand extends AbstractShellCommand {
         } else if (vPortId == null && networkId == null && deviceId == null && tenantId != null) {
             Collection<VirtualPort> ports = service.getPorts(DeviceId.deviceId(tenantId));
             printPorts(ports);
-        } else if (vPortId == null && networkId == null && deviceId == null && tenantId == null) {
+        } else if (vPortId == null && networkId == null && deviceId == null) {
             Collection<VirtualPort> ports = service.getPorts();
             printPorts(ports);
         } else {
