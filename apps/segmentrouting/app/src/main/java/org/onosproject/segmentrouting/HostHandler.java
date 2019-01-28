@@ -463,9 +463,9 @@ public class HostHandler {
 
         log.info("{} routing rule for {} at {}", revoke ? "Revoking" : "Populating", ip, location);
         if (revoke) {
-            srManager.defaultRoutingHandler.revokeRoute(deviceId, ip.toIpPrefix(), mac, vlanId, port);
+            srManager.defaultRoutingHandler.revokeRoute(deviceId, ip.toIpPrefix(), mac, vlanId, port, true);
         } else {
-            srManager.defaultRoutingHandler.populateRoute(deviceId, ip.toIpPrefix(), mac, vlanId, port);
+            srManager.defaultRoutingHandler.populateRoute(deviceId, ip.toIpPrefix(), mac, vlanId, port, true);
         }
     }
 
@@ -550,10 +550,10 @@ public class HostHandler {
                 ipPrefixSet.forEach(ipPrefix -> {
                     if (install && ipPrefix.contains(hostIpAddress)) {
                             srManager.defaultRoutingHandler.populateRoute(cp.deviceId(), hostIpAddress.toIpPrefix(),
-                                                                         host.mac(), host.vlan(), cp.port());
+                                                                         host.mac(), host.vlan(), cp.port(), true);
                     } else if (!install && ipPrefix.contains(hostIpAddress)) {
                             srManager.defaultRoutingHandler.revokeRoute(cp.deviceId(), hostIpAddress.toIpPrefix(),
-                                                                       host.mac(), host.vlan(), cp.port());
+                                                                       host.mac(), host.vlan(), cp.port(), true);
                     }
                 });
             }));
