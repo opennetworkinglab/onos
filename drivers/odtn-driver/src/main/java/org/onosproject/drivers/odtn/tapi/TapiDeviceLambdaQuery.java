@@ -48,6 +48,7 @@ import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.GRID_TYPE;
 import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.LOWER_FREQUENCY;
 import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.MC_POOL;
 import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.UPPER_FREQUENCY;
+import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.UUID;
 import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.toMbpsFromHz;
 import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.getChannelSpacing;
 import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.getSlotGranularity;
@@ -90,7 +91,7 @@ public class TapiDeviceLambdaQuery extends AbstractHandlerBehaviour
         if (p == null) {
             log.error("Port {} does not exist", port);
         }
-        String uuid = p.annotations().value(port.toString());
+        String uuid = p.annotations().value(UUID);
 
         try {
             InputStream inputStream = controller.get(deviceId, SIP_REQUEST_DATA_API + uuid,

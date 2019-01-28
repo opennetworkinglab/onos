@@ -46,7 +46,24 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.*;
+import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.LAYER_PROTOCOL_NAME;
+import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.MEDIA_CHANNEL_SERVICE_INTERFACE_POINT_SPEC;
+import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.AVAILABLE_SPECTRUM;
+import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.ADJUSTMENT_GRANULARITY;
+import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.BASE_FREQUENCY;
+import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.FREQUENCY_CONSTRAINT;
+import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.GRID_TYPE;
+import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.LOWER_FREQUENCY;
+import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.MC_POOL;
+import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.PHOTONIC_LAYER_QUALIFIER_NMC;
+import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.PHOTONIC_MEDIA;
+import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.SERVICE_INTERFACE_POINT;
+import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.SUPPORTED_LAYER_PROTOCOL_QUALIFIER;
+import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.UPPER_FREQUENCY;
+import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.UUID;
+import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.toMbpsFromHz;
+import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.getChannelSpacing;
+import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.getSlotGranularity;
 import static org.onosproject.net.optical.device.OchPortHelper.ochPortDescription;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -142,7 +159,7 @@ public class TapiDeviceDescriptionDiscovery
                 OchSignal ochSignal = getOchSignal(mcPool);
                 synchronized (N_PORT_LOCK) {
                     //annotations(portNumber-uuid)
-                    annotations.set(nPort.toString(), uuid);
+                    annotations.set(UUID, uuid);
 
                     //add och port
                     ports.add(ochPortDescription(nPort, true, OduSignalType.ODU4,

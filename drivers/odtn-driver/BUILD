@@ -1,12 +1,12 @@
-COMPILE_DEPS = CORE_DEPS + [
+COMPILE_DEPS = CORE_DEPS + JACKSON + [
     "@commons_jxpath//jar",
+    "@javax_ws_rs_api//jar",
+    "@httpcore_osgi//jar",
     "//core/store/serializers:onos-core-serializers",
     "//drivers/utilities:onos-drivers-utilities",
     "//protocols/netconf/api:onos-protocols-netconf-api",
     "//protocols/rest/api:onos-protocols-rest-api",
     "//apps/odtn/api:onos-apps-odtn-api",
-    "@jackson_databind//jar",
-    "@javax_ws_rs_api//jar",
     "//apps/optical-model:onos-apps-optical-model",
     "//drivers/optical:onos-drivers-optical",
 ]
