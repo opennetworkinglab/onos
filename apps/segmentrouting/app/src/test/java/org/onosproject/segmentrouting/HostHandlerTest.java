@@ -563,7 +563,7 @@ public class HostHandlerTest {
         // We should expect only one bridging flow and one routing flow programmed on 1A
         mockDefaultRoutingHandler.populateBridging(DEV3, P2, HOST_MAC, HOST_VLAN_UNTAGGED);
         expectLastCall().times(1);
-        mockDefaultRoutingHandler.populateRoute(DEV3, HOST_IP11.toIpPrefix(), HOST_MAC, HOST_VLAN_UNTAGGED, P2);
+        mockDefaultRoutingHandler.populateRoute(DEV3, HOST_IP11.toIpPrefix(), HOST_MAC, HOST_VLAN_UNTAGGED, P2, true);
         expectLastCall().times(1);
         replay(mockDefaultRoutingHandler);
 

@@ -32,6 +32,8 @@ import org.onosproject.routeservice.RouteInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
@@ -101,7 +103,7 @@ public class RouteHandler {
                 srManager.deviceConfiguration.addSubnet(location, prefix);
                 log.debug("RouteAdded populateRoute {}, {}, {}, {}", location, prefix, nextHopMac, nextHopVlan);
                 srManager.defaultRoutingHandler.populateRoute(location.deviceId(), prefix,
-                        nextHopMac, nextHopVlan, location.port());
+                        nextHopMac, nextHopVlan, location.port(), false);
             });
         });
     }
@@ -175,7 +177,7 @@ public class RouteHandler {
                 srManager.deviceConfiguration.addSubnet(location, prefix);
                 log.debug("RouteUpdated. populateRoute {}, {}, {}, {}", location, prefix, nextHopMac, nextHopVlan);
                 srManager.defaultRoutingHandler.populateRoute(location.deviceId(), prefix,
-                        nextHopMac, nextHopVlan, location.port());
+                        nextHopMac, nextHopVlan, location.port(), false);
             });
         });
     }
@@ -221,7 +223,7 @@ public class RouteHandler {
 
                     log.debug("RouteRemoved. revokeRoute {}, {}, {}, {}", location, prefix, nextHopMac, nextHopVlan);
                     srManager.defaultRoutingHandler.revokeRoute(pairDeviceId.get(), prefix,
-                            nextHopMac, vlanId, pairLocalPort.get());
+                            nextHopMac, vlanId, pairLocalPort.get(), false);
                 }
             });
         });
@@ -231,6 +233,8 @@ public class RouteHandler {
         log.info("processHostMovedEvent {}", event);
         MacAddress hostMac = event.subject().mac();
         VlanId hostVlanId = event.subject().vlan();
+        // map of nextId for prev port in each device
+        Map<DeviceId, Integer> nextIdMap = new HashMap<>();
 
         affectedRoutes(hostMac, hostVlanId).forEach(affectedRoute -> {
             IpPrefix prefix = affectedRoute.prefix();
@@ -245,8 +249,22 @@ public class RouteHandler {
             Set<DeviceId> newDeviceIds = newLocations.stream().map(HostLocation::deviceId)
                     .collect(Collectors.toSet());
 
+            // Set of deviceIDs of the previous locations where the host was connected
+            // Used to determine if host moved to different connect points
+            // on same device or moved to a different device altogether
+            Set<DeviceId> oldDeviceIds = prevLocations.stream().map(HostLocation::deviceId)
+                    .collect(Collectors.toSet());
+
             // For each old location
             Sets.difference(prevLocations, newLocations).forEach(prevLocation -> {
+                //find next Id for each old port, add to map
+                int nextId = srManager.getNextIdForHostPort(prevLocation.deviceId(), hostMac,
+                                                             hostVlanId, prevLocation.port());
+                log.debug("HostMoved. NextId For Host {}, {}, {}, {} {}", prevLocation, prefix,
+                                                             hostMac, hostVlanId, nextId);
+
+                nextIdMap.put(prevLocation.deviceId(), nextId);
+
                 // Remove flows for unchanged IPs only when the host moves from a switch to another.
                 // Otherwise, do not remove and let the adding part update the old flow
                 if (newDeviceIds.contains(prevLocation.deviceId())) {
@@ -265,7 +283,7 @@ public class RouteHandler {
 
                 log.debug("HostMoved. revokeRoute {}, {}, {}, {}", prevLocation, prefix, hostMac, hostVlanId);
                 srManager.defaultRoutingHandler.revokeRoute(prevLocation.deviceId(), prefix,
-                        hostMac, hostVlanId, prevLocation.port());
+                        hostMac, hostVlanId, prevLocation.port(), false);
             });
 
             // For each new location, add all new IPs.
@@ -273,9 +291,20 @@ public class RouteHandler {
                 log.debug("HostMoved. addSubnet {}, {}", newLocation, prefix);
                 srManager.deviceConfiguration.addSubnet(newLocation, prefix);
 
-                log.debug("HostMoved. populateRoute {}, {}, {}, {}", newLocation, prefix, hostMac, hostVlanId);
-                srManager.defaultRoutingHandler.populateRoute(newLocation.deviceId(), prefix,
-                        hostMac, hostVlanId, newLocation.port());
+                //its a new connect point, not a move from an existing device, populateRoute
+                if (!oldDeviceIds.contains(newLocation.deviceId())) {
+                   log.debug("HostMoved. populateRoute {}, {}, {}, {}", newLocation, prefix, hostMac, hostVlanId);
+                   srManager.defaultRoutingHandler.populateRoute(newLocation.deviceId(), prefix,
+                          hostMac, hostVlanId, newLocation.port(), false);
+                } else {
+                  // update same flow to point to new nextObj
+                  VlanId vlanId = Optional.ofNullable(srManager.getInternalVlanId(newLocation)).orElse(hostVlanId);
+                  //use nextIdMap to send new port details to update the nextId group bucket
+                  log.debug("HostMoved. update L3 Ucast Group Bucket {}, {}, {} --> {}",
+                                         newLocation, hostMac, vlanId, nextIdMap.get(newLocation.deviceId()));
+                  srManager.updateMacVlanTreatment(newLocation.deviceId(), hostMac, vlanId,
+                          newLocation.port(), nextIdMap.get(newLocation.deviceId()));
+                }
             });
 
         });
