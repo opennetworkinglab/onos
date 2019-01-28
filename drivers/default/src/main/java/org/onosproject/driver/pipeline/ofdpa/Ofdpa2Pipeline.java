@@ -425,8 +425,8 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                          nextObjective.id(), deviceId);
                 return;
             }
-            log.debug("Processing NextObjective id {} in dev {} - modify bucket",
-                      nextObjective.id(), deviceId);
+            log.debug("Processing NextObjective id {} in dev {} group {} - modify bucket",
+                      nextObjective.id(), deviceId, nextGroup);
             groupHandler.modifyBucketFromGroup(nextObjective, nextGroup);
             break;
         case VERIFY:

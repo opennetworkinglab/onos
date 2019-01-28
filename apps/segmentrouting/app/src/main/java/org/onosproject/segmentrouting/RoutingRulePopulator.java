@@ -303,15 +303,16 @@ public class RoutingRulePopulator {
      * @param hostMac MAC address of the next hop
      * @param hostVlanId Vlan ID of the nexthop
      * @param outPort port where the next hop attaches to
+     * @param directHost host is of type direct or indirect
      */
     void populateRoute(DeviceId deviceId, IpPrefix prefix,
-                              MacAddress hostMac, VlanId hostVlanId, PortNumber outPort) {
+                              MacAddress hostMac, VlanId hostVlanId, PortNumber outPort, boolean directHost) {
         log.debug("Populate direct routing entry for route {} at {}:{}",
                 prefix, deviceId, outPort);
         ForwardingObjective.Builder fwdBuilder;
         try {
             fwdBuilder = routingFwdObjBuilder(deviceId, prefix, hostMac,
-                                              hostVlanId, outPort, false);
+                                              hostVlanId, outPort, directHost, false);
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting direct populateRoute");
             return;
@@ -342,15 +343,16 @@ public class RoutingRulePopulator {
      * @param hostMac MAC address of the next hop
      * @param hostVlanId Vlan ID of the nexthop
      * @param outPort port that next hop attaches to
+     * @param directHost host is of type direct or indirect
      */
     void revokeRoute(DeviceId deviceId, IpPrefix prefix,
-            MacAddress hostMac, VlanId hostVlanId, PortNumber outPort) {
+            MacAddress hostMac, VlanId hostVlanId, PortNumber outPort, boolean directHost) {
         log.debug("Revoke IP table entry for route {} at {}:{}",
                 prefix, deviceId, outPort);
         ForwardingObjective.Builder fwdBuilder;
         try {
             fwdBuilder = routingFwdObjBuilder(deviceId, prefix, hostMac,
-                                              hostVlanId, outPort, true);
+                                              hostVlanId, outPort, directHost, true);
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting revokeIpRuleForHost.");
             return;
@@ -379,16 +381,22 @@ public class RoutingRulePopulator {
      * @param hostVlanId Vlan ID of the nexthop
      * @param outPort port where the nexthop attaches to
      * @param revoke true if forwarding objective is meant to revoke forwarding rule
+     * @param directHost host is direct or indirect
      * @return forwarding objective builder
      * @throws DeviceConfigNotFoundException if given device is not configured
      */
-    private ForwardingObjective.Builder routingFwdObjBuilder(
+
+    private ForwardingObjective.Builder
+
+
+    routingFwdObjBuilder(
             DeviceId deviceId, IpPrefix prefix,
             MacAddress hostMac, VlanId hostVlanId, PortNumber outPort,
-            boolean revoke)
+            boolean directHost, boolean revoke)
             throws DeviceConfigNotFoundException {
         MacAddress deviceMac;
         deviceMac = config.getDeviceMac(deviceId);
+        int nextObjId = -1;
 
         ConnectPoint connectPoint = new ConnectPoint(deviceId, outPort);
         VlanId untaggedVlan = srManager.interfaceService.getUntaggedVlanId(connectPoint);
@@ -435,18 +443,26 @@ public class RoutingRulePopulator {
                 return null;
             }
         }
-        // if the objective is to revoke an existing rule, and for some reason
-        // the next-objective does not exist, then a new one should not be created
-        int portNextObjId = srManager.getPortNextObjectiveId(deviceId, outPort,
+
+        if (directHost) {
+          // if the objective is to revoke an existing rule, and for some reason
+          // the next-objective does not exist, then a new one should not be created
+          nextObjId = srManager.getPortNextObjectiveId(deviceId, outPort,
                                           tbuilder.build(), mbuilder.build(), !revoke);
-        if (portNextObjId == -1) {
-            // Warning log will come from getPortNextObjective method
+        } else {
+          // if the objective is to revoke an existing rule, and for some reason
+          // the next-objective does not exist, then a new one should not be created
+          nextObjId = srManager.getMacVlanNextObjectiveId(deviceId, hostMac, hostVlanId,
+                                          tbuilder.build(), mbuilder.build(), !revoke);
+        }
+        if (nextObjId == -1) {
+            // Warning log will come from getMacVlanNextObjective method
             return null;
         }
 
         return DefaultForwardingObjective.builder()
                 .withSelector(sbuilder.build())
-                .nextStep(portNextObjId)
+                .nextStep(nextObjId)
                 .fromApp(srManager.appId).makePermanent()
                 .withPriority(getPriorityFromPrefix(prefix))
                 .withFlag(ForwardingObjective.Flag.SPECIFIC);
@@ -1711,7 +1727,7 @@ public class RoutingRulePopulator {
                     ));
                 });
         try {
-            fwdBuilder = routingFwdObjBuilder(deviceId, prefix, hostMac, dummyVlan, outPort, false);
+            fwdBuilder = routingFwdObjBuilder(deviceId, prefix, hostMac, dummyVlan, outPort, false, false);
         } catch (DeviceConfigNotFoundException e) {
             log.error(e.getMessage() + " Aborting populateDoubleTaggedRoute");
             return;
@@ -1750,7 +1766,7 @@ public class RoutingRulePopulator {
     void revokeDoubleTaggedRoute(DeviceId deviceId, IpPrefix prefix, MacAddress hostMac,
                                  VlanId hostVlan, VlanId innerVlan, VlanId outerVlan,
                                  EthType outerTpid, PortNumber outPort) {
-        revokeRoute(deviceId, prefix, hostMac, hostVlan, outPort);
+        revokeRoute(deviceId, prefix, hostMac, hostVlan, outPort, false);
 
         DummyVlanIdStoreKey key = new DummyVlanIdStoreKey(
                 new ConnectPoint(deviceId, outPort), prefix.address());

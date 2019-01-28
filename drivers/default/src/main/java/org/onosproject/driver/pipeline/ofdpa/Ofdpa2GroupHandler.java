@@ -854,7 +854,7 @@ public class Ofdpa2GroupHandler {
                 }
             }
             if (portNum == null) {
-                log.warn("Can't find output port for the bucket {}.", treatment);
+                log.debug("Can't find output port for the bucket {}.", treatment);
                 continue;
             }
             // assemble info for l2 interface group
@@ -880,10 +880,87 @@ public class Ofdpa2GroupHandler {
             log.debug("Trying L2-Interface: device:{} gid:{} gkey:{} nextid:{}",
                     deviceId, Integer.toHexString(l2InterfaceGroupId),
                     l2InterfaceGroupKey, nextObj.id());
+
             groupInfoBuilder.add(new GroupInfo(l2InterfaceGroupDescription,
                     l2InterfaceGroupDescription));
         }
         return groupInfoBuilder.build();
+    }
+
+    private GroupInfo prepareL3UnicastGroup(NextObjective nextObj, NextGroup next) {
+
+       ImmutableList.Builder<GroupInfo> groupInfoBuilder = ImmutableList.builder();
+       TrafficTreatment treatment = nextObj.next().iterator().next();
+
+       VlanId assignedVlan = readVlanFromSelector(nextObj.meta());
+       if (assignedVlan == null) {
+            log.warn("VLAN ID required by next obj is missing. Abort.");
+            return null;
+       }
+
+       List<GroupInfo> l2GroupInfos = prepareL2InterfaceGroup(nextObj, assignedVlan);
+       GroupDescription l2InterfaceGroupDesc = l2GroupInfos.get(0).innerMostGroupDesc();
+       GroupKey l2groupkey = l2InterfaceGroupDesc.appCookie();
+
+       TrafficTreatment.Builder outerTtb = DefaultTrafficTreatment.builder();
+       VlanId vlanid = null;
+       MacAddress srcMac;
+       MacAddress dstMac;
+       for (Instruction ins : treatment.allInstructions()) {
+            if (ins.type() == Instruction.Type.L2MODIFICATION) {
+                L2ModificationInstruction l2ins = (L2ModificationInstruction) ins;
+                switch (l2ins.subtype()) {
+                    case ETH_DST:
+                        dstMac = ((L2ModificationInstruction.ModEtherInstruction) l2ins).mac();
+                        outerTtb.setEthDst(dstMac);
+                        break;
+                    case ETH_SRC:
+                        srcMac = ((L2ModificationInstruction.ModEtherInstruction) l2ins).mac();
+                        outerTtb.setEthSrc(srcMac);
+                        break;
+                    case VLAN_ID:
+                        vlanid = ((L2ModificationInstruction.ModVlanIdInstruction) l2ins).vlanId();
+                            outerTtb.setVlanId(vlanid);
+                        break;
+                    default:
+                        break;
+                }
+            } else {
+                log.debug("Driver does not handle this type of TrafficTreatment"
+                        + " instruction in l2l3chain:  {} - {}", ins.type(), ins);
+            }
+       }
+
+       GroupId l2groupId = new GroupId(l2InterfaceGroupDesc.givenGroupId());
+       outerTtb.group(l2groupId);
+
+       // we need the top level group's key to point the flow to it
+       List<Deque<GroupKey>> gkeys = appKryo.deserialize(next.data());
+       GroupKey l3groupkey = gkeys.get(0).peekFirst();
+       GroupId grpId = groupService.getGroup(deviceId, l3groupkey).id();
+       int l3groupId = grpId.id();
+
+       // create the l3unicast group description to wait for the
+       // l2 interface group to be processed
+       GroupBucket l3UnicastGroupBucket =  DefaultGroupBucket.createIndirectGroupBucket(outerTtb.build());
+
+       GroupDescription l3UnicastGroupDescription = new DefaultGroupDescription(deviceId,
+                                                        GroupDescription.Type.INDIRECT,
+                                                        new GroupBuckets(Collections.singletonList(
+                                                        l3UnicastGroupBucket)), l3groupkey,
+                                                        l3groupId, nextObj.appId());
+
+      // store l2groupkey with the groupChainElem for the outer-group that depends on it
+      GroupChainElem gce = new GroupChainElem(l3UnicastGroupDescription, 1, false, deviceId);
+      updatePendingGroups(l2groupkey, gce);
+
+      log.debug("Trying L3-Interface: device:{} gid:{} gkey:{} nextid:{}",
+                        deviceId, Integer.toHexString(l3groupId), l3groupkey, nextObj.id());
+
+      groupInfoBuilder.add(new GroupInfo(l2InterfaceGroupDesc,
+                    l3UnicastGroupDescription));
+
+      return groupInfoBuilder.build().iterator().next();
     }
 
     private void createL2FloodGroup(NextObjective nextObj, VlanId vlanId,
@@ -1795,6 +1872,64 @@ public class Ofdpa2GroupHandler {
     }
 
     /**
+     * modifies group with next objective.
+     *
+     * @param nextObjective the NextObjective
+     * @param nextGroup the NextGroup
+    */
+    protected void modifyBucketFromGroup(NextObjective nextObjective, NextGroup nextGroup) {
+        switch (nextObjective.type()) {
+            case SIMPLE:
+                Collection<TrafficTreatment> treatments = nextObjective.next();
+                if (treatments.size() != 1) {
+                    log.error("Next Objectives of type Simple should only have a "
+                                    + "single Traffic Treatment. Next Objective Id:{}",
+                            nextObjective.id());
+                    fail(nextObjective, ObjectiveError.BADPARAMS);
+                    return;
+                }
+                modifySimpleNextObjective(nextObjective, nextGroup);
+                break;
+            default:
+                fail(nextObjective, ObjectiveError.UNKNOWN);
+                log.warn("Unknown next objective type {}", nextObjective.type());
+        }
+    }
+
+     /**
+     * As per the OFDPA 2.0 TTP, packets are sent out of ports by using
+     * a chain of groups. The simple Next Objective passed in by the application
+     * is broken up into a group chain. The following chains can be modified
+     * depending on the parameters in the Next Objective.
+     * 1. L2 Interface group (no chaining)
+     * 2. L3 Unicast group -> L2 Interface group
+     *
+     * @param nextObj  the nextObjective of type SIMPLE
+     */
+    private void modifySimpleNextObjective(NextObjective nextObj, NextGroup nextGroup) {
+        TrafficTreatment treatment = nextObj.next().iterator().next();
+        // determine if plain L2 or L3->L2 chain
+        boolean plainL2 = true;
+        for (Instruction ins : treatment.allInstructions()) {
+            if (ins.type() == Instruction.Type.L2MODIFICATION) {
+                L2ModificationInstruction l2ins = (L2ModificationInstruction) ins;
+                if (l2ins.subtype() == L2ModificationInstruction.L2SubType.ETH_DST ||
+                        l2ins.subtype() == L2ModificationInstruction.L2SubType.ETH_SRC ||
+                        l2ins.subtype() == L2ModificationInstruction.L2SubType.VLAN_ID) {
+                    plainL2 = false;
+                }
+            }
+        }
+        if (plainL2) {
+            modifyBucketInL2Group(nextObj, nextGroup);
+        } else {
+            modifyBucketInL3Group(nextObj, nextGroup);
+        }
+        return;
+    }
+
+
+    /**
      * Modify buckets in the L2 interface group.
      *
      * @param nextObjective a next objective that contains information for the
@@ -1802,13 +1937,8 @@ public class Ofdpa2GroupHandler {
      * @param next the representation of the existing group-chains for this next
      *             objective, from which the innermost group buckets to remove are determined
      */
-    protected void modifyBucketFromGroup(NextObjective nextObjective, NextGroup next) {
-        if (nextObjective.type() != NextObjective.Type.SIMPLE) {
-            log.warn("ModifyBucketFromGroup cannot be applied to nextType:{} in dev:{} for next:{}",
-                     nextObjective.type(), deviceId, nextObjective.id());
-            fail(nextObjective, ObjectiveError.UNSUPPORTED);
-            return;
-        }
+
+    protected void modifyBucketInL2Group(NextObjective nextObjective, NextGroup next) {
 
         VlanId assignedVlan = readVlanFromSelector(nextObjective.meta());
         if (assignedVlan == null) {
@@ -1842,7 +1972,53 @@ public class Ofdpa2GroupHandler {
                                             new OfdpaNextGroup(modifiedGroupKeys,
                                                                nextObjective));
         }
+
     }
+
+    protected void modifyBucketInL3Group(NextObjective nextObjective, NextGroup next) {
+
+        //get l3 group
+        GroupInfo groupInfo = prepareL3UnicastGroup(nextObjective, next);
+        if (groupInfo == null) {
+            log.warn("Null groupInfo retrieved for next obj. Abort.");
+            fail(nextObjective, ObjectiveError.BADPARAMS);
+            return;
+        }
+
+        GroupDescription l3UnicastGroupDesc = groupInfo.nextGroupDesc();
+
+        // Replace group bucket for L3 UC interface group
+        groupService.setBucketsForGroup(deviceId, l3UnicastGroupDesc.appCookie(),
+                        l3UnicastGroupDesc.buckets(), l3UnicastGroupDesc.appCookie(),
+                        l3UnicastGroupDesc.appId());
+
+        // create object for local and distributed storage
+        Deque<GroupKey> gkeyChain = new ArrayDeque<>();
+        gkeyChain.addFirst(groupInfo.innerMostGroupDesc().appCookie());
+        gkeyChain.addFirst(groupInfo.nextGroupDesc().appCookie());
+        List<Deque<GroupKey>> allGroupKeys = Lists.newArrayList();
+        allGroupKeys.add(gkeyChain);
+        OfdpaNextGroup ofdpaGrp = new OfdpaNextGroup(allGroupKeys, nextObjective);
+        // store l3groupkey with the ofdpaNextGroup for the nextObjective that depends on it
+        updatePendingNextObjective(groupInfo.nextGroupDesc().appCookie(), ofdpaGrp);
+
+        // update store - synchronize access as there may be multiple threads
+        // trying to update bucket from the same group, each with its own
+        // potentially stale copy of allActiveKeys
+        synchronized (flowObjectiveStore) {
+
+            List<Deque<GroupKey>> modifiedGroupKeys = Lists.newArrayList();
+            ArrayDeque<GroupKey> top = new ArrayDeque<>();
+            top.add(l3UnicastGroupDesc.appCookie());
+            top.add(groupInfo.innerMostGroupDesc().appCookie()); //l2 group key
+            modifiedGroupKeys.add(top);
+
+            flowObjectiveStore.putNextGroup(nextObjective.id(),
+                                            new OfdpaNextGroup(modifiedGroupKeys,
+                                                               nextObjective));
+        }
+    }
+
 
     /**
      *  Checks existing buckets in {@link NextGroup}  to verify if they match

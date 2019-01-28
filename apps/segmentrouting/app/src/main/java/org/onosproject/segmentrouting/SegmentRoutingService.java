@@ -42,6 +42,7 @@ import com.google.common.collect.ImmutableMap;
 import org.onosproject.segmentrouting.mcast.McastStoreKey;
 import org.onosproject.segmentrouting.storekey.PortNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.VlanNextObjectiveStoreKey;
+import org.onosproject.segmentrouting.storekey.MacVlanNextObjectiveStoreKey;
 
 import java.util.List;
 import java.util.Map;
@@ -224,6 +225,13 @@ public interface SegmentRoutingService {
      * @return current contents of the vlanNextObjStore
      */
     ImmutableMap<VlanNextObjectiveStoreKey, Integer> getVlanNextObjStore();
+
+    /**
+     * Returns the Mac Vlan next objective store.
+     *
+     * @return current contents of the macVlanNextObjStore
+     */
+    ImmutableMap<MacVlanNextObjectiveStoreKey, Integer> getMacVlanNextObjStore();
 
     /**
      * Returns the port next objective store.

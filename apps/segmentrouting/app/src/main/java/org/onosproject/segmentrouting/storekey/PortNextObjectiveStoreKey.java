@@ -22,6 +22,8 @@ import org.onosproject.net.flow.TrafficTreatment;
 
 import java.util.Objects;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 /**
  * Key of Device/Port to NextObjective store.
  *
@@ -111,8 +113,11 @@ public class PortNextObjectiveStoreKey {
 
     @Override
     public String toString() {
-        return "ConnectPoint: " + deviceId + "/" + portNum +
-                " Treatment: " + treatment +
-                " Meta: " + meta;
+        return toStringHelper(getClass())
+                .add("deviceId", deviceId)
+                .add("portNum", portNum)
+                .add("treatment", treatment)
+                .add("meta", meta)
+                .toString();
     }
 }
