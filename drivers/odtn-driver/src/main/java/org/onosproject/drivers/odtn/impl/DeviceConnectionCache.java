@@ -101,16 +101,15 @@ public final class DeviceConnectionCache {
      * @param flowId flow id
      * @return the flow rule
      */
-    public FlowRule get(DeviceId did, FlowId flowId) {
+    public DeviceConnection get(DeviceId did, FlowId flowId) {
         if (!flowCache.containsKey(did)) {
             return null;
         }
         Set<DeviceConnection> set = flowCache.get(did);
-        DeviceConnection connection = set.stream()
+        return set.stream()
                 .filter(c -> c.getFlowRule().id() == flowId)
                 .findFirst()
                 .orElse(null);
-        return connection != null ? connection.getFlowRule() : null;
     }
 
     /**

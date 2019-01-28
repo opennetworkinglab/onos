@@ -40,6 +40,16 @@ public final class TapiDeviceHelper {
     public static final String LOWER_FREQUENCY = "lower-frequency";
     public static final String AVAILABLE_SPECTRUM = "available-spectrum";
     public static final long BASE_FREQUENCY = 193100000;   //Working in Mhz
+    public static final String TAPI_CONNECTIVITY_CONNECTIVITY_SERVICE = "tapi-connectivity:connectivity-service";
+    public static final String END_POINT = "end-point";
+    public static final String SERVICE_LAYER = "service-layer";
+    public static final String SERVICE_TYPE = "service-type";
+    public static final String POINT_TO_POINT_CONNECTIVITY = "POINT_TO_POINT_CONNECTIVITY";
+    public static final String LOCAL_ID = "local-id";
+    public static final String LAYER_PROTOCOL_QUALIFIER = "layer-protocol-qualifier";
+    public static final String TAPI_PHOTONIC_MEDIA_PHOTONIC_LAYER_QUALIFIER_NMC =
+            "tapi-photonic-media:PHOTONIC_LAYER_QUALIFIER_NMC";
+    public static final String SERVICE_INTERFACE_POINT_UUID = "service-interface-point-uuid";
 
     private TapiDeviceHelper(){}
 
