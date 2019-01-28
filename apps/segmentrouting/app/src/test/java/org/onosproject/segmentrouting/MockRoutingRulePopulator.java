@@ -38,7 +38,7 @@ public class MockRoutingRulePopulator extends RoutingRulePopulator {
 
     @Override
     public void populateRoute(DeviceId deviceId, IpPrefix prefix,
-                              MacAddress hostMac, VlanId hostVlanId, PortNumber outPort) {
+                              MacAddress hostMac, VlanId hostVlanId, PortNumber outPort, boolean directHost) {
         MockRoutingTableKey rtKey = new MockRoutingTableKey(deviceId, prefix);
         MockRoutingTableValue rtValue = new MockRoutingTableValue(outPort, hostMac, hostVlanId);
         routingTable.put(rtKey, rtValue);
@@ -46,7 +46,7 @@ public class MockRoutingRulePopulator extends RoutingRulePopulator {
 
     @Override
     public void revokeRoute(DeviceId deviceId, IpPrefix prefix,
-                            MacAddress hostMac, VlanId hostVlanId, PortNumber outPort) {
+                            MacAddress hostMac, VlanId hostVlanId, PortNumber outPort, boolean directHost) {
         MockRoutingTableKey rtKey = new MockRoutingTableKey(deviceId, prefix);
         MockRoutingTableValue rtValue = new MockRoutingTableValue(outPort, hostMac, hostVlanId);
         routingTable.remove(rtKey, rtValue);

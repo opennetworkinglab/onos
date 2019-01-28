@@ -21,6 +21,8 @@ import java.util.Objects;
 import org.onosproject.net.DeviceId;
 import org.onosproject.segmentrouting.grouphandler.DestinationSet;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 /**
  * Key of Destination set next objective store.
  */
@@ -84,6 +86,9 @@ public class DestinationSetNextObjectiveStoreKey {
 
     @Override
     public String toString() {
-        return "Device: " + deviceId + " " + ds;
+        return toStringHelper(getClass())
+                .add("deviceId", deviceId)
+                .add("ds", ds)
+                .toString();
     }
 }

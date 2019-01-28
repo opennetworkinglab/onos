@@ -109,6 +109,7 @@ CLI_COMMANDS=(
     "sr-next-vlan"
     "sr-next-pw"
     "sr-next-xconnect"
+    "sr-next-mac-vlan"
     "dhcp-relay"
 
     "mcast-host-routes"

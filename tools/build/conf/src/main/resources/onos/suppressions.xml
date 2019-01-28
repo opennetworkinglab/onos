@@ -30,6 +30,7 @@
     <suppress files="org.onlab.packet.*" checks="AbbreviationAsWordInName" />
     <suppress files="org.onlab.jdvue.*" checks="AbbreviationAsWordInName" />
     <suppress files="org.onosproject.driver.pipeline.*" checks="AbbreviationAsWordInName" />
+    <suppress files="org.onosproject.driver.pipeline.ofdpa.Ofdpa2GroupHandler.java" checks="FileLength" />
     <suppress files="org.onosproject.segmentrouting.*" checks="AbbreviationAsWordInName" />
 
     <!-- These files carry AT&T copyrights -->
