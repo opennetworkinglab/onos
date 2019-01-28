@@ -36,6 +36,7 @@ import org.onlab.packet.IPv6;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.VlanId;
+import org.onlab.packet.MacAddress;
 import org.onlab.util.KryoNamespace;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
@@ -126,6 +127,7 @@ import org.onosproject.segmentrouting.storekey.DummyVlanIdStoreKey;
 import org.onosproject.segmentrouting.mcast.McastStoreKey;
 import org.onosproject.segmentrouting.storekey.PortNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.VlanNextObjectiveStoreKey;
+import org.onosproject.segmentrouting.storekey.MacVlanNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.XConnectStoreKey;
 import org.onosproject.segmentrouting.xconnect.api.XconnectService;
 import org.onosproject.store.serializers.KryoNamespaces;
@@ -333,7 +335,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             vlanNextObjStore = null;
     /**
      * Per device next objective ID store with (device id + port + treatment + meta) as key.
-     * Used to keep track on L2 interface group and L3 unicast group information.
+     * Used to keep track on L2 interface group and L3 unicast group information for direct hosts.
      */
     private EventuallyConsistentMap<PortNextObjectiveStoreKey, Integer>
             portNextObjStore = null;
@@ -344,6 +346,13 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      */
     private EventuallyConsistentMap<DummyVlanIdStoreKey, VlanId>
             dummyVlanIdStore = null;
+
+    /**
+     * Per device next objective ID store with (device id + MAC address + vlan) as key.
+     * Used to keep track of L3 unicast group for indirect hosts.
+     */
+    private EventuallyConsistentMap<MacVlanNextObjectiveStoreKey, Integer>
+            macVlanNextObjStore = null;
 
     private EventuallyConsistentMap<String, Tunnel> tunnelStore = null;
     private EventuallyConsistentMap<String, Policy> policyStore = null;
@@ -454,6 +463,15 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 vlanNextObjMapBuilder = storageService.eventuallyConsistentMapBuilder();
         vlanNextObjStore = vlanNextObjMapBuilder
                 .withName("vlannextobjectivestore")
+                .withSerializer(createSerializer())
+                .withTimestampProvider((k, v) -> new WallClockTimestamp())
+                .build();
+
+        log.debug("Creating EC map macvlannextobjectivestore");
+        EventuallyConsistentMapBuilder<MacVlanNextObjectiveStoreKey, Integer>
+                macVlanNextObjMapBuilder = storageService.eventuallyConsistentMapBuilder();
+        macVlanNextObjStore = macVlanNextObjMapBuilder
+                .withName("macvlannextobjectivestore")
                 .withSerializer(createSerializer())
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
@@ -589,7 +607,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                           L2TunnelPolicy.class,
                           DefaultL2Tunnel.class,
                           DefaultL2TunnelPolicy.class,
-                          DummyVlanIdStoreKey.class
+                          DummyVlanIdStoreKey.class,
+                          MacVlanNextObjectiveStoreKey.class
                 );
     }
 
@@ -637,6 +656,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
         dsNextObjStore.destroy();
         vlanNextObjStore.destroy();
+        macVlanNextObjStore.destroy();
         portNextObjStore.destroy();
         dummyVlanIdStore.destroy();
         tunnelStore.destroy();
@@ -933,6 +953,15 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     @Override
+    public ImmutableMap<MacVlanNextObjectiveStoreKey, Integer> getMacVlanNextObjStore() {
+        if (macVlanNextObjStore != null) {
+            return ImmutableMap.copyOf(macVlanNextObjStore.entrySet());
+        } else {
+            return ImmutableMap.of();
+        }
+    }
+
+    @Override
     public ImmutableMap<PortNextObjectiveStoreKey, Integer> getPortNextObjStore() {
         if (portNextObjStore != null) {
             return ImmutableMap.copyOf(portNextObjStore.entrySet());
@@ -972,6 +1001,13 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             vlanNextObjStore.entrySet().forEach(e -> {
                 if (e.getValue() == nextId) {
                     vlanNextObjStore.remove(e.getKey());
+                }
+            });
+        }
+        if (macVlanNextObjStore != null) {
+            macVlanNextObjStore.entrySet().forEach(e -> {
+                if (e.getValue() == nextId) {
+                    macVlanNextObjStore.remove(e.getKey());
                 }
             });
         }
@@ -1095,8 +1131,18 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     /**
+     * Per device next objective ID store with (device id + MAC address + vlan) as key.
+     * Used to keep track on L3 Unicast group information for indirect hosts.
+     *
+     * @return mac vlan next object store
+     */
+    public EventuallyConsistentMap<MacVlanNextObjectiveStoreKey, Integer> macVlanNextObjStore() {
+        return macVlanNextObjStore;
+    }
+
+    /**
      * Per device next objective ID store with (device id + port + treatment + meta) as key.
-     * Used to keep track on L2 interface group and L3 unicast group information.
+     * Used to keep track on L2 interface group and L3 unicast group information for direct hosts.
      *
      * @return port next object store.
      */
@@ -1238,6 +1284,76 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             return -1;
         }
     }
+
+    /**
+     * Returns the next Objective ID for the given mac and vlan, given the treatment.
+     * There could be multiple different treatments to the same outport, which
+     * would result in different objectives. If the next object does not exist,
+     * and should be created, a new one is created and its id is returned.
+     *
+     * @param deviceId Device ID
+     * @param macAddr mac of host for which Next ID is required.
+     * @param vlanId vlan of host for which Next ID is required.
+     * @param treatment the actions to apply on the packets (should include outport)
+     * @param meta metadata passed into the creation of a Next Objective if necessary
+     * @param createIfMissing true if a next object should be created if not found
+     * @return next objective ID or -1 if an error occurred during retrieval or creation
+     */
+    public int getMacVlanNextObjectiveId(DeviceId deviceId, MacAddress macAddr, VlanId vlanId,
+                                      TrafficTreatment treatment,
+                                      TrafficSelector meta,
+                                      boolean createIfMissing) {
+        DefaultGroupHandler ghdlr = groupHandlerMap.get(deviceId);
+        if (ghdlr != null) {
+            return ghdlr.getMacVlanNextObjectiveId(macAddr, vlanId, treatment, meta, createIfMissing);
+        } else {
+            log.warn("getMacVlanNextObjectiveId query - groupHandler for device {}"
+                    + " not found", deviceId);
+            return -1;
+        }
+    }
+
+    /**
+     * Returns the next ID for the given host port from the store.
+     *
+     * @param deviceId Device ID
+     * @param hostMac mac of host for which Next ID is required.
+     * @param hostVlanId vlan of host for which Next ID is required.
+     * @param port port of device for which next ID is required.
+     * @return next objective ID or -1 if an error occurred during retrieval
+     */
+    public int getNextIdForHostPort(DeviceId deviceId, MacAddress hostMac,
+                                     VlanId hostVlanId, PortNumber port) {
+        DefaultGroupHandler ghdlr = groupHandlerMap.get(deviceId);
+        if (ghdlr != null) {
+            return ghdlr.getNextIdForHostPort(hostMac, hostVlanId, port);
+        } else {
+            log.warn("getNextIdForHostPort query - groupHandler for device {}"
+                    + " not found", deviceId);
+            return -1;
+        }
+    }
+
+    /**
+     * Updates the next objective for the given nextId .
+     *
+     * @param deviceId Device ID
+     * @param hostMac mac of host for which Next obj is to be updated.
+     * @param hostVlanId vlan of host for which Next obj is to be updated.
+     * @param port port with which to update the Next Obj.
+     * @param nextId of Next Obj which needs to be updated.
+     */
+    public void updateMacVlanTreatment(DeviceId deviceId, MacAddress hostMac,
+                             VlanId hostVlanId, PortNumber port, int nextId) {
+        DefaultGroupHandler ghdlr = groupHandlerMap.get(deviceId);
+        if (ghdlr != null) {
+            ghdlr.updateL3UcastGroupBucket(hostMac, hostVlanId, port, nextId);
+        } else {
+            log.warn("updateL3UcastGroupBucket query - groupHandler for device {}"
+                    + " not found", deviceId);
+        }
+    }
+
 
     /**
      * Returns the group handler object for the specified device id.
@@ -1570,6 +1686,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         vlanNextObjStore.entrySet().stream()
                 .filter(entry -> entry.getKey().deviceId().equals(device.id()))
                 .forEach(entry -> vlanNextObjStore.remove(entry.getKey()));
+        macVlanNextObjStore.entrySet().stream()
+                .filter(entry -> entry.getKey().deviceId().equals(device.id()))
+                .forEach(entry -> macVlanNextObjStore.remove(entry.getKey()));
         portNextObjStore.entrySet().stream()
                 .filter(entry -> entry.getKey().deviceId().equals(device.id()))
                 .forEach(entry -> portNextObjStore.remove(entry.getKey()));

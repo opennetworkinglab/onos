@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Foundation
+ * Copyright 2019-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.onosproject.segmentrouting.storekey;
 
 import org.onlab.packet.VlanId;
+import org.onlab.packet.MacAddress;
 import org.onosproject.net.DeviceId;
 
 import java.util.Objects;
@@ -24,40 +24,51 @@ import java.util.Objects;
 import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
- * Key of VLAN to NextObjective store.
+ * Key of Device/Vlan/MacAddr to NextObjective store.
  */
-public class VlanNextObjectiveStoreKey {
+public class MacVlanNextObjectiveStoreKey {
     private final DeviceId deviceId;
+    private final MacAddress macAddr;
     private final VlanId vlanId;
 
     /**
-     * Constructs the key of VLAN next objective store.
+     * Constructs the key of the next objective store.
      *
      * @param deviceId device ID
-     * @param vlanId VLAN information
+     * @param macAddr mac of host
+     * @param vlanId vlan of host
      */
-    public VlanNextObjectiveStoreKey(DeviceId deviceId,
-                                     VlanId vlanId) {
+    public MacVlanNextObjectiveStoreKey(DeviceId deviceId, MacAddress macAddr, VlanId vlanId) {
         this.deviceId = deviceId;
+        this.macAddr = macAddr;
         this.vlanId = vlanId;
     }
 
     /**
-     * Gets device id in this VlanNextObjectiveStoreKey.
+     * Gets device id in this MacVlanNextObjectiveStoreKey.
      *
      * @return device id
      */
     public DeviceId deviceId() {
-        return this.deviceId;
+        return deviceId;
     }
 
     /**
-     * Gets vlan information in this VlanNextObjectiveStoreKey.
+     * Gets vlan information in this MacVlanNextObjectiveStoreKey.
      *
-     * @return vlan id
+     * @return vlan information
      */
     public VlanId vlanId() {
-        return this.vlanId;
+        return vlanId;
+    }
+
+    /**
+     * Gets mac information in this MacVlanNextObjectiveStoreKey.
+     *
+     * @return mac information
+     */
+    public MacAddress macAddr() {
+        return macAddr;
     }
 
     @Override
@@ -65,18 +76,19 @@ public class VlanNextObjectiveStoreKey {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof VlanNextObjectiveStoreKey)) {
+        if (!(o instanceof MacVlanNextObjectiveStoreKey)) {
             return false;
         }
-        VlanNextObjectiveStoreKey that =
-                (VlanNextObjectiveStoreKey) o;
+        MacVlanNextObjectiveStoreKey that =
+                (MacVlanNextObjectiveStoreKey) o;
         return (Objects.equals(this.deviceId, that.deviceId) &&
-                Objects.equals(this.vlanId, that.vlanId));
+                Objects.equals(this.vlanId, that.vlanId) &&
+                Objects.equals(this.macAddr, that.macAddr));
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(deviceId, vlanId);
+        return Objects.hash(deviceId, vlanId, macAddr);
     }
 
     @Override
@@ -84,6 +96,7 @@ public class VlanNextObjectiveStoreKey {
         return toStringHelper(getClass())
                 .add("deviceId", deviceId)
                 .add("vlanId", vlanId)
+                .add("macAddr", macAddr)
                 .toString();
     }
 }

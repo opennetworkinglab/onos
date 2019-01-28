@@ -55,6 +55,9 @@
             <action class="org.onosproject.segmentrouting.cli.NextPortCommand"/>
         </command>
         <command>
+            <action class="org.onosproject.segmentrouting.cli.NextMacVlanCommand"/>
+        </command>
+        <command>
             <action class="org.onosproject.segmentrouting.cli.PseudowireNextListCommand"/>
         </command>
         <command>

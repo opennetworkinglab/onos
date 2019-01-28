@@ -1118,11 +1118,12 @@ public class DefaultRoutingHandler {
      * @param hostMac MAC address of the next hop
      * @param hostVlanId Vlan ID of the nexthop
      * @param outPort port where the next hop attaches to
+     * @param directHost host is of type direct or indirect
      */
     void populateRoute(DeviceId deviceId, IpPrefix prefix,
-                       MacAddress hostMac, VlanId hostVlanId, PortNumber outPort) {
+                       MacAddress hostMac, VlanId hostVlanId, PortNumber outPort, boolean directHost) {
         if (shouldProgram(deviceId)) {
-            srManager.routingRulePopulator.populateRoute(deviceId, prefix, hostMac, hostVlanId, outPort);
+            srManager.routingRulePopulator.populateRoute(deviceId, prefix, hostMac, hostVlanId, outPort, directHost);
         }
     }
 
@@ -1135,11 +1136,12 @@ public class DefaultRoutingHandler {
      * @param hostMac MAC address of the next hop
      * @param hostVlanId Vlan ID of the nexthop
      * @param outPort port that next hop attaches to
+     * @param directHost host is of type direct or indirect
      */
     void revokeRoute(DeviceId deviceId, IpPrefix prefix,
-                     MacAddress hostMac, VlanId hostVlanId, PortNumber outPort) {
+                     MacAddress hostMac, VlanId hostVlanId, PortNumber outPort, boolean directHost) {
         if (shouldProgram(deviceId)) {
-            srManager.routingRulePopulator.revokeRoute(deviceId, prefix, hostMac, hostVlanId, outPort);
+            srManager.routingRulePopulator.revokeRoute(deviceId, prefix, hostMac, hostVlanId, outPort, directHost);
         }
     }
 
