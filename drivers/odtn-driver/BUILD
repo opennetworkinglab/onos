@@ -1,5 +1,6 @@
 COMPILE_DEPS = CORE_DEPS + [
     "@commons_jxpath//jar",
+    "//core/store/serializers:onos-core-serializers",
     "//drivers/utilities:onos-drivers-utilities",
     "//protocols/netconf/api:onos-protocols-netconf-api",
     "//protocols/rest/api:onos-protocols-rest-api",

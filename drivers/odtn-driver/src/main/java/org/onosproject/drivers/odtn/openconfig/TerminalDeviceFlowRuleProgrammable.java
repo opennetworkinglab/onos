@@ -20,8 +20,8 @@ package org.onosproject.drivers.odtn.openconfig;
 
 import com.google.common.collect.ImmutableList;
 import org.onlab.util.Frequency;
+import org.onosproject.drivers.odtn.impl.DeviceConnectionCache;
 import org.onosproject.drivers.odtn.impl.FlowRuleParser;
-import org.onosproject.drivers.odtn.impl.OpenConfigConnectionCache;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
@@ -83,13 +83,13 @@ public class TerminalDeviceFlowRuleProgrammable
         List<FlowRule> added = new ArrayList<>();
         for (FlowRule r : rules) {
             try {
-                applyFlowRule(session, r);
+                String connectionId = applyFlowRule(session, r);
+                getConnectionCache().add(did(), connectionId, r);
+                added.add(r);
             } catch (Exception e) {
                 openConfigError("Error {}", e);
                 continue;
             }
-            getConnectionCache().add(did(), r);
-            added.add(r);
         }
         openConfigLog("applyFlowRules added {}", added.size());
         return added;
@@ -102,7 +102,7 @@ public class TerminalDeviceFlowRuleProgrammable
      */
     @Override
     public Collection<FlowEntry> getFlowEntries() {
-        OpenConfigConnectionCache cache = getConnectionCache();
+        DeviceConnectionCache cache = getConnectionCache();
         if (cache.get(did()) == null) {
             return ImmutableList.of();
         }
@@ -131,20 +131,20 @@ public class TerminalDeviceFlowRuleProgrammable
         List<FlowRule> removed = new ArrayList<>();
         for (FlowRule r : rules) {
             try {
-                removeFlowRule(session, r);
+                String connectionId = removeFlowRule(session, r);
+                getConnectionCache().remove(did(), connectionId);
+                removed.add(r);
             } catch (Exception e) {
                 openConfigError("Error {}", e);
                 continue;
             }
-            getConnectionCache().add(did(), r);
-            removed.add(r);
         }
         openConfigLog("removedFlowRules removed {}", removed.size());
         return removed;
     }
 
-    private OpenConfigConnectionCache getConnectionCache() {
-        return OpenConfigConnectionCache.init();
+    private DeviceConnectionCache getConnectionCache() {
+        return DeviceConnectionCache.init();
     }
 
     // Context so XPath expressions are aware of XML namespaces
@@ -346,7 +346,7 @@ public class TerminalDeviceFlowRuleProgrammable
 
     /**
      * Apply the flowrule.
-     *
+     * <p>
      * Note: only bidirectional are supported as of now,
      * given OpenConfig note (below). In consequence, only the
      * TX rules are actually mapped to netconf ops.
@@ -362,24 +362,29 @@ public class TerminalDeviceFlowRuleProgrammable
      *
      * @param session The Netconf session.
      * @param r       Flow Rules to be applied.
+     * @return the optical channel + the frequency or just channel as identifier fo the config installed on the device
      * @throws NetconfException if exchange goes wrong
      */
-    protected void applyFlowRule(NetconfSession session, FlowRule r) throws NetconfException {
+    protected String applyFlowRule(NetconfSession session, FlowRule r) throws NetconfException {
         FlowRuleParser frp = new FlowRuleParser(r);
         if (!frp.isReceiver()) {
             String optChannel = getOpticalChannel(session, frp.getPortNumber());
             setOpticalChannelFrequency(session, optChannel,
                     frp.getCentralFrequency());
+            return optChannel + ":" + frp.getCentralFrequency().asGHz();
         }
+        return String.valueOf(frp.getCentralFrequency().asGHz());
     }
 
 
-    protected void removeFlowRule(NetconfSession session, FlowRule r)
+    protected String removeFlowRule(NetconfSession session, FlowRule r)
             throws NetconfException {
         FlowRuleParser frp = new FlowRuleParser(r);
         if (!frp.isReceiver()) {
             String optChannel = getOpticalChannel(session, frp.getPortNumber());
             setOpticalChannelFrequency(session, optChannel, Frequency.ofMHz(0));
+            return optChannel + ":" + frp.getCentralFrequency().asGHz();
         }
+        return String.valueOf(frp.getCentralFrequency().asGHz());
     }
 }
