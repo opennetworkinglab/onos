@@ -61,6 +61,16 @@ public class K8sNetworkEvent extends AbstractEvent<K8sNetworkEvent.Type, K8sNetw
          * Signifies that the kubernetes port is removed.
          */
         K8S_PORT_REMOVED,
+
+        /**
+         * Signifies that the kubernetes port is activated.
+         */
+        K8S_PORT_ACTIVATED,
+
+        /**
+         * Signifies that the kubernetes port is inactivated.
+         */
+        K8S_PORT_INACTIVATED,
     }
 
     /**

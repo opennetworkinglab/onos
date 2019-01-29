@@ -19,10 +19,17 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.onosproject.cfg.ConfigProperty;
+import org.onosproject.k8snetworking.api.K8sNetwork;
+import org.onosproject.k8snetworking.api.K8sNetworkService;
+import org.onosproject.k8snode.api.K8sNode;
+import org.onosproject.net.PortNumber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Optional;
+import java.util.Set;
 
 import static org.onosproject.k8snetworking.api.Constants.PORT_NAME_PREFIX_CONTAINER;
 
@@ -43,7 +50,62 @@ public final class K8sNetworkingUtil {
      * @return true if the port is associated with container; false otherwise
      */
     public static boolean isContainer(String portName) {
-        return PORT_NAME_PREFIX_CONTAINER.equals(portName);
+        return portName != null && portName.contains(PORT_NAME_PREFIX_CONTAINER);
+    }
+
+    /**
+     * Returns the tunnel port number with specified net ID and kubernetes node.
+     *
+     * @param netId         network ID
+     * @param netService    network service
+     * @param node          kubernetes node
+     * @return tunnel port number
+     */
+    public static PortNumber tunnelPortNumByNetId(String netId,
+                                                  K8sNetworkService netService,
+                                                  K8sNode node) {
+        K8sNetwork.Type netType = netService.network(netId).type();
+
+        if (netType == null) {
+            return null;
+        }
+
+        return tunnelPortNumByNetType(netType, node);
+    }
+
+    /**
+     * Returns the tunnel port number with specified net type and kubernetes node.
+     *
+     * @param netType       network type
+     * @param node          kubernetes node
+     * @return tunnel port number
+     */
+    public static PortNumber tunnelPortNumByNetType(K8sNetwork.Type netType,
+                                                    K8sNode node) {
+        switch (netType) {
+            case VXLAN:
+                return node.vxlanPortNum();
+            case GRE:
+                return node.grePortNum();
+            case GENEVE:
+                return node.genevePortNum();
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * Obtains the property value with specified property key name.
+     *
+     * @param properties    a collection of properties
+     * @param name          key name
+     * @return mapping value
+     */
+    public static String getPropertyValue(Set<ConfigProperty> properties,
+                                          String name) {
+        Optional<ConfigProperty> property =
+                properties.stream().filter(p -> p.name().equals(name)).findFirst();
+        return property.map(ConfigProperty::value).orElse(null);
     }
 
     /**

@@ -28,6 +28,7 @@ import java.util.Objects;
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.onosproject.k8snode.api.Constants.GENEVE_TUNNEL;
 import static org.onosproject.k8snode.api.Constants.GRE_TUNNEL;
+import static org.onosproject.k8snode.api.Constants.INTEGRATION_BRIDGE;
 import static org.onosproject.k8snode.api.Constants.VXLAN_TUNNEL;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 
@@ -127,6 +128,16 @@ public class DefaultK8sNode implements K8sNode {
     @Override
     public PortNumber genevePortNum() {
         return tunnelPortNum(GENEVE_TUNNEL);
+    }
+
+    @Override
+    public PortNumber intBridgePortNum() {
+        DeviceService deviceService = DefaultServiceDirectory.getService(DeviceService.class);
+        Port port = deviceService.getPorts(intgBridge).stream()
+                .filter(p -> p.isEnabled() &&
+                        Objects.equals(p.annotations().value(PORT_NAME), INTEGRATION_BRIDGE))
+                .findAny().orElse(null);
+        return port != null ? port.number() : null;
     }
 
     @Override

@@ -7,6 +7,10 @@ onos_app(
     category = "Integration",
     description = "SONA Kubernetes Node Application.",
     included_bundles = BUNDLES,
+    required_apps = [
+        "org.onosproject.ovsdb-base",
+        "org.onosproject.drivers.ovsdb",
+    ],
     title = "Kubernetes Node Application",
     url = "https://wiki.onosproject.org/display/ONOS/SONA%3A+DC+Network+Virtualization",
 )

@@ -118,6 +118,13 @@ public interface K8sNode {
     PortNumber genevePortNum();
 
     /**
+     * Returns the host port number.
+     *
+     * @return host port number; null if the host port does not exist
+     */
+    PortNumber intBridgePortNum();
+
+    /**
      * Builder of new node entity.
      */
     interface Builder {
