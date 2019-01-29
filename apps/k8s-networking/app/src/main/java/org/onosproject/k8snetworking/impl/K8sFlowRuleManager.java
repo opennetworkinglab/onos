@@ -15,17 +15,24 @@
  */
 package org.onosproject.k8snetworking.impl;
 
+import org.onlab.packet.Ethernet;
+import org.onlab.packet.IpPrefix;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.k8snetworking.api.K8sFlowRuleService;
+import org.onosproject.k8snetworking.api.K8sNetwork;
+import org.onosproject.k8snetworking.api.K8sNetworkEvent;
+import org.onosproject.k8snetworking.api.K8sNetworkListener;
+import org.onosproject.k8snetworking.api.K8sNetworkService;
 import org.onosproject.k8snode.api.K8sNode;
 import org.onosproject.k8snode.api.K8sNodeEvent;
 import org.onosproject.k8snode.api.K8sNodeListener;
 import org.onosproject.k8snode.api.K8sNodeService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -48,7 +55,6 @@ import java.util.concurrent.Executors;
 
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.k8snetworking.api.Constants.ACL_EGRESS_TABLE;
-import static org.onosproject.k8snetworking.api.Constants.ACL_INGRESS_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.ARP_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.DEFAULT_GATEWAY_MAC;
 import static org.onosproject.k8snetworking.api.Constants.DHCP_TABLE;
@@ -89,11 +95,15 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
     protected LeadershipService leadershipService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected K8sNetworkService k8sNetworkService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected K8sNodeService k8sNodeService;
 
     private final ExecutorService deviceEventExecutor =
             Executors.newSingleThreadExecutor(groupedThreads(
                     getClass().getSimpleName(), "device-event"));
+    private final K8sNetworkListener internalNetworkListener = new InternalK8sNetworkListener();
     private final K8sNodeListener internalNodeListener = new InternalK8sNodeListener();
 
     private ApplicationId appId;
@@ -104,10 +114,10 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
         appId = coreService.registerApplication(K8S_NETWORKING_APP_ID);
         coreService.registerApplication(K8S_NETWORKING_APP_ID);
         k8sNodeService.addListener(internalNodeListener);
+        k8sNetworkService.addListener(internalNetworkListener);
         localNodeId = clusterService.getLocalNode().id();
         leadershipService.runForLeadership(appId.name());
-        k8sNodeService.completeNodes().forEach(node ->
-                                        initializePipeline(node.intgBridge()));
+        k8sNodeService.completeNodes().forEach(this::initializePipeline);
 
         log.info("Started");
     }
@@ -115,6 +125,7 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
     @Deactivate
     protected void deactivate() {
         k8sNodeService.removeListener(internalNodeListener);
+        k8sNetworkService.removeListener(internalNetworkListener);
         leadershipService.withdraw(appId.name());
         deviceEventExecutor.shutdown();
 
@@ -200,7 +211,10 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
         }));
     }
 
-    protected void initializePipeline(DeviceId deviceId) {
+    protected void initializePipeline(K8sNode k8sNode) {
+
+        DeviceId deviceId = k8sNode.intgBridge();
+
         // for inbound table transition
         connectTables(deviceId, STAT_INBOUND_TABLE, VTAP_INBOUND_TABLE);
         connectTables(deviceId, VTAP_INBOUND_TABLE, DHCP_TABLE);
@@ -211,24 +225,25 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
         // for vTag and ARP table transition
         connectTables(deviceId, VTAG_TABLE, ARP_TABLE);
 
-        // for ARP and ACL table transition
-        connectTables(deviceId, ARP_TABLE, ACL_INGRESS_TABLE);
-
-        // for ACL and JUMP table transition
         connectTables(deviceId, ACL_EGRESS_TABLE, JUMP_TABLE);
+
+        // for ARP and ACL table transition
+        connectTables(deviceId, ARP_TABLE, JUMP_TABLE);
 
         // for JUMP table transition
         // we need JUMP table for bypassing routing table which contains large
         // amount of flow rules which might cause performance degradation during
         // table lookup
-        setupJumpTable(deviceId);
+        setupJumpTable(k8sNode);
 
         // for outbound table transition
         connectTables(deviceId, STAT_OUTBOUND_TABLE, VTAP_OUTBOUND_TABLE);
         connectTables(deviceId, VTAP_OUTBOUND_TABLE, FORWARDING_TABLE);
     }
 
-    private void setupJumpTable(DeviceId deviceId) {
+    private void setupJumpTable(K8sNode k8sNode) {
+        DeviceId deviceId = k8sNode.intgBridge();
+
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
 
@@ -265,6 +280,50 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
         applyRule(flowRule, true);
     }
 
+    private void setupHostGwRule(K8sNetwork k8sNetwork) {
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
+        sBuilder.matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPDst(IpPrefix.valueOf(k8sNetwork.gatewayIp(), 32));
+
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+        tBuilder.setOutput(PortNumber.LOCAL);
+
+        for (K8sNode node : k8sNodeService.completeNodes()) {
+            FlowRule flowRule = DefaultFlowRule.builder()
+                    .forDevice(node.intgBridge())
+                    .withSelector(sBuilder.build())
+                    .withTreatment(tBuilder.build())
+                    .withPriority(HIGH_PRIORITY)
+                    .fromApp(appId)
+                    .makePermanent()
+                    .forTable(JUMP_TABLE)
+                    .build();
+            applyRule(flowRule, true);
+        }
+
+        sBuilder = DefaultTrafficSelector.builder();
+        sBuilder.matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPSrc(IpPrefix.valueOf(k8sNetwork.gatewayIp(), 32))
+                .matchIPDst(IpPrefix.valueOf(k8sNetwork.cidr()));
+
+        tBuilder = DefaultTrafficTreatment.builder();
+        tBuilder.setTunnelId(Long.valueOf(k8sNetwork.segmentId()))
+                .transition(STAT_OUTBOUND_TABLE);
+
+        for (K8sNode node : k8sNodeService.completeNodes()) {
+            FlowRule flowRule = DefaultFlowRule.builder()
+                    .forDevice(node.intgBridge())
+                    .withSelector(sBuilder.build())
+                    .withTreatment(tBuilder.build())
+                    .withPriority(HIGH_PRIORITY)
+                    .fromApp(appId)
+                    .makePermanent()
+                    .forTable(JUMP_TABLE)
+                    .build();
+            applyRule(flowRule, true);
+        }
+    }
+
     private class InternalK8sNodeListener implements K8sNodeListener {
         private boolean isRelevantHelper() {
             return Objects.equals(localNodeId, leadershipService.getLeader(appId.name()));
@@ -283,7 +342,7 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
                             return;
                         }
 
-                        initializePipeline(k8sNode.intgBridge());
+                        initializePipeline(k8sNode);
                     });
                     break;
                 case K8S_NODE_CREATED:
@@ -291,6 +350,35 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
                     // do nothing
                     break;
             }
+        }
+    }
+
+    private class InternalK8sNetworkListener implements K8sNetworkListener {
+
+        private boolean isRelevantHelper() {
+            return Objects.equals(localNodeId, leadershipService.getLeader(appId.name()));
+        }
+
+        @Override
+        public void event(K8sNetworkEvent event) {
+
+            switch (event.type()) {
+                case K8S_NETWORK_CREATED:
+                    deviceEventExecutor.execute(() -> processNetworkCreation(event.subject()));
+                    break;
+                case K8S_NETWORK_REMOVED:
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void processNetworkCreation(K8sNetwork network) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            setupHostGwRule(network);
         }
     }
 }

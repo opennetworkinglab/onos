@@ -99,6 +99,14 @@ public interface K8sPort {
     K8sPort updateState(State newState);
 
     /**
+     * Returns new port instance with the given port number.
+     *
+     * @param portNumber updated port number
+     * @return updated port
+     */
+    K8sPort updatePortNumber(PortNumber portNumber);
+
+    /**
      * Builder of new port.
      */
     interface Builder {

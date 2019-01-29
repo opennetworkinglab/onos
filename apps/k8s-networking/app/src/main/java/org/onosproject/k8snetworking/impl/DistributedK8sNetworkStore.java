@@ -51,9 +51,13 @@ import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.k8snetworking.api.K8sNetworkEvent.Type.K8S_NETWORK_CREATED;
 import static org.onosproject.k8snetworking.api.K8sNetworkEvent.Type.K8S_NETWORK_REMOVED;
 import static org.onosproject.k8snetworking.api.K8sNetworkEvent.Type.K8S_NETWORK_UPDATED;
+import static org.onosproject.k8snetworking.api.K8sNetworkEvent.Type.K8S_PORT_ACTIVATED;
 import static org.onosproject.k8snetworking.api.K8sNetworkEvent.Type.K8S_PORT_CREATED;
+import static org.onosproject.k8snetworking.api.K8sNetworkEvent.Type.K8S_PORT_INACTIVATED;
 import static org.onosproject.k8snetworking.api.K8sNetworkEvent.Type.K8S_PORT_REMOVED;
 import static org.onosproject.k8snetworking.api.K8sNetworkEvent.Type.K8S_PORT_UPDATED;
+import static org.onosproject.k8snetworking.api.K8sPort.State.ACTIVE;
+import static org.onosproject.k8snetworking.api.K8sPort.State.INACTIVE;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -254,11 +258,7 @@ public class DistributedK8sNetworkStore
                     break;
                 case UPDATE:
                     log.debug("Kubernetes port updated");
-                    eventExecutor.execute(() ->
-                            notifyDelegate(new K8sNetworkEvent(
-                                K8S_PORT_UPDATED,
-                                network(event.newValue().value().networkId()),
-                                event.newValue().value())));
+                    eventExecutor.execute(() -> processPortUpdate(event));
                     break;
                 case REMOVE:
                     log.debug("Kubernetes port removed");
@@ -270,6 +270,31 @@ public class DistributedK8sNetworkStore
                 default:
                     // do nothing
                     break;
+            }
+        }
+
+        private void processPortUpdate(MapEvent<String, K8sPort> event) {
+            K8sPort.State oldState = event.oldValue().value().state();
+            K8sPort.State newState = event.newValue().value().state();
+
+            eventExecutor.execute(() ->
+                    notifyDelegate(new K8sNetworkEvent(
+                            K8S_PORT_UPDATED,
+                            network(event.newValue().value().networkId()),
+                            event.newValue().value())));
+
+            if (oldState == INACTIVE && newState == ACTIVE) {
+                notifyDelegate(new K8sNetworkEvent(
+                        K8S_PORT_ACTIVATED,
+                        network(event.newValue().value().networkId()),
+                        event.newValue().value()));
+            }
+
+            if (oldState == ACTIVE && newState == INACTIVE) {
+                notifyDelegate(new K8sNetworkEvent(
+                        K8S_PORT_INACTIVATED,
+                        network(event.newValue().value().networkId()),
+                        event.newValue().value()));
             }
         }
     }

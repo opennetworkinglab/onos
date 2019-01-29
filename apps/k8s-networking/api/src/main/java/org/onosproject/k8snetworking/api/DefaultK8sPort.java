@@ -101,6 +101,19 @@ public final class DefaultK8sPort implements K8sPort {
     }
 
     @Override
+    public K8sPort updatePortNumber(PortNumber portNumber) {
+        return new Builder()
+                .networkId(networkId)
+                .portId(portId)
+                .macAddress(macAddress)
+                .ipAddress(ipAddress)
+                .deviceId(deviceId)
+                .portNumber(portNumber)
+                .state(state)
+                .build();
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

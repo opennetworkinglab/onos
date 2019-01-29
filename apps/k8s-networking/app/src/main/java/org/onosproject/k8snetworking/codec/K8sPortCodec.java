@@ -108,6 +108,8 @@ public final class K8sPortCodec extends JsonCodec<K8sPort> {
         JsonNode stateJson = json.get(STATE);
         if (stateJson != null) {
             builder.state(State.valueOf(stateJson.asText()));
+        } else {
+            builder.state(State.INACTIVE);
         }
 
         return builder.build();

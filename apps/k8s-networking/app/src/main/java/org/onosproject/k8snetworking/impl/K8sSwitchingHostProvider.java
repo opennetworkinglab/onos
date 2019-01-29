@@ -22,7 +22,7 @@ import org.onlab.packet.VlanId;
 import org.onlab.util.Tools;
 import org.onosproject.core.CoreService;
 import org.onosproject.k8snetworking.api.K8sNetwork;
-import org.onosproject.k8snetworking.api.K8sNetworkService;
+import org.onosproject.k8snetworking.api.K8sNetworkAdminService;
 import org.onosproject.k8snetworking.api.K8sPort;
 import org.onosproject.k8snode.api.K8sNode;
 import org.onosproject.k8snode.api.K8sNodeEvent;
@@ -79,8 +79,8 @@ public class K8sSwitchingHostProvider extends AbstractProvider implements HostPr
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final String ERR_ADD_HOST = "Failed to add host: ";
-    private static final String SONA_HOST_SCHEME = "sona";
-    private static final int PORT_PREFIX_LENGTH = 3;
+    private static final String SONA_HOST_SCHEME = "sona-k8s";
+    private static final int PORT_PREFIX_LENGTH = 4;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
@@ -98,7 +98,7 @@ public class K8sSwitchingHostProvider extends AbstractProvider implements HostPr
     protected MastershipService mastershipService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    protected K8sNetworkService k8sNetworkService;
+    protected K8sNetworkAdminService k8sNetworkService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected K8sNodeService k8sNodeService;
@@ -173,6 +173,11 @@ public class K8sSwitchingHostProvider extends AbstractProvider implements HostPr
         ConnectPoint connectPoint = new ConnectPoint(port.element().id(), port.number());
 
         long createTime = System.currentTimeMillis();
+
+        // update k8s port number by referring to ONOS port number
+
+        k8sNetworkService.updatePort(k8sPort.updatePortNumber(port.number())
+                                            .updateState(K8sPort.State.ACTIVE));
 
         // we check whether the host already attached to same locations
         Host host = hostService.getHost(hostId);
@@ -291,6 +296,10 @@ public class K8sSwitchingHostProvider extends AbstractProvider implements HostPr
                 return;
             }
 
+            log.debug("K8s port {} is updated at {}",
+                    event.port().annotations().value(PORT_NAME),
+                    event.subject().id());
+
             if (!event.port().isEnabled()) {
                 processPortRemoval(event);
             } else if (event.port().isEnabled()) {
@@ -303,7 +312,11 @@ public class K8sSwitchingHostProvider extends AbstractProvider implements HostPr
                 return;
             }
 
-            processPortAddition(event);
+            log.debug("K8s port {} is detected from {}",
+                    event.port().annotations().value(PORT_NAME),
+                    event.subject().id());
+
+            processPortAdded(event.port());
         }
 
         private void processPortRemoval(DeviceEvent event) {
@@ -311,7 +324,11 @@ public class K8sSwitchingHostProvider extends AbstractProvider implements HostPr
                 return;
             }
 
-            processPortRemoval(event);
+            log.debug("K8s port {} is removed from {}",
+                    event.port().annotations().value(PORT_NAME),
+                    event.subject().id());
+
+            processPortRemoved(event.port());
         }
     }
 

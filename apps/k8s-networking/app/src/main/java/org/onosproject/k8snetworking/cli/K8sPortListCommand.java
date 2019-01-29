@@ -63,7 +63,7 @@ public class K8sPortListCommand extends AbstractShellCommand {
             for (K8sPort port: ports) {
                 K8sNetwork k8sNet = service.network(port.networkId());
                 print(FORMAT, port.portId(),
-                        k8sNet.name(),
+                        k8sNet == null ? "" : k8sNet.name(),
                         port.macAddress(),
                         port.ipAddress() == null ? "" : port.ipAddress().toString());
             }
