@@ -3,7 +3,7 @@ COMPILE_DEPS = CORE_DEPS + KRYO + [
     "//protocols/gnmi/stub:onos-protocols-gnmi-stub",
     "//protocols/grpc/api:onos-protocols-grpc-api",
     "//protocols/grpc/ctl:onos-protocols-grpc-ctl",
-    "//protocols/grpc:grpc-core-repkg",
+    "//protocols/grpc:grpc-bundle-core",
     "@com_google_protobuf//:protobuf_java",
     "@io_grpc_grpc_java//netty",
     "@io_grpc_grpc_java//protobuf-lite",
