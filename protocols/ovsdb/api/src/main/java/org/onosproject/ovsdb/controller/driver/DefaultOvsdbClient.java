@@ -24,6 +24,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
 import io.netty.channel.Channel;
 import org.onlab.packet.IpAddress;
@@ -1345,7 +1346,7 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
 
             ListenableFuture<JsonNode> input = getSchema(dbNames);
             if (input != null) {
-                return Futures.transform(input, rowFunction);
+                return futureTransform(input, rowFunction);
             }
             return null;
         } else {
@@ -1369,7 +1370,7 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
                 }
                 return updates;
             };
-            return Futures.transform(monitor(dbSchema, id), rowFunction);
+            return futureTransform(monitor(dbSchema, id), rowFunction);
         }
         return null;
     }
@@ -1395,7 +1396,7 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
                 }
                 return null;
             });
-            return Futures.transform(transact(dbSchema, operations), rowFunction);
+            return futureTransform(transact(dbSchema, operations), rowFunction);
         }
         return null;
     }
@@ -1980,5 +1981,13 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
     @Override
     public Optional<DeviceCpuStats> getDeviceCpuUsage() {
         return Optional.empty();
+    }
+
+    private <I, O> ListenableFuture<O> futureTransform(
+            ListenableFuture<I> input, Function<? super I, ? extends O> function) {
+        // Wrapper around deprecated Futures.transform() method. As per Guava
+        // recommendation, passing MoreExecutors.directExecutor() for identical
+        // behavior.
+        return Futures.transform(input, function, MoreExecutors.directExecutor());
     }
 }
