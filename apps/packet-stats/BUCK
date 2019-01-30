@@ -1,21 +1,15 @@
-COMPILE_DEPS = [
-    '//lib:CORE_DEPS',
-    '//lib:JACKSON',
-    '//lib:METRICS',
-    '//core/store/serializers:onos-core-serializers',
-    '//core/store/primitives:onos-core-primitives',
-    '//core/api:onos-api',
-    '//lib:org.apache.karaf.shell.console',
-    '//cli:onos-cli',
+BUNDLES = [
+    '//apps/packet-stats/app:onos-apps-packet-stats-app',
+    '//apps/packet-stats/web:onos-apps-packet-stats-web',
 ]
 
-osgi_jar_with_tests (
-    deps = COMPILE_DEPS,
-)
+
 
 onos_app (
+    app_name = "org.onosproject.packet-stats",
     title = 'Packet Statistics',
-    category = 'Traffic Engineering',
-    url = 'http://onosproject.org',
-    description = 'Application to calculate the number of packets of different types',
+    category = "Utility",
+    description = " Application to calculate the number of packets of different types",
+    included_bundles = BUNDLES,
+    url = "http://onosproject.org",
 )
