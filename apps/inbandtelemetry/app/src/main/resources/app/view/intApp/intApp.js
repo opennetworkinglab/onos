@@ -30,7 +30,6 @@
         if ($scope.metaQOccupancy) inst.push("QUEUE_OCCUPANCY");
         if ($scope.metaIngressTstamp) inst.push("INGRESS_TIMESTAMP");
         if ($scope.metaEgressTstamp) inst.push("EGRESS_TIMESTAMP");
-        if ($scope.metaQCongestion) inst.push("QUEUE_CONGESTION");
         if ($scope.metaEgressTx) inst.push("EGRESS_TX_UTIL");
 
         var intentObjectNode = {

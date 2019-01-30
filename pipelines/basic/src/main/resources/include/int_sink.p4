@@ -22,27 +22,28 @@ control process_int_sink (
     inout headers_t hdr,
     inout local_metadata_t local_metadata,
     inout standard_metadata_t standard_metadata) {
+    @hidden
     action restore_header () {
-        hdr.udp.dst_port = hdr.intl4_tail.dest_port;
-        hdr.ipv4.dscp = (bit<6>)hdr.intl4_tail.dscp;
+        hdr.ipv4.dscp = hdr.intl4_shim.dscp;
+        // restore length fields of IPv4 header and UDP header
+        bit<16> len_bytes = ((bit<16>)hdr.intl4_shim.len) << 2;
+        hdr.ipv4.len = hdr.ipv4.len - len_bytes;
+        hdr.udp.length_ = hdr.udp.length_ - len_bytes;
     }
 
+    @hidden
     action int_sink() {
-        // restore length fields of IPv4 header and UDP header
-        hdr.ipv4.len = hdr.ipv4.len - (bit<16>)((hdr.intl4_shim.len - (bit<8>)hdr.int_header.ins_cnt) << 2);
-        hdr.udp.length_ = hdr.udp.length_ - (bit<16>)((hdr.intl4_shim.len - (bit<8>)hdr.int_header.ins_cnt) << 2);
         // remove all the INT information from the packet
         hdr.int_header.setInvalid();
         hdr.int_data.setInvalid();
         hdr.intl4_shim.setInvalid();
-        hdr.intl4_tail.setInvalid();
         hdr.int_switch_id.setInvalid();
-        hdr.int_port_ids.setInvalid();
+        hdr.int_level1_port_ids.setInvalid();
         hdr.int_hop_latency.setInvalid();
         hdr.int_q_occupancy.setInvalid();
         hdr.int_ingress_tstamp.setInvalid();
         hdr.int_egress_tstamp.setInvalid();
-        hdr.int_q_congestion.setInvalid();
+        hdr.int_level2_port_ids.setInvalid();
         hdr.int_egress_tx_util.setInvalid();
     }
 

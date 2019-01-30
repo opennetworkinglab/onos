@@ -26,12 +26,13 @@ control process_int_source (
 
     direct_counter(CounterType.packets_and_bytes) counter_int_source;
 
-    action int_source(bit<8> max_hop, bit<5> ins_cnt, bit<4> ins_mask0003, bit<4> ins_mask0407) {
+    action int_source(bit<5> hop_metadata_len, bit<8> remaining_hop_cnt, bit<4> ins_mask0003, bit<4> ins_mask0407) {
         // insert INT shim header
         hdr.intl4_shim.setValid();
         // int_type: Hop-by-hop type (1) , destination type (2)
         hdr.intl4_shim.int_type = 1;
         hdr.intl4_shim.len = INT_HEADER_LEN_WORD;
+        hdr.intl4_shim.dscp = hdr.ipv4.dscp;
 
         // insert INT header
         hdr.int_header.setValid();
@@ -39,28 +40,24 @@ control process_int_source (
         hdr.int_header.rep = 0;
         hdr.int_header.c = 0;
         hdr.int_header.e = 0;
+        hdr.int_header.m = 0;
         hdr.int_header.rsvd1 = 0;
-        hdr.int_header.ins_cnt = ins_cnt;
-        hdr.int_header.max_hop_cnt = max_hop;
-        hdr.int_header.total_hop_cnt = 0;
+        hdr.int_header.rsvd2 = 0;
+        hdr.int_header.hop_metadata_len = hop_metadata_len;
+        hdr.int_header.remaining_hop_cnt = remaining_hop_cnt;
         hdr.int_header.instruction_mask_0003 = ins_mask0003;
         hdr.int_header.instruction_mask_0407 = ins_mask0407;
         hdr.int_header.instruction_mask_0811 = 0; // not supported
         hdr.int_header.instruction_mask_1215 = 0; // not supported
 
-        // insert INT tail header
-        hdr.intl4_tail.setValid();
-        hdr.intl4_tail.next_proto = hdr.ipv4.protocol;
-        hdr.intl4_tail.dest_port = local_metadata.l4_dst_port;
-        hdr.intl4_tail.dscp = (bit<8>) hdr.ipv4.dscp;
-
-        // add the header len (8 bytes) to total len
-        hdr.ipv4.len = hdr.ipv4.len + 16;
-        hdr.udp.length_ = hdr.udp.length_ + 16;
+        // add the header len (3 words) to total len
+        hdr.ipv4.len = hdr.ipv4.len + INT_HEADER_SIZE + INT_SHIM_HEADER_SIZE;
+        hdr.udp.length_ = hdr.udp.length_ + INT_HEADER_SIZE + INT_SHIM_HEADER_SIZE;
     }
-    action int_source_dscp(bit<8> max_hop, bit<5> ins_cnt, bit<4> ins_mask0003, bit<4> ins_mask0407) {
-        int_source(max_hop, ins_cnt, ins_mask0003, ins_mask0407);
-        hdr.ipv4.dscp = INT_DSCP;
+    action int_source_dscp(bit<5> hop_metadata_len, bit<8> remaining_hop_cnt, bit<4> ins_mask0003, bit<4> ins_mask0407) {
+        int_source(hop_metadata_len, remaining_hop_cnt, ins_mask0003, ins_mask0407);
+        hdr.ipv4.dscp = DSCP_INT;
+        counter_int_source.count();
     }
 
     table tb_int_source {
@@ -72,9 +69,10 @@ control process_int_source (
         }
         actions = {
             int_source_dscp;
+            @defaultonly nop();
         }
         counters = counter_int_source;
-        size = 1024;
+        const default_action = nop();
     }
 
     apply {
@@ -82,7 +80,7 @@ control process_int_source (
     }
 }
 
-control process_set_source_sink (
+control process_int_source_sink (
     inout headers_t hdr,
     inout local_metadata_t local_metadata,
     inout standard_metadata_t standard_metadata) {
@@ -91,11 +89,13 @@ control process_set_source_sink (
     direct_counter(CounterType.packets_and_bytes) counter_set_sink;
 
     action int_set_source () {
-        local_metadata.int_meta.source = 1;
+        local_metadata.int_meta.source = _TRUE;
+        counter_set_source.count();
     }
 
     action int_set_sink () {
-        local_metadata.int_meta.sink = 1;
+        local_metadata.int_meta.sink = _TRUE;
+        counter_set_sink.count();
     }
 
     table tb_set_source {
@@ -104,9 +104,11 @@ control process_set_source_sink (
         }
         actions = {
             int_set_source;
+            @defaultonly nop();
         }
         counters = counter_set_source;
-        size = 256;
+        const default_action = nop();
+        size = MAX_PORTS;
     }
     table tb_set_sink {
         key = {
@@ -114,9 +116,11 @@ control process_set_source_sink (
         }
         actions = {
             int_set_sink;
+            @defaultonly nop();
         }
         counters = counter_set_sink;
-        size = 256;
+        const default_action = nop();
+        size = MAX_PORTS;
     }
 
     apply {

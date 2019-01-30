@@ -18,24 +18,27 @@
 #ifndef __TELEMETRY_REPORT_HEADERS__
 #define __TELEMETRY_REPORT_HEADERS__
 
-const bit<4> NPROTO_ETHERNET = 0;
-const bit<4> NPROTO_TELEMETRY_DROP_HEADER = 1;
-const bit<4> NPROTO_TELEMETRY_SWITCH_LOCAL_HEADER = 2;
+const bit<3> NPROTO_ETHERNET = 0;
+const bit<3> NPROTO_TELEMETRY_DROP_HEADER = 1;
+const bit<3> NPROTO_TELEMETRY_SWITCH_LOCAL_HEADER = 2;
 
 
 // Report Telemetry Headers
 header report_fixed_header_t {
     bit<4>  ver;
-    bit<4>  nproto;
+    bit<4>  len;
+    bit<3>  nproto;
+    bit<6>  rep_md_bits;
     bit<1>  d;
     bit<1>  q;
     bit<1>  f;
-    bit<15> rsvd;
+    bit<6>  rsvd;
     bit<6>  hw_id;
+    bit<32> sw_id;
     bit<32> seq_no;
     bit<32> ingress_tstamp;
 }
-const bit<8> REPORT_FIXED_HEADER_LEN = 12;
+const bit<8> REPORT_FIXED_HEADER_LEN = 16;
 
 // Telemetry drop report header
 header drop_report_header_t {

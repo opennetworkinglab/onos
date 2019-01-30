@@ -169,9 +169,6 @@ public class IntAppUiMessageHandler extends UiMessageHandler {
                             case "EGRESS_TIMESTAMP":
                                 builder.withMetadataType(IntIntent.IntMetadataType.EGRESS_TIMESTAMP);
                                 break;
-//                            case "QUEUE_CONGESTION":
-//                                builder.withMetadataType(IntIntent.IntMetadataType.QUEUE_CONGESTION);
-//                                break;
                             case "EGRESS_TX_UTIL":
                                 builder.withMetadataType(IntIntent.IntMetadataType.EGRESS_TX_UTIL);
                                 break;

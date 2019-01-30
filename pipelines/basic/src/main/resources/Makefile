@@ -6,7 +6,7 @@ basic: basic.p4
 		--p4runtime-format text basic.p4
 
 int: int.p4
-	p4c-bm2-ss --arch v1model -o p4c-out/bmv2/int.json \
+	p4c-bm2-ss --arch v1model -o p4c-out/bmv2/int.json "-DTARGET_BMV2" \
 		--p4runtime-file p4c-out/bmv2/int.p4info \
 		--p4runtime-format text int.p4
 

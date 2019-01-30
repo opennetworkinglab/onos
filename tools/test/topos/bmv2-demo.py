@@ -14,6 +14,8 @@ BASE_SHIFT = 8
 VLAN_NONE = -1
 DEFAULT_SW_BW = 50
 DEFAULT_HOST_BW = 25
+# Jumbo frame
+JUMBO_MTU=9000
 
 if 'ONOS_ROOT' not in os.environ:
     print "Environment var $ONOS_ROOT not set"
@@ -229,6 +231,26 @@ def generateNetcfg(onosIp, net, args):
     with open(TEMP_NETCFG_FILE, 'w') as tempFile:
         json.dump(netcfg, tempFile, indent=4)
 
+def setMTU(net, mtu):
+    for link in net.links:
+        intf1 = link.intf1.name
+        switchPort = intf1.split('-')
+        sw1Name = switchPort[0]  # s11
+        sw1 = net[sw1Name]
+
+        intf2 = link.intf2.name
+        switchPort = intf2.split('-')
+        sw2Name = switchPort[0]
+        sw2 = net[sw2Name]
+
+        if isinstance(sw1, Host):
+            continue
+
+        if isinstance(sw2, Host):
+            continue
+
+        call(('ifconfig', intf1, 'mtu', str(mtu)))
+        call(('ifconfig', intf2, 'mtu', str(mtu)))
 
 def main(args):
     if not args.onos_ip:
@@ -254,6 +276,10 @@ def main(args):
         h2.startPingBg(h1)
 
     print "Background ping started"
+
+    # Increase the MTU size for INT operation
+    if args.pipeconf_id.endswith("int") or args.pipeconf_id.endswith("full"):
+        setMTU(net, JUMBO_MTU)
 
     for h in net.hosts:
         h.startIperfServer()

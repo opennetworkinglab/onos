@@ -43,13 +43,18 @@ control ingress (
         port_counters_ingress.apply(hdr, standard_metadata);
         packetio_ingress.apply(hdr, standard_metadata);
         table0_control.apply(hdr, local_metadata, standard_metadata);
-        process_set_source_sink.apply(hdr, local_metadata, standard_metadata);
-        if(local_metadata.int_meta.sink == 1) {
+        process_int_source_sink.apply(hdr, local_metadata, standard_metadata);
+
+        if (local_metadata.int_meta.source == _TRUE) {
+            process_int_source.apply(hdr, local_metadata, standard_metadata);
+        }
+
+        if (local_metadata.int_meta.sink == _TRUE && hdr.int_header.isValid()) {
             // clone packet for Telemetry Report
             // FIXME: this works only on BMv2
-            #ifdef __TARGET_BMV2__
-            clone(CloneType.I2E, REPORT_MIRROR_SESSION_ID);
-            #endif
+            #ifdef TARGET_BMV2
+            clone3(CloneType.I2E, REPORT_MIRROR_SESSION_ID, standard_metadata);
+            #endif // TARGET_BMV2
         }
     }
 }
@@ -60,24 +65,21 @@ control egress (
     inout standard_metadata_t standard_metadata) {
 
     apply {
-        if (standard_metadata.ingress_port != CPU_PORT &&
-            standard_metadata.egress_port != CPU_PORT &&
-            (hdr.udp.isValid() || hdr.tcp.isValid())) {
-            process_set_source_sink.apply(hdr, local_metadata, standard_metadata);
-            if (local_metadata.int_meta.source == 1) {
-                process_int_source.apply(hdr, local_metadata, standard_metadata);
+        if(hdr.int_header.isValid()) {
+            process_int_transit.apply(hdr, local_metadata, standard_metadata);
+
+            #ifdef TARGET_BMV2
+            if (IS_I2E_CLONE(standard_metadata)) {
+                /* send int report */
+                process_int_report.apply(hdr, local_metadata, standard_metadata);
             }
-            if(hdr.int_header.isValid()) {
-                process_int_transit.apply(hdr, local_metadata, standard_metadata);
-                /* update underlay header based on INT information inserted */
-                process_int_outer_encap.apply(hdr, local_metadata, standard_metadata);
-                if (local_metadata.int_meta.sink == 1) {
-                    /* send int report */
-                    process_int_report.apply(hdr, local_metadata, standard_metadata);
-                    /* int sink */
-                    process_int_sink.apply(hdr, local_metadata, standard_metadata);
-                }
-            }
+
+            if (local_metadata.int_meta.sink == _TRUE && !IS_I2E_CLONE(standard_metadata)) {
+            #else
+            if (local_metadata.int_meta.sink == _TRUE) {
+            #endif // TARGET_BMV2
+                process_int_sink.apply(hdr, local_metadata, standard_metadata);
+             }
         }
         port_counters_egress.apply(hdr, standard_metadata);
         packetio_egress.apply(hdr, standard_metadata);

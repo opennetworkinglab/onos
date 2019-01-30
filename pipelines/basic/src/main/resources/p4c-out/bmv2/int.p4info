@@ -73,12 +73,13 @@ tables {
   const_default_action_id: 16784184
   direct_resource_ids: 318816189
   size: 1024
+  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
-    id: 33594678
-    name: "ingress.process_set_source_sink.tb_set_source"
-    alias: "ingress.process_set_source_sink.tb_set_source"
+    id: 33588181
+    name: "ingress.process_int_source_sink.tb_set_source"
+    alias: "tb_set_source"
   }
   match_fields {
     id: 1
@@ -87,21 +88,22 @@ tables {
     match_type: EXACT
   }
   action_refs {
-    id: 16817471
+    id: 16801076
   }
   action_refs {
-    id: 16800567
+    id: 16819938
     annotations: "@defaultonly()"
   }
-  direct_resource_ids: 318825104
-  size: 256
+  const_default_action_id: 16819938
+  direct_resource_ids: 318807707
+  size: 511
   idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
-    id: 33584156
-    name: "ingress.process_set_source_sink.tb_set_sink"
-    alias: "ingress.process_set_source_sink.tb_set_sink"
+    id: 33584966
+    name: "ingress.process_int_source_sink.tb_set_sink"
+    alias: "tb_set_sink"
   }
   match_fields {
     id: 1
@@ -110,64 +112,21 @@ tables {
     match_type: EXACT
   }
   action_refs {
-    id: 16800284
+    id: 16814977
   }
   action_refs {
-    id: 16800567
+    id: 16819938
     annotations: "@defaultonly()"
   }
-  direct_resource_ids: 318775657
-  size: 256
+  const_default_action_id: 16819938
+  direct_resource_ids: 318828289
+  size: 511
   idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
-    id: 33578477
-    name: "egress.process_set_source_sink.tb_set_source"
-    alias: "egress.process_set_source_sink.tb_set_source"
-  }
-  match_fields {
-    id: 1
-    name: "standard_metadata.ingress_port"
-    bitwidth: 9
-    match_type: EXACT
-  }
-  action_refs {
-    id: 16782803
-  }
-  action_refs {
-    id: 16800567
-    annotations: "@defaultonly()"
-  }
-  direct_resource_ids: 318829828
-  size: 256
-}
-tables {
-  preamble {
-    id: 33575550
-    name: "egress.process_set_source_sink.tb_set_sink"
-    alias: "egress.process_set_source_sink.tb_set_sink"
-  }
-  match_fields {
-    id: 1
-    name: "standard_metadata.egress_spec"
-    bitwidth: 9
-    match_type: EXACT
-  }
-  action_refs {
-    id: 16798719
-  }
-  action_refs {
-    id: 16800567
-    annotations: "@defaultonly()"
-  }
-  direct_resource_ids: 318811186
-  size: 256
-}
-tables {
-  preamble {
-    id: 33565369
-    name: "egress.process_int_source.tb_int_source"
+    id: 33576412
+    name: "ingress.process_int_source.tb_int_source"
     alias: "tb_int_source"
   }
   match_fields {
@@ -195,14 +154,16 @@ tables {
     match_type: TERNARY
   }
   action_refs {
-    id: 16785626
+    id: 16802666
   }
   action_refs {
-    id: 16800567
+    id: 16819938
     annotations: "@defaultonly()"
   }
-  direct_resource_ids: 318796349
+  const_default_action_id: 16819938
+  direct_resource_ids: 318802143
   size: 1024
+  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -210,149 +171,22 @@ tables {
     name: "egress.process_int_transit.tb_int_insert"
     alias: "tb_int_insert"
   }
-  action_refs {
-    id: 16798455
-  }
-  action_refs {
-    id: 16800567
-    annotations: "@defaultonly()"
-  }
-  direct_resource_ids: 318803385
-  size: 2
-}
-tables {
-  preamble {
-    id: 33607644
-    name: "egress.process_int_transit.tb_int_inst_0003"
-    alias: "tb_int_inst_0003"
-  }
   match_fields {
     id: 1
-    name: "hdr.int_header.instruction_mask_0003"
-    bitwidth: 4
+    name: "int_is_valid"
+    bitwidth: 1
     match_type: EXACT
   }
   action_refs {
-    id: 16783309
+    id: 16824828
   }
   action_refs {
-    id: 16823072
-  }
-  action_refs {
-    id: 16782691
-  }
-  action_refs {
-    id: 16822686
-  }
-  action_refs {
-    id: 16830010
-  }
-  action_refs {
-    id: 16804519
-  }
-  action_refs {
-    id: 16810645
-  }
-  action_refs {
-    id: 16834343
-  }
-  action_refs {
-    id: 16809032
-  }
-  action_refs {
-    id: 16783533
-  }
-  action_refs {
-    id: 16824253
-  }
-  action_refs {
-    id: 16830666
-  }
-  action_refs {
-    id: 16809286
-  }
-  action_refs {
-    id: 16816509
-  }
-  action_refs {
-    id: 16803371
-  }
-  action_refs {
-    id: 16810652
-  }
-  action_refs {
-    id: 16800567
+    id: 16819938
     annotations: "@defaultonly()"
   }
-  direct_resource_ids: 318805102
-  size: 16
-}
-tables {
-  preamble {
-    id: 33560427
-    name: "egress.process_int_transit.tb_int_inst_0407"
-    alias: "tb_int_inst_0407"
-  }
-  match_fields {
-    id: 1
-    name: "hdr.int_header.instruction_mask_0407"
-    bitwidth: 4
-    match_type: EXACT
-  }
-  action_refs {
-    id: 16837642
-  }
-  action_refs {
-    id: 16796009
-  }
-  action_refs {
-    id: 16819613
-  }
-  action_refs {
-    id: 16813603
-  }
-  action_refs {
-    id: 16800640
-  }
-  action_refs {
-    id: 16779220
-  }
-  action_refs {
-    id: 16782223
-  }
-  action_refs {
-    id: 16841737
-  }
-  action_refs {
-    id: 16828758
-  }
-  action_refs {
-    id: 16823454
-  }
-  action_refs {
-    id: 16790618
-  }
-  action_refs {
-    id: 16829228
-  }
-  action_refs {
-    id: 16783180
-  }
-  action_refs {
-    id: 16813110
-  }
-  action_refs {
-    id: 16789397
-  }
-  action_refs {
-    id: 16835925
-  }
-  action_refs {
-    id: 16800567
-    annotations: "@defaultonly()"
-  }
-  direct_resource_ids: 318775631
-  size: 16
+  const_default_action_id: 16819938
+  size: 1
+  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -362,15 +196,15 @@ tables {
   }
   match_fields {
     id: 1
-    name: "standard_metadata.instance_type"
-    bitwidth: 32
+    name: "int_is_valid"
+    bitwidth: 1
     match_type: EXACT
   }
   action_refs {
     id: 16790504
   }
   action_refs {
-    id: 16800567
+    id: 16819938
     annotations: "@defaultonly()"
   }
   size: 1024
@@ -385,9 +219,9 @@ actions {
 }
 actions {
   preamble {
-    id: 16800567
-    name: "NoAction"
-    alias: "NoAction"
+    id: 16819938
+    name: "nop"
+    alias: "nop"
   }
 }
 actions {
@@ -423,47 +257,33 @@ actions {
 }
 actions {
   preamble {
-    id: 16817471
-    name: "ingress.process_set_source_sink.int_set_source"
-    alias: "ingress.process_set_source_sink.int_set_source"
+    id: 16801076
+    name: "ingress.process_int_source_sink.int_set_source"
+    alias: "int_set_source"
   }
 }
 actions {
   preamble {
-    id: 16800284
-    name: "ingress.process_set_source_sink.int_set_sink"
-    alias: "ingress.process_set_source_sink.int_set_sink"
+    id: 16814977
+    name: "ingress.process_int_source_sink.int_set_sink"
+    alias: "int_set_sink"
   }
 }
 actions {
   preamble {
-    id: 16782803
-    name: "egress.process_set_source_sink.int_set_source"
-    alias: "egress.process_set_source_sink.int_set_source"
-  }
-}
-actions {
-  preamble {
-    id: 16798719
-    name: "egress.process_set_source_sink.int_set_sink"
-    alias: "egress.process_set_source_sink.int_set_sink"
-  }
-}
-actions {
-  preamble {
-    id: 16785626
-    name: "egress.process_int_source.int_source_dscp"
+    id: 16802666
+    name: "ingress.process_int_source.int_source_dscp"
     alias: "int_source_dscp"
   }
   params {
     id: 1
-    name: "max_hop"
-    bitwidth: 8
+    name: "hop_metadata_len"
+    bitwidth: 5
   }
   params {
     id: 2
-    name: "ins_cnt"
-    bitwidth: 5
+    name: "remaining_hop_cnt"
+    bitwidth: 8
   }
   params {
     id: 3
@@ -478,266 +298,21 @@ actions {
 }
 actions {
   preamble {
-    id: 16778237
-    name: "egress.process_int_transit.int_update_total_hop_cnt"
-    alias: "int_update_total_hop_cnt"
+    id: 16800567
+    name: "NoAction"
+    alias: "NoAction"
   }
 }
 actions {
   preamble {
-    id: 16798455
-    name: "egress.process_int_transit.int_transit"
-    alias: "int_transit"
+    id: 16824828
+    name: "egress.process_int_transit.init_metadata"
+    alias: "init_metadata"
   }
   params {
     id: 1
     name: "switch_id"
     bitwidth: 32
-  }
-}
-actions {
-  preamble {
-    id: 16783309
-    name: "egress.process_int_transit.int_set_header_0003_i0"
-    alias: "int_set_header_0003_i0"
-  }
-}
-actions {
-  preamble {
-    id: 16823072
-    name: "egress.process_int_transit.int_set_header_0003_i1"
-    alias: "int_set_header_0003_i1"
-  }
-}
-actions {
-  preamble {
-    id: 16782691
-    name: "egress.process_int_transit.int_set_header_0003_i2"
-    alias: "int_set_header_0003_i2"
-  }
-}
-actions {
-  preamble {
-    id: 16822686
-    name: "egress.process_int_transit.int_set_header_0003_i3"
-    alias: "int_set_header_0003_i3"
-  }
-}
-actions {
-  preamble {
-    id: 16830010
-    name: "egress.process_int_transit.int_set_header_0003_i4"
-    alias: "int_set_header_0003_i4"
-  }
-}
-actions {
-  preamble {
-    id: 16804519
-    name: "egress.process_int_transit.int_set_header_0003_i5"
-    alias: "int_set_header_0003_i5"
-  }
-}
-actions {
-  preamble {
-    id: 16810645
-    name: "egress.process_int_transit.int_set_header_0003_i6"
-    alias: "int_set_header_0003_i6"
-  }
-}
-actions {
-  preamble {
-    id: 16834343
-    name: "egress.process_int_transit.int_set_header_0003_i7"
-    alias: "int_set_header_0003_i7"
-  }
-}
-actions {
-  preamble {
-    id: 16809032
-    name: "egress.process_int_transit.int_set_header_0003_i8"
-    alias: "int_set_header_0003_i8"
-  }
-}
-actions {
-  preamble {
-    id: 16783533
-    name: "egress.process_int_transit.int_set_header_0003_i9"
-    alias: "int_set_header_0003_i9"
-  }
-}
-actions {
-  preamble {
-    id: 16824253
-    name: "egress.process_int_transit.int_set_header_0003_i10"
-    alias: "int_set_header_0003_i10"
-  }
-}
-actions {
-  preamble {
-    id: 16830666
-    name: "egress.process_int_transit.int_set_header_0003_i11"
-    alias: "int_set_header_0003_i11"
-  }
-}
-actions {
-  preamble {
-    id: 16809286
-    name: "egress.process_int_transit.int_set_header_0003_i12"
-    alias: "int_set_header_0003_i12"
-  }
-}
-actions {
-  preamble {
-    id: 16816509
-    name: "egress.process_int_transit.int_set_header_0003_i13"
-    alias: "int_set_header_0003_i13"
-  }
-}
-actions {
-  preamble {
-    id: 16803371
-    name: "egress.process_int_transit.int_set_header_0003_i14"
-    alias: "int_set_header_0003_i14"
-  }
-}
-actions {
-  preamble {
-    id: 16810652
-    name: "egress.process_int_transit.int_set_header_0003_i15"
-    alias: "int_set_header_0003_i15"
-  }
-}
-actions {
-  preamble {
-    id: 16837642
-    name: "egress.process_int_transit.int_set_header_0407_i0"
-    alias: "int_set_header_0407_i0"
-  }
-}
-actions {
-  preamble {
-    id: 16796009
-    name: "egress.process_int_transit.int_set_header_0407_i1"
-    alias: "int_set_header_0407_i1"
-  }
-}
-actions {
-  preamble {
-    id: 16819613
-    name: "egress.process_int_transit.int_set_header_0407_i2"
-    alias: "int_set_header_0407_i2"
-  }
-}
-actions {
-  preamble {
-    id: 16813603
-    name: "egress.process_int_transit.int_set_header_0407_i3"
-    alias: "int_set_header_0407_i3"
-  }
-}
-actions {
-  preamble {
-    id: 16800640
-    name: "egress.process_int_transit.int_set_header_0407_i4"
-    alias: "int_set_header_0407_i4"
-  }
-}
-actions {
-  preamble {
-    id: 16779220
-    name: "egress.process_int_transit.int_set_header_0407_i5"
-    alias: "int_set_header_0407_i5"
-  }
-}
-actions {
-  preamble {
-    id: 16782223
-    name: "egress.process_int_transit.int_set_header_0407_i6"
-    alias: "int_set_header_0407_i6"
-  }
-}
-actions {
-  preamble {
-    id: 16841737
-    name: "egress.process_int_transit.int_set_header_0407_i7"
-    alias: "int_set_header_0407_i7"
-  }
-}
-actions {
-  preamble {
-    id: 16828758
-    name: "egress.process_int_transit.int_set_header_0407_i8"
-    alias: "int_set_header_0407_i8"
-  }
-}
-actions {
-  preamble {
-    id: 16823454
-    name: "egress.process_int_transit.int_set_header_0407_i9"
-    alias: "int_set_header_0407_i9"
-  }
-}
-actions {
-  preamble {
-    id: 16790618
-    name: "egress.process_int_transit.int_set_header_0407_i10"
-    alias: "int_set_header_0407_i10"
-  }
-}
-actions {
-  preamble {
-    id: 16829228
-    name: "egress.process_int_transit.int_set_header_0407_i11"
-    alias: "int_set_header_0407_i11"
-  }
-}
-actions {
-  preamble {
-    id: 16783180
-    name: "egress.process_int_transit.int_set_header_0407_i12"
-    alias: "int_set_header_0407_i12"
-  }
-}
-actions {
-  preamble {
-    id: 16813110
-    name: "egress.process_int_transit.int_set_header_0407_i13"
-    alias: "int_set_header_0407_i13"
-  }
-}
-actions {
-  preamble {
-    id: 16789397
-    name: "egress.process_int_transit.int_set_header_0407_i14"
-    alias: "int_set_header_0407_i14"
-  }
-}
-actions {
-  preamble {
-    id: 16835925
-    name: "egress.process_int_transit.int_set_header_0407_i15"
-    alias: "int_set_header_0407_i15"
-  }
-}
-actions {
-  preamble {
-    id: 16819982
-    name: "egress.process_int_outer_encap.int_update_ipv4"
-    alias: "int_update_ipv4"
-  }
-}
-actions {
-  preamble {
-    id: 16810571
-    name: "egress.process_int_outer_encap.int_update_udp"
-    alias: "int_update_udp"
-  }
-}
-actions {
-  preamble {
-    id: 16789645
-    name: "egress.process_int_outer_encap.int_update_shim"
-    alias: "int_update_shim"
   }
 }
 actions {
@@ -770,20 +345,6 @@ actions {
     id: 5
     name: "mon_port"
     bitwidth: 16
-  }
-}
-actions {
-  preamble {
-    id: 16839217
-    name: "egress.process_int_sink.restore_header"
-    alias: "restore_header"
-  }
-}
-actions {
-  preamble {
-    id: 16784498
-    name: "egress.process_int_sink.int_sink"
-    alias: "int_sink"
   }
 }
 counters {
@@ -821,91 +382,36 @@ direct_counters {
 }
 direct_counters {
   preamble {
-    id: 318825104
-    name: "ingress.process_set_source_sink.counter_set_source"
-    alias: "ingress.process_set_source_sink.counter_set_source"
+    id: 318807707
+    name: "ingress.process_int_source_sink.counter_set_source"
+    alias: "counter_set_source"
   }
   spec {
     unit: BOTH
   }
-  direct_table_id: 33594678
+  direct_table_id: 33588181
 }
 direct_counters {
   preamble {
-    id: 318775657
-    name: "ingress.process_set_source_sink.counter_set_sink"
-    alias: "ingress.process_set_source_sink.counter_set_sink"
+    id: 318828289
+    name: "ingress.process_int_source_sink.counter_set_sink"
+    alias: "counter_set_sink"
   }
   spec {
     unit: BOTH
   }
-  direct_table_id: 33584156
+  direct_table_id: 33584966
 }
 direct_counters {
   preamble {
-    id: 318829828
-    name: "egress.process_set_source_sink.counter_set_source"
-    alias: "egress.process_set_source_sink.counter_set_source"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33578477
-}
-direct_counters {
-  preamble {
-    id: 318811186
-    name: "egress.process_set_source_sink.counter_set_sink"
-    alias: "egress.process_set_source_sink.counter_set_sink"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33575550
-}
-direct_counters {
-  preamble {
-    id: 318796349
-    name: "egress.process_int_source.counter_int_source"
+    id: 318802143
+    name: "ingress.process_int_source.counter_int_source"
     alias: "counter_int_source"
   }
   spec {
     unit: BOTH
   }
-  direct_table_id: 33565369
-}
-direct_counters {
-  preamble {
-    id: 318803385
-    name: "egress.process_int_transit.counter_int_insert"
-    alias: "counter_int_insert"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33604451
-}
-direct_counters {
-  preamble {
-    id: 318805102
-    name: "egress.process_int_transit.counter_int_inst_0003"
-    alias: "counter_int_inst_0003"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33607644
-}
-direct_counters {
-  preamble {
-    id: 318775631
-    name: "egress.process_int_transit.counter_int_inst_0407"
-    alias: "counter_int_inst_0407"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33560427
+  direct_table_id: 33576412
 }
 controller_packet_metadata {
   preamble {

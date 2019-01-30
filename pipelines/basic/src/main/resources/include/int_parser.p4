@@ -56,8 +56,8 @@ parser int_parser (
         packet.extract(hdr.tcp);
         local_metadata.l4_src_port = hdr.tcp.src_port;
         local_metadata.l4_dst_port = hdr.tcp.dst_port;
-        transition select((hdr.ipv4.dscp & INT_DSCP) == INT_DSCP) {
-            true: parse_intl4_shim;
+        transition select(hdr.ipv4.dscp) {
+            DSCP_INT &&& DSCP_MASK: parse_intl4_shim;
             default: accept;
         }
     }
@@ -66,37 +66,26 @@ parser int_parser (
         packet.extract(hdr.udp);
         local_metadata.l4_src_port = hdr.udp.src_port;
         local_metadata.l4_dst_port = hdr.udp.dst_port;
-        transition select((hdr.ipv4.dscp & INT_DSCP) == INT_DSCP) {
-            true: parse_intl4_shim;
+        transition select(hdr.ipv4.dscp) {
+            DSCP_INT &&& DSCP_MASK: parse_intl4_shim;
             default: accept;
         }
     }
 
     state parse_intl4_shim {
         packet.extract(hdr.intl4_shim);
+        local_metadata.int_meta.intl4_shim_len = hdr.intl4_shim.len;
         transition parse_int_header;
     }
 
     state parse_int_header {
         packet.extract(hdr.int_header);
-        // If there is no INT metadata but the INT header (and corresponding shim header
-        // and tail header) exists, default value of length field in shim header
-        // should be INT_HEADER_LEN_WORD.
-        local_metadata.int_meta.metadata_len = hdr.intl4_shim.len - INT_HEADER_LEN_WORD;
-        transition select (local_metadata.int_meta.metadata_len) {
-            0: parse_intl4_tail;
-            default: parse_int_data;
-        }
+        transition parse_int_data;
     }
 
     state parse_int_data {
-        // Parse INT metadata, not INT header, INT shim header and INT tail header
-        packet.extract(hdr.int_data, (bit<32>) ((hdr.intl4_shim.len - INT_HEADER_LEN_WORD) << 5));
-        transition parse_intl4_tail;
-    }
-
-    state parse_intl4_tail {
-        packet.extract(hdr.intl4_tail);
+        // Parse INT metadata stack
+        packet.extract(hdr.int_data, ((bit<32>) (local_metadata.int_meta.intl4_shim_len - INT_HEADER_LEN_WORD)) << 5);
         transition accept;
     }
 }
@@ -117,15 +106,14 @@ control int_deparser(
         packet.emit(hdr.intl4_shim);
         packet.emit(hdr.int_header);
         packet.emit(hdr.int_switch_id);
-        packet.emit(hdr.int_port_ids);
+        packet.emit(hdr.int_level1_port_ids);
         packet.emit(hdr.int_hop_latency);
         packet.emit(hdr.int_q_occupancy);
         packet.emit(hdr.int_ingress_tstamp);
         packet.emit(hdr.int_egress_tstamp);
-        packet.emit(hdr.int_q_congestion);
+        packet.emit(hdr.int_level2_port_ids);
         packet.emit(hdr.int_egress_tx_util);
         packet.emit(hdr.int_data);
-        packet.emit(hdr.intl4_tail);
     }
 }
 

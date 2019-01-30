@@ -30,15 +30,18 @@ control process_int_report (
          * we'll not use local_report_header for this purpose.
          */
         hdr.report_fixed_header.setValid();
-        hdr.report_fixed_header.ver = 0;
+        hdr.report_fixed_header.ver = 1;
+        hdr.report_fixed_header.len = 4;
         /* only support for flow_watchlist */
         hdr.report_fixed_header.nproto = NPROTO_ETHERNET;
+        hdr.report_fixed_header.rep_md_bits = 0;
         hdr.report_fixed_header.d = 0;
         hdr.report_fixed_header.q = 0;
         hdr.report_fixed_header.f = 1;
         hdr.report_fixed_header.rsvd = 0;
         //TODO how to get information specific to the switch
         hdr.report_fixed_header.hw_id = HW_ID;
+        hdr.report_fixed_header.sw_id = local_metadata.int_meta.switch_id;
         // TODO how save a variable and increment
         hdr.report_fixed_header.seq_no = 0;
         //TODO how to get timestamp from ingress ns
@@ -61,8 +64,8 @@ control process_int_report (
         hdr.report_ipv4.dscp = 6w0;
         hdr.report_ipv4.ecn = 2w0;
         /* Total Len is report_ipv4_len + report_udp_len + report_fixed_hdr_len + ethernet_len + ipv4_totalLen */
-        hdr.report_ipv4.len = (bit<16>) IPV4_MIN_HEAD_LEN + (bit<16>) UDP_HEADER_LEN +
-                                (bit<16>) REPORT_FIXED_HEADER_LEN +  (bit<16>) ETH_HEADER_LEN + hdr.ipv4.len;
+        hdr.report_ipv4.len = (bit<16>) IPV4_MIN_HEAD_LEN + (bit<16>) UDP_HEADER_LEN + (bit<16>) REPORT_FIXED_HEADER_LEN +
+                              (bit<16>) ETH_HEADER_LEN + (bit<16>) IPV4_MIN_HEAD_LEN + (bit<16>) UDP_HEADER_LEN + (((bit<16>) hdr.intl4_shim.len)<< 2);
         /* Dont Fragment bit should be set */
         hdr.report_ipv4.identification = 0;
         hdr.report_ipv4.flags = 0;
@@ -76,23 +79,28 @@ control process_int_report (
         hdr.report_udp.setValid();
         hdr.report_udp.src_port = 0;
         hdr.report_udp.dst_port = mon_port;
-        hdr.report_udp.length_ =  (bit<16>) UDP_HEADER_LEN + (bit<16>) REPORT_FIXED_HEADER_LEN +
-                                    (bit<16>) ETH_HEADER_LEN + hdr.ipv4.len;
+        hdr.report_udp.length_ = (bit<16>) UDP_HEADER_LEN + (bit<16>) REPORT_FIXED_HEADER_LEN +
+                                 (bit<16>) ETH_HEADER_LEN + (bit<16>) IPV4_MIN_HEAD_LEN + (bit<16>) UDP_HEADER_LEN +
+                                 (((bit<16>) hdr.intl4_shim.len)<< 2);
 
         local_metadata.compute_checksum = true;
         add_report_fixed_header();
+
+        truncate((bit<32>)hdr.report_ipv4.len + (bit<32>) ETH_HEADER_LEN);
     }
 
-    /* Cloned packet instance_type is PKT_INSTANCE_TYPE_INGRESS_CLONE=1
-     * Packet is forwarded according to the mirroring_add command
-     */
+    // Cloned packet is forwarded according to the mirroring_add command
     table tb_generate_report {
+        // We don't really need a key here, however we add a dummy one as a
+        // workaround to ONOS inability to properly support default actions.
         key = {
-            standard_metadata.instance_type: exact;
+            hdr.int_header.isValid(): exact @name("int_is_valid");
         }
         actions = {
             do_report_encapsulation;
+            @defaultonly nop();
         }
+        default_action = nop;
     }
 
     apply {

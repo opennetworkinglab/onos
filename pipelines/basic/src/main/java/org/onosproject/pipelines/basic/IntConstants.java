@@ -18,177 +18,111 @@ package org.onosproject.pipelines.basic;
 
 import org.onosproject.net.pi.model.PiActionId;
 import org.onosproject.net.pi.model.PiActionParamId;
+import org.onosproject.net.pi.model.PiPacketMetadataId;
 import org.onosproject.net.pi.model.PiCounterId;
 import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiTableId;
-
 /**
  * Constants for INT pipeline.
  */
 public final class IntConstants {
 
-    // Hide default constructor
+    // hide default constructor
     private IntConstants() {
     }
 
-    private static final String HDR = "hdr";
-    private static final String DOT = ".";
-    private static final String STANDARD_METADATA = "standard_metadata";
-    private static final String LOCAL_METADATA = "local_metadata";
-
-    // Strings
-    private static final String EGRESS = "egress";
-    private static final String CTRL_SET_SOURCE_SINK = EGRESS + DOT + "process_set_source_sink";
-    private static final String CTRL_INT_SOURCE = EGRESS + DOT + "process_int_source";
-    private static final String CTRL_INT_TRANSIT = EGRESS + DOT + "process_int_transit";
-    private static final String CTRL_INT_SINK = EGRESS + DOT + "process_int_sink";
-    private static final String CTRL_INT_OUTER_ENCAP = EGRESS + DOT + "process_int_outer_encap";
-    private static final String CTRL_INT_REPORT = EGRESS + DOT + "process_int_report";
-    private static final String INT_METADATA = "int_meta";
-    private static final String INT_HDR = "int_header";
-
     // Header field IDs
-    public static final PiMatchFieldId LOCAL_META_SRC_PORT_ID =
-            PiMatchFieldId.of(LOCAL_METADATA + DOT + "l4_src_port");
-    public static final PiMatchFieldId LOCAL_META_DST_PORT_ID =
-            PiMatchFieldId.of(LOCAL_METADATA + DOT + "l4_dst_port");
-    public static final PiMatchFieldId INT_META_SINK_ID =
-            PiMatchFieldId.of(LOCAL_METADATA + DOT + INT_METADATA + DOT + "sink");
-    public static final PiMatchFieldId INT_HDR_INST_MASK_0003_ID =
-            PiMatchFieldId.of(HDR + DOT + INT_HDR + DOT + "instruction_mask_0003");
-    public static final PiMatchFieldId INT_HDR_INST_MASK_0407_ID =
-            PiMatchFieldId.of(HDR + DOT + INT_HDR + DOT + "instruction_mask_0407");
-    public static final PiMatchFieldId HDR_OUT_PORT_ID =
-            PiMatchFieldId.of(STANDARD_METADATA + DOT + "egress_spec");
-    public static final PiMatchFieldId STD_META_INSTANCE_TYPE_ID =
-            PiMatchFieldId.of(STANDARD_METADATA + DOT + "instance_type");
-
+    public static final PiMatchFieldId HDR_HDR_IPV4_PROTOCOL =
+            PiMatchFieldId.of("hdr.ipv4.protocol");
+    public static final PiMatchFieldId HDR_STANDARD_METADATA_EGRESS_SPEC =
+            PiMatchFieldId.of("standard_metadata.egress_spec");
+    public static final PiMatchFieldId HDR_HDR_IPV4_SRC_ADDR =
+            PiMatchFieldId.of("hdr.ipv4.src_addr");
+    public static final PiMatchFieldId HDR_HDR_ETHERNET_ETHER_TYPE =
+            PiMatchFieldId.of("hdr.ethernet.ether_type");
+    public static final PiMatchFieldId HDR_HDR_ETHERNET_SRC_ADDR =
+            PiMatchFieldId.of("hdr.ethernet.src_addr");
+    public static final PiMatchFieldId HDR_LOCAL_METADATA_L4_DST_PORT =
+            PiMatchFieldId.of("local_metadata.l4_dst_port");
+    public static final PiMatchFieldId HDR_LOCAL_METADATA_L4_SRC_PORT =
+            PiMatchFieldId.of("local_metadata.l4_src_port");
+    public static final PiMatchFieldId HDR_STANDARD_METADATA_INGRESS_PORT =
+            PiMatchFieldId.of("standard_metadata.ingress_port");
+    public static final PiMatchFieldId HDR_INT_IS_VALID =
+            PiMatchFieldId.of("int_is_valid");
+    public static final PiMatchFieldId HDR_HDR_IPV4_DST_ADDR =
+            PiMatchFieldId.of("hdr.ipv4.dst_addr");
+    public static final PiMatchFieldId HDR_HDR_ETHERNET_DST_ADDR =
+            PiMatchFieldId.of("hdr.ethernet.dst_addr");
     // Table IDs
-    public static final PiTableId TBL_SET_SOURCE_ID =
-            PiTableId.of(CTRL_SET_SOURCE_SINK + DOT + "tb_set_source");
-    public static final PiTableId TBL_SET_SINK_ID =
-            PiTableId.of(CTRL_SET_SOURCE_SINK + DOT + "tb_set_sink");
-    public static final PiTableId TBL_INT_SOURCE_ID =
-            PiTableId.of(CTRL_INT_SOURCE + DOT + "tb_int_source");
-    public static final PiTableId TBL_INT_INSERT_ID =
-            PiTableId.of(CTRL_INT_TRANSIT + DOT + "tb_int_insert");
-    public static final PiTableId TBL_INT_INST_0003_ID =
-            PiTableId.of(CTRL_INT_TRANSIT + DOT + "tb_int_inst_0003");
-    public static final PiTableId TBL_INT_INST_0407_ID =
-            PiTableId.of(CTRL_INT_TRANSIT + DOT + "tb_int_inst_0407");
-    public static final PiTableId TBL_GENERATE_REPORT_ID =
-            PiTableId.of(CTRL_INT_REPORT + DOT + "tb_generate_report");
-
-    // Counter IDs
-    public static final PiCounterId CNT_SET_SOURCE_SINK_ID =
-            PiCounterId.of(CTRL_SET_SOURCE_SINK + DOT + "counter_set_source_sink");
-    public static final PiCounterId CNT_INT_SOURCE_ID =
-            PiCounterId.of(CTRL_INT_SOURCE + DOT + "counter_int_source");
-    public static final PiCounterId CNT_INT_INSERT_ID =
-            PiCounterId.of(CTRL_INT_TRANSIT + DOT + "counter_int_insert");
-    public static final PiCounterId CNT_INT_INST_0003_ID =
-            PiCounterId.of(CTRL_INT_TRANSIT + DOT + "counter_int_inst_0003");
-    public static final PiCounterId CNT_INT_INST_0407_ID =
-            PiCounterId.of(CTRL_INT_TRANSIT + DOT + "counter_int_inst_0407");
-
+    public static final PiTableId INGRESS_PROCESS_INT_SOURCE_TB_INT_SOURCE =
+            PiTableId.of("ingress.process_int_source.tb_int_source");
+    public static final PiTableId EGRESS_PROCESS_INT_REPORT_TB_GENERATE_REPORT =
+            PiTableId.of("egress.process_int_report.tb_generate_report");
+    public static final PiTableId INGRESS_TABLE0_CONTROL_TABLE0 =
+            PiTableId.of("ingress.table0_control.table0");
+    public static final PiTableId EGRESS_PROCESS_INT_TRANSIT_TB_INT_INSERT =
+            PiTableId.of("egress.process_int_transit.tb_int_insert");
+    public static final PiTableId INGRESS_PROCESS_INT_SOURCE_SINK_TB_SET_SINK =
+            PiTableId.of("ingress.process_int_source_sink.tb_set_sink");
+    public static final PiTableId INGRESS_PROCESS_INT_SOURCE_SINK_TB_SET_SOURCE =
+            PiTableId.of("ingress.process_int_source_sink.tb_set_source");
+    // Indirect Counter IDs
+    public static final PiCounterId EGRESS_PORT_COUNTERS_EGRESS_EGRESS_PORT_COUNTER =
+            PiCounterId.of("egress.port_counters_egress.egress_port_counter");
+    public static final PiCounterId INGRESS_PORT_COUNTERS_INGRESS_INGRESS_PORT_COUNTER =
+            PiCounterId.of("ingress.port_counters_ingress.ingress_port_counter");
+    // Direct Counter IDs
+    public static final PiCounterId INGRESS_PROCESS_INT_SOURCE_SINK_COUNTER_SET_SINK =
+            PiCounterId.of("ingress.process_int_source_sink.counter_set_sink");
+    public static final PiCounterId INGRESS_TABLE0_CONTROL_TABLE0_COUNTER =
+            PiCounterId.of("ingress.table0_control.table0_counter");
+    public static final PiCounterId INGRESS_PROCESS_INT_SOURCE_COUNTER_INT_SOURCE =
+            PiCounterId.of("ingress.process_int_source.counter_int_source");
+    public static final PiCounterId INGRESS_PROCESS_INT_SOURCE_SINK_COUNTER_SET_SOURCE =
+            PiCounterId.of("ingress.process_int_source_sink.counter_set_source");
     // Action IDs
-    public static final PiActionId ACT_INT_SET_SOURCE_ID =
-            PiActionId.of(CTRL_SET_SOURCE_SINK + DOT + "int_set_source");
-    public static final PiActionId ACT_INT_SET_SINK_ID =
-            PiActionId.of(CTRL_SET_SOURCE_SINK + DOT + "int_set_sink");
-    public static final PiActionId ACT_INT_SOURCE_DSCP_ID =
-            PiActionId.of(CTRL_INT_SOURCE + DOT + "int_source_dscp");
-    public static final PiActionId ACT_INT_UPDATE_TOTAL_HOP_CNT_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_update_total_hop_cnt");
-    public static final PiActionId ACT_INT_TRANSIT_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_transit");
-    public static final PiActionId ACT_INT_SET_HEADER_0003_I0_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0003_i0");
-    public static final PiActionId ACT_INT_SET_HEADER_0003_I1_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0003_i1");
-    public static final PiActionId ACT_INT_SET_HEADER_0003_I2_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0003_i2");
-    public static final PiActionId ACT_INT_SET_HEADER_0003_I3_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0003_i3");
-    public static final PiActionId ACT_INT_SET_HEADER_0003_I4_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0003_i4");
-    public static final PiActionId ACT_INT_SET_HEADER_0003_I5_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0003_i5");
-    public static final PiActionId ACT_INT_SET_HEADER_0003_I6_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0003_i6");
-    public static final PiActionId ACT_INT_SET_HEADER_0003_I7_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0003_i7");
-    public static final PiActionId ACT_INT_SET_HEADER_0003_I8_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0003_i8");
-    public static final PiActionId ACT_INT_SET_HEADER_0003_I9_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0003_i9");
-    public static final PiActionId ACT_INT_SET_HEADER_0003_I10_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0003_i10");
-    public static final PiActionId ACT_INT_SET_HEADER_0003_I11_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0003_i11");
-    public static final PiActionId ACT_INT_SET_HEADER_0003_I12_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0003_i12");
-    public static final PiActionId ACT_INT_SET_HEADER_0003_I13_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0003_i13");
-    public static final PiActionId ACT_INT_SET_HEADER_0003_I14_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0003_i14");
-    public static final PiActionId ACT_INT_SET_HEADER_0003_I15_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0003_i15");
-    public static final PiActionId ACT_INT_SET_HEADER_0407_I0_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0407_i0");
-    public static final PiActionId ACT_INT_SET_HEADER_0407_I1_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0407_i1");
-    public static final PiActionId ACT_INT_SET_HEADER_0407_I2_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0407_i2");
-    public static final PiActionId ACT_INT_SET_HEADER_0407_I3_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0407_i3");
-    public static final PiActionId ACT_INT_SET_HEADER_0407_I4_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0407_i4");
-    public static final PiActionId ACT_INT_SET_HEADER_0407_I5_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0407_i5");
-    public static final PiActionId ACT_INT_SET_HEADER_0407_I6_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0407_i6");
-    public static final PiActionId ACT_INT_SET_HEADER_0407_I7_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0407_i7");
-    public static final PiActionId ACT_INT_SET_HEADER_0407_I8_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0407_i8");
-    public static final PiActionId ACT_INT_SET_HEADER_0407_I9_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0407_i9");
-    public static final PiActionId ACT_INT_SET_HEADER_0407_I10_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0407_i10");
-    public static final PiActionId ACT_INT_SET_HEADER_0407_I11_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0407_i11");
-    public static final PiActionId ACT_INT_SET_HEADER_0407_I12_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0407_i12");
-    public static final PiActionId ACT_INT_SET_HEADER_0407_I13_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0407_i13");
-    public static final PiActionId ACT_INT_SET_HEADER_0407_I14_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0407_i14");
-    public static final PiActionId ACT_INT_SET_HEADER_0407_I15_ID =
-            PiActionId.of(CTRL_INT_TRANSIT + DOT + "int_set_header_0407_i15");
-    public static final PiActionId ACT_INT_UPDATE_IPV4_ID =
-            PiActionId.of(CTRL_INT_OUTER_ENCAP + DOT + "int_update_ipv4");
-    public static final PiActionId ACT_INT_UPDATE_UDP_ID =
-            PiActionId.of(CTRL_INT_OUTER_ENCAP + DOT + "int_update_udp");
-    public static final PiActionId ACT_INT_UPDATE_SHIM_ID =
-            PiActionId.of(CTRL_INT_OUTER_ENCAP + DOT + "int_update_shim");
-    public static final PiActionId ACT_INT_RESTORE_HEADER_ID =
-            PiActionId.of(CTRL_INT_SINK + DOT + "restore_header");
-    public static final PiActionId ACT_INT_SINK_ID =
-            PiActionId.of(CTRL_INT_SINK + DOT + "int_sink");
-    public static final PiActionId ACT_DO_REPORT_ENCAP_ID =
-            PiActionId.of(CTRL_INT_REPORT + DOT + "do_report_encapsulation");
-
-    // Action param IDs
-    public static final PiActionParamId ACT_PRM_MAX_HOP_ID = PiActionParamId.of("max_hop");
-    public static final PiActionParamId ACT_PRM_INS_CNT_ID = PiActionParamId.of("ins_cnt");
-    public static final PiActionParamId ACT_PRM_INS_MASK0003_ID = PiActionParamId.of("ins_mask0003");
-    public static final PiActionParamId ACT_PRM_INS_MASK0407_ID = PiActionParamId.of("ins_mask0407");
-    public static final PiActionParamId ACT_PRM_SWITCH_ID = PiActionParamId.of("switch_id");
-    public static final PiActionParamId ACT_PRM_SRC_MAC_ID = PiActionParamId.of("src_mac");
-    public static final PiActionParamId ACT_PRM_MON_MAC_ID = PiActionParamId.of("mon_mac");
-    public static final PiActionParamId ACT_PRM_SRC_IP_ID = PiActionParamId.of("src_ip");
-    public static final PiActionParamId ACT_PRM_MON_IP_ID = PiActionParamId.of("mon_ip");
-    public static final PiActionParamId ACT_PRM_MON_PORT_ID = PiActionParamId.of("mon_port");
-
+    public static final PiActionId INGRESS_PROCESS_INT_SOURCE_INT_SOURCE_DSCP =
+            PiActionId.of("ingress.process_int_source.int_source_dscp");
+    public static final PiActionId EGRESS_PROCESS_INT_REPORT_DO_REPORT_ENCAPSULATION =
+            PiActionId.of("egress.process_int_report.do_report_encapsulation");
+    public static final PiActionId INGRESS_TABLE0_CONTROL_SEND_TO_CPU =
+            PiActionId.of("ingress.table0_control.send_to_cpu");
+    public static final PiActionId INGRESS_PROCESS_INT_SOURCE_SINK_INT_SET_SOURCE =
+            PiActionId.of("ingress.process_int_source_sink.int_set_source");
+    public static final PiActionId NO_ACTION = PiActionId.of("NoAction");
+    public static final PiActionId INGRESS_PROCESS_INT_SOURCE_SINK_INT_SET_SINK =
+            PiActionId.of("ingress.process_int_source_sink.int_set_sink");
+    public static final PiActionId INGRESS_TABLE0_CONTROL_SET_NEXT_HOP_ID =
+            PiActionId.of("ingress.table0_control.set_next_hop_id");
+    public static final PiActionId INGRESS_TABLE0_CONTROL_SET_EGRESS_PORT =
+            PiActionId.of("ingress.table0_control.set_egress_port");
+    public static final PiActionId EGRESS_PROCESS_INT_TRANSIT_INIT_METADATA =
+            PiActionId.of("egress.process_int_transit.init_metadata");
+    public static final PiActionId NOP = PiActionId.of("nop");
+    // Action Param IDs
+    public static final PiActionParamId INS_MASK0407 =
+            PiActionParamId.of("ins_mask0407");
+    public static final PiActionParamId NEXT_HOP_ID =
+            PiActionParamId.of("next_hop_id");
+    public static final PiActionParamId MON_PORT =
+            PiActionParamId.of("mon_port");
+    public static final PiActionParamId MON_MAC = PiActionParamId.of("mon_mac");
+    public static final PiActionParamId MON_IP = PiActionParamId.of("mon_ip");
+    public static final PiActionParamId SWITCH_ID =
+            PiActionParamId.of("switch_id");
+    public static final PiActionParamId SRC_MAC = PiActionParamId.of("src_mac");
+    public static final PiActionParamId INS_MASK0003 =
+            PiActionParamId.of("ins_mask0003");
+    public static final PiActionParamId REMAINING_HOP_CNT =
+            PiActionParamId.of("remaining_hop_cnt");
+    public static final PiActionParamId HOP_METADATA_LEN =
+            PiActionParamId.of("hop_metadata_len");
+    public static final PiActionParamId SRC_IP = PiActionParamId.of("src_ip");
+    public static final PiActionParamId PORT = PiActionParamId.of("port");
+    // Packet Metadata IDs
+    public static final PiPacketMetadataId INGRESS_PORT =
+            PiPacketMetadataId.of("ingress_port");
+    public static final PiPacketMetadataId EGRESS_PORT =
+            PiPacketMetadataId.of("egress_port");
 }
