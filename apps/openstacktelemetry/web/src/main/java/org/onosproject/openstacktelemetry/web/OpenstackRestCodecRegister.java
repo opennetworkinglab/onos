@@ -29,6 +29,7 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -36,9 +37,9 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Implementation of the JSON codec brokering service for OpenstackTelemetry.
  */
 @Component(immediate = true)
-public class OpenstackTelemetryCodecRegister {
+public class OpenstackRestCodecRegister {
 
-    private final org.slf4j.Logger log = getLogger(getClass());
+    private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CodecService codecService;
