@@ -42,7 +42,10 @@ import org.projectfloodlight.openflow.protocol.OFPacketOut;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
 import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.projectfloodlight.openflow.protocol.action.OFAction;
+import org.projectfloodlight.openflow.protocol.match.Match;
+import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.protocol.ver10.OFFactoryVer10;
+import org.projectfloodlight.openflow.protocol.ver15.OFFactoryVer15;
 import org.projectfloodlight.openflow.types.OFBufferId;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.slf4j.Logger;
@@ -146,11 +149,16 @@ public class OpenFlowPacketProvider extends AbstractProvider implements PacketPr
                 .setPort(out)
                 .build();
         builder.setBufferId(OFBufferId.NO_BUFFER)
-                .setInPort(inPort)
                 .setActions(Collections.singletonList(act))
                 .setData(eth);
-        if (sw.factory().getVersion().getWireVersion() <= OFVersion.OF_14.getWireVersion()) {
-            builder.setInPort(OFPort.CONTROLLER);
+        int wireVersion = sw.factory().getVersion().getWireVersion();
+        if (wireVersion <= OFVersion.OF_14.getWireVersion()) {
+            builder.setInPort(inPort);
+        } else if (wireVersion <= OFVersion.OF_15.getWireVersion()) {
+            Match m = OFFactoryVer15.INSTANCE.matchWildcardAll().createBuilder()
+                    .setExact(MatchField.IN_PORT, inPort)
+                    .build();
+            builder.setMatch(m);
         }
 
         return builder.build();

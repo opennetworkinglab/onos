@@ -46,12 +46,17 @@ import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.onosproject.openflow.controller.OpenFlowSwitchListener;
 import org.onosproject.openflow.controller.PacketListener;
 import org.onosproject.openflow.controller.RoleState;
+import org.projectfloodlight.openflow.protocol.OFActionType;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFMessage;
 import org.projectfloodlight.openflow.protocol.OFMeterFeatures;
 import org.projectfloodlight.openflow.protocol.OFPacketIn;
 import org.projectfloodlight.openflow.protocol.OFPacketInReason;
+import org.projectfloodlight.openflow.protocol.OFPacketOut;
 import org.projectfloodlight.openflow.protocol.OFPortDesc;
+import org.projectfloodlight.openflow.protocol.OFType;
+import org.projectfloodlight.openflow.protocol.action.OFAction;
+import org.projectfloodlight.openflow.protocol.action.OFActionOutput;
 import org.projectfloodlight.openflow.protocol.ver10.OFFactoryVer10;
 import org.projectfloodlight.openflow.types.MacAddress;
 import org.projectfloodlight.openflow.types.OFBufferId;
@@ -72,6 +77,7 @@ public class OpenFlowPacketProviderTest {
     private static final int PN2 = 200;
     private static final int PN3 = 300;
     private static final short VLANID = (short) 100;
+    private static final int IN_PORT_PN = 1;
 
     private static final DeviceId DID = DeviceId.deviceId("of:1");
     private static final DeviceId DID_MISSING = DeviceId.deviceId("of:2");
@@ -79,6 +85,7 @@ public class OpenFlowPacketProviderTest {
     private static final PortNumber P1 = PortNumber.portNumber(PN1);
     private static final PortNumber P2 = PortNumber.portNumber(PN2);
     private static final PortNumber P3 = PortNumber.portNumber(PN3);
+    private static final PortNumber IN_PORT = PortNumber.portNumber(IN_PORT_PN);
 
     private static final Instruction INST1 = Instructions.createOutput(P1);
     private static final Instruction INST2 = Instructions.createOutput(P2);
@@ -159,12 +166,21 @@ public class OpenFlowPacketProviderTest {
         assertEquals("message not sent", PLIST.size(), sw.sent.size());
         sw.sent.clear();
 
-        //Send with different inPort
-        OutboundPacket inPortPkt = outPacket(DID, TR_ALL, eth, PortNumber.portNumber(1));
+        //Send with different IN_PORT
+        OutboundPacket inPortPkt = outPacket(DID, TR_ALL, eth, IN_PORT);
         sw.setRole(RoleState.MASTER);
         provider.emit(inPortPkt);
         assertEquals("invalid switch", sw, controller.current);
         assertEquals("message not sent", PLIST_ALL.size(), sw.sent.size());
+        OFMessage ofMessage = sw.sent.get(0);
+        assertEquals("Wrong OF message type", OFType.PACKET_OUT, ofMessage.getType());
+        OFPacketOut packetOut = (OFPacketOut) ofMessage;
+        assertEquals("Wrong in port", OFPort.of(IN_PORT_PN), packetOut.getInPort());
+        assertEquals("Unexpected number of actions", 1, packetOut.getActions().size());
+        OFAction ofAction = packetOut.getActions().get(0);
+        assertEquals("Packet out action should be type output", OFActionType.OUTPUT, ofAction.getType());
+        OFActionOutput ofActionOutput = (OFActionOutput) ofAction;
+        assertEquals("Output should be ALL", OFPort.ALL, ofActionOutput.getPort());
         sw.sent.clear();
 
         //wrong Role
