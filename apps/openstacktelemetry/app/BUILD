@@ -23,6 +23,7 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + CLI + REST + [
 TEST_DEPS = TEST_ADAPTERS + [
     "//core/api:onos-api-tests",
     "//core/common:onos-core-common-tests",
+    "//apps/openstacktelemetry/api:onos-apps-openstacktelemetry-api-tests",
 ]
 
 osgi_jar_with_tests(

@@ -52,7 +52,7 @@ public final class DefaultLinkStatsInfoTest {
     private LinkStatsInfo sameAsInfo1;
     private LinkStatsInfo info2;
 
-    static LinkStatsInfo createLinkStatsInfo1() {
+    public static LinkStatsInfo createLinkStatsInfo1() {
         return DefaultLinkStatsInfo.builder()
                 .withTxPacket(TX_PACKET_1)
                 .withRxPacket(RX_PACKET_1)
@@ -64,7 +64,7 @@ public final class DefaultLinkStatsInfoTest {
                 .build();
     }
 
-    static LinkStatsInfo createLinkStatsInfo2() {
+    public static LinkStatsInfo createLinkStatsInfo2() {
         return DefaultLinkStatsInfo.builder()
                 .withTxPacket(TX_PACKET_2)
                 .withRxPacket(RX_PACKET_2)
