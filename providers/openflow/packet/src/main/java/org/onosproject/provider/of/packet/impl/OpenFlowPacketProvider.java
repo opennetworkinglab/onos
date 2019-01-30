@@ -111,13 +111,21 @@ public class OpenFlowPacketProvider extends AbstractProvider implements PacketPr
             return;
         }
 
+        OFPort inPort;
+        if (packet.inPort() != null) {
+            inPort = portDesc(packet.inPort()).getPortNo();
+        } else {
+            inPort = OFPort.CONTROLLER;
+        }
+
         //Ethernet eth = new Ethernet();
         //eth.deserialize(packet.data().array(), 0, packet.data().array().length);
         OFPortDesc p = null;
         for (Instruction inst : packet.treatment().allInstructions()) {
             if (inst.type().equals(Instruction.Type.OUTPUT)) {
                 p = portDesc(((OutputInstruction) inst).port());
-                OFPacketOut po = packetOut(sw, packet.data().array(), p.getPortNo());
+
+                OFPacketOut po = packetOut(sw, packet.data().array(), p.getPortNo(), inPort);
                 sw.sendMsg(po);
             }
         }
@@ -131,13 +139,14 @@ public class OpenFlowPacketProvider extends AbstractProvider implements PacketPr
         return builder.build();
     }
 
-    private OFPacketOut packetOut(OpenFlowSwitch sw, byte[] eth, OFPort out) {
+    private OFPacketOut packetOut(OpenFlowSwitch sw, byte[] eth, OFPort out, OFPort inPort) {
         OFPacketOut.Builder builder = sw.factory().buildPacketOut();
         OFAction act = sw.factory().actions()
                 .buildOutput()
                 .setPort(out)
                 .build();
         builder.setBufferId(OFBufferId.NO_BUFFER)
+                .setInPort(inPort)
                 .setActions(Collections.singletonList(act))
                 .setData(eth);
         if (sw.factory().getVersion().getWireVersion() <= OFVersion.OF_14.getWireVersion()) {

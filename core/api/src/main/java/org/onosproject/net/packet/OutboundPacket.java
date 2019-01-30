@@ -16,6 +16,7 @@
 package org.onosproject.net.packet;
 
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.TrafficTreatment;
 
 import java.nio.ByteBuffer;
@@ -48,4 +49,15 @@ public interface OutboundPacket {
      */
     ByteBuffer data();
 
+    /**
+     * Returns the input port of this packet.
+     *
+     * Defaults to controller port. This is useful for actions that involve the input port
+     * such as ALL or FLOOD.
+     *
+     * @return the input port to be used for this packet.
+     */
+    default PortNumber inPort() {
+        return PortNumber.CONTROLLER;
+    }
 }

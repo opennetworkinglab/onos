@@ -15,13 +15,13 @@
  */
 package org.onosproject.net.packet;
 
-import java.nio.ByteBuffer;
-import java.util.Objects;
-
+import com.google.common.base.MoreObjects;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.TrafficTreatment;
 
-import com.google.common.base.MoreObjects;
+import java.nio.ByteBuffer;
+import java.util.Objects;
 
 /**
  * Default implementation of an immutable outbound packet.
@@ -30,6 +30,7 @@ public final class DefaultOutboundPacket implements OutboundPacket {
     private final DeviceId sendThrough;
     private final TrafficTreatment treatment;
     private final ByteBuffer data;
+    private final PortNumber inPort;
 
     /**
      * Creates an immutable outbound packet.
@@ -43,6 +44,24 @@ public final class DefaultOutboundPacket implements OutboundPacket {
         this.sendThrough = sendThrough;
         this.treatment = treatment;
         this.data = data;
+        this.inPort = null;
+    }
+
+    /**
+     * Creates an immutable outbound packet.
+     *
+     * @param sendThrough identifier through which to send the packet
+     * @param treatment   list of packet treatments
+     * @param data        raw packet data
+     * @param inPort      input port to be used for the packet
+     */
+    public DefaultOutboundPacket(DeviceId sendThrough,
+                                 TrafficTreatment treatment, ByteBuffer data,
+                                 PortNumber inPort) {
+        this.sendThrough = sendThrough;
+        this.treatment = treatment;
+        this.data = data;
+        this.inPort = inPort;
     }
 
     @Override
@@ -62,8 +81,13 @@ public final class DefaultOutboundPacket implements OutboundPacket {
     }
 
     @Override
+    public PortNumber inPort() {
+        return inPort;
+    }
+
+    @Override
     public int hashCode() {
-        return Objects.hash(sendThrough, treatment, data);
+        return Objects.hash(sendThrough, treatment, data, inPort);
     }
 
     @Override
@@ -75,7 +99,8 @@ public final class DefaultOutboundPacket implements OutboundPacket {
             final DefaultOutboundPacket other = (DefaultOutboundPacket) obj;
             return Objects.equals(this.sendThrough, other.sendThrough) &&
                     Objects.equals(this.treatment, other.treatment) &&
-                    Objects.equals(this.data, other.data);
+                    Objects.equals(this.data, other.data) &&
+                    Objects.equals(this.inPort, other.inPort);
         }
         return false;
     }
@@ -84,6 +109,7 @@ public final class DefaultOutboundPacket implements OutboundPacket {
         return MoreObjects.toStringHelper(this)
                 .add("sendThrough", sendThrough)
                 .add("treatment", treatment)
+                .add("inPort", inPort)
                 .toString();
     }
 }

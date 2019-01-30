@@ -83,12 +83,16 @@ public class OpenFlowPacketProviderTest {
     private static final Instruction INST1 = Instructions.createOutput(P1);
     private static final Instruction INST2 = Instructions.createOutput(P2);
     private static final Instruction INST3 = Instructions.createOutput(P3);
+    private static final Instruction INST_ALL = Instructions.createOutput(PortNumber.ALL);
 
     private static final OFPortDesc PD1 = portDesc(PN1);
     private static final OFPortDesc PD2 = portDesc(PN2);
+    private static final OFPortDesc PD_ALL = portDesc((int) PortNumber.ALL.toLong());
 
     private static final List<OFPortDesc> PLIST = Lists.newArrayList(PD1, PD2);
     private static final TrafficTreatment TR = treatment(INST1, INST2);
+    private static final List<OFPortDesc> PLIST_ALL = Lists.newArrayList(PD_ALL);
+    private static final TrafficTreatment TR_ALL = treatment(INST_ALL);
     private static final TrafficTreatment TR_MISSING = treatment(INST1, INST3);
 
     private static final byte[] ANY = new byte[] {0, 0, 0, 0};
@@ -155,6 +159,14 @@ public class OpenFlowPacketProviderTest {
         assertEquals("message not sent", PLIST.size(), sw.sent.size());
         sw.sent.clear();
 
+        //Send with different inPort
+        OutboundPacket inPortPkt = outPacket(DID, TR_ALL, eth, PortNumber.portNumber(1));
+        sw.setRole(RoleState.MASTER);
+        provider.emit(inPortPkt);
+        assertEquals("invalid switch", sw, controller.current);
+        assertEquals("message not sent", PLIST_ALL.size(), sw.sent.size());
+        sw.sent.clear();
+
         //wrong Role
         //sw.setRole(RoleState.SLAVE);
         //provider.emit(passPkt);
@@ -212,6 +224,16 @@ public class OpenFlowPacketProviderTest {
         }
         return new DefaultOutboundPacket(d, t, buf);
     }
+
+    private OutboundPacket outPacket(DeviceId d, TrafficTreatment t, Ethernet e,
+                                     PortNumber inPort) {
+        ByteBuffer buf = null;
+        if (e != null) {
+            buf = ByteBuffer.wrap(e.serialize());
+        }
+        return new DefaultOutboundPacket(d, t, buf, inPort);
+    }
+
 
     private class TestPacketRegistry implements PacketProviderRegistry {
 
