@@ -1,6 +1,6 @@
 BUNDLES = [
     "@kafka_clients//jar",
-    "@runtime_protobuf//jar",
+    "//protocols/grpc:protobuf-java-bundle",
     "//core/protobuf/models:onos-core-protobuf-models",
     "//core/protobuf/models/proto:onos-core-protobuf-models-proto",
     "//apps/kafka-integration/api:onos-apps-kafka-integration-api",
