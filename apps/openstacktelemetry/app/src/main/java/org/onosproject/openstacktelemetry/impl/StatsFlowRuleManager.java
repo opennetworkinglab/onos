@@ -591,7 +591,7 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
                 .withSrcMac(macAddress)
                 .withDstMac(NO_HOST_MAC)
                 .withDeviceId(deviceId)
-                .withInputInterfaceId(ARBITRARY_IN_INTF)
+                .withInputInterfaceId(getInterfaceId(ipAddress))
                 .withOutputInterfaceId(ARBITRARY_OUT_INTF)
                 .withVlanId(VlanId.vlanId());
 

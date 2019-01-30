@@ -20,6 +20,8 @@
         <property name="port">9092</property>
         <property name="retries">0</property>
     </config>
+
+    <!-- a kafka exporter used for exporting flow metrics to TINA monitoring system -->
     <config name="tina-kafka-exporter" manufacturer="SK Telecom"
             swVersion="1.0" extends="kafka" status="disabled">
         <property name="batchSize">16384</property>
@@ -36,6 +38,26 @@
         <property name="key">flowdata</property>
         <property name="codec">
             org.onosproject.openstacktelemetry.codec.bytebuffer.TinaMessageByteBufferCodec
+        </property>
+    </config>
+
+    <!-- a kafka exporter used for exporting link metrics to 3DV monitoring system -->
+    <config name="3dv-kafka-exporter" manufacturer="SK Telecom"
+            swVersion="1.0" extends="kafka" status="disabled">
+        <property name="batchSize">16384</property>
+        <property name="lingerMs">1</property>
+        <property name="memoryBuffer">33554432</property>
+        <property name="requiredAcks">all</property>
+        <property name="keySerializer">
+            org.apache.kafka.common.serialization.StringSerializer
+        </property>
+        <property name="valueSerializer">
+            org.apache.kafka.common.serialization.StringSerializer
+        </property>
+        <property name="topic">sona.data.link</property>
+        <property name="key">flowdata</property>
+        <property name="codec">
+            org.onosproject.openstacktelemetry.api.LinkInfo
         </property>
     </config>
 </configs>

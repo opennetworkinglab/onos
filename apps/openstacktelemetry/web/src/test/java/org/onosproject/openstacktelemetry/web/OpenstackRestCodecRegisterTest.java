@@ -39,16 +39,16 @@ import static org.junit.Assert.assertNull;
 /**
  * Unit test for openstack telemetry codec register.
  */
-public final class OpenstackTelemetryCodecRegisterTest {
+public final class OpenstackRestCodecRegisterTest {
 
-    private OpenstackTelemetryCodecRegister register;
+    private OpenstackRestCodecRegister register;
 
     /**
      * Tests codec register activation and deactivation.
      */
     @Test
     public void testActivateDeactivate() {
-        register = new OpenstackTelemetryCodecRegister();
+        register = new OpenstackRestCodecRegister();
         CodecService codecService = new TestCodecService();
 
         TestUtils.setField(register, "codecService", codecService);
