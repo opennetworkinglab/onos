@@ -58,7 +58,7 @@ class RoleManager implements RoleHandler {
     private final int pendingXidTimeoutSeconds = 60;
 
     // The cache for pending expected RoleReplies keyed on expected XID
-    private Cache<Integer, RoleState> pendingReplies =
+    private Cache<Long, RoleState> pendingReplies =
             CacheBuilder.newBuilder()
                 .expireAfterWrite(pendingXidTimeoutSeconds, TimeUnit.SECONDS)
                 .build();
@@ -79,7 +79,7 @@ class RoleManager implements RoleHandler {
      *
      * @param role role to request
      */
-    private int sendNxRoleRequest(RoleState role) throws IOException {
+    private long sendNxRoleRequest(RoleState role) throws IOException {
         // Convert the role enum to the appropriate role to send
         OFNiciraControllerRole roleToSend = OFNiciraControllerRole.ROLE_OTHER;
         switch (role) {
@@ -104,7 +104,7 @@ class RoleManager implements RoleHandler {
         return xid;
     }
 
-    private int sendOF13RoleRequest(RoleState role) throws IOException {
+    private long sendOF13RoleRequest(RoleState role) throws IOException {
         // Convert the role enum to the appropriate role to send
         OFControllerRole roleToSend = OFControllerRole.ROLE_NOCHANGE;
         switch (role) {

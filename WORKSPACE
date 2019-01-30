@@ -35,10 +35,12 @@ load("@io_grpc_grpc_java//:repositories.bzl", "grpc_java_repositories")
 grpc_java_repositories(
     omit_com_google_api_grpc_google_common_protos = True,
     omit_com_google_auth_google_auth_library_credentials = True,
+    omit_com_google_auth_google_auth_library_oauth2_http = True,
     omit_com_google_code_findbugs_jsr305 = True,
     omit_com_google_code_gson = True,
     omit_com_google_errorprone_error_prone_annotations = True,
     omit_com_google_guava = True,
+    omit_com_google_j2objc_j2objc_annotations = True,
     omit_com_google_protobuf = True,
     omit_com_google_protobuf_javalite = True,
     omit_com_google_protobuf_nano_protobuf_javanano = True,

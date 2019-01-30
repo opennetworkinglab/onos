@@ -62,7 +62,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -89,14 +89,14 @@ public class SimpleVirtualFlowRuleStore
             flowEntries = new ConcurrentHashMap<>();
 
 
-    private final AtomicInteger localBatchIdGen = new AtomicInteger();
+    private final AtomicLong localBatchIdGen = new AtomicLong();
 
     private static final int DEFAULT_PENDING_FUTURE_TIMEOUT_MINUTES = 5;
     @Property(name = "pendingFutureTimeoutMinutes", intValue = DEFAULT_PENDING_FUTURE_TIMEOUT_MINUTES,
             label = "Expiration time after an entry is created that it should be automatically removed")
     private int pendingFutureTimeoutMinutes = DEFAULT_PENDING_FUTURE_TIMEOUT_MINUTES;
 
-    private Cache<Integer, SettableFuture<CompletedBatchOperation>> pendingFutures =
+    private Cache<Long, SettableFuture<CompletedBatchOperation>> pendingFutures =
             CacheBuilder.newBuilder()
                     .expireAfterWrite(pendingFutureTimeoutMinutes, TimeUnit.MINUTES)
                     .removalListener(new TimeoutFuture())
@@ -119,7 +119,7 @@ public class SimpleVirtualFlowRuleStore
         readComponentConfiguration(context);
 
         // Reset Cache and copy all.
-        Cache<Integer, SettableFuture<CompletedBatchOperation>> prevFutures = pendingFutures;
+        Cache<Long, SettableFuture<CompletedBatchOperation>> prevFutures = pendingFutures;
         pendingFutures = CacheBuilder.newBuilder()
                 .expireAfterWrite(pendingFutureTimeoutMinutes, TimeUnit.MINUTES)
                 .removalListener(new TimeoutFuture())
@@ -213,7 +213,7 @@ public class SimpleVirtualFlowRuleStore
         }
 
         SettableFuture<CompletedBatchOperation> r = SettableFuture.create();
-        final int futureId = localBatchIdGen.incrementAndGet();
+        final long futureId = localBatchIdGen.incrementAndGet();
 
         pendingFutures.put(futureId, r);
 
@@ -396,9 +396,9 @@ public class SimpleVirtualFlowRuleStore
     }
 
     private static final class TimeoutFuture
-            implements RemovalListener<Integer, SettableFuture<CompletedBatchOperation>> {
+            implements RemovalListener<Long, SettableFuture<CompletedBatchOperation>> {
         @Override
-        public void onRemoval(RemovalNotification<Integer,
+        public void onRemoval(RemovalNotification<Long,
                 SettableFuture<CompletedBatchOperation>> notification) {
             // wrapping in ExecutionException to support Future.get
             if (notification.wasEvicted()) {
