@@ -24,13 +24,13 @@ BUNDLES = [
     "@jetty_websocket//jar",
     "@servlet_api//jar",
     # gRPC dependencies (with patched core)
-    ":grpc-core-repkg",
-    "@runtime_grpc_stub//jar",
-    "@runtime_grpc_netty//jar",
-    "@runtime_grpc_auth//jar",
-    "@runtime_grpc_protobuf//jar",
-    "@runtime_grpc_protobuf_lite//jar",
-    "@runtime_protobuf//jar",
+    "//protocols/grpc:grpc-bundle-core",
+    "//protocols/grpc:grpc-bundle-stub",
+    "//protocols/grpc:grpc-bundle-netty",
+    "//protocols/grpc:grpc-bundle-auth",
+    "//protocols/grpc:grpc-bundle-protobuf",
+    "//protocols/grpc:grpc-bundle-protobuf-lite",
+    "//protocols/grpc:protobuf-java-bundle",
     "@com_google_api_grpc_proto_google_common_protos//jar",
     "@com_google_errorprone_error_prone_annotations//jar",
     "@com_google_auth_google_auth_library_credentials//jar",
@@ -51,11 +51,4 @@ onos_app(
     ],
     title = "OpenStack Telemetry Application",
     url = "https://wiki.onosproject.org/display/ONOS/SONA%3A+DC+Network+Virtualization",
-)
-
-wrapped_osgi_jar(
-    name = "grpc-core-repkg",
-    jar = "@io_grpc_grpc_java//core",
-    visibility = ["//visibility:public"],
-    deps = ["@io_opencensus_opencensus_api//jar"],
 )

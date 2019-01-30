@@ -182,20 +182,16 @@ def _swagger_java_impl(ctx):
     package_name = ctx.attr.package_name
 
     srcs_arg = ""
-    resources_arg = ""
     input_dependencies = []
 
     for file in ctx.files.srcs:
         srcs_arg += file.path + ","
         input_dependencies.append(file)
 
-    for resource in resources_arg:
-        resources_arg += resource.path + ","
-
     # call swagger generator to make the swagger JSON and java files
     arguments = [
         srcs_arg,
-        resources_arg,
+        "",
         "",
         package_name + "/src/main/resources",
         output_dir,
@@ -232,20 +228,16 @@ def _swagger_json_impl(ctx):
     package_name = ctx.attr.package_name
 
     srcs_arg = ""
-    resources_arg = ""
     input_dependencies = []
 
     for file in ctx.files.srcs:
         srcs_arg += file.path + ","
         input_dependencies.append(file)
 
-    for resource in resources_arg:
-        resources_arg += resource.path + ","
-
     # call swagger generator to make the swagger JSON and java files
     arguments = [
         srcs_arg,
-        resources_arg,
+        "",
         "",
         package_name + "/src/main/resources",
         output_dir,
