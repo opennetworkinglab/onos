@@ -411,12 +411,13 @@ public class NetconfDeviceProvider extends AbstractProvider
 
     private void connectDevice(NetconfDeviceConfig config) {
         if (config == null) {
+            log.warn("connect device invoked with null config");
             return;
         }
         DeviceId deviceId = config.subject();
         if (!deviceId.uri().getScheme().equals(SCHEME_NAME)) {
             // not under my scheme, skipping
-            log.trace("{} not my scheme, skipping", deviceId);
+            log.debug("{} not of schema {}, skipping", deviceId, SCHEME_NAME);
             return;
         }
         DeviceDescription deviceDescription = createDeviceRepresentation(deviceId, config);
@@ -427,9 +428,11 @@ public class NetconfDeviceProvider extends AbstractProvider
         storeDeviceKey(config.sshKey(), config.username(), config.password(), deviceId);
         retriedPortDiscoveryMap.put(deviceId, new AtomicInteger(0));
         if (deviceService.getDevice(deviceId) == null) {
+            log.debug("device connected {}", deviceId);
             providerService.deviceConnected(deviceId, deviceDescription);
         }
         try {
+            log.debug("check and update {}", deviceId);
             checkAndUpdateDevice(deviceId, deviceDescription, true);
         } catch (Exception e) {
             log.error("Unhandled exception checking {}", deviceId, e);
