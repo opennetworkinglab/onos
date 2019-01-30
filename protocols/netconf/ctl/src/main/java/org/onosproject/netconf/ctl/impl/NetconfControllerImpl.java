@@ -238,6 +238,7 @@ public class NetconfControllerImpl implements NetconfController {
             if (device != null) {
                 ip = device.annotations().value("ipaddress");
                 port = Integer.parseInt(device.annotations().value("port"));
+                path = device.annotations().value("path");
             } else {
                 Triple<String, Integer, Optional<String>> info = extractIpPortPath(deviceId);
                 ip = info.getLeft();
@@ -289,8 +290,10 @@ public class NetconfControllerImpl implements NetconfController {
     }
 
     private void stopDevice(DeviceId deviceId, boolean remove) {
-        netconfDeviceMap.get(deviceId).disconnect();
-        netconfDeviceMap.remove(deviceId);
+        NetconfDevice nc = netconfDeviceMap.remove(deviceId);
+        if (nc != null) {
+            nc.disconnect();
+        }
         if (remove) {
             for (NetconfDeviceListener l : netconfDeviceListeners) {
                 l.deviceRemoved(deviceId);
