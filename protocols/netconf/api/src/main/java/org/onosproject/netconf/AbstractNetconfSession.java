@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-present Open Networking Foundation
+ * Copyright 2019-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,8 +51,20 @@ public abstract class AbstractNetconfSession implements NetconfSession {
     private static final String SUBTREE_FILTER_CLOSE = "</filter>";
     private static final String EDIT_CONFIG_OPEN = "<edit-config>";
     private static final String EDIT_CONFIG_CLOSE = "</edit-config>";
+    private static final String GET_CONFIG_OPEN = "<get-config>";
+    private static final String GET_CONFIG_CLOSE = "</get-config>";
+    private static final String COPY_CONFIG_OPEN = "<copy-config>";
+    private static final String COPY_CONFIG_CLOSE = "</copy-config>";
+    private static final String DELETE_CONFIG_OPEN = "<delete-config>";
+    private static final String DELETE_CONFIG_CLOSE = "</delete-config>";
     private static final String TARGET_OPEN = "<target>";
     private static final String TARGET_CLOSE = "</target>";
+    private static final String SOURCE_OPEN = "<source>";
+    private static final String SOURCE_CLOSE = "</source>";
+    private static final String LOCK_OPEN = "<lock>";
+    private static final String LOCK_CLOSE = "</lock>";
+    private static final String UNLOCK_OPEN = "<lock>";
+    private static final String UNLOCK_CLOSE = "</lock>";
     // FIXME hard coded namespace nc
     private static final String CONFIG_OPEN = "<config xmlns:nc=\"urn:ietf:params:xml:ns:netconf:base:1.0\">";
     private static final String CONFIG_CLOSE = "</config>";
@@ -71,38 +83,38 @@ public abstract class AbstractNetconfSession implements NetconfSession {
     @Override
     public CompletableFuture<CharSequence> asyncGetConfig(DatastoreId datastore) throws NetconfException {
         StringBuilder rpc = new StringBuilder();
-        rpc.append("<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">\n");
-        rpc.append("<get-config>\n");
-        rpc.append("<source>\n");
-        rpc.append('<').append(checkNotNull(datastore)).append("/>");
-        rpc.append("</source>");
-        // filter here
-        rpc.append("</get-config>\n");
-        rpc.append("</rpc>");
 
-        return rpc(rpc.toString())
-                .thenApply(msg -> {
-                    // crude way of removing rpc-reply envelope
-                    int begin = msg.indexOf("<data>");
-                    int end = msg.lastIndexOf("</data>");
-                    if (begin != -1 && end != -1) {
-                        return msg.subSequence(begin, end + "</data>".length());
-                    } else {
-                        // FIXME probably should exceptionally fail here.
-                        return msg;
-                    }
-                });
+        rpc.append(RPC_OPEN);
+        rpc.append(NETCONF_BASE_NAMESPACE).append(">\n");
+        rpc.append(GET_CONFIG_OPEN).append(NEW_LINE);
+        rpc.append(SOURCE_OPEN).append(NEW_LINE);
+
+        rpc.append('<').append(checkNotNull(datastore)).append("/>");
+
+        rpc.append(SOURCE_CLOSE).append(NEW_LINE);
+        // filter here
+        rpc.append(GET_CONFIG_CLOSE).append(NEW_LINE);
+        rpc.append(RPC_CLOSE);
+
+        return executeRpc(rpc.toString());
     }
 
     @Override
     public CompletableFuture<CharSequence> asyncGet() throws NetconfException {
         StringBuilder rpc = new StringBuilder();
-        rpc.append("<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">\n");
-        rpc.append("<get>\n");
-        // filter here
-        rpc.append("</get>\n");
-        rpc.append("</rpc>");
-        return rpc(rpc.toString())
+
+        rpc.append(RPC_OPEN);
+        rpc.append(NETCONF_BASE_NAMESPACE).append(">\n");
+        rpc.append(GET_OPEN).append(NEW_LINE);
+        //filter here
+        rpc.append(GET_CLOSE).append(NEW_LINE);
+        rpc.append(RPC_CLOSE).append(NEW_LINE);
+
+        return executeRpc(rpc.toString());
+    }
+
+    protected CompletableFuture<CharSequence> executeRpc(String rpcString) throws NetconfException {
+        return rpc(rpcString)
                 .thenApply(msg -> {
                     // crude way of removing rpc-reply envelope
                     int begin = msg.indexOf("<data>");
@@ -177,25 +189,25 @@ public abstract class AbstractNetconfSession implements NetconfSession {
     @Override
     public String getConfig(DatastoreId netconfTargetConfig, String configurationFilterSchema) throws NetconfException {
         StringBuilder rpc = new StringBuilder(XML_HEADER);
-        rpc.append("<rpc ");
+        rpc.append(RPC_OPEN);
         rpc.append(MESSAGE_ID_STRING);
         rpc.append(EQUAL);
         rpc.append("\"");
         //Assign a random integer here, it will be replaced in formatting
         rpc.append(1);
         rpc.append("\"  ");
-        rpc.append("xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">\n");
-        rpc.append("<get-config>\n");
-        rpc.append("<source>\n");
+        rpc.append(NETCONF_BASE_NAMESPACE).append(">\n");
+        rpc.append(GET_CONFIG_OPEN).append(NEW_LINE);
+        rpc.append(SOURCE_OPEN).append(NEW_LINE);
         rpc.append("<").append(netconfTargetConfig).append("/>");
-        rpc.append("</source>");
+        rpc.append(SOURCE_CLOSE);
         if (configurationFilterSchema != null) {
-            rpc.append("<filter type=\"subtree\">\n");
-            rpc.append(configurationFilterSchema).append("\n");
-            rpc.append("</filter>\n");
+            rpc.append(SUBTREE_FILTER_OPEN).append(NEW_LINE);
+            rpc.append(configurationFilterSchema).append(NEW_LINE);
+            rpc.append(SUBTREE_FILTER_CLOSE).append(NEW_LINE);
         }
-        rpc.append("</get-config>\n");
-        rpc.append("</rpc>\n");
+        rpc.append(GET_CONFIG_CLOSE).append(NEW_LINE);
+        rpc.append(RPC_CLOSE).append(NEW_LINE);
         rpc.append(ENDPATTERN);
         String reply = requestSync(rpc.toString());
         return checkReply(reply) ? reply : "ERROR " + reply;
@@ -223,19 +235,19 @@ public abstract class AbstractNetconfSession implements NetconfSession {
         rpc.append(1);
         rpc.append("\"  ");
         rpc.append(NETCONF_BASE_NAMESPACE).append(">\n");
-        rpc.append(EDIT_CONFIG_OPEN).append("\n");
+        rpc.append(EDIT_CONFIG_OPEN).append(NEW_LINE);
         rpc.append(TARGET_OPEN);
         rpc.append("<").append(netconfTargetConfig).append("/>");
-        rpc.append(TARGET_CLOSE).append("\n");
+        rpc.append(TARGET_CLOSE).append(NEW_LINE);
         if (mode != null) {
             rpc.append(DEFAULT_OPERATION_OPEN);
             rpc.append(mode);
-            rpc.append(DEFAULT_OPERATION_CLOSE).append("\n");
+            rpc.append(DEFAULT_OPERATION_CLOSE).append(NEW_LINE);
         }
-        rpc.append(CONFIG_OPEN).append("\n");
+        rpc.append(CONFIG_OPEN).append(NEW_LINE);
         rpc.append(newConfiguration);
-        rpc.append(CONFIG_CLOSE).append("\n");
-        rpc.append(EDIT_CONFIG_CLOSE).append("\n");
+        rpc.append(CONFIG_CLOSE).append(NEW_LINE);
+        rpc.append(EDIT_CONFIG_CLOSE).append(NEW_LINE);
         rpc.append(RPC_CLOSE);
         rpc.append(ENDPATTERN);
         String reply = requestSync(rpc.toString());
@@ -265,13 +277,13 @@ public abstract class AbstractNetconfSession implements NetconfSession {
             return false;
         }
         StringBuilder rpc = new StringBuilder(XML_HEADER);
-        rpc.append("<rpc>");
-        rpc.append("<delete-config>");
-        rpc.append("<target>");
+        rpc.append(RPC_OPEN).append(">");
+        rpc.append(DELETE_CONFIG_OPEN);
+        rpc.append(TARGET_OPEN);
         rpc.append("<").append(netconfTargetConfig).append("/>");
-        rpc.append("</target>");
-        rpc.append("</delete-config>");
-        rpc.append("</rpc>");
+        rpc.append(TARGET_CLOSE);
+        rpc.append(DELETE_CONFIG_CLOSE);
+        rpc.append(RPC_CLOSE);
         rpc.append(ENDPATTERN);
         return checkReply(requestSync(rpc.toString()));
     }
@@ -290,16 +302,16 @@ public abstract class AbstractNetconfSession implements NetconfSession {
     @Override
     public boolean lock(DatastoreId datastore) throws NetconfException {
         StringBuilder rpc = new StringBuilder(XML_HEADER);
-        rpc.append("<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">\n");
-        rpc.append("<lock>");
-        rpc.append("<target>");
-        rpc.append("<");
-        rpc.append(datastore.id());
-        rpc.append("/>");
-        rpc.append("</target>");
-        rpc.append("</lock>");
-        rpc.append("</rpc>");
+        rpc.append(RPC_OPEN);
+        rpc.append(NETCONF_BASE_NAMESPACE).append(">\n");
+        rpc.append(LOCK_OPEN);
+        rpc.append(TARGET_OPEN);
+        rpc.append("<").append(datastore.id()).append("/>");
+        rpc.append(TARGET_CLOSE);
+        rpc.append(LOCK_CLOSE);
+        rpc.append(RPC_CLOSE);
         rpc.append(ENDPATTERN);
+
         String lockReply = requestSync(rpc.toString());
         return checkReply(lockReply);
     }
@@ -307,15 +319,14 @@ public abstract class AbstractNetconfSession implements NetconfSession {
     @Override
     public boolean unlock(DatastoreId datastore) throws NetconfException {
         StringBuilder rpc = new StringBuilder(XML_HEADER);
-        rpc.append("<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">\n");
-        rpc.append("<unlock>");
-        rpc.append("<target>");
-        rpc.append("<");
-        rpc.append(datastore.id());
-        rpc.append("/>");
-        rpc.append("</target>");
-        rpc.append("</unlock>");
-        rpc.append("</rpc>");
+        rpc.append(RPC_OPEN);
+        rpc.append(NETCONF_BASE_NAMESPACE).append(">\n");
+        rpc.append(UNLOCK_OPEN);
+        rpc.append(TARGET_OPEN);
+        rpc.append("<").append(datastore.id()).append("/>");
+        rpc.append(TARGET_CLOSE);
+        rpc.append(UNLOCK_CLOSE);
+        rpc.append(RPC_CLOSE);
         rpc.append(ENDPATTERN);
         String unlockReply = requestSync(rpc.toString());
         return checkReply(unlockReply);
@@ -324,9 +335,10 @@ public abstract class AbstractNetconfSession implements NetconfSession {
     @Override
     public boolean close() throws NetconfException {
         StringBuilder rpc = new StringBuilder();
-        rpc.append("<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">");
+        rpc.append(RPC_OPEN);
+        rpc.append(NETCONF_BASE_NAMESPACE).append(">");
         rpc.append("<close-session/>");
-        rpc.append("</rpc>");
+        rpc.append(RPC_CLOSE);
         rpc.append(ENDPATTERN);
         boolean closed = checkReply(requestSync(rpc.toString()));
         if (closed) {
@@ -334,9 +346,10 @@ public abstract class AbstractNetconfSession implements NetconfSession {
         } else {
             //forcefully kill session if not closed
             rpc = new StringBuilder();
-            rpc.append("<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">");
+            rpc.append(RPC_OPEN);
+            rpc.append(NETCONF_BASE_NAMESPACE).append(">");
             rpc.append("<kill-session/>");
-            rpc.append("</rpc>");
+            rpc.append(RPC_CLOSE);
             rpc.append(ENDPATTERN);
             return checkReply(requestSync(rpc.toString()));
         }
@@ -380,15 +393,15 @@ public abstract class AbstractNetconfSession implements NetconfSession {
         StringBuilder rpc = new StringBuilder(XML_HEADER);
         rpc.append(RPC_OPEN);
         rpc.append(NETCONF_BASE_NAMESPACE).append(">\n");
-        rpc.append("<copy-config>");
-        rpc.append("<target>");
+        rpc.append(COPY_CONFIG_OPEN);
+        rpc.append(TARGET_OPEN);
         rpc.append(target);
-        rpc.append("</target>");
-        rpc.append("<source>");
+        rpc.append(TARGET_CLOSE);
+        rpc.append(SOURCE_OPEN);
         rpc.append(source);
-        rpc.append("</source>");
-        rpc.append("</copy-config>");
-        rpc.append("</rpc>");
+        rpc.append(SOURCE_CLOSE);
+        rpc.append(COPY_CONFIG_CLOSE);
+        rpc.append(RPC_CLOSE);
         rpc.append(ENDPATTERN);
         return rpc.toString();
     }
