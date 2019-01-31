@@ -23,7 +23,6 @@ import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeAdminService;
 
 import static java.lang.Thread.sleep;
-import static org.onosproject.cli.AbstractShellCommand.get;
 import static org.onosproject.openstacknode.api.NodeState.COMPLETE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
@@ -38,6 +37,9 @@ public class OpenstackSyncRulesCommand extends AbstractShellCommand {
 
     private static final long SLEEP_MS = 3000; // we wait 3s for init each node
     private static final long TIMEOUT_MS = 10000; // we wait 10s
+
+    private static final String SUCCESS_MSG = "Successfully synchronize flow rules for node %s!";
+    private static final String FAIL_MSG = "Failed to synchronize flow rules for node %s.";
 
     @Override
     protected void doExecute() {
@@ -91,9 +93,9 @@ public class OpenstackSyncRulesCommand extends AbstractShellCommand {
         }
 
         if (result) {
-            print("Successfully synchronize flow rules for node {}!", osNode.hostname());
+            print(SUCCESS_MSG, osNode.hostname());
         } else {
-            error("Failed to synchronize flow rules for node {}.", osNode.hostname());
+            error(FAIL_MSG, osNode.hostname());
         }
     }
 }
