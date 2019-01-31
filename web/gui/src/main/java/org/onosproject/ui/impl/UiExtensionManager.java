@@ -200,7 +200,7 @@ public class UiExtensionManager
                 mkView(PLATFORM, "partition", "nav_partitions"),
 
                 mkView(NETWORK, "topo", "nav_topo"),
-                mkView(NETWORK, "topo2", "nav_topo2"),
+//                mkView(NETWORK, "topo2", "nav_topo2"),
                 mkView(NETWORK, "device", "nav_devs"),
 
                 new UiViewHidden("flow"),
