@@ -128,6 +128,10 @@ public class DeviceViewMessageHandler extends UiMessageHandler {
     }
 
     private static String getTypeIconId(Device d) {
+        String uiType = d.annotations().value(AnnotationKeys.UI_TYPE);
+        if (uiType != null && !uiType.isEmpty()) {
+            return uiType;
+        }
         return DEV_ICON_PREFIX + d.type().toString();
     }
 
