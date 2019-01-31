@@ -20,7 +20,6 @@ package org.onosproject.dhcprelay.rest;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.util.Tools;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.dhcprelay.api.DhcpRelayService;
@@ -56,16 +55,9 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Path("dhcp-relay")
 public class DhcpRelayWebResource extends AbstractWebResource {
     private static final Logger LOG = getLogger(DhcpRelayWebResource.class);
-    private final ObjectMapper mapper = new ObjectMapper();
-    private final DhcpRelayService dhcpDelayService = get(DhcpRelayService.class);
     private static final String NA = "N/A";
     private static final String HEADER_A_COUNTERS = "DHCP-Relay-Aggregate-Counters";
     private static final String GCOUNT_KEY = "global";
-    List<DhcpServerInfo> defaultDhcpServerInfoList = dhcpDelayService.getDefaultDhcpServerInfoList();
-    List<DhcpServerInfo> indirectDhcpServerInfoList = dhcpDelayService.getIndirectDhcpServerInfoList();
-    Collection<DhcpRecord> records = dhcpDelayService.getDhcpRecords();
-    DhcpRelayCountersStore counterStore = get(DhcpRelayCountersStore.class);
-    Optional<DhcpRelayCounters> perClassCounters = counterStore.getCounters(GCOUNT_KEY);
     private static final String DIRECTLY = "[D]";
     private static final String EMPTY = "";
 
@@ -170,24 +162,11 @@ public class DhcpRelayWebResource extends AbstractWebResource {
      * @return node type ObjectNode.
      */
     private ObjectNode getDhcpRelayServersJsonOutput() {
-        ObjectNode node = mapper.createObjectNode();
-
-        if (!defaultDhcpServerInfoList.isEmpty()) {
-            ArrayNode defaultDhcpServers = getDefaultDhcpServers();
-            node.put("Default-DHCP-Servers", defaultDhcpServers);
-        }
-
-        if (!indirectDhcpServerInfoList.isEmpty()) {
-            ArrayNode indirectDhcpServers = getIndirectDhcpServers();
-            node.put("Indirect-DHCP-Servers", indirectDhcpServers);
-        }
-        if (!records.isEmpty()) {
-            ArrayNode dhcpRelayRecords = dhcpRelayRecords();
-            node.put("DHCP-Relay-Records([D]:Directly-Connected)", dhcpRelayRecords);
-        }
-
+        ObjectNode node = mapper().createObjectNode();
+        node.put("Default-DHCP-Servers", getDefaultDhcpServers());
+        node.put("Indirect-DHCP-Servers", getIndirectDhcpServers());
+        node.put("DHCP-Relay-Records([D]:Directly-Connected)", dhcpRelayRecords());
         return node;
-
     }
 
     /**
@@ -197,9 +176,9 @@ public class DhcpRelayWebResource extends AbstractWebResource {
      * @return servers type ArrayNode.
      */
     private ArrayNode listServers(List<DhcpServerInfo> dhcpServerInfoList) {
-        ArrayNode servers = mapper.createArrayNode();
+        ArrayNode servers = mapper().createArrayNode();
         dhcpServerInfoList.forEach(dhcpServerInfo -> {
-            ObjectNode serverNode = mapper.createObjectNode();
+            ObjectNode serverNode = mapper().createObjectNode();
             String connectPoint = dhcpServerInfo.getDhcpServerConnectPoint()
                     .map(cp -> cp.toString()).orElse(NA);
             String serverMac = dhcpServerInfo.getDhcpConnectMac()
@@ -243,10 +222,12 @@ public class DhcpRelayWebResource extends AbstractWebResource {
      */
     private ArrayNode dhcpRelayRecords() {
         DhcpRelayCommand dhcpRelayCommand = new DhcpRelayCommand();
-        ObjectNode node = mapper.createObjectNode();
-        ArrayNode dhcpRelayRecords = mapper.createArrayNode();
+        DhcpRelayService dhcpDelayService = get(DhcpRelayService.class);
+        Collection<DhcpRecord> records = dhcpDelayService.getDhcpRecords();
+        ObjectNode node = mapper().createObjectNode();
+        ArrayNode dhcpRelayRecords = mapper().createArrayNode();
         records.forEach(record -> {
-            ObjectNode dhcpRecord = mapper.createObjectNode();
+            ObjectNode dhcpRecord = mapper().createObjectNode();
             dhcpRecord.put("id", record.macAddress() + "/" + record.vlanId());
             dhcpRecord.put("locations", record.locations().toString()
                     .concat(record.directlyConnected() ? DIRECTLY : EMPTY));
@@ -264,13 +245,15 @@ public class DhcpRelayWebResource extends AbstractWebResource {
      * @return counterArray type ArrayNode.
      */
     private ObjectNode getDhcpRelayCountersJsonOutput() {
-        ObjectNode node = mapper.createObjectNode();
-        ObjectNode counters = mapper.createObjectNode();
-        ArrayNode counterArray = mapper.createArrayNode();
+        ObjectNode node = mapper().createObjectNode();
+        ObjectNode counters = mapper().createObjectNode();
+        DhcpRelayService dhcpDelayService = get(DhcpRelayService.class);
+        Collection<DhcpRecord> records = dhcpDelayService.getDhcpRecords();
+        ArrayNode counterArray = mapper().createArrayNode();
         records.forEach(record -> {
             DhcpRelayCounters v6Counters = record.getV6Counters();
             Map<String, Integer> countersMap = v6Counters.getCounters();
-            ObjectNode counterPackets = mapper.createObjectNode();
+            ObjectNode counterPackets = mapper().createObjectNode();
             countersMap.forEach((name, value) -> {
                 counterPackets.put(name, value);
             });
@@ -287,7 +270,9 @@ public class DhcpRelayWebResource extends AbstractWebResource {
      * @return node type ObjectNode.
      */
     private ArrayNode getDefaultDhcpServers() {
-        ObjectNode node = mapper.createObjectNode();
+        ObjectNode node = mapper().createObjectNode();
+        DhcpRelayService dhcpDelayService = get(DhcpRelayService.class);
+        List<DhcpServerInfo> defaultDhcpServerInfoList = dhcpDelayService.getDefaultDhcpServerInfoList();
         ArrayNode defaultDhcpServers = listServers(defaultDhcpServerInfoList);
         return defaultDhcpServers;
     }
@@ -298,6 +283,8 @@ public class DhcpRelayWebResource extends AbstractWebResource {
      * @return node type ObjectNode.
      */
     private ArrayNode getIndirectDhcpServers() {
+        DhcpRelayService dhcpDelayService = get(DhcpRelayService.class);
+        List<DhcpServerInfo> indirectDhcpServerInfoList = dhcpDelayService.getIndirectDhcpServerInfoList();
         ArrayNode indirectDhcpServers = listServers(indirectDhcpServerInfoList);
         return indirectDhcpServers;
     }
@@ -308,6 +295,8 @@ public class DhcpRelayWebResource extends AbstractWebResource {
      * @return counterArray type ArrayNode.
      */
     private void resetDhcpRelayCountersInternal() {
+        DhcpRelayService dhcpDelayService = get(DhcpRelayService.class);
+        Collection<DhcpRecord> records = dhcpDelayService.getDhcpRecords();
         records.forEach(record -> {
             DhcpRelayCounters v6Counters = record.getV6Counters();
             v6Counters.resetCounters();
@@ -320,8 +309,10 @@ public class DhcpRelayWebResource extends AbstractWebResource {
      * @return counterPackets type ObjectNode.
      */
     private ObjectNode getDhcpRelayAggCountersJsonOutput() {
-        ObjectNode counterPackets = mapper.createObjectNode();
-        ObjectNode dhcpRelayAggCounterNode = mapper.createObjectNode();
+        ObjectNode counterPackets = mapper().createObjectNode();
+        ObjectNode dhcpRelayAggCounterNode = mapper().createObjectNode();
+        DhcpRelayCountersStore counterStore = get(DhcpRelayCountersStore.class);
+        Optional<DhcpRelayCounters> perClassCounters = counterStore.getCounters(GCOUNT_KEY);
         if (perClassCounters.isPresent()) {
             Map<String, Integer> counters = perClassCounters.get().getCounters();
             if (counters.size() > 0) {
@@ -340,6 +331,8 @@ public class DhcpRelayWebResource extends AbstractWebResource {
      * @return counterPackets type ObjectNode.
      */
     private void resetDhcpRelayAggCountersInternal() {
+        DhcpRelayCountersStore counterStore = get(DhcpRelayCountersStore.class);
+        Optional<DhcpRelayCounters> perClassCounters = counterStore.getCounters(GCOUNT_KEY);
         if (perClassCounters.isPresent()) {
             counterStore.resetCounters(GCOUNT_KEY);
         }
