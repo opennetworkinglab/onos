@@ -151,7 +151,11 @@
     // svgClass is the CSS class used to identify the SVG layer.
     //      Defaults to 'embeddedIcon'.
     function loadIconByClass(div, iconCls, size, installGlyph, svgClass) {
-        loadIcon(div, glyphMapping[iconCls], size, installGlyph, svgClass);
+        if (glyphMapping[iconCls]) {
+            loadIcon(div, glyphMapping[iconCls], size, installGlyph, svgClass);
+        } else {
+            loadIcon(div, iconCls, size, installGlyph, svgClass);
+        }
         div.select('svg g').classed(iconCls, true);
     }
 
