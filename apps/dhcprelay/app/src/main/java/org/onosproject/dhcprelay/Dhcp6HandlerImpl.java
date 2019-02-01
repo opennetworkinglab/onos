@@ -63,7 +63,6 @@ import org.onosproject.dhcprelay.config.IgnoreDhcpConfig;
 import org.onosproject.dhcprelay.store.DhcpRelayStore;
 import org.onosproject.dhcprelay.store.DhcpRecord;
 import org.onosproject.dhcprelay.store.DhcpFpmPrefixStore;
-import org.onosproject.dhcprelay.store.DhcpRelayCounters;
 import org.onosproject.dhcprelay.store.DhcpRelayCountersStore;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -725,12 +724,12 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                 leafClientMac = MacAddress.valueOf(clientIdOption.getDuid().getLinkLayerAddress());
             } else {
                 log.warn("Link-Layer Address not supported in CLIENTID option. No DhcpRelay Record created.");
-                dhcpRelayCountersStore.incrementCounter(gCount, DhcpRelayCounters.NO_LINKLOCAL_FAIL);
+                //dhcpRelayCountersStore.incrementCounter(gCount, DhcpRelayCounters.NO_LINKLOCAL_FAIL);
                 return;
             }
         } else {
             log.warn("CLIENTID option NOT found. Don't create DhcpRelay Record.");
-            dhcpRelayCountersStore.incrementCounter(gCount, DhcpRelayCounters.NO_CLIENTID_FAIL);
+            //dhcpRelayCountersStore.incrementCounter(gCount, DhcpRelayCounters.NO_CLIENTID_FAIL);
             return;
         }
 
@@ -765,7 +764,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
             IpAddress nextHopIp = getFirstIpByHost(directConnFlag, srcMac, vlanId);
             if (nextHopIp == null) {
                 log.warn("Can't find link-local IP address of gateway mac {} vlanId {}", srcMac, vlanId);
-                dhcpRelayCountersStore.incrementCounter(gCount, DhcpRelayCounters.NO_LINKLOCAL_GW);
+                //dhcpRelayCountersStore.incrementCounter(gCount, DhcpRelayCounters.NO_LINKLOCAL_GW);
                 return;
             }
 
@@ -835,6 +834,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
             record.updateLastSeen();
         }
         dhcpRelayStore.updateDhcpRecord(leafHostId, record);
+        /*
         // TODO Use AtomicInteger for the counters
         try {
             recordSemaphore.acquire();
@@ -847,6 +847,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+        */
     }
 
     /**
@@ -875,12 +876,12 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                 leafClientMac = MacAddress.valueOf(clientIdOption.getDuid().getLinkLayerAddress());
             } else {
                 log.warn("Link-Layer Address not supported in CLIENTID option. No DhcpRelay Record created.");
-                dhcpRelayCountersStore.incrementCounter(gCount, DhcpRelayCounters.NO_LINKLOCAL_FAIL);
+                //dhcpRelayCountersStore.incrementCounter(gCount, DhcpRelayCounters.NO_LINKLOCAL_FAIL);
                 return;
             }
         } else {
             log.warn("CLIENTID option NOT found. No DhcpRelay Record created.");
-            dhcpRelayCountersStore.incrementCounter(gCount, DhcpRelayCounters.NO_CLIENTID_FAIL);
+            //dhcpRelayCountersStore.incrementCounter(gCount, DhcpRelayCounters.NO_CLIENTID_FAIL);
             return;
         }
         HostId leafHostId = HostId.hostId(leafClientMac, vlanId);
@@ -928,7 +929,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
             IpAddress nextHopIp = getFirstIpByHost(directConnFlag, srcMac, vlanId);
             if (nextHopIp == null) {
                 log.warn("Can't find link-local IP address of gateway mac {} vlanId {}", srcMac, vlanId);
-                dhcpRelayCountersStore.incrementCounter(gCount, DhcpRelayCounters.NO_LINKLOCAL_GW);
+                //dhcpRelayCountersStore.incrementCounter(gCount, DhcpRelayCounters.NO_LINKLOCAL_GW);
                 return;
             }
 
@@ -994,6 +995,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         record.setDirectlyConnected(directConnFlag);
         record.updateLastSeen();
         dhcpRelayStore.updateDhcpRecord(leafHostId, record);
+        /*
         // TODO Use AtomicInteger for the counters
         try {
             recordSemaphore.acquire();
@@ -1006,6 +1008,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+        */
     }
 
     private List<InternalPacket> processDhcp6ForwardOnly(PacketContext context,
@@ -1138,7 +1141,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
             log.warn("Missing DHCP relay agent interface Ipv6 addr config for "
                       + "packet from client on port: {}. Aborting packet processing",
                       clientInterfaces.iterator().next().connectPoint());
-            dhcpRelayCountersStore.incrementCounter(gCount, DhcpRelayCounters.NO_CLIENT_INTF_MAC);
+            //dhcpRelayCountersStore.incrementCounter(gCount, DhcpRelayCounters.NO_CLIENT_INTF_MAC);
             return Lists.newArrayList();
         }
 
@@ -1219,12 +1222,12 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         if (foundServerInfo == null) {
             log.warn("Cannot find server info for {} server, inPort {}",
                       directConnFlag ? "direct" : "indirect", inPort);
-            dhcpRelayCountersStore.incrementCounter(gCount, DhcpRelayCounters.NO_SERVER_INFO);
+            //dhcpRelayCountersStore.incrementCounter(gCount, DhcpRelayCounters.NO_SERVER_INFO);
             return null;
         } else {
             if (Dhcp6HandlerUtil.isServerIpEmpty(foundServerInfo)) {
                 log.warn("Cannot find server info's ipaddress");
-                dhcpRelayCountersStore.incrementCounter(gCount, DhcpRelayCounters.NO_SERVER_IP6ADDR);
+                //dhcpRelayCountersStore.incrementCounter(gCount, DhcpRelayCounters.NO_SERVER_IP6ADDR);
                 return null;
             }
         }
@@ -1236,7 +1239,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                 .orElse(null);
         if (interfaceIdOption == null) {
             log.warn("Interface Id option is not present, abort packet...");
-            dhcpRelayCountersStore.incrementCounter(gCount, DhcpRelayCounters.OPTION_MISSING_FAIL);
+            //dhcpRelayCountersStore.incrementCounter(gCount, DhcpRelayCounters.OPTION_MISSING_FAIL);
             return null;
         }
 
@@ -1249,7 +1252,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                 .findFirst().orElse(null);
         if (clientInterface == null) {
             log.warn("Cannot get client interface for from packet, abort... vlan {}", vlanIdInUse.toString());
-            dhcpRelayCountersStore.incrementCounter(gCount, DhcpRelayCounters.NO_MATCHING_INTF);
+            //dhcpRelayCountersStore.incrementCounter(gCount, DhcpRelayCounters.NO_MATCHING_INTF);
             return null;
         }
         etherReply.setVlanID(vlanIdInUse.toShort());
@@ -1257,7 +1260,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         MacAddress relayAgentMac = clientInterface.mac();
         if (relayAgentMac == null) {
             log.warn("Can not get client interface mac, abort packet..");
-            dhcpRelayCountersStore.incrementCounter(gCount, DhcpRelayCounters.NO_CLIENT_INTF_MAC);
+            //dhcpRelayCountersStore.incrementCounter(gCount, DhcpRelayCounters.NO_CLIENT_INTF_MAC);
             return null;
         }
         etherReply.setSourceMACAddress(relayAgentMac);
@@ -1275,7 +1278,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
             clientMac = clients.iterator().next().mac();
             if (clientMac == null) {
                 log.warn("No client mac address found, abort packet...");
-                dhcpRelayCountersStore.incrementCounter(gCount, DhcpRelayCounters.NO_CLIENT_INTF_MAC);
+                //dhcpRelayCountersStore.incrementCounter(gCount, DhcpRelayCounters.NO_CLIENT_INTF_MAC);
                 return null;
             }
             log.trace("Client mac address found from getHostByIp");
