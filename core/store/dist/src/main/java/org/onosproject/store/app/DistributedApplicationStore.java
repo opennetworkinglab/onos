@@ -328,7 +328,12 @@ public class DistributedApplicationStore extends ApplicationArchive
                         .noneMatch(requiredApp -> loadFromDisk(requiredApp) == null);
                 pendingApps.remove(appName);
 
-                return success ? create(appDesc, false) : null;
+                if (success) {
+                    return create(appDesc, false);
+                } else {
+                    log.error("Unable to load dependencies for application {}", appName);
+                    return null;
+                }
 
             } catch (Exception e) {
                 log.warn("Unable to load application {} from disk: {}; retrying",
@@ -339,6 +344,7 @@ public class DistributedApplicationStore extends ApplicationArchive
             }
         }
         pendingApps.remove(appName);
+        log.error("Unable to load application {}", appName);
         return null;
     }
 
