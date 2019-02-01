@@ -832,8 +832,8 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
                         event.getDeviceInfo(), event.getMessagePayload());
                 return;
             }
-            CompletableFuture<String> completedReply =
-                    replies.get(messageId.get()); // remove(..)?
+            // Remove the message as it has been processed.
+            CompletableFuture<String> completedReply = replies.remove(messageId.get());
             if (completedReply != null) {
                 completedReply.complete(event.getMessagePayload());
             }
