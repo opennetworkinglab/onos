@@ -48,6 +48,45 @@ genrule(
     tools = ["tools/package/onos_stage.py"],
 )
 
+# Generates the minimal onos-minimal.tar.gz bundle
+genrule(
+    name = "onos-package-minimal",
+    srcs = [
+        "//tools/package/features:onos-features",
+        ":onos-karaf",
+        "//drivers/default:onos-drivers-default-oar",
+    ] + FEATURES,
+    outs = ["onos-minimal.tar.gz"],
+    cmd = "$(location tools/package/onos_stage.py) $(location onos-minimal.tar.gz) %s $(location :onos-karaf) $(SRCS)" % ONOS_VERSION,
+    output_to_bindir = True,
+    tags = ["local"],
+    tools = ["tools/package/onos_stage.py"],
+)
+
+# Generates SEBA-specific onos-seba.tar.gz bundle
+genrule(
+    name = "onos-package-seba",
+    srcs = [
+        "//tools/package/features:onos-features",
+        ":onos-karaf",
+        "//drivers/default:onos-drivers-default-oar",
+        "//apps/optical-model:onos-apps-optical-model-oar",
+        "//providers/openflow/app:onos-providers-openflow-app-oar",
+        "//providers/openflow/base:onos-providers-openflow-base-oar",
+        "//providers/host:onos-providers-host-oar",
+        "//providers/lldp:onos-providers-lldp-oar",
+        "//apps/mcast:onos-apps-mcast-oar",
+        "//providers/netcfghost:onos-providers-netcfghost-oar",
+        "//apps/segmentrouting:onos-apps-segmentrouting-oar",
+        "//apps/route-service:onos-apps-route-service-oar",
+    ] + FEATURES,
+    outs = ["onos-seba.tar.gz"],
+    cmd = "$(location tools/package/onos_stage.py) $(location onos-seba.tar.gz) %s $(location :onos-karaf) $(SRCS)" % ONOS_VERSION,
+    output_to_bindir = True,
+    tags = ["local"],
+    tools = ["tools/package/onos_stage.py"],
+)
+
 # Generates the onos-admin.tar.gz file with remote admin tools
 genrule(
     name = "onos-package-admin",
