@@ -69,4 +69,9 @@ public interface NetconfStreamHandler {
      *                             else, stops action based off notifications
      */
     void setEnableNotifications(boolean enableNotifications);
+
+    /**
+     * Closes the stream handler releasing any resources.
+     */
+    void close();
 }
