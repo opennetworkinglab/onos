@@ -61,6 +61,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.getIntegerProperty;
@@ -117,6 +119,8 @@ public class NetconfControllerImpl implements NetconfController {
             .getLogger(NetconfControllerImpl.class);
 
     private Map<DeviceId, NetconfDevice> netconfDeviceMap = new ConcurrentHashMap<>();
+
+    private Map<DeviceId, Lock> netconfCreateMutex = new ConcurrentHashMap<>();
 
     private final NetconfDeviceOutputEventListener downListener = new DeviceDownEventListener();
 
@@ -231,60 +235,86 @@ public class NetconfControllerImpl implements NetconfController {
                 deviceId, NetconfDeviceConfig.class);
         NetconfDeviceInfo deviceInfo = null;
 
-        if (netconfDeviceMap.containsKey(deviceId)) {
-            log.debug("Device {} is already present", deviceId);
-            return netconfDeviceMap.get(deviceId);
-        } else if (netCfg != null) {
-            log.debug("Device {} is present in NetworkConfig", deviceId);
-            deviceInfo = new NetconfDeviceInfo(netCfg);
-        } else {
-            log.debug("Creating NETCONF device {}", deviceId);
-            Device device = deviceService.getDevice(deviceId);
-            String ip, path = null;
-            int port;
-            if (device != null) {
-                ip = device.annotations().value("ipaddress");
-                port = Integer.parseInt(device.annotations().value("port"));
-                path = device.annotations().value("path");
-            } else {
-                Triple<String, Integer, Optional<String>> info = extractIpPortPath(deviceId);
-                ip = info.getLeft();
-                port = info.getMiddle();
-                path = (info.getRight().isPresent() ? info.getRight().get() : null);
-            }
-            try {
-                DeviceKey deviceKey = deviceKeyService.getDeviceKey(
-                        DeviceKeyId.deviceKeyId(deviceId.toString()));
-                if (deviceKey.type() == DeviceKey.Type.USERNAME_PASSWORD) {
-                    UsernamePassword usernamepasswd = deviceKey.asUsernamePassword();
-
-                    deviceInfo = new NetconfDeviceInfo(usernamepasswd.username(),
-                                                       usernamepasswd.password(),
-                                                       IpAddress.valueOf(ip),
-                                                       port,
-                                                       path);
-
-                } else if (deviceKey.type() == DeviceKey.Type.SSL_KEY) {
-                    String username = deviceKey.annotations().value(AnnotationKeys.USERNAME);
-                    String password = deviceKey.annotations().value(AnnotationKeys.PASSWORD);
-                    String sshkey = deviceKey.annotations().value(AnnotationKeys.SSHKEY);
-
-                    deviceInfo = new NetconfDeviceInfo(username,
-                                                       password,
-                                                       IpAddress.valueOf(ip),
-                                                       port,
-                                                       path,
-                                                       sshkey);
-                } else {
-                    log.error("Unknown device key for device {}", deviceId);
-                }
-            } catch (NullPointerException e) {
-                throw new NetconfException("No Device Key for device " + deviceId, e);
+        /*
+         * A bit of an ugly race condition can be found here. It is possible
+         * that this method is called to create a connection to device A and
+         * while that device is in the process of being created another call
+         * to this method for A will be invoked. Since the first call to
+         * create A has not been completed device A is not in the the
+         * netconfDeviceMap yet.
+         *
+         * To prevent this situation a mutex is introduced so that the first
+         * call will be allowed to complete before the second is processed.
+         * The mutex is based on the device ID, so that it should be still
+         * possible to connect to different devices concurrently.
+         */
+        Lock mutex;
+        synchronized (netconfCreateMutex) {
+            mutex = netconfCreateMutex.get(deviceId);
+            if (mutex == null) {
+                mutex = new ReentrantLock();
+                netconfCreateMutex.put(deviceId, mutex);
             }
         }
-        NetconfDevice netconfDevicedevice = createDevice(deviceInfo);
-        netconfDevicedevice.getSession().addDeviceOutputListener(downListener);
-        return netconfDevicedevice;
+        mutex.lock();
+        try {
+            if (netconfDeviceMap.containsKey(deviceId)) {
+                log.debug("Device {} is already present", deviceId);
+                return netconfDeviceMap.get(deviceId);
+            } else if (netCfg != null) {
+                log.debug("Device {} is present in NetworkConfig", deviceId);
+                deviceInfo = new NetconfDeviceInfo(netCfg);
+            } else {
+                log.debug("Creating NETCONF device {}", deviceId);
+                Device device = deviceService.getDevice(deviceId);
+                String ip, path = null;
+                int port;
+                if (device != null) {
+                    ip = device.annotations().value("ipaddress");
+                    port = Integer.parseInt(device.annotations().value("port"));
+                    path = device.annotations().value("path");
+                } else {
+                    Triple<String, Integer, Optional<String>> info = extractIpPortPath(deviceId);
+                    ip = info.getLeft();
+                    port = info.getMiddle();
+                    path = (info.getRight().isPresent() ? info.getRight().get() : null);
+                }
+                try {
+                    DeviceKey deviceKey = deviceKeyService.getDeviceKey(
+                            DeviceKeyId.deviceKeyId(deviceId.toString()));
+                    if (deviceKey.type() == DeviceKey.Type.USERNAME_PASSWORD) {
+                        UsernamePassword usernamepasswd = deviceKey.asUsernamePassword();
+
+                        deviceInfo = new NetconfDeviceInfo(usernamepasswd.username(),
+                                                           usernamepasswd.password(),
+                                                           IpAddress.valueOf(ip),
+                                                           port,
+                                                           path);
+
+                    } else if (deviceKey.type() == DeviceKey.Type.SSL_KEY) {
+                        String username = deviceKey.annotations().value(AnnotationKeys.USERNAME);
+                        String password = deviceKey.annotations().value(AnnotationKeys.PASSWORD);
+                        String sshkey = deviceKey.annotations().value(AnnotationKeys.SSHKEY);
+
+                        deviceInfo = new NetconfDeviceInfo(username,
+                                                           password,
+                                                           IpAddress.valueOf(ip),
+                                                           port,
+                                                           path,
+                                                           sshkey);
+                    } else {
+                        log.error("Unknown device key for device {}", deviceId);
+                    }
+                } catch (NullPointerException e) {
+                    throw new NetconfException("No Device Key for device " + deviceId, e);
+                }
+            }
+            NetconfDevice netconfDevicedevice = createDevice(deviceInfo);
+            netconfDevicedevice.getSession().addDeviceOutputListener(downListener);
+            return netconfDevicedevice;
+        } finally {
+            mutex.unlock();
+        }
     }
 
     @Override
@@ -297,7 +327,22 @@ public class NetconfControllerImpl implements NetconfController {
     }
 
     private void stopDevice(DeviceId deviceId, boolean remove) {
-        NetconfDevice nc = netconfDeviceMap.remove(deviceId);
+        Lock mutex;
+        synchronized (netconfCreateMutex) {
+            mutex = netconfCreateMutex.remove(deviceId);
+        }
+        NetconfDevice nc;
+        if (mutex == null) {
+            log.warn("Unexpected stoping a device that has no lock");
+            nc = netconfDeviceMap.remove(deviceId);
+        } else {
+            mutex.lock();
+            try {
+                nc = netconfDeviceMap.remove(deviceId);
+            } finally {
+                mutex.unlock();
+            }
+        }
         if (nc != null) {
             nc.disconnect();
         }
