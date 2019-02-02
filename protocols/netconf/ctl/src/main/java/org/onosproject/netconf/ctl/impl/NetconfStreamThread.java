@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.channels.ClosedByInterruptException;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -247,7 +248,7 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
         try {
             boolean socketClosed = false;
             StringBuilder deviceReplyBuilder = new StringBuilder();
-            while (!socketClosed) {
+            while (!socketClosed && !this.isInterrupted()) {
                 int cInt = bufferReader.read();
                 if (cInt == -1) {
                     log.debug("Netconf device {}  sent error char in session," +
@@ -288,12 +289,18 @@ public class NetconfStreamThread extends Thread implements NetconfStreamHandler 
                     }
                 }
             }
+        } catch (ClosedByInterruptException i) {
+            log.debug("Connection to device {} was terminated on request", netconfDeviceInfo.toString());
         } catch (IOException e) {
             log.warn("Error in reading from the session for device {} ", netconfDeviceInfo, e);
             throw new IllegalStateException(new NetconfException("Error in reading from the session for device {}" +
                     netconfDeviceInfo, e));
             //TODO should we send a socket closed message to listeners ?
         }
+    }
+
+    public void close() {
+        close("on request");
     }
 
     private void close(String deviceReply) {

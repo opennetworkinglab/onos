@@ -295,7 +295,8 @@ public class NetconfDeviceInfo {
      */
     @Override
     public String toString() {
-        return "netconf:" + name + "@" + ipAddress + ":" + port;
+        return "netconf:" + name + "@" + ipAddress + ":" + port +
+            (path.isPresent() ? '/' + path.get() : "");
     }
 
     /**

@@ -489,6 +489,9 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
     private void cleanUp() {
         //makes sure everything is at a clean state.
         replies.clear();
+        if (streamHandler != null) {
+            streamHandler.close();
+        }
     }
 
     @Override
