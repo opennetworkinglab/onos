@@ -84,6 +84,6 @@
             [@deviceLabelToggleTxt]="labelToggle">
         {{ labelToggle == 0 ? '': labelToggle == 1 ? device.id:device.props.name }}
     </svg:text>
-    <svg:use [attr.xlink:href]="'#m_' + device.type" width="36" height="36" x="-18" y="-18">
+    <svg:use [attr.xlink:href]="'#' + deviceIcon()" width="36" height="36" x="-18" y="-18">
     </svg:use>
 </svg:g>

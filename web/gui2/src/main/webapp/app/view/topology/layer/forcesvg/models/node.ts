@@ -86,6 +86,7 @@ export interface DeviceProps {
     longitude: number;
     name: string;
     locType: LocationType;
+    uiType: string;
 }
 
 /**

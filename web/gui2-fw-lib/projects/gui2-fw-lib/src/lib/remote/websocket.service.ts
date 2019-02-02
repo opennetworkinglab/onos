@@ -41,10 +41,16 @@ interface ClusterNode {
     m_uiAttached: boolean;
 }
 
+interface Glyph {
+    id: string;
+    viewbox: string;
+    path: string;
+}
+
 interface Bootstrap {
     user: string;
     clusterNodes: ClusterNode[];
-    glyphs: any[]; // TODO: narrow this down to a known type
+    glyphs: Glyph[];
 }
 
 interface ErrorData {
@@ -76,7 +82,7 @@ export class WebSocketService {
     private url; // web socket URL
     private clusterNodes: ClusterNode[] = []; // ONOS instances data for failover
     private clusterIndex = -1; // the instance to which we are connected
-    private glyphs = [];
+    private glyphs: Glyph[] = [];
     private connectRetries: number = 0; // limit our attempts at reconnecting
 
     // A map of registered Callbacks for websocket open()
@@ -103,7 +109,7 @@ export class WebSocketService {
         });
         this.glyphs = data.glyphs;
         const glyphsMap = new Map<string, string>([]);
-        this.glyphs.forEach((d, i) => {
+        this.glyphs.forEach((d) => {
             glyphsMap.set('_' + d.id, d.viewbox);
             glyphsMap.set(d.id, d.path);
             this.gs.registerGlyphs(glyphsMap);

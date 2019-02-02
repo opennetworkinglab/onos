@@ -73,6 +73,13 @@ export class NavService {
                 } else if (uiView.cat === 'NETWORK') {
                     if ( uiView.id !== 'topo') {
                         this.uiNetworkViews.push(uiView);
+                    } else {
+                        this.uiNetworkViews.push(<UiView>{
+                            id: 'topo2',
+                            icon: 'nav_topo',
+                            cat: 'NETWORK',
+                            label: uiView.label
+                        });
                     }
                 } else if (uiView.cat === 'HIDDEN') {
                     this.uiHiddenViews.push(uiView);

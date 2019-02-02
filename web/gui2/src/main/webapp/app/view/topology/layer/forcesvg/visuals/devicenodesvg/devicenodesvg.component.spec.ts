@@ -16,7 +16,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { DeviceNodeSvgComponent } from './devicenodesvg.component';
-import {LogService} from 'gui2-fw-lib';
+import {IconService, LogService} from 'gui2-fw-lib';
 import {ActivatedRoute, Params} from '@angular/router';
 import {of} from 'rxjs';
 import {ChangeDetectorRef} from '@angular/core';
@@ -28,6 +28,10 @@ class MockActivatedRoute extends ActivatedRoute {
         super();
         this.queryParams = of(params);
     }
+}
+
+class MockIconService {
+    loadIconDef() { }
 }
 
 describe('DeviceNodeSvgComponent', () => {
@@ -50,7 +54,8 @@ describe('DeviceNodeSvgComponent', () => {
             providers: [
                 { provide: LogService, useValue: logSpy },
                 { provide: ActivatedRoute, useValue: ar },
-                { provide: ChangeDetectorRef, useClass: ChangeDetectorRef }
+                { provide: ChangeDetectorRef, useClass: ChangeDetectorRef },
+                { provide: IconService, useClass: MockIconService }
             ]
         })
         .compileComponents();

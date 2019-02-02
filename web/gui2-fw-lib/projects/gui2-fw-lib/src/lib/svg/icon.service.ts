@@ -246,7 +246,11 @@ export class IconService {
      * @param iconCls The icon class as a string
      */
     loadIconDef(iconCls: string): void {
-        this.gs.loadDefs(this.ensureIconLibDefs(), [glyphMapping.get(iconCls)], true);
+        let glyphName: string = glyphMapping.get(iconCls);
+        if (!glyphName) {
+            glyphName = iconCls;
+        }
+        this.gs.loadDefs(this.ensureIconLibDefs(), [glyphName], true);
         this.log.debug('icon definition', iconCls, 'added to defs');
     }
 

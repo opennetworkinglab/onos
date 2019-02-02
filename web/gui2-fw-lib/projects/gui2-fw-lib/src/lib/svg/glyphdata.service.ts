@@ -17,10 +17,13 @@ import { Injectable } from '@angular/core';
 import { LogService } from '../log.service';
 
 
-// --- ONOS logo glyph ------------------------------------
-
+/**
+ * ONOS logo glyph
+ *
+ * TODO: Some major refactoring needs to go on here to make this more understandable
+ */
 export const logos = new Map<string, string>([
-    [ '_bird', '352 224 113 112'],
+    [ '_bird', '352 224 113 112'], // viewbox of bird - next is the bird path
     [ 'bird', 'M427.7,300.4 c-6.9,0.6-13.1,5-19.2,7.1c-18.1,6.2-33.9,' +
     '9.1-56.5,4.7c24.6,17.2,36.6,13,63.7,0.1c-0.5,0.6-0.7,1.3-1.3,' +
     '1.9c1.4-0.4,2.4-1.7,3.4-2.2c-0.4,0.7-0.9,1.5-1.4,1.9c2.2-0.6,' +

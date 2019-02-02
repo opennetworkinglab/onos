@@ -23,7 +23,7 @@ import {
     SimpleChanges,
 } from '@angular/core';
 import {Device, LabelToggle, UiElement} from '../../models';
-import {LogService} from 'gui2-fw-lib';
+import {IconService, LogService} from 'gui2-fw-lib';
 import {NodeVisual} from '../nodevisual';
 import {animate, state, style, transition, trigger} from '@angular/animations';
 
@@ -71,6 +71,7 @@ export class DeviceNodeSvgComponent extends NodeVisual implements OnChanges {
     textWidth: number = 36;
     constructor(
         protected log: LogService,
+        private is: IconService,
         private ref: ChangeDetectorRef
     ) {
         super();
@@ -117,6 +118,15 @@ export class DeviceNodeSvgComponent extends NodeVisual implements OnChanges {
             return this.device.props.name.length * 8 * this.scale;
         } else {
             return 0;
+        }
+    }
+
+    deviceIcon(): string {
+        if (this.device.props && this.device.props.uiType) {
+            this.is.loadIconDef(this.device.props.uiType);
+            return this.device.props.uiType;
+        } else {
+            return 'm_' + this.device.type;
         }
     }
 }

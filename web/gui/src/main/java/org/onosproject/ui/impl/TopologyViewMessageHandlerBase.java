@@ -438,7 +438,12 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     // Create models of the data to return, that overlays can adjust / augment
 
     private String lookupGlyph(Device device) {
-        return DEVICE_GLYPHS.get(device.type());
+        String uiType = device.annotations().value("uiType");
+        if (uiType != null && !uiType.equalsIgnoreCase("undefined")) {
+            return uiType;
+        } else {
+            return DEVICE_GLYPHS.get(device.type());
+        }
     }
 
 

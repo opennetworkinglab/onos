@@ -73,6 +73,11 @@ export class IconComponent implements OnInit, OnChanges {
      * @returns The iconTag corresponding to the iconId of this instance
      */
     iconTag(): string {
-        return '#' + glyphMapping.get(this.iconId);
+        const iconIdStr: string = glyphMapping.get(this.iconId);
+        if (iconIdStr) {
+            return '#' + iconIdStr;
+        } else {
+            return '#' + this.iconId;
+        }
     }
 }
