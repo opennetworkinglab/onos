@@ -28,7 +28,6 @@ import {
     PrefsService,
     SvgUtilService,
     WebSocketService,
-    ZoomService
 } from 'gui2-fw-lib';
 import {InstanceComponent} from '../panel/instance/instance.component';
 import {DetailsComponent} from '../panel/details/details.component';
@@ -45,12 +44,15 @@ import {
     HOSTS_TOGGLE, OFFLINE_TOGGLE, PORTS_TOGGLE,
     BKGRND_TOGGLE, CYCLELABELS_BTN, CYCLEHOSTLABEL_BTN,
     RESETZOOM_BTN, EQMASTER_BTN,
-    CANCEL_TRAFFIC, ALL_TRAFFIC, QUICKHELP_BTN
+    CANCEL_TRAFFIC, ALL_TRAFFIC, QUICKHELP_BTN, BKGRND_SELECT
 } from '../panel/toolbar/toolbar.component';
 import {TrafficService} from '../traffic.service';
 import {ZoomableDirective} from '../layer/zoomable.directive';
+import {MapObject} from '../layer/maputils';
 
 const TOPO2_PREFS = 'topo2_prefs';
+const TOPO_MAPID_PREFS = 'topo_mapid';
+
 const PREF_BG = 'bg';
 const PREF_DETAIL = 'detail';
 const PREF_DLBLS = 'dlbls';
@@ -63,7 +65,7 @@ const PREF_SUMMARY = 'summary';
 const PREF_TOOLBAR = 'toolbar';
 
 /**
- * model of the topo2_prefs object - this is a subset of the overall Prefs returned
+ * Model of the topo2_prefs object - this is a subset of the overall Prefs returned
  * by the server
  */
 export interface Topo2Prefs {
@@ -134,6 +136,12 @@ export class TopologyComponent implements OnInit, OnDestroy {
         summary: 1,
         toolbar: 0,
     };
+
+    mapIdState: MapObject = <MapObject>{
+        id: undefined,
+        scale: 1.0
+    };
+    mapSelShown: boolean = false;
     lionFn; // Function
 
     constructor(
@@ -167,6 +175,7 @@ export class TopologyComponent implements OnInit, OnDestroy {
         this.is.loadIconDef('m_summary');
         this.is.loadIconDef('m_details');
         this.is.loadIconDef('m_map');
+        this.is.loadIconDef('m_selectMap');
         this.is.loadIconDef('m_cycleLabels');
         this.is.loadIconDef('m_resetZoom');
         this.is.loadIconDef('m_eqMaster');
@@ -217,6 +226,7 @@ export class TopologyComponent implements OnInit, OnDestroy {
 
         this.ps.addListener((data) => this.prefsUpdateHandler(data));
         this.prefsState = this.ps.getPrefs(TOPO2_PREFS, this.prefsState);
+        this.mapIdState = this.ps.getPrefs(TOPO_MAPID_PREFS, this.mapIdState);
         this.log.debug('Topology component initialized');
     }
 
@@ -228,8 +238,13 @@ export class TopologyComponent implements OnInit, OnDestroy {
      */
     prefsUpdateHandler(data: any): void {
         // Extract the TOPO2 prefs from it
-        this.prefsState = data[TOPO2_PREFS];
-        this.log.debug('Updated topo2 prefs', this.prefsState);
+        if (data[TOPO2_PREFS]) {
+            this.prefsState = data[TOPO2_PREFS];
+        }
+        if (data[TOPO_MAPID_PREFS]) {
+            this.mapIdState = data[TOPO_MAPID_PREFS];
+        }
+        this.log.debug('Updated topo2 prefs', this.prefsState, this.mapIdState);
     }
 
     /**
@@ -270,6 +285,9 @@ export class TopologyComponent implements OnInit, OnDestroy {
             case BKGRND_TOGGLE:
                 this.toggleBackground();
                 break;
+            case BKGRND_SELECT:
+                this.mapSelShown = !this.mapSelShown;
+                break;
             case CYCLELABELS_BTN:
                 this.cycleDeviceLabels();
                 break;
@@ -309,6 +327,7 @@ export class TopologyComponent implements OnInit, OnDestroy {
             B: [(token) => {this.toggleBackground(token); }, 'Toggle background'],
             D: [(token) => {this.toggleDetails(token); }, 'Toggle details panel'],
             I: [(token) => {this.toggleInstancePanel(token); }, 'Toggle ONOS Instance Panel'],
+            G: [() => {this.mapSelShown = !this.mapSelShown; }, 'Show map selection dialog'],
             O: [() => {this.toggleSummary(); }, 'Toggle the Summary Panel'],
             R: [() => {this.resetZoom(); }, 'Reset pan / zoom'],
             P: [(token) => {this.togglePorts(token); }, 'Toggle Port Highlighting'],
@@ -570,6 +589,13 @@ export class TopologyComponent implements OnInit, OnDestroy {
     cancelTraffic() {
         this.flashMsg = this.lionFn('fl_monitoring_canceled');
         this.trs.destroy();
+    }
+
+    changeMap(map: MapObject) {
+        this.mapSelShown = false; // Hide the MapSelector component
+        this.mapIdState = map;
+        this.ps.setPrefs(TOPO_MAPID_PREFS, this.mapIdState);
+        this.log.debug('Map has been changed to ', map);
     }
 
     /**

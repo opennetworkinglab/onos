@@ -24,6 +24,7 @@
     "core-js": "^2.5.4",
     "d3": "^5.2.0",
     "rxjs": "^6.3.3",
+    "topojson-client": "^3.0.0",
     "zone.js": "^0.8.26"
   },
   "devDependencies": {

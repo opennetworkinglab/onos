@@ -228,6 +228,16 @@ genrule(
     visibility = ["//visibility:public"],
 )
 
+genrule(
+    name = "onos-gui-data-for-gui2",
+    srcs = glob([
+        "src/main/webapp/data/**/*",
+    ]),
+    outs = ["onos-gui-data-for-gui2.srcjar"],
+    cmd = "jar cf $@ $(SRCS)",
+    visibility = ["//visibility:public"],
+)
+
 """
     Builds the tar ball for the ONOS GUI
 """

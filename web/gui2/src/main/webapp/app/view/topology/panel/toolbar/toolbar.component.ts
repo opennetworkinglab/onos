@@ -30,6 +30,7 @@ export const HOSTS_TOGGLE = 'hosts-tog';
 export const OFFLINE_TOGGLE = 'offline-tog';
 export const PORTS_TOGGLE = 'ports-tog';
 export const BKGRND_TOGGLE = 'bkgrnd-tog';
+export const BKGRND_SELECT = 'bkgrnd-sel';
 export const CYCLELABELS_BTN = 'cycleLabels-btn';
 export const CYCLEHOSTLABEL_BTN = 'cycleHostLabel-btn';
 export const RESETZOOM_BTN = 'resetZoom-btn';

@@ -34,6 +34,8 @@ import {
     DeviceNodeSvgComponent,
     HostNodeSvgComponent, LinkSvgComponent,
 } from './layer/forcesvg/visuals';
+import { MapSelectorComponent } from './panel/mapselector/mapselector.component';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 
 /**
  * ONOS GUI -- Topology View Module
@@ -46,6 +48,8 @@ import {
 @NgModule({
     imports: [
         CommonModule,
+        FormsModule,
+        ReactiveFormsModule,
         TopologyRoutingModule,
         Gui2FwLibModule
     ],
@@ -64,7 +68,8 @@ import {
         LinkSvgComponent,
         DeviceNodeSvgComponent,
         HostNodeSvgComponent,
-        SubRegionNodeSvgComponent
+        SubRegionNodeSvgComponent,
+        MapSelectorComponent
     ],
     providers: [
         TopologyService

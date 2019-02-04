@@ -52,6 +52,10 @@ export interface Options {
     height: number;
 }
 
+/**
+ * The inspiration for this approach comes from
+ * https://medium.com/netscape/visualizing-data-with-angular-and-d3-209dde784aeb
+ */
 export class ForceDirectedGraph {
     public ticker: EventEmitter<d3.Simulation<Node, Link>> = new EventEmitter();
     public simulation: d3.Simulation<any, any>;

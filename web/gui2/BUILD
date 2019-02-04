@@ -344,6 +344,7 @@ genrule(
         ":_onos-gui2-base-jar",
         ":_web_inf_classes_files",
         "//web/gui:onos-gui-lion-for-gui2",
+        "//web/gui:onos-gui-data-for-gui2",
         "src/main/webapp/WEB-INF/web.xml",
     ],
     outs = ["onos-gui2.jar"],
@@ -357,6 +358,8 @@ genrule(
           " unzip -q $$ROOT/$(location //web/gui:onos-gui-lion-for-gui2) web/gui/src/main/resources/**/* &&" +
           " mv web/gui/src/main/resources/org/onosproject/ui/lion* WEB-INF/classes/org/onosproject/ui/ &&" +
           " mv web/gui/src/main/resources/core WEB-INF/classes/ &&" +
+          " unzip -q $$ROOT/$(location //web/gui:onos-gui-data-for-gui2) web/gui/src/main/webapp/data/**/* &&" +
+          " mv web/gui/src/main/webapp/data WEB-INF/classes/ &&" +
           " find . -type f -exec touch -t 201901200000 {} \; &&" +
           " jar cmf META-INF/MANIFEST.MF $$ROOT/$@ WEB-INF/web.xml WEB-INF/classes OSGI-INF/*.xml",
     output_to_bindir = 1,

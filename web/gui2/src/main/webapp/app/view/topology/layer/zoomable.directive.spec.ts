@@ -15,26 +15,51 @@
  */
 import { ZoomableDirective } from './zoomable.directive';
 import {inject, TestBed} from '@angular/core/testing';
-import {LogService, ConsoleLoggerService} from 'gui2-fw-lib';
+import {LogService, ConsoleLoggerService, FnService} from 'gui2-fw-lib';
 import {ElementRef} from '@angular/core';
+import {ActivatedRoute, Params} from '@angular/router';
+import {of} from 'rxjs';
+
+class MockActivatedRoute extends ActivatedRoute {
+    constructor(params: Params) {
+        super();
+        this.queryParams = of(params);
+    }
+}
 
 describe('ZoomableDirective', () => {
+    let fs: FnService;
+    let ar: MockActivatedRoute;
     let log: LogService;
     let mockWindow: Window;
 
     beforeEach(() => {
         log = new ConsoleLoggerService();
+        ar = new MockActivatedRoute({ 'debug': 'txrx' });
 
         mockWindow = <any>{
             navigator: {
                 userAgent: 'HeadlessChrome',
                 vendor: 'Google Inc.'
+            },
+            location: <any>{
+                hostname: 'foo',
+                host: 'foo',
+                port: '80',
+                protocol: 'http',
+                search: { debug: 'true' },
+                href: 'ws://foo:123/onos/ui/websock/path',
+                absUrl: 'ws://foo:123/onos/ui/websock/path'
             }
         };
 
+        fs = new FnService(ar, log, mockWindow);
+
         TestBed.configureTestingModule({
             providers: [ZoomableDirective,
-                {provide: LogService, useValue: log},
+                { provide: FnService, useValue: fs },
+                { provide: LogService, useValue: log },
+                { provide: 'Window', useValue: mockWindow },
                 { provide: ElementRef, useValue: mockWindow }
             ]
         });

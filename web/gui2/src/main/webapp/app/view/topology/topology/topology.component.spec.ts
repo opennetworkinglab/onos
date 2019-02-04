@@ -18,7 +18,7 @@ import { ActivatedRoute, Params } from '@angular/router';
 import { of } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-
+import * as d3 from 'd3';
 import { TopologyComponent } from './topology.component';
 import {
     Instance,
@@ -45,6 +45,10 @@ import {
     LinkSvgComponent, SubRegionNodeSvgComponent
 } from '../layer/forcesvg/visuals';
 import {DraggableDirective} from '../layer/forcesvg/draggable/draggable.directive';
+import {MapSelectorComponent} from '../panel/mapselector/mapselector.component';
+import {BackgroundSvgComponent} from '../layer/backgroundsvg/backgroundsvg.component';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+import {MapSvgComponent} from '../layer/mapsvg/mapsvg.component';
 
 
 class MockActivatedRoute extends ActivatedRoute {
@@ -156,7 +160,12 @@ describe('TopologyComponent', () => {
         fs = new FnService(ar, logSpy, windowMock);
 
         TestBed.configureTestingModule({
-            imports: [ BrowserAnimationsModule, RouterTestingModule ],
+            imports: [
+                BrowserAnimationsModule,
+                RouterTestingModule,
+                FormsModule,
+                ReactiveFormsModule
+            ],
             declarations: [
                 TopologyComponent,
                 InstanceComponent,
@@ -173,7 +182,10 @@ describe('TopologyComponent', () => {
                 HostNodeSvgComponent,
                 DraggableDirective,
                 ZoomableDirective,
-                SubRegionNodeSvgComponent
+                SubRegionNodeSvgComponent,
+                MapSelectorComponent,
+                BackgroundSvgComponent,
+                MapSvgComponent
             ],
             providers: [
                 { provide: FnService, useValue: fs },
@@ -201,6 +213,7 @@ describe('TopologyComponent', () => {
     beforeEach(() => {
         fixture = TestBed.createComponent(TopologyComponent);
         component = fixture.componentInstance;
+
         fixture.detectChanges();
     });
 

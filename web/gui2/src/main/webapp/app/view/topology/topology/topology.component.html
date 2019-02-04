@@ -38,6 +38,7 @@ the local variable - this is used to display messages when keyboard shortcuts ar
               [summaryVisible]="prefsState.summary">
 </onos-toolbar>
 <onos-details #details [on]="prefsState.detail"></onos-details>
+<onos-mapselector *ngIf="mapSelShown" (chosenMap)="changeMap($event)"></onos-mapselector>
 
 <div id="ov-topo2">
     <!-- Template explanation -
@@ -62,7 +63,7 @@ the local variable - this is used to display messages when keyboard shortcuts ar
                onos-nodeviceconnected />
         <svg:g id="topo-zoomlayer" onosZoomableOf [zoomableOf]="svgZoom">
             <svg:desc>A logical layer that allows the main SVG canvas to be zoomed and panned</svg:desc>
-            <svg:g *ngIf="prefsState.bg" onos-backgroundsvg>
+            <svg:g *ngIf="prefsState.bg" onos-backgroundsvg [map]="mapIdState">
                 <svg:desc>The Background SVG component - contains maps</svg:desc>
             </svg:g>
             <svg:g #force onos-forcesvg

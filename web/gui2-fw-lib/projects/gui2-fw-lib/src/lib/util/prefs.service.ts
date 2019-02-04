@@ -20,6 +20,8 @@ import { WebSocketService } from '../remote/websocket.service';
 
 const UPDATE_PREFS: string = 'updatePrefs';
 const UPDATE_PREFS_REQ: string = 'updatePrefReq';
+
+
 /**
  * ONOS GUI -- Util -- User Preference Service
  */
@@ -88,7 +90,7 @@ export class PrefsService {
         return obj;
     }
 
-    getPrefs(name: string, defaults: any, qparams?: string) {
+    getPrefs(name: string, defaults: Object, qparams?: string) {
         const obj = Object.assign({}, defaults || {}, this.cache[name] || {});
 
         // if query params are specified, they override...

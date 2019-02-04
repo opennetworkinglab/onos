@@ -16,25 +16,45 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { MapSvgComponent } from './mapsvg.component';
+import {HttpClient} from '@angular/common/http';
+import {from} from 'rxjs';
+import {LogService} from 'gui2-fw-lib';
+
+class MockHttpClient {
+    get() {
+        return from(['{"id":"app","icon":"nav_apps","cat":"PLATFORM","label":"Applications"}']);
+    }
+
+    subscribe() {}
+}
 
 describe('MapSvgComponent', () => {
-  let component: MapSvgComponent;
-  let fixture: ComponentFixture<MapSvgComponent>;
+    let logServiceSpy: jasmine.SpyObj<LogService>;
+    let component: MapSvgComponent;
+    let fixture: ComponentFixture<MapSvgComponent>;
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ MapSvgComponent ]
-    })
-    .compileComponents();
-  }));
+    beforeEach(async(() => {
+        const logSpy = jasmine.createSpyObj('LogService', ['info', 'debug', 'warn', 'error']);
 
-  beforeEach(() => {
-    fixture = TestBed.createComponent(MapSvgComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+        TestBed.configureTestingModule({
+            declarations: [ MapSvgComponent ],
+            providers: [
+                { provide: LogService, useValue: logSpy },
+                { provide: HttpClient, useClass: MockHttpClient },
+            ]
+        })
+        .compileComponents();
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+        logServiceSpy = TestBed.get(LogService);
+    }));
+
+    beforeEach(() => {
+        fixture = TestBed.createComponent(MapSvgComponent);
+        component = fixture.componentInstance;
+        fixture.detectChanges();
+    });
+
+    it('should create', () => {
+        expect(component).toBeTruthy();
+    });
 });
