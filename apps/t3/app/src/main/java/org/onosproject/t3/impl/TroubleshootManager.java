@@ -22,10 +22,15 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Modified;
+import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.cluster.NodeId;
@@ -74,13 +79,16 @@ import org.onosproject.segmentrouting.config.SegmentRoutingDeviceConfig;
 import org.onosproject.t3.api.GroupsInDevice;
 import org.onosproject.t3.api.StaticPacketTrace;
 import org.onosproject.t3.api.TroubleshootService;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -107,9 +115,19 @@ import static org.slf4j.LoggerFactory.getLogger;
 @Component(immediate = true)
 public class TroubleshootManager implements TroubleshootService {
 
+    private static final String DEFAULT_OFDPA_BASED_DRIVERS =
+        "ofdpa,ofdpa3,qmx-ofdpa3,as7712-32x-premium,as5912-54x-premium,as5916-54x-premium," +
+        "accton-ofdpa3,znyx-ofdpa";
+
     private static final Logger log = getLogger(TroubleshootManager.class);
 
     static final String PACKET_TO_CONTROLLER = "Packet goes to the controller";
+
+    @Property(name = "ofdpaBasedDrivers",
+        value = DEFAULT_OFDPA_BASED_DRIVERS,
+        label = "list of ONOS drivers that follow OFDPA semantics")
+    protected static Set<String> ofdpaBasedDrivers =
+        new HashSet<String>(Arrays.asList(DEFAULT_OFDPA_BASED_DRIVERS.split(",")));
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowRuleService flowRuleService;
@@ -143,6 +161,43 @@ public class TroubleshootManager implements TroubleshootService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MulticastRouteService mcastService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService cfgService;
+
+    @Activate
+    public void activate(ComponentContext context) {
+        cfgService.registerProperties(getClass());
+        modified(context);
+    }
+
+    @Deactivate
+    public void deactivate() {
+        cfgService.unregisterProperties(getClass(), true);
+    }
+
+    @Modified
+    public void modified(ComponentContext context) {
+        String[] values;
+        if (context == null) {
+            log.debug("No component configuration, using default OFDPA driver list");
+            values = DEFAULT_OFDPA_BASED_DRIVERS.split(",");
+        } else {
+            Dictionary<?, ?> properties = context.getProperties();
+            values = ((String) properties.get("ofdpaBasedDrivers")).split(",");
+        }
+
+        ofdpaBasedDrivers.clear();
+        for (String val : values) {
+            val = val.trim();
+            if (val.length() > 0) {
+                ofdpaBasedDrivers.add(val);
+            }
+        }
+
+        log.debug("OFDPA based driver list update ({}) to {}",
+                ofdpaBasedDrivers.size(), ofdpaBasedDrivers);
+    }
 
     @Override
     public List<StaticPacketTrace> pingAll(EtherType type) {
@@ -766,8 +821,8 @@ public class TroubleshootManager implements TroubleshootService {
             flowEntry = matchHighestPriority(packet, in, tableId);
             log.debug("Found Flow Entry {}", flowEntry);
 
-            boolean isOfdpaHardware = TroubleshootUtils.hardwareOfdpaMap
-                    .getOrDefault(driverService.getDriver(in.deviceId()).name(), false);
+            boolean isOfdpaHardware = TroubleshootManager.ofdpaBasedDrivers.
+                contains(driverService.getDriver(in.deviceId()).name());
 
             //if the flow entry on a table is null and we are on hardware we treat as table miss, with few exceptions
             if (flowEntry == null && isOfdpaHardware) {
