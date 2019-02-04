@@ -394,6 +394,7 @@ public class TroubleshootManagerTest {
         log.info("trace {}", traceSuccess.resultMessage());
 
         assertNotNull("trace should not be null", traceSuccess);
+        assertNotNull("trace groups should not be null", traceSuccess.getGroupOuputs(deviceId));
         assertEquals("Trace should have " + outputs + " output", outputs,
                 traceSuccess.getGroupOuputs(deviceId).size());
         assertEquals("Trace should only have " + paths + "output", paths, traceSuccess.getCompletePaths().size());

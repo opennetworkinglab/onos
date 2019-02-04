@@ -16,10 +16,7 @@
 
 package org.onosproject.t3.impl;
 
-import com.google.common.collect.ImmutableMap;
 import org.onlab.packet.MacAddress;
-
-import java.util.Map;
 
 /**
  * Utility class for the troubleshooting tool.
@@ -29,21 +26,6 @@ final class TroubleshootUtils {
     private TroubleshootUtils() {
         //Banning construction
     }
-
-    /**
-     * Map defining if a specific driver is for a HW switch.
-     */
-    //Done with builder() instead of of() for clarity
-    static Map<String, Boolean> hardwareOfdpaMap = ImmutableMap.<String, Boolean>builder()
-            .put("ofdpa", true)
-            .put("ofdpa3", true)
-            .put("qmx-ofdpa3", true)
-            .put("as7712-32x-premium", true)
-            .put("as5912-54x-premium", true)
-            .put("as5916-54x-premium", true)
-            .put("accton-ofdpa3", true)
-            .put("znyx-ofdpa", true)
-            .build();
 
     /**
      * Checks if the Mac Address is inside a range between the min MAC and the mask.
