@@ -18,57 +18,24 @@ package org.onosproject.grpc.api;
 
 import com.google.common.annotations.Beta;
 import org.onlab.util.Identifier;
-import org.onosproject.net.DeviceId;
-
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * gRPC managed channel identifier, unique in the scope of a gRPC controller
- * instance.
+ * gRPC channel identifier, unique in the scope of an ONOS node.
  */
 @Beta
 public final class GrpcChannelId extends Identifier<String> {
 
-    private final DeviceId deviceId;
-    private final String channelName;
-
-    private GrpcChannelId(DeviceId deviceId, String channelName) {
-        super(deviceId.toString() + ":" + channelName);
-        checkNotNull(deviceId, "device ID must not be null");
-        checkNotNull(channelName, "channel name must not be null");
-        checkArgument(!channelName.isEmpty(), "channel name must not be empty");
-        this.deviceId = deviceId;
-        this.channelName = channelName;
+    private GrpcChannelId(String channelName) {
+        super(channelName);
     }
 
     /**
-     * Returns the device part of this channel ID.
+     * Instantiates a new channel ID.
      *
-     * @return device ID
-     */
-    public DeviceId deviceId() {
-        return deviceId;
-    }
-
-    /**
-     * Returns the channel name part of this channel ID.
-     *
-     * @return channel name
-     */
-    public String channelName() {
-        return channelName;
-    }
-
-    /**
-     * Instantiates a new channel ID for the given device ID and arbitrary
-     * channel name (e.g. the name of the gRPC service).
-     *
-     * @param deviceId    device ID
      * @param channelName name of the channel
      * @return channel ID
      */
-    public static GrpcChannelId of(DeviceId deviceId, String channelName) {
-        return new GrpcChannelId(deviceId, channelName);
+    public static GrpcChannelId of(String channelName) {
+        return new GrpcChannelId(channelName);
     }
 }

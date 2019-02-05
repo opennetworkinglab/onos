@@ -20,9 +20,7 @@ import com.google.common.annotations.Beta;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
-import org.onosproject.net.DeviceId;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 
@@ -81,14 +79,6 @@ public interface GrpcChannelController {
      * @return true if channel is open, false otherwise.
      */
     boolean isChannelOpen(GrpcChannelId channelId);
-
-    /**
-     * Returns all channels associated to the given device ID.
-     *
-     * @param deviceId device ID
-     * @return collection of channels
-     */
-    Collection<ManagedChannel> getChannels(DeviceId deviceId);
 
     /**
      * If present, returns the channel associated with the given ID.
