@@ -115,7 +115,7 @@ public abstract class AbstractGrpcClientController
 
         log.info("Creating client for {} (server={}:{})...",
                 deviceId, serverAddr, serverPort);
-        GrpcChannelId channelId = GrpcChannelId.of(clientKey.deviceId(), clientKey.toString());
+        GrpcChannelId channelId = GrpcChannelId.of(clientKey.toString());
         ManagedChannelBuilder channelBuilder = NettyChannelBuilder
                 .forAddress(serverAddr, serverPort)
                 .maxInboundMessageSize(DEFAULT_MAX_INBOUND_MSG_SIZE * MEGABYTES)
