@@ -16,11 +16,11 @@
 
 package org.onosproject.drivers.p4runtime.mirror;
 
+import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.pi.runtime.PiEntityType;
 import org.onosproject.net.pi.runtime.PiMeterCellConfig;
 import org.onosproject.net.pi.runtime.PiMeterCellHandle;
-import org.osgi.service.component.annotations.Component;
 
 /**
  * Distributed implementation of a P4Runtime meter mirror.
