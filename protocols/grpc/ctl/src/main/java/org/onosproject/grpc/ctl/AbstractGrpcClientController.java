@@ -128,8 +128,7 @@ public abstract class AbstractGrpcClientController
                  clientName(clientKey), clientKey, useTls,
                  fallbackToPlainText);
 
-        final GrpcChannelId channelId = GrpcChannelId.of(
-                clientKey.deviceId(), clientKey.toString());
+        GrpcChannelId channelId = GrpcChannelId.of(clientKey.toString());
         final NettyChannelBuilder channelBuilder = NettyChannelBuilder
                 .forAddress(serverAddr, serverPort)
                 .maxInboundMessageSize(DEFAULT_MAX_INBOUND_MSG_SIZE * MEGABYTES);
