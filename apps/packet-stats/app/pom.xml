@@ -33,7 +33,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <onos.version>1.13.8-SNAPSHOT</onos.version>
+        <onos.version>${project.version}</onos.version>
         <onos.app.name>org.onosproject.packetstats</onos.app.name>
         <onos.app.title>onos-apps-packet-stats-app</onos.app.title>
         <onos.app.origin>Raleigh, NC Comcast</onos.app.origin>
