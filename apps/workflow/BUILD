@@ -1,5 +1,6 @@
 BUNDLES = [
     "//apps/workflow/api:onos-apps-workflow-api",
+    "//apps/workflow/model:onos-apps-workflow-model",
     "//apps/workflow/app:onos-apps-workflow-app",
 ]
 
