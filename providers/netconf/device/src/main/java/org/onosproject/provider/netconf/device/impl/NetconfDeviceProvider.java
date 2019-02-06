@@ -489,11 +489,35 @@ public class NetconfDeviceProvider extends AbstractProvider
                     driver.createBehaviour(handler, DeviceDescriptionDiscovery.class);
             return getDeviceRepresentation(deviceId, config, deviceDescriptionDiscovery);
         } else {
-            return emptyDescription(deviceId, config);
+            return existingOrEmptyDescription(deviceId, config);
         }
     }
 
-    private DeviceDescription emptyDescription(DeviceId deviceId, NetconfDeviceConfig config) {
+    private DeviceDescription getDeviceRepresentation(DeviceId deviceId, NetconfDeviceConfig config,
+                                                      DeviceDescriptionDiscovery deviceDescriptionDiscovery) {
+
+        DeviceDescription existingOrEmptyDescription = existingOrEmptyDescription(deviceId, config);
+        DeviceDescription newDescription = deviceDescriptionDiscovery.discoverDeviceDetails();
+        if (newDescription == null) {
+            return existingOrEmptyDescription;
+        }
+        //merging and returning
+        return new DefaultDeviceDescription(newDescription, true,
+                DefaultAnnotations.merge((DefaultAnnotations) newDescription.annotations(),
+                        existingOrEmptyDescription.annotations()));
+    }
+
+    private DeviceDescription existingOrEmptyDescription(DeviceId deviceId, NetconfDeviceConfig config) {
+        Device device = deviceService.getDevice(deviceId);
+
+        if (deviceService.getDevice(deviceId) != null) {
+            //getting the previous description
+            return new DefaultDeviceDescription(device.id().uri(), device.type(),
+                    device.manufacturer(), device.hwVersion(),
+                    device.swVersion(), device.serialNumber(),
+                    device.chassisId(), (SparseAnnotations) device.annotations());
+        }
+
         ChassisId cid = new ChassisId();
         String ipAddress = config.ip().toString();
         DefaultAnnotations.Builder annotations = DefaultAnnotations.builder()
@@ -505,29 +529,6 @@ public class NetconfDeviceProvider extends AbstractProvider
         }
         return new DefaultDeviceDescription(deviceId.uri(), Device.Type.SWITCH,
                 UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN, cid, true, annotations.build());
-    }
-
-    private DeviceDescription getDeviceRepresentation(DeviceId deviceId, NetconfDeviceConfig config,
-                                                      DeviceDescriptionDiscovery deviceDescriptionDiscovery) {
-        Device device = deviceService.getDevice(deviceId);
-        //handling first time description creation
-        if (deviceService.getDevice(deviceId) == null) {
-            return emptyDescription(deviceId, config);
-        }
-        //getting the old description
-        DeviceDescription oldDescription = new DefaultDeviceDescription(device.id().uri(), device.type(),
-                device.manufacturer(), device.hwVersion(),
-                device.swVersion(), device.serialNumber(),
-                device.chassisId(), (SparseAnnotations) device.annotations());
-
-        DeviceDescription newDescription = deviceDescriptionDiscovery.discoverDeviceDetails();
-        if (newDescription == null) {
-            newDescription = oldDescription;
-        }
-        //merging and returning
-        return new DefaultDeviceDescription(newDescription, true,
-                DefaultAnnotations.merge((DefaultAnnotations) newDescription.annotations(),
-                        oldDescription.annotations()));
     }
 
 
