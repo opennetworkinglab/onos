@@ -22,7 +22,7 @@
     <parent>
         <artifactId>onos-apps-openroadm</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.13.8</version>
+        <version>1.13.9-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
