@@ -19,12 +19,9 @@
         <artifactId>onos-apps</artifactId>
         <version>1.13.8-SNAPSHOT</version>
         <groupId>org.onosproject</groupId>
-        <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <groupId>org.onosproject</groupId>
     <artifactId>onos-apps-packet-stats</artifactId>
-    <version>1.13.8-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <description>ONOS OSGi bundle archetype</description>

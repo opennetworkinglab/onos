@@ -28,16 +28,6 @@
 
     <description>DHCP Relay Agent</description>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <onos.app.name>org.onosproject.dhcprelay</onos.app.name>
-        <onos.app.title>DHCP Relay Agent App</onos.app.title>
-        <onos.app.origin>ONOS Community</onos.app.origin>
-        <onos.app.category>default</onos.app.category>
-        <onos.app.url>http://onosproject.org</onos.app.url>
-        <onos.app.readme>DHCP Relay Agent Application.</onos.app.readme>
-    </properties>
-
     <modules>
         <module>web</module>
         <module>app</module>
