@@ -26,5 +26,11 @@
                    impl="org.onosproject.drivers.bmv2.Bmv2DeviceHandshaker"/>
         -->
     </driver>
+
+    <driver name="stratum-bmv2" manufacturer="Open Networking Foundation"
+            hwVersion="BMv2 simple_switch" swVersion="Stratum" extends="stratum">
+        <behaviour api="org.onosproject.net.behaviour.PiPipelineProgrammable"
+                   impl="org.onosproject.drivers.bmv2.Bmv2PipelineProgrammable"/>
+    </driver>
 </drivers>
 
