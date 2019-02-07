@@ -138,7 +138,7 @@ public class VbngManager implements VbngService {
                             vbngConfigurationService.getXosRestPort());
             map = restClient.getRest();
         } catch (Exception e) {
-            log.error("Could not contact XOS", e);
+            log.warn("Could not contact XOS {}", e.getMessage());
             return;
         }
         if (map == null) {

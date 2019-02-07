@@ -86,7 +86,7 @@ public class PcepTopologyProvider extends AbstractProvider
     public PcepTopologyProvider() {
         //In BGP-PCEP app, since both BGP and PCEP topology provider have same scheme
         //so BGP will be primary and PCEP topology provider will be ancillary.
-        super(new ProviderId("l3", "org.onosproject.provider.pcep", true));
+        super(new ProviderId("l3", "org.onosproject.provider.bgp", true));
     }
 
     private static final Logger log = LoggerFactory

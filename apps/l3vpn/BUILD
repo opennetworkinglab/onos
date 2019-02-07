@@ -24,6 +24,8 @@ APPS = [
     "org.onosproject.models.common",
     "org.onosproject.models.l3vpn",
     "org.onosproject.bgpcep",
+    "org.onosproject.pcep",
+    "org.onosproject.bgp",
 ]
 
 osgi_jar_with_tests(

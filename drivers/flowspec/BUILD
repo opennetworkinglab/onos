@@ -14,7 +14,10 @@ onos_app(
     app_name = "org.onosproject.drivers.flowspec",
     category = "Drivers",
     description = "Adds support for devices using flow specs.",
-    required_apps = ["org.onosproject.drivers"],
+    required_apps = [
+        "org.onosproject.drivers",
+        "org.onosproject.flowspec-api",
+    ],
     title = "Generic Flow Spec Drivers",
     url = "http://onosproject.org",
 )

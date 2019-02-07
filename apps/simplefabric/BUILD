@@ -11,6 +11,7 @@ onos_app(
         "org.onosproject.openflow-base",
         "org.onosproject.lldpprovider",
         "org.onosproject.hostprovider",
+        "org.onosproject.route-service",
     ],
     title = "SONA SimpleFabric",
     url = "http://onosproject.org",

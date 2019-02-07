@@ -12,7 +12,11 @@ onos_app(
     category = "Provider",
     description = "BGP protocol southbound providers.",
     included_bundles = BUNDLES,
-    required_apps = ["org.onosproject.evpn-route-service"],
+    required_apps = [
+        "org.onosproject.evpn-route-service",
+        "org.onosproject.tunnel",
+        "org.onosproject.pcep-api",
+    ],
     title = "BGP Provider",
     url = "http://onosproject.org",
 )

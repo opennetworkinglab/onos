@@ -106,7 +106,7 @@ public class MQSender implements Manageable {
             channel.queueDeclare(this.queueName, true, false, false, null);
             channel.queueBind(queueName, exchangeName, routingKey);
         } catch (Exception e) {
-            log.error(E_CREATE_CHAN, e);
+            log.warn(E_CREATE_CHAN, e.getMessage());
         }
     }
 

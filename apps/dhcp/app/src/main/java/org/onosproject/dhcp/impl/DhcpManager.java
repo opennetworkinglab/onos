@@ -104,7 +104,7 @@ import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FAC
 )
 public class DhcpManager implements DhcpService {
 
-    private static final ProviderId PID = new ProviderId("of", "org.onosproject.dhcp", true);
+    private static final ProviderId PID = new ProviderId("of", "org.onosproject.dhcp");
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 

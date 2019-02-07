@@ -18,11 +18,16 @@ BUNDLES = [
     "//apps/routing-api:onos-apps-routing-api",
 ]
 
+APPS = [
+    "org.onosproject.route-service",
+]
+
 onos_app(
     app_name = "org.onosproject.cpr",
     category = "Traffic Engineering",
     description = "Redirects routing control traffic to a control plane",
     included_bundles = BUNDLES,
+    required_apps = APPS,
     title = "Control Plane Redirect",
     url = "http://onosproject.org",
 )

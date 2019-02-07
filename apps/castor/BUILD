@@ -28,7 +28,10 @@ onos_app(
     category = "Utility",
     description = "Castor application",
     included_bundles = BUNDLES,
-    required_apps = ["org.onosproject.intentsynchronizer"],
+    required_apps = [
+        "org.onosproject.intentsynchronizer",
+        "org.onosproject.route-service",
+    ],
     title = "Castor",
     url = "http://onosproject.org",
 )
