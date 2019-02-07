@@ -56,6 +56,7 @@ osgi_feature(
         "@sigar//jar",
         "@org_osgi_util_function//jar",
         "@org_osgi_util_promise//jar",
+        "@jaxb_api//jar",
     ],
     required_features = [],
     visibility = ["//visibility:public"],

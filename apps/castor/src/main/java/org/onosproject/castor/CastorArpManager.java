@@ -116,10 +116,12 @@ public class CastorArpManager implements ArpService  {
      * Withdraws the requested ARP packets.
      */
     private void withdrawIntercepts() {
-        TrafficSelector.Builder selectorBuilder =
+        if (deviceID != null && deviceID.isPresent()) {
+            TrafficSelector.Builder selectorBuilder =
                 DefaultTrafficSelector.builder();
-        selectorBuilder.matchEthType(TYPE_ARP);
-        packetService.cancelPackets(selectorBuilder.build(), CONTROL, appId, deviceID);
+            selectorBuilder.matchEthType(TYPE_ARP);
+            packetService.cancelPackets(selectorBuilder.build(), CONTROL, appId, deviceID);
+        }
     }
 
     /**

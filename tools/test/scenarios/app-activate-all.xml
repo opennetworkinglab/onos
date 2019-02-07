@@ -2400,9 +2400,57 @@
         </group>
 
 
-        <group name="App-Activate-All.rabbitmq" requires="App-Activate-All.flow-perf">
+        <group name="App-Activate-All.lisp" requires="App-Activate-All.flow-perf">
+           <step name="App-Activate-All.Activate-lisp"
+                 exec="onos ${OCI} app activate org.onosproject.lisp" requires="App-Activate-All.flow-perf"/>
+           <group name="App-Activate-All.App-Check-lisp" requires="App-Activate-All.Activate-lisp">
+              <parallel var="${OC#}">
+                 <step name="App-Activate-All.App-Check-${#}-lisp"
+                       exec="onos-check-apps ${OC#} lisp includes"/>
+                 <step name="App-Activate-All.Check-Logs-${#}-lisp" exec="onos-check-logs ${OC#}"/>
+              </parallel>
+           </group>
+           <step name="App-Activate-All.App-Deactivate-lisp"
+                 exec="onos ${OCI} app deactivate org.onosproject.lisp" requires="App-Activate-All.App-Check-lisp"/>
+           <step name="App-Activate-All.Wait-For-Deactivate-lisp"
+                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-lisp"/>      
+           <group name="App-Activate-All.App-Check-After-lisp" requires="App-Activate-All.Wait-For-Deactivate-lisp">
+              <parallel var="${OC#}">
+                 <step name="App-Activate-All.Check-Logs-After-${#}-lisp" exec="onos-check-logs ${OC#}"/>
+              </parallel>
+           </group>
+           <step name="App-Activate-All.Minimal-Apps-lisp" requires="App-Activate-All.App-Deactivate-lisp"
+                 exec="onos-set-up-minimal-apps ${OCI}"/>
+        </group>
+
+
+        <group name="App-Activate-All.drivers.lisp" requires="App-Activate-All.lisp">
+           <step name="App-Activate-All.Activate-drivers.lisp"
+                 exec="onos ${OCI} app activate org.onosproject.drivers.lisp" requires="App-Activate-All.lisp"/>
+           <group name="App-Activate-All.App-Check-drivers.lisp" requires="App-Activate-All.Activate-drivers.lisp">
+              <parallel var="${OC#}">
+                 <step name="App-Activate-All.App-Check-${#}-drivers.lisp"
+                       exec="onos-check-apps ${OC#} drivers.lisp includes"/>
+                 <step name="App-Activate-All.Check-Logs-${#}-drivers.lisp" exec="onos-check-logs ${OC#}"/>
+              </parallel>
+           </group>
+           <step name="App-Activate-All.App-Deactivate-drivers.lisp"
+                 exec="onos ${OCI} app deactivate org.onosproject.drivers.lisp" requires="App-Activate-All.App-Check-drivers.lisp"/>
+           <step name="App-Activate-All.Wait-For-Deactivate-drivers.lisp"
+                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivers.lisp"/>      
+           <group name="App-Activate-All.App-Check-After-drivers.lisp" requires="App-Activate-All.Wait-For-Deactivate-drivers.lisp">
+              <parallel var="${OC#}">
+                 <step name="App-Activate-All.Check-Logs-After-${#}-drivers.lisp" exec="onos-check-logs ${OC#}"/>
+              </parallel>
+           </group>
+           <step name="App-Activate-All.Minimal-Apps-drivers.lisp" requires="App-Activate-All.App-Deactivate-drivers.lisp"
+                 exec="onos-set-up-minimal-apps ${OCI}"/>
+        </group>
+
+
+        <group name="App-Activate-All.rabbitmq" requires="App-Activate-All.drivers.lisp">
            <step name="App-Activate-All.Activate-rabbitmq"
-                 exec="onos ${OCI} app activate org.onosproject.rabbitmq" requires="App-Activate-All.flow-perf"/>
+                 exec="onos ${OCI} app activate org.onosproject.rabbitmq" requires="App-Activate-All.drivers.lisp"/>
            <group name="App-Activate-All.App-Check-rabbitmq" requires="App-Activate-All.Activate-rabbitmq">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.App-Check-${#}-rabbitmq"
@@ -2616,9 +2664,33 @@
         </group>
 
 
-        <group name="App-Activate-All.protocols.xmpp" requires="App-Activate-All.segmentrouting">
+        <group name="App-Activate-All.bgprouter" requires="App-Activate-All.segmentrouting">
+           <step name="App-Activate-All.Activate-bgprouter"
+                 exec="onos ${OCI} app activate org.onosproject.bgprouter" requires="App-Activate-All.segmentrouting"/>
+           <group name="App-Activate-All.App-Check-bgprouter" requires="App-Activate-All.Activate-bgprouter">
+              <parallel var="${OC#}">
+                 <step name="App-Activate-All.App-Check-${#}-bgprouter"
+                       exec="onos-check-apps ${OC#} bgprouter includes"/>
+                 <step name="App-Activate-All.Check-Logs-${#}-bgprouter" exec="onos-check-logs ${OC#}"/>
+              </parallel>
+           </group>
+           <step name="App-Activate-All.App-Deactivate-bgprouter"
+                 exec="onos ${OCI} app deactivate org.onosproject.bgprouter" requires="App-Activate-All.App-Check-bgprouter"/>
+           <step name="App-Activate-All.Wait-For-Deactivate-bgprouter"
+                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-bgprouter"/>      
+           <group name="App-Activate-All.App-Check-After-bgprouter" requires="App-Activate-All.Wait-For-Deactivate-bgprouter">
+              <parallel var="${OC#}">
+                 <step name="App-Activate-All.Check-Logs-After-${#}-bgprouter" exec="onos-check-logs ${OC#}"/>
+              </parallel>
+           </group>
+           <step name="App-Activate-All.Minimal-Apps-bgprouter" requires="App-Activate-All.App-Deactivate-bgprouter"
+                 exec="onos-set-up-minimal-apps ${OCI}"/>
+        </group>
+
+
+        <group name="App-Activate-All.protocols.xmpp" requires="App-Activate-All.bgprouter">
            <step name="App-Activate-All.Activate-protocols.xmpp"
-                 exec="onos ${OCI} app activate org.onosproject.protocols.xmpp" requires="App-Activate-All.segmentrouting"/>
+                 exec="onos ${OCI} app activate org.onosproject.protocols.xmpp" requires="App-Activate-All.bgprouter"/>
            <group name="App-Activate-All.App-Check-protocols.xmpp" requires="App-Activate-All.Activate-protocols.xmpp">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.App-Check-${#}-protocols.xmpp"
@@ -2664,9 +2736,33 @@
         </group>
 
 
-        <group name="App-Activate-All.drivers.ciena.c5162" requires="App-Activate-All.openstacktelemetry">
+        <group name="App-Activate-All.castor" requires="App-Activate-All.openstacktelemetry">
+           <step name="App-Activate-All.Activate-castor"
+                 exec="onos ${OCI} app activate org.onosproject.castor" requires="App-Activate-All.openstacktelemetry"/>
+           <group name="App-Activate-All.App-Check-castor" requires="App-Activate-All.Activate-castor">
+              <parallel var="${OC#}">
+                 <step name="App-Activate-All.App-Check-${#}-castor"
+                       exec="onos-check-apps ${OC#} castor includes"/>
+                 <step name="App-Activate-All.Check-Logs-${#}-castor" exec="onos-check-logs ${OC#}"/>
+              </parallel>
+           </group>
+           <step name="App-Activate-All.App-Deactivate-castor"
+                 exec="onos ${OCI} app deactivate org.onosproject.castor" requires="App-Activate-All.App-Check-castor"/>
+           <step name="App-Activate-All.Wait-For-Deactivate-castor"
+                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-castor"/>      
+           <group name="App-Activate-All.App-Check-After-castor" requires="App-Activate-All.Wait-For-Deactivate-castor">
+              <parallel var="${OC#}">
+                 <step name="App-Activate-All.Check-Logs-After-${#}-castor" exec="onos-check-logs ${OC#}"/>
+              </parallel>
+           </group>
+           <step name="App-Activate-All.Minimal-Apps-castor" requires="App-Activate-All.App-Deactivate-castor"
+                 exec="onos-set-up-minimal-apps ${OCI}"/>
+        </group>
+
+
+        <group name="App-Activate-All.drivers.ciena.c5162" requires="App-Activate-All.castor">
            <step name="App-Activate-All.Activate-drivers.ciena.c5162"
-                 exec="onos ${OCI} app activate org.onosproject.drivers.ciena.c5162" requires="App-Activate-All.openstacktelemetry"/>
+                 exec="onos ${OCI} app activate org.onosproject.drivers.ciena.c5162" requires="App-Activate-All.castor"/>
            <group name="App-Activate-All.App-Check-drivers.ciena.c5162" requires="App-Activate-All.Activate-drivers.ciena.c5162">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.App-Check-${#}-drivers.ciena.c5162"
@@ -3048,9 +3144,33 @@
         </group>
 
 
-        <group name="App-Activate-All.drivers.hp" requires="App-Activate-All.drivers.oplink">
+        <group name="App-Activate-All.isis" requires="App-Activate-All.drivers.oplink">
+           <step name="App-Activate-All.Activate-isis"
+                 exec="onos ${OCI} app activate org.onosproject.isis" requires="App-Activate-All.drivers.oplink"/>
+           <group name="App-Activate-All.App-Check-isis" requires="App-Activate-All.Activate-isis">
+              <parallel var="${OC#}">
+                 <step name="App-Activate-All.App-Check-${#}-isis"
+                       exec="onos-check-apps ${OC#} isis includes"/>
+                 <step name="App-Activate-All.Check-Logs-${#}-isis" exec="onos-check-logs ${OC#}"/>
+              </parallel>
+           </group>
+           <step name="App-Activate-All.App-Deactivate-isis"
+                 exec="onos ${OCI} app deactivate org.onosproject.isis" requires="App-Activate-All.App-Check-isis"/>
+           <step name="App-Activate-All.Wait-For-Deactivate-isis"
+                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-isis"/>      
+           <group name="App-Activate-All.App-Check-After-isis" requires="App-Activate-All.Wait-For-Deactivate-isis">
+              <parallel var="${OC#}">
+                 <step name="App-Activate-All.Check-Logs-After-${#}-isis" exec="onos-check-logs ${OC#}"/>
+              </parallel>
+           </group>
+           <step name="App-Activate-All.Minimal-Apps-isis" requires="App-Activate-All.App-Deactivate-isis"
+                 exec="onos-set-up-minimal-apps ${OCI}"/>
+        </group>
+
+
+        <group name="App-Activate-All.drivers.hp" requires="App-Activate-All.isis">
            <step name="App-Activate-All.Activate-drivers.hp"
-                 exec="onos ${OCI} app activate org.onosproject.drivers.hp" requires="App-Activate-All.drivers.oplink"/>
+                 exec="onos ${OCI} app activate org.onosproject.drivers.hp" requires="App-Activate-All.isis"/>
            <group name="App-Activate-All.App-Check-drivers.hp" requires="App-Activate-All.Activate-drivers.hp">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.App-Check-${#}-drivers.hp"
@@ -3360,9 +3480,33 @@
         </group>
 
 
-        <group name="App-Activate-All.powermanagement" requires="App-Activate-All.layout">
+        <group name="App-Activate-All.graphitemetrics" requires="App-Activate-All.layout">
+           <step name="App-Activate-All.Activate-graphitemetrics"
+                 exec="onos ${OCI} app activate org.onosproject.graphitemetrics" requires="App-Activate-All.layout"/>
+           <group name="App-Activate-All.App-Check-graphitemetrics" requires="App-Activate-All.Activate-graphitemetrics">
+              <parallel var="${OC#}">
+                 <step name="App-Activate-All.App-Check-${#}-graphitemetrics"
+                       exec="onos-check-apps ${OC#} graphitemetrics includes"/>
+                 <step name="App-Activate-All.Check-Logs-${#}-graphitemetrics" exec="onos-check-logs ${OC#}"/>
+              </parallel>
+           </group>
+           <step name="App-Activate-All.App-Deactivate-graphitemetrics"
+                 exec="onos ${OCI} app deactivate org.onosproject.graphitemetrics" requires="App-Activate-All.App-Check-graphitemetrics"/>
+           <step name="App-Activate-All.Wait-For-Deactivate-graphitemetrics"
+                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-graphitemetrics"/>      
+           <group name="App-Activate-All.App-Check-After-graphitemetrics" requires="App-Activate-All.Wait-For-Deactivate-graphitemetrics">
+              <parallel var="${OC#}">
+                 <step name="App-Activate-All.Check-Logs-After-${#}-graphitemetrics" exec="onos-check-logs ${OC#}"/>
+              </parallel>
+           </group>
+           <step name="App-Activate-All.Minimal-Apps-graphitemetrics" requires="App-Activate-All.App-Deactivate-graphitemetrics"
+                 exec="onos-set-up-minimal-apps ${OCI}"/>
+        </group>
+
+
+        <group name="App-Activate-All.powermanagement" requires="App-Activate-All.graphitemetrics">
            <step name="App-Activate-All.Activate-powermanagement"
-                 exec="onos ${OCI} app activate org.onosproject.powermanagement" requires="App-Activate-All.layout"/>
+                 exec="onos ${OCI} app activate org.onosproject.powermanagement" requires="App-Activate-All.graphitemetrics"/>
            <group name="App-Activate-All.App-Check-powermanagement" requires="App-Activate-All.Activate-powermanagement">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.App-Check-${#}-powermanagement"

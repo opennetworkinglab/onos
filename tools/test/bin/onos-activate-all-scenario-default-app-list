@@ -90,7 +90,7 @@ pathpainter
 simplefabric
 flowanalyzer
 null
-# throws rejected execution exception
+# Application cannot be shut down
 #transaction-perf
 drivers.server
 drivers.gnmi
@@ -101,9 +101,8 @@ vrouter
 sdnip
 artemis
 flow-perf
-# app crashes on startup
-#lisp
-#drivers.lisp
+lisp
+drivers.lisp
 rabbitmq
 snmp
 newoptical
@@ -113,12 +112,10 @@ pim
 routescale
 mcast
 segmentrouting
-# crashes during shutdown
-#bgprouter
+bgprouter
 protocols.xmpp
 openstacktelemetry
-# crashes during shutdown
-#castor
+castor
 drivers.ciena.c5162
 netcfg-monitor
 xmpp.device
@@ -135,8 +132,7 @@ virtualbng
 gangliametrics
 drivers.ciena.c5170
 drivers.oplink
-# missing dependency on startup
-# isis
+isis
 drivers.hp
 drivers.cisco.rest
 roadm
@@ -150,8 +146,7 @@ drivers.ciena.waveserverai
 drivers.fujitsu
 drivers.polatis.openflow
 layout
-# missing a dependency
-#graphitemetrics
+graphitemetrics
 powermanagement
 optical-rest
 tl1

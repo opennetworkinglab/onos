@@ -77,7 +77,9 @@ public class Controller {
     public void isisDeactivate() {
         disconnectExecutor();
         processes = null;
-        peerExecFactory.shutdown();
+        if (peerExecFactory != null) {
+            peerExecFactory.shutdown();
+        }
     }
 
     /**

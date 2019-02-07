@@ -75,18 +75,10 @@ public class LispControllerImpl implements LispController {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
 
-    /**
-     * Authentication key which is used to calculate authentication data for
-     * LISP control message; default value is onos.
-     */
+    /** Authentication key which is used to calculate authentication data. */
     private String lispAuthKey = LISP_AUTH_KEY_DEFAULT;
 
-    /**
-     * Authentication key id which denotes the authentication method
-     * that ONOS uses to calculate the authentication data;
-     * 1 denotes HMAC SHA1 encryption, 2 denotes HMAC SHA256 encryption;
-     * default value is 1.
-     */
+    /** Authentication key id which denotes the authentication method used to calculate the authentication data. */
     private int lispAuthKeyId = LISP_AUTH_KEY_ID_DEFAULT;
 
     /** Enable to send SMR(Solicit Map Request) by map server; by default SMR is not activated. */

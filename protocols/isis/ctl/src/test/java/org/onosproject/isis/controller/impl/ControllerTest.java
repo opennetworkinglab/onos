@@ -101,7 +101,7 @@ public class ControllerTest {
     /**
      * Tests isisDeactivate() method.
      */
-    @Test(expected = Exception.class)
+    @Test
     public void testIsisDeactivate() throws Exception {
         controller.isisDeactivate();
         assertThat(controller, is(notNullValue()));

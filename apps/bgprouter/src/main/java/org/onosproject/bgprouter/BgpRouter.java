@@ -84,6 +84,7 @@ public class BgpRouter {
 
     private DeviceListener deviceListener;
     private IcmpHandler icmpHandler;
+    private BgpConfig bgpConfig = null;
 
     private static List<String> components = new ArrayList<>();
     static {
@@ -100,11 +101,10 @@ public class BgpRouter {
         components.forEach(name -> componentService.activate(appId, name));
 
         ApplicationId routerAppId = coreService.getAppId(RoutingService.ROUTER_APP_ID);
-        BgpConfig bgpConfig =
-                networkConfigService.getConfig(routerAppId, RoutingService.CONFIG_CLASS);
+        bgpConfig = networkConfigService.getConfig(routerAppId, RoutingService.CONFIG_CLASS);
 
         if (bgpConfig == null) {
-            log.error("No BgpConfig found");
+            log.warn("No BgpConfig found");
             return;
         }
 
@@ -137,9 +137,11 @@ public class BgpRouter {
 
         RoutingConfiguration.unregister(networkConfigService);
 
-        connectivityManager.stop();
-        icmpHandler.stop();
-        deviceService.removeListener(deviceListener);
+        if (bgpConfig != null) {
+            connectivityManager.stop();
+            icmpHandler.stop();
+            deviceService.removeListener(deviceListener);
+        }
 
         log.info("BgpRouter stopped");
     }
