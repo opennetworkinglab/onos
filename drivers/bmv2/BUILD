@@ -35,8 +35,8 @@ onos_app(
     description = "Adds support for BMv2 devices.",
     included_bundles = BUNDLES,
     required_apps = [
+        "org.onosproject.drivers.stratum",
         "org.onosproject.drivers.p4runtime",
-        "org.onosproject.drivers.gnmi",
         "org.onosproject.pipelines.basic",
     ],
     title = "BMv2 Drivers",
