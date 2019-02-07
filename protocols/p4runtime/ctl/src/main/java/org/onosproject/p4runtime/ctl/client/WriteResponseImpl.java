@@ -156,8 +156,8 @@ final class WriteResponseImpl implements P4RuntimeWriteClient.WriteResponse {
         WriteResponseImpl buildAsIs() {
             synchronized (this) {
                 if (!pendingResponses.isEmpty()) {
-                    log.warn("Detected partial response from {}, " +
-                                     "{} of {} total entities are in status PENDING",
+                    log.warn("Partial response from {}, {} of {} total " +
+                                     "entities are in status PENDING",
                              deviceId, pendingResponses.size(), allResponses.size());
                 }
                 return new WriteResponseImpl(
@@ -169,6 +169,14 @@ final class WriteResponseImpl implements P4RuntimeWriteClient.WriteResponse {
         WriteResponseImpl setSuccessAllAndBuild() {
             synchronized (this) {
                 pendingResponses.values().forEach(this::doSetSuccess);
+                pendingResponses.clear();
+                return buildAsIs();
+            }
+        }
+
+        WriteResponseImpl setFailAllAndBuild(Throwable throwable) {
+            synchronized (this) {
+                pendingResponses.values().forEach(r -> r.setFailure(throwable));
                 pendingResponses.clear();
                 return buildAsIs();
             }
@@ -219,26 +227,26 @@ final class WriteResponseImpl implements P4RuntimeWriteClient.WriteResponse {
         private WriteResponseImpl doSetErrorsAndBuild(Throwable throwable) {
             if (!(throwable instanceof StatusRuntimeException)) {
                 // Leave all entity responses in pending state.
-                return buildAsIs();
+                return setFailAllAndBuild(throwable);
             }
             final StatusRuntimeException sre = (StatusRuntimeException) throwable;
             if (!sre.getStatus().equals(Status.UNKNOWN)) {
                 // Error trailers expected only if status is UNKNOWN.
-                return buildAsIs();
+                return setFailAllAndBuild(throwable);
             }
             // Extract error details.
             if (!sre.getTrailers().containsKey(STATUS_DETAILS_KEY)) {
                 log.warn("Cannot parse write error details from {}, " +
                                  "missing status trailers in StatusRuntimeException",
                          deviceId);
-                return buildAsIs();
+                return setFailAllAndBuild(throwable);
             }
             com.google.rpc.Status status = sre.getTrailers().get(STATUS_DETAILS_KEY);
             if (status == null) {
                 log.warn("Cannot parse write error details from {}, " +
                                  "found NULL status trailers in StatusRuntimeException",
                          deviceId);
-                return buildAsIs();
+                return setFailAllAndBuild(throwable);
             }
             final boolean reconcilable = status.getDetailsList().size() == pendingResponses.size();
             // We expect one error for each entity...
@@ -337,6 +345,12 @@ final class WriteResponseImpl implements P4RuntimeWriteClient.WriteResponse {
 
         private void setSuccess() {
             this.status = WriteResponseStatus.OK;
+        }
+
+        private void setFailure(Throwable throwable) {
+            this.status = WriteResponseStatus.OTHER_ERROR;
+            this.explanation = throwable.toString();
+            this.throwable = throwable;
         }
 
         @Override
