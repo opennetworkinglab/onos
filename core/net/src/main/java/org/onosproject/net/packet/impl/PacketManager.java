@@ -498,7 +498,7 @@ public class PacketManager
                     }
                     pushRulesToDevice(device);
                 } catch (Exception e) {
-                    log.warn("Failed to process {}", event, e);
+                    log.warn("Failed to process {}: {}", event, e.getMessage());
                 }
             });
         }

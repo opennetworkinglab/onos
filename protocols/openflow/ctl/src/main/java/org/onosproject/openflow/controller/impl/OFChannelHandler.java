@@ -531,6 +531,11 @@ class OFChannelHandler extends ChannelInboundHandlerAdapter
                 // Here is where we differentiate between different kinds of switches
                 h.sw = h.controller.getOFSwitchInstance(h.thisdpid, drep, h.ofVersion);
 
+                if (h.sw == null) {
+                    log.info("Switch not found for {}", h.thisdpid);
+                    return;
+                }
+
                 h.sw.setOFVersion(h.ofVersion);
                 h.sw.setFeaturesReply(h.featuresReply);
                 h.sw.setPortDescReplies(h.portDescReplies);

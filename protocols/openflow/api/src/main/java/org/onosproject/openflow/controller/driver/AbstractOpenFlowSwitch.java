@@ -287,7 +287,7 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
                 }
                 this.agent.processMessage(dpid, m);
             } catch (Exception e) {
-                log.warn("Unhandled exception processing {}@{}", m, dpid, e);
+                log.warn("Unhandled exception processing {}@{}:{}", m, dpid, e.getMessage());
             }
         } else {
             log.trace("Dropping received message {}, was not MASTER", m);
