@@ -180,7 +180,7 @@ public class SampleWorkflow {
      */
     public static class SampleWorklet1 extends AbsSampleWorklet {
 
-        @JsonDataModel(path = MODEL_COUNT, type = Integer.class)
+        @JsonDataModel(path = MODEL_COUNT)
         Integer intCount;
 
         @Override
@@ -208,7 +208,7 @@ public class SampleWorkflow {
      */
     public static class SampleWorklet2 extends AbsSampleWorklet {
 
-        @JsonDataModel(path = MODEL_COUNT, type = Integer.class)
+        @JsonDataModel(path = MODEL_COUNT)
         Integer intCount;
 
         @Override
@@ -238,7 +238,7 @@ public class SampleWorkflow {
 
     public static class SampleWorklet3 extends AbsSampleWorklet {
 
-        @JsonDataModel(path = MODEL_COUNT, type = Integer.class)
+        @JsonDataModel(path = MODEL_COUNT)
         Integer intCount;
 
         @Override
@@ -262,7 +262,7 @@ public class SampleWorkflow {
 
     public static class SampleWorklet4 extends AbsSampleWorklet {
 
-        @JsonDataModel(path = MODEL_COUNT, type = Integer.class)
+        @JsonDataModel(path = MODEL_COUNT)
         Integer intCount;
 
         @Override
@@ -286,7 +286,7 @@ public class SampleWorkflow {
 
     public static class SampleWorklet5 extends AbsSampleWorklet {
 
-        @JsonDataModel(path = MODEL_COUNT, type = Integer.class)
+        @JsonDataModel(path = MODEL_COUNT)
         Integer intCount;
 
         @Override

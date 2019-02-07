@@ -15,7 +15,6 @@
  */
 package org.onosproject.workflow.api;
 
-import com.fasterxml.jackson.databind.JsonNode;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -32,18 +31,14 @@ public @interface JsonDataModel {
 
     /**
      * Path of data model.
+     *
      * @return path of data model
      */
     String path() default "/";
 
     /**
-     * Type of data model.
-     * @return type of data model
-     */
-    Class<?> type() default JsonNode.class;
-
-    /**
      * Representing whether this data model is optional or not.
+     *
      * @return optional or not
      */
     boolean optional() default false;

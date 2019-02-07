@@ -42,6 +42,7 @@ public class JsonDataModelInjector {
 
     /**
      * Injects data model to work-let.
+     *
      * @param worklet work-let to be injected
      * @param context workflow context
      * @throws WorkflowException workflow exception
@@ -53,6 +54,7 @@ public class JsonDataModelInjector {
 
     /**
      * Inhales data model from work-let.
+     *
      * @param worklet work-let to be inhaled
      * @param context workflow context
      * @throws WorkflowException workflow exception
@@ -71,12 +73,12 @@ public class JsonDataModelInjector {
             return;
         }
 
-        for (Field field: fields) {
+        for (Field field : fields) {
             Annotation[] annotations = field.getAnnotations();
             if (Objects.isNull(annotations)) {
                 continue;
             }
-            for (Annotation annotation: annotations) {
+            for (Annotation annotation : annotations) {
                 if (!(annotation instanceof JsonDataModel)) {
                     continue;
                 }
@@ -111,6 +113,7 @@ public class JsonDataModelInjector {
     }
 
     private static Map<Class, DataModelFieldBehavior> injectTypeMap = new HashMap<>();
+
     static {
         injectTypeMap.put(String.class, JsonDataModelInjector::injectText);
         injectTypeMap.put(Integer.class, JsonDataModelInjector::injectInteger);
@@ -122,28 +125,30 @@ public class JsonDataModelInjector {
 
     /**
      * Injects data model on the filed of work-let.
+     *
      * @param worklet work-let
      * @param context workflow context
-     * @param field the field of work-let
-     * @param model data model for the field
+     * @param field   the field of work-let
+     * @param model   data model for the field
      * @throws WorkflowException workflow exception
      */
     private void injectModel(Worklet worklet, WorkflowContext context, Field field, JsonDataModel model)
             throws WorkflowException {
 
-        DataModelFieldBehavior behavior = injectTypeMap.get(model.type());
+        DataModelFieldBehavior behavior = injectTypeMap.get(field.getType());
         if (Objects.isNull(behavior)) {
-            throw new WorkflowException("Not supported type(" + model.type() + ")");
+            throw new WorkflowException("Not supported type(" + field.getType() + ")");
         }
         behavior.apply(worklet, context, field, model);
     }
 
     /**
      * Injects text data model on the filed of work-let.
+     *
      * @param worklet work-let
      * @param context workflow context
-     * @param field the field of work-let
-     * @param model text data model for the field
+     * @param field   the field of work-let
+     * @param model   text data model for the field
      * @throws WorkflowException workflow exception
      */
     private static void injectText(Worklet worklet, WorkflowContext context, Field field, JsonDataModel model)
@@ -171,15 +176,15 @@ public class JsonDataModelInjector {
 
     /**
      * Injects integer data model on the filed of work-let.
+     *
      * @param worklet work-let
      * @param context workflow context
-     * @param field the field of work-let
-     * @param model integer data model for the field
+     * @param field   the field of work-let
+     * @param model   integer data model for the field
      * @throws WorkflowException workflow exception
      */
     private static void injectInteger(Worklet worklet, WorkflowContext context, Field field, JsonDataModel model)
             throws WorkflowException {
-
         Integer number = ((JsonDataModelTree) context.data()).intAt(model.path());
         if (Objects.isNull(number)) {
             if (model.optional()) {
@@ -202,10 +207,11 @@ public class JsonDataModelInjector {
 
     /**
      * Injects boolean data model on the filed of work-let.
+     *
      * @param worklet work-let
      * @param context workflow context
-     * @param field the field of work-let
-     * @param model boolean data model for the field
+     * @param field   the field of work-let
+     * @param model   boolean data model for the field
      * @throws WorkflowException workflow exception
      */
     private static void injectBoolean(Worklet worklet, WorkflowContext context, Field field, JsonDataModel model)
@@ -233,10 +239,11 @@ public class JsonDataModelInjector {
 
     /**
      * Injects json node data model on the filed of work-let.
+     *
      * @param worklet work-let
      * @param context workflow context
-     * @param field the field of work-let
-     * @param model json node data model for the field
+     * @param field   the field of work-let
+     * @param model   json node data model for the field
      * @throws WorkflowException workflow exception
      */
     private static void injectJsonNode(Worklet worklet, WorkflowContext context, Field field, JsonDataModel model)
@@ -264,10 +271,11 @@ public class JsonDataModelInjector {
 
     /**
      * Injects json array node data model on the filed of work-let.
+     *
      * @param worklet work-let
      * @param context workflow context
-     * @param field the field of work-let
-     * @param model json array node data model for the field
+     * @param field   the field of work-let
+     * @param model   json array node data model for the field
      * @throws WorkflowException workflow exception
      */
     private static void injectArrayNode(Worklet worklet, WorkflowContext context, Field field, JsonDataModel model)
@@ -295,10 +303,11 @@ public class JsonDataModelInjector {
 
     /**
      * Injects json object node data model on the filed of work-let.
+     *
      * @param worklet work-let
      * @param context workflow context
-     * @param field the field of work-let
-     * @param model json object node data model for the field
+     * @param field   the field of work-let
+     * @param model   json object node data model for the field
      * @throws WorkflowException workflow exception
      */
     private static void injectObjectNode(Worklet worklet, WorkflowContext context, Field field, JsonDataModel model)
@@ -325,6 +334,7 @@ public class JsonDataModelInjector {
     }
 
     private static Map<Class, DataModelFieldBehavior> inhaleTypeMap = new HashMap<>();
+
     static {
         inhaleTypeMap.put(String.class, JsonDataModelInjector::inhaleText);
         inhaleTypeMap.put(Integer.class, JsonDataModelInjector::inhaleInteger);
@@ -336,28 +346,30 @@ public class JsonDataModelInjector {
 
     /**
      * Inhales data model on the filed of work-let.
+     *
      * @param worklet work-let
      * @param context workflow context
-     * @param field the field of work-let
-     * @param model data model for the field
+     * @param field   the field of work-let
+     * @param model   data model for the field
      * @throws WorkflowException workflow exception
      */
     private void inhaleModel(Worklet worklet, WorkflowContext context, Field field, JsonDataModel model)
             throws WorkflowException {
 
-        DataModelFieldBehavior behavior = inhaleTypeMap.get(model.type());
+        DataModelFieldBehavior behavior = inhaleTypeMap.get(field.getType());
         if (Objects.isNull(behavior)) {
-            throw new WorkflowException("Not supported type(" + model.type() + ")");
+            throw new WorkflowException("Not supported type(" + field.getType() + ")");
         }
         behavior.apply(worklet, context, field, model);
     }
 
     /**
      * Inhales text data model on the filed of work-let.
+     *
      * @param worklet work-let
      * @param context workflow context
-     * @param field the field of work-let
-     * @param model text data model for the field
+     * @param field   the field of work-let
+     * @param model   text data model for the field
      * @throws WorkflowException workflow exception
      */
     private static void inhaleText(Worklet worklet, WorkflowContext context, Field field, JsonDataModel model)
@@ -394,15 +406,15 @@ public class JsonDataModelInjector {
 
     /**
      * Inhales integer data model on the filed of work-let.
+     *
      * @param worklet work-let
      * @param context workflow context
-     * @param field the field of work-let
-     * @param model integer data model for the field
+     * @param field   the field of work-let
+     * @param model   integer data model for the field
      * @throws WorkflowException workflow exception
      */
     private static void inhaleInteger(Worklet worklet, WorkflowContext context, Field field, JsonDataModel model)
             throws WorkflowException {
-
         if (!(Objects.equals(field.getType(), Integer.class))) {
             throw new WorkflowException("Target field (" + field + ") is not Integer");
         }
@@ -434,10 +446,11 @@ public class JsonDataModelInjector {
 
     /**
      * Inhales boolean data model on the filed of work-let.
+     *
      * @param worklet work-let
      * @param context workflow context
-     * @param field the field of work-let
-     * @param model boolean data model for the field
+     * @param field   the field of work-let
+     * @param model   boolean data model for the field
      * @throws WorkflowException workflow exception
      */
     private static void inhaleBoolean(Worklet worklet, WorkflowContext context, Field field, JsonDataModel model)
@@ -474,10 +487,11 @@ public class JsonDataModelInjector {
 
     /**
      * Inhales json node data model on the filed of work-let.
+     *
      * @param worklet work-let
      * @param context workflow context
-     * @param field the field of work-let
-     * @param model json node data model for the field
+     * @param field   the field of work-let
+     * @param model   json node data model for the field
      * @throws WorkflowException workflow exception
      */
     private static void inhaleJsonNode(Worklet worklet, WorkflowContext context, Field field, JsonDataModel model)
@@ -513,10 +527,11 @@ public class JsonDataModelInjector {
 
     /**
      * Inhales json array node data model on the filed of work-let.
+     *
      * @param worklet work-let
      * @param context workflow context
-     * @param field the field of work-let
-     * @param model json array node data model for the field
+     * @param field   the field of work-let
+     * @param model   json array node data model for the field
      * @throws WorkflowException workflow exception
      */
     private static void inhaleArrayNode(Worklet worklet, WorkflowContext context, Field field, JsonDataModel model)
@@ -551,10 +566,11 @@ public class JsonDataModelInjector {
 
     /**
      * Inhales json object node data model on the filed of work-let.
+     *
      * @param worklet work-let
      * @param context workflow context
-     * @param field the field of work-let
-     * @param model json object node data model for the field
+     * @param field   the field of work-let
+     * @param model   json object node data model for the field
      * @throws WorkflowException workflow exception
      */
     private static void inhaleObjectNode(Worklet worklet, WorkflowContext context, Field field, JsonDataModel model)
