@@ -68,9 +68,11 @@ public class AbstractProviderRegistryTest {
     public void ancillaryProviders() {
         TestProviderRegistry registry = new TestProviderRegistry();
         TestProvider pFoo = new TestProvider(new ProviderId("of", "foo"));
-        TestProvider pBar = new TestProvider(new ProviderId("of", "bar", true));
+        TestProvider pBar = new TestProvider(new ProviderId("of2", "bar"));
+        TestProvider aBar = new TestProvider(new ProviderId("of", "foo", true));
         registry.register(pFoo);
         registry.register(pBar);
+        registry.register(aBar);
         assertEquals("incorrect provider count", 2, registry.getProviders().size());
     }
 
