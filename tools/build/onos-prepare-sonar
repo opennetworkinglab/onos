@@ -14,7 +14,7 @@ import fnmatch
 from shutil import copy, rmtree
 from subprocess import check_output, STDOUT, CalledProcessError
 
-ONOS_VERSION = '2.0.0-SNAPSHOT'
+ONOS_VERSION = ''
 
 GENFILES = 'bazel-genfiles'
 BIN = 'bazel-bin'
@@ -179,8 +179,8 @@ def write_module(target, out):
         raise exc
 
     if not os.path.exists('/tmp/jacoco.exec'):
-        # No coverage data was produced, not much to do
-        return
+        # No coverage data was produced, make an empty one
+        open('/tmp/jacoco.exec', 'a').close()
 
     # Filter out non-Java files
     sources = \
@@ -243,8 +243,21 @@ def write_module(target, out):
     capture_classes(module_name, path)
 
 
+'''
+    Extracts the ONOS version string from the bazel variables.
+'''
+
+
+def _extract_onos_version():
+    bazel_vars_path = os.getcwd() + "/tools/build/bazel/variables.bzl"
+    with open(bazel_vars_path, 'r') as bazel_vars_file:
+        for bazel_var in bazel_vars_file.readlines():
+            if "ONOS_VERSION" in bazel_var:
+                return bazel_var.replace(" ", "").replace('ONOS_VERSION="', '').replace('"', '')
+
+
 def _main():
-    global ONOS_ROOT, targets
+    global ONOS_ROOT, ONOS_VERSION, targets
     debug = False
     if len(sys.argv) > 1:
         debug = True
@@ -253,6 +266,9 @@ def _main():
     ONOS_ROOT = os.environ['ONOS_ROOT']
     if ONOS_ROOT:
         os.chdir(ONOS_ROOT)
+
+    # extract the ONOS version string
+    ONOS_VERSION = _extract_onos_version()
 
     # build ONOS
     run_command(["bazel", "build", "onos"])
