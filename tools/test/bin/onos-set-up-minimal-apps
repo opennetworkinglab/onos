@@ -1,0 +1,44 @@
+#!/usr/bin/env python
+
+import subprocess, sys, json, os
+
+REQUIRED_APPS = ["org.onosproject.drivers"]
+
+
+def _main():
+    # Get the ONOS node address
+    onos_node = ""
+
+    if len(sys.argv) > 1:
+        onos_node = sys.argv[1]
+    else:
+        onos_node = os.environ["OCI"]
+
+    # Get a JSON representation of the apps that are currently running
+    current_apps_json = subprocess.check_output(["onos", onos_node, "onos:apps", "-a", "-s", "-j"])
+
+    # Determine which apps need to be deactivated
+    apps_to_deactivate = []
+    config = json.loads(current_apps_json)
+
+    for app_description in config:
+        apps_to_deactivate.append(app_description["name"])
+
+    # Deactivate all apps
+    if len(apps_to_deactivate) > 0:
+        deactivate_command = ["onos", onos_node, "onos:app", "deactivate"]
+        for app_to_deactivate in apps_to_deactivate:
+            deactivate_command.append(app_to_deactivate)
+        subprocess.check_output(deactivate_command)
+
+    # Activate apps that are part of the base set
+    if len(REQUIRED_APPS) > 0:
+        activate_command = ["onos", onos_node, "onos:app", "activate"]
+        for app_to_activate in REQUIRED_APPS:
+            activate_command.append(app_to_activate)
+        subprocess.check_output(activate_command)
+
+
+
+if __name__ == "__main__":
+    _main()
