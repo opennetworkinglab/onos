@@ -17,4 +17,5 @@
 /**
  * Implementation classes of the gNMI protocol subsystem.
  */
-package protocols.gnmi.ctl.java.org.onosproject.gnmi.ctl;
+
+package org.onosproject.gnmi.ctl;

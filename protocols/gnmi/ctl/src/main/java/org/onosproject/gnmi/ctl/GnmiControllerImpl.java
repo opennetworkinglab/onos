@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package protocols.gnmi.ctl.java.org.onosproject.gnmi.ctl;
+
+package org.onosproject.gnmi.ctl;
 
 import io.grpc.ManagedChannel;
 import org.onosproject.gnmi.api.GnmiClient;
