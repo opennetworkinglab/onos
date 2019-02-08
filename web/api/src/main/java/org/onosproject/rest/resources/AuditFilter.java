@@ -85,7 +85,12 @@ public class AuditFilter implements ContainerRequestFilter, ContainerResponseFil
     }
 
     private AuditService auditService() {
-        AuditService auditService = disableForTests ? null : services.get(AuditService.class);
+        AuditService auditService = null;
+        try {
+            auditService = disableForTests ? null : services.get(AuditService.class);
+        } catch (org.onlab.osgi.ServiceNotFoundException e) {
+            return null;
+        }
         return auditService != null && auditService.isAuditing() ? auditService : null;
     }
 }
