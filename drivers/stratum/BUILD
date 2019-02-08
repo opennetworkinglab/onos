@@ -19,6 +19,7 @@ onos_app(
         "org.onosproject.generaldeviceprovider",
         "org.onosproject.drivers.gnmi",
         "org.onosproject.drivers.p4runtime",
+        "org.onosproject.pipelines.basic",
     ],
     title = "Stratum Drivers",
     url = "http://onosproject.org",
