@@ -1,4 +1,5 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("//tools/build/bazel:variables.bzl", "GRPC_JAVA_VERSION")
 
 GRPC_VER = "1.18.0"
 GRPC_SHA = "979cd1873c0f3aefa25f3d20336c023ce34471203bf2d954ad9e3158fc55c16b"
@@ -10,9 +11,9 @@ def generate_grpc():
     # grpc-java fork that fixes the OSGi split problem.
     http_archive(
         name = "io_grpc_grpc_java",
-        urls = ["https://github.com/opennetworkinglab/grpc-java/archive/v%s-patched.zip" % GRPC_VER],
+        urls = ["https://github.com/opennetworkinglab/grpc-java/archive/v%s-patched.zip" % GRPC_JAVA_VERSION],
         sha256 = GRPC_SHA,
-        strip_prefix = "grpc-java-%s-patched" % GRPC_VER,
+        strip_prefix = "grpc-java-%s-patched" % GRPC_JAVA_VERSION,
     )
 
     # Google APIs protos (status.proto, etc.)
