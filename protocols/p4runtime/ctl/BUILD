@@ -5,7 +5,7 @@ COMPILE_DEPS = CORE_DEPS + KRYO + [
     "//protocols/p4runtime/api:onos-protocols-p4runtime-api",
     "//protocols/p4runtime/proto:onos-protocols-p4runtime-proto",
     "@com_google_protobuf//:protobuf_java",
-    "//protocols/grpc:grpc-bundle-core",
+    "//protocols/grpc:grpc-core",
     "@io_grpc_grpc_java//netty",
     "@io_grpc_grpc_java//protobuf-lite",
     "@io_grpc_grpc_java//stub",
