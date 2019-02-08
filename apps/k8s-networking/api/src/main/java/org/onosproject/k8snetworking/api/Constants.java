@@ -31,7 +31,7 @@ public final class Constants {
     public static final String ARP_PROXY_MODE = "proxy";
 
     public static final String DEFAULT_GATEWAY_MAC_STR = "fe:00:00:00:00:02";
-    public static final String DEFAULT_HOST_MAC_STR = "fe:00:00:00:00:08";
+
     public static final MacAddress DEFAULT_GATEWAY_MAC =
                         MacAddress.valueOf(DEFAULT_GATEWAY_MAC_STR);
 
@@ -45,10 +45,7 @@ public final class Constants {
     // flow priority
     public static final int PRIORITY_SNAT_RULE = 26000;
     public static final int PRIORITY_TUNNEL_TAG_RULE = 30000;
-    public static final int PRIORITY_DHCP_RULE = 42000;
-    public static final int PRIORITY_ADMIN_RULE = 32000;
-    public static final int PRIORITY_ACL_RULE = 31000;
-    public static final int PRIORITY_ACL_INGRESS_RULE = 30000;
+    public static final int PRIORITY_TRANSLATION_RULE = 30000;
     public static final int PRIORITY_CT_HOOK_RULE = 30500;
     public static final int PRIORITY_CT_RULE = 32000;
     public static final int PRIORITY_CT_DROP_RULE = 32500;
@@ -66,10 +63,6 @@ public final class Constants {
     public static final int STAT_INBOUND_TABLE = 0;
     public static final int VTAP_INBOUND_TABLE = 1;
     public static final int VTAP_INBOUND_MIRROR_TABLE = 2;
-    public static final int STAT_FLAT_OUTBOUND_TABLE = 10;
-    public static final int VTAP_FLAT_OUTBOUND_TABLE = 11;
-    public static final int VTAP_FLAT_OUTBOUND_MIRROR_TABLE = 12;
-    public static final int DHCP_TABLE = 5;
     public static final int VTAG_TABLE = 30;
     public static final int ARP_TABLE = 35;
     public static final int ACL_EGRESS_TABLE = 40;
@@ -83,9 +76,4 @@ public final class Constants {
     public static final int VTAP_OUTBOUND_MIRROR_TABLE = 72;
     public static final int FORWARDING_TABLE = 80;
     public static final int ERROR_TABLE = 100;
-
-    // group table index
-    public static final int VTAP_INBOUND_GROUP_TABLE = 1;
-    public static final int VTAP_FLAT_OUTBOUND_GROUP_TABLE = 2;
-    public static final int VTAP_OUTBOUND_GROUP_TABLE = 3;
 }

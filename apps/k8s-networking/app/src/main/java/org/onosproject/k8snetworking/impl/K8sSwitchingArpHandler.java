@@ -90,6 +90,8 @@ public class K8sSwitchingArpHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    private static final String API_SERVER_CLUSTER_IP = "10.96.0.1";
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
@@ -212,7 +214,7 @@ public class K8sSwitchingArpHandler {
                 .filter(n -> n.gatewayIp().equals(targetIp))
                 .count();
 
-        if (gwIpCnt > 0) {
+        if (gwIpCnt > 0 || targetIp.equals(IpAddress.valueOf(API_SERVER_CLUSTER_IP))) {
             replyMac = gwMacAddress;
         }
 
