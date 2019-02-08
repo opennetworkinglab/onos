@@ -47,21 +47,18 @@ public class MapEventTest {
         assertThat(stats1.name(), is("a"));
         assertThat(stats1.type(), is(MapEvent.Type.INSERT));
         assertThat(stats1.key(), is("1"));
-        assertThat(stats1.value(), is(vStatsNew));
         assertThat(stats1.newValue(), is(vStatsNew));
         assertThat(stats1.oldValue(), is((Versioned<Integer>) null));
 
         assertThat(stats2.name(), is("a"));
         assertThat(stats2.type(), is(MapEvent.Type.REMOVE));
         assertThat(stats2.key(), is("1"));
-        assertThat(stats2.value(), is(vStatsOld));
         assertThat(stats2.newValue(), is((Versioned<Integer>) null));
         assertThat(stats2.oldValue(), is(vStatsOld));
 
         assertThat(stats3.name(), is("a"));
         assertThat(stats3.type(), is(MapEvent.Type.UPDATE));
         assertThat(stats3.key(), is("1"));
-        assertThat(stats3.value(), is(vStatsNew));
         assertThat(stats3.newValue(), is(vStatsNew));
         assertThat(stats3.oldValue(), is(vStatsOld));
     }

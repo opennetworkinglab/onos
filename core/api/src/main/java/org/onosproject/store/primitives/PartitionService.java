@@ -42,29 +42,9 @@ public interface PartitionService extends ListenerService<PartitionEvent, Partit
     Set<NodeId> getConfiguredMembers(PartitionId partitionId);
 
     /**
-     * Returns the set of controller nodes that are the current active members of a partition.
-     *
-     * @param partitionId partition identifier
-     * @return set of node identifiers
-     * @deprecated since 1.14
-     */
-    @Deprecated
-    Set<NodeId> getActiveMembersMembers(PartitionId partitionId);
-
-    /**
      * Returns the identifiers of all partitions.
      *
      * @return set of partition identifiers
      */
     Set<PartitionId> getAllPartitionIds();
-
-    /**
-     * Returns a DistributedPrimitiveCreator that can create primitives hosted on a partition.
-     *
-     * @param partitionId partition identifier
-     * @return distributed primitive creator
-     * @deprecated since 1.14
-     */
-    @Deprecated
-    DistributedPrimitiveCreator getDistributedPrimitiveCreator(PartitionId partitionId);
 }

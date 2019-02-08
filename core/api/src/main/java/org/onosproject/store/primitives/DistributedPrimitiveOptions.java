@@ -101,17 +101,6 @@ public abstract class DistributedPrimitiveOptions<O extends DistributedPrimitive
     }
 
     /**
-     * Disables recording usage stats for this primitive.
-     * @deprecated usage of this method is discouraged for most common scenarios.
-     * @return this builder
-     */
-    @Deprecated
-    public O withMeteringDisabled() {
-        this.meteringDisabled = true;
-        return (O) this;
-    }
-
-    /**
      * Disables state changing operations on the returned distributed primitive.
      * @return this builder
      */

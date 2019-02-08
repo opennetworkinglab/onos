@@ -50,7 +50,6 @@ import org.onosproject.store.service.DocumentTreeBuilder;
 import org.onosproject.store.service.EventuallyConsistentMapBuilder;
 import org.onosproject.store.service.LeaderElectorBuilder;
 import org.onosproject.store.service.MapInfo;
-import org.onosproject.store.service.PartitionInfo;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageAdminService;
 import org.onosproject.store.service.StorageService;
@@ -337,11 +336,6 @@ public class StorageManager implements StorageService, StorageAdminService {
                     .withTotalPending(stats.totalPending())
                     .build());
             }).collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
-    }
-
-    @Override
-    public List<PartitionInfo> getPartitionInfo() {
-        return partitionAdminService.partitionInfo();
     }
 
     @Override

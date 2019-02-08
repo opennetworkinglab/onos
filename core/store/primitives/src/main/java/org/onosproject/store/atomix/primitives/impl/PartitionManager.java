@@ -23,7 +23,6 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.cluster.PartitionId;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.store.atomix.impl.AtomixManager;
-import org.onosproject.store.primitives.DistributedPrimitiveCreator;
 import org.onosproject.store.primitives.PartitionAdminService;
 import org.onosproject.store.primitives.PartitionEvent;
 import org.onosproject.store.primitives.PartitionEventListener;
@@ -87,12 +86,6 @@ public class PartitionManager extends AbstractListenerManager<PartitionEvent, Pa
     }
 
     @Override
-    public DistributedPrimitiveCreator getDistributedPrimitiveCreator(PartitionId partitionId) {
-        checkPermission(PARTITION_READ);
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public Set<NodeId> getConfiguredMembers(PartitionId partitionId) {
         checkPermission(PARTITION_READ);
         io.atomix.primitive.partition.PartitionId atomixPartitionId =
@@ -101,14 +94,6 @@ public class PartitionManager extends AbstractListenerManager<PartitionEvent, Pa
             .stream()
             .map(member -> NodeId.nodeId(member.id()))
             .collect(Collectors.toSet());
-    }
-
-    @Override
-    public Set<NodeId> getActiveMembersMembers(PartitionId partitionId) {
-        checkPermission(PARTITION_READ);
-        // TODO: This needs to query metadata to determine currently active
-        // members of partition
-        return getConfiguredMembers(partitionId);
     }
 
     @Override

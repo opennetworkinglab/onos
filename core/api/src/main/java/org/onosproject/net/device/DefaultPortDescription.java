@@ -170,20 +170,6 @@ public class DefaultPortDescription extends AbstractDescription
          *
          * @param number to set
          * @return self
-         *
-         * @deprecated in 1.13.0 use withPortNumber() instead.
-         */
-
-        @Deprecated
-        public Builder withPortNumer(PortNumber number) {
-            return withPortNumber(number);
-        }
-
-        /**
-         * Sets mandatory field PortNumber.
-         *
-         * @param number to set
-         * @return self
          */
         public Builder withPortNumber(PortNumber number) {
             this.number = checkNotNull(number);

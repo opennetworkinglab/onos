@@ -27,15 +27,6 @@ import org.onosproject.store.primitives.TransactionId;
 public interface StorageAdminService {
 
     /**
-     * Returns information about all partitions in the system.
-     *
-     * @return list of partition information
-     * @deprecated 1.5.0 Falcon Release
-     */
-    @Deprecated
-    List<PartitionInfo> getPartitionInfo();
-
-    /**
      * Returns information about all the consistent maps in the system.
      *
      * @return list of map information

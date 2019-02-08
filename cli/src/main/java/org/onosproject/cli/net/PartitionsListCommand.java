@@ -27,7 +27,6 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.store.primitives.PartitionAdminService;
 import org.onosproject.store.service.PartitionClientInfo;
 import org.onosproject.store.service.PartitionInfo;
-import org.onosproject.store.service.StorageAdminService;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -175,9 +174,8 @@ public class PartitionsListCommand extends AbstractShellCommand {
 
     @Override
     protected void doExecute() {
-        StorageAdminService storageAdminService = get(StorageAdminService.class);
+        PartitionAdminService partitionAdminService = get(PartitionAdminService.class);
         if (reportClientInfo) {
-            PartitionAdminService partitionAdminService = get(PartitionAdminService.class);
             List<PartitionClientInfo> partitionClientInfo = partitionAdminService.partitionClientInfo();
             if (outputJson()) {
                 print("%s", jsonForClientInfo(partitionClientInfo));
@@ -185,7 +183,7 @@ public class PartitionsListCommand extends AbstractShellCommand {
                 displayPartitionClients(partitionClientInfo);
             }
         } else {
-            List<PartitionInfo> partitionInfo = storageAdminService.getPartitionInfo();
+            List<PartitionInfo> partitionInfo = partitionAdminService.partitionInfo();
             if (outputJson()) {
                 print("%s", json(partitionInfo));
             } else {

@@ -35,30 +35,6 @@ public final class DefaultTableStatisticsEntry implements TableStatisticsEntry {
      * Default table statistics constructor.
      *
      * @param deviceId device identifier
-     * @param tableId index table identifier
-     * @param activeFlowEntries number of active flow entries in the table
-     * @param packetsLookedupCount number of packets looked up in table
-     * @param packetsMatchedCount number of packets that hit table
-     * @deprecated since 1.15, suggest using the Builder class.
-     */
-    @Deprecated
-    public DefaultTableStatisticsEntry(DeviceId deviceId,
-                                       int  tableId,
-                                       long activeFlowEntries,
-                                       long packetsLookedupCount,
-                                       long packetsMatchedCount) {
-        this.deviceId = checkNotNull(deviceId);
-        this.tableId = IndexTableId.of(tableId);
-        this.activeFlowEntries = activeFlowEntries;
-        this.packetsLookedupCount = packetsLookedupCount;
-        this.packetsMatchedCount = packetsMatchedCount;
-        this.maxSize = NOT_PRESENT;
-    }
-
-    /**
-     * Default table statistics constructor.
-     *
-     * @param deviceId device identifier
      * @param tableId table identifier
      * @param activeFlowEntries number of active flow entries in the table
      * @param packetsLookedupCount number of packets looked up in table
