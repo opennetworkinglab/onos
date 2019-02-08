@@ -18,6 +18,8 @@ package org.onosproject.workflow.api;
 import org.onosproject.event.Event;
 import org.onosproject.event.ListenerService;
 
+import java.util.Set;
+
 /**
  * Interface for workflow execution service.
  */
@@ -45,11 +47,11 @@ public interface WorkflowExecutionService extends ListenerService<WorkflowDataEv
     /**
      * Registers workflow event map.
      * @param eventType event type (class name of event)
-     * @param eventHint event hint value
+     * @param eventHintSet Set of event hint value
      * @param contextName workflow context name to be called by this event map
      * @param programCounterString worklet type to be called by this event map
      * @throws WorkflowException workflow exception
      */
-    void registerEventMap(Class<? extends Event> eventType, String eventHint,
+    void registerEventMap(Class<? extends Event> eventType, Set<String> eventHintSet,
                           String contextName, String programCounterString) throws WorkflowException;
 }

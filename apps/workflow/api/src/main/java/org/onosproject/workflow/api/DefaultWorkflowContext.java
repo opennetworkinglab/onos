@@ -21,6 +21,8 @@ import org.onlab.osgi.ServiceNotFoundException;
 import org.onosproject.event.Event;
 
 import java.net.URI;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.onosproject.workflow.api.CheckCondition.check;
 
@@ -60,9 +62,9 @@ public class DefaultWorkflowContext extends WorkflowContext {
     private transient Class<? extends Event> completionEventType;
 
     /**
-     * Completion event hint.
+     * Completion event hint Set.
      */
-    private transient String completionEventHint;
+    private transient Set<String> completionEventHintSet;
 
     /**
      * Completion event generator method reference.
@@ -170,7 +172,18 @@ public class DefaultWorkflowContext extends WorkflowContext {
     public void waitCompletion(Class<? extends Event> eventType, String eventHint,
                                WorkExecutor eventGenerator, long timeoutMs) {
         this.completionEventType = eventType;
-        this.completionEventHint = eventHint;
+        this.completionEventHintSet = new HashSet<>();
+        this.completionEventHintSet.add(eventHint);
+        this.completionEventGenerator = eventGenerator;
+        this.completionEventTimeoutMs = timeoutMs;
+    }
+
+    @Override
+    public void waitAnyCompletion(Class<? extends Event> eventType, Set<String> eventHint,
+                               WorkExecutor eventGenerator, long timeoutMs) {
+        this.completionEventType = eventType;
+        this.completionEventHintSet = new HashSet<>();
+        this.completionEventHintSet.addAll(eventHint);
         this.completionEventGenerator = eventGenerator;
         this.completionEventTimeoutMs = timeoutMs;
     }
@@ -186,8 +199,8 @@ public class DefaultWorkflowContext extends WorkflowContext {
     }
 
     @Override
-    public String completionEventHint() {
-        return completionEventHint;
+    public Set<String> completionEventHints() {
+        return completionEventHintSet;
     }
 
     @Override

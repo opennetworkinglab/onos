@@ -19,6 +19,8 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.onosproject.store.service.EventuallyConsistentMap;
+import org.onosproject.store.service.WallClockTimestamp;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -43,6 +45,7 @@ import org.slf4j.Logger;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -63,6 +66,9 @@ public class DistributedContextEventMapTreeStore implements ContextEventMapStore
 
     private AsyncDocumentTree<String> eventMapTree;
 
+    private EventuallyConsistentMap<String, Set<String>> hintSetPerCxtMap;
+
+
     @Activate
     public void activate() {
 
@@ -78,36 +84,66 @@ public class DistributedContextEventMapTreeStore implements ContextEventMapStore
                 .withName("context-event-map-store")
                 .withOrdering(Ordering.INSERTION)
                 .buildDocumentTree();
+
+        hintSetPerCxtMap = storageService.<String, Set<String>>eventuallyConsistentMapBuilder()
+                .withName("workflow-event-hint-per-cxt")
+                .withSerializer(eventMapNamespace)
+                .withTimestampProvider((k, v) -> new WallClockTimestamp())
+                .build();
+
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
         eventMapTree.destroy();
+        hintSetPerCxtMap.destroy();
         log.info("Stopped");
     }
 
     @Override
-    public void registerEventMap(String eventType, String eventHint,
+    public void registerEventMap(String eventType, Set<String> eventHintSet,
                                  String contextName, String programCounterString) throws WorkflowException {
-        DocumentPath dpath = DocumentPath.from(Lists.newArrayList("root", eventType, eventHint, contextName));
-        String currentWorkletType = completeVersioned(eventMapTree.get(dpath));
-        if (currentWorkletType == null) {
-            complete(eventMapTree.createRecursive(dpath, programCounterString));
-        } else {
-            complete(eventMapTree.replace(dpath, programCounterString, currentWorkletType));
+        for (String eventHint : eventHintSet) {
+            //Insert in eventCxtPerHintMap
+            DocumentPath dpathForCxt = DocumentPath.from(Lists.newArrayList(
+                    "root", eventType, eventHint, contextName));
+            String currentWorkletType = completeVersioned(eventMapTree.get(dpathForCxt));
+            if (currentWorkletType == null) {
+                complete(eventMapTree.createRecursive(dpathForCxt, programCounterString));
+            } else {
+                complete(eventMapTree.replace(dpathForCxt, programCounterString, currentWorkletType));
+            }
+            log.trace("RegisterEventMap for eventType:{}, eventSet:{}, contextName:{}, pc:{}",
+                     eventType, eventHintSet, contextName, programCounterString);
+
         }
+        hintSetPerCxtMap.put(contextName, eventHintSet);
+        log.trace("RegisterEventMap in hintSetPerCxt for " +
+                         "eventType:{}, eventSet:{}, contextName:{}, pc:{}",
+                 eventType, eventHintSet, contextName, programCounterString);
     }
 
     @Override
-    public void unregisterEventMap(String eventType, String eventHint, String contextName) throws WorkflowException {
-        DocumentPath contextPath = DocumentPath.from(Lists.newArrayList("root", eventType, eventHint, contextName));
-        complete(eventMapTree.removeNode(contextPath));
+    public void unregisterEventMap(String eventType, String contextName)
+            throws WorkflowException {
+
+        Set<String> hints = hintSetPerCxtMap.get(contextName);
+        for (String eventHint : hints) {
+            //Remove from eventCxtPerHintMap
+            complete(eventMapTree.removeNode(DocumentPath.from(Lists.newArrayList(
+                    "root", eventType, eventHint, contextName))));
+            log.trace("UnregisterEventMap from eventCxtPerHintMap for eventType:{}, eventSet:{}, contextName:{}",
+                     eventType, eventHint, contextName);
+        }
+        hintSetPerCxtMap.remove(contextName);
     }
 
+
     @Override
-    public Map<String, String> getEventMap(String eventType, String eventHint) throws WorkflowException {
-        DocumentPath path = DocumentPath.from(Lists.newArrayList("root", eventType, eventHint));
+    public Map<String, String> getEventMapByHint(String eventType, String eventHint) throws WorkflowException {
+        DocumentPath path = DocumentPath.from(
+                Lists.newArrayList("root", eventType, eventHint));
         Map<String, Versioned<String>> contexts = complete(eventMapTree.getChildren(path));
         Map<String, String> eventMap = Maps.newHashMap();
         if (Objects.isNull(contexts)) {
@@ -117,8 +153,23 @@ public class DistributedContextEventMapTreeStore implements ContextEventMapStore
         for (Map.Entry<String, Versioned<String>> entry : contexts.entrySet()) {
             eventMap.put(entry.getKey(), entry.getValue().value());
         }
+        log.trace("getEventMapByHint returns eventMap {} ", eventMap);
         return eventMap;
     }
+
+    @Override
+    public boolean isEventMapPresent(String contextName) {
+        Map<String, String> eventMap = Maps.newHashMap();
+        Set<String> eventHintSet = hintSetPerCxtMap.get(contextName);
+        if (Objects.nonNull(eventHintSet)) {
+            log.trace("EventMap present for Context:{}", contextName);
+            return true;
+        } else {
+            log.trace("EventMap Doesnt exist for Context:{}", contextName);
+            return false;
+        }
+    }
+
 
     @Override
     public Map<String, Versioned<String>> getChildren(String path) throws WorkflowException {

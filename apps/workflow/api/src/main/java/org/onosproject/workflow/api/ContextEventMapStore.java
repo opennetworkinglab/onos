@@ -21,6 +21,7 @@ import org.onosproject.store.service.DocumentPath;
 import org.onosproject.store.service.Versioned;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  *  WorkflowContext Event Map Store.
@@ -30,36 +31,43 @@ public interface ContextEventMapStore {
     /**
      * Registers workflow context event mapping.
      * @param eventType the class name of event
-     * @param eventHint event hint string value of the event
+     * @param eventHintSet Set of event hint string value of the event
      * @param contextName workflow context name
      * @param programCounterString the program counter of workflow
      * @throws WorkflowException workflow exception
      */
-    void registerEventMap(String eventType, String eventHint,
+    void registerEventMap(String eventType, Set<String> eventHintSet,
                           String contextName, String programCounterString) throws WorkflowException;
 
     /**
      * Unregisters workflow context event mapping.
      * @param eventType the class name of event
-     * @param eventHint event hint string value of the event
      * @param contextName workflow context name
      * @throws WorkflowException workflow exception
      */
-    void unregisterEventMap(String eventType, String eventHint,
+    void unregisterEventMap(String eventType,
                             String contextName) throws WorkflowException;
 
     /**
      * Returns workflow context event mapping.
      * @param eventType the class name of event
-     * @param eventHint event hint string value of the event
-     * @return workflow context event mapping
+     * @param eventHint vent hint string value of the event
+     * @return Map of workflow context and value (program counter)
      * @throws WorkflowException workflow exception
      */
-    Map<String, String> getEventMap(String eventType, String eventHint) throws WorkflowException;
+    Map<String, String> getEventMapByHint(String eventType,
+                                          String eventHint) throws WorkflowException;
+
+    /**
+     * Returns true or false depending on existence of eventMap of given context.
+     * @param contextName name of workflow context
+     * @return Boolean true or false depending on existence of eventMap of given context
+     */
+    boolean isEventMapPresent(String contextName);
 
     /**
      * Returns child nodes on document tree path.
-     * @param path document tree path
+     * @param path document tree path including eventType and Hint
      * @return children under document tree path
      * @throws WorkflowException workflow exception
      */
