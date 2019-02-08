@@ -58,7 +58,6 @@ import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.k8snetworking.api.Constants.ACL_EGRESS_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.ARP_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.DEFAULT_GATEWAY_MAC;
-import static org.onosproject.k8snetworking.api.Constants.DHCP_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.FORWARDING_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.JUMP_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.K8S_NETWORKING_APP_ID;
@@ -219,10 +218,7 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
 
         // for inbound table transition
         connectTables(deviceId, STAT_INBOUND_TABLE, VTAP_INBOUND_TABLE);
-        connectTables(deviceId, VTAP_INBOUND_TABLE, DHCP_TABLE);
-
-        // for DHCP and vTag table transition
-        connectTables(deviceId, DHCP_TABLE, VTAG_TABLE);
+        connectTables(deviceId, VTAP_INBOUND_TABLE, VTAG_TABLE);
 
         // for vTag and ARP table transition
         connectTables(deviceId, VTAG_TABLE, ARP_TABLE);
