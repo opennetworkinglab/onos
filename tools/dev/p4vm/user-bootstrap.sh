@@ -15,6 +15,7 @@ tee -a ~/.bashrc <<EOF
 export ONOS_ROOT=~/onos
 source ~/onos/tools/dev/bash_profile
 source ~/onos/tools/dev/p4vm/bm-commands.sh
+export BMV2_INSTALL=/usr/local
 EOF
 
 # Build and install P4 tools

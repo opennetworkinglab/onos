@@ -1,0 +1,83 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Builds dependencies and copies stratum_bmv2 binary to a remote node.
+# -----------------------------------------------------------------------------
+
+function _usage () {
+cat << _EOF_
+usage:
+ $(basename $0) [node]
+
+options:
+- [node] : remote node to install Stratum on.
+
+summary:
+ Builds dependencies and copies stratum_bmv2 binary to a remote node.
+
+ If [node] is not specified the default target is \$OCN.
+
+ This script requires env STRATUM_BMV2_TAR to be set and to point to a tar file
+ containing the following files (pre-built stratum_bmv2 binaries):
+  - stratum/bazel-bin/stratum/hal/bin/bmv2/stratum_bmv2
+  - stratum/stratum/hal/bin/bmv2/dummy.json
+
+_EOF_
+}
+
+[[ "$1" = "-h" ]] && _usage && exit 0
+
+[[ ! -d "$ONOS_ROOT" ]] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. ${ONOS_ROOT}/tools/build/envDefaults
+
+[[ ! -f ${STRATUM_BMV2_TAR} ]] && echo "STRATUM_BMV2_TAR is not defined or points to an invalid file" && exit 1
+
+md5cmd=''
+md5cmdprm=''
+case "$OSTYPE" in
+  darwin*)  md5cmd='md5' ; md5cmdprm='-q' ;;
+  *)        md5cmd='md5sum';;
+esac
+
+node=${1:-$OCN}
+remote=${ONOS_USER}@${node}
+
+stratumRoot="/home/${ONOS_USER}/stratum"
+stratumExportLine="export STRATUM_ROOT=${stratumRoot}"
+stratumMd5=$(${md5cmd} ${md5cmdprm} ${STRATUM_BMV2_TAR})
+stratumInstalled="~/.stratum_bmv2_installed_${stratumMd5}"
+
+p4ToolsScript=${ONOS_ROOT}/tools/dev/p4vm/install-p4-tools.sh
+p4ToolsMd5=$(${md5cmd} ${md5cmdprm} ${p4ToolsScript})
+p4ToolsInstalled="~/.stratum_deps_installed_${p4ToolsMd5}"
+
+function do_deps {
+    if ssh ${remote} stat "${p4ToolsInstalled}" \> /dev/null 2\>\&1 ; then
+        echo "stratum deps already up-to-date on ${node}"
+    else
+        ssh ${remote} "sudo rm -f /tmp/install-p4-tools.sh"
+        scp -qr ${p4ToolsScript} ${ONOS_USER}@[${node}]:/tmp/install-p4-tools.sh
+        ssh -tt ${remote} "
+            USE_STRATUM=true DEBUG_FLAGS=false FAST_BUILD=true CLEAN_UP=true \
+                bash /tmp/install-p4-tools.sh bmv2 \
+                && touch ${p4ToolsInstalled}
+        "
+    fi
+}
+
+function do_stratum_bin {
+    if ssh ${remote} stat "${stratumInstalled}" \> /dev/null 2\>\&1 ; then
+        echo "stratum_bmv2 already up-to-date on ${node}"
+    else
+        ssh ${remote} "sudo rm -f /tmp/stratum_bmv2.tar.gz"
+        scp -qr ${STRATUM_BMV2_TAR} ${ONOS_USER}@[${node}]:/tmp/stratum_bmv2.tar.gz
+        ssh -tt ${remote} "
+            rm -rf ${stratumRoot} && \
+            tar xvf /tmp/stratum_bmv2.tar.gz --directory /home/${ONOS_USER} \
+            && touch ${stratumInstalled} \
+            && grep -qF -- \"${stratumExportLine}\" ~/.bash_aliases || echo \"${stratumExportLine}\" >> ~/.bash_aliases
+        "
+    fi
+}
+
+do_deps
+do_stratum_bin

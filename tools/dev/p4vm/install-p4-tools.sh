@@ -3,7 +3,7 @@
 # Builds and installs all tools needed for developing and testing P4 support in
 # ONOS.
 #
-# Tested on Ubuntu 14.04, 16.04 and 18.04.
+# Tested on 16.04 and 18.04.
 #
 # Recommended minimum system requirements:
 # 4 GB of RAM
@@ -11,7 +11,7 @@
 # 8 GB free hard drive space (~4 GB to build everything)
 #
 # To execute up to a given step, pass the step name as the first argument. For
-# example, to install PI, but not BMv2, p4c, etc:
+# example, to install PI, but not bmv2, p4c, etc:
 #   ./install-p4-tools.sh PI
 # -----------------------------------------------------------------------------
 
@@ -21,7 +21,7 @@ set -e
 BUILD_DIR=~/p4tools
 # in case BMV2_COMMIT value is updated, the same variable in
 # protocols/bmv2/thrift-api/BUCK file should also be updated
-BMV2_COMMIT="7fd3b39519ca892c2e160b8be358d3f487b1b00e"
+BMV2_COMMIT="9c8ab62d5680044b94aa2e37b6989f386cc7ae7c"
 PI_COMMIT="a95222eca9b039f6398c048d7e1a1bf7f49b7235"
 P4C_COMMIT="264da2c524c849df0d9ba478cdd1d61b29d64722"
 PROTOBUF_COMMIT="tags/v3.2.0"
@@ -29,14 +29,21 @@ GRPC_COMMIT="tags/v1.3.2"
 LIBYANG_COMMIT="v0.14-r1"
 SYSREPO_COMMIT="v0.7.2"
 
+set -x
 NUM_CORES=`grep -c ^processor /proc/cpuinfo`
-
 # If false, build tools without debug features to improve throughput of BMv2 and
 # reduce CPU/memory footprint. Default is true.
 DEBUG_FLAGS=${DEBUG_FLAGS:-true}
-
 # Execute up to the given step (first argument), or all if not defined.
 LAST_STEP=${1:-all}
+# PI and BMv2 must be configured differently if we want to use Stratum
+USE_STRATUM=${USE_STRATUM:-false}
+# Improve time for one-time builds
+FAST_BUILD=${FAST_BUILD:-false}
+# Remove build artifacts
+CLEAN_UP=${CLEAN_UP:-false}
+BMV2_INSTALL=/usr/local
+set +x
 
 function do_requirements {
     sudo apt update
@@ -91,30 +98,6 @@ function do_requirements {
     sudo -H pip install setuptools cffi ipaddr ipaddress pypcap
 }
 
-function do_requirements_1404 {
-    sudo apt install -y python-software-properties software-properties-common
-    sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-    sudo add-apt-repository -y ppa:george-edison55/cmake-3.x
-    sudo apt update
-    sudo apt install -y \
-        dpkg-dev \
-        g++-4.9 \
-        gcc-4.9 \
-        cmake \
-        libbz2-dev \
-        libreadline6 \
-        libreadline6-dev \
-        mktemp
-
-    # Needed for p4c.
-    sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 50
-    sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 50
-
-    if [ -z "$(ldconfig -p | grep libboost_iostreams.so.1.58.0)"  ]; then
-        do_boost
-    fi
-}
-
 function do_requirements_1604 {
     sudo apt-get update
     sudo apt-get install -y --no-install-recommends \
@@ -140,41 +123,9 @@ function do_requirements_1804 {
         libprotobuf-c-dev
 }
 
-function do_boost {
-    cd ${BUILD_DIR}
-    wget https://sourceforge.net/projects/boost/files/boost/1.58.0/boost_1_58_0.tar.bz2/download -O boost_1_58_0.tar.bz2
-    tar --bzip2 -xf boost_1_58_0.tar.bz2
-    cd boost_1_58_0
-
-    ./bootstrap.sh --with-libraries=iostreams
-    sudo ./b2 install
-    sudo ldconfig
-
-    cd ..
-    sudo rm -rf boost_1_58_0
-}
-
-function do_protobuf-c {
-    cd ${BUILD_DIR}
-    git clone https://github.com/protobuf-c/protobuf-c.git
-    cd protobuf-c
-
-    ./autogen.sh
-    ./configure --prefix=/usr
-    make -j${NUM_CORES}
-    sudo make install
-    sudo ldconfig
-
-    cd ..
-    sudo rm -rf protobuf-c
-}
-
 function do_protobuf {
-    if check_lib libprotobuf; then
-        return
-    fi
     cd ${BUILD_DIR}
-    if [ ! -d protobuf ]; then
+    if [[ ! -d protobuf ]]; then
       git clone https://github.com/google/protobuf.git
     fi
     cd protobuf
@@ -196,11 +147,8 @@ function do_protobuf {
 }
 
 function do_grpc {
-    if check_lib libgrpc; then
-        return
-    fi
     cd ${BUILD_DIR}
-    if [ ! -d grpc ]; then
+    if [[ ! -d grpc ]]; then
       git clone https://github.com/grpc/grpc.git
     fi
     cd grpc
@@ -210,7 +158,7 @@ function do_grpc {
 
     export LDFLAGS="-Wl,-s"
     RELEASE=`lsb_release -rs`
-    if version_ge $RELEASE 18.04; then
+    if version_ge ${RELEASE} 18.04; then
        # Ubuntu 18.04 ships OpenSSL 1.1 by default, which has breaking changes in the API.
        # Here, we will build grpc with OpenSSL 1.0.
        # (Reference: https://github.com/grpc/grpc/issues/10589)
@@ -228,53 +176,9 @@ function do_grpc {
     sudo pip install .
 }
 
-function do_libyang {
-    cd ${BUILD_DIR}
-    if [ ! -d libyang ]; then
-      git clone https://github.com/CESNET/libyang.git
-    fi
-    cd libyang
-    git fetch
-    git checkout ${LIBYANG_COMMIT}
-
-    mkdir -p build
-    cd build
-    cmake ..
-    make -j${NUM_CORES}
-    sudo make install
-    sudo ldconfig
-}
-
-function do_sysrepo_deps {
-    RELEASE=`lsb_release -rs`
-    if version_ge $RELEASE 14.04 && [ -z "$(ldconfig -p | grep libprotobuf-c)"  ]; then
-        do_protobuf-c
-    fi
-}
-
-function do_sysrepo {
-    do_sysrepo_deps
-
-    cd ${BUILD_DIR}
-    if [ ! -d sysrepo ]; then
-      git clone https://github.com/sysrepo/sysrepo.git
-    fi
-    cd sysrepo
-    git fetch
-    git checkout ${SYSREPO_COMMIT}
-
-    mkdir -p build
-    cd build
-    cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=Off \
-        -DCALL_TARGET_BINS_DIRECTLY=Off ..
-    make -j${NUM_CORES}
-    sudo make install
-    sudo ldconfig
-}
-
 function checkout_bmv2 {
     cd ${BUILD_DIR}
-    if [ ! -d bmv2 ]; then
+    if [[ ! -d bmv2 ]]; then
         git clone https://github.com/p4lang/behavioral-model.git bmv2
     fi
     cd bmv2
@@ -288,17 +192,17 @@ function do_pi_bmv2_deps {
     # Nanomsg is required also by PI.
     tmpdir=`mktemp -d -p .`
     cd ${tmpdir}
-    bash ../travis/install-thrift.sh
-    bash ../travis/install-nanomsg.sh
+    if [[ "${USE_STRATUM}" = false ]] ; then
+        bash ../travis/install-thrift.sh
+    fi
     sudo ldconfig
-    bash ../travis/install-nnpy.sh
     cd ..
-    sudo rm -rf $tmpdir
+    sudo rm -rf ${tmpdir}
 }
 
 function do_PI {
     cd ${BUILD_DIR}
-    if [ ! -d PI ]; then
+    if [[ ! -d PI ]]; then
         git clone https://github.com/p4lang/PI.git
     fi
     cd PI
@@ -307,44 +211,56 @@ function do_PI {
     git submodule update --init --recursive
 
     ./autogen.sh
-    # FIXME: re-enable --with-sysrepo when gNMI support becomes more stable
-    # ./configure --with-proto --with-sysrepo
-    ./configure --with-proto --without-internal-rpc --without-cli
+    if [[ "${USE_STRATUM}" = false ]] ; then
+        ./configure --with-proto --without-internal-rpc --without-cli
+    else
+        # Configure for Stratum
+        ./configure --without-bmv2 --without-proto --without-fe-cpp --without-cli --without-internal-rpc --prefix=${BMV2_INSTALL}
+    fi
     make -j${NUM_CORES}
     sudo make install
     sudo ldconfig
-
-    # FIXME: re-enable when gNMI support becomes more stable
-    # sudo proto/sysrepo/install_yangs.sh
 }
 
 function do_bmv2 {
     checkout_bmv2
 
     ./autogen.sh
-    if [ "${DEBUG_FLAGS}" = true ] ; then
-        ./configure --with-pi --disable-elogger --without-nanomsg
-    else
-        ./configure --with-pi --disable-elogger --without-nanomsg --disable-logging-macros
+
+    confOpts="--with-pi --disable-elogger --without-nanomsg --without-targets"
+    if [[ "${FAST_BUILD}" = true ]] ; then
+        confOpts="${confOpts} --disable-dependency-tracking"
     fi
+    if [[ "${DEBUG_FLAGS}" = false ]] ; then
+        confOpts="${confOpts} --disable-logging-macros"
+    fi
+    if [[ "${USE_STRATUM}" = true ]] ; then
+        confOpts="CPPFLAGS=\"-isystem${BMV2_INSTALL}/include\" --prefix=${BMV2_INSTALL} --without-thrift ${confOpts}"
+    fi
+    confCmd="./configure ${confOpts}"
+    eval ${confCmd}
+
+    make -j${NUM_CORES}
+    sudo make install
+    cd targets/simple_switch
     make -j${NUM_CORES}
     sudo make install
     sudo ldconfig
 
-    # Simple_switch_grpc target
-    cd targets/simple_switch_grpc
-    ./autogen.sh
-    ./configure --with-thrift
-    # FIXME: re-enable --with-sysrepo when gNMI support becomes more stable
-    # ./configure --with-sysrepo --with-thrift
-    make -j${NUM_CORES}
-    sudo make install
-    sudo ldconfig
+    if [[ "${USE_STRATUM}" = false ]] ; then
+        # Simple_switch_grpc target (not using Stratum)
+        cd targets/simple_switch_grpc
+        ./autogen.sh
+        ./configure --with-thrift
+        make -j${NUM_CORES}
+        sudo make install
+        sudo ldconfig
+    fi
 }
 
 function do_p4c {
     cd ${BUILD_DIR}
-    if [ ! -d p4c ]; then
+    if [[ ! -d p4c ]]; then
         git clone https://github.com/p4lang/p4c.git
     fi
     cd p4c
@@ -362,7 +278,7 @@ function do_p4c {
 
 function do_scapy-vxlan {
     cd ${BUILD_DIR}
-    if [ ! -d scapy-vxlan ]; then
+    if [[ ! -d scapy-vxlan ]]; then
         git clone https://github.com/p4lang/scapy-vxlan.git
     fi
     cd scapy-vxlan
@@ -374,7 +290,7 @@ function do_scapy-vxlan {
 
 function do_ptf {
     cd ${BUILD_DIR}
-    if [ ! -d ptf ]; then
+    if [[ ! -d ptf ]]; then
         git clone https://github.com/p4lang/ptf.git
     fi
     cd ptf
@@ -384,7 +300,7 @@ function do_ptf {
 }
 
 function check_commit {
-    if [ ! -e $2 ]; then
+    if [[ ! -e $2 ]]; then
         return 0 # true
     fi
     if [[ $(< $2) != "$1" ]]; then
@@ -398,16 +314,25 @@ function version_ge {
     # sort -V sorts by *version number*
     latest=`printf "$1\n$2" | sort -V | tail -1`
     # If $1 is latest version, then $1 >= $2
-    [ "$1" == "$latest" ]
+    [[ "$1" == "$latest" ]]
 }
 
-function check_lib {
+function missing_lib {
     ldconfig -p | grep $1 &> /dev/null
-    if [ $? == 0 ]; then
+    if [[ $? == 0 ]]; then
         echo "$1 found!"
-        return 0 # true
+        return 1 # false
     fi
-    return 1 # false
+    return 0 # true
+}
+
+function all_done {
+    if [[ "${CLEAN_UP}" = true ]] ; then
+        echo "Cleaning up build dir... ${BUILD_DIR})"
+        sudo rm -rf ${BUILD_DIR}
+    fi
+    echo "Done!"
+    exit 0
 }
 
 MUST_DO_ALL=false
@@ -420,7 +345,7 @@ function check_and_do {
     func_name="$3"
     step_name="$4"
     commit_file=${BUILD_DIR}/${proj_dir}/.last_built_commit_${step_name}
-    if [ ${MUST_DO_ALL} = true ] \
+    if [[ ${MUST_DO_ALL} = true ]] \
         || check_commit ${commit_id} ${commit_file}; then
         echo "#"
         echo "# Building ${step_name} (${commit_id})"
@@ -432,12 +357,10 @@ function check_and_do {
             # TODO consider other Linux distros; presently this script assumes
             # that it is running on Ubuntu.
             RELEASE=`lsb_release -rs`
-            if version_ge $RELEASE 18.04; then
+            if version_ge ${RELEASE} 18.04; then
                 do_requirements_1804
-            elif version_ge $RELEASE 16.04; then
+            elif version_ge ${RELEASE} 16.04; then
                 do_requirements_1604
-            elif version_ge $RELEASE 14.04; then
-                do_requirements_1404
             else
                 echo "Ubuntu version $RELEASE is not supported"
                 exit 1
@@ -458,19 +381,20 @@ function check_and_do {
         echo "${step_name} is up to date (commit ${commit_id})"
     fi
     # Exit if last step.
-    if [ ${step_name} = ${LAST_STEP} ]; then
-        exit
+    if [[ ${step_name} = ${LAST_STEP} ]]; then
+        all_done
     fi
 }
 
 mkdir -p ${BUILD_DIR}
 cd ${BUILD_DIR}
 # In dependency order.
-check_and_do ${PROTOBUF_COMMIT} protobuf do_protobuf protobuf
-check_and_do ${GRPC_COMMIT} grpc do_grpc grpc
-# FIXME: re-enable when gNMI support becomes more stable
-# check_and_do ${LIBYANG_COMMIT} libyang do_libyang libyang
-# check_and_do ${SYSREPO_COMMIT} sysrepo do_sysrepo sysrepo
+if missing_lib libprotobuf; then
+    check_and_do ${PROTOBUF_COMMIT} protobuf do_protobuf protobuf
+fi
+if missing_lib libgrpc; then
+    check_and_do ${GRPC_COMMIT} grpc do_grpc grpc
+fi
 check_and_do ${BMV2_COMMIT} bmv2 do_pi_bmv2_deps bmv2-deps
 check_and_do ${PI_COMMIT} PI do_PI PI
 check_and_do ${BMV2_COMMIT} bmv2 do_bmv2 bmv2
@@ -478,4 +402,4 @@ check_and_do ${P4C_COMMIT} p4c do_p4c p4c
 check_and_do master scapy-vxlan do_scapy-vxlan scapy-vxlan
 check_and_do master ptf do_ptf ptf
 
-echo "Done!"
+all_done
