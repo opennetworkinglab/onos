@@ -47,7 +47,7 @@ elif [ -e "$ATOMIX_MAVEN" ]; then
 else
   echo "Pushing to $node from $ATOMIX_LOCAL"
   if [ ! -f "$ATOMIX_LOCAL" ]; then
-      curl -o $ATOMIX_LOCAL $ATOMIX_REMOTE
+      curl -L -o $ATOMIX_LOCAL $ATOMIX_REMOTE
   fi
   ATOMIX_TAR=$ATOMIX_LOCAL
 fi
