@@ -1,3 +1,19 @@
+# coding=utf-8
+"""
+Copyright 2019-present Open Networking Foundation
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
 import multiprocessing
 import os
 
@@ -5,11 +21,12 @@ import json
 import random
 import re
 import socket
+import sys
 import threading
 import time
 import urllib2
 from contextlib import closing
-from mininet.log import info, warn
+from mininet.log import info, warn, debug
 from mininet.node import Switch, Host
 
 SIMPLE_SWITCH_GRPC = 'simple_switch_grpc'
@@ -18,6 +35,17 @@ VALGRIND_PREFIX = 'valgrind --leak-check=yes'
 SWITCH_START_TIMEOUT = 5  # seconds
 BMV2_LOG_LINES = 5
 BMV2_DEFAULT_DEVICE_ID = 1
+
+# Stratum paths relative to stratum repo root
+STRATUM_BMV2 = 'stratum_bmv2'
+STRATUM_BINARY = '/bazel-bin/stratum/hal/bin/bmv2/' + STRATUM_BMV2
+STRATUM_INIT_PIPELINE = '/stratum/hal/bin/bmv2/dummy.json'
+
+
+def getStratumRoot():
+    if 'STRATUM_ROOT' not in os.environ:
+        raise Exception("Env variable STRATUM_ROOT not set")
+    return os.environ['STRATUM_ROOT']
 
 
 def parseBoolean(value):
@@ -41,20 +69,27 @@ def writeToFile(path, value):
 
 
 def watchDog(sw):
-    while True:
-        if ONOSBmv2Switch.mininet_exception == 1:
-            sw.killBmv2(log=False)
-            return
-        if sw.stopped:
-            return
-        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
-            if s.connect_ex(('127.0.0.1', sw.grpcPort)) == 0:
-                time.sleep(1)
-            else:
-                warn("\n*** WARN: BMv2 instance %s died!\n" % sw.name)
-                sw.printBmv2Log()
-                print ("-" * 80) + "\n"
+    try:
+        writeToFile(sw.keepaliveFile,
+                    "Remove this file to terminate %s" % sw.name)
+        while True:
+            if ONOSBmv2Switch.mininet_exception == 1 \
+                    or not os.path.isfile(sw.keepaliveFile):
+                sw.killBmv2(log=False)
                 return
+            if sw.stopped:
+                return
+            with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
+                if s.connect_ex(('127.0.0.1', sw.grpcPort)) == 0:
+                    time.sleep(1)
+                else:
+                    warn("\n*** WARN: switch %s died ☠️ \n" % sw.name)
+                    sw.printBmv2Log()
+                    print ("-" * 80) + "\n"
+                    return
+    except Exception as e:
+        warn("*** ERROR: " + e.message)
+        sw.killBmv2(log=True)
 
 
 class ONOSHost(Host):
@@ -86,12 +121,13 @@ class ONOSBmv2Switch(Switch):
                  elogger=False, grpcport=None, cpuport=255, notifications=False,
                  thriftport=None, netcfg=True, dryrun=False, pipeconf="",
                  pktdump=False, valgrind=False, gnmi=False,
-                 portcfg=True, onosdevid=None, **kwargs):
+                 portcfg=True, onosdevid=None, stratum=False, **kwargs):
         Switch.__init__(self, name, **kwargs)
         self.grpcPort = grpcport
         self.thriftPort = thriftport
         self.cpuPort = cpuport
         self.json = json
+        self.useStratum = parseBoolean(stratum)
         self.debugger = parseBoolean(debugger)
         self.notifications = parseBoolean(notifications)
         self.loglevel = loglevel
@@ -116,7 +152,11 @@ class ONOSBmv2Switch(Switch):
             self.onosDeviceId = "device:bmv2:%s" % self.name
         self.logfd = None
         self.bmv2popen = None
-        self.stopped = False
+        self.stopped = True
+        # In case of exceptions, mininet removes *.out files from /tmp. We use
+        # this as a signal to terminate the switch instance (if active).
+        self.keepaliveFile = '/tmp/bmv2-%s-watchdog.out' % self.name
+        self.targetName = STRATUM_BMV2 if self.useStratum else SIMPLE_SWITCH_GRPC
 
         # Remove files from previous executions
         self.cleanupTmpFiles()
@@ -226,29 +266,43 @@ class ONOSBmv2Switch(Switch):
             warn("*** WARN: unable to push config to ONOS (%s)\n" % e.reason)
 
     def start(self, controllers):
-        bmv2Args = [SIMPLE_SWITCH_GRPC] + self.grpcTargetArgs()
-        if self.valgrind:
-            bmv2Args = VALGRIND_PREFIX.split() + bmv2Args
 
-        cmdString = " ".join(bmv2Args)
+        if not self.stopped:
+            warn("*** %s is already running!\n" % self.name)
+            return
+
+        # Remove files from previous executions (if we are restarting)
+        self.cleanupTmpFiles()
+
+        if self.grpcPort is None:
+            self.grpcPort = pickUnusedPort()
+        writeToFile("/tmp/bmv2-%s-grpc-port" % self.name, self.grpcPort)
+
+        if self.useStratum:
+            config_dir = "/tmp/bmv2-%s-stratum" % self.name
+            os.mkdir(config_dir)
+            cmdString = self.getStratumCmdString(config_dir)
+        else:
+            if self.thriftPort is None:
+                self.thriftPort = pickUnusedPort()
+            writeToFile("/tmp/bmv2-%s-thrift-port" % self.name, self.thriftPort)
+            cmdString = self.getBmv2CmdString()
 
         if self.dryrun:
-            info("\n*** DRY RUN (not executing bmv2)")
+            info("\n*** DRY RUN (not executing %s)\n" % self.targetName)
 
-        info("\nStarting BMv2 target: %s\n" % cmdString)
-
-        writeToFile("/tmp/bmv2-%s-grpc-port" % self.name, self.grpcPort)
-        writeToFile("/tmp/bmv2-%s-thrift-port" % self.name, self.thriftPort)
+        debug("\n%s\n" % cmdString)
 
         try:
             if not self.dryrun:
                 # Start the switch
+                self.stopped = False
                 self.logfd = open(self.logfile, "w")
                 self.bmv2popen = self.popen(cmdString,
                                             stdout=self.logfd,
                                             stderr=self.logfd)
                 self.waitBmv2Start()
-                # We want to be notified if BMv2 dies...
+                # We want to be notified if BMv2/Stratum dies...
                 threading.Thread(target=watchDog, args=[self]).start()
 
             self.doOnosNetcfg(self.controllerIp(controllers))
@@ -258,11 +312,29 @@ class ONOSBmv2Switch(Switch):
             self.printBmv2Log()
             raise
 
-    def grpcTargetArgs(self):
-        if self.grpcPort is None:
-            self.grpcPort = pickUnusedPort()
-        if self.thriftPort is None:
-            self.thriftPort = pickUnusedPort()
+    def getBmv2CmdString(self):
+        bmv2Args = [SIMPLE_SWITCH_GRPC] + self.bmv2Args()
+        if self.valgrind:
+            bmv2Args = VALGRIND_PREFIX.split() + bmv2Args
+        return " ".join(bmv2Args)
+
+    def getStratumCmdString(self, config_dir):
+        stratumRoot = getStratumRoot()
+        args = [
+            stratumRoot + STRATUM_BINARY,
+            '-device_id=%d' % BMV2_DEFAULT_DEVICE_ID,
+            '-forwarding_pipeline_configs_file=%s/config.txt' % config_dir,
+            '-persistent_config_dir=' + config_dir,
+            '-initial_pipeline=' + stratumRoot + STRATUM_INIT_PIPELINE,
+            '-cpu_port=%s' % self.cpuPort,
+            '-external_hercules_urls=0.0.0.0:%d' % self.grpcPort
+        ]
+        for port, intf in self.intfs.items():
+            if not intf.IP():
+                args.append('%d@%s' % (port, intf.name))
+        return " ".join(args)
+
+    def bmv2Args(self):
         args = ['--device-id %s' % str(BMV2_DEFAULT_DEVICE_ID)]
         for port, intf in self.intfs.items():
             if not intf.IP():
@@ -299,12 +371,17 @@ class ONOSBmv2Switch(Switch):
         while True:
             result = sock.connect_ex(('127.0.0.1', self.grpcPort))
             if result == 0:
+                # No new line
+                sys.stdout.write("⚡️ %s @ %d" % (self.targetName, self.bmv2popen.pid))
+                sys.stdout.flush()
                 # The port is open. Let's go! (Close socket first)
                 sock.close()
                 break
             # Port is not open yet. If there is time, we wait a bit.
             if endtime > time.time():
-                time.sleep(0.1)
+                sys.stdout.write('.')
+                sys.stdout.flush()
+                time.sleep(0.05)
             else:
                 # Time's up.
                 raise Exception("Switch did not start before timeout")
@@ -331,23 +408,35 @@ class ONOSBmv2Switch(Switch):
         return random.choice(clist).IP()
 
     def killBmv2(self, log=False):
+        self.stopped = True
         if self.bmv2popen is not None:
-            self.bmv2popen.kill()
+            self.bmv2popen.terminate()
+            self.bmv2popen.wait()
+            self.bmv2popen = None
         if self.logfd is not None:
             if log:
                 self.logfd.write("*** PROCESS TERMINATED BY MININET ***\n")
             self.logfd.close()
+            self.logfd = None
 
     def cleanupTmpFiles(self):
-        self.cmd("rm -f /tmp/bmv2-%s-*" % self.name)
+        self.cmd("rm -rf /tmp/bmv2-%s-*" % self.name)
 
     def stop(self, deleteIntfs=True):
         """Terminate switch."""
-        self.stopped = True
         self.killBmv2(log=True)
         Switch.stop(self, deleteIntfs)
 
 
+class ONOSStratumSwitch(ONOSBmv2Switch):
+    def __init__(self, name, **kwargs):
+        kwargs["stratum"] = True
+        super(ONOSStratumSwitch, self).__init__(name, **kwargs)
+
+
 # Exports for bin/mn
-switches = {'onosbmv2': ONOSBmv2Switch}
+switches = {
+    'onosbmv2': ONOSBmv2Switch,
+    'stratum': ONOSStratumSwitch,
+}
 hosts = {'onoshost': ONOSHost}
