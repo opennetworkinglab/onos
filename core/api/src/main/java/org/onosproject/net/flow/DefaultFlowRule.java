@@ -52,7 +52,6 @@ public class DefaultFlowRule implements FlowRule {
     private final GroupId groupId;
 
     private final TableId tableId;
-    private final FlowRuleExtPayLoad payLoad;
 
     /**
      * Creates a new flow rule from an existing rule.
@@ -73,7 +72,6 @@ public class DefaultFlowRule implements FlowRule {
         this.permanent = rule.isPermanent();
         this.created = System.currentTimeMillis();
         this.tableId = rule.table();
-        this.payLoad = rule.payLoad();
     }
 
     private DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
@@ -97,154 +95,6 @@ public class DefaultFlowRule implements FlowRule {
 
         //FIXME: fields below will be removed.
         this.groupId = new GroupId(0);
-        this.payLoad = null;
-    }
-
-    /**
-     * Support for the third party flow rule. Creates a flow rule of flow table.
-     *
-     * @param deviceId the identity of the device where this rule applies
-     * @param selector the traffic selector that identifies what traffic this
-     *            rule
-     * @param treatment the traffic treatment that applies to selected traffic
-     * @param priority the flow rule priority given in natural order
-     * @param appId the application id of this flow
-     * @param timeout the timeout for this flow requested by an application
-     * @param permanent whether the flow is permanent i.e. does not time out
-     * @param payLoad 3rd-party origin private flow
-     * @deprecated in Junco release. Use FlowRule.Builder instead.
-     */
-    @Deprecated
-    public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
-                           TrafficTreatment treatment, int priority,
-                           ApplicationId appId, int timeout, boolean permanent,
-                           FlowRuleExtPayLoad payLoad) {
-        this(deviceId, selector, treatment, priority, appId, timeout, 0, permanent, payLoad);
-    }
-
-
-    /**
-     * Support for the third party flow rule. Creates a flow rule of flow table.
-     *
-     * @param deviceId the identity of the device where this rule applies
-     * @param selector the traffic selector that identifies what traffic this
-     *            rule
-     * @param treatment the traffic treatment that applies to selected traffic
-     * @param priority the flow rule priority given in natural order
-     * @param appId the application id of this flow
-     * @param timeout the timeout for this flow requested by an application
-     * @param hardTimeout the hard timeout located switch's flow table for this flow requested by an application
-     * @param permanent whether the flow is permanent i.e. does not time out
-     * @param payLoad 3rd-party origin private flow
-     * @deprecated in Junco release. Use FlowRule.Builder instead.
-     */
-    @Deprecated
-    public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
-                           TrafficTreatment treatment, int priority,
-                           ApplicationId appId, int timeout, int hardTimeout, boolean permanent,
-                           FlowRuleExtPayLoad payLoad) {
-
-        checkArgument(priority >= MIN_PRIORITY, "Priority cannot be less than " +
-                MIN_PRIORITY);
-        checkArgument(priority <= MAX_PRIORITY, "Priority cannot be greater than " +
-                MAX_PRIORITY);
-
-        this.deviceId = deviceId;
-        this.priority = priority;
-        this.selector = selector;
-        this.treatment = treatment;
-        this.appId = appId.id();
-        this.groupId = new GroupId(0);
-        this.timeout = timeout;
-        this.reason = FlowRemoveReason.NO_REASON;
-        this.hardTimeout = hardTimeout;
-        this.permanent = permanent;
-        this.tableId = DEFAULT_TABLE;
-        this.created = System.currentTimeMillis();
-        this.payLoad = payLoad;
-
-        /*
-         * id consists of the following. | appId (16 bits) | groupId (16 bits) |
-         * flowId (32 bits) |
-         */
-        this.id = FlowId.valueOf((((long) this.appId) << 48)
-                | (((long) this.groupId.id()) << 32)
-                | (this.hash() & 0xffffffffL));
-    }
-
-    /**
-     * Support for the third party flow rule. Creates a flow rule of group
-     * table.
-     *
-     * @param deviceId the identity of the device where this rule applies
-     * @param selector the traffic selector that identifies what traffic this
-     *            rule
-     * @param treatment the traffic treatment that applies to selected traffic
-     * @param priority the flow rule priority given in natural order
-     * @param appId the application id of this flow
-     * @param groupId the group id of this flow
-     * @param timeout the timeout for this flow requested by an application
-     * @param permanent whether the flow is permanent i.e. does not time out
-     * @param payLoad 3rd-party origin private flow
-     * @deprecated in Junco release. Use FlowRule.Builder instead.
-     */
-    @Deprecated
-    public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
-                           TrafficTreatment treatment, int priority,
-                           ApplicationId appId, GroupId groupId, int timeout,
-                           boolean permanent, FlowRuleExtPayLoad payLoad) {
-        this(deviceId, selector, treatment, priority, appId, groupId, timeout, 0, permanent, payLoad);
-    }
-
-    /**
-     * Support for the third party flow rule. Creates a flow rule of group
-     * table.
-     *
-     * @param deviceId the identity of the device where this rule applies
-     * @param selector the traffic selector that identifies what traffic this
-     *            rule
-     * @param treatment the traffic treatment that applies to selected traffic
-     * @param priority the flow rule priority given in natural order
-     * @param appId the application id of this flow
-     * @param groupId the group id of this flow
-     * @param timeout the timeout for this flow requested by an application
-     * @param hardTimeout the hard timeout located switch's flow table for this flow requested by an application
-     * @param permanent whether the flow is permanent i.e. does not time out
-     * @param payLoad 3rd-party origin private flow
-     * @deprecated in Junco release. Use FlowRule.Builder instead.
-     */
-    @Deprecated
-    public DefaultFlowRule(DeviceId deviceId, TrafficSelector selector,
-                           TrafficTreatment treatment, int priority,
-                           ApplicationId appId, GroupId groupId, int timeout, int hardTimeout,
-                           boolean permanent, FlowRuleExtPayLoad payLoad) {
-
-        checkArgument(priority >= MIN_PRIORITY, "Priority cannot be less than " +
-                MIN_PRIORITY);
-        checkArgument(priority <= MAX_PRIORITY, "Priority cannot be greater than " +
-                MAX_PRIORITY);
-
-        this.deviceId = deviceId;
-        this.priority = priority;
-        this.selector = selector;
-        this.treatment = treatment;
-        this.appId = appId.id();
-        this.groupId = groupId;
-        this.timeout = timeout;
-        this.reason = FlowRemoveReason.NO_REASON;
-        this.hardTimeout = hardTimeout;
-        this.permanent = permanent;
-        this.created = System.currentTimeMillis();
-        this.tableId = DEFAULT_TABLE;
-        this.payLoad = payLoad;
-
-        /*
-         * id consists of the following. | appId (16 bits) | groupId (16 bits) |
-         * flowId (32 bits) |
-         */
-        this.id = FlowId.valueOf((((long) this.appId) << 48)
-                | (((long) this.groupId.id()) << 32)
-                | (this.hash() & 0xffffffffL));
     }
 
     @Override
@@ -291,12 +141,12 @@ public class DefaultFlowRule implements FlowRule {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(deviceId, selector, tableId, payLoad);
+        return Objects.hash(deviceId, selector, tableId);
     }
 
     //FIXME do we need this method in addition to hashCode()?
     private int hash() {
-        return Objects.hash(deviceId, selector, tableId, payLoad);
+        return Objects.hash(deviceId, selector, tableId);
     }
 
     /*
@@ -316,8 +166,7 @@ public class DefaultFlowRule implements FlowRule {
             return Objects.equals(deviceId, that.deviceId) &&
                     Objects.equals(priority, that.priority) &&
                     Objects.equals(selector, that.selector) &&
-                    Objects.equals(tableId, that.tableId)
-                     && Objects.equals(payLoad, that.payLoad);
+                    Objects.equals(tableId, that.tableId);
         }
         return false;
     }
@@ -339,7 +188,6 @@ public class DefaultFlowRule implements FlowRule {
                 .add("treatment", treatment == null ? "N/A" : treatment)
                 .add("tableId", tableId)
                 .add("created", created)
-                .add("payLoad", payLoad)
                 .toString();
     }
 
@@ -534,10 +382,4 @@ public class DefaultFlowRule implements FlowRule {
             return hashCode.asInt();
         }
     }
-
-    @Override
-    public FlowRuleExtPayLoad payLoad() {
-        return payLoad;
-    }
-
 }

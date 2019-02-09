@@ -42,7 +42,6 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.utils.Comparators;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -68,7 +67,7 @@ public class VirtualFlowsListCommand extends AbstractShellCommand {
 
     private static final String LONG_FORMAT = "    id=%s, state=%s, bytes=%s, "
             + "packets=%s, duration=%s, liveType=%s, priority=%s, tableId=%s, appId=%s, "
-            + "payLoad=%s, selector=%s, treatment=%s";
+            + "selector=%s, treatment=%s";
 
     private static final String SHORT_FORMAT = "    %s, bytes=%s, packets=%s, "
             + "table=%s, priority=%s, selector=%s, treatment=%s";
@@ -247,7 +246,6 @@ public class VirtualFlowsListCommand extends AbstractShellCommand {
                 print(LONG_FORMAT, Long.toHexString(f.id().value()), f.state(),
                         f.bytes(), f.packets(), f.life(), f.liveType(), f.priority(), f.tableId(),
                         appId != null ? appId.name() : "<none>",
-                        f.payLoad() == null ? null : Arrays.toString(f.payLoad().payLoad()),
                         f.selector().criteria(), f.treatment());
             }
         }

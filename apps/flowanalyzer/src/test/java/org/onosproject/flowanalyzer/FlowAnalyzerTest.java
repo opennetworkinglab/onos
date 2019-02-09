@@ -25,7 +25,6 @@ import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.FlowRuleExtPayLoad;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
@@ -105,16 +104,30 @@ public class FlowAnalyzerTest {
         TrafficSelector ts = DefaultTrafficSelector.builder().matchInPort(PortNumber.portNumber(inPort)).build();
         TrafficTreatment tt = DefaultTrafficTreatment.builder()
                 .add(Instructions.createOutput(PortNumber.portNumber(outPort))).build();
-        return new DefaultFlowRule(device, ts, tt, 1, new DefaultApplicationId(5000, "of"),
-                                   50000, true, FlowRuleExtPayLoad.flowRuleExtPayLoad(new byte[5]));
+        return DefaultFlowRule.builder()
+            .forDevice(device)
+            .withSelector(ts)
+            .withTreatment(tt)
+            .withPriority(1)
+            .fromApp(new DefaultApplicationId(5000, "of"))
+            .withHardTimeout(50000)
+            .makePermanent()
+            .build();
     }
     public FlowRule genFlow(String d, long outPort) {
         DeviceId device = DeviceId.deviceId(d);
         TrafficSelector ts = DefaultTrafficSelector.builder().build();
         TrafficTreatment tt = DefaultTrafficTreatment.builder()
                 .add(Instructions.createOutput(PortNumber.portNumber(outPort))).build();
-        return new DefaultFlowRule(device, ts, tt, 1, new DefaultApplicationId(5000, "of"),
-                                   50000, true, FlowRuleExtPayLoad.flowRuleExtPayLoad(new byte[5]));
+        return DefaultFlowRule.builder()
+            .forDevice(device)
+            .withSelector(ts)
+            .withTreatment(tt)
+            .withPriority(1)
+            .fromApp(new DefaultApplicationId(5000, "of"))
+            .withHardTimeout(50000)
+            .makePermanent()
+            .build();
     }
 
 }

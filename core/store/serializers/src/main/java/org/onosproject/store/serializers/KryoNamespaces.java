@@ -101,7 +101,6 @@ import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowId;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleEvent;
-import org.onosproject.net.flow.FlowRuleExtPayLoad;
 import org.onosproject.net.flow.IndexTableId;
 import org.onosproject.net.flow.StatTriggerField;
 import org.onosproject.net.flow.StatTriggerFlag;
@@ -584,7 +583,6 @@ public final class KryoNamespaces {
                     BooleanConstraint.class,
                     PartialFailureConstraint.class,
                     IntentOperation.class,
-                    FlowRuleExtPayLoad.class,
                     DefaultAnnotations.class,
                     PortStatistics.class,
                     DefaultPortStatistics.class,

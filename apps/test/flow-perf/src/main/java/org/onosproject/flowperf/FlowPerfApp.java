@@ -211,14 +211,16 @@ public class FlowPerfApp {
                     .build();
             TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                     .add(Instructions.createOutput(PortNumber.portNumber(3))).build();
-            FlowRule rule = new DefaultFlowRule(device.id(),
-                    selector,
-                    treatment,
-                    100,
-                    appId,
-                    50000,
-                    true,
-                    null);
+            FlowRule rule = DefaultFlowRule.builder()
+                .forDevice(device.id())
+                .withSelector(selector)
+                .withTreatment(treatment)
+                .withPriority(100)
+                .fromApp(appId)
+                .withHardTimeout(50000)
+                .makePermanent()
+                .build();
+
             rules.add(rule);
         }
         return rules;

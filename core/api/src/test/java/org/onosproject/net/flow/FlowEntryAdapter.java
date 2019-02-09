@@ -142,10 +142,4 @@ public class FlowEntryAdapter implements FlowEntry {
     public boolean exactMatch(FlowRule rule) {
         return false;
     }
-
-    @Override
-    public FlowRuleExtPayLoad payLoad() {
-        return null;
-    }
-
 }

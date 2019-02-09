@@ -33,7 +33,6 @@ import org.onosproject.net.Path;
 import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.flow.FlowId;
 import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.FlowRuleExtPayLoad;
 import org.onosproject.net.flow.IndexTableId;
 import org.onosproject.net.flow.TableId;
 import org.onosproject.net.flow.TrafficSelector;
@@ -450,21 +449,12 @@ public class IntentTestsMocks {
         IndexTableId tableId;
         long timestamp;
         int id;
-        FlowRuleExtPayLoad payLoad;
 
         public MockFlowRule(int priority) {
             this.priority = priority;
             this.tableId = DEFAULT_TABLE;
             this.timestamp = System.currentTimeMillis();
             this.id = nextId++;
-            this.payLoad = null;
-        }
-
-        public MockFlowRule(int priority, FlowRuleExtPayLoad payLoad) {
-            this.priority = priority;
-            this.timestamp = System.currentTimeMillis();
-            this.id = nextId++;
-            this.payLoad = payLoad;
         }
 
         @Override
@@ -553,11 +543,6 @@ public class IntentTestsMocks {
         @Override
         public TableId table() {
             return tableId;
-        }
-
-        @Override
-        public FlowRuleExtPayLoad payLoad() {
-            return payLoad;
         }
     }
 

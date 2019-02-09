@@ -46,7 +46,6 @@ import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.oldbatch.FlowRuleBatchEntry;
 import org.onosproject.net.flow.oldbatch.FlowRuleBatchOperation;
-import org.onosproject.net.flow.FlowRuleExtPayLoad;
 import org.onosproject.net.flow.FlowRuleProvider;
 import org.onosproject.net.flow.FlowRuleProviderRegistry;
 import org.onosproject.net.flow.FlowRuleProviderService;
@@ -61,7 +60,6 @@ import org.onosproject.openflow.controller.OpenFlowEventListener;
 import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.onosproject.openflow.controller.OpenFlowSwitchListener;
 import org.onosproject.openflow.controller.RoleState;
-import org.onosproject.openflow.controller.ThirdPartyMessage;
 import org.onosproject.provider.of.flow.util.FlowEntryBuilder;
 import org.osgi.service.component.ComponentContext;
 import org.projectfloodlight.openflow.protocol.OFBadRequestCode;
@@ -309,12 +307,6 @@ public class OpenFlowRuleProvider extends AbstractProvider
             return;
         }
 
-        FlowRuleExtPayLoad flowRuleExtPayLoad = flowRule.payLoad();
-        if (hasPayload(flowRuleExtPayLoad)) {
-            OFMessage msg = new ThirdPartyMessage(flowRuleExtPayLoad.payLoad());
-            sw.sendMsg(msg);
-            return;
-        }
         sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
                 Optional.empty(), Optional.of(driverService)).buildFlowAdd());
     }
@@ -334,12 +326,6 @@ public class OpenFlowRuleProvider extends AbstractProvider
             return;
         }
 
-        FlowRuleExtPayLoad flowRuleExtPayLoad = flowRule.payLoad();
-        if (hasPayload(flowRuleExtPayLoad)) {
-            OFMessage msg = new ThirdPartyMessage(flowRuleExtPayLoad.payLoad());
-            sw.sendMsg(msg);
-            return;
-        }
         sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
                                           Optional.empty(), Optional.of(driverService)).buildFlowDel());
     }
@@ -367,14 +353,6 @@ public class OpenFlowRuleProvider extends AbstractProvider
         pendingBatches.put(batch.id(), new InternalCacheEntry(batch));
         OFFlowMod mod;
         for (FlowRuleBatchEntry fbe : batch.getOperations()) {
-            // flow is the third party privacy flow
-
-            FlowRuleExtPayLoad flowRuleExtPayLoad = fbe.target().payLoad();
-            if (hasPayload(flowRuleExtPayLoad)) {
-                OFMessage msg = new ThirdPartyMessage(flowRuleExtPayLoad.payLoad());
-                sw.sendMsg(msg);
-                continue;
-            }
             FlowModBuilder builder =
                     FlowModBuilder.builder(fbe.target(), sw.factory(),
                             Optional.of(batch.id()), Optional.of(driverService));
@@ -398,12 +376,6 @@ public class OpenFlowRuleProvider extends AbstractProvider
         OFBarrierRequest.Builder builder = sw.factory().buildBarrierRequest()
                 .setXid(batch.id());
         sw.sendMsg(builder.build());
-    }
-
-    private boolean hasPayload(FlowRuleExtPayLoad flowRuleExtPayLoad) {
-        return flowRuleExtPayLoad != null &&
-                flowRuleExtPayLoad.payLoad() != null &&
-                flowRuleExtPayLoad.payLoad().length > 0;
     }
 
     private class InternalFlowProvider

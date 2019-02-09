@@ -48,7 +48,6 @@ import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowEntryAdapter;
 import org.onosproject.net.flow.FlowId;
 import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.FlowRuleExtPayLoad;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TableId;
 import org.onosproject.net.flow.TrafficSelector;
@@ -356,11 +355,6 @@ public class IntentsResourceTest extends ResourceTest {
         @Override
         public boolean exactMatch(FlowRule rule) {
             return false;
-        }
-
-        @Override
-        public FlowRuleExtPayLoad payLoad() {
-            return null;
         }
     }
 
