@@ -76,7 +76,7 @@ public class K8sIpamCodecTest {
      */
     @Test
     public void testK8sIpamEncode() {
-        K8sIpam ipam = new DefaultK8sIpam(
+        K8sIpam ipam = new DefaultK8sIpam("network-1-10.10.10.10",
                 IpAddress.valueOf("10.10.10.10"), "network-1");
 
         ObjectNode nodeJson = k8sIpamCodec.encode(ipam, context);

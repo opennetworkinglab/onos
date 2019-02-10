@@ -65,7 +65,8 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Implementation of kubernetes network store using consistent map.
  */
 @Service
-@Component(immediate = true)public class DistributedK8sNetworkStore
+@Component(immediate = true)
+public class DistributedK8sNetworkStore
     extends AbstractStore<K8sNetworkEvent, K8sNetworkStoreDelegate>
     implements K8sNetworkStore {
 

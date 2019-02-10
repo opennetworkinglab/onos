@@ -4,7 +4,7 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + CLI + REST + [
     "//protocols/ovsdb/rfc:onos-protocols-ovsdb-rfc",
     "//apps/k8s-node/api:onos-apps-k8s-node-api",
     "//apps/k8s-networking/api:onos-apps-k8s-networking-api",
-    "@commons_codec//jar",
+    "@commons_net//jar",
 ]
 
 TEST_DEPS = TEST_ADAPTERS + TEST_REST + [
