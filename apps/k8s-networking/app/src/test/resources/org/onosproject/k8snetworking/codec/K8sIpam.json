@@ -1,4 +1,5 @@
 {
+  "ipamId": "network-1-10.10.10.2",
   "ipAddress": "10.10.10.2",
   "networkId": "network-1"
 }

@@ -1,0 +1,26 @@
+{
+  "type": "object",
+  "description": "An IPAM object.",
+  "required": [
+    "ipamId",
+    "networkId",
+    "ipAddress"
+  ],
+  "properties": {
+    "ipamId": {
+      "type": "string",
+      "example": "sona-network-10.10.10.2",
+      "description": "The ID of the IPAM."
+    },
+    "networkId": {
+      "type": "string",
+      "example": "sona-network",
+      "description": "The ID of the attached network."
+    },
+    "ipAddress": {
+      "type": "string",
+      "example": "10.10.10.2",
+      "description": "The IP address of IPAM."
+    }
+  }
+}

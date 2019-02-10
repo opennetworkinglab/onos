@@ -34,6 +34,7 @@ public final class K8sIpamCodec extends JsonCodec<K8sIpam> {
 
     private final Logger log = getLogger(getClass());
 
+    private static final String IPAM_ID = "ipamId";
     private static final String IP_ADDRESS = "ipAddress";
     private static final String NETWORK_ID = "networkId";
 
@@ -44,6 +45,7 @@ public final class K8sIpamCodec extends JsonCodec<K8sIpam> {
         checkNotNull(ipam, "Kubernetes IPAM cannot be null");
 
         return context.mapper().createObjectNode()
+                .put(IPAM_ID, ipam.ipamId())
                 .put(IP_ADDRESS, ipam.ipAddress().toString())
                 .put(NETWORK_ID, ipam.networkId());
     }
@@ -54,11 +56,13 @@ public final class K8sIpamCodec extends JsonCodec<K8sIpam> {
             return null;
         }
 
+        String ipamId = nullIsIllegal(json.get(IPAM_ID).asText(),
+                IPAM_ID + MISSING_MESSAGE);
         String ipAddress = nullIsIllegal(json.get(IP_ADDRESS).asText(),
                 IP_ADDRESS + MISSING_MESSAGE);
         String networkId = nullIsIllegal(json.get(NETWORK_ID).asText(),
                 NETWORK_ID + MISSING_MESSAGE);
 
-        return new DefaultK8sIpam(IpAddress.valueOf(ipAddress), networkId);
+        return new DefaultK8sIpam(ipamId, IpAddress.valueOf(ipAddress), networkId);
     }
 }

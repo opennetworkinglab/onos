@@ -32,6 +32,8 @@ public class DefaultK8sIpamTest {
     private static final IpAddress IP_ADDRESS_2 = IpAddress.valueOf("20.20.20.20");
     private static final String NETWORK_ID_1 = "network-1";
     private static final String NETWORK_ID_2 = "network-2";
+    private static final String IPAM_ID_1 = NETWORK_ID_1 + "-" + IP_ADDRESS_1.toString();
+    private static final String IPAM_ID_2 = NETWORK_ID_2 + "-" + IP_ADDRESS_2.toString();
 
     private K8sIpam ipam1;
     private K8sIpam sameAsIpam1;
@@ -50,9 +52,9 @@ public class DefaultK8sIpamTest {
      */
     @Before
     public void setUp() {
-        ipam1 = new DefaultK8sIpam(IP_ADDRESS_1, NETWORK_ID_1);
-        sameAsIpam1 = new DefaultK8sIpam(IP_ADDRESS_1, NETWORK_ID_1);
-        ipam2 = new DefaultK8sIpam(IP_ADDRESS_2, NETWORK_ID_2);
+        ipam1 = new DefaultK8sIpam(IPAM_ID_1, IP_ADDRESS_1, NETWORK_ID_1);
+        sameAsIpam1 = new DefaultK8sIpam(IPAM_ID_1, IP_ADDRESS_1, NETWORK_ID_1);
+        ipam2 = new DefaultK8sIpam(IPAM_ID_2, IP_ADDRESS_2, NETWORK_ID_2);
     }
 
     /**
@@ -72,6 +74,7 @@ public class DefaultK8sIpamTest {
     public void testConstruction() {
         K8sIpam ipam = ipam1;
 
+        assertEquals(IPAM_ID_1, ipam.ipamId());
         assertEquals(IP_ADDRESS_1, ipam.ipAddress());
         assertEquals(NETWORK_ID_1, ipam.networkId());
     }

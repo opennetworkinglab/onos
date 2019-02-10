@@ -24,13 +24,20 @@ import org.onlab.packet.IpAddress;
  */
 public final class DefaultK8sIpam implements K8sIpam {
 
+    private final String ipamId;
     private final IpAddress ipAddress;
     private final String networkId;
 
     // private constructor not intended for external invocation
-    public DefaultK8sIpam(IpAddress ipAddress, String networkId) {
+    public DefaultK8sIpam(String ipamId, IpAddress ipAddress, String networkId) {
+        this.ipamId = ipamId;
         this.ipAddress = ipAddress;
         this.networkId = networkId;
+    }
+
+    @Override
+    public String ipamId() {
+        return ipamId;
     }
 
     @Override
@@ -52,18 +59,20 @@ public final class DefaultK8sIpam implements K8sIpam {
             return false;
         }
         DefaultK8sIpam that = (DefaultK8sIpam) o;
-        return Objects.equal(ipAddress, that.ipAddress) &&
+        return Objects.equal(ipamId, that.ipamId) &&
+                Objects.equal(ipAddress, that.ipAddress) &&
                 Objects.equal(networkId, that.networkId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(ipAddress, networkId);
+        return Objects.hashCode(ipamId, ipAddress, networkId);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
+                .add("ipamId", ipamId)
                 .add("ipAddress", ipAddress)
                 .add("networkId", networkId)
                 .toString();

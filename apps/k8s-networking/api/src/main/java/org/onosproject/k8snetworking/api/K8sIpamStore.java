@@ -15,7 +15,6 @@
  */
 package org.onosproject.k8snetworking.api;
 
-import org.onlab.packet.IpAddress;
 import org.onosproject.store.Store;
 
 import java.util.Set;
@@ -26,48 +25,88 @@ import java.util.Set;
 public interface K8sIpamStore extends Store<K8sIpamEvent, K8sIpamStoreDelegate> {
 
     /**
-     * Allocates a new IP address.
+     * Creates a new allocated IP address.
      *
-     * @param networkId network identifier
-     * @return newly allocated IP address
+     * @param ipam IPAM instance
      */
-    IpAddress allocateIp(String networkId);
+    void createAllocatedIp(K8sIpam ipam);
 
     /**
-     * Leases the existing IP address.
+     * Updates the existing allocated IP address.
      *
-     * @param networkId network identifier
-     * @return leased IP address
+     * @param ipam IPAM instance
      */
-    IpAddress leaseIp(String networkId);
+    void updateAllocatedIp(K8sIpam ipam);
 
     /**
-     * Initializes a new IP pool with the given network.
+     * Removes the existing allocated IP address.
      *
-     * @param networkId network identifier
+     * @param ipamId IPAM identifier
+     * @return removed IPAM instance; null if failed
      */
-    void initializeIpPool(String networkId);
+    K8sIpam removeAllocatedIp(String ipamId);
 
     /**
-     * Purges an existing IP pool associated with the given network.
+     * Returns the IPAM with the given IPAM identifier.
      *
-     * @param networkId network identifier
+     * @param ipamId IPAM identifier
+     * @return IPAM; null it not found
      */
-    void purgeIpPool(String networkId);
+    K8sIpam allocatedIp(String ipamId);
 
     /**
-     * Returns the already allocated IP addresses.
+     * Returns all allocated IPAM instances.
      *
-     * @param networkId network identifier
-     * @return allocated IP addresses
+     * @return set of IPAM instances
      */
-    Set<IpAddress> allocatedIps(String networkId);
+    Set<K8sIpam> allocatedIps();
 
     /**
-     * Returns the available IP addresses.
+     * Creates a new available IP address.
+     *
+     * @param ipam IPAM instance
+     */
+    void createAvailableIp(K8sIpam ipam);
+
+    /**
+     * Updates the existing available IP address.
+     *
+     * @param ipam IPAM instance
+     */
+    void updateAvailableIp(K8sIpam ipam);
+
+    /**
+     * Removes the existing available IP address.
+     *
+     * @param ipamId IPAM identifier
+     * @return remved IPAM instance; null if failed
+     */
+    K8sIpam removeAvailableIp(String ipamId);
+
+    /**
+     * Returns the IPAM with the given IPAM identifier.
+     *
+     * @param ipamId IPAM identifier
+     * @return IPAM; null it not found
+     */
+    K8sIpam availableIp(String ipamId);
+
+    /**
+     * Returns all available IPAM instances.
+     *
+     * @return set of IPAM instances
+     */
+    Set<K8sIpam> availableIps();
+
+    /**
+     * Clears all allocated and available IP addresses.
+     */
+    void clear();
+
+    /**
+     * Clears allocated and available IP addresses associated with the given network.
      *
      * @param networkId network identifier
-     * @return available IP addresses
      */
-    Set<IpAddress> availableIps(String networkId);
+    void clear(String networkId);
 }

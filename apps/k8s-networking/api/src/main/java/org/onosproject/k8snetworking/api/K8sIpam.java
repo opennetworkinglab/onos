@@ -23,6 +23,13 @@ import org.onlab.packet.IpAddress;
 public interface K8sIpam {
 
     /**
+     * Returns the IPAM identifier.
+     *
+     * @return IPAM identifier
+     */
+    String ipamId();
+
+    /**
      * Returns the IP address.
      *
      * @return IP address

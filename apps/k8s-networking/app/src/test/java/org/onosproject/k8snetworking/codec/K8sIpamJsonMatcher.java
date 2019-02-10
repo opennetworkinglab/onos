@@ -27,6 +27,7 @@ public final class K8sIpamJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode
 
     private final K8sIpam ipam;
 
+    private static final String IPAM_ID = "ipamId";
     private static final String IP_ADDRESS = "ipAddress";
     private static final String NETWORK_ID = "networkId";
 
@@ -36,6 +37,14 @@ public final class K8sIpamJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode
 
     @Override
     protected boolean matchesSafely(JsonNode jsonNode, Description description) {
+
+        // check IPAM ID
+        String jsonIpamId = jsonNode.get(IPAM_ID).asText();
+        String ipamId = ipam.ipamId();
+        if (!jsonIpamId.equals(ipamId)) {
+            description.appendText("IPAM ID was " + jsonIpamId);
+            return false;
+        }
 
         // check IP address
         String jsonIpAddress = jsonNode.get(IP_ADDRESS).asText();
