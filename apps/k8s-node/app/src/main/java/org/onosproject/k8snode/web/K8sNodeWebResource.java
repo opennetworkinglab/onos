@@ -19,6 +19,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
+import org.onosproject.k8snode.api.K8sApiConfig;
+import org.onosproject.k8snode.api.K8sApiConfigAdminService;
 import org.onosproject.k8snode.api.K8sNode;
 import org.onosproject.k8snode.api.K8sNodeAdminService;
 import org.onosproject.rest.AbstractWebResource;
@@ -26,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -43,6 +46,7 @@ import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static javax.ws.rs.core.Response.created;
 import static org.onlab.util.Tools.nullIsIllegal;
 import static org.onlab.util.Tools.readTreeFromStream;
+import static org.onosproject.k8snode.util.K8sNodeUtil.endpoint;
 
 /**
  * Handles REST API call of kubernetes node config.
@@ -55,15 +59,18 @@ public class K8sNodeWebResource extends AbstractWebResource {
 
     private static final String MESSAGE_NODE = "Received node %s request";
     private static final String NODES = "nodes";
+    private static final String API_CONFIGS = "apiConfigs";
     private static final String CREATE = "CREATE";
     private static final String UPDATE = "UPDATE";
     private static final String NODE_ID = "NODE_ID";
-    private static final String DELETE = "DELETE";
+    private static final String REMOVE = "REMOVE";
 
     private static final String HOST_NAME = "hostname";
+    private static final String ENDPOINT = "endpoint";
     private static final String ERROR_MESSAGE = " cannot be null";
 
-    private final K8sNodeAdminService adminService = get(K8sNodeAdminService.class);
+    private final K8sNodeAdminService nodeAdminService = get(K8sNodeAdminService.class);
+    private final K8sApiConfigAdminService configAdminService = get(K8sApiConfigAdminService.class);
 
     @Context
     private UriInfo uriInfo;
@@ -77,15 +84,16 @@ public class K8sNodeWebResource extends AbstractWebResource {
      * @onos.rsModel K8sNode
      */
     @POST
+    @Path("node")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createNodes(InputStream input) {
         log.trace(String.format(MESSAGE_NODE, CREATE));
 
         readNodeConfiguration(input).forEach(node -> {
-            K8sNode existing = adminService.node(node.hostname());
+            K8sNode existing = nodeAdminService.node(node.hostname());
             if (existing == null) {
-                adminService.createNode(node);
+                nodeAdminService.createNode(node);
             }
         });
 
@@ -105,6 +113,7 @@ public class K8sNodeWebResource extends AbstractWebResource {
      * @onos.rsModel K8sNode
      */
     @PUT
+    @Path("node")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateNodes(InputStream input) {
@@ -112,12 +121,12 @@ public class K8sNodeWebResource extends AbstractWebResource {
 
         Set<K8sNode> nodes = readNodeConfiguration(input);
         for (K8sNode node: nodes) {
-            K8sNode existing = adminService.node(node.hostname());
+            K8sNode existing = nodeAdminService.node(node.hostname());
             if (existing == null) {
                 log.warn("There is no node configuration to update : {}", node.hostname());
                 return Response.notModified().build();
             } else if (!existing.equals(node)) {
-                adminService.updateNode(node);
+                nodeAdminService.updateNode(node);
             }
         }
 
@@ -130,23 +139,22 @@ public class K8sNodeWebResource extends AbstractWebResource {
      * @param hostname host name contained in kubernetes nodes configuration
      * @return 204 NO_CONTENT, 400 BAD_REQUEST if the JSON is malformed, and
      * 304 NOT_MODIFIED without the updated config
-     * @onos.rsModel K8sNode
      */
-    @javax.ws.rs.DELETE
+    @DELETE
+    @Path("node/{hostname}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("{hostname}")
     public Response deleteNodes(@PathParam("hostname") String hostname) {
-        log.trace(String.format(MESSAGE_NODE, DELETE));
+        log.trace(String.format(MESSAGE_NODE, REMOVE));
 
         K8sNode existing =
-                adminService.node(nullIsIllegal(hostname, HOST_NAME + ERROR_MESSAGE));
+                nodeAdminService.node(nullIsIllegal(hostname, HOST_NAME + ERROR_MESSAGE));
 
         if (existing == null) {
             log.warn("There is no node configuration to delete : {}", hostname);
             return Response.notModified().build();
         } else {
-            adminService.removeNode(hostname);
+            nodeAdminService.removeNode(hostname);
         }
 
         return Response.noContent().build();
@@ -174,5 +182,112 @@ public class K8sNodeWebResource extends AbstractWebResource {
         }
 
         return nodeSet;
+    }
+
+    /**
+     * Creates a set of kubernetes API config from the JSON input stream.
+     *
+     * @param input kubernetes API configs JSON input stream
+     * @return 201 CREATED if the JSON is correct, 400 BAD_REQUEST if the JSON
+     * is malformed
+     * @onos.rsModel K8sApiConfig
+     */
+    @POST
+    @Path("api")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response createApiConfigs(InputStream input) {
+        log.trace(String.format(MESSAGE_NODE, CREATE));
+
+        readApiConfigConfiguration(input).forEach(config -> {
+            K8sApiConfig existing = configAdminService.apiConfig(endpoint(config));
+            if (existing == null) {
+                configAdminService.createApiConfig(config);
+            }
+        });
+
+        UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()
+                .path(API_CONFIGS);
+
+        return created(locationBuilder.build()).build();
+    }
+
+    /**
+     * Updates a set of kubernetes API config from the JSON input stream.
+     *
+     * @param input kubernetes API configs JSON input stream
+     * @return 200 OK with the updated kubernetes API config, 400 BAD_REQUEST
+     * if the JSON is malformed, and 304 NOT_MODIFIED without the updated config
+     * @onos.rsModel K8sApiConfig
+     */
+    @PUT
+    @Path("api")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateApiConfigs(InputStream input) {
+        log.trace(String.format(MESSAGE_NODE, UPDATE));
+
+        Set<K8sApiConfig> configs = readApiConfigConfiguration(input);
+        for (K8sApiConfig config: configs) {
+            K8sApiConfig existing = configAdminService.apiConfig(endpoint(config));
+            if (existing == null) {
+                log.warn("There is no API configuration to update : {}", endpoint(config));
+                return Response.notModified().build();
+            } else if (!existing.equals(config)) {
+                configAdminService.updateApiConfig(config);
+            }
+        }
+
+        return Response.ok().build();
+    }
+
+    /**
+     * Removes a kubernetes API config.
+     *
+     * @param endpoint kubernetes API endpoint
+     * @return 204 NO_CONTENT, 400 BAD_REQUEST if the JSON is malformed
+     */
+    @DELETE
+    @Path("api/{endpoint : .+}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteApiConfig(@PathParam("endpoint") String endpoint) {
+        log.trace(String.format(MESSAGE_NODE, REMOVE));
+
+        K8sApiConfig existing =
+                configAdminService.apiConfig(nullIsIllegal(endpoint, ENDPOINT + ERROR_MESSAGE));
+
+        if (existing == null) {
+            log.warn("There is no API configuration to delete : {}", endpoint);
+            return Response.notModified().build();
+        } else {
+            configAdminService.removeApiConfig(endpoint);
+        }
+
+        return Response.noContent().build();
+    }
+
+    private Set<K8sApiConfig> readApiConfigConfiguration(InputStream input) {
+        Set<K8sApiConfig> configSet = Sets.newHashSet();
+        try {
+            JsonNode jsonTree = readTreeFromStream(mapper().enable(INDENT_OUTPUT), input);
+            ArrayNode configs = (ArrayNode) jsonTree.path(API_CONFIGS);
+            configs.forEach(config -> {
+                try {
+                    ObjectNode objectNode = config.deepCopy();
+                    K8sApiConfig k8sApiConfig =
+                            codec(K8sApiConfig.class).decode(objectNode, this);
+
+                    configSet.add(k8sApiConfig);
+                } catch (Exception e) {
+                    log.error("Exception occurred due to {}", e);
+                    throw new IllegalArgumentException();
+                }
+            });
+        } catch (Exception e) {
+            throw new IllegalArgumentException(e);
+        }
+
+        return configSet;
     }
 }

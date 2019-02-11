@@ -2,6 +2,8 @@ BUNDLES = [
     "//apps/k8s-networking/api:onos-apps-k8s-networking-api",
     "//apps/k8s-networking/app:onos-apps-k8s-networking-app",
     "@commons_net//jar",
+    "@k8s_client//jar",
+    "@k8s_model//jar",
 ]
 
 onos_app(

@@ -1,0 +1,33 @@
+{
+  "type": "object",
+  "required": [
+    "apiConfigs"
+  ],
+  "properties": {
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "scheme",
+          "ipAddress",
+          "port"
+        ],
+        "properties": {
+          "scheme": {
+            "type": "string",
+            "example": "HTTP"
+          },
+          "ipAddress": {
+            "type": "string",
+            "example": "10.10.10.2"
+          },
+          "port": {
+            "type": "integer",
+            "example": 6443
+          }
+        }
+      }
+    }
+  }
+}

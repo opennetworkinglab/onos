@@ -5,6 +5,8 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + CLI + REST + [
     "//apps/k8s-node/api:onos-apps-k8s-node-api",
     "//apps/k8s-networking/api:onos-apps-k8s-networking-api",
     "@commons_net//jar",
+    "@k8s_client//jar",
+    "@k8s_model//jar",
 ]
 
 TEST_DEPS = TEST_ADAPTERS + TEST_REST + [

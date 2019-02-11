@@ -21,7 +21,9 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onosproject.codec.CodecService;
+import org.onosproject.k8snode.api.K8sApiConfig;
 import org.onosproject.k8snode.api.K8sNode;
+import org.onosproject.k8snode.codec.K8sApiConfigCodec;
 import org.onosproject.k8snode.codec.K8sNodeCodec;
 import org.slf4j.Logger;
 
@@ -42,6 +44,7 @@ public class K8sNodeCodecRegister {
     protected void activate() {
 
         codecService.registerCodec(K8sNode.class, new K8sNodeCodec());
+        codecService.registerCodec(K8sApiConfig.class, new K8sApiConfigCodec());
 
         log.info("Started");
     }
@@ -50,6 +53,7 @@ public class K8sNodeCodecRegister {
     protected void deactivate() {
 
         codecService.unregisterCodec(K8sNode.class);
+        codecService.unregisterCodec(K8sApiConfig.class);
 
         log.info("Stopped");
     }
