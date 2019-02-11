@@ -39,6 +39,7 @@ import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
+import org.onosproject.net.config.basics.BasicDeviceConfig;
 import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescription;
@@ -109,7 +110,8 @@ public class RestDeviceProvider extends AbstractProvider
     protected static final String REST = "rest";
     private static final String PROVIDER = "org.onosproject.provider.rest.device";
     private static final String IPADDRESS = "ipaddress";
-    private static final String ISNOTNULL = "Rest device is not null";
+    private static final String DEVICENULL = "Rest device is null";
+    private static final String DRIVERNULL = "Driver is null";
     private static final String UNKNOWN = "unknown";
     private static final int REST_TIMEOUT_SEC = 5;
     private static final int EXECUTOR_THREAD_POOL_SIZE = 8;
@@ -238,7 +240,7 @@ public class RestDeviceProvider extends AbstractProvider
     @Override
     public boolean isReachable(DeviceId deviceId) {
         RestSBDevice restDevice = controller.getDevice(deviceId);
-        return restDevice != null ? restDevice.isActive() : false;
+        return restDevice != null && restDevice.isActive();
     }
 
     private ScheduledFuture scheduleDevicePolling() {
@@ -268,9 +270,8 @@ public class RestDeviceProvider extends AbstractProvider
 
     private DeviceDescription getDesc(RestSBDevice restSBDev) {
         DeviceId deviceId = restSBDev.deviceId();
-        Driver driver = driverService.getDriver(restSBDev.manufacturer().get(),
-                restSBDev.hwVersion().get(),
-                restSBDev.swVersion().get());
+
+        Driver driver = getDriver(restSBDev);
 
         if (restSBDev.isProxy()) {
             if (driver != null && driver.hasBehaviour(DevicesDiscovery.class)) {
@@ -317,15 +318,13 @@ public class RestDeviceProvider extends AbstractProvider
     }
 
     private void deviceAdded(RestSBDevice restSBDev) {
-        checkNotNull(restSBDev, ISNOTNULL);
+        checkNotNull(restSBDev, DEVICENULL);
 
-        Driver driver = driverService.getDriver(restSBDev.manufacturer().get(),
-                                             restSBDev.hwVersion().get(),
-                                             restSBDev.swVersion().get());
+        Driver driver = getDriver(restSBDev);
 
         // Check if the server is controlling a single or multiple devices
         if (restSBDev.isProxy()) {
-            if (driver != null && driver.hasBehaviour(DevicesDiscovery.class)) {
+            if (driver.hasBehaviour(DevicesDiscovery.class)) {
                 DevicesDiscovery devicesDiscovery = devicesDiscovery(restSBDev, driver);
                 Set<DeviceId> deviceIds = devicesDiscovery.deviceIds();
                 restSBDev.setActive(true);
@@ -344,7 +343,7 @@ public class RestDeviceProvider extends AbstractProvider
                     checkAndUpdateDevice(deviceId);
                 });
             } else {
-                log.warn("Driver not found for {}", restSBDev);
+                log.warn("Device is proxy but driver does not have proxy discovery behaviour {}", restSBDev);
             }
         } else {
             DeviceId deviceId = restSBDev.deviceId();
@@ -368,6 +367,21 @@ public class RestDeviceProvider extends AbstractProvider
             }
             checkAndUpdateDevice(deviceId);
         }
+    }
+
+    private Driver getDriver(RestSBDevice restSBDev) {
+        String driverName = netCfgService.getConfig(restSBDev.deviceId(), BasicDeviceConfig.class).driver();
+
+        Driver driver = driverService.getDriver(driverName);
+
+        if (driver == null) {
+            driver = driverService.getDriver(restSBDev.manufacturer().get(),
+                    restSBDev.hwVersion().get(),
+                    restSBDev.swVersion().get());
+        }
+
+        checkNotNull(driver, DRIVERNULL);
+        return driver;
     }
 
     private DefaultDeviceDescription mergeAnn(DeviceId devId, DeviceDescription desc) {
@@ -434,7 +448,7 @@ public class RestDeviceProvider extends AbstractProvider
     }
 
     private void deviceRemoved(DeviceId deviceId) {
-        checkNotNull(deviceId, ISNOTNULL);
+        checkNotNull(deviceId, DEVICENULL);
         log.debug("Device removed called for {}", deviceId);
         providerService.deviceDisconnected(deviceId);
         controller.getProxiedDevices(deviceId).forEach(device -> {
