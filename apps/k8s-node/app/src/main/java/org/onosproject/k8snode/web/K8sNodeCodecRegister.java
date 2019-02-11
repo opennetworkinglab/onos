@@ -16,7 +16,9 @@
 package org.onosproject.k8snode.web;
 
 import org.onosproject.codec.CodecService;
+import org.onosproject.k8snode.api.K8sApiConfig;
 import org.onosproject.k8snode.api.K8sNode;
+import org.onosproject.k8snode.codec.K8sApiConfigCodec;
 import org.onosproject.k8snode.codec.K8sNodeCodec;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -42,6 +44,7 @@ public class K8sNodeCodecRegister {
     protected void activate() {
 
         codecService.registerCodec(K8sNode.class, new K8sNodeCodec());
+        codecService.registerCodec(K8sApiConfig.class, new K8sApiConfigCodec());
 
         log.info("Started");
     }
@@ -50,6 +53,7 @@ public class K8sNodeCodecRegister {
     protected void deactivate() {
 
         codecService.unregisterCodec(K8sNode.class);
+        codecService.unregisterCodec(K8sApiConfig.class);
 
         log.info("Stopped");
     }

@@ -304,6 +304,13 @@
     "msg-simple": "mvn:com.github.fge:msg-simple:1.1",
     "snakeyaml": "mvn:org.yaml:snakeyaml:1.15",
 
+    // Kubernetes related jars
+    "k8s-client": "mvn:io.fabric8:kubernetes-client:4.1.1",
+    "k8s-model": "mvn:io.fabric8:kubernetes-model:4.1.1",
+    "zjsonpatch": "mvn:io.fabric8:zjsonpatch:0.3.0",
+    "generex": "mvn:com.github.mifmif:generex:1.0.2",
+    "automaton": "mvn:dk.brics.automaton:automaton:1.11-8",
+
     "onos-yang-model":"mvn:org.onosproject:onos-yang-model:2.6.1",
     "onos-yang-compiler-api":"mvn:org.onosproject:onos-yang-compiler-api:2.6.1",
     "onos-yang-compiler-main":"mvn:org.onosproject:onos-yang-compiler-main:2.6.1",

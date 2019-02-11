@@ -59,7 +59,8 @@ public class DefaultK8sNode implements K8sNode {
      * @param state             node state
      */
     protected DefaultK8sNode(String hostname, Type type, DeviceId intgBridge,
-                             IpAddress managementIp, IpAddress dataIp, K8sNodeState state) {
+                             IpAddress managementIp, IpAddress dataIp,
+                             K8sNodeState state) {
         this.hostname = hostname;
         this.type = type;
         this.intgBridge = intgBridge;
@@ -222,6 +223,7 @@ public class DefaultK8sNode implements K8sNode {
         private IpAddress managementIp;
         private IpAddress dataIp;
         private K8sNodeState state;
+        private K8sApiConfig apiConfig;
 
         // private constructor not intended to use from external
         private Builder() {

@@ -17,6 +17,10 @@ package org.onosproject.k8snode.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
+import org.apache.commons.lang.StringUtils;
+import org.onlab.packet.IpAddress;
+import org.onosproject.k8snode.api.K8sApiConfig;
+import org.onosproject.k8snode.api.K8sApiConfig.Scheme;
 import org.onosproject.k8snode.api.K8sNode;
 import org.onosproject.net.Device;
 import org.onosproject.net.behaviour.BridgeConfig;
@@ -38,6 +42,9 @@ import static org.onlab.util.Tools.get;
  */
 public final class K8sNodeUtil {
     private static final Logger log = LoggerFactory.getLogger(K8sNodeUtil.class);
+
+    private static final String COLON_SLASH = "://";
+    private static final String COLON = ":";
 
     /**
      * Prevents object installation from external.
@@ -145,5 +152,36 @@ public final class K8sNodeUtil {
             log.debug("Json string parsing exception caused by {}", e);
         }
         return null;
+    }
+
+    /**
+     * Generates endpoint URL by referring to scheme, ipAddress and port.
+     *
+     * @param scheme        scheme
+     * @param ipAddress     IP address
+     * @param port          port number
+     * @return generated endpoint URL
+     */
+    public static String endpoint(Scheme scheme, IpAddress ipAddress, int port) {
+        StringBuilder endpoint = new StringBuilder();
+        String protocol = StringUtils.lowerCase(scheme.name());
+
+        endpoint.append(protocol);
+        endpoint.append(COLON_SLASH);
+        endpoint.append(ipAddress.toString());
+        endpoint.append(COLON);
+        endpoint.append(port);
+
+        return endpoint.toString();
+    }
+
+    /**
+     * Generates endpoint URL by referring to scheme, ipAddress and port.
+     *
+     * @param apiConfig     kubernetes API config
+     * @return generated endpoint URL
+     */
+    public static String endpoint(K8sApiConfig apiConfig) {
+        return endpoint(apiConfig.scheme(), apiConfig.ipAddress(), apiConfig.port());
     }
 }
