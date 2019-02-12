@@ -104,14 +104,67 @@ import static org.onosproject.security.AppPermission.Type.CLUSTER_WRITE;
 @Component(immediate = true)
 @Service
 public class NettyMessagingManager implements MessagingService {
-    private static final long DEFAULT_TIMEOUT_MILLIS = 500;
+    private static final String DEFAULT_TIMEOUT_PROPERTY = "onos.cluster.messaging.defaultTimeoutMillis";
+    private static final String MIN_TIMEOUT_PROPERTY = "onos.cluster.messaging.minTimeoutMillis";
+    private static final String MAX_TIMEOUT_PROPERTY = "onos.cluster.messaging.maxTimeoutMillis";
+    private static final String CONNECTION_POOL_SIZE_PROPERTY = "onos.cluster.messaging.connectionPoolSize";
+
+    private static final long DEFAULT_DEFAULT_TIMEOUT_MILLIS = 500;
+    private static final long DEFAULT_MIN_TIMEOUT_MILLIS = 250;
+    private static final long DEFAULT_MAX_TIMEOUT_MILLIS = 5000;
+    private static final int DEFAULT_CHANNEL_POOL_SIZE = 8;
+
+    private static final long DEFAULT_TIMEOUT_MILLIS;
+    private static final long MIN_TIMEOUT_MILLIS;
+    private static final long MAX_TIMEOUT_MILLIS;
+    private static final int CHANNEL_POOL_SIZE;
+
+    static {
+        long defaultTimeout;
+        try {
+            defaultTimeout = Long.parseLong(
+                    System.getProperty(DEFAULT_TIMEOUT_PROPERTY,
+                            String.valueOf(DEFAULT_DEFAULT_TIMEOUT_MILLIS)));
+        } catch (NumberFormatException e) {
+            defaultTimeout = DEFAULT_DEFAULT_TIMEOUT_MILLIS;
+        }
+        DEFAULT_TIMEOUT_MILLIS = defaultTimeout;
+
+        long minTimeout;
+        try {
+            minTimeout = Long.parseLong(
+                    System.getProperty(MIN_TIMEOUT_PROPERTY,
+                            String.valueOf(DEFAULT_MIN_TIMEOUT_MILLIS)));
+        } catch (NumberFormatException e) {
+            minTimeout = DEFAULT_MIN_TIMEOUT_MILLIS;
+        }
+        MIN_TIMEOUT_MILLIS = minTimeout;
+
+        long maxTimeout;
+        try {
+            maxTimeout = Long.parseLong(
+                    System.getProperty(MAX_TIMEOUT_PROPERTY,
+                            String.valueOf(DEFAULT_MAX_TIMEOUT_MILLIS)));
+        } catch (NumberFormatException e) {
+            maxTimeout = DEFAULT_MAX_TIMEOUT_MILLIS;
+        }
+        MAX_TIMEOUT_MILLIS = maxTimeout;
+
+        int channelPoolSize;
+        try {
+            channelPoolSize = Integer.parseInt(
+                    System.getProperty(CONNECTION_POOL_SIZE_PROPERTY,
+                            String.valueOf(DEFAULT_CHANNEL_POOL_SIZE)));
+        } catch (NumberFormatException e) {
+            channelPoolSize = DEFAULT_CHANNEL_POOL_SIZE;
+        }
+        CHANNEL_POOL_SIZE = channelPoolSize;
+    }
+
     private static final long HISTORY_EXPIRE_MILLIS = Duration.ofMinutes(1).toMillis();
-    private static final long MIN_TIMEOUT_MILLIS = 250;
-    private static final long MAX_TIMEOUT_MILLIS = 5000;
     private static final long TIMEOUT_INTERVAL = 50;
     private static final int WINDOW_SIZE = 100;
     private static final double TIMEOUT_MULTIPLIER = 2.5;
-    private static final int CHANNEL_POOL_SIZE = 8;
 
     private static final byte[] EMPTY_PAYLOAD = new byte[0];
 
