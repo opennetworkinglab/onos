@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -49,6 +50,8 @@ public class K8sNetworkWebResource extends AbstractWebResource {
 
     private static final String MESSAGE = "Received network %s request";
     private static final String NETWORK_INVALID = "Invalid networkId in network update request";
+
+    private static final String RESULT = "result";
 
     private final K8sNetworkAdminService adminService = get(K8sNetworkAdminService.class);
 
@@ -125,5 +128,28 @@ public class K8sNetworkWebResource extends AbstractWebResource {
 
         adminService.removeNetwork(id);
         return Response.noContent().build();
+    }
+
+    /**
+     * Checks whether the network exists with given network id.
+     *
+     * @param id network identifier
+     * @return 200 OK with true/false result
+     */
+    @GET
+    @Path("exist/{id}")
+    public Response hasNetwork(@PathParam("id") String id) {
+        log.trace(String.format(MESSAGE, "QUERY " + id));
+
+        ObjectNode root = mapper().createObjectNode();
+        K8sNetwork network = adminService.network(id);
+
+        if (network == null) {
+            root.put(RESULT, false);
+        } else {
+            root.put(RESULT, true);
+        }
+
+        return Response.ok(root).build();
     }
 }
