@@ -20,8 +20,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
+import org.onlab.packet.IpAddress;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.impl.CodecManager;
+import org.onosproject.k8snetworking.api.DefaultK8sNetwork;
 import org.onosproject.k8snetworking.api.K8sNetwork;
 import org.onosproject.k8snetworking.api.K8sNetworkAdminService;
 import org.onosproject.k8snetworking.codec.K8sNetworkCodec;
@@ -36,6 +38,7 @@ import java.io.InputStream;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.hamcrest.Matchers.is;
@@ -71,6 +74,16 @@ public class K8sNetworkWebResourceTest extends ResourceTest {
                         .add(K8sNetworkAdminService.class, mockAdminService)
                         .add(CodecService.class, codecService);
         setServiceDirectory(testDirectory);
+
+        k8sNetwork = DefaultK8sNetwork.builder()
+                .networkId("sona-network")
+                .name("sona-network")
+                .type(K8sNetwork.Type.VXLAN)
+                .segmentId("1")
+                .cidr("10.10.10.0/24")
+                .gatewayIp(IpAddress.valueOf("10.10.10.1"))
+                .mtu(1500)
+                .build();
     }
 
     /**
@@ -135,5 +148,43 @@ public class K8sNetworkWebResourceTest extends ResourceTest {
         assertThat(status, is(204));
 
         verify(mockAdminService);
+    }
+
+    /**
+     * Tests the results of checking network existence.
+     */
+    @Test
+    public void testHasNetworkWithValidNetwork() {
+        expect(mockAdminService.network(anyString())).andReturn(k8sNetwork);
+        replay(mockAdminService);
+
+        String location = PATH + "/exist/network-1";
+
+        final WebTarget wt = target();
+        String response = wt.path(location).request(
+                MediaType.APPLICATION_JSON_TYPE).get(String.class);
+
+        assertThat(response, is("{\"result\":true}"));
+
+        verify((mockAdminService));
+    }
+
+    /**
+     * Tests the results of checking network existence.
+     */
+    @Test
+    public void testHasNetworkWithNullNetwork() {
+        expect(mockAdminService.network(anyString())).andReturn(null);
+        replay(mockAdminService);
+
+        String location = PATH + "/exist/network-1";
+
+        final WebTarget wt = target();
+        String response = wt.path(location).request(
+                MediaType.APPLICATION_JSON_TYPE).get(String.class);
+
+        assertThat(response, is("{\"result\":false}"));
+
+        verify((mockAdminService));
     }
 }
