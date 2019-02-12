@@ -93,7 +93,8 @@ public final class OpticalIntentUtility {
             CltSignalType signalType = ((OduCltPort) srcPort).signalType();
             if (Type.ROADM.equals(srcDevice.type()) ||
                     Type.ROADM_OTN.equals(srcDevice.type()) ||
-                    Type.OLS.equals(srcDevice.type())) {
+                    Type.OLS.equals(srcDevice.type()) ||
+                    Type.TERMINAL_DEVICE.equals(srcDevice.type())) {
                 intent = OpticalCircuitIntent.builder()
                         .appId(appId)
                         .key(key)
@@ -102,7 +103,7 @@ public final class OpticalIntentUtility {
                         .signalType(signalType)
                         .bidirectional(bidirectional)
                         .build();
-            } else if (Type.OTN.equals(srcDevice.type()) || Type.TERMINAL_DEVICE.equals(srcDevice.type())) {
+            } else if (Type.OTN.equals(srcDevice.type())) {
                 intent = OpticalOduIntent.builder()
                         .appId(appId)
                         .key(key)
@@ -176,7 +177,8 @@ public final class OpticalIntentUtility {
             CltSignalType signalType = ((OduCltPort) srcPort).signalType();
             if (Type.ROADM.equals(srcDevice.type()) ||
                     Type.ROADM_OTN.equals(srcDevice.type()) ||
-                    Type.OLS.equals(srcDevice.type())) {
+                    Type.OLS.equals(srcDevice.type()) ||
+                    Type.TERMINAL_DEVICE.equals(srcDevice.type())) {
                 intent = OpticalCircuitIntent.builder()
                         .appId(appId)
                         .key(key)
@@ -185,7 +187,7 @@ public final class OpticalIntentUtility {
                         .signalType(signalType)
                         .bidirectional(bidirectional)
                         .build();
-            } else if (Type.OTN.equals(srcDevice.type()) || Type.TERMINAL_DEVICE.equals(srcDevice.type())) {
+            } else if (Type.OTN.equals(srcDevice.type())) {
                 intent = OpticalOduIntent.builder()
                         .appId(appId)
                         .key(key)
