@@ -163,9 +163,15 @@ public class DhcpRelayWebResource extends AbstractWebResource {
      */
     private ObjectNode getDhcpRelayServersJsonOutput() {
         ObjectNode node = mapper().createObjectNode();
-        node.put("Default-DHCP-Servers", getDefaultDhcpServers());
-        node.put("Indirect-DHCP-Servers", getIndirectDhcpServers());
-        node.put("DHCP-Relay-Records([D]:Directly-Connected)", dhcpRelayRecords());
+        if (getDefaultDhcpServers().size() != 0) {
+            node.put("Default-DHCP-Servers", getDefaultDhcpServers());
+        }
+        if (getIndirectDhcpServers().size() != 0) {
+            node.put("Indirect-DHCP-Servers", getIndirectDhcpServers());
+        }
+        if (dhcpRelayRecords().size() != 0) {
+            node.put("DHCP-Relay-Records", dhcpRelayRecords());
+        }
         return node;
     }
 
