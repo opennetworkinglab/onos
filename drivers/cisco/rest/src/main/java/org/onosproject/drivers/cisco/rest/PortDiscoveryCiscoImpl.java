@@ -29,6 +29,6 @@ public class PortDiscoveryCiscoImpl extends AbstractHandlerBehaviour {
 
     @Deprecated
     public List<PortDescription> getPorts() {
-        return new DeviceDescriptionDiscoveryCisco9kImpl().discoverPortDetails();
+        return new DeviceDescriptionDiscoveryCiscoImpl().discoverPortDetails();
     }
 }

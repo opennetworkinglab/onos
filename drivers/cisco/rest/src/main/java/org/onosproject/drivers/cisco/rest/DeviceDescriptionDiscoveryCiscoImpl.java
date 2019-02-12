@@ -51,9 +51,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Discovers the device, ports information from a Cisco Nexus 9K REST device.
+ * Discovers the device, ports information from a Cisco Nexus Switch REST device.
  */
-public class DeviceDescriptionDiscoveryCisco9kImpl extends AbstractHandlerBehaviour
+public class DeviceDescriptionDiscoveryCiscoImpl extends AbstractHandlerBehaviour
         implements DeviceDescriptionDiscovery {
     private final Logger log = getLogger(getClass());
 

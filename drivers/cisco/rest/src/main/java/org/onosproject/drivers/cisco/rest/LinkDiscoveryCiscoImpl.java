@@ -63,9 +63,9 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 
 /**
- * Discovers the links from a Cisco Nexus 9K REST device.
+ * Discovers the links from a Cisco Nexus Switch REST device.
  */
-public class LinkDiscoveryCisco9kImpl extends AbstractHandlerBehaviour implements LinkDiscovery {
+public class LinkDiscoveryCiscoImpl extends AbstractHandlerBehaviour implements LinkDiscovery {
 
     private static final String SHOW_LLDP_NEIGHBOR_DETAIL_CMD = "show lldp neighbor detail";
     private static final String UNKNOWN = "unknown";

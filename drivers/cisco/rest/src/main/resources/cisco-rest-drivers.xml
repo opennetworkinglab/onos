@@ -21,8 +21,8 @@
         <behaviour api="org.onosproject.net.behaviour.ControllerConfig"
                    impl="org.onosproject.drivers.cisco.rest.ControllerConfigCiscoImpl"/>
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
-                   impl="org.onosproject.drivers.cisco.rest.DeviceDescriptionDiscoveryCisco9kImpl"/>
+                   impl="org.onosproject.drivers.cisco.rest.DeviceDescriptionDiscoveryCiscoImpl"/>
         <behaviour api="org.onosproject.net.behaviour.LinkDiscovery"
-                   impl="org.onosproject.drivers.cisco.rest.LinkDiscoveryCisco9kImpl"/>
+                   impl="org.onosproject.drivers.cisco.rest.LinkDiscoveryCiscoImpl"/>
     </driver>
 </drivers>
