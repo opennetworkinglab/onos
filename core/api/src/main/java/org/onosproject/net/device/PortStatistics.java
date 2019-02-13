@@ -30,15 +30,6 @@ public interface PortStatistics extends Annotated {
      * Returns the port number.
      *
      * @return port number
-     * @deprecated ONOS 1.12 Magpie please use portNumber()
-     */
-    @Deprecated
-    int  port();
-
-    /**
-     * Returns the port number.
-     *
-     * @return port number
      */
     PortNumber portNumber();
 

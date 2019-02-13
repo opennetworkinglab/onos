@@ -109,7 +109,7 @@ public final class DefaultMonitoringStatistics implements MonitoringStatistics {
     public PortStatistics nicStatistics(int nicId) {
         checkArgument(nicId >= 0, "NIC ID must be a non-negative integer");
         for (PortStatistics ns : this.nicStatistics) {
-            if (ns.port() == nicId) {
+            if (ns.portNumber().toLong() == nicId) {
                 return ns;
             }
         }

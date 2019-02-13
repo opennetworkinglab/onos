@@ -501,7 +501,7 @@ public final class DefaultOFSwitch implements OFSwitch {
 
     private OFPortStatsEntry portStatsEntry(PortStatistics portStatistic) {
         OFPortStatsEntry ofPortStatsEntry = FACTORY.buildPortStatsEntry()
-                .setPortNo(OFPort.of(portStatistic.port()))
+                .setPortNo(OFPort.of((int) portStatistic.portNumber().toLong()))
                 .setTxBytes(U64.of(portStatistic.bytesSent()))
                 .setTxPackets(U64.of(portStatistic.packetsSent()))
                 .setTxDropped(U64.of(portStatistic.packetsTxDropped()))

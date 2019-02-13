@@ -901,7 +901,7 @@ public class GossipDeviceStore
 
         if (prvStatsMap != null) {
             for (PortStatistics newStats : newStatsCollection) {
-                PortNumber port = PortNumber.portNumber(newStats.port());
+                PortNumber port = newStats.portNumber();
                 PortStatistics prvStats = prvStatsMap.get(port);
                 DefaultPortStatistics.Builder builder = DefaultPortStatistics.builder();
                 PortStatistics deltaStats = builder.build();
@@ -913,7 +913,7 @@ public class GossipDeviceStore
             }
         } else {
             for (PortStatistics newStats : newStatsCollection) {
-                PortNumber port = PortNumber.portNumber(newStats.port());
+                PortNumber port = newStats.portNumber();
                 newStatsMap.put(port, newStats);
             }
         }
@@ -943,7 +943,7 @@ public class GossipDeviceStore
         }
         DefaultPortStatistics.Builder builder = DefaultPortStatistics.builder();
         DefaultPortStatistics deltaStats = builder.setDeviceId(deviceId)
-                .setPort(newStats.port())
+                .setPort(newStats.portNumber())
                 .setPacketsReceived(newStats.packetsReceived() - prvStats.packetsReceived())
                 .setPacketsSent(newStats.packetsSent() - prvStats.packetsSent())
                 .setBytesReceived(newStats.bytesReceived() - prvStats.bytesReceived())

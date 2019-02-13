@@ -140,7 +140,7 @@ public final class PortProtoTranslator {
     public static PortStatistics translate(PortStatisticsProto portStatistics) {
         // TODO implement adding missing fields
         return DefaultPortStatistics.builder()
-                .setPort(portStatistics.getPort())
+                .setPort(PortNumber.portNumber(portStatistics.getPort()))
                 .setPacketsReceived(portStatistics.getPacketsReceived())
                 .setPacketsSent(portStatistics.getPacketsSent())
                 .build();
@@ -155,7 +155,7 @@ public final class PortProtoTranslator {
     public static PortStatisticsProto translate(PortStatistics portStatistics) {
         // TODO implement adding missing fields
         return PortStatisticsProto.newBuilder()
-                .setPort(portStatistics.port())
+                .setPort((int) portStatistics.portNumber().toLong())
                 .setPacketsReceived(portStatistics.packetsReceived())
                 .setPacketsSent(portStatistics.packetsSent())
                 .build();

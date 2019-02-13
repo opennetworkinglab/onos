@@ -848,7 +848,7 @@ public class ServerDevicesDiscovery extends BasicServerDriver
             DefaultPortStatistics.Builder nicBuilder = DefaultPortStatistics.builder();
 
             nicBuilder.setDeviceId(deviceId)
-                    .setPort((int) portNumber)
+                    .setPort(PortNumber.portNumber(portNumber))
                     .setPacketsReceived(rxCount)
                     .setPacketsSent(txCount)
                     .setBytesReceived(rxBytes)

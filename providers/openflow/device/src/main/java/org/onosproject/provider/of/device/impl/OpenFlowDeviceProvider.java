@@ -750,7 +750,7 @@ public class OpenFlowDeviceProvider extends AbstractProvider implements DevicePr
                 }
                 DefaultPortStatistics.Builder builder = DefaultPortStatistics.builder();
                 DefaultPortStatistics stat = builder.setDeviceId(deviceId)
-                        .setPort(entry.getPortNo().getPortNumber())
+                        .setPort(PortNumber.portNumber(entry.getPortNo().getPortNumber()))
                         .setPacketsReceived(entry.getRxPackets().getValue())
                         .setPacketsSent(entry.getTxPackets().getValue())
                         .setBytesReceived(entry.getRxBytes().getValue())

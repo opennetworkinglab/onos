@@ -109,7 +109,7 @@ public class CiscoNxosPortStatistics extends AbstractHandlerBehaviour implements
             long packetsTxErrors = deviceInterface.get(ETH_OUTERR1).asLong();
 
             DefaultPortStatistics.Builder builder = DefaultPortStatistics.builder();
-            defaultPortStatistics = builder.setPort((int) portNumber.toLong())
+            defaultPortStatistics = builder.setPort(portNumber)
                     .setPacketsReceived(packetsReceived)
                     .setPacketsSent(packetsSent)
                     .setBytesReceived(bytesReceived)

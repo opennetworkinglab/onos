@@ -23,6 +23,7 @@ import org.junit.Test;
 import org.onosproject.net.NetTestTools;
 
 import com.google.common.testing.EqualsTester;
+import org.onosproject.net.PortNumber;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -45,7 +46,7 @@ public class DefaultPortStatisticsTest {
             .setPacketsRxErrors(8)
             .setPacketsTxDropped(9)
             .setPacketsTxErrors(10)
-            .setPort(80)
+            .setPort(PortNumber.portNumber(80))
             .setDeviceId(NetTestTools.did("1"))
             .build();
 
@@ -60,7 +61,7 @@ public class DefaultPortStatisticsTest {
             .setPacketsRxErrors(8)
             .setPacketsTxDropped(9)
             .setPacketsTxErrors(11)
-            .setPort(80)
+            .setPort(PortNumber.portNumber(80))
             .setDeviceId(NetTestTools.did("1"))
             .build();
 
@@ -84,7 +85,7 @@ public class DefaultPortStatisticsTest {
         assertThat(stats1.packetsRxErrors(), is(8L));
         assertThat(stats1.packetsTxDropped(), is(9L));
         assertThat(stats1.packetsTxErrors(), is(10L));
-        assertThat(stats1.port(), is(80));
+        assertThat(stats1.portNumber().toLong(), is(80L));
     }
 
     /**

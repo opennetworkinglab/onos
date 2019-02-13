@@ -131,7 +131,7 @@ public class PortViewMessageHandler extends UiMessageHandler {
         }
 
         private void populateRow(TableModel.Row row, PortStatistics stat) {
-            row.cell(ID, stat.port())
+            row.cell(ID, stat.portNumber().toLong())
                 .cell(PKT_RX, stat.packetsReceived())
                 .cell(PKT_TX, stat.packetsSent())
                 .cell(BYTES_RX, stat.bytesReceived())

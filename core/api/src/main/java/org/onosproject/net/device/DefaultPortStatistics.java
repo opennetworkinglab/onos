@@ -92,11 +92,6 @@ public final class DefaultPortStatistics extends AbstractAnnotated implements Po
     }
 
     @Override
-    public int port() {
-        return (int) this.portNumber.toLong();
-    }
-
-    @Override
     public PortNumber portNumber() {
         return this.portNumber;
     }
@@ -194,20 +189,6 @@ public final class DefaultPortStatistics extends AbstractAnnotated implements Po
 
         private Builder() {
 
-        }
-
-        /**
-         * Sets port number.
-         *
-         * @param port port number
-         * @return builder object
-         * @deprecated ONOS 1.12 Magpie
-         */
-        @Deprecated
-        public Builder setPort(int port) {
-            this.portNumber = PortNumber.portNumber(port);
-
-            return this;
         }
 
         /**

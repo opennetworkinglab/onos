@@ -35,7 +35,6 @@ import org.slf4j.Logger;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.onosproject.net.PortNumber.portNumber;
 import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED;
 import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_REMOVED;
 import static org.onosproject.net.device.DeviceEvent.Type.PORT_STATS_UPDATED;
@@ -140,7 +139,7 @@ public class PortStatisticsManager implements PortStatisticsService {
 
     // Updates the port stats for the specified port
     private void updatePortData(DeviceId deviceId, PortStatistics stats) {
-        ConnectPoint cp = new ConnectPoint(deviceId, portNumber(stats.port()));
+        ConnectPoint cp = new ConnectPoint(deviceId, stats.portNumber());
         DataPoint c = current.get(cp);
 
         // Create a new data point and make it the current one
