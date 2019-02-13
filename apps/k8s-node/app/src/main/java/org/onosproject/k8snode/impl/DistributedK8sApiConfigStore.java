@@ -75,6 +75,7 @@ public class DistributedK8sApiConfigStore
             .register(K8sApiConfig.class)
             .register(DefaultK8sApiConfig.class)
             .register(K8sApiConfig.Scheme.class)
+            .register(K8sApiConfig.State.class)
             .register(Collection.class)
             .build();
 

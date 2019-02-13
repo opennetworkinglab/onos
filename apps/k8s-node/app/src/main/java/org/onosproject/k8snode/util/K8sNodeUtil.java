@@ -17,6 +17,9 @@ package org.onosproject.k8snode.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
+import io.fabric8.kubernetes.client.ConfigBuilder;
+import io.fabric8.kubernetes.client.DefaultKubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.lang.StringUtils;
 import org.onlab.packet.IpAddress;
 import org.onosproject.k8snode.api.K8sApiConfig;
@@ -45,6 +48,10 @@ public final class K8sNodeUtil {
 
     private static final String COLON_SLASH = "://";
     private static final String COLON = ":";
+
+    private static final int HEX_LENGTH = 16;
+    private static final String OF_PREFIX = "of:";
+    private static final String ZERO = "0";
 
     /**
      * Prevents object installation from external.
@@ -183,5 +190,53 @@ public final class K8sNodeUtil {
      */
     public static String endpoint(K8sApiConfig apiConfig) {
         return endpoint(apiConfig.scheme(), apiConfig.ipAddress(), apiConfig.port());
+    }
+
+    /**
+     * Generates a DPID (of:0000000000000001) from an index value.
+     *
+     * @param index index value
+     * @return generated DPID
+     */
+    public static String genDpid(long index) {
+        if (index < 0) {
+            return null;
+        }
+
+        String hexStr = Long.toHexString(index);
+
+        StringBuilder zeroPadding = new StringBuilder();
+        for (int i = 0; i < HEX_LENGTH - hexStr.length(); i++) {
+            zeroPadding.append(ZERO);
+        }
+
+        return OF_PREFIX + zeroPadding.toString() + hexStr;
+    }
+
+    /**
+     * Obtains workable kubernetes client.
+     *
+     * @param config kubernetes API config
+     * @return kubernetes client
+     */
+    public static KubernetesClient k8sClient(K8sApiConfig config) {
+        if (config == null) {
+            log.warn("Kubernetes API server config is empty.");
+            return null;
+        }
+
+        String endpoint = endpoint(config);
+
+        ConfigBuilder configBuilder = new ConfigBuilder().withMasterUrl(endpoint);
+
+        if (config.scheme() == K8sApiConfig.Scheme.HTTPS) {
+            configBuilder.withTrustCerts(true)
+                    .withOauthToken(config.token())
+                    .withCaCertData(config.caCertData())
+                    .withClientCertData(config.clientCertData())
+                    .withClientKeyData(config.clientKeyData());
+        }
+
+        return new DefaultKubernetesClient(configBuilder.build());
     }
 }

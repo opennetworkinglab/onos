@@ -3,6 +3,13 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + CLI + REST + [
     "//protocols/ovsdb/api:onos-protocols-ovsdb-api",
     "//protocols/ovsdb/rfc:onos-protocols-ovsdb-rfc",
     "//apps/k8s-node/api:onos-apps-k8s-node-api",
+    "@k8s_client//jar",
+    "@k8s_model//jar",
+    "@okhttp//jar",
+    "@okio//jar",
+    "@logging_interceptor//jar",
+    "@jackson_dataformat_yaml//jar",
+    "@snakeyaml//jar",
 ]
 
 TEST_DEPS = TEST_ADAPTERS + TEST_REST + [

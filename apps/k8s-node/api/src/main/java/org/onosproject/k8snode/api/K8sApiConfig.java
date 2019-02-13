@@ -38,6 +38,21 @@ public interface K8sApiConfig {
     }
 
     /**
+     * Lists of API server connectivity states.
+     */
+    enum State {
+        /**
+         * Signifies that client is connected to k8s API server.
+         */
+        CONNECTED,
+
+        /**
+         * Signifies that client is dis-connected from k8s API server.
+         */
+        DISCONNECTED,
+    }
+
+    /**
      * Returns the authentication scheme.
      *
      * @return authentication scheme
@@ -57,6 +72,21 @@ public interface K8sApiConfig {
      * @return port number of kubernetes API server
      */
     int port();
+
+    /**
+     * Returns the connectivity state to kubernetes API server.
+     *
+     * @return connectivity state to kubernetes API server
+     */
+    State state();
+
+    /**
+     * Returns new kubernetes API config instance with given state.
+     *
+     * @param newState updated state
+     * @return updated kubernetes API config
+     */
+    K8sApiConfig updateState(State newState);
 
     /**
      * Returns the token used for authenticating to API server.
@@ -121,6 +151,14 @@ public interface K8sApiConfig {
          * @return kubernetes API config builder
          */
         Builder port(int port);
+
+        /**
+         * Returns kubernetes API server config builder with supplied state.
+         *
+         * @param state connectivity state
+         * @return kubernetes API config builder
+         */
+        Builder state(State state);
 
         /**
          * Returns kubernetes API server config builder with supplied token.

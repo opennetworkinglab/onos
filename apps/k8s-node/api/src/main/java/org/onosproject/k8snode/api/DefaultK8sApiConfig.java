@@ -33,17 +33,19 @@ public final class DefaultK8sApiConfig implements K8sApiConfig {
     private final Scheme scheme;
     private final IpAddress ipAddress;
     private final int port;
+    private final State state;
     private final String token;
     private final String caCertData;
     private final String clientCertData;
     private final String clientKeyData;
 
     private DefaultK8sApiConfig(Scheme scheme, IpAddress ipAddress, int port,
-                                String token, String caCertData,
+                                State state, String token, String caCertData,
                                 String clientCertData, String clientKeyData) {
         this.scheme = scheme;
         this.ipAddress = ipAddress;
         this.port = port;
+        this.state = state;
         this.token = token;
         this.caCertData = caCertData;
         this.clientCertData = clientCertData;
@@ -63,6 +65,25 @@ public final class DefaultK8sApiConfig implements K8sApiConfig {
     @Override
     public int port() {
         return port;
+    }
+
+    @Override
+    public State state() {
+        return state;
+    }
+
+    @Override
+    public K8sApiConfig updateState(State newState) {
+        return new Builder()
+                .scheme(scheme)
+                .ipAddress(ipAddress)
+                .port(port)
+                .state(newState)
+                .token(token)
+                .caCertData(caCertData)
+                .clientCertData(clientCertData)
+                .clientKeyData(clientKeyData)
+                .build();
     }
 
     @Override
@@ -97,6 +118,7 @@ public final class DefaultK8sApiConfig implements K8sApiConfig {
         return port == that.port &&
                 scheme == that.scheme &&
                 ipAddress.equals(that.ipAddress) &&
+                state == that.state &&
                 token.equals(that.token) &&
                 caCertData.equals(that.caCertData) &&
                 clientCertData.equals(that.clientCertData) &&
@@ -105,7 +127,7 @@ public final class DefaultK8sApiConfig implements K8sApiConfig {
 
     @Override
     public int hashCode() {
-        return Objects.hash(scheme, ipAddress, port, token, caCertData,
+        return Objects.hash(scheme, ipAddress, port, state, token, caCertData,
                 clientCertData, clientKeyData);
     }
 
@@ -115,6 +137,7 @@ public final class DefaultK8sApiConfig implements K8sApiConfig {
                 .add("scheme", scheme)
                 .add("ipAddress", ipAddress)
                 .add("port", port)
+                .add("state", state)
                 .add("token", token)
                 .add("caCertData", caCertData)
                 .add("clientCertData", clientCertData)
@@ -136,6 +159,7 @@ public final class DefaultK8sApiConfig implements K8sApiConfig {
         private Scheme scheme;
         private IpAddress ipAddress;
         private int port;
+        private State state;
         private String token;
         private String caCertData;
         private String clientCertData;
@@ -145,6 +169,7 @@ public final class DefaultK8sApiConfig implements K8sApiConfig {
         public K8sApiConfig build() {
             checkArgument(scheme != null, NOT_NULL_MSG, "scheme");
             checkArgument(ipAddress != null, NOT_NULL_MSG, "ipAddress");
+            checkArgument(state != null, NOT_NULL_MSG, "state");
 
             if (scheme == HTTPS) {
                 checkArgument(token != null, NOT_NULL_MSG, "token");
@@ -153,7 +178,7 @@ public final class DefaultK8sApiConfig implements K8sApiConfig {
                 checkArgument(clientKeyData != null, NOT_NULL_MSG, "clientKeyData");
             }
 
-            return new DefaultK8sApiConfig(scheme, ipAddress, port, token,
+            return new DefaultK8sApiConfig(scheme, ipAddress, port, state, token,
                     caCertData, clientCertData, clientKeyData);
         }
 
@@ -172,6 +197,12 @@ public final class DefaultK8sApiConfig implements K8sApiConfig {
         @Override
         public Builder port(int port) {
             this.port = port;
+            return this;
+        }
+
+        @Override
+        public Builder state(State state) {
+            this.state = state;
             return this;
         }
 

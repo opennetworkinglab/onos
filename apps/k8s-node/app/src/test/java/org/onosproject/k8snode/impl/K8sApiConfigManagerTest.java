@@ -40,6 +40,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.onosproject.k8snode.api.K8sApiConfig.State.DISCONNECTED;
 import static org.onosproject.k8snode.api.K8sApiConfigEvent.Type.K8S_API_CONFIG_CREATED;
 import static org.onosproject.k8snode.api.K8sApiConfigEvent.Type.K8S_API_CONFIG_REMOVED;
 import static org.onosproject.k8snode.util.K8sNodeUtil.endpoint;
@@ -74,11 +75,13 @@ public class K8sApiConfigManagerTest {
                 .scheme(K8sApiConfig.Scheme.HTTP)
                 .ipAddress(IpAddress.valueOf("10.10.10.2"))
                 .port(6443)
+                .state(DISCONNECTED)
                 .build();
         apiConfig2 = DefaultK8sApiConfig.builder()
                 .scheme(K8sApiConfig.Scheme.HTTPS)
                 .ipAddress(IpAddress.valueOf("10.10.10.3"))
                 .port(6443)
+                .state(DISCONNECTED)
                 .token("token")
                 .caCertData("caCertData")
                 .clientCertData("clientCertData")
@@ -88,6 +91,7 @@ public class K8sApiConfigManagerTest {
                 .scheme(K8sApiConfig.Scheme.HTTP)
                 .ipAddress(IpAddress.valueOf("10.10.10.4"))
                 .port(8080)
+                .state(DISCONNECTED)
                 .build();
 
         configStore = new DistributedK8sApiConfigStore();

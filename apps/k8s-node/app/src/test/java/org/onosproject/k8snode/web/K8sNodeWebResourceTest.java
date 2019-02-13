@@ -49,6 +49,7 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.onosproject.k8snode.api.K8sApiConfig.State.DISCONNECTED;
 
 /**
  * Unit test for Kubernetes node REST API.
@@ -100,6 +101,7 @@ public class K8sNodeWebResourceTest extends ResourceTest {
                 .scheme(K8sApiConfig.Scheme.HTTPS)
                 .ipAddress(IpAddress.valueOf("10.134.34.223"))
                 .port(6443)
+                .state(DISCONNECTED)
                 .token("tokenMod")
                 .caCertData("caCertData")
                 .clientCertData("clientCertData")

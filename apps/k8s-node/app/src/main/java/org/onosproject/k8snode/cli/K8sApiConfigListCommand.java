@@ -35,7 +35,7 @@ import static org.onosproject.k8snode.util.K8sNodeUtil.prettyJson;
         description = "Lists all kubernetes API server configs registered to the service")
 public class K8sApiConfigListCommand extends AbstractShellCommand {
 
-    private static final String FORMAT = "%-10s%-25s%-10s";
+    private static final String FORMAT = "%-10s%-25s%-10s%-10s";
 
     @Override
     protected void execute() {
@@ -46,10 +46,10 @@ public class K8sApiConfigListCommand extends AbstractShellCommand {
         if (outputJson()) {
             print("%s", json(configs));
         } else {
-            print(FORMAT, "Scheme", "IpAddress", "Port");
+            print(FORMAT, "Scheme", "IpAddress", "Port", "State");
             for (K8sApiConfig config : configs) {
-                print(FORMAT, config.scheme().name(),
-                        config.ipAddress().toString(), config.port());
+                print(FORMAT, config.scheme().name(), config.ipAddress().toString(),
+                        config.port(), config.state().name());
             }
             print("Total %s API configs", configService.apiConfigs().size());
         }
