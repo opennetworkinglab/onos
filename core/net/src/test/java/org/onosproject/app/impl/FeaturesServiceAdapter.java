@@ -41,6 +41,11 @@ public class FeaturesServiceAdapter implements org.apache.karaf.features.Feature
     }
 
     @Override
+    public Feature[] repositoryProvidedFeatures(URI uri) throws Exception {
+        return new Feature[0];
+    }
+
+    @Override
     public void setResolutionOutputFile(String s) {
 
     }

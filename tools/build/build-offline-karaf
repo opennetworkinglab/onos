@@ -1,9 +1,9 @@
 #!/bin/bash
  
-KARAF_VERSION="4.2.2"
-KARAF_BASE_PACKAGE_VERSION="4.2.2"
-KARAF_TARFILE_NAME="apache-karaf-${KARAF_VERSION}.tar"
-ADDED_BOOT_FEATURES="kar/${KARAF_VERSION},webconsole/${KARAF_VERSION},scr/${KARAF_VERSION},war/${KARAF_VERSION}"
+KARAF_RELEASE_VERSION="4.2.3"
+KARAF_BASE_PACKAGE_VERSION="4.2.3"
+KARAF_TARFILE_NAME="apache-karaf-${KARAF_RELEASE_VERSION}.tar"
+ADDED_BOOT_FEATURES="kar/${KARAF_RELEASE_VERSION},webconsole/${KARAF_RELEASE_VERSION},scr/${KARAF_RELEASE_VERSION},war/${KARAF_RELEASE_VERSION}"
 
 # fetch the standard karaf bits
 rm -f /tmp/${KARAF_TARFILE_NAME}
@@ -23,15 +23,15 @@ ssh sdn@${OC1} "
     tar xf /tmp/${KARAF_TARFILE_NAME}.gz
 
     # add the extra ONOS default boot features
-    sed -i.old -e 's|kar/${KARAF_VERSION}.*$|${ADDED_BOOT_FEATURES}|' apache-karaf-${KARAF_VERSION}/etc/org.apache.karaf.features.cfg
+    sed -i.old -e 's|kar/${KARAF_RELEASE_VERSION}.*$|${ADDED_BOOT_FEATURES}|' apache-karaf-${KARAF_RELEASE_VERSION}/etc/org.apache.karaf.features.cfg
 
     # run karaf to fill the maven repo with required artifacts
-    apache-karaf-${KARAF_VERSION}/bin/karaf server 1>/tmp/onos.out 2>/tmp/onos.err &
+    apache-karaf-${KARAF_RELEASE_VERSION}/bin/karaf server 1>/tmp/onos.out 2>/tmp/onos.err &
 
     sleep 30
 
     # stop karaf and capture the artifacts that were downloaded into the maven repo
-    apache-karaf-${KARAF_VERSION}/bin/karaf stop 1>/tmp/onos.out 2>/tmp/onos.err &
+    apache-karaf-${KARAF_RELEASE_VERSION}/bin/karaf stop 1>/tmp/onos.out 2>/tmp/onos.err &
     cd ~/.m2/repository
     tar cvf ~/repo.tar *
 
@@ -43,16 +43,16 @@ ssh sdn@${OC1} "
     tar xf /tmp/${KARAF_TARFILE_NAME}.gz
 
     # load the downloaded artifacts into the karaf system directory
-    cd apache-karaf-${KARAF_VERSION}/system
+    cd apache-karaf-${KARAF_RELEASE_VERSION}/system
     tar xf ~/repo.tar
 
     # create a zipped tar ball of the updated karaf tree
     cd ~/karaf-offline
-    tar czf ~/karaf-offline.tar.gz apache-karaf-${KARAF_VERSION}
+    tar czf ~/karaf-offline.tar.gz apache-karaf-${KARAF_RELEASE_VERSION}
 "
 
 # fetch the new offline karaf tar ball
-BUILD_NUMBER="${KARAF_VERSION}-offline-$(date +'%Y%m%d')"
+BUILD_NUMBER="${KARAF_RELEASE_VERSION}-offline-$(date +'%Y%m%d')"
 scp sdn@[${OC1}]:karaf-offline.tar.gz /tmp/${BUILD_NUMBER}.tar.gz
 
 cell return

@@ -5,7 +5,7 @@ export ONOS_ROOT=${ONOS_ROOT:-~/onos}
 
 # M2 repository and Karaf gold bits
 export M2_REPO=${M2_REPO:-~/.m2/repository}
-export KARAF_VERSION=4.2.2
+export KARAF_VERSION=4.2.3
 export KARAF_ZIP=${KARAF_ZIP:-~/Downloads/apache-karaf-$KARAF_VERSION.zip}
 export KARAF_TAR=${KARAF_TAR:-~/Downloads/apache-karaf-$KARAF_VERSION.tar.gz}
 export KARAF_DIST=$(basename $KARAF_ZIP .zip)

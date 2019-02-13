@@ -27,7 +27,7 @@ import subprocess
 
 written_files = set()
 now = time.time()
-karaf_version = "4.2.2"
+karaf_version = "4.2.3"
 karaf_system = "apache-karaf-" + karaf_version + "/system/"
 
 def addFile(tar, dest, file, file_size):
