@@ -97,7 +97,7 @@ This pipeconf contains:
 The JSON configuration used to execute the P4 program on BMv2. This is an output
 of the P4 compiler for BMv2.
 
-* [mytunnel.p4info](pipeconf/src/main/resources/mytunnel.p4info):
+* [mytunnel_p4info.txt](pipeconf/src/main/resources/mytunnel_p4info.txt):
 P4Info file obtained from the P4 compiler.
 
 * [PipelineInterpreterImpl.java](pipeconf/src/main/java/org/onosproject/p4tutorial/pipeconf/PipelineInterpreterImpl.java):

@@ -1,13 +1,14 @@
 P4_VM_TYPE = ENV['P4_VM_TYPE'] || "dev"
+P4_VM_UBUNTU_VERSION = ENV['P4_VM_UBUNTU_VERSION'] || "16.04"
 
 Vagrant.configure(2) do |config|
   if P4_VM_TYPE == "tutorial"
-    config.vm.box = "lasp/ubuntu16.04-desktop"
+    config.vm.box = "lasp/ubuntu" + P4_VM_UBUNTU_VERSION + "-desktop"
   else
-    config.vm.box = "bento/ubuntu-16.04"
+    config.vm.box = "bento/ubuntu-" + P4_VM_UBUNTU_VERSION
   end
   config.vm.provider "virtualbox" do |vb|
-    vb.name = "ONOS+P4 " + P4_VM_TYPE + " " + Time.now.strftime("(%Y-%m-%d)")
+    vb.name = "ONOS+P4 " + P4_VM_TYPE + " " + P4_VM_UBUNTU_VERSION + " " + Time.now.strftime("(%Y-%m-%d)")
     vb.gui = true
     vb.cpus = P4_VM_TYPE == "tutorial" ? 4 : 2
     vb.memory = 4096

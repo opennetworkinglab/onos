@@ -19,7 +19,7 @@ export BMV2_INSTALL=/usr/local
 EOF
 
 # Build and install P4 tools
-bash /vagrant/install-p4-tools.sh
+DEBUG_FLAGS=true FAST_BUILD=true bash /vagrant/install-p4-tools.sh
 # We'll delete bmv2 sources later...
 cp ~/p4tools/bmv2/tools/veth_setup.sh ~/veth_setup.sh
 cp ~/p4tools/bmv2/tools/veth_teardown.sh ~/veth_teardown.sh
@@ -53,7 +53,3 @@ git clone https://github.com/opennetworkinglab/fabric-p4test.git
 
 # Set Python path for bmv2 in fabric.p4
 echo 'export PYTHONPATH=$PYTHONPATH:$ONOS_ROOT/tools/dev/mininet' >> ~/.bashrc
-
-# FIXME: for some reason protobuf python bindings are not properly installed
-cd ~/p4tools/protobuf/python
-sudo pip install .

@@ -17,11 +17,6 @@
 package org.onosproject.pipelines.basic;
 
 import com.google.common.collect.ImmutableList;
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onosproject.core.CoreService;
 import org.onosproject.inbandtelemetry.api.IntProgrammable;
 import org.onosproject.net.behaviour.Pipeliner;
@@ -34,6 +29,11 @@ import org.onosproject.net.pi.model.PiPipelineModel;
 import org.onosproject.net.pi.service.PiPipeconfService;
 import org.onosproject.p4runtime.model.P4InfoParser;
 import org.onosproject.p4runtime.model.P4InfoParserException;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 
 import java.net.URL;
 import java.util.Collection;
@@ -50,13 +50,13 @@ public final class PipeconfLoader {
     private static final String APP_NAME = "org.onosproject.pipelines.basic";
     private static final PiPipeconfId BASIC_PIPECONF_ID = new PiPipeconfId("org.onosproject.pipelines.basic");
     private static final String BASIC_JSON_PATH = "/p4c-out/bmv2/basic.json";
-    private static final String BASIC_P4INFO = "/p4c-out/bmv2/basic.p4info";
+    private static final String BASIC_P4INFO = "/p4c-out/bmv2/basic_p4info.txt";
 
     public static final PiPipeconf BASIC_PIPECONF = buildBasicPipeconf();
 
     private static final PiPipeconfId INT_PIPECONF_ID = new PiPipeconfId("org.onosproject.pipelines.int");
     private static final String INT_JSON_PATH = "/p4c-out/bmv2/int.json";
-    private static final String INT_P4INFO = "/p4c-out/bmv2/int.p4info";
+    private static final String INT_P4INFO = "/p4c-out/bmv2/int_p4info.txt";
 
     public static final PiPipeconf INT_PIPECONF = buildIntPipeconf();
 

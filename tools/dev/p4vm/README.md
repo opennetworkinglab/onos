@@ -110,7 +110,8 @@ This script will:
 
 ### Building the tutorial VM
 
-To build the tutorial VM, simply set the environment variable `P4_VM_TYPE` to `tutorial` before building.
+To build the tutorial VM, simply set the environment variable `P4_VM_TYPE` to
+`tutorial` before building.
 
 For example:
 
@@ -124,3 +125,12 @@ In alternative, to generate the OVA package:
 P4_VM_TYPE=tutorial ./export-ova.sh
 ```
 
+### Support for Ubuntu 18.04
+
+We provide **experimental** support for Ubuntu 18.04 for both the dev and the
+tutorial VM. To specify the Ubuntu version to use, set the environment
+variable `P4_VM_UBUNTU_VERSION` before building. For example:
+
+```bash
+P4_VM_UBUNTU_VERSION=18.04 ./export-ova.sh
+```

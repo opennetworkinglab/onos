@@ -17,19 +17,18 @@
 
 # Exit on errors.
 set -e
+set -x
+
+BMV2_COMMIT="d4340832121be1be3852ca0bef709f6443ef86ed"
+PI_COMMIT="81b7e84bf8c27ce87571f66e5ccc76ce228caa8c"
+P4C_COMMIT="5ae390430bd025b301854cd04c78b1ff9902180f"
+
+# p4c seems to break when using protobuf versions newer than 3.2.0
+PROTOBUF_VER=${PROTOBUF_VER:-3.2.0}
+GRPC_VER=${GRPC_VER:-1.3.2}
+
 
 BUILD_DIR=~/p4tools
-# in case BMV2_COMMIT value is updated, the same variable in
-# protocols/bmv2/thrift-api/BUCK file should also be updated
-BMV2_COMMIT="9c8ab62d5680044b94aa2e37b6989f386cc7ae7c"
-PI_COMMIT="a95222eca9b039f6398c048d7e1a1bf7f49b7235"
-P4C_COMMIT="264da2c524c849df0d9ba478cdd1d61b29d64722"
-PROTOBUF_COMMIT="tags/v3.2.0"
-GRPC_COMMIT="tags/v1.3.2"
-LIBYANG_COMMIT="v0.14-r1"
-SYSREPO_COMMIT="v0.7.2"
-
-set -x
 NUM_CORES=`grep -c ^processor /proc/cpuinfo`
 # If false, build tools without debug features to improve throughput of BMv2 and
 # reduce CPU/memory footprint. Default is true.
@@ -88,7 +87,6 @@ function do_requirements {
         libtool \
         make \
         pkg-config \
-        protobuf-c-compiler \
         python2.7 \
         python2.7-dev \
         tcpdump \
@@ -104,7 +102,6 @@ function do_requirements_1604 {
         ca-certificates \
         g++ \
         libboost-iostreams1.58-dev \
-        libprotobuf-c-dev \
         libreadline6 \
         libreadline6-dev \
         mktemp
@@ -119,41 +116,49 @@ function do_requirements_1804 {
         libboost-regex1.65-dev \
         libboost-iostreams1.65-dev \
         libreadline-dev \
-        libssl1.0-dev \
-        libprotobuf-c-dev
+        libssl1.0-dev
 }
 
 function do_protobuf {
     cd ${BUILD_DIR}
-    if [[ ! -d protobuf ]]; then
-      git clone https://github.com/google/protobuf.git
+    if [[ ! -d protobuf-${PROTOBUF_VER} ]]; then
+      # Get python package which also includes cpp.
+      wget https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOBUF_VER}/protobuf-python-${PROTOBUF_VER}.tar.gz
+      tar -xzf protobuf-python-${PROTOBUF_VER}.tar.gz
+      rm -r protobuf-python-${PROTOBUF_VER}.tar.gz
     fi
-    cd protobuf
-    git fetch
-    git checkout ${PROTOBUF_COMMIT}
+    cd protobuf-${PROTOBUF_VER}
 
     export CFLAGS="-Os"
     export CXXFLAGS="-Os"
     export LDFLAGS="-Wl,-s"
     ./autogen.sh
-    ./configure --prefix=/usr
+    confOpts="--prefix=/usr"
+    if [[ "${FAST_BUILD}" = true ]] ; then
+        confOpts="${confOpts} --disable-dependency-tracking"
+    fi
+    ./configure ${confOpts}
     make -j${NUM_CORES}
     sudo make install
     sudo ldconfig
     unset CFLAGS CXXFLAGS LDFLAGS
 
     cd python
-    sudo python setup.py install --cpp_implementation
+    # Hack to get the -std=c++11 flag when building 3.6.1
+    # https://github.com/protocolbuffers/protobuf/blob/v3.6.1/python/setup.py#L208
+    export KOKORO_BUILD_NUMBER="hack"
+    sudo -E python setup.py build --cpp_implementation
+    sudo -E pip install .
+    unset KOKORO_BUILD_NUMBER
 }
 
 function do_grpc {
     cd ${BUILD_DIR}
-    if [[ ! -d grpc ]]; then
-      git clone https://github.com/grpc/grpc.git
+    if [[ ! -d grpc-${GRPC_VER} ]]; then
+      git clone --depth 1 --single-branch --branch v${GRPC_VER} https://github.com/grpc/grpc.git grpc-${GRPC_VER}
     fi
-    cd grpc
-    git fetch
-    git checkout ${GRPC_COMMIT}
+
+    cd grpc-${GRPC_VER}
     git submodule update --init
 
     export LDFLAGS="-Wl,-s"
@@ -189,7 +194,6 @@ function checkout_bmv2 {
 function do_pi_bmv2_deps {
     checkout_bmv2
     # From bmv2's install_deps.sh.
-    # Nanomsg is required also by PI.
     tmpdir=`mktemp -d -p .`
     cd ${tmpdir}
     if [[ "${USE_STRATUM}" = false ]] ; then
@@ -249,7 +253,7 @@ function do_bmv2 {
 
     if [[ "${USE_STRATUM}" = false ]] ; then
         # Simple_switch_grpc target (not using Stratum)
-        cd targets/simple_switch_grpc
+        cd ../simple_switch_grpc
         ./autogen.sh
         ./configure --with-thrift
         make -j${NUM_CORES}
@@ -326,6 +330,35 @@ function missing_lib {
     return 0 # true
 }
 
+function missing_protoc {
+    command -v protoc >/dev/null 2>&1
+    if [[ $? == 0 ]]; then
+        protoc --version | grep $1 &> /dev/null
+        if [[ $? == 0 ]]; then
+            echo "protoc ${1} found!"
+        else
+            echo "A version of protoc was found, but not $1 (you may experience issues)"
+        fi
+        return 1 # false
+    fi
+    return 0 # true
+}
+
+function missing_grpc {
+    # Is there a better way to check if a specific version of grpc is installed?
+    if [[ -f /usr/local/lib/libgrpc++.so ]]; then
+        ls -l /usr/local/lib/libgrpc++.so | grep libgrpc++.so.${1} &> /dev/null
+        if [[ $? == 0 ]]; then
+            echo "grpc ${1} found!"
+        else
+            echo "A version of grpc was found, but not $1 (you may experience issues)"
+        fi
+        return 1 # false
+    else
+        return 0 # true
+    fi
+}
+
 function all_done {
     if [[ "${CLEAN_UP}" = true ]] ; then
         echo "Cleaning up build dir... ${BUILD_DIR})"
@@ -389,11 +422,11 @@ function check_and_do {
 mkdir -p ${BUILD_DIR}
 cd ${BUILD_DIR}
 # In dependency order.
-if missing_lib libprotobuf; then
-    check_and_do ${PROTOBUF_COMMIT} protobuf do_protobuf protobuf
+if missing_protoc ${PROTOBUF_VER}; then
+    check_and_do ${PROTOBUF_VER} protobuf-${PROTOBUF_VER} do_protobuf protobuf
 fi
-if missing_lib libgrpc; then
-    check_and_do ${GRPC_COMMIT} grpc do_grpc grpc
+if missing_grpc ${GRPC_VER}; then
+    check_and_do ${GRPC_VER} grpc-${GRPC_VER} do_grpc grpc
 fi
 check_and_do ${BMV2_COMMIT} bmv2 do_pi_bmv2_deps bmv2-deps
 check_and_do ${PI_COMMIT} PI do_PI PI

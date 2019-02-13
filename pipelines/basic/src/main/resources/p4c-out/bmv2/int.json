@@ -8,13 +8,20 @@
         ["tmp_0", 32, false],
         ["tmp_1", 32, false],
         ["tmp_2", 32, false],
-        ["process_int_transit_hasReturned_0", 1, false],
-        ["local_metadata_t.l4_src_port", 16, false],
-        ["local_metadata_t.l4_dst_port", 16, false],
-        ["local_metadata_t.next_hop_id", 16, false],
-        ["local_metadata_t.selector", 16, false],
-        ["local_metadata_t.compute_checksum", 1, false],
-        ["_padding_2", 6, false]
+        ["process_int_transit_hasReturned", 1, false],
+        ["local_metadata_t._l4_src_port0", 16, false],
+        ["local_metadata_t._l4_dst_port1", 16, false],
+        ["local_metadata_t._next_hop_id2", 16, false],
+        ["local_metadata_t._selector3", 16, false],
+        ["local_metadata_t._int_meta_switch_id4", 32, false],
+        ["local_metadata_t._int_meta_new_bytes5", 16, false],
+        ["local_metadata_t._int_meta_new_words6", 8, false],
+        ["local_metadata_t._int_meta_source7", 1, false],
+        ["local_metadata_t._int_meta_sink8", 1, false],
+        ["local_metadata_t._int_meta_transit9", 1, false],
+        ["local_metadata_t._int_meta_intl4_shim_len10", 8, false],
+        ["local_metadata_t._compute_checksum11", 1, false],
+        ["_padding_1", 3, false]
       ]
     },
     {
@@ -255,20 +262,6 @@
       "fields" : [
         ["egress_port_tx_util", 32, false]
       ]
-    },
-    {
-      "name" : "int_metadata_t",
-      "id" : 22,
-      "fields" : [
-        ["switch_id", 32, false],
-        ["new_bytes", 16, false],
-        ["new_words", 8, false],
-        ["source", 1, 0],
-        ["sink", 1, 0],
-        ["transit", 1, 0],
-        ["intl4_shim_len", 8, false],
-        ["_padding_1", 5, false]
-      ]
     }
   ],
   "headers" : [
@@ -446,13 +439,6 @@
       "header_type" : "int_egress_port_tx_util_t",
       "metadata" : false,
       "pi_omit" : true
-    },
-    {
-      "name" : "userMetadata.int_meta",
-      "id" : 25,
-      "header_type" : "int_metadata_t",
-      "metadata" : true,
-      "pi_omit" : true
     }
   ],
   "header_stacks" : [],
@@ -575,12 +561,12 @@
     }
   ],
   "errors" : [
-    ["NoError", 0],
-    ["PacketTooShort", 1],
-    ["NoMatch", 2],
-    ["StackOutOfBounds", 3],
-    ["HeaderTooShort", 4],
-    ["ParserTimeout", 5]
+    ["NoError", 1],
+    ["PacketTooShort", 2],
+    ["NoMatch", 3],
+    ["StackOutOfBounds", 4],
+    ["HeaderTooShort", 5],
+    ["ParserTimeout", 6]
   ],
   "enums" : [],
   "parsers" : [
@@ -727,7 +713,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "local_metadata_t.l4_src_port"]
+                  "value" : ["scalars", "local_metadata_t._l4_src_port0"]
                 },
                 {
                   "type" : "field",
@@ -740,7 +726,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "local_metadata_t.l4_dst_port"]
+                  "value" : ["scalars", "local_metadata_t._l4_dst_port1"]
                 },
                 {
                   "type" : "field",
@@ -787,7 +773,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "local_metadata_t.l4_src_port"]
+                  "value" : ["scalars", "local_metadata_t._l4_src_port0"]
                 },
                 {
                   "type" : "field",
@@ -800,7 +786,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "local_metadata_t.l4_dst_port"]
+                  "value" : ["scalars", "local_metadata_t._l4_dst_port1"]
                 },
                 {
                   "type" : "field",
@@ -847,7 +833,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["userMetadata.int_meta", "intl4_shim_len"]
+                  "value" : ["scalars", "local_metadata_t._int_meta_intl4_shim_len10"]
                 },
                 {
                   "type" : "field",
@@ -895,7 +881,7 @@
                                       "op" : "+",
                                       "left" : {
                                         "type" : "field",
-                                        "value" : ["userMetadata.int_meta", "intl4_shim_len"]
+                                        "value" : ["intl4_shim", "len"]
                                       },
                                       "right" : {
                                         "type" : "hexstr",
@@ -1226,7 +1212,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "local_metadata_t.next_hop_id"]
+              "value" : ["scalars", "local_metadata_t._next_hop_id2"]
             },
             {
               "type" : "runtime_data",
@@ -1236,8 +1222,8 @@
           "source_info" : {
             "filename" : "include/table0.p4",
             "line" : 30,
-            "column" : 8,
-            "source_fragment" : "local_metadata.next_hop_id = next_hop_id"
+            "column" : 35,
+            "source_fragment" : "= next_hop_id; ..."
           }
         }
       ]
@@ -1309,7 +1295,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "source"]
+              "value" : ["scalars", "local_metadata_t._int_meta_source7"]
             },
             {
               "type" : "expression",
@@ -1329,8 +1315,8 @@
           "source_info" : {
             "filename" : "include/int_source.p4",
             "line" : 92,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.source = true"
+            "column" : 39,
+            "source_fragment" : "= true; ..."
           }
         }
       ]
@@ -1345,7 +1331,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "sink"]
+              "value" : ["scalars", "local_metadata_t._int_meta_sink8"]
             },
             {
               "type" : "expression",
@@ -1365,8 +1351,8 @@
           "source_info" : {
             "filename" : "include/int_source.p4",
             "line" : 97,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.sink = true"
+            "column" : 37,
+            "source_fragment" : "= true; ..."
           }
         }
       ]
@@ -2036,7 +2022,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "transit"]
+              "value" : ["scalars", "local_metadata_t._int_meta_transit9"]
             },
             {
               "type" : "expression",
@@ -2056,8 +2042,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 26,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.transit = true"
+            "column" : 40,
+            "source_fragment" : "= true; ..."
           }
         },
         {
@@ -2065,7 +2051,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "switch_id"]
+              "value" : ["scalars", "local_metadata_t._int_meta_switch_id4"]
             },
             {
               "type" : "runtime_data",
@@ -2075,8 +2061,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 27,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.switch_id = switch_id"
+            "column" : 42,
+            "source_fragment" : "= switch_id; ..."
           }
         }
       ]
@@ -2163,7 +2149,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
             },
             {
               "type" : "expression",
@@ -2177,7 +2163,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -2196,8 +2182,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 87,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_words = local_metadata.int_meta.new_words + 1"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_words + 1; ..."
           }
         },
         {
@@ -2205,7 +2191,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
             },
             {
               "type" : "expression",
@@ -2219,7 +2205,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -2238,8 +2224,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 88,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 4"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_bytes + 4; ..."
           }
         }
       ]
@@ -2331,7 +2317,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
             },
             {
               "type" : "expression",
@@ -2345,7 +2331,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -2364,8 +2350,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 87,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_words = local_metadata.int_meta.new_words + 1"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_words + 1; ..."
           }
         },
         {
@@ -2373,7 +2359,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
             },
             {
               "type" : "expression",
@@ -2387,7 +2373,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -2406,8 +2392,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 88,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 4"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_bytes + 4; ..."
           }
         }
       ]
@@ -2565,7 +2551,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
             },
             {
               "type" : "expression",
@@ -2579,7 +2565,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -2598,8 +2584,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 93,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_words = local_metadata.int_meta.new_words + 2"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_words + 2; ..."
           }
         },
         {
@@ -2607,7 +2593,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
             },
             {
               "type" : "expression",
@@ -2621,7 +2607,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -2640,8 +2626,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 94,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 8"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_bytes + 8; ..."
           }
         }
       ]
@@ -2735,7 +2721,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
             },
             {
               "type" : "expression",
@@ -2749,7 +2735,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -2768,8 +2754,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 87,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_words = local_metadata.int_meta.new_words + 1"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_words + 1; ..."
           }
         },
         {
@@ -2777,7 +2763,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
             },
             {
               "type" : "expression",
@@ -2791,7 +2777,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -2810,8 +2796,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 88,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 4"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_bytes + 4; ..."
           }
         }
       ]
@@ -2971,7 +2957,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
             },
             {
               "type" : "expression",
@@ -2985,7 +2971,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -3004,8 +2990,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 93,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_words = local_metadata.int_meta.new_words + 2"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_words + 2; ..."
           }
         },
         {
@@ -3013,7 +2999,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
             },
             {
               "type" : "expression",
@@ -3027,7 +3013,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -3046,8 +3032,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 94,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 8"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_bytes + 8; ..."
           }
         }
       ]
@@ -3218,7 +3204,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
             },
             {
               "type" : "expression",
@@ -3232,7 +3218,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -3251,8 +3237,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 93,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_words = local_metadata.int_meta.new_words + 2"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_words + 2; ..."
           }
         },
         {
@@ -3260,7 +3246,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
             },
             {
               "type" : "expression",
@@ -3274,7 +3260,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -3293,8 +3279,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 94,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 8"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_bytes + 8; ..."
           }
         }
       ]
@@ -3531,7 +3517,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
             },
             {
               "type" : "expression",
@@ -3545,7 +3531,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -3564,8 +3550,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 99,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_words = local_metadata.int_meta.new_words + 3"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_words + 3; ..."
           }
         },
         {
@@ -3573,7 +3559,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
             },
             {
               "type" : "expression",
@@ -3587,7 +3573,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -3606,8 +3592,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 100,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 12"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_bytes + 12; ..."
           }
         }
       ]
@@ -3641,14 +3627,14 @@
             },
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "switch_id"]
+              "value" : ["scalars", "local_metadata_t._int_meta_switch_id4"]
             }
           ],
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 33,
             "column" : 8,
-            "source_fragment" : "hdr.int_switch_id.switch_id = local_metadata.int_meta.switch_id"
+            "source_fragment" : "hdr.int_switch_id.switch_id = local_metadata.int_meta.switch_id; ..."
           }
         },
         {
@@ -3656,7 +3642,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
             },
             {
               "type" : "expression",
@@ -3670,7 +3656,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -3689,8 +3675,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 87,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_words = local_metadata.int_meta.new_words + 1"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_words + 1; ..."
           }
         },
         {
@@ -3698,7 +3684,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
             },
             {
               "type" : "expression",
@@ -3712,7 +3698,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -3731,8 +3717,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 88,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 4"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_bytes + 4; ..."
           }
         }
       ]
@@ -3832,14 +3818,14 @@
             },
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "switch_id"]
+              "value" : ["scalars", "local_metadata_t._int_meta_switch_id4"]
             }
           ],
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 33,
             "column" : 8,
-            "source_fragment" : "hdr.int_switch_id.switch_id = local_metadata.int_meta.switch_id"
+            "source_fragment" : "hdr.int_switch_id.switch_id = local_metadata.int_meta.switch_id; ..."
           }
         },
         {
@@ -3847,7 +3833,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
             },
             {
               "type" : "expression",
@@ -3861,7 +3847,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -3880,8 +3866,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 93,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_words = local_metadata.int_meta.new_words + 2"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_words + 2; ..."
           }
         },
         {
@@ -3889,7 +3875,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
             },
             {
               "type" : "expression",
@@ -3903,7 +3889,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -3922,8 +3908,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 94,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 8"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_bytes + 8; ..."
           }
         }
       ]
@@ -4034,14 +4020,14 @@
             },
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "switch_id"]
+              "value" : ["scalars", "local_metadata_t._int_meta_switch_id4"]
             }
           ],
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 33,
             "column" : 8,
-            "source_fragment" : "hdr.int_switch_id.switch_id = local_metadata.int_meta.switch_id"
+            "source_fragment" : "hdr.int_switch_id.switch_id = local_metadata.int_meta.switch_id; ..."
           }
         },
         {
@@ -4049,7 +4035,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
             },
             {
               "type" : "expression",
@@ -4063,7 +4049,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4082,8 +4068,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 93,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_words = local_metadata.int_meta.new_words + 2"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_words + 2; ..."
           }
         },
         {
@@ -4091,7 +4077,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
             },
             {
               "type" : "expression",
@@ -4105,7 +4091,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4124,8 +4110,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 94,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 8"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_bytes + 8; ..."
           }
         }
       ]
@@ -4302,14 +4288,14 @@
             },
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "switch_id"]
+              "value" : ["scalars", "local_metadata_t._int_meta_switch_id4"]
             }
           ],
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 33,
             "column" : 8,
-            "source_fragment" : "hdr.int_switch_id.switch_id = local_metadata.int_meta.switch_id"
+            "source_fragment" : "hdr.int_switch_id.switch_id = local_metadata.int_meta.switch_id; ..."
           }
         },
         {
@@ -4317,7 +4303,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
             },
             {
               "type" : "expression",
@@ -4331,7 +4317,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4350,8 +4336,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 99,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_words = local_metadata.int_meta.new_words + 3"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_words + 3; ..."
           }
         },
         {
@@ -4359,7 +4345,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
             },
             {
               "type" : "expression",
@@ -4373,7 +4359,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4392,8 +4378,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 100,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 12"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_bytes + 12; ..."
           }
         }
       ]
@@ -4506,14 +4492,14 @@
             },
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "switch_id"]
+              "value" : ["scalars", "local_metadata_t._int_meta_switch_id4"]
             }
           ],
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 33,
             "column" : 8,
-            "source_fragment" : "hdr.int_switch_id.switch_id = local_metadata.int_meta.switch_id"
+            "source_fragment" : "hdr.int_switch_id.switch_id = local_metadata.int_meta.switch_id; ..."
           }
         },
         {
@@ -4521,7 +4507,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
             },
             {
               "type" : "expression",
@@ -4535,7 +4521,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4554,8 +4540,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 93,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_words = local_metadata.int_meta.new_words + 2"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_words + 2; ..."
           }
         },
         {
@@ -4563,7 +4549,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
             },
             {
               "type" : "expression",
@@ -4577,7 +4563,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4596,8 +4582,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 94,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 8"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_bytes + 8; ..."
           }
         }
       ]
@@ -4776,14 +4762,14 @@
             },
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "switch_id"]
+              "value" : ["scalars", "local_metadata_t._int_meta_switch_id4"]
             }
           ],
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 33,
             "column" : 8,
-            "source_fragment" : "hdr.int_switch_id.switch_id = local_metadata.int_meta.switch_id"
+            "source_fragment" : "hdr.int_switch_id.switch_id = local_metadata.int_meta.switch_id; ..."
           }
         },
         {
@@ -4791,7 +4777,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
             },
             {
               "type" : "expression",
@@ -4805,7 +4791,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4824,8 +4810,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 99,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_words = local_metadata.int_meta.new_words + 3"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_words + 3; ..."
           }
         },
         {
@@ -4833,7 +4819,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
             },
             {
               "type" : "expression",
@@ -4847,7 +4833,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4866,8 +4852,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 100,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 12"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_bytes + 12; ..."
           }
         }
       ]
@@ -5057,14 +5043,14 @@
             },
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "switch_id"]
+              "value" : ["scalars", "local_metadata_t._int_meta_switch_id4"]
             }
           ],
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 33,
             "column" : 8,
-            "source_fragment" : "hdr.int_switch_id.switch_id = local_metadata.int_meta.switch_id"
+            "source_fragment" : "hdr.int_switch_id.switch_id = local_metadata.int_meta.switch_id; ..."
           }
         },
         {
@@ -5072,7 +5058,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
             },
             {
               "type" : "expression",
@@ -5086,7 +5072,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5105,8 +5091,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 99,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_words = local_metadata.int_meta.new_words + 3"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_words + 3; ..."
           }
         },
         {
@@ -5114,7 +5100,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
             },
             {
               "type" : "expression",
@@ -5128,7 +5114,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5147,8 +5133,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 100,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 12"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_bytes + 12; ..."
           }
         }
       ]
@@ -5404,14 +5390,14 @@
             },
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "switch_id"]
+              "value" : ["scalars", "local_metadata_t._int_meta_switch_id4"]
             }
           ],
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 33,
             "column" : 8,
-            "source_fragment" : "hdr.int_switch_id.switch_id = local_metadata.int_meta.switch_id"
+            "source_fragment" : "hdr.int_switch_id.switch_id = local_metadata.int_meta.switch_id; ..."
           }
         },
         {
@@ -5419,7 +5405,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
             },
             {
               "type" : "expression",
@@ -5433,7 +5419,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5452,8 +5438,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 105,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_words = local_metadata.int_meta.new_words + 4"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_words + 4; ..."
           }
         },
         {
@@ -5461,7 +5447,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
             },
             {
               "type" : "expression",
@@ -5475,7 +5461,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5494,8 +5480,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 106,
-            "column" : 7,
-            "source_fragment" : "local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 16"
+            "column" : 41,
+            "source_fragment" : "= local_metadata.int_meta.new_bytes + 16; ..."
           }
         }
       ]
@@ -5550,7 +5536,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
             },
             {
               "type" : "expression",
@@ -5564,7 +5550,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5583,8 +5569,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 87,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_words = local_metadata.int_meta.new_words + 1"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_words + 1; ..."
           }
         },
         {
@@ -5592,7 +5578,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
             },
             {
               "type" : "expression",
@@ -5606,7 +5592,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5625,8 +5611,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 88,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 4"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_bytes + 4; ..."
           }
         }
       ]
@@ -5720,7 +5706,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
             },
             {
               "type" : "expression",
@@ -5734,7 +5720,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5753,8 +5739,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 93,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_words = local_metadata.int_meta.new_words + 2"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_words + 2; ..."
           }
         },
         {
@@ -5762,7 +5748,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
             },
             {
               "type" : "expression",
@@ -5776,7 +5762,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5795,8 +5781,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 94,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 8"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_bytes + 8; ..."
           }
         }
       ]
@@ -5924,7 +5910,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
             },
             {
               "type" : "expression",
@@ -5938,7 +5924,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5957,8 +5943,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 99,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_words = local_metadata.int_meta.new_words + 3"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_words + 3; ..."
           }
         },
         {
@@ -5966,7 +5952,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
             },
             {
               "type" : "expression",
@@ -5980,7 +5966,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5999,8 +5985,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 100,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 12"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_bytes + 12; ..."
           }
         }
       ]
@@ -6062,7 +6048,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
             },
             {
               "type" : "expression",
@@ -6076,7 +6062,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6095,8 +6081,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 87,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_words = local_metadata.int_meta.new_words + 1"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_words + 1; ..."
           }
         },
         {
@@ -6104,7 +6090,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
             },
             {
               "type" : "expression",
@@ -6118,7 +6104,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6137,8 +6123,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 88,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 4"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_bytes + 4; ..."
           }
         }
       ]
@@ -6234,7 +6220,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
             },
             {
               "type" : "expression",
@@ -6248,7 +6234,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6267,8 +6253,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 93,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_words = local_metadata.int_meta.new_words + 2"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_words + 2; ..."
           }
         },
         {
@@ -6276,7 +6262,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
             },
             {
               "type" : "expression",
@@ -6290,7 +6276,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6309,8 +6295,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 94,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 8"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_bytes + 8; ..."
           }
         }
       ]
@@ -6451,7 +6437,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
             },
             {
               "type" : "expression",
@@ -6465,7 +6451,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6484,8 +6470,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 99,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_words = local_metadata.int_meta.new_words + 3"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_words + 3; ..."
           }
         },
         {
@@ -6493,7 +6479,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
             },
             {
               "type" : "expression",
@@ -6507,7 +6493,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6526,8 +6512,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 100,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 12"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_bytes + 12; ..."
           }
         }
       ]
@@ -6702,7 +6688,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
             },
             {
               "type" : "expression",
@@ -6716,7 +6702,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6735,8 +6721,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 105,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_words = local_metadata.int_meta.new_words + 4"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_words + 4; ..."
           }
         },
         {
@@ -6744,7 +6730,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
             },
             {
               "type" : "expression",
@@ -6758,7 +6744,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6777,8 +6763,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 106,
-            "column" : 7,
-            "source_fragment" : "local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 16"
+            "column" : 41,
+            "source_fragment" : "= local_metadata.int_meta.new_bytes + 16; ..."
           }
         }
       ]
@@ -6840,7 +6826,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
             },
             {
               "type" : "expression",
@@ -6854,7 +6840,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6873,8 +6859,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 87,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_words = local_metadata.int_meta.new_words + 1"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_words + 1; ..."
           }
         },
         {
@@ -6882,7 +6868,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
             },
             {
               "type" : "expression",
@@ -6896,7 +6882,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6915,8 +6901,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 88,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 4"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_bytes + 4; ..."
           }
         }
       ]
@@ -7012,7 +6998,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
             },
             {
               "type" : "expression",
@@ -7026,7 +7012,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7045,8 +7031,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 93,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_words = local_metadata.int_meta.new_words + 2"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_words + 2; ..."
           }
         },
         {
@@ -7054,7 +7040,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
             },
             {
               "type" : "expression",
@@ -7068,7 +7054,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7087,8 +7073,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 94,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 8"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_bytes + 8; ..."
           }
         }
       ]
@@ -7229,7 +7215,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
             },
             {
               "type" : "expression",
@@ -7243,7 +7229,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7262,8 +7248,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 99,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_words = local_metadata.int_meta.new_words + 3"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_words + 3; ..."
           }
         },
         {
@@ -7271,7 +7257,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
             },
             {
               "type" : "expression",
@@ -7285,7 +7271,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7304,8 +7290,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 100,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 12"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_bytes + 12; ..."
           }
         }
       ]
@@ -7480,7 +7466,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
             },
             {
               "type" : "expression",
@@ -7494,7 +7480,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7513,8 +7499,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 105,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_words = local_metadata.int_meta.new_words + 4"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_words + 4; ..."
           }
         },
         {
@@ -7522,7 +7508,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
             },
             {
               "type" : "expression",
@@ -7536,7 +7522,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7555,8 +7541,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 106,
-            "column" : 7,
-            "source_fragment" : "local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 16"
+            "column" : 41,
+            "source_fragment" : "= local_metadata.int_meta.new_bytes + 16; ..."
           }
         }
       ]
@@ -7665,7 +7651,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
             },
             {
               "type" : "expression",
@@ -7679,7 +7665,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7698,8 +7684,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 93,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_words = local_metadata.int_meta.new_words + 2"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_words + 2; ..."
           }
         },
         {
@@ -7707,7 +7693,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
             },
             {
               "type" : "expression",
@@ -7721,7 +7707,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7740,8 +7726,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 94,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 8"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_bytes + 8; ..."
           }
         }
       ]
@@ -7884,7 +7870,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
             },
             {
               "type" : "expression",
@@ -7898,7 +7884,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7917,8 +7903,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 99,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_words = local_metadata.int_meta.new_words + 3"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_words + 3; ..."
           }
         },
         {
@@ -7926,7 +7912,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
             },
             {
               "type" : "expression",
@@ -7940,7 +7926,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7959,8 +7945,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 100,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 12"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_bytes + 12; ..."
           }
         }
       ]
@@ -8148,7 +8134,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
             },
             {
               "type" : "expression",
@@ -8162,7 +8148,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8181,8 +8167,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 105,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_words = local_metadata.int_meta.new_words + 4"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_words + 4; ..."
           }
         },
         {
@@ -8190,7 +8176,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
             },
             {
               "type" : "expression",
@@ -8204,7 +8190,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8223,8 +8209,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 106,
-            "column" : 7,
-            "source_fragment" : "local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 16"
+            "column" : 41,
+            "source_fragment" : "= local_metadata.int_meta.new_bytes + 16; ..."
           }
         }
       ]
@@ -8446,7 +8432,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
             },
             {
               "type" : "expression",
@@ -8460,7 +8446,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8479,8 +8465,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 111,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_words = local_metadata.int_meta.new_words + 5"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_words + 5; ..."
           }
         },
         {
@@ -8488,7 +8474,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
             },
             {
               "type" : "expression",
@@ -8502,7 +8488,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8521,8 +8507,8 @@
           "source_info" : {
             "filename" : "include/int_transit.p4",
             "line" : 112,
-            "column" : 8,
-            "source_fragment" : "local_metadata.int_meta.new_bytes = local_metadata.int_meta.new_bytes + 20"
+            "column" : 42,
+            "source_fragment" : "= local_metadata.int_meta.new_bytes + 20; ..."
           }
         }
       ]
@@ -9051,7 +9037,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "local_metadata_t.compute_checksum"]
+              "value" : ["scalars", "local_metadata_t._compute_checksum11"]
             },
             {
               "type" : "expression",
@@ -9071,8 +9057,8 @@
           "source_info" : {
             "filename" : "include/int_report.p4",
             "line" : 86,
-            "column" : 8,
-            "source_fragment" : "local_metadata.compute_checksum = true"
+            "column" : 40,
+            "source_fragment" : "= true; ..."
           }
         },
         {
@@ -9270,14 +9256,14 @@
             },
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "switch_id"]
+              "value" : ["scalars", "local_metadata_t._int_meta_switch_id4"]
             }
           ],
           "source_info" : {
             "filename" : "include/int_report.p4",
             "line" : 44,
             "column" : 8,
-            "source_fragment" : "hdr.report_fixed_header.sw_id = local_metadata.int_meta.switch_id"
+            "source_fragment" : "hdr.report_fixed_header.sw_id = local_metadata.int_meta.switch_id; ..."
           }
         },
         {
@@ -9340,8 +9326,58 @@
                         "value" : {
                           "op" : "&",
                           "left" : {
-                            "type" : "field",
-                            "value" : ["report_ipv4", "len"]
+                            "type" : "expression",
+                            "value" : {
+                              "op" : "&",
+                              "left" : {
+                                "type" : "expression",
+                                "value" : {
+                                  "op" : "+",
+                                  "left" : {
+                                    "type" : "hexstr",
+                                    "value" : "0x0056"
+                                  },
+                                  "right" : {
+                                    "type" : "expression",
+                                    "value" : {
+                                      "op" : "&",
+                                      "left" : {
+                                        "type" : "expression",
+                                        "value" : {
+                                          "op" : "<<",
+                                          "left" : {
+                                            "type" : "expression",
+                                            "value" : {
+                                              "op" : "&",
+                                              "left" : {
+                                                "type" : "field",
+                                                "value" : ["intl4_shim", "len"]
+                                              },
+                                              "right" : {
+                                                "type" : "hexstr",
+                                                "value" : "0xffff"
+                                              }
+                                            }
+                                          },
+                                          "right" : {
+                                            "type" : "hexstr",
+                                            "value" : "0x2"
+                                          }
+                                        }
+                                      },
+                                      "right" : {
+                                        "type" : "hexstr",
+                                        "value" : "0xffff"
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "right" : {
+                                "type" : "hexstr",
+                                "value" : "0xffff"
+                              }
+                            }
                           },
                           "right" : {
                             "type" : "hexstr",
@@ -9739,7 +9775,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "process_int_transit_hasReturned_0"]
+              "value" : ["scalars", "process_int_transit_hasReturned"]
             },
             {
               "type" : "expression",
@@ -9769,7 +9805,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "process_int_transit_hasReturned_0"]
+              "value" : ["scalars", "process_int_transit_hasReturned"]
             },
             {
               "type" : "expression",
@@ -9823,7 +9859,7 @@
                       },
                       "right" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       }
                     }
                   },
@@ -9921,7 +9957,7 @@
                       },
                       "right" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_bytes5"]
                       }
                     }
                   },
@@ -9970,7 +10006,7 @@
                       },
                       "right" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_new_words6"]
                       }
                     }
                   },
@@ -10204,13 +10240,13 @@
             {
               "match_type" : "ternary",
               "name" : "local_metadata.l4_src_port",
-              "target" : ["scalars", "local_metadata_t.l4_src_port"],
+              "target" : ["scalars", "local_metadata_t._l4_src_port0"],
               "mask" : null
             },
             {
               "match_type" : "ternary",
               "name" : "local_metadata.l4_dst_port",
-              "target" : ["scalars", "local_metadata_t.l4_dst_port"],
+              "target" : ["scalars", "local_metadata_t._l4_dst_port1"],
               "mask" : null
             }
           ],
@@ -10335,13 +10371,13 @@
             {
               "match_type" : "ternary",
               "name" : "local_metadata.l4_src_port",
-              "target" : ["scalars", "local_metadata_t.l4_src_port"],
+              "target" : ["scalars", "local_metadata_t._l4_src_port0"],
               "mask" : null
             },
             {
               "match_type" : "ternary",
               "name" : "local_metadata.l4_dst_port",
-              "target" : ["scalars", "local_metadata_t.l4_dst_port"],
+              "target" : ["scalars", "local_metadata_t._l4_dst_port1"],
               "mask" : null
             }
           ],
@@ -10437,7 +10473,7 @@
                   "left" : null,
                   "right" : {
                     "type" : "field",
-                    "value" : ["userMetadata.int_meta", "source"]
+                    "value" : ["scalars", "local_metadata_t._int_meta_source7"]
                   }
                 }
               },
@@ -10474,7 +10510,7 @@
                       "left" : null,
                       "right" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "sink"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_sink8"]
                       }
                     }
                   },
@@ -11579,7 +11615,7 @@
                   "left" : null,
                   "right" : {
                     "type" : "field",
-                    "value" : ["userMetadata.int_meta", "transit"]
+                    "value" : ["scalars", "local_metadata_t._int_meta_transit9"]
                   }
                 }
               },
@@ -11607,7 +11643,7 @@
                   "left" : null,
                   "right" : {
                     "type" : "field",
-                    "value" : ["scalars", "process_int_transit_hasReturned_0"]
+                    "value" : ["scalars", "process_int_transit_hasReturned"]
                   }
                 }
               }
@@ -11735,7 +11771,7 @@
                       "left" : null,
                       "right" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "sink"]
+                        "value" : ["scalars", "local_metadata_t._int_meta_sink8"]
                       }
                     }
                   },
@@ -11806,6 +11842,8 @@
       "target" : ["ipv4", "hdr_checksum"],
       "type" : "generic",
       "calculation" : "calc",
+      "verify" : false,
+      "update" : true,
       "if_cond" : {
         "type" : "expression",
         "value" : {
@@ -11830,6 +11868,8 @@
       "target" : ["report_ipv4", "hdr_checksum"],
       "type" : "generic",
       "calculation" : "calc_0",
+      "verify" : false,
+      "update" : true,
       "if_cond" : {
         "type" : "expression",
         "value" : {

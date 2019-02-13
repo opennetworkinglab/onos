@@ -1,3 +1,6 @@
+pkg_info {
+  arch: "v1model"
+}
 tables {
   preamble {
     id: 33606914
@@ -42,7 +45,6 @@ tables {
   }
   direct_resource_ids: 318778805
   size: 1024
-  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -63,7 +65,6 @@ tables {
     id: 16808599
   }
   size: 1024
-  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -87,7 +88,6 @@ tables {
     id: 16808599
   }
   size: 1024
-  idle_timeout_behavior: NO_TIMEOUT
 }
 actions {
   preamble {
@@ -183,6 +183,7 @@ controller_packet_metadata {
   preamble {
     id: 67146229
     name: "packet_in"
+    alias: "packet_in"
     annotations: "@controller_header(\"packet_in\")"
   }
   metadata {
@@ -190,17 +191,28 @@ controller_packet_metadata {
     name: "ingress_port"
     bitwidth: 9
   }
+  metadata {
+    id: 2
+    name: "_padding"
+    bitwidth: 7
+  }
 }
 controller_packet_metadata {
   preamble {
     id: 67121543
     name: "packet_out"
+    alias: "packet_out"
     annotations: "@controller_header(\"packet_out\")"
   }
   metadata {
     id: 1
     name: "egress_port"
     bitwidth: 9
+  }
+  metadata {
+    id: 2
+    name: "_padding"
+    bitwidth: 7
   }
 }
 type_info {

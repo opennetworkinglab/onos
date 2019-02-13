@@ -69,6 +69,7 @@ header ipv4_t {
 @controller_header("packet_in")
 header packet_in_header_t {
     bit<9> ingress_port;
+    bit<7> _padding;
 }
 
 // Packet-out header. Prepended to packets received by the controller and used
@@ -76,6 +77,7 @@ header packet_in_header_t {
 @controller_header("packet_out")
 header packet_out_header_t {
     bit<9> egress_port;
+    bit<7> _padding;
 }
 
 // For convenience we collect all headers under the same struct.

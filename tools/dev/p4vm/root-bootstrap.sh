@@ -3,7 +3,7 @@ set -xe
 
 ONOS_BRANCH_DEV="master"
 ONOS_BRANCH_TUTORIAL="onos-1.14"
-BAZEL_VER="0.19.2"
+BAZEL_VER="0.22.0"
 
 VM_TYPE=${1:-dev}
 

@@ -180,12 +180,12 @@
   "header_union_stacks" : [],
   "field_lists" : [],
   "errors" : [
-    ["NoError", 0],
-    ["PacketTooShort", 1],
-    ["NoMatch", 2],
-    ["StackOutOfBounds", 3],
-    ["HeaderTooShort", 4],
-    ["ParserTimeout", 5]
+    ["NoError", 1],
+    ["PacketTooShort", 2],
+    ["NoMatch", 3],
+    ["StackOutOfBounds", 4],
+    ["HeaderTooShort", 5],
+    ["ParserTimeout", 6]
   ],
   "enums" : [],
   "parsers" : [
@@ -671,7 +671,7 @@
           ],
           "source_info" : {
             "filename" : "include/defines.p4",
-            "line" : 34,
+            "line" : 43,
             "column" : 24,
             "source_fragment" : "255; ..."
           }
@@ -936,7 +936,7 @@
           ],
           "source_info" : {
             "filename" : "include/defines.p4",
-            "line" : 37,
+            "line" : 46,
             "column" : 36,
             "source_fragment" : "8w0; ..."
           }
@@ -1712,6 +1712,8 @@
       "target" : ["ipv4", "hdr_checksum"],
       "type" : "generic",
       "calculation" : "calc",
+      "verify" : false,
+      "update" : true,
       "if_cond" : {
         "type" : "expression",
         "value" : {

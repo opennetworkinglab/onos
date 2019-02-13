@@ -3,6 +3,8 @@
 # Builds dependencies and copies stratum_bmv2 binary to a remote node.
 # -----------------------------------------------------------------------------
 
+set -e
+
 function _usage () {
 cat << _EOF_
 usage:

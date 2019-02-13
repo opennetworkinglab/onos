@@ -4397,6 +4397,8 @@
       "target" : ["ipv4", "hdr_checksum"],
       "type" : "generic",
       "calculation" : "calc",
+      "verify" : false,
+      "update" : true,
       "if_cond" : {
         "type" : "expression",
         "value" : {
@@ -4421,6 +4423,8 @@
       "target" : ["ipv4", "hdr_checksum"],
       "type" : "generic",
       "calculation" : "calc_0",
+      "verify" : true,
+      "update" : false,
       "if_cond" : {
         "type" : "expression",
         "value" : {

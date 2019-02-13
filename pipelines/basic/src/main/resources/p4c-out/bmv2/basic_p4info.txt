@@ -1,3 +1,6 @@
+pkg_info {
+  arch: "v1model"
+}
 tables {
   preamble {
     id: 33561568
@@ -112,7 +115,8 @@ tables {
   }
   action_refs {
     id: 16800567
-    annotations: "@defaultonly()"
+    annotations: "@defaultonly"
+    scope: DEFAULT_ONLY
   }
   implementation_id: 285253634
   direct_resource_ids: 318811794
@@ -273,6 +277,7 @@ controller_packet_metadata {
   preamble {
     id: 67146229
     name: "packet_in"
+    alias: "packet_in"
     annotations: "@controller_header(\"packet_in\")"
   }
   metadata {
@@ -290,6 +295,7 @@ controller_packet_metadata {
   preamble {
     id: 67121543
     name: "packet_out"
+    alias: "packet_out"
     annotations: "@controller_header(\"packet_out\")"
   }
   metadata {

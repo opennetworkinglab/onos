@@ -18,8 +18,7 @@ echo "## Compiling profile ${PROFILE} in ${OUT_DIR}..."
 (set -x; p4c-bm2-ss --arch v1model \
         -o ${OUT_DIR}/bmv2.json \
         ${BMV2_PP_FLAGS} ${OTHER_PP_FLAGS} \
-        --p4runtime-file ${OUT_DIR}/p4info.txt \
-        --p4runtime-format text \
+        --p4runtime-files ${OUT_DIR}/p4info.txt \
         fabric.p4)
 (set -x; p4c-graphs ${BMV2_PP_FLAGS} ${OTHER_PP_FLAGS} --graphs-dir ${OUT_DIR}/graphs fabric.p4)
 for f in ${OUT_DIR}/graphs/*.dot; do

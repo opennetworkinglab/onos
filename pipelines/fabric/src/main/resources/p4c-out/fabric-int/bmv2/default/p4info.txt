@@ -1,3 +1,6 @@
+pkg_info {
+  arch: "v1model"
+}
 tables {
   preamble {
     id: 33581620
@@ -15,7 +18,8 @@ tables {
   }
   action_refs {
     id: 16819938
-    annotations: "@defaultonly()"
+    annotations: "@defaultonly"
+    scope: DEFAULT_ONLY
   }
   const_default_action_id: 16819938
   direct_resource_ids: 318787614
@@ -112,7 +116,8 @@ tables {
   }
   action_refs {
     id: 16819938
-    annotations: "@defaultonly()"
+    annotations: "@defaultonly"
+    scope: DEFAULT_ONLY
   }
   const_default_action_id: 16819938
   direct_resource_ids: 318770289
@@ -135,7 +140,8 @@ tables {
   }
   action_refs {
     id: 16819938
-    annotations: "@defaultonly()"
+    annotations: "@defaultonly"
+    scope: DEFAULT_ONLY
   }
   const_default_action_id: 16819938
   direct_resource_ids: 318830507
@@ -161,7 +167,8 @@ tables {
   }
   action_refs {
     id: 16819938
-    annotations: "@defaultonly()"
+    annotations: "@defaultonly"
+    scope: DEFAULT_ONLY
   }
   const_default_action_id: 16819938
   direct_resource_ids: 318811107
@@ -281,7 +288,8 @@ tables {
   }
   action_refs {
     id: 16819938
-    annotations: "@defaultonly()"
+    annotations: "@defaultonly"
+    scope: DEFAULT_ONLY
   }
   const_default_action_id: 16819938
   direct_resource_ids: 318768144
@@ -313,7 +321,8 @@ tables {
   }
   action_refs {
     id: 16819938
-    annotations: "@defaultonly()"
+    annotations: "@defaultonly"
+    scope: DEFAULT_ONLY
   }
   const_default_action_id: 16819938
   direct_resource_ids: 318778156
@@ -342,7 +351,8 @@ tables {
   }
   action_refs {
     id: 16819938
-    annotations: "@defaultonly()"
+    annotations: "@defaultonly"
+    scope: DEFAULT_ONLY
   }
   const_default_action_id: 16819938
   implementation_id: 285217164
@@ -366,7 +376,8 @@ tables {
   }
   action_refs {
     id: 16819938
-    annotations: "@defaultonly()"
+    annotations: "@defaultonly"
+    scope: DEFAULT_ONLY
   }
   const_default_action_id: 16819938
   direct_resource_ids: 318801752
@@ -407,7 +418,8 @@ tables {
   }
   action_refs {
     id: 16819938
-    annotations: "@defaultonly()"
+    annotations: "@defaultonly"
+    scope: DEFAULT_ONLY
   }
   const_default_action_id: 16819938
   direct_resource_ids: 318800047
@@ -430,7 +442,8 @@ tables {
   }
   action_refs {
     id: 16819938
-    annotations: "@defaultonly()"
+    annotations: "@defaultonly"
+    scope: DEFAULT_ONLY
   }
   const_default_action_id: 16819938
   size: 1
@@ -458,7 +471,8 @@ tables {
   }
   action_refs {
     id: 16819938
-    annotations: "@defaultonly()"
+    annotations: "@defaultonly"
+    scope: DEFAULT_ONLY
   }
   const_default_action_id: 16819938
   direct_resource_ids: 318827144
@@ -940,6 +954,7 @@ controller_packet_metadata {
   preamble {
     id: 67146229
     name: "packet_in"
+    alias: "packet_in"
     annotations: "@controller_header(\"packet_in\")"
   }
   metadata {
@@ -957,6 +972,7 @@ controller_packet_metadata {
   preamble {
     id: 67121543
     name: "packet_out"
+    alias: "packet_out"
     annotations: "@controller_header(\"packet_out\")"
   }
   metadata {

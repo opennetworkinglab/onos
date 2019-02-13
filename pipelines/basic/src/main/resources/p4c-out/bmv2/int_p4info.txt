@@ -1,3 +1,6 @@
+pkg_info {
+  arch: "v1model"
+}
 tables {
   preamble {
     id: 33561568
@@ -73,7 +76,6 @@ tables {
   const_default_action_id: 16784184
   direct_resource_ids: 318816189
   size: 1024
-  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -92,12 +94,12 @@ tables {
   }
   action_refs {
     id: 16819938
-    annotations: "@defaultonly()"
+    annotations: "@defaultonly"
+    scope: DEFAULT_ONLY
   }
   const_default_action_id: 16819938
   direct_resource_ids: 318807707
   size: 511
-  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -116,12 +118,12 @@ tables {
   }
   action_refs {
     id: 16819938
-    annotations: "@defaultonly()"
+    annotations: "@defaultonly"
+    scope: DEFAULT_ONLY
   }
   const_default_action_id: 16819938
   direct_resource_ids: 318828289
   size: 511
-  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -158,12 +160,12 @@ tables {
   }
   action_refs {
     id: 16819938
-    annotations: "@defaultonly()"
+    annotations: "@defaultonly"
+    scope: DEFAULT_ONLY
   }
   const_default_action_id: 16819938
   direct_resource_ids: 318802143
   size: 1024
-  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -182,11 +184,11 @@ tables {
   }
   action_refs {
     id: 16819938
-    annotations: "@defaultonly()"
+    annotations: "@defaultonly"
+    scope: DEFAULT_ONLY
   }
   const_default_action_id: 16819938
   size: 1
-  idle_timeout_behavior: NO_TIMEOUT
 }
 tables {
   preamble {
@@ -205,10 +207,10 @@ tables {
   }
   action_refs {
     id: 16819938
-    annotations: "@defaultonly()"
+    annotations: "@defaultonly"
+    scope: DEFAULT_ONLY
   }
   size: 1024
-  idle_timeout_behavior: NO_TIMEOUT
 }
 actions {
   preamble {
@@ -417,6 +419,7 @@ controller_packet_metadata {
   preamble {
     id: 67146229
     name: "packet_in"
+    alias: "packet_in"
     annotations: "@controller_header(\"packet_in\")"
   }
   metadata {
@@ -434,6 +437,7 @@ controller_packet_metadata {
   preamble {
     id: 67121543
     name: "packet_out"
+    alias: "packet_out"
     annotations: "@controller_header(\"packet_out\")"
   }
   metadata {

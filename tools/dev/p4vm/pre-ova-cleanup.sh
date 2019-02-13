@@ -6,13 +6,11 @@ set -xe
 sudo userdel -r -f vagrant
 
 # Free space on disk
-sudo rm -rf ~/p4tools/protobuf
-sudo rm -rf ~/p4tools/grpc
+sudo rm -rf ~/p4tools/protobuf*
+sudo rm -rf ~/p4tools/grpc*
 sudo rm -rf ~/p4tools/bmv2
 sudo rm -rf ~/p4tools/PI
 sudo rm -rf ~/p4tools/p4c
-sudo rm -rf ~/p4tools/libyang
-sudo rm -rf ~/p4tools/sysrepo
 sudo rm -rf ~/p4tools/scapy-vxlan
 sudo rm -rf ~/p4tools/ptf
 sudo rm -rf ~/quagga

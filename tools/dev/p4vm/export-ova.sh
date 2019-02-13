@@ -27,6 +27,7 @@ function wait_for_tcp_port {
 # Remove references to the existing vagrant-built VM (if any).
 # We want to build a new one from scratch, not start an existing one.
 rm -rf .vagrant/
+vagrant box update
 vagrant up
 
 SSH_PORT=`vagrant port --guest 22`

@@ -91,18 +91,8 @@ public final class ActionProfileGroupCodec
                                 .getPreamble().getName()))
                 .withId(PiActionProfileGroupId.of(msg.getGroupId()))
                 .withMaxSize(msg.getMaxSize());
-        msg.getMembersList().forEach(m -> {
-            int weight = m.getWeight();
-            if (weight < 1) {
-                // FIXME: PI has a bug which will always return weight 0
-                // ONOS won't accept group buckets with weight 0
-                log.debug("Decoding ActionProfileGroup with 'weight' " +
-                                 "field {}, will set to 1", weight);
-                weight = 1;
-            }
-            piGroupBuilder.addMember(PiActionProfileMemberId.of(
-                    m.getMemberId()), weight);
-        });
+        msg.getMembersList().forEach(m -> piGroupBuilder.addMember(
+                PiActionProfileMemberId.of(m.getMemberId()), m.getWeight()));
         return piGroupBuilder.build();
     }
 }

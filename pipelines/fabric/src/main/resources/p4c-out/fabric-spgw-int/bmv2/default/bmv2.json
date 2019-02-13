@@ -15,24 +15,37 @@
         ["spgw_ingress_hasReturned", 1, false],
         ["egress_next_tmp", 1, false],
         ["process_int_main_process_int_transit_hasReturned", 1, false],
-        ["fabric_metadata_t.eth_type", 16, false],
-        ["fabric_metadata_t.ip_eth_type", 16, false],
-        ["fabric_metadata_t.vlan_id", 12, false],
-        ["fabric_metadata_t.vlan_pri", 3, false],
-        ["fabric_metadata_t.vlan_cfi", 1, false],
-        ["fabric_metadata_t.mpls_label", 20, false],
-        ["fabric_metadata_t.mpls_ttl", 8, false],
-        ["fabric_metadata_t.skip_forwarding", 1, false],
-        ["fabric_metadata_t.skip_next", 1, false],
-        ["fabric_metadata_t.fwd_type", 3, false],
-        ["fabric_metadata_t.next_id", 32, false],
-        ["fabric_metadata_t.is_multicast", 1, false],
-        ["fabric_metadata_t.is_controller_packet_out", 1, false],
-        ["fabric_metadata_t.clone_to_cpu", 1, false],
-        ["fabric_metadata_t.ip_proto", 8, false],
-        ["fabric_metadata_t.l4_sport", 16, false],
-        ["fabric_metadata_t.l4_dport", 16, false],
-        ["_padding_2", 4, false]
+        ["fabric_metadata_t._eth_type0", 16, false],
+        ["fabric_metadata_t._ip_eth_type1", 16, false],
+        ["fabric_metadata_t._vlan_id2", 12, false],
+        ["fabric_metadata_t._vlan_pri3", 3, false],
+        ["fabric_metadata_t._vlan_cfi4", 1, false],
+        ["fabric_metadata_t._mpls_label5", 20, false],
+        ["fabric_metadata_t._mpls_ttl6", 8, false],
+        ["fabric_metadata_t._skip_forwarding7", 1, false],
+        ["fabric_metadata_t._skip_next8", 1, false],
+        ["fabric_metadata_t._fwd_type9", 3, false],
+        ["fabric_metadata_t._next_id10", 32, false],
+        ["fabric_metadata_t._is_multicast11", 1, false],
+        ["fabric_metadata_t._is_controller_packet_out12", 1, false],
+        ["fabric_metadata_t._clone_to_cpu13", 1, false],
+        ["fabric_metadata_t._ip_proto14", 8, false],
+        ["fabric_metadata_t._l4_sport15", 16, false],
+        ["fabric_metadata_t._l4_dport16", 16, false],
+        ["fabric_metadata_t._spgw_direction17", 2, false],
+        ["fabric_metadata_t._spgw_ipv4_len18", 16, false],
+        ["fabric_metadata_t._spgw_teid19", 32, false],
+        ["fabric_metadata_t._spgw_s1u_enb_addr20", 32, false],
+        ["fabric_metadata_t._spgw_s1u_sgw_addr21", 32, false],
+        ["fabric_metadata_t._int_meta_source22", 1, false],
+        ["fabric_metadata_t._int_meta_transit23", 1, false],
+        ["fabric_metadata_t._int_meta_sink24", 1, false],
+        ["fabric_metadata_t._int_meta_switch_id25", 32, false],
+        ["fabric_metadata_t._int_meta_new_words26", 8, false],
+        ["fabric_metadata_t._int_meta_new_bytes27", 16, false],
+        ["fabric_metadata_t._int_meta_ig_tstamp28", 32, false],
+        ["fabric_metadata_t._int_meta_eg_tstamp29", 32, false],
+        ["_padding_0", 7, false]
       ]
     },
     {
@@ -278,33 +291,6 @@
         ["padding", 2, false],
         ["dscp", 6, false]
       ]
-    },
-    {
-      "name" : "spgw_meta_t",
-      "id" : 23,
-      "fields" : [
-        ["direction", 2, false],
-        ["ipv4_len", 16, false],
-        ["teid", 32, false],
-        ["s1u_enb_addr", 32, false],
-        ["s1u_sgw_addr", 32, false],
-        ["_padding_0", 6, false]
-      ]
-    },
-    {
-      "name" : "int_metadata_t",
-      "id" : 24,
-      "fields" : [
-        ["source", 1, 0],
-        ["transit", 1, 0],
-        ["sink", 1, 0],
-        ["switch_id", 32, false],
-        ["new_words", 8, false],
-        ["new_bytes", 16, false],
-        ["ig_tstamp", 32, false],
-        ["eg_tstamp", 32, false],
-        ["_padding_1", 5, false]
-      ]
     }
   ],
   "headers" : [
@@ -503,20 +489,6 @@
       "header_type" : "intl4_tail_t",
       "metadata" : false,
       "pi_omit" : true
-    },
-    {
-      "name" : "userMetadata.spgw",
-      "id" : 28,
-      "header_type" : "spgw_meta_t",
-      "metadata" : true,
-      "pi_omit" : true
-    },
-    {
-      "name" : "userMetadata.int_meta",
-      "id" : 29,
-      "header_type" : "int_metadata_t",
-      "metadata" : true,
-      "pi_omit" : true
     }
   ],
   "header_stacks" : [],
@@ -603,7 +575,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t.eth_type"]
+                  "value" : ["scalars", "fabric_metadata_t._eth_type0"]
                 },
                 {
                   "type" : "field",
@@ -616,7 +588,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t.vlan_id"]
+                  "value" : ["scalars", "fabric_metadata_t._vlan_id2"]
                 },
                 {
                   "type" : "hexstr",
@@ -761,7 +733,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t.mpls_label"]
+                  "value" : ["scalars", "fabric_metadata_t._mpls_label5"]
                 },
                 {
                   "type" : "field",
@@ -774,7 +746,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t.mpls_ttl"]
+                  "value" : ["scalars", "fabric_metadata_t._mpls_ttl6"]
                 },
                 {
                   "type" : "field",
@@ -834,7 +806,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t.ip_proto"]
+                  "value" : ["scalars", "fabric_metadata_t._ip_proto14"]
                 },
                 {
                   "type" : "field",
@@ -847,7 +819,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t.ip_eth_type"]
+                  "value" : ["scalars", "fabric_metadata_t._ip_eth_type1"]
                 },
                 {
                   "type" : "hexstr",
@@ -919,7 +891,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t.l4_sport"]
+                  "value" : ["scalars", "fabric_metadata_t._l4_sport15"]
                 },
                 {
                   "type" : "field",
@@ -932,7 +904,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t.l4_dport"]
+                  "value" : ["scalars", "fabric_metadata_t._l4_dport16"]
                 },
                 {
                   "type" : "field",
@@ -968,7 +940,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t.l4_sport"]
+                  "value" : ["scalars", "fabric_metadata_t._l4_sport15"]
                 },
                 {
                   "type" : "field",
@@ -981,7 +953,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t.l4_dport"]
+                  "value" : ["scalars", "fabric_metadata_t._l4_dport16"]
                 },
                 {
                   "type" : "field",
@@ -1190,7 +1162,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t.l4_sport"]
+                  "value" : ["scalars", "fabric_metadata_t._l4_sport15"]
                 },
                 {
                   "type" : "field",
@@ -1203,7 +1175,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t.l4_dport"]
+                  "value" : ["scalars", "fabric_metadata_t._l4_dport16"]
                 },
                 {
                   "type" : "field",
@@ -1860,7 +1832,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.spgw", "teid"]
+              "value" : ["scalars", "fabric_metadata_t._spgw_teid19"]
             },
             {
               "type" : "runtime_data",
@@ -1870,8 +1842,8 @@
           "source_info" : {
             "filename" : "include/spgw.p4",
             "line" : 63,
-            "column" : 8,
-            "source_fragment" : "fabric_meta.spgw.teid = teid"
+            "column" : 30,
+            "source_fragment" : "= teid; ..."
           }
         },
         {
@@ -1879,7 +1851,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.spgw", "s1u_enb_addr"]
+              "value" : ["scalars", "fabric_metadata_t._spgw_s1u_enb_addr20"]
             },
             {
               "type" : "runtime_data",
@@ -1889,8 +1861,8 @@
           "source_info" : {
             "filename" : "include/spgw.p4",
             "line" : 64,
-            "column" : 8,
-            "source_fragment" : "fabric_meta.spgw.s1u_enb_addr = s1u_enb_addr"
+            "column" : 38,
+            "source_fragment" : "= s1u_enb_addr; ..."
           }
         },
         {
@@ -1898,7 +1870,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.spgw", "s1u_sgw_addr"]
+              "value" : ["scalars", "fabric_metadata_t._spgw_s1u_sgw_addr21"]
             },
             {
               "type" : "runtime_data",
@@ -1908,8 +1880,8 @@
           "source_info" : {
             "filename" : "include/spgw.p4",
             "line" : 65,
-            "column" : 8,
-            "source_fragment" : "fabric_meta.spgw.s1u_sgw_addr = s1u_sgw_addr"
+            "column" : 38,
+            "source_fragment" : "= s1u_sgw_addr; ..."
           }
         }
       ]
@@ -1924,7 +1896,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "source"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_source22"]
             },
             {
               "type" : "expression",
@@ -1944,8 +1916,8 @@
           "source_info" : {
             "filename" : "include/int/int_main.p4",
             "line" : 42,
-            "column" : 8,
-            "source_fragment" : "fabric_metadata.int_meta.source = true"
+            "column" : 40,
+            "source_fragment" : "= true; ..."
           }
         }
       ]
@@ -1960,7 +1932,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.skip_forwarding"]
+              "value" : ["scalars", "fabric_metadata_t._skip_forwarding7"]
             },
             {
               "type" : "expression",
@@ -1980,8 +1952,8 @@
           "source_info" : {
             "filename" : "include/control/filtering.p4",
             "line" : 36,
-            "column" : 8,
-            "source_fragment" : "fabric_metadata.skip_forwarding = true"
+            "column" : 40,
+            "source_fragment" : "= true; ..."
           }
         },
         {
@@ -1989,7 +1961,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.skip_next"]
+              "value" : ["scalars", "fabric_metadata_t._skip_next8"]
             },
             {
               "type" : "expression",
@@ -2009,8 +1981,8 @@
           "source_info" : {
             "filename" : "include/control/filtering.p4",
             "line" : 37,
-            "column" : 8,
-            "source_fragment" : "fabric_metadata.skip_next = true"
+            "column" : 34,
+            "source_fragment" : "= true; ..."
           }
         }
       ]
@@ -2036,7 +2008,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.vlan_id"]
+              "value" : ["scalars", "fabric_metadata_t._vlan_id2"]
             },
             {
               "type" : "runtime_data",
@@ -2046,8 +2018,8 @@
           "source_info" : {
             "filename" : "include/control/filtering.p4",
             "line" : 47,
-            "column" : 8,
-            "source_fragment" : "fabric_metadata.vlan_id = vlan_id"
+            "column" : 32,
+            "source_fragment" : "= vlan_id; ..."
           }
         }
       ]
@@ -2067,7 +2039,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.fwd_type"]
+              "value" : ["scalars", "fabric_metadata_t._fwd_type9"]
             },
             {
               "type" : "runtime_data",
@@ -2077,8 +2049,8 @@
           "source_info" : {
             "filename" : "include/control/filtering.p4",
             "line" : 82,
-            "column" : 8,
-            "source_fragment" : "fabric_metadata.fwd_type = fwd_type"
+            "column" : 33,
+            "source_fragment" : "= fwd_type; ..."
           }
         }
       ]
@@ -2098,7 +2070,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.next_id"]
+              "value" : ["scalars", "fabric_metadata_t._next_id10"]
             },
             {
               "type" : "runtime_data",
@@ -2108,8 +2080,8 @@
           "source_info" : {
             "filename" : "include/control/forwarding.p4",
             "line" : 30,
-            "column" : 8,
-            "source_fragment" : "fabric_metadata.next_id = next_id; ..."
+            "column" : 32,
+            "source_fragment" : "= next_id; ..."
           }
         }
       ]
@@ -2129,7 +2101,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.mpls_label"]
+              "value" : ["scalars", "fabric_metadata_t._mpls_label5"]
             },
             {
               "type" : "hexstr",
@@ -2139,8 +2111,8 @@
           "source_info" : {
             "filename" : "include/control/forwarding.p4",
             "line" : 62,
-            "column" : 8,
-            "source_fragment" : "fabric_metadata.mpls_label = 0"
+            "column" : 35,
+            "source_fragment" : "= 0; ..."
           }
         },
         {
@@ -2148,7 +2120,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.next_id"]
+              "value" : ["scalars", "fabric_metadata_t._next_id10"]
             },
             {
               "type" : "runtime_data",
@@ -2158,8 +2130,8 @@
           "source_info" : {
             "filename" : "include/control/forwarding.p4",
             "line" : 30,
-            "column" : 8,
-            "source_fragment" : "fabric_metadata.next_id = next_id; ..."
+            "column" : 32,
+            "source_fragment" : "= next_id; ..."
           }
         }
       ]
@@ -2179,7 +2151,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.next_id"]
+              "value" : ["scalars", "fabric_metadata_t._next_id10"]
             },
             {
               "type" : "runtime_data",
@@ -2189,8 +2161,8 @@
           "source_info" : {
             "filename" : "include/control/forwarding.p4",
             "line" : 30,
-            "column" : 8,
-            "source_fragment" : "fabric_metadata.next_id = next_id; ..."
+            "column" : 32,
+            "source_fragment" : "= next_id; ..."
           }
         }
       ]
@@ -2216,7 +2188,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.next_id"]
+              "value" : ["scalars", "fabric_metadata_t._next_id10"]
             },
             {
               "type" : "runtime_data",
@@ -2226,8 +2198,8 @@
           "source_info" : {
             "filename" : "include/control/acl.p4",
             "line" : 33,
-            "column" : 8,
-            "source_fragment" : "fabric_metadata.next_id = next_id"
+            "column" : 32,
+            "source_fragment" : "= next_id; ..."
           }
         }
       ]
@@ -2261,7 +2233,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.skip_next"]
+              "value" : ["scalars", "fabric_metadata_t._skip_next8"]
             },
             {
               "type" : "expression",
@@ -2281,8 +2253,8 @@
           "source_info" : {
             "filename" : "include/control/acl.p4",
             "line" : 40,
-            "column" : 8,
-            "source_fragment" : "fabric_metadata.skip_next = true"
+            "column" : 34,
+            "source_fragment" : "= true; ..."
           }
         }
       ]
@@ -2297,7 +2269,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.clone_to_cpu"]
+              "value" : ["scalars", "fabric_metadata_t._clone_to_cpu13"]
             },
             {
               "type" : "expression",
@@ -2317,8 +2289,8 @@
           "source_info" : {
             "filename" : "include/control/acl.p4",
             "line" : 46,
-            "column" : 8,
-            "source_fragment" : "fabric_metadata.clone_to_cpu = true"
+            "column" : 37,
+            "source_fragment" : "= true; ..."
           }
         }
       ]
@@ -2343,7 +2315,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.skip_next"]
+              "value" : ["scalars", "fabric_metadata_t._skip_next8"]
             },
             {
               "type" : "expression",
@@ -2363,8 +2335,8 @@
           "source_info" : {
             "filename" : "include/control/acl.p4",
             "line" : 52,
-            "column" : 8,
-            "source_fragment" : "fabric_metadata.skip_next = true"
+            "column" : 34,
+            "source_fragment" : "= true; ..."
           }
         }
       ]
@@ -2390,7 +2362,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.vlan_id"]
+              "value" : ["scalars", "fabric_metadata_t._vlan_id2"]
             },
             {
               "type" : "runtime_data",
@@ -2400,8 +2372,8 @@
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 70,
-            "column" : 8,
-            "source_fragment" : "fabric_metadata.vlan_id = vlan_id"
+            "column" : 32,
+            "source_fragment" : "= vlan_id; ..."
           }
         }
       ]
@@ -2452,7 +2424,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.next_id"]
+              "value" : ["scalars", "fabric_metadata_t._next_id10"]
             },
             {
               "type" : "runtime_data",
@@ -2462,8 +2434,8 @@
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 99,
-            "column" : 8,
-            "source_fragment" : "fabric_metadata.next_id = next_id"
+            "column" : 32,
+            "source_fragment" : "= next_id; ..."
           }
         }
       ]
@@ -2603,7 +2575,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.mpls_label"]
+              "value" : ["scalars", "fabric_metadata_t._mpls_label5"]
             },
             {
               "type" : "runtime_data",
@@ -2613,8 +2585,8 @@
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 46,
-            "column" : 8,
-            "source_fragment" : "fabric_metadata.mpls_label = label; ..."
+            "column" : 35,
+            "source_fragment" : "= label; ..."
           }
         },
         {
@@ -2710,7 +2682,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.is_multicast"]
+              "value" : ["scalars", "fabric_metadata_t._is_multicast11"]
             },
             {
               "type" : "expression",
@@ -2730,8 +2702,8 @@
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 209,
-            "column" : 8,
-            "source_fragment" : "fabric_metadata.is_multicast = true"
+            "column" : 37,
+            "source_fragment" : "= true; ..."
           }
         }
       ]
@@ -2988,7 +2960,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.is_controller_packet_out"]
+              "value" : ["scalars", "fabric_metadata_t._is_controller_packet_out12"]
             },
             {
               "type" : "expression",
@@ -3008,8 +2980,8 @@
           "source_info" : {
             "filename" : "include/control/packetio.p4",
             "line" : 27,
-            "column" : 12,
-            "source_fragment" : "fabric_metadata.is_controller_packet_out = true"
+            "column" : 53,
+            "source_fragment" : "= true; ..."
           }
         }
       ]
@@ -3024,7 +2996,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.eth_type"]
+              "value" : ["scalars", "fabric_metadata_t._eth_type0"]
             },
             {
               "type" : "field",
@@ -3034,8 +3006,8 @@
           "source_info" : {
             "filename" : "include/control/filtering.p4",
             "line" : 103,
-            "column" : 12,
-            "source_fragment" : "fabric_metadata.eth_type = hdr.vlan_tag.eth_type"
+            "column" : 37,
+            "source_fragment" : "= hdr.vlan_tag.eth_type; ..."
           }
         },
         {
@@ -3043,7 +3015,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.vlan_id"]
+              "value" : ["scalars", "fabric_metadata_t._vlan_id2"]
             },
             {
               "type" : "field",
@@ -3053,8 +3025,8 @@
           "source_info" : {
             "filename" : "include/control/filtering.p4",
             "line" : 104,
-            "column" : 12,
-            "source_fragment" : "fabric_metadata.vlan_id = hdr.vlan_tag.vlan_id"
+            "column" : 36,
+            "source_fragment" : "= hdr.vlan_tag.vlan_id; ..."
           }
         },
         {
@@ -3062,7 +3034,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.vlan_pri"]
+              "value" : ["scalars", "fabric_metadata_t._vlan_pri3"]
             },
             {
               "type" : "field",
@@ -3072,8 +3044,8 @@
           "source_info" : {
             "filename" : "include/control/filtering.p4",
             "line" : 105,
-            "column" : 12,
-            "source_fragment" : "fabric_metadata.vlan_pri = hdr.vlan_tag.pri"
+            "column" : 37,
+            "source_fragment" : "= hdr.vlan_tag.pri; ..."
           }
         },
         {
@@ -3081,7 +3053,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.vlan_cfi"]
+              "value" : ["scalars", "fabric_metadata_t._vlan_cfi4"]
             },
             {
               "type" : "field",
@@ -3091,8 +3063,8 @@
           "source_info" : {
             "filename" : "include/control/filtering.p4",
             "line" : 106,
-            "column" : 12,
-            "source_fragment" : "fabric_metadata.vlan_cfi = hdr.vlan_tag.cfi"
+            "column" : 37,
+            "source_fragment" : "= hdr.vlan_tag.cfi; ..."
           }
         }
       ]
@@ -3107,7 +3079,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.mpls_ttl"]
+              "value" : ["scalars", "fabric_metadata_t._mpls_ttl6"]
             },
             {
               "type" : "hexstr",
@@ -3117,8 +3089,8 @@
           "source_info" : {
             "filename" : "include/control/filtering.p4",
             "line" : 113,
-            "column" : 12,
-            "source_fragment" : "fabric_metadata.mpls_ttl = DEFAULT_MPLS_TTL + 1"
+            "column" : 37,
+            "source_fragment" : "= DEFAULT_MPLS_TTL + 1; ..."
           }
         }
       ]
@@ -3210,7 +3182,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.spgw", "direction"]
+              "value" : ["scalars", "fabric_metadata_t._spgw_direction17"]
             },
             {
               "type" : "hexstr",
@@ -3296,7 +3268,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.spgw", "direction"]
+              "value" : ["scalars", "fabric_metadata_t._spgw_direction17"]
             },
             {
               "type" : "hexstr",
@@ -3322,7 +3294,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.spgw", "direction"]
+              "value" : ["scalars", "fabric_metadata_t._spgw_direction17"]
             },
             {
               "type" : "hexstr",
@@ -3407,7 +3379,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.spgw", "ipv4_len"]
+              "value" : ["scalars", "fabric_metadata_t._spgw_ipv4_len18"]
             },
             {
               "type" : "field",
@@ -3417,8 +3389,8 @@
           "source_info" : {
             "filename" : "include/spgw.p4",
             "line" : 174,
-            "column" : 8,
-            "source_fragment" : "fabric_meta.spgw.ipv4_len = ipv4.total_len"
+            "column" : 34,
+            "source_fragment" : "= ipv4.total_len; ..."
           }
         }
       ]
@@ -3811,14 +3783,14 @@
             },
             {
               "type" : "field",
-              "value" : ["userMetadata.spgw", "s1u_enb_addr"]
+              "value" : ["scalars", "fabric_metadata_t._spgw_s1u_enb_addr20"]
             }
           ],
           "source_info" : {
             "filename" : "include/spgw.p4",
             "line" : 202,
             "column" : 8,
-            "source_fragment" : "gtpu_ipv4.dst_addr = fabric_meta.spgw.s1u_enb_addr"
+            "source_fragment" : "gtpu_ipv4.dst_addr = fabric_meta.spgw.s1u_enb_addr; ..."
           }
         },
         {
@@ -3830,14 +3802,14 @@
             },
             {
               "type" : "field",
-              "value" : ["userMetadata.spgw", "s1u_sgw_addr"]
+              "value" : ["scalars", "fabric_metadata_t._spgw_s1u_sgw_addr21"]
             }
           ],
           "source_info" : {
             "filename" : "include/spgw.p4",
             "line" : 203,
             "column" : 8,
-            "source_fragment" : "gtpu_ipv4.src_addr = fabric_meta.spgw.s1u_sgw_addr"
+            "source_fragment" : "gtpu_ipv4.src_addr = fabric_meta.spgw.s1u_sgw_addr; ..."
           }
         },
         {
@@ -3931,7 +3903,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.spgw", "ipv4_len"]
+                        "value" : ["scalars", "fabric_metadata_t._spgw_ipv4_len18"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4130,14 +4102,14 @@
             },
             {
               "type" : "field",
-              "value" : ["userMetadata.spgw", "ipv4_len"]
+              "value" : ["scalars", "fabric_metadata_t._spgw_ipv4_len18"]
             }
           ],
           "source_info" : {
             "filename" : "include/spgw.p4",
             "line" : 221,
             "column" : 8,
-            "source_fragment" : "gtpu.msglen = fabric_meta.spgw.ipv4_len"
+            "source_fragment" : "gtpu.msglen = fabric_meta.spgw.ipv4_len; ..."
           }
         },
         {
@@ -4149,14 +4121,14 @@
             },
             {
               "type" : "field",
-              "value" : ["userMetadata.spgw", "teid"]
+              "value" : ["scalars", "fabric_metadata_t._spgw_teid19"]
             }
           ],
           "source_info" : {
             "filename" : "include/spgw.p4",
             "line" : 222,
             "column" : 8,
-            "source_fragment" : "gtpu.teid = fabric_meta.spgw.teid"
+            "source_fragment" : "gtpu.teid = fabric_meta.spgw.teid; ..."
           }
         }
       ]
@@ -4522,14 +4494,14 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.l4_dport"]
+              "value" : ["scalars", "fabric_metadata_t._l4_dport16"]
             }
           ],
           "source_info" : {
             "filename" : "include/int/int_source.p4",
             "line" : 53,
             "column" : 8,
-            "source_fragment" : "hdr.intl4_tail.dest_port = fabric_metadata.l4_dport"
+            "source_fragment" : "hdr.intl4_tail.dest_port = fabric_metadata.l4_dport; ..."
           }
         },
         {
@@ -4671,7 +4643,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "transit"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_transit23"]
             },
             {
               "type" : "expression",
@@ -4691,8 +4663,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 26,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.transit = true"
+            "column" : 31,
+            "source_fragment" : "= true; ..."
           }
         },
         {
@@ -4700,7 +4672,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "switch_id"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id25"]
             },
             {
               "type" : "runtime_data",
@@ -4710,8 +4682,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 31,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.switch_id = switch_id"
+            "column" : 33,
+            "source_fragment" : "= switch_id; ..."
           }
         }
       ]
@@ -4798,7 +4770,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
             },
             {
               "type" : "expression",
@@ -4812,7 +4784,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4831,8 +4803,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 97,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_words = fmeta.int_meta.new_words + 1"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_words + 1; ..."
           }
         },
         {
@@ -4840,7 +4812,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
             },
             {
               "type" : "expression",
@@ -4854,7 +4826,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4873,8 +4845,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 98,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 4"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_bytes + 4; ..."
           }
         }
       ]
@@ -4923,7 +4895,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
             },
             {
               "type" : "expression",
@@ -4937,7 +4909,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4956,8 +4928,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 97,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_words = fmeta.int_meta.new_words + 1"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_words + 1; ..."
           }
         },
         {
@@ -4965,7 +4937,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
             },
             {
               "type" : "expression",
@@ -4979,7 +4951,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4998,8 +4970,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 98,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 4"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_bytes + 4; ..."
           }
         }
       ]
@@ -5114,7 +5086,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
             },
             {
               "type" : "expression",
@@ -5128,7 +5100,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5147,8 +5119,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 103,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_words = fmeta.int_meta.new_words + 2"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_words + 2; ..."
           }
         },
         {
@@ -5156,7 +5128,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
             },
             {
               "type" : "expression",
@@ -5170,7 +5142,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5189,8 +5161,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 104,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 8"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_bytes + 8; ..."
           }
         }
       ]
@@ -5284,7 +5256,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
             },
             {
               "type" : "expression",
@@ -5298,7 +5270,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5317,8 +5289,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 97,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_words = fmeta.int_meta.new_words + 1"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_words + 1; ..."
           }
         },
         {
@@ -5326,7 +5298,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
             },
             {
               "type" : "expression",
@@ -5340,7 +5312,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5359,8 +5331,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 98,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 4"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_bytes + 4; ..."
           }
         }
       ]
@@ -5520,7 +5492,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
             },
             {
               "type" : "expression",
@@ -5534,7 +5506,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5553,8 +5525,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 103,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_words = fmeta.int_meta.new_words + 2"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_words + 2; ..."
           }
         },
         {
@@ -5562,7 +5534,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
             },
             {
               "type" : "expression",
@@ -5576,7 +5548,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5595,8 +5567,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 104,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 8"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_bytes + 8; ..."
           }
         }
       ]
@@ -5724,7 +5696,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
             },
             {
               "type" : "expression",
@@ -5738,7 +5710,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5757,8 +5729,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 103,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_words = fmeta.int_meta.new_words + 2"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_words + 2; ..."
           }
         },
         {
@@ -5766,7 +5738,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
             },
             {
               "type" : "expression",
@@ -5780,7 +5752,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5799,8 +5771,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 104,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 8"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_bytes + 8; ..."
           }
         }
       ]
@@ -5994,7 +5966,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
             },
             {
               "type" : "expression",
@@ -6008,7 +5980,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6027,8 +5999,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 109,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_words = fmeta.int_meta.new_words + 3"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_words + 3; ..."
           }
         },
         {
@@ -6036,7 +6008,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
             },
             {
               "type" : "expression",
@@ -6050,7 +6022,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6069,8 +6041,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 110,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 12"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_bytes + 12; ..."
           }
         }
       ]
@@ -6104,14 +6076,14 @@
             },
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "switch_id"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id25"]
             }
           ],
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 42,
             "column" : 8,
-            "source_fragment" : "hdr.int_switch_id.switch_id = fmeta.int_meta.switch_id"
+            "source_fragment" : "hdr.int_switch_id.switch_id = fmeta.int_meta.switch_id; ..."
           }
         },
         {
@@ -6119,7 +6091,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
             },
             {
               "type" : "expression",
@@ -6133,7 +6105,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6152,8 +6124,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 97,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_words = fmeta.int_meta.new_words + 1"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_words + 1; ..."
           }
         },
         {
@@ -6161,7 +6133,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
             },
             {
               "type" : "expression",
@@ -6175,7 +6147,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6194,8 +6166,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 98,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 4"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_bytes + 4; ..."
           }
         }
       ]
@@ -6295,14 +6267,14 @@
             },
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "switch_id"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id25"]
             }
           ],
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 42,
             "column" : 8,
-            "source_fragment" : "hdr.int_switch_id.switch_id = fmeta.int_meta.switch_id"
+            "source_fragment" : "hdr.int_switch_id.switch_id = fmeta.int_meta.switch_id; ..."
           }
         },
         {
@@ -6310,7 +6282,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
             },
             {
               "type" : "expression",
@@ -6324,7 +6296,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6343,8 +6315,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 103,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_words = fmeta.int_meta.new_words + 2"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_words + 2; ..."
           }
         },
         {
@@ -6352,7 +6324,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
             },
             {
               "type" : "expression",
@@ -6366,7 +6338,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6385,8 +6357,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 104,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 8"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_bytes + 8; ..."
           }
         }
       ]
@@ -6454,14 +6426,14 @@
             },
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "switch_id"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id25"]
             }
           ],
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 42,
             "column" : 8,
-            "source_fragment" : "hdr.int_switch_id.switch_id = fmeta.int_meta.switch_id"
+            "source_fragment" : "hdr.int_switch_id.switch_id = fmeta.int_meta.switch_id; ..."
           }
         },
         {
@@ -6469,7 +6441,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
             },
             {
               "type" : "expression",
@@ -6483,7 +6455,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6502,8 +6474,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 103,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_words = fmeta.int_meta.new_words + 2"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_words + 2; ..."
           }
         },
         {
@@ -6511,7 +6483,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
             },
             {
               "type" : "expression",
@@ -6525,7 +6497,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6544,8 +6516,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 104,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 8"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_bytes + 8; ..."
           }
         }
       ]
@@ -6679,14 +6651,14 @@
             },
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "switch_id"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id25"]
             }
           ],
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 42,
             "column" : 8,
-            "source_fragment" : "hdr.int_switch_id.switch_id = fmeta.int_meta.switch_id"
+            "source_fragment" : "hdr.int_switch_id.switch_id = fmeta.int_meta.switch_id; ..."
           }
         },
         {
@@ -6694,7 +6666,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
             },
             {
               "type" : "expression",
@@ -6708,7 +6680,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6727,8 +6699,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 109,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_words = fmeta.int_meta.new_words + 3"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_words + 3; ..."
           }
         },
         {
@@ -6736,7 +6708,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
             },
             {
               "type" : "expression",
@@ -6750,7 +6722,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6769,8 +6741,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 110,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 12"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_bytes + 12; ..."
           }
         }
       ]
@@ -6883,14 +6855,14 @@
             },
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "switch_id"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id25"]
             }
           ],
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 42,
             "column" : 8,
-            "source_fragment" : "hdr.int_switch_id.switch_id = fmeta.int_meta.switch_id"
+            "source_fragment" : "hdr.int_switch_id.switch_id = fmeta.int_meta.switch_id; ..."
           }
         },
         {
@@ -6898,7 +6870,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
             },
             {
               "type" : "expression",
@@ -6912,7 +6884,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6931,8 +6903,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 103,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_words = fmeta.int_meta.new_words + 2"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_words + 2; ..."
           }
         },
         {
@@ -6940,7 +6912,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
             },
             {
               "type" : "expression",
@@ -6954,7 +6926,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6973,8 +6945,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 104,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 8"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_bytes + 8; ..."
           }
         }
       ]
@@ -7153,14 +7125,14 @@
             },
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "switch_id"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id25"]
             }
           ],
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 42,
             "column" : 8,
-            "source_fragment" : "hdr.int_switch_id.switch_id = fmeta.int_meta.switch_id"
+            "source_fragment" : "hdr.int_switch_id.switch_id = fmeta.int_meta.switch_id; ..."
           }
         },
         {
@@ -7168,7 +7140,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
             },
             {
               "type" : "expression",
@@ -7182,7 +7154,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7201,8 +7173,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 109,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_words = fmeta.int_meta.new_words + 3"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_words + 3; ..."
           }
         },
         {
@@ -7210,7 +7182,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
             },
             {
               "type" : "expression",
@@ -7224,7 +7196,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7243,8 +7215,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 110,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 12"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_bytes + 12; ..."
           }
         }
       ]
@@ -7391,14 +7363,14 @@
             },
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "switch_id"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id25"]
             }
           ],
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 42,
             "column" : 8,
-            "source_fragment" : "hdr.int_switch_id.switch_id = fmeta.int_meta.switch_id"
+            "source_fragment" : "hdr.int_switch_id.switch_id = fmeta.int_meta.switch_id; ..."
           }
         },
         {
@@ -7406,7 +7378,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
             },
             {
               "type" : "expression",
@@ -7420,7 +7392,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7439,8 +7411,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 109,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_words = fmeta.int_meta.new_words + 3"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_words + 3; ..."
           }
         },
         {
@@ -7448,7 +7420,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
             },
             {
               "type" : "expression",
@@ -7462,7 +7434,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7481,8 +7453,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 110,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 12"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_bytes + 12; ..."
           }
         }
       ]
@@ -7695,14 +7667,14 @@
             },
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "switch_id"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id25"]
             }
           ],
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 42,
             "column" : 8,
-            "source_fragment" : "hdr.int_switch_id.switch_id = fmeta.int_meta.switch_id"
+            "source_fragment" : "hdr.int_switch_id.switch_id = fmeta.int_meta.switch_id; ..."
           }
         },
         {
@@ -7710,7 +7682,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
             },
             {
               "type" : "expression",
@@ -7724,7 +7696,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7743,8 +7715,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 115,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_words = fmeta.int_meta.new_words + 4"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_words + 4; ..."
           }
         },
         {
@@ -7752,7 +7724,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
             },
             {
               "type" : "expression",
@@ -7766,7 +7738,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7785,8 +7757,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 116,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 16"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_bytes + 16; ..."
           }
         }
       ]
@@ -7841,7 +7813,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
             },
             {
               "type" : "expression",
@@ -7855,7 +7827,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7874,8 +7846,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 97,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_words = fmeta.int_meta.new_words + 1"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_words + 1; ..."
           }
         },
         {
@@ -7883,7 +7855,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
             },
             {
               "type" : "expression",
@@ -7897,7 +7869,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7916,8 +7888,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 98,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 4"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_bytes + 4; ..."
           }
         }
       ]
@@ -7985,7 +7957,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
             },
             {
               "type" : "expression",
@@ -7999,7 +7971,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8018,8 +7990,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 97,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_words = fmeta.int_meta.new_words + 1"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_words + 1; ..."
           }
         },
         {
@@ -8027,7 +7999,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
             },
             {
               "type" : "expression",
@@ -8041,7 +8013,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8060,8 +8032,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 98,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 4"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_bytes + 4; ..."
           }
         }
       ]
@@ -8163,7 +8135,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
             },
             {
               "type" : "expression",
@@ -8177,7 +8149,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8196,8 +8168,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 103,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_words = fmeta.int_meta.new_words + 2"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_words + 2; ..."
           }
         },
         {
@@ -8205,7 +8177,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
             },
             {
               "type" : "expression",
@@ -8219,7 +8191,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8238,8 +8210,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 104,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 8"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_bytes + 8; ..."
           }
         }
       ]
@@ -8311,7 +8283,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
             },
             {
               "type" : "expression",
@@ -8325,7 +8297,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8344,8 +8316,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 97,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_words = fmeta.int_meta.new_words + 1"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_words + 1; ..."
           }
         },
         {
@@ -8353,7 +8325,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
             },
             {
               "type" : "expression",
@@ -8367,7 +8339,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8386,8 +8358,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 98,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 4"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_bytes + 4; ..."
           }
         }
       ]
@@ -8493,7 +8465,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
             },
             {
               "type" : "expression",
@@ -8507,7 +8479,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8526,8 +8498,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 103,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_words = fmeta.int_meta.new_words + 2"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_words + 2; ..."
           }
         },
         {
@@ -8535,7 +8507,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
             },
             {
               "type" : "expression",
@@ -8549,7 +8521,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8568,8 +8540,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 104,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 8"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_bytes + 8; ..."
           }
         }
       ]
@@ -8694,7 +8666,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
             },
             {
               "type" : "expression",
@@ -8708,7 +8680,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8727,8 +8699,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 103,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_words = fmeta.int_meta.new_words + 2"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_words + 2; ..."
           }
         },
         {
@@ -8736,7 +8708,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
             },
             {
               "type" : "expression",
@@ -8750,7 +8722,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8769,8 +8741,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 104,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 8"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_bytes + 8; ..."
           }
         }
       ]
@@ -8929,7 +8901,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
             },
             {
               "type" : "expression",
@@ -8943,7 +8915,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8962,8 +8934,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 109,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_words = fmeta.int_meta.new_words + 3"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_words + 3; ..."
           }
         },
         {
@@ -8971,7 +8943,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
             },
             {
               "type" : "expression",
@@ -8985,7 +8957,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -9004,8 +8976,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 110,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 12"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_bytes + 12; ..."
           }
         }
       ]
@@ -9054,7 +9026,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
             },
             {
               "type" : "expression",
@@ -9068,7 +9040,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -9087,8 +9059,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 97,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_words = fmeta.int_meta.new_words + 1"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_words + 1; ..."
           }
         },
         {
@@ -9096,7 +9068,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
             },
             {
               "type" : "expression",
@@ -9110,7 +9082,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -9129,8 +9101,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 98,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 4"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_bytes + 4; ..."
           }
         }
       ]
@@ -9213,7 +9185,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
             },
             {
               "type" : "expression",
@@ -9227,7 +9199,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -9246,8 +9218,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 103,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_words = fmeta.int_meta.new_words + 2"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_words + 2; ..."
           }
         },
         {
@@ -9255,7 +9227,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
             },
             {
               "type" : "expression",
@@ -9269,7 +9241,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -9288,8 +9260,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 104,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 8"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_bytes + 8; ..."
           }
         }
       ]
@@ -9391,7 +9363,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
             },
             {
               "type" : "expression",
@@ -9405,7 +9377,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -9424,8 +9396,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 103,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_words = fmeta.int_meta.new_words + 2"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_words + 2; ..."
           }
         },
         {
@@ -9433,7 +9405,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
             },
             {
               "type" : "expression",
@@ -9447,7 +9419,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -9466,8 +9438,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 104,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 8"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_bytes + 8; ..."
           }
         }
       ]
@@ -9603,7 +9575,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
             },
             {
               "type" : "expression",
@@ -9617,7 +9589,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -9636,8 +9608,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 109,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_words = fmeta.int_meta.new_words + 3"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_words + 3; ..."
           }
         },
         {
@@ -9645,7 +9617,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
             },
             {
               "type" : "expression",
@@ -9659,7 +9631,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -9678,8 +9650,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 110,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 12"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_bytes + 12; ..."
           }
         }
       ]
@@ -9785,7 +9757,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
             },
             {
               "type" : "expression",
@@ -9799,7 +9771,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -9818,8 +9790,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 103,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_words = fmeta.int_meta.new_words + 2"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_words + 2; ..."
           }
         },
         {
@@ -9827,7 +9799,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
             },
             {
               "type" : "expression",
@@ -9841,7 +9813,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -9860,8 +9832,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 104,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 8"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_bytes + 8; ..."
           }
         }
       ]
@@ -10001,7 +9973,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
             },
             {
               "type" : "expression",
@@ -10015,7 +9987,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -10034,8 +10006,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 109,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_words = fmeta.int_meta.new_words + 3"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_words + 3; ..."
           }
         },
         {
@@ -10043,7 +10015,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
             },
             {
               "type" : "expression",
@@ -10057,7 +10029,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -10076,8 +10048,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 110,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 12"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_bytes + 12; ..."
           }
         }
       ]
@@ -10236,7 +10208,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
             },
             {
               "type" : "expression",
@@ -10250,7 +10222,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -10269,8 +10241,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 109,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_words = fmeta.int_meta.new_words + 3"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_words + 3; ..."
           }
         },
         {
@@ -10278,7 +10250,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
             },
             {
               "type" : "expression",
@@ -10292,7 +10264,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -10311,8 +10283,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 110,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 12"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_bytes + 12; ..."
           }
         }
       ]
@@ -10505,7 +10477,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_words"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
             },
             {
               "type" : "expression",
@@ -10519,7 +10491,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -10538,8 +10510,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 115,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_words = fmeta.int_meta.new_words + 4"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_words + 4; ..."
           }
         },
         {
@@ -10547,7 +10519,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["userMetadata.int_meta", "new_bytes"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
             },
             {
               "type" : "expression",
@@ -10561,7 +10533,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -10580,8 +10552,8 @@
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 116,
-            "column" : 8,
-            "source_fragment" : "fmeta.int_meta.new_bytes = fmeta.int_meta.new_bytes + 16"
+            "column" : 33,
+            "source_fragment" : "= fmeta.int_meta.new_bytes + 16; ..."
           }
         }
       ]
@@ -10611,18 +10583,18 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.eth_type"]
+              "value" : ["scalars", "fabric_metadata_t._eth_type0"]
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.ip_eth_type"]
+              "value" : ["scalars", "fabric_metadata_t._ip_eth_type1"]
             }
           ],
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 248,
-            "column" : 8,
-            "source_fragment" : "fabric_metadata.eth_type = fabric_metadata.ip_eth_type"
+            "column" : 33,
+            "source_fragment" : "= fabric_metadata.ip_eth_type; ..."
           }
         }
       ]
@@ -10656,14 +10628,14 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.mpls_label"]
+              "value" : ["scalars", "fabric_metadata_t._mpls_label5"]
             }
           ],
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 254,
             "column" : 8,
-            "source_fragment" : "hdr.mpls.label = fabric_metadata.mpls_label"
+            "source_fragment" : "hdr.mpls.label = fabric_metadata.mpls_label; ..."
           }
         },
         {
@@ -10713,14 +10685,14 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.mpls_ttl"]
+              "value" : ["scalars", "fabric_metadata_t._mpls_ttl6"]
             }
           ],
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 257,
             "column" : 8,
-            "source_fragment" : "hdr.mpls.ttl = fabric_metadata.mpls_ttl"
+            "source_fragment" : "hdr.mpls.ttl = fabric_metadata.mpls_ttl; // Decrement after push. ..."
           }
         },
         {
@@ -10728,7 +10700,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.eth_type"]
+              "value" : ["scalars", "fabric_metadata_t._eth_type0"]
             },
             {
               "type" : "hexstr",
@@ -10773,14 +10745,14 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.vlan_cfi"]
+              "value" : ["scalars", "fabric_metadata_t._vlan_cfi4"]
             }
           ],
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 266,
             "column" : 8,
-            "source_fragment" : "hdr.vlan_tag.cfi = fabric_metadata.vlan_cfi"
+            "source_fragment" : "hdr.vlan_tag.cfi = fabric_metadata.vlan_cfi; ..."
           }
         },
         {
@@ -10792,14 +10764,14 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.vlan_pri"]
+              "value" : ["scalars", "fabric_metadata_t._vlan_pri3"]
             }
           ],
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 267,
             "column" : 8,
-            "source_fragment" : "hdr.vlan_tag.pri = fabric_metadata.vlan_pri"
+            "source_fragment" : "hdr.vlan_tag.pri = fabric_metadata.vlan_pri; ..."
           }
         },
         {
@@ -10811,14 +10783,14 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.eth_type"]
+              "value" : ["scalars", "fabric_metadata_t._eth_type0"]
             }
           ],
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 268,
             "column" : 8,
-            "source_fragment" : "hdr.vlan_tag.eth_type = fabric_metadata.eth_type"
+            "source_fragment" : "hdr.vlan_tag.eth_type = fabric_metadata.eth_type; ..."
           }
         },
         {
@@ -10830,14 +10802,14 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.vlan_id"]
+              "value" : ["scalars", "fabric_metadata_t._vlan_id2"]
             }
           ],
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 269,
             "column" : 8,
-            "source_fragment" : "hdr.vlan_tag.vlan_id = fabric_metadata.vlan_id"
+            "source_fragment" : "hdr.vlan_tag.vlan_id = fabric_metadata.vlan_id; ..."
           }
         },
         {
@@ -10875,14 +10847,14 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t.eth_type"]
+              "value" : ["scalars", "fabric_metadata_t._eth_type0"]
             }
           ],
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 280,
             "column" : 8,
-            "source_fragment" : "hdr.ethernet.eth_type = fabric_metadata.eth_type"
+            "source_fragment" : "hdr.ethernet.eth_type = fabric_metadata.eth_type; ..."
           }
         },
         {
@@ -11263,7 +11235,7 @@
                       },
                       "right" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       }
                     }
                   },
@@ -11361,7 +11333,7 @@
                       },
                       "right" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_bytes"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
                       }
                     }
                   },
@@ -11410,7 +11382,7 @@
                       },
                       "right" : {
                         "type" : "field",
-                        "value" : ["userMetadata.int_meta", "new_words"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
                       }
                     }
                   },
@@ -11703,7 +11675,7 @@
             {
               "match_type" : "exact",
               "name" : "eth_type",
-              "target" : ["scalars", "fabric_metadata_t.eth_type"],
+              "target" : ["scalars", "fabric_metadata_t._eth_type0"],
               "mask" : null
             }
           ],
@@ -12066,7 +12038,7 @@
             {
               "match_type" : "exact",
               "name" : "vlan_id",
-              "target" : ["scalars", "fabric_metadata_t.vlan_id"],
+              "target" : ["scalars", "fabric_metadata_t._vlan_id2"],
               "mask" : null
             },
             {
@@ -12109,7 +12081,7 @@
             {
               "match_type" : "exact",
               "name" : "mpls_label",
-              "target" : ["scalars", "fabric_metadata_t.mpls_label"],
+              "target" : ["scalars", "fabric_metadata_t._mpls_label5"],
               "mask" : null
             }
           ],
@@ -12190,19 +12162,19 @@
             {
               "match_type" : "ternary",
               "name" : "ip_proto",
-              "target" : ["scalars", "fabric_metadata_t.ip_proto"],
+              "target" : ["scalars", "fabric_metadata_t._ip_proto14"],
               "mask" : null
             },
             {
               "match_type" : "ternary",
               "name" : "l4_sport",
-              "target" : ["scalars", "fabric_metadata_t.l4_sport"],
+              "target" : ["scalars", "fabric_metadata_t._l4_sport15"],
               "mask" : null
             },
             {
               "match_type" : "ternary",
               "name" : "l4_dport",
-              "target" : ["scalars", "fabric_metadata_t.l4_dport"],
+              "target" : ["scalars", "fabric_metadata_t._l4_dport16"],
               "mask" : null
             },
             {
@@ -12226,7 +12198,7 @@
             {
               "match_type" : "ternary",
               "name" : "eth_type",
-              "target" : ["scalars", "fabric_metadata_t.eth_type"],
+              "target" : ["scalars", "fabric_metadata_t._eth_type0"],
               "mask" : null
             },
             {
@@ -12296,7 +12268,7 @@
             {
               "match_type" : "exact",
               "name" : "next_id",
-              "target" : ["scalars", "fabric_metadata_t.next_id"],
+              "target" : ["scalars", "fabric_metadata_t._next_id10"],
               "mask" : null
             }
           ],
@@ -12334,7 +12306,7 @@
             {
               "match_type" : "exact",
               "name" : "next_id",
-              "target" : ["scalars", "fabric_metadata_t.next_id"],
+              "target" : ["scalars", "fabric_metadata_t._next_id10"],
               "mask" : null
             }
           ],
@@ -12368,7 +12340,7 @@
             {
               "match_type" : "exact",
               "name" : "next_id",
-              "target" : ["scalars", "fabric_metadata_t.next_id"],
+              "target" : ["scalars", "fabric_metadata_t._next_id10"],
               "mask" : null
             }
           ],
@@ -12405,7 +12377,7 @@
             {
               "match_type" : "exact",
               "name" : "next_id",
-              "target" : ["scalars", "fabric_metadata_t.next_id"],
+              "target" : ["scalars", "fabric_metadata_t._next_id10"],
               "mask" : null
             }
           ],
@@ -12537,15 +12509,15 @@
               },
               {
                 "type" : "field",
-                "value" : ["scalars", "fabric_metadata_t.ip_proto"]
+                "value" : ["scalars", "fabric_metadata_t._ip_proto14"]
               },
               {
                 "type" : "field",
-                "value" : ["scalars", "fabric_metadata_t.l4_sport"]
+                "value" : ["scalars", "fabric_metadata_t._l4_sport15"]
               },
               {
                 "type" : "field",
-                "value" : ["scalars", "fabric_metadata_t.l4_dport"]
+                "value" : ["scalars", "fabric_metadata_t._l4_dport16"]
               }
             ]
           }
@@ -12819,7 +12791,7 @@
                   "left" : null,
                   "right" : {
                     "type" : "field",
-                    "value" : ["scalars", "fabric_metadata_t.skip_forwarding"]
+                    "value" : ["scalars", "fabric_metadata_t._skip_forwarding7"]
                   }
                 }
               },
@@ -12847,7 +12819,7 @@
               "op" : "==",
               "left" : {
                 "type" : "field",
-                "value" : ["scalars", "fabric_metadata_t.fwd_type"]
+                "value" : ["scalars", "fabric_metadata_t._fwd_type9"]
               },
               "right" : {
                 "type" : "hexstr",
@@ -12873,7 +12845,7 @@
               "op" : "==",
               "left" : {
                 "type" : "field",
-                "value" : ["scalars", "fabric_metadata_t.fwd_type"]
+                "value" : ["scalars", "fabric_metadata_t._fwd_type9"]
               },
               "right" : {
                 "type" : "hexstr",
@@ -12899,7 +12871,7 @@
               "op" : "==",
               "left" : {
                 "type" : "field",
-                "value" : ["scalars", "fabric_metadata_t.fwd_type"]
+                "value" : ["scalars", "fabric_metadata_t._fwd_type9"]
               },
               "right" : {
                 "type" : "hexstr",
@@ -12930,7 +12902,7 @@
                   "left" : null,
                   "right" : {
                     "type" : "field",
-                    "value" : ["scalars", "fabric_metadata_t.skip_next"]
+                    "value" : ["scalars", "fabric_metadata_t._skip_next8"]
                   }
                 }
               },
@@ -13136,7 +13108,7 @@
             {
               "match_type" : "exact",
               "name" : "vlan_id",
-              "target" : ["scalars", "fabric_metadata_t.vlan_id"],
+              "target" : ["scalars", "fabric_metadata_t._vlan_id2"],
               "mask" : null
             },
             {
@@ -13375,13 +13347,13 @@
             {
               "match_type" : "ternary",
               "name" : "l4_sport",
-              "target" : ["scalars", "fabric_metadata_t.l4_sport"],
+              "target" : ["scalars", "fabric_metadata_t._l4_sport15"],
               "mask" : null
             },
             {
               "match_type" : "ternary",
               "name" : "l4_dport",
-              "target" : ["scalars", "fabric_metadata_t.l4_dport"],
+              "target" : ["scalars", "fabric_metadata_t._l4_dport16"],
               "mask" : null
             }
           ],
@@ -14319,7 +14291,7 @@
                   "left" : null,
                   "right" : {
                     "type" : "field",
-                    "value" : ["scalars", "fabric_metadata_t.is_controller_packet_out"]
+                    "value" : ["scalars", "fabric_metadata_t._is_controller_packet_out12"]
                   }
                 }
               },
@@ -14382,7 +14354,7 @@
                       "left" : null,
                       "right" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t.is_multicast"]
+                        "value" : ["scalars", "fabric_metadata_t._is_multicast11"]
                       }
                     }
                   },
@@ -14403,7 +14375,7 @@
                       "left" : null,
                       "right" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t.clone_to_cpu"]
+                        "value" : ["scalars", "fabric_metadata_t._clone_to_cpu13"]
                       }
                     }
                   },
@@ -14442,7 +14414,7 @@
                       "left" : null,
                       "right" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t.is_multicast"]
+                        "value" : ["scalars", "fabric_metadata_t._is_multicast11"]
                       }
                     }
                   },
@@ -14486,7 +14458,7 @@
               "op" : "==",
               "left" : {
                 "type" : "field",
-                "value" : ["scalars", "fabric_metadata_t.mpls_label"]
+                "value" : ["scalars", "fabric_metadata_t._mpls_label5"]
               },
               "right" : {
                 "type" : "hexstr",
@@ -14565,7 +14537,7 @@
               "op" : "!=",
               "left" : {
                 "type" : "field",
-                "value" : ["scalars", "fabric_metadata_t.vlan_id"]
+                "value" : ["scalars", "fabric_metadata_t._vlan_id2"]
               },
               "right" : {
                 "type" : "hexstr",
@@ -14689,7 +14661,7 @@
               "op" : "==",
               "left" : {
                 "type" : "field",
-                "value" : ["userMetadata.spgw", "direction"]
+                "value" : ["scalars", "fabric_metadata_t._spgw_direction17"]
               },
               "right" : {
                 "type" : "hexstr",
@@ -14800,7 +14772,7 @@
                   "left" : null,
                   "right" : {
                     "type" : "field",
-                    "value" : ["userMetadata.int_meta", "source"]
+                    "value" : ["scalars", "fabric_metadata_t._int_meta_source22"]
                   }
                 }
               },
@@ -14856,7 +14828,7 @@
                   "left" : null,
                   "right" : {
                     "type" : "field",
-                    "value" : ["userMetadata.int_meta", "transit"]
+                    "value" : ["scalars", "fabric_metadata_t._int_meta_transit23"]
                   }
                 }
               },
@@ -14978,6 +14950,8 @@
       "target" : ["ipv4", "hdr_checksum"],
       "type" : "generic",
       "calculation" : "calc",
+      "verify" : false,
+      "update" : true,
       "if_cond" : {
         "type" : "expression",
         "value" : {
@@ -15002,6 +14976,8 @@
       "target" : ["gtpu_ipv4", "hdr_checksum"],
       "type" : "generic",
       "calculation" : "calc_0",
+      "verify" : false,
+      "update" : true,
       "if_cond" : {
         "type" : "expression",
         "value" : {
@@ -15026,6 +15002,8 @@
       "target" : ["ipv4", "hdr_checksum"],
       "type" : "generic",
       "calculation" : "calc_1",
+      "verify" : true,
+      "update" : false,
       "if_cond" : {
         "type" : "expression",
         "value" : {
