@@ -30,6 +30,7 @@ public final class K8sApiConfigJsonMatcher extends TypeSafeDiagnosingMatcher<Jso
     private static final String SCHEME = "scheme";
     private static final String IP_ADDRESS = "ipAddress";
     private static final String PORT = "port";
+    private static final String STATE = "state";
     private static final String TOKEN = "token";
     private static final String CA_CERT_DATA = "caCertData";
     private static final String CLIENT_CERT_DATA = "clientCertData";
@@ -64,6 +65,16 @@ public final class K8sApiConfigJsonMatcher extends TypeSafeDiagnosingMatcher<Jso
         if (jsonPort != port) {
             description.appendText("port was " + jsonPort);
             return false;
+        }
+
+        // check state
+        JsonNode jsonState = jsonNode.get(STATE);
+        String state = k8sApiConfig.state().name();
+        if (jsonState != null) {
+            if (!jsonState.asText().equals(state)) {
+                description.appendText("state was " + jsonState);
+                return false;
+            }
         }
 
         // check token

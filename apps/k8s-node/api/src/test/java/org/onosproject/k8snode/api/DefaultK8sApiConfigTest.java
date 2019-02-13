@@ -25,6 +25,8 @@ import static junit.framework.TestCase.assertEquals;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 import static org.onosproject.k8snode.api.K8sApiConfig.Scheme.HTTP;
 import static org.onosproject.k8snode.api.K8sApiConfig.Scheme.HTTPS;
+import static org.onosproject.k8snode.api.K8sApiConfig.State.CONNECTED;
+import static org.onosproject.k8snode.api.K8sApiConfig.State.DISCONNECTED;
 
 /**
  * Unit tests for DefaultK8sApiConfig.
@@ -73,6 +75,7 @@ public final class DefaultK8sApiConfigTest {
                 .scheme(SCHEME_1)
                 .ipAddress(IP_ADDRESS_1)
                 .port(PORT_1)
+                .state(CONNECTED)
                 .token(TOKEN_1)
                 .caCertData(CA_CERT_DATA_1)
                 .clientCertData(CLIENT_CERT_DATA_1)
@@ -83,6 +86,7 @@ public final class DefaultK8sApiConfigTest {
                 .scheme(SCHEME_1)
                 .ipAddress(IP_ADDRESS_1)
                 .port(PORT_1)
+                .state(CONNECTED)
                 .token(TOKEN_1)
                 .caCertData(CA_CERT_DATA_1)
                 .clientCertData(CLIENT_CERT_DATA_1)
@@ -93,6 +97,7 @@ public final class DefaultK8sApiConfigTest {
                 .scheme(SCHEME_2)
                 .ipAddress(IP_ADDRESS_2)
                 .port(PORT_2)
+                .state(DISCONNECTED)
                 .token(TOKEN_2)
                 .caCertData(CA_CERT_DATA_2)
                 .clientCertData(CLIENT_CERT_DATA_2)
@@ -120,6 +125,7 @@ public final class DefaultK8sApiConfigTest {
         assertEquals(SCHEME_1, config.scheme());
         assertEquals(IP_ADDRESS_1, config.ipAddress());
         assertEquals(PORT_1, config.port());
+        assertEquals(CONNECTED, config.state());
         assertEquals(TOKEN_1, config.token());
         assertEquals(CA_CERT_DATA_1, config.caCertData());
         assertEquals(CLIENT_CERT_DATA_1, config.clientCertData());

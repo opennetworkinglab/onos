@@ -33,6 +33,7 @@ import org.onosproject.k8snode.api.K8sNodeStore;
 import org.onosproject.k8snode.api.K8sNodeStoreDelegate;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.store.service.AtomicCounter;
 import org.onosproject.store.service.StorageService;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
@@ -45,6 +46,7 @@ import org.slf4j.Logger;
 
 import java.util.Dictionary;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
@@ -56,6 +58,7 @@ import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.k8snode.api.K8sNodeState.COMPLETE;
 import static org.onosproject.k8snode.impl.OsgiPropertyConstants.OVSDB_PORT;
 import static org.onosproject.k8snode.impl.OsgiPropertyConstants.OVSDB_PORT_NUM_DEFAULT;
+import static org.onosproject.k8snode.util.K8sNodeUtil.genDpid;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -81,6 +84,10 @@ public class K8sNodeManager
 
     private static final String ERR_NULL_NODE = "Kubernetes node cannot be null";
     private static final String ERR_NULL_HOSTNAME = "Kubernetes node hostname cannot be null";
+    private static final String ERR_NULL_DEVICE_ID = "Kubernetes node device ID cannot be null";
+
+    private static final String DEVICE_ID_COUNTER_NAME = "device-id-counter";
+    private static final String NOT_DUPLICATED_MSG = "% cannot be duplicated";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected K8sNodeStore nodeStore;
@@ -108,6 +115,8 @@ public class K8sNodeManager
 
     private final K8sNodeStoreDelegate delegate = new K8sNodeManager.InternalNodeStoreDelegate();
 
+    private AtomicCounter deviceIdCounter;
+
     private ApplicationId appId;
 
     @Activate
@@ -116,6 +125,8 @@ public class K8sNodeManager
         nodeStore.setDelegate(delegate);
 
         leadershipService.runForLeadership(appId.name());
+
+        deviceIdCounter = storageService.getAtomicCounter(DEVICE_ID_COUNTER_NAME);
 
         log.info("Started");
     }
@@ -144,15 +155,48 @@ public class K8sNodeManager
     @Override
     public void createNode(K8sNode node) {
         checkNotNull(node, ERR_NULL_NODE);
-        nodeStore.createNode(node);
-        log.info(String.format(MSG_NODE, node.hostname(), MSG_CREATED));
+
+        K8sNode updatedNode;
+
+        if (node.intgBridge() == null) {
+            String deviceIdStr = genDpid(deviceIdCounter.incrementAndGet());
+            checkNotNull(deviceIdStr, ERR_NULL_DEVICE_ID);
+            updatedNode = node.updateIntgBridge(DeviceId.deviceId(deviceIdStr));
+            checkArgument(!hasIntgBridge(updatedNode.intgBridge(), updatedNode.hostname()),
+                    NOT_DUPLICATED_MSG, updatedNode.intgBridge());
+        } else {
+            updatedNode = node;
+            checkArgument(!hasIntgBridge(updatedNode.intgBridge(), updatedNode.hostname()),
+                    NOT_DUPLICATED_MSG, updatedNode.intgBridge());
+        }
+
+        nodeStore.createNode(updatedNode);
+        log.info(String.format(MSG_NODE, updatedNode.hostname(), MSG_CREATED));
     }
 
     @Override
     public void updateNode(K8sNode node) {
         checkNotNull(node, ERR_NULL_NODE);
-        nodeStore.updateNode(node);
-        log.info(String.format(MSG_NODE, node.hostname(), MSG_UPDATED));
+
+        K8sNode updatedNode;
+
+        K8sNode existingNode = nodeStore.node(node.hostname());
+        checkNotNull(existingNode, ERR_NULL_NODE);
+
+        DeviceId existDeviceId = nodeStore.node(node.hostname()).intgBridge();
+
+        if (node.intgBridge() == null) {
+            updatedNode = node.updateIntgBridge(existDeviceId);
+            checkArgument(!hasIntgBridge(updatedNode.intgBridge(), updatedNode.hostname()),
+                    NOT_DUPLICATED_MSG, updatedNode.intgBridge());
+        } else {
+            updatedNode = node;
+            checkArgument(!hasIntgBridge(updatedNode.intgBridge(), updatedNode.hostname()),
+                    NOT_DUPLICATED_MSG, updatedNode.intgBridge());
+        }
+
+        nodeStore.updateNode(updatedNode);
+        log.info(String.format(MSG_NODE, updatedNode.hostname(), MSG_UPDATED));
     }
 
     @Override
@@ -204,6 +248,15 @@ public class K8sNodeManager
                 .filter(node -> Objects.equals(node.intgBridge(), deviceId) ||
                         Objects.equals(node.ovsdb(), deviceId))
                 .findFirst().orElse(null);
+    }
+
+    private boolean hasIntgBridge(DeviceId deviceId, String hostname) {
+        Optional<K8sNode> existNode = nodeStore.nodes().stream()
+                .filter(n -> !n.hostname().equals(hostname))
+                .filter(n -> n.intgBridge().equals(deviceId))
+                .findFirst();
+
+        return existNode.isPresent();
     }
 
     private class InternalNodeStoreDelegate implements K8sNodeStoreDelegate {

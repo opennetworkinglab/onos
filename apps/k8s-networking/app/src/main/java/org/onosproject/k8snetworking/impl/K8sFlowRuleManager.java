@@ -327,25 +327,26 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
 
         @Override
         public void event(K8sNodeEvent event) {
-            K8sNode k8sNode = event.subject();
-
             switch (event.type()) {
                 case K8S_NODE_COMPLETE:
-                    deviceEventExecutor.execute(() -> {
-                        log.info("COMPLETE node {} is detected", k8sNode.hostname());
-
-                        if (!isRelevantHelper()) {
-                            return;
-                        }
-
-                        initializePipeline(k8sNode);
-                    });
+                    deviceEventExecutor.execute(() -> processNodeCompletion(event.subject()));
                     break;
                 case K8S_NODE_CREATED:
                 default:
                     // do nothing
                     break;
             }
+        }
+
+        private void processNodeCompletion(K8sNode node) {
+            log.info("COMPLETE node {} is detected", node.hostname());
+
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            initializePipeline(node);
+            k8sNetworkService.networks().forEach(K8sFlowRuleManager.this::setupHostGwRule);
         }
     }
 

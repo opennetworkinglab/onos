@@ -1,6 +1,13 @@
-BUNDLES = [
+BUNDLES = JACKSON + [
     "//apps/k8s-node/api:onos-apps-k8s-node-api",
     "//apps/k8s-node/app:onos-apps-k8s-node-app",
+    "@k8s_client//jar",
+    "@k8s_model//jar",
+    "@okhttp//jar",
+    "@okio//jar",
+    "@logging_interceptor//jar",
+    "@jackson_dataformat_yaml//jar",
+    "@snakeyaml//jar",
 ]
 
 onos_app(

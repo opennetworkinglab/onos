@@ -39,6 +39,7 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.onosproject.k8snode.api.K8sApiConfig.State.CONNECTED;
 import static org.onosproject.k8snode.codec.K8sApiConfigJsonMatcher.matchesK8sApiConfig;
 import static org.onosproject.net.NetTestTools.APP_ID;
 
@@ -79,6 +80,7 @@ public class K8sApiConfigCodecTest {
                 .scheme(K8sApiConfig.Scheme.HTTPS)
                 .ipAddress(IpAddress.valueOf("10.10.10.23"))
                 .port(6443)
+                .state(CONNECTED)
                 .token("token")
                 .caCertData("caCertData")
                 .clientCertData("clientCertData")

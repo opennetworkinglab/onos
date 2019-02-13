@@ -231,7 +231,7 @@ public class K8sNodeManagerTest {
     /**
      * Checks if updating not existing node fails with proper exception.
      */
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = NullPointerException.class)
     public void testUpdateNotExistingNode() {
         target.updateNode(MINION_1);
     }

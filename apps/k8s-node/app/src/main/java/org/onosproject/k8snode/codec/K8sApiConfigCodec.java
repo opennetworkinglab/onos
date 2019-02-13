@@ -26,6 +26,7 @@ import org.onosproject.k8snode.api.K8sApiConfig.Scheme;
 
 import static org.onlab.util.Tools.nullIsIllegal;
 import static org.onosproject.k8snode.api.K8sApiConfig.Scheme.HTTPS;
+import static org.onosproject.k8snode.api.K8sApiConfig.State.DISCONNECTED;
 
 /**
  * Kubernetes API server config codec used for serializing and de-serializing JSON string.
@@ -35,6 +36,7 @@ public final class K8sApiConfigCodec extends JsonCodec<K8sApiConfig> {
     private static final String SCHEME = "scheme";
     private static final String IP_ADDRESS = "ipAddress";
     private static final String PORT = "port";
+    private static final String STATE = "state";
     private static final String TOKEN = "token";
     private static final String CA_CERT_DATA = "caCertData";
     private static final String CLIENT_CERT_DATA = "clientCertData";
@@ -47,7 +49,8 @@ public final class K8sApiConfigCodec extends JsonCodec<K8sApiConfig> {
         ObjectNode node = context.mapper().createObjectNode()
                 .put(SCHEME, entity.scheme().name())
                 .put(IP_ADDRESS, entity.ipAddress().toString())
-                .put(PORT, entity.port());
+                .put(PORT, entity.port())
+                .put(STATE, entity.state().name());
 
         if (entity.scheme() == HTTPS) {
             node.put(TOKEN, entity.token())
@@ -90,7 +93,8 @@ public final class K8sApiConfigCodec extends JsonCodec<K8sApiConfig> {
         K8sApiConfig.Builder builder = DefaultK8sApiConfig.builder()
                 .scheme(scheme)
                 .ipAddress(ipAddress)
-                .port(port);
+                .port(port)
+                .state(DISCONNECTED);
 
         JsonNode tokenJson = json.get(TOKEN);
         JsonNode caCertDataJson = json.get(CA_CERT_DATA);
@@ -111,7 +115,6 @@ public final class K8sApiConfigCodec extends JsonCodec<K8sApiConfig> {
                     CLIENT_CERT_DATA + MISSING_MESSAGE);
             clientKeyData = nullIsIllegal(clientKeyDataJson.asText(),
                     CLIENT_KEY_DATA + MISSING_MESSAGE);
-
 
         } else {
             if (tokenJson != null) {

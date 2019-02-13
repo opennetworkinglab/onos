@@ -466,6 +466,12 @@ def generated_maven_jars():
             jar_sha256 = "0fb4e079c118e752cc94c15ad22e6782b0dfc5dc09145f4813fb39d82e686047",
             licenses = ["notice"],
             jar_urls = ["http://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.9.5/jackson-databind-2.9.5.jar"],        )
+    if "jackson_dataformat_yaml" not in native.existing_rules():
+        java_import_external(
+            name = "jackson_dataformat_yaml",
+            jar_sha256 = "adc1c495e9c7286bfa1d861ca07e06c8d0980057ad981b48b04f68eb8dcade2c",
+            licenses = ["notice"],
+            jar_urls = ["http://repo1.maven.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-yaml/2.9.5/jackson-dataformat-yaml-2.9.5.jar"],        )
     if "javax_annotation_api_mvn" not in native.existing_rules():
         java_import_external(
             name = "javax_annotation_api_mvn",
@@ -1153,9 +1159,9 @@ def generated_maven_jars():
     if "snakeyaml" not in native.existing_rules():
         java_import_external(
             name = "snakeyaml",
-            jar_sha256 = "79ea8aac6590f49ee8390c2f17ed9343079e85b44158a097b301dfee42af86ec",
+            jar_sha256 = "81bf4c29d0275dace75fadb5febf5384553422816256023efa83b2b15a9ced60",
             licenses = ["notice"],
-            jar_urls = ["http://repo1.maven.org/maven2/org/yaml/snakeyaml/1.15/snakeyaml-1.15.jar"],        )
+            jar_urls = ["http://repo1.maven.org/maven2/org/yaml/snakeyaml/1.18/snakeyaml-1.18.jar"],        )
     if "k8s_client" not in native.existing_rules():
         java_import_external(
             name = "k8s_client",
@@ -1371,6 +1377,7 @@ artifact_map["@jackson_annotations//:jackson_annotations"] = "mvn:com.fasterxml.
 artifact_map["@jackson_core//:jackson_core"] = "mvn:com.fasterxml.jackson.core:jackson-core:jar:2.9.5"
 artifact_map["@jackson_databind//:jackson_databind"] = "mvn:com.fasterxml.jackson.core:jackson-databind:jar:2.9.5"
 artifact_map["@javax_annotation_api_mvn//:javax_annotation_api_mvn"] = "mvn:javax.annotation:javax.annotation-api:jar:1.3"
+artifact_map["@jackson_dataformat_yaml//:jackson_dataformat_yaml"] = "mvn:com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:jar:2.9.5"
 artifact_map["@javax_inject//:javax_inject"] = "mvn:org.glassfish.hk2.external:javax.inject:jar:2.5.0-b42"
 artifact_map["@javax_ws_rs_api//:javax_ws_rs_api"] = "mvn:javax.ws.rs:javax.ws.rs-api:jar:2.1"
 artifact_map["@javax_activation//:javax_activation"] = "mvn:javax.activation:activation:jar:NON-OSGI:1.1.1"
@@ -1484,7 +1491,7 @@ artifact_map["@json_patch//:json_patch"] = "mvn:com.github.fge:json-patch:jar:1.
 artifact_map["@jackson_coreutils//:jackson_coreutils"] = "mvn:com.github.fge:jackson-coreutils:jar:1.6"
 artifact_map["@btf//:btf"] = "mvn:com.github.fge:btf:jar:1.2"
 artifact_map["@msg_simple//:msg_simple"] = "mvn:com.github.fge:msg-simple:jar:1.1"
-artifact_map["@snakeyaml//:snakeyaml"] = "mvn:org.yaml:snakeyaml:jar:1.15"
+artifact_map["@snakeyaml//:snakeyaml"] = "mvn:org.yaml:snakeyaml:jar:1.18"
 artifact_map["@k8s_client//:k8s_client"] = "mvn:io.fabric8:kubernetes-client:jar:NON-OSGI:4.1.1"
 artifact_map["@k8s_model//:k8s_model"] = "mvn:io.fabric8:kubernetes-model:jar:4.1.1"
 artifact_map["@zjsonpatch//:zjsonpatch"] = "mvn:io.fabric8:zjsonpatch:jar:0.3.0"

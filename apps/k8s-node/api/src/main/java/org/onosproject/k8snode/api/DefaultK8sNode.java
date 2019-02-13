@@ -90,6 +90,18 @@ public class DefaultK8sNode implements K8sNode {
     }
 
     @Override
+    public K8sNode updateIntgBridge(DeviceId deviceId) {
+        return new Builder()
+                .hostname(hostname)
+                .type(type)
+                .intgBridge(deviceId)
+                .managementIp(managementIp)
+                .dataIp(dataIp)
+                .state(state)
+                .build();
+    }
+
+    @Override
     public IpAddress managementIp() {
         return managementIp;
     }

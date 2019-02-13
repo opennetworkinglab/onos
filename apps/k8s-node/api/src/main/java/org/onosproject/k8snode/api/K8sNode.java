@@ -68,6 +68,14 @@ public interface K8sNode {
     DeviceId intgBridge();
 
     /**
+     * Returns new kubernetes node instance with given integration bridge.
+     *
+     * @param deviceId  integration bridge device ID
+     * @return updated kubernetes node
+     */
+    K8sNode updateIntgBridge(DeviceId deviceId);
+
+    /**
      * Returns the management network IP address of the node.
      *
      * @return ip address
