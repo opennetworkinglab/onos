@@ -219,11 +219,13 @@
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.SoftRouterPipeline"/>
     </driver>
+
     <driver name="pica" extends="default"
-            manufacturer="Pica8, Inc." hwVersion=".*" swVersion="PicOS 2.6">
+            manufacturer="Pica8, Inc." hwVersion=".*" swVersion="PicOS.*">
         <behaviour api="org.onosproject.net.behaviour.Pipeliner"
                    impl="org.onosproject.driver.pipeline.PicaPipeline"/>
     </driver>
+
     <driver name="noviflow" extends="softrouter"
             manufacturer="NoviFlow Inc" hwVersion="NS.*" swVersion="NW.*">
     </driver>
