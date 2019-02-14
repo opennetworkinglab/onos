@@ -75,7 +75,6 @@ public final class ConfigPropertyDefinitions {
             while ((line = br.readLine()) != null) {
                 if (!line.isEmpty() && !line.startsWith(COMMENT)) {
                     String[] f = line.split(SEP, 4);
-                    log.info("Line is: {} length of array is: {}", line, f.length);
                     builder.add(defineProperty(f[0], Type.valueOf(f[1]), f[2], f[3]));
                 }
             }
