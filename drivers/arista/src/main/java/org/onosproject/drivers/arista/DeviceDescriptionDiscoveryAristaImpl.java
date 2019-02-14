@@ -105,18 +105,20 @@ public class DeviceDescriptionDiscoveryAristaImpl extends AbstractHandlerBehavio
 
     @Override
     public List<PortDescription> discoverPortDetails() {
+
         Map<String, MacAddress> macAddressMap = getMacAddressesByInterface();
         List<PortDescription> ports = Lists.newArrayList();
+        DeviceId deviceId = checkNotNull(handler().data().deviceId());
 
         try {
             Optional<JsonNode> result = AristaUtils.retrieveCommandResult(handler(), SHOW_INTERFACES_STATUS);
 
             if (!result.isPresent()) {
+                log.warn("{} Device unable to get interfaces status information.", deviceId);
                 return ports;
             }
 
             JsonNode jsonNode = result.get().findValue(INTERFACE_STATUSES);
-
             jsonNode.fieldNames().forEachRemaining(name -> {
                 JsonNode interfaceNode = jsonNode.get(name);
 
@@ -170,12 +172,15 @@ public class DeviceDescriptionDiscoveryAristaImpl extends AbstractHandlerBehavio
     }
 
     private Map<String, MacAddress> getMacAddressesByInterface() {
+
+        DeviceId deviceId = checkNotNull(handler().data().deviceId());
         Map<String, MacAddress> macAddressMap = new HashMap();
 
         try {
             Optional<JsonNode> result = AristaUtils.retrieveCommandResult(handler(), SHOW_INTERFACES);
 
             if (!result.isPresent()) {
+                log.warn("{} Device unable to get interface information.", deviceId);
                 return macAddressMap;
             }
 

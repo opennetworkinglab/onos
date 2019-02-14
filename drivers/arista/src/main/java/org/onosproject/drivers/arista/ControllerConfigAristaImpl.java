@@ -45,6 +45,7 @@ public class ControllerConfigAristaImpl extends AbstractHandlerBehaviour impleme
     private static final String SHUTDOWN_CMD = "shutdown";
     private static final String REMOVE_CONTROLLER_CMD = "no controller tcp:%s:%d";
     private static final String COPY_RUNNING_CONFIG = "copy running-config startup-config";
+    private static final String CONTROLLER_INFO = "controllersInfo";
     private static final String CONTROLLER_ADDR = "controllerAddr";
     private static final String CONTROLLER_IP = "ip";
     private static final String CONTROLLER_PORT = "port";
@@ -62,10 +63,11 @@ public class ControllerConfigAristaImpl extends AbstractHandlerBehaviour impleme
         List<ControllerInfo> controllers = new ArrayList<>();
         Optional<JsonNode> res = AristaUtils.retrieveCommandResult(handler(), SHOW_CONTROLLER_CMD);
         if (res == null) {
+            log.warn("There is no connected controller.");
             return controllers;
         }
 
-        JsonNode controllerInfo = res.get().findValue("controllersInfo");
+        JsonNode controllerInfo = res.get().findValue(CONTROLLER_INFO);
         Iterator<JsonNode> controlleriter = controllerInfo.iterator();
         while (controlleriter.hasNext()) {
             JsonNode temp1 = controlleriter.next();
@@ -94,9 +96,9 @@ public class ControllerConfigAristaImpl extends AbstractHandlerBehaviour impleme
         //The Arista switch supports up to 8 multi-controllers.
         controllers.stream().limit(MAX_CONTROLLERS).forEach(c -> cmds
                 .add(String.format(SET_CONTROLLER_CMD, c.ip().toString(), c.port())));
-        if (controllers.size() > 8) {
+        if (controllers.size() > MAX_CONTROLLERS) {
             log.warn(" {} Arista Switch maximun 8 controllers, not adding {} excessive ones",
-                    handler().data().deviceId(), controllers.size() - 8);
+                    handler().data().deviceId(), controllers.size() - MAX_CONTROLLERS);
         }
         cmds.add(NO_SHUTDOWN_CMD);
         cmds.add(COPY_RUNNING_CONFIG);
