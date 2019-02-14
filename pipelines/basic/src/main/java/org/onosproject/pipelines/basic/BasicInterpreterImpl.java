@@ -80,6 +80,10 @@ public class BasicInterpreterImpl extends AbstractHandlerBehaviour
 
     private static final int PORT_BITWIDTH = 9;
 
+    private static final ImmutableBiMap<Integer, PiTableId> TABLE_MAP =
+            new ImmutableBiMap.Builder<Integer, PiTableId>()
+                    .put(0, BasicConstants.INGRESS_TABLE0_CONTROL_TABLE0)
+                    .build();
     private static final ImmutableBiMap<Criterion.Type, PiMatchFieldId> CRITERION_MAP =
             new ImmutableBiMap.Builder<Criterion.Type, PiMatchFieldId>()
                     .put(Criterion.Type.IN_PORT, HDR_STANDARD_METADATA_INGRESS_PORT)
@@ -238,11 +242,11 @@ public class BasicInterpreterImpl extends AbstractHandlerBehaviour
 
     @Override
     public Optional<PiTableId> mapFlowRuleTableId(int flowRuleTableId) {
-        return Optional.empty();
+        return Optional.ofNullable(TABLE_MAP.get(flowRuleTableId));
     }
 
     @Override
     public Optional<Integer> mapPiTableId(PiTableId piTableId) {
-        return Optional.empty();
+        return Optional.ofNullable(TABLE_MAP.inverse().get(piTableId));
     }
 }
