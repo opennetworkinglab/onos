@@ -14,9 +14,6 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<scenario name="net-teardown-odtn" description="Network teardown steps">
-  <group name="Net-Teardown-ODTN">
-    <step name="App-Dectivate-Odtn-Service" exec="onos ${OCI} app deactivate org.onosproject.odtn-service"/>
-    <step name="Remove-onos-images-stop-emulators" requires="App-Dectivate-Odtn-Service" exec="${ONOS_SCENARIOS}/odtn/destroyOdtnCell.sh"/>
-  </group>
+<scenario name="Stop-docker" description="Stop all docker containers with prefix onos- atomix- emulator-">
+    <step name="Stop-docker.stop-all" exec="${ONOS_SCENARIOS}/odtn/destroyOdtnCell.sh stop-docker"/>
 </scenario>

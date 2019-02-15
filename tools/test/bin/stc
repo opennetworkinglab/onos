@@ -3,6 +3,20 @@
 #   System Test Coordinator
 #-------------------------------------------------------------------------------
 
+# If specifiy another env init script, load it.
+params=()
+index=0
+for i in $@; do
+    key=`echo $i | awk -F '=' '{print $1}'`
+    if [ "$key" == "-ENV_DEFAULT" ]; then
+	val=`echo $i | awk -F '=' '{print $2}'`
+	source $val
+    else
+	params[$index]=$i
+	let index+=1
+    fi
+done
+
 . $ONOS_ROOT/tools/build/envDefaults
 
 VER=${STC_VERSION:-2.5}
@@ -20,7 +34,7 @@ fi
 
 DEBUG_OPTS="-agentlib:jdwp=transport=dt_socket,address=5005,server=y,suspend=y"
 
-scenario=${1:-smoke}
+scenario=${params[0]:-smoke}
 
 if [ $scenario != "-?" -a $scenario != "-h" -a $scenario != "--help" ]; then
     [ ! -f $scenario ] && scenario=$SCENARIOS/$scenario
@@ -38,4 +52,4 @@ fi
 # Run stc
 [ -z "$stcDebug" ] && DEBUG_OPTS=""
 stcTitle=${stcTitle:-} stcColor=${stcColor:-$interactive} stcDumpLogs=${stcDumpLogs:-$notInteractive} \
-    java $DEBUG_OPTS -jar $JAR $scenario "$@"
+    java $DEBUG_OPTS -jar $JAR $scenario "${params[*]}"

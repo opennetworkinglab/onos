@@ -6,7 +6,7 @@ import json
 
 if len(sys.argv) < 4:
     print "usage: execute-tapi-post-call <onos-node> <context> <empty> [uuid]."
-    print "\t- If <empty> is \"empty\", it measn that it shoudl be no devices, links or ports"
+    print "\t- If <empty> is \"empty\", it measn that it should be no devices, links or ports"
     print "\t- Uuid is optional and defaults to empty"
     print "\t- For example:\n\t\t- line-side connectivity creation: %s\n\t\t- client-side connectivity creation: %s" % \
           ("python execute-tapi-post-call.py 127.0.0.1 tapi-connectivity:create-connectivity-service line-side",
@@ -30,7 +30,13 @@ if "get-connectivity-service-list" in context:
     print tapi_connection_json
     if not tapi_connection_json["tapi-connectivity:output"] and empty != "empty":
        print "No connection was established"
-       sys.exit(1)
+       sys.exit(0)
+    if empty == "empty":
+        if not tapi_connection_json["tapi-connectivity:output"]:
+            sys.exit(0)
+        else:
+            print "There exist some connectivities!!!"
+            sys.exit(1)
     if uuid == "":
         # verify empty connection
         print tapi_connection_json

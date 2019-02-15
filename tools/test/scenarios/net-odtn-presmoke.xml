@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright 2015-present Open Networking Foundation
+  ~ Copyright 2018-present Open Networking Foundation
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,9 +14,10 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<scenario name="net-teardown-odtn" description="Network teardown steps">
-  <group name="Net-Teardown-ODTN">
-    <step name="App-Dectivate-Odtn-Service" exec="onos ${OCI} app deactivate org.onosproject.odtn-service"/>
-    <step name="Remove-onos-images-stop-emulators" requires="App-Dectivate-Odtn-Service" exec="${ONOS_SCENARIOS}/odtn/destroyOdtnCell.sh"/>
+<scenario name="net-odtn-presmoke" description="Start ODTN docker containers and set env variables">
+  <group name="ODTN-Net-Prepare">
+    <step name="ODTN-Net-Prepare.clean-docker" exec="bash ${ONOS_SCENARIOS}/odtn/destroyOdtnCell.sh"/>
+    <step name="ODTN-Net-Prepare.build-docker-img" exec="bash ${ONOS_SCENARIOS}/odtn/buildOdtnDocker.sh" requires="ODTN-Net-Prepare.clean-docker"/>
+    <step name="ODTN-Net-Prepare.create-docker-containers" requires="ODTN-Net-Prepare.build-docker-img" exec="source ${ONOS_SCENARIOS}/odtn/createOdtnCell.sh"/>
   </group>
 </scenario>

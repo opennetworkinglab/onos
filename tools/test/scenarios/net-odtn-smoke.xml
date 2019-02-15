@@ -14,24 +14,10 @@
   ~ limitations under the License.
   -->
 
-
-<scenario name="net-odtn-smoke"
-          description="ODTN test steps">
-
-    <import file="${ONOS_SCENARIOS}/net-setup-odtn.xml"/>
-
-    <!--TODO check proper topology-->
-    <!--<step name="Net-ODTN-Smoke.Check-Summary"
-          requires="ODTN-Net-Setup.Verify-Logs-2" delay="5"
-          exec="onos-check-summary ${OC1} [0-9]* 4 8 0 112"/>-->
-
-    <import file="${ONOS_SCENARIOS}/net-odtn-restconf.xml"/>
-    <dependency name="Net-ODTN-Restconf" requires="ODTN-Net-Setup"/>
-
-    <import file="${ONOS_SCENARIOS}/net-teardown-odtn.xml"/>
-    <dependency name="Net-Teardown-ODTN" requires="Net-ODTN-Restconf"/>
-
-    <import file="${ONOS_SCENARIOS}/shutdown.xml"/>
-    <dependency name="Shutdown-ONOS" requires="Net-Teardown-ODTN"/>
-
+<scenario name="net-odtn-smoke" description="ODTN test steps">
+  <import file="${ONOS_SCENARIOS}/net-setup-odtn.xml"/>
+  <import file="${ONOS_SCENARIOS}/net-odtn-restconf.xml"/>
+  <dependency name="Net-ODTN-Restconf" requires="ODTN-Net-Setup"/>
+  <import file="${ONOS_SCENARIOS}/net-teardown-odtn.xml"/>
+  <dependency name="Net-Teardown-ODTN" requires="Net-ODTN-Restconf"/>
 </scenario>
