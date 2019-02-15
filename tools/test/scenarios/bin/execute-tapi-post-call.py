@@ -7,7 +7,8 @@ import tapiHelper
 from requests.auth import HTTPBasicAuth
 
 if len(sys.argv) < 4:
-    print "usage: execute-tapi-post-call onos-node context empty uuid. Uuid is optional and defaults to empty"
+    print "usage: execute-tapi-post-call <onos-node> <context> <empty> [uuid]."
+    print "\t- If <empty> is \"empty\", it measn that it shoudl be no devices, links or ports\n\t- Uuid is optional and defaults to empty"
     sys.exit(1)
 
 node = sys.argv[1]
@@ -27,10 +28,23 @@ if "get-connectivity-service-list" in context:
     if not tapi_connection_json["tapi-connectivity:output"] and empty != "empty":
        print "No connection was established"
        sys.exit(1)
-    #TODO verify empty connection if uuid is empty
-    #TODO verify correct connection if uuid is not empty
+    if uuid == "":
+        # verify empty connection
+        print tapi_connection_json
+    elif uuid != "":
+        # verify correct connection
+        servs = tapi_connection_json["tapi-connectivity:output"]["service"]
+        for s in range(len(servs)):
+            if servs[s]['uuid'] == uuid:
+                print "Find service with uuid %s" % uuid
+                print servs[s]
+                sys.exit(0)
+    else:
+        print "Invalid input for 3rd and 4th parameters."
+        sys.exit(1)
     sys.exit(0)
 
+# test succeeds by using cmd: python execute-tapi-post-call.py 127.0.0.1 tapi-connectivity:create-connectivity-service empty
 if "create-connectivity-service" in context:
     context_request = 'http://' + node + ':8181/onos/restconf/data/tapi-common:context'
     connectivity_request = 'http://' + node + ':8181/onos/restconf/operations/' + context
