@@ -1,6 +1,6 @@
 # First stage is the build environment
-FROM sgrio/java-oracle:jdk_8 as builder
-MAINTAINER Jonathan Hart <jono@opennetworking.org>
+FROM picoded/ubuntu-openjdk-8-jdk as builder
+MAINTAINER Ray Milkey <ray@opennetworking.org>
 
 # Set the environment variables
 ENV HOME /root
@@ -21,8 +21,6 @@ RUN apt-get update && apt-get install -y zip python git bzip2 build-essential &&
         chmod +x bazel.sh && \
         ./bazel.sh --user && \
         export ONOS_ROOT=/src/onos && \
-        ln -s /usr/lib/jvm/java-8-oracle/bin/jar /etc/alternatives/jar && \
-        ln -s /etc/alternatives/jar /usr/bin/jar && \
         ~/bin/bazel build onos --verbose_failures --jobs 2 && \
         mkdir -p /src/tar && \
         cd /src/tar && \
