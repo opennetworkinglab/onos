@@ -96,12 +96,8 @@ def create_connection(url_context, url_connectivity):
 # Obtains existing connectivity services
 #
 def get_connection(url_connectivity, uuid):
-    if(uuid == ""):
-        json = '{}'
-    else:
-        #TODO use uuid to retrieve given topo
-        print "Not Yet implemented"
-        json = '{}'
+    # uuid is useless for this method
+    json = '{}'
     headers = {'Content-type': 'application/json'}
     resp = requests.post(url_connectivity, data=json, headers=headers,  auth=('onos', 'rocks'))
     if resp.status_code != 200:
