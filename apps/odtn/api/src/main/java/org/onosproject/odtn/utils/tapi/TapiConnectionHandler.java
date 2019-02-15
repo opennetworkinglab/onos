@@ -117,6 +117,7 @@ public final class TapiConnectionHandler extends TapiObjectHandler<DefaultConnec
                     .map(id -> {
                         TapiConnectionHandler handler = new TapiConnectionHandler();
                         handler.setId(Uuid.fromString(id.toString()));
+                        handler.read();
                         return handler;
                     }).collect(Collectors.toList());
         } catch (NullPointerException e) {
