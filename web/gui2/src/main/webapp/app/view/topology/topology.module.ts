@@ -36,6 +36,7 @@ import {
 } from './layer/forcesvg/visuals';
 import { MapSelectorComponent } from './panel/mapselector/mapselector.component';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+import { GridsvgComponent } from './layer/gridsvg/gridsvg.component';
 
 /**
  * ONOS GUI -- Topology View Module
@@ -69,7 +70,8 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
         DeviceNodeSvgComponent,
         HostNodeSvgComponent,
         SubRegionNodeSvgComponent,
-        MapSelectorComponent
+        MapSelectorComponent,
+        GridsvgComponent
     ],
     providers: [
         TopologyService

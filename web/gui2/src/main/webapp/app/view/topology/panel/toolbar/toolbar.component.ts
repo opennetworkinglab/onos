@@ -33,6 +33,7 @@ export const BKGRND_TOGGLE = 'bkgrnd-tog';
 export const BKGRND_SELECT = 'bkgrnd-sel';
 export const CYCLELABELS_BTN = 'cycleLabels-btn';
 export const CYCLEHOSTLABEL_BTN = 'cycleHostLabel-btn';
+export const CYCLEGRIDDISPLAY_BTN = 'cycleGridDisplay-btn';
 export const RESETZOOM_BTN = 'resetZoom-btn';
 export const EQMASTER_BTN = 'eqMaster-btn';
 export const CANCEL_TRAFFIC = 'cancel-traffic';

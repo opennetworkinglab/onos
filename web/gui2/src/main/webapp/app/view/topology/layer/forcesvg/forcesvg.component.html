@@ -41,12 +41,15 @@
         line 3) Use the onosDraggable directive and pass this device in to
          its draggableNode Input parameter and setting the draggableInGraph
          Input parameter to 'graph'
-        line 4) when the onos-devicenodesvg component emits the selectedEvent
+        line 4) event handler of the draggable directive - causes the new location
+         to be written back to the server
+        line 5) when the onos-devicenodesvg component emits the selectedEvent
          call the updateSelected() method of this (forcesvg) component
     -->
     <svg:g onos-devicenodesvg [device]="device"
            *ngFor="let device of regionData.devices[visibleLayerIdx()]"
            onosDraggableNode [draggableNode]="device" [draggableInGraph]="graph"
+               (newLocation)="nodeMoved('device', device.id, $event)"
            (selectedEvent)="updateSelected($event)"
             [labelToggle]="deviceLabelToggle">
         <svg:desc>Device nodes</svg:desc>
@@ -62,12 +65,15 @@
             line 3) Use the onosDraggable directive and pass this host in to
              its draggableNode Input parameter and setting the draggableInGraph
              Input parameter to 'graph'
-            line 4) when the onos-hostnodesvg component emits the selectedEvent
+            line 4) event handler of the draggable directive - causes the new location
+             to be written back to the server
+            line 5) when the onos-hostnodesvg component emits the selectedEvent
              call the updateSelected() method of this (forcesvg) component
         -->
         <svg:g onos-hostnodesvg [host]="host"
                *ngFor="let host of regionData.hosts[visibleLayerIdx()]"
                onosDraggableNode [draggableNode]="host" [draggableInGraph]="graph"
+                   (newLocation)="nodeMoved('host', device.id, $event)"
                (selectedEvent)="updateSelected($event)"
                [labelToggle]="hostLabelToggle">
             <svg:desc>Host nodes</svg:desc>

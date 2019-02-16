@@ -49,6 +49,7 @@ import {MapSelectorComponent} from '../panel/mapselector/mapselector.component';
 import {BackgroundSvgComponent} from '../layer/backgroundsvg/backgroundsvg.component';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {MapSvgComponent} from '../layer/mapsvg/mapsvg.component';
+import {GridsvgComponent} from '../layer/gridsvg/gridsvg.component';
 
 
 class MockActivatedRoute extends ActivatedRoute {
@@ -119,6 +120,10 @@ class MockPrefsService {
         this.listeners = this.listeners.filter((obj) => obj !== listener);
     }
 
+    setPrefs(name: string, obj: Object) {
+
+    }
+
 }
 
 /**
@@ -185,7 +190,8 @@ describe('TopologyComponent', () => {
                 SubRegionNodeSvgComponent,
                 MapSelectorComponent,
                 BackgroundSvgComponent,
-                MapSvgComponent
+                MapSvgComponent,
+                GridsvgComponent
             ],
             providers: [
                 { provide: FnService, useValue: fs },

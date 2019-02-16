@@ -28,7 +28,7 @@ import {
     SimpleChanges,
     ViewChildren
 } from '@angular/core';
-import {LogService} from 'gui2-fw-lib';
+import {LogService, WebSocketService} from 'gui2-fw-lib';
 import {
     Device,
     ForceDirectedGraph,
@@ -38,6 +38,8 @@ import {
     LayerType,
     Link,
     LinkHighlight,
+    Location, LocMeta,
+    MetaUi,
     ModelEventMemo,
     ModelEventType,
     Region,
@@ -50,6 +52,16 @@ import {
     HostNodeSvgComponent,
     LinkSvgComponent
 } from './visuals';
+import {
+    BackgroundSvgComponent,
+    LocationType
+} from '../backgroundsvg/backgroundsvg.component';
+
+interface UpdateMeta {
+    id: string;
+    class: string;
+    memento: MetaUi;
+}
 
 /**
  * ONOS GUI -- Topology Forces Graph Layer View.
@@ -85,7 +97,8 @@ export class ForceSvgComponent implements OnInit, OnChanges {
 
     constructor(
         protected log: LogService,
-        private ref: ChangeDetectorRef
+        private ref: ChangeDetectorRef,
+        protected wss: WebSocketService
     ) {
         this.selectedLink = null;
         this.log.debug('ForceSvgComponent constructed');
@@ -171,6 +184,21 @@ export class ForceSvgComponent implements OnInit, OnChanges {
             if (subRegions) {
                 this.graph.nodes = this.graph.nodes.concat(subRegions);
             }
+
+            // If a node has a fixed location then assign it to fx and fy so
+            // that it doesn't get affected by forces
+            this.graph.nodes
+            .forEach((n) => {
+                const loc: Location = <Location>n['location'];
+                if (loc && loc.locType === LocationType.GEO) {
+                    const position: MetaUi =
+                        BackgroundSvgComponent.convertGeoToCanvas(
+                            <LocMeta>{lng: loc.longOrX, lat: loc.latOrY});
+                    n.fx = position.x;
+                    n.fy = position.y;
+                    this.log.debug('Found node', n.id, 'with', loc.locType);
+                }
+            });
 
             // Associate the endpoints of each link with a real node
             this.graph.links = [];
@@ -393,6 +421,22 @@ export class ForceSvgComponent implements OnInit, OnChanges {
                 }
             });
         }
+    }
+
+    /**
+     * As nodes are dragged around the graph, their new location should be sent
+     * back to server
+     * @param klass The class of node e.g. 'host' or 'device'
+     * @param id - the ID of the node
+     * @param newLocation - the new Location of the node
+     */
+    nodeMoved(klass: string, id: string, newLocation: MetaUi) {
+        this.wss.sendEvent('updateMeta', <UpdateMeta>{
+            id: id,
+            class: klass,
+            memento: newLocation
+        });
+        this.log.debug(klass, id, 'has been moved to', newLocation);
     }
 }
 

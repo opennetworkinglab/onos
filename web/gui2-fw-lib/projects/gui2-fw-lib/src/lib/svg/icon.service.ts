@@ -55,6 +55,7 @@ export const glyphMapping = new Map<string, string>([
     ['m_oblique', 'm_oblique'],
     ['m_filters', 'm_filters'],
     ['m_cycleLabels', 'm_cycleLabels'],
+    ['m_cycleGridDisplay', 'm_cycleGridDisplay'],
     ['m_prev', 'm_prev'],
     ['m_next', 'm_next'],
     ['m_flows', 'm_flows'],

@@ -13,9 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Directive, ElementRef, Input, OnChanges } from '@angular/core';
-import { ForceDirectedGraph, Node } from '../models';
+import {
+    Directive,
+    ElementRef,
+    EventEmitter,
+    Input,
+    OnChanges, Output
+} from '@angular/core';
+import {ForceDirectedGraph, LocMeta, MetaUi, Node} from '../models';
 import * as d3 from 'd3';
+import {LogService} from 'gui2-fw-lib';
+import {BackgroundSvgComponent} from '../../backgroundsvg/backgroundsvg.component';
 
 @Directive({
   selector: '[onosDraggableNode]'
@@ -23,23 +31,27 @@ import * as d3 from 'd3';
 export class DraggableDirective implements OnChanges {
     @Input() draggableNode: Node;
     @Input() draggableInGraph: ForceDirectedGraph;
+    @Output() newLocation = new EventEmitter<MetaUi>();
 
     constructor(
-        private _element: ElementRef
+        private _element: ElementRef,
+        private log: LogService
     ) {
+        this.log.debug('DraggableDirective constructed');
     }
 
     ngOnChanges() {
         this.applyDraggableBehaviour(
             this._element.nativeElement,
             this.draggableNode,
-            this.draggableInGraph);
+            this.draggableInGraph,
+            this.newLocation);
     }
 
     /**
      * A method to bind a draggable behaviour to an svg element
      */
-    applyDraggableBehaviour(element, node: Node, graph: ForceDirectedGraph) {
+    applyDraggableBehaviour(element, node: Node, graph: ForceDirectedGraph, newLocation: EventEmitter<MetaUi>) {
         const d3element = d3.select(element);
 
         function started() {
@@ -50,7 +62,7 @@ export class DraggableDirective implements OnChanges {
                 graph.simulation.alphaTarget(0.3).restart();
             }
 
-            d3.event.on('drag', dragged).on('end', ended);
+            d3.event.on('drag', () => dragged()).on('end', () => ended());
 
             function dragged() {
                 node.fx = d3.event.x;
@@ -61,9 +73,10 @@ export class DraggableDirective implements OnChanges {
                 if (!d3.event.active) {
                     graph.simulation.alphaTarget(0);
                 }
+                newLocation.emit(BackgroundSvgComponent.convertXYtoGeo(node.fx, node.fy));
 
-                node.fx = null;
-                node.fy = null;
+                // node.fx = null;
+                // node.fy = null;
             }
         }
 

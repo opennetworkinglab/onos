@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-present Open Networking Foundation
+ * Copyright 2019-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+.gridrect {
+    stroke-width: 1;
+    fill: none;
+}
 
-/**
- * ONOS GUI -- Topology Map Layer -- CSS file
- */
-/* --- Topo Map --- */
-
-path.topo-map {
-    stroke-width: 0.05px;
-    stroke: #f4f4f4;
-    fill: #e5e5e6;
+.gridtext {
+    fill: lightgray;
+    text-anchor: middle;
+    dominant-baseline: middle;
 }

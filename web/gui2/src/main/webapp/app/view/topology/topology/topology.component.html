@@ -55,7 +55,8 @@ the local variable - this is used to display messages when keyboard shortcuts ar
         whose contents are supplied through the Topology Service, and whose positions
         are driven by the d3.force engine
     -->
-    <svg:svg #svgZoom xmlns:svg="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" id="topo2">
+    <svg:svg #svgZoom xmlns:svg="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" id="topo2"
+        preserveAspectRatio="xMaxYMax none">
         <svg:desc>The main SVG canvas of the Topology View</svg:desc>
         <svg:g *ngIf="force.regionData?.devices[0].length +
                         force.regionData?.devices[1].length +
@@ -63,6 +64,14 @@ the local variable - this is used to display messages when keyboard shortcuts ar
                onos-nodeviceconnected />
         <svg:g id="topo-zoomlayer" onosZoomableOf [zoomableOf]="svgZoom">
             <svg:desc>A logical layer that allows the main SVG canvas to be zoomed and panned</svg:desc>
+            <svg:g #gridFull *ngIf="prefsState.grid == 1 || prefsState.grid == 3" onos-gridsvg>
+            </svg:g>
+            <svg:g #geoGrid *ngIf="prefsState.grid == 2 || prefsState.grid == 3"
+                   onos-gridsvg [horizLowerLimit]="-180" [horizUpperLimit]="180"
+                   [vertLowerLimit]="-75" [vertUpperLimit]="75" [spacing]="15"
+                   [invertVertical]="true" [fit]="'fit1000high'" [aspectRatio]="0.83333"
+                   [gridcolor]="'#bfe7fb'">
+            </svg:g>
             <svg:g *ngIf="prefsState.bg" onos-backgroundsvg [map]="mapIdState">
                 <svg:desc>The Background SVG component - contains maps</svg:desc>
             </svg:g>

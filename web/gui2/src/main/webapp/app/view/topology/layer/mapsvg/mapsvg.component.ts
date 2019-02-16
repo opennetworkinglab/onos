@@ -46,15 +46,6 @@ interface GeneratorSettings {
 }
 
 /**
- * Model of the Path Generator
- */
-interface PathGenerator {
-    geodata: FeatureCollection;
-    pathgen: (Feature) => string;
-    settings: GeneratorSettings;
-}
-
-/**
  * Model of the Feature returned prom topojson library
  */
 interface Feature {
@@ -83,16 +74,6 @@ interface TopoData {
     transform: TopoDataTransform; // scale and translate
 }
 
-/**
- * Default settings for the path generator for TopoJson
- */
-const DEFAULT_GEN_SETTINGS: GeneratorSettings = <GeneratorSettings>{
-    objectTag: 'states',
-    projection: d3.geoMercator(),
-    logicalSize: 1000,
-    mapFillScale: .95,
-};
-
 @Component({
     selector: '[onos-mapsvg]',
     templateUrl: './mapsvg.component.html',
@@ -101,14 +82,33 @@ const DEFAULT_GEN_SETTINGS: GeneratorSettings = <GeneratorSettings>{
 export class MapSvgComponent implements  OnChanges {
     @Input() map: MapObject = <MapObject>{id: 'none'};
 
-    cache = new Map<string, TopoData>();
-    topodata: TopoData;
-    mapPathGenerator: PathGenerator;
+    geodata: FeatureCollection;
+    pathgen: (Feature) => string;
+    // testPath: string;
+    // testFeature = <Feature>{
+    //     id: 'test',
+    //     type: 'Feature',
+    //     geometry: {
+    //         coordinates: [
+    //             [[-15, 60], [45, 60], [45, 45], [-15, 45], [-15, 60]],
+    //             [[-10, 55], [45, 55], [45, 50], [-10, 50], [-10, 55]],
+    //         ],
+    //         type: 'Polygon'
+    //     },
+    //     properties: { name: 'Test'}
+    // };
 
     constructor(
         private log: LogService,
         private httpClient: HttpClient,
     ) {
+        this.pathgen = d3.geoPath().projection(
+            MapSvgComponent.scale(1, 360, 150));
+
+        // this.log.debug('Feature Test',this.testFeature);
+        // this.testPath = this.pathgen(this.testFeature);
+        // this.log.debug('Feature Path', this.testPath);
+
         this.log.debug('MapSvgComponent constructed');
     }
 
@@ -119,24 +119,13 @@ export class MapSvgComponent implements  OnChanges {
         return id + '.topojson';
     }
 
-    ngOnChanges(changes: SimpleChanges): void {
-        this.log.debug('Change detected', changes);
-        if (changes['map']) {
-            const map: MapObject = <MapObject>(changes['map'].currentValue);
-            if (map.id) {
-                if (this.cache.get(map.id)) {
-                    this.topodata = this.cache.get(map.id);
-                } else {
-                    this.httpClient
-                        .get(MapSvgComponent.getUrl(map.filePath))
-                        .subscribe((topoData: TopoData) => {
-                            this.mapPathGenerator = this.handleTopoJson(map, topoData);
-                            this.log.debug('Path Generated for', map.id,
-                                'from', MapSvgComponent.getUrl(map.filePath));
-                        });
-                }
+    static scale (scaleFactor: number, width: number, height: number) {
+        return d3.geoTransform({
+            point: function(x, y) {
+                this.stream.point( (x - width / 2) * scaleFactor + width / 2,
+                    (-y - height / 2) * scaleFactor + height / 2);
             }
-        }
+        });
     }
 
     /**
@@ -144,7 +133,24 @@ export class MapSvgComponent implements  OnChanges {
      * @param feature The county or state within the map
      */
     pathGenerator(feature: Feature): string {
-        return this.mapPathGenerator.pathgen(feature);
+        return this.pathgen(feature);
+    }
+
+    ngOnChanges(changes: SimpleChanges): void {
+        this.log.debug('Change detected', changes);
+        if (changes['map']) {
+            const map: MapObject = <MapObject>(changes['map'].currentValue);
+            if (map.id) {
+                this.httpClient
+                    .get(MapSvgComponent.getUrl(map.filePath))
+                    .subscribe((topoData: TopoData) => {
+                        // this.mapPathGenerator =
+                        this.handleTopoJson(map, topoData);
+                        this.log.debug('Path Generated for', map.id,
+                            'from', MapSvgComponent.getUrl(map.filePath));
+                    });
+            }
+        }
     }
 
     /**
@@ -156,63 +162,15 @@ export class MapSvgComponent implements  OnChanges {
      * @param map The Map chosen in the GUI
      * @param topoData The data in the TopoJson file
      */
-    handleTopoJson(map: MapObject, topoData: TopoData): PathGenerator {
-        this.topodata = topoData;
-        this.cache.set(map.id, topoData);
-        this.log.debug('Map retrieved', topoData);
+    handleTopoJson(map: MapObject, topoData: TopoData): void {
 
-        const topoObject = topoData.objects[map.id];
-        const geoData: FeatureCollection = <FeatureCollection>topojson.feature(topoData, topoObject);
-        this.log.debug('Map retrieved', topoData, geoData);
+        let topoObject = topoData.objects[map.id];
+        if (!topoObject) {
+            topoObject = topoData.objects['states'];
+        }
+        this.log.debug('Topo obj', topoObject, 'topodata', topoData);
+        this.geodata = <FeatureCollection>topojson.feature(topoData, topoObject);
+        this.log.debug('Map retrieved', topoData, this.geodata);
 
-        const settings: GeneratorSettings = Object.assign({}, DEFAULT_GEN_SETTINGS);
-        const path = d3.geoPath().projection(settings.projection);
-        this.rescaleProjection(
-            settings.projection,
-            settings.mapFillScale,
-            settings.logicalSize,
-            path,
-            geoData);
-        this.log.debug('Scale adjusted');
-
-        return <PathGenerator>{
-            geodata: geoData,
-            pathgen: path,
-            settings: settings
-        };
-    }
-
-    /**
-     * Adjust projection scale and translation to fill the view
-     * with the map
-     * @param proj
-     * @param mfs
-     * @param dim
-     * @param path
-     * @param geoData
-     * @param adjustScale
-     */
-    rescaleProjection(proj: any, mfs: number, dim: number, path: any,
-                      geoData: FeatureCollection, adjustScale: number = 1.0) {
-        // start with unit scale, no translation..
-        proj.scale(1).translate([0, 0]);
-
-        // figure out dimensions of map data..
-        const b = path.bounds(geoData);
-        const x1 = b[0][0];
-        const y1 = b[0][1];
-        const x2 = b[1][0];
-        const y2 = b[1][1];
-        const dx = x2 - x1;
-        const dy = y2 - y1;
-        const x = (x1 + x2) / 2;
-        const y = (y1 + y2) / 2;
-
-        // size map to 95% of minimum dimension to fill space..
-        const s = (mfs / Math.min(dx / dim, dy / dim)) * adjustScale;
-        const t = [dim / 2 - s * x, dim / 2 - s * y];
-
-        // set new scale, translation on the projection..
-        proj.scale(s).translate(t);
     }
 }

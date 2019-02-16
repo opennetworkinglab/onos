@@ -15,9 +15,8 @@
 -->
 <svg:desc xmlns:svg="http://www.w3.org/2000/svg">Map of {{map.id}} in SVG format</svg:desc>
 <svg:path class="topo-map"
-        *ngFor="let f of mapPathGenerator?.geodata.features"
+        *ngFor="let f of geodata?.features"
         xmlns:svg="http://www.w3.org/2000/svg"
         [attr.d]="pathGenerator(f)">
-    <svg:title>{{ f.id }}</svg:title>
+    <svg:title>{{ f.id }} {{f.properties?.name}}</svg:title>
 </svg:path>
-

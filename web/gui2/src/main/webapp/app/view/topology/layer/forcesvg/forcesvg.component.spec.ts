@@ -16,7 +16,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ForceSvgComponent } from './forcesvg.component';
-import {LogService} from 'gui2-fw-lib';
+import {FnService, LogService} from 'gui2-fw-lib';
 import {
     DeviceNodeSvgComponent,
     HostNodeSvgComponent, LinkSvgComponent,
@@ -25,6 +25,7 @@ import {
 import {DraggableDirective} from './draggable/draggable.directive';
 import {ActivatedRoute, Params} from '@angular/router';
 import {of} from 'rxjs';
+import {MapSvgComponent} from '../mapsvg/mapsvg.component';
 
 class MockActivatedRoute extends ActivatedRoute {
     constructor(params: Params) {
@@ -34,6 +35,7 @@ class MockActivatedRoute extends ActivatedRoute {
 }
 
 describe('ForceSvgComponent', () => {
+    let fs: FnService;
     let ar: MockActivatedRoute;
     let windowMock: Window;
     let logServiceSpy: jasmine.SpyObj<LogService>;
@@ -56,6 +58,8 @@ describe('ForceSvgComponent', () => {
             }
         };
 
+        fs = new FnService(ar, logSpy, windowMock);
+
         TestBed.configureTestingModule({
             declarations: [
                 ForceSvgComponent,
@@ -63,10 +67,13 @@ describe('ForceSvgComponent', () => {
                 HostNodeSvgComponent,
                 SubRegionNodeSvgComponent,
                 LinkSvgComponent,
-                DraggableDirective
+                DraggableDirective,
+                MapSvgComponent
             ],
             providers: [
+                { provide: FnService, useValue: fs },
                 { provide: LogService, useValue: logSpy },
+                { provide: 'Window', useValue: windowMock },
             ]
         })
         .compileComponents();

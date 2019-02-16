@@ -21,6 +21,13 @@ import {from} from 'rxjs';
 import {HttpClient} from '@angular/common/http';
 import {LogService} from 'gui2-fw-lib';
 import {MapObject} from '../maputils';
+import {LocMeta} from '../forcesvg/models';
+import {ForceSvgComponent} from '../forcesvg/forcesvg.component';
+import {
+    DeviceNodeSvgComponent,
+    HostNodeSvgComponent, LinkSvgComponent, SubRegionNodeSvgComponent
+} from '../forcesvg/visuals';
+import {DraggableDirective} from '../forcesvg/draggable/draggable.directive';
 
 class MockHttpClient {
     get() {
@@ -46,7 +53,13 @@ describe('BackgroundSvgComponent', () => {
         TestBed.configureTestingModule({
             declarations: [
                 BackgroundSvgComponent,
-                MapSvgComponent
+                MapSvgComponent,
+                ForceSvgComponent,
+                DeviceNodeSvgComponent,
+                HostNodeSvgComponent,
+                SubRegionNodeSvgComponent,
+                LinkSvgComponent,
+                DraggableDirective
             ],
             providers: [
                 { provide: LogService, useValue: logSpy },
@@ -68,4 +81,33 @@ describe('BackgroundSvgComponent', () => {
     it('should create', () => {
         expect(component).toBeTruthy();
     });
+
+    it('should convert latlong to xy', () => {
+        const result = BackgroundSvgComponent.convertGeoToCanvas(<LocMeta>{lat: 52, lng: -8});
+        expect(Math.round(result.x * 100)).toEqual(45556);
+        expect(Math.round(result.y * 100)).toEqual(15333);
+    });
+
+    /**
+     * For some reason including the following causes "ForceSvgComponent should create error
+     * TODO: Investigate
+     */
+
+    // it('should convert xy random extents to latlong', () => {
+    //     const result = BackgroundSvgComponent.convertXYtoGeo(455.556, 153.33);
+    //     expect(Math.round(result.equivLoc.lng)).toEqual(-8);
+    //     expect(Math.round(result.equivLoc.lat)).toEqual(52);
+    // });
+
+    // it('should convert xy min extents to latlong', () => {
+    //     const result = BackgroundSvgComponent.convertXYtoGeo(-500, 0);
+    //     expect(Math.round(result.equivLoc.lng)).toEqual(-180);
+    //     expect(Math.round(result.equivLoc.lat)).toEqual(75);
+    // });
+
+    // it('should convert xy full extents to latlong', () => {
+    //     const result = BackgroundSvgComponent.convertXYtoGeo(1500, 1000);
+    //     expect(Math.round(result.equivLoc.lng)).toEqual(180);
+    //     expect(Math.round(result.equivLoc.lat)).toEqual(-75);
+    // });
 });

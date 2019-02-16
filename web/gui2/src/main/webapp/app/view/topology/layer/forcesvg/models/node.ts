@@ -79,6 +79,33 @@ export namespace HostLabelToggle {
 }
 
 /**
+ * Toggle state for how the grid should be displayed
+ */
+export enum GridDisplayToggle {
+    GRIDNONE,
+    GRID1000,
+    GRIDGEO,
+    GRIDBOTH
+}
+
+/**
+ * Add the method 'next()' to the GridDisplayToggle enum above
+ */
+export namespace GridDisplayToggle {
+    export function next(current: GridDisplayToggle) {
+        if (current === GridDisplayToggle.GRIDNONE) {
+            return GridDisplayToggle.GRID1000;
+        } else if (current === GridDisplayToggle.GRID1000) {
+            return GridDisplayToggle.GRIDGEO;
+        } else if (current === GridDisplayToggle.GRIDGEO) {
+            return GridDisplayToggle.GRIDBOTH;
+        } else if (current === GridDisplayToggle.GRIDBOTH) {
+            return GridDisplayToggle.GRIDNONE;
+        }
+    }
+}
+
+/**
  * model of the topo2CurrentRegion device props from Device below
  */
 export interface DeviceProps {
@@ -143,7 +170,7 @@ export abstract class Node implements UiElement, d3.SimulationNodeDatum {
 export class Device extends Node {
     id: string;
     layer: LayerType;
-    location: LocationType;
+    location: Location;
     metaUi: MetaUi;
     master: string;
     online: boolean;

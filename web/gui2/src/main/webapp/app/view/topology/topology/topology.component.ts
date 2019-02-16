@@ -35,6 +35,7 @@ import {BackgroundSvgComponent} from '../layer/backgroundsvg/backgroundsvg.compo
 import {ForceSvgComponent} from '../layer/forcesvg/forcesvg.component';
 import {TopologyService} from '../topology.service';
 import {
+    GridDisplayToggle,
     HostLabelToggle,
     LabelToggle,
     UiElement
@@ -43,7 +44,7 @@ import {
     INSTANCE_TOGGLE, SUMMARY_TOGGLE, DETAILS_TOGGLE,
     HOSTS_TOGGLE, OFFLINE_TOGGLE, PORTS_TOGGLE,
     BKGRND_TOGGLE, CYCLELABELS_BTN, CYCLEHOSTLABEL_BTN,
-    RESETZOOM_BTN, EQMASTER_BTN,
+    CYCLEGRIDDISPLAY_BTN, RESETZOOM_BTN, EQMASTER_BTN,
     CANCEL_TRAFFIC, ALL_TRAFFIC, QUICKHELP_BTN, BKGRND_SELECT
 } from '../panel/toolbar/toolbar.component';
 import {TrafficService} from '../traffic.service';
@@ -57,6 +58,7 @@ const PREF_BG = 'bg';
 const PREF_DETAIL = 'detail';
 const PREF_DLBLS = 'dlbls';
 const PREF_HLBLS = 'hlbls';
+const PREF_GRID = 'grid';
 const PREF_HOSTS = 'hosts';
 const PREF_INSTS = 'insts';
 const PREF_OFFDEV = 'offdev';
@@ -81,6 +83,7 @@ export interface Topo2Prefs {
     ovid: string;
     summary: number;
     toolbar: number;
+    grid: number;
 }
 
 /**
@@ -135,6 +138,7 @@ export class TopologyComponent implements OnInit, OnDestroy {
         spr: 0,
         summary: 1,
         toolbar: 0,
+        grid: 0
     };
 
     mapIdState: MapObject = <MapObject>{
@@ -143,6 +147,9 @@ export class TopologyComponent implements OnInit, OnDestroy {
     };
     mapSelShown: boolean = false;
     lionFn; // Function
+
+    gridShown: boolean = true;
+    geoGridShown: boolean = true;
 
     constructor(
         protected log: LogService,
@@ -177,6 +184,7 @@ export class TopologyComponent implements OnInit, OnDestroy {
         this.is.loadIconDef('m_map');
         this.is.loadIconDef('m_selectMap');
         this.is.loadIconDef('m_cycleLabels');
+        this.is.loadIconDef('m_cycleGridDisplay');
         this.is.loadIconDef('m_resetZoom');
         this.is.loadIconDef('m_eqMaster');
         this.is.loadIconDef('m_unknown');
@@ -211,6 +219,15 @@ export class TopologyComponent implements OnInit, OnDestroy {
         }
     }
 
+    private static gridDisplayFlashMessage(index: number): string {
+        switch (index) {
+            case 0: return 'fl_grid_display_hide';
+            case 1: return 'fl_grid_display_1000';
+            case 2: return 'fl_grid_display_geo';
+            case 3: return 'fl_grid_display_both';
+        }
+    }
+
     /**
      * Pass the list of Key Commands to the KeyService, and initialize the Topology
      * Service - which communicates with through the WebSocket to the ONOS server
@@ -240,9 +257,6 @@ export class TopologyComponent implements OnInit, OnDestroy {
         // Extract the TOPO2 prefs from it
         if (data[TOPO2_PREFS]) {
             this.prefsState = data[TOPO2_PREFS];
-        }
-        if (data[TOPO_MAPID_PREFS]) {
-            this.mapIdState = data[TOPO_MAPID_PREFS];
         }
         this.log.debug('Updated topo2 prefs', this.prefsState, this.mapIdState);
     }
@@ -294,6 +308,9 @@ export class TopologyComponent implements OnInit, OnDestroy {
             case CYCLEHOSTLABEL_BTN:
                 this.cycleHostLabels();
                 break;
+            case CYCLEGRIDDISPLAY_BTN:
+                this.cycleGridDisplay();
+                break;
             case RESETZOOM_BTN:
                 this.resetZoom();
                 break;
@@ -323,19 +340,20 @@ export class TopologyComponent implements OnInit, OnDestroy {
     actionMap() {
         return {
             A: [() => {this.monitorAllTraffic(); }, 'Monitor all traffic'],
-            L: [() => {this.cycleDeviceLabels(); }, 'Cycle device labels'],
             B: [(token) => {this.toggleBackground(token); }, 'Toggle background'],
             D: [(token) => {this.toggleDetails(token); }, 'Toggle details panel'],
+            E: [() => {this.equalizeMasters(); }, 'Equalize mastership roles'],
+            H: [() => {this.toggleHosts(); }, 'Toggle host visibility'],
             I: [(token) => {this.toggleInstancePanel(token); }, 'Toggle ONOS Instance Panel'],
             G: [() => {this.mapSelShown = !this.mapSelShown; }, 'Show map selection dialog'],
-            O: [() => {this.toggleSummary(); }, 'Toggle the Summary Panel'],
-            R: [() => {this.resetZoom(); }, 'Reset pan / zoom'],
-            P: [(token) => {this.togglePorts(token); }, 'Toggle Port Highlighting'],
-            E: [() => {this.equalizeMasters(); }, 'Equalize mastership roles'],
-            X: [() => {this.resetNodeLocation(); }, 'Reset Node Location'],
-            U: [() => {this.unpinNode(); }, 'Unpin node (mouse over)'],
-            H: [() => {this.toggleHosts(); }, 'Toggle host visibility'],
+            L: [() => {this.cycleDeviceLabels(); }, 'Cycle device labels'],
             M: [() => {this.toggleOfflineDevices(); }, 'Toggle offline visibility'],
+            O: [() => {this.toggleSummary(); }, 'Toggle the Summary Panel'],
+            P: [(token) => {this.togglePorts(token); }, 'Toggle Port Highlighting'],
+            Q: [() => {this.cycleGridDisplay(); }, 'Cycle grid display'],
+            R: [() => {this.resetZoom(); }, 'Reset pan / zoom'],
+            U: [() => {this.unpinNode(); }, 'Unpin node (mouse over)'],
+            X: [() => {this.resetNodeLocation(); }, 'Reset Node Location'],
             dot: [() => {this.toggleToolbar(); }, 'Toggle Toolbar'],
             0: [() => {this.cancelTraffic(); }, 'Cancel traffic monitoring'],
             'shift-L': [() => {this.cycleHostLabels(); }, 'Cycle host labels'],
@@ -441,6 +459,14 @@ export class TopologyComponent implements OnInit, OnDestroy {
         this.flashMsg = this.lionFn(TopologyComponent.hostLabelFlashMessage(next));
         this.updatePrefsState(PREF_HLBLS, next);
         this.log.debug('Cycling host labels', old, next);
+    }
+
+    protected cycleGridDisplay() {
+        const old: GridDisplayToggle = this.prefsState.grid;
+        const next = GridDisplayToggle.next(old);
+        this.flashMsg = this.lionFn(TopologyComponent.gridDisplayFlashMessage(next));
+        this.updatePrefsState(PREF_GRID, next);
+        this.log.debug('Cycling grid display', old, next);
     }
 
     /**

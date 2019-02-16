@@ -15,6 +15,7 @@
  */
 import {Component, Input, OnInit} from '@angular/core';
 import {MapObject} from '../maputils';
+import {LocMeta, MetaUi} from '../forcesvg/models';
 
 /**
  * model of the topo2CurrentLayout attrs from BgZoom below
@@ -68,6 +69,9 @@ export interface Layout {
     regionName: string;
 }
 
+const LONGITUDE_EXTENT = 180;
+const LATITUDE_EXTENT = 75;
+
 /**
  * ONOS GUI -- Topology Background Layer View.
  */
@@ -80,6 +84,32 @@ export class BackgroundSvgComponent implements OnInit {
     @Input() map: MapObject;
 
     layoutData: Layout = <Layout>{};
+
+    static convertGeoToCanvas(location: LocMeta): MetaUi {
+        const calcX = (LONGITUDE_EXTENT + location.lng) / ( LONGITUDE_EXTENT * 2 ) * 2000 - 500;
+        const calcY = (LATITUDE_EXTENT - location.lat) / ( LATITUDE_EXTENT * 2 ) * 1000;
+        return <MetaUi>{
+            x: calcX,
+            y: calcY,
+            equivLoc: {
+                lat: location.lat,
+                lng: location.lng
+            }
+        };
+    }
+
+    static convertXYtoGeo(x: number, y: number): MetaUi {
+        const calcLong: number = (x + 500) * 2 * LONGITUDE_EXTENT / 2000 - LONGITUDE_EXTENT;
+        const calcLat: number = -(y * 2 * LATITUDE_EXTENT / 1000 - LATITUDE_EXTENT);
+        return <MetaUi>{
+            x: x,
+            y: y,
+            equivLoc: <LocMeta>{
+                lat: calcLat,
+                lng: calcLong
+            }
+        };
+    }
 
     constructor() { }
 

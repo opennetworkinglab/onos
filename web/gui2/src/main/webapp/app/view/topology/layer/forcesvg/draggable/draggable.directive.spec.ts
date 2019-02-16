@@ -16,15 +16,18 @@
 import { DraggableDirective } from './draggable.directive';
 import {inject, TestBed} from '@angular/core/testing';
 import {ElementRef} from '@angular/core';
+import {LogService} from 'gui2-fw-lib';
 
 export class MockElementRef extends ElementRef {
     nativeElement = {};
 }
 
 describe('DraggableDirective', () => {
+    let logServiceSpy: jasmine.SpyObj<LogService>;
     let mockWindow: Window;
 
     beforeEach(() => {
+        const logSpy = jasmine.createSpyObj('LogService', ['info', 'debug', 'warn', 'error']);
         mockWindow = <any>{
             navigator: {
                 userAgent: 'HeadlessChrome',
@@ -34,10 +37,12 @@ describe('DraggableDirective', () => {
 
         TestBed.configureTestingModule({
             providers: [DraggableDirective,
+                { provide: LogService, useValue: logSpy },
                 { provide: 'Window', useFactory: (() => mockWindow ) },
                 { provide: ElementRef, useValue: mockWindow }
             ]
         });
+        logServiceSpy = TestBed.get(LogService);
     });
 
     it('should create an instance', inject([DraggableDirective], (directive: DraggableDirective) => {
