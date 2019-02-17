@@ -70,6 +70,7 @@ public final class Constants {
     public static final int CT_TABLE = 45;
     public static final int ACL_RECIRC_TABLE = 43;
     public static final int JUMP_TABLE = 50;
+    public static final int NAT_TABLE = 51;
     public static final int ROUTING_TABLE = 60;
     public static final int STAT_OUTBOUND_TABLE = 70;
     public static final int VTAP_OUTBOUND_TABLE = 71;

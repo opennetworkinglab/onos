@@ -230,7 +230,10 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
         // we need JUMP table for bypassing routing table which contains large
         // amount of flow rules which might cause performance degradation during
         // table lookup
-        setupJumpTable(k8sNode);
+        // setupJumpTable(k8sNode);
+
+        // for routing and outbound table transition
+        connectTables(deviceId, ROUTING_TABLE, STAT_OUTBOUND_TABLE);
 
         // for outbound table transition
         connectTables(deviceId, STAT_OUTBOUND_TABLE, VTAP_OUTBOUND_TABLE);
@@ -276,34 +279,14 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
         applyRule(flowRule, true);
     }
 
-    private void setupHostGwRule(K8sNetwork k8sNetwork) {
-        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
-        sBuilder.matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPDst(IpPrefix.valueOf(k8sNetwork.gatewayIp(), 32));
-
-        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
-        tBuilder.setOutput(PortNumber.LOCAL);
-
-        for (K8sNode node : k8sNodeService.completeNodes()) {
-            FlowRule flowRule = DefaultFlowRule.builder()
-                    .forDevice(node.intgBridge())
-                    .withSelector(sBuilder.build())
-                    .withTreatment(tBuilder.build())
-                    .withPriority(HIGH_PRIORITY)
-                    .fromApp(appId)
-                    .makePermanent()
-                    .forTable(JUMP_TABLE)
-                    .build();
-            applyRule(flowRule, true);
-        }
-
-        sBuilder = DefaultTrafficSelector.builder();
-        sBuilder.matchEthType(Ethernet.TYPE_IPV4)
+    private void setupHostRoutingRule(K8sNetwork k8sNetwork) {
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPSrc(IpPrefix.valueOf(k8sNetwork.gatewayIp(), 32))
                 .matchIPDst(IpPrefix.valueOf(k8sNetwork.cidr()));
 
-        tBuilder = DefaultTrafficTreatment.builder();
-        tBuilder.setTunnelId(Long.valueOf(k8sNetwork.segmentId()))
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
+                .setTunnelId(Long.valueOf(k8sNetwork.segmentId()))
                 .transition(STAT_OUTBOUND_TABLE);
 
         for (K8sNode node : k8sNodeService.completeNodes()) {
@@ -314,7 +297,29 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
                     .withPriority(HIGH_PRIORITY)
                     .fromApp(appId)
                     .makePermanent()
-                    .forTable(JUMP_TABLE)
+                    .forTable(ROUTING_TABLE)
+                    .build();
+            applyRule(flowRule, true);
+        }
+    }
+
+    private void setupGatewayRoutingRule(K8sNetwork k8sNetwork) {
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPDst(IpPrefix.valueOf(k8sNetwork.gatewayIp(), 32));
+
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
+                .setOutput(PortNumber.LOCAL);
+
+        for (K8sNode node : k8sNodeService.completeNodes()) {
+            FlowRule flowRule = DefaultFlowRule.builder()
+                    .forDevice(node.intgBridge())
+                    .withSelector(sBuilder.build())
+                    .withTreatment(tBuilder.build())
+                    .withPriority(HIGH_PRIORITY)
+                    .fromApp(appId)
+                    .makePermanent()
+                    .forTable(ROUTING_TABLE)
                     .build();
             applyRule(flowRule, true);
         }
@@ -346,7 +351,10 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
             }
 
             initializePipeline(node);
-            k8sNetworkService.networks().forEach(K8sFlowRuleManager.this::setupHostGwRule);
+            k8sNetworkService.networks().forEach(n -> {
+                setupHostRoutingRule(n);
+                setupGatewayRoutingRule(n);
+            });
         }
     }
 
@@ -375,7 +383,8 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
                 return;
             }
 
-            setupHostGwRule(network);
+            setupHostRoutingRule(network);
+            setupGatewayRoutingRule(network);
         }
     }
 }

@@ -17,6 +17,7 @@ package org.onosproject.k8snetworking.impl;
 
 import com.google.common.base.Strings;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.IpPrefix;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.cluster.LeadershipService;
@@ -116,6 +117,8 @@ public class K8sSwitchingHandler {
         appId = coreService.registerApplication(K8S_NETWORKING_APP_ID);
         k8sNetworkService.addListener(k8sNetworkListener);
 
+        setGatewayRulesForTunnel(true);
+
         log.info("Started");
     }
 
@@ -123,6 +126,8 @@ public class K8sSwitchingHandler {
     protected void deactivate() {
         k8sNetworkService.removeListener(k8sNetworkListener);
         eventExecutor.shutdown();
+
+        setGatewayRulesForTunnel(false);
 
         log.info("Stopped");
     }
@@ -240,6 +245,35 @@ public class K8sSwitchingHandler {
                 install);
     }
 
+    private void setGatewayRulesForTunnel(boolean install) {
+        k8sNetworkService.networks().forEach(n -> {
+            // switching rules for the instPorts in the same node
+            TrafficSelector selector = DefaultTrafficSelector.builder()
+                    // TODO: need to handle IPv6 in near future
+                    .matchEthType(Ethernet.TYPE_IPV4)
+                    .matchIPDst(IpPrefix.valueOf(n.gatewayIp(), 32))
+                    .matchTunnelId(Long.valueOf(n.segmentId()))
+                    .build();
+
+            TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                    .setOutput(PortNumber.LOCAL)
+                    .build();
+
+            // FIXME: need to find a way to install the gateway rules into
+            // right OVS
+            k8sNodeService.completeNodes().forEach(node -> {
+                k8sFlowRuleService.setRule(
+                        appId,
+                        node.intgBridge(),
+                        selector,
+                        treatment,
+                        PRIORITY_SWITCHING_RULE,
+                        FORWARDING_TABLE,
+                        install);
+            });
+        });
+    }
+
     /**
      * Obtains the VNI from the given kubernetes port.
      *
@@ -261,7 +295,8 @@ public class K8sSwitchingHandler {
         K8sNetwork k8sNet = k8sNetworkService.network(port.networkId());
 
         if (k8sNet == null) {
-            log.warn("Network {} is not found from port {}.", port.networkId(), port.portId());
+            log.warn("Network {} is not found from port {}.",
+                    port.networkId(), port.portId());
             return;
         }
 
@@ -272,7 +307,8 @@ public class K8sSwitchingHandler {
                 setNetworkRulesForTunnel(port, install);
                 break;
             default:
-                log.warn("The given network type {} is not supported.", k8sNet.type().name());
+                log.warn("The given network type {} is not supported.",
+                        k8sNet.type().name());
                 break;
         }
     }

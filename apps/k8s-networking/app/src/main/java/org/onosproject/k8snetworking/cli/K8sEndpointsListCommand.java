@@ -34,6 +34,7 @@ import java.util.List;
 public class K8sEndpointsListCommand extends AbstractShellCommand {
 
     private static final String FORMAT = "%-50s%-50s%-20s";
+    private static final String PORT_PROTOCOL_SEPARATOR = "/";
 
     @Override
     protected void doExecute() {
@@ -46,17 +47,18 @@ public class K8sEndpointsListCommand extends AbstractShellCommand {
         for (Endpoints endpoints : endpointses) {
 
             List<String> ips = Lists.newArrayList();
-            List<Integer> ports = Lists.newArrayList();
+            List<String> portWithProtocol = Lists.newArrayList();
 
             endpoints.getSubsets().forEach(e -> {
                 e.getAddresses().forEach(a -> ips.add(a.getIp()));
-                e.getPorts().forEach(p -> ports.add(p.getPort()));
+                e.getPorts().forEach(p -> portWithProtocol.add(p.getPort() +
+                        PORT_PROTOCOL_SEPARATOR + p.getProtocol()));
             });
 
             print(FORMAT,
                     endpoints.getMetadata().getName(),
                     ips.isEmpty() ? "" : ips,
-                    ports.isEmpty() ? "" : ports);
+                    portWithProtocol.isEmpty() ? "" : portWithProtocol);
         }
     }
 }

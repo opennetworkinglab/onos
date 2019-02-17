@@ -41,7 +41,7 @@ public class K8sPodListCommand extends AbstractShellCommand {
         List<Pod> pods = Lists.newArrayList(service.pods());
         pods.sort(Comparator.comparing(p -> p.getMetadata().getName()));
 
-        print(FORMAT, "Name", "Namespace", "IP", "Containers");
+        print(FORMAT, "Name", "Namespace", "IP Address", "Containers");
 
         for (Pod pod : pods) {
 

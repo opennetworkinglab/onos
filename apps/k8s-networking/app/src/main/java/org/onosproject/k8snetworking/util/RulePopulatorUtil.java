@@ -16,14 +16,30 @@
 package org.onosproject.k8snetworking.util;
 
 import org.onlab.packet.Ip4Address;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.TpPort;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.behaviour.ExtensionSelectorResolver;
 import org.onosproject.net.behaviour.ExtensionTreatmentResolver;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.driver.DriverHandler;
+import org.onosproject.net.driver.DriverService;
+import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.flow.criteria.ExtensionSelector;
+import org.onosproject.net.flow.criteria.ExtensionSelectorType;
 import org.onosproject.net.flow.instructions.ExtensionPropertyException;
 import org.onosproject.net.flow.instructions.ExtensionTreatment;
+import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
+import org.onosproject.net.group.DefaultGroupBucket;
+import org.onosproject.net.group.GroupBucket;
+import org.onosproject.net.group.GroupDescription.Type;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_RESUBMIT_TABLE;
 import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_TUNNEL_DST;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -36,7 +52,142 @@ public final class RulePopulatorUtil {
 
     private static final String TUNNEL_DST = "tunnelDst";
 
+    private static final String CT_FLAGS = "flags";
+    private static final String CT_ZONE = "zone";
+    private static final String CT_TABLE = "recircTable";
+    private static final String CT_STATE = "ctState";
+    private static final String CT_STATE_MASK = "ctStateMask";
+    private static final String CT_PRESENT_FLAGS = "presentFlags";
+    private static final String CT_IPADDRESS_MIN = "ipAddressMin";
+    private static final String CT_IPADDRESS_MAX = "ipAddressMax";
+    private static final String CT_PORT_MIN = "portMin";
+    private static final String CT_PORT_MAX = "portMax";
+    private static final String CT_NESTED_ACTIONS = "nestedActions";
+
+    public static final int CT_NAT_SRC_FLAG = 0;
+    public static final int CT_NAT_DST_FLAG = 1;
+    public static final int CT_NAT_PERSISTENT_FLAG = 2;
+    public static final int CT_NAT_PROTO_HASH_FLAG = 3;
+    public static final int CT_NAT_PROTO_RANDOM_FLAG = 4;
+
+    private static final int ADDRESS_V4_MIN_FLAG = 0;
+    private static final int ADDRESS_V4_MAX_FLAG = 1;
+    private static final int ADDRESS_V6_MIN_FLAG = 2;
+    private static final int ADDRESS_V6_MAX_FLAG = 3;
+    private static final int PORT_MIN_FLAG = 4;
+    private static final int PORT_MAX_FLAG = 5;
+
+    public static final long CT_STATE_NONE = 0;
+    public static final long CT_STATE_NEW = 0x01;
+    public static final long CT_STATE_EST = 0x02;
+    public static final long CT_STATE_NOT_TRK = 0x20;
+    public static final long CT_STATE_TRK = 0x20;
+
+    private static final String TABLE_EXTENSION = "table";
+
+    // not intended for direct invocation from external
     private RulePopulatorUtil() {
+    }
+
+    /**
+     * Returns a builder for OVS Connection Tracking feature actions.
+     *
+     * @param ds DriverService
+     * @param id DeviceId
+     * @return a builder for OVS Connection Tracking feature actions
+     */
+    public static NiciraConnTrackTreatmentBuilder
+                    niciraConnTrackTreatmentBuilder(DriverService ds, DeviceId id) {
+        return new NiciraConnTrackTreatmentBuilder(ds, id);
+    }
+
+    /**
+     * Builds OVS ConnTrack matches.
+     *
+     * @param driverService driver service
+     * @param deviceId device ID
+     * @param ctState connection tracking sate masking value
+     * @param ctSateMask connection tracking sate masking value
+     * @return OVS ConnTrack extension match
+     */
+    public static ExtensionSelector buildCtExtensionSelector(DriverService driverService,
+                                                             DeviceId deviceId,
+                                                             long ctState,
+                                                             long ctSateMask) {
+        DriverHandler handler = driverService.createHandler(deviceId);
+        ExtensionSelectorResolver esr = handler.behaviour(ExtensionSelectorResolver.class);
+
+        ExtensionSelector extensionSelector = esr.getExtensionSelector(
+                ExtensionSelectorType.ExtensionSelectorTypes.NICIRA_MATCH_CONNTRACK_STATE.type());
+        try {
+            extensionSelector.setPropertyValue(CT_STATE, ctState);
+            extensionSelector.setPropertyValue(CT_STATE_MASK, ctSateMask);
+        } catch (Exception e) {
+            log.error("Failed to set nicira match CT state because of {}", e);
+            return null;
+        }
+
+        return extensionSelector;
+    }
+
+    /**
+     * Computes ConnTack State flag values.
+     *
+     * @param isTracking true for +trk, false for -trk
+     * @param isNew true for +new, false for -new
+     * @param isEstablished true for +est, false for -est
+     * @return ConnTrack State flags
+     */
+    public static long computeCtStateFlag(boolean isTracking,
+                                          boolean isNew,
+                                          boolean isEstablished) {
+        long ctStateFlag = 0x00;
+
+        if (isTracking) {
+            ctStateFlag = ctStateFlag | CT_STATE_TRK;
+        }
+
+        if (isNew) {
+            ctStateFlag = ctStateFlag | CT_STATE_TRK;
+            ctStateFlag = ctStateFlag | CT_STATE_NEW;
+        }
+
+        if (isEstablished) {
+            ctStateFlag = ctStateFlag | CT_STATE_TRK;
+            ctStateFlag = ctStateFlag | CT_STATE_EST;
+        }
+
+        return ctStateFlag;
+    }
+
+    /**
+     * Computes ConnTrack State mask values.
+     *
+     * @param isTracking true for setting +trk/-trk value, false for otherwise
+     * @param isNew true for setting +new/-new value, false for otherwise
+     * @param isEstablished true for setting +est/-est value, false for otherwise
+     * @return ConnTrack State Mask value
+     */
+    public static long computeCtMaskFlag(boolean isTracking,
+                                         boolean isNew,
+                                         boolean isEstablished) {
+        long ctMaskFlag = 0x00;
+
+        if (isTracking) {
+            ctMaskFlag = ctMaskFlag | CT_STATE_TRK;
+        }
+
+        if (isNew) {
+            ctMaskFlag = ctMaskFlag | CT_STATE_TRK;
+            ctMaskFlag = ctMaskFlag | CT_STATE_NEW;
+        }
+
+        if (isEstablished) {
+            ctMaskFlag = ctMaskFlag | CT_STATE_TRK;
+            ctMaskFlag = ctMaskFlag | CT_STATE_EST;
+        }
+
+        return ctMaskFlag;
     }
 
     /**
@@ -70,6 +221,233 @@ public final class RulePopulatorUtil {
             log.warn("Failed to get tunnelDst extension treatment for {} " +
                     "because of {}", deviceId, e);
             return null;
+        }
+    }
+
+    /**
+     * Returns the group bucket with given traffic treatment and group type.
+     *
+     * @param treatment     traffic treatment
+     * @param type          group type
+     * @param weight        weight (only for select type)
+     * @return group bucket
+     */
+    public static GroupBucket buildGroupBucket(TrafficTreatment treatment,
+                                               Type type, short weight) {
+        switch (type) {
+            case ALL:
+                return DefaultGroupBucket.createAllGroupBucket(treatment);
+            case SELECT:
+                if (weight == -1) {
+                    return DefaultGroupBucket.createSelectGroupBucket(treatment);
+                } else {
+                    return DefaultGroupBucket.createSelectGroupBucket(treatment, weight);
+                }
+            case INDIRECT:
+                return DefaultGroupBucket.createIndirectGroupBucket(treatment);
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * Returns the nicira resubmit extension treatment with given table ID.
+     *
+     * @param device        device identifier
+     * @param tableId       table identifier
+     * @return resubmit extension treatment
+     */
+    public static ExtensionTreatment buildResubmitExtension(Device device, int tableId) {
+        if (device == null || !device.is(ExtensionTreatmentResolver.class)) {
+            log.warn("Nicira extension treatment is not supported");
+            return null;
+        }
+
+        ExtensionTreatmentResolver resolver = device.as(ExtensionTreatmentResolver.class);
+        ExtensionTreatment treatment =
+                resolver.getExtensionInstruction(NICIRA_RESUBMIT_TABLE.type());
+
+        try {
+            treatment.setPropertyValue(TABLE_EXTENSION, ((short) tableId));
+            return treatment;
+        } catch (ExtensionPropertyException e) {
+            log.error("Failed to set nicira resubmit extension treatment for {}",
+                    device.id());
+            return null;
+        }
+    }
+
+    /**
+     * Builder class for OVS Connection Tracking feature actions.
+     */
+    public static final class NiciraConnTrackTreatmentBuilder {
+
+        private DriverService driverService;
+        private DeviceId deviceId;
+        private IpAddress natAddress = null;
+        private TpPort natPort = null;
+        private int zone;
+        private boolean commit;
+        private short table = -1;
+        private boolean natAction;
+        private int natFlag;
+
+        // private constructor
+        private NiciraConnTrackTreatmentBuilder(DriverService driverService,
+                                                DeviceId deviceId) {
+            this.driverService = driverService;
+            this.deviceId = deviceId;
+        }
+
+        /**
+         * Sets commit flag.
+         *
+         * @param c true if commit, false if not.
+         * @return NiciraConnTrackTreatmentBuilder object
+         */
+        public NiciraConnTrackTreatmentBuilder commit(boolean c) {
+            this.commit = c;
+            return this;
+        }
+
+        /**
+         * Sets zone number.
+         *
+         * @param z zone number
+         * @return NiciraConnTrackTreatmentBuilder object
+         */
+        public NiciraConnTrackTreatmentBuilder zone(int z) {
+            this.zone = z;
+            return this;
+        }
+
+        /**
+         * Sets recirculation table number.
+         *
+         * @param t table number to restart
+         * @return NiciraConnTrackTreatmentBuilder object
+         */
+        public NiciraConnTrackTreatmentBuilder table(short t) {
+            this.table = t;
+            return this;
+        }
+
+        /**
+         * Sets IP address for NAT.
+         *
+         * @param ip NAT IP address
+         * @return NiciraConnTrackTreatmentBuilder object
+         */
+        public NiciraConnTrackTreatmentBuilder natIp(IpAddress ip) {
+            this.natAddress = ip;
+            return this;
+        }
+
+        /**
+         * Sets port for NAT.
+         *
+         * @param port port number
+         * @return NiciraConnTrackTreatmentBuilder object
+         */
+        public NiciraConnTrackTreatmentBuilder natPort(TpPort port) {
+            this.natPort = port;
+            return this;
+        }
+
+        /**
+         * Sets NAT flags.
+         * SRC NAT: 1 << 0
+         * DST NAT: 1 << 1
+         * PERSISTENT NAT: 1 << 2
+         * PROTO_HASH NAT: 1 << 3
+         * PROTO_RANDOM NAT : 1 << 4
+         *
+         * @param flag flag value
+         * @return NiciraConnTrackTreatmentBuilder object
+         */
+        public NiciraConnTrackTreatmentBuilder natFlag(int flag) {
+            this.natFlag = 1 << flag;
+            return this;
+        }
+
+        /**
+         * Sets the flag for NAT action.
+         *
+         * @param nat nat action is included if true, no nat action otherwise
+         * @return NiciraConnTrackTreatmentBuilder object
+         */
+        public NiciraConnTrackTreatmentBuilder natAction(boolean nat) {
+            this.natAction = nat;
+            return this;
+        }
+
+        /**
+         * Builds extension treatment for OVS ConnTack and NAT feature.
+         *
+         * @return ExtensionTreatment object
+         */
+        public ExtensionTreatment build() {
+            DriverHandler handler = driverService.createHandler(deviceId);
+            ExtensionTreatmentResolver etr =
+                    handler.behaviour(ExtensionTreatmentResolver.class);
+
+            ExtensionTreatment natTreatment = etr.getExtensionInstruction(
+                    ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_NAT.type());
+            try {
+
+                natTreatment.setPropertyValue(CT_FLAGS, this.natFlag);
+
+                natTreatment.setPropertyValue(CT_PRESENT_FLAGS,
+                        buildPresentFlag(natPort != null, natAddress != null));
+
+                if (natAddress != null) {
+                    natTreatment.setPropertyValue(CT_IPADDRESS_MIN, natAddress);
+                    natTreatment.setPropertyValue(CT_IPADDRESS_MAX, natAddress);
+                }
+
+                if (natPort != null) {
+                    natTreatment.setPropertyValue(CT_PORT_MIN, natPort.toInt());
+                    natTreatment.setPropertyValue(CT_PORT_MAX, natPort.toInt());
+                }
+
+            } catch (Exception e) {
+                log.error("Failed to set NAT due to error : {}", e);
+                return null;
+            }
+
+            ExtensionTreatment ctTreatment = etr.getExtensionInstruction(
+                    ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_CT.type());
+            try {
+                List<ExtensionTreatment> nat = new ArrayList<>();
+                if (natAction) {
+                    nat.add(natTreatment);
+                }
+                ctTreatment.setPropertyValue(CT_FLAGS, commit ? 1 : 0);
+                ctTreatment.setPropertyValue(CT_ZONE, zone);
+                ctTreatment.setPropertyValue(CT_TABLE, table > -1 ? table : 0xff);
+                ctTreatment.setPropertyValue(CT_NESTED_ACTIONS, nat);
+            } catch (Exception e) {
+                log.error("Failed to set CT due to error : {}", e);
+                return null;
+            }
+
+            return ctTreatment;
+        }
+
+        private int buildPresentFlag(boolean isPortPresent, boolean isAddressPresent) {
+
+            int presentFlag = 0;
+
+            if (isPortPresent) {
+                presentFlag = 1 << PORT_MIN_FLAG | 1 << PORT_MAX_FLAG;
+            }
+
+            if (isAddressPresent) {
+                // TODO: need to support IPv6 address
+                presentFlag =  presentFlag | 1 << ADDRESS_V4_MIN_FLAG | 1 << ADDRESS_V4_MAX_FLAG;
+            }
+
+            return presentFlag;
         }
     }
 }

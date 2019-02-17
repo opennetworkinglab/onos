@@ -59,7 +59,7 @@ public class K8sPortListCommand extends AbstractShellCommand {
         if (outputJson()) {
             print("%s", json(ports));
         } else {
-            print(FORMAT, "ID", "Network", "MAC", "Fixed IPs");
+            print(FORMAT, "ID", "Network", "MAC Address", "Fixed IPs");
             for (K8sPort port: ports) {
                 K8sNetwork k8sNet = service.network(port.networkId());
                 print(FORMAT, port.portId(),
