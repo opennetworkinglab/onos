@@ -71,6 +71,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onosproject.net.AnnotationKeys.DRIVER;
+import static org.onosproject.net.AnnotationKeys.UI_TYPE;
 import static org.onosproject.net.PortNumber.portNumber;
 import static org.onosproject.net.config.basics.BasicElementConfig.LOC_TYPE_GEO;
 import static org.onosproject.net.config.basics.BasicElementConfig.LOC_TYPE_GRID;
@@ -441,7 +442,12 @@ public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
     // Create models of the data to return, that overlays can adjust / augment
 
     private String lookupGlyph(Device device) {
-        return DEVICE_GLYPHS.get(device.type());
+        String uiType = device.annotations().value(UI_TYPE);
+        if (uiType != null && !uiType.equalsIgnoreCase("undefined")) {
+            return uiType;
+        } else {
+            return DEVICE_GLYPHS.get(device.type());
+        }
     }
 
 
