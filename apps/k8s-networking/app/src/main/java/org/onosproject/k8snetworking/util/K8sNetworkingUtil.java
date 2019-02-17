@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Maps;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -31,13 +32,17 @@ import org.onosproject.k8snetworking.api.K8sNetworkService;
 import org.onosproject.k8snode.api.K8sApiConfig;
 import org.onosproject.k8snode.api.K8sApiConfigService;
 import org.onosproject.k8snode.api.K8sNode;
+import org.onosproject.k8snode.api.K8sNodeService;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.group.DefaultGroupKey;
+import org.onosproject.net.group.GroupKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -168,6 +173,16 @@ public final class K8sNetworkingUtil {
     }
 
     /**
+     * Obtains flow group key from the given id.
+     *
+     * @param groupId flow group identifier
+     * @return flow group key
+     */
+    public static GroupKey getGroupKey(int groupId) {
+        return new DefaultGroupKey((Integer.toString(groupId)).getBytes());
+    }
+
+    /**
      * Generates endpoint URL by referring to scheme, ipAddress and port.
      *
      * @param scheme        scheme
@@ -247,5 +262,26 @@ public final class K8sNetworkingUtil {
         }
 
         return client;
+    }
+
+    /**
+     * Obtains the kubernetes node IP and kubernetes network gateway IP map.
+     *
+     * @param nodeService       kubernetes node service
+     * @param networkService    kubernetes network service
+     * @return kubernetes node IP and kubernetes network gateway IP map
+     */
+    public static Map<String, String> nodeIpGatewayIpMap(K8sNodeService nodeService,
+                                                         K8sNetworkService networkService) {
+        Map<String, String> ipMap = Maps.newConcurrentMap();
+
+        nodeService.completeNodes().forEach(n -> {
+            K8sNetwork network = networkService.network(n.hostname());
+            if (network != null) {
+                ipMap.put(n.dataIp().toString(), network.gatewayIp().toString());
+            }
+        });
+
+        return ipMap;
     }
 }

@@ -31,6 +31,7 @@ import java.util.List;
 public class K8sServiceListCommand extends AbstractShellCommand {
 
     private static final String FORMAT = "%-50s%-30s%-30s";
+    private static final String PORT_PROTOCOL_SEPARATOR = "/";
 
     @Override
     protected void execute() {
@@ -43,14 +44,16 @@ public class K8sServiceListCommand extends AbstractShellCommand {
 
         for (io.fabric8.kubernetes.api.model.Service svc : services) {
 
-            List<Integer> ports = Lists.newArrayList();
+            List<String> portWithProtocol = Lists.newArrayList();
 
-            svc.getSpec().getPorts().forEach(p -> ports.add(p.getPort()));
+            svc.getSpec().getPorts().forEach(p ->
+                    portWithProtocol.add(p.getPort() +
+                    PORT_PROTOCOL_SEPARATOR + p.getProtocol()));
 
             print(FORMAT,
                     svc.getMetadata().getName(),
                     svc.getSpec().getClusterIP(),
-                    ports.isEmpty() ? "" : ports);
+                    portWithProtocol.isEmpty() ? "" : portWithProtocol);
         }
     }
 }
