@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import javax.ws.rs.core.MediaType;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -129,4 +130,39 @@ final class AristaUtils {
         return node.toString();
     }
 
+
+    public static boolean getWithChecking(DriverHandler handler, String command) {
+        List<String> cmds = new ArrayList<>();
+
+        cmds.add(command);
+
+        return getWithChecking(handler, cmds);
+    }
+
+    public static boolean getWithChecking(DriverHandler handler, List<String> commands) {
+        RestSBController controller = checkNotNull(handler.get(RestSBController.class));
+        DeviceId deviceId = checkNotNull(handler.data()).deviceId();
+        String response = generate(commands);
+
+        log.debug("request :{}", response);
+
+        try {
+            ObjectMapper om = new ObjectMapper();
+            JsonNode json = om.readTree(response);
+            JsonNode errNode = json.findPath(ERROR);
+
+            if (errNode.isMissingNode()) {
+                return true;
+            }
+
+            log.error("Error get with checking {}", errNode.asText(""));
+            for (String str : commands) {
+                log.error("Command Failed due to Cmd : {}", str);
+            }
+            return false;
+        } catch (IOException e) {
+            log.error("IO exception occured because of ", e);
+            return false;
+        }
+    }
 }

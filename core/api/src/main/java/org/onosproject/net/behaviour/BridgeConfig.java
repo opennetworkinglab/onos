@@ -67,6 +67,18 @@ public interface BridgeConfig extends HandlerBehaviour {
     void deletePort(BridgeName bridgeName, String portName);
 
     /**
+     * Deletes ports to a given bridge.
+     * @param bridgeName bridge name
+     * @param portNames list port names
+     */
+    default void deletePorts(BridgeName bridgeName, List<String> portNames) {
+        for (String portName : portNames) {
+            deletePort(bridgeName, portName);
+        }
+    }
+
+
+    /**
      * Delete a logical/virtual port.
      *
      * @return collection of port
