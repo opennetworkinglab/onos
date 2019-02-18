@@ -17,17 +17,31 @@
  */
 package org.onosproject.drivers.odtn.tapi;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.onosproject.net.ChannelSpacing;
+import org.onosproject.net.GridType;
+import org.onosproject.net.OchSignal;
+import org.slf4j.Logger;
+
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.stream.IntStream;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Tapi 2.1 OLS device related helpers.
  */
 public final class TapiDeviceHelper {
 
+    private static final Logger log = getLogger(TapiDeviceHelper.class);
+
     public static final String SERVICE_INTERFACE_POINT = "service-interface-point";
+    public static final String CONTEXT = "tapi-common:context";
     public static final String UUID = "uuid";
     public static final String MEDIA_CHANNEL_SERVICE_INTERFACE_POINT_SPEC =
-            "media-channel-service-interface-point-spec";
+            "tapi-photonic-media:media-channel-service-interface-point-spec";
     public static final String MC_POOL = "mc-pool";
     public static final String LAYER_PROTOCOL_NAME = "layer-protocol-name";
     public static final String PHOTONIC_MEDIA = "PHOTONIC_MEDIA";
@@ -38,7 +52,6 @@ public final class TapiDeviceHelper {
     public static final String ADJUSTMENT_GRANULARITY = "adjustment-granularity";
     public static final String UPPER_FREQUENCY = "upper-frequency";
     public static final String LOWER_FREQUENCY = "lower-frequency";
-    public static final String AVAILABLE_SPECTRUM = "available-spectrum";
     public static final long BASE_FREQUENCY = 193100000;   //Working in Mhz
     public static final String TAPI_CONNECTIVITY_CONNECTIVITY_SERVICE = "tapi-connectivity:connectivity-service";
     public static final String END_POINT = "end-point";
@@ -50,6 +63,8 @@ public final class TapiDeviceHelper {
     public static final String TAPI_PHOTONIC_MEDIA_PHOTONIC_LAYER_QUALIFIER_NMC =
             "tapi-photonic-media:PHOTONIC_LAYER_QUALIFIER_NMC";
     public static final String SERVICE_INTERFACE_POINT_UUID = "service-interface-point-uuid";
+    public static final String AVAILABLE_SPECTRUM = "available-spectrum";
+    protected static final String SUPPORTABLE_SPECTRUM = "supportable-spectrum";
 
     private TapiDeviceHelper(){}
 
@@ -104,5 +119,58 @@ public final class TapiDeviceHelper {
      */
     public static long toMbpsFromHz(long speed) {
         return speed / 1000000;
+    }
+
+    /**
+     * If SIP info match our criteria, SIP component shall includes mc-pool information which must be obtained in order
+     * to complete the OchSignal info. with the TAPI SIP information included in spectrum-supported, spectrum-available
+     * and spectrum-occupied tapi objects.
+     *
+     * @param mcPool the MC_POOL json node
+     * @return the set of OCH signals given the port's information
+     **/
+    protected static Set<OchSignal> getOchSignal(JsonNode mcPool) {
+
+        Set<OchSignal> lambdas = new LinkedHashSet<>();
+        long availableUpperFrec = 0;
+        long availableLowerFrec = 0;
+        String availableAdjustmentGranularity = "";
+        String availableGridType = "";
+        JsonNode availableSpectrum = mcPool.get(AVAILABLE_SPECTRUM);
+
+        if (availableSpectrum == null) {
+            availableSpectrum = mcPool.get(SUPPORTABLE_SPECTRUM);
+        }
+
+        Iterator<JsonNode> iterAvailable = availableSpectrum.iterator();
+        while (iterAvailable.hasNext()) {
+            JsonNode availableSpec = iterAvailable.next();
+            availableUpperFrec = availableSpec.get(UPPER_FREQUENCY).asLong();
+            availableLowerFrec = availableSpec.get(LOWER_FREQUENCY).asLong();
+            log.info("availableUpperFrec {}, availableLowerFrec {}", availableUpperFrec,
+                    availableLowerFrec);
+            availableAdjustmentGranularity = availableSpec.get(FREQUENCY_CONSTRAINT)
+                    .get(ADJUSTMENT_GRANULARITY).textValue();
+            availableGridType = availableSpec.get(FREQUENCY_CONSTRAINT).get(GRID_TYPE).textValue();
+
+            int slotGranularity;
+            ChannelSpacing chSpacing = getChannelSpacing(availableAdjustmentGranularity);
+            double spacingFrequency = chSpacing.frequency().asGHz();
+            int lambdaCount = (int) ((availableUpperFrec - availableLowerFrec) / spacingFrequency);
+            GridType gridType = GridType.valueOf(availableGridType);
+            if (gridType == GridType.DWDM) {
+                slotGranularity = getSlotGranularity(chSpacing);
+                int finalSlotGranularity = slotGranularity;
+                IntStream.range(0, lambdaCount).forEach(x -> lambdas.add(new OchSignal(GridType.DWDM, chSpacing,
+                        x - (lambdaCount / 2), finalSlotGranularity)));
+            } else if (gridType == GridType.CWDM) {
+                log.warn("GridType CWDM. Not implemented");
+            } else if (gridType == GridType.FLEX) {
+                log.warn("GridType FLEX. Not implemented");
+            } else {
+                log.warn("Unknown GridType");
+            }
+        }
+        return lambdas;
     }
 }
