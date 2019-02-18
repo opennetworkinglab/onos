@@ -55,9 +55,6 @@ import static org.onlab.util.Tools.readTreeFromStream;
 public class SystemMetricsCollectorWebResource extends AbstractWebResource {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private final ControlPlaneMonitorService monitorService = get(ControlPlaneMonitorService.class);
-    private final MetricsService metricsService = get(MetricsService.class);
-
     private static final int UPDATE_INTERVAL_IN_MINUTE = 1;
     private static final String INVALID_SYSTEM_SPECS = "Invalid system specifications";
     private static final String INVALID_RESOURCE_NAME = "Invalid resource name";
@@ -89,6 +86,8 @@ public class SystemMetricsCollectorWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response cpuMetrics(InputStream stream) {
         ObjectNode root = mapper().createObjectNode();
+        ControlPlaneMonitorService monitorService = get(ControlPlaneMonitorService.class);
+        MetricsService metricsService = get(MetricsService.class);
         ControlMetric cm;
         try {
             ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
@@ -150,6 +149,8 @@ public class SystemMetricsCollectorWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response memoryMetrics(InputStream stream) {
         ObjectNode root = mapper().createObjectNode();
+        ControlPlaneMonitorService monitorService = get(ControlPlaneMonitorService.class);
+        MetricsService metricsService = get(MetricsService.class);
         ControlMetric cm;
         try {
             ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
@@ -205,6 +206,8 @@ public class SystemMetricsCollectorWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response diskMetrics(InputStream stream) {
         ObjectNode root = mapper().createObjectNode();
+        ControlPlaneMonitorService monitorService = get(ControlPlaneMonitorService.class);
+        MetricsService metricsService = get(MetricsService.class);
         ControlMetric cm;
         try {
             ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
@@ -251,6 +254,8 @@ public class SystemMetricsCollectorWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response networkMetrics(InputStream stream) {
         ObjectNode root = mapper().createObjectNode();
+        ControlPlaneMonitorService monitorService = get(ControlPlaneMonitorService.class);
+        MetricsService metricsService = get(MetricsService.class);
         ControlMetric cm;
         try {
             ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
