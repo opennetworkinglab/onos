@@ -69,7 +69,6 @@ import static org.onosproject.openstacknetworking.api.Constants.FORWARDING_TABLE
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ADMIN_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FLAT_DOWNSTREAM_RULE;
-import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FLAT_JUMP_DOWNSTREAM_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FLAT_JUMP_UPSTREAM_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FLAT_UPSTREAM_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SWITCHING_RULE;
@@ -188,34 +187,6 @@ public class OpenstackSwitchingHandler {
             log.warn("The port number does not exist");
             return;
         }
-
-        selector = DefaultTrafficSelector.builder();
-        selector.matchInPort(portNumber)
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPDst(port.ipAddress().toIpPrefix());
-
-        osFlowRuleService.setRule(
-                appId,
-                port.deviceId(),
-                selector.build(),
-                treatment.build(),
-                PRIORITY_FLAT_JUMP_DOWNSTREAM_RULE,
-                DHCP_TABLE,
-                install);
-
-        selector = DefaultTrafficSelector.builder();
-        selector.matchInPort(portNumber)
-                .matchEthType(Ethernet.TYPE_ARP)
-                .matchArpTpa(port.ipAddress().getIp4Address());
-
-        osFlowRuleService.setRule(
-                appId,
-                port.deviceId(),
-                selector.build(),
-                treatment.build(),
-                PRIORITY_FLAT_JUMP_DOWNSTREAM_RULE,
-                DHCP_TABLE,
-                install);
     }
 
     private void setDownstreamRulesForFlat(InstancePort instPort, boolean install) {
