@@ -23,6 +23,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
+import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterServiceAdapter;
 import org.onosproject.cluster.LeadershipServiceAdapter;
 import org.onosproject.core.ApplicationId;
@@ -38,6 +39,9 @@ import org.onosproject.net.flow.FlowRuleOperations;
 import org.onosproject.net.flow.FlowRuleServiceAdapter;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.openstacknode.api.DefaultOpenstackNode;
+import org.onosproject.openstacknode.api.NodeState;
+import org.onosproject.openstacknode.api.OpenstackNode;
 
 import java.util.List;
 import java.util.Map;
@@ -189,7 +193,7 @@ public class OpenstackFlowRuleManagerTest {
         fros = Sets.newConcurrentHashSet();
 
         target.initializePipeline(DEVICE_ID);
-        assertEquals("Flow Rule size was not match", 12, fros.size());
+        assertEquals("Flow Rule size was not match", 13, fros.size());
 
         Map<Integer, Integer> fromToTableMap = Maps.newConcurrentMap();
         fromToTableMap.put(STAT_INBOUND_TABLE, VTAP_INBOUND_TABLE);
@@ -204,7 +208,7 @@ public class OpenstackFlowRuleManagerTest {
         fromToTableMap.put(VTAP_FLAT_OUTBOUND_TABLE, FLAT_TABLE);
 
         fros.stream().map(FlowRuleOperation::rule).forEach(fr -> {
-            if (fr.tableId() != JUMP_TABLE) {
+            if (fr.tableId() != JUMP_TABLE && fr.tableId() != FLAT_TABLE) {
                 assertEquals("To Table did not match,",
                         fromToTableMap.get(fr.tableId()),
                         fr.treatment().tableTransition().tableId());
@@ -229,6 +233,16 @@ public class OpenstackFlowRuleManagerTest {
     }
 
     private class TestOpenstackNodeService extends OpenstackNodeServiceAdapter {
+        @Override
+        public OpenstackNode node(DeviceId deviceId) {
+            return DefaultOpenstackNode.builder()
+                    .hostname("host")
+                    .type(OpenstackNode.NodeType.COMPUTE)
+                    .state(NodeState.COMPLETE)
+                    .managementIp(IpAddress.valueOf("1.1.1.1"))
+                    .dataIp(IpAddress.valueOf("1.1.1.1"))
+                    .build();
+        }
     }
 
     private class TestFlowRuleService extends FlowRuleServiceAdapter {
