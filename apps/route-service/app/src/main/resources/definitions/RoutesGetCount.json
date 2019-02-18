@@ -1,0 +1,17 @@
+{
+  "type": "object",
+  "required": [
+    "ipv4PrefixCount",
+    "ipv6PrefixCount"
+  ],
+  "properties": {
+    "ipv4PrefixCount": {
+      "type": "long",
+      "example": "2"
+    },
+    "ipv6PrefixCount": {
+      "type": "long",
+      "example": "3"
+    }
+  }
+}
