@@ -60,11 +60,6 @@ public final class MastershipWebResource extends AbstractWebResource {
     private static final String ROLE_INFO_NOT_FOUND = "Role info is not found";
     private static final String MASTERSHIP_ROLE_NOT_FOUND = "Mastership role is not found";
 
-    private final DeviceService deviceService = get(DeviceService.class);
-    private final MastershipService mastershipService = get(MastershipService.class);
-    private final MastershipAdminService mastershipAdminService =
-                                         get(MastershipAdminService.class);
-
     /**
      * Returns the role of the local node for the specified device.
      *
@@ -76,6 +71,7 @@ public final class MastershipWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{deviceId}/local")
     public Response getLocalRole(@PathParam("deviceId") String deviceId) {
+        MastershipService mastershipService = get(MastershipService.class);
         MastershipRole role = mastershipService.getLocalRole(DeviceId.deviceId(deviceId));
         ObjectNode root = codec(MastershipRole.class).encode(role, this);
         return ok(root).build();
@@ -92,6 +88,7 @@ public final class MastershipWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{deviceId}/master")
     public Response getMasterFor(@PathParam("deviceId") String deviceId) {
+        MastershipService mastershipService = get(MastershipService.class);
         NodeId id = nullIsNotFound(mastershipService.getMasterFor(
                     DeviceId.deviceId(deviceId)), NODE_ID_NOT_FOUND);
 
@@ -112,6 +109,7 @@ public final class MastershipWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{deviceId}/role")
     public Response getNodesFor(@PathParam("deviceId") String deviceId) {
+        MastershipService mastershipService = get(MastershipService.class);
         RoleInfo info = nullIsNotFound(mastershipService.getNodesFor(
                         DeviceId.deviceId(deviceId)), ROLE_INFO_NOT_FOUND);
         ObjectNode root = codec(RoleInfo.class).encode(info, this);
@@ -129,6 +127,7 @@ public final class MastershipWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{nodeId}/device")
     public Response getDeviceOf(@PathParam("nodeId") String nodeId) {
+        MastershipService mastershipService = get(MastershipService.class);
         ObjectNode root = mapper().createObjectNode();
         ArrayNode devicesNode = root.putArray(DEVICE_IDS);
 
@@ -152,6 +151,8 @@ public final class MastershipWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{deviceId}/request")
     public Response requestRoleFor(@PathParam("deviceId") String deviceId) {
+        MastershipService mastershipService = get(MastershipService.class);
+        DeviceService deviceService = get(DeviceService.class);
         DeviceId id = DeviceId.deviceId(deviceId);
         nullIsNotFound(deviceService.getDevice(id), DEVICE_ID_NOT_FOUND);
 
@@ -173,6 +174,7 @@ public final class MastershipWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{deviceId}/relinquish")
     public Response relinquishMastership(@PathParam("deviceId") String deviceId) {
+        MastershipService mastershipService = get(MastershipService.class);
         DeviceId id = DeviceId.deviceId(deviceId);
         mastershipService.relinquishMastershipSync(id);
         return Response.created(id.uri()).build();
@@ -189,6 +191,7 @@ public final class MastershipWebResource extends AbstractWebResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     public Response setRole(InputStream stream) {
+        MastershipAdminService mastershipAdminService = get(MastershipAdminService.class);
 
         try {
             ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
@@ -222,6 +225,7 @@ public final class MastershipWebResource extends AbstractWebResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response balanceRoles() {
+        MastershipAdminService mastershipAdminService = get(MastershipAdminService.class);
         mastershipAdminService.balanceRoles();
         return Response.ok().build();
     }
