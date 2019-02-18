@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-present Open Networking Foundation
+ * Copyright 2019-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.onosproject.netconf.ctl.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,6 +25,7 @@ import org.onlab.osgi.ComponentContextAdapter;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.cluster.ClusterService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.mastership.MastershipServiceAdapter;
 import org.onosproject.net.DeviceId;
@@ -60,6 +60,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.easymock.EasyMock.createMock;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.onosproject.netconf.ctl.impl.OsgiPropertyConstants.NETCONF_CONNECT_TIMEOUT_DEFAULT;
@@ -124,6 +125,7 @@ public class NetconfControllerImplTest {
     private final MastershipService mastershipService = new MockmastershipService();
     private final ClusterCommunicationService clusterCommunicationService =
             new ClusterCommunicationServiceMock();
+    private final ClusterService mockClusterService = createMock(ClusterService.class);
 
     private final ComponentContext context = new MockComponentContext();
 
@@ -140,6 +142,7 @@ public class NetconfControllerImplTest {
         NetconfControllerImpl.netconfIdleTimeout = NETCONF_IDLE_TIMEOUT_DEFAULT;
         NetconfControllerImpl.netconfReplyTimeout = NETCONF_REPLY_TIMEOUT_DEFAULT;
         ctrl.clusterCommunicator = clusterCommunicationService;
+        ctrl.clusterService = mockClusterService;
 
         //Creating mock devices
         deviceInfo1 = new NetconfDeviceInfo("device1", "001", IpAddress.valueOf(DEVICE_1_IP), DEVICE_1_PORT);
@@ -240,9 +243,9 @@ public class NetconfControllerImplTest {
      */
     @Test
     public void testAddRemoveDeviceListener() {
-        NetconfDeviceListener deviceListener1 = EasyMock.createMock(NetconfDeviceListener.class);
-        NetconfDeviceListener deviceListener2 = EasyMock.createMock(NetconfDeviceListener.class);
-        NetconfDeviceListener deviceListener3 = EasyMock.createMock(NetconfDeviceListener.class);
+        NetconfDeviceListener deviceListener1 = createMock(NetconfDeviceListener.class);
+        NetconfDeviceListener deviceListener2 = createMock(NetconfDeviceListener.class);
+        NetconfDeviceListener deviceListener3 = createMock(NetconfDeviceListener.class);
 
         ctrl.addDeviceListener(deviceListener1);
         ctrl.addDeviceListener(deviceListener2);
@@ -422,7 +425,7 @@ public class NetconfControllerImplTest {
         public TestNetconfDevice(NetconfDeviceInfo deviceInfo) throws NetconfException {
             netconfDeviceInfo = deviceInfo;
             if (!badDeviceInfo3.getDeviceId().equals(deviceInfo.getDeviceId())) {
-                netconfSession = EasyMock.createMock(NetconfSession.class);
+                netconfSession = createMock(NetconfSession.class);
                 deviceState = true;
             } else {
                 throw new NetconfException("Cannot create Connection and Session");

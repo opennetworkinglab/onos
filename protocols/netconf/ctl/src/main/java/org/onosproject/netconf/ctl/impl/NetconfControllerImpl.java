@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Foundation
+ * Copyright 2019-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,9 @@ import org.apache.commons.lang3.tuple.Triple;
 import com.google.common.annotations.Beta;
 import com.google.common.collect.Lists;
 
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.ControllerNode;
+import org.onosproject.cluster.NodeId;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -70,12 +73,14 @@ import java.security.Security;
 
 import java.util.ArrayList;
 import java.util.Dictionary;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -116,15 +121,18 @@ public class NetconfControllerImpl implements NetconfController {
 
     protected NetconfSshClientLib sshClientLib = NetconfSshClientLib.APACHE_MINA;
 
-
-    private static final String APACHE_MINA_STR = "apache-mina";
-
-
     private static final MessageSubject SEND_REQUEST_SUBJECT_STRING =
             new MessageSubject("netconf-session-master-send-message-string");
 
+    private static final MessageSubject SEND_REPLY_SUBJECT_STRING =
+            new MessageSubject("netconf-session-master-send-reply-message-string");
+
     private static final MessageSubject SEND_REQUEST_SUBJECT_SET_STRING =
             new MessageSubject("netconf-session-master-send-message-set-string");
+
+    private static final MessageSubject SEND_REPLY_SUBJECT_SET_STRING =
+            new MessageSubject("netconf-session-master-send-reply-message-set-string");
+
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
@@ -143,6 +151,9 @@ public class NetconfControllerImpl implements NetconfController {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterCommunicationService clusterCommunicator;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected ClusterService clusterService;
 
     public static final Logger log = LoggerFactory
             .getLogger(NetconfControllerImpl.class);
@@ -163,6 +174,15 @@ public class NetconfControllerImpl implements NetconfController {
             Executors.newCachedThreadPool(groupedThreads("onos/netconfdevicecontroller",
                                                          "connection-reopen-%d", log));
 
+    private final ExecutorService remoteRequestExecutor =
+            Executors.newCachedThreadPool();
+
+    protected NodeId localNodeId;
+
+    private CountDownLatch countDownLatch;
+
+    private ArrayList<String> replyArguments = new ArrayList<>();
+
     public static final Serializer SERIALIZER = Serializer.using(
             KryoNamespace.newBuilder()
                     .register(KryoNamespaces.API)
@@ -177,16 +197,30 @@ public class NetconfControllerImpl implements NetconfController {
         cfgService.registerProperties(getClass());
         modified(context);
         Security.addProvider(new BouncyCastleProvider());
-        clusterCommunicator.<NetconfProxyMessage, String>addSubscriber(
+        clusterCommunicator.<NetconfProxyMessage>addSubscriber(
                 SEND_REQUEST_SUBJECT_STRING,
                 SERIALIZER::decode,
                 this::handleProxyMessage,
-                SERIALIZER::encode);
-        clusterCommunicator.<NetconfProxyMessage, Set<String>>addSubscriber(
+                remoteRequestExecutor);
+        clusterCommunicator.<NetconfProxyMessage>addSubscriber(
                 SEND_REQUEST_SUBJECT_SET_STRING,
                 SERIALIZER::decode,
                 this::handleProxyMessage,
-                SERIALIZER::encode);
+                remoteRequestExecutor);
+        clusterCommunicator.<NetconfProxyMessage>addSubscriber(
+                SEND_REPLY_SUBJECT_STRING,
+                SERIALIZER::decode,
+                this::handleProxyReplyMessage,
+                remoteRequestExecutor);
+        clusterCommunicator.<NetconfProxyMessage>addSubscriber(
+                SEND_REPLY_SUBJECT_SET_STRING,
+                SERIALIZER::decode,
+                this::handleProxyReplyMessage,
+                remoteRequestExecutor);
+
+        localNodeId = Optional.ofNullable(clusterService.getLocalNode())
+                .map(ControllerNode::id)
+                .orElseGet(() -> new NodeId("nullNodeId"));
         log.info("Started");
     }
 
@@ -204,6 +238,8 @@ public class NetconfControllerImpl implements NetconfController {
         });
         clusterCommunicator.removeSubscriber(SEND_REQUEST_SUBJECT_STRING);
         clusterCommunicator.removeSubscriber(SEND_REQUEST_SUBJECT_SET_STRING);
+        clusterCommunicator.removeSubscriber(SEND_REPLY_SUBJECT_STRING);
+        clusterCommunicator.removeSubscriber(SEND_REPLY_SUBJECT_SET_STRING);
         cfgService.unregisterProperties(getClass(), false);
         netconfDeviceListeners.clear();
         netconfDeviceMap.clear();
@@ -350,6 +386,11 @@ public class NetconfControllerImpl implements NetconfController {
         }
     }
 
+    @Override
+    public NodeId getLocalNodeId() {
+        return localNodeId;
+    }
+
     private NetconfDeviceInfo createDeviceInfo(DeviceId deviceId) throws NetconfException {
             Device device = deviceService.getDevice(deviceId);
             String ip, path = null;
@@ -469,42 +510,119 @@ public class NetconfControllerImpl implements NetconfController {
         return netconfDeviceMap.keySet();
     }
 
+    private void unicastRpcToMaster(NetconfProxyMessage proxyMessage, NodeId receiverId) {
+        MessageSubject messageSubject;
+
+        switch (proxyMessage.subjectType()) {
+            case GET_DEVICE_CAPABILITIES_SET:
+                messageSubject = SEND_REQUEST_SUBJECT_SET_STRING;
+                break;
+            default:
+                messageSubject = SEND_REQUEST_SUBJECT_STRING;
+                break;
+        }
+
+        clusterCommunicator
+                .unicast(proxyMessage,
+                         messageSubject,
+                         SERIALIZER::encode,
+                         receiverId);
+    }
+
+    private void unicastReplyToSender(NetconfProxyMessage proxyMessage, NodeId receiverId) {
+        MessageSubject messageSubject;
+
+        switch (proxyMessage.subjectType()) {
+            case GET_DEVICE_CAPABILITIES_SET:
+                messageSubject = SEND_REPLY_SUBJECT_SET_STRING;
+                break;
+            default:
+                messageSubject = SEND_REPLY_SUBJECT_STRING;
+                break;
+        }
+
+        clusterCommunicator
+                .unicast(proxyMessage,
+                         messageSubject,
+                         SERIALIZER::encode,
+                         receiverId);
+    }
+
     @Override
     public <T> CompletableFuture<T> executeAtMaster(NetconfProxyMessage proxyMessage) throws NetconfException {
         DeviceId deviceId = proxyMessage.deviceId();
         if (deviceService.getRole(deviceId).equals(MastershipRole.MASTER)) {
-            return CompletableFuture.completedFuture(
-                    netconfProxyMessageHandler.handleIncomingMessage(proxyMessage));
+            return handleProxyMessage(proxyMessage);
         } else {
-            MessageSubject subject;
+            return relayMessageToMaster(proxyMessage);
+        }
+    }
+
+    public <T> CompletableFuture<T> relayMessageToMaster(NetconfProxyMessage proxyMessage) {
+        DeviceId deviceId = proxyMessage.deviceId();
+
+        countDownLatch = new CountDownLatch(1);
+        unicastRpcToMaster(proxyMessage, mastershipService.getMasterFor(deviceId));
+
+        try {
+            countDownLatch.await(netconfReplyTimeout, TimeUnit.SECONDS);
+
             switch (proxyMessage.subjectType()) {
                 case GET_DEVICE_CAPABILITIES_SET:
-                    subject = SEND_REQUEST_SUBJECT_SET_STRING;
-                    break;
+                    Set<String> forReturnValue = new LinkedHashSet<>(replyArguments);
+                    return CompletableFuture.completedFuture((T) forReturnValue);
                 default:
-                    subject = SEND_REQUEST_SUBJECT_STRING;
-                    break;
+                    String returnValue = Optional.ofNullable(replyArguments.get(0)).orElse(null);
+                    return CompletableFuture.completedFuture((T) returnValue);
             }
-
-            return clusterCommunicator
-                    .sendAndReceive(proxyMessage,
-                                    subject,
-                                    SERIALIZER::encode,
-                                    SERIALIZER::decode,
-                                    mastershipService.getMasterFor(deviceId));
+        } catch (InterruptedException e) {
+            log.error("InterruptedOccured while awaiting because of {}", e);
+            CompletableFuture<T> errorFuture = new CompletableFuture<>();
+            errorFuture.completeExceptionally(e);
+            return errorFuture;
+        } catch (Exception e) {
+            log.error("Exception occured because of {}", e);
+            CompletableFuture<T> errorFuture = new CompletableFuture<>();
+            errorFuture.completeExceptionally(e);
+            return errorFuture;
         }
     }
 
     private <T> CompletableFuture<T> handleProxyMessage(NetconfProxyMessage proxyMessage) {
         try {
-            return CompletableFuture.completedFuture(
-                    netconfProxyMessageHandler.handleIncomingMessage(proxyMessage));
+            switch (proxyMessage.subjectType()) {
+                case GET_DEVICE_CAPABILITIES_SET:
+                    return CompletableFuture.completedFuture(
+                            (T) netconfProxyMessageHandler.handleIncomingSetMessage(proxyMessage));
+                default:
+                    return CompletableFuture.completedFuture(
+                            netconfProxyMessageHandler.handleIncomingMessage(proxyMessage));
+            }
         } catch (NetconfException e) {
             CompletableFuture<T> errorFuture = new CompletableFuture<>();
             errorFuture.completeExceptionally(e);
             return errorFuture;
         }
     }
+
+    private <T> CompletableFuture<T> handleProxyReplyMessage(NetconfProxyMessage replyMessage) {
+        try {
+            switch (replyMessage.subjectType()) {
+                case GET_DEVICE_CAPABILITIES_SET:
+                    return CompletableFuture.completedFuture(
+                            (T) netconfProxyMessageHandler.handleReplySetMessage(replyMessage));
+                default:
+                    return CompletableFuture.completedFuture(
+                            netconfProxyMessageHandler.handleReplyMessage(replyMessage));
+
+            }
+        } catch (NetconfException e) {
+            CompletableFuture<T> errorFuture = new CompletableFuture<>();
+            errorFuture.completeExceptionally(e);
+            return errorFuture;
+        }
+    }
+
 
     /**
      * Netconf Proxy Message Handler Implementation class.
@@ -517,6 +635,7 @@ public class NetconfControllerImpl implements NetconfController {
             DeviceId deviceId = proxyMessage.deviceId();
             NetconfProxyMessage.SubjectType subjectType = proxyMessage.subjectType();
             NetconfSession secureTransportSession;
+
             if (netconfDeviceMap.get(deviceId).isMasterSession()) {
                 secureTransportSession = netconfDeviceMap.get(deviceId).getSession();
             } else {
@@ -546,9 +665,6 @@ public class NetconfControllerImpl implements NetconfController {
                     case GET_SESSION_ID:
                         reply = (T) secureTransportSession.getSessionId();
                         break;
-                    case SET_ONOS_CAPABILITIES:
-                        secureTransportSession.setOnosCapabilities(arguments);
-                        break;
                     case GET_DEVICE_CAPABILITIES_SET:
                         reply = (T) secureTransportSession.getDeviceCapabilitiesSet();
                         break;
@@ -562,7 +678,60 @@ public class NetconfControllerImpl implements NetconfController {
                 throw new NetconfException(e.getMessage(), e.getCause());
             }
 
+            ArrayList<String> returnArgument = new ArrayList<String>();
+            Optional.ofNullable(reply).ifPresent(r -> returnArgument.add((String) r));
+
+            DefaultNetconfProxyMessage replyMessage = new DefaultNetconfProxyMessage(
+                    subjectType,
+                    deviceId,
+                    returnArgument,
+                    localNodeId);
+
+            unicastReplyToSender(replyMessage, proxyMessage.senderId());
+
+
             return reply;
+        }
+
+        @Override
+        public <T> T handleReplyMessage(NetconfProxyMessage replyMessage) {
+            replyArguments = new ArrayList<>(replyMessage.arguments());
+            countDownLatch.countDown();
+            return (T) Optional.ofNullable(replyArguments.get(0)).orElse(null);
+        }
+
+        @Override
+        public Set<String> handleIncomingSetMessage(NetconfProxyMessage proxyMessage) throws NetconfException {
+            DeviceId deviceId = proxyMessage.deviceId();
+            NetconfProxyMessage.SubjectType subjectType = proxyMessage.subjectType();
+            NetconfSession secureTransportSession;
+
+            if (netconfDeviceMap.get(deviceId).isMasterSession()) {
+                secureTransportSession = netconfDeviceMap.get(deviceId).getSession();
+            } else {
+                throw new NetconfException("SSH session not present");
+            }
+
+            Set<String> reply = secureTransportSession.getDeviceCapabilitiesSet();
+            ArrayList<String> returnArgument = new ArrayList<String>(reply);
+
+            DefaultNetconfProxyMessage replyMessage = new DefaultNetconfProxyMessage(
+                    subjectType,
+                    deviceId,
+                    returnArgument,
+                    localNodeId);
+
+            unicastReplyToSender(replyMessage, proxyMessage.senderId());
+            return reply;
+        }
+
+        @Override
+        public Set<String> handleReplySetMessage(NetconfProxyMessage replyMessage) {
+            replyArguments = new ArrayList<>(replyMessage.arguments());
+            countDownLatch.countDown();
+
+            return new LinkedHashSet<>(replyArguments);
+
         }
     }
 

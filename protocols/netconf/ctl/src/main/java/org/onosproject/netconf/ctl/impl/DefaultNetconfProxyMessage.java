@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-present Open Networking Foundation
+ * Copyright 2019-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.onosproject.netconf.ctl.impl;
 
 import com.google.common.collect.ImmutableList;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.netconf.NetconfProxyMessage;
 
@@ -30,20 +31,25 @@ public class DefaultNetconfProxyMessage implements NetconfProxyMessage {
     private final SubjectType subjectType;
     private final DeviceId deviceId;
     private final List<String> arguments;
+    private final NodeId senderId;
 
     /**
      * Create new NetconfProxyMessage with provided informations.
      * @param subType Message subject type.
      * @param devId Device information that recieve message.
      * @param args Messages arguments.
+     * @param nodeId nodeId of sender
      */
     public DefaultNetconfProxyMessage(SubjectType subType,
                                       DeviceId devId,
-                                      List<String> args) {
+                                      List<String> args,
+                                      NodeId nodeId) {
         subjectType = subType;
         deviceId = devId;
         arguments = args;
+        senderId = nodeId;
     }
+
 
     @Override
     public SubjectType subjectType() {
@@ -58,5 +64,10 @@ public class DefaultNetconfProxyMessage implements NetconfProxyMessage {
     @Override
     public List<String> arguments() {
         return ImmutableList.copyOf(arguments);
+    }
+
+    @Override
+    public NodeId senderId() {
+        return senderId;
     }
 }

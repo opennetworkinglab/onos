@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-present Open Networking Foundation
+ * Copyright 2019-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package org.onosproject.netconf;
 
+import java.util.Set;
+
 /**
  * Abstract interface for the implementation of proxy message handler.
  */
@@ -28,4 +30,32 @@ public interface NetconfProxyMessageHandler {
      * @throws NetconfException netconf exception
      */
     <T> T handleIncomingMessage(NetconfProxyMessage proxyMessage) throws NetconfException;
+
+    /**
+     * Will decode the message on case basis and
+     * call the actual method in Netconf Session implementation bound to secure transport.
+     * @param replyMessage incoming reply message
+     * @param <T> return type
+     * @return the value returned by session call
+     * @throws NetconfException netconf exception
+     */
+    <T> T handleReplyMessage(NetconfProxyMessage replyMessage) throws NetconfException;
+
+    /**
+     * Will decode the message on case basis and
+     * call the actual method in Netconf Session implementation bound to secure transport.
+     * @param proxyMessage incoming proxy message
+     * @return the set value returned by session call
+     * @throws NetconfException netconf exception
+     */
+    Set<String> handleIncomingSetMessage(NetconfProxyMessage proxyMessage) throws NetconfException;
+
+    /**
+     * Will decode the message on case basis and
+     * call the actual method in Netconf Session implementation bound to secure transport.
+     * @param replyMessage incoming proxy message
+     * @return the set value returned by session call
+     * @throws NetconfException netconf exception
+     */
+    Set<String> handleReplySetMessage(NetconfProxyMessage replyMessage) throws NetconfException;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-present Open Networking Foundation
+ * Copyright 2019-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.onosproject.netconf;
 
+import org.onosproject.cluster.NodeId;
 import org.onosproject.net.DeviceId;
 
 import java.util.List;
@@ -57,4 +58,10 @@ public interface NetconfProxyMessage {
      * @return arguments
      */
     List<String> arguments();
+
+    /**
+     * Returns the node id of proxymessage sender.
+     * @return NodeId
+     */
+    NodeId senderId();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-present Open Networking Foundation
+ * Copyright 2019-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.onosproject.netconf.ctl.impl;
 
+import org.onosproject.cluster.NodeId;
 import org.onosproject.netconf.AbstractNetconfSession;
 import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfDeviceInfo;
@@ -38,14 +39,17 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class NetconfSessionProxyImpl extends AbstractNetconfSession {
     protected final NetconfDeviceInfo deviceInfo;
     protected final NetconfController netconfController;
+    protected final NodeId sessionNodeId;
     private static final Logger log = getLogger(NetconfSessionMinaImpl.class);
 
     private static final int CONFIGURE_REPLY_TIMEOUT_SEC = 5;
 
     public NetconfSessionProxyImpl(NetconfDeviceInfo deviceInfo,
-                                   NetconfController controller) {
+                                   NetconfController controller,
+                                   NodeId nodeId) {
         this.deviceInfo = deviceInfo;
         this.netconfController = controller;
+        this.sessionNodeId = nodeId;
     }
 
     private <T> CompletableFuture<T> executeAtMasterCompletableFuture(
@@ -77,7 +81,8 @@ public class NetconfSessionProxyImpl extends AbstractNetconfSession {
     protected NetconfProxyMessage makeProxyMessage(NetconfProxyMessage.SubjectType subjectType, String request) {
         return new DefaultNetconfProxyMessage(subjectType,
                                               deviceInfo.getDeviceId(),
-                                              new ArrayList<>(Arrays.asList(request)));
+                                              new ArrayList<>(Arrays.asList(request)),
+                                              sessionNodeId);
     }
 
     @Override
@@ -164,7 +169,8 @@ public class NetconfSessionProxyImpl extends AbstractNetconfSession {
         NetconfProxyMessage proxyMessage =
                 new DefaultNetconfProxyMessage(
                         NetconfProxyMessage.SubjectType.SET_ONOS_CAPABILITIES,
-                        deviceInfo.getDeviceId(), capabilitiesList);
+                        deviceInfo.getDeviceId(), capabilitiesList,
+                        sessionNodeId);
         try {
             executeAtMaster(proxyMessage);
         } catch (NetconfException e) {
@@ -178,7 +184,9 @@ public class NetconfSessionProxyImpl extends AbstractNetconfSession {
         @Override
         public NetconfSession createNetconfSession(NetconfDeviceInfo netconfDeviceInfo,
                                                    NetconfController netconfController) {
-            return new NetconfSessionProxyImpl(netconfDeviceInfo, netconfController);
+            return new NetconfSessionProxyImpl(netconfDeviceInfo,
+                                               netconfController,
+                                               netconfController.getLocalNodeId());
         }
     }
 }

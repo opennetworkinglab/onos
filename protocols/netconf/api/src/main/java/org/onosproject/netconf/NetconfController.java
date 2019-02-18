@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-present Open Networking Foundation
+ * Copyright 2019-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.onosproject.netconf;
 
 import org.onlab.packet.IpAddress;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.net.DeviceId;
 
 import java.util.Map;
@@ -137,5 +138,14 @@ public interface NetconfController {
         CompletableFuture<T> errorFuture = new CompletableFuture<>();
         errorFuture.completeExceptionally(new NetconfException("Method executeAtMaster not implemented"));
         return errorFuture;
+    }
+
+    /**
+     * Get a contoller node Id .
+     *
+     * @return controller node Id
+     */
+    default NodeId getLocalNodeId() {
+        return null;
     }
 }
