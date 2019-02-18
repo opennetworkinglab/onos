@@ -581,6 +581,16 @@ public class RestDeviceProvider extends AbstractProvider
         return false;
     }
 
+    private Runnable exceptionSafe(Runnable runnable) {
+        return () -> {
+            try {
+                runnable.run();
+            } catch (Exception e) {
+                log.error("Unhandled Exception", e);
+            }
+        };
+    }
+
     private class InternalNetworkConfigListener implements NetworkConfigListener {
         @Override
         public void event(NetworkConfigEvent event) {
@@ -601,7 +611,7 @@ public class RestDeviceProvider extends AbstractProvider
                         event.type(), event.config().get().subject());
                 RestDeviceConfig cfg = (RestDeviceConfig) event.config().get();
                 RestSBDevice restSBDevice = toInactiveRestSBDevice(cfg);
-                bg.execute(() -> connectDevice(restSBDevice));
+                bg.execute(exceptionSafe(() -> connectDevice(restSBDevice)));
             }
         }
 

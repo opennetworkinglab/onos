@@ -21,8 +21,6 @@ import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.common.collect.ImmutableList;
 import org.apache.http.HttpStatus;
 import org.onosproject.drivers.odtn.impl.DeviceConnection;
@@ -45,13 +43,13 @@ import javax.ws.rs.core.MediaType;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.END_POINT;
@@ -82,42 +80,50 @@ public class TapiFlowRuleProgrammable extends AbstractHandlerBehaviour
     private static final String CONN_REQ_REMOVE_DATA_API = "/restconf/data/tapi-common:context/" +
             "tapi-connectivity:connectivity-context/connectivity-service=";
     private static final String CONN_REQ_GET_API = "/restconf/data/tapi-common:context/" +
-            "tapi-connectivity:connectivity-context/";
+            "tapi-connectivity:connectivity-context/connectivity-service/";
 
 
     @Override
     public Collection<FlowEntry> getFlowEntries() {
         DeviceId deviceId = did();
-        RestSBController controller = checkNotNull(handler().get(RestSBController.class));
-        ObjectMapper om = new ObjectMapper();
-        final ObjectReader reader = om.reader();
-        // all waveserver responses contain data node, which contains the requested data
-        InputStream response = controller.get(deviceId, CONN_REQ_GET_API, MediaType.APPLICATION_JSON_TYPE);
-        JsonNode jsonNode = null;
-        try {
-            jsonNode = reader.readTree(response);
-            if (jsonNode == null) {
-                log.error("JsonNode is null for response {}", response);
-                return ImmutableList.of();
-            }
-            Set<String> uuids = parseTapiGetConnectivityRequest(jsonNode);
-            DeviceConnectionCache cache = getConnectionCache();
-            if (cache.get(deviceId) == null) {
-                return ImmutableList.of();
-            }
-            List<FlowEntry> entries = new ArrayList<>();
-            uuids.forEach(uuid -> {
-                FlowRule rule = cache.get(deviceId, uuid);
-                if (rule != null) {
-                    entries.add(new DefaultFlowEntry(rule, FlowEntry.FlowEntryState.ADDED, 0, 0, 0));
-                } else {
-                    log.info("Non existing rule for uuid {}", uuid);
-                }
+        //TODO this is a blocking call on ADVA OLS, right now using cache.
+//        RestSBController controller = checkNotNull(handler().get(RestSBController.class));
+//        ObjectMapper om = new ObjectMapper();
+//        final ObjectReader reader = om.reader();
+//        InputStream response = controller.get(deviceId, CONN_REQ_GET_API, MediaType.APPLICATION_JSON_TYPE);
+//        JsonNode jsonNode = null;
+//        try {
+//            jsonNode = reader.readTree(response);
+//            if (jsonNode == null) {
+//                log.debug("JsonNode is null for response {}", response);
+//                return ImmutableList.of();
+//            }
+//            Set<String> uuids = parseTapiGetConnectivityRequest(jsonNode);
+//            DeviceConnectionCache cache = getConnectionCache();
+//            if (cache.get(deviceId) == null) {
+//                return ImmutableList.of();
+//            }
+//            List<FlowEntry> entries = new ArrayList<>();
+//            uuids.forEach(uuid -> {
+//                FlowRule rule = cache.get(deviceId, uuid);
+//                if (rule != null) {
+//                    entries.add(new DefaultFlowEntry(rule, FlowEntry.FlowEntryState.ADDED, 0, 0, 0));
+//                } else {
+//                    log.info("Non existing rule for uuid {}", uuid);
+//                }
+//            });
+//            return entries;
+//        } catch (IOException e) {
+//            return ImmutableList.of();
+//        }
+        List<FlowEntry> entries = new ArrayList<>();
+        Set<FlowRule> rules = getConnectionCache().get(deviceId);
+        if (rules != null) {
+            rules.forEach(rule -> {
+                entries.add(new DefaultFlowEntry(rule, FlowEntry.FlowEntryState.ADDED, 0, 0, 0));
             });
-            return entries;
-        } catch (IOException e) {
-            return ImmutableList.of();
         }
+        return entries;
     }
 
     @Override
@@ -129,18 +135,25 @@ public class TapiFlowRuleProgrammable extends AbstractHandlerBehaviour
             String uuid = createUuid();
             ByteArrayOutputStream applyConnectivityRequest = createConnectivityRequest(uuid, flowRule);
             if (applyConnectivityRequest.size() != 0) {
-                int result = controller.post(deviceId, CONN_REQ_POST_API,
+                CompletableFuture<Integer>  flowInstallation =
+                        CompletableFuture.supplyAsync(() -> controller.post(deviceId, CONN_REQ_POST_API,
                         new ByteArrayInputStream(applyConnectivityRequest.toByteArray()),
-                        MediaType.APPLICATION_JSON_TYPE);
+                        MediaType.APPLICATION_JSON_TYPE));
+                flowInstallation.thenApply(result -> {
+                    if (result == HttpStatus.SC_CREATED) {
+                        getConnectionCache().add(deviceId, uuid, flowRule);
+                        added.add(flowRule);
+                    } else {
+                       log.error("Can't add flow {}, result {}", flowRule, result);
+                    }
+                    return result;
+                });
                 // TODO retrieve the UUID from the location and store with that identifier
                 // at the moment is implied that the sent one is the same used by the TAPI server.
-                if (result == HttpStatus.SC_CREATED) {
-                    getConnectionCache().add(deviceId, uuid, flowRule);
-                    added.add(flowRule);
-                }
             }
         });
-        return added.build();
+        //TODO workaround for blocking call on ADVA OLS should return added
+        return rules;
     }
 
     @Override
@@ -155,14 +168,22 @@ public class TapiFlowRuleProgrammable extends AbstractHandlerBehaviour
                         flowRule.id(), deviceId);
                 return;
             }
-            int result = controller.delete(deviceId, CONN_REQ_REMOVE_DATA_API + conn.getId(),
-                    null, MediaType.APPLICATION_JSON_TYPE);
-            if (result == HttpStatus.SC_NO_CONTENT) {
-                getConnectionCache().remove(deviceId, flowRule);
-                removed.add(flowRule);
-            }
+            CompletableFuture<Integer>  flowInstallation =
+                    CompletableFuture.supplyAsync(() -> controller.delete(deviceId,
+                            CONN_REQ_REMOVE_DATA_API + conn.getId(),
+                            null, MediaType.APPLICATION_JSON_TYPE));
+            flowInstallation.thenApply(result -> {
+                if (result == HttpStatus.SC_NO_CONTENT) {
+                    getConnectionCache().remove(deviceId, flowRule);
+                    removed.add(flowRule);
+                } else {
+                    log.error("Can't remove flow {}, result {}", flowRule, result);
+                }
+                return result;
+            });
         });
-        return removed.build();
+        //TODO workaround for blocking call on ADVA OLS shoudl return removed
+        return rules;
     }
 
     /**
@@ -193,8 +214,8 @@ public class TapiFlowRuleProgrammable extends AbstractHandlerBehaviour
         if (tapiConnectivityReply.has(TAPI_CONNECTIVITY_CONNECTIVITY_SERVICE)) {
             tapiConnectivityReply.get(TAPI_CONNECTIVITY_CONNECTIVITY_SERVICE).elements()
                     .forEachRemaining(node -> uuids.add(node.get(TapiDeviceHelper.UUID).asText()));
-        } else {
-            log.warn("Cant retrieve connectivity UUID from {}", tapiConnectivityReply);
+        } else if (tapiConnectivityReply.size() != 0) {
+            log.warn("Can't retrieve connectivity UUID from {}", tapiConnectivityReply);
         }
         //This is only one uuid or empty in case of failures
         return uuids;

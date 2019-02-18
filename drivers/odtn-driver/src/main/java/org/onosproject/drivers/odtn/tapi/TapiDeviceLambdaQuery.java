@@ -17,46 +17,30 @@
  */
 package org.onosproject.drivers.odtn.tapi;
 
-import com.google.common.collect.ImmutableSet;
-import org.onosproject.net.Port;
-import org.onosproject.net.Device;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.ChannelSpacing;
-import org.onosproject.net.GridType;
-import org.onosproject.net.OchSignal;
-import org.onosproject.net.PortNumber;
-import org.onosproject.net.behaviour.LambdaQuery;
-import org.onosproject.net.driver.AbstractHandlerBehaviour;
-import org.onosproject.protocol.rest.RestSBController;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableSet;
+import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.OchSignal;
+import org.onosproject.net.Port;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.behaviour.LambdaQuery;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.driver.AbstractHandlerBehaviour;
+import org.onosproject.protocol.rest.RestSBController;
 import org.slf4j.Logger;
 
+import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
-import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.MEDIA_CHANNEL_SERVICE_INTERFACE_POINT_SPEC;
-import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.AVAILABLE_SPECTRUM;
-import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.ADJUSTMENT_GRANULARITY;
-import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.BASE_FREQUENCY;
-import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.FREQUENCY_CONSTRAINT;
-import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.GRID_TYPE;
-import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.LOWER_FREQUENCY;
-import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.MC_POOL;
-import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.UPPER_FREQUENCY;
-import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.UUID;
-import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.toMbpsFromHz;
-import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.getChannelSpacing;
-import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.getSlotGranularity;
-
-import static org.slf4j.LoggerFactory.getLogger;
 import static com.google.common.base.Preconditions.checkNotNull;
-import org.onosproject.net.device.DeviceService;
-import javax.ws.rs.core.MediaType;
+import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.MC_POOL;
+import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.MEDIA_CHANNEL_SERVICE_INTERFACE_POINT_SPEC;
+import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.UUID;
+import static org.slf4j.LoggerFactory.getLogger;
 
 
 
@@ -67,7 +51,7 @@ public class TapiDeviceLambdaQuery extends AbstractHandlerBehaviour
         implements LambdaQuery {
 
     private static final Logger log = getLogger(TapiDeviceLambdaQuery.class);
-    private static final String SIP_REQUEST_DATA_API = "/data/context/service-interface-point=";
+    private static final String SIP_REQUEST_DATA_API = "/restconf/data/tapi-common:context/service-interface-point=";
 
     /**
      * Get the deviceId for which the methods apply.
@@ -103,9 +87,7 @@ public class TapiDeviceLambdaQuery extends AbstractHandlerBehaviour
             JsonNode mcPool = sipAttributes.get(MEDIA_CHANNEL_SERVICE_INTERFACE_POINT_SPEC).get(MC_POOL);
 
             //This creates a hashset of OChSignals representing the spectrum availability at the target port.
-            Set<OchSignal> lambdas = getOchSignal(mcPool);
-            log.debug("Lambdas: {}", lambdas.toString());
-            return lambdas;
+            return TapiDeviceHelper.getOchSignal(mcPool);
 
         } catch (IOException e) {
             log.error("Exception discoverPortDetails() {}", did(), e);
@@ -113,51 +95,5 @@ public class TapiDeviceLambdaQuery extends AbstractHandlerBehaviour
         }
     }
 
-    /**
-     * If SIP info match our criteria, SIP component shall includes mc-pool information which must be obtained in order
-     * to complete the OchSignal info. with the TAPI SIP information included in spectrum-supported, spectrum-available
-     * and spectrum-occupied tapi objects.
-     **/
-    private Set<OchSignal> getOchSignal(JsonNode mcPool) {
-
-        Set<OchSignal> lambdas = new LinkedHashSet<>();
-        long availableUpperFrec = 0;
-        long availableLowerFrec = 0;
-        String availableAdjustmentGranularity = "";
-        String availableGridType = "";
-        JsonNode availableSpectrum = mcPool.get(AVAILABLE_SPECTRUM);
-
-        /**At this time only the latest availableSpectrum is used**/
-        Iterator<JsonNode> iterAvailable = availableSpectrum.iterator();
-        while (iterAvailable.hasNext()) {
-            JsonNode availableSpec = iterAvailable.next();
-            availableUpperFrec = availableSpec.get(UPPER_FREQUENCY).asLong();
-            availableLowerFrec = availableSpec.get(LOWER_FREQUENCY).asLong();
-            availableAdjustmentGranularity = availableSpec.get(FREQUENCY_CONSTRAINT)
-                    .get(ADJUSTMENT_GRANULARITY).textValue();
-            availableGridType = availableSpec.get(FREQUENCY_CONSTRAINT).get(GRID_TYPE).textValue();
-
-            int spacingMult = 0;
-            int slotGranularity = 1;
-            ChannelSpacing chSpacing = getChannelSpacing(availableAdjustmentGranularity);
-            long spacingFrequency = chSpacing.frequency().asHz();
-            long centralFrequency = (availableUpperFrec - (availableUpperFrec - availableLowerFrec) / 2);
-
-            GridType gridType = GridType.valueOf(availableGridType);
-            if (gridType == GridType.DWDM) {
-                spacingMult = (int) ((centralFrequency - BASE_FREQUENCY) / toMbpsFromHz(spacingFrequency));
-                OchSignal ochSignal = new OchSignal(gridType, chSpacing, spacingMult, slotGranularity);
-                lambdas.add(ochSignal);
-            } else if (gridType == GridType.CWDM) {
-                log.warn("GridType CWDM. Not implemented");
-            } else if (gridType == GridType.FLEX) {
-                log.warn("GridType FLEX. Not implemented");
-                slotGranularity = getSlotGranularity(chSpacing);
-            } else {
-                log.warn("Unknown GridType");
-            }
-        }
-        return lambdas;
-    }
 
 }
