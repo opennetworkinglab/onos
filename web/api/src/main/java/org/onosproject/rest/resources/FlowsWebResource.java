@@ -170,6 +170,7 @@ public class FlowsWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createFlows(@QueryParam("appId") String appId, InputStream stream) {
+        FlowRuleService service = get(FlowRuleService.class);
         ObjectNode root = mapper().createObjectNode();
         ArrayNode flowsNode = root.putArray(FLOWS);
         try {
@@ -183,7 +184,7 @@ public class FlowsWebResource extends AbstractWebResource {
 
             List<FlowRule> rules = codec(FlowRule.class).decode(flowsArray, this);
 
-            get(FlowRuleService.class).applyFlowRules(rules.toArray(new FlowRule[rules.size()]));
+            service.applyFlowRules(rules.toArray(new FlowRule[rules.size()]));
             rules.forEach(flowRule -> {
                 ObjectNode flowNode = mapper().createObjectNode();
                 flowNode.put(DEVICE_ID, flowRule.deviceId().toString())
@@ -209,10 +210,11 @@ public class FlowsWebResource extends AbstractWebResource {
     // TODO: we need to add "/device" suffix to the path to differentiate with appId
     @Path("{deviceId}")
     public Response getFlowByDeviceId(@PathParam("deviceId") String deviceId) {
+        FlowRuleService service = get(FlowRuleService.class);
         ObjectNode root = mapper().createObjectNode();
         ArrayNode flowsNode = root.putArray(FLOWS);
         Iterable<FlowEntry> flowEntries =
-                get(FlowRuleService.class).getFlowEntries(DeviceId.deviceId(deviceId));
+                service.getFlowEntries(DeviceId.deviceId(deviceId));
 
         if (flowEntries == null || !flowEntries.iterator().hasNext()) {
             throw new ItemNotFoundException(DEVICE_NOT_FOUND);
@@ -237,10 +239,11 @@ public class FlowsWebResource extends AbstractWebResource {
     @Path("{deviceId}/{flowId}")
     public Response getFlowByDeviceIdAndFlowId(@PathParam("deviceId") String deviceId,
                                                @PathParam("flowId") long flowId) {
+        FlowRuleService service = get(FlowRuleService.class);
         ObjectNode root = mapper().createObjectNode();
         ArrayNode flowsNode = root.putArray(FLOWS);
         Iterable<FlowEntry> flowEntries =
-                get(FlowRuleService.class).getFlowEntries(DeviceId.deviceId(deviceId));
+                service.getFlowEntries(DeviceId.deviceId(deviceId));
 
         if (flowEntries == null || !flowEntries.iterator().hasNext()) {
             throw new ItemNotFoundException(DEVICE_NOT_FOUND);
@@ -287,9 +290,10 @@ public class FlowsWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("application/{appId}")
     public Response removeFlowByAppId(@PathParam("appId") String appId) {
+        FlowRuleService service = get(FlowRuleService.class);
         ApplicationService appService = get(ApplicationService.class);
         ApplicationId idInstant = nullIsNotFound(appService.getId(appId), APP_ID_NOT_FOUND);
-        get(FlowRuleService.class).removeFlowRulesById(idInstant);
+        service.removeFlowRulesById(idInstant);
         return Response.noContent().build();
     }
 
@@ -313,6 +317,7 @@ public class FlowsWebResource extends AbstractWebResource {
     public Response createFlow(@PathParam("deviceId") String deviceId,
                                @QueryParam("appId") String appId,
                                InputStream stream) {
+        FlowRuleService service = get(FlowRuleService.class);
         try {
             ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
             JsonNode specifiedDeviceId = jsonTree.get("deviceId");
@@ -328,7 +333,7 @@ public class FlowsWebResource extends AbstractWebResource {
             }
 
             FlowRule rule = codec(FlowRule.class).decode(jsonTree, this);
-            get(FlowRuleService.class).applyFlowRules(rule);
+            service.applyFlowRules(rule);
             UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()
                     .path("flows")
                     .path(deviceId)

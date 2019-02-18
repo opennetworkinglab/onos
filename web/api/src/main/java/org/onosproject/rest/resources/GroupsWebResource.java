@@ -67,8 +67,6 @@ public class GroupsWebResource extends AbstractWebResource {
 
     private static final String DEVICE_INVALID = "Invalid deviceId in group creation request";
     private static final String GROUP_NOT_FOUND = "Group was not found";
-
-    private final GroupService groupService = get(GroupService.class);
     private final ObjectNode root = mapper().createObjectNode();
     private final ArrayNode groupsNode = root.putArray("groups");
 
@@ -89,6 +87,7 @@ public class GroupsWebResource extends AbstractWebResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getGroups() {
+        GroupService groupService = get(GroupService.class);
         final Iterable<Device> devices = get(DeviceService.class).getDevices();
         devices.forEach(device -> {
             final Iterable<Group> groups = groupService.getGroups(device.id());
@@ -111,6 +110,7 @@ public class GroupsWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{deviceId}")
     public Response getGroupsByDeviceId(@PathParam("deviceId") String deviceId) {
+        GroupService groupService = get(GroupService.class);
         final Iterable<Group> groups = groupService.getGroups(DeviceId.deviceId(deviceId));
 
         groups.forEach(group -> groupsNode.add(codec(Group.class).encode(group, this)));
@@ -131,6 +131,7 @@ public class GroupsWebResource extends AbstractWebResource {
     @Path("{deviceId}/{appCookie}")
     public Response getGroupByDeviceIdAndAppCookie(@PathParam("deviceId") String deviceId,
                                                    @PathParam("appCookie") String appCookie) {
+        GroupService groupService = get(GroupService.class);
         final DeviceId deviceIdInstance = DeviceId.deviceId(deviceId);
 
         final GroupKey appCookieInstance = createKey(appCookie);
@@ -158,6 +159,7 @@ public class GroupsWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response createGroup(@PathParam("deviceId") String deviceId,
                                 InputStream stream) {
+        GroupService groupService = get(GroupService.class);
         try {
 
             ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
@@ -196,6 +198,7 @@ public class GroupsWebResource extends AbstractWebResource {
     @Path("{deviceId}/{appCookie}")
     public Response deleteGroupByDeviceIdAndAppCookie(@PathParam("deviceId") String deviceId,
                                                       @PathParam("appCookie") String appCookie) {
+        GroupService groupService = get(GroupService.class);
         DeviceId deviceIdInstance = DeviceId.deviceId(deviceId);
 
         final GroupKey appCookieInstance = createKey(appCookie);
@@ -213,6 +216,7 @@ public class GroupsWebResource extends AbstractWebResource {
      */
     private void updateGroupBuckets(String deviceIdString, String appCookieString, InputStream stream)
                  throws IOException {
+        GroupService groupService = get(GroupService.class);
         DeviceId deviceId = DeviceId.deviceId(deviceIdString);
         final GroupKey groupKey = createKey(appCookieString);
 
@@ -273,6 +277,7 @@ public class GroupsWebResource extends AbstractWebResource {
     private void removeGroupBuckets(String deviceIdString, String appCookieString, String bucketIds) {
         DeviceId deviceId = DeviceId.deviceId(deviceIdString);
         final GroupKey groupKey = createKey(appCookieString);
+        GroupService groupService = get(GroupService.class);
 
         Group group = nullIsNotFound(groupService.getGroup(deviceId, groupKey), GROUP_NOT_FOUND);
 
