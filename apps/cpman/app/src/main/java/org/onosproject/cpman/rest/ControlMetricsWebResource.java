@@ -50,12 +50,6 @@ import static org.onosproject.cpman.ControlResource.Type.NETWORK;
 @Path("controlmetrics")
 public class ControlMetricsWebResource extends AbstractWebResource {
 
-    private final ControlPlaneMonitorService monitorService =
-            get(ControlPlaneMonitorService.class);
-    private final ClusterService clusterService = get(ClusterService.class);
-    private final NodeId localNodeId = clusterService.getLocalNode().id();
-    private final ObjectNode root = mapper().createObjectNode();
-
     /**
      * Returns control message metrics of all devices.
      *
@@ -66,7 +60,10 @@ public class ControlMetricsWebResource extends AbstractWebResource {
     @Path("messages")
     @Produces(MediaType.APPLICATION_JSON)
     public Response controlMessageMetrics() {
-
+        ObjectNode root = mapper().createObjectNode();
+        ControlPlaneMonitorService monitorService = get(ControlPlaneMonitorService.class);
+        ClusterService clusterService = get(ClusterService.class);
+        NodeId localNodeId = clusterService.getLocalNode().id();
         ArrayNode deviceNodes = root.putArray("devices");
         monitorService.availableResourcesSync(localNodeId, CONTROL_MESSAGE).forEach(name -> {
             ObjectNode deviceNode = mapper().createObjectNode();
@@ -94,7 +91,10 @@ public class ControlMetricsWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("messages/{deviceId}")
     public Response controlMessageMetrics(@PathParam("deviceId") String deviceId) {
-
+        ObjectNode root = mapper().createObjectNode();
+        ControlPlaneMonitorService monitorService = get(ControlPlaneMonitorService.class);
+        ClusterService clusterService = get(ClusterService.class);
+        NodeId localNodeId = clusterService.getLocalNode().id();
         metricsStats(monitorService, localNodeId, CONTROL_MESSAGE_METRICS,
                 DeviceId.deviceId(deviceId), root);
 
@@ -111,7 +111,10 @@ public class ControlMetricsWebResource extends AbstractWebResource {
     @Path("cpu_metrics")
     @Produces(MediaType.APPLICATION_JSON)
     public Response cpuMetrics() {
-
+        ObjectNode root = mapper().createObjectNode();
+        ControlPlaneMonitorService monitorService = get(ControlPlaneMonitorService.class);
+        ClusterService clusterService = get(ClusterService.class);
+        NodeId localNodeId = clusterService.getLocalNode().id();
         metricsStats(monitorService, localNodeId, CPU_METRICS, root);
         return ok(root).build();
     }
@@ -126,7 +129,10 @@ public class ControlMetricsWebResource extends AbstractWebResource {
     @Path("memory_metrics")
     @Produces(MediaType.APPLICATION_JSON)
     public Response memoryMetrics() {
-
+        ObjectNode root = mapper().createObjectNode();
+        ControlPlaneMonitorService monitorService = get(ControlPlaneMonitorService.class);
+        ClusterService clusterService = get(ClusterService.class);
+        NodeId localNodeId = clusterService.getLocalNode().id();
         metricsStats(monitorService, localNodeId, MEMORY_METRICS, root);
         return ok(root).build();
     }
@@ -141,7 +147,10 @@ public class ControlMetricsWebResource extends AbstractWebResource {
     @Path("disk_metrics")
     @Produces(MediaType.APPLICATION_JSON)
     public Response diskMetrics() {
-
+        ObjectNode root = mapper().createObjectNode();
+        ControlPlaneMonitorService monitorService = get(ControlPlaneMonitorService.class);
+        ClusterService clusterService = get(ClusterService.class);
+        NodeId localNodeId = clusterService.getLocalNode().id();
         ArrayNode diskNodes = root.putArray("disks");
         monitorService.availableResourcesSync(localNodeId, DISK).forEach(name -> {
             ObjectNode diskNode = mapper().createObjectNode();
@@ -167,7 +176,10 @@ public class ControlMetricsWebResource extends AbstractWebResource {
     @Path("network_metrics")
     @Produces(MediaType.APPLICATION_JSON)
     public Response networkMetrics() {
-
+        ObjectNode root = mapper().createObjectNode();
+        ControlPlaneMonitorService monitorService = get(ControlPlaneMonitorService.class);
+        ClusterService clusterService = get(ClusterService.class);
+        NodeId localNodeId = clusterService.getLocalNode().id();
         ArrayNode networkNodes = root.putArray("networks");
         monitorService.availableResourcesSync(localNodeId, NETWORK).forEach(name -> {
             ObjectNode networkNode = mapper().createObjectNode();
