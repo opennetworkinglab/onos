@@ -1,0 +1,77 @@
+{
+  "type": "object",
+  "required": [
+    "ipv4StaticRouteCount",
+    "ipv4FpmRouteCount",
+    "ipv4RipRouteCount",
+    "ipv4DhcpRouteCount",
+    "ipv4DhcpLQRouteCount",
+    "ipv4BgpRouteCount",
+    "ipv4TotalRouteCount",
+    "ipv6StaticRouteCount",
+    "ipv6FpmRouteCount",
+    "ipv6RipRouteCount",
+    "ipv6DhcpRouteCount",
+    "ipv6DhcpLQRouteCount",
+    "ipv6BgpRouteCount",
+    "ipv6TotalRouteCount"
+  ],
+  "properties": {
+    "ipv4StaticRouteCount": {
+      "type": "int",
+      "example": "1"
+    },
+    "ipv4FpmRouteCount": {
+      "type": "int",
+      "example": "3"
+    },
+    "ipv4RipRouteCount": {
+      "type": "int",
+      "example": "1"
+    },
+    "ipv4DhcpRouteCount": {
+      "type": "int",
+      "example": "2"
+    },
+    "ipv4DhcpLQRouteCount": {
+      "type": "int",
+      "example": "3"
+    },
+    "ipv4BgpRouteCount": {
+      "type": "int",
+      "example": "2"
+    },
+    "ipv4TotalRouteCount": {
+      "type": "long",
+      "example": "4"
+    },
+    "ipv6StaticRouteCount": {
+      "type": "int",
+      "example": "3"
+    },
+    "ipv6FpmRouteCount": {
+      "type": "int",
+      "example": "1"
+    },
+    "ipv6RipRouteCount": {
+      "type": "int",
+      "example": "2"
+    },
+    "ipv6DhcpRouteCount": {
+      "type": "int",
+      "example": "4"
+    },
+    "ipv6DhcpLQRouteCount": {
+      "type": "int",
+      "example": "2"
+    },
+    "ipv6BgpRouteCount": {
+      "type": "int",
+      "example": "3"
+    },
+    "ipv6TotalRouteCount": {
+      "type": "long",
+      "example": "2"
+    }
+  }
+}
