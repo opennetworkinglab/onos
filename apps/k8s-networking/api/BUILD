@@ -1,4 +1,12 @@
-COMPILE_DEPS = CORE_DEPS
+COMPILE_DEPS = CORE_DEPS + [
+    "@k8s_client//jar",
+    "@k8s_model//jar",
+    "@okhttp//jar",
+    "@okio//jar",
+    "@logging_interceptor//jar",
+    "@jackson_dataformat_yaml//jar",
+    "@snakeyaml//jar",
+]
 
 TEST_DEPS = TEST_ADAPTERS + [
     "//core/api:onos-api-tests",

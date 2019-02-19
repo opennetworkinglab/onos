@@ -4,6 +4,11 @@ BUNDLES = [
     "@commons_net//jar",
     "@k8s_client//jar",
     "@k8s_model//jar",
+    "@okhttp//jar",
+    "@okio//jar",
+    "@logging_interceptor//jar",
+    "@jackson_dataformat_yaml//jar",
+    "@snakeyaml//jar",
 ]
 
 onos_app(
