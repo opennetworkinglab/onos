@@ -27,6 +27,7 @@ import org.onosproject.net.resource.ResourceConsumer;
 import org.onosproject.net.resource.ResourceEvent;
 import org.onosproject.net.resource.ResourceId;
 import org.onosproject.net.resource.ResourceListener;
+import org.onosproject.net.resource.ResourceQueryService;
 import org.onosproject.net.resource.ResourceService;
 import org.onosproject.net.resource.ResourceStore;
 import org.onosproject.net.resource.ResourceStoreDelegate;
@@ -51,7 +52,13 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * An implementation of ResourceService.
  */
-@Component(immediate = true, service = {ResourceService.class, ResourceAdminService.class})
+@Component(immediate = true,
+    service = {
+        ResourceService.class,
+        ResourceAdminService.class,
+        ResourceQueryService.class
+    }
+)
 @Beta
 public final class ResourceManager extends AbstractListenerManager<ResourceEvent, ResourceListener>
         implements ResourceService, ResourceAdminService {
