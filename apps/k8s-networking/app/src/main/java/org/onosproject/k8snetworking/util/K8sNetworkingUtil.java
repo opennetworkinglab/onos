@@ -19,11 +19,16 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.fabric8.kubernetes.client.ConfigBuilder;
+import io.fabric8.kubernetes.client.DefaultKubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.util.SubnetUtils;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.k8snetworking.api.K8sNetwork;
 import org.onosproject.k8snetworking.api.K8sNetworkService;
+import org.onosproject.k8snode.api.K8sApiConfig;
 import org.onosproject.k8snode.api.K8sNode;
 import org.onosproject.net.PortNumber;
 import org.slf4j.Logger;
@@ -44,6 +49,9 @@ import static org.onosproject.k8snetworking.api.Constants.PORT_NAME_PREFIX_CONTA
 public final class K8sNetworkingUtil {
 
     private static final Logger log = LoggerFactory.getLogger(K8sNetworkingUtil.class);
+
+    private static final String COLON_SLASH = "://";
+    private static final String COLON = ":";
 
     private K8sNetworkingUtil() {
     }
@@ -156,5 +164,63 @@ public final class K8sNetworkingUtil {
 
         return allAddresses.stream()
                 .map(IpAddress::valueOf).collect(Collectors.toSet());
+    }
+
+    /**
+     * Generates endpoint URL by referring to scheme, ipAddress and port.
+     *
+     * @param scheme        scheme
+     * @param ipAddress     IP address
+     * @param port          port number
+     * @return generated endpoint URL
+     */
+    public static String endpoint(K8sApiConfig.Scheme scheme, IpAddress ipAddress, int port) {
+        StringBuilder endpoint = new StringBuilder();
+        String protocol = StringUtils.lowerCase(scheme.name());
+
+        endpoint.append(protocol);
+        endpoint.append(COLON_SLASH);
+        endpoint.append(ipAddress.toString());
+        endpoint.append(COLON);
+        endpoint.append(port);
+
+        return endpoint.toString();
+    }
+
+    /**
+     * Generates endpoint URL by referring to scheme, ipAddress and port.
+     *
+     * @param apiConfig     kubernetes API config
+     * @return generated endpoint URL
+     */
+    public static String endpoint(K8sApiConfig apiConfig) {
+        return endpoint(apiConfig.scheme(), apiConfig.ipAddress(), apiConfig.port());
+    }
+
+    /**
+     * Obtains workable kubernetes client.
+     *
+     * @param config kubernetes API config
+     * @return kubernetes client
+     */
+    public static KubernetesClient k8sClient(K8sApiConfig config) {
+        if (config == null) {
+            log.warn("Kubernetes API server config is empty.");
+            return null;
+        }
+
+        String endpoint = endpoint(config);
+
+        ConfigBuilder configBuilder = new ConfigBuilder().withMasterUrl(endpoint);
+
+        if (config.scheme() == K8sApiConfig.Scheme.HTTPS) {
+            configBuilder.withTrustCerts(true)
+                    .withOauthToken(config.token())
+                    .withCaCertData(config.caCertData())
+                    .withClientCertData(config.clientCertData())
+                    .withClientKeyData(config.clientKeyData());
+        }
+
+        return new DefaultKubernetesClient(configBuilder.build());
     }
 }
