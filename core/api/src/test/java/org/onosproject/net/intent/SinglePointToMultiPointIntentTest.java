@@ -16,6 +16,11 @@
 package org.onosproject.net.intent;
 
 import org.junit.Test;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.FilteredConnectPoint;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
@@ -70,14 +75,20 @@ public class SinglePointToMultiPointIntentTest extends ConnectivityIntentTest {
         assertEquals("incorrect filtered egress", FPS2, intent.filteredEgressPoints());
     }
 
+    private Set<FilteredConnectPoint> filterPoints(Set<ConnectPoint> points) {
+        HashSet<FilteredConnectPoint> result = new HashSet<>();
+        points.iterator().forEachRemaining(point -> result.add(new FilteredConnectPoint(point)));
+        return result;
+    }
+
     @Override
     protected SinglePointToMultiPointIntent createOne() {
         return SinglePointToMultiPointIntent.builder()
                 .appId(APPID)
                 .selector(MATCH)
                 .treatment(NOP)
-                .ingressPoint(P1)
-                .egressPoints(PS2)
+                .filteredIngressPoint(new FilteredConnectPoint(P1))
+                .filteredEgressPoints(filterPoints(PS2))
                 .build();
     }
 
@@ -87,8 +98,8 @@ public class SinglePointToMultiPointIntentTest extends ConnectivityIntentTest {
                 .appId(APPID)
                 .selector(MATCH)
                 .treatment(NOP)
-                .ingressPoint(P2)
-                .egressPoints(PS1)
+                .filteredIngressPoint(new FilteredConnectPoint(P2))
+                .filteredEgressPoints(filterPoints(PS1))
                 .build();
     }
 
@@ -97,8 +108,8 @@ public class SinglePointToMultiPointIntentTest extends ConnectivityIntentTest {
                 .appId(APPID)
                 .selector(MATCH)
                 .treatment(NOP)
-                .ingressPoint(P2)
-                .egressPoints(PS1)
+                .filteredIngressPoint(new FilteredConnectPoint(P2))
+                .filteredEgressPoints(filterPoints(PS1))
                 .resourceGroup(RESOURCE_GROUP)
                 .build();
     }

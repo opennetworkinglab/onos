@@ -17,8 +17,6 @@ package org.onosproject.cluster;
 
 import java.util.Collection;
 
-import org.onosproject.core.Version;
-
 /**
  * A partition or shard is a group of controller nodes that are work together to maintain state.
  * A ONOS cluster is typically made of of one or partitions over which the the data is partitioned.
@@ -30,15 +28,6 @@ public interface Partition {
      * @return partition identifier
      */
     PartitionId getId();
-
-    /**
-     * Returns the partition version.
-     *
-     * @return the partition version
-     * @deprecated since 1.14
-     */
-    @Deprecated
-    Version getVersion();
 
     /**
      * Returns the controller nodes that are members of this partition.

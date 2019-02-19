@@ -96,13 +96,6 @@ public class MockFlowRuleService extends FlowRuleServiceAdapter {
     }
 
     @Override
-    public Iterable<FlowRule> getFlowRulesById(ApplicationId id) {
-        return flows.stream()
-                    .filter(flow -> flow.appId() == id.id())
-                    .collect(Collectors.toList());
-    }
-
-    @Override
     public Iterable<FlowRule> getFlowRulesByGroupId(ApplicationId appId, short groupId) {
         return flows.stream()
                 .filter(flow -> flow.appId() == appId.id() && flow.groupId().id() == groupId)

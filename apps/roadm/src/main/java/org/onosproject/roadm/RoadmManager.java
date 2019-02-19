@@ -127,7 +127,7 @@ public class RoadmManager implements RoadmService {
             log.warn("No protected transport endpoint state found in device {}", deviceId);
             return;
         }
-        behaviour.switchWorkingPath(map.keySet().toArray(new ConnectPoint[0])[0], index);
+        behaviour.switchToManual(map.keySet().toArray(new ConnectPoint[0])[0], index);
     }
 
     @Deprecated

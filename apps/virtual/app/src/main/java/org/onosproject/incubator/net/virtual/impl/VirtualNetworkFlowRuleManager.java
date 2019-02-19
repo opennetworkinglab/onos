@@ -163,13 +163,6 @@ public class VirtualNetworkFlowRuleManager
 
     @Override
     public void removeFlowRulesById(ApplicationId id) {
-        removeFlowRules(Iterables.toArray(getFlowRulesById(id), FlowRule.class));
-    }
-
-    @Override
-    public Iterable<FlowRule> getFlowRulesById(ApplicationId id) {
-        DeviceService deviceService = manager.get(networkId(), DeviceService.class);
-
         Set<FlowRule> flowEntries = Sets.newHashSet();
         for (Device d : deviceService.getDevices()) {
             for (FlowEntry flowEntry : store.getFlowEntries(networkId(), d.id())) {
@@ -178,7 +171,7 @@ public class VirtualNetworkFlowRuleManager
                 }
             }
         }
-        return flowEntries;
+        removeFlowRules(Iterables.toArray(flowEntries, FlowRule.class));
     }
 
     @Override

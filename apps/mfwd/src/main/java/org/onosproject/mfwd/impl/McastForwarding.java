@@ -15,6 +15,7 @@
  */
 package org.onosproject.mfwd.impl;
 
+import org.onosproject.net.FilteredConnectPoint;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -266,7 +267,10 @@ public class McastForwarding {
         private Key setIntent(McastRoute route) {
 
             ConnectPoint ingressPoint = mcastRouteManager.fetchSource(route);
-            Set<ConnectPoint> egressPoints = new HashSet<>(mcastRouteManager.fetchSinks(route));
+            Set<FilteredConnectPoint> filteredEgressPoints = new HashSet<>();
+            mcastRouteManager.fetchSinks(route).iterator()
+                .forEachRemaining(point -> filteredEgressPoints.add(new FilteredConnectPoint(point)));
+
 
             TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
             TrafficTreatment treatment = DefaultTrafficTreatment.emptyTreatment();
@@ -284,11 +288,11 @@ public class McastForwarding {
                     .appId(appId)
                     .selector(selector.build())
                     .treatment(treatment)
-                    .ingressPoint(ingressPoint);
+                    .filteredIngressPoint(new FilteredConnectPoint(ingressPoint));
 
             // allowing intent to be pushed without egress points means we can drop packets.
-            if (!egressPoints.isEmpty()) {
-                builder.egressPoints(egressPoints);
+            if (!filteredEgressPoints.isEmpty()) {
+                builder.filteredEgressPoints(filteredEgressPoints);
             }
 
             SinglePointToMultiPointIntent intent = builder.build();

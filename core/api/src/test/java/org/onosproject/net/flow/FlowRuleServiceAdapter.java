@@ -50,11 +50,6 @@ public class FlowRuleServiceAdapter implements FlowRuleService {
     }
 
     @Override
-    public Iterable<FlowRule> getFlowRulesById(ApplicationId id) {
-        return null;
-    }
-
-    @Override
     public Iterable<FlowEntry> getFlowEntriesById(ApplicationId id) {
         return null;
     }

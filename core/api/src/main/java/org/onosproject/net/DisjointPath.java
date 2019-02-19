@@ -26,17 +26,6 @@ package org.onosproject.net;
 public interface DisjointPath extends Path {
 
     /**
-     * Uses backup path.
-     *
-     * @return boolean corresponding to whether request to use
-     *          backup was successful.
-     *
-     * @deprecated in 1.11.0
-     */
-    @Deprecated
-    boolean useBackup();
-
-    /**
      * Gets primary path.
      *
      * @return primary path

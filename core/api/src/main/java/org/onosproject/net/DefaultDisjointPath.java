@@ -98,10 +98,4 @@ public class DefaultDisjointPath extends DefaultPath implements DisjointPath {
         }
         return false;
     }
-
-    @Deprecated
-    @Override
-    public boolean useBackup() {
-        return false;
-    }
 }

@@ -296,13 +296,6 @@ public class FlowRuleManager
     @Override
     public void removeFlowRulesById(ApplicationId id) {
         checkPermission(FLOWRULE_WRITE);
-        removeFlowRules(Iterables.toArray(getFlowRulesById(id), FlowRule.class));
-    }
-
-    @Deprecated
-    @Override
-    public Iterable<FlowRule> getFlowRulesById(ApplicationId id) {
-        checkPermission(FLOWRULE_READ);
 
         Set<FlowRule> flowEntries = Sets.newHashSet();
         for (Device d : deviceService.getDevices()) {
@@ -312,7 +305,7 @@ public class FlowRuleManager
                 }
             }
         }
-        return flowEntries;
+        removeFlowRules(Iterables.toArray(flowEntries, FlowRule.class));
     }
 
     @Override

@@ -420,16 +420,6 @@ public class FlowRuleManagerTest {
     }
 
     @Test
-    public void getByAppId() {
-        FlowRule f1 = flowRule(1, 1);
-        FlowRule f2 = flowRule(2, 2);
-        mgr.applyFlowRules(f1, f2);
-
-        assertTrue("should have two rules",
-                   Lists.newLinkedList(mgr.getFlowRulesById(appId)).size() == 2);
-    }
-
-    @Test
     public void removeByAppId() {
         FlowRule f1 = flowRule(1, 1);
         FlowRule f2 = flowRule(2, 2);

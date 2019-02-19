@@ -141,11 +141,6 @@ public class OplinkOpticalProtectionSwitchConfig extends AbstractHandlerBehaviou
     }
 
     @Override
-    public CompletableFuture<Void> switchWorkingPath(ConnectPoint identifier, int index) {
-        return switchToManual(identifier, index);
-    }
-
-    @Override
     public CompletableFuture<Void> switchToForce(ConnectPoint identifier, int index) {
         return getProtectionEndpointConfig(identifier)
                 .thenApply(m -> m.paths().get(index))

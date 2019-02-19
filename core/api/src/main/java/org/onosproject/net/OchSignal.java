@@ -95,23 +95,6 @@ public class OchSignal implements Lambda {
     }
 
     /**
-     * Creates OCh signal.
-     *
-     * @param centerFrequency frequency
-     * @param channelSpacing spacing
-     * @param slotGranularity granularity
-     * @deprecated 1.4.0 Emu Release
-     */
-    @Deprecated
-    public OchSignal(Frequency centerFrequency, ChannelSpacing channelSpacing, int slotGranularity) {
-        this.gridType = DEFAULT_OCH_GRIDTYPE;
-        this.channelSpacing = channelSpacing;
-        this.spacingMultiplier = (int) Math.round((double) centerFrequency.
-                subtract(Spectrum.CENTER_FREQUENCY).asHz() / channelSpacing().frequency().asHz());
-        this.slotGranularity = slotGranularity;
-    }
-
-    /**
      * Returns grid type.
      *
      * @return grid type

@@ -153,18 +153,6 @@ public interface ProtectionConfigBehaviour extends HandlerBehaviour {
     }
 
     /**
-     * Attempts to manually switch working path to the one specified by {@code index}.
-     *
-     * @param identifier {@link ConnectPoint} for the virtual Port representing
-     *                     protected path endpoint
-     * @param index working path index to switch to
-     * @return Completes if request was accepted, fails exceptionally on error.
-     *         Note: completion does not always assure working path has switched.
-     */
-    @Deprecated
-    CompletableFuture<Void> switchWorkingPath(ConnectPoint identifier, int index);
-
-    /**
      * Attempts to forcibly switch to the one specified path by {@code index}.
      *
      * @param identifier {@link ConnectPoint} for the virtual Port representing
@@ -187,9 +175,7 @@ public interface ProtectionConfigBehaviour extends HandlerBehaviour {
      * @return Completes if request was accepted, fails exceptionally on error.
      *         Note: completion does not always assure working path has switched.
      */
-    default CompletableFuture<Void> switchToManual(ConnectPoint identifier, int index) {
-        return switchWorkingPath(identifier, index);
-    }
+    CompletableFuture<Void> switchToManual(ConnectPoint identifier, int index);
 
     /**
      * Attempts to set the device to automatic protection mode.

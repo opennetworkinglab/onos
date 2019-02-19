@@ -15,13 +15,12 @@
  */
 package org.onosproject.cluster;
 
-import java.util.Collection;
-import java.util.Objects;
-
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.onosproject.core.Version;
+
+import java.util.Collection;
+import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -65,11 +64,6 @@ public class DefaultPartition implements Partition {
     @Override
     public PartitionId getId() {
         return id;
-    }
-
-    @Override
-    public Version getVersion() {
-        return null;
     }
 
     @Override
