@@ -160,9 +160,9 @@ public class PropertyPanelTest {
     @Test
     public void props() {
         basic();
-        pp.addProp(KEY_A, VALUE_A)
-                .addProp(KEY_B, VALUE_B)
-                .addProp(KEY_C, VALUE_C);
+        pp.addProp(KEY_A, KEY_A, VALUE_A)
+                .addProp(KEY_B, KEY_B, VALUE_B)
+                .addProp(KEY_C, KEY_C, VALUE_C);
         assertEquals("bad props", 3, pp.properties().size());
         validateProps(KEY_A, KEY_B, KEY_C);
     }
@@ -181,7 +181,7 @@ public class PropertyPanelTest {
     @Test
     public void nonLocalizedProp() {
         basic();
-        pp.addProp(KEY_A, VALUE_A);
+        pp.addProp(KEY_A, KEY_A, VALUE_A);
         Prop p = pp.properties().get(0);
         assertEquals("wrong key", KEY_A, p.key());
         assertEquals("wrong label", KEY_A, p.label());
@@ -192,7 +192,7 @@ public class PropertyPanelTest {
     public void separator() {
         props();
         pp.addSeparator()
-                .addProp(KEY_Z, VALUE_Z);
+                .addProp(KEY_Z, KEY_Z, VALUE_Z);
 
         assertEquals("bad props", 5, pp.properties().size());
         validateProps(KEY_A, KEY_B, KEY_C, SEP, KEY_Z);
@@ -210,16 +210,16 @@ public class PropertyPanelTest {
     public void adjustProps() {
         props();
         pp.removeProps(KEY_B, KEY_A);
-        pp.addProp(KEY_Z, VALUE_Z);
+        pp.addProp(KEY_Z, KEY_Z, VALUE_Z);
         validateProps(KEY_C, KEY_Z);
     }
 
     @Test
     public void intValues() {
         basic();
-        pp.addProp(KEY_A, 200)
-                .addProp(KEY_B, 2000)
-                .addProp(KEY_C, 1234567);
+        pp.addProp(KEY_A, KEY_A, 200)
+                .addProp(KEY_B, KEY_B, 2000)
+                .addProp(KEY_C, KEY_C, 1234567);
 
         validateProp(KEY_A, "200");
         validateProp(KEY_B, "2,000");
@@ -229,10 +229,10 @@ public class PropertyPanelTest {
     @Test
     public void longValues() {
         basic();
-        pp.addProp(KEY_A, 200L)
-                .addProp(KEY_B, 2000L)
-                .addProp(KEY_C, 1234567L)
-                .addProp(KEY_Z, Long.MAX_VALUE);
+        pp.addProp(KEY_A, KEY_A, 200L)
+                .addProp(KEY_B, KEY_B, 2000L)
+                .addProp(KEY_C, KEY_C, 1234567L)
+                .addProp(KEY_Z, KEY_Z, Long.MAX_VALUE);
 
         validateProp(KEY_A, "200");
         validateProp(KEY_B, "2,000");
@@ -243,8 +243,8 @@ public class PropertyPanelTest {
     @Test
     public void objectValue() {
         basic();
-        pp.addProp(KEY_A, new FooClass("a"))
-                .addProp(KEY_B, new FooClass("bxyyzy"), "[xz]");
+        pp.addProp(KEY_A, KEY_A, new FooClass("a"))
+                .addProp(KEY_B, KEY_B, new FooClass("bxyyzy"), "[xz]");
 
         validateProp(KEY_A, ">a<");
         validateProp(KEY_B, ">byyy<");

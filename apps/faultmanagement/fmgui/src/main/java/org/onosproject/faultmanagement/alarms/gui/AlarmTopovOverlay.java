@@ -33,6 +33,13 @@ public class AlarmTopovOverlay extends UiTopoOverlay {
     private static final String OVERLAY_ID = "alarmsTopo-overlay";
 
     private static final ButtonId ALARM1_BUTTON = new ButtonId("alarm1button");
+    public static final String CRITICAL_LABEL = "Critical";
+    public static final String MAJOR_LABEL = "Major";
+    public static final String MINOR_LABEL = "Minor";
+    public static final String WARNING_LABEL = "Warning";
+    public static final String INDETER_LABEL = "Indeter.";
+    public static final String CLEARED_LABEL = "Cleared";
+    public static final String TOTAL_LABEL = "Total";
 
     public AlarmTopovOverlay() {
         super(OVERLAY_ID);
@@ -75,16 +82,16 @@ public class AlarmTopovOverlay extends UiTopoOverlay {
         long in = countsForDevice.getOrDefault(Alarm.SeverityLevel.INDETERMINATE, 0L);
         long cl = countsForDevice.getOrDefault(Alarm.SeverityLevel.CLEARED, 0L);
 
-        // Unfortunately the PropertyPanel does not righ justify numbers even when using longs,
+        // Unfortunately the PropertyPanel does not right justify numbers even when using longs,
         // but that not in scope of fault management work
-        pp.addProp("Critical", cr);
-        pp.addProp("Major", ma);
-        pp.addProp("Minor", mi);
-        pp.addProp("Warning", wa);
-        pp.addProp("Indeter.", in);
-        pp.addProp("Cleared", cl);
+        pp.addProp(CRITICAL_LABEL, CRITICAL_LABEL, cr);
+        pp.addProp(MAJOR_LABEL, MAJOR_LABEL, ma);
+        pp.addProp(MINOR_LABEL, MINOR_LABEL, mi);
+        pp.addProp(WARNING_LABEL, WARNING_LABEL, wa);
+        pp.addProp(INDETER_LABEL, INDETER_LABEL, in);
+        pp.addProp(CLEARED_LABEL, CLEARED_LABEL, cl);
         pp.addSeparator();
-        pp.addProp("Total", cr + ma + mi + wa + in + cl);
+        pp.addProp(TOTAL_LABEL, TOTAL_LABEL, cr + ma + mi + wa + in + cl);
 
     }
 

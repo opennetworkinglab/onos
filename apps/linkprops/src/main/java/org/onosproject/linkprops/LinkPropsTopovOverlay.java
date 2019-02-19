@@ -53,7 +53,7 @@ public class LinkPropsTopovOverlay extends UiTopoOverlay {
                         FLOWS,
                         VERSION
                 )
-                .addProp(VERSION, MY_VERSION);
+                .addProp(VERSION, VERSION, MY_VERSION);
     }
 
 }

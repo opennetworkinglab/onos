@@ -30,7 +30,6 @@ import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
 import java.util.Locale;
 
-import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,19 +87,6 @@ public final class TimeFormatter extends AbstractCellFormatter {
     public TimeFormatter withZone(ZoneId zone) {
         dtf = dtf.withZone(zone);
         return this;
-    }
-
-    /**
-     * Sets the time zone to use for formatting the time.
-     *
-     * @param zone time zone to use
-     * @return self, for chaining
-     *
-     * @deprecated in 1.12.0
-     */
-    @Deprecated
-    public TimeFormatter withZone(DateTimeZone zone) {
-        return withZone(zone.toTimeZone().toZoneId());
     }
 
     @Override

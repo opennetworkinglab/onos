@@ -44,7 +44,7 @@ import org.onlab.packet.IpAddress;
  */
 public class PceWebTopovOverlay extends UiTopoOverlay {
 
-  // NOTE: this must match the ID defined in pcewebTopovOverlay.js
+    // NOTE: this must match the ID defined in pcewebTopovOverlay.js
     private static final String OVERLAY_ID = "PCE-web-overlay";
     private static final String MY_TITLE = "Device details";
 
@@ -59,6 +59,11 @@ public class PceWebTopovOverlay extends UiTopoOverlay {
     public static final String INNER = "Inner";
     public static final long IDENTIFIER_SET = 0x100000000L;
     public static final long SET = 0xFFFFFFFFL;
+    public static final String TYPE_LABEL = "Type";
+    public static final String AS_NUMBER_LABEL = "AS Number";
+    public static final String LSR_ID_LABEL = "LSR ID";
+    public static final String POSITION_LABEL = "Position";
+
     /**
      * Initialize the overlay ID.
      */
@@ -94,25 +99,25 @@ public class PceWebTopovOverlay extends UiTopoOverlay {
             String asbrStatus = annots.value(ASBR_BIT);
 
             if (type != null) {
-                pp.addProp("Type", type);
+                pp.addProp(TYPE_LABEL, TYPE_LABEL, type);
             }
 
             if (asNumber != null) {
-                pp.addProp("AS Number", asNumber);
+                pp.addProp(AS_NUMBER_LABEL, AS_NUMBER_LABEL, asNumber);
             }
 
             if (lsrId != null) {
-                pp.addProp("LSR ID", lsrId);
+                pp.addProp(LSR_ID_LABEL, LSR_ID_LABEL, lsrId);
             }
 
             if (Boolean.valueOf(abrStatus).equals(true) && Boolean.valueOf(asbrStatus).equals(true)) {
-                pp.addProp("Position", ABR_ASBR);
+                pp.addProp(POSITION_LABEL, POSITION_LABEL, ABR_ASBR);
             } else if (Boolean.valueOf(abrStatus).equals(true)) {
-                pp.addProp("Position", ABR);
+                pp.addProp(POSITION_LABEL, POSITION_LABEL, ABR);
             } else if (Boolean.valueOf(asbrStatus).equals(true)) {
-                pp.addProp("Position", ASBR);
+                pp.addProp(POSITION_LABEL, POSITION_LABEL, ASBR);
             } else {
-                pp.addProp("Position", INNER);
+                pp.addProp(POSITION_LABEL, POSITION_LABEL, INNER);
             }
         }
     }
