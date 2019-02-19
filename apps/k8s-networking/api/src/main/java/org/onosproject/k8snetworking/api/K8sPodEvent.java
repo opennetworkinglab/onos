@@ -26,7 +26,7 @@ public class K8sPodEvent extends AbstractEvent<K8sPodEvent.Type, Pod> {
      * @param type      kubernetes pod event type
      * @param subject   kubernetes pod
      */
-    protected K8sPodEvent(Type type, Pod subject) {
+    public K8sPodEvent(Type type, Pod subject) {
         super(type, subject);
     }
 
