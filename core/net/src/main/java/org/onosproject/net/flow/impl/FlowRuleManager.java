@@ -645,17 +645,18 @@ public class FlowRuleManager
                 break;
 
             case BATCH_OPERATION_COMPLETED:
-
+                // Operation completed, let's retrieve the processor and trigger the callback
                 FlowOperationsProcessor fops = pendingFlowOperations.remove(
                         event.subject().batchId());
-                if (event.result().isSuccess()) {
-                    if (fops != null) {
+                if (fops != null) {
+                    if (event.result().isSuccess()) {
                         fops.satisfy(event.deviceId());
+                    } else {
+                        fops.fail(event.deviceId(), event.result().failedItems());
                     }
                 } else {
-                    fops.fail(event.deviceId(), event.result().failedItems());
+                    log.warn("Unable to find flow operations processor for batch: {}", event.subject().batchId());
                 }
-
                 break;
 
             default:
