@@ -27,6 +27,7 @@ TEST_DEPS = TEST_ADAPTERS + TEST_REST + [
     "//apps/openstacknode/api:onos-apps-openstacknode-api-tests",
     "//core/common:onos-core-common-tests",
     "//web/api:onos-rest-tests",
+    "@minimal_json//jar",
 ]
 
 osgi_jar_with_tests(

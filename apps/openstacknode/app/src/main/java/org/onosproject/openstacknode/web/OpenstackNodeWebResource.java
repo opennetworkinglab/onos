@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -60,9 +61,13 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
     private static final String UPDATE = "UPDATE";
     private static final String NODE_ID = "NODE_ID";
     private static final String DELETE = "DELETE";
+    private static final String QUERY = "QUERY";
 
     private static final String HOST_NAME = "hostname";
     private static final String ERROR_MESSAGE = " cannot be null";
+
+    private final ObjectNode root = mapper().createObjectNode();
+    private final ArrayNode osJsonNodes = root.putArray("nodes");
 
     private final OpenstackNodeAdminService osNodeAdminService =
                                             get(OpenstackNodeAdminService.class);
@@ -154,6 +159,25 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
         }
 
         return Response.noContent().build();
+    }
+
+    /**
+     * Obtains a set of openstack node's.
+     *
+     * @return 200 OK with array of all the openstack nodes stored in the system
+     * @onos.rsModel OpenstackNode
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response nodes() {
+        log.trace(String.format(MESSAGE_NODE, QUERY));
+
+        Set<OpenstackNode> osNodes = osNodeService.nodes();
+
+        for (OpenstackNode osNode : osNodes) {
+            osJsonNodes.add(codec(OpenstackNode.class).encode(osNode, this));
+        }
+        return ok(root).build();
     }
 
     private Set<OpenstackNode> readNodeConfiguration(InputStream input) {
