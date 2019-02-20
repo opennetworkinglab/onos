@@ -105,6 +105,7 @@ public final class OpenstackTelemetryUtil {
                 return IPv4.PROTOCOL_TCP;
             case PROTOCOL_NAME_UDP:
                 return IPv4.PROTOCOL_UDP;
+            case PROTOCOL_NAME_ANY:
             default:
                 return ARBITRARY_PROTOCOL;
         }
@@ -123,7 +124,6 @@ public final class OpenstackTelemetryUtil {
             case IPv4.PROTOCOL_UDP:
                 return PROTOCOL_NAME_UDP;
             case ARBITRARY_PROTOCOL:
-                return PROTOCOL_NAME_ANY;
             default:
                 return PROTOCOL_NAME_ANY;
         }

@@ -151,6 +151,7 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
     private static final String OVS_DRIVER_NAME = "ovs";
 
     private static final String ARBITRARY_IP = "0.0.0.0/32";
+    private static final int ARBITRARY_PROTOCOL = 0x0;
     private static final int ARBITRARY_LENGTH = 32;
     private static final String ARBITRARY_MAC = "00:00:00:00:00:00";
     private static final IpAddress NO_HOST_IP = IpAddress.valueOf("255.255.255.255");
@@ -695,6 +696,8 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
                     .matchIPProtocol(statsFlowRule.ipProtocol())
                     .matchUdpSrc(statsFlowRule.srcTpPort())
                     .matchUdpDst(statsFlowRule.dstTpPort());
+        } else if (protocol == ARBITRARY_PROTOCOL) {
+            log.debug("IP protocol type is not specified.");
         } else {
             log.warn("Unsupported protocol {}", statsFlowRule.ipProtocol());
         }
