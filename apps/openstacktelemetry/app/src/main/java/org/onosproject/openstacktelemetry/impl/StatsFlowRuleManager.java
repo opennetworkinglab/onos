@@ -700,6 +700,8 @@ public class StatsFlowRuleManager implements StatsFlowRuleAdminService {
                     .matchIPProtocol(statsFlowRule.ipProtocol())
                     .matchUdpSrc(statsFlowRule.srcTpPort())
                     .matchUdpDst(statsFlowRule.dstTpPort());
+        } else if (protocol == ARBITRARY_PROTOCOL) {
+            log.debug("IP protocol type is not specified.");
         } else {
             log.warn("Unsupported protocol {}", statsFlowRule.ipProtocol());
         }
