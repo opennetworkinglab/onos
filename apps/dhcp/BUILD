@@ -6,6 +6,7 @@ BUNDLES = [
 onos_app(
     category = "Utility",
     included_bundles = BUNDLES,
+    required_apps = ["org.onosproject.hostprovider"],
     title = "DHCP Server",
     url = "http://onosproject.org",
 )
