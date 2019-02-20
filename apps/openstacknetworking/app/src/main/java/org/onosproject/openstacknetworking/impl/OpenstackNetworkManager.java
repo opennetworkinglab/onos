@@ -338,6 +338,8 @@ public class OpenstackNetworkManager
     @Override
     public void clear() {
         osNetworkStore.clear();
+        augmentedNetworkMap.clear();
+        externalPeerRouterMap.clear();
     }
 
     @Override
