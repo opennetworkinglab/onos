@@ -15,6 +15,10 @@
  */
 package org.onosproject.openstacknode.web;
 
+import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonObject;
+import com.google.common.collect.ImmutableSet;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,12 +28,12 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.impl.CodecManager;
 import org.onosproject.net.DeviceId;
+import org.onosproject.openstacknode.api.DefaultOpenstackNode;
 import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeAdminService;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.onosproject.openstacknode.codec.OpenstackNodeCodec;
-import org.onosproject.openstacknode.api.DefaultOpenstackNode;
 import org.onosproject.rest.resources.ResourceTest;
 
 import javax.ws.rs.client.Entity;
@@ -44,8 +48,11 @@ import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.onosproject.openstacknode.codec.OpenstackNodeJsonArrayMatcher.hasNode;
 
 /**
  * Unit test for Openstack node REST API.
@@ -223,6 +230,30 @@ public class OpenstackNodeWebResourceTest extends ResourceTest {
         final int status = response.getStatus();
 
         assertThat(status, is(304));
+
+        verify(mockOpenstackNodeService);
+    }
+
+    /**
+     * Tests the result of the REST API GET when there are valid nodes.
+     */
+    @Test
+    public void testGetNodesPopulatedArray() {
+        expect(mockOpenstackNodeService.nodes()).
+                andReturn(ImmutableSet.of(openstackNode)).anyTimes();
+        replay(mockOpenstackNodeService);
+
+        final WebTarget wt = target();
+        final String response = wt.path(PATH).request().get(String.class);
+        final JsonObject result = Json.parse(response).asObject();
+
+        assertThat(result, notNullValue());
+        assertThat(result.names(), hasSize(1));
+        assertThat(result.names().get(0), is("nodes"));
+        final JsonArray jsonNodes = result.get("nodes").asArray();
+        assertThat(jsonNodes, notNullValue());
+        assertThat(jsonNodes.size(), is(1));
+        assertThat(jsonNodes, hasNode(openstackNode));
 
         verify(mockOpenstackNodeService);
     }
