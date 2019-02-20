@@ -181,12 +181,12 @@ public class InstallCoordinator {
                 log.debug("Completed installing: {}:{}",
                           installData.key(),
                           installData.intent().id());
-                installData = new IntentData(installData, installData.installables());
+                installData = IntentData.compiled(installData, installData.installables());
                 installData.setState(INSTALLED);
                 intentStore.write(installData);
             } else if (toUninstall.isPresent()) {
                 IntentData uninstallData = toUninstall.get();
-                uninstallData = new IntentData(uninstallData, Collections.emptyList());
+                uninstallData = IntentData.compiled(uninstallData, Collections.emptyList());
                 log.debug("Completed withdrawing: {}:{}",
                           uninstallData.key(),
                           uninstallData.intent().id());

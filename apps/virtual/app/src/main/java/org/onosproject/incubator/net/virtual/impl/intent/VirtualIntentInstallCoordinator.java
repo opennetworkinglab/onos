@@ -185,12 +185,12 @@ public class VirtualIntentInstallCoordinator {
             if (toInstall.isPresent()) {
                 IntentData installData = toInstall.get();
                 log.debug("Completed installing: {}", installData.key());
-                installData = new IntentData(installData, installData.installables());
+                installData = IntentData.compiled(installData, installData.installables());
                 installData.setState(INSTALLED);
                 intentStore.write(networkId, installData);
             } else if (toUninstall.isPresent()) {
                 IntentData uninstallData = toUninstall.get();
-                uninstallData = new IntentData(uninstallData, Collections.emptyList());
+                uninstallData = IntentData.compiled(uninstallData, Collections.emptyList());
                 log.debug("Completed withdrawing: {}", uninstallData.key());
                 switch (uninstallData.request()) {
                     case INSTALL_REQ:

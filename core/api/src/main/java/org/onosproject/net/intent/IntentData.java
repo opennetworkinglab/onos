@@ -248,13 +248,11 @@ public class IntentData { //FIXME need to make this "immutable"
      * @param original original data
      * @param installables new installable intents to set
      *
-     * @deprecated in 1.11.0 use {@link #compiled(IntentData, List)} instead
      */
     // used to create an instance who reached stable state
     // note that state is mutable field, so it gets altered else where
     // (probably that design is mother of all intent bugs)
-    @Deprecated
-    public IntentData(IntentData original, List<Intent> installables) {
+    private  IntentData(IntentData original, List<Intent> installables) {
         this(original);
         this.internalStateVersion++;
 

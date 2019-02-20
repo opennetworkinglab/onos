@@ -62,7 +62,7 @@ class Compiling implements IntentProcessPhase {
             log.warn("Unable to compile intent {} due to:", data.intent(), e.getMessage());
             if (stored.filter(x -> !x.installables().isEmpty()).isPresent()) {
                 // removing orphaned flows and deallocating resources
-                return Optional.of(new Withdrawing(processor, new IntentData(data, stored.get().installables())));
+                return Optional.of(new Withdrawing(processor, IntentData.compiled(data, stored.get().installables())));
             } else {
                 return Optional.of(new Failed(data));
             }

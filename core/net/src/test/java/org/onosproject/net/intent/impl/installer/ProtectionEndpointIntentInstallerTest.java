@@ -113,7 +113,7 @@ public class ProtectionEndpointIntentInstallerTest extends AbstractIntentInstall
         IntentData toInstall = new IntentData(createP2PIntent(),
                                               IntentState.INSTALLING,
                                               new WallClockTimestamp());
-        toInstall = new IntentData(toInstall, intentsToInstall);
+        toInstall = IntentData.compiled(toInstall, intentsToInstall);
         IntentOperationContext<ProtectionEndpointIntent> operationContext;
         IntentInstallationContext context = new IntentInstallationContext(toUninstall, toInstall);
         operationContext = new IntentOperationContext(intentsToUninstall, intentsToInstall, context);
@@ -151,11 +151,11 @@ public class ProtectionEndpointIntentInstallerTest extends AbstractIntentInstall
         IntentData toUninstall = new IntentData(createP2PIntent(),
                                                 IntentState.INSTALLED,
                                                 new WallClockTimestamp());
-        toUninstall = new IntentData(toUninstall, intentsToInstall);
+        toUninstall = IntentData.compiled(toUninstall, intentsToInstall);
         IntentData toInstall = new IntentData(createP2PIntent(),
                                               IntentState.INSTALLING,
                                               new WallClockTimestamp());
-        toInstall = new IntentData(toInstall, intentsToInstall);
+        toInstall = IntentData.compiled(toInstall, intentsToInstall);
         IntentOperationContext<ProtectionEndpointIntent> operationContext;
         IntentInstallationContext context = new IntentInstallationContext(toUninstall, toInstall);
         operationContext = new IntentOperationContext(intentsToUninstall, intentsToInstall, context);
@@ -192,7 +192,7 @@ public class ProtectionEndpointIntentInstallerTest extends AbstractIntentInstall
         IntentData toInstall = new IntentData(createP2PIntent(),
                                               IntentState.INSTALLING,
                                               new WallClockTimestamp());
-        toInstall = new IntentData(toInstall, intentsToInstall);
+        toInstall = IntentData.compiled(toInstall, intentsToInstall);
         IntentOperationContext<ProtectionEndpointIntent> operationContext;
         IntentInstallationContext context = new IntentInstallationContext(toUninstall, toInstall);
         operationContext = new IntentOperationContext(intentsToUninstall, intentsToInstall, context);

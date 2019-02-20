@@ -72,7 +72,7 @@ public class VirtualIntentCompiling implements VirtualIntentProcessPhase {
                 // removing orphaned flows and deallocating resources
                 return Optional.of(
                         new VirtualIntentWithdrawing(networkId, processor,
-                                                     new IntentData(data, stored.get().installables())));
+                                                     IntentData.compiled(data, stored.get().installables())));
             } else {
                 return Optional.of(new VirtualIntentFailed(data));
             }

@@ -87,7 +87,7 @@ public class InstallCoordinatorTest extends AbstractIntentTest {
         IntStream.range(0, 10).forEach(val -> {
             intents.add(new TestInstallableIntent(val));
         });
-        toInstall = new IntentData(toInstall, intents);
+        toInstall = IntentData.compiled(toInstall, intents);
         installCoordinator.installIntents(Optional.empty(), Optional.of(toInstall));
         Intent toInstallIntent = toInstall.intent();
         TestTools.assertAfter(INSTALL_DELAY, INSTALL_DURATION, () -> {
@@ -112,7 +112,7 @@ public class InstallCoordinatorTest extends AbstractIntentTest {
             intents.add(new TestInstallableIntent(val));
         });
 
-        toUninstall = new IntentData(toUninstall, intents);
+        toUninstall = IntentData.compiled(toUninstall, intents);
 
         installCoordinator.installIntents(Optional.of(toUninstall), Optional.empty());
         Intent toUninstallIntent = toUninstall.intent();
@@ -147,8 +147,8 @@ public class InstallCoordinatorTest extends AbstractIntentTest {
             intentsToInstall.add(new TestInstallableIntent(val));
         });
 
-        toUninstall = new IntentData(toUninstall, intentsToUninstall);
-        toInstall = new IntentData(toInstall, intentsToInstall);
+        toUninstall = IntentData.compiled(toUninstall, intentsToUninstall);
+        toInstall = IntentData.compiled(toInstall, intentsToInstall);
 
         installCoordinator.installIntents(Optional.of(toUninstall), Optional.of(toInstall));
         Intent toInstallIntent = toInstall.intent();
@@ -194,8 +194,8 @@ public class InstallCoordinatorTest extends AbstractIntentTest {
             intentsToInstall.add(new TestInstallableIntent(val));
         });
 
-        toUninstall = new IntentData(toUninstall, intentsToUninstall);
-        toInstall = new IntentData(toInstall, intentsToInstall);
+        toUninstall = IntentData.compiled(toUninstall, intentsToUninstall);
+        toInstall = IntentData.compiled(toInstall, intentsToInstall);
 
         installCoordinator.installIntents(Optional.of(toUninstall), Optional.of(toInstall));
 

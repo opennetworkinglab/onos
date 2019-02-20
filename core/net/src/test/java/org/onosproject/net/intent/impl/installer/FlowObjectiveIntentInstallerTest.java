@@ -92,7 +92,7 @@ public class FlowObjectiveIntentInstallerTest extends AbstractIntentInstallerTes
         IntentData toInstall = new IntentData(createP2PIntent(),
                                               IntentState.INSTALLING,
                                               new WallClockTimestamp());
-        toInstall = new IntentData(toInstall, intentsToInstall);
+        toInstall = IntentData.compiled(toInstall, intentsToInstall);
 
 
         IntentOperationContext<FlowObjectiveIntent> operationContext;
@@ -118,7 +118,7 @@ public class FlowObjectiveIntentInstallerTest extends AbstractIntentInstallerTes
         IntentData toUninstall = new IntentData(createP2PIntent(),
                                               IntentState.WITHDRAWING,
                                               new WallClockTimestamp());
-        toUninstall = new IntentData(toUninstall, intentsToUninstall);
+        toUninstall = IntentData.compiled(toUninstall, intentsToUninstall);
         IntentOperationContext<FlowObjectiveIntent> operationContext;
         IntentInstallationContext context = new IntentInstallationContext(toUninstall, toInstall);
         operationContext = new IntentOperationContext(intentsToUninstall, intentsToInstall, context);
@@ -139,11 +139,11 @@ public class FlowObjectiveIntentInstallerTest extends AbstractIntentInstallerTes
         IntentData toInstall = new IntentData(createP2PIntent(),
                                               IntentState.INSTALLING,
                                               new WallClockTimestamp());
-        toInstall = new IntentData(toInstall, intentsToInstall);
+        toInstall = IntentData.compiled(toInstall, intentsToInstall);
         IntentData toUninstall = new IntentData(createP2PIntent(),
                                                 IntentState.INSTALLED,
                                                 new WallClockTimestamp());
-        toUninstall = new IntentData(toUninstall, intentsToUninstall);
+        toUninstall = IntentData.compiled(toUninstall, intentsToUninstall);
 
         IntentOperationContext<FlowObjectiveIntent> operationContext;
         IntentInstallationContext context = new IntentInstallationContext(toUninstall, toInstall);
@@ -341,7 +341,7 @@ public class FlowObjectiveIntentInstallerTest extends AbstractIntentInstallerTes
         IntentData toUninstall = new IntentData(createP2PIntent(),
                                               IntentState.INSTALLING,
                                               new WallClockTimestamp());
-        toUninstall = new IntentData(toUninstall, intentsToUninstall);
+        toUninstall = IntentData.compiled(toUninstall, intentsToUninstall);
         IntentInstallationContext context = new IntentInstallationContext(toUninstall, toInstall);
         return new IntentOperationContext(intentsToUninstall, intentsToInstall, context);
     }
@@ -358,7 +358,7 @@ public class FlowObjectiveIntentInstallerTest extends AbstractIntentInstallerTes
         IntentData toInstall = new IntentData(createP2PIntent(),
                                               IntentState.INSTALLING,
                                               new WallClockTimestamp());
-        toInstall = new IntentData(toInstall, intentsToInstall);
+        toInstall = IntentData.compiled(toInstall, intentsToInstall);
         IntentInstallationContext context = new IntentInstallationContext(toUninstall, toInstall);
         return new IntentOperationContext(intentsToUninstall, intentsToInstall, context);
     }

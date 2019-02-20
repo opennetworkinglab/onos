@@ -70,6 +70,6 @@ final class WithdrawRequest implements IntentProcessPhase {
             }
         }
 
-        return Optional.of(new Withdrawing(processor, new IntentData(data, stored.get().installables())));
+        return Optional.of(new Withdrawing(processor, IntentData.compiled(data, stored.get().installables())));
     }
 }

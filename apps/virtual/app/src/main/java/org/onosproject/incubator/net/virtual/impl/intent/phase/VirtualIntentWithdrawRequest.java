@@ -76,6 +76,6 @@ final class VirtualIntentWithdrawRequest implements VirtualIntentProcessPhase {
         }
 
         return Optional.of(new VirtualIntentWithdrawing(networkId, processor,
-                                                        new IntentData(data, stored.get().installables())));
+                                                        IntentData.compiled(data, stored.get().installables())));
     }
 }

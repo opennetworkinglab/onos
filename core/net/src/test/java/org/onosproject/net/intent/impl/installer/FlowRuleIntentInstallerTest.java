@@ -101,7 +101,7 @@ public class FlowRuleIntentInstallerTest extends AbstractIntentInstallerTest {
         IntentData toInstall = new IntentData(createP2PIntent(),
                                               IntentState.INSTALLING,
                                               new WallClockTimestamp());
-        toInstall = new IntentData(toInstall, intentsToInstall);
+        toInstall = IntentData.compiled(toInstall, intentsToInstall);
 
 
         IntentOperationContext<FlowRuleIntent> operationContext;
@@ -134,7 +134,7 @@ public class FlowRuleIntentInstallerTest extends AbstractIntentInstallerTest {
         IntentData toUninstall = new IntentData(createP2PIntent(),
                                               IntentState.WITHDRAWING,
                                               new WallClockTimestamp());
-        toUninstall = new IntentData(toUninstall, intentsToUninstall);
+        toUninstall = IntentData.compiled(toUninstall, intentsToUninstall);
 
 
         IntentOperationContext<FlowRuleIntent> operationContext;
@@ -166,11 +166,11 @@ public class FlowRuleIntentInstallerTest extends AbstractIntentInstallerTest {
         IntentData toInstall = new IntentData(createP2PIntent(),
                                               IntentState.INSTALLING,
                                               new WallClockTimestamp());
-        toInstall = new IntentData(toInstall, intentsToInstall);
+        toInstall = IntentData.compiled(toInstall, intentsToInstall);
         IntentData toUninstall = new IntentData(createP2PIntent(),
                                                 IntentState.INSTALLED,
                                                 new WallClockTimestamp());
-        toUninstall = new IntentData(toUninstall, intentsToUninstall);
+        toUninstall = IntentData.compiled(toUninstall, intentsToUninstall);
 
         IntentOperationContext<FlowRuleIntent> operationContext;
         IntentInstallationContext context = new IntentInstallationContext(toUninstall, toInstall);
@@ -209,11 +209,11 @@ public class FlowRuleIntentInstallerTest extends AbstractIntentInstallerTest {
         IntentData toInstall = new IntentData(createP2PIntent(),
                                               IntentState.INSTALLING,
                                               new WallClockTimestamp());
-        toInstall = new IntentData(toInstall, intentsToInstall);
+        toInstall = IntentData.compiled(toInstall, intentsToInstall);
         IntentData toUninstall = new IntentData(createP2PIntent(),
                                                 IntentState.INSTALLED,
                                                 new WallClockTimestamp());
-        toUninstall = new IntentData(toUninstall, intentsToUninstall);
+        toUninstall = IntentData.compiled(toUninstall, intentsToUninstall);
 
         IntentOperationContext<FlowRuleIntent> operationContext;
         IntentInstallationContext context = new IntentInstallationContext(toUninstall, toInstall);
@@ -240,11 +240,11 @@ public class FlowRuleIntentInstallerTest extends AbstractIntentInstallerTest {
         IntentData toInstall = new IntentData(createP2PIntent(),
                                               IntentState.INSTALLING,
                                               new WallClockTimestamp());
-        toInstall = new IntentData(toInstall, intentsToInstall);
+        toInstall = IntentData.compiled(toInstall, intentsToInstall);
         IntentData toUninstall = new IntentData(createP2PIntent(),
                                                 IntentState.INSTALLED,
                                                 new WallClockTimestamp());
-        toUninstall = new IntentData(toUninstall, intentsToUninstall);
+        toUninstall = IntentData.compiled(toUninstall, intentsToUninstall);
 
         IntentOperationContext<FlowRuleIntent> operationContext;
         IntentInstallationContext context = new IntentInstallationContext(toUninstall, toInstall);
@@ -293,7 +293,7 @@ public class FlowRuleIntentInstallerTest extends AbstractIntentInstallerTest {
         IntentData toInstall = new IntentData(createP2PIntent(),
                                               IntentState.INSTALLING,
                                               new WallClockTimestamp());
-        toInstall = new IntentData(toInstall, intentsToInstall);
+        toInstall = IntentData.compiled(toInstall, intentsToInstall);
 
 
         IntentOperationContext<FlowRuleIntent> operationContext;
@@ -317,11 +317,11 @@ public class FlowRuleIntentInstallerTest extends AbstractIntentInstallerTest {
         IntentData toInstall = new IntentData(createP2PIntent(),
                                               IntentState.INSTALLING,
                                               new WallClockTimestamp());
-        toInstall = new IntentData(toInstall, intentsToInstall);
+        toInstall = IntentData.compiled(toInstall, intentsToInstall);
         IntentData toUninstall = new IntentData(createP2PIntent(),
                                                 IntentState.INSTALLED,
                                                 new WallClockTimestamp());
-        toUninstall = new IntentData(toUninstall, intentsToUninstall);
+        toUninstall = IntentData.compiled(toUninstall, intentsToUninstall);
 
         IntentOperationContext<FlowRuleIntent> operationContext;
         IntentInstallationContext context = new IntentInstallationContext(toUninstall, toInstall);
@@ -355,11 +355,11 @@ public class FlowRuleIntentInstallerTest extends AbstractIntentInstallerTest {
         IntentData toInstall = new IntentData(createP2PIntentNonDisruptive(),
                                               IntentState.INSTALLING,
                                               new WallClockTimestamp());
-        toInstall = new IntentData(toInstall, intentsToInstall);
+        toInstall = IntentData.compiled(toInstall, intentsToInstall);
         IntentData toUninstall = new IntentData(createP2PIntentNonDisruptive(),
                                                 IntentState.INSTALLED,
                                                 new WallClockTimestamp());
-        toUninstall = new IntentData(toUninstall, intentsToUninstall);
+        toUninstall = IntentData.compiled(toUninstall, intentsToUninstall);
 
         IntentOperationContext<FlowRuleIntent> operationContext;
         IntentInstallationContext context = new IntentInstallationContext(toUninstall, toInstall);
