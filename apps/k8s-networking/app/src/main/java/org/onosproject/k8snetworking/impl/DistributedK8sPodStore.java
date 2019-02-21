@@ -16,10 +16,51 @@
 package org.onosproject.k8snetworking.impl;
 
 import com.google.common.collect.ImmutableSet;
+import io.fabric8.kubernetes.api.model.Capabilities;
+import io.fabric8.kubernetes.api.model.ConfigMapEnvSource;
+import io.fabric8.kubernetes.api.model.ConfigMapKeySelector;
+import io.fabric8.kubernetes.api.model.ConfigMapVolumeSource;
+import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.ContainerPort;
+import io.fabric8.kubernetes.api.model.ContainerState;
+import io.fabric8.kubernetes.api.model.ContainerStateRunning;
+import io.fabric8.kubernetes.api.model.ContainerStateTerminated;
+import io.fabric8.kubernetes.api.model.ContainerStateWaiting;
+import io.fabric8.kubernetes.api.model.ContainerStatus;
+import io.fabric8.kubernetes.api.model.EmptyDirVolumeSource;
+import io.fabric8.kubernetes.api.model.EnvFromSource;
+import io.fabric8.kubernetes.api.model.EnvVar;
+import io.fabric8.kubernetes.api.model.EnvVarSource;
+import io.fabric8.kubernetes.api.model.ExecAction;
+import io.fabric8.kubernetes.api.model.HTTPGetAction;
+import io.fabric8.kubernetes.api.model.HTTPHeader;
+import io.fabric8.kubernetes.api.model.HostPathVolumeSource;
+import io.fabric8.kubernetes.api.model.IntOrString;
+import io.fabric8.kubernetes.api.model.KeyToPath;
+import io.fabric8.kubernetes.api.model.Lifecycle;
+import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.OwnerReference;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaimVolumeSource;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.PodCondition;
+import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodStatus;
+import io.fabric8.kubernetes.api.model.Probe;
+import io.fabric8.kubernetes.api.model.Quantity;
+import io.fabric8.kubernetes.api.model.ResourceFieldSelector;
+import io.fabric8.kubernetes.api.model.ResourceRequirements;
+import io.fabric8.kubernetes.api.model.SELinuxOptions;
+import io.fabric8.kubernetes.api.model.SecretEnvSource;
+import io.fabric8.kubernetes.api.model.SecretKeySelector;
+import io.fabric8.kubernetes.api.model.SecretVolumeSource;
+import io.fabric8.kubernetes.api.model.SecurityContext;
+import io.fabric8.kubernetes.api.model.TCPSocketAction;
+import io.fabric8.kubernetes.api.model.Toleration;
+import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.VolumeDevice;
+import io.fabric8.kubernetes.api.model.VolumeMount;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -42,6 +83,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
@@ -74,6 +116,48 @@ public class DistributedK8sPodStore
             .register(ObjectMeta.class)
             .register(PodSpec.class)
             .register(PodStatus.class)
+            .register(PodCondition.class)
+            .register(Container.class)
+            .register(EnvVar.class)
+            .register(EnvVarSource.class)
+            .register(EnvFromSource.class)
+            .register(ConfigMapEnvSource.class)
+            .register(ConfigMapKeySelector.class)
+            .register(ObjectFieldSelector.class)
+            .register(ResourceFieldSelector.class)
+            .register(SecretKeySelector.class)
+            .register(Lifecycle.class)
+            .register(SecretEnvSource.class)
+            .register(ContainerStatus.class)
+            .register(ContainerState.class)
+            .register(ContainerStateRunning.class)
+            .register(ContainerStateTerminated.class)
+            .register(ContainerStateWaiting.class)
+            .register(OwnerReference.class)
+            .register(Probe.class)
+            .register(ExecAction.class)
+            .register(HTTPGetAction.class)
+            .register(HTTPHeader.class)
+            .register(TCPSocketAction.class)
+            .register(ContainerPort.class)
+            .register(ResourceRequirements.class)
+            .register(SecurityContext.class)
+            .register(PodSecurityContext.class)
+            .register(SELinuxOptions.class)
+            .register(Volume.class)
+            .register(VolumeDevice.class)
+            .register(VolumeMount.class)
+            .register(IntOrString.class)
+            .register(Toleration.class)
+            .register(PersistentVolumeClaimVolumeSource.class)
+            .register(SecretVolumeSource.class)
+            .register(EmptyDirVolumeSource.class)
+            .register(Quantity.class)
+            .register(Capabilities.class)
+            .register(ConfigMapVolumeSource.class)
+            .register(KeyToPath.class)
+            .register(HostPathVolumeSource.class)
+            .register(LinkedHashMap.class)
             .register(Collection.class)
             .build();
 
