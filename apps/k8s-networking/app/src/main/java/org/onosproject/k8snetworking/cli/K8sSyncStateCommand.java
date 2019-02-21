@@ -21,15 +21,25 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.k8snetworking.api.DefaultK8sPort;
 import org.onosproject.k8snetworking.api.K8sEndpointsAdminService;
+import org.onosproject.k8snetworking.api.K8sNetworkAdminService;
 import org.onosproject.k8snetworking.api.K8sPodAdminService;
+import org.onosproject.k8snetworking.api.K8sPort;
 import org.onosproject.k8snetworking.api.K8sServiceAdminService;
 import org.onosproject.k8snetworking.util.K8sNetworkingUtil;
 import org.onosproject.k8snode.api.K8sApiConfig;
 import org.onosproject.k8snode.api.K8sApiConfigService;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
 
 import java.util.List;
+import java.util.Map;
+
+import static org.onosproject.k8snetworking.api.K8sPort.State.INACTIVE;
 
 /**
  * Synchronizes kubernetes states.
@@ -43,6 +53,13 @@ public class K8sSyncStateCommand extends AbstractShellCommand {
     private static final String SERVICE_FORMAT = "%-50s%-30s%-30s";
     private static final String ENDPOINTS_FORMAT = "%-50s%-50s%-20s";
 
+    private static final String PORT_ID = "portId";
+    private static final String DEVICE_ID = "deviceId";
+    private static final String PORT_NUMBER = "portNumber";
+    private static final String IP_ADDRESS = "ipAddress";
+    private static final String MAC_ADDRESS = "macAddress";
+    private static final String NETWORK_ID = "networkId";
+
     @Override
     protected void doExecute() {
         K8sApiConfigService configService = get(K8sApiConfigService.class);
@@ -51,6 +68,8 @@ public class K8sSyncStateCommand extends AbstractShellCommand {
                 get(K8sServiceAdminService.class);
         K8sEndpointsAdminService endpointsAdminService =
                 get(K8sEndpointsAdminService.class);
+        K8sNetworkAdminService networkAdminService =
+                get(K8sNetworkAdminService.class);
 
         K8sApiConfig config =
                 configService.apiConfigs().stream().findAny().orElse(null);
@@ -96,6 +115,9 @@ public class K8sSyncStateCommand extends AbstractShellCommand {
             } else {
                 podAdminService.createPod(pod);
             }
+
+            syncPortFromPod(pod, networkAdminService);
+
             printPod(pod);
         });
     }
@@ -138,5 +160,37 @@ public class K8sSyncStateCommand extends AbstractShellCommand {
                 pod.getMetadata().getNamespace(),
                 pod.getStatus().getPodIP(),
                 containers.isEmpty() ? "" : containers);
+    }
+
+    private void syncPortFromPod(Pod pod, K8sNetworkAdminService adminService) {
+        Map<String, String> annotations = pod.getMetadata().getAnnotations();
+        if (annotations != null && !annotations.isEmpty() &&
+                annotations.get(PORT_ID) != null) {
+            String portId = annotations.get(PORT_ID);
+
+            K8sPort oldPort = adminService.port(portId);
+
+            String networkId = annotations.get(NETWORK_ID);
+            DeviceId deviceId = DeviceId.deviceId(annotations.get(DEVICE_ID));
+            PortNumber portNumber = PortNumber.portNumber(annotations.get(PORT_NUMBER));
+            IpAddress ipAddress = IpAddress.valueOf(annotations.get(IP_ADDRESS));
+            MacAddress macAddress = MacAddress.valueOf(annotations.get(MAC_ADDRESS));
+
+            K8sPort newPort = DefaultK8sPort.builder()
+                    .portId(portId)
+                    .networkId(networkId)
+                    .deviceId(deviceId)
+                    .ipAddress(ipAddress)
+                    .macAddress(macAddress)
+                    .portNumber(portNumber)
+                    .state(INACTIVE)
+                    .build();
+
+            if (oldPort == null) {
+                adminService.createPort(newPort);
+            } else {
+                adminService.updatePort(newPort);
+            }
+        }
     }
 }

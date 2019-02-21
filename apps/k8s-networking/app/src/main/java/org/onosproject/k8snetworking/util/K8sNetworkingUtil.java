@@ -29,6 +29,7 @@ import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.k8snetworking.api.K8sNetwork;
 import org.onosproject.k8snetworking.api.K8sNetworkService;
 import org.onosproject.k8snode.api.K8sApiConfig;
+import org.onosproject.k8snode.api.K8sApiConfigService;
 import org.onosproject.k8snode.api.K8sNode;
 import org.onosproject.net.PortNumber;
 import org.slf4j.Logger;
@@ -222,5 +223,29 @@ public final class K8sNetworkingUtil {
         }
 
         return new DefaultKubernetesClient(configBuilder.build());
+    }
+
+    /**
+     * Obtains workable kubernetes client.
+     *
+     * @param service kubernetes API service
+     * @return kubernetes client
+     */
+    public static KubernetesClient k8sClient(K8sApiConfigService service) {
+        K8sApiConfig config =
+                service.apiConfigs().stream().findAny().orElse(null);
+        if (config == null) {
+            log.error("Failed to find valid kubernetes API configuration.");
+            return null;
+        }
+
+        KubernetesClient client = k8sClient(config);
+
+        if (client == null) {
+            log.error("Failed to connect to kubernetes API server.");
+            return null;
+        }
+
+        return client;
     }
 }

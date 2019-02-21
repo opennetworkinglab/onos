@@ -25,7 +25,8 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.k8snetworking.api.K8sServiceAdminService;
-import org.onosproject.k8snode.api.K8sApiConfig;
+import org.onosproject.k8snode.api.K8sApiConfigEvent;
+import org.onosproject.k8snode.api.K8sApiConfigListener;
 import org.onosproject.k8snode.api.K8sApiConfigService;
 import org.onosproject.mastership.MastershipService;
 import org.osgi.service.component.annotations.Activate;
@@ -75,6 +76,8 @@ public class K8sServiceWatcher {
 
     private final InternalK8sServiceWatcher
             internalK8sServiceWatcher = new InternalK8sServiceWatcher();
+    private final InternalK8sApiConfigListener
+            internalK8sApiConfigListener = new InternalK8sApiConfigListener();
 
     private ApplicationId appId;
     private NodeId localNodeId;
@@ -84,36 +87,52 @@ public class K8sServiceWatcher {
         appId = coreService.registerApplication(K8S_NETWORKING_APP_ID);
         localNodeId = clusterService.getLocalNode().id();
         leadershipService.runForLeadership(appId.name());
-
-        initWatcher();
+        k8sApiConfigService.addListener(internalK8sApiConfigListener);
 
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
+        k8sApiConfigService.removeListener(internalK8sApiConfigListener);
         leadershipService.withdraw(appId.name());
         eventExecutor.shutdown();
 
         log.info("Stopped");
     }
 
-    private void initWatcher() {
-        K8sApiConfig config =
-                k8sApiConfigService.apiConfigs().stream().findAny().orElse(null);
-        if (config == null) {
-            log.error("Failed to find valid kubernetes API configuration.");
-            return;
+    private class InternalK8sApiConfigListener implements K8sApiConfigListener {
+
+        private boolean isRelevantHelper() {
+            return Objects.equals(localNodeId, leadershipService.getLeader(appId.name()));
         }
 
-        KubernetesClient client = k8sClient(config);
+        @Override
+        public void event(K8sApiConfigEvent event) {
 
-        if (client == null) {
-            log.error("Failed to connect to kubernetes API server.");
-            return;
+            switch (event.type()) {
+                case K8S_API_CONFIG_UPDATED:
+                    eventExecutor.execute(this::processConfigUpdating);
+                    break;
+                case K8S_API_CONFIG_CREATED:
+                case K8S_API_CONFIG_REMOVED:
+                default:
+                    // do nothing
+                    break;
+            }
         }
 
-        client.services().watch(internalK8sServiceWatcher);
+        private void processConfigUpdating() {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            KubernetesClient client = k8sClient(k8sApiConfigService);
+
+            if (client != null) {
+                client.services().watch(internalK8sServiceWatcher);
+            }
+        }
     }
 
     private class InternalK8sServiceWatcher implements Watcher<Service> {
@@ -149,7 +168,7 @@ public class K8sServiceWatcher {
                 return;
             }
 
-            log.info("Process service {} creating event from API server.",
+            log.trace("Process service {} creating event from API server.",
                     service.getMetadata().getName());
 
             k8sServiceAdminService.createService(service);
@@ -160,10 +179,13 @@ public class K8sServiceWatcher {
                 return;
             }
 
-            log.info("Process service {} updating event from API server.",
+            log.trace("Process service {} updating event from API server.",
                     service.getMetadata().getName());
 
-            k8sServiceAdminService.updateService(service);
+            if (k8sServiceAdminService.service(
+                    service.getMetadata().getUid()) != null) {
+                k8sServiceAdminService.updateService(service);
+            }
         }
 
         private void processDeletion(Service service) {
@@ -171,7 +193,7 @@ public class K8sServiceWatcher {
                 return;
             }
 
-            log.info("Process service {} removal event from API server.",
+            log.trace("Process service {} removal event from API server.",
                     service.getMetadata().getName());
 
             k8sServiceAdminService.removeService(service.getMetadata().getUid());
