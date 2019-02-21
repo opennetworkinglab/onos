@@ -18,6 +18,7 @@ package org.onosproject.k8snetworking.cli;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.k8snetworking.api.K8sEndpointsAdminService;
+import org.onosproject.k8snetworking.api.K8sNetworkAdminService;
 import org.onosproject.k8snetworking.api.K8sPodAdminService;
 import org.onosproject.k8snetworking.api.K8sServiceAdminService;
 
@@ -26,10 +27,11 @@ import org.onosproject.k8snetworking.api.K8sServiceAdminService;
  */
 @Command(scope = "onos", name = "k8s-purge-states",
         description = "Purges all kubernetes states")
-public class K8sPurgeState extends AbstractShellCommand {
+public class K8sPurgeStateCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         get(K8sPodAdminService.class).clear();
+        get(K8sNetworkAdminService.class).clear();
         get(K8sEndpointsAdminService.class).clear();
         get(K8sServiceAdminService.class).clear();
     }

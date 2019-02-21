@@ -7,6 +7,13 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + CLI + REST + [
     "@commons_net//jar",
     "@k8s_client//jar",
     "@k8s_model//jar",
+    "@okhttp//jar",
+    "@okio//jar",
+    "@logging_interceptor//jar",
+    "@jackson_dataformat_yaml//jar",
+    "@snakeyaml//jar",
+    "@zjsonpatch//jar",
+    "@validation_api//jar",
 ]
 
 TEST_DEPS = TEST_ADAPTERS + TEST_REST + [

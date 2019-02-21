@@ -9,6 +9,8 @@ BUNDLES = [
     "@logging_interceptor//jar",
     "@jackson_dataformat_yaml//jar",
     "@snakeyaml//jar",
+    "@zjsonpatch//jar",
+    "@validation_api//jar",
 ]
 
 onos_app(

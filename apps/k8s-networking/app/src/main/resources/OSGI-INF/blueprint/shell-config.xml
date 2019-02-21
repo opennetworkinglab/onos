@@ -22,6 +22,27 @@
         <command>
             <action class="org.onosproject.k8snetworking.cli.K8sPortListCommand"/>
         </command>
+        <command>
+            <action class="org.onosproject.k8snetworking.cli.K8sEndpointsListCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.k8snetworking.cli.K8sPodListCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.k8snetworking.cli.K8sPurgeRulesCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.k8snetworking.cli.K8sPurgeStateCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.k8snetworking.cli.K8sServiceListCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.k8snetworking.cli.K8sSyncRulesCommand"/>
+        </command>
+        <command>
+            <action class="org.onosproject.k8snetworking.cli.K8sSyncStateCommand"/>
+        </command>
     </command-bundle>
 
 </blueprint>
