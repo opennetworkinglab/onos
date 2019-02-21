@@ -768,8 +768,12 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
     private void provisionIgmp(FilteringObjective filter, EthTypeCriterion ethType,
                                IPProtocolCriterion ipProto,
                                Instructions.OutputInstruction output) {
+
+        Instruction meter = filter.meta().metered();
+        Instruction writeMetadata = filter.meta().writeMetadata();
+
         TrafficSelector selector = buildSelector(filter.key(), ethType, ipProto);
-        TrafficTreatment treatment = buildTreatment(output);
+        TrafficTreatment treatment = buildTreatment(output, meter, writeMetadata);
         buildAndApplyRule(filter, selector, treatment);
     }
 
@@ -778,8 +782,12 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                                UdpPortCriterion udpSrcPort,
                                UdpPortCriterion udpDstPort,
                                Instructions.OutputInstruction output) {
+
+        Instruction meter = filter.meta().metered();
+        Instruction writeMetadata = filter.meta().writeMetadata();
+
         TrafficSelector selector = buildSelector(filter.key(), ethType, ipProto, udpSrcPort, udpDstPort);
-        TrafficTreatment treatment = buildTreatment(output);
+        TrafficTreatment treatment = buildTreatment(output, meter, writeMetadata);
         buildAndApplyRule(filter, selector, treatment);
     }
 
