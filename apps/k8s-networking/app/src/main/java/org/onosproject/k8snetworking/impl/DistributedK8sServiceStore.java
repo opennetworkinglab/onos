@@ -16,10 +16,16 @@
 package org.onosproject.k8snetworking.impl;
 
 import com.google.common.collect.ImmutableSet;
+import io.fabric8.kubernetes.api.model.ClientIPConfig;
+import io.fabric8.kubernetes.api.model.IntOrString;
+import io.fabric8.kubernetes.api.model.LoadBalancerIngress;
+import io.fabric8.kubernetes.api.model.LoadBalancerStatus;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.ServiceSpec;
 import io.fabric8.kubernetes.api.model.ServiceStatus;
+import io.fabric8.kubernetes.api.model.SessionAffinityConfig;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -42,6 +48,7 @@ import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
 
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
@@ -75,6 +82,13 @@ public class DistributedK8sServiceStore
             .register(ObjectMeta.class)
             .register(ServiceSpec.class)
             .register(ServiceStatus.class)
+            .register(LoadBalancerStatus.class)
+            .register(LoadBalancerIngress.class)
+            .register(ServicePort.class)
+            .register(IntOrString.class)
+            .register(SessionAffinityConfig.class)
+            .register(ClientIPConfig.class)
+            .register(LinkedHashMap.class)
             .register(Collection.class)
             .build();
 

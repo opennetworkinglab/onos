@@ -21,6 +21,7 @@ import io.fabric8.kubernetes.api.model.EndpointPort;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.ObjectReference;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -44,6 +45,7 @@ import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
 
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
@@ -77,7 +79,9 @@ public class DistributedK8sEndpointsStore
             .register(ObjectMeta.class)
             .register(EndpointSubset.class)
             .register(EndpointAddress.class)
+            .register(ObjectReference.class)
             .register(EndpointPort.class)
+            .register(LinkedHashMap.class)
             .register(Collection.class)
             .build();
 
