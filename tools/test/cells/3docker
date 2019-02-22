@@ -1,0 +1,7 @@
+export ONOS_NIC="172.17.0.*"
+export OCI="172.17.0.2"
+export OC1="172.17.0.2"
+export OC2="172.17.0.3"
+export OC3="172.17.0.4"
+export ONOS_APPS="drivers,openflow,fwd"
+export ONOS_USER="sdn"
