@@ -15,7 +15,6 @@
  */
 package org.onosproject.net.flow;
 
-import org.onosproject.core.ApplicationId;
 import org.onosproject.net.flow.oldbatch.FlowRuleBatchOperation;
 import org.onosproject.net.provider.Provider;
 
@@ -43,16 +42,6 @@ public interface FlowRuleProvider extends Provider {
      *                  which ones failed
      */
     void removeFlowRule(FlowRule... flowRules);
-
-    /**
-     * Removes rules by their id.
-     *
-     * @param id        the id to remove
-     * @param flowRules one or more flow rules
-     * @deprecated since 1.5.0 Falcon
-     */
-    @Deprecated
-    void removeRulesById(ApplicationId id, FlowRule... flowRules);
 
     /**
      * Installs a batch of flow rules. Each flowrule is associated to an

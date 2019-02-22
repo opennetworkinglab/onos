@@ -23,17 +23,9 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Modified;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onosproject.cfg.ComponentConfigService;
-import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.DefaultDriverData;
 import org.onosproject.net.driver.DefaultDriverHandler;
@@ -44,13 +36,13 @@ import org.onosproject.net.flow.CompletedBatchOperation;
 import org.onosproject.net.flow.DefaultTableStatisticsEntry;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.oldbatch.FlowRuleBatchEntry;
-import org.onosproject.net.flow.oldbatch.FlowRuleBatchOperation;
 import org.onosproject.net.flow.FlowRuleProvider;
 import org.onosproject.net.flow.FlowRuleProviderRegistry;
 import org.onosproject.net.flow.FlowRuleProviderService;
-import org.onosproject.net.flow.TableStatisticsEntry;
 import org.onosproject.net.flow.IndexTableId;
+import org.onosproject.net.flow.TableStatisticsEntry;
+import org.onosproject.net.flow.oldbatch.FlowRuleBatchEntry;
+import org.onosproject.net.flow.oldbatch.FlowRuleBatchOperation;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.statistic.DefaultLoad;
@@ -62,6 +54,12 @@ import org.onosproject.openflow.controller.OpenFlowSwitchListener;
 import org.onosproject.openflow.controller.RoleState;
 import org.onosproject.provider.of.flow.util.FlowEntryBuilder;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.projectfloodlight.openflow.protocol.OFBadRequestCode;
 import org.projectfloodlight.openflow.protocol.OFBarrierRequest;
 import org.projectfloodlight.openflow.protocol.OFCapabilities;
@@ -101,7 +99,10 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.get;
-import static org.onosproject.provider.of.flow.impl.OsgiPropertyConstants.*;
+import static org.onosproject.provider.of.flow.impl.OsgiPropertyConstants.ADAPTIVE_FLOW_SAMPLING;
+import static org.onosproject.provider.of.flow.impl.OsgiPropertyConstants.ADAPTIVE_FLOW_SAMPLING_DEFAULT;
+import static org.onosproject.provider.of.flow.impl.OsgiPropertyConstants.POLL_FREQUENCY;
+import static org.onosproject.provider.of.flow.impl.OsgiPropertyConstants.POLL_FREQUENCY_DEFAULT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -328,12 +329,6 @@ public class OpenFlowRuleProvider extends AbstractProvider
 
         sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
                                           Optional.empty(), Optional.of(driverService)).buildFlowDel());
-    }
-
-    @Override
-    public void removeRulesById(ApplicationId id, FlowRule... flowRules) {
-        // TODO: optimize using the ApplicationId
-        removeFlowRule(flowRules);
     }
 
     @Override

@@ -15,20 +15,19 @@
  */
 package org.onosproject.provider.bgpcep.flow.impl;
 
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRuleProvider;
+import org.onosproject.net.flow.FlowRuleProviderRegistry;
+import org.onosproject.net.flow.FlowRuleProviderService;
+import org.onosproject.net.flow.oldbatch.FlowRuleBatchOperation;
+import org.onosproject.net.provider.AbstractProvider;
+import org.onosproject.net.provider.ProviderId;
+import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.onosproject.core.ApplicationId;
-import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.oldbatch.FlowRuleBatchOperation;
-import org.onosproject.net.flow.FlowRuleProvider;
-import org.onosproject.net.flow.FlowRuleProviderRegistry;
-import org.onosproject.net.flow.FlowRuleProviderService;
-import org.onosproject.net.provider.AbstractProvider;
-import org.onosproject.net.provider.ProviderId;
-import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -75,12 +74,6 @@ public class BgpcepFlowRuleProvider extends AbstractProvider
 
     @Override
     public void removeFlowRule(FlowRule... flowRules) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void removeRulesById(ApplicationId id, FlowRule... flowRules) {
         // TODO Auto-generated method stub
 
     }

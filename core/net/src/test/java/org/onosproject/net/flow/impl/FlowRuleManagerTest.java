@@ -526,10 +526,6 @@ public class FlowRuleManagerTest {
         }
 
         @Override
-        public void removeRulesById(ApplicationId id, FlowRule... flowRules) {
-        }
-
-        @Override
         public void executeBatch(FlowRuleBatchOperation batch) {
             // TODO: need to call batchOperationComplete
         }

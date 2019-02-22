@@ -16,13 +16,10 @@
 
 package org.onosproject.net.flow.impl;
 
-import static com.google.common.collect.Lists.newArrayList;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-
-import org.onosproject.core.ApplicationId;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -32,29 +29,33 @@ import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.CompletedBatchOperation;
 import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.oldbatch.FlowRuleBatchEntry;
-import org.onosproject.net.flow.oldbatch.FlowRuleBatchOperation;
 import org.onosproject.net.flow.FlowRuleProgrammable;
 import org.onosproject.net.flow.FlowRuleProvider;
 import org.onosproject.net.flow.FlowRuleProviderService;
 import org.onosproject.net.flow.TableStatisticsEntry;
+import org.onosproject.net.flow.oldbatch.FlowRuleBatchEntry;
+import org.onosproject.net.flow.oldbatch.FlowRuleBatchOperation;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.List;
 
 import static com.google.common.collect.ImmutableSet.copyOf;
+import static com.google.common.collect.Lists.newArrayList;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.net.device.DeviceEvent.Type.*;
-import static org.onosproject.net.flow.oldbatch.FlowRuleBatchEntry.FlowRuleOperation.*;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_ADDED;
+import static org.onosproject.net.device.DeviceEvent.Type.DEVICE_AVAILABILITY_CHANGED;
+import static org.onosproject.net.flow.oldbatch.FlowRuleBatchEntry.FlowRuleOperation.ADD;
+import static org.onosproject.net.flow.oldbatch.FlowRuleBatchEntry.FlowRuleOperation.MODIFY;
+import static org.onosproject.net.flow.oldbatch.FlowRuleBatchEntry.FlowRuleOperation.REMOVE;
 
 /**
  * Driver-based flow rule provider.
@@ -125,11 +126,6 @@ class FlowRuleDriverProvider extends AbstractProvider implements FlowRuleProvide
     @Override
     public void removeFlowRule(FlowRule... flowRules) {
         rulesByDevice(flowRules).asMap().forEach(this::removeFlowRules);
-    }
-
-    @Override
-    public void removeRulesById(ApplicationId id, FlowRule... flowRules) {
-        removeFlowRule(flowRules);
     }
 
     @Override
