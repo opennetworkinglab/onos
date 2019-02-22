@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Streams;
 import org.onlab.util.KryoNamespace;
+import org.onlab.util.OrderedExecutor;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
@@ -93,6 +94,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.flow.FlowRuleEvent.Type.RULE_REMOVED;
@@ -174,8 +177,11 @@ public class ECFlowRuleStore
     private ExecutorService messageHandlingExecutor;
     private ExecutorService eventHandler;
 
-    private final ScheduledExecutorService backupSenderExecutor =
-        Executors.newSingleThreadScheduledExecutor(groupedThreads("onos/flow", "backup-sender", log));
+    private final ScheduledExecutorService backupScheduler = Executors.newSingleThreadScheduledExecutor(
+                groupedThreads("onos/flow", "backup-scheduler", log));
+    private final ExecutorService backupExecutor = Executors.newFixedThreadPool(
+            max(min(Runtime.getRuntime().availableProcessors() * 2, 16), 4),
+            groupedThreads("onos/flow", "backup-%d", log));
 
     private EventuallyConsistentMap<DeviceId, List<TableStatisticsEntry>> deviceTableStats;
     private final EventuallyConsistentMapListener<DeviceId, List<TableStatisticsEntry>> tableStatsListener =
@@ -244,7 +250,8 @@ public class ECFlowRuleStore
         deviceTableStats.destroy();
         eventHandler.shutdownNow();
         messageHandlingExecutor.shutdownNow();
-        backupSenderExecutor.shutdownNow();
+        backupScheduler.shutdownNow();
+        backupExecutor.shutdownNow();
         log.info("Stopped");
     }
 
@@ -691,7 +698,8 @@ public class ECFlowRuleStore
                 clusterService,
                 clusterCommunicator,
                 new InternalLifecycleManager(id),
-                backupSenderExecutor,
+                backupScheduler,
+                new OrderedExecutor(backupExecutor),
                 backupPeriod,
                 antiEntropyPeriod));
         }
@@ -727,7 +735,8 @@ public class ECFlowRuleStore
                 clusterService,
                 clusterCommunicator,
                 new InternalLifecycleManager(deviceId),
-                backupSenderExecutor,
+                backupScheduler,
+                new OrderedExecutor(backupExecutor),
                 backupPeriod,
                 antiEntropyPeriod));
         }
@@ -941,7 +950,7 @@ public class ECFlowRuleStore
             if (replicaInfo != null && replicaInfo.term() == term) {
                 NodeId master = replicaInfo.master().orElse(null);
                 List<NodeId> backups = replicaInfo.backups()
-                    .subList(0, Math.min(replicaInfo.backups().size(), backupCount));
+                    .subList(0, min(replicaInfo.backups().size(), backupCount));
                 listenerRegistry.process(new LifecycleEvent(
                     LifecycleEvent.Type.TERM_ACTIVE,
                     new DeviceReplicaInfo(term, master, backups)));
@@ -975,7 +984,7 @@ public class ECFlowRuleStore
         private DeviceReplicaInfo toDeviceReplicaInfo(ReplicaInfo replicaInfo) {
             NodeId master = replicaInfo.master().orElse(null);
             List<NodeId> backups = replicaInfo.backups()
-                .subList(0, Math.min(replicaInfo.backups().size(), backupCount));
+                .subList(0, min(replicaInfo.backups().size(), backupCount));
             return new DeviceReplicaInfo(replicaInfo.term(), master, backups);
         }
 
