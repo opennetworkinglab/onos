@@ -19,6 +19,21 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.GridType;
+import org.onosproject.net.OchSignal;
+import org.onosproject.net.Path;
+import org.onosproject.net.ChannelSpacing;
+import org.onosproject.net.Port;
+import org.onosproject.net.Link;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Annotations;
+import org.onosproject.net.AnnotationKeys;
+import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.DefaultPath;
+import org.onosproject.net.OchSignalType;
+import org.onosproject.net.DefaultOchSignalComparator;
+import org.onosproject.net.DefaultLink;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -26,21 +41,6 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onlab.graph.ScalarWeight;
 import org.onlab.graph.Weight;
-import org.onosproject.net.AnnotationKeys;
-import org.onosproject.net.Annotations;
-import org.onosproject.net.ChannelSpacing;
-import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.DefaultAnnotations;
-import org.onosproject.net.DefaultLink;
-import org.onosproject.net.DefaultOchSignalComparator;
-import org.onosproject.net.DefaultPath;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.GridType;
-import org.onosproject.net.Link;
-import org.onosproject.net.OchSignal;
-import org.onosproject.net.OchSignalType;
-import org.onosproject.net.Path;
-import org.onosproject.net.Port;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentCompiler;
@@ -390,9 +390,9 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
                     }
                 }
 
-                String metricString = edge.link().annotations().value("metric");
-                if (!metricString.isEmpty()) {
-                    double metric = Double.parseDouble(metricString);
+                Annotations annotations = edge.link().annotations();
+                if (annotations != null && !annotations.value("metric").isEmpty()) {
+                    double metric = Double.parseDouble(annotations.value("metric"));
                     return ScalarWeight.toWeight(metric);
                 } else {
                     return ScalarWeight.toWeight(1);
