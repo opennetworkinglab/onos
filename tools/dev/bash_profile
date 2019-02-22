@@ -184,20 +184,23 @@ function setPrimaryInstance {
 # Sets minority (OCMI) and majority (OCMA) variables
 function setMinorityMajority {
     nodes=($(env | grep 'OC[0-9]*=' | sort | cut -d= -f2))
-    middle=$(expr "${#nodes[@]}" / "2")
-    index=0
     min=1
     maj=1
-    for node in "${nodes[@]}"; do
-        if [ "$index" -gt "$middle" ]; then
-            export OCMI${min}=${node}
-            min=$(expr $min + 1)
-        else
-            export OCMA${maj}=${node}
-            maj=$(expr $maj + 1)
-        fi
-        index=$(expr $index + 1)
-    done
+    node_count="${#nodes[@]}"
+    if [ $node_count -gt 1 ]; then
+        middle=$(expr "$node_count" / "2")
+        index=0
+        for node in "${nodes[@]}"; do
+            if [ "$index" -gt "$middle" ]; then
+                export OCMI${min}=${node}
+                min=$(expr $min + 1)
+            else
+                export OCMA${maj}=${node}
+                maj=$(expr $maj + 1)
+            fi
+            index=$(expr $index + 1)
+        done
+    fi
 }
 
 # Open Networking Foundation shared test cell warden address
