@@ -19,6 +19,7 @@ package org.onosproject.driver.extensions;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Maps;
 import org.onlab.util.KryoNamespace;
+import org.onosproject.driver.extensions.serializers.NiciraNatSerializer;
 import org.onosproject.net.flow.AbstractExtension;
 import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
@@ -44,6 +45,8 @@ public class NiciraCt extends AbstractExtension implements ExtensionTreatment {
                                                 .register(HashMap.class)
                                                 .register(ArrayList.class)
                                                 .register(ExtensionTreatment.class)
+                                                .register(new NiciraNatSerializer(),
+                                                              NiciraNat.class)
                                                 .build();
 
     /**
