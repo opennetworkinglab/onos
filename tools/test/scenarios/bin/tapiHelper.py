@@ -1,8 +1,7 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 
 import requests
 import json
-import itertools
 
 
 #
@@ -65,13 +64,14 @@ def tapi_line_input(sip_uuids):
     }
     return create_input
 
+
 #
 # Obtains TAPI context through restconf
 #
 def get_context(url_context):
     resp = requests.get(url_context, auth=('onos', 'rocks'))
     if resp.status_code != 200:
-       raise Exception('GET {}'.format(resp.status_code))
+        raise Exception('GET {}'.format(resp.status_code))
     return resp.json()
 
 
@@ -104,14 +104,14 @@ def request_connection(url_connectivity, context):
 # Filter method used to keep only SIPs that are photonic_media
 #
 def is_photonic_media(sip):
-    return sip["layer-protocol-name"]=="PHOTONIC_MEDIA"
+    return sip["layer-protocol-name"] == "PHOTONIC_MEDIA"
 
 
 #
 # Filter method used to keep only SIPs that are DSR
 #
 def is_dsr_media(sip):
-    return sip["layer-protocol-name"]=="DSR"
+    return sip["layer-protocol-name"] == "DSR"
 
 
 #
@@ -127,21 +127,58 @@ def process_topology():
 
 
 #
-# Creates a connection first getting the context, parsing for SIPS and then issuing the request.
-#
-def create_connection(url_context, url_connectivity):
-    context = get_context(url_context)
-    return request_connection(url_connectivity, context)
-
-
-#
 # Create a client-side connection. Firstly, get the context, parsing for SIPs that connect
 # with each other in line-side; Secondly, issue the request
 #
 def create_client_connection(url_context, url_connectivity):
     context = get_context(url_context)
-    conn_context = context["tapi-connectivity:connectivity-context"]
-    return request_connection(url_connectivity, context)
+    # select the first topo from all topologies
+    topo = context["tapi-common:context"]["tapi-topology:topology-context"]["topology"][0]
+
+    # select the first link from all links of topo
+    nep_pair = topo["link"][0]["node-edge-point"]
+    assert topo["uuid"] == nep_pair[0]["topology-uuid"]
+    assert topo["uuid"] == nep_pair[1]["topology-uuid"]
+    (src_onep, dst_onep) = (find_client_onep(nep_pair[0], topo["node"]),
+                            find_client_onep(nep_pair[1], topo["node"]))
+    src_sip_uuid, dst_sip_uuid = \
+        (src_onep["mapped-service-interface-point"][0]["service-interface-point-uuid"],
+         dst_onep["mapped-service-interface-point"][0]["service-interface-point-uuid"])
+    print "\nBuild client-side connectivity:\n|Item|SRC|DST|\n|:--|:--|:--|\n|onos-cp|%s|%s|\n|connection id|%s|%s|\n|sip uuid|%s|%s|" % \
+          (src_onep["name"][2]["value"], dst_onep["name"][2]["value"],
+           src_onep["name"][1]["value"], dst_onep["name"][1]["value"],
+           src_sip_uuid, dst_sip_uuid)
+    create_input_json = json.dumps(tapi_client_input((src_sip_uuid, dst_sip_uuid)))
+    print "\nThe json content of creation operation for client-side connectivity service is \n\t\t%s." % \
+          create_input_json
+    headers = {'Content-type': 'application/json'}
+    resp = requests.post(url_connectivity, data=create_input_json, headers=headers, auth=('onos', 'rocks'))
+    if resp.status_code != 200:
+        raise Exception('POST {}'.format(resp.status_code))
+    return resp
+
+
+#
+# Find node edge point of node structure in topology with client-side port, by using nep with line-side port.
+# The odtn-connection-id should be the same in both line-side nep and client-side nep
+#
+def find_client_onep(line_nep_in_link, nodes):
+    for node in nodes:
+        if node["uuid"] == line_nep_in_link["node-uuid"]:
+            conn_id = None
+            for onep in node["owned-node-edge-point"]:
+                if onep["uuid"] == line_nep_in_link["node-edge-point-uuid"]:
+                    assert onep["name"][1]["value-name"] == "odtn-connection-id"
+                    assert onep["name"][0]["value"] == "line"
+                    conn_id = onep["name"][1]["value"]
+                    break
+            if conn_id is None:
+                raise AssertionError("Cannot find owned node edge point with node id %s and nep id %s."
+                                     % (line_nep_in_link["node-uuid"], line_nep_in_link["node-edge-point-uuid"], ))
+            for onep in node["owned-node-edge-point"]:
+                if onep["name"][1]["value"] == conn_id and onep["name"][0]["value"] == "client":
+                    return onep
+    return None
 
 
 #
@@ -150,18 +187,25 @@ def create_client_connection(url_context, url_connectivity):
 #
 def create_line_connection(url_context, url_connectivity):
     context = get_context(url_context)
-    print context
     # select the first topo from all topologies
-    sips = context["tapi-common:context"]["service-interface-point"]
     topo = context["tapi-common:context"]["tapi-topology:topology-context"]["topology"][0]
 
     # select the first link from all links of topo
     nep_pair = topo["link"][0]["node-edge-point"]
     assert topo["uuid"] == nep_pair[0]["topology-uuid"]
     assert topo["uuid"] == nep_pair[1]["topology-uuid"]
-    sip_uuids = extract_photonic_sips(nep_pair, topo, sips)
-    create_input_json = json.dumps(tapi_line_input(sip_uuids))
-    print create_input_json
+    src_onep, dst_onep = (find_line_onep(nep_pair[0], topo["node"]),
+                          find_line_onep(nep_pair[1], topo["node"]))
+    src_sip_uuid, dst_sip_uuid = \
+        (src_onep["mapped-service-interface-point"][0]["service-interface-point-uuid"],
+         dst_onep["mapped-service-interface-point"][0]["service-interface-point-uuid"])
+    print "\nBuild line-side connectivity:\n|Item|SRC|DST|\n|:--|:--|:--|\n|onos-cp|%s|%s|\n|connection id|%s|%s|\n|sip uuid|%s|%s|" % \
+          (src_onep["name"][2]["value"], dst_onep["name"][2]["value"],
+           src_onep["name"][1]["value"], dst_onep["name"][1]["value"],
+           src_sip_uuid, dst_sip_uuid)
+    create_input_json = json.dumps(tapi_line_input((src_sip_uuid, dst_sip_uuid)))
+    print "\nThe json content of creation operation for line-side connectivity service is \n\t\t%s." % \
+          create_input_json
     headers = {'Content-type': 'application/json'}
     resp = requests.post(url_connectivity, data=create_input_json, headers=headers, auth=('onos', 'rocks'))
     if resp.status_code != 200:
@@ -169,35 +213,14 @@ def create_line_connection(url_context, url_connectivity):
     return resp
 
 
-def extract_photonic_sips(neps, topo, sips):
-    # parse mapped node and edge point from nep
-    src_sip_uuid = extract_photonic_sip_uuid(neps[0], topo)
-    dst_sip_uuid = extract_photonic_sip_uuid(neps[1], topo)
-    src_sip = extract_photonic_sip(src_sip_uuid, sips)
-    dst_sip = extract_photonic_sip(dst_sip_uuid, sips)
-    print "Connection to be built between %s and %s, whose sip_uuid are %s and %s respectively." % \
-          (src_sip["name"][0]["value"], dst_sip["name"][0]["value"], src_sip_uuid, dst_sip_uuid)
-    return src_sip_uuid, dst_sip_uuid
-
-
-def extract_photonic_sip(sip_uuid, sips):
-    for sip in sips:
-        if sip["uuid"] == sip_uuid and sip["layer-protocol-name"] == "PHOTONIC_MEDIA":
-            return sip
-    return None
-
-
-def extract_photonic_sip_uuid(nep, topo):
-
-    for node in topo["node"]:
-        if node["uuid"] == nep["node-uuid"]:
-            oneps = node["owned-node-edge-point"]
-            for onep in oneps:
-                if onep["uuid"] == nep["node-edge-point-uuid"]:
+def find_line_onep(line_nep_in_link, nodes):
+    for node in nodes:
+        if node["uuid"] == line_nep_in_link["node-uuid"]:
+            for onep in node["owned-node-edge-point"]:
+                if onep["uuid"] == line_nep_in_link["node-edge-point-uuid"]:
                     # check the length equals 1 to verify the 1-to-1 mapping relationship
                     assert len(onep["mapped-service-interface-point"]) == 1
-                    sip_uuid = onep["mapped-service-interface-point"][0]["service-interface-point-uuid"]
-                    return sip_uuid
+                    return onep
     return None
 
 
@@ -212,9 +235,3 @@ def get_connection(url_connectivity, uuid):
     if resp.status_code != 200:
             raise Exception('POST {}'.format(resp.status_code))
     return resp
-
-
-
-
-
-

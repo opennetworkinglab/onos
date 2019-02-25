@@ -1,14 +1,16 @@
 #! /usr/bin/env python
 
-import requests
 import sys
 import tapiHelper
-
-from requests.auth import HTTPBasicAuth
+import json
 
 if len(sys.argv) < 4:
     print "usage: execute-tapi-post-call <onos-node> <context> <empty> [uuid]."
-    print "\t- If <empty> is \"empty\", it measn that it shoudl be no devices, links or ports\n\t- Uuid is optional and defaults to empty"
+    print "\t- If <empty> is \"empty\", it measn that it shoudl be no devices, links or ports"
+    print "\t- Uuid is optional and defaults to empty"
+    print "\t- For example:\n\t\t- line-side connectivity creation: %s\n\t\t- client-side connectivity creation: %s" % \
+          ("python execute-tapi-post-call.py 127.0.0.1 tapi-connectivity:create-connectivity-service line-side",
+           "python execute-tapi-post-call.py 127.0.0.1 tapi-connectivity:create-connectivity-service client-side")
     sys.exit(1)
 
 node = sys.argv[1]
@@ -54,15 +56,11 @@ if "create-connectivity-service" in context:
     if empty == "line-side":
         tapi_connection = tapiHelper.create_line_connection(context_request, connectivity_request)
     elif empty == "client-side":
-        tapi_connection = tapiHelper.create_connection(context_request, connectivity_request)
+        tapi_connection = tapiHelper.create_client_connection(context_request, connectivity_request)
     else:
         raise NotImplementedError("Not Implementation for option %s." % empty)
-    print context
-    print tapi_connection.json()
+    print "\nThe request context is:\t%s." % context
+    print "\nThe return message of the request is:\n\t\t%s " % json.dumps(tapi_connection.json())
     sys.exit(0)
 
 sys.exit(1)
-
-
-
-
