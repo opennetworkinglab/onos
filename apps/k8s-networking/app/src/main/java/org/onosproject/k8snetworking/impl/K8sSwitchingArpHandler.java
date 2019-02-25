@@ -74,6 +74,7 @@ import static org.onosproject.k8snetworking.api.Constants.DEFAULT_GATEWAY_MAC_ST
 import static org.onosproject.k8snetworking.api.Constants.K8S_NETWORKING_APP_ID;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_ARP_CONTROL_RULE;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.getPropertyValue;
+import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.unshiftIpDomain;
 
 /**
  * Handles ARP packet from containers.
@@ -214,6 +215,20 @@ public class K8sSwitchingArpHandler {
 
         if (gwIpCnt > 0 || targetIp.equals(IpAddress.valueOf(API_SERVER_CLUSTER_IP))) {
             replyMac = gwMacAddress;
+        }
+
+        if (replyMac == null) {
+            Set<String> unshiftedIps = unshiftIpDomain(targetIp.toString(), k8sNetworkService);
+            for (String ip : unshiftedIps) {
+                replyMac = k8sNetworkService.ports().stream()
+                        .filter(p -> p.ipAddress().equals(IpAddress.valueOf(ip)))
+                        .map(K8sPort::macAddress)
+                        .findAny().orElse(null);
+
+                if (replyMac != null) {
+                    break;
+                }
+            }
         }
 
         if (replyMac == null) {

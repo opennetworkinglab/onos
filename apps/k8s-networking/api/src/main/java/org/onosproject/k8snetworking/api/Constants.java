@@ -30,12 +30,22 @@ public final class Constants {
     public static final String ARP_BROADCAST_MODE = "broadcast";
     public static final String ARP_PROXY_MODE = "proxy";
 
+    public static final String NAT_STATEFUL = "stateful";
+    public static final String NAT_STATELESS = "stateless";
+
     public static final String DEFAULT_GATEWAY_MAC_STR = "fe:00:00:00:00:02";
     public static final String DEFAULT_ARP_MODE_STR = ARP_PROXY_MODE;
     public static final String DEFAULT_HOST_MAC_STR = "fe:00:00:00:00:08";
+    public static final String DEFAULT_SERVICE_IP_NAT_MODE_STR = NAT_STATELESS;
 
     public static final MacAddress DEFAULT_GATEWAY_MAC =
                         MacAddress.valueOf(DEFAULT_GATEWAY_MAC_STR);
+
+    public static final String SHIFTED_IP_CIDR = "172.10.0.0/16";
+    public static final String SHIFTED_IP_PREFIX = "172.10";
+
+    // TODO: need to inject service IP CIDR through REST
+    public static final String SERVICE_IP_CIDR = "10.96.0.0/24";
 
     public static final String PORT_NAME_PREFIX_CONTAINER = "veth";
 
@@ -51,6 +61,7 @@ public final class Constants {
     public static final int PRIORITY_CT_HOOK_RULE = 30500;
     public static final int PRIORITY_CT_RULE = 32000;
     public static final int PRIORITY_CT_DROP_RULE = 32500;
+    public static final int PRIORITY_NAT_RULE = 30000;
     public static final int PRIORITY_SWITCHING_RULE = 30000;
     public static final int PRIORITY_ARP_GATEWAY_RULE = 41000;
     public static final int PRIORITY_ARP_SUBNET_RULE = 40000;
@@ -73,6 +84,8 @@ public final class Constants {
     public static final int ACL_RECIRC_TABLE = 43;
     public static final int JUMP_TABLE = 50;
     public static final int NAT_TABLE = 51;
+    public static final int SERVICE_TABLE = 52;
+    public static final int POD_TABLE = 53;
     public static final int ROUTING_TABLE = 60;
     public static final int STAT_OUTBOUND_TABLE = 70;
     public static final int VTAP_OUTBOUND_TABLE = 71;

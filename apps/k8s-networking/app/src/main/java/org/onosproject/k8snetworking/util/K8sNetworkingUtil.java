@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -48,6 +49,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.onosproject.k8snetworking.api.Constants.PORT_NAME_PREFIX_CONTAINER;
+import static org.onosproject.k8snetworking.api.Constants.SHIFTED_IP_PREFIX;
 
 /**
  * An utility that used in kubernetes networking app.
@@ -283,5 +285,25 @@ public final class K8sNetworkingUtil {
         });
 
         return ipMap;
+    }
+
+    /**
+     * Returns a set of unshifted IP addresses.
+     *
+     * @param ipAddress     shifted IP address
+     * @param service       kubernetes network service
+     * @return unshifted IP addresses
+     */
+    public static Set<String> unshiftIpDomain(String ipAddress, K8sNetworkService service) {
+
+        Set<String> unshiftedIps = Sets.newConcurrentHashSet();
+
+        service.networks().forEach(n -> {
+            String cidr = n.cidr();
+            String origIpPrefix = cidr.split("\\.")[0] + "." + cidr.split("\\.")[1];
+            unshiftedIps.add(StringUtils.replace(ipAddress, SHIFTED_IP_PREFIX, origIpPrefix));
+        });
+
+        return unshiftedIps;
     }
 }

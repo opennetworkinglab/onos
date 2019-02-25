@@ -63,6 +63,7 @@ import static org.onosproject.k8snetworking.api.Constants.JUMP_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.K8S_NETWORKING_APP_ID;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_SNAT_RULE;
 import static org.onosproject.k8snetworking.api.Constants.ROUTING_TABLE;
+import static org.onosproject.k8snetworking.api.Constants.SERVICE_IP_CIDR;
 import static org.onosproject.k8snetworking.api.Constants.STAT_INBOUND_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.STAT_OUTBOUND_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.VTAG_TABLE;
@@ -281,10 +282,10 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
         applyRule(flowRule, true);
     }
 
-    private void setupHostRoutingRule(K8sNetwork k8sNetwork) {
+    private void setAnyRoutingRule(IpPrefix srcIpPrefix, K8sNetwork k8sNetwork) {
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPSrc(IpPrefix.valueOf(k8sNetwork.gatewayIp(), 32))
+                .matchIPSrc(srcIpPrefix)
                 .matchIPDst(IpPrefix.valueOf(k8sNetwork.cidr()));
 
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
@@ -303,6 +304,14 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
                     .build();
             applyRule(flowRule, true);
         }
+    }
+
+    private void setupServiceRoutingRule(K8sNetwork k8sNetwork) {
+        setAnyRoutingRule(IpPrefix.valueOf(SERVICE_IP_CIDR), k8sNetwork);
+    }
+
+    private void setupHostRoutingRule(K8sNetwork k8sNetwork) {
+        setAnyRoutingRule(IpPrefix.valueOf(k8sNetwork.gatewayIp(), 32), k8sNetwork);
     }
 
     private void setupGatewayRoutingRule(K8sNetwork k8sNetwork) {
@@ -355,6 +364,7 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
             initializePipeline(node);
             k8sNetworkService.networks().forEach(n -> {
                 setupHostRoutingRule(n);
+                setupServiceRoutingRule(n);
                 setupGatewayRoutingRule(n);
             });
         }
@@ -387,6 +397,7 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
 
             setupHostRoutingRule(network);
             setupGatewayRoutingRule(network);
+            setupServiceRoutingRule(network);
         }
     }
 }
