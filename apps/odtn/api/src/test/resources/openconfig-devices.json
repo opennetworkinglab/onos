@@ -2,7 +2,7 @@
   "devices" : {
     "netconf:127.0.0.1:11002" : {
       "basic" : {
-        "driver":"infinera-xt3300"
+        "driver":"cassini-ocnos"
       },
       "netconf" : {
         "ip" : "127.0.0.1",
@@ -13,7 +13,7 @@
     },
     "netconf:127.0.0.1:11003" : {
       "basic" : {
-        "driver":"infinera-xt3300"
+        "driver":"cassini-ocnos"
       },
       "netconf" : {
         "ip" : "127.0.0.1",

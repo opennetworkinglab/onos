@@ -1,0 +1,46 @@
+{
+  "links": {
+    "netconf:127.0.0.1:11002/201-netconf:127.0.0.1:11003/201": {
+      "basic": {
+        "type": "OPTICAL",
+        "metric": 1,
+        "durable": true
+      }
+    },
+    "netconf:127.0.0.1:11002/202-netconf:127.0.0.1:11003/202": {
+      "basic": {
+        "type": "OPTICAL",
+        "metric": 1,
+        "durable": true
+      }
+    },
+    "netconf:127.0.0.1:11002/203-netconf:127.0.0.1:11003/203": {
+      "basic": {
+        "type": "OPTICAL",
+        "metric": 1,
+        "durable": true
+      }
+    },
+    "netconf:127.0.0.1:11002/204-netconf:127.0.0.1:11003/204": {
+      "basic": {
+        "type": "OPTICAL",
+        "metric": 1,
+        "durable": true
+      }
+    },
+    "netconf:127.0.0.1:11002/205-netconf:127.0.0.1:11003/205": {
+      "basic": {
+        "type": "OPTICAL",
+        "metric": 1,
+        "durable": true
+      }
+    },
+    "netconf:127.0.0.1:11002/206-netconf:127.0.0.1:11003/206": {
+      "basic": {
+        "type": "OPTICAL",
+        "metric": 1,
+        "durable": true
+      }
+    }
+  }
+}

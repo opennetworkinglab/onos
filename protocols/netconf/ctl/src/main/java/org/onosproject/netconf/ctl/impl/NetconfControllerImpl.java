@@ -310,6 +310,7 @@ public class NetconfControllerImpl implements NetconfController {
             netconfDevicedevice.getSession().addDeviceOutputListener(downListener);
             return netconfDevicedevice;
         } finally {
+
             mutex.unlock();
         }
     }
@@ -423,7 +424,7 @@ public class NetconfControllerImpl implements NetconfController {
                     } catch (NetconfException e) {
                         log.error("The SSH connection with device {} couldn't be " +
                                 "reestablished due to {}. " +
-                                "Marking the device as unreachable", e.getMessage());
+                                "Marking the device as unreachable", did, e.getMessage());
                         log.debug("Complete exception: ", e);
                         removeDevice(did);
                     }
