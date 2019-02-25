@@ -31,6 +31,7 @@ import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L0ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
+import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 import org.onosproject.net.group.GroupBucket;
 import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
@@ -54,6 +55,7 @@ import org.projectfloodlight.openflow.types.OFBooleanValue;
 import org.projectfloodlight.openflow.types.OFGroup;
 import org.projectfloodlight.openflow.types.OFPort;
 import org.projectfloodlight.openflow.types.OFVlanVidMatch;
+import org.projectfloodlight.openflow.types.TransportPort;
 import org.projectfloodlight.openflow.types.U32;
 import org.projectfloodlight.openflow.types.U64;
 import org.projectfloodlight.openflow.types.VlanPcp;
@@ -252,6 +254,9 @@ public final class GroupModBuilder {
                 case L3MODIFICATION:
                     actions.add(buildL3Modification(i));
                     break;
+                case L4MODIFICATION:
+                    actions.add(buildL4Modification(i));
+                    break;
                 case OUTPUT:
                     Instructions.OutputInstruction out =
                             (Instructions.OutputInstruction) i;
@@ -404,6 +409,38 @@ public final class GroupModBuilder {
                 return factory.actions().copyTtlOut();
             default:
                 log.warn("Unimplemented action type {}.", l3m.subtype());
+                break;
+        }
+
+        if (oxm != null) {
+            return factory.actions().buildSetField().setField(oxm).build();
+        }
+        return null;
+    }
+
+    protected OFAction buildL4Modification(Instruction i) {
+        L4ModificationInstruction l4m = (L4ModificationInstruction) i;
+        L4ModificationInstruction.ModTransportPortInstruction tp;
+        OFOxm<?> oxm = null;
+        switch (l4m.subtype()) {
+            case TCP_SRC:
+                tp = (L4ModificationInstruction.ModTransportPortInstruction) l4m;
+                oxm = factory.oxms().tcpSrc(TransportPort.of(tp.port().toInt()));
+                break;
+            case TCP_DST:
+                tp = (L4ModificationInstruction.ModTransportPortInstruction) l4m;
+                oxm = factory.oxms().tcpDst(TransportPort.of(tp.port().toInt()));
+                break;
+            case UDP_SRC:
+                tp = (L4ModificationInstruction.ModTransportPortInstruction) l4m;
+                oxm = factory.oxms().udpSrc(TransportPort.of(tp.port().toInt()));
+                break;
+            case UDP_DST:
+                tp = (L4ModificationInstruction.ModTransportPortInstruction) l4m;
+                oxm = factory.oxms().udpDst(TransportPort.of(tp.port().toInt()));
+                break;
+            default:
+                log.warn("Unimplemented action type {}.", l4m.subtype());
                 break;
         }
 
