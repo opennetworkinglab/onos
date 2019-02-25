@@ -39,6 +39,7 @@ import org.slf4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_LOAD;
 import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_RESUBMIT_TABLE;
 import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_TUNNEL_DST;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -77,13 +78,26 @@ public final class RulePopulatorUtil {
     private static final int PORT_MIN_FLAG = 4;
     private static final int PORT_MAX_FLAG = 5;
 
-    public static final long CT_STATE_NONE = 0;
-    public static final long CT_STATE_NEW = 0x01;
-    public static final long CT_STATE_EST = 0x02;
-    public static final long CT_STATE_NOT_TRK = 0x20;
-    public static final long CT_STATE_TRK = 0x20;
+    private static final long CT_STATE_NONE = 0;
+    private static final long CT_STATE_NEW = 0x01;
+    private static final long CT_STATE_EST = 0x02;
+    private static final long CT_STATE_NOT_TRK = 0x20;
+    private static final long CT_STATE_TRK = 0x20;
 
     private static final String TABLE_EXTENSION = "table";
+
+    private static final String OFF_SET_N_BITS = "ofsNbits";
+    private static final String DESTINATION = "dst";
+    private static final String VALUE = "value";
+
+    private static final int SRC_IP = 0x00000e04;
+    private static final int DST_IP = 0x00001004;
+
+    private static final String SRC = "src";
+    private static final String DST = "dst";
+
+    private static final int OFF_SET_BIT = 16;
+    private static final int REMAINDER_BIT = 16;
 
     // not intended for direct invocation from external
     private RulePopulatorUtil() {
@@ -253,7 +267,7 @@ public final class RulePopulatorUtil {
     /**
      * Returns the nicira resubmit extension treatment with given table ID.
      *
-     * @param device        device identifier
+     * @param device        device instance
      * @param tableId       table identifier
      * @return resubmit extension treatment
      */
@@ -275,6 +289,66 @@ public final class RulePopulatorUtil {
                     device.id());
             return null;
         }
+    }
+
+    /**
+     * Returns the nicira load extension treatment.
+     *
+     * @param device        device instance
+     * @param ipType        IP type (src|dst)
+     * @param shift         shift (e.g., 10.10., 20.20.,)
+     * @return load extension treatment
+     */
+    public static ExtensionTreatment buildLoadExtension(Device device,
+                                                        String ipType,
+                                                        String shift) {
+        if (device == null || !device.is(ExtensionTreatmentResolver.class)) {
+            log.warn("Nicira extension treatment is not supported");
+            return null;
+        }
+
+        ExtensionTreatmentResolver resolver = device.as(ExtensionTreatmentResolver.class);
+        ExtensionTreatment treatment =
+                resolver.getExtensionInstruction(NICIRA_LOAD.type());
+
+        long dst = 0L;
+
+        if (SRC.equalsIgnoreCase(ipType)) {
+            dst = SRC_IP;
+        } else if (DST.equals(ipType)) {
+            dst = DST_IP;
+        }
+
+        long value = calculateUpperBit(shift);
+
+        // we only rewrite the upper 16 bits with value (A.B.X.Y -> C.D.X.Y)
+        int ofsNbits = OFF_SET_BIT << 6 | (REMAINDER_BIT - 1);
+
+        try {
+            treatment.setPropertyValue(OFF_SET_N_BITS, ofsNbits);
+            treatment.setPropertyValue(DESTINATION, dst);
+            treatment.setPropertyValue(VALUE, value);
+            return treatment;
+        } catch (ExtensionPropertyException e) {
+            log.error("Failed to set nicira load extension treatment for {}",
+                    device.id());
+            return null;
+        }
+    }
+
+    /**
+     * Calculate IP address upper string into integer.
+     *
+     * @param shift IP address upper two octets with dot
+     * @return calculated integer
+     */
+    private static int calculateUpperBit(String shift) {
+        String[] strArray = shift.split("\\.");
+
+        int firstOctet = Integer.valueOf(strArray[0]);
+        int secondOctet = Integer.valueOf(strArray[1]);
+
+        return firstOctet << 8 | secondOctet;
     }
 
     /**

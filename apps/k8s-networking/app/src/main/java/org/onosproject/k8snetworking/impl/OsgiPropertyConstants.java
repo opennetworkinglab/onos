@@ -31,4 +31,7 @@ public final class OsgiPropertyConstants {
 
     static final String DHCP_SERVER_MAC = "dhcpServerMac";
     static final String DHCP_SERVER_MAC_DEFAULT = "fe:00:00:00:00:02";
+
+    static final String SERVICE_IP_NAT_MODE = "serviceIpNatMode";
+    static final String SERVICE_IP_NAT_MODE_DEFAULT = "stateless";
 }
