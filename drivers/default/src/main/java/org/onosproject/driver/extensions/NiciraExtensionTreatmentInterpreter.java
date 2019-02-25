@@ -16,8 +16,7 @@
 
 package org.onosproject.driver.extensions;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onlab.util.Tools.nullIsIllegal;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Bytes;
 import org.onlab.packet.Ip4Address;
@@ -38,6 +37,7 @@ import org.projectfloodlight.openflow.protocol.action.OFAction;
 import org.projectfloodlight.openflow.protocol.action.OFActionExperimenter;
 import org.projectfloodlight.openflow.protocol.action.OFActionNicira;
 import org.projectfloodlight.openflow.protocol.action.OFActionNiciraCt;
+import org.projectfloodlight.openflow.protocol.action.OFActionNiciraLoad;
 import org.projectfloodlight.openflow.protocol.action.OFActionNiciraMove;
 import org.projectfloodlight.openflow.protocol.action.OFActionNiciraNat;
 import org.projectfloodlight.openflow.protocol.action.OFActionNiciraResubmit;
@@ -62,12 +62,14 @@ import org.projectfloodlight.openflow.types.IPv6Address;
 import org.projectfloodlight.openflow.types.MacAddress;
 import org.projectfloodlight.openflow.types.U16;
 import org.projectfloodlight.openflow.types.U32;
+import org.projectfloodlight.openflow.types.U64;
 import org.projectfloodlight.openflow.types.U8;
-
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onlab.util.Tools.nullIsIllegal;
 
 /**
  * Interpreter for Nicira OpenFlow treatment extensions.
@@ -98,6 +100,7 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
     private static final int SUB_TYPE_RESUBMIT = 1;
     private static final int SUB_TYPE_RESUBMIT_TABLE = 14;
     private static final int SUB_TYPE_MOVE = 6;
+    private static final int SUB_TYPE_LOAD = 7;
     private static final int SUB_TYPE_CT = 35;
     private static final int SUB_TYPE_NAT = 36;
     private static final int SUB_TYPE_CT_CLEAR = 43;
@@ -111,6 +114,7 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
     private static final String NICIRA_NSH_SI = "niciraNshSi";
     private static final String NICIRA_NSH_CH = "niciraNshCh";
     private static final String NICIRA_MOVE = "niciraMove";
+    private static final String NICIRA_LOAD = "niciraLoad";
 
     private static final String TYPE = "type";
 
@@ -226,6 +230,9 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
         if (extensionTreatmentType.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_CT_CLEAR.type())) {
             return true;
         }
+        if (extensionTreatmentType.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_LOAD.type())) {
+            return true;
+        }
         return false;
     }
 
@@ -324,6 +331,15 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
             action.setNBits(mov.nBits());
             action.setSrc(mov.src());
             action.setDst(mov.dst());
+            return action.build();
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_LOAD.type())) {
+            NiciraLoad load = (NiciraLoad) extensionTreatment;
+            OFActionNiciraLoad.Builder action = factory.actions()
+                    .buildNiciraLoad();
+            action.setOfsNbits(load.ofsNbits());
+            action.setDst(load.dst());
+            action.setValue(U64.of(load.value()));
             return action.build();
         }
         if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_CT.type())) {
@@ -576,6 +592,10 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
                                 new ArrayList<>());
                     case SUB_TYPE_CT_CLEAR:
                         return new NiciraCtClear();
+                    case SUB_TYPE_LOAD:
+                        OFActionNiciraLoad loadAction = (OFActionNiciraLoad) nicira;
+                        return new NiciraLoad(loadAction.getOfsNbits(),
+                                loadAction.getDst(), loadAction.getValue().getValue());
                     default:
                         throw new UnsupportedOperationException("Driver does not support extension subtype "
                                 + nicira.getSubtype());
@@ -674,6 +694,9 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
         }
         if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_CT_CLEAR.type())) {
             return new NiciraCtClear();
+        }
+        if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_LOAD.type())) {
+            return new NiciraLoad();
         }
         throw new UnsupportedOperationException("Driver does not support extension type " + type.toString());
     }
