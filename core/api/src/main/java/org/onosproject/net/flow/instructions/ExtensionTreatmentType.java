@@ -46,6 +46,7 @@ public final class ExtensionTreatmentType {
         NICIRA_MOV_TUN_ID_TO_TUN_ID(11),
         NICIRA_MOV_NSH_C2_TO_TUN_ID(12),
         NICIRA_RESUBMIT_TABLE(14),
+        NICIRA_LOAD(20),
         NICIRA_PUSH_NSH(38),
         NICIRA_POP_NSH(39),
         NICIRA_CT(40),
