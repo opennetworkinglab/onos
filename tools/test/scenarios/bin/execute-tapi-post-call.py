@@ -19,7 +19,8 @@ if len(sys.argv) == 4:
     uuid = ""
 else:
     uuid = sys.argv[4]
-
+# request example:
+# python execute-tapi-post-call.py localhost tapi-common:get-service-interface-point-list empty
 if "get-connectivity-service-list" in context:
     connectivity_request = 'http://' + node + ':8181/onos/restconf/operations/' + context
     tapi_connection = tapiHelper.get_connection(connectivity_request, uuid)
@@ -44,11 +45,18 @@ if "get-connectivity-service-list" in context:
         sys.exit(1)
     sys.exit(0)
 
-# test succeeds by using cmd: python execute-tapi-post-call.py 127.0.0.1 tapi-connectivity:create-connectivity-service empty
+# test succeeds by using cmd:
+# python execute-tapi-post-call.py 127.0.0.1 tapi-connectivity:create-connectivity-service line-side
+# python execute-tapi-post-call.py 127.0.0.1 tapi-connectivity:create-connectivity-service client-side
 if "create-connectivity-service" in context:
     context_request = 'http://' + node + ':8181/onos/restconf/data/tapi-common:context'
     connectivity_request = 'http://' + node + ':8181/onos/restconf/operations/' + context
-    tapi_connection = tapiHelper.create_connection(context_request, connectivity_request)
+    if empty == "line-side":
+        tapi_connection = tapiHelper.create_line_connection(context_request, connectivity_request)
+    elif empty == "client-side":
+        tapi_connection = tapiHelper.create_connection(context_request, connectivity_request)
+    else:
+        raise NotImplementedError("Not Implementation for option %s." % empty)
     print context
     print tapi_connection.json()
     sys.exit(0)
