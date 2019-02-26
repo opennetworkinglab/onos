@@ -18,6 +18,7 @@ package org.onosproject.k8snetworking.cli;
 import com.google.common.collect.Lists;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.extensions.Ingress;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.packet.IpAddress;
@@ -25,6 +26,7 @@ import org.onlab.packet.MacAddress;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.k8snetworking.api.DefaultK8sPort;
 import org.onosproject.k8snetworking.api.K8sEndpointsAdminService;
+import org.onosproject.k8snetworking.api.K8sIngressAdminService;
 import org.onosproject.k8snetworking.api.K8sNetworkAdminService;
 import org.onosproject.k8snetworking.api.K8sPodAdminService;
 import org.onosproject.k8snetworking.api.K8sPort;
@@ -50,6 +52,7 @@ public class K8sSyncStateCommand extends AbstractShellCommand {
     private static final String POD_FORMAT = "%-50s%-15s%-15s%-30s";
     private static final String SERVICE_FORMAT = "%-50s%-30s%-30s";
     private static final String ENDPOINTS_FORMAT = "%-50s%-50s%-20s";
+    private static final String INGRESS_FORMAT = "%-50s%-15s%-30s";
 
     private static final String PORT_ID = "portId";
     private static final String DEVICE_ID = "deviceId";
@@ -64,6 +67,8 @@ public class K8sSyncStateCommand extends AbstractShellCommand {
         K8sPodAdminService podAdminService = get(K8sPodAdminService.class);
         K8sServiceAdminService serviceAdminService =
                 get(K8sServiceAdminService.class);
+        K8sIngressAdminService ingressAdminService =
+                get(K8sIngressAdminService.class);
         K8sEndpointsAdminService endpointsAdminService =
                 get(K8sEndpointsAdminService.class);
         K8sNetworkAdminService networkAdminService =
@@ -118,6 +123,31 @@ public class K8sSyncStateCommand extends AbstractShellCommand {
 
             printPod(pod);
         });
+
+        print("\nSynchronizing kubernetes ingresses");
+        print(INGRESS_FORMAT, "Name", "Namespace", "LB Addresses");
+        client.extensions().ingresses().list().getItems().forEach(ingress -> {
+            if (ingressAdminService.ingress(ingress.getMetadata().getUid()) != null) {
+                ingressAdminService.updateIngress(ingress);
+            } else {
+                ingressAdminService.createIngress(ingress);
+            }
+            printIngresses(ingress);
+        });
+
+    }
+
+    private void printIngresses(Ingress ingress) {
+
+        List<String> lbIps = Lists.newArrayList();
+
+        ingress.getStatus().getLoadBalancer()
+                .getIngress().forEach(i -> lbIps.add(i.getIp()));
+
+        print(INGRESS_FORMAT,
+                ingress.getMetadata().getName(),
+                ingress.getMetadata().getNamespace(),
+                lbIps.isEmpty() ? "" : lbIps);
     }
 
     private void printEndpoints(Endpoints endpoints) {
