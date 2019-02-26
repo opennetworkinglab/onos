@@ -15,14 +15,21 @@
  */
 package org.onosproject.k8snetworking.cli;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.k8snetworking.api.K8sEndpointsService;
 
+import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
+
+import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.prettyJson;
 
 /**
  * Lists kubernetes endpoints.
@@ -40,23 +47,43 @@ public class K8sEndpointsListCommand extends AbstractShellCommand {
         List<Endpoints> endpointses = Lists.newArrayList(service.endpointses());
         endpointses.sort(Comparator.comparing(e -> e.getMetadata().getName()));
 
-        print(FORMAT, "Name", "IP Addresses", "Ports");
+        if (outputJson()) {
+            print("%s", json(endpointses));
+        } else {
+            print(FORMAT, "Name", "IP Addresses", "Ports");
 
-        for (Endpoints endpoints : endpointses) {
+            for (Endpoints endpoints : endpointses) {
 
-            List<String> ips = Lists.newArrayList();
-            List<String> portWithProtocol = Lists.newArrayList();
+                List<String> ips = Lists.newArrayList();
+                List<String> portWithProtocol = Lists.newArrayList();
 
-            endpoints.getSubsets().forEach(e -> {
-                e.getAddresses().forEach(a -> ips.add(a.getIp()));
-                e.getPorts().forEach(p -> portWithProtocol.add(p.getPort() +
-                        PORT_PROTOCOL_SEPARATOR + p.getProtocol()));
-            });
+                endpoints.getSubsets().forEach(e -> {
+                    e.getAddresses().forEach(a -> ips.add(a.getIp()));
+                    e.getPorts().forEach(p -> portWithProtocol.add(p.getPort() +
+                            PORT_PROTOCOL_SEPARATOR + p.getProtocol()));
+                });
 
-            print(FORMAT,
-                    endpoints.getMetadata().getName(),
-                    ips.isEmpty() ? "" : ips,
-                    portWithProtocol.isEmpty() ? "" : portWithProtocol);
+                print(FORMAT,
+                        endpoints.getMetadata().getName(),
+                        ips.isEmpty() ? "" : ips,
+                        portWithProtocol.isEmpty() ? "" : portWithProtocol);
+            }
+        }
+    }
+
+    private String json(List<Endpoints> endpointses) {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode result = mapper.createArrayNode();
+        try {
+            for (Endpoints endpoints : endpointses) {
+                ObjectNode json = (ObjectNode) new ObjectMapper()
+                        .readTree(Serialization.asJson(endpoints));
+                result.add(json);
+            }
+            return prettyJson(mapper, result.toString());
+        } catch (IOException e) {
+            log.warn("Failed to parse endpoints's JSON string.");
+            return "";
         }
     }
 }

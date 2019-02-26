@@ -15,14 +15,21 @@
  */
 package org.onosproject.k8snetworking.cli;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.k8snetworking.api.K8sPodService;
 
+import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
+
+import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.prettyJson;
 
 /**
  * Lists kubernetes pods.
@@ -39,19 +46,39 @@ public class K8sPodListCommand extends AbstractShellCommand {
         List<Pod> pods = Lists.newArrayList(service.pods());
         pods.sort(Comparator.comparing(p -> p.getMetadata().getName()));
 
-        print(FORMAT, "Name", "Namespace", "IP Address", "Containers");
+        if (outputJson()) {
+            print("%s", json(pods));
+        } else {
+            print(FORMAT, "Name", "Namespace", "IP Address", "Containers");
 
-        for (Pod pod : pods) {
+            for (Pod pod : pods) {
 
-            List<String> containers = Lists.newArrayList();
+                List<String> containers = Lists.newArrayList();
 
-            pod.getSpec().getContainers().forEach(c -> containers.add(c.getName()));
+                pod.getSpec().getContainers().forEach(c -> containers.add(c.getName()));
 
-            print(FORMAT,
-                    pod.getMetadata().getName(),
-                    pod.getMetadata().getNamespace(),
-                    pod.getStatus().getPodIP(),
-                    containers.isEmpty() ? "" : containers);
+                print(FORMAT,
+                        pod.getMetadata().getName(),
+                        pod.getMetadata().getNamespace(),
+                        pod.getStatus().getPodIP(),
+                        containers.isEmpty() ? "" : containers);
+            }
+        }
+    }
+
+    private String json(List<Pod> pods) {
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode result = mapper.createArrayNode();
+        try {
+            for (Pod pod : pods) {
+                ObjectNode json = (ObjectNode) new ObjectMapper()
+                        .readTree(Serialization.asJson(pod));
+                result.add(json);
+            }
+            return prettyJson(mapper, result.toString());
+        } catch (IOException e) {
+            log.warn("Failed to parse POD's JSON string.");
+            return "";
         }
     }
 }
