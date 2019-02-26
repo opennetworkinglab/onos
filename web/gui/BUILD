@@ -96,7 +96,6 @@ genrule(
     srcs = [
         "@nodejs//:bin/npm",
         "@nodejs//:bin/node",
-        "@nodejs//:bin/node.js",
         "@nodejs//:bin/nodejs/bin/node",
         "@nodejs//:bin/nodejs/bin/npm",
         "//tools/gui:tools-gui-gulp",
@@ -126,7 +125,6 @@ genrule(
     srcs = [
         "@nodejs//:bin/npm",
         "@nodejs//:bin/node",
-        "@nodejs//:bin/node.js",
         "@nodejs//:bin/nodejs/bin/node",
         "@nodejs//:bin/nodejs/bin/npm",
         ":_onos-gui-npm-install",

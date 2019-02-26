@@ -115,7 +115,6 @@ genrule(
     srcs = [
         "@nodejs//:bin/npm",
         "@nodejs//:bin/node",
-        "@nodejs//:bin/node.js",
         "@nodejs//:bin/nodejs/bin/node",
         "@nodejs//:bin/nodejs/bin/npm",
         "//web/gui2-fw-lib:onos-gui2-fw-npm-install",
@@ -177,7 +176,6 @@ genrule(
     srcs = [
         "@nodejs//:bin/npm",
         "@nodejs//:bin/node",
-        "@nodejs//:bin/node.js",
         "@nodejs//:bin/nodejs/bin/node",
         "@nodejs//:bin/nodejs/bin/npm",
         "//web/gui2-fw-lib:onos-gui2-fw-npm-install",
