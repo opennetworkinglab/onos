@@ -1,0 +1,17 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Checks if the given number of expected components are present.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+aux=/tmp/stc/stc-$$.log
+trap "rm -f $aux $aux.1 $aux.2 2>/dev/null" EXIT
+
+name=$2
+expected=$3
+
+count=`onos ${1} onos:scr-list | wc -l | xargs`
+
+echo "@stc ${name}count=${count}"

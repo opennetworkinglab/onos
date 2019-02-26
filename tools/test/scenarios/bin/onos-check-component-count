@@ -1,0 +1,27 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Checks if the given number of expected components are present.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+aux=/tmp/stc/stc-$$.log
+trap "rm -f $aux $aux.1 $aux.2 2>/dev/null" EXIT
+
+expected=$2
+
+for attempt in {1..30}; do
+    onos ${1} "onos:scr-list" | wc -l | xargs > $aux
+    cat $aux
+
+    current=`cat $aux`
+
+    # Check for differences
+    if [ "$expected" == "$current" ]; then
+        exit 0
+    fi
+    sleep 1
+done
+
+exit 1;

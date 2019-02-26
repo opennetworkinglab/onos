@@ -26,6 +26,8 @@ SCENARIO_HEADER = '''
     <group name="App-Activate-All">
        <step name="App-Activate-All.Minimal-Apps"
                  exec="onos-set-up-minimal-apps ${OCI}"/>
+       <step name="App-Activate-All.Count-Components" 
+             exec="onos-find-component-count ${OC1} starting" requires="^"/>
 '''
 
 SCENARIO_FOOTER = '''
@@ -47,7 +49,7 @@ ACTIVATE_GROUP_TEMPLATE = '''
            <step name="App-Activate-All.App-Deactivate-%(app_id)s"
                  exec="onos ${OCI} app deactivate org.onosproject.%(app_id)s" requires="App-Activate-All.App-Check-%(app_id)s"/>
            <step name="App-Activate-All.Wait-For-Deactivate-%(app_id)s"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-%(app_id)s"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-%(app_id)s"/>      
            <group name="App-Activate-All.App-Check-After-%(app_id)s" requires="App-Activate-All.Wait-For-Deactivate-%(app_id)s">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-%(app_id)s" exec="onos-check-logs ${OC#}"/>

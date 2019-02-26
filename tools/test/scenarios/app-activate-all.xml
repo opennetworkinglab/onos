@@ -22,6 +22,8 @@
     <group name="App-Activate-All">
        <step name="App-Activate-All.Minimal-Apps"
                  exec="onos-set-up-minimal-apps ${OCI}"/>
+       <step name="App-Activate-All.Count-Components" 
+             exec="onos-find-component-count ${OC1} starting" requires="^"/>
 
 
         <group name="App-Activate-All.cpr" requires="App-Activate-All.Minimal-Apps">
@@ -37,7 +39,7 @@
            <step name="App-Activate-All.App-Deactivate-cpr"
                  exec="onos ${OCI} app deactivate org.onosproject.cpr" requires="App-Activate-All.App-Check-cpr"/>
            <step name="App-Activate-All.Wait-For-Deactivate-cpr"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-cpr"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-cpr"/>      
            <group name="App-Activate-All.App-Check-After-cpr" requires="App-Activate-All.Wait-For-Deactivate-cpr">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-cpr" exec="onos-check-logs ${OC#}"/>
@@ -61,7 +63,7 @@
            <step name="App-Activate-All.App-Deactivate-mappingmanagement"
                  exec="onos ${OCI} app deactivate org.onosproject.mappingmanagement" requires="App-Activate-All.App-Check-mappingmanagement"/>
            <step name="App-Activate-All.Wait-For-Deactivate-mappingmanagement"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-mappingmanagement"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-mappingmanagement"/>      
            <group name="App-Activate-All.App-Check-After-mappingmanagement" requires="App-Activate-All.Wait-For-Deactivate-mappingmanagement">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-mappingmanagement" exec="onos-check-logs ${OC#}"/>
@@ -85,7 +87,7 @@
            <step name="App-Activate-All.App-Deactivate-yang"
                  exec="onos ${OCI} app deactivate org.onosproject.yang" requires="App-Activate-All.App-Check-yang"/>
            <step name="App-Activate-All.Wait-For-Deactivate-yang"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-yang"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-yang"/>      
            <group name="App-Activate-All.App-Check-After-yang" requires="App-Activate-All.Wait-For-Deactivate-yang">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-yang" exec="onos-check-logs ${OC#}"/>
@@ -109,7 +111,7 @@
            <step name="App-Activate-All.App-Deactivate-yang-gui"
                  exec="onos ${OCI} app deactivate org.onosproject.yang-gui" requires="App-Activate-All.App-Check-yang-gui"/>
            <step name="App-Activate-All.Wait-For-Deactivate-yang-gui"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-yang-gui"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-yang-gui"/>      
            <group name="App-Activate-All.App-Check-After-yang-gui" requires="App-Activate-All.Wait-For-Deactivate-yang-gui">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-yang-gui" exec="onos-check-logs ${OC#}"/>
@@ -133,7 +135,7 @@
            <step name="App-Activate-All.App-Deactivate-config"
                  exec="onos ${OCI} app deactivate org.onosproject.config" requires="App-Activate-All.App-Check-config"/>
            <step name="App-Activate-All.Wait-For-Deactivate-config"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-config"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-config"/>      
            <group name="App-Activate-All.App-Check-After-config" requires="App-Activate-All.Wait-For-Deactivate-config">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-config" exec="onos-check-logs ${OC#}"/>
@@ -157,7 +159,7 @@
            <step name="App-Activate-All.App-Deactivate-restconf"
                  exec="onos ${OCI} app deactivate org.onosproject.restconf" requires="App-Activate-All.App-Check-restconf"/>
            <step name="App-Activate-All.Wait-For-Deactivate-restconf"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-restconf"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-restconf"/>      
            <group name="App-Activate-All.App-Check-After-restconf" requires="App-Activate-All.Wait-For-Deactivate-restconf">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-restconf" exec="onos-check-logs ${OC#}"/>
@@ -181,7 +183,7 @@
            <step name="App-Activate-All.App-Deactivate-protocols.restconfserver"
                  exec="onos ${OCI} app deactivate org.onosproject.protocols.restconfserver" requires="App-Activate-All.App-Check-protocols.restconfserver"/>
            <step name="App-Activate-All.Wait-For-Deactivate-protocols.restconfserver"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-protocols.restconfserver"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-protocols.restconfserver"/>      
            <group name="App-Activate-All.App-Check-After-protocols.restconfserver" requires="App-Activate-All.Wait-For-Deactivate-protocols.restconfserver">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-protocols.restconfserver" exec="onos-check-logs ${OC#}"/>
@@ -205,7 +207,7 @@
            <step name="App-Activate-All.App-Deactivate-faultmanagement"
                  exec="onos ${OCI} app deactivate org.onosproject.faultmanagement" requires="App-Activate-All.App-Check-faultmanagement"/>
            <step name="App-Activate-All.Wait-For-Deactivate-faultmanagement"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-faultmanagement"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-faultmanagement"/>      
            <group name="App-Activate-All.App-Check-After-faultmanagement" requires="App-Activate-All.Wait-For-Deactivate-faultmanagement">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-faultmanagement" exec="onos-check-logs ${OC#}"/>
@@ -229,7 +231,7 @@
            <step name="App-Activate-All.App-Deactivate-netconf"
                  exec="onos ${OCI} app deactivate org.onosproject.netconf" requires="App-Activate-All.App-Check-netconf"/>
            <step name="App-Activate-All.Wait-For-Deactivate-netconf"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-netconf"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-netconf"/>      
            <group name="App-Activate-All.App-Check-After-netconf" requires="App-Activate-All.Wait-For-Deactivate-netconf">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-netconf" exec="onos-check-logs ${OC#}"/>
@@ -253,7 +255,7 @@
            <step name="App-Activate-All.App-Deactivate-netconfsb"
                  exec="onos ${OCI} app deactivate org.onosproject.netconfsb" requires="App-Activate-All.App-Check-netconfsb"/>
            <step name="App-Activate-All.Wait-For-Deactivate-netconfsb"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-netconfsb"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-netconfsb"/>      
            <group name="App-Activate-All.App-Check-After-netconfsb" requires="App-Activate-All.Wait-For-Deactivate-netconfsb">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-netconfsb" exec="onos-check-logs ${OC#}"/>
@@ -277,7 +279,7 @@
            <step name="App-Activate-All.App-Deactivate-models.common"
                  exec="onos ${OCI} app deactivate org.onosproject.models.common" requires="App-Activate-All.App-Check-models.common"/>
            <step name="App-Activate-All.Wait-For-Deactivate-models.common"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-models.common"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-models.common"/>      
            <group name="App-Activate-All.App-Check-After-models.common" requires="App-Activate-All.Wait-For-Deactivate-models.common">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-models.common" exec="onos-check-logs ${OC#}"/>
@@ -301,7 +303,7 @@
            <step name="App-Activate-All.App-Deactivate-models.l3vpn"
                  exec="onos ${OCI} app deactivate org.onosproject.models.l3vpn" requires="App-Activate-All.App-Check-models.l3vpn"/>
            <step name="App-Activate-All.Wait-For-Deactivate-models.l3vpn"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-models.l3vpn"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-models.l3vpn"/>      
            <group name="App-Activate-All.App-Check-After-models.l3vpn" requires="App-Activate-All.Wait-For-Deactivate-models.l3vpn">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-models.l3vpn" exec="onos-check-logs ${OC#}"/>
@@ -325,7 +327,7 @@
            <step name="App-Activate-All.App-Deactivate-tunnel"
                  exec="onos ${OCI} app deactivate org.onosproject.tunnel" requires="App-Activate-All.App-Check-tunnel"/>
            <step name="App-Activate-All.Wait-For-Deactivate-tunnel"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-tunnel"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-tunnel"/>      
            <group name="App-Activate-All.App-Check-After-tunnel" requires="App-Activate-All.Wait-For-Deactivate-tunnel">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-tunnel" exec="onos-check-logs ${OC#}"/>
@@ -349,7 +351,7 @@
            <step name="App-Activate-All.App-Deactivate-bgpcep"
                  exec="onos ${OCI} app deactivate org.onosproject.bgpcep" requires="App-Activate-All.App-Check-bgpcep"/>
            <step name="App-Activate-All.Wait-For-Deactivate-bgpcep"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-bgpcep"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-bgpcep"/>      
            <group name="App-Activate-All.App-Check-After-bgpcep" requires="App-Activate-All.Wait-For-Deactivate-bgpcep">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-bgpcep" exec="onos-check-logs ${OC#}"/>
@@ -373,7 +375,7 @@
            <step name="App-Activate-All.App-Deactivate-l3vpn"
                  exec="onos ${OCI} app deactivate org.onosproject.l3vpn" requires="App-Activate-All.App-Check-l3vpn"/>
            <step name="App-Activate-All.Wait-For-Deactivate-l3vpn"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-l3vpn"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-l3vpn"/>      
            <group name="App-Activate-All.App-Check-After-l3vpn" requires="App-Activate-All.Wait-For-Deactivate-l3vpn">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-l3vpn" exec="onos-check-logs ${OC#}"/>
@@ -397,7 +399,7 @@
            <step name="App-Activate-All.App-Deactivate-models.huawei"
                  exec="onos ${OCI} app deactivate org.onosproject.models.huawei" requires="App-Activate-All.App-Check-models.huawei"/>
            <step name="App-Activate-All.Wait-For-Deactivate-models.huawei"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-models.huawei"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-models.huawei"/>      
            <group name="App-Activate-All.App-Check-After-models.huawei" requires="App-Activate-All.Wait-For-Deactivate-models.huawei">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-models.huawei" exec="onos-check-logs ${OC#}"/>
@@ -421,7 +423,7 @@
            <step name="App-Activate-All.App-Deactivate-drivers.huawei"
                  exec="onos ${OCI} app deactivate org.onosproject.drivers.huawei" requires="App-Activate-All.App-Check-drivers.huawei"/>
            <step name="App-Activate-All.Wait-For-Deactivate-drivers.huawei"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivers.huawei"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-drivers.huawei"/>      
            <group name="App-Activate-All.App-Check-After-drivers.huawei" requires="App-Activate-All.Wait-For-Deactivate-drivers.huawei">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-drivers.huawei" exec="onos-check-logs ${OC#}"/>
@@ -445,7 +447,7 @@
            <step name="App-Activate-All.App-Deactivate-models.microsemi"
                  exec="onos ${OCI} app deactivate org.onosproject.models.microsemi" requires="App-Activate-All.App-Check-models.microsemi"/>
            <step name="App-Activate-All.Wait-For-Deactivate-models.microsemi"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-models.microsemi"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-models.microsemi"/>      
            <group name="App-Activate-All.App-Check-After-models.microsemi" requires="App-Activate-All.Wait-For-Deactivate-models.microsemi">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-models.microsemi" exec="onos-check-logs ${OC#}"/>
@@ -469,7 +471,7 @@
            <step name="App-Activate-All.App-Deactivate-drivers.netconf"
                  exec="onos ${OCI} app deactivate org.onosproject.drivers.netconf" requires="App-Activate-All.App-Check-drivers.netconf"/>
            <step name="App-Activate-All.Wait-For-Deactivate-drivers.netconf"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivers.netconf"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-drivers.netconf"/>      
            <group name="App-Activate-All.App-Check-After-drivers.netconf" requires="App-Activate-All.Wait-For-Deactivate-drivers.netconf">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-drivers.netconf" exec="onos-check-logs ${OC#}"/>
@@ -493,7 +495,7 @@
            <step name="App-Activate-All.App-Deactivate-netcfglinksprovider"
                  exec="onos ${OCI} app deactivate org.onosproject.netcfglinksprovider" requires="App-Activate-All.App-Check-netcfglinksprovider"/>
            <step name="App-Activate-All.Wait-For-Deactivate-netcfglinksprovider"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-netcfglinksprovider"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-netcfglinksprovider"/>      
            <group name="App-Activate-All.App-Check-After-netcfglinksprovider" requires="App-Activate-All.Wait-For-Deactivate-netcfglinksprovider">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-netcfglinksprovider" exec="onos-check-logs ${OC#}"/>
@@ -517,7 +519,7 @@
            <step name="App-Activate-All.App-Deactivate-openflow-message"
                  exec="onos ${OCI} app deactivate org.onosproject.openflow-message" requires="App-Activate-All.App-Check-openflow-message"/>
            <step name="App-Activate-All.Wait-For-Deactivate-openflow-message"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-openflow-message"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-openflow-message"/>      
            <group name="App-Activate-All.App-Check-After-openflow-message" requires="App-Activate-All.Wait-For-Deactivate-openflow-message">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-openflow-message" exec="onos-check-logs ${OC#}"/>
@@ -541,7 +543,7 @@
            <step name="App-Activate-All.App-Deactivate-cpman"
                  exec="onos ${OCI} app deactivate org.onosproject.cpman" requires="App-Activate-All.App-Check-cpman"/>
            <step name="App-Activate-All.Wait-For-Deactivate-cpman"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-cpman"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-cpman"/>      
            <group name="App-Activate-All.App-Check-After-cpman" requires="App-Activate-All.Wait-For-Deactivate-cpman">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-cpman" exec="onos-check-logs ${OC#}"/>
@@ -565,7 +567,7 @@
            <step name="App-Activate-All.App-Deactivate-protocols.grpc"
                  exec="onos ${OCI} app deactivate org.onosproject.protocols.grpc" requires="App-Activate-All.App-Check-protocols.grpc"/>
            <step name="App-Activate-All.Wait-For-Deactivate-protocols.grpc"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-protocols.grpc"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-protocols.grpc"/>      
            <group name="App-Activate-All.App-Check-After-protocols.grpc" requires="App-Activate-All.Wait-For-Deactivate-protocols.grpc">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-protocols.grpc" exec="onos-check-logs ${OC#}"/>
@@ -589,7 +591,7 @@
            <step name="App-Activate-All.App-Deactivate-protocols.p4runtime"
                  exec="onos ${OCI} app deactivate org.onosproject.protocols.p4runtime" requires="App-Activate-All.App-Check-protocols.p4runtime"/>
            <step name="App-Activate-All.Wait-For-Deactivate-protocols.p4runtime"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-protocols.p4runtime"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-protocols.p4runtime"/>      
            <group name="App-Activate-All.App-Check-After-protocols.p4runtime" requires="App-Activate-All.Wait-For-Deactivate-protocols.p4runtime">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-protocols.p4runtime" exec="onos-check-logs ${OC#}"/>
@@ -613,7 +615,7 @@
            <step name="App-Activate-All.App-Deactivate-hostprovider"
                  exec="onos ${OCI} app deactivate org.onosproject.hostprovider" requires="App-Activate-All.App-Check-hostprovider"/>
            <step name="App-Activate-All.Wait-For-Deactivate-hostprovider"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-hostprovider"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-hostprovider"/>      
            <group name="App-Activate-All.App-Check-After-hostprovider" requires="App-Activate-All.Wait-For-Deactivate-hostprovider">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-hostprovider" exec="onos-check-logs ${OC#}"/>
@@ -637,7 +639,7 @@
            <step name="App-Activate-All.App-Deactivate-ovsdb-base"
                  exec="onos ${OCI} app deactivate org.onosproject.ovsdb-base" requires="App-Activate-All.App-Check-ovsdb-base"/>
            <step name="App-Activate-All.Wait-For-Deactivate-ovsdb-base"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-ovsdb-base"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-ovsdb-base"/>      
            <group name="App-Activate-All.App-Check-After-ovsdb-base" requires="App-Activate-All.Wait-For-Deactivate-ovsdb-base">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-ovsdb-base" exec="onos-check-logs ${OC#}"/>
@@ -661,7 +663,7 @@
            <step name="App-Activate-All.App-Deactivate-drivers.ovsdb"
                  exec="onos ${OCI} app deactivate org.onosproject.drivers.ovsdb" requires="App-Activate-All.App-Check-drivers.ovsdb"/>
            <step name="App-Activate-All.Wait-For-Deactivate-drivers.ovsdb"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivers.ovsdb"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-drivers.ovsdb"/>      
            <group name="App-Activate-All.App-Check-After-drivers.ovsdb" requires="App-Activate-All.Wait-For-Deactivate-drivers.ovsdb">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-drivers.ovsdb" exec="onos-check-logs ${OC#}"/>
@@ -685,7 +687,7 @@
            <step name="App-Activate-All.App-Deactivate-openstacknode"
                  exec="onos ${OCI} app deactivate org.onosproject.openstacknode" requires="App-Activate-All.App-Check-openstacknode"/>
            <step name="App-Activate-All.Wait-For-Deactivate-openstacknode"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-openstacknode"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-openstacknode"/>      
            <group name="App-Activate-All.App-Check-After-openstacknode" requires="App-Activate-All.Wait-For-Deactivate-openstacknode">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-openstacknode" exec="onos-check-logs ${OC#}"/>
@@ -709,7 +711,7 @@
            <step name="App-Activate-All.App-Deactivate-openstacknetworking"
                  exec="onos ${OCI} app deactivate org.onosproject.openstacknetworking" requires="App-Activate-All.App-Check-openstacknetworking"/>
            <step name="App-Activate-All.Wait-For-Deactivate-openstacknetworking"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-openstacknetworking"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-openstacknetworking"/>      
            <group name="App-Activate-All.App-Check-After-openstacknetworking" requires="App-Activate-All.Wait-For-Deactivate-openstacknetworking">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-openstacknetworking" exec="onos-check-logs ${OC#}"/>
@@ -733,7 +735,7 @@
            <step name="App-Activate-All.App-Deactivate-models.ietf"
                  exec="onos ${OCI} app deactivate org.onosproject.models.ietf" requires="App-Activate-All.App-Check-models.ietf"/>
            <step name="App-Activate-All.Wait-For-Deactivate-models.ietf"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-models.ietf"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-models.ietf"/>      
            <group name="App-Activate-All.App-Check-After-models.ietf" requires="App-Activate-All.Wait-For-Deactivate-models.ietf">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-models.ietf" exec="onos-check-logs ${OC#}"/>
@@ -757,7 +759,7 @@
            <step name="App-Activate-All.App-Deactivate-kafka-integration"
                  exec="onos ${OCI} app deactivate org.onosproject.kafka-integration" requires="App-Activate-All.App-Check-kafka-integration"/>
            <step name="App-Activate-All.Wait-For-Deactivate-kafka-integration"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-kafka-integration"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-kafka-integration"/>      
            <group name="App-Activate-All.App-Check-After-kafka-integration" requires="App-Activate-All.Wait-For-Deactivate-kafka-integration">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-kafka-integration" exec="onos-check-logs ${OC#}"/>
@@ -781,7 +783,7 @@
            <step name="App-Activate-All.App-Deactivate-inbandtelemetry"
                  exec="onos ${OCI} app deactivate org.onosproject.inbandtelemetry" requires="App-Activate-All.App-Check-inbandtelemetry"/>
            <step name="App-Activate-All.Wait-For-Deactivate-inbandtelemetry"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-inbandtelemetry"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-inbandtelemetry"/>      
            <group name="App-Activate-All.App-Check-After-inbandtelemetry" requires="App-Activate-All.Wait-For-Deactivate-inbandtelemetry">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-inbandtelemetry" exec="onos-check-logs ${OC#}"/>
@@ -805,7 +807,7 @@
            <step name="App-Activate-All.App-Deactivate-configsync"
                  exec="onos ${OCI} app deactivate org.onosproject.configsync" requires="App-Activate-All.App-Check-configsync"/>
            <step name="App-Activate-All.Wait-For-Deactivate-configsync"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-configsync"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-configsync"/>      
            <group name="App-Activate-All.App-Check-After-configsync" requires="App-Activate-All.Wait-For-Deactivate-configsync">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-configsync" exec="onos-check-logs ${OC#}"/>
@@ -829,7 +831,7 @@
            <step name="App-Activate-All.App-Deactivate-models.tapi"
                  exec="onos ${OCI} app deactivate org.onosproject.models.tapi" requires="App-Activate-All.App-Check-models.tapi"/>
            <step name="App-Activate-All.Wait-For-Deactivate-models.tapi"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-models.tapi"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-models.tapi"/>      
            <group name="App-Activate-All.App-Check-After-models.tapi" requires="App-Activate-All.Wait-For-Deactivate-models.tapi">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-models.tapi" exec="onos-check-logs ${OC#}"/>
@@ -853,7 +855,7 @@
            <step name="App-Activate-All.App-Deactivate-models.openconfig"
                  exec="onos ${OCI} app deactivate org.onosproject.models.openconfig" requires="App-Activate-All.App-Check-models.openconfig"/>
            <step name="App-Activate-All.Wait-For-Deactivate-models.openconfig"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-models.openconfig"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-models.openconfig"/>      
            <group name="App-Activate-All.App-Check-After-models.openconfig" requires="App-Activate-All.Wait-For-Deactivate-models.openconfig">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-models.openconfig" exec="onos-check-logs ${OC#}"/>
@@ -877,7 +879,7 @@
            <step name="App-Activate-All.App-Deactivate-models.openconfig-infinera"
                  exec="onos ${OCI} app deactivate org.onosproject.models.openconfig-infinera" requires="App-Activate-All.App-Check-models.openconfig-infinera"/>
            <step name="App-Activate-All.Wait-For-Deactivate-models.openconfig-infinera"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-models.openconfig-infinera"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-models.openconfig-infinera"/>      
            <group name="App-Activate-All.App-Check-After-models.openconfig-infinera" requires="App-Activate-All.Wait-For-Deactivate-models.openconfig-infinera">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-models.openconfig-infinera" exec="onos-check-logs ${OC#}"/>
@@ -901,7 +903,7 @@
            <step name="App-Activate-All.App-Deactivate-models.openconfig-odtn"
                  exec="onos ${OCI} app deactivate org.onosproject.models.openconfig-odtn" requires="App-Activate-All.App-Check-models.openconfig-odtn"/>
            <step name="App-Activate-All.Wait-For-Deactivate-models.openconfig-odtn"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-models.openconfig-odtn"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-models.openconfig-odtn"/>      
            <group name="App-Activate-All.App-Check-After-models.openconfig-odtn" requires="App-Activate-All.Wait-For-Deactivate-models.openconfig-odtn">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-models.openconfig-odtn" exec="onos-check-logs ${OC#}"/>
@@ -925,7 +927,7 @@
            <step name="App-Activate-All.App-Deactivate-odtn-api"
                  exec="onos ${OCI} app deactivate org.onosproject.odtn-api" requires="App-Activate-All.App-Check-odtn-api"/>
            <step name="App-Activate-All.Wait-For-Deactivate-odtn-api"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-odtn-api"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-odtn-api"/>      
            <group name="App-Activate-All.App-Check-After-odtn-api" requires="App-Activate-All.Wait-For-Deactivate-odtn-api">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-odtn-api" exec="onos-check-logs ${OC#}"/>
@@ -949,7 +951,7 @@
            <step name="App-Activate-All.App-Deactivate-restsb"
                  exec="onos ${OCI} app deactivate org.onosproject.restsb" requires="App-Activate-All.App-Check-restsb"/>
            <step name="App-Activate-All.Wait-For-Deactivate-restsb"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-restsb"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-restsb"/>      
            <group name="App-Activate-All.App-Check-After-restsb" requires="App-Activate-All.Wait-For-Deactivate-restsb">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-restsb" exec="onos-check-logs ${OC#}"/>
@@ -973,7 +975,7 @@
            <step name="App-Activate-All.App-Deactivate-optical-model"
                  exec="onos ${OCI} app deactivate org.onosproject.optical-model" requires="App-Activate-All.App-Check-optical-model"/>
            <step name="App-Activate-All.Wait-For-Deactivate-optical-model"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-optical-model"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-optical-model"/>      
            <group name="App-Activate-All.App-Check-After-optical-model" requires="App-Activate-All.Wait-For-Deactivate-optical-model">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-optical-model" exec="onos-check-logs ${OC#}"/>
@@ -997,7 +999,7 @@
            <step name="App-Activate-All.App-Deactivate-drivers.optical"
                  exec="onos ${OCI} app deactivate org.onosproject.drivers.optical" requires="App-Activate-All.App-Check-drivers.optical"/>
            <step name="App-Activate-All.Wait-For-Deactivate-drivers.optical"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivers.optical"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-drivers.optical"/>      
            <group name="App-Activate-All.App-Check-After-drivers.optical" requires="App-Activate-All.Wait-For-Deactivate-drivers.optical">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-drivers.optical" exec="onos-check-logs ${OC#}"/>
@@ -1021,7 +1023,7 @@
            <step name="App-Activate-All.App-Deactivate-drivers.odtn-driver"
                  exec="onos ${OCI} app deactivate org.onosproject.drivers.odtn-driver" requires="App-Activate-All.App-Check-drivers.odtn-driver"/>
            <step name="App-Activate-All.Wait-For-Deactivate-drivers.odtn-driver"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivers.odtn-driver"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-drivers.odtn-driver"/>      
            <group name="App-Activate-All.App-Check-After-drivers.odtn-driver" requires="App-Activate-All.Wait-For-Deactivate-drivers.odtn-driver">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-drivers.odtn-driver" exec="onos-check-logs ${OC#}"/>
@@ -1045,7 +1047,7 @@
            <step name="App-Activate-All.App-Deactivate-configsync-netconf"
                  exec="onos ${OCI} app deactivate org.onosproject.configsync-netconf" requires="App-Activate-All.App-Check-configsync-netconf"/>
            <step name="App-Activate-All.Wait-For-Deactivate-configsync-netconf"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-configsync-netconf"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-configsync-netconf"/>      
            <group name="App-Activate-All.App-Check-After-configsync-netconf" requires="App-Activate-All.Wait-For-Deactivate-configsync-netconf">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-configsync-netconf" exec="onos-check-logs ${OC#}"/>
@@ -1069,7 +1071,7 @@
            <step name="App-Activate-All.App-Deactivate-vtn"
                  exec="onos ${OCI} app deactivate org.onosproject.vtn" requires="App-Activate-All.App-Check-vtn"/>
            <step name="App-Activate-All.Wait-For-Deactivate-vtn"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-vtn"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-vtn"/>      
            <group name="App-Activate-All.App-Check-After-vtn" requires="App-Activate-All.Wait-For-Deactivate-vtn">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-vtn" exec="onos-check-logs ${OC#}"/>
@@ -1093,7 +1095,7 @@
            <step name="App-Activate-All.App-Deactivate-loadtest"
                  exec="onos ${OCI} app deactivate org.onosproject.loadtest" requires="App-Activate-All.App-Check-loadtest"/>
            <step name="App-Activate-All.Wait-For-Deactivate-loadtest"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-loadtest"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-loadtest"/>      
            <group name="App-Activate-All.App-Check-After-loadtest" requires="App-Activate-All.Wait-For-Deactivate-loadtest">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-loadtest" exec="onos-check-logs ${OC#}"/>
@@ -1117,7 +1119,7 @@
            <step name="App-Activate-All.App-Deactivate-protocols.gnmi"
                  exec="onos ${OCI} app deactivate org.onosproject.protocols.gnmi" requires="App-Activate-All.App-Check-protocols.gnmi"/>
            <step name="App-Activate-All.Wait-For-Deactivate-protocols.gnmi"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-protocols.gnmi"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-protocols.gnmi"/>      
            <group name="App-Activate-All.App-Check-After-protocols.gnmi" requires="App-Activate-All.Wait-For-Deactivate-protocols.gnmi">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-protocols.gnmi" exec="onos-check-logs ${OC#}"/>
@@ -1141,7 +1143,7 @@
            <step name="App-Activate-All.App-Deactivate-generaldeviceprovider"
                  exec="onos ${OCI} app deactivate org.onosproject.generaldeviceprovider" requires="App-Activate-All.App-Check-generaldeviceprovider"/>
            <step name="App-Activate-All.Wait-For-Deactivate-generaldeviceprovider"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-generaldeviceprovider"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-generaldeviceprovider"/>      
            <group name="App-Activate-All.App-Check-After-generaldeviceprovider" requires="App-Activate-All.Wait-For-Deactivate-generaldeviceprovider">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-generaldeviceprovider" exec="onos-check-logs ${OC#}"/>
@@ -1165,7 +1167,7 @@
            <step name="App-Activate-All.App-Deactivate-p4runtime"
                  exec="onos ${OCI} app deactivate org.onosproject.p4runtime" requires="App-Activate-All.App-Check-p4runtime"/>
            <step name="App-Activate-All.Wait-For-Deactivate-p4runtime"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-p4runtime"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-p4runtime"/>      
            <group name="App-Activate-All.App-Check-After-p4runtime" requires="App-Activate-All.Wait-For-Deactivate-p4runtime">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-p4runtime" exec="onos-check-logs ${OC#}"/>
@@ -1189,7 +1191,7 @@
            <step name="App-Activate-All.App-Deactivate-drivers.p4runtime"
                  exec="onos ${OCI} app deactivate org.onosproject.drivers.p4runtime" requires="App-Activate-All.App-Check-drivers.p4runtime"/>
            <step name="App-Activate-All.Wait-For-Deactivate-drivers.p4runtime"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivers.p4runtime"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-drivers.p4runtime"/>      
            <group name="App-Activate-All.App-Check-After-drivers.p4runtime" requires="App-Activate-All.Wait-For-Deactivate-drivers.p4runtime">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-drivers.p4runtime" exec="onos-check-logs ${OC#}"/>
@@ -1213,7 +1215,7 @@
            <step name="App-Activate-All.App-Deactivate-pipelines.basic"
                  exec="onos ${OCI} app deactivate org.onosproject.pipelines.basic" requires="App-Activate-All.App-Check-pipelines.basic"/>
            <step name="App-Activate-All.Wait-For-Deactivate-pipelines.basic"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-pipelines.basic"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-pipelines.basic"/>      
            <group name="App-Activate-All.App-Check-After-pipelines.basic" requires="App-Activate-All.Wait-For-Deactivate-pipelines.basic">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-pipelines.basic" exec="onos-check-logs ${OC#}"/>
@@ -1237,7 +1239,7 @@
            <step name="App-Activate-All.App-Deactivate-pipelines.fabric"
                  exec="onos ${OCI} app deactivate org.onosproject.pipelines.fabric" requires="App-Activate-All.App-Check-pipelines.fabric"/>
            <step name="App-Activate-All.Wait-For-Deactivate-pipelines.fabric"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-pipelines.fabric"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-pipelines.fabric"/>      
            <group name="App-Activate-All.App-Check-After-pipelines.fabric" requires="App-Activate-All.Wait-For-Deactivate-pipelines.fabric">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-pipelines.fabric" exec="onos-check-logs ${OC#}"/>
@@ -1261,7 +1263,7 @@
            <step name="App-Activate-All.App-Deactivate-events"
                  exec="onos ${OCI} app deactivate org.onosproject.events" requires="App-Activate-All.App-Check-events"/>
            <step name="App-Activate-All.Wait-For-Deactivate-events"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-events"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-events"/>      
            <group name="App-Activate-All.App-Check-After-events" requires="App-Activate-All.Wait-For-Deactivate-events">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-events" exec="onos-check-logs ${OC#}"/>
@@ -1285,7 +1287,7 @@
            <step name="App-Activate-All.App-Deactivate-intentsynchronizer"
                  exec="onos ${OCI} app deactivate org.onosproject.intentsynchronizer" requires="App-Activate-All.App-Check-intentsynchronizer"/>
            <step name="App-Activate-All.Wait-For-Deactivate-intentsynchronizer"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-intentsynchronizer"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-intentsynchronizer"/>      
            <group name="App-Activate-All.App-Check-After-intentsynchronizer" requires="App-Activate-All.Wait-For-Deactivate-intentsynchronizer">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-intentsynchronizer" exec="onos-check-logs ${OC#}"/>
@@ -1309,7 +1311,7 @@
            <step name="App-Activate-All.App-Deactivate-route-service"
                  exec="onos ${OCI} app deactivate org.onosproject.route-service" requires="App-Activate-All.App-Check-route-service"/>
            <step name="App-Activate-All.Wait-For-Deactivate-route-service"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-route-service"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-route-service"/>      
            <group name="App-Activate-All.App-Check-After-route-service" requires="App-Activate-All.Wait-For-Deactivate-route-service">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-route-service" exec="onos-check-logs ${OC#}"/>
@@ -1333,7 +1335,7 @@
            <step name="App-Activate-All.App-Deactivate-fpm"
                  exec="onos ${OCI} app deactivate org.onosproject.fpm" requires="App-Activate-All.App-Check-fpm"/>
            <step name="App-Activate-All.Wait-For-Deactivate-fpm"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-fpm"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-fpm"/>      
            <group name="App-Activate-All.App-Check-After-fpm" requires="App-Activate-All.Wait-For-Deactivate-fpm">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-fpm" exec="onos-check-logs ${OC#}"/>
@@ -1357,7 +1359,7 @@
            <step name="App-Activate-All.App-Deactivate-dhcprelay"
                  exec="onos ${OCI} app deactivate org.onosproject.dhcprelay" requires="App-Activate-All.App-Check-dhcprelay"/>
            <step name="App-Activate-All.Wait-For-Deactivate-dhcprelay"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-dhcprelay"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-dhcprelay"/>      
            <group name="App-Activate-All.App-Check-After-dhcprelay" requires="App-Activate-All.Wait-For-Deactivate-dhcprelay">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-dhcprelay" exec="onos-check-logs ${OC#}"/>
@@ -1381,7 +1383,7 @@
            <step name="App-Activate-All.App-Deactivate-metrics"
                  exec="onos ${OCI} app deactivate org.onosproject.metrics" requires="App-Activate-All.App-Check-metrics"/>
            <step name="App-Activate-All.Wait-For-Deactivate-metrics"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-metrics"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-metrics"/>      
            <group name="App-Activate-All.App-Check-After-metrics" requires="App-Activate-All.Wait-For-Deactivate-metrics">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-metrics" exec="onos-check-logs ${OC#}"/>
@@ -1405,7 +1407,7 @@
            <step name="App-Activate-All.App-Deactivate-fwd"
                  exec="onos ${OCI} app deactivate org.onosproject.fwd" requires="App-Activate-All.App-Check-fwd"/>
            <step name="App-Activate-All.Wait-For-Deactivate-fwd"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-fwd"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-fwd"/>      
            <group name="App-Activate-All.App-Check-After-fwd" requires="App-Activate-All.Wait-For-Deactivate-fwd">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-fwd" exec="onos-check-logs ${OC#}"/>
@@ -1429,7 +1431,7 @@
            <step name="App-Activate-All.App-Deactivate-proxyarp"
                  exec="onos ${OCI} app deactivate org.onosproject.proxyarp" requires="App-Activate-All.App-Check-proxyarp"/>
            <step name="App-Activate-All.Wait-For-Deactivate-proxyarp"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-proxyarp"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-proxyarp"/>      
            <group name="App-Activate-All.App-Check-After-proxyarp" requires="App-Activate-All.Wait-For-Deactivate-proxyarp">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-proxyarp" exec="onos-check-logs ${OC#}"/>
@@ -1453,7 +1455,7 @@
            <step name="App-Activate-All.App-Deactivate-models.polatis"
                  exec="onos ${OCI} app deactivate org.onosproject.models.polatis" requires="App-Activate-All.App-Check-models.polatis"/>
            <step name="App-Activate-All.Wait-For-Deactivate-models.polatis"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-models.polatis"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-models.polatis"/>      
            <group name="App-Activate-All.App-Check-After-models.polatis" requires="App-Activate-All.Wait-For-Deactivate-models.polatis">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-models.polatis" exec="onos-check-logs ${OC#}"/>
@@ -1477,7 +1479,7 @@
            <step name="App-Activate-All.App-Deactivate-drivers.polatis.netconf"
                  exec="onos ${OCI} app deactivate org.onosproject.drivers.polatis.netconf" requires="App-Activate-All.App-Check-drivers.polatis.netconf"/>
            <step name="App-Activate-All.Wait-For-Deactivate-drivers.polatis.netconf"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivers.polatis.netconf"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-drivers.polatis.netconf"/>      
            <group name="App-Activate-All.App-Check-After-drivers.polatis.netconf" requires="App-Activate-All.Wait-For-Deactivate-drivers.polatis.netconf">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-drivers.polatis.netconf" exec="onos-check-logs ${OC#}"/>
@@ -1501,7 +1503,7 @@
            <step name="App-Activate-All.App-Deactivate-lldpprovider"
                  exec="onos ${OCI} app deactivate org.onosproject.lldpprovider" requires="App-Activate-All.App-Check-lldpprovider"/>
            <step name="App-Activate-All.Wait-For-Deactivate-lldpprovider"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-lldpprovider"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-lldpprovider"/>      
            <group name="App-Activate-All.App-Check-After-lldpprovider" requires="App-Activate-All.Wait-For-Deactivate-lldpprovider">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-lldpprovider" exec="onos-check-logs ${OC#}"/>
@@ -1525,7 +1527,7 @@
            <step name="App-Activate-All.App-Deactivate-openflow-base"
                  exec="onos ${OCI} app deactivate org.onosproject.openflow-base" requires="App-Activate-All.App-Check-openflow-base"/>
            <step name="App-Activate-All.Wait-For-Deactivate-openflow-base"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-openflow-base"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-openflow-base"/>      
            <group name="App-Activate-All.App-Check-After-openflow-base" requires="App-Activate-All.Wait-For-Deactivate-openflow-base">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-openflow-base" exec="onos-check-logs ${OC#}"/>
@@ -1549,7 +1551,7 @@
            <step name="App-Activate-All.App-Deactivate-openflow"
                  exec="onos ${OCI} app deactivate org.onosproject.openflow" requires="App-Activate-All.App-Check-openflow"/>
            <step name="App-Activate-All.Wait-For-Deactivate-openflow"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-openflow"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-openflow"/>      
            <group name="App-Activate-All.App-Check-After-openflow" requires="App-Activate-All.Wait-For-Deactivate-openflow">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-openflow" exec="onos-check-logs ${OC#}"/>
@@ -1573,7 +1575,7 @@
            <step name="App-Activate-All.App-Deactivate-drivers.corsa"
                  exec="onos ${OCI} app deactivate org.onosproject.drivers.corsa" requires="App-Activate-All.App-Check-drivers.corsa"/>
            <step name="App-Activate-All.Wait-For-Deactivate-drivers.corsa"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivers.corsa"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-drivers.corsa"/>      
            <group name="App-Activate-All.App-Check-After-drivers.corsa" requires="App-Activate-All.Wait-For-Deactivate-drivers.corsa">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-drivers.corsa" exec="onos-check-logs ${OC#}"/>
@@ -1597,7 +1599,7 @@
            <step name="App-Activate-All.App-Deactivate-network-troubleshoot"
                  exec="onos ${OCI} app deactivate org.onosproject.network-troubleshoot" requires="App-Activate-All.App-Check-network-troubleshoot"/>
            <step name="App-Activate-All.Wait-For-Deactivate-network-troubleshoot"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-network-troubleshoot"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-network-troubleshoot"/>      
            <group name="App-Activate-All.App-Check-After-network-troubleshoot" requires="App-Activate-All.Wait-For-Deactivate-network-troubleshoot">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-network-troubleshoot" exec="onos-check-logs ${OC#}"/>
@@ -1621,7 +1623,7 @@
            <step name="App-Activate-All.App-Deactivate-drivers.mellanox"
                  exec="onos ${OCI} app deactivate org.onosproject.drivers.mellanox" requires="App-Activate-All.App-Check-drivers.mellanox"/>
            <step name="App-Activate-All.Wait-For-Deactivate-drivers.mellanox"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivers.mellanox"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-drivers.mellanox"/>      
            <group name="App-Activate-All.App-Check-After-drivers.mellanox" requires="App-Activate-All.Wait-For-Deactivate-drivers.mellanox">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-drivers.mellanox" exec="onos-check-logs ${OC#}"/>
@@ -1645,7 +1647,7 @@
            <step name="App-Activate-All.App-Deactivate-drivermatrix"
                  exec="onos ${OCI} app deactivate org.onosproject.drivermatrix" requires="App-Activate-All.App-Check-drivermatrix"/>
            <step name="App-Activate-All.Wait-For-Deactivate-drivermatrix"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivermatrix"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-drivermatrix"/>      
            <group name="App-Activate-All.App-Check-After-drivermatrix" requires="App-Activate-All.Wait-For-Deactivate-drivermatrix">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-drivermatrix" exec="onos-check-logs ${OC#}"/>
@@ -1669,7 +1671,7 @@
            <step name="App-Activate-All.App-Deactivate-messaging-perf"
                  exec="onos ${OCI} app deactivate org.onosproject.messaging-perf" requires="App-Activate-All.App-Check-messaging-perf"/>
            <step name="App-Activate-All.Wait-For-Deactivate-messaging-perf"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-messaging-perf"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-messaging-perf"/>      
            <group name="App-Activate-All.App-Check-After-messaging-perf" requires="App-Activate-All.Wait-For-Deactivate-messaging-perf">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-messaging-perf" exec="onos-check-logs ${OC#}"/>
@@ -1693,7 +1695,7 @@
            <step name="App-Activate-All.App-Deactivate-hostprobingprovider"
                  exec="onos ${OCI} app deactivate org.onosproject.hostprobingprovider" requires="App-Activate-All.App-Check-hostprobingprovider"/>
            <step name="App-Activate-All.Wait-For-Deactivate-hostprobingprovider"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-hostprobingprovider"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-hostprobingprovider"/>      
            <group name="App-Activate-All.App-Check-After-hostprobingprovider" requires="App-Activate-All.Wait-For-Deactivate-hostprobingprovider">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-hostprobingprovider" exec="onos-check-logs ${OC#}"/>
@@ -1717,7 +1719,7 @@
            <step name="App-Activate-All.App-Deactivate-pcep-api"
                  exec="onos ${OCI} app deactivate org.onosproject.pcep-api" requires="App-Activate-All.App-Check-pcep-api"/>
            <step name="App-Activate-All.Wait-For-Deactivate-pcep-api"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-pcep-api"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-pcep-api"/>      
            <group name="App-Activate-All.App-Check-After-pcep-api" requires="App-Activate-All.Wait-For-Deactivate-pcep-api">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-pcep-api" exec="onos-check-logs ${OC#}"/>
@@ -1741,7 +1743,7 @@
            <step name="App-Activate-All.App-Deactivate-distributedprimitives"
                  exec="onos ${OCI} app deactivate org.onosproject.distributedprimitives" requires="App-Activate-All.App-Check-distributedprimitives"/>
            <step name="App-Activate-All.Wait-For-Deactivate-distributedprimitives"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-distributedprimitives"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-distributedprimitives"/>      
            <group name="App-Activate-All.App-Check-After-distributedprimitives" requires="App-Activate-All.Wait-For-Deactivate-distributedprimitives">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-distributedprimitives" exec="onos-check-logs ${OC#}"/>
@@ -1765,7 +1767,7 @@
            <step name="App-Activate-All.App-Deactivate-openstackvtap"
                  exec="onos ${OCI} app deactivate org.onosproject.openstackvtap" requires="App-Activate-All.App-Check-openstackvtap"/>
            <step name="App-Activate-All.Wait-For-Deactivate-openstackvtap"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-openstackvtap"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-openstackvtap"/>      
            <group name="App-Activate-All.App-Check-After-openstackvtap" requires="App-Activate-All.Wait-For-Deactivate-openstackvtap">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-openstackvtap" exec="onos-check-logs ${OC#}"/>
@@ -1789,7 +1791,7 @@
            <step name="App-Activate-All.App-Deactivate-virtual"
                  exec="onos ${OCI} app deactivate org.onosproject.virtual" requires="App-Activate-All.App-Check-virtual"/>
            <step name="App-Activate-All.Wait-For-Deactivate-virtual"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-virtual"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-virtual"/>      
            <group name="App-Activate-All.App-Check-After-virtual" requires="App-Activate-All.Wait-For-Deactivate-virtual">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-virtual" exec="onos-check-logs ${OC#}"/>
@@ -1813,7 +1815,7 @@
            <step name="App-Activate-All.App-Deactivate-models.openroadm"
                  exec="onos ${OCI} app deactivate org.onosproject.models.openroadm" requires="App-Activate-All.App-Check-models.openroadm"/>
            <step name="App-Activate-All.Wait-For-Deactivate-models.openroadm"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-models.openroadm"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-models.openroadm"/>      
            <group name="App-Activate-All.App-Check-After-models.openroadm" requires="App-Activate-All.Wait-For-Deactivate-models.openroadm">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-models.openroadm" exec="onos-check-logs ${OC#}"/>
@@ -1837,7 +1839,7 @@
            <step name="App-Activate-All.App-Deactivate-openroadm"
                  exec="onos ${OCI} app deactivate org.onosproject.openroadm" requires="App-Activate-All.App-Check-openroadm"/>
            <step name="App-Activate-All.Wait-For-Deactivate-openroadm"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-openroadm"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-openroadm"/>      
            <group name="App-Activate-All.App-Check-After-openroadm" requires="App-Activate-All.Wait-For-Deactivate-openroadm">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-openroadm" exec="onos-check-logs ${OC#}"/>
@@ -1861,7 +1863,7 @@
            <step name="App-Activate-All.App-Deactivate-tetopology"
                  exec="onos ${OCI} app deactivate org.onosproject.tetopology" requires="App-Activate-All.App-Check-tetopology"/>
            <step name="App-Activate-All.Wait-For-Deactivate-tetopology"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-tetopology"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-tetopology"/>      
            <group name="App-Activate-All.App-Check-After-tetopology" requires="App-Activate-All.Wait-For-Deactivate-tetopology">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-tetopology" exec="onos-check-logs ${OC#}"/>
@@ -1885,7 +1887,7 @@
            <step name="App-Activate-All.App-Deactivate-tetunnel"
                  exec="onos ${OCI} app deactivate org.onosproject.tetunnel" requires="App-Activate-All.App-Check-tetunnel"/>
            <step name="App-Activate-All.Wait-For-Deactivate-tetunnel"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-tetunnel"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-tetunnel"/>      
            <group name="App-Activate-All.App-Check-After-tetunnel" requires="App-Activate-All.Wait-For-Deactivate-tetunnel">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-tetunnel" exec="onos-check-logs ${OC#}"/>
@@ -1909,7 +1911,7 @@
            <step name="App-Activate-All.App-Deactivate-ovsdbhostprovider"
                  exec="onos ${OCI} app deactivate org.onosproject.ovsdbhostprovider" requires="App-Activate-All.App-Check-ovsdbhostprovider"/>
            <step name="App-Activate-All.Wait-For-Deactivate-ovsdbhostprovider"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-ovsdbhostprovider"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-ovsdbhostprovider"/>      
            <group name="App-Activate-All.App-Check-After-ovsdbhostprovider" requires="App-Activate-All.Wait-For-Deactivate-ovsdbhostprovider">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-ovsdbhostprovider" exec="onos-check-logs ${OC#}"/>
@@ -1933,7 +1935,7 @@
            <step name="App-Activate-All.App-Deactivate-ovsdb"
                  exec="onos ${OCI} app deactivate org.onosproject.ovsdb" requires="App-Activate-All.App-Check-ovsdb"/>
            <step name="App-Activate-All.Wait-For-Deactivate-ovsdb"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-ovsdb"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-ovsdb"/>      
            <group name="App-Activate-All.App-Check-After-ovsdb" requires="App-Activate-All.Wait-For-Deactivate-ovsdb">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-ovsdb" exec="onos-check-logs ${OC#}"/>
@@ -1957,7 +1959,7 @@
            <step name="App-Activate-All.App-Deactivate-drivers.barefoot"
                  exec="onos ${OCI} app deactivate org.onosproject.drivers.barefoot" requires="App-Activate-All.App-Check-drivers.barefoot"/>
            <step name="App-Activate-All.Wait-For-Deactivate-drivers.barefoot"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivers.barefoot"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-drivers.barefoot"/>      
            <group name="App-Activate-All.App-Check-After-drivers.barefoot" requires="App-Activate-All.Wait-For-Deactivate-drivers.barefoot">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-drivers.barefoot" exec="onos-check-logs ${OC#}"/>
@@ -1981,7 +1983,7 @@
            <step name="App-Activate-All.App-Deactivate-influxdbmetrics"
                  exec="onos ${OCI} app deactivate org.onosproject.influxdbmetrics" requires="App-Activate-All.App-Check-influxdbmetrics"/>
            <step name="App-Activate-All.Wait-For-Deactivate-influxdbmetrics"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-influxdbmetrics"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-influxdbmetrics"/>      
            <group name="App-Activate-All.App-Check-After-influxdbmetrics" requires="App-Activate-All.Wait-For-Deactivate-influxdbmetrics">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-influxdbmetrics" exec="onos-check-logs ${OC#}"/>
@@ -2005,7 +2007,7 @@
            <step name="App-Activate-All.App-Deactivate-evpn-route-service"
                  exec="onos ${OCI} app deactivate org.onosproject.evpn-route-service" requires="App-Activate-All.App-Check-evpn-route-service"/>
            <step name="App-Activate-All.Wait-For-Deactivate-evpn-route-service"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-evpn-route-service"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-evpn-route-service"/>      
            <group name="App-Activate-All.App-Check-After-evpn-route-service" requires="App-Activate-All.Wait-For-Deactivate-evpn-route-service">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-evpn-route-service" exec="onos-check-logs ${OC#}"/>
@@ -2029,7 +2031,7 @@
            <step name="App-Activate-All.App-Deactivate-gluon"
                  exec="onos ${OCI} app deactivate org.onosproject.gluon" requires="App-Activate-All.App-Check-gluon"/>
            <step name="App-Activate-All.Wait-For-Deactivate-gluon"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-gluon"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-gluon"/>      
            <group name="App-Activate-All.App-Check-After-gluon" requires="App-Activate-All.Wait-For-Deactivate-gluon">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-gluon" exec="onos-check-logs ${OC#}"/>
@@ -2053,7 +2055,7 @@
            <step name="App-Activate-All.App-Deactivate-evpnopenflow"
                  exec="onos ${OCI} app deactivate org.onosproject.evpnopenflow" requires="App-Activate-All.App-Check-evpnopenflow"/>
            <step name="App-Activate-All.Wait-For-Deactivate-evpnopenflow"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-evpnopenflow"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-evpnopenflow"/>      
            <group name="App-Activate-All.App-Check-After-evpnopenflow" requires="App-Activate-All.Wait-For-Deactivate-evpnopenflow">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-evpnopenflow" exec="onos-check-logs ${OC#}"/>
@@ -2077,7 +2079,7 @@
            <step name="App-Activate-All.App-Deactivate-drivers.juniper"
                  exec="onos ${OCI} app deactivate org.onosproject.drivers.juniper" requires="App-Activate-All.App-Check-drivers.juniper"/>
            <step name="App-Activate-All.Wait-For-Deactivate-drivers.juniper"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivers.juniper"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-drivers.juniper"/>      
            <group name="App-Activate-All.App-Check-After-drivers.juniper" requires="App-Activate-All.Wait-For-Deactivate-drivers.juniper">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-drivers.juniper" exec="onos-check-logs ${OC#}"/>
@@ -2101,7 +2103,7 @@
            <step name="App-Activate-All.App-Deactivate-pathpainter"
                  exec="onos ${OCI} app deactivate org.onosproject.pathpainter" requires="App-Activate-All.App-Check-pathpainter"/>
            <step name="App-Activate-All.Wait-For-Deactivate-pathpainter"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-pathpainter"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-pathpainter"/>      
            <group name="App-Activate-All.App-Check-After-pathpainter" requires="App-Activate-All.Wait-For-Deactivate-pathpainter">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-pathpainter" exec="onos-check-logs ${OC#}"/>
@@ -2125,7 +2127,7 @@
            <step name="App-Activate-All.App-Deactivate-simplefabric"
                  exec="onos ${OCI} app deactivate org.onosproject.simplefabric" requires="App-Activate-All.App-Check-simplefabric"/>
            <step name="App-Activate-All.Wait-For-Deactivate-simplefabric"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-simplefabric"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-simplefabric"/>      
            <group name="App-Activate-All.App-Check-After-simplefabric" requires="App-Activate-All.Wait-For-Deactivate-simplefabric">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-simplefabric" exec="onos-check-logs ${OC#}"/>
@@ -2149,7 +2151,7 @@
            <step name="App-Activate-All.App-Deactivate-flowanalyzer"
                  exec="onos ${OCI} app deactivate org.onosproject.flowanalyzer" requires="App-Activate-All.App-Check-flowanalyzer"/>
            <step name="App-Activate-All.Wait-For-Deactivate-flowanalyzer"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-flowanalyzer"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-flowanalyzer"/>      
            <group name="App-Activate-All.App-Check-After-flowanalyzer" requires="App-Activate-All.Wait-For-Deactivate-flowanalyzer">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-flowanalyzer" exec="onos-check-logs ${OC#}"/>
@@ -2173,7 +2175,7 @@
            <step name="App-Activate-All.App-Deactivate-null"
                  exec="onos ${OCI} app deactivate org.onosproject.null" requires="App-Activate-All.App-Check-null"/>
            <step name="App-Activate-All.Wait-For-Deactivate-null"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-null"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-null"/>      
            <group name="App-Activate-All.App-Check-After-null" requires="App-Activate-All.Wait-For-Deactivate-null">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-null" exec="onos-check-logs ${OC#}"/>
@@ -2197,7 +2199,7 @@
            <step name="App-Activate-All.App-Deactivate-drivers.server"
                  exec="onos ${OCI} app deactivate org.onosproject.drivers.server" requires="App-Activate-All.App-Check-drivers.server"/>
            <step name="App-Activate-All.Wait-For-Deactivate-drivers.server"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivers.server"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-drivers.server"/>      
            <group name="App-Activate-All.App-Check-After-drivers.server" requires="App-Activate-All.Wait-For-Deactivate-drivers.server">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-drivers.server" exec="onos-check-logs ${OC#}"/>
@@ -2221,7 +2223,7 @@
            <step name="App-Activate-All.App-Deactivate-drivers.gnmi"
                  exec="onos ${OCI} app deactivate org.onosproject.drivers.gnmi" requires="App-Activate-All.App-Check-drivers.gnmi"/>
            <step name="App-Activate-All.Wait-For-Deactivate-drivers.gnmi"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivers.gnmi"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-drivers.gnmi"/>      
            <group name="App-Activate-All.App-Check-After-drivers.gnmi" requires="App-Activate-All.Wait-For-Deactivate-drivers.gnmi">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-drivers.gnmi" exec="onos-check-logs ${OC#}"/>
@@ -2245,7 +2247,7 @@
            <step name="App-Activate-All.App-Deactivate-drivers.stratum"
                  exec="onos ${OCI} app deactivate org.onosproject.drivers.stratum" requires="App-Activate-All.App-Check-drivers.stratum"/>
            <step name="App-Activate-All.Wait-For-Deactivate-drivers.stratum"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivers.stratum"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-drivers.stratum"/>      
            <group name="App-Activate-All.App-Check-After-drivers.stratum" requires="App-Activate-All.Wait-For-Deactivate-drivers.stratum">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-drivers.stratum" exec="onos-check-logs ${OC#}"/>
@@ -2269,7 +2271,7 @@
            <step name="App-Activate-All.App-Deactivate-workflow"
                  exec="onos ${OCI} app deactivate org.onosproject.workflow" requires="App-Activate-All.App-Check-workflow"/>
            <step name="App-Activate-All.Wait-For-Deactivate-workflow"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-workflow"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-workflow"/>      
            <group name="App-Activate-All.App-Check-After-workflow" requires="App-Activate-All.Wait-For-Deactivate-workflow">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-workflow" exec="onos-check-logs ${OC#}"/>
@@ -2293,7 +2295,7 @@
            <step name="App-Activate-All.App-Deactivate-fibinstaller"
                  exec="onos ${OCI} app deactivate org.onosproject.fibinstaller" requires="App-Activate-All.App-Check-fibinstaller"/>
            <step name="App-Activate-All.Wait-For-Deactivate-fibinstaller"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-fibinstaller"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-fibinstaller"/>      
            <group name="App-Activate-All.App-Check-After-fibinstaller" requires="App-Activate-All.Wait-For-Deactivate-fibinstaller">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-fibinstaller" exec="onos-check-logs ${OC#}"/>
@@ -2317,7 +2319,7 @@
            <step name="App-Activate-All.App-Deactivate-vrouter"
                  exec="onos ${OCI} app deactivate org.onosproject.vrouter" requires="App-Activate-All.App-Check-vrouter"/>
            <step name="App-Activate-All.Wait-For-Deactivate-vrouter"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-vrouter"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-vrouter"/>      
            <group name="App-Activate-All.App-Check-After-vrouter" requires="App-Activate-All.Wait-For-Deactivate-vrouter">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-vrouter" exec="onos-check-logs ${OC#}"/>
@@ -2341,7 +2343,7 @@
            <step name="App-Activate-All.App-Deactivate-sdnip"
                  exec="onos ${OCI} app deactivate org.onosproject.sdnip" requires="App-Activate-All.App-Check-sdnip"/>
            <step name="App-Activate-All.Wait-For-Deactivate-sdnip"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-sdnip"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-sdnip"/>      
            <group name="App-Activate-All.App-Check-After-sdnip" requires="App-Activate-All.Wait-For-Deactivate-sdnip">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-sdnip" exec="onos-check-logs ${OC#}"/>
@@ -2365,7 +2367,7 @@
            <step name="App-Activate-All.App-Deactivate-artemis"
                  exec="onos ${OCI} app deactivate org.onosproject.artemis" requires="App-Activate-All.App-Check-artemis"/>
            <step name="App-Activate-All.Wait-For-Deactivate-artemis"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-artemis"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-artemis"/>      
            <group name="App-Activate-All.App-Check-After-artemis" requires="App-Activate-All.Wait-For-Deactivate-artemis">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-artemis" exec="onos-check-logs ${OC#}"/>
@@ -2389,7 +2391,7 @@
            <step name="App-Activate-All.App-Deactivate-flow-perf"
                  exec="onos ${OCI} app deactivate org.onosproject.flow-perf" requires="App-Activate-All.App-Check-flow-perf"/>
            <step name="App-Activate-All.Wait-For-Deactivate-flow-perf"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-flow-perf"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-flow-perf"/>      
            <group name="App-Activate-All.App-Check-After-flow-perf" requires="App-Activate-All.Wait-For-Deactivate-flow-perf">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-flow-perf" exec="onos-check-logs ${OC#}"/>
@@ -2413,7 +2415,7 @@
            <step name="App-Activate-All.App-Deactivate-lisp"
                  exec="onos ${OCI} app deactivate org.onosproject.lisp" requires="App-Activate-All.App-Check-lisp"/>
            <step name="App-Activate-All.Wait-For-Deactivate-lisp"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-lisp"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-lisp"/>      
            <group name="App-Activate-All.App-Check-After-lisp" requires="App-Activate-All.Wait-For-Deactivate-lisp">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-lisp" exec="onos-check-logs ${OC#}"/>
@@ -2437,7 +2439,7 @@
            <step name="App-Activate-All.App-Deactivate-drivers.lisp"
                  exec="onos ${OCI} app deactivate org.onosproject.drivers.lisp" requires="App-Activate-All.App-Check-drivers.lisp"/>
            <step name="App-Activate-All.Wait-For-Deactivate-drivers.lisp"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivers.lisp"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-drivers.lisp"/>      
            <group name="App-Activate-All.App-Check-After-drivers.lisp" requires="App-Activate-All.Wait-For-Deactivate-drivers.lisp">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-drivers.lisp" exec="onos-check-logs ${OC#}"/>
@@ -2461,7 +2463,7 @@
            <step name="App-Activate-All.App-Deactivate-rabbitmq"
                  exec="onos ${OCI} app deactivate org.onosproject.rabbitmq" requires="App-Activate-All.App-Check-rabbitmq"/>
            <step name="App-Activate-All.Wait-For-Deactivate-rabbitmq"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-rabbitmq"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-rabbitmq"/>      
            <group name="App-Activate-All.App-Check-After-rabbitmq" requires="App-Activate-All.Wait-For-Deactivate-rabbitmq">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-rabbitmq" exec="onos-check-logs ${OC#}"/>
@@ -2485,7 +2487,7 @@
            <step name="App-Activate-All.App-Deactivate-snmp"
                  exec="onos ${OCI} app deactivate org.onosproject.snmp" requires="App-Activate-All.App-Check-snmp"/>
            <step name="App-Activate-All.Wait-For-Deactivate-snmp"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-snmp"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-snmp"/>      
            <group name="App-Activate-All.App-Check-After-snmp" requires="App-Activate-All.Wait-For-Deactivate-snmp">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-snmp" exec="onos-check-logs ${OC#}"/>
@@ -2509,7 +2511,7 @@
            <step name="App-Activate-All.App-Deactivate-newoptical"
                  exec="onos ${OCI} app deactivate org.onosproject.newoptical" requires="App-Activate-All.App-Check-newoptical"/>
            <step name="App-Activate-All.Wait-For-Deactivate-newoptical"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-newoptical"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-newoptical"/>      
            <group name="App-Activate-All.App-Check-After-newoptical" requires="App-Activate-All.Wait-For-Deactivate-newoptical">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-newoptical" exec="onos-check-logs ${OC#}"/>
@@ -2533,7 +2535,7 @@
            <step name="App-Activate-All.App-Deactivate-linkdiscovery"
                  exec="onos ${OCI} app deactivate org.onosproject.linkdiscovery" requires="App-Activate-All.App-Check-linkdiscovery"/>
            <step name="App-Activate-All.Wait-For-Deactivate-linkdiscovery"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-linkdiscovery"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-linkdiscovery"/>      
            <group name="App-Activate-All.App-Check-After-linkdiscovery" requires="App-Activate-All.Wait-For-Deactivate-linkdiscovery">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-linkdiscovery" exec="onos-check-logs ${OC#}"/>
@@ -2557,7 +2559,7 @@
            <step name="App-Activate-All.App-Deactivate-drivers.arista"
                  exec="onos ${OCI} app deactivate org.onosproject.drivers.arista" requires="App-Activate-All.App-Check-drivers.arista"/>
            <step name="App-Activate-All.Wait-For-Deactivate-drivers.arista"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivers.arista"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-drivers.arista"/>      
            <group name="App-Activate-All.App-Check-After-drivers.arista" requires="App-Activate-All.Wait-For-Deactivate-drivers.arista">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-drivers.arista" exec="onos-check-logs ${OC#}"/>
@@ -2581,7 +2583,7 @@
            <step name="App-Activate-All.App-Deactivate-pim"
                  exec="onos ${OCI} app deactivate org.onosproject.pim" requires="App-Activate-All.App-Check-pim"/>
            <step name="App-Activate-All.Wait-For-Deactivate-pim"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-pim"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-pim"/>      
            <group name="App-Activate-All.App-Check-After-pim" requires="App-Activate-All.Wait-For-Deactivate-pim">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-pim" exec="onos-check-logs ${OC#}"/>
@@ -2605,7 +2607,7 @@
            <step name="App-Activate-All.App-Deactivate-routescale"
                  exec="onos ${OCI} app deactivate org.onosproject.routescale" requires="App-Activate-All.App-Check-routescale"/>
            <step name="App-Activate-All.Wait-For-Deactivate-routescale"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-routescale"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-routescale"/>      
            <group name="App-Activate-All.App-Check-After-routescale" requires="App-Activate-All.Wait-For-Deactivate-routescale">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-routescale" exec="onos-check-logs ${OC#}"/>
@@ -2629,7 +2631,7 @@
            <step name="App-Activate-All.App-Deactivate-mcast"
                  exec="onos ${OCI} app deactivate org.onosproject.mcast" requires="App-Activate-All.App-Check-mcast"/>
            <step name="App-Activate-All.Wait-For-Deactivate-mcast"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-mcast"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-mcast"/>      
            <group name="App-Activate-All.App-Check-After-mcast" requires="App-Activate-All.Wait-For-Deactivate-mcast">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-mcast" exec="onos-check-logs ${OC#}"/>
@@ -2653,7 +2655,7 @@
            <step name="App-Activate-All.App-Deactivate-segmentrouting"
                  exec="onos ${OCI} app deactivate org.onosproject.segmentrouting" requires="App-Activate-All.App-Check-segmentrouting"/>
            <step name="App-Activate-All.Wait-For-Deactivate-segmentrouting"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-segmentrouting"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-segmentrouting"/>      
            <group name="App-Activate-All.App-Check-After-segmentrouting" requires="App-Activate-All.Wait-For-Deactivate-segmentrouting">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-segmentrouting" exec="onos-check-logs ${OC#}"/>
@@ -2677,7 +2679,7 @@
            <step name="App-Activate-All.App-Deactivate-bgprouter"
                  exec="onos ${OCI} app deactivate org.onosproject.bgprouter" requires="App-Activate-All.App-Check-bgprouter"/>
            <step name="App-Activate-All.Wait-For-Deactivate-bgprouter"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-bgprouter"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-bgprouter"/>      
            <group name="App-Activate-All.App-Check-After-bgprouter" requires="App-Activate-All.Wait-For-Deactivate-bgprouter">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-bgprouter" exec="onos-check-logs ${OC#}"/>
@@ -2701,7 +2703,7 @@
            <step name="App-Activate-All.App-Deactivate-protocols.xmpp"
                  exec="onos ${OCI} app deactivate org.onosproject.protocols.xmpp" requires="App-Activate-All.App-Check-protocols.xmpp"/>
            <step name="App-Activate-All.Wait-For-Deactivate-protocols.xmpp"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-protocols.xmpp"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-protocols.xmpp"/>      
            <group name="App-Activate-All.App-Check-After-protocols.xmpp" requires="App-Activate-All.Wait-For-Deactivate-protocols.xmpp">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-protocols.xmpp" exec="onos-check-logs ${OC#}"/>
@@ -2725,7 +2727,7 @@
            <step name="App-Activate-All.App-Deactivate-openstacktelemetry"
                  exec="onos ${OCI} app deactivate org.onosproject.openstacktelemetry" requires="App-Activate-All.App-Check-openstacktelemetry"/>
            <step name="App-Activate-All.Wait-For-Deactivate-openstacktelemetry"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-openstacktelemetry"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-openstacktelemetry"/>      
            <group name="App-Activate-All.App-Check-After-openstacktelemetry" requires="App-Activate-All.Wait-For-Deactivate-openstacktelemetry">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-openstacktelemetry" exec="onos-check-logs ${OC#}"/>
@@ -2749,7 +2751,7 @@
            <step name="App-Activate-All.App-Deactivate-castor"
                  exec="onos ${OCI} app deactivate org.onosproject.castor" requires="App-Activate-All.App-Check-castor"/>
            <step name="App-Activate-All.Wait-For-Deactivate-castor"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-castor"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-castor"/>      
            <group name="App-Activate-All.App-Check-After-castor" requires="App-Activate-All.Wait-For-Deactivate-castor">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-castor" exec="onos-check-logs ${OC#}"/>
@@ -2773,7 +2775,7 @@
            <step name="App-Activate-All.App-Deactivate-drivers.ciena.c5162"
                  exec="onos ${OCI} app deactivate org.onosproject.drivers.ciena.c5162" requires="App-Activate-All.App-Check-drivers.ciena.c5162"/>
            <step name="App-Activate-All.Wait-For-Deactivate-drivers.ciena.c5162"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivers.ciena.c5162"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-drivers.ciena.c5162"/>      
            <group name="App-Activate-All.App-Check-After-drivers.ciena.c5162" requires="App-Activate-All.Wait-For-Deactivate-drivers.ciena.c5162">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-drivers.ciena.c5162" exec="onos-check-logs ${OC#}"/>
@@ -2797,7 +2799,7 @@
            <step name="App-Activate-All.App-Deactivate-netcfg-monitor"
                  exec="onos ${OCI} app deactivate org.onosproject.netcfg-monitor" requires="App-Activate-All.App-Check-netcfg-monitor"/>
            <step name="App-Activate-All.Wait-For-Deactivate-netcfg-monitor"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-netcfg-monitor"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-netcfg-monitor"/>      
            <group name="App-Activate-All.App-Check-After-netcfg-monitor" requires="App-Activate-All.Wait-For-Deactivate-netcfg-monitor">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-netcfg-monitor" exec="onos-check-logs ${OC#}"/>
@@ -2821,7 +2823,7 @@
            <step name="App-Activate-All.App-Deactivate-xmpp.device"
                  exec="onos ${OCI} app deactivate org.onosproject.xmpp.device" requires="App-Activate-All.App-Check-xmpp.device"/>
            <step name="App-Activate-All.Wait-For-Deactivate-xmpp.device"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-xmpp.device"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-xmpp.device"/>      
            <group name="App-Activate-All.App-Check-After-xmpp.device" requires="App-Activate-All.Wait-For-Deactivate-xmpp.device">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-xmpp.device" exec="onos-check-logs ${OC#}"/>
@@ -2845,7 +2847,7 @@
            <step name="App-Activate-All.App-Deactivate-flowspec-api"
                  exec="onos ${OCI} app deactivate org.onosproject.flowspec-api" requires="App-Activate-All.App-Check-flowspec-api"/>
            <step name="App-Activate-All.Wait-For-Deactivate-flowspec-api"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-flowspec-api"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-flowspec-api"/>      
            <group name="App-Activate-All.App-Check-After-flowspec-api" requires="App-Activate-All.Wait-For-Deactivate-flowspec-api">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-flowspec-api" exec="onos-check-logs ${OC#}"/>
@@ -2869,7 +2871,7 @@
            <step name="App-Activate-All.App-Deactivate-routeradvertisement"
                  exec="onos ${OCI} app deactivate org.onosproject.routeradvertisement" requires="App-Activate-All.App-Check-routeradvertisement"/>
            <step name="App-Activate-All.Wait-For-Deactivate-routeradvertisement"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-routeradvertisement"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-routeradvertisement"/>      
            <group name="App-Activate-All.App-Check-After-routeradvertisement" requires="App-Activate-All.Wait-For-Deactivate-routeradvertisement">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-routeradvertisement" exec="onos-check-logs ${OC#}"/>
@@ -2893,7 +2895,7 @@
            <step name="App-Activate-All.App-Deactivate-packet-stats"
                  exec="onos ${OCI} app deactivate org.onosproject.packet-stats" requires="App-Activate-All.App-Check-packet-stats"/>
            <step name="App-Activate-All.Wait-For-Deactivate-packet-stats"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-packet-stats"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-packet-stats"/>      
            <group name="App-Activate-All.App-Check-After-packet-stats" requires="App-Activate-All.Wait-For-Deactivate-packet-stats">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-packet-stats" exec="onos-check-logs ${OC#}"/>
@@ -2917,7 +2919,7 @@
            <step name="App-Activate-All.App-Deactivate-mlb"
                  exec="onos ${OCI} app deactivate org.onosproject.mlb" requires="App-Activate-All.App-Check-mlb"/>
            <step name="App-Activate-All.Wait-For-Deactivate-mlb"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-mlb"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-mlb"/>      
            <group name="App-Activate-All.App-Check-After-mlb" requires="App-Activate-All.Wait-For-Deactivate-mlb">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-mlb" exec="onos-check-logs ${OC#}"/>
@@ -2941,7 +2943,7 @@
            <step name="App-Activate-All.App-Deactivate-drivers.flowspec"
                  exec="onos ${OCI} app deactivate org.onosproject.drivers.flowspec" requires="App-Activate-All.App-Check-drivers.flowspec"/>
            <step name="App-Activate-All.Wait-For-Deactivate-drivers.flowspec"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivers.flowspec"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-drivers.flowspec"/>      
            <group name="App-Activate-All.App-Check-After-drivers.flowspec" requires="App-Activate-All.Wait-For-Deactivate-drivers.flowspec">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-drivers.flowspec" exec="onos-check-logs ${OC#}"/>
@@ -2965,7 +2967,7 @@
            <step name="App-Activate-All.App-Deactivate-pcep"
                  exec="onos ${OCI} app deactivate org.onosproject.pcep" requires="App-Activate-All.App-Check-pcep"/>
            <step name="App-Activate-All.Wait-For-Deactivate-pcep"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-pcep"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-pcep"/>      
            <group name="App-Activate-All.App-Check-After-pcep" requires="App-Activate-All.Wait-For-Deactivate-pcep">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-pcep" exec="onos-check-logs ${OC#}"/>
@@ -2989,7 +2991,7 @@
            <step name="App-Activate-All.App-Deactivate-ofagent"
                  exec="onos ${OCI} app deactivate org.onosproject.ofagent" requires="App-Activate-All.App-Check-ofagent"/>
            <step name="App-Activate-All.Wait-For-Deactivate-ofagent"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-ofagent"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-ofagent"/>      
            <group name="App-Activate-All.App-Check-After-ofagent" requires="App-Activate-All.Wait-For-Deactivate-ofagent">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-ofagent" exec="onos-check-logs ${OC#}"/>
@@ -3013,7 +3015,7 @@
            <step name="App-Activate-All.App-Deactivate-demo"
                  exec="onos ${OCI} app deactivate org.onosproject.demo" requires="App-Activate-All.App-Check-demo"/>
            <step name="App-Activate-All.Wait-For-Deactivate-demo"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-demo"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-demo"/>      
            <group name="App-Activate-All.App-Check-After-demo" requires="App-Activate-All.Wait-For-Deactivate-demo">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-demo" exec="onos-check-logs ${OC#}"/>
@@ -3037,7 +3039,7 @@
            <step name="App-Activate-All.App-Deactivate-t3"
                  exec="onos ${OCI} app deactivate org.onosproject.t3" requires="App-Activate-All.App-Check-t3"/>
            <step name="App-Activate-All.Wait-For-Deactivate-t3"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-t3"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-t3"/>      
            <group name="App-Activate-All.App-Check-After-t3" requires="App-Activate-All.Wait-For-Deactivate-t3">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-t3" exec="onos-check-logs ${OC#}"/>
@@ -3061,7 +3063,7 @@
            <step name="App-Activate-All.App-Deactivate-virtualbng"
                  exec="onos ${OCI} app deactivate org.onosproject.virtualbng" requires="App-Activate-All.App-Check-virtualbng"/>
            <step name="App-Activate-All.Wait-For-Deactivate-virtualbng"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-virtualbng"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-virtualbng"/>      
            <group name="App-Activate-All.App-Check-After-virtualbng" requires="App-Activate-All.Wait-For-Deactivate-virtualbng">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-virtualbng" exec="onos-check-logs ${OC#}"/>
@@ -3085,7 +3087,7 @@
            <step name="App-Activate-All.App-Deactivate-gangliametrics"
                  exec="onos ${OCI} app deactivate org.onosproject.gangliametrics" requires="App-Activate-All.App-Check-gangliametrics"/>
            <step name="App-Activate-All.Wait-For-Deactivate-gangliametrics"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-gangliametrics"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-gangliametrics"/>      
            <group name="App-Activate-All.App-Check-After-gangliametrics" requires="App-Activate-All.Wait-For-Deactivate-gangliametrics">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-gangliametrics" exec="onos-check-logs ${OC#}"/>
@@ -3109,7 +3111,7 @@
            <step name="App-Activate-All.App-Deactivate-drivers.ciena.c5170"
                  exec="onos ${OCI} app deactivate org.onosproject.drivers.ciena.c5170" requires="App-Activate-All.App-Check-drivers.ciena.c5170"/>
            <step name="App-Activate-All.Wait-For-Deactivate-drivers.ciena.c5170"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivers.ciena.c5170"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-drivers.ciena.c5170"/>      
            <group name="App-Activate-All.App-Check-After-drivers.ciena.c5170" requires="App-Activate-All.Wait-For-Deactivate-drivers.ciena.c5170">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-drivers.ciena.c5170" exec="onos-check-logs ${OC#}"/>
@@ -3133,7 +3135,7 @@
            <step name="App-Activate-All.App-Deactivate-drivers.oplink"
                  exec="onos ${OCI} app deactivate org.onosproject.drivers.oplink" requires="App-Activate-All.App-Check-drivers.oplink"/>
            <step name="App-Activate-All.Wait-For-Deactivate-drivers.oplink"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivers.oplink"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-drivers.oplink"/>      
            <group name="App-Activate-All.App-Check-After-drivers.oplink" requires="App-Activate-All.Wait-For-Deactivate-drivers.oplink">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-drivers.oplink" exec="onos-check-logs ${OC#}"/>
@@ -3157,7 +3159,7 @@
            <step name="App-Activate-All.App-Deactivate-isis"
                  exec="onos ${OCI} app deactivate org.onosproject.isis" requires="App-Activate-All.App-Check-isis"/>
            <step name="App-Activate-All.Wait-For-Deactivate-isis"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-isis"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-isis"/>      
            <group name="App-Activate-All.App-Check-After-isis" requires="App-Activate-All.Wait-For-Deactivate-isis">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-isis" exec="onos-check-logs ${OC#}"/>
@@ -3181,7 +3183,7 @@
            <step name="App-Activate-All.App-Deactivate-drivers.hp"
                  exec="onos ${OCI} app deactivate org.onosproject.drivers.hp" requires="App-Activate-All.App-Check-drivers.hp"/>
            <step name="App-Activate-All.Wait-For-Deactivate-drivers.hp"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivers.hp"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-drivers.hp"/>      
            <group name="App-Activate-All.App-Check-After-drivers.hp" requires="App-Activate-All.Wait-For-Deactivate-drivers.hp">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-drivers.hp" exec="onos-check-logs ${OC#}"/>
@@ -3205,7 +3207,7 @@
            <step name="App-Activate-All.App-Deactivate-drivers.cisco.rest"
                  exec="onos ${OCI} app deactivate org.onosproject.drivers.cisco.rest" requires="App-Activate-All.App-Check-drivers.cisco.rest"/>
            <step name="App-Activate-All.Wait-For-Deactivate-drivers.cisco.rest"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivers.cisco.rest"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-drivers.cisco.rest"/>      
            <group name="App-Activate-All.App-Check-After-drivers.cisco.rest" requires="App-Activate-All.Wait-For-Deactivate-drivers.cisco.rest">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-drivers.cisco.rest" exec="onos-check-logs ${OC#}"/>
@@ -3229,7 +3231,7 @@
            <step name="App-Activate-All.App-Deactivate-roadm"
                  exec="onos ${OCI} app deactivate org.onosproject.roadm" requires="App-Activate-All.App-Check-roadm"/>
            <step name="App-Activate-All.Wait-For-Deactivate-roadm"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-roadm"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-roadm"/>      
            <group name="App-Activate-All.App-Check-After-roadm" requires="App-Activate-All.Wait-For-Deactivate-roadm">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-roadm" exec="onos-check-logs ${OC#}"/>
@@ -3253,7 +3255,7 @@
            <step name="App-Activate-All.App-Deactivate-drivers.bmv2"
                  exec="onos ${OCI} app deactivate org.onosproject.drivers.bmv2" requires="App-Activate-All.App-Check-drivers.bmv2"/>
            <step name="App-Activate-All.Wait-For-Deactivate-drivers.bmv2"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivers.bmv2"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-drivers.bmv2"/>      
            <group name="App-Activate-All.App-Check-After-drivers.bmv2" requires="App-Activate-All.Wait-For-Deactivate-drivers.bmv2">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-drivers.bmv2" exec="onos-check-logs ${OC#}"/>
@@ -3277,7 +3279,7 @@
            <step name="App-Activate-All.App-Deactivate-vpls"
                  exec="onos ${OCI} app deactivate org.onosproject.vpls" requires="App-Activate-All.App-Check-vpls"/>
            <step name="App-Activate-All.Wait-For-Deactivate-vpls"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-vpls"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-vpls"/>      
            <group name="App-Activate-All.App-Check-After-vpls" requires="App-Activate-All.Wait-For-Deactivate-vpls">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-vpls" exec="onos-check-logs ${OC#}"/>
@@ -3301,7 +3303,7 @@
            <step name="App-Activate-All.App-Deactivate-p4tutorial.pipeconf"
                  exec="onos ${OCI} app deactivate org.onosproject.p4tutorial.pipeconf" requires="App-Activate-All.App-Check-p4tutorial.pipeconf"/>
            <step name="App-Activate-All.Wait-For-Deactivate-p4tutorial.pipeconf"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-p4tutorial.pipeconf"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-p4tutorial.pipeconf"/>      
            <group name="App-Activate-All.App-Check-After-p4tutorial.pipeconf" requires="App-Activate-All.Wait-For-Deactivate-p4tutorial.pipeconf">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-p4tutorial.pipeconf" exec="onos-check-logs ${OC#}"/>
@@ -3325,7 +3327,7 @@
            <step name="App-Activate-All.App-Deactivate-p4tutorial.mytunnel"
                  exec="onos ${OCI} app deactivate org.onosproject.p4tutorial.mytunnel" requires="App-Activate-All.App-Check-p4tutorial.mytunnel"/>
            <step name="App-Activate-All.Wait-For-Deactivate-p4tutorial.mytunnel"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-p4tutorial.mytunnel"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-p4tutorial.mytunnel"/>      
            <group name="App-Activate-All.App-Check-After-p4tutorial.mytunnel" requires="App-Activate-All.Wait-For-Deactivate-p4tutorial.mytunnel">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-p4tutorial.mytunnel" exec="onos-check-logs ${OC#}"/>
@@ -3349,7 +3351,7 @@
            <step name="App-Activate-All.App-Deactivate-openstacktroubleshoot"
                  exec="onos ${OCI} app deactivate org.onosproject.openstacktroubleshoot" requires="App-Activate-All.App-Check-openstacktroubleshoot"/>
            <step name="App-Activate-All.Wait-For-Deactivate-openstacktroubleshoot"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-openstacktroubleshoot"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-openstacktroubleshoot"/>      
            <group name="App-Activate-All.App-Check-After-openstacktroubleshoot" requires="App-Activate-All.Wait-For-Deactivate-openstacktroubleshoot">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-openstacktroubleshoot" exec="onos-check-logs ${OC#}"/>
@@ -3373,7 +3375,7 @@
            <step name="App-Activate-All.App-Deactivate-models.ciena.waveserverai"
                  exec="onos ${OCI} app deactivate org.onosproject.models.ciena.waveserverai" requires="App-Activate-All.App-Check-models.ciena.waveserverai"/>
            <step name="App-Activate-All.Wait-For-Deactivate-models.ciena.waveserverai"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-models.ciena.waveserverai"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-models.ciena.waveserverai"/>      
            <group name="App-Activate-All.App-Check-After-models.ciena.waveserverai" requires="App-Activate-All.Wait-For-Deactivate-models.ciena.waveserverai">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-models.ciena.waveserverai" exec="onos-check-logs ${OC#}"/>
@@ -3397,7 +3399,7 @@
            <step name="App-Activate-All.App-Deactivate-drivers.ciena.waveserverai"
                  exec="onos ${OCI} app deactivate org.onosproject.drivers.ciena.waveserverai" requires="App-Activate-All.App-Check-drivers.ciena.waveserverai"/>
            <step name="App-Activate-All.Wait-For-Deactivate-drivers.ciena.waveserverai"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivers.ciena.waveserverai"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-drivers.ciena.waveserverai"/>      
            <group name="App-Activate-All.App-Check-After-drivers.ciena.waveserverai" requires="App-Activate-All.Wait-For-Deactivate-drivers.ciena.waveserverai">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-drivers.ciena.waveserverai" exec="onos-check-logs ${OC#}"/>
@@ -3421,7 +3423,7 @@
            <step name="App-Activate-All.App-Deactivate-drivers.fujitsu"
                  exec="onos ${OCI} app deactivate org.onosproject.drivers.fujitsu" requires="App-Activate-All.App-Check-drivers.fujitsu"/>
            <step name="App-Activate-All.Wait-For-Deactivate-drivers.fujitsu"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivers.fujitsu"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-drivers.fujitsu"/>      
            <group name="App-Activate-All.App-Check-After-drivers.fujitsu" requires="App-Activate-All.Wait-For-Deactivate-drivers.fujitsu">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-drivers.fujitsu" exec="onos-check-logs ${OC#}"/>
@@ -3445,7 +3447,7 @@
            <step name="App-Activate-All.App-Deactivate-drivers.polatis.openflow"
                  exec="onos ${OCI} app deactivate org.onosproject.drivers.polatis.openflow" requires="App-Activate-All.App-Check-drivers.polatis.openflow"/>
            <step name="App-Activate-All.Wait-For-Deactivate-drivers.polatis.openflow"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivers.polatis.openflow"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-drivers.polatis.openflow"/>      
            <group name="App-Activate-All.App-Check-After-drivers.polatis.openflow" requires="App-Activate-All.Wait-For-Deactivate-drivers.polatis.openflow">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-drivers.polatis.openflow" exec="onos-check-logs ${OC#}"/>
@@ -3469,7 +3471,7 @@
            <step name="App-Activate-All.App-Deactivate-layout"
                  exec="onos ${OCI} app deactivate org.onosproject.layout" requires="App-Activate-All.App-Check-layout"/>
            <step name="App-Activate-All.Wait-For-Deactivate-layout"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-layout"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-layout"/>      
            <group name="App-Activate-All.App-Check-After-layout" requires="App-Activate-All.Wait-For-Deactivate-layout">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-layout" exec="onos-check-logs ${OC#}"/>
@@ -3493,7 +3495,7 @@
            <step name="App-Activate-All.App-Deactivate-graphitemetrics"
                  exec="onos ${OCI} app deactivate org.onosproject.graphitemetrics" requires="App-Activate-All.App-Check-graphitemetrics"/>
            <step name="App-Activate-All.Wait-For-Deactivate-graphitemetrics"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-graphitemetrics"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-graphitemetrics"/>      
            <group name="App-Activate-All.App-Check-After-graphitemetrics" requires="App-Activate-All.Wait-For-Deactivate-graphitemetrics">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-graphitemetrics" exec="onos-check-logs ${OC#}"/>
@@ -3517,7 +3519,7 @@
            <step name="App-Activate-All.App-Deactivate-powermanagement"
                  exec="onos ${OCI} app deactivate org.onosproject.powermanagement" requires="App-Activate-All.App-Check-powermanagement"/>
            <step name="App-Activate-All.Wait-For-Deactivate-powermanagement"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-powermanagement"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-powermanagement"/>      
            <group name="App-Activate-All.App-Check-After-powermanagement" requires="App-Activate-All.Wait-For-Deactivate-powermanagement">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-powermanagement" exec="onos-check-logs ${OC#}"/>
@@ -3541,7 +3543,7 @@
            <step name="App-Activate-All.App-Deactivate-optical-rest"
                  exec="onos ${OCI} app deactivate org.onosproject.optical-rest" requires="App-Activate-All.App-Check-optical-rest"/>
            <step name="App-Activate-All.Wait-For-Deactivate-optical-rest"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-optical-rest"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-optical-rest"/>      
            <group name="App-Activate-All.App-Check-After-optical-rest" requires="App-Activate-All.Wait-For-Deactivate-optical-rest">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-optical-rest" exec="onos-check-logs ${OC#}"/>
@@ -3565,7 +3567,7 @@
            <step name="App-Activate-All.App-Deactivate-tl1"
                  exec="onos ${OCI} app deactivate org.onosproject.tl1" requires="App-Activate-All.App-Check-tl1"/>
            <step name="App-Activate-All.Wait-For-Deactivate-tl1"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-tl1"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-tl1"/>      
            <group name="App-Activate-All.App-Check-After-tl1" requires="App-Activate-All.Wait-For-Deactivate-tl1">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-tl1" exec="onos-check-logs ${OC#}"/>
@@ -3589,7 +3591,7 @@
            <step name="App-Activate-All.App-Deactivate-drivers.lumentum"
                  exec="onos ${OCI} app deactivate org.onosproject.drivers.lumentum" requires="App-Activate-All.App-Check-drivers.lumentum"/>
            <step name="App-Activate-All.Wait-For-Deactivate-drivers.lumentum"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivers.lumentum"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-drivers.lumentum"/>      
            <group name="App-Activate-All.App-Check-After-drivers.lumentum" requires="App-Activate-All.Wait-For-Deactivate-drivers.lumentum">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-drivers.lumentum" exec="onos-check-logs ${OC#}"/>
@@ -3613,7 +3615,7 @@
            <step name="App-Activate-All.App-Deactivate-acl"
                  exec="onos ${OCI} app deactivate org.onosproject.acl" requires="App-Activate-All.App-Check-acl"/>
            <step name="App-Activate-All.Wait-For-Deactivate-acl"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-acl"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-acl"/>      
            <group name="App-Activate-All.App-Check-After-acl" requires="App-Activate-All.Wait-For-Deactivate-acl">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-acl" exec="onos-check-logs ${OC#}"/>
@@ -3637,7 +3639,7 @@
            <step name="App-Activate-All.App-Deactivate-cord-support"
                  exec="onos ${OCI} app deactivate org.onosproject.cord-support" requires="App-Activate-All.App-Check-cord-support"/>
            <step name="App-Activate-All.Wait-For-Deactivate-cord-support"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-cord-support"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-cord-support"/>      
            <group name="App-Activate-All.App-Check-After-cord-support" requires="App-Activate-All.Wait-For-Deactivate-cord-support">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-cord-support" exec="onos-check-logs ${OC#}"/>
@@ -3661,7 +3663,7 @@
            <step name="App-Activate-All.App-Deactivate-intentperf"
                  exec="onos ${OCI} app deactivate org.onosproject.intentperf" requires="App-Activate-All.App-Check-intentperf"/>
            <step name="App-Activate-All.Wait-For-Deactivate-intentperf"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-intentperf"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-intentperf"/>      
            <group name="App-Activate-All.App-Check-After-intentperf" requires="App-Activate-All.Wait-For-Deactivate-intentperf">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-intentperf" exec="onos-check-logs ${OC#}"/>
@@ -3685,7 +3687,7 @@
            <step name="App-Activate-All.App-Deactivate-mfwd"
                  exec="onos ${OCI} app deactivate org.onosproject.mfwd" requires="App-Activate-All.App-Check-mfwd"/>
            <step name="App-Activate-All.Wait-For-Deactivate-mfwd"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-mfwd"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-mfwd"/>      
            <group name="App-Activate-All.App-Check-After-mfwd" requires="App-Activate-All.Wait-For-Deactivate-mfwd">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-mfwd" exec="onos-check-logs ${OC#}"/>
@@ -3709,7 +3711,7 @@
            <step name="App-Activate-All.App-Deactivate-drivers.ciena.waveserver"
                  exec="onos ${OCI} app deactivate org.onosproject.drivers.ciena.waveserver" requires="App-Activate-All.App-Check-drivers.ciena.waveserver"/>
            <step name="App-Activate-All.Wait-For-Deactivate-drivers.ciena.waveserver"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivers.ciena.waveserver"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-drivers.ciena.waveserver"/>      
            <group name="App-Activate-All.App-Check-After-drivers.ciena.waveserver" requires="App-Activate-All.Wait-For-Deactivate-drivers.ciena.waveserver">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-drivers.ciena.waveserver" exec="onos-check-logs ${OC#}"/>
@@ -3733,7 +3735,7 @@
            <step name="App-Activate-All.App-Deactivate-imr"
                  exec="onos ${OCI} app deactivate org.onosproject.imr" requires="App-Activate-All.App-Check-imr"/>
            <step name="App-Activate-All.Wait-For-Deactivate-imr"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-imr"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-imr"/>      
            <group name="App-Activate-All.App-Check-After-imr" requires="App-Activate-All.Wait-For-Deactivate-imr">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-imr" exec="onos-check-logs ${OC#}"/>
@@ -3757,7 +3759,7 @@
            <step name="App-Activate-All.App-Deactivate-dhcp"
                  exec="onos ${OCI} app deactivate org.onosproject.dhcp" requires="App-Activate-All.App-Check-dhcp"/>
            <step name="App-Activate-All.Wait-For-Deactivate-dhcp"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-dhcp"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-dhcp"/>      
            <group name="App-Activate-All.App-Check-After-dhcp" requires="App-Activate-All.Wait-For-Deactivate-dhcp">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-dhcp" exec="onos-check-logs ${OC#}"/>
@@ -3781,7 +3783,7 @@
            <step name="App-Activate-All.App-Deactivate-drivers.cisco.netconf"
                  exec="onos ${OCI} app deactivate org.onosproject.drivers.cisco.netconf" requires="App-Activate-All.App-Check-drivers.cisco.netconf"/>
            <step name="App-Activate-All.Wait-For-Deactivate-drivers.cisco.netconf"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivers.cisco.netconf"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-drivers.cisco.netconf"/>      
            <group name="App-Activate-All.App-Check-After-drivers.cisco.netconf" requires="App-Activate-All.Wait-For-Deactivate-drivers.cisco.netconf">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-drivers.cisco.netconf" exec="onos-check-logs ${OC#}"/>
@@ -3805,7 +3807,7 @@
            <step name="App-Activate-All.App-Deactivate-openstacknetworkingui"
                  exec="onos ${OCI} app deactivate org.onosproject.openstacknetworkingui" requires="App-Activate-All.App-Check-openstacknetworkingui"/>
            <step name="App-Activate-All.Wait-For-Deactivate-openstacknetworkingui"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-openstacknetworkingui"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-openstacknetworkingui"/>      
            <group name="App-Activate-All.App-Check-After-openstacknetworkingui" requires="App-Activate-All.Wait-For-Deactivate-openstacknetworkingui">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-openstacknetworkingui" exec="onos-check-logs ${OC#}"/>
@@ -3829,7 +3831,7 @@
            <step name="App-Activate-All.App-Deactivate-cfm"
                  exec="onos ${OCI} app deactivate org.onosproject.cfm" requires="App-Activate-All.App-Check-cfm"/>
            <step name="App-Activate-All.Wait-For-Deactivate-cfm"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-cfm"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-cfm"/>      
            <group name="App-Activate-All.App-Check-After-cfm" requires="App-Activate-All.Wait-For-Deactivate-cfm">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-cfm" exec="onos-check-logs ${OC#}"/>
@@ -3853,7 +3855,7 @@
            <step name="App-Activate-All.App-Deactivate-scalablegateway"
                  exec="onos ${OCI} app deactivate org.onosproject.scalablegateway" requires="App-Activate-All.App-Check-scalablegateway"/>
            <step name="App-Activate-All.Wait-For-Deactivate-scalablegateway"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-scalablegateway"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-scalablegateway"/>      
            <group name="App-Activate-All.App-Check-After-scalablegateway" requires="App-Activate-All.Wait-For-Deactivate-scalablegateway">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-scalablegateway" exec="onos-check-logs ${OC#}"/>
@@ -3877,7 +3879,7 @@
            <step name="App-Activate-All.App-Deactivate-cluster-ha"
                  exec="onos ${OCI} app deactivate org.onosproject.cluster-ha" requires="App-Activate-All.App-Check-cluster-ha"/>
            <step name="App-Activate-All.Wait-For-Deactivate-cluster-ha"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-cluster-ha"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-cluster-ha"/>      
            <group name="App-Activate-All.App-Check-After-cluster-ha" requires="App-Activate-All.Wait-For-Deactivate-cluster-ha">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-cluster-ha" exec="onos-check-logs ${OC#}"/>
@@ -3901,7 +3903,7 @@
            <step name="App-Activate-All.App-Deactivate-drivers.microsemi.ea1000"
                  exec="onos ${OCI} app deactivate org.onosproject.drivers.microsemi.ea1000" requires="App-Activate-All.App-Check-drivers.microsemi.ea1000"/>
            <step name="App-Activate-All.Wait-For-Deactivate-drivers.microsemi.ea1000"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-drivers.microsemi.ea1000"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-drivers.microsemi.ea1000"/>      
            <group name="App-Activate-All.App-Check-After-drivers.microsemi.ea1000" requires="App-Activate-All.Wait-For-Deactivate-drivers.microsemi.ea1000">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-drivers.microsemi.ea1000" exec="onos-check-logs ${OC#}"/>
@@ -3925,7 +3927,7 @@
            <step name="App-Activate-All.App-Deactivate-reactive-routing"
                  exec="onos ${OCI} app deactivate org.onosproject.reactive-routing" requires="App-Activate-All.App-Check-reactive-routing"/>
            <step name="App-Activate-All.Wait-For-Deactivate-reactive-routing"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-reactive-routing"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-reactive-routing"/>      
            <group name="App-Activate-All.App-Check-After-reactive-routing" requires="App-Activate-All.Wait-For-Deactivate-reactive-routing">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-reactive-routing" exec="onos-check-logs ${OC#}"/>
@@ -3949,7 +3951,7 @@
            <step name="App-Activate-All.App-Deactivate-nodemetrics"
                  exec="onos ${OCI} app deactivate org.onosproject.nodemetrics" requires="App-Activate-All.App-Check-nodemetrics"/>
            <step name="App-Activate-All.Wait-For-Deactivate-nodemetrics"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-nodemetrics"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-nodemetrics"/>      
            <group name="App-Activate-All.App-Check-After-nodemetrics" requires="App-Activate-All.Wait-For-Deactivate-nodemetrics">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-nodemetrics" exec="onos-check-logs ${OC#}"/>
@@ -3973,7 +3975,7 @@
            <step name="App-Activate-All.App-Deactivate-mobility"
                  exec="onos ${OCI} app deactivate org.onosproject.mobility" requires="App-Activate-All.App-Check-mobility"/>
            <step name="App-Activate-All.Wait-For-Deactivate-mobility"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-mobility"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-mobility"/>      
            <group name="App-Activate-All.App-Check-After-mobility" requires="App-Activate-All.Wait-For-Deactivate-mobility">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-mobility" exec="onos-check-logs ${OC#}"/>
@@ -3997,7 +3999,7 @@
            <step name="App-Activate-All.App-Deactivate-bgp"
                  exec="onos ${OCI} app deactivate org.onosproject.bgp" requires="App-Activate-All.App-Check-bgp"/>
            <step name="App-Activate-All.Wait-For-Deactivate-bgp"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-bgp"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-bgp"/>      
            <group name="App-Activate-All.App-Check-After-bgp" requires="App-Activate-All.Wait-For-Deactivate-bgp">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-bgp" exec="onos-check-logs ${OC#}"/>
@@ -4021,7 +4023,7 @@
            <step name="App-Activate-All.App-Deactivate-linkprops"
                  exec="onos ${OCI} app deactivate org.onosproject.linkprops" requires="App-Activate-All.App-Check-linkprops"/>
            <step name="App-Activate-All.Wait-For-Deactivate-linkprops"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-linkprops"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-linkprops"/>      
            <group name="App-Activate-All.App-Check-After-linkprops" requires="App-Activate-All.Wait-For-Deactivate-linkprops">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-linkprops" exec="onos-check-logs ${OC#}"/>
@@ -4045,7 +4047,7 @@
            <step name="App-Activate-All.App-Deactivate-cip"
                  exec="onos ${OCI} app deactivate org.onosproject.cip" requires="App-Activate-All.App-Check-cip"/>
            <step name="App-Activate-All.Wait-For-Deactivate-cip"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-cip"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-cip"/>      
            <group name="App-Activate-All.App-Check-After-cip" requires="App-Activate-All.Wait-For-Deactivate-cip">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-cip" exec="onos-check-logs ${OC#}"/>
@@ -4069,7 +4071,7 @@
            <step name="App-Activate-All.App-Deactivate-election"
                  exec="onos ${OCI} app deactivate org.onosproject.election" requires="App-Activate-All.App-Check-election"/>
            <step name="App-Activate-All.Wait-For-Deactivate-election"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-election"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-election"/>      
            <group name="App-Activate-All.App-Check-After-election" requires="App-Activate-All.Wait-For-Deactivate-election">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-election" exec="onos-check-logs ${OC#}"/>
@@ -4093,7 +4095,7 @@
            <step name="App-Activate-All.App-Deactivate-primitiveperf"
                  exec="onos ${OCI} app deactivate org.onosproject.primitiveperf" requires="App-Activate-All.App-Check-primitiveperf"/>
            <step name="App-Activate-All.Wait-For-Deactivate-primitiveperf"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-primitiveperf"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-primitiveperf"/>      
            <group name="App-Activate-All.App-Check-After-primitiveperf" requires="App-Activate-All.Wait-For-Deactivate-primitiveperf">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-primitiveperf" exec="onos-check-logs ${OC#}"/>
@@ -4117,7 +4119,7 @@
            <step name="App-Activate-All.App-Deactivate-protocols.xmpp.pubsub"
                  exec="onos ${OCI} app deactivate org.onosproject.protocols.xmpp.pubsub" requires="App-Activate-All.App-Check-protocols.xmpp.pubsub"/>
            <step name="App-Activate-All.Wait-For-Deactivate-protocols.xmpp.pubsub"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-protocols.xmpp.pubsub"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-protocols.xmpp.pubsub"/>      
            <group name="App-Activate-All.App-Check-After-protocols.xmpp.pubsub" requires="App-Activate-All.Wait-For-Deactivate-protocols.xmpp.pubsub">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-protocols.xmpp.pubsub" exec="onos-check-logs ${OC#}"/>
@@ -4141,7 +4143,7 @@
            <step name="App-Activate-All.App-Deactivate-netcfghostprovider"
                  exec="onos ${OCI} app deactivate org.onosproject.netcfghostprovider" requires="App-Activate-All.App-Check-netcfghostprovider"/>
            <step name="App-Activate-All.Wait-For-Deactivate-netcfghostprovider"
-                 exec="onos-check-apps ${OCI} org.onosproject.drivers" requires="App-Activate-All.App-Deactivate-netcfghostprovider"/>      
+                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-netcfghostprovider"/>      
            <group name="App-Activate-All.App-Check-After-netcfghostprovider" requires="App-Activate-All.Wait-For-Deactivate-netcfghostprovider">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.Check-Logs-After-${#}-netcfghostprovider" exec="onos-check-logs ${OC#}"/>
