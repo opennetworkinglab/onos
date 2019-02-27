@@ -41,6 +41,9 @@ public final class Constants {
     public static final String SHIFTED_IP_CIDR = "172.10.0.0/16";
     public static final String SHIFTED_IP_PREFIX = "172.10";
 
+    public static final String SRC = "src";
+    public static final String DST = "dst";
+
     // TODO: need to inject service IP CIDR through REST
     public static final String SERVICE_IP_CIDR = "10.96.0.0/24";
 

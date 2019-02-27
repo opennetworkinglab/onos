@@ -39,6 +39,8 @@ import org.slf4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.onosproject.k8snetworking.api.Constants.DST;
+import static org.onosproject.k8snetworking.api.Constants.SRC;
 import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_LOAD;
 import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_RESUBMIT_TABLE;
 import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_TUNNEL_DST;
@@ -92,9 +94,6 @@ public final class RulePopulatorUtil {
 
     private static final int SRC_IP = 0x00000e04;
     private static final int DST_IP = 0x00001004;
-
-    private static final String SRC = "src";
-    private static final String DST = "dst";
 
     private static final int OFF_SET_BIT = 16;
     private static final int REMAINDER_BIT = 16;
