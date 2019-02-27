@@ -141,6 +141,8 @@ def create_client_connection(url_context, url_connectivity):
     assert topo["uuid"] == nep_pair[1]["topology-uuid"]
     (src_onep, dst_onep) = (find_client_onep(nep_pair[0], topo["node"]),
                             find_client_onep(nep_pair[1], topo["node"]))
+    print "client side neps", (src_onep, dst_onep)
+
     src_sip_uuid, dst_sip_uuid = \
         (src_onep["mapped-service-interface-point"][0]["service-interface-point-uuid"],
          dst_onep["mapped-service-interface-point"][0]["service-interface-point-uuid"])
@@ -157,6 +159,14 @@ def create_client_connection(url_context, url_connectivity):
         raise Exception('POST {}'.format(resp.status_code))
     return resp
 
+#
+# Parse array structure "name" under structure "owned node edge point"
+#
+def parse_value(arr):
+    rtn = {}
+    for item in arr:
+        rtn[item["value-name"]] = item["value"]
+    return rtn
 
 #
 # Find node edge point of node structure in topology with client-side port, by using nep with line-side port.
@@ -168,16 +178,18 @@ def find_client_onep(line_nep_in_link, nodes):
             conn_id = None
             for onep in node["owned-node-edge-point"]:
                 if onep["uuid"] == line_nep_in_link["node-edge-point-uuid"]:
-                    assert onep["name"][1]["value-name"] == "odtn-connection-id"
-                    assert onep["name"][0]["value"] == "line"
-                    conn_id = onep["name"][1]["value"]
-                    break
+                    name = parse_value(onep["name"])
+                    if name["odtn-port-type"] == "line":
+                        conn_id = name["odtn-connection-id"]
+                        break
             if conn_id is None:
                 raise AssertionError("Cannot find owned node edge point with node id %s and nep id %s."
                                      % (line_nep_in_link["node-uuid"], line_nep_in_link["node-edge-point-uuid"], ))
             for onep in node["owned-node-edge-point"]:
-                if onep["name"][1]["value"] == conn_id and onep["name"][0]["value"] == "client":
+                name = parse_value(onep["name"])
+                if name["odtn-port-type"] == "client" and name["odtn-connection-id"] == conn_id:
                     return onep
+
     return None
 
 

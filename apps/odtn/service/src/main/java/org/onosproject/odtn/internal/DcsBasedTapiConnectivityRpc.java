@@ -82,7 +82,7 @@ public class DcsBasedTapiConnectivityRpc implements TapiConnectivityService {
 
             // check SIP validation
             if (!disjoint(getUsedSips(), input.getSips())) {
-                log.error("check SIP validation : NG");
+                log.error("SIPS {} are already used, please use a different pair", input.getSips());
                 return new RpcOutput(RpcOutput.Status.RPC_FAILURE, null);
             }
             log.debug("check SIP validation : OK");
