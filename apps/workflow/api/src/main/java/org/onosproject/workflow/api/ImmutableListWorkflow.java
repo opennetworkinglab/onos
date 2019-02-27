@@ -55,6 +55,7 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
 
     /**
      * Constructor of ImmutableListWorkflow.
+     *
      * @param builder builder of ImmutableListWorkflow
      */
     private ImmutableListWorkflow(Builder builder) {
@@ -148,7 +149,7 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
 
         WorkflowStore store;
         try {
-             store = DefaultServiceDirectory.getService(WorkflowStore.class);
+            store = DefaultServiceDirectory.getService(WorkflowStore.class);
         } catch (ServiceNotFoundException e) {
             throw new WorkflowException(e);
         }
@@ -179,8 +180,14 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
         return ImmutableSet.copyOf(attributes);
     }
 
+    @Override
+    public List<String> getWorkletTypeList() {
+        return ImmutableList.copyOf(workletTypeList);
+    }
+
     /**
      * Gets index of class in worklet type list.
+     *
      * @param aClass class to get index
      * @return index of class in worklet type list
      */
@@ -195,6 +202,7 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
 
     /**
      * Checks whether class is allowed class or not.
+     *
      * @param clazz class to check
      * @return Check result
      */
@@ -245,6 +253,7 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
 
     /**
      * Gets a instance of builder.
+     *
      * @return instance of builder
      */
     public static Builder builder() {
@@ -263,6 +272,7 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
 
         /**
          * Sets id of immutable list workflow.
+         *
          * @param uri id of immutable list workflow
          * @return builder
          */
@@ -274,6 +284,7 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
 
         /**
          * Sets init worklet class name of immutable list workflow.
+         *
          * @param workletClassName class name of worklet
          * @return builder
          */
@@ -284,6 +295,7 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
 
         /**
          * Chains worklet class name of immutable list workflow.
+         *
          * @param workletClassName class name of worklet
          * @return builder
          */
@@ -294,6 +306,7 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
 
         /**
          * Adds workflow attribute.
+         *
          * @param attribute workflow attribute to be added
          * @return builder
          */
@@ -304,6 +317,7 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
 
         /**
          * Builds ImmutableListWorkflow.
+         *
          * @return instance of ImmutableListWorkflow
          */
         public ImmutableListWorkflow build() {

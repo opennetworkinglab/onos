@@ -116,6 +116,15 @@ public class SampleWorkflow {
                 .chain(SampleWorklet5.class.getName())
                 .build();
         workflowStore.register(workflow);
+
+        // registering new workflow definition
+        uri = URI.create("sample.workflow-3");
+        workflow = ImmutableListWorkflow.builder()
+                .id(uri)
+                .chain(SampleWorklet6.class.getName())
+                .build();
+        workflowStore.register(workflow);
+
     }
 
     /**
@@ -308,4 +317,29 @@ public class SampleWorkflow {
         }
     }
 
+    /**
+     * Class for sample worklet-6 to test workflow datamodel exception.
+     */
+    public static class SampleWorklet6 extends AbsSampleWorklet {
+
+        @JsonDataModel(path = MODEL_COUNT)
+        String str;
+
+        @Override
+        public void process(WorkflowContext context) throws WorkflowException {
+            ObjectNode node = getDataModel(context);
+            node.put("work6", "done");
+            log.info("workflow-process {}-{}", context.workplaceName(), this.getClass().getSimpleName());
+            sleep(10);
+            context.completed();
+        }
+
+        @Override
+        public boolean isNext(WorkflowContext context) throws WorkflowException {
+            ObjectNode node = allocOrGetModel(context);
+            log.info("workflow-isNext {}-{}", context.workplaceName(), this.getClass().getSimpleName());
+            sleep(10);
+            return !node.has("work6");
+        }
+    }
 }

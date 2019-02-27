@@ -15,22 +15,27 @@
  */
 package org.onosproject.workflow.impl;
 
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.JsonNodeType;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigService;
-import org.onosproject.workflow.api.DefaultWorkplace;
-import org.onosproject.workflow.api.JsonDataModelTree;
-import org.onosproject.workflow.api.Workflow;
-import org.onosproject.workflow.api.WorkflowContext;
-import org.onosproject.workflow.api.WorkflowDescription;
-import org.onosproject.workflow.api.WorkflowException;
 import org.onosproject.workflow.api.WorkflowService;
 import org.onosproject.workflow.api.WorkflowExecutionService;
-import org.onosproject.workflow.api.WorkflowStore;
-import org.onosproject.workflow.api.Workplace;
-import org.onosproject.workflow.api.WorkplaceDescription;
 import org.onosproject.workflow.api.WorkplaceStore;
+import org.onosproject.workflow.api.WorkflowStore;
+import org.onosproject.workflow.api.WorkplaceDescription;
+import org.onosproject.workflow.api.WorkflowException;
+import org.onosproject.workflow.api.DefaultWorkplace;
+import org.onosproject.workflow.api.JsonDataModelTree;
+import org.onosproject.workflow.api.WorkflowDescription;
+import org.onosproject.workflow.api.Workplace;
+import org.onosproject.workflow.api.WorkflowDataModelException;
+import org.onosproject.workflow.api.Workflow;
+import org.onosproject.workflow.api.Worklet;
+import org.onosproject.workflow.api.WorkflowContext;
+import org.onosproject.workflow.api.JsonDataModel;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -38,8 +43,15 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.net.URI;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Objects;
+import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -118,19 +130,119 @@ public class WorkflowManager implements WorkflowService {
     @Override
     public void invokeWorkflow(JsonNode worklowDescJson) throws WorkflowException {
         log.info("invokeWorkflow: {}", worklowDescJson);
-
         Workplace workplace = workplaceStore.getWorkplace(Workplace.SYSTEM_WORKPLACE);
         if (Objects.isNull(workplace)) {
             throw new WorkflowException("Invalid system workplace");
         }
 
-        Workflow workflow = workflowStore.get(URI.create(WorkplaceWorkflow.WF_CREATE_WORKFLOW));
+        Workflow workflow = workflowStore.get(URI.create(worklowDescJson.get("id").asText()));
         if (Objects.isNull(workflow)) {
+            throw new WorkflowException("Invalid Workflow");
+        }
+
+        if (!checkWorkflowSchema(workflow, worklowDescJson)) {
+            throw new WorkflowException("Invalid Workflow " + worklowDescJson.get("id").asText());
+        }
+
+        Workflow wfCreationWf = workflowStore.get(URI.create(WorkplaceWorkflow.WF_CREATE_WORKFLOW));
+        if (Objects.isNull(wfCreationWf)) {
             throw new WorkflowException("Invalid workflow " + WorkplaceWorkflow.WF_CREATE_WORKFLOW);
         }
 
-        WorkflowContext context = workflow.buildSystemContext(workplace, new JsonDataModelTree(worklowDescJson));
+        WorkflowContext context = wfCreationWf.buildSystemContext(workplace, new JsonDataModelTree(worklowDescJson));
         workflowExecutionService.execInitWorklet(context);
+    }
+
+    /**
+     * Checks if the type of worklet is same as that of wfdesc Json.
+     *
+     * @param workflow workflow
+     * @param jsonNode jsonNode
+     * @throws WorkflowException workflow exception
+     */
+
+    private boolean checkWorkflowSchema(Workflow workflow, JsonNode jsonNode) throws WorkflowException {
+
+        Map<String, Map<String, String>> workletDataTypeMap = new HashMap<>();
+        for (String workletType : workflow.getWorkletTypeList()) {
+            Map<String, String> jsonDataModelMap = new HashMap<>();
+            if (Objects.equals(workletType, Worklet.Common.INIT.tag())
+                    || (Objects.equals(workletType, Worklet.Common.COMPLETED.tag()))) {
+                continue;
+            }
+            Worklet worklet = workflow.getWorkletInstance(workletType);
+            Class cls = worklet.getClass();
+            for (Field field : cls.getDeclaredFields()) {
+                if (field.isSynthetic()) {
+                    continue;
+                }
+                Annotation[] annotations = field.getAnnotations();
+                for (Annotation annotation : annotations) {
+                    if (annotation instanceof JsonDataModel) {
+                        JsonDataModel jsonDataModel = (JsonDataModel) annotation;
+                        Matcher matcher = Pattern.compile("(\\w+)").matcher(jsonDataModel.path());
+                        if (!matcher.find()) {
+                            throw new WorkflowException("Invalid Json Data Model Path");
+                        }
+                        String path = matcher.group(1);
+                        if (checkJsonNodeDataType(jsonNode, field, path)) {
+                            jsonDataModelMap.put(path, field.getType().getName());
+                        }
+                    }
+                }
+            }
+            if (!jsonDataModelMap.isEmpty()) {
+                workletDataTypeMap.put(worklet.tag(), jsonDataModelMap);
+            }
+
+        }
+        if (!workletDataTypeMap.isEmpty()) {
+            throw new WorkflowDataModelException("invalid workflow ", workflow.id().toString(), workletDataTypeMap);
+        }
+        return true;
+    }
+
+
+    private boolean checkJsonNodeDataType(JsonNode jsonNode, Field field, String path) throws WorkflowException {
+        if (!Objects.nonNull(jsonNode.get("data")) && !Objects.nonNull(jsonNode.get("data").get(path))) {
+            throw new WorkflowException("Invalid Json");
+        }
+        JsonNodeType jsonNodeType = jsonNode.get("data").get(path).getNodeType();
+        if (jsonNodeType != null) {
+            switch (jsonNodeType) {
+                case NUMBER:
+                    if (!(field.getType().isAssignableFrom(Integer.class))) {
+                        return true;
+                    }
+                    break;
+                case STRING:
+                    if (!(field.getType().isAssignableFrom(String.class))) {
+                        return true;
+                    }
+                    break;
+                case OBJECT:
+                    if (!(field.getType().isAssignableFrom(Objects.class))) {
+                        return true;
+                    }
+                    break;
+                case BOOLEAN:
+                    if (!(field.getType().isAssignableFrom(Boolean.class))) {
+                        return true;
+                    }
+                    break;
+                case ARRAY:
+                    if (!(field.getType().isAssignableFrom(Arrays.class))) {
+                        return true;
+                    }
+                    break;
+                default:
+                    return true;
+            }
+        } else {
+            return false;
+
+        }
+        return false;
     }
 
     @Override

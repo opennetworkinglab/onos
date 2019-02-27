@@ -16,6 +16,7 @@
 package org.onosproject.workflow.api;
 
 import java.net.URI;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -84,4 +85,10 @@ public interface Workflow {
      * @return attributes
      */
     Set<WorkflowAttribute> attributes();
+
+    /**
+     * Returns worklet type list.
+     * @return worklet type
+     */
+    List<String> getWorkletTypeList();
 }

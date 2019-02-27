@@ -37,15 +37,16 @@ import java.util.Objects;
 public class WorkFlowTestCommand extends AbstractShellCommand {
 
     static final String INVOKE_SAMPLE = "invoke-sample";
+    static final String EXCEPTION_SAMPLE = "exception-sample";
 
     @Argument(index = 0, name = "test-name",
-            description = "Test name (" + INVOKE_SAMPLE + ")",
+            description = "Test name (" + INVOKE_SAMPLE + " | " + EXCEPTION_SAMPLE + ")",
             required = true)
     @Completion(WorkFlowTestCompleter.class)
     private String testName = null;
 
     @Argument(index = 1, name = "arg1",
-            description = "number of test for " + INVOKE_SAMPLE,
+            description = "number of test for (" + INVOKE_SAMPLE + " | " + EXCEPTION_SAMPLE + ")",
             required = false)
     private String arg1 = null;
 
@@ -76,6 +77,26 @@ public class WorkFlowTestCommand extends AbstractShellCommand {
 
                 invokeSampleTest(num);
                 break;
+
+            case EXCEPTION_SAMPLE:
+                if (Objects.isNull(arg1)) {
+                    error("arg1 is required for test " + EXCEPTION_SAMPLE);
+                    return;
+                }
+                int count;
+                try {
+                    count = Integer.parseInt(arg1);
+                } catch (NumberFormatException e) {
+                    error("arg1 should be an integer value");
+                    return;
+                } catch (Exception e) {
+                    error(e.getMessage() + ", trace: " + Arrays.asList(e.getStackTrace()));
+                    return;
+                }
+
+                invokeExceptionTest(count);
+                break;
+
             default:
                 print("Unsupported test-name: " + testName);
         }
@@ -83,6 +104,7 @@ public class WorkFlowTestCommand extends AbstractShellCommand {
 
     /**
      * Workflow invoke test_name.
+     *
      * @param num the arg1 of workflow to test_name
      */
     private void invokeSampleTest(int num) {
@@ -95,8 +117,22 @@ public class WorkFlowTestCommand extends AbstractShellCommand {
     }
 
     /**
+     * Workflow datatype exception test.
+     *
+     * @param num the number of workflow to test
+     */
+    private void invokeExceptionTest(int num) {
+        for (int i = 0; i <= num; i++) {
+            String wpName = "test-" + i;
+            invoke("sample.workflow-3", wpName);
+        }
+    }
+
+
+    /**
      * Invokes workflow.
-     * @param workflowId workflow id
+     *
+     * @param workflowId    workflow id
      * @param workplaceName workplace name
      */
     private void invoke(String workflowId, String workplaceName) {
