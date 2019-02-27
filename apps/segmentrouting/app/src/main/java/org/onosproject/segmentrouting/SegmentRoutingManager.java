@@ -129,6 +129,7 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -253,7 +254,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     public LeadershipService leadershipService;
 
-    @Reference(cardinality = ReferenceCardinality.OPTIONAL)
+    @Reference(cardinality = ReferenceCardinality.OPTIONAL,
+            bind = "bindXconnectService",
+            unbind = "unbindXconnectService",
+            policy = ReferencePolicy.DYNAMIC)
     public XconnectService xconnectService;
 
     /** Enable active probing to discover dual-homed hosts. */
@@ -404,6 +408,24 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     public static final int MAX_DUMMY_VLAN_ID = 4093;
 
     Instant lastEdgePortEvent = Instant.EPOCH;
+
+    protected void bindXconnectService(XconnectService xconnectService) {
+        if (this.xconnectService == null) {
+            log.info("Binding XconnectService");
+            this.xconnectService = xconnectService;
+        } else {
+            log.warn("Trying to bind XconnectService but it is already bound");
+        }
+    }
+
+    protected void unbindXconnectService(XconnectService xconnectService) {
+        if (this.xconnectService == xconnectService) {
+            log.info("Unbinding XconnectService");
+            this.xconnectService = null;
+        } else {
+            log.warn("Trying to unbind XconnectService but it is already unbound");
+        }
+    }
 
     @Activate
     protected void activate(ComponentContext context) {
