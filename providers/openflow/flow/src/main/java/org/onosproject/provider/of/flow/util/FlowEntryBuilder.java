@@ -82,6 +82,7 @@ import org.projectfloodlight.openflow.protocol.action.OFActionSetVlanVid;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstruction;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstructionApplyActions;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstructionGotoTable;
+import org.projectfloodlight.openflow.protocol.instruction.OFInstructionMeter;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstructionStatTrigger;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstructionWriteActions;
 import org.projectfloodlight.openflow.protocol.instruction.OFInstructionWriteMetadata;
@@ -445,6 +446,7 @@ public class FlowEntryBuilder {
                 case EXPERIMENTER:
                     break;
                 case METER:
+                    builder.meter(MeterId.meterId(((OFInstructionMeter) in).getMeterId()));
                     break;
                 default:
                     log.warn("Unknown instructions type {}", in.getType());
