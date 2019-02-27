@@ -27,6 +27,7 @@ import org.apache.felix.scr.annotations.Modified;
 import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ICMP6;
@@ -232,7 +233,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     public LeadershipService leadershipService;
 
-    @Reference(cardinality = ReferenceCardinality.OPTIONAL_UNARY)
+    @Reference(cardinality = ReferenceCardinality.OPTIONAL_UNARY,
+            bind = "bindXconnectService",
+            unbind = "unbindXconnectService",
+            policy = ReferencePolicy.DYNAMIC)
     public XconnectService xconnectService;
 
     @Property(name = "activeProbing", boolValue = true,
@@ -393,6 +397,24 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     public static final int MAX_DUMMY_VLAN_ID = 4093;
 
     Instant lastEdgePortEvent = Instant.EPOCH;
+
+    protected void bindXconnectService(XconnectService xconnectService) {
+        if (this.xconnectService == null) {
+            log.info("Binding XconnectService");
+            this.xconnectService = xconnectService;
+        } else {
+            log.warn("Trying to bind XconnectService but it is already bound");
+        }
+    }
+
+    protected void unbindXconnectService(XconnectService xconnectService) {
+        if (this.xconnectService == xconnectService) {
+            log.info("Unbinding XconnectService");
+            this.xconnectService = null;
+        } else {
+            log.warn("Trying to unbind XconnectService but it is already unbound");
+        }
+    }
 
     @Activate
     protected void activate(ComponentContext context) {
