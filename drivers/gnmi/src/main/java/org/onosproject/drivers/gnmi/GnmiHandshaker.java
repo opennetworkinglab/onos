@@ -17,12 +17,14 @@
 package org.onosproject.drivers.gnmi;
 
 import org.onosproject.gnmi.api.GnmiClient;
+import org.onosproject.gnmi.api.GnmiClientKey;
 import org.onosproject.gnmi.api.GnmiController;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.device.DeviceHandshaker;
 
 import java.util.concurrent.CompletableFuture;
+
+import static java.util.concurrent.CompletableFuture.completedFuture;
 
 /**
  * Implementation of DeviceHandshaker for gNMI.
@@ -30,19 +32,28 @@ import java.util.concurrent.CompletableFuture;
 public class GnmiHandshaker extends AbstractGnmiHandlerBehaviour implements DeviceHandshaker {
 
     @Override
-    public CompletableFuture<Boolean> isReachable() {
-        return CompletableFuture
-                // gNMI requires a client to be created to
-                // check for reachability.
-                .supplyAsync(super::createClient)
-                .thenApplyAsync(client -> {
-                    if (client == null) {
-                        return false;
-                    }
-                    return handler()
-                            .get(GnmiController.class)
-                            .isReachable(handler().data().deviceId());
-                });
+    public boolean isReachable() {
+        final GnmiClient client = getClientByKey();
+        return client != null && client.isServerReachable();
+    }
+
+    @Override
+    public CompletableFuture<Boolean> probeReachability() {
+        final GnmiClient client = getClientByKey();
+        if (client == null) {
+            return completedFuture(false);
+        }
+        return client.probeService();
+    }
+
+    @Override
+    public boolean isAvailable() {
+        return isReachable();
+    }
+
+    @Override
+    public CompletableFuture<Boolean> probeAvailability() {
+        return probeReachability();
     }
 
     @Override
@@ -57,43 +68,30 @@ public class GnmiHandshaker extends AbstractGnmiHandlerBehaviour implements Devi
 
     @Override
     public CompletableFuture<Boolean> connect() {
-        return CompletableFuture
-                .supplyAsync(super::createClient)
-                .thenComposeAsync(client -> {
-                    if (client == null) {
-                        return CompletableFuture.completedFuture(false);
-                    }
-                    return CompletableFuture.completedFuture(true);
-                });
+        return CompletableFuture.supplyAsync(this::createClient);
+    }
+
+    private boolean createClient() {
+        GnmiClientKey clientKey = clientKey();
+        if (clientKey == null) {
+            return false;
+        }
+        if (!handler().get(GnmiController.class).createClient(clientKey)) {
+            log.warn("Unable to create client for {}",
+                     handler().data().deviceId());
+            return false;
+        }
+        return true;
     }
 
     @Override
     public boolean isConnected() {
-        final GnmiController controller = handler().get(GnmiController.class);
-        final DeviceId deviceId = handler().data().deviceId();
-        final GnmiClient client = controller.getClient(deviceId);
-
-        if (client == null) {
-            return false;
-        }
-
-        return getFutureWithDeadline(
-                client.isServiceAvailable(),
-                "checking if gNMI service is available", false);
+        return getClientByKey() != null;
     }
 
     @Override
-    public CompletableFuture<Boolean> disconnect() {
-        final GnmiController controller = handler().get(GnmiController.class);
-        final DeviceId deviceId = handler().data().deviceId();
-        final GnmiClient client = controller.getClient(deviceId);
-        if (client == null) {
-            return CompletableFuture.completedFuture(true);
-        }
-        return client.shutdown()
-                .thenApplyAsync(v -> {
-                    controller.removeClient(deviceId);
-                    return true;
-                });
+    public void disconnect() {
+        handler().get(GnmiController.class)
+                .removeClient(handler().data().deviceId());
     }
 }

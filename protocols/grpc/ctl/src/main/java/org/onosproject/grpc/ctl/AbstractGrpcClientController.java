@@ -21,7 +21,6 @@ import com.google.common.util.concurrent.Striped;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.NettyChannelBuilder;
-import io.netty.handler.ssl.NotSslRecordException;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import org.onosproject.event.AbstractListenerManager;
@@ -33,6 +32,9 @@ import org.onosproject.grpc.api.GrpcClient;
 import org.onosproject.grpc.api.GrpcClientController;
 import org.onosproject.grpc.api.GrpcClientKey;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceAgentEvent;
+import org.onosproject.net.device.DeviceAgentListener;
+import org.onosproject.net.provider.ProviderId;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
@@ -41,11 +43,11 @@ import org.slf4j.Logger;
 
 import javax.net.ssl.SSLException;
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 import static java.lang.String.format;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -74,40 +76,44 @@ public abstract class AbstractGrpcClientController
     private final Map<DeviceId, K> clientKeys = Maps.newHashMap();
     private final Map<K, C> clients = Maps.newHashMap();
     private final Map<DeviceId, GrpcChannelId> channelIds = Maps.newHashMap();
+    private final ConcurrentMap<DeviceId, ConcurrentMap<ProviderId, DeviceAgentListener>>
+            deviceAgentListeners = Maps.newConcurrentMap();
+    private final Class<E> eventClass;
     private final Striped<Lock> stripedLocks = Striped.lock(DEFAULT_DEVICE_LOCK_SIZE);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected GrpcChannelController grpcChannelController;
 
+    public AbstractGrpcClientController(Class<E> eventClass) {
+        this.eventClass = eventClass;
+    }
+
     @Activate
     public void activate() {
+        eventDispatcher.addSink(eventClass, listenerRegistry);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
+        eventDispatcher.removeSink(eventClass);
         clientKeys.keySet().forEach(this::removeClient);
         clientKeys.clear();
         clients.clear();
         channelIds.clear();
+        deviceAgentListeners.clear();
         log.info("Stopped");
     }
 
     @Override
     public boolean createClient(K clientKey) {
         checkNotNull(clientKey);
-        /*
-            FIXME we might want to move "useTls" and "fallback" to properties of the netcfg and clientKey
-                  For now, we will first try to connect with TLS (accepting any cert), then fall back to
-                  plaintext for every device
-         */
-        return withDeviceLock(() -> doCreateClient(clientKey, true, true), clientKey.deviceId());
+        return withDeviceLock(() -> doCreateClient(clientKey),
+                              clientKey.deviceId());
     }
 
-    private boolean doCreateClient(K clientKey, boolean useTls, boolean fallbackToPlainText) {
+    private boolean doCreateClient(K clientKey) {
         DeviceId deviceId = clientKey.deviceId();
-        String serverAddr = clientKey.serverAddr();
-        int serverPort = clientKey.serverPort();
 
         if (clientKeys.containsKey(deviceId)) {
             final GrpcClientKey existingKey = clientKeys.get(deviceId);
@@ -116,19 +122,25 @@ public abstract class AbstractGrpcClientController
                           clientName(clientKey), clientKey);
                 return true;
             } else {
-                log.info("Requested new {} with updated key, removing old client... (oldKey={})",
-                         clientName(clientKey), existingKey);
-                doRemoveClient(deviceId);
+                throw new IllegalArgumentException(format(
+                        "A client already exists for device %s (%s)",
+                        deviceId, clientKey));
             }
         }
 
-        log.info("Creating client for {} (server={}:{})...", deviceId, serverAddr, serverPort);
+        final String method = clientKey.requiresSecureChannel()
+                ? "TLS" : "plaintext TCP";
+
+        log.info("Connecting {} client for {} to server at {} using {}...",
+                 clientKey.serviceName(), deviceId, clientKey.serveUri(), method);
 
         SslContext sslContext = null;
-        if (useTls) {
+        if (clientKey.requiresSecureChannel()) {
             try {
-                // Accept any server certificate; this is insecure and should not be used in production
-                sslContext = GrpcSslContexts.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build();
+                // FIXME: Accept any server certificate; this is insecure and
+                //  should not be used in production
+                sslContext = GrpcSslContexts.forClient().trustManager(
+                        InsecureTrustManagerFactory.INSTANCE).build();
             } catch (SSLException e) {
                 log.error("Failed to build SSL Context", e);
                 return false;
@@ -137,17 +149,15 @@ public abstract class AbstractGrpcClientController
 
         GrpcChannelId channelId = GrpcChannelId.of(clientKey.toString());
         NettyChannelBuilder channelBuilder = NettyChannelBuilder
-                .forAddress(serverAddr, serverPort)
+                .forAddress(clientKey.serveUri().getHost(),
+                            clientKey.serveUri().getPort())
                 .maxInboundMessageSize(DEFAULT_MAX_INBOUND_MSG_SIZE * MEGABYTES);
+
         if (sslContext != null) {
-            log.debug("Using SSL for gRPC connection to {}", deviceId);
             channelBuilder
                     .sslContext(sslContext)
                     .useTransportSecurity();
         } else {
-            checkState(!useTls,
-                    "Not authorized to use plaintext for gRPC connection to {}", deviceId);
-            log.debug("Using plaintext TCP for gRPC connection to {}", deviceId);
             channelBuilder.usePlaintext();
         }
 
@@ -156,24 +166,9 @@ public abstract class AbstractGrpcClientController
         try {
             channel = grpcChannelController.connectChannel(channelId, channelBuilder);
         } catch (Throwable e) {
-            for (Throwable cause = e; cause != null; cause = cause.getCause()) {
-                if (useTls && cause instanceof NotSslRecordException) {
-                    // Likely root cause is that server is using plaintext
-                    log.info("Failed to connect to server (device={}) using TLS", deviceId);
-                    log.debug("TLS connection exception", e);
-                    if (fallbackToPlainText) {
-                        log.info("Falling back to plaintext for connection to {}", deviceId);
-                        return doCreateClient(clientKey, false, false);
-                    }
-                }
-                if (!useTls && "Connection reset by peer".equals(cause.getMessage())) {
-                    // Not a great signal, but could indicate the server is expected a TLS connection
-                    log.error("Failed to connect to server (device={}) using plaintext TCP; is the server using TLS?",
-                            deviceId);
-                    break;
-                }
-            }
-            log.warn("Unable to connect to gRPC server for {}", deviceId, e);
+            log.warn("Failed to connect to {} ({}) using {}: {}",
+                     deviceId, clientKey.serveUri(), method, e.toString());
+            log.debug("gRPC client connection exception", e);
             return false;
         }
 
@@ -216,37 +211,79 @@ public abstract class AbstractGrpcClientController
     }
 
     @Override
+    public C getClient(K clientKey) {
+        checkNotNull(clientKey);
+        return clients.get(clientKey);
+    }
+
+    @Override
     public void removeClient(DeviceId deviceId) {
         checkNotNull(deviceId);
         withDeviceLock(() -> doRemoveClient(deviceId), deviceId);
     }
 
+    @Override
+    public void removeClient(K clientKey) {
+        checkNotNull(clientKey);
+        withDeviceLock(() -> doRemoveClient(clientKey), clientKey.deviceId());
+    }
+
     private Void doRemoveClient(DeviceId deviceId) {
         if (clientKeys.containsKey(deviceId)) {
-            final K clientKey = clientKeys.get(deviceId);
-            clients.get(clientKey).shutdown();
-            grpcChannelController.disconnectChannel(channelIds.get(deviceId));
-            clientKeys.remove(deviceId);
-            clients.remove(clientKey);
-            channelIds.remove(deviceId);
+            doRemoveClient(clientKeys.get(deviceId));
         }
         return null;
     }
 
-    @Override
-    public boolean isReachable(DeviceId deviceId) {
-        checkNotNull(deviceId);
-        return withDeviceLock(() -> doIsReachable(deviceId), deviceId);
+    private Void doRemoveClient(K clientKey) {
+        if (clients.containsKey(clientKey)) {
+            clients.get(clientKey).shutdown();
+        }
+        if (channelIds.containsKey(clientKey.deviceId())) {
+            grpcChannelController.disconnectChannel(
+                    channelIds.get(clientKey.deviceId()));
+        }
+        clientKeys.remove(clientKey.deviceId());
+        clients.remove(clientKey);
+        channelIds.remove(clientKey.deviceId());
+        return null;
     }
 
-    private boolean doIsReachable(DeviceId deviceId) {
-        // Default behaviour checks only the gRPC channel, should
-        // check according to different gRPC service
-        if (!clientKeys.containsKey(deviceId)) {
-            log.debug("Missing client for {}, cannot check for reachability", deviceId);
-            return false;
+    @Override
+    public void addDeviceAgentListener(DeviceId deviceId, ProviderId providerId, DeviceAgentListener listener) {
+        checkNotNull(deviceId, "deviceId cannot be null");
+        checkNotNull(deviceId, "providerId cannot be null");
+        checkNotNull(listener, "listener cannot be null");
+        deviceAgentListeners.putIfAbsent(deviceId, Maps.newConcurrentMap());
+        deviceAgentListeners.get(deviceId).put(providerId, listener);
+    }
+
+    @Override
+    public void removeDeviceAgentListener(DeviceId deviceId, ProviderId providerId) {
+        checkNotNull(deviceId, "deviceId cannot be null");
+        checkNotNull(providerId, "listener cannot be null");
+        deviceAgentListeners.computeIfPresent(deviceId, (did, listeners) -> {
+            listeners.remove(providerId);
+            return listeners.isEmpty() ? null : listeners;
+        });
+    }
+
+    public void postEvent(E event) {
+        checkNotNull(event);
+        post(event);
+    }
+
+    public void postEvent(DeviceAgentEvent event) {
+        // We should have only one event delivery mechanism. We have two now
+        // because we have two different types of events, DeviceAgentEvent and
+        // controller/protocol specific ones (e.g. P4Runtime or gNMI).
+        // TODO: extend device agent event to allow delivery protocol-specific
+        //  events, e.g. packet-in
+        checkNotNull(event);
+        if (deviceAgentListeners.containsKey(event.subject())) {
+            deviceAgentListeners.get(event.subject()).values()
+                    .forEach(l -> l.event(event));
         }
-        return grpcChannelController.isChannelOpen(channelIds.get(deviceId));
     }
 
     private <U> U withDeviceLock(Supplier<U> task, DeviceId deviceId) {

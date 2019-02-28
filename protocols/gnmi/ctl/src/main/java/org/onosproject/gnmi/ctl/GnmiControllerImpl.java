@@ -23,47 +23,24 @@ import org.onosproject.gnmi.api.GnmiController;
 import org.onosproject.gnmi.api.GnmiEvent;
 import org.onosproject.gnmi.api.GnmiEventListener;
 import org.onosproject.grpc.ctl.AbstractGrpcClientController;
-import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Deactivate;
-import org.slf4j.Logger;
-
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Implementation of gNMI controller.
  */
 @Component(immediate = true, service = GnmiController.class)
 public class GnmiControllerImpl
-        extends AbstractGrpcClientController<GnmiClientKey, GnmiClient, GnmiEvent, GnmiEventListener>
+        extends AbstractGrpcClientController
+        <GnmiClientKey, GnmiClient, GnmiEvent, GnmiEventListener>
         implements GnmiController {
 
-    private final Logger log = getLogger(getClass());
-
-    @Activate
-    public void activate() {
-        super.activate();
-        eventDispatcher.addSink(GnmiEvent.class, listenerRegistry);
-        log.info("Started");
-    }
-
-    @Deactivate
-    public void deactivate() {
-        super.deactivate();
-        log.info("Stopped");
+    public GnmiControllerImpl() {
+        super(GnmiEvent.class);
     }
 
     @Override
-    protected GnmiClient createClientInstance(GnmiClientKey clientKey, ManagedChannel channel) {
+    protected GnmiClient createClientInstance(
+            GnmiClientKey clientKey, ManagedChannel channel) {
         return new GnmiClientImpl(clientKey, channel, this);
-    }
-
-    /**
-     * Handles event from gNMI client.
-     *
-     * @param event the gNMI event
-     */
-    void postEvent(GnmiEvent event) {
-        post(event);
     }
 }

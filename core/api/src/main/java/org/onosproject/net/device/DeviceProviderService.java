@@ -74,13 +74,28 @@ public interface DeviceProviderService extends ProviderService<DeviceProvider> {
     void portStatusChanged(DeviceId deviceId, PortDescription portDescription);
 
     /**
-     * Notifies the core about the result of a RoleRequest sent to a device.
+     * Notifies the core about the result of a role request sent to a device.
+     * This method assumes that the provider knows the original role that was
+     * requested for a given response, if that is not the case, and only the
+     * response is known to the provider, then {@link #receivedRoleReply(DeviceId,
+     * MastershipRole)} should be used instead.
      *
-     * @param deviceId identity of the device
+     * @param deviceId  identity of the device
      * @param requested mastership role that was requested by the node
-     * @param response mastership role the switch accepted
+     * @param response  mastership role the switch accepted
      */
     void receivedRoleReply(DeviceId deviceId, MastershipRole requested, MastershipRole response);
+
+    /**
+     * Notifies the core about a mastership role reported by the given device
+     * for this node.
+     *
+     * @param deviceId  identity of the device
+     * @param response  mastership role the switch accepted
+     */
+    default void receivedRoleReply(DeviceId deviceId, MastershipRole response) {
+        receivedRoleReply(deviceId, null, response);
+    }
 
     /**
      * Updates statistics about all ports of a device.

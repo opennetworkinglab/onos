@@ -20,8 +20,11 @@ import com.google.common.annotations.Beta;
 import com.google.common.base.Objects;
 import org.onosproject.net.DeviceId;
 
+import java.net.URI;
+
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.lang.String.format;
 
 /**
@@ -29,32 +32,36 @@ import static java.lang.String.format;
  */
 @Beta
 public class GrpcClientKey {
+
+    private static final String GRPC = "grpc";
+    private static final String GRPCS = "grpcs";
+
     private final String serviceName;
     private final DeviceId deviceId;
-    private final String serverAddr;
-    private final int serverPort;
+    private final URI serverUri;
 
     /**
      * Creates a new client key.
      *
      * @param serviceName gRPC service name of the client
-     * @param deviceId ONOS device ID
-     * @param serverAddr gRPC server address
-     * @param serverPort gRPC server port
+     * @param deviceId    ONOS device ID
+     * @param serverUri   gRPC server URI
      */
-    public GrpcClientKey(String serviceName, DeviceId deviceId, String serverAddr, int serverPort) {
+    public GrpcClientKey(String serviceName, DeviceId deviceId, URI serverUri) {
         checkNotNull(serviceName);
         checkNotNull(deviceId);
-        checkNotNull(serverAddr);
+        checkNotNull(serverUri);
         checkArgument(!serviceName.isEmpty(),
-                "Service name can not be null");
-        checkArgument(!serverAddr.isEmpty(),
-                "Server address should not be empty");
-        checkArgument(serverPort > 0 && serverPort <= 65535, "Invalid server port");
+                      "Service name can not be null");
+        checkArgument(serverUri.getScheme().equals(GRPC)
+                              || serverUri.getScheme().equals(GRPCS),
+                      format("Server URI scheme must be %s or %s", GRPC, GRPCS));
+        checkArgument(!isNullOrEmpty(serverUri.getHost()),
+                      "Server host address should not be empty");
+        checkArgument(serverUri.getPort() > 0 && serverUri.getPort() <= 65535, "Invalid server port");
         this.serviceName = serviceName;
         this.deviceId = deviceId;
-        this.serverAddr = serverAddr;
-        this.serverPort = serverPort;
+        this.serverUri = serverUri;
     }
 
     /**
@@ -76,21 +83,21 @@ public class GrpcClientKey {
     }
 
     /**
-     * Gets the gRPC server address.
+     * Returns the gRPC server URI.
      *
-     * @return the gRPC server address.
+     * @return the gRPC server URI.
      */
-    public String serverAddr() {
-        return serverAddr;
+    public URI serveUri() {
+        return serverUri;
     }
 
     /**
-     * Gets the gRPC server port.
+     * Returns true if the client requires TLS/SSL, false otherwise.
      *
-     * @return the gRPC server port.
+     * @return boolean
      */
-    public int serverPort() {
-        return serverPort;
+    public boolean requiresSecureChannel() {
+        return serverUri.getScheme().equals(GRPCS);
     }
 
     @Override
@@ -102,19 +109,18 @@ public class GrpcClientKey {
             return false;
         }
         GrpcClientKey that = (GrpcClientKey) o;
-        return serverPort == that.serverPort &&
-                Objects.equal(serviceName, that.serviceName) &&
+        return Objects.equal(serviceName, that.serviceName) &&
                 Objects.equal(deviceId, that.deviceId) &&
-                Objects.equal(serverAddr, that.serverAddr);
+                Objects.equal(serverUri, that.serverUri);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(serviceName, deviceId, serverAddr, serverPort);
+        return Objects.hashCode(serviceName, deviceId, serverUri);
     }
 
     @Override
     public String toString() {
-        return format("%s/%s@%s:%s", deviceId, serviceName, serverAddr, serverPort);
+        return format("%s/%s@%s", deviceId, serviceName, serverUri);
     }
 }

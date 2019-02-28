@@ -35,6 +35,7 @@ VALGRIND_PREFIX = 'valgrind --leak-check=yes'
 SWITCH_START_TIMEOUT = 5  # seconds
 BMV2_LOG_LINES = 5
 BMV2_DEFAULT_DEVICE_ID = 1
+DEFAULT_PIPECONF = "org.onosproject.pipelines.basic"
 
 # Stratum paths relative to stratum repo root
 STRATUM_BMV2 = 'stratum_bmv2'
@@ -119,9 +120,10 @@ class ONOSBmv2Switch(Switch):
 
     def __init__(self, name, json=None, debugger=False, loglevel="warn",
                  elogger=False, grpcport=None, cpuport=255, notifications=False,
-                 thriftport=None, netcfg=True, dryrun=False, pipeconf="",
-                 pktdump=False, valgrind=False, gnmi=False,
-                 portcfg=True, onosdevid=None, stratum=False, **kwargs):
+                 thriftport=None, netcfg=True, dryrun=False,
+                 pipeconf=DEFAULT_PIPECONF, pktdump=False, valgrind=False,
+                 gnmi=False, portcfg=True, onosdevid=None, stratum=False,
+                 **kwargs):
         Switch.__init__(self, name, **kwargs)
         self.grpcPort = grpcport
         self.thriftPort = thriftport
@@ -173,7 +175,10 @@ class ONOSBmv2Switch(Switch):
     def getDeviceConfig(self, srcIP):
 
         basicCfg = {
-            "driver": "bmv2"
+            "managementAddress": "grpc://%s:%d?device_id=%d" % (
+                srcIP, self.grpcPort, BMV2_DEFAULT_DEVICE_ID),
+            "driver": "bmv2",
+            "pipeconf": self.pipeconfId
         }
 
         if self.longitude and self.latitude:
@@ -181,29 +186,8 @@ class ONOSBmv2Switch(Switch):
             basicCfg["latitude"] = self.latitude
 
         cfgData = {
-            "generalprovider": {
-                "p4runtime": {
-                    "ip": srcIP,
-                    "port": self.grpcPort,
-                    "deviceId": BMV2_DEFAULT_DEVICE_ID,
-                    "deviceKeyId": "p4runtime:%s" % self.onosDeviceId
-                },
-                # "bmv2-thrift": {
-                #     "ip": srcIP,
-                #     "port": self.thriftPort
-                # }
-            },
-            "piPipeconf": {
-                "piPipeconfId": self.pipeconfId
-            },
             "basic": basicCfg
         }
-
-        if self.withGnmi:
-            cfgData["generalprovider"]["gnmi"] = {
-                "ip": srcIP,
-                "port": self.grpcPort
-            }
 
         if self.injectPorts:
             portData = {}
@@ -327,7 +311,8 @@ class ONOSBmv2Switch(Switch):
             '-persistent_config_dir=' + config_dir,
             '-initial_pipeline=' + stratumRoot + STRATUM_INIT_PIPELINE,
             '-cpu_port=%s' % self.cpuPort,
-            '-external_hercules_urls=0.0.0.0:%d' % self.grpcPort
+            '-external_hercules_urls=0.0.0.0:%d' % self.grpcPort,
+            '-max_num_controllers_per_node=10'
         ]
         for port, intf in self.intfs.items():
             if not intf.IP():

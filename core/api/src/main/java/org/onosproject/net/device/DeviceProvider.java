@@ -41,8 +41,8 @@ public interface DeviceProvider extends Provider {
      * Notifies the provider of a mastership role change for the specified
      * device as decided by the core.
      *
-     * @param deviceId  device identifier
-     * @param newRole newly determined mastership role
+     * @param deviceId device identifier
+     * @param newRole  newly determined mastership role
      */
     void roleChanged(DeviceId deviceId, MastershipRole newRole);
 
@@ -50,18 +50,40 @@ public interface DeviceProvider extends Provider {
      * Checks the reachability (connectivity) of a device from this provider.
      * Reachability, unlike availability, denotes whether THIS particular node
      * can send messages and receive replies from the specified device.
+     * <p>
+     * Implementations are encouraged to check for reachability by using only
+     * internal provider state, i.e., without blocking execution.
      *
-     * @param deviceId  device identifier
+     * @param deviceId device identifier
      * @return true if reachable, false otherwise
      */
     boolean isReachable(DeviceId deviceId);
 
     /**
-     * Administratively enables or disables a port.
+     * Checks the availability of the device from the provider perspective.
+     * Availability denotes whether the device is reachable by
+     * this node and able to perform its functions as expected (e.g., forward
+     * traffic).
+     *
+     * <p>
+     * Implementations are encouraged to check for availability by using only
+     * internal provider state, i.e., without blocking execution.
      *
      * @param deviceId device identifier
+     * @return completable future eventually true if available, false otherwise
+     */
+    default boolean isAvailable(DeviceId deviceId) {
+        // For most implementations such as OpenFlow, reachability is equivalent
+        // to availability.
+        return isReachable(deviceId);
+    }
+
+    /**
+     * Administratively enables or disables a port.
+     *
+     * @param deviceId   device identifier
      * @param portNumber port number
-     * @param enable true if port is to be enabled, false to disable
+     * @param enable     true if port is to be enabled, false to disable
      */
     void changePortState(DeviceId deviceId, PortNumber portNumber,
                          boolean enable);

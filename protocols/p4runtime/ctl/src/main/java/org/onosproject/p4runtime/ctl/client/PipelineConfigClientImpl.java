@@ -18,6 +18,7 @@ package org.onosproject.p4runtime.ctl.client;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.TextFormat;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.p4runtime.api.P4RuntimePipelineConfigClient;
@@ -32,11 +33,13 @@ import p4.v1.P4RuntimeOuterClass.SetForwardingPipelineConfigRequest;
 import p4.v1.P4RuntimeOuterClass.SetForwardingPipelineConfigResponse;
 
 import java.nio.ByteBuffer;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.onosproject.p4runtime.ctl.client.P4RuntimeClientImpl.LONG_TIMEOUT_SECONDS;
+import static org.onosproject.p4runtime.ctl.client.P4RuntimeClientImpl.SHORT_TIMEOUT_SECONDS;
 import static org.slf4j.LoggerFactory.getLogger;
 import static p4.v1.P4RuntimeOuterClass.GetForwardingPipelineConfigRequest.ResponseType.COOKIE_ONLY;
 import static p4.v1.P4RuntimeOuterClass.SetForwardingPipelineConfigRequest.Action.VERIFY_AND_COMMIT;
@@ -61,6 +64,12 @@ final class PipelineConfigClientImpl implements P4RuntimePipelineConfigClient {
     @Override
     public CompletableFuture<Boolean> setPipelineConfig(
             PiPipeconf pipeconf, ByteBuffer deviceData) {
+
+        if (!client.isSessionOpen()) {
+            log.warn("Dropping set pipeline config request for {}, session is CLOSED",
+                     client.deviceId());
+            return completedFuture(false);
+        }
 
         log.info("Setting pipeline config for {} to {}...",
                  client.deviceId(), pipeconf.id());
@@ -98,11 +107,13 @@ final class PipelineConfigClientImpl implements P4RuntimePipelineConfigClient {
                         // All good, pipeline is set.
                         future.complete(true);
                     }
+
                     @Override
                     public void onError(Throwable t) {
                         client.handleRpcError(t, "SET-pipeline-config");
                         future.complete(false);
                     }
+
                     @Override
                     public void onCompleted() {
                         // Ignore, unary call.
@@ -152,6 +163,11 @@ final class PipelineConfigClientImpl implements P4RuntimePipelineConfigClient {
         return getPipelineCookieFromServer()
                 .thenApply(cfgFromDevice -> comparePipelineConfig(
                         pipeconf, expectedDeviceData, cfgFromDevice));
+    }
+
+    @Override
+    public CompletableFuture<Boolean> isAnyPipelineConfigSet() {
+        return getPipelineCookieFromServer().thenApply(Objects::nonNull);
     }
 
     private boolean comparePipelineConfig(
@@ -209,17 +225,38 @@ final class PipelineConfigClientImpl implements P4RuntimePipelineConfigClient {
                     public void onNext(GetForwardingPipelineConfigResponse value) {
                         if (value.hasConfig()) {
                             future.complete(value.getConfig());
+                            if (!value.getConfig().getP4DeviceConfig().isEmpty()) {
+                                log.warn("{} returned GetForwardingPipelineConfigResponse " +
+                                                 "with p4_device_config field set " +
+                                                 "({} bytes), but we requested COOKIE_ONLY",
+                                         client.deviceId(),
+                                         value.getConfig().getP4DeviceConfig().size());
+                            }
+                            if (value.getConfig().hasP4Info()) {
+                                log.warn("{} returned GetForwardingPipelineConfigResponse " +
+                                                 "with p4_info field set " +
+                                                 "({} bytes), but we requested COOKIE_ONLY",
+                                         client.deviceId(),
+                                         value.getConfig().getP4Info().getSerializedSize());
+                            }
                         } else {
+                            future.complete(null);
                             log.warn("{} returned {} with 'config' field unset",
                                      client.deviceId(), value.getClass().getSimpleName());
                         }
-                        future.complete(null);
                     }
 
                     @Override
                     public void onError(Throwable t) {
-                        client.handleRpcError(t, "GET-pipeline-config");
                         future.complete(null);
+                        if (Status.fromThrowable(t).getCode() ==
+                                Status.Code.FAILED_PRECONDITION) {
+                            // FAILED_PRECONDITION means that a pipeline
+                            // config was not set in the first place, don't
+                            // bother logging.
+                            return;
+                        }
+                        client.handleRpcError(t, "GET-pipeline-config");
                     }
 
                     @Override
@@ -231,7 +268,7 @@ final class PipelineConfigClientImpl implements P4RuntimePipelineConfigClient {
         // (e.g. server does not support cookie), over a slow network.
         client.execRpc(
                 s -> s.getForwardingPipelineConfig(request, responseObserver),
-                LONG_TIMEOUT_SECONDS);
+                SHORT_TIMEOUT_SECONDS);
         return future;
     }
 }

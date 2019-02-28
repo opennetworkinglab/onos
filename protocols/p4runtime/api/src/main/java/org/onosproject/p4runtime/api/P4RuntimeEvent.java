@@ -33,21 +33,6 @@ public final class P4RuntimeEvent extends AbstractEvent<P4RuntimeEvent.Type, P4R
          * A packet-in.
          */
         PACKET_IN,
-
-        /**
-         * Arbitration reply.
-         */
-        ARBITRATION_RESPONSE,
-
-        /**
-         * Channel Event.
-         */
-        CHANNEL_EVENT,
-
-        /**
-         * Permission denied (not master).
-         */
-        PERMISSION_DENIED,
     }
 
     public P4RuntimeEvent(Type type, P4RuntimeEventSubject subject) {

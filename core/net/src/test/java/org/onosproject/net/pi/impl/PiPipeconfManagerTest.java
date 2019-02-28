@@ -44,7 +44,6 @@ import org.onosproject.net.driver.DriverAdminServiceAdapter;
 import org.onosproject.net.driver.DriverProvider;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconfId;
-import org.onosproject.net.pi.service.PiPipeconfConfig;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -55,7 +54,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.onosproject.pipelines.basic.PipeconfLoader.BASIC_PIPECONF;
 
@@ -77,9 +75,6 @@ public class PiPipeconfManagerTest {
     private final Set<NetworkConfigListener> netCfgListeners = new HashSet<>();
     private final Set<DriverProvider> providers = new HashSet<>();
 
-    private final PiPipeconfConfig piPipeconfConfig = new PiPipeconfConfig();
-    private final InputStream jsonStream = PiPipeconfManagerTest.class
-            .getResourceAsStream("/org/onosproject/net/pi/impl/piPipeconfId.json");
     private final BasicDeviceConfig basicDeviceConfig = new BasicDeviceConfig();
     private final InputStream jsonStreamBasic = PiPipeconfManagerTest.class
             .getResourceAsStream("/org/onosproject/net/pi/impl/basic.json");
@@ -95,11 +90,8 @@ public class PiPipeconfManagerTest {
         piPipeconf = BASIC_PIPECONF;
         piPipeconfService.cfgService = cfgService;
         piPipeconfService.driverAdminService = driverAdminService;
-        String key = "piPipeconf";
         ObjectMapper mapper = new ObjectMapper();
-        JsonNode jsonNode = mapper.readTree(jsonStream);
         ConfigApplyDelegate delegate = new MockDelegate();
-        piPipeconfConfig.init(DEVICE_ID, key, jsonNode, mapper, delegate);
         String keyBasic = "basic";
         JsonNode jsonNodeBasic = mapper.readTree(jsonStreamBasic);
         basicDeviceConfig.init(DEVICE_ID, keyBasic, jsonNodeBasic, mapper, delegate);
@@ -111,7 +103,6 @@ public class PiPipeconfManagerTest {
         assertEquals("Incorrect driver admin service", driverAdminService, piPipeconfService.driverAdminService);
         assertEquals("Incorrect driverAdminService service", driverAdminService, piPipeconfService.driverAdminService);
         assertEquals("Incorrect configuration service", cfgService, piPipeconfService.cfgService);
-        assertTrue("Incorrect config factory", cfgFactories.contains(piPipeconfService.configFactory));
     }
 
     @Test
@@ -120,7 +111,6 @@ public class PiPipeconfManagerTest {
         assertEquals("Incorrect driver admin service", null, piPipeconfService.driverAdminService);
         assertEquals("Incorrect driverAdminService service", null, piPipeconfService.driverAdminService);
         assertEquals("Incorrect configuration service", null, piPipeconfService.cfgService);
-        assertFalse("Config factory should be unregistered", cfgFactories.contains(piPipeconfService.configFactory));
     }
 
     @Test
@@ -139,7 +129,8 @@ public class PiPipeconfManagerTest {
 
     @Test
     public void mergeDriver() {
-        PiPipeconfId piPipeconfId = cfgService.getConfig(DEVICE_ID, PiPipeconfConfig.class).piPipeconfId();
+        PiPipeconfId piPipeconfId = new PiPipeconfId(cfgService.getConfig(
+                DEVICE_ID, BasicDeviceConfig.class).pipeconf());
         assertEquals(piPipeconf.id(), piPipeconfId);
 
         String baseDriverName = cfgService.getConfig(DEVICE_ID, BasicDeviceConfig.class).driver();
@@ -196,10 +187,7 @@ public class PiPipeconfManagerTest {
         @Override
         public <S, C extends Config<S>> C getConfig(S subject, Class<C> configClass) {
             DeviceId did = (DeviceId) subject;
-            if (configClass.equals(PiPipeconfConfig.class)
-                    && did.equals(DEVICE_ID)) {
-                return (C) piPipeconfConfig;
-            } else if (configClass.equals(BasicDeviceConfig.class)
+            if (configClass.equals(BasicDeviceConfig.class)
                     && did.equals(DEVICE_ID)) {
                 return (C) basicDeviceConfig;
             }

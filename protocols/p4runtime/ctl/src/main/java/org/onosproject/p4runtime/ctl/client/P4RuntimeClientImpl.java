@@ -17,21 +17,25 @@
 package org.onosproject.p4runtime.ctl.client;
 
 import io.grpc.ManagedChannel;
+import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import io.grpc.stub.StreamObserver;
 import org.onosproject.grpc.ctl.AbstractGrpcClient;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceAgentEvent;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.onosproject.net.pi.service.PiPipeconfService;
 import org.onosproject.p4runtime.api.P4RuntimeClient;
 import org.onosproject.p4runtime.api.P4RuntimeClientKey;
-import org.onosproject.p4runtime.api.P4RuntimeEvent;
-import org.onosproject.p4runtime.ctl.controller.BaseEventSubject;
-import org.onosproject.p4runtime.ctl.controller.ChannelEvent;
+import org.onosproject.p4runtime.ctl.controller.MasterElectionIdStore;
 import org.onosproject.p4runtime.ctl.controller.P4RuntimeControllerImpl;
 import p4.v1.P4RuntimeGrpc;
 import p4.v1.P4RuntimeOuterClass;
+import p4.v1.P4RuntimeOuterClass.GetForwardingPipelineConfigRequest;
+import p4.v1.P4RuntimeOuterClass.GetForwardingPipelineConfigResponse;
 
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -39,6 +43,7 @@ import java.util.function.Consumer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
+import static p4.v1.P4RuntimeOuterClass.GetForwardingPipelineConfigRequest.ResponseType.COOKIE_ONLY;
 
 /**
  * Implementation of P4RuntimeClient.
@@ -59,7 +64,6 @@ public final class P4RuntimeClientImpl
     static final int LONG_TIMEOUT_SECONDS = 60;
 
     private final long p4DeviceId;
-    private final ManagedChannel channel;
     private final P4RuntimeControllerImpl controller;
     private final StreamClientImpl streamClient;
     private final PipelineConfigClientImpl pipelineConfigClient;
@@ -67,25 +71,27 @@ public final class P4RuntimeClientImpl
     /**
      * Instantiates a new client with the given arguments.
      *
-     * @param clientKey       client key
-     * @param channel         gRPC managed channel
-     * @param controller      P$Runtime controller instance
-     * @param pipeconfService pipeconf service instance
+     * @param clientKey             client key
+     * @param channel               gRPC managed channel
+     * @param controller            P$Runtime controller instance
+     * @param pipeconfService       pipeconf service instance
+     * @param masterElectionIdStore master election ID store
      */
     public P4RuntimeClientImpl(P4RuntimeClientKey clientKey,
                                ManagedChannel channel,
                                P4RuntimeControllerImpl controller,
-                               PiPipeconfService pipeconfService) {
-        super(clientKey);
+                               PiPipeconfService pipeconfService,
+                               MasterElectionIdStore masterElectionIdStore) {
+        super(clientKey, channel, true, controller);
         checkNotNull(channel);
         checkNotNull(controller);
         checkNotNull(pipeconfService);
+        checkNotNull(masterElectionIdStore);
 
         this.p4DeviceId = clientKey.p4DeviceId();
-        this.channel = channel;
         this.controller = controller;
         this.streamClient = new StreamClientImpl(
-                pipeconfService, this, controller);
+                pipeconfService, masterElectionIdStore, this, controller);
         this.pipelineConfigClient = new PipelineConfigClientImpl(this);
     }
 
@@ -108,13 +114,13 @@ public final class P4RuntimeClientImpl
     }
 
     @Override
-    public ReadRequest read(PiPipeconf pipeconf) {
-        return new ReadRequestImpl(this, pipeconf);
+    public CompletableFuture<Boolean> isAnyPipelineConfigSet() {
+        return pipelineConfigClient.isAnyPipelineConfigSet();
     }
 
     @Override
-    public void openSession() {
-        streamClient.openSession();
+    public ReadRequest read(PiPipeconf pipeconf) {
+        return new ReadRequestImpl(this, pipeconf);
     }
 
     @Override
@@ -128,8 +134,8 @@ public final class P4RuntimeClientImpl
     }
 
     @Override
-    public void runForMastership() {
-        streamClient.runForMastership();
+    public void setMastership(boolean master, BigInteger newElectionId) {
+        streamClient.setMastership(master, newElectionId);
     }
 
     @Override
@@ -145,6 +151,44 @@ public final class P4RuntimeClientImpl
     @Override
     public WriteRequest write(PiPipeconf pipeconf) {
         return new WriteRequestImpl(this, pipeconf);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> probeService() {
+        final CompletableFuture<Boolean> future = new CompletableFuture<>();
+        final StreamObserver<GetForwardingPipelineConfigResponse> responseObserver =
+                new StreamObserver<GetForwardingPipelineConfigResponse>() {
+                    @Override
+                    public void onNext(GetForwardingPipelineConfigResponse value) {
+                        future.complete(true);
+                    }
+
+                    @Override
+                    public void onError(Throwable t) {
+                        if (Status.fromThrowable(t).getCode() ==
+                                Status.Code.FAILED_PRECONDITION) {
+                            // Pipeline not set but service is available.
+                            future.complete(true);
+                        } else {
+                            log.debug("", t);
+                        }
+                        future.complete(false);
+                    }
+
+                    @Override
+                    public void onCompleted() {
+                        // Ignore, unary call.
+                    }
+                };
+        // Use long timeout as the device might return the full P4 blob
+        // (e.g. server does not support cookie), over a slow network.
+        execRpc(s -> s.getForwardingPipelineConfig(
+                GetForwardingPipelineConfigRequest.newBuilder()
+                        .setDeviceId(p4DeviceId)
+                        .setResponseType(COOKIE_ONLY)
+                        .build(), responseObserver),
+                SHORT_TIMEOUT_SECONDS);
+        return future;
     }
 
     /**
@@ -184,7 +228,8 @@ public final class P4RuntimeClientImpl
      * @param stubConsumer P4Runtime stub consumer
      * @param timeout      timeout in seconds
      */
-    void execRpc(Consumer<P4RuntimeGrpc.P4RuntimeStub> stubConsumer, int timeout) {
+    void execRpc(Consumer<P4RuntimeGrpc.P4RuntimeStub> stubConsumer,
+                 int timeout) {
         if (log.isTraceEnabled()) {
             log.trace("Executing RPC with timeout {} seconds (context deadline {})...",
                       timeout, context().getDeadline());
@@ -235,21 +280,10 @@ public final class P4RuntimeClientImpl
     }
 
     private void checkGrpcException(StatusRuntimeException sre) {
-        switch (sre.getStatus().getCode()) {
-            case PERMISSION_DENIED:
-                // Notify upper layers that this node is not master.
-                controller.postEvent(new P4RuntimeEvent(
-                        P4RuntimeEvent.Type.PERMISSION_DENIED,
-                        new BaseEventSubject(deviceId)));
-                break;
-            case UNAVAILABLE:
-                // Channel might be closed.
-                controller.postEvent(new P4RuntimeEvent(
-                        P4RuntimeEvent.Type.CHANNEL_EVENT,
-                        new ChannelEvent(deviceId, ChannelEvent.Type.ERROR)));
-                break;
-            default:
-                break;
+        if (sre.getStatus().getCode() == Status.Code.PERMISSION_DENIED) {
+            // Notify upper layers that this node is not master.
+            controller.postEvent(new DeviceAgentEvent(
+                    DeviceAgentEvent.Type.NOT_MASTER, deviceId));
         }
     }
 }

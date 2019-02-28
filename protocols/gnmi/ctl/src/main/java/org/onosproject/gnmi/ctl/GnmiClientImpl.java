@@ -50,7 +50,7 @@ public class GnmiClientImpl extends AbstractGrpcClient implements GnmiClient {
     private GnmiSubscriptionManager gnmiSubscriptionManager;
 
     GnmiClientImpl(GnmiClientKey clientKey, ManagedChannel managedChannel, GnmiControllerImpl controller) {
-        super(clientKey);
+        super(clientKey, managedChannel, false, controller);
         this.blockingStub = gNMIGrpc.newBlockingStub(managedChannel);
         this.gnmiSubscriptionManager =
                 new GnmiSubscriptionManager(managedChannel, deviceId, controller);
@@ -82,7 +82,7 @@ public class GnmiClientImpl extends AbstractGrpcClient implements GnmiClient {
     }
 
     @Override
-    public CompletableFuture<Boolean> isServiceAvailable() {
+    public CompletableFuture<Boolean> probeService() {
         return supplyInContext(this::doServiceAvailable, "isServiceAvailable");
     }
 

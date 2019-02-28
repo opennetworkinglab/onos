@@ -89,4 +89,25 @@ public interface P4RuntimePipelineConfigClient {
             PiPipeconf pipeconf, ByteBuffer deviceData) {
         return Futures.getUnchecked(isPipelineConfigSet(pipeconf, deviceData));
     }
+
+    /**
+     * Returns true if the device has a pipeline config set, false otherwise.
+     * <p>
+     * This method is expected to return {@code true} if invoked after
+     * successfully calling {@link #setPipelineConfig(PiPipeconf, ByteBuffer)}
+     * with any parameter.
+     *
+     * @return completable future, true if the device has a pipeline config set,
+     * false otherwise.
+     */
+    CompletableFuture<Boolean> isAnyPipelineConfigSet();
+
+    /**
+     * Same as {@link #isAnyPipelineConfigSet()}, but blocks execution.
+     *
+     * @return true if the device has a pipeline config set, false otherwise.
+     */
+    default boolean isAnyPipelineConfigSetSync() {
+        return Futures.getUnchecked(isAnyPipelineConfigSet());
+    }
 }

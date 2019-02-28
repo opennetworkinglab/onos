@@ -89,16 +89,6 @@ public final class AnnotationKeys {
     public static final String DRIVER = "driver";
 
     /**
-     * Annotation key for the device availability behavior. The value of this key
-     * is expected to be a boolean ({@code true} or {@code false}) and it is
-     * used to determine if the device can be marked online by the core when
-     * deemed appropriate (value is {@code false}, default behaviour if key is
-     * not present), or if marking online should be left to providers ({@code
-     * true}).
-     */
-    public static final String PROVIDER_MARK_ONLINE = "providerMarkOnline";
-
-    /**
      * Annotation key for durable links.
      */
     public static final String DURABLE = "durable";

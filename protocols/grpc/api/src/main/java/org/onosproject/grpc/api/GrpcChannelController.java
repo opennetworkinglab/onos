@@ -23,6 +23,7 @@ import io.grpc.StatusRuntimeException;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Abstraction of a gRPC controller that stores and manages gRPC channels.
@@ -33,10 +34,10 @@ public interface GrpcChannelController {
     int CONNECTION_TIMEOUT_SECONDS = 20;
 
     /**
-     * Creates a gRPC managed channel from the given builder and opens a
-     * connection to it. If the connection is successful returns the managed
-     * channel object and stores the channel internally, associated with the
-     * given channel ID.
+     * Creates a gRPC managed channel from the given builder and opens the
+     * connection. If the connection is successful, returns the managed channel
+     * object and stores the channel internally, associated with the given
+     * channel ID.
      * <p>
      * This method blocks until the channel is open or a timeout expires. By
      * default the timeout is {@link #CONNECTION_TIMEOUT_SECONDS} seconds. If
@@ -72,15 +73,6 @@ public interface GrpcChannelController {
     Map<GrpcChannelId, ManagedChannel> getChannels();
 
     /**
-     * Returns true if the channel associated with the given identifier is open,
-     * i.e. the server is able to successfully reply to RPCs, false otherwise.
-     *
-     * @param channelId channel ID
-     * @return true if channel is open, false otherwise.
-     */
-    boolean isChannelOpen(GrpcChannelId channelId);
-
-    /**
      * If present, returns the channel associated with the given ID.
      *
      * @param channelId channel ID
@@ -88,4 +80,14 @@ public interface GrpcChannelController {
      */
     Optional<ManagedChannel> getChannel(GrpcChannelId channelId);
 
+    /**
+     * Probes the server at the endpoint of the given channel. Returns true if
+     * the server responded to the probe, false otherwise or if the channel does
+     * not exist.
+     *
+     * @param channelId channel ID
+     * @return completable future eventually true if the gRPC server responded
+     * to the probe; false otherwise
+     */
+    CompletableFuture<Boolean> probeChannel(GrpcChannelId channelId);
 }

@@ -16,9 +16,6 @@
 package org.onosproject.pipelines.fabric;
 
 import com.google.common.collect.Sets;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
-
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.inbandtelemetry.api.IntConfig;
@@ -28,6 +25,7 @@ import org.onosproject.inbandtelemetry.api.IntProgrammable;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -44,7 +42,8 @@ import org.onosproject.net.flow.criteria.UdpPortCriterion;
 import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionParam;
-import org.onosproject.provider.general.device.api.GeneralProviderDeviceConfig;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -107,30 +106,27 @@ public class FabricIntProgrammable extends AbstractFabricHandlerBehavior
             return false;
         }
 
-        final GeneralProviderDeviceConfig cfg = cfgService.getConfig(
-                deviceId, GeneralProviderDeviceConfig.class);
-        if (cfg == null) {
-            log.warn("Missing GeneralProviderDevice config for {}", deviceId);
-            return false;
-        }
-        final String switchId = cfg.protocolsInfo().containsKey("int") ?
-                cfg.protocolsInfo().get("int").configValues().get("switchId")
-                : null;
-        if (switchId == null || switchId.isEmpty()) {
-            log.warn("Missing INT device config for {}", deviceId);
-            return false;
-        }
+        // FIXME: create config class for INT to allow specifying arbitrary
+        //  switch IDs. The one for the GeneralDeviceProvider was temporary and
+        //  now has been removed. For now we use the chassis ID.
+        // final GeneralProviderDeviceConfig cfg = cfgService.getConfig(
+        //         deviceId, GeneralProviderDeviceConfig.class);
+        // if (cfg == null) {
+        //     log.warn("Missing GeneralProviderDevice config for {}", deviceId);
+        //     return false;
+        // }
+        // final String switchId = cfg.protocolsInfo().containsKey("int") ?
+        //         cfg.protocolsInfo().get("int").configValues().get("switchId")
+        //         : null;
+        // if (switchId == null || switchId.isEmpty()) {
+        //     log.warn("Missing INT device config for {}", deviceId);
+        //     return false;
+        // }
 
-        PiActionParam transitIdParam;
-        try {
-            transitIdParam = new PiActionParam(
-                    FabricConstants.SWITCH_ID,
-                    // FIXME set switch ID from netcfg
-                    copyFrom(Integer.parseInt(switchId)));
-        } catch (NumberFormatException e) {
-            log.warn("Invalid INT switch ID for {}: {}", deviceId, switchId);
-            return false;
-        }
+        PiActionParam transitIdParam = new PiActionParam(
+                FabricConstants.SWITCH_ID,
+                copyFrom(handler().get(DeviceService.class)
+                                 .getDevice(deviceId).chassisId().id()));
 
         PiAction transitAction = PiAction.builder()
                 .withId(FabricConstants.FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INIT_METADATA)

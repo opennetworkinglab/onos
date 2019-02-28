@@ -23,10 +23,8 @@ import com.google.common.util.concurrent.Striped;
 import org.onlab.util.ItemNotFoundException;
 import org.onlab.util.SharedExecutors;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.basics.BasicDeviceConfig;
-import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.driver.Behaviour;
 import org.onosproject.net.driver.DefaultDriver;
 import org.onosproject.net.driver.Driver;
@@ -36,7 +34,6 @@ import org.onosproject.net.driver.DriverListener;
 import org.onosproject.net.driver.DriverProvider;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconfId;
-import org.onosproject.net.pi.service.PiPipeconfConfig;
 import org.onosproject.net.pi.service.PiPipeconfMappingStore;
 import org.onosproject.net.pi.service.PiPipeconfService;
 import org.osgi.service.component.annotations.Activate;
@@ -73,7 +70,6 @@ public class PiPipeconfManager implements PiPipeconfService {
     private final Logger log = getLogger(getClass());
 
     private static final String MERGED_DRIVER_SEPARATOR = ":";
-    private static final String CFG_SCHEME = "piPipeconf";
 
     private static final int MISSING_DRIVER_WATCHDOG_INTERVAL = 5; // Seconds.
 
@@ -98,19 +94,8 @@ public class PiPipeconfManager implements PiPipeconfService {
     protected ExecutorService executor = Executors.newFixedThreadPool(
             10, groupedThreads("onos/pipeconf-manager", "%d", log));
 
-    protected final ConfigFactory configFactory =
-            new ConfigFactory<DeviceId, PiPipeconfConfig>(
-                    SubjectFactories.DEVICE_SUBJECT_FACTORY,
-                    PiPipeconfConfig.class, CFG_SCHEME) {
-                @Override
-                public PiPipeconfConfig createConfig() {
-                    return new PiPipeconfConfig();
-                }
-            };
-
     @Activate
     public void activate() {
-        cfgService.registerConfigFactory(configFactory);
         driverAdminService.addListener(driverListener);
         checkMissingMergedDrivers();
         if (!missingMergedDrivers.isEmpty()) {
@@ -127,7 +112,6 @@ public class PiPipeconfManager implements PiPipeconfService {
     @Deactivate
     public void deactivate() {
         executor.shutdown();
-        cfgService.unregisterConfigFactory(configFactory);
         driverAdminService.removeListener(driverListener);
         pipeconfs.clear();
         missingMergedDrivers.clear();
@@ -231,7 +215,7 @@ public class PiPipeconfManager implements PiPipeconfService {
             if (getDriver(newDriverName) != null) {
                 return newDriverName;
             }
-            log.info("Creating merged driver {}...", newDriverName);
+            log.debug("Creating merged driver {}...", newDriverName);
             final Driver mergedDriver = buildMergedDriver(
                     pipeconfId, baseDriverName, newDriverName);
             if (mergedDriver == null) {

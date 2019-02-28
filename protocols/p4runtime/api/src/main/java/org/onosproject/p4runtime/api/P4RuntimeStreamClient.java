@@ -19,6 +19,8 @@ package org.onosproject.p4runtime.api;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
 
+import java.math.BigInteger;
+
 /**
  * P4Runtime client interface for the StreamChannel RPC. It allows management of
  * the P4Runtime session (open/close, mastership arbitration) as well as sending
@@ -30,23 +32,26 @@ import org.onosproject.net.pi.runtime.PiPacketOperation;
 public interface P4RuntimeStreamClient {
 
     /**
-     * Opens a session to the server by starting the Stream RPC and sending a
-     * mastership arbitration update message with an election ID that is
-     * expected to be unique among all available clients. If a client has been
-     * requested to become master via {@link #runForMastership()}, then this
-     * method should pick an election ID that is lower than the one currently
-     * associated with the master client.
+     * Opportunistically opens a session with the server by starting a
+     * StreamChannel RPC and sends a {@code MasterArbitrationUpdate} message
+     * with the given election ID. The {@code master} boolean flag is used to
+     * indicated if we are trying to became master or not. If false, the
+     * implementation might delay sending the {@code MasterArbitrationUpdate}
+     * message until another node becomes master with a higher election ID.
      * <p>
-     * If the server acknowledges the session to this client as open, the {@link
+     * If the server acknowledges this client as master, the {@link
      * P4RuntimeController} is expected to generate a {@link
      * org.onosproject.net.device.DeviceAgentEvent} with type {@link
-     * org.onosproject.net.device.DeviceAgentEvent.Type#CHANNEL_OPEN}.
+     * org.onosproject.net.device.DeviceAgentEvent.Type#ROLE_MASTER}.
+     *
+     * @param master true if we are trying to become master
+     * @param electionId election ID
      */
-    void openSession();
+    void setMastership(boolean master, BigInteger electionId);
 
     /**
-     * Returns true if the Stream RPC is active and the P4Runtime session is
-     * open, false otherwise.
+     * Returns true if the StreamChannel RPC is active and hence the P4Runtime
+     * session is open, false otherwise.
      *
      * @return boolean
      */
@@ -56,17 +61,6 @@ public interface P4RuntimeStreamClient {
      * Closes the session to the server by terminating the Stream RPC.
      */
     void closeSession();
-
-    /**
-     * Sends a master arbitration update to the device with a new election ID
-     * that is expected to be the highest one between all clients.
-     * <p>
-     * If the server acknowledges this client as master, the {@link
-     * P4RuntimeController} is expected to generate a {@link
-     * org.onosproject.net.device.DeviceAgentEvent} with type {@link
-     * org.onosproject.net.device.DeviceAgentEvent.Type#ROLE_MASTER}.
-     */
-    void runForMastership();
 
     /**
      * Returns true if this client is master for the server, false otherwise.

@@ -54,19 +54,19 @@ public final class DeviceAgentEvent
         ROLE_MASTER,
 
         /**
-         * Signifies that the agent has standby/slave mastership role.
+         * Signifies that the agent has acquired standby/slave mastership role.
          */
         ROLE_STANDBY,
 
         /**
-         * Signifies that the agent cannot acquire any valid mastership role for
+         * Signifies that the agent doesn't have any valid mastership role for
          * the device.
          */
         ROLE_NONE,
 
         /**
-         * Signifies that the agent cannot perform operations on the device
-         * because its role is not master.
+         * Signifies that the agent tried to perform some operations on the
+         * device that requires master role.
          */
         NOT_MASTER,
 
@@ -80,16 +80,5 @@ public final class DeviceAgentEvent
      */
     public DeviceAgentEvent(Type type, DeviceId deviceId) {
         super(type, deviceId);
-    }
-
-    /**
-     * Creates a new device agent event for the given type, device ID and time.
-     *
-     * @param type     event type
-     * @param deviceId device ID
-     * @param time     occurrence time
-     */
-    public DeviceAgentEvent(Type type, DeviceId deviceId, long time) {
-        super(type, deviceId, time);
     }
 }

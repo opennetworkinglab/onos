@@ -16,17 +16,22 @@
 
 package org.onosproject.drivers.gnmi;
 
+import com.google.common.base.Strings;
 import io.grpc.StatusRuntimeException;
 import org.onosproject.gnmi.api.GnmiClient;
 import org.onosproject.gnmi.api.GnmiClientKey;
 import org.onosproject.gnmi.api.GnmiController;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.basics.BasicDeviceConfig;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -40,9 +45,6 @@ public class AbstractGnmiHandlerBehaviour extends AbstractHandlerBehaviour {
     // Default timeout in seconds for device operations.
     private static final String DEVICE_REQ_TIMEOUT = "deviceRequestTimeout";
     private static final int DEFAULT_DEVICE_REQ_TIMEOUT = 60;
-
-    private static final String GNMI_SERVER_ADDR_KEY = "gnmi_ip";
-    private static final String GNMI_SERVER_PORT_KEY = "gnmi_port";
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
     protected DeviceId deviceId;
@@ -65,32 +67,33 @@ public class AbstractGnmiHandlerBehaviour extends AbstractHandlerBehaviour {
         return true;
     }
 
-    GnmiClient createClient() {
+    GnmiClient getClientByKey() {
+        final GnmiClientKey clientKey = clientKey();
+        if (clientKey == null) {
+            return null;
+        }
+        return handler().get(GnmiController.class).getClient(clientKey);
+    }
+
+    protected GnmiClientKey clientKey() {
         deviceId = handler().data().deviceId();
-        controller = handler().get(GnmiController.class);
 
-        final String serverAddr = this.data().value(GNMI_SERVER_ADDR_KEY);
-        final String serverPortString = this.data().value(GNMI_SERVER_PORT_KEY);
-
-        if (serverAddr == null || serverPortString == null) {
-            log.warn("Unable to create client for {}, missing driver data key (required is {} and {})",
-                    deviceId, GNMI_SERVER_ADDR_KEY, GNMI_SERVER_PORT_KEY);
+        final BasicDeviceConfig cfg = handler().get(NetworkConfigService.class)
+                .getConfig(deviceId, BasicDeviceConfig.class);
+        if (cfg == null || Strings.isNullOrEmpty(cfg.managementAddress())) {
+            log.error("Missing or invalid config for {}, cannot derive " +
+                              "gNMI server endpoints", deviceId);
             return null;
         }
 
-        final int serverPort;
         try {
-            serverPort = Integer.parseUnsignedInt(serverPortString);
-        } catch (NumberFormatException e) {
-            log.error("{} is not a valid port number", serverPortString);
+            return new GnmiClientKey(
+                    deviceId, new URI(cfg.managementAddress()));
+        } catch (URISyntaxException e) {
+            log.error("Management address of {} is not a valid URI: {}",
+                      deviceId, cfg.managementAddress());
             return null;
         }
-        GnmiClientKey clientKey = new GnmiClientKey(deviceId, serverAddr, serverPort);
-        if (!controller.createClient(clientKey)) {
-            log.warn("Unable to create client for {}, aborting operation", deviceId);
-            return null;
-        }
-        return controller.getClient(deviceId);
     }
 
     /**

@@ -55,6 +55,8 @@ import p4.v1.P4RuntimeOuterClass.Update;
 import p4.v1.P4RuntimeOuterClass.WriteRequest;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.List;
@@ -62,6 +64,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
 import static org.easymock.EasyMock.niceMock;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -105,7 +108,7 @@ public class P4RuntimeGroupTest {
     private static final int SET_EGRESS_PORT_ID = 16794308;
     private static final String GRPC_SERVER_NAME = "P4RuntimeGroupTest";
     private static final long DEFAULT_TIMEOUT_TIME = 10;
-    private static final Uint128 DEFAULT_ELECTION_ID = Uint128.newBuilder().setLow(1).build();
+    private static final Uint128 DEFAULT_ELECTION_ID = Uint128.getDefaultInstance();
     private static final String P4R_IP = "127.0.0.1";
     private static final int P4R_PORT = 50010;
 
@@ -157,10 +160,13 @@ public class P4RuntimeGroupTest {
 
 
     @Before
-    public void setup() {
+    public void setup() throws URISyntaxException {
         controller = niceMock(org.onosproject.p4runtime.ctl.controller.P4RuntimeControllerImpl.class);
-        P4RuntimeClientKey clientKey = new P4RuntimeClientKey(DEVICE_ID, P4R_IP, P4R_PORT, P4_DEVICE_ID);
-        client = new P4RuntimeClientImpl(clientKey, grpcChannel, controller, new MockPipeconfService());
+        P4RuntimeClientKey clientKey = new P4RuntimeClientKey(DEVICE_ID, new URI(
+                format("grpc://%s:%d?device_id=%d", P4R_IP, P4R_PORT, P4_DEVICE_ID)));
+        client = new P4RuntimeClientImpl(
+                clientKey, grpcChannel, controller, new MockPipeconfService(),
+                new MockMasterElectionIdStore());
     }
 
     @Test

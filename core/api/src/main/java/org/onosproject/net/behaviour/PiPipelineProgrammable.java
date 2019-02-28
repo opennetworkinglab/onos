@@ -44,16 +44,17 @@ public interface PiPipelineProgrammable extends HandlerBehaviour {
     CompletableFuture<Boolean> setPipeconf(PiPipeconf pipeconf);
 
     /**
-     * Returns true if the device is configured with the given pipeconf, false
-     * otherwise.
+     * Probes the device to verify that the given pipeconf is the one currently
+     * configured.
      * <p>
      * This method is expected to always return true after successfully calling
      * {@link #setPipeconf(PiPipeconf)} with the given pipeconf.
      *
      * @param pipeconf pipeconf
-     * @return true if the device has the given pipeconf set, false otherwise
+     * @return completable future eventually true if the device has the given
+     * pipeconf set, false otherwise
      */
-    boolean isPipeconfSet(PiPipeconf pipeconf);
+    CompletableFuture<Boolean> isPipeconfSet(PiPipeconf pipeconf);
 
     /**
      * Returns the default pipeconf for this device, to be used when any other

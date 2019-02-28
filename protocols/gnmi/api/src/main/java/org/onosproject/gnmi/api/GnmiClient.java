@@ -68,12 +68,4 @@ public interface GnmiClient extends GrpcClient {
      * Terminates the subscription channel of this device.
      */
     void terminateSubscriptionChannel();
-
-    /**
-     * Check weather the gNMI service is available or not by sending a dummy get
-     * request message.
-     *
-     * @return true if gNMI service available; false otherwise
-     */
-    CompletableFuture<Boolean> isServiceAvailable();
 }

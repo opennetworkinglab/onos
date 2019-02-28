@@ -23,13 +23,11 @@ import org.onlab.util.KryoNamespace;
 import org.onlab.util.Tools;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.net.config.basics.PortDescriptionsConfig;
 import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.mastership.MastershipTerm;
 import org.onosproject.mastership.MastershipTermService;
-import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.Device.Type;
@@ -46,6 +44,7 @@ import org.onosproject.net.config.PortConfigOperatorRegistry;
 import org.onosproject.net.config.basics.BasicDeviceConfig;
 import org.onosproject.net.config.basics.DeviceAnnotationConfig;
 import org.onosproject.net.config.basics.PortAnnotationConfig;
+import org.onosproject.net.config.basics.PortDescriptionsConfig;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DeviceAdminService;
 import org.onosproject.net.device.DeviceDescription;
@@ -499,7 +498,7 @@ public class DeviceManager
             }
 
             // If this node is the master, ensure the device is marked online.
-            if (myRole == MASTER) {
+            if (myRole == MASTER && canMarkOnline(device)) {
                 post(store.markOnline(deviceId));
             }
 
@@ -788,15 +787,26 @@ public class DeviceManager
                 return;
             }
 
+            final MastershipRole expected = mastershipService.getLocalRole(deviceId);
+
+            if (requested == null) {
+                // Provider is not able to reconcile role responses with
+                // requests. We assume what was requested is what we expect.
+                // This will work only if mastership doesn't change too often,
+                // and devices are left enough time to provide responses before
+                // a different role is requested.
+                requested = expected;
+            }
+
             if (Objects.equals(requested, response)) {
-                if (Objects.equals(requested, mastershipService.getLocalRole(deviceId))) {
+                if (Objects.equals(requested, expected)) {
                     return;
                 } else {
-                    log.warn("Role mismatch on {}. set to {}, but store demands {}",
-                             deviceId, response, mastershipService.getLocalRole(deviceId));
+                    log.warn("Role mismatch on {}. Set to {}, but store demands {}",
+                             deviceId, response, expected);
                     // roleManager got the device to comply, but doesn't agree with
                     // the store; use the store's view, then try to reassert.
-                    backgroundService.execute(() -> reassertRole(deviceId, mastershipService.getLocalRole(deviceId)));
+                    backgroundService.execute(() -> reassertRole(deviceId, expected));
                     return;
                 }
             } else {
@@ -830,9 +840,12 @@ public class DeviceManager
     }
 
     private boolean canMarkOnline(Device device) {
-        final boolean providerMarkOnline = Boolean.parseBoolean(
-                device.annotations().value(AnnotationKeys.PROVIDER_MARK_ONLINE));
-        return !providerMarkOnline;
+        DeviceProvider provider = getProvider(device.id());
+        if (provider == null) {
+            log.warn("Provider for {} was not found. Cannot evaluate availability", device.id());
+            return false;
+        }
+        return provider.isAvailable(device.id());
     }
 
     // Applies the specified role to the device; ignores NONE

@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Dictionary;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -152,46 +153,20 @@ public class GrpcChannelControllerImpl implements GrpcChannelController {
         }
     }
 
-    private boolean doDummyMessage(ManagedChannel channel) throws StatusRuntimeException {
+    private void doDummyMessage(ManagedChannel channel) throws StatusRuntimeException {
         DummyServiceGrpc.DummyServiceBlockingStub dummyStub = DummyServiceGrpc
                 .newBlockingStub(channel)
                 .withDeadlineAfter(CONNECTION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         try {
-            return dummyStub.sayHello(Dummy.DummyMessageThatNoOneWouldReallyUse
-                                              .getDefaultInstance()) != null;
+            //noinspection ResultOfMethodCallIgnored
+            dummyStub.sayHello(Dummy.DummyMessageThatNoOneWouldReallyUse
+                                       .getDefaultInstance());
         } catch (StatusRuntimeException e) {
-            if (e.getStatus().equals(Status.UNIMPLEMENTED)) {
+            if (!e.getStatus().equals(Status.UNIMPLEMENTED)) {
                 // UNIMPLEMENTED means that the server received our message but
                 // doesn't know how to handle it. Hence, channel is open.
-                return true;
-            } else {
                 throw e;
             }
-        }
-    }
-
-    @Override
-    public boolean isChannelOpen(GrpcChannelId channelId) {
-        checkNotNull(channelId);
-
-        Lock lock = channelLocks.get(channelId);
-        lock.lock();
-
-        try {
-            if (!channels.containsKey(channelId)) {
-                log.warn("Unknown channel ID '{}', can't check if channel is open",
-                         channelId);
-                return false;
-            }
-            try {
-                return doDummyMessage(channels.get(channelId));
-            } catch (StatusRuntimeException e) {
-                log.debug("Unable to send dummy message to {}: {}",
-                          channelId, e.toString());
-                return false;
-            }
-        } finally {
-            lock.unlock();
         }
     }
 
@@ -240,7 +215,6 @@ public class GrpcChannelControllerImpl implements GrpcChannelController {
 
         Lock lock = channelLocks.get(channelId);
         lock.lock();
-
         try {
             return Optional.ofNullable(channels.get(channelId));
         } finally {
@@ -248,4 +222,23 @@ public class GrpcChannelControllerImpl implements GrpcChannelController {
         }
     }
 
+    @Override
+    public CompletableFuture<Boolean> probeChannel(GrpcChannelId channelId) {
+        final ManagedChannel channel = channels.get(channelId);
+        if (channel == null) {
+            log.warn("Unable to find any channel with ID {}, cannot send probe",
+                     channelId);
+            return CompletableFuture.completedFuture(false);
+        }
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                doDummyMessage(channel);
+                return true;
+            } catch (StatusRuntimeException e) {
+                log.debug("Probe for {} failed", channelId);
+                log.debug("", e);
+                return false;
+            }
+        });
+    }
 }

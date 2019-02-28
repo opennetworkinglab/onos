@@ -17,6 +17,7 @@
 package org.onosproject.net.pi.impl;
 
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.Striped;
 import org.onlab.util.KryoNamespace;
 import org.onlab.util.Tools;
@@ -250,7 +251,7 @@ public class PiPipeconfWatchdogManager
         if (!handshaker.isConnected()) {
             return false;
         }
-        if (pipelineProg.isPipeconfSet(pipeconf)) {
+        if (Futures.getUnchecked(pipelineProg.isPipeconfSet(pipeconf))) {
             log.debug("Pipeconf {} already configured on {}",
                       pipeconf.id(), device.id());
             return true;

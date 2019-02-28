@@ -16,6 +16,8 @@
   -->
 <drivers>
     <driver name="p4runtime" manufacturer="p4.org" hwVersion="master" swVersion="master">
+        <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
+                   impl="org.onosproject.drivers.p4runtime.P4RuntimeDeviceDescriptionDiscovery"/>
         <behaviour api="org.onosproject.net.behaviour.TableStatisticsDiscovery"
                    impl="org.onosproject.drivers.p4runtime.P4RuntimeTableStatisticsDiscovery"/>
         <behaviour api="org.onosproject.net.device.DeviceHandshaker"

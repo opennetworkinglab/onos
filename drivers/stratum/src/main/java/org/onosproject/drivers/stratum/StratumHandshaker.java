@@ -16,10 +16,8 @@
 
 package org.onosproject.drivers.stratum;
 
-import io.grpc.StatusRuntimeException;
 import org.onosproject.drivers.gnmi.GnmiHandshaker;
 import org.onosproject.drivers.p4runtime.P4RuntimeHandshaker;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.device.DeviceAgentListener;
 import org.onosproject.net.device.DeviceHandshaker;
@@ -27,109 +25,97 @@ import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.driver.DriverData;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.provider.ProviderId;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Implementation of DeviceHandshaker for Stratum device.
  */
 public class StratumHandshaker extends AbstractHandlerBehaviour implements DeviceHandshaker {
 
-    private static final Logger log = LoggerFactory.getLogger(StratumHandshaker.class);
-    private static final int DEFAULT_DEVICE_REQ_TIMEOUT = 10;
-
-    private P4RuntimeHandshaker p4RuntimeHandshaker;
-    private GnmiHandshaker gnmiHandshaker;
-    private DeviceId deviceId;
+    private P4RuntimeHandshaker p4runtime;
+    private GnmiHandshaker gnmi;
 
     public StratumHandshaker() {
-        p4RuntimeHandshaker = new P4RuntimeHandshaker();
-        gnmiHandshaker = new GnmiHandshaker();
+        p4runtime = new P4RuntimeHandshaker();
+        gnmi = new GnmiHandshaker();
     }
 
     @Override
     public void setHandler(DriverHandler handler) {
         super.setHandler(handler);
-        p4RuntimeHandshaker.setHandler(handler);
-        gnmiHandshaker.setHandler(handler);
+        p4runtime.setHandler(handler);
+        gnmi.setHandler(handler);
     }
 
     @Override
     public void setData(DriverData data) {
         super.setData(data);
-        p4RuntimeHandshaker.setData(data);
-        gnmiHandshaker.setData(data);
-        deviceId = data.deviceId();
+        p4runtime.setData(data);
+        gnmi.setData(data);
     }
 
     @Override
-    public CompletableFuture<Boolean> isReachable() {
-        return p4RuntimeHandshaker.isReachable()
-                .thenCombine(gnmiHandshaker.isReachable(), Boolean::logicalAnd);
+    public boolean isReachable() {
+        return p4runtime.isReachable() && gnmi.isReachable();
+    }
+
+    @Override
+    public CompletableFuture<Boolean> probeReachability() {
+        return p4runtime.probeReachability();
+    }
+
+    @Override
+    public boolean isAvailable() {
+        // Availability concerns packet forwarding, hence we consider only
+        // P4Runtime.
+        return p4runtime.isAvailable();
+    }
+
+    @Override
+    public CompletableFuture<Boolean> probeAvailability() {
+        return p4runtime.probeAvailability();
     }
 
     @Override
     public void roleChanged(MastershipRole newRole) {
-        p4RuntimeHandshaker.roleChanged(newRole);
-        // gNMI doesn't support mastership handling.
+        p4runtime.roleChanged(newRole);
+    }
+
+    @Override
+    public void roleChanged(int preference, long term) {
+        p4runtime.roleChanged(preference, term);
     }
 
     @Override
     public MastershipRole getRole() {
-        return p4RuntimeHandshaker.getRole();
+        return p4runtime.getRole();
     }
 
     @Override
     public void addDeviceAgentListener(ProviderId providerId, DeviceAgentListener listener) {
-        p4RuntimeHandshaker.addDeviceAgentListener(providerId, listener);
+        p4runtime.addDeviceAgentListener(providerId, listener);
     }
 
     @Override
     public void removeDeviceAgentListener(ProviderId providerId) {
-        p4RuntimeHandshaker.removeDeviceAgentListener(providerId);
+        p4runtime.removeDeviceAgentListener(providerId);
     }
 
     @Override
     public CompletableFuture<Boolean> connect() {
-        return p4RuntimeHandshaker.connect()
-                .thenCombine(gnmiHandshaker.connect(), Boolean::logicalAnd);
+        // We should execute connections in parallel.
+        return p4runtime.connect().thenCombine(gnmi.connect(), Boolean::logicalAnd);
     }
 
     @Override
     public boolean isConnected() {
-        final CompletableFuture<Boolean> p4runtimeConnected =
-                CompletableFuture.supplyAsync(p4RuntimeHandshaker::isConnected);
-        final CompletableFuture<Boolean> gnmiConnected =
-                CompletableFuture.supplyAsync(gnmiHandshaker::isConnected);
-
-        try {
-            return p4runtimeConnected
-                    .thenCombine(gnmiConnected, Boolean::logicalAnd)
-                    .get(DEFAULT_DEVICE_REQ_TIMEOUT, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            log.error("Exception while checking connectivity on {}", data().deviceId());
-        } catch (ExecutionException e) {
-            final Throwable cause = e.getCause();
-            if (cause instanceof StatusRuntimeException) {
-                final StatusRuntimeException grpcError = (StatusRuntimeException) cause;
-                log.warn("Error while checking connectivity on {}: {}", deviceId, grpcError.getMessage());
-            } else {
-                log.error("Exception while checking connectivity on {}", deviceId, e.getCause());
-            }
-        } catch (TimeoutException e) {
-            log.error("Operation TIMEOUT while checking connectivity on {}", deviceId);
-        }
-        return false;
+        return p4runtime.isConnected() && gnmi.isConnected();
     }
 
     @Override
-    public CompletableFuture<Boolean> disconnect() {
-        return p4RuntimeHandshaker.disconnect()
-                .thenCombine(gnmiHandshaker.disconnect(), Boolean::logicalAnd);
+    public void disconnect() {
+        p4runtime.disconnect();
+        gnmi.disconnect();
     }
 }

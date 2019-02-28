@@ -16,33 +16,19 @@
 
 package org.onosproject.p4runtime.ctl.controller;
 
-import com.google.common.collect.Maps;
 import io.grpc.ManagedChannel;
 import org.onosproject.grpc.ctl.AbstractGrpcClientController;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.device.DeviceAgentEvent;
-import org.onosproject.net.device.DeviceAgentListener;
 import org.onosproject.net.pi.service.PiPipeconfService;
-import org.onosproject.net.provider.ProviderId;
 import org.onosproject.p4runtime.api.P4RuntimeClient;
 import org.onosproject.p4runtime.api.P4RuntimeClientKey;
 import org.onosproject.p4runtime.api.P4RuntimeController;
 import org.onosproject.p4runtime.api.P4RuntimeEvent;
 import org.onosproject.p4runtime.api.P4RuntimeEventListener;
 import org.onosproject.p4runtime.ctl.client.P4RuntimeClientImpl;
-import org.onosproject.store.service.StorageService;
-import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.slf4j.Logger;
-
-import java.math.BigInteger;
-import java.util.concurrent.ConcurrentMap;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * P4Runtime controller implementation.
@@ -53,122 +39,34 @@ public class P4RuntimeControllerImpl
         <P4RuntimeClientKey, P4RuntimeClient, P4RuntimeEvent, P4RuntimeEventListener>
         implements P4RuntimeController {
 
-    private final Logger log = getLogger(getClass());
-
-    private final ConcurrentMap<DeviceId, ConcurrentMap<ProviderId, DeviceAgentListener>>
-            deviceAgentListeners = Maps.newConcurrentMap();
-
-    private DistributedElectionIdGenerator electionIdGenerator;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    private StorageService storageService;
-
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private PiPipeconfService pipeconfService;
 
-    @Activate
-    public void activate() {
-        super.activate();
-        eventDispatcher.addSink(P4RuntimeEvent.class, listenerRegistry);
-        electionIdGenerator = new DistributedElectionIdGenerator(storageService);
-        log.info("Started");
-    }
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    private MasterElectionIdStore masterElectionIdStore;
 
-    @Deactivate
-    public void deactivate() {
-        super.deactivate();
-        deviceAgentListeners.clear();
-        electionIdGenerator.destroy();
-        electionIdGenerator = null;
-        log.info("Stopped");
+    public P4RuntimeControllerImpl() {
+        super(P4RuntimeEvent.class);
     }
 
     @Override
-    protected P4RuntimeClient createClientInstance(P4RuntimeClientKey clientKey, ManagedChannel channel) {
-        return new P4RuntimeClientImpl(clientKey, channel, this, pipeconfService);
+    public void removeClient(DeviceId deviceId) {
+        super.removeClient(deviceId);
+        // Assuming that when a client is removed, it is done so by all nodes,
+        // this is the best place to clear master election ID state.
+        masterElectionIdStore.remove(deviceId);
     }
 
     @Override
-    public void addDeviceAgentListener(DeviceId deviceId, ProviderId providerId, DeviceAgentListener listener) {
-        checkNotNull(deviceId, "deviceId cannot be null");
-        checkNotNull(deviceId, "providerId cannot be null");
-        checkNotNull(listener, "listener cannot be null");
-        deviceAgentListeners.putIfAbsent(deviceId, Maps.newConcurrentMap());
-        deviceAgentListeners.get(deviceId).put(providerId, listener);
+    public void removeClient(P4RuntimeClientKey clientKey) {
+        super.removeClient(clientKey);
+        masterElectionIdStore.remove(clientKey.deviceId());
     }
 
     @Override
-    public void removeDeviceAgentListener(DeviceId deviceId, ProviderId providerId) {
-        checkNotNull(deviceId, "deviceId cannot be null");
-        checkNotNull(providerId, "listener cannot be null");
-        deviceAgentListeners.computeIfPresent(deviceId, (did, listeners) -> {
-            listeners.remove(providerId);
-            return listeners;
-        });
-    }
-
-    public BigInteger newMasterElectionId(DeviceId deviceId) {
-        return electionIdGenerator.generate(deviceId);
-    }
-
-    public void postEvent(P4RuntimeEvent event) {
-        switch (event.type()) {
-            case CHANNEL_EVENT:
-                handleChannelEvent(event);
-                break;
-            case ARBITRATION_RESPONSE:
-                handleArbitrationReply(event);
-                break;
-            case PERMISSION_DENIED:
-                handlePermissionDenied(event);
-                break;
-            default:
-                post(event);
-                break;
-        }
-    }
-
-    private void handlePermissionDenied(P4RuntimeEvent event) {
-        postDeviceAgentEvent(event.subject().deviceId(), new DeviceAgentEvent(
-                DeviceAgentEvent.Type.NOT_MASTER, event.subject().deviceId()));
-    }
-
-    private void handleChannelEvent(P4RuntimeEvent event) {
-        final ChannelEvent channelEvent = (ChannelEvent) event.subject();
-        final DeviceId deviceId = channelEvent.deviceId();
-        final DeviceAgentEvent.Type agentEventType;
-        switch (channelEvent.type()) {
-            case OPEN:
-                agentEventType = DeviceAgentEvent.Type.CHANNEL_OPEN;
-                break;
-            case CLOSED:
-                agentEventType = DeviceAgentEvent.Type.CHANNEL_CLOSED;
-                break;
-            case ERROR:
-                agentEventType = !isReachable(deviceId)
-                        ? DeviceAgentEvent.Type.CHANNEL_CLOSED
-                        : DeviceAgentEvent.Type.CHANNEL_ERROR;
-                break;
-            default:
-                log.warn("Unrecognized channel event type {}", channelEvent.type());
-                return;
-        }
-        postDeviceAgentEvent(deviceId, new DeviceAgentEvent(agentEventType, deviceId));
-    }
-
-    private void handleArbitrationReply(P4RuntimeEvent event) {
-        final DeviceId deviceId = event.subject().deviceId();
-        final ArbitrationUpdateEvent response = (ArbitrationUpdateEvent) event.subject();
-        final DeviceAgentEvent.Type roleType = response.isMaster()
-                ? DeviceAgentEvent.Type.ROLE_MASTER
-                : DeviceAgentEvent.Type.ROLE_STANDBY;
-        postDeviceAgentEvent(deviceId, new DeviceAgentEvent(
-                roleType, response.deviceId()));
-    }
-
-    private void postDeviceAgentEvent(DeviceId deviceId, DeviceAgentEvent event) {
-        if (deviceAgentListeners.containsKey(deviceId)) {
-            deviceAgentListeners.get(deviceId).values().forEach(l -> l.event(event));
-        }
+    protected P4RuntimeClient createClientInstance(
+            P4RuntimeClientKey clientKey, ManagedChannel channel) {
+        return new P4RuntimeClientImpl(clientKey, channel, this,
+                                       pipeconfService, masterElectionIdStore);
     }
 }

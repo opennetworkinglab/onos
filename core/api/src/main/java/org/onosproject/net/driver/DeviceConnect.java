@@ -21,7 +21,9 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * Abstraction of handler behaviour used to set-up and tear-down connections
- * with a device.
+ * with a device. A connection is intended as the presence of state (e.g. a
+ * transport session) required to carry messages between this node and the
+ * device.
  */
 @Beta
 public interface DeviceConnect extends HandlerBehaviour {
@@ -29,17 +31,33 @@ public interface DeviceConnect extends HandlerBehaviour {
     /**
      * Connects to the device, for example by opening the transport session that
      * will be later used to send control messages. Returns true if the
-     * connection was initiated successfully, false otherwise.
+     * connection was initiated successfully, false otherwise. The
+     * implementation might require probing the device over the network to
+     * initiate the connection.
      * <p>
-     * Calling multiple times this method while a connection to the device is
-     * open should result in a no-op.
+     * When calling this method while a connection to the device already exists,
+     * the behavior is not defined. For example, some implementations might
+     * require to first call {@link #disconnect()}, while other might behave as
+     * a no-op.
      *
-     * @return CompletableFuture with true if the operation was successful
+     * @return CompletableFuture eventually true if a connection was created
+     * successfully, false otherwise
+     * @throws IllegalStateException if a connection already exists and the
+     *                               implementation requires to call {@link
+     *                               #disconnect()} first.
      */
-    CompletableFuture<Boolean> connect();
+    CompletableFuture<Boolean> connect() throws IllegalStateException;
 
     /**
-     * Returns true if a connection to the device is open, false otherwise.
+     * Returns true if a connection to the device exists, false otherwise. This
+     * method is NOT expected to send any message over the network to check for
+     * device reachability, but rather it should only give an indication if any
+     * internal connection state exists for the device. As such, it should NOT
+     * block execution.
+     * <p>
+     * In general, when called after {@link #connect()} it should always return
+     * true, while it is expected to always return false after calling {@link
+     * #disconnect()} or if {@link #connect()} was never called.
      *
      * @return true if the connection is open, false otherwise
      */
@@ -47,14 +65,10 @@ public interface DeviceConnect extends HandlerBehaviour {
 
     /**
      * Disconnects from the device, for example closing the transport session
-     * previously opened. Returns true if the disconnection procedure was
-     * successful, false otherwise.
+     * previously opened.
      * <p>
      * Calling multiple times this method while a connection to the device is
-     * closed should result in a no-op.
-     *
-     * @return CompletableFuture with true if the operation was successful
+     * already closed should result in a no-op.
      */
-    CompletableFuture<Boolean> disconnect();
-
+    void disconnect();
 }
