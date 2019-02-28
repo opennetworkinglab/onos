@@ -168,11 +168,12 @@ public class NokiaFlowRuleProgrammable
     private void setOpticalChannelFrequency(NetconfSession session,
                                             String optChannel, Frequency freq)
             throws NetconfException {
+        String[] textStr = optChannel.split("-");
         StringBuilder sb = new StringBuilder();
         sb.append(
                 "<components xmlns='http://openconfig.net/yang/platform'>"
                         + "<component operation='merge'>"
-                        + "<name>" + optChannel + "</name>"
+                        + "<name>" + "OCH-" + textStr[1] + "-" + textStr[2] + "-" + textStr[3] + "</name>"
                         + "<oc-opt-term:optical-channel "
                         +
                         "    xmlns:oc-opt-term='http://openconfig.net/yang/terminal-device'>"
