@@ -249,14 +249,23 @@ public class RouteHandler {
             Sets.difference(prevLocations, newLocations).forEach(prevLocation -> {
                 // Remove flows for unchanged IPs only when the host moves from a switch to another.
                 // Otherwise, do not remove and let the adding part update the old flow
-                if (!newDeviceIds.contains(prevLocation.deviceId())) {
-                    log.debug("HostMoved. removeSubnet {}, {}", prevLocation, prefix);
-                    srManager.deviceConfiguration.removeSubnet(prevLocation, prefix);
-
-                    log.debug("HostMoved. revokeRoute {}, {}, {}, {}", prevLocation, prefix, hostMac, hostVlanId);
-                    srManager.defaultRoutingHandler.revokeRoute(prevLocation.deviceId(), prefix,
-                            hostMac, hostVlanId, prevLocation.port());
+                if (newDeviceIds.contains(prevLocation.deviceId())) {
+                    return;
                 }
+
+                log.debug("HostMoved. removeSubnet {}, {}", prevLocation, prefix);
+                srManager.deviceConfiguration.removeSubnet(prevLocation, prefix);
+
+                // Do not remove flow from a device if the route is still reachable via its pair device.
+                // populateSubnet will update the flow to point to its pair device via spine.
+                DeviceId pairDeviceId = srManager.getPairDeviceId(prevLocation.deviceId()).orElse(null);
+                if (newLocations.stream().anyMatch(n -> n.deviceId().equals(pairDeviceId))) {
+                    return;
+                }
+
+                log.debug("HostMoved. revokeRoute {}, {}, {}, {}", prevLocation, prefix, hostMac, hostVlanId);
+                srManager.defaultRoutingHandler.revokeRoute(prevLocation.deviceId(), prefix,
+                        hostMac, hostVlanId, prevLocation.port());
             });
 
             // For each new location, add all new IPs.

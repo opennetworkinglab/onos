@@ -414,7 +414,8 @@ public class RouteHandlerTest {
         HostEvent he = new HostEvent(HostEvent.Type.HOST_MOVED, H3S, H3D);
         routeHandler.processHostMovedEvent(he);
 
-        assertEquals(1, ROUTING_TABLE.size());
+        // We do not remove the route on CP2. Instead, we let the subnet population overrides it
+        assertEquals(2, ROUTING_TABLE.size());
         MockRoutingTableValue rtv1 = ROUTING_TABLE.get(new MockRoutingTableKey(CP1.deviceId(), P1));
         assertEquals(M3, rtv1.macAddress);
         assertEquals(V3, rtv1.vlanId);
