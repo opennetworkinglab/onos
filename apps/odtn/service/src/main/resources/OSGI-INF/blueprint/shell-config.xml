@@ -31,6 +31,19 @@
         </command>
 
         <command>
+            <action class="org.onosproject.odtn.cli.impl.OdtnFujitsuManualTestCommand"/>
+            <completers>
+                <ref component-id="modeCompleter"/>
+                <null/>
+            </completers>
+            <optional-completers>
+                <entry key="--deviceId"  value-ref="deviceIdCompleter"/>
+                <entry key="--cltPortNo" value-ref="portNumberCompleter"/>
+                <entry key="--linePortNo" value-ref="portNumberCompleter"/>
+            </optional-completers>
+        </command>
+
+        <command>
             <action class="org.onosproject.odtn.cli.impl.OdtnDcsModelCheckCommand"/>
         </command>
 

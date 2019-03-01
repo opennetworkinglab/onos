@@ -35,6 +35,14 @@
         <behaviour api="org.onosproject.odtn.behaviour.ConfigurableTransceiver"
                    impl="org.onosproject.odtn.behaviour.PlainTransceiver"/>
     </driver>
+    <driver name="Fujitsu-T600" manufacturer="FUJITSU" hwVersion="01" swVersion="1.1.1">
+        <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
+                   impl="org.onosproject.drivers.odtn.FujitsuOpenConfigDeviceDiscovery"/>
+        <behaviour api="org.onosproject.odtn.behaviour.OdtnDeviceDescriptionDiscovery"
+                   impl="org.onosproject.drivers.odtn.FujitsuOpenConfigDeviceDiscovery"/>
+        <behaviour api="org.onosproject.odtn.behaviour.ConfigurableTransceiver"
+                   impl="org.onosproject.odtn.behaviour.FujitsuTransceiver"/>
+    </driver>
     <driver name="nokia-1830" manufacturer="nokia" hwVersion="1830" swVersion="R10.1.1">
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
                    impl="org.onosproject.drivers.odtn.NokiaOpenConfigDeviceDiscovery"/>

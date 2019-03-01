@@ -4,6 +4,8 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + ONOS_YANG + [
     "//models/openconfig:onos-models-openconfig",
     "//apps/yang:onos-apps-yang",
     "//apps/config:onos-apps-config",
+    "//drivers/utilities:onos-drivers-utilities",
+    "//protocols/netconf/api:onos-protocols-netconf-api",
 ]
 
 osgi_jar_with_tests(
