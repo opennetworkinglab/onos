@@ -217,11 +217,11 @@ public class OchSignal implements Lambda {
 
     @Override
     public String toString() {
-        return String.format("%s{%+d×%.2fGHz ± %.2fGHz}",
+        return String.format("%s{%+d x %.2fGHz +/- %.2fGHz}",
                 this.getClass().getSimpleName(),
                 spacingMultiplier,
                 (double) channelSpacing.frequency().asHz() / Frequency.ofGHz(1).asHz(),
-                (double) slotGranularity * channelSpacing.frequency().asHz()
+                (double) slotGranularity * ChannelSpacing.CHL_12P5GHZ.frequency().asHz()
                         / Frequency.ofGHz(1).asHz() / 2.0);
     }
 }
