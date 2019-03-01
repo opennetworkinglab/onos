@@ -90,6 +90,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -102,6 +103,7 @@ import static org.onosproject.dhcprelay.OsgiPropertyConstants.DHCP_FPM_ENABLED;
 import static org.onosproject.dhcprelay.OsgiPropertyConstants.DHCP_FPM_ENABLED_DEFAULT;
 import static org.onosproject.dhcprelay.OsgiPropertyConstants.DHCP_POLL_INTERVAL;
 import static org.onosproject.dhcprelay.OsgiPropertyConstants.DHCP_POLL_INTERVAL_DEFAULT;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
 
 /**
@@ -212,6 +214,7 @@ public class DhcpRelayManager implements DhcpRelayService {
     protected boolean dhcpFpmEnabled = DHCP_FPM_ENABLED_DEFAULT;
 
     private ScheduledExecutorService timerExecutor;
+    protected ExecutorService devEventExecutor;
 
     protected DeviceListener deviceListener = new InternalDeviceListener();
     private DhcpRelayPacketProcessor dhcpRelayPacketProcessor = new DhcpRelayPacketProcessor();
@@ -248,6 +251,9 @@ public class DhcpRelayManager implements DhcpRelayService {
                 dhcpPollInterval,
                 TimeUnit.SECONDS);
 
+        devEventExecutor = newSingleThreadScheduledExecutor(
+                             groupedThreads("onos/dhcprelay-dev-events", "events-%d", log));
+
         modified(context);
 
         // Enable distribute route store
@@ -271,6 +277,8 @@ public class DhcpRelayManager implements DhcpRelayService {
         compCfgService.unregisterProperties(getClass(), false);
         deviceService.removeListener(deviceListener);
         timerExecutor.shutdown();
+        devEventExecutor.shutdownNow();
+        devEventExecutor = null;
 
         log.info("DHCP-RELAY Stopped");
     }
@@ -624,17 +632,19 @@ public class DhcpRelayManager implements DhcpRelayService {
 
         @Override
         public void event(DeviceEvent event) {
+          if (devEventExecutor != null) {
             Device device = event.subject();
             switch (event.type()) {
                 case DEVICE_ADDED:
-                    updateIgnoreVlanConfigs();
+                    devEventExecutor.execute(this::updateIgnoreVlanConfigs);
                     break;
                 case DEVICE_AVAILABILITY_CHANGED:
-                    deviceAvailabilityChanged(device);
+                    devEventExecutor.execute(() -> deviceAvailabilityChanged(device));
                     break;
                 default:
                     break;
             }
+          }
         }
 
         private void deviceAvailabilityChanged(Device device) {
