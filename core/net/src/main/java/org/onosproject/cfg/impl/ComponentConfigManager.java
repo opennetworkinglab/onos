@@ -112,11 +112,6 @@ public class ComponentConfigManager implements ComponentConfigService {
         String componentName = componentClass.getName();
         String resourceName = componentClass.getSimpleName() + RESOURCE_EXT;
         try (InputStream ris = componentClass.getResourceAsStream(resourceName)) {
-            // FIXME: Eliminate the following soft-fail after property refactoring is complete.
-            if (ris == null) {
-                log.info("Property definitions not found at resource {}; please fix this", resourceName);
-                return;
-            }
             checkArgument(ris != null, "Property definitions not found at resource %s",
                           resourceName);
 

@@ -94,7 +94,6 @@ public class FlowObjectiveManager implements FlowObjectiveService {
 
     private static final String WORKER_PATTERN = "objective-installer-%d";
     private static final String GROUP_THREAD_NAME = "onos/objective-installer";
-    private static final String NUM_THREAD = "numThreads";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -154,7 +153,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
 
     @Activate
     protected void activate() {
-        cfgService.registerProperties(getClass());
+        cfgService.registerProperties(FlowObjectiveManager.class);
         executorService = newFixedThreadPool(numThreads,
                                              groupedThreads(GROUP_THREAD_NAME, WORKER_PATTERN, log));
         flowObjectiveStore.setDelegate(delegate);
@@ -179,7 +178,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     @Modified
     protected void modified(ComponentContext context) {
         String propertyValue =
-                Tools.get(context.getProperties(), NUM_THREAD);
+                Tools.get(context.getProperties(), FOM_NUM_THREADS);
         int newNumThreads = isNullOrEmpty(propertyValue) ? numThreads : Integer.parseInt(propertyValue);
 
         if (newNumThreads != numThreads && newNumThreads > 0) {
