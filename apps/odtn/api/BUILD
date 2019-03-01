@@ -5,6 +5,7 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + ONOS_YANG + [
     "//apps/yang:onos-apps-yang",
     "//apps/config:onos-apps-config",
     "//models/openconfig-infinera:onos-models-openconfig-infinera",
+    "//drivers/utilities:onos-drivers-utilities",
     "//protocols/netconf/api:onos-protocols-netconf-api",
 ]
 
