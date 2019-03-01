@@ -18,13 +18,6 @@ package org.onosproject.net.driver.impl;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.onosproject.net.driver.DriverRegistry;
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Modified;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.component.ComponentService;
 import org.onosproject.event.EventDeliveryService;
@@ -37,7 +30,14 @@ import org.onosproject.net.driver.DriverAdminService;
 import org.onosproject.net.driver.DriverEvent;
 import org.onosproject.net.driver.DriverListener;
 import org.onosproject.net.driver.DriverProvider;
+import org.onosproject.net.driver.DriverRegistry;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +52,8 @@ import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.nullIsNotFound;
 import static org.onosproject.net.driver.DriverEvent.Type.DRIVER_ENHANCED;
 import static org.onosproject.net.driver.DriverEvent.Type.DRIVER_REDUCED;
+import static org.onosproject.net.driver.impl.OsgiPropertyConstants.REQUIRED_DRIVERS;
+import static org.onosproject.net.driver.impl.OsgiPropertyConstants.REQUIRED_DRIVERS_DEFAULT;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.DRIVER_READ;
 
@@ -64,8 +66,11 @@ import static org.onosproject.security.AppPermission.Type.DRIVER_READ;
     service = {
         DriverAdminService.class,
         DriverRegistry.class
-    }
-)
+    },
+    property = {
+        REQUIRED_DRIVERS + "=" + REQUIRED_DRIVERS_DEFAULT,
+    })
+
 public class DriverRegistryManager extends DefaultDriverProvider implements DriverAdminService {
 
     private static final String DRIVER_COMPONENT = "org.onosproject.net.driver.impl.DriverManager";
@@ -89,8 +94,8 @@ public class DriverRegistryManager extends DefaultDriverProvider implements Driv
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected EventDeliveryService eventDispatcher;
 
-    private static final String DEFAULT_REQUIRED_DRIVERS = "default";
-    private static String requiredDrivers = DEFAULT_REQUIRED_DRIVERS;
+    /** Comma-separated list of drivers that must be registered before starting driver subsystem. */
+    private static String requiredDrivers = REQUIRED_DRIVERS_DEFAULT;
     private Set<String> requiredDriverSet;
 
     private Set<DriverProvider> providers = Sets.newConcurrentHashSet();
@@ -125,7 +130,7 @@ public class DriverRegistryManager extends DefaultDriverProvider implements Driv
     public void modified(ComponentContext context) {
         Dictionary<?, ?> properties = context != null ? context.getProperties() : new Properties();
         if (context != null) {
-            requiredDrivers = get(properties, "requiredDrivers");
+            requiredDrivers = get(properties, REQUIRED_DRIVERS);
         }
         requiredDriverSet = isNullOrEmpty(requiredDrivers) ?
                 ImmutableSet.of() : ImmutableSet.copyOf(requiredDrivers.split(COMMA));
