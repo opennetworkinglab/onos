@@ -18,7 +18,7 @@
 
     <group name="Trellis-Net-P4-Setup">
         <step name="Trellis-Net-P4-Setup.Push-Routing" exec="onos-push-routing ${OCN}"/>
-        <step name="Trellis-Net-P4-Setup.Push-Bmv2" exec="onos-push-bmv2 ${OCN}"/>
+        <step name="Trellis-Net-P4-Setup.Push-Bmv2" exec="onos-push-bmv2-py ${OCN}"/>
 
         <!-- Stop/cleanup mininet -->
         <step name="Trellis-Net-P4-Setup.Stop-Mininet-If-Needed" env="~" exec="onos-mininet stop"/>

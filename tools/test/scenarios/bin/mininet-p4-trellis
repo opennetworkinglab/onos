@@ -1,21 +1,34 @@
 #!/bin/bash
 
-remote=$ONOS_USER@$OCN
-remote_scp=$ONOS_USER@[$OCN]
-mininet="ssh -t -t $remote screen -L -S mininet"
+# -----------------------------------------------------------------------------
+# Starts mininet in the network machine with the Trellis P4 topology
+# -----------------------------------------------------------------------------
 
-CONTROLLERS="$OC1"
+set -e
+set -x
 
-echo >/tmp/invoke_trellis_p4 "export ONOS_WEB_USER=$ONOS_WEB_USER && export ONOS_WEB_PASS=$ONOS_WEB_PASS && cd routing/trellis && sudo -E env PYTHONPATH=$PYTHONPATH:/home/sdn/bmv2-mininet ./trellisp4.py --onos-ip '$CONTROLLERS'"
-chmod +x /tmp/invoke_trellis_p4
-scp /tmp/invoke_trellis_p4 $remote_scp:
+[[ ! -d "$ONOS_ROOT" ]] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
 
-ssh $remote "rm -f $log; echo logfile flush 1 > ~/.screenrc"
-    (
-    $mininet ./invoke_trellis_p4
-    scp $remote_scp:$log /tmp/mininet.log
-    ssh $remote rm -f $log
-    ) &
+remote="$ONOS_USER@$OCN"
+log="screenlog.0"
+trellisp4Sh="/tmp/start_trellisp4.sh"
+stratumRoot="/home/sdn/stratum"
+
+ssh -tt ${remote} "
+    rm -f $log && echo logfile flush 1 > ~/.screenrc && \
+    echo \"cd ~/routing/trellis && \
+        sudo -E env PYTHONPATH=/tmp/bmv2_py STRATUM_ROOT=${stratumRoot} \
+            ONOS_WEB_USER=$ONOS_WEB_USER ONOS_WEB_PASS=$ONOS_WEB_PASS \
+        python trellisp4.py --onos-ip $OC1 --agent stratum\" \
+    > ${trellisp4Sh} && chmod +x ${trellisp4Sh}
+"
+
+(
+    ssh -t -t ${remote} "screen -L -S mininet sudo ${trellisp4Sh}"
+    scp ${ONOS_USER}@[${OCN}]:$log /tmp/mininet.log
+    ssh ${remote} rm -f $log
+) &
 
 
 
