@@ -124,9 +124,11 @@ import java.util.stream.Collectors;
 
 import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
+import static org.onlab.junit.TestTools.assertAfter;
 import static org.onosproject.dhcprelay.DhcpRelayManager.DHCP_RELAY_APP;
 
 public class DhcpRelayManagerTest {
+    private static final int EVENT_PROCESSING_MS = 1000;
     private static final short VLAN_LEN = 2;
     private static final short SEPARATOR_LEN = 1;
     private static final String CONFIG_FILE_PATH = "dhcp-relay.json";
@@ -634,10 +636,16 @@ public class DhcpRelayManagerTest {
         flowObjectiveService.apply(eq(DEV_1_ID), capture(capturedFromDev1));
         expectLastCall().times(DHCP_SELECTORS.size());
         replay(manager.cfgService, flowObjectiveService, manager.deviceService, device);
+
         manager.deviceListener.event(event);
+
+        // Wait until all flow objective events are captured before triggering onSuccess
+        int expectFlowObjCount = Dhcp4HandlerImpl.DHCP_SELECTORS.size() + Dhcp6HandlerImpl.DHCP_SELECTORS.size();
+        assertAfter(EVENT_PROCESSING_MS, () -> assertEquals(expectFlowObjCount, capturedFromDev1.getValues().size()));
         capturedFromDev1.getValues().forEach(obj -> obj.context().ifPresent(ctx -> ctx.onSuccess(obj)));
-        assertEquals(1, v4Handler.ignoredVlans.size());
-        assertEquals(1, v6Handler.ignoredVlans.size());
+
+        assertAfter(EVENT_PROCESSING_MS, () -> assertEquals(1, v4Handler.ignoredVlans.size()));
+        assertAfter(EVENT_PROCESSING_MS, () -> assertEquals(1, v6Handler.ignoredVlans.size()));
     }
 
     /**
