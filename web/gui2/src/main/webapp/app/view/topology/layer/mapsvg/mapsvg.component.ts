@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 import {
-    Component,
+    Component, EventEmitter,
     Input,
-    OnChanges,
+    OnChanges, Output,
     SimpleChanges
 } from '@angular/core';
 import { MapObject } from '../maputils';
-import {LogService} from 'gui2-fw-lib';
+import {LogService, MapBounds} from 'gui2-fw-lib';
 import {HttpClient} from '@angular/common/http';
 import * as d3 from 'd3';
 import * as topojson from 'topojson-client';
@@ -33,16 +33,6 @@ const BUNDLED_URL_PREFIX = 'data/map/';
 interface TopoDataTransform {
     scale: number[];
     translate: number[];
-}
-
-/**
- * Model of the Generator setting for D3 GEO
- */
-interface GeneratorSettings {
-    objectTag: string;
-    projection: Object;
-    logicalSize: number;
-    mapFillScale: number;
 }
 
 /**
@@ -81,9 +71,10 @@ interface TopoData {
 })
 export class MapSvgComponent implements  OnChanges {
     @Input() map: MapObject = <MapObject>{id: 'none'};
+    @Output() mapBounds = new EventEmitter<MapBounds>();
 
     geodata: FeatureCollection;
-    pathgen: (Feature) => string;
+    pathgen: any; // (Feature) => string; have to leave it general, as there is the bounds method used below
     // testPath: string;
     // testFeature = <Feature>{
     //     id: 'test',
@@ -102,13 +93,14 @@ export class MapSvgComponent implements  OnChanges {
         private log: LogService,
         private httpClient: HttpClient,
     ) {
+        // Scale everything to 360 degrees wide and 150 high
+        // See background.component.html for more details
         this.pathgen = d3.geoPath().projection(
-            MapSvgComponent.scale(1, 360, 150));
+            MapSvgComponent.scale());
 
         // this.log.debug('Feature Test',this.testFeature);
         // this.testPath = this.pathgen(this.testFeature);
         // this.log.debug('Feature Path', this.testPath);
-
         this.log.debug('MapSvgComponent constructed');
     }
 
@@ -119,11 +111,10 @@ export class MapSvgComponent implements  OnChanges {
         return id + '.topojson';
     }
 
-    static scale (scaleFactor: number, width: number, height: number) {
+    static scale () {
         return d3.geoTransform({
             point: function(x, y) {
-                this.stream.point( (x - width / 2) * scaleFactor + width / 2,
-                    (-y - height / 2) * scaleFactor + height / 2);
+                this.stream.point(x, -y); // 1-1 mapping but invert y-axis
             }
         });
     }
@@ -170,6 +161,13 @@ export class MapSvgComponent implements  OnChanges {
         }
         this.log.debug('Topo obj', topoObject, 'topodata', topoData);
         this.geodata = <FeatureCollection>topojson.feature(topoData, topoObject);
+        const bounds = this.pathgen.bounds(this.geodata);
+        this.mapBounds.emit(<MapBounds>{
+            lngMin: bounds[0][0],
+            latMin: -bounds[0][1], // Y was inverted in the transform
+            lngMax: bounds[1][0],
+            latMax: -bounds[1][1] // Y was inverted in the transform
+        });
         this.log.debug('Map retrieved', topoData, this.geodata);
 
     }

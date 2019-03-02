@@ -28,11 +28,6 @@ interface Point {
     y: number;
 }
 
-enum LinkEnd {
-    A,
-    B
-}
-
 @Component({
     selector: '[onos-linksvg]',
     templateUrl: './linksvg.component.html',
@@ -55,6 +50,7 @@ export class LinkSvgComponent extends NodeVisual implements OnChanges {
     @Input() highlighted: string = '';
     @Input() highlightsEnabled: boolean = true;
     @Input() label: string;
+    @Input() scale = 1.0;
     isHighlighted: boolean = false;
     @Output() selectedEvent = new EventEmitter<UiElement>();
     @Output() enhancedEvent = new EventEmitter<Link>();
@@ -100,7 +96,7 @@ export class LinkSvgComponent extends NodeVisual implements OnChanges {
     }
 
     /**
-     * We want to place the label for the port about 40 px from the node
+     * We want to place the label for the port about 40 px from the node.
      * If the distance between the nodes is less than 100, then just place the
      * label 1/3 of the way from the node
      */

@@ -23,9 +23,10 @@ import {
     SimpleChanges,
 } from '@angular/core';
 import {Device, LabelToggle, UiElement} from '../../models';
-import {IconService, LogService} from 'gui2-fw-lib';
+import {IconService, LocMeta, LogService, MetaUi, ZoomUtils} from 'gui2-fw-lib';
 import {NodeVisual} from '../nodevisual';
 import {animate, state, style, transition, trigger} from '@angular/animations';
+import {LocationType} from '../../../backgroundsvg/backgroundsvg.component';
 
 /**
  * The Device node in the force graph
@@ -113,9 +114,10 @@ export class DeviceNodeSvgComponent extends NodeVisual implements OnChanges {
      */
     labelTextLen() {
         if (this.labelToggle === 1) {
-            return this.device.id.length * 8 * this.scale;
-        } else if (this.labelToggle === 2 && this.device && this.device.props.name && this.device.props.name.trim().length > 0) {
-            return this.device.props.name.length * 8 * this.scale;
+            return this.device.id.length * 8;
+        } else if (this.labelToggle === 2 && this.device &&
+            this.device.props.name && this.device.props.name.trim().length > 0) {
+            return this.device.props.name.length * 8;
         } else {
             return 0;
         }
@@ -128,5 +130,26 @@ export class DeviceNodeSvgComponent extends NodeVisual implements OnChanges {
         } else {
             return 'm_' + this.device.type;
         }
+    }
+
+    resetNodeLocation(): void {
+        this.log.debug('Resetting device', this.device.id, this.device.type);
+        let origLoc: MetaUi;
+
+        if (!this.device.location || this.device.location.locType === LocationType.NONE) {
+            // No location - nothing to do
+            return;
+        } else if (this.device.location.locType === LocationType.GEO) {
+            origLoc = ZoomUtils.convertGeoToCanvas(<LocMeta>{
+                lng: this.device.location.longOrX,
+                lat: this.device.location.latOrY
+            });
+        } else if (this.device.location.locType === LocationType.GRID) {
+            origLoc = ZoomUtils.convertXYtoGeo(
+                this.device.location.longOrX, this.device.location.latOrY);
+        }
+        this.device.metaUi = origLoc;
+        this.device['fx'] = origLoc.x;
+        this.device['fy'] = origLoc.y;
     }
 }

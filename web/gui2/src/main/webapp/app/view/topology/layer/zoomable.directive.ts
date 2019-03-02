@@ -21,18 +21,8 @@ import {
     OnInit,
     SimpleChanges
 } from '@angular/core';
-import {LogService, PrefsService} from 'gui2-fw-lib';
+import {LogService, PrefsService, TopoZoomPrefs} from 'gui2-fw-lib';
 import * as d3 from 'd3';
-
-
-/**
- * Model of the Zoom preferences
- */
-export interface TopoZoomPrefs {
-    tx: number;
-    ty: number;
-    sc: number;
-}
 
 const TOPO_ZOOM_PREFS = 'topo_zoom';
 
@@ -53,6 +43,7 @@ export class ZoomableDirective implements OnChanges, OnInit {
     @Input() zoomableOf: ElementRef;
 
     zoom: any; // The d3 zoom behaviour
+    zoomCached: TopoZoomPrefs = <TopoZoomPrefs>{tx: 0, ty: 0, sc: 1.0};
 
     constructor(
         private _element: ElementRef,
@@ -64,34 +55,31 @@ export class ZoomableDirective implements OnChanges, OnInit {
         const zoomed = () => {
             const transform = d3.event.transform;
             container.attr('transform', 'translate(' + transform.x + ',' + transform.y + ') scale(' + transform.k + ')');
-            this.updateZoomState(transform.x, transform.y, transform.k);
+            this.updateZoomState(<TopoZoomPrefs>{tx: transform.x, ty: transform.y, sc: transform.k});
         };
 
         this.zoom = d3.zoom().on('zoom', zoomed);
     }
 
     ngOnInit() {
-        const zoomState: TopoZoomPrefs = this.ps.getPrefs(TOPO_ZOOM_PREFS, ZOOM_PREFS_DEFAULT);
+        this.zoomCached = this.ps.getPrefs(TOPO_ZOOM_PREFS, ZOOM_PREFS_DEFAULT);
         const svg = d3.select(this.zoomableOf);
 
         svg.call(this.zoom);
 
         svg.transition().call(this.zoom.transform,
-            d3.zoomIdentity.translate(zoomState.tx, zoomState.ty).scale(zoomState.sc));
+            d3.zoomIdentity.translate(this.zoomCached.tx, this.zoomCached.ty).scale(this.zoomCached.sc));
         this.log.debug('Loaded topo_zoom_prefs',
-            zoomState.tx, zoomState.ty, zoomState.sc);
+            this.zoomCached.tx, this.zoomCached.ty, this.zoomCached.sc);
 
     }
 
     /**
      * Updates the cache of zoom preferences locally and onwards to the PrefsService
      */
-    updateZoomState(x: number, y: number, scale: number): void {
-        this.ps.setPrefs(TOPO_ZOOM_PREFS, <TopoZoomPrefs>{
-            tx: x,
-            ty: y,
-            sc: scale
-        });
+    updateZoomState(zoomPrefs: TopoZoomPrefs): void {
+        this.zoomCached = zoomPrefs;
+        this.ps.setPrefs(TOPO_ZOOM_PREFS, zoomPrefs);
     }
 
     /**
@@ -113,8 +101,21 @@ export class ZoomableDirective implements OnChanges, OnInit {
     resetZoom(): void {
         const svg = d3.select(this.zoomableOf);
         svg.transition().duration(750).call(this.zoom.transform, d3.zoomIdentity);
-        this.updateZoomState(0, 0, 1.0);
+        this.updateZoomState(ZOOM_PREFS_DEFAULT);
         this.log.debug('Pan to 0,0 and zoom to 1.0');
+    }
+
+    /**
+     * Change the zoom level when a map is chosen in Topology view
+     *
+     * Animated to run over 750ms
+     */
+    changeZoomLevel(zoomState: TopoZoomPrefs): void {
+        const svg = d3.select(this.zoomableOf);
+        svg.transition().duration(750).call(this.zoom.transform,
+            d3.zoomIdentity.translate(zoomState.tx, zoomState.ty).scale(zoomState.sc));
+        this.updateZoomState(zoomState);
+        this.log.debug('Pan to', zoomState.tx, zoomState.ty, 'and zoom to', zoomState.sc);
     }
 
 }

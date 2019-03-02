@@ -25,5 +25,5 @@
      countries in the northern and southern extremities, and so
      the map is squashed horizontally slightly here to compensate
      (with no squashing the width would be 2400)-->
-<svg:g xmlns:svg="http://www.w3.org/2000/svg" onos-mapsvg [map]="map"
+<svg:g xmlns:svg="http://www.w3.org/2000/svg" onos-mapsvg [map]="map" (mapBounds)="updatedBounds($event)"
        transform="translate(500,500), scale(5.5555,6.666666)"/>

@@ -36,7 +36,7 @@ export * from './lib/layer/panel.service';
 export * from './lib/svg/svgutil.service';
 export * from './lib/svg/glyphdata.service';
 export * from './lib/svg/glyph.service';
-export * from './lib/svg/zoom.service';
+export * from './lib/svg/zoomutils';
 
 export * from './lib/util/prefs.service';
 export * from './lib/util/fn.service';

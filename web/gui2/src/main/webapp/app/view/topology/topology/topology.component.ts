@@ -28,6 +28,7 @@ import {
     PrefsService,
     SvgUtilService,
     WebSocketService,
+    TopoZoomPrefs
 } from 'gui2-fw-lib';
 import {InstanceComponent} from '../panel/instance/instance.component';
 import {DetailsComponent} from '../panel/details/details.component';
@@ -552,6 +553,7 @@ export class TopologyComponent implements OnInit, OnDestroy {
 
     protected resetNodeLocation() {
         // TODO: Implement reset locations
+        this.force.resetNodeLocations();
         this.flashMsg = this.lionFn('fl_reset_node_locations');
         this.log.debug('resetting node location');
     }
@@ -622,6 +624,12 @@ export class TopologyComponent implements OnInit, OnDestroy {
         this.mapIdState = map;
         this.ps.setPrefs(TOPO_MAPID_PREFS, this.mapIdState);
         this.log.debug('Map has been changed to ', map);
+    }
+
+    mapExtentsZoom(zoomMapExtents: TopoZoomPrefs) {
+        // this.zoomDirective.updateZoomState(zoomPrefs.tx, zoomPrefs.ty, zoomPrefs.sc);
+        this.zoomDirective.changeZoomLevel(zoomMapExtents);
+        this.log.debug('Map zoom prefs updated', zoomMapExtents);
     }
 
     /**

@@ -28,7 +28,13 @@ import {
     SimpleChanges,
     ViewChildren
 } from '@angular/core';
-import {LogService, WebSocketService} from 'gui2-fw-lib';
+import {
+    LocMeta,
+    LogService,
+    MetaUi,
+    WebSocketService,
+    ZoomUtils
+} from 'gui2-fw-lib';
 import {
     Device,
     ForceDirectedGraph,
@@ -38,8 +44,7 @@ import {
     LayerType,
     Link,
     LinkHighlight,
-    Location, LocMeta,
-    MetaUi,
+    Location,
     ModelEventMemo,
     ModelEventType,
     Region,
@@ -83,6 +88,7 @@ export class ForceSvgComponent implements OnInit, OnChanges {
     @Input() onosInstMastership: string = '';
     @Input() visibleLayer: LayerType = LayerType.LAYER_DEFAULT;
     @Input() selectedLink: RegionLink = null;
+    @Input() scale: number = 1;
     @Input() regionData: Region = <Region>{devices: [ [], [], [] ], hosts: [ [], [], [] ], links: []};
     @Output() linkSelected = new EventEmitter<RegionLink>();
     @Output() selectedNodeEvent = new EventEmitter<UiElement>();
@@ -192,7 +198,7 @@ export class ForceSvgComponent implements OnInit, OnChanges {
                 const loc: Location = <Location>n['location'];
                 if (loc && loc.locType === LocationType.GEO) {
                     const position: MetaUi =
-                        BackgroundSvgComponent.convertGeoToCanvas(
+                        ZoomUtils.convertGeoToCanvas(
                             <LocMeta>{lng: loc.longOrX, lat: loc.latOrY});
                     n.fx = position.x;
                     n.fy = position.y;
@@ -437,6 +443,12 @@ export class ForceSvgComponent implements OnInit, OnChanges {
             memento: newLocation
         });
         this.log.debug(klass, id, 'has been moved to', newLocation);
+    }
+
+    resetNodeLocations() {
+        this.devices.forEach((d) => {
+            d.resetNodeLocation();
+        });
     }
 }
 

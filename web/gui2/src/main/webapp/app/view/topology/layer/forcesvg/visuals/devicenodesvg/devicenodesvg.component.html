@@ -15,6 +15,7 @@
 -->
 <svg:defs xmlns:svg="http://www.w3.org/2000/svg">
     <!-- Template explanation: Define an SVG Filter that in
+        line 0) creates a box big enough to accommodate the drop shadow
         line 1) render the target object in to a bit map and apply a blur to it
             based on its alpha channel
         line 2) take that blurred layer and shift it down and to the right by 4
@@ -29,6 +30,7 @@
             <svg:feMergeNode in="SourceGraphic" />
         </svg:feMerge>
     </svg:filter>
+    <!-- Template explanation: Define a colour gradient that can be used in icons -->
     <svg:linearGradient id="diagonal_blue" x1="0%" y1="0%" x2="100%" y2="100%">
         <svg:stop offset= "0%" style="stop-color: #7fabdb;" />
         <svg:stop offset= "100%" style="stop-color: #5b99d2;" />
@@ -36,6 +38,7 @@
 </svg:defs>
 <!-- Template explanation: Creates an SVG Group and in
     line 1) transform it to the position calculated by the d3 force graph engine
+            and scale it inversely to the zoom level
     line 2) Give it various CSS styles depending on attributes
     line 3) When it is clicked, call the method that toggles the selection and
         emits an event.
@@ -80,7 +83,6 @@
             text-anchor="start" y="0.3em" x="22"
             [attr.textLength]= "labelTextLen()"
             lengthAdjust= "spacing"
-            [ngStyle]="{'transform': 'scale(' + scale + ')'}"
             [@deviceLabelToggleTxt]="labelToggle">
         {{ labelToggle == 0 ? '': labelToggle == 1 ? device.id:device.props.name }}
     </svg:text>

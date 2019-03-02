@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {MapObject} from '../maputils';
-import {LocMeta, MetaUi} from '../forcesvg/models';
+import {MapBounds, TopoZoomPrefs, LogService, ZoomUtils} from 'gui2-fw-lib';
 
 /**
  * model of the topo2CurrentLayout attrs from BgZoom below
@@ -69,53 +69,39 @@ export interface Layout {
     regionName: string;
 }
 
-const LONGITUDE_EXTENT = 180;
-const LATITUDE_EXTENT = 75;
-
 /**
  * ONOS GUI -- Topology Background Layer View.
+ *
+ * TODO: consider that this layer has only one component the MapSvg and hence
+ * might be able to be eliminated
  */
 @Component({
     selector: '[onos-backgroundsvg]',
     templateUrl: './backgroundsvg.component.html',
     styleUrls: ['./backgroundsvg.component.css']
 })
-export class BackgroundSvgComponent implements OnInit {
+export class BackgroundSvgComponent {
     @Input() map: MapObject;
+    @Output() zoomlevel = new EventEmitter<TopoZoomPrefs>();
 
     layoutData: Layout = <Layout>{};
 
-    static convertGeoToCanvas(location: LocMeta): MetaUi {
-        const calcX = (LONGITUDE_EXTENT + location.lng) / ( LONGITUDE_EXTENT * 2 ) * 2000 - 500;
-        const calcY = (LATITUDE_EXTENT - location.lat) / ( LATITUDE_EXTENT * 2 ) * 1000;
-        return <MetaUi>{
-            x: calcX,
-            y: calcY,
-            equivLoc: {
-                lat: location.lat,
-                lng: location.lng
-            }
-        };
+    constructor(
+        private log: LogService
+    ) {
+        this.log.debug('BackgroundSvg constructed');
     }
 
-    static convertXYtoGeo(x: number, y: number): MetaUi {
-        const calcLong: number = (x + 500) * 2 * LONGITUDE_EXTENT / 2000 - LONGITUDE_EXTENT;
-        const calcLat: number = -(y * 2 * LATITUDE_EXTENT / 1000 - LATITUDE_EXTENT);
-        return <MetaUi>{
-            x: x,
-            y: y,
-            equivLoc: <LocMeta>{
-                lat: calcLat,
-                lng: calcLong
-            }
-        };
+    /**
+     * Called when ever the mapBounds event is raised by the MapSvgComponent
+     *
+     * @param bounds - the bounds of the newly loaded map in terms of Lat and Long
+     */
+    updatedBounds(bounds: MapBounds): void {
+        const zoomPrefs: TopoZoomPrefs =
+            ZoomUtils.convertBoundsToZoomLevel(bounds, this.log);
+
+        this.zoomlevel.emit(zoomPrefs);
     }
-
-    constructor() { }
-
-    ngOnInit() {
-    }
-
-
 
 }

@@ -37,7 +37,7 @@ g.node.device.online text {
 }
 g.node.device.online use {
     /* NOTE: this gets overridden programatically */
-    fill: #454545;
+    fill: #ffffff;
 }
 
 g.node.selected .node-container {

@@ -27,6 +27,7 @@
     line 1) transform end A to the position calculated by the d3 force graph engine
     line 2) transform end B to the position calculated by the d3 force graph engine
     line 3) Give it various CSS styles depending on attributes
+    ling 4) Change the line width depending on the scale
     line 4) When it is clicked, call the method that toggles the selection and
         emits an event.
     line 5) When the mouse is moved over call on enhance() function. This will
@@ -37,12 +38,16 @@
         [attr.x1]="link.source?.x" [attr.y1]="link.source?.y"
         [attr.x2]="link.target?.x" [attr.y2]="link.target?.y"
         [ngClass]="['link', selected?'selected':'', enhanced?'enhanced':'', highlighted]"
+        [ngStyle]="{'stroke-width': (enhanced ? 4 : 2) * scale + 'px'}"
         (click)="toggleSelected(link)"
         (mouseover)="enhance()"
         [attr.filter]="highlighted?'url(#glow)':'none'">
 </svg:line>
-<svg:g xmlns:svg="http://www.w3.org/2000/svg" [ngClass]="['linkLabel']">
-    <!-- Template explanation: Creates SVG Text and in
+<svg:g xmlns:svg="http://www.w3.org/2000/svg"
+       [ngClass]="['linkLabel']"
+       [attr.transform]="'scale(' + scale + ')'">
+    <!-- Template explanation: Creates SVG Text in the middle of the link to
+          show traffic and in:
         line 1) Performs the animation 'linkLabelVisible' whenever the isHighlighted
             boolean value changes
         line 2 & 3) Sets the text at half way between the 2 end points of the line
@@ -61,13 +66,14 @@
 -->
 <svg:g xmlns:svg="http://www.w3.org/2000/svg"
        *ngIf="enhanced && link.portA"
-       class="portLabel">
+       class="portLabel"
+       [attr.transform]="'translate(' + labelPosSrc.x + ',' + labelPosSrc.y + '),scale(' + scale + ')'">
     <!-- Template explanation: Creates an SVG Rectangle and in
         line 1) transform end A to the position calculated by the d3 force graph engine
         line 2) assigns classes to it
     -->
     <svg:rect
-            [attr.x]="labelPosSrc.x - 2 - textLength(link.portA)/2" [attr.y]="labelPosSrc.y - 8"
+            [attr.x]="2 - textLength(link.portA)/2" y="-8"
             [attr.width]="4 + textLength(link.portA)" height="16" >
     </svg:rect>
     <!-- Template explanation: Creates SVG Text and in
@@ -75,23 +81,20 @@
         line 2) centre aligns it
         line 3) ensures that the text fills the rectangle by adjusting spacing
     -->
-    <svg:text
-            [attr.x]="labelPosSrc.x" [attr.y]="labelPosSrc.y + 6"
-            text-anchor="middle"
+    <svg:text y="2" text-anchor="middle"
             [attr.textLength]= "textLength(link.portA)" lengthAdjust="spacing"
     >{{ link.portA }}</svg:text>
 </svg:g>
 <!-- A repeat of the above, but for the other end of the line -->
 <svg:g xmlns:svg="http://www.w3.org/2000/svg"
        *ngIf="enhanced && link.portB"
-       class="portLabel">
+       class="portLabel"
+       [attr.transform]="'translate(' + labelPosTgt.x + ',' + labelPosTgt.y + '),scale(' + scale + ')'">
     <svg:rect
-            [attr.x]="labelPosTgt.x - 2 - textLength(link.portB)/2" [attr.y]="labelPosTgt.y - 8"
+            [attr.x]="2 - textLength(link.portB)/2" y="-8"
             [attr.width]="4 + textLength(link.portB)" height="16">
     </svg:rect>
-    <svg:text
-            [attr.x]="labelPosTgt.x" [attr.y]="labelPosTgt.y + 6"
-            text-anchor="middle"
+    <svg:text x="2" y="2" text-anchor="middle"
             [attr.textLength]= "textLength(link.portB)" lengthAdjust="spacing"
     >{{ link.portB }}</svg:text>
 </svg:g>

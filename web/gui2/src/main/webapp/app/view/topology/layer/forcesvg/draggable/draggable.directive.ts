@@ -20,9 +20,9 @@ import {
     Input,
     OnChanges, Output
 } from '@angular/core';
-import {ForceDirectedGraph, LocMeta, MetaUi, Node} from '../models';
+import {ForceDirectedGraph, Node} from '../models';
 import * as d3 from 'd3';
-import {LogService} from 'gui2-fw-lib';
+import {LogService, MetaUi, ZoomUtils} from 'gui2-fw-lib';
 import {BackgroundSvgComponent} from '../../backgroundsvg/backgroundsvg.component';
 
 @Directive({
@@ -73,7 +73,7 @@ export class DraggableDirective implements OnChanges {
                 if (!d3.event.active) {
                     graph.simulation.alphaTarget(0);
                 }
-                newLocation.emit(BackgroundSvgComponent.convertXYtoGeo(node.fx, node.fy));
+                newLocation.emit(ZoomUtils.convertXYtoGeo(node.fx, node.fy));
 
                 // node.fx = null;
                 // node.fy = null;

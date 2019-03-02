@@ -55,7 +55,8 @@
         filter="url(#drop-shadow-host)"
         style="fill: url(#three_stops_radial)">
     </svg:circle>
-    <svg:use xlink:href="#m_endstation" width="22.5" height="22.5" x="-11.25" y="-11.25" style="transform: scale(1);"></svg:use>
+    <svg:use xlink:href="#m_endstation" width="22.5" height="22.5" x="-11.25" y="-11.25">
+    </svg:use>
     <!-- Template explanation: Creates an SVG Text
         line 1) if the labelToggle is not 0
         line 2) shift it below the circle, and have it centred with the circle
@@ -65,5 +66,5 @@
     <svg:text
         *ngIf="labelToggle != 0"
         dy="30" text-anchor="middle"
-        style="transform: scale(1);">{{hostName()}}</svg:text>
+        >{{hostName()}}</svg:text>
 </svg:g>

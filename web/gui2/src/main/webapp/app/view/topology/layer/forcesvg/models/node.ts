@@ -15,12 +15,9 @@
  */
 import * as d3 from 'd3';
 import {LocationType} from '../../backgroundsvg/backgroundsvg.component';
-import {
-    LayerType,
-    Location,
-    NodeType,
-    RegionProps
-} from './regions';
+import {LayerType, Location, NodeType, RegionProps} from './regions';
+import {LocMeta, LogService, MetaUi} from 'gui2-fw-lib';
+import {ZoomUtils} from 'gui2-fw-lib';
 
 export interface UiElement {
     index?: number;
@@ -114,23 +111,6 @@ export interface DeviceProps {
     name: string;
     locType: LocationType;
     uiType: string;
-}
-
-/**
- * model of the topo2CurrentRegion Loc part of the MetaUi below
- */
-export interface LocMeta {
-    lng: number;
-    lat: number;
-}
-
-/**
- * model of the topo2CurrentRegion MetaUi from Device below
- */
-export interface MetaUi {
-    equivLoc: LocMeta;
-    x: number;
-    y: number;
 }
 
 export interface HostProps {

@@ -23,11 +23,18 @@
          Input parameter to the link item from the next line
         line 2) Use the built in NgFor directive to iterate through the
          set of links filtered by the filteredLinks() function.
+        line 3) feed the highlightPorts of this (forcesvg) component in to
+         the highlightsEnabled of the link component
+        line 5) when the onos-linksvg component emits the selectedEvent,
+         call the updateSelected() method of this (forcesvg) component
+        line 6) feed the scale of this (forcesvg) component in to the scale
+         of the link
     -->
     <svg:g onos-linksvg [link]="link"
            *ngFor="let link of filteredLinks()"
            [highlightsEnabled]="highlightPorts"
-           (selectedEvent)="updateSelected($event)">
+           (selectedEvent)="updateSelected($event)"
+           [scale]="scale">
     </svg:g>
 </svg:g>
 <svg:g xmlns:svg="http://www.w3.org/2000/svg" class="topo2-nodes">
@@ -43,15 +50,20 @@
          Input parameter to 'graph'
         line 4) event handler of the draggable directive - causes the new location
          to be written back to the server
-        line 5) when the onos-devicenodesvg component emits the selectedEvent
+        line 5) when the onos-devicenodesvg component emits the selectedEvent,
          call the updateSelected() method of this (forcesvg) component
+        line 6) feed the devicelabeltoggle of this (forcesvg) component in to
+         the labelToggle of the device
+        line 7) feed the scale of this (forcesvg) component in to the scale
+         of the device
     -->
     <svg:g onos-devicenodesvg [device]="device"
            *ngFor="let device of regionData.devices[visibleLayerIdx()]"
            onosDraggableNode [draggableNode]="device" [draggableInGraph]="graph"
                (newLocation)="nodeMoved('device', device.id, $event)"
            (selectedEvent)="updateSelected($event)"
-            [labelToggle]="deviceLabelToggle">
+            [labelToggle]="deviceLabelToggle"
+            [scale]="scale">
         <svg:desc>Device nodes</svg:desc>
     </svg:g>
     <!-- Template explanation - only display the hosts if 'showHosts' is set true -->
@@ -69,13 +81,18 @@
              to be written back to the server
             line 5) when the onos-hostnodesvg component emits the selectedEvent
              call the updateSelected() method of this (forcesvg) component
+            line 6) feed the hostLabelToggle of this (forcesvg) component in to
+             the labelToggle of the host
+            line 7) feed the scale of this (forcesvg) component in to the scale
+             of the host
         -->
         <svg:g onos-hostnodesvg [host]="host"
                *ngFor="let host of regionData.hosts[visibleLayerIdx()]"
                onosDraggableNode [draggableNode]="host" [draggableInGraph]="graph"
                    (newLocation)="nodeMoved('host', device.id, $event)"
                (selectedEvent)="updateSelected($event)"
-               [labelToggle]="hostLabelToggle">
+               [labelToggle]="hostLabelToggle"
+               [scale]="scale">
             <svg:desc>Host nodes</svg:desc>
         </svg:g>
     </svg:g>
