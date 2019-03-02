@@ -219,7 +219,7 @@ def find_mapped_client_sip_uuid(line_sip_uuid, nodes):
         vals = parse_value(onep["name"])
         if vals["odtn-connection-id"] == conn_id and vals["odtn-port-type"] == "client":
             return onep["mapped-service-interface-point"][0]["service-interface-point-uuid"], vals
-    return None
+    return None, None
 
 
 #
@@ -249,6 +249,10 @@ def create_client_connection(url_context, url_connectivity):
         src_onep, dst_onep, src_sip_uuid, dst_sip_uuid = parse_src_dst(topo, link_index)
         client_src_sip_uuid, client_src_name = find_mapped_client_sip_uuid(src_sip_uuid, topo["node"])
         client_dst_sip_uuid, client_dst_name = find_mapped_client_sip_uuid(dst_sip_uuid, topo["node"])
+        if client_src_sip_uuid is None or client_dst_sip_uuid is None:
+            # If there is no two mapped client-side ports existed, then skip all next steps,
+            # and traverse the next link directly
+            continue
         # firstly, check if line-side service exists
         # If line-side service exists
         if src_sip_uuid in used_sip_uuids and dst_sip_uuid in used_sip_uuids:
