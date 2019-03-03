@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.workflow.api.DefaultWorkflowDescription;
@@ -28,42 +29,68 @@ import org.onosproject.workflow.api.WorkflowService;
 import java.util.Arrays;
 import java.util.Objects;
 
+/**
+ * Workflow test command.
+ */
 @Service
 @Command(scope = "onos", name = "workflow-test", description = "workflow test cli")
 public class WorkFlowTestCommand extends AbstractShellCommand {
 
-    @Argument(index = 0, name = "cmd", description = "command(invoke)", required = true)
-    private String cmd = null;
+    static final String INVOKE_SAMPLE = "invoke-sample";
 
-    @Argument(index = 1, name = "number", description = "number of test", required = true)
-    private String number = null;
+    @Argument(index = 0, name = "test-name",
+            description = "Test name (" + INVOKE_SAMPLE + ")",
+            required = true)
+    @Completion(WorkFlowTestCompleter.class)
+    private String testName = null;
+
+    @Argument(index = 1, name = "arg1",
+            description = "number of test for " + INVOKE_SAMPLE,
+            required = false)
+    private String arg1 = null;
 
     @Override
     protected void doExecute() {
-        if (Objects.isNull(cmd)) {
-            error("invalid cmd parameter");
+        if (Objects.isNull(testName)) {
+            error("invalid test-name parameter");
             return;
         }
 
-        switch (cmd) {
-            case "invoke":
-                if (Objects.isNull(number)) {
-                    error("invalid number of test");
+        switch (testName) {
+            case INVOKE_SAMPLE:
+                if (Objects.isNull(arg1)) {
+                    error("arg1 is required for test " + INVOKE_SAMPLE);
                     return;
                 }
 
                 int num;
                 try {
-                    num = Integer.parseInt(number);
+                    num = Integer.parseInt(arg1);
+                } catch (NumberFormatException e) {
+                    error("arg1 should be an integer value");
+                    return;
                 } catch (Exception e) {
                     error(e.getMessage() + ", trace: " + Arrays.asList(e.getStackTrace()));
                     return;
                 }
 
-                test(num);
+                invokeSampleTest(num);
                 break;
             default:
-                print("Unsupported cmd: " + cmd);
+                print("Unsupported test-name: " + testName);
+        }
+    }
+
+    /**
+     * Workflow invoke test_name.
+     * @param num the arg1 of workflow to test_name
+     */
+    private void invokeSampleTest(int num) {
+        for (int i = 0; i <= num; i++) {
+            String wpName = "test_name-" + i;
+            invoke("sample.workflow-0", wpName);
+            invoke("sample.workflow-1", wpName);
+            invoke("sample.workflow-2", wpName);
         }
     }
 
@@ -88,19 +115,6 @@ public class WorkFlowTestCommand extends AbstractShellCommand {
             service.invokeWorkflow(wfDesc);
         } catch (WorkflowException e) {
             error(e.getMessage() + "trace: " + Arrays.asList(e.getStackTrace()));
-        }
-    }
-
-    /**
-     * Workflow invoke test.
-     * @param num the number of workflow to test
-     */
-    private void test(int num) {
-        for (int i = 0; i <= num; i++) {
-            String wpName = "test-" + i;
-            invoke("sample.workflow-0", wpName);
-            invoke("sample.workflow-1", wpName);
-            invoke("sample.workflow-2", wpName);
         }
     }
 }
