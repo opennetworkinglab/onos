@@ -31,6 +31,10 @@
         });
     }
 
+    function clear() {
+        // Nothing to do?
+    }
+
     angular.module('ovTlTopov', [])
         .factory('LayoutTopovService',
         ['$log', 'FlashService', 'WebSocketService',
@@ -41,7 +45,8 @@
             wss = _wss_;
 
             return {
-                doLayout: doLayout
+                doLayout: doLayout,
+                clear: clear
             };
         }]);
 }());
