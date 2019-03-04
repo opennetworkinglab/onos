@@ -23,6 +23,7 @@ import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.ControllerInfo;
+import org.onosproject.openstacknode.api.DefaultKeystoneConfig;
 import org.onosproject.openstacknode.api.DefaultOpenstackNode;
 import org.onosproject.openstacknode.api.DpdkConfig;
 import org.onosproject.openstacknode.api.KeystoneConfig;
@@ -32,7 +33,6 @@ import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackPhyInterface;
 import org.onosproject.openstacknode.api.OpenstackSshAuth;
-import org.onosproject.openstacknode.api.DefaultKeystoneConfig;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -83,58 +83,73 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
 
         OpenstackNode.NodeType type = node.type();
 
+        // serialize uplink port only for gateway node
         if (type == OpenstackNode.NodeType.GATEWAY) {
             result.put(UPLINK_PORT, node.uplinkPort());
         }
 
+        // serialize keystone config for controller node
         if (type == OpenstackNode.NodeType.CONTROLLER) {
 
             ObjectNode keystoneConfigJson = context.codec(KeystoneConfig.class)
                     .encode(node.keystoneConfig(), context);
 
             result.set(KEYSTONE_CONFIG, keystoneConfigJson);
+
+            // serialize neutron config for controller node
+            if (node.neutronConfig() != null) {
+                ObjectNode neutronConfigJson = context.codec(NeutronConfig.class)
+                        .encode(node.neutronConfig(), context);
+
+                result.set(NEUTRON_CONFIG, neutronConfigJson);
+            }
         }
 
-        if (node.neutronConfig() != null) {
-            ObjectNode neutronConfigJson = context.codec(NeutronConfig.class)
-                    .encode(node.neutronConfig(), context);
-
-            result.set(NEUTRON_CONFIG, neutronConfigJson);
-        }
-
+        // serialize integration bridge config
         if (node.intgBridge() != null) {
             result.put(INTEGRATION_BRIDGE, node.intgBridge().toString());
         }
 
+        // serialize VLAN interface, it is valid only if any VLAN interface presents
         if (node.vlanIntf() != null) {
             result.put(VLAN_INTF_NAME, node.vlanIntf());
         }
 
+        // serialize data IP only if it presents
         if (node.dataIp() != null) {
             result.put(DATA_IP, node.dataIp().toString());
         }
 
-        ArrayNode phyIntfs = context.mapper().createArrayNode();
-        node.phyIntfs().forEach(phyIntf -> {
-            ObjectNode phyIntfJson =
-                    context.codec(OpenstackPhyInterface.class).encode(phyIntf, context);
-            phyIntfs.add(phyIntfJson);
-        });
-        result.set(PHYSICAL_INTERFACES, phyIntfs);
+        // serialize physical interfaces, it is valid only if any of physical interface presents
+        if (node.phyIntfs() != null && !node.phyIntfs().isEmpty()) {
+            ArrayNode phyIntfs = context.mapper().createArrayNode();
+            node.phyIntfs().forEach(phyIntf -> {
+                ObjectNode phyIntfJson =
+                        context.codec(OpenstackPhyInterface.class).encode(phyIntf, context);
+                phyIntfs.add(phyIntfJson);
+            });
+            result.set(PHYSICAL_INTERFACES, phyIntfs);
+        }
 
-        ArrayNode controllers = context.mapper().createArrayNode();
-        node.controllers().forEach(controller -> {
-            ObjectNode controllerJson =
-                    context.codec(ControllerInfo.class).encode(controller, context);
-            controllers.add(controllerJson);
-        });
+        // serialize controllers, it is valid only if any of controller presents
+        if (node.controllers() != null && !node.controllers().isEmpty()) {
+            ArrayNode controllers = context.mapper().createArrayNode();
+            node.controllers().forEach(controller -> {
+                ObjectNode controllerJson =
+                        context.codec(ControllerInfo.class).encode(controller, context);
+                controllers.add(controllerJson);
+            });
+            result.set(CONTROLLERS, controllers);
+        }
 
+        // serialize SSH authentication info, it is valid only if auth info presents
         if (node.sshAuthInfo() != null) {
             ObjectNode sshAuthJson = context.codec(OpenstackSshAuth.class)
                     .encode(node.sshAuthInfo(), context);
             result.set(SSH_AUTH, sshAuthJson);
         }
 
+        // serialize DPDK config, it is valid only if dpdk config presents
         if (node.dpdkConfig() != null) {
             ObjectNode dpdkConfigJson = context.codec(DpdkConfig.class)
                     .encode(node.dpdkConfig(), context);
@@ -258,6 +273,7 @@ public final class OpenstackNodeCodec extends JsonCodec<OpenstackNode> {
             nodeBuilder.sshAuthInfo(sshAuth);
         }
 
+        // parse DPDK configuration
         JsonNode dpdkConfigJson = json.get(DPDK_CONFIG);
         if (dpdkConfigJson != null) {
             final JsonCodec<DpdkConfig> dpdkConfigJsonCodec =
