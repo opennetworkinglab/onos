@@ -133,7 +133,8 @@ public interface DistributedPrimitive {
     /**
      * Default timeout for primitive operations.
      */
-    long DEFAULT_OPERATION_TIMEOUT_MILLIS = 15000L;
+    long DEFAULT_OPERATION_TIMEOUT_MILLIS = Long.parseLong(
+            System.getProperty("onos.cluster.primitive.operationTimeoutMillis", String.valueOf(15000)));
 
     /**
      * Use {@link #DEFAULT_OPERATION_TIMEOUT_MILLIS} instead.
