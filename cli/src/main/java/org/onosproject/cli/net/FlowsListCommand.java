@@ -127,12 +127,15 @@ public class FlowsListCommand extends AbstractShellCommand {
         compilePredicate();
 
         if (countOnly && !suppressCoreOutput && filter.isEmpty() && remove == null) {
-            if (uri == null) {
+            if (state == null && uri == null) {
                 deviceService.getDevices().forEach(device -> printCount(device, service));
+            } else if (uri == null) {
+                deviceService.getDevices()
+                        .forEach(device -> printCount(device, FlowEntryState.valueOf(state.toUpperCase()), service));
             } else {
                 Device device = deviceService.getDevice(DeviceId.deviceId(uri));
                 if (device != null) {
-                    printCount(device, service);
+                    printCount(device, FlowEntryState.valueOf(state.toUpperCase()), service);
                 }
             }
             return;
@@ -299,6 +302,10 @@ public class FlowsListCommand extends AbstractShellCommand {
 
     private void printCount(Device device, FlowRuleService flowRuleService) {
         print("deviceId=%s, flowRuleCount=%d", device.id(), flowRuleService.getFlowRuleCount(device.id()));
+    }
+
+    private void printCount(Device device, FlowEntryState state, FlowRuleService flowRuleService) {
+        print("deviceId=%s, flowRuleCount=%d", device.id(), flowRuleService.getFlowRuleCount(device.id(), state));
     }
 
     /**
