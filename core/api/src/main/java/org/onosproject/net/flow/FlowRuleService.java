@@ -53,6 +53,17 @@ public interface FlowRuleService
     }
 
     /**
+     * Returns the number of flow rules in the given state for the given device.
+     *
+     * @param deviceId the device identifier
+     * @param state the state for which to count flow rules
+     * @return number of flow rules in the given state for the given device
+     */
+    default int getFlowRuleCount(DeviceId deviceId, FlowEntry.FlowEntryState state) {
+        return 0;
+    }
+
+    /**
      * Returns the collection of flow entries applied on the specified device.
      * This will include flow rules which may not yet have been applied to
      * the device.
@@ -171,7 +182,9 @@ public interface FlowRuleService
      *
      * @param deviceId device identifier
      * @return number of flow rules in ADDED state
+     * @deprecated since 2.1
      */
+    @Deprecated
     default long getActiveFlowRuleCount(DeviceId deviceId) {
         return 0;
     }

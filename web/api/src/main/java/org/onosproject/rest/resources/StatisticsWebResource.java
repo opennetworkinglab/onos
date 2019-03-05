@@ -38,6 +38,7 @@ import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.PortStatistics;
+import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TableStatisticsEntry;
 import org.onosproject.net.link.LinkService;
@@ -346,7 +347,7 @@ public class StatisticsWebResource  extends AbstractWebResource {
         final ObjectNode root = mapper().createObjectNode();
         final ArrayNode rootArrayNode = root.putArray("statistics");
         for (final Device device : devices) {
-            long activeEntries = service.getActiveFlowRuleCount(device.id());
+            int activeEntries = service.getFlowRuleCount(device.id(), FlowEntry.FlowEntryState.ADDED);
             final ObjectNode entry = mapper().createObjectNode();
             entry.put("device", device.id().toString());
             entry.put("activeEntries", activeEntries);
