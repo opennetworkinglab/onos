@@ -476,6 +476,7 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
                                         (data.meter().state() == MeterState.PENDING_ADD
                                                 || data.meter().state() == MeterState.ADDED)) {
                                     futures.computeIfPresent(key, (k, v) -> {
+                                        v.complete(MeterStoreResult.success());
                                         notifyDelegate(
                                                 new MeterEvent(MeterEvent.Type.METER_ADDED, data.meter()));
                                         return null;
