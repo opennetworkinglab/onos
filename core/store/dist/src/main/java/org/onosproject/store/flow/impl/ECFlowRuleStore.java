@@ -33,6 +33,8 @@ import java.util.stream.Collectors;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Streams;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -195,6 +197,7 @@ public class ECFlowRuleStore
         .register(KryoNamespaces.API)
         .register(BucketId.class)
         .register(FlowBucket.class)
+        .register(ImmutablePair.class)
         .build());
 
     protected final KryoNamespace.Builder serializerBuilder = KryoNamespace.newBuilder()
@@ -323,8 +326,11 @@ public class ECFlowRuleStore
             GET_FLOW_ENTRY, serializer::decode, flowTable::getFlowEntry, serializer::encode, executor);
         clusterCommunicator.addSubscriber(
             GET_DEVICE_FLOW_ENTRIES, serializer::decode, flowTable::getFlowEntries, serializer::encode, executor);
-        clusterCommunicator.addSubscriber(
-            GET_DEVICE_FLOW_COUNT, serializer::decode, flowTable::getFlowRuleCount, serializer::encode, executor);
+        clusterCommunicator.<Pair<DeviceId, FlowEntryState>, Integer>addSubscriber(
+            GET_DEVICE_FLOW_COUNT,
+            serializer::decode,
+            p -> flowTable.getFlowRuleCount(p.getLeft(), p.getRight()),
+            serializer::encode, executor);
         clusterCommunicator.addSubscriber(
             REMOVE_FLOW_ENTRY, serializer::decode, this::removeFlowRuleInternal, serializer::encode, executor);
     }
@@ -353,6 +359,11 @@ public class ECFlowRuleStore
 
     @Override
     public int getFlowRuleCount(DeviceId deviceId) {
+        return getFlowRuleCount(deviceId, null);
+    }
+
+    @Override
+    public int getFlowRuleCount(DeviceId deviceId, FlowEntryState state) {
         NodeId master = mastershipService.getMasterFor(deviceId);
         if (master == null) {
             log.debug("Failed to getFlowRuleCount: No master for {}", deviceId);
@@ -360,19 +371,19 @@ public class ECFlowRuleStore
         }
 
         if (Objects.equals(local, master)) {
-            return flowTable.getFlowRuleCount(deviceId);
+            return flowTable.getFlowRuleCount(deviceId, state);
         }
 
         log.trace("Forwarding getFlowRuleCount to master {} for device {}", master, deviceId);
         return Tools.futureGetOrElse(clusterCommunicator.sendAndReceive(
-            deviceId,
-            GET_DEVICE_FLOW_COUNT,
-            serializer::encode,
-            serializer::decode,
-            master),
-            FLOW_RULE_STORE_TIMEOUT_MILLIS,
-            TimeUnit.MILLISECONDS,
-            0);
+                Pair.of(deviceId, state),
+                GET_DEVICE_FLOW_COUNT,
+                serializer::encode,
+                serializer::decode,
+                master),
+                FLOW_RULE_STORE_TIMEOUT_MILLIS,
+                TimeUnit.MILLISECONDS,
+                0);
     }
 
     @Override
@@ -753,6 +764,23 @@ public class ECFlowRuleStore
         }
 
         /**
+         * Returns the count of flow rules in the given state for the given device.
+         *
+         * @param deviceId the device for which to return the flow rule count
+         * @return the flow rule count for the given device
+         */
+        public int getFlowRuleCount(DeviceId deviceId, FlowEntryState state) {
+            if (state == null) {
+                return getFlowRuleCount(deviceId);
+            }
+            return (int) getFlowTable(deviceId)
+                .getFlowEntries()
+                .stream()
+                .filter(rule -> rule.state() == state)
+                .count();
+        }
+
+        /**
          * Returns the flow entry for the given rule.
          *
          * @param rule the rule for which to return the flow entry
@@ -993,6 +1021,16 @@ public class ECFlowRuleStore
         public void close() {
             replicaInfoManager.removeListener(this);
             mastershipTermLifecycles.removeListener(this);
+        }
+    }
+
+    private static class CountMessage {
+        private final DeviceId deviceId;
+        private final FlowEntryState state;
+
+        CountMessage(DeviceId deviceId, FlowEntryState state) {
+            this.deviceId = deviceId;
+            this.state = state;
         }
     }
 }
