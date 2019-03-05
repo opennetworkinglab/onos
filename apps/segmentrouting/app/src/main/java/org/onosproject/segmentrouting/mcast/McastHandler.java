@@ -948,6 +948,13 @@ public class McastHandler {
                                                       ConnectPoint source) {
         final Set<ConnectPoint> sinksToBeProcessed = Sets.newHashSet();
         prevsinks.forEach(((hostId, connectPoints) -> {
+            if (HostId.NONE.equals(hostId)) {
+                //in this case connect points are single homed sinks.
+                //just found the difference btw previous and new sinks for this source.
+                Set<ConnectPoint> difference = Sets.difference(connectPoints, newSinks.get(hostId));
+                sinksToBeProcessed.addAll(difference);
+                return;
+            }
             // We have to check with the existing flows
             ConnectPoint sinkToBeProcessed = connectPoints.stream()
                     .filter(connectPoint -> isSinkForSource(mcastIp, connectPoint, source))
@@ -1012,6 +1019,11 @@ public class McastHandler {
                                                     Map<HostId, Set<ConnectPoint>> sinks) {
         final Set<ConnectPoint> sinksToBeProcessed = Sets.newHashSet();
         sinks.forEach(((hostId, connectPoints) -> {
+            //add all connect points that are not tied with any host
+            if (hostId.equals(HostId.NONE)) {
+                sinksToBeProcessed.addAll(connectPoints);
+                return;
+            }
             // If it has more than 2 locations
             if (connectPoints.size() > 2 || connectPoints.size() == 0) {
                 log.debug("Skip {} since sink {} has {} locations",
