@@ -249,6 +249,13 @@ public class FlowRuleManager
     }
 
     @Override
+    public int getFlowRuleCount(DeviceId deviceId, FlowEntry.FlowEntryState state) {
+        checkPermission(FLOWRULE_READ);
+        checkNotNull(deviceId, "Device ID cannot be null");
+        return store.getFlowRuleCount(deviceId, state);
+    }
+
+    @Override
     public Iterable<FlowEntry> getFlowEntries(DeviceId deviceId) {
         checkPermission(FLOWRULE_READ);
         checkNotNull(deviceId, DEVICE_ID_NULL);
