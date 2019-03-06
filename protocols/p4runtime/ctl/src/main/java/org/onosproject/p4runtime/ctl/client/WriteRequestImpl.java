@@ -27,9 +27,12 @@ import org.onosproject.p4runtime.ctl.codec.CodecException;
 import org.slf4j.Logger;
 import p4.v1.P4RuntimeOuterClass;
 
+import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.onosproject.p4runtime.ctl.client.P4RuntimeClientImpl.SHORT_TIMEOUT_SECONDS;
@@ -49,6 +52,7 @@ final class WriteRequestImpl implements P4RuntimeWriteClient.WriteRequest {
 
     private final P4RuntimeClientImpl client;
     private final PiPipeconf pipeconf;
+    private final AtomicBoolean submitted = new AtomicBoolean(false);
     // The P4Runtime WriteRequest protobuf message we need to populate.
     private final P4RuntimeOuterClass.WriteRequest.Builder requestMsg;
     // WriteResponse instance builder. We populate entity responses as we add new
@@ -147,7 +151,14 @@ final class WriteRequestImpl implements P4RuntimeWriteClient.WriteRequest {
     }
 
     @Override
+    public Collection<P4RuntimeWriteClient.EntityUpdateRequest> pendingUpdates() {
+        return responseBuilder.pendingUpdates();
+    }
+
+    @Override
     public CompletableFuture<P4RuntimeWriteClient.WriteResponse> submit() {
+        checkState(!submitted.getAndSet(true),
+                   "Request has already been submitted, cannot submit again");
         final P4RuntimeOuterClass.WriteRequest writeRequest = requestMsg
                 .setElectionId(client.lastUsedElectionId())
                 .build();
@@ -191,6 +202,8 @@ final class WriteRequestImpl implements P4RuntimeWriteClient.WriteRequest {
 
     private void appendToRequestMsg(P4RuntimeWriteClient.UpdateType updateType,
                                     PiEntity piEntity, PiHandle handle) {
+        checkState(!submitted.get(),
+                   "Request has already been submitted, cannot add more entities");
         final P4RuntimeOuterClass.Update.Type p4UpdateType;
         final P4RuntimeOuterClass.Entity entityMsg;
         try {
@@ -213,7 +226,7 @@ final class WriteRequestImpl implements P4RuntimeWriteClient.WriteRequest {
         } catch (CodecException e) {
             responseBuilder.addFailedResponse(
                     handle, piEntity, updateType, e.getMessage(),
-                    P4RuntimeWriteClient.WriteResponseStatus.CODEC_ERROR);
+                    P4RuntimeWriteClient.EntityUpdateStatus.CODEC_ERROR);
         }
     }
 }

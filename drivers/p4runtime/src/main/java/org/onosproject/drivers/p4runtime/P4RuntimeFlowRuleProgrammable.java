@@ -19,7 +19,8 @@ package org.onosproject.drivers.p4runtime;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.onlab.util.SharedExecutors;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.Striped;
 import org.onosproject.drivers.p4runtime.mirror.P4RuntimeTableMirror;
 import org.onosproject.drivers.p4runtime.mirror.TimedEntry;
 import org.onosproject.net.flow.DefaultFlowEntry;
@@ -42,8 +43,9 @@ import org.onosproject.net.pi.service.PiFlowRuleTranslator;
 import org.onosproject.net.pi.service.PiTranslatedEntity;
 import org.onosproject.net.pi.service.PiTranslationException;
 import org.onosproject.p4runtime.api.P4RuntimeReadClient;
-import org.onosproject.p4runtime.api.P4RuntimeWriteClient;
 import org.onosproject.p4runtime.api.P4RuntimeWriteClient.UpdateType;
+import org.onosproject.p4runtime.api.P4RuntimeWriteClient.WriteRequest;
+import org.onosproject.p4runtime.api.P4RuntimeWriteClient.WriteResponse;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -52,6 +54,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
 
 import static org.onosproject.drivers.p4runtime.P4RuntimeFlowRuleProgrammable.Operation.APPLY;
@@ -96,6 +100,10 @@ public class P4RuntimeFlowRuleProgrammable
     // e.g. inserting them first.
     private static final String TABLE_DEFAULT_AS_ENTRY = "tableDefaultAsEntry";
     private static final boolean DEFAULT_TABLE_DEFAULT_AS_ENTRY = false;
+
+    // Used to make sure concurrent calls to write flow rules are serialized so
+    // that each request gets consistent access to mirror state.
+    private static final Striped<Lock> WRITE_LOCKS = Striped.lock(30);
 
     private PiPipelineModel pipelineModel;
     private P4RuntimeTableMirror tableMirror;
@@ -165,8 +173,25 @@ public class P4RuntimeFlowRuleProgrammable
 
         if (!inconsistentEntries.isEmpty()) {
             // Trigger clean up of inconsistent entries.
-            SharedExecutors.getSingleThreadExecutor().execute(
-                    () -> cleanUpInconsistentEntries(inconsistentEntries));
+            log.warn("Found {} inconsistent table entries on {}, removing them...",
+                     inconsistentEntries.size(), deviceId);
+            final WriteRequest request = client.write(pipeconf)
+                    .entities(inconsistentEntries, DELETE);
+            WRITE_LOCKS.get(deviceId).lock();
+            // Update mirror and async submit delete request.
+            try {
+                tableMirror.applyWriteRequest(request);
+                request.submit().whenComplete((response, ex) -> {
+                    if (ex != null) {
+                        log.error("Exception removing inconsistent table entries", ex);
+                    } else {
+                        log.debug("Successfully removed {} out of {} inconsistent entries",
+                                  response.success().size(), response.all().size());
+                    }
+                });
+            } finally {
+                WRITE_LOCKS.get(deviceId).unlock();
+            }
         }
 
         return result.build();
@@ -246,48 +271,48 @@ public class P4RuntimeFlowRuleProgrammable
                 .collect(Collectors.toList());
     }
 
-    private void cleanUpInconsistentEntries(Collection<PiTableEntry> piEntries) {
-        log.warn("Found {} inconsistent table entries on {}, removing them...",
-                 piEntries.size(), deviceId);
-        // Remove entries and update mirror.
-        tableMirror.replayWriteResponse(
-                client.write(pipeconf).entities(piEntries, DELETE).submitSync());
-    }
-
     private Collection<FlowRule> processFlowRules(Collection<FlowRule> rules,
                                                   Operation driverOperation) {
         if (!setupBehaviour() || rules.isEmpty()) {
             return Collections.emptyList();
         }
         // Created batched write request.
-        final P4RuntimeWriteClient.WriteRequest request = client.write(pipeconf);
+        final WriteRequest request = client.write(pipeconf);
         // For each rule, translate to PI and append to write request.
         final Map<PiHandle, FlowRule> handleToRuleMap = Maps.newHashMap();
         final List<FlowRule> skippedRules = Lists.newArrayList();
-        for (FlowRule rule : rules) {
-            final PiTableEntry entry;
-            try {
-                entry = translator.translate(rule, pipeconf);
-            } catch (PiTranslationException e) {
-                log.warn("Unable to translate flow rule for pipeconf '{}': {} [{}]",
-                         pipeconf.id(), e.getMessage(), rule);
-                // Next rule.
-                continue;
+        final CompletableFuture<WriteResponse> futureResponse;
+        WRITE_LOCKS.get(deviceId).lock();
+        try {
+            for (FlowRule rule : rules) {
+                final PiTableEntry entry;
+                try {
+                    entry = translator.translate(rule, pipeconf);
+                } catch (PiTranslationException e) {
+                    log.warn("Unable to translate flow rule for pipeconf '{}': {} [{}]",
+                             pipeconf.id(), e.getMessage(), rule);
+                    // Next rule.
+                    continue;
+                }
+                final PiTableEntryHandle handle = entry.handle(deviceId);
+                handleToRuleMap.put(handle, rule);
+                // Append entry to batched write request (returns false), or skip (true)
+                if (appendEntryToWriteRequestOrSkip(
+                        request, handle, entry, driverOperation)) {
+                    skippedRules.add(rule);
+                    updateTranslationStore(
+                            driverOperation, handle, rule, entry);
+                }
             }
-            final PiTableEntryHandle handle = entry.handle(deviceId);
-            handleToRuleMap.put(handle, rule);
-            // Append entry to batched write request (returns false), or skip (true)
-            if (appendEntryToWriteRequestOrSkip(
-                    request, handle, entry, driverOperation)) {
-                skippedRules.add(rule);
-                updateTranslationStore(
-                        driverOperation, handle, rule, entry);
-            }
+            // Update mirror.
+            tableMirror.applyWriteRequest(request);
+            // Async submit request to server.
+            futureResponse = request.submit();
+        } finally {
+            WRITE_LOCKS.get(deviceId).unlock();
         }
-        // Submit request to server.
-        final P4RuntimeWriteClient.WriteResponse response = request.submitSync();
-        // Update mirror.
-        tableMirror.replayWriteResponse(response);
+        // Wait for response.
+        final WriteResponse response = Futures.getUnchecked(futureResponse);
         // Derive successfully applied flow rule from response.
         final List<FlowRule> appliedRules = getAppliedFlowRulesAndUpdateTranslator(
                 response, handleToRuleMap, driverOperation);
@@ -297,7 +322,7 @@ public class P4RuntimeFlowRuleProgrammable
     }
 
     private List<FlowRule> getAppliedFlowRulesAndUpdateTranslator(
-            P4RuntimeWriteClient.WriteResponse response,
+            WriteResponse response,
             Map<PiHandle, FlowRule> handleToFlowRuleMap,
             Operation driverOperation) {
         // Returns a list of flow rules that were successfully written on the
@@ -359,7 +384,7 @@ public class P4RuntimeFlowRuleProgrammable
     }
 
     private boolean appendEntryToWriteRequestOrSkip(
-            final P4RuntimeWriteClient.WriteRequest writeRequest,
+            final WriteRequest writeRequest,
             final PiTableEntryHandle handle,
             PiTableEntry piEntryToApply,
             final Operation driverOperation) {

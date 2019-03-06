@@ -94,16 +94,17 @@ public interface P4RuntimeMirror
     /**
      * Synchronizes the state of the given device ID with the given collection
      * of PI entities.
+     *
      * @param deviceId device ID
      * @param entities collection of PI entities
      */
     void sync(DeviceId deviceId, Collection<E> entities);
 
     /**
-     * Uses the given P4Runtime write response to update the state of this
-     * mirror.
+     * Uses the given P4Runtime write request to update the state of this
+     * mirror by optimistically assuming that all updates in it will succeed.
      *
-     * @param response P4Runtime write response
+     * @param request P4Runtime write request
      */
-    void replayWriteResponse(P4RuntimeWriteClient.WriteResponse response);
+    void applyWriteRequest(P4RuntimeWriteClient.WriteRequest request);
 }

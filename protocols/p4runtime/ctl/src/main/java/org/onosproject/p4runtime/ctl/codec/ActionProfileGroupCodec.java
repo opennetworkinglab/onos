@@ -91,8 +91,18 @@ public final class ActionProfileGroupCodec
                                 .getPreamble().getName()))
                 .withId(PiActionProfileGroupId.of(msg.getGroupId()))
                 .withMaxSize(msg.getMaxSize());
-        msg.getMembersList().forEach(m -> piGroupBuilder.addMember(
-                PiActionProfileMemberId.of(m.getMemberId()), m.getWeight()));
+        msg.getMembersList().forEach(m -> {
+            final int weight;
+            if (m.getWeight() < 1) {
+                log.warn("Decoding group with invalid weight '{}', will set to 1",
+                         m.getWeight());
+                weight = 1;
+            } else {
+                weight = m.getWeight();
+            }
+            piGroupBuilder.addMember(
+                PiActionProfileMemberId.of(m.getMemberId()), weight);
+        });
         return piGroupBuilder.build();
     }
 }

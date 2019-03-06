@@ -43,8 +43,8 @@ public interface P4RuntimeReadClient {
     ReadRequest read(PiPipeconf pipeconf);
 
     /**
-     * Abstraction of a P4Runtime read request that follows the builder pattern.
-     * Multiple entities can be added to the same request before submitting it.
+     * Abstraction of a batched P4Runtime read request. Multiple entities can be
+     * added to the same request before submitting it.
      */
     interface ReadRequest {
 

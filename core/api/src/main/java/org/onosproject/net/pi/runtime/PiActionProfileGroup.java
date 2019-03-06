@@ -125,7 +125,7 @@ public final class PiActionProfileGroup implements PiEntity {
         return MoreObjects.toStringHelper(this)
                 .add("actionProfile", actionProfileId)
                 .add("id", groupId)
-                .add("members", members)
+                .add("members", members.values())
                 .add("maxSize", maxSize)
                 .toString();
     }

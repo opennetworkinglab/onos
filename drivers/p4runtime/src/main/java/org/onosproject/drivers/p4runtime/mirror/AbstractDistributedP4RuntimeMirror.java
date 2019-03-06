@@ -234,9 +234,9 @@ public abstract class AbstractDistributedP4RuntimeMirror
 
     @Override
     @SuppressWarnings("unchecked")
-    public void replayWriteResponse(P4RuntimeWriteClient.WriteResponse response) {
-        response.success().stream()
-                .filter(r -> r.entityType().equals(this.entityType) && r.isSuccess())
+    public void applyWriteRequest(P4RuntimeWriteClient.WriteRequest request) {
+        request.pendingUpdates().stream()
+                .filter(r -> r.entityType().equals(this.entityType))
                 .forEach(r -> {
                     switch (r.updateType()) {
                         case INSERT:

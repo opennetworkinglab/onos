@@ -61,7 +61,7 @@ public interface P4RuntimeWriteClient {
     /**
      * Signals if the entity was written successfully or not.
      */
-    enum WriteResponseStatus {
+    enum EntityUpdateStatus {
         /**
          * The entity was written successfully, no errors occurred.
          */
@@ -86,8 +86,8 @@ public interface P4RuntimeWriteClient {
          */
         NOT_FOUND,
         /**
-         * Other error. See {@link WriteEntityResponse#explanation()} or {@link
-         * WriteEntityResponse#throwable()} for more details.
+         * Other error. See {@link EntityUpdateResponse#explanation()} or {@link
+         * EntityUpdateResponse#throwable()} for more details.
          */
         OTHER_ERROR,
     }
@@ -113,11 +113,10 @@ public interface P4RuntimeWriteClient {
     }
 
     /**
-     * Abstraction of a P4Runtime write request that follows the builder
-     * pattern. Multiple entities can be added to the same request before
-     * submitting it. The implementation should guarantee that entities are
-     * added in the final P4Runtime protobuf message in the same order as added
-     * in this write request.
+     * Abstraction of a batched P4Runtime write request. Multiple entities can
+     * be added to the same request before submitting it. The implementation
+     * should guarantee that entities are added in the final P4Runtime protobuf
+     * message in the same order as added in this write request.
      */
     interface WriteRequest {
 
@@ -217,12 +216,58 @@ public interface P4RuntimeWriteClient {
          * @return read response
          */
         P4RuntimeWriteClient.WriteResponse submitSync();
+
+        /**
+         * Returns all entity update requests for which we are expecting a
+         * responce from the device, in the same order they were added to this
+         * batch.
+         *
+         *
+         *
+         * @return entity update requests
+         */
+        Collection<EntityUpdateRequest> pendingUpdates();
+    }
+
+    /**
+     * Represents the update request for a specific entity.
+     */
+    interface EntityUpdateRequest {
+        /**
+         * Returns the handle of the PI entity subject of this update.
+         *
+         * @return handle
+         */
+        PiHandle handle();
+
+        /**
+         * Returns the PI entity subject of this update. Returns {@code null} if
+         * the update type is {@link UpdateType#DELETE}, in which case only the
+         * handle is used in the request.
+         *
+         * @return PI entity or null
+         */
+        PiEntity entity();
+
+        /**
+         * Returns the type of update requested for this entity.
+         *
+         * @return update type
+         */
+        UpdateType updateType();
+
+        /**
+         * Returns the type of entity subject of this update.
+         *
+         * @return PI entity type
+         */
+        PiEntityType entityType();
     }
 
     /**
      * Abstraction of a response obtained from a P4Runtime server after a write
      * request is submitted. It allows returning a detailed response ({@link
-     * WriteEntityResponse}) for each PI entity in the original request. Entity
+     * EntityUpdateResponse}) for each PI entity in the batched request. Entity
      * responses are guaranteed to be returned in the same order as the
      * corresponding PI entity in the request.
      */
@@ -243,73 +288,43 @@ public interface P4RuntimeWriteClient {
          * collection has size equal to the number of PI entities in the
          * original write request.
          *
-         * @return collection of {@link WriteEntityResponse}
+         * @return collection of {@link EntityUpdateResponse}
          */
-        Collection<WriteEntityResponse> all();
+        Collection<EntityUpdateResponse> all();
 
         /**
          * Returns a detailed response for each PI entity that was successfully
          * written. If {@link #isSuccess()} is {@code true}, then this method is
          * expected to return the same values as {@link #all()}.
          *
-         * @return collection of {@link WriteEntityResponse}
+         * @return collection of {@link EntityUpdateResponse}
          */
-        Collection<WriteEntityResponse> success();
+        Collection<EntityUpdateResponse> success();
 
         /**
          * Returns a detailed response for each PI entity for which the server
          * returned an error. If {@link #isSuccess()} is {@code true}, then this
          * method is expected to return an empty collection.
          *
-         * @return collection of {@link WriteEntityResponse}
+         * @return collection of {@link EntityUpdateResponse}
          */
-        Collection<WriteEntityResponse> failed();
+        Collection<EntityUpdateResponse> failed();
 
         /**
          * Returns a detailed response for each PI entity for which the server
          * returned the given status.
          *
          * @param status status
-         * @return collection of {@link WriteEntityResponse}
+         * @return collection of {@link EntityUpdateResponse}
          */
-        Collection<WriteEntityResponse> status(WriteResponseStatus status);
+        Collection<EntityUpdateResponse> status(EntityUpdateStatus status);
     }
 
     /**
-     * Represents the response of a write request for a specific PI entity.
+     * Represents the response to an update request request for a specific PI
+     * entity.
      */
-    interface WriteEntityResponse {
-
-        /**
-         * Returns the handle associated with the PI entity.
-         *
-         * @return handle
-         */
-        PiHandle handle();
-
-        /**
-         * Returns the original PI entity as provided in the write request.
-         * Returns {@code null} if the update type was {@link
-         * UpdateType#DELETE}, in which case only the handle was used in the
-         * request.
-         *
-         * @return PI entity or null
-         */
-        PiEntity entity();
-
-        /**
-         * Returns the type of write request performed for this entity.
-         *
-         * @return update type
-         */
-        UpdateType updateType();
-
-        /**
-         * Returns the type of this entity.
-         *
-         * @return PI entity type
-         */
-        PiEntityType entityType();
+    interface EntityUpdateResponse extends EntityUpdateRequest {
 
         /**
          * Returns true if this PI entity was written successfully, false
@@ -323,13 +338,13 @@ public interface P4RuntimeWriteClient {
         /**
          * Returns the status for this PI entity. If {@link #isSuccess()}
          * returns {@code true}, then this method is expected to return {@link
-         * WriteResponseStatus#OK}. If {@link WriteResponseStatus#OTHER_ERROR}
+         * EntityUpdateStatus#OK}. If {@link EntityUpdateStatus#OTHER_ERROR}
          * is returned, further details might be provided in {@link
          * #explanation()} and {@link #throwable()}.
          *
          * @return status
          */
-        WriteResponseStatus status();
+        EntityUpdateStatus status();
 
         /**
          * If the PI entity was NOT written successfully, this method returns a

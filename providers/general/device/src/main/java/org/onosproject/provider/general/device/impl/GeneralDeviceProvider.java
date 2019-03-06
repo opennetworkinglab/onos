@@ -17,6 +17,7 @@
 package org.onosproject.provider.general.device.impl;
 
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.Futures;
 import org.onlab.packet.ChassisId;
 import org.onlab.util.ItemNotFoundException;
 import org.onlab.util.Tools;
@@ -79,21 +80,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.lang.String.format;
 import static java.lang.System.currentTimeMillis;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.provider.general.device.impl.OsgiPropertyConstants.OP_TIMEOUT_SHORT;
-import static org.onosproject.provider.general.device.impl.OsgiPropertyConstants.OP_TIMEOUT_SHORT_DEFAULT;
 import static org.onosproject.provider.general.device.impl.OsgiPropertyConstants.PROBE_INTERVAL;
 import static org.onosproject.provider.general.device.impl.OsgiPropertyConstants.PROBE_INTERVAL_DEFAULT;
 import static org.onosproject.provider.general.device.impl.OsgiPropertyConstants.STATS_POLL_INTERVAL;
@@ -110,7 +108,6 @@ import static org.slf4j.LoggerFactory.getLogger;
         property = {
                 PROBE_INTERVAL + ":Integer=" + PROBE_INTERVAL_DEFAULT,
                 STATS_POLL_INTERVAL + ":Integer=" + STATS_POLL_INTERVAL_DEFAULT,
-                OP_TIMEOUT_SHORT + ":Integer=" + OP_TIMEOUT_SHORT_DEFAULT,
         })
 public class GeneralDeviceProvider extends AbstractProvider
         implements DeviceProvider {
@@ -164,14 +161,15 @@ public class GeneralDeviceProvider extends AbstractProvider
 
     private GnmiDeviceStateSubscriber gnmiDeviceStateSubscriber;
 
-    /** Configure interval for checking device availability; default is 10 sec. */
+    /**
+     * Configure interval for checking device availability; default is 10 sec.
+     */
     private int probeInterval = PROBE_INTERVAL_DEFAULT;
 
-    /** Configure poll frequency for port status and stats; default is 10 sec. */
+    /**
+     * Configure poll frequency for port status and stats; default is 10 sec.
+     */
     private int statsPollInterval = STATS_POLL_INTERVAL_DEFAULT;
-
-    /** Configure timeout in seconds for device operations; default is 10 sec. */
-    private int opTimeoutShort = OP_TIMEOUT_SHORT_DEFAULT;
 
     private final Map<DeviceId, DeviceHandshaker> handshakersWithListeners = Maps.newConcurrentMap();
     private final Map<DeviceId, Long> lastProbedAvailability = Maps.newConcurrentMap();
@@ -233,10 +231,6 @@ public class GeneralDeviceProvider extends AbstractProvider
                 properties, STATS_POLL_INTERVAL, STATS_POLL_INTERVAL_DEFAULT);
         log.info("Configured. {} is configured to {} seconds",
                  STATS_POLL_INTERVAL, statsPollInterval);
-        opTimeoutShort = Tools.getIntegerProperty(
-                properties, OP_TIMEOUT_SHORT, OP_TIMEOUT_SHORT_DEFAULT);
-        log.info("Configured. {} is configured to {} seconds",
-                 OP_TIMEOUT_SHORT, opTimeoutShort);
 
         if (oldProbeFrequency != probeInterval) {
             startOrRescheduleProbeTask();
@@ -391,9 +385,16 @@ public class GeneralDeviceProvider extends AbstractProvider
         final CompletableFuture<Boolean> modifyTask = enable
                 ? portAdmin.enable(portNumber)
                 : portAdmin.disable(portNumber);
-        final String descr = (enable ? "enabling" : "disabling") + " port " + portNumber;
-        getFutureWithDeadline(
-                modifyTask, descr, deviceId, null, opTimeoutShort);
+        final String descr = format("%s port %s on %s",
+                                    (enable ? "enable" : "disable"),
+                                    portNumber, deviceId);
+        modifyTask.whenComplete((success, ex) -> {
+            if (ex != null) {
+                log.error("Exception while trying to " + descr, ex);
+            } else if (!success) {
+                log.warn("Unable to " + descr);
+            }
+        });
     }
 
     @Override
@@ -637,10 +638,7 @@ public class GeneralDeviceProvider extends AbstractProvider
         handshaker.addDeviceAgentListener(id(), deviceAgentListener);
         handshakersWithListeners.put(deviceId, handshaker);
         // Start connection via handshaker.
-        final Boolean connectSuccess = getFutureWithDeadline(
-                handshaker.connect(), "initiating connection",
-                deviceId, false, opTimeoutShort);
-        if (!connectSuccess) {
+        if (!Futures.getUnchecked(handshaker.connect())) {
             // Failed! Remove listeners.
             handshaker.removeDeviceAgentListener(id());
             handshakersWithListeners.remove(deviceId);
@@ -681,16 +679,12 @@ public class GeneralDeviceProvider extends AbstractProvider
 
     private boolean probeAvailability(DeviceHandshaker handshaker) {
         lastProbedAvailability.put(handshaker.data().deviceId(), currentTimeMillis());
-        return getFutureWithDeadline(
-                handshaker.probeAvailability(), "probing availability",
-                handshaker.data().deviceId(), false, opTimeoutShort);
+        return Futures.getUnchecked(handshaker.probeAvailability());
     }
 
     private boolean probeReachability(DeviceHandshaker handshaker) {
         lastProbedAvailability.put(handshaker.data().deviceId(), currentTimeMillis());
-        return getFutureWithDeadline(
-                handshaker.probeReachability(), "probing reachability",
-                handshaker.data().deviceId(), false, opTimeoutShort);
+        return Futures.getUnchecked(handshaker.probeReachability());
     }
 
     private void markOfflineIfNeeded(DeviceId deviceId) {
@@ -927,20 +921,5 @@ public class GeneralDeviceProvider extends AbstractProvider
 
     private boolean isPipelineProgrammable(DeviceId deviceId) {
         return hasBehaviour(deviceId, PiPipelineProgrammable.class);
-    }
-
-    private <U> U getFutureWithDeadline(CompletableFuture<U> future, String opDescription,
-                                        DeviceId deviceId, U defaultValue, int timeout) {
-        try {
-            return future.get(timeout, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            log.error("Thread interrupted while {} on {}", opDescription, deviceId);
-            Thread.currentThread().interrupt();
-        } catch (ExecutionException e) {
-            log.error("Exception while {} on {}", opDescription, deviceId, e.getCause());
-        } catch (TimeoutException e) {
-            log.error("Operation TIMEOUT while {} on {}", opDescription, deviceId);
-        }
-        return defaultValue;
     }
 }

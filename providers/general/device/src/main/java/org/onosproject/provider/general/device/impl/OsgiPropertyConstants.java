@@ -29,7 +29,4 @@ public final class OsgiPropertyConstants {
     public static final String PROBE_INTERVAL = "deviceProbeInterval";
     public static final int PROBE_INTERVAL_DEFAULT = 10;
 
-    public static final String OP_TIMEOUT_SHORT = "deviceOperationTimeoutShort";
-    public static final int OP_TIMEOUT_SHORT_DEFAULT = 10;
-
 }
