@@ -188,7 +188,7 @@ public class HostsWebResource extends AbstractWebResource {
      */
     private final class InternalHostProvider implements HostProvider {
         private final ProviderId providerId =
-                new ProviderId("host", "org.onosproject.rest", true);
+                new ProviderId("host", "org.onosproject.rest");
         private HostProviderService hostProviderService;
 
         /**
