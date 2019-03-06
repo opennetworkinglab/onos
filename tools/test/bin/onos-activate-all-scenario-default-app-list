@@ -38,8 +38,6 @@ models.openconfig-odtn
 odtn-api
 restsb
 optical-model
-drivers.optical
-drivers.odtn-driver
 configsync-netconf
 # crashes in Atomix
 #odtn-service
@@ -64,7 +62,6 @@ drivers.polatis.netconf
 lldpprovider
 openflow-base
 openflow
-drivers.corsa
 network-troubleshoot
 drivers.mellanox
 drivermatrix
@@ -92,7 +89,6 @@ flowanalyzer
 null
 # Application cannot be shut down
 #transaction-perf
-drivers.server
 drivers.gnmi
 drivers.stratum
 workflow
@@ -123,7 +119,6 @@ flowspec-api
 routeradvertisement
 packet-stats
 mlb
-drivers.flowspec
 pcep
 ofagent
 demo
@@ -133,7 +128,6 @@ gangliametrics
 drivers.ciena.c5170
 drivers.oplink
 isis
-drivers.hp
 drivers.cisco.rest
 roadm
 drivers.bmv2
@@ -142,28 +136,21 @@ p4tutorial.pipeconf
 p4tutorial.mytunnel
 openstacktroubleshoot
 models.ciena.waveserverai
-drivers.ciena.waveserverai
-drivers.fujitsu
-drivers.polatis.openflow
 layout
 graphitemetrics
 powermanagement
 optical-rest
 tl1
-drivers.lumentum
 acl
 cord-support
 intentperf
 mfwd
-drivers.ciena.waveserver
 imr
 dhcp
-drivers.cisco.netconf
 openstacknetworkingui
 cfm
 scalablegateway
 cluster-ha
-drivers.microsemi.ea1000
 reactive-routing
 nodemetrics
 mobility
