@@ -244,6 +244,7 @@ ONOS_APPS = [
     "//apps/odtn/service:onos-apps-odtn-service-oar",
     "//apps/mcast:onos-apps-mcast-oar",
     "//apps/layout:onos-apps-layout-oar",
+    "//apps/onlp-demo:onos-apps-onlp-demo-oar",
     "//apps/imr:onos-apps-imr-oar",
     "//apps/nodemetrics:onos-apps-nodemetrics-oar",
     "//apps/inbandtelemetry:onos-apps-inbandtelemetry-oar",

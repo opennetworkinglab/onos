@@ -1,0 +1,91 @@
+<!-- Port partial HTML -->
+<div id="ov-onlp">
+    <div class="tabular-header">
+        <h2>ONLP Data for {{devId || "(No device selected)"}}</h2>
+
+        <div class="ctrl-btns">
+            <div class="refresh" ng-class="{active: autoRefresh}"
+                 icon icon-size="42" icon-id="refresh"
+                 tooltip tt-msg="autoRefreshTip"
+                 ng-click="toggleRefresh()"></div>
+
+            <div class="separator"></div>
+
+            <div class="refresh" ng-class="{active: isNZ()}"
+                 icon icon-size="42" icon-id="nonzero"
+                 tooltip tt-msg="toggleNZTip"
+                 ng-click="toggleNZ()"></div>
+
+            <div class="refresh" ng-class="{active: isDelta()}"
+                 icon icon-size="42" icon-id="delta"
+                 tooltip tt-msg="toggleDeltaTip"
+                 ng-click="toggleDelta()"></div>
+
+            <div class="separator"></div>
+
+            <div class="active"
+                 icon icon-id="deviceTable" icon-size="42"
+                 tooltip tt-msg="deviceTip"
+                 ng-click="nav('device')"></div>
+
+            <div class="active"
+                 icon icon-id="flowTable" icon-size="42"
+                 tooltip tt-msg="flowTip"
+                 ng-click="nav('flow')"></div>
+
+            <div class="current-view"
+                 icon icon-id="portTable" icon-size="42"></div>
+
+            <div class="active"
+                 icon icon-id="groupTable" icon-size="42"
+                 tooltip tt-msg="groupTip"
+                 ng-click="nav('group')"></div>
+
+            <div class="active"
+                 icon icon-id="meterTable" icon-size="42"
+                 tooltip tt-msg="meterTip"
+                 ng-click="nav('meter')"></div>
+
+            <div class="active"
+                 icon icon-id="pipeconfTable" icon-size="42"
+                 tooltip tt-msg="pipeconfTip"
+                 ng-click="nav('pipeconf')"></div>
+        </div>
+    </div>
+
+
+     <div class="summary-list" onos-table-resize>
+        <div class="table-header" onos-sortable-header>
+            <table>
+                <tr>
+                    <td colId="id" col-width="60px" sortable>SFP ID </td>
+                    <td class="left" colId="id" col-width="30px" sortable> </td>
+                    <td class="left" colId="vendor" sortable>Vendor </td>
+                    <td class="left" colId="model_number" sortable>Model # </td>
+                    <td class="left" colId="serial_number" sortable>Serial # </td>
+                    <td class="left" colId="form_factor" sortable>Form Factor </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="table-body">
+            <table id-prop="id">
+                <tr ng-if="!tableData.length" class="no-data">
+                    <td colspan="6">{{annots.no_rows_msg}}</td>
+                </tr>
+
+                <tr ng-repeat="onlp in tableData"
+                    ng-class="{selected: onlp.id === selId}"
+                    ng-repeat-complete row-id="{{onlp.id}}">
+                    <td>{{onlp.id}}</td>
+                    <td class="left">{{onlp.presence}}</td>
+                    <td class="left">{{onlp.vendor}}</td>
+                    <td class="left">{{onlp.model_number}}</td>
+                    <td class="left">{{onlp.serial_number}}</td>
+                    <td class="left">{{onlp.form_factor}}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+</div>
