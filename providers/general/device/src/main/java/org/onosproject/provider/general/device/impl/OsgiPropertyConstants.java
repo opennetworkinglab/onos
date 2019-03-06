@@ -23,10 +23,10 @@ public final class OsgiPropertyConstants {
 
     private OsgiPropertyConstants() {}
 
-    public static final String STATS_POLL_INTERVAL = "deviceStatsPollInterval";
+    public static final String STATS_POLL_INTERVAL = "statsPollInterval";
     public static final int STATS_POLL_INTERVAL_DEFAULT = 10;
 
-    public static final String PROBE_INTERVAL = "deviceProbeInterval";
+    public static final String PROBE_INTERVAL = "probeInterval";
     public static final int PROBE_INTERVAL_DEFAULT = 10;
 
 }
