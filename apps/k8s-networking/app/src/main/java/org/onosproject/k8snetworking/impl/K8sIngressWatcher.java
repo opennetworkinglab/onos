@@ -151,6 +151,7 @@ public class K8sIngressWatcher {
                     break;
                 case ERROR:
                     log.warn("Failures processing ingress manipulation.");
+                    break;
                 default:
                     break;
             }
