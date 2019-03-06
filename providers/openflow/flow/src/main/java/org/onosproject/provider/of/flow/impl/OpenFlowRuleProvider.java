@@ -294,6 +294,34 @@ public class OpenFlowRuleProvider extends AbstractProvider
         tableStatsCollectors.values().forEach(tsc -> tsc.adjustPollInterval(flowPollFrequency));
     }
 
+    private void resetEvents(Dpid dpid) {
+        SwitchDataCollector collector;
+        if (adaptiveFlowSampling) {
+            collector = afsCollectors.get(dpid);
+        } else {
+            collector = simpleCollectors.get(dpid);
+        }
+        if (collector != null) {
+            collector.resetEvents();
+        }
+    }
+
+    private void recordEvent(Dpid dpid) {
+        recordEvents(dpid, 1);
+    }
+
+    private void recordEvents(Dpid dpid, int events) {
+        SwitchDataCollector collector;
+        if (adaptiveFlowSampling) {
+            collector = afsCollectors.get(dpid);
+        } else {
+            collector = simpleCollectors.get(dpid);
+        }
+        if (collector != null) {
+            collector.recordEvents(events);
+        }
+    }
+
     @Override
     public void applyFlowRule(FlowRule... flowRules) {
         for (FlowRule flowRule : flowRules) {
@@ -317,6 +345,8 @@ public class OpenFlowRuleProvider extends AbstractProvider
         }
         sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
                 Optional.empty(), Optional.of(driverService)).buildFlowAdd());
+
+        recordEvent(dpid);
     }
 
     @Override
@@ -342,6 +372,8 @@ public class OpenFlowRuleProvider extends AbstractProvider
         }
         sw.sendMsg(FlowModBuilder.builder(flowRule, sw.factory(),
                                           Optional.empty(), Optional.of(driverService)).buildFlowDel());
+
+        recordEvent(dpid);
     }
 
     @Override
@@ -398,6 +430,8 @@ public class OpenFlowRuleProvider extends AbstractProvider
         OFBarrierRequest.Builder builder = sw.factory().buildBarrierRequest()
                 .setXid(batch.id());
         sw.sendMsg(builder.build());
+
+        recordEvents(dpid, batch.getOperations().size());
     }
 
     private boolean hasPayload(FlowRuleExtPayLoad flowRuleExtPayLoad) {
@@ -449,6 +483,16 @@ public class OpenFlowRuleProvider extends AbstractProvider
                     break;
                 case STATS_REPLY:
                     if (((OFStatsReply) msg).getStatsType() == OFStatsType.FLOW) {
+                        // Let's unblock first the collector
+                        SwitchDataCollector collector;
+                        if (adaptiveFlowSampling) {
+                            collector = afsCollectors.get(dpid);
+                        } else {
+                            collector = simpleCollectors.get(dpid);
+                        }
+                        if (collector != null) {
+                            collector.received();
+                        }
                         pushFlowMetrics(dpid, (OFFlowStatsReply) msg, getDriver(deviceId));
                     } else if (((OFStatsReply) msg).getStatsType() == OFStatsType.TABLE) {
                         pushTableStatistics(dpid, (OFTableStatsReply) msg);
@@ -617,7 +661,9 @@ public class OpenFlowRuleProvider extends AbstractProvider
         @Override
         public void receivedRoleReply(Dpid dpid, RoleState requested,
                                       RoleState response) {
-            // Do nothing here for now.
+            if (response == RoleState.MASTER) {
+                resetEvents(dpid);
+            }
         }
 
         private DriverHandler getDriver(DeviceId devId) {

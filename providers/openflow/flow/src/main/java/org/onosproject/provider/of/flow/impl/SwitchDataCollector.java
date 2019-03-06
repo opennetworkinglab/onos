@@ -30,4 +30,27 @@ interface SwitchDataCollector {
      * Stops the collector.
      */
     void stop();
+
+    /**
+     * Signals reply has been received.
+     */
+    default void received() {
+
+    }
+
+    /**
+     * Records the number of events seen.
+     *
+     * @param events number of events
+     */
+    default void recordEvents(int events) {
+
+    }
+
+    /**
+     * Resets the number of events seen.
+     */
+    default void resetEvents() {
+
+    }
 }

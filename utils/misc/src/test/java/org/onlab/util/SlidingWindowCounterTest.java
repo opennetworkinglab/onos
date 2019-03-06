@@ -17,7 +17,6 @@ package org.onlab.util;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static junit.framework.TestCase.fail;
@@ -27,8 +26,6 @@ import static org.junit.Assert.assertTrue;
 /**
  * Unit tests for the sliding window counter.
  */
-
-@Ignore("Disable these for now because of intermittent load related failures on Jenkins runs.")
 public class SlidingWindowCounterTest {
 
     private SlidingWindowCounter counter;
@@ -77,6 +74,31 @@ public class SlidingWindowCounterTest {
         assertEquals(0, counter.get(1));
         assertEquals(0, counter.get(2));
 
+    }
+
+    @Test
+    public void testRates() {
+        assertEquals(0, counter.getWindowRate(), 0.01);
+        assertEquals(0, counter.getOverallRate(), 0.01);
+        assertEquals(0, counter.getOverallCount());
+        counter.incrementCount();
+        assertEquals(1, counter.getWindowRate(), 0.01);
+        assertEquals(1, counter.getOverallRate(), 0.01);
+        assertEquals(1, counter.getOverallCount());
+        counter.advanceHead();
+        counter.incrementCount();
+        counter.incrementCount();
+        assertEquals(1.5, counter.getWindowRate(), 0.01);
+        assertEquals(2, counter.getWindowRate(1), 0.01);
+        assertEquals(1.5, counter.getOverallRate(), 0.01);
+        assertEquals(3, counter.getOverallCount());
+        counter.advanceHead();
+        counter.incrementCount();
+        counter.incrementCount();
+        counter.incrementCount();
+        assertEquals(2.5, counter.getWindowRate(), 0.01);
+        assertEquals(2, counter.getOverallRate(), 0.01);
+        assertEquals(6, counter.getOverallCount());
     }
 
     @Test
