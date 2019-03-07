@@ -25,6 +25,7 @@ import org.onlab.util.SharedExecutors;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.basics.BasicDeviceConfig;
+import org.onosproject.net.device.PortStatisticsDiscovery;
 import org.onosproject.net.driver.Behaviour;
 import org.onosproject.net.driver.DefaultDriver;
 import org.onosproject.net.driver.Driver;
@@ -283,6 +284,20 @@ public class PiPipeconfManager implements PiPipeconfService {
                 new HashMap<>();
         pipeconf.behaviours().forEach(
                 b -> behaviours.put(b, pipeconf.implementation(b).get()));
+
+        // FIXME: remove this check when stratum_bmv2 will be open source and we
+        //  will no longer need to read port counters from the p4 program. Here
+        //  we ignore the PortStatisticsDiscovery behaviour from the pipeconf if
+        //  the base driver (e.g. stratum with gnmi) already has it. But in
+        //  general, we should give higher priority to pipeconf behaviours.
+        if (baseDriver.hasBehaviour(PortStatisticsDiscovery.class)
+                && behaviours.remove(PortStatisticsDiscovery.class) != null) {
+            log.warn("Ignoring {} behaviour from pipeconf {}, but using " +
+                             "the one provided by {} driver...",
+                     PortStatisticsDiscovery.class.getSimpleName(), pipeconfId,
+                     baseDriver.name());
+        }
+
         final Driver piPipeconfDriver = new DefaultDriver(
                 newDriverName, baseDriver.parents(),
                 baseDriver.manufacturer(), baseDriver.hwVersion(),

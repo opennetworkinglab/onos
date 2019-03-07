@@ -28,107 +28,157 @@ import gnmi.Gnmi.SubscribeRequest;
 import gnmi.gNMIGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.Status;
-import io.grpc.StatusRuntimeException;
+import io.grpc.stub.StreamObserver;
 import org.onosproject.gnmi.api.GnmiClient;
 import org.onosproject.gnmi.api.GnmiClientKey;
 import org.onosproject.grpc.ctl.AbstractGrpcClient;
-import org.slf4j.Logger;
 
 import java.util.concurrent.CompletableFuture;
-
-import static org.slf4j.LoggerFactory.getLogger;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 /**
  * Implementation of gNMI client.
  */
 public class GnmiClientImpl extends AbstractGrpcClient implements GnmiClient {
-    private static final PathElem DUMMY_PATH_ELEM = PathElem.newBuilder().setName("onos-gnmi-test").build();
-    private static final Path DUMMY_PATH = Path.newBuilder().addElem(DUMMY_PATH_ELEM).build();
-    private static final GetRequest DUMMY_REQUEST = GetRequest.newBuilder().addPath(DUMMY_PATH).build();
-    private final Logger log = getLogger(getClass());
-    private final gNMIGrpc.gNMIBlockingStub blockingStub;
-    private GnmiSubscriptionManager gnmiSubscriptionManager;
+
+    private static final int RPC_TIMEOUT_SECONDS = 10;
+
+    private static final GetRequest PING_REQUEST = GetRequest.newBuilder().addPath(
+            Path.newBuilder().addElem(
+                    PathElem.newBuilder().setName("onos-gnmi-ping").build()
+            ).build()).build();
+
+    private GnmiSubscriptionManager subscribeManager;
 
     GnmiClientImpl(GnmiClientKey clientKey, ManagedChannel managedChannel, GnmiControllerImpl controller) {
         super(clientKey, managedChannel, false, controller);
-        this.blockingStub = gNMIGrpc.newBlockingStub(managedChannel);
-        this.gnmiSubscriptionManager =
-                new GnmiSubscriptionManager(managedChannel, deviceId, controller);
+        this.subscribeManager =
+                new GnmiSubscriptionManager(this, deviceId, controller);
     }
 
     @Override
-    public CompletableFuture<CapabilityResponse> capability() {
-        return supplyInContext(this::doCapability, "capability");
+    public CompletableFuture<CapabilityResponse> capabilities() {
+        final CompletableFuture<CapabilityResponse> future = new CompletableFuture<>();
+        execRpc(s -> s.capabilities(
+                CapabilityRequest.getDefaultInstance(),
+                unaryObserver(future, CapabilityResponse.getDefaultInstance(),
+                              "capabilities request"))
+        );
+        return future;
     }
 
     @Override
     public CompletableFuture<GetResponse> get(GetRequest request) {
-        return supplyInContext(() -> doGet(request), "get");
+        final CompletableFuture<GetResponse> future = new CompletableFuture<>();
+        execRpc(s -> s.get(request, unaryObserver(
+                future, GetResponse.getDefaultInstance(), "GET"))
+        );
+        return future;
     }
 
     @Override
     public CompletableFuture<SetResponse> set(SetRequest request) {
-        return supplyInContext(() -> doSet(request), "set");
+        final CompletableFuture<SetResponse> future = new CompletableFuture<>();
+        execRpc(s -> s.set(request, unaryObserver(
+                future, SetResponse.getDefaultInstance(), "SET"))
+        );
+        return future;
+    }
+
+    private <RES> StreamObserver<RES> unaryObserver(
+            final CompletableFuture<RES> future,
+            final RES defaultResponse,
+            final String opDescription) {
+        return new StreamObserver<RES>() {
+            @Override
+            public void onNext(RES value) {
+                future.complete(value);
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                handleRpcError(t, opDescription);
+                future.complete(defaultResponse);
+            }
+
+            @Override
+            public void onCompleted() {
+                // Ignore. Unary call.
+            }
+        };
     }
 
     @Override
-    public boolean subscribe(SubscribeRequest request) {
-        return gnmiSubscriptionManager.subscribe(request);
+    public void subscribe(SubscribeRequest request) {
+        subscribeManager.subscribe(request);
     }
 
     @Override
-    public void terminateSubscriptionChannel() {
-        gnmiSubscriptionManager.complete();
+    public void unsubscribe() {
+        subscribeManager.unsubscribe();
     }
 
     @Override
     public CompletableFuture<Boolean> probeService() {
-        return supplyInContext(this::doServiceAvailable, "isServiceAvailable");
+        final CompletableFuture<Boolean> future = new CompletableFuture<>();
+        final StreamObserver<GetResponse> responseObserver = new StreamObserver<GetResponse>() {
+            @Override
+            public void onNext(GetResponse value) {
+                future.complete(true);
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                // This gRPC call should throw INVALID_ARGUMENT status exception
+                // since "/onos-gnmi-ping" path does not exists in any config
+                // model For other status code such as UNIMPLEMENT, means the
+                // gNMI service is not available on the device.
+                future.complete(Status.fromThrowable(t).getCode()
+                                        == Status.Code.INVALID_ARGUMENT);
+            }
+
+            @Override
+            public void onCompleted() {
+                // Ignore. Unary call.
+            }
+        };
+        execRpc(s -> s.get(PING_REQUEST, responseObserver));
+        return future;
     }
 
     @Override
-    protected Void doShutdown() {
-        gnmiSubscriptionManager.shutdown();
-        return super.doShutdown();
+    public void shutdown() {
+        subscribeManager.shutdown();
+        super.shutdown();
     }
 
-    private CapabilityResponse doCapability() {
-        CapabilityRequest request = CapabilityRequest.newBuilder().build();
-        try {
-            return blockingStub.capabilities(request);
-        } catch (StatusRuntimeException e) {
-            log.warn("Unable to get capability from {}: {}", deviceId, e.getMessage());
-            return CapabilityResponse.getDefaultInstance();
+    /**
+     * Forces execution of an RPC in a cancellable context with a timeout.
+     *
+     * @param stubConsumer P4Runtime stub consumer
+     */
+    private void execRpc(Consumer<gNMIGrpc.gNMIStub> stubConsumer) {
+        if (log.isTraceEnabled()) {
+            log.trace("Executing RPC with timeout {} seconds (context deadline {})...",
+                      RPC_TIMEOUT_SECONDS, context().getDeadline());
         }
+        runInCancellableContext(() -> stubConsumer.accept(
+                gNMIGrpc.newStub(channel)
+                        .withDeadlineAfter(RPC_TIMEOUT_SECONDS, TimeUnit.SECONDS)));
     }
 
-    private GetResponse doGet(GetRequest request) {
-        try {
-            return blockingStub.get(request);
-        } catch (StatusRuntimeException e) {
-            log.warn("Unable to get data from {}: {}", deviceId, e.getMessage());
-            return GetResponse.getDefaultInstance();
+    /**
+     * Forces execution of an RPC in a cancellable context with no timeout.
+     *
+     * @param stubConsumer P4Runtime stub consumer
+     */
+    void execRpcNoTimeout(Consumer<gNMIGrpc.gNMIStub> stubConsumer) {
+        if (log.isTraceEnabled()) {
+            log.trace("Executing RPC with no timeout (context deadline {})...",
+                      context().getDeadline());
         }
-    }
-
-    private SetResponse doSet(SetRequest request) {
-        try {
-            return blockingStub.set(request);
-        } catch (StatusRuntimeException e) {
-            log.warn("Unable to set data to {}: {}", deviceId, e.getMessage());
-            return SetResponse.getDefaultInstance();
-        }
-    }
-
-    private boolean doServiceAvailable() {
-        try {
-            return blockingStub.get(DUMMY_REQUEST) != null;
-        } catch (StatusRuntimeException e) {
-            // This gRPC call should throw INVALID_ARGUMENT status exception
-            // since "/onos-gnmi-test" path does not exists in any config model
-            // For other status code such as UNIMPLEMENT, means the gNMI
-            // service is not available on the device.
-            return e.getStatus().getCode().equals(Status.Code.INVALID_ARGUMENT);
-        }
+        runInCancellableContext(() -> stubConsumer.accept(
+                gNMIGrpc.newStub(channel)));
     }
 }

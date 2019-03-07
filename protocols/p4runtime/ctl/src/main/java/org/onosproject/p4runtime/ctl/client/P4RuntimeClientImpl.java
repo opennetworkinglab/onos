@@ -42,7 +42,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static java.lang.String.format;
 import static p4.v1.P4RuntimeOuterClass.GetForwardingPipelineConfigRequest.ResponseType.COOKIE_ONLY;
 
 /**
@@ -96,9 +95,9 @@ public final class P4RuntimeClientImpl
     }
 
     @Override
-    protected Void doShutdown() {
+    public void shutdown() {
         streamClient.closeSession();
-        return super.doShutdown();
+        super.shutdown();
     }
 
     @Override
@@ -191,6 +190,22 @@ public final class P4RuntimeClientImpl
         return future;
     }
 
+    @Override
+    protected void handleRpcError(Throwable throwable, String opDescription) {
+        if (throwable instanceof StatusRuntimeException) {
+            checkGrpcException((StatusRuntimeException) throwable);
+        }
+        super.handleRpcError(throwable, opDescription);
+    }
+
+    private void checkGrpcException(StatusRuntimeException sre) {
+        if (sre.getStatus().getCode() == Status.Code.PERMISSION_DENIED) {
+            // Notify upper layers that this node is not master.
+            controller.postEvent(new DeviceAgentEvent(
+                    DeviceAgentEvent.Type.NOT_MASTER, deviceId));
+        }
+    }
+
     /**
      * Returns the P4Runtime-internal device ID associated with this client.
      *
@@ -251,39 +266,5 @@ public final class P4RuntimeClientImpl
         }
         runInCancellableContext(() -> stubConsumer.accept(
                 P4RuntimeGrpc.newStub(channel)));
-    }
-
-    /**
-     * Logs the error and checks it for any condition that might be of interest
-     * for the controller.
-     *
-     * @param throwable     throwable
-     * @param opDescription operation description for logging
-     */
-    void handleRpcError(Throwable throwable, String opDescription) {
-        if (throwable instanceof StatusRuntimeException) {
-            final StatusRuntimeException sre = (StatusRuntimeException) throwable;
-            checkGrpcException(sre);
-            final String logMsg;
-            if (sre.getCause() == null) {
-                logMsg = sre.getMessage();
-            } else {
-                logMsg = format("%s (%s)", sre.getMessage(), sre.getCause().toString());
-            }
-            log.warn("Error while performing {} on {}: {}",
-                     opDescription, deviceId, logMsg);
-            log.debug("", throwable);
-            return;
-        }
-        log.error(format("Exception while performing %s on %s",
-                         opDescription, deviceId), throwable);
-    }
-
-    private void checkGrpcException(StatusRuntimeException sre) {
-        if (sre.getStatus().getCode() == Status.Code.PERMISSION_DENIED) {
-            // Notify upper layers that this node is not master.
-            controller.postEvent(new DeviceAgentEvent(
-                    DeviceAgentEvent.Type.NOT_MASTER, deviceId));
-        }
     }
 }

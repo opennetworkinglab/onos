@@ -17,6 +17,7 @@
 package org.onosproject.drivers.gnmi;
 
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.Futures;
 import gnmi.Gnmi;
 import gnmi.Gnmi.GetRequest;
 import gnmi.Gnmi.GetResponse;
@@ -45,7 +46,7 @@ public class OpenConfigGnmiPortStatisticsDiscovery extends AbstractGnmiHandlerBe
 
     private static final Map<Pair<DeviceId, PortNumber>, Long> PORT_START_TIMES =
             Maps.newConcurrentMap();
-    private static final String LAST_CHANGE = "last-change";
+    private static final String LAST_CHANGE = "last-changed";
 
     @Override
     public Collection<PortStatistics> discoverPortStatistics() {
@@ -67,10 +68,7 @@ public class OpenConfigGnmiPortStatisticsDiscovery extends AbstractGnmiHandlerBe
             ifacePortNumberMapping.put(portName, port.number());
         });
 
-        GetResponse getResponse =
-                getFutureWithDeadline(client.get(getRequest.build()),
-                         "getting port counters",
-                                      GetResponse.getDefaultInstance());
+        GetResponse getResponse = Futures.getUnchecked(client.get(getRequest.build()));
 
         Map<String, Long> inPkts = Maps.newHashMap();
         Map<String, Long> outPkts = Maps.newHashMap();

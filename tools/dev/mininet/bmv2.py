@@ -143,6 +143,7 @@ class ONOSBmv2Switch(Switch):
         self.dryrun = parseBoolean(dryrun)
         self.valgrind = parseBoolean(valgrind)
         self.netcfgfile = '/tmp/bmv2-%s-netcfg.json' % self.name
+        self.chassisConfigFile = '/tmp/bmv2-%s-chassis-config.txt' % self.name
         self.pipeconfId = pipeconf
         self.injectPorts = parseBoolean(portcfg)
         self.withGnmi = parseBoolean(gnmi)
@@ -152,6 +153,7 @@ class ONOSBmv2Switch(Switch):
             self.onosDeviceId = onosdevid
         else:
             self.onosDeviceId = "device:bmv2:%s" % self.name
+        self.p4DeviceId = BMV2_DEFAULT_DEVICE_ID
         self.logfd = None
         self.bmv2popen = None
         self.stopped = True
@@ -176,8 +178,8 @@ class ONOSBmv2Switch(Switch):
 
         basicCfg = {
             "managementAddress": "grpc://%s:%d?device_id=%d" % (
-                srcIP, self.grpcPort, BMV2_DEFAULT_DEVICE_ID),
-            "driver": "bmv2",
+                srcIP, self.grpcPort, self.p4DeviceId),
+            "driver": "stratum-bmv2" if self.useStratum else "bmv2",
             "pipeconf": self.pipeconfId
         }
 
@@ -189,7 +191,7 @@ class ONOSBmv2Switch(Switch):
             "basic": basicCfg
         }
 
-        if self.injectPorts:
+        if not self.useStratum and self.injectPorts:
             portData = {}
             portId = 1
             for intfName in self.intfNames():
@@ -208,6 +210,40 @@ class ONOSBmv2Switch(Switch):
             cfgData['ports'] = portData
 
         return cfgData
+
+    def chassisConfig(self):
+        config = """description: "BMv2 simple_switch {name}"
+chassis {{
+  platform: PLT_P4_SOFT_SWITCH
+  name: "{name}"
+}}
+nodes {{
+  id: {nodeId}
+  name: "{name} node {nodeId}"
+  slot: 1
+  index: 1
+}}\n""".format(name=self.name, nodeId=self.p4DeviceId)
+
+        intfNumber = 1
+        for intfName in self.intfNames():
+            if intfName == 'lo':
+                continue
+            config = config + """singleton_ports {{
+  id: {intfNumber}
+  name: "{intfName}"
+  slot: 1
+  port: {intfNumber}
+  channel: 1
+  speed_bps: 10000000000
+  config_params {{
+    admin_state: ADMIN_STATE_ENABLED
+  }}
+  node: {nodeId}
+}}\n""".format(intfName=intfName, intfNumber=intfNumber,
+              nodeId=self.p4DeviceId)
+            intfNumber += 1
+
+        return config
 
     def doOnosNetcfg(self, controllerIP):
         """
@@ -265,6 +301,8 @@ class ONOSBmv2Switch(Switch):
         if self.useStratum:
             config_dir = "/tmp/bmv2-%s-stratum" % self.name
             os.mkdir(config_dir)
+            with open(self.chassisConfigFile, 'w') as fp:
+                fp.write(self.chassisConfig())
             cmdString = self.getStratumCmdString(config_dir)
         else:
             if self.thriftPort is None:
@@ -306,7 +344,8 @@ class ONOSBmv2Switch(Switch):
         stratumRoot = getStratumRoot()
         args = [
             stratumRoot + STRATUM_BINARY,
-            '-device_id=%d' % BMV2_DEFAULT_DEVICE_ID,
+            '-device_id=%d' % self.p4DeviceId,
+            '-chassis_config_file=%s' % self.chassisConfigFile,
             '-forwarding_pipeline_configs_file=%s/config.txt' % config_dir,
             '-persistent_config_dir=' + config_dir,
             '-initial_pipeline=' + stratumRoot + STRATUM_INIT_PIPELINE,
@@ -314,13 +353,10 @@ class ONOSBmv2Switch(Switch):
             '-external_hercules_urls=0.0.0.0:%d' % self.grpcPort,
             '-max_num_controllers_per_node=10'
         ]
-        for port, intf in self.intfs.items():
-            if not intf.IP():
-                args.append('%d@%s' % (port, intf.name))
         return " ".join(args)
 
     def bmv2Args(self):
-        args = ['--device-id %s' % str(BMV2_DEFAULT_DEVICE_ID)]
+        args = ['--device-id %s' % str(self.p4DeviceId)]
         for port, intf in self.intfs.items():
             if not intf.IP():
                 args.append('-i %d@%s' % (port, intf.name))

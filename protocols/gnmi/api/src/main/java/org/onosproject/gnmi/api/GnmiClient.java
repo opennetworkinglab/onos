@@ -38,7 +38,7 @@ public interface GnmiClient extends GrpcClient {
      *
      * @return the capability response
      */
-    CompletableFuture<CapabilityResponse> capability();
+    CompletableFuture<CapabilityResponse> capabilities();
 
     /**
      * Retrieves a snapshot of data from the device.
@@ -57,15 +57,17 @@ public interface GnmiClient extends GrpcClient {
     CompletableFuture<SetResponse> set(SetRequest request);
 
     /**
-     * Subscribes to a given specific gNMI path.
+     * Starts a subscription for the given request. Updates will be notified by
+     * the controller via {@link GnmiEvent.Type#UPDATE} events. The client
+     * guarantees that a Subscription RPC is active at all times despite channel
+     * or server failures, unless {@link #unsubscribe()} is called.
      *
      * @param request the subscribe request
-     * @return true if subscribe successfully; false otherwise
      */
-    boolean subscribe(SubscribeRequest request);
+    void subscribe(SubscribeRequest request);
 
     /**
-     * Terminates the subscription channel of this device.
+     * Terminates any Subscribe RPC active.
      */
-    void terminateSubscriptionChannel();
+    void unsubscribe();
 }

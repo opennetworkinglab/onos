@@ -21,9 +21,6 @@ import org.onosproject.drivers.p4runtime.P4RuntimeHandshaker;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.device.DeviceAgentListener;
 import org.onosproject.net.device.DeviceHandshaker;
-import org.onosproject.net.driver.AbstractHandlerBehaviour;
-import org.onosproject.net.driver.DriverData;
-import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.provider.ProviderId;
 
 import java.util.concurrent.CompletableFuture;
@@ -31,33 +28,20 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Implementation of DeviceHandshaker for Stratum device.
  */
-public class StratumHandshaker extends AbstractHandlerBehaviour implements DeviceHandshaker {
-
-    private P4RuntimeHandshaker p4runtime;
-    private GnmiHandshaker gnmi;
+public class StratumHandshaker
+        extends AbstractStratumBehaviour<DeviceHandshaker>
+        implements DeviceHandshaker {
 
     public StratumHandshaker() {
-        p4runtime = new P4RuntimeHandshaker();
-        gnmi = new GnmiHandshaker();
-    }
-
-    @Override
-    public void setHandler(DriverHandler handler) {
-        super.setHandler(handler);
-        p4runtime.setHandler(handler);
-        gnmi.setHandler(handler);
-    }
-
-    @Override
-    public void setData(DriverData data) {
-        super.setData(data);
-        p4runtime.setData(data);
-        gnmi.setData(data);
+        super(new P4RuntimeHandshaker(), new GnmiHandshaker());
     }
 
     @Override
     public boolean isReachable() {
-        return p4runtime.isReachable() && gnmi.isReachable();
+        // Reachability is mainly used for mastership contests and it's a
+        // prerequisite for availability. We can probably live without gNMI and
+        // gNOI, but we will always need P4Runtime.
+        return p4runtime.isReachable();
     }
 
     @Override

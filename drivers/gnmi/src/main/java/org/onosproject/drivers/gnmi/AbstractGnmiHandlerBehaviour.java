@@ -17,7 +17,6 @@
 package org.onosproject.drivers.gnmi;
 
 import com.google.common.base.Strings;
-import io.grpc.StatusRuntimeException;
 import org.onosproject.gnmi.api.GnmiClient;
 import org.onosproject.gnmi.api.GnmiClientKey;
 import org.onosproject.gnmi.api.GnmiController;
@@ -32,19 +31,11 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Abstract implementation of a behaviour handler for a gNMI device.
  */
 public class AbstractGnmiHandlerBehaviour extends AbstractHandlerBehaviour {
-
-    // Default timeout in seconds for device operations.
-    private static final String DEVICE_REQ_TIMEOUT = "deviceRequestTimeout";
-    private static final int DEFAULT_DEVICE_REQ_TIMEOUT = 60;
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
     protected DeviceId deviceId;
@@ -94,59 +85,5 @@ public class AbstractGnmiHandlerBehaviour extends AbstractHandlerBehaviour {
                       deviceId, cfg.managementAddress());
             return null;
         }
-    }
-
-    /**
-     * Returns the device request timeout driver property, or a default value
-     * if the property is not present or cannot be parsed.
-     *
-     * @return timeout value
-     */
-    private int getDeviceRequestTimeout() {
-        final String timeout = handler().driver()
-                .getProperty(DEVICE_REQ_TIMEOUT);
-        if (timeout == null) {
-            return DEFAULT_DEVICE_REQ_TIMEOUT;
-        } else {
-            try {
-                return Integer.parseInt(timeout);
-            } catch (NumberFormatException e) {
-                log.error("{} driver property '{}' is not a number, using default value {}",
-                        DEVICE_REQ_TIMEOUT, timeout, DEFAULT_DEVICE_REQ_TIMEOUT);
-                return DEFAULT_DEVICE_REQ_TIMEOUT;
-            }
-        }
-    }
-
-    /**
-     * Convenience method to get the result of a completable future while
-     * setting a timeout and checking for exceptions.
-     *
-     * @param future        completable future
-     * @param opDescription operation description to use in log messages. Should
-     *                      be a sentence starting with a verb ending in -ing,
-     *                      e.g. "reading...", "writing...", etc.
-     * @param defaultValue  value to return if operation fails
-     * @param <U>           type of returned value
-     * @return future result or default value
-     */
-    <U> U getFutureWithDeadline(CompletableFuture<U> future, String opDescription,
-                                U defaultValue) {
-        try {
-            return future.get(getDeviceRequestTimeout(), TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            log.error("Exception while {} on {}", opDescription, deviceId);
-        } catch (ExecutionException e) {
-            final Throwable cause = e.getCause();
-            if (cause instanceof StatusRuntimeException) {
-                final StatusRuntimeException grpcError = (StatusRuntimeException) cause;
-                log.warn("Error while {} on {}: {}", opDescription, deviceId, grpcError.getMessage());
-            } else {
-                log.error("Exception while {} on {}", opDescription, deviceId, e.getCause());
-            }
-        } catch (TimeoutException e) {
-            log.error("Operation TIMEOUT while {} on {}", opDescription, deviceId);
-        }
-        return defaultValue;
     }
 }

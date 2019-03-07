@@ -22,6 +22,8 @@
                    impl="org.onosproject.drivers.gnmi.GnmiHandshaker"/>
         <behaviour api="org.onosproject.net.device.PortStatisticsDiscovery"
                    impl="org.onosproject.drivers.gnmi.OpenConfigGnmiPortStatisticsDiscovery"/>
+        <behaviour api="org.onosproject.net.behaviour.PortAdmin"
+                   impl="org.onosproject.drivers.gnmi.OpenConfigGnmiPortAdminBehaviour"/>
     </driver>
 </drivers>
 

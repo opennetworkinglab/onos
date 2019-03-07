@@ -17,9 +17,8 @@
 package org.onosproject.gnmi.ctl;
 
 
+import com.google.common.util.concurrent.Futures;
 import gnmi.Gnmi;
-import gnmi.gNMIGrpc;
-import io.grpc.ManagedChannel;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.StreamObserver;
@@ -29,9 +28,10 @@ import org.onosproject.net.DeviceId;
 import org.slf4j.Logger;
 
 import java.net.ConnectException;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.lang.String.format;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
@@ -39,108 +39,110 @@ import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * A manager for the gNMI stream channel that opportunistically creates
- * new stream RCP stubs (e.g. when one fails because of errors) and posts
- * subscribe events via the gNMI controller.
+ * A manager for the gNMI Subscribe RPC that opportunistically starts new RPC
+ * (e.g. when one fails because of errors) and posts subscribe events via the
+ * gNMI controller.
  */
 final class GnmiSubscriptionManager {
 
-    /**
-     * The state of the subscription manager.
-     */
-    enum State {
-
-        /**
-         * Subscription not exists.
-         */
-        INIT,
-
-        /**
-         * Exists a subscription and channel opened.
-         */
-        SUBSCRIBED,
-
-        /**
-         * Exists a subscription, but the channel does not open.
-         */
-        RETRYING,
-    }
-
     // FIXME: make this configurable
     private static final long DEFAULT_RECONNECT_DELAY = 5; // Seconds
+
     private static final Logger log = getLogger(GnmiSubscriptionManager.class);
-    private final ManagedChannel channel;
+
+    private final GnmiClientImpl client;
     private final DeviceId deviceId;
     private final GnmiControllerImpl controller;
-
     private final StreamObserver<Gnmi.SubscribeResponse> responseObserver;
-    private final AtomicReference<State> state = new AtomicReference<>(State.INIT);
+
+    private final ScheduledExecutorService streamCheckerExecutor =
+            newSingleThreadScheduledExecutor(groupedThreads("onos/gnmi-subscribe-check", "%d", log));
+    private Future<?> checkTask;
 
     private ClientCallStreamObserver<Gnmi.SubscribeRequest> requestObserver;
     private Gnmi.SubscribeRequest existingSubscription;
-    private final ScheduledExecutorService streamCheckerExecutor =
-            newSingleThreadScheduledExecutor(groupedThreads("onos/gnmi-probe", "%d", log));
+    private AtomicBoolean active = new AtomicBoolean(false);
 
-    GnmiSubscriptionManager(ManagedChannel channel, DeviceId deviceId,
+    GnmiSubscriptionManager(GnmiClientImpl client, DeviceId deviceId,
                             GnmiControllerImpl controller) {
-        this.channel = channel;
+        this.client = client;
         this.deviceId = deviceId;
         this.controller = controller;
         this.responseObserver = new InternalStreamResponseObserver();
-        streamCheckerExecutor.scheduleAtFixedRate(this::checkGnmiStream, 0,
-                                                  DEFAULT_RECONNECT_DELAY,
-                                                  TimeUnit.SECONDS);
+    }
+
+    void subscribe(Gnmi.SubscribeRequest request) {
+        synchronized (this) {
+            if (existingSubscription != null) {
+                if (existingSubscription.equals(request)) {
+                    // Nothing to do. We are already subscribed for the same
+                    // request.
+                    log.debug("Ignoring re-subscription to same request",
+                              deviceId);
+                    return;
+                }
+                log.debug("Cancelling existing subscription for {} before " +
+                                  "starting a new one", deviceId);
+                complete();
+            }
+            existingSubscription = request;
+            sendSubscribeRequest();
+            if (checkTask != null) {
+                checkTask = streamCheckerExecutor.scheduleAtFixedRate(
+                        this::checkSubscription, 0,
+                        DEFAULT_RECONNECT_DELAY,
+                        TimeUnit.SECONDS);
+            }
+        }
+    }
+
+    void unsubscribe() {
+        synchronized (this) {
+            if (checkTask != null) {
+                checkTask.cancel(false);
+                checkTask = null;
+            }
+            existingSubscription = null;
+            complete();
+        }
     }
 
     public void shutdown() {
-        log.info("gNMI subscription manager for device {} shutdown", deviceId);
-        streamCheckerExecutor.shutdown();
-        complete();
+        log.debug("Shutting down gNMI subscription manager for {}", deviceId);
+        unsubscribe();
+        streamCheckerExecutor.shutdownNow();
     }
 
-    private void initIfRequired() {
+    private void checkSubscription() {
+        synchronized (this) {
+            if (existingSubscription != null && !active.get()) {
+                if (client.isServerReachable() || Futures.getUnchecked(client.probeService())) {
+                    log.info("Re-starting Subscribe RPC for {}...", deviceId);
+                    sendSubscribeRequest();
+                } else {
+                    log.debug("Not restarting Subscribe RPC for {}, server is NOT reachable",
+                              deviceId);
+                }
+            }
+        }
+    }
+
+    private void sendSubscribeRequest() {
         if (requestObserver == null) {
-            log.debug("Creating new stream channel for {}...", deviceId);
-            requestObserver = (ClientCallStreamObserver<Gnmi.SubscribeRequest>)
-                    gNMIGrpc.newStub(channel).subscribe(responseObserver);
-
+            log.debug("Starting new Subscribe RPC for {}...", deviceId);
+            client.execRpcNoTimeout(
+                    s -> requestObserver =
+                            (ClientCallStreamObserver<Gnmi.SubscribeRequest>)
+                                    s.subscribe(responseObserver)
+            );
         }
-    }
-
-    boolean subscribe(Gnmi.SubscribeRequest request) {
-        synchronized (state) {
-            if (state.get() == State.SUBSCRIBED) {
-                // Cancel subscription when we need to subscribe new thing
-                complete();
-            }
-
-            existingSubscription = request;
-            return send(request);
-        }
-    }
-
-    private boolean send(Gnmi.SubscribeRequest value) {
-        initIfRequired();
-        try {
-            requestObserver.onNext(value);
-            state.set(State.SUBSCRIBED);
-            return true;
-        } catch (Throwable ex) {
-            if (ex instanceof StatusRuntimeException) {
-                log.warn("Unable to send subscribe request to {}: {}",
-                        deviceId, ex.getMessage());
-            } else {
-                log.warn("Exception while sending subscribe request to {}",
-                        deviceId, ex);
-            }
-            state.set(State.RETRYING);
-            return false;
-        }
+        requestObserver.onNext(existingSubscription);
+        active.set(true);
     }
 
     public void complete() {
-        synchronized (state) {
-            state.set(State.INIT);
+        synchronized (this) {
+            active.set(false);
             if (requestObserver != null) {
                 requestObserver.onCompleted();
                 requestObserver.cancel("Terminated", null);
@@ -149,21 +151,8 @@ final class GnmiSubscriptionManager {
         }
     }
 
-    private void checkGnmiStream() {
-        synchronized (state) {
-            if (state.get() != State.RETRYING) {
-                // No need to retry if the state is not RETRYING
-                return;
-            }
-            log.info("Try reconnecting gNMI stream to device {}", deviceId);
-
-            complete();
-            send(existingSubscription);
-        }
-    }
-
     /**
-     * Handles messages received from the device on the stream channel.
+     * Handles messages received from the device on the Subscribe RPC.
      */
     private final class InternalStreamResponseObserver
             implements StreamObserver<Gnmi.SubscribeResponse> {
@@ -171,40 +160,50 @@ final class GnmiSubscriptionManager {
         @Override
         public void onNext(Gnmi.SubscribeResponse message) {
             try {
-                log.debug("Received message on stream channel from {}: {}",
-                        deviceId, message.toString());
-                GnmiUpdate update = new GnmiUpdate(deviceId, message.getUpdate(), message.getSyncResponse());
-                GnmiEvent event = new GnmiEvent(GnmiEvent.Type.UPDATE, update);
-                controller.postEvent(event);
+                if (log.isTraceEnabled()) {
+                    log.trace("Received SubscribeResponse from {}: {}",
+                              deviceId, message.toString());
+                }
+                controller.postEvent(new GnmiEvent(GnmiEvent.Type.UPDATE, new GnmiUpdate(
+                        deviceId, message.getUpdate(), message.getSyncResponse())));
             } catch (Throwable ex) {
-                log.error("Exception while processing stream message from {}",
-                        deviceId, ex);
+                log.error("Exception processing SubscribeResponse from " + deviceId,
+                          ex);
             }
         }
 
         @Override
         public void onError(Throwable throwable) {
+            complete();
             if (throwable instanceof StatusRuntimeException) {
                 StatusRuntimeException sre = (StatusRuntimeException) throwable;
                 if (sre.getStatus().getCause() instanceof ConnectException) {
-                    log.warn("Device {} is unreachable ({})",
-                            deviceId, sre.getCause().getMessage());
+                    log.warn("{} is unreachable ({})",
+                             deviceId, sre.getCause().getMessage());
                 } else {
-                    log.warn("Received error on stream channel for {}: {}",
-                            deviceId, throwable.getMessage());
+                    log.warn("Error on Subscribe RPC for {}: {}",
+                             deviceId, throwable.getMessage());
                 }
             } else {
-                log.warn(format("Received exception on stream channel for %s",
-                        deviceId), throwable);
+                log.error(format("Exception on Subscribe RPC for %s",
+                                 deviceId), throwable);
             }
-            state.set(State.RETRYING);
         }
 
         @Override
         public void onCompleted() {
-            log.warn("Stream channel for {} has completed", deviceId);
-            state.set(State.RETRYING);
+            complete();
+            log.warn("Subscribe RPC for {} has completed", deviceId);
         }
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        if (!streamCheckerExecutor.isShutdown()) {
+            log.error("Finalizing object but executor is still active! BUG? Shutting down...");
+            shutdown();
+        }
+        super.finalize();
     }
 }
 

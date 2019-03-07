@@ -28,11 +28,8 @@ public interface GrpcClient {
 
     /**
      * Shutdowns the client by terminating any active RPC.
-     *
-     * @return a completable future to signal the completion of the shutdown
-     * procedure
      */
-    CompletableFuture<Void> shutdown();
+    void shutdown();
 
     /**
      * This method provides a coarse modelling of gRPC channel {@link

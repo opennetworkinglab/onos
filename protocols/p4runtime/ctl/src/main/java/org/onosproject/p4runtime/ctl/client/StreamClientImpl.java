@@ -303,25 +303,10 @@ public final class StreamClientImpl implements P4RuntimeStreamClient {
         void send(StreamMessageRequest value) {
             synchronized (this) {
                 initIfRequired();
-                doSend(value);
-            }
-        }
-
-        private void doSend(StreamMessageRequest value) {
-            try {
                 requestObserver.onNext(value);
                 // Optimistically set the session as open. In case of errors, it
                 // will be closed by the response stream observer.
                 streamChannelManager.signalOpen();
-            } catch (Throwable ex) {
-                if (ex instanceof StatusRuntimeException) {
-                    log.warn("Unable to send {} to {}: {}",
-                             value.getUpdateCase().toString(), deviceId, ex.getMessage());
-                } else {
-                    log.error("Exception while sending {} to {}: {}",
-                              value.getUpdateCase().toString(), deviceId, ex);
-                }
-                teardown();
             }
         }
 

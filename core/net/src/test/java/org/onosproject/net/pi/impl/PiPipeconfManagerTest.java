@@ -35,6 +35,7 @@ import org.onosproject.net.config.basics.BasicDeviceConfig;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceDescriptionDiscovery;
 import org.onosproject.net.device.PortDescription;
+import org.onosproject.net.device.PortStatisticsDiscovery;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.driver.Behaviour;
 import org.onosproject.net.driver.Driver;
@@ -160,7 +161,13 @@ public class PiPipeconfManagerTest {
         Set<Class<? extends Behaviour>> expectedBehaviours = Sets.newHashSet();
         expectedBehaviours.addAll(BASIC_PIPECONF.behaviours());
         expectedBehaviours.addAll(baseDriver.behaviours());
-        assertEquals("The driver contains wrong behaviours", expectedBehaviours, driver.behaviours());
+
+        // FIXME: remove when stratum_bmv2 will be open source
+        //  (see PiPipeconfManager)
+        // expectedBehaviours.remove(PortStatisticsDiscovery.class);
+
+        assertEquals("The driver contains wrong behaviours",
+                     expectedBehaviours, driver.behaviours());
     }
 
     private class MockNetworkConfigRegistry extends NetworkConfigRegistryAdapter {
@@ -256,7 +263,8 @@ public class PiPipeconfManagerTest {
 
         @Override
         public Set<Class<? extends Behaviour>> behaviours() {
-            return ImmutableSet.of(DeviceDescriptionDiscovery.class);
+            return ImmutableSet.of(DeviceDescriptionDiscovery.class,
+                                   PortStatisticsDiscovery.class);
         }
 
         @Override

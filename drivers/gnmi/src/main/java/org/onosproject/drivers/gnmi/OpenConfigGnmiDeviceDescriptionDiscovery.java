@@ -18,11 +18,16 @@ package org.onosproject.drivers.gnmi;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.util.concurrent.Futures;
 import gnmi.Gnmi;
 import gnmi.Gnmi.GetRequest;
 import gnmi.Gnmi.GetResponse;
+import org.onlab.packet.ChassisId;
+import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.Device;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceDescriptionDiscovery;
@@ -49,11 +54,24 @@ public class OpenConfigGnmiDeviceDescriptionDiscovery
     private static final Logger log = LoggerFactory
             .getLogger(OpenConfigGnmiDeviceDescriptionDiscovery.class);
 
-    private static final String LAST_CHANGE = "last-change";
+    private static final String LAST_CHANGE = "last-changed";
+
+    private static final String UNKNOWN = "unknown";
 
     @Override
     public DeviceDescription discoverDeviceDetails() {
-        return null;
+        return new DefaultDeviceDescription(
+                data().deviceId().uri(),
+                Device.Type.SWITCH,
+                data().driver().manufacturer(),
+                data().driver().hwVersion(),
+                data().driver().swVersion(),
+                UNKNOWN,
+                new ChassisId(),
+                true,
+                DefaultAnnotations.builder()
+                        .set(AnnotationKeys.PROTOCOL, "gNMI")
+                        .build());
     }
 
     @Override
@@ -63,9 +81,7 @@ public class OpenConfigGnmiDeviceDescriptionDiscovery
         }
         log.debug("Discovering port details on device {}", handler().data().deviceId());
 
-        final GetResponse response = getFutureWithDeadline(
-                client.get(buildPortStateRequest()),
-                "getting port details", GetResponse.getDefaultInstance());
+        final GetResponse response = Futures.getUnchecked(client.get(buildPortStateRequest()));
 
         final Map<String, DefaultPortDescription.Builder> ports = Maps.newHashMap();
         final Map<String, DefaultAnnotations.Builder> annotations = Maps.newHashMap();

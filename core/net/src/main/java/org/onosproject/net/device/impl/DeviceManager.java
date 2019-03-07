@@ -726,7 +726,8 @@ public class DeviceManager
                                                              deviceId,
                                                              portDescription);
             if (event != null) {
-                log.info("Device {} port {} status changed", deviceId, event.port().number());
+                log.info("Device {} port {} status changed (enabled={})",
+                         deviceId, event.port().number(), portDescription.isEnabled());
                 post(event);
             }
         }
