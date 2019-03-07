@@ -94,7 +94,7 @@ public class ConsistentDeviceMastershipStore
             new MessageSubject("mastership-store-device-role-relinquish");
 
     private static final Pattern DEVICE_MASTERSHIP_TOPIC_PATTERN =
-            Pattern.compile("device:(.*)");
+            Pattern.compile("^device:(.*)");
 
     private ExecutorService eventHandler;
     private ExecutorService messageHandlingExecutor;
