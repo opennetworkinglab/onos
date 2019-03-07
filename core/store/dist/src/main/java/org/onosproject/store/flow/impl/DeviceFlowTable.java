@@ -761,7 +761,8 @@ public class DeviceFlowTable {
      * Handles an update to a term.
      */
     private void updateTerm(DeviceReplicaInfo replicaInfo) {
-        if (replicaInfo.term() == this.replicaInfo.term()) {
+        DeviceReplicaInfo oldReplicaInfo = this.replicaInfo;
+        if (oldReplicaInfo != null && replicaInfo.term() == oldReplicaInfo.term()) {
             this.replicaInfo = replicaInfo;
 
             // If the local node is neither the master or a backup for the device *and the term is active*,
