@@ -93,8 +93,10 @@ public class ConsistentDeviceMastershipStore
     private static final MessageSubject ROLE_RELINQUISH_SUBJECT =
             new MessageSubject("mastership-store-device-role-relinquish");
 
+    private static final String DEVICE_MASTERSHIP_TOPIC_PREFIX = "device-mastership:";
+
     private static final Pattern DEVICE_MASTERSHIP_TOPIC_PATTERN =
-            Pattern.compile("^device:(.*)");
+            Pattern.compile("^" + DEVICE_MASTERSHIP_TOPIC_PREFIX + "(.*)");
 
     private ExecutorService eventHandler;
     private ExecutorService messageHandlingExecutor;
@@ -363,7 +365,7 @@ public class ConsistentDeviceMastershipStore
     }
 
     private String createDeviceMastershipTopic(DeviceId deviceId) {
-        return String.format("device:%s", deviceId.toString());
+        return String.format("%s%s", DEVICE_MASTERSHIP_TOPIC_PREFIX, deviceId.toString());
     }
 
     private DeviceId extractDeviceIdFromTopic(String topic) {
