@@ -46,7 +46,7 @@ import org.onlab.metrics.MetricsService;
  * Application for Packet Statistics.
  */
 @Component(immediate = true)
-public class  PacketStatistics {
+public class PacketStatistics {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected PacketService packetService;
@@ -145,6 +145,10 @@ public class  PacketStatistics {
                 metricService.createCounter(packetStatisticsComponent, lldpFeature, "lldpPC");
         this.vlanCounter =
                 metricService.createCounter(packetStatisticsComponent, vlanFeature, "vlanPC");
+        this.tcpCounter =
+                metricService.createCounter(packetStatisticsComponent, tcpFeature, "tcpPC");
+        this.rarpCounter =
+                metricService.createCounter(packetStatisticsComponent, rarpFeature, "rarpPC");
         this.icmpCounter =
                 metricService.createCounter(packetStatisticsComponent, icmpFeature, "icmpPC");
         this.icmp6Counter =
@@ -246,7 +250,7 @@ public class  PacketStatistics {
             } else {
                     log.debug("Packet is unknown.");
                     unknownCounter.inc();
-              }
             }
         }
+    }
 }
