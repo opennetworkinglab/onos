@@ -122,8 +122,7 @@ public class DeviceFlowTable {
         this.scheduler = scheduler;
         this.executor = executor;
         this.localNodeId = clusterService.getLocalNode().id();
-
-        addListeners();
+        this.replicaInfo = lifecycleManager.getReplicaInfo();
 
         for (int i = 0; i < NUM_BUCKETS; i++) {
             flowBuckets.put(i, new FlowBucket(new BucketId(deviceId, i)));
@@ -133,12 +132,15 @@ public class DeviceFlowTable {
         getBucketSubject = new MessageSubject(String.format("flow-store-%s-bucket", deviceId));
         backupSubject = new MessageSubject(String.format("flow-store-%s-backup", deviceId));
 
+        addListeners();
+
         setBackupPeriod(backupPeriod);
         setAntiEntropyPeriod(antiEntropyPeriod);
         registerSubscribers();
 
-        startTerm(lifecycleManager.getReplicaInfo());
         scheduleBackups();
+
+        activateMaster(replicaInfo);
     }
 
     /**
@@ -686,12 +688,14 @@ public class DeviceFlowTable {
      * @param replicaInfo the new replica info
      */
     private void activateMaster(DeviceReplicaInfo replicaInfo) {
-        log.debug("Activating term {} for device {}", replicaInfo.term(), deviceId);
-        for (int i = 0; i < NUM_BUCKETS; i++) {
-            activateBucket(i);
+        if (replicaInfo.isMaster(localNodeId)) {
+            log.debug("Activating term {} for device {}", replicaInfo.term(), deviceId);
+            for (int i = 0; i < NUM_BUCKETS; i++) {
+                activateBucket(i);
+            }
+            lifecycleManager.activate(replicaInfo.term());
+            activeTerm = replicaInfo.term();
         }
-        lifecycleManager.activate(replicaInfo.term());
-        activeTerm = replicaInfo.term();
     }
 
     /**
