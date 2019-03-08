@@ -15,10 +15,21 @@
   ~ limitations under the License.
   -->
 <drivers>
-    <driver name="barefoot" manufacturer="Barefoot Networks" hwVersion="1.0" swVersion="1.0" extends="p4runtime">
+    <driver name="barefoot" manufacturer="Barefoot Networks" hwVersion="1.0"
+            swVersion="1.0" extends="p4runtime">
         <behaviour api="org.onosproject.net.behaviour.PiPipelineProgrammable"
                    impl="org.onosproject.drivers.barefoot.TofinoPipelineProgrammable"/>
         <property name="tableDeleteBeforeUpdate">true</property>
     </driver>
+
+    <driver name="stratum-tofino" manufacturer="Barefoot Networks"
+            hwVersion="Tofino" swVersion="Stratum" extends="stratum">
+        <behaviour api="org.onosproject.net.behaviour.PiPipelineProgrammable"
+                   impl="org.onosproject.drivers.barefoot.TofinoPipelineProgrammable"/>
+        <!-- The current version of p4lang/PI used in Stratum does not
+        support reading default  table entries -->
+        <property name="supportDefaultTableEntry">false</property>
+    </driver>
+
 </drivers>
 

@@ -95,11 +95,9 @@ public class P4RuntimeFlowRuleProgrammable
     private static final String READ_COUNTERS_WITH_TABLE_ENTRIES = "tableReadCountersWithTableEntries";
     private static final boolean DEFAULT_READ_COUNTERS_WITH_TABLE_ENTRIES = true;
 
-    // For default entries, P4Runtime mandates that only MODIFY messages are
-    // allowed. If true, treats default entries as normal table entries,
-    // e.g. inserting them first.
-    private static final String TABLE_DEFAULT_AS_ENTRY = "tableDefaultAsEntry";
-    private static final boolean DEFAULT_TABLE_DEFAULT_AS_ENTRY = false;
+    // True if target supports reading and writing table entries.
+    private static final String SUPPORT_DEFAULT_TABLE_ENTRY = "supportDefaultTableEntry";
+    private static final boolean DEFAULT_SUPPORT_DEFAULT_TABLE_ENTRY = true;
 
     // Used to make sure concurrent calls to write flow rules are serialized so
     // that each request gets consistent access to mirror state.
@@ -204,7 +202,9 @@ public class P4RuntimeFlowRuleProgrammable
                 .filter(t -> !t.isConstantTable())
                 .forEach(t -> {
                     request.tableEntries(t.id());
-                    if (!t.constDefaultAction().isPresent()) {
+                    if (driverBoolProperty(SUPPORT_DEFAULT_TABLE_ENTRY,
+                                           DEFAULT_SUPPORT_DEFAULT_TABLE_ENTRY) &&
+                            !t.constDefaultAction().isPresent()) {
                         request.defaultTableEntry(t.id());
                     }
                 });
@@ -396,15 +396,15 @@ public class P4RuntimeFlowRuleProgrammable
         final TimedEntry<PiTableEntry> piEntryOnDevice = tableMirror.get(handle);
         final UpdateType updateType;
 
-        final boolean defaultAsEntry = driverBoolProperty(
-                TABLE_DEFAULT_AS_ENTRY, DEFAULT_TABLE_DEFAULT_AS_ENTRY);
+        final boolean supportDefaultEntry = driverBoolProperty(
+                SUPPORT_DEFAULT_TABLE_ENTRY, DEFAULT_SUPPORT_DEFAULT_TABLE_ENTRY);
         final boolean deleteBeforeUpdate = driverBoolProperty(
                 DELETE_BEFORE_UPDATE, DEFAULT_DELETE_BEFORE_UPDATE);
 
         if (driverOperation == APPLY) {
             if (piEntryOnDevice == null) {
                 // Entry is first-timer, INSERT or MODIFY if default action.
-                updateType = !piEntryToApply.isDefaultAction() || defaultAsEntry
+                updateType = !piEntryToApply.isDefaultAction() || !supportDefaultEntry
                         ? INSERT : MODIFY;
             } else {
                 if (piEntryToApply.action().equals(piEntryOnDevice.entry().action())) {

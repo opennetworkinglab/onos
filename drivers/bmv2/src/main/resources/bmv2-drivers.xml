@@ -31,6 +31,9 @@
             hwVersion="BMv2 simple_switch" swVersion="Stratum" extends="stratum">
         <behaviour api="org.onosproject.net.behaviour.PiPipelineProgrammable"
                    impl="org.onosproject.drivers.bmv2.Bmv2PipelineProgrammable"/>
+        <!-- The current version of p4lang/PI used in Stratum does not
+        support reading default table entries -->
+        <property name="supportDefaultTableEntry">false</property>
     </driver>
 </drivers>
 
