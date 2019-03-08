@@ -145,6 +145,10 @@ public class  PacketStatistics {
                 metricService.createCounter(packetStatisticsComponent, lldpFeature, "lldpPC");
         this.vlanCounter =
                 metricService.createCounter(packetStatisticsComponent, vlanFeature, "vlanPC");
+        this.tcpCounter =
+                metricService.createCounter(packetStatisticsComponent, tcpFeature, "tcpPC");
+        this.rarpCounter =
+                metricService.createCounter(packetStatisticsComponent, rarpFeature, "rarpPC");
         this.icmpCounter =
                 metricService.createCounter(packetStatisticsComponent, icmpFeature, "icmpPC");
         this.icmp6Counter =
