@@ -92,9 +92,7 @@ public class GrpcChannelControllerImpl implements GrpcChannelController {
             enableMessageLog.set(Tools.isPropertyEnabled(
                     properties, ENABLE_MESSAGE_LOG, ENABLE_MESSAGE_LOG_DEFAULT));
             log.info("Configured. Logging of gRPC messages is {}",
-                     enableMessageLog.get()
-                             ? "ENABLED for new channels"
-                             : "DISABLED for new and existing channels");
+                     enableMessageLog.get() ? "ENABLED" : "DISABLED");
         }
     }
 
@@ -125,28 +123,23 @@ public class GrpcChannelControllerImpl implements GrpcChannelController {
                         "A channel with ID '%s' already exists", channelId));
             }
 
-            GrpcLoggingInterceptor interceptor = null;
-            if (enableMessageLog.get()) {
-                interceptor = new GrpcLoggingInterceptor(channelId, enableMessageLog);
-                channelBuilder.intercept(interceptor);
-            }
+            final GrpcLoggingInterceptor interceptor = new GrpcLoggingInterceptor(
+                    channelId, enableMessageLog);
+            channelBuilder.intercept(interceptor);
+
             ManagedChannel channel = channelBuilder.build();
             // Forced connection API is still experimental. Use workaround...
             // channel.getState(true);
             try {
                 doDummyMessage(channel);
             } catch (StatusRuntimeException e) {
-                if (interceptor != null) {
-                    interceptor.close();
-                }
+                interceptor.close();
                 shutdownNowAndWait(channel, channelId);
                 throw e;
             }
             // If here, channel is open.
             channels.put(channelId, channel);
-            if (interceptor != null) {
-                interceptors.put(channelId, interceptor);
-            }
+            interceptors.put(channelId, interceptor);
             return channel;
         } finally {
             lock.unlock();

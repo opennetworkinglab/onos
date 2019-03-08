@@ -63,22 +63,25 @@ final class GrpcLoggingInterceptor implements ClientInterceptor {
     GrpcLoggingInterceptor(GrpcChannelId channelId, AtomicBoolean enabled) {
         this.channelId = channelId;
         this.enabled = enabled;
-        try {
-            writer = initWriter();
-            write(format("GRPC CALL LOG - %s\n\n", channelId));
-        } catch (IOException e) {
-            log.error("Unable to initialize gRPC call log writer", e);
-        }
     }
 
-    private FileWriter initWriter() throws IOException {
+    private boolean initWriter() {
+        if (writer != null) {
+            return true;
+        }
         final String safeChName = channelId.id()
                 .replaceAll("[^A-Za-z0-9]", "_");
         final String fileName = format("grpc_%s_", safeChName).toLowerCase();
-        final File tmpFile = File.createTempFile(fileName, ".log");
-        log.info("Created gRPC call log file for channel {}: {}",
-                 channelId, tmpFile.getAbsolutePath());
-        return new FileWriter(tmpFile);
+        try {
+            final File tmpFile = File.createTempFile(fileName, ".log");
+            this.writer = new FileWriter(tmpFile);
+            log.info("Created gRPC call log file for channel {}: {}",
+                     channelId, tmpFile.getAbsolutePath());
+            return true;
+        } catch (IOException e) {
+            log.error("Unable to initialize gRPC call log writer", e);
+        }
+        return false;
     }
 
     void close() {
@@ -98,19 +101,20 @@ final class GrpcLoggingInterceptor implements ClientInterceptor {
 
     private void write(String message) {
         synchronized (this) {
-            if (writer != null) {
-                if (message.length() > 4096) {
-                    message = message.substring(0, 256) + "... TRUNCATED!\n\n";
-                }
-                try {
-                    writer.write(format(
-                            "*** %s - %s",
-                            new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S")
-                                    .format(new Date()),
-                            message));
-                } catch (IOException e) {
-                    log.error("Unable to write gRPC call log", e);
-                }
+            if (!initWriter()) {
+                return;
+            }
+            if (message.length() > 4096) {
+                message = message.substring(0, 256) + "... TRUNCATED!\n\n";
+            }
+            try {
+                writer.write(format(
+                        "*** %s - %s",
+                        new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S")
+                                .format(new Date()),
+                        message));
+            } catch (IOException e) {
+                log.error("Unable to write gRPC call log", e);
             }
         }
     }
