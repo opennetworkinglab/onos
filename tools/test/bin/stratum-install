@@ -73,8 +73,8 @@ function do_stratum_bin {
         ssh ${remote} "sudo rm -f /tmp/stratum_bmv2.tar.gz"
         scp -qr ${STRATUM_BMV2_TAR} ${ONOS_USER}@[${node}]:/tmp/stratum_bmv2.tar.gz
         ssh -tt ${remote} "
-            rm -rf ${stratumRoot} && \
-            tar xvf /tmp/stratum_bmv2.tar.gz --directory /home/${ONOS_USER} \
+            rm -rf ${stratumRoot} && mkdir ${stratumRoot} && \
+            tar xvf /tmp/stratum_bmv2.tar.gz -C ${stratumRoot} --strip-components 1 \
             && touch ${stratumInstalled} \
             && grep -qF -- \"${stratumExportLine}\" ~/.bash_aliases || echo \"${stratumExportLine}\" >> ~/.bash_aliases
         "
