@@ -57,10 +57,7 @@ import {
     HostNodeSvgComponent,
     LinkSvgComponent
 } from './visuals';
-import {
-    BackgroundSvgComponent,
-    LocationType
-} from '../backgroundsvg/backgroundsvg.component';
+import {LocationType} from '../backgroundsvg/backgroundsvg.component';
 
 interface UpdateMeta {
     id: string;
@@ -128,6 +125,28 @@ export class ForceSvgComponent implements OnInit, OnChanges {
                 return endPtStr.substr(0, slash);
             }
         }
+    }
+
+    /**
+     * Recursive method to compare 2 objects attribute by attribute and update
+     * the first where a change is detected
+     * @param existingNode 1st object
+     * @param updatedNode 2nd object
+     */
+    private static updateObject(existingNode: Object, updatedNode: Object): number {
+        let changed: number = 0;
+        for (const key of Object.keys(updatedNode)) {
+            const o = updatedNode[key];
+            if (key === 'id') {
+                continue;
+            } else if (o && typeof o === 'object' && o.constructor === Object) {
+                changed += ForceSvgComponent.updateObject(existingNode[key], updatedNode[key]);
+            } else if (existingNode[key] !== updatedNode[key]) {
+                changed++;
+                existingNode[key] = updatedNode[key];
+            }
+        }
+        return changed;
     }
 
     @HostListener('window:resize', ['$event'])
@@ -310,25 +329,32 @@ export class ForceSvgComponent implements OnInit, OnChanges {
             case ModelEventType.DEVICE_ADDED_OR_UPDATED:
                 if (memo === ModelEventMemo.ADDED) {
                     this.regionData.devices[this.visibleLayerIdx()].push(<Device>data);
+                    this.graph.nodes.push(<Device>data);
+                    this.log.debug('Device added', (<Device>data).id);
                 } else if (memo === ModelEventMemo.UPDATED) {
                     const oldDevice: Device =
                         this.regionData.devices[this.visibleLayerIdx()]
                             .find((d) => d.id === subject);
-                    this.compareDevice(oldDevice, <Device>data);
+                    const changes = ForceSvgComponent.updateObject(oldDevice, <Device>data);
+                    if (changes > 0) {
+                        this.log.debug('Device ', oldDevice.id, memo, ' - ', changes, 'changes');
+                    }
                 } else {
                     this.log.warn('Device ', memo, ' - not yet implemented', data);
                 }
-                this.log.warn('Device ', memo, ' - not yet implemented', data);
                 break;
             case ModelEventType.HOST_ADDED_OR_UPDATED:
                 if (memo === ModelEventMemo.ADDED) {
                     this.regionData.hosts[this.visibleLayerIdx()].push(<Host>data);
-                    this.log.warn('Host added - not yet implemented', data);
+                    this.graph.nodes.push(<Host>data);
+                    this.log.debug('Host added', (<Host>data).id);
                 } else if (memo === ModelEventMemo.UPDATED) {
                     const oldHost: Host = this.regionData.hosts[this.visibleLayerIdx()]
                         .find((h) => h.id === subject);
-                    this.compareHost(oldHost, <Host>data);
-                    this.log.warn('Host updated - not yet implemented', data);
+                    const changes = ForceSvgComponent.updateObject(oldHost, <Host>data);
+                    if (changes > 0) {
+                        this.log.debug('Host ', oldHost.id, memo, ' - ', changes, 'changes');
+                    }
                 } else {
                     this.log.warn('Host change', memo, ' - unexpected');
                 }
@@ -338,9 +364,9 @@ export class ForceSvgComponent implements OnInit, OnChanges {
                     const removeIdx: number =
                         this.regionData.devices[this.visibleLayerIdx()]
                             .findIndex((d) => d.id === subject);
-                    const removeCmpt: DeviceNodeSvgComponent =
-                        this.devices.find((dc) => dc.device.id === subject);
-                    this.log.warn('Device ', subject, 'removed - not yet implemented', removeIdx, removeCmpt.device.id);
+                    this.regionData.devices[this.visibleLayerIdx()].splice(removeIdx, 1);
+                    this.removeRelatedLinks(subject);
+                    this.log.debug('Device ', subject, 'removed. Links', this.regionData.links);
                 } else {
                     this.log.warn('Device removed - unexpected memo', memo);
                 }
@@ -350,33 +376,53 @@ export class ForceSvgComponent implements OnInit, OnChanges {
                     const removeIdx: number =
                         this.regionData.hosts[this.visibleLayerIdx()]
                             .findIndex((h) => h.id === subject);
-                    const removeCmpt: HostNodeSvgComponent =
-                        this.hosts.find((hc) => hc.host.id === subject);
-                    this.log.warn('Host ', subject, 'removed - not yet implemented', removeIdx, removeCmpt.host.id);
+                    this.regionData.hosts[this.visibleLayerIdx()].splice(removeIdx, 1);
+                    this.removeRelatedLinks(subject);
+                    this.log.warn('Host ', subject, 'removed');
                 } else {
                     this.log.warn('Host removed - unexpected memo', memo);
                 }
                 break;
             case ModelEventType.LINK_ADDED_OR_UPDATED:
-                this.log.warn('link added or updated - not yet implemented', subject);
+                if (memo === ModelEventMemo.ADDED &&
+                    this.regionData.links.findIndex((l) => l.id === subject) === -1) {
+                    const listLen = this.regionData.links.push(<RegionLink>data);
+                    const epA = ForceSvgComponent.extractNodeName(
+                        this.regionData.links[listLen - 1].epA);
+                    this.regionData.links[listLen - 1].source =
+                        this.graph.nodes.find((node) =>
+                            node.id === epA);
+                    const epB = ForceSvgComponent.extractNodeName(
+                        this.regionData.links[listLen - 1].epB);
+                    this.regionData.links[listLen - 1].target =
+                        this.graph.nodes.find((node) =>
+                            node.id === epB);
+                    this.log.debug('Link added', subject);
+                } else if (memo === ModelEventMemo.UPDATED) {
+                    const oldLink = this.regionData.links.find((l) => l.id === subject);
+                    const changes = ForceSvgComponent.updateObject(oldLink, <RegionLink>data);
+                    this.log.debug('Link ', subject, '. Updated', changes, 'items');
+                } else {
+                    this.log.warn('Link added or updated - unexpected memo', memo);
+                }
                 break;
             default:
                 this.log.error('Unexpected model event', type, 'for', subject);
         }
+        this.ref.markForCheck();
+        this.graph.initSimulation(this.options);
     }
 
-    private compareDevice(oldDevice: Device, updatedDevice: Device) {
-        if (oldDevice.master !== updatedDevice.master) {
-            this.log.debug('Mastership has changed for', updatedDevice.id, 'to', updatedDevice.master);
-        }
-        if (oldDevice.online !== updatedDevice.online) {
-            this.log.debug('Status has changed for', updatedDevice.id, 'to', updatedDevice.online);
-        }
-    }
-
-    private compareHost(oldHost: Host, updatedHost: Host) {
-        if (oldHost.configured !== updatedHost.configured) {
-            this.log.debug('Configured has changed for', updatedHost.id, 'to', updatedHost.configured);
+    private removeRelatedLinks(subject: string) {
+        const len = this.regionData.links.length;
+        for (let i = 0; i < len; i++) {
+            const linkIdx = this.regionData.links.findIndex((l) =>
+                (ForceSvgComponent.extractNodeName(l.epA) === subject ||
+                    ForceSvgComponent.extractNodeName(l.epB) === subject));
+            if (linkIdx >= 0) {
+                this.regionData.links.splice(linkIdx, 1);
+                this.log.debug('Link ', linkIdx, 'removed on attempt', i);
+            }
         }
     }
 

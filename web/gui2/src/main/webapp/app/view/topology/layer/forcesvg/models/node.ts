@@ -111,6 +111,9 @@ export interface DeviceProps {
     name: string;
     locType: LocationType;
     uiType: string;
+    channelId: string;
+    managementAddress: string;
+    protocol: string;
 }
 
 export interface HostProps {

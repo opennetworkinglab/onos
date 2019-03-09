@@ -73,6 +73,16 @@ public class UiHost extends UiNode {
     }
 
     /**
+     * Returns the identifier of the region to which this device belongs.
+     * This will be null if the device does not belong to any region.
+     *
+     * @return region ID
+     */
+    public RegionId regionId() {
+        return regionId;
+    }
+
+    /**
      * Sets the ID of the region to which this device belongs.
      *
      * @param regionId region identifier

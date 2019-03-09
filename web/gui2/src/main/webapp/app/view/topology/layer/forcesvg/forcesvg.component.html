@@ -89,7 +89,7 @@
         <svg:g onos-hostnodesvg [host]="host"
                *ngFor="let host of regionData.hosts[visibleLayerIdx()]"
                onosDraggableNode [draggableNode]="host" [draggableInGraph]="graph"
-                   (newLocation)="nodeMoved('host', device.id, $event)"
+                   (newLocation)="nodeMoved('host', host.id, $event)"
                (selectedEvent)="updateSelected($event)"
                [labelToggle]="hostLabelToggle"
                [scale]="scale">

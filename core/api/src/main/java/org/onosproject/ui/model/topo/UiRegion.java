@@ -40,6 +40,7 @@ public class UiRegion extends UiNode {
 
     private static final String NULL_NAME = "(root)";
     private static final String NO_NAME = "???";
+    private static final String MEMO_ADDED = "added";
 
     /**
      * The identifier for the null-region. That is, a container for devices,
@@ -327,10 +328,24 @@ public class UiRegion extends UiNode {
                 return true;
 
             case REGION_ADDED_OR_UPDATED:
+                if (MEMO_ADDED.equalsIgnoreCase(event.memo()) &&
+                        regionId.toString().equalsIgnoreCase(
+                          ((UiRegion) event.subject()).backingRegion().toString())) {
+                    return true;
+                } else {
+                    return isDeviceRelevant(((UiDevice) event.subject()).id());
+                }
             case REGION_REMOVED:
                 return isRegionRelevant(((UiRegion) event.subject()).id());
 
             case DEVICE_ADDED_OR_UPDATED:
+                if (MEMO_ADDED.equalsIgnoreCase(event.memo()) &&
+                        regionId.toString().equalsIgnoreCase(
+                          ((UiDevice) event.subject()).regionId().toString())) {
+                    return true;
+                } else {
+                    return isDeviceRelevant(((UiDevice) event.subject()).id());
+                }
             case DEVICE_REMOVED:
                 return isDeviceRelevant(((UiDevice) event.subject()).id());
 
@@ -339,6 +354,13 @@ public class UiRegion extends UiNode {
                 return isLinkRelevant((UiLink) event.subject());
 
             case HOST_ADDED_OR_UPDATED:
+                if (MEMO_ADDED.equalsIgnoreCase(event.memo()) &&
+                        regionId.toString().equalsIgnoreCase(
+                          ((UiHost) event.subject()).regionId().toString())) {
+                    return true;
+                } else {
+                    return isDeviceRelevant(((UiDevice) event.subject()).id());
+                }
             case HOST_MOVED:
             case HOST_REMOVED:
                 return isDeviceRelevant(((UiHost) event.subject()).locationDevice());
