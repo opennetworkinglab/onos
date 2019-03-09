@@ -17,6 +17,7 @@ package org.onosproject.workflow.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
@@ -35,10 +36,21 @@ import java.util.Objects;
         description = "workplace cli")
 public class WorkplaceStoreCommand extends AbstractShellCommand {
 
-    @Argument(index = 0, name = "cmd", description = "command(add/rm/clear/print)", required = false)
+    static final String ADD   = "add";
+    static final String RM    = "rm";
+    static final String CLEAR = "clear";
+    static final String PRINT = "print";
+
+    @Argument(index = 0, name = "cmd",
+            description = "command(" + ADD + "/" + RM + "/" + CLEAR + "/" + PRINT + ")",
+            required = false)
+    @Completion(WorkplaceStoreCompleter.class)
     private String cmd = null;
 
-    @Argument(index = 1, name = "name", description = "workspace name", required = false)
+    @Argument(index = 1, name = "name",
+            description = "workplace name",
+            required = false)
+    @Completion(WorkplaceNameCompleter.class)
     private String name = null;
 
     @Option(name = "-f", aliases = "--filter", description = "including filter",
@@ -58,7 +70,7 @@ public class WorkplaceStoreCommand extends AbstractShellCommand {
         }
 
         switch (cmd) {
-            case "add":
+            case ADD:
                 if (Objects.isNull(name)) {
                     error("invalid name");
                     return;
@@ -66,7 +78,7 @@ public class WorkplaceStoreCommand extends AbstractShellCommand {
                 addEmptyWorkplace(name);
                 return;
 
-            case "rm":
+            case RM:
                 if (Objects.isNull(name)) {
                     print("invalid name");
                     return;
@@ -74,11 +86,11 @@ public class WorkplaceStoreCommand extends AbstractShellCommand {
                 rmWorkplace(name);
                 break;
 
-            case "clear":
+            case CLEAR:
                 clearWorkplace();
                 break;
 
-            case "print":
+            case PRINT:
                 if (Objects.isNull(name)) {
                     print("invalid name");
                     return;
@@ -142,6 +154,10 @@ public class WorkplaceStoreCommand extends AbstractShellCommand {
     private void printWorkplace(String name) {
         WorkplaceStore workplaceStore = get(WorkplaceStore.class);
         Workplace workplace = workplaceStore.getWorkplace(name);
+        if (Objects.isNull(workplace)) {
+            print("Not existing workplace " + name);
+            return;
+        }
         print(getWorkplaceString(workplace));
     }
 
