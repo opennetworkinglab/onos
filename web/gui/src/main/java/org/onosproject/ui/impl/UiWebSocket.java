@@ -259,7 +259,7 @@ public class UiWebSocket extends WebSocketAdapter implements UiConnection {
                 }
             }
 
-        } catch (Exception e) {
+        } catch (Error | Exception e) {
             log.warn("Unable to parse GUI message {} due to {}", data, e);
             log.debug("Boom!!!", e);
         }
