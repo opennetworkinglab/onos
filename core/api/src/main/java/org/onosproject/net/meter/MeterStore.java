@@ -102,13 +102,14 @@ public interface MeterStore extends Store<MeterEvent, MeterStoreDelegate> {
      * Notifies the delegate that the meter failed to allow it
      * to nofity the app.
      *
-     * @param op a failed meter operation
+     * @param op     a failed meter operation
      * @param reason a failure reason
      */
     void failedMeter(MeterOperation op, MeterFailReason reason);
 
     /**
      * Delete this meter immediately.
+     *
      * @param m a meter
      */
     void deleteMeterNow(Meter m);
@@ -134,8 +135,15 @@ public interface MeterStore extends Store<MeterEvent, MeterStoreDelegate> {
      * Frees the given meter id.
      *
      * @param deviceId the device id
-     * @param meterId the id to be freed
+     * @param meterId  the id to be freed
      */
     void freeMeterId(DeviceId deviceId, MeterId meterId);
+
+    /**
+     * Removes all meters of given device from store.
+     *
+     * @param deviceId the device id
+     */
+    void purgeMeter(DeviceId deviceId);
 
 }

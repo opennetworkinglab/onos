@@ -23,10 +23,13 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onlab.util.Tools;
 import org.onlab.util.TriConsumer;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.meter.DefaultMeter;
@@ -87,6 +90,7 @@ public class MeterManager
 
     private final Logger log = getLogger(getClass());
     private final MeterStoreDelegate delegate = new InternalMeterStoreDelegate();
+    private final DeviceListener deviceListener = new InternalDeviceListener();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     private MeterStore store;
@@ -108,6 +112,10 @@ public class MeterManager
             label = "Frequency (in seconds) for polling meters via fallback provider")
     private int fallbackMeterPollFrequency = DEFAULT_POLL_FREQUENCY;
 
+    @Property(name = "purgeOnDisconnection", boolValue = false,
+            label = "Purge entries associated with a device when the device goes offline")
+    private boolean purgeOnDisconnection = false;
+
     private TriConsumer<MeterRequest, MeterStoreResult, Throwable> onComplete;
 
     private ExecutorService executorService;
@@ -119,6 +127,7 @@ public class MeterManager
         store.setDelegate(delegate);
         cfgService.registerProperties(getClass());
         eventDispatcher.addSink(MeterEvent.class, listenerRegistry);
+        deviceService.addListener(deviceListener);
 
         onComplete = (request, result, error) -> {
                 request.context().ifPresent(c -> {
@@ -155,6 +164,7 @@ public class MeterManager
         defaultProvider.terminate();
         store.unsetDelegate(delegate);
         eventDispatcher.removeSink(MeterEvent.class);
+        deviceService.removeListener(deviceListener);
         cfgService.unregisterProperties(getClass(), false);
         executorService.shutdown();
         log.info("Stopped");
@@ -167,6 +177,17 @@ public class MeterManager
      */
     private void readComponentConfiguration(ComponentContext context) {
         Dictionary<?, ?> properties = context.getProperties();
+        Boolean flag;
+
+        flag = Tools.isPropertyEnabled(properties, "purgeOnDisconnection");
+        if (flag == null) {
+            log.info("PurgeOnDisconnection is not configured," +
+                    "using current value of {}", purgeOnDisconnection);
+        } else {
+            purgeOnDisconnection = flag;
+            log.info("Configured. PurgeOnDisconnection is {}",
+                    purgeOnDisconnection ? "enabled" : "disabled");
+        }
 
         String s = get(properties, "fallbackMeterPollFrequency");
         try {
@@ -394,6 +415,26 @@ public class MeterManager
                 return;
             }
             p.performMeterOperation(deviceId, new MeterOperation(meter, op));
+        }
+    }
+
+    private class InternalDeviceListener implements DeviceListener {
+
+        @Override
+        public void event(DeviceEvent event) {
+            switch (event.type()) {
+                case DEVICE_REMOVED:
+                case DEVICE_AVAILABILITY_CHANGED:
+                    DeviceId deviceId = event.subject().id();
+                    if (!deviceService.isAvailable(deviceId)) {
+                        if (purgeOnDisconnection) {
+                            store.purgeMeter(deviceId);
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
