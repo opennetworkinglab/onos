@@ -119,6 +119,9 @@ public final class OsgiPropertyConstants {
     public static final String MM_FALLBACK_METER_POLL_FREQUENCY = "fallbackMeterPollFrequency";
     public static final int MM_FALLBACK_METER_POLL_FREQUENCY_DEFAULT = 30;
 
+    public static final String MM_PURGE_ON_DISCONNECTION = "purgeOnDisconnection";
+    public static final boolean MM_PURGE_ON_DISCONNECTION_DEFAULT = false;
+
     public static final String NRM_ARP_ENABLED = "arpEnabled";
     public static final boolean NRM_ARP_ENABLED_DEFAULT = true;
 

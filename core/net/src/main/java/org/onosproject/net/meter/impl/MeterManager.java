@@ -15,10 +15,13 @@
  */
 package org.onosproject.net.meter.impl;
 
+import org.onlab.util.Tools;
 import org.onlab.util.TriConsumer;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceEvent;
+import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.meter.DefaultMeter;
@@ -66,21 +69,24 @@ import static org.onosproject.net.OsgiPropertyConstants.MM_FALLBACK_METER_POLL_F
 import static org.onosproject.net.OsgiPropertyConstants.MM_FALLBACK_METER_POLL_FREQUENCY_DEFAULT;
 import static org.onosproject.net.OsgiPropertyConstants.MM_NUM_THREADS;
 import static org.onosproject.net.OsgiPropertyConstants.MM_NUM_THREADS_DEFAULT;
+import static org.onosproject.net.OsgiPropertyConstants.MM_PURGE_ON_DISCONNECTION;
+import static org.onosproject.net.OsgiPropertyConstants.MM_PURGE_ON_DISCONNECTION_DEFAULT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provides implementation of the meter service APIs.
  */
 @Component(
-    immediate = true,
-    service = {
-        MeterService.class,
-        MeterProviderRegistry.class
-    },
-    property = {
-        MM_NUM_THREADS + ":Integer=" + MM_NUM_THREADS_DEFAULT,
-        MM_FALLBACK_METER_POLL_FREQUENCY + ":Integer=" + MM_FALLBACK_METER_POLL_FREQUENCY_DEFAULT
-    }
+        immediate = true,
+        service = {
+                MeterService.class,
+                MeterProviderRegistry.class
+        },
+        property = {
+                MM_NUM_THREADS + ":Integer=" + MM_NUM_THREADS_DEFAULT,
+                MM_FALLBACK_METER_POLL_FREQUENCY + ":Integer=" + MM_FALLBACK_METER_POLL_FREQUENCY_DEFAULT,
+                MM_PURGE_ON_DISCONNECTION + ":Boolean=" + MM_PURGE_ON_DISCONNECTION_DEFAULT,
+        }
 )
 public class MeterManager
         extends AbstractListenerProviderRegistry<MeterEvent, MeterListener, MeterProvider, MeterProviderService>
@@ -91,6 +97,7 @@ public class MeterManager
 
     private final Logger log = getLogger(getClass());
     private final MeterStoreDelegate delegate = new InternalMeterStoreDelegate();
+    private final DeviceListener deviceListener = new InternalDeviceListener();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private MeterStore store;
@@ -113,6 +120,9 @@ public class MeterManager
     /** Frequency (in seconds) for polling meters via fallback provider. */
     private int fallbackMeterPollFrequency = MM_FALLBACK_METER_POLL_FREQUENCY_DEFAULT;
 
+    /** Purge entries associated with a device when the device goes offline. */
+    private boolean purgeOnDisconnection = MM_PURGE_ON_DISCONNECTION_DEFAULT;
+
     private TriConsumer<MeterRequest, MeterStoreResult, Throwable> onComplete;
 
     private ExecutorService executorService;
@@ -124,6 +134,7 @@ public class MeterManager
         store.setDelegate(delegate);
         cfgService.registerProperties(getClass());
         eventDispatcher.addSink(MeterEvent.class, listenerRegistry);
+        deviceService.addListener(deviceListener);
 
         onComplete = (request, result, error) -> {
                 request.context().ifPresent(c -> {
@@ -160,6 +171,7 @@ public class MeterManager
         defaultProvider.terminate();
         store.unsetDelegate(delegate);
         eventDispatcher.removeSink(MeterEvent.class);
+        deviceService.removeListener(deviceListener);
         cfgService.unregisterProperties(getClass(), false);
         executorService.shutdown();
         log.info("Stopped");
@@ -172,6 +184,17 @@ public class MeterManager
      */
     private void readComponentConfiguration(ComponentContext context) {
         Dictionary<?, ?> properties = context.getProperties();
+        Boolean flag;
+
+        flag = Tools.isPropertyEnabled(properties, MM_PURGE_ON_DISCONNECTION);
+        if (flag == null) {
+            log.info("PurgeOnDisconnection is not configured," +
+                    "using current value of {}", purgeOnDisconnection);
+        } else {
+            purgeOnDisconnection = flag;
+            log.info("Configured. PurgeOnDisconnection is {}",
+                    purgeOnDisconnection ? "enabled" : "disabled");
+        }
 
         String s = get(properties, MM_FALLBACK_METER_POLL_FREQUENCY);
         try {
@@ -407,6 +430,26 @@ public class MeterManager
                 return;
             }
             p.performMeterOperation(deviceId, new MeterOperation(meter, op));
+        }
+    }
+
+    private class InternalDeviceListener implements DeviceListener {
+
+        @Override
+        public void event(DeviceEvent event) {
+            switch (event.type()) {
+                case DEVICE_REMOVED:
+                case DEVICE_AVAILABILITY_CHANGED:
+                    DeviceId deviceId = event.subject().id();
+                    if (!deviceService.isAvailable(deviceId)) {
+                        if (purgeOnDisconnection) {
+                            store.purgeMeter(deviceId);
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
