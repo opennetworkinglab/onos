@@ -190,7 +190,7 @@ public class FlowObjectiveManagerTest {
         filteringObjectives = new ArrayList<>();
         forwardingObjectives = new ArrayList<>();
         nextObjectives = new ArrayList<>();
-        manager.activate();
+        manager.activate(null);
     }
 
     @After
@@ -243,7 +243,7 @@ public class FlowObjectiveManagerTest {
                         .addCondition(Criteria.matchEthType(12))
                         .add();
 
-        manager.activate();
+        manager.activate(null);
         manager.filter(id1, filter);
 
         TestTools.assertAfter(RETRY_MS, () ->

@@ -94,6 +94,33 @@ public class FlowObjectiveManager implements FlowObjectiveService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    // Parameters for the accumulator, each pipeline can implement
+    // its own accumulation logic. The following parameters are used
+    // to control the accumulator.
+    private static final String ACCUMULATOR_MAX_OBJECTIVES = "accumulatorMaxObjectives";
+    // Maximum number of objectives to accumulate before processing is triggered
+    private static final int DEFAULT_ACCUMULATOR_MAX_OBJECTIVES = 1000;
+    @Property(name = ACCUMULATOR_MAX_OBJECTIVES,
+            intValue = DEFAULT_ACCUMULATOR_MAX_OBJECTIVES,
+            label = "Maximum number of objectives to accumulate")
+    private int accumulatorMaxObjectives = DEFAULT_ACCUMULATOR_MAX_OBJECTIVES;
+
+    private static final String ACCUMULATOR_MAX_IDLE_MILLIS = "accumulatorMaxIdleMillis";
+    // Maximum number of millis between objectives before processing is triggered
+    private static final int DEFAULT_ACCUMULATOR_MAX_IDLE_MILLIS = 10;
+    @Property(name = ACCUMULATOR_MAX_IDLE_MILLIS,
+            intValue = DEFAULT_ACCUMULATOR_MAX_IDLE_MILLIS,
+            label = "Maximum number of millis between objectives")
+    private int accumulatorMaxIdleMillis = DEFAULT_ACCUMULATOR_MAX_IDLE_MILLIS;
+
+    private static final String ACCUMULATOR_MAX_BATCH_MILLIS = "accumulatorMaxBatchMillis";
+    // Maximum number of millis allowed since the first objective before processing is triggered
+    private static final int DEFAULT_ACCUMULATOR_MAX_BATCH_MILLIS = 500;
+    @Property(name = ACCUMULATOR_MAX_BATCH_MILLIS,
+            intValue = DEFAULT_ACCUMULATOR_MAX_BATCH_MILLIS,
+            label = "Maximum number of millis allowed since the first objective")
+    private int accumulatorMaxBatchMillis = DEFAULT_ACCUMULATOR_MAX_BATCH_MILLIS;
+
     private static final int DEFAULT_NUM_THREADS = 4;
     @Property(name = NUM_THREAD,
              intValue = DEFAULT_NUM_THREADS,
@@ -153,10 +180,11 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     protected ExecutorService devEventExecutor;
 
     @Activate
-    protected void activate() {
+    protected void activate(ComponentContext context) {
         cfgService.registerProperties(getClass());
         executorService = newFixedThreadPool(numThreads,
                                              groupedThreads(GROUP_THREAD_NAME, WORKER_PATTERN, log));
+        modified(context);
         devEventExecutor = newSingleThreadScheduledExecutor(
                                        groupedThreads("onos/flowobj-dev-events", "events-%d", log));
         flowObjectiveStore.setDelegate(delegate);
@@ -182,8 +210,18 @@ public class FlowObjectiveManager implements FlowObjectiveService {
 
     @Modified
     protected void modified(ComponentContext context) {
-        String propertyValue =
-                Tools.get(context.getProperties(), NUM_THREAD);
+        if (context != null) {
+            readComponentConfiguration(context);
+        }
+    }
+
+    /**
+     * Extracts properties from the component configuration context.
+     *
+     * @param context the component context
+     */
+    private void readComponentConfiguration(ComponentContext context) {
+        String propertyValue = Tools.get(context.getProperties(), NUM_THREAD);
         int newNumThreads = isNullOrEmpty(propertyValue) ? numThreads : Integer.parseInt(propertyValue);
 
         if (newNumThreads != numThreads && newNumThreads > 0) {
@@ -196,6 +234,36 @@ public class FlowObjectiveManager implements FlowObjectiveService {
             }
             log.info("Reconfigured number of worker threads to {}", numThreads);
         }
+
+        // Reconfiguration of the accumulator parameters is allowed
+        // Note: it will affect only pipelines going through init method
+        propertyValue = Tools.get(context.getProperties(), ACCUMULATOR_MAX_OBJECTIVES);
+        int newMaxObjs = isNullOrEmpty(propertyValue) ?
+                accumulatorMaxObjectives : Integer.parseInt(propertyValue);
+        if (newMaxObjs != accumulatorMaxObjectives && newMaxObjs > 0) {
+            accumulatorMaxObjectives = newMaxObjs;
+            log.info("Reconfigured maximum number of objectives to accumulate to {}",
+                     accumulatorMaxObjectives);
+        }
+
+        propertyValue = Tools.get(context.getProperties(), ACCUMULATOR_MAX_IDLE_MILLIS);
+        int newMaxIdleMS = isNullOrEmpty(propertyValue) ?
+                accumulatorMaxIdleMillis : Integer.parseInt(propertyValue);
+        if (newMaxIdleMS != accumulatorMaxIdleMillis && newMaxIdleMS > 0) {
+            accumulatorMaxIdleMillis = newMaxIdleMS;
+            log.info("Reconfigured maximum number of millis between objectives to {}",
+                     accumulatorMaxIdleMillis);
+        }
+
+        propertyValue = Tools.get(context.getProperties(), ACCUMULATOR_MAX_BATCH_MILLIS);
+        int newMaxBatchMS = isNullOrEmpty(propertyValue) ?
+                accumulatorMaxBatchMillis : Integer.parseInt(propertyValue);
+        if (newMaxBatchMS != accumulatorMaxBatchMillis && newMaxBatchMS > 0) {
+            accumulatorMaxBatchMillis = newMaxBatchMS;
+            log.info("Reconfigured maximum number of millis allowed since the first objective to {}",
+                     accumulatorMaxBatchMillis);
+        }
+
     }
 
     /**
@@ -530,6 +598,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
 
     // Processing context for initializing pipeline driver behaviours.
     private class InnerPipelineContext implements PipelinerContext {
+
         @Override
         public ServiceDirectory directory() {
             return serviceDirectory;
@@ -538,6 +607,21 @@ public class FlowObjectiveManager implements FlowObjectiveService {
         @Override
         public FlowObjectiveStore store() {
             return flowObjectiveStore;
+        }
+
+        @Override
+        public int accumulatorMaxObjectives() {
+            return accumulatorMaxObjectives;
+        }
+
+        @Override
+        public int accumulatorMaxIdleMillis() {
+            return accumulatorMaxIdleMillis;
+        }
+
+        @Override
+        public int accumulatorMaxBatchMillis() {
+            return accumulatorMaxBatchMillis;
         }
     }
 
