@@ -33,7 +33,7 @@ baseCommit=$(git log -n 1 --pretty=format:"%H" $branch)
 git diff $baseCommit > /tmp/$baseCommit.patch
 
 # Copy patch file to the remote build machine
-scp /tmp/$baseCommit.patch $ONOS_USER@$OCN:/tmp
+scp /tmp/$baseCommit.patch $ONOS_USER@[$OCN]:/tmp
 
 ssh -t -t $ONOS_USER@$OCN "
     source ~/.bash_aliases

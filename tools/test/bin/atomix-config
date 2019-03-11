@@ -29,7 +29,7 @@ _EOF_
 . $ONOS_ROOT/tools/build/envDefaults
 
 node=${1:-$OCI}
-remote=$ONOS_USER@$node
+remote=$ONOS_USER@[$node]
 
 # Generate a default cluster.json from the ON* environment variables
 CDEF_FILE=/tmp/${remote}.atomix.json
