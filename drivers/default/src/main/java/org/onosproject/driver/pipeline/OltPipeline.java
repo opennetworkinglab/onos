@@ -789,7 +789,9 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         Instruction meter = filter.meta().metered();
         Instruction writeMetadata = filter.meta().writeMetadata();
 
-        TrafficSelector selector = buildSelector(filter.key(), ethType);
+        Criterion vlanId = filterForCriterion(filter.conditions(), Criterion.Type.VLAN_VID);
+
+        TrafficSelector selector = buildSelector(filter.key(), ethType, vlanId);
         TrafficTreatment treatment = buildTreatment(output, meter, writeMetadata);
         buildAndApplyRule(filter, selector, treatment);
 
@@ -898,18 +900,14 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
     private TrafficSelector buildSelector(Criterion... criteria) {
 
-
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
 
-        for (Criterion c : criteria) {
-            sBuilder.add(c);
-        }
+        Arrays.stream(criteria).filter(Objects::nonNull).forEach(sBuilder::add);
 
         return sBuilder.build();
     }
 
     private TrafficTreatment buildTreatment(Instruction... instructions) {
-
 
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
 
