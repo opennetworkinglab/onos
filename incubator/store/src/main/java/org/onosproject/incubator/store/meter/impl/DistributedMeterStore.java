@@ -67,7 +67,9 @@ import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -333,6 +335,19 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
         freeMeterId(m.deviceId(), m.id());
         // Finally notify the delegate
         notifyDelegate(new MeterEvent(MeterEvent.Type.METER_REMOVED, m));
+    }
+
+    @Override
+    public void purgeMeter(DeviceId deviceId) {
+
+        List<Versioned<MeterData>> metersPendingRemove = meters.stream()
+                .filter(e -> Objects.equals(e.getKey().deviceId(), deviceId))
+                .map(Map.Entry::getValue)
+                .collect(Collectors.toList());
+
+        metersPendingRemove.forEach(versionedMeterKey
+                -> deleteMeterNow(versionedMeterKey.value().meter()));
+
     }
 
     @Override
