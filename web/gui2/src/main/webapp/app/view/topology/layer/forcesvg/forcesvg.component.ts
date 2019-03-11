@@ -328,8 +328,25 @@ export class ForceSvgComponent implements OnInit, OnChanges {
         switch (type) {
             case ModelEventType.DEVICE_ADDED_OR_UPDATED:
                 if (memo === ModelEventMemo.ADDED) {
-                    this.regionData.devices[this.visibleLayerIdx()].push(<Device>data);
+                    const loc = (<Device>data).location;
+                    if (loc && loc.locType === LocationType.GEO) {
+                        const position =
+                            ZoomUtils.convertGeoToCanvas(<LocMeta>{ lng: loc.longOrX, lat: loc.latOrY});
+                        (<Device>data).fx = position.x;
+                        (<Device>data).fy = position.y;
+                        this.log.debug('Using long', loc.longOrX, 'lat', loc.latOrY, '(', position.x, position.y, ')');
+                    } else if (loc && loc.locType === LocationType.GRID) {
+                        (<Device>data).fx = loc.longOrX;
+                        (<Device>data).fy = loc.latOrY;
+                        this.log.debug('Using grid', loc.longOrX, loc.latOrY);
+                    } else {
+                        (<Device>data).fx = null;
+                        (<Device>data).fy = null;
+                        // (<Device>data).x = 500;
+                        // (<Device>data).y = 500;
+                    }
                     this.graph.nodes.push(<Device>data);
+                    this.regionData.devices[this.visibleLayerIdx()].push(<Device>data);
                     this.log.debug('Device added', (<Device>data).id);
                 } else if (memo === ModelEventMemo.UPDATED) {
                     const oldDevice: Device =
@@ -411,6 +428,8 @@ export class ForceSvgComponent implements OnInit, OnChanges {
         }
         this.ref.markForCheck();
         this.graph.initSimulation(this.options);
+        this.graph.initNodes();
+        this.graph.initLinks();
     }
 
     private removeRelatedLinks(subject: string) {

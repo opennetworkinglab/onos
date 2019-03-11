@@ -98,7 +98,7 @@ html[data-platform='iPad'] #mast {
     height: 7px;
     width: 9px;
     margin-left: 10px;
-    background: url('/data/img/dropdown-icon.png') no-repeat;
+    background: url('data/img/dropdown-icon.png') no-repeat;
 }
 
 #mast .dropdown {

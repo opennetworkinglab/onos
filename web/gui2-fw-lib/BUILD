@@ -255,6 +255,7 @@ genrule(
         "@nodejs//:bin/nodejs/bin/node",
         "@nodejs//:bin/nodejs/bin/npm",
         ":onos-gui2-fw-npm-install",
+        "//web/gui:onos-gui-data-for-gui2",
         ":_root_level_files",
         ":_gui2_fw_lib_src",
         ":_gui2_fw_lib_tests",
@@ -274,6 +275,9 @@ genrule(
           " cd web/gui2-fw-lib &&" +
           " jar xf ../../$(location :_gui2_fw_lib_tests) &&" +
           " jar xf $$ROOT/$${INSTALL_FILES[0]} &&" +
+          # next 2 lines needed for png file referenced from mast.component.css
+          " unzip -q $$ROOT/$(location //web/gui:onos-gui-data-for-gui2) web/gui/src/main/webapp/data/img/dropdown-icon.png &&" +
+          " mv web/gui/src/main/webapp/data projects/gui2-fw-lib/src/lib/mast/mast/ &&" +
           " chmod +x $$ROOT/web/gui2-fw-lib/node_modules/@angular/cli/bin/ng &&" +
           " export PATH=$$ROOT/$$(dirname $${NODE}):$$ROOT/web/gui2-fw-lib/node_modules/@angular/cli/bin:$$PATH &&" +
           " node -v > ../../$(location onos-gui2-fw-ng-ver.log) &&" +

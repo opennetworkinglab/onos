@@ -81,7 +81,7 @@ the local variable - this is used to display messages when keyboard shortcuts ar
                    [hostLabelToggle]="prefsState.hlbls"
                    [showHosts]="prefsState.hosts"
                    [highlightPorts]="prefsState.porthl"
-                   [scale]="1 / (2 * zoomDirective.zoomCached.sc)"
+                   [scale]="1 / (1.5 * zoomDirective.zoomCached.sc)"
                    (selectedNodeEvent)="nodeSelected($event)">
                 <svg:desc>The Force SVG component - contains all the devices, hosts and links</svg:desc>
             </svg:g>
