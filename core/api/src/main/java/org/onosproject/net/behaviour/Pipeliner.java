@@ -29,6 +29,16 @@ import org.onosproject.net.flowobjective.NextObjective;
 public interface Pipeliner extends HandlerBehaviour {
 
     /**
+     * Accumulator enabled property. Determines whether the accumulator is enabled.
+     * The accumulator is assumed to be disabled if this property is undefined.
+     *
+     * If enabled, the pipeliner will try to accumulate objectives and create
+     * batches of flow rules when possible.
+     *
+     */
+    String ACCUMULATOR_ENABLED = "accumulatorEnabled";
+
+    /**
      * Initializes the driver with context required for its operation.
      *
      * @param deviceId the deviceId
@@ -70,4 +80,5 @@ public interface Pipeliner extends HandlerBehaviour {
      *          an empty list if no groups were created
      */
     List<String> getNextMappings(NextGroup nextGroup);
+
 }

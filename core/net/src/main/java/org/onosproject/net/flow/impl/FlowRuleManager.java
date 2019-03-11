@@ -627,6 +627,7 @@ public class FlowRuleManager
                 // getProvider is customized to favor driverProvider
                 FlowRuleProvider flowRuleProvider = getProvider(deviceId);
                 if (flowRuleProvider != null) {
+                    log.trace("Sending {} flow rules to {}", batchOperation.size(), deviceId);
                     flowRuleProvider.executeBatch(batchOperation);
                 }
 
