@@ -198,7 +198,7 @@ public class InOrderFlowObjectiveManagerTest {
         mgr.deviceService = createMock(DeviceService.class);
         mgr.driverService = createMock(DriverService.class);
         mgr.flowObjectiveStore = createMock(FlowObjectiveStore.class);
-        mgr.activate();
+        mgr.activate(null);
 
         reset(mgr.flowObjectiveStore);
         offset = DEFAULT_OFFSET;

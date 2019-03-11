@@ -131,4 +131,13 @@ public final class OsgiPropertyConstants {
     public static final String AUDIT_LOGGER = "auditLogger";
     public static final String AUDIT_LOGGER_DEFAULT = "securityAudit";
 
+    public static final String FOM_ACCUMULATOR_MAX_OBJECTIVES = "accumulatorMaxObjectives";
+    public static final int FOM_ACCUMULATOR_MAX_OBJECTIVES_DEFAULT = 1000;
+
+    public static final String FOM_ACCUMULATOR_MAX_IDLE_MILLIS = "accumulatorMaxIdleMillis";
+    public static final int FOM_ACCUMULATOR_MAX_IDLE_MILLIS_DEFAULT = 10;
+
+    public static final String FOM_ACCUMULATOR_MAX_BATCH_MILLIS = "accumulatorMaxBatchMillis";
+    public static final int FOM_ACCUMULATOR_MAX_BATCH_MILLIS_DEFAULT = 500;
+
 }

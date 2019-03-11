@@ -38,4 +38,32 @@ public interface PipelinerContext {
     FlowObjectiveStore store();
 
     // TODO: add means to store and access shared state
+
+    /**
+     * Returns the maximum number of objectives to accumulate before processing is triggered.
+     *
+     * @return the maximum number of objectives. -1 if the method is not implemented.
+     */
+    default int accumulatorMaxObjectives() {
+        return -1;
+    }
+
+    /**
+     * Returns the maximum number of millis between objectives before processing is triggered.
+     *
+     * @return the maximum number of millis between objectives. -1 if the method is not implemented.
+     */
+    default int accumulatorMaxIdleMillis() {
+        return -1;
+    }
+
+    /**
+     * Returns the maximum number of millis allowed since the first objective before processing is triggered.
+     *
+     * @return the maximum number of millis allowed since the first objective. -1 if the method is not implemented.
+     */
+    default int accumulatorMaxBatchMillis() {
+        return -1;
+    }
+
 }

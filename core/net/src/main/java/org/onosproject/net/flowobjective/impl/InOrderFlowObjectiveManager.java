@@ -42,6 +42,7 @@ import org.onosproject.net.flowobjective.ObjectiveQueueKey;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,8 +86,8 @@ public class InOrderFlowObjectiveManager extends FlowObjectiveManager {
     final FlowObjectiveStoreDelegate delegate = new InternalStoreDelegate();
 
     @Activate
-    protected void activate() {
-        super.activate();
+    protected void activate(ComponentContext context) {
+        super.activate(context);
 
         filtCacheEventExecutor = newSingleThreadExecutor(groupedThreads("onos/flowobj", "cache-event-filt", log));
         fwdCacheEventExecutor = newSingleThreadExecutor(groupedThreads("onos/flowobj", "cache-event-fwd", log));
