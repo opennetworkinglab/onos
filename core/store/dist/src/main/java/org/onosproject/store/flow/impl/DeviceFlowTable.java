@@ -313,28 +313,40 @@ public class DeviceFlowTable {
      * @return a future to be completed with the function result once it has been run
      */
     private <T> CompletableFuture<T> runInTerm(FlowId flowId, BiFunction<FlowBucket, Long, T> function) {
+        DeviceReplicaInfo replicaInfo = lifecycleManager.getReplicaInfo();
+        if (!replicaInfo.isMaster(localNodeId)) {
+            return Tools.exceptionalFuture(new IllegalStateException());
+        }
+
+        FlowBucket bucket = getBucket(flowId);
+
+        // If the master's term is not currently active (has not been synchronized with prior replicas), enqueue
+        // the change to be executed once the master has been synchronized.
+        final long term = replicaInfo.term();
         CompletableFuture<T> future = new CompletableFuture<>();
-        executor.execute(() -> {
-            DeviceReplicaInfo replicaInfo = lifecycleManager.getReplicaInfo();
-            if (!replicaInfo.isMaster(localNodeId)) {
-                future.completeExceptionally(new IllegalStateException());
-                return;
-            }
-
-            FlowBucket bucket = getBucket(flowId);
-
-            // If the master's term is not currently active (has not been synchronized with prior replicas), enqueue
-            // the change to be executed once the master has been synchronized.
-            final long term = replicaInfo.term();
-            if (activeTerm < term) {
-                log.debug("Enqueueing operation for device {}", deviceId);
-                flowTasks.computeIfAbsent(bucket.bucketId().bucket(), b -> new LinkedList<>())
-                        .add(() -> future.complete(function.apply(bucket, term)));
-            } else {
-                future.complete(function.apply(bucket, term));
-            }
-        });
+        if (activeTerm < term) {
+            log.debug("Enqueueing operation for device {}", deviceId);
+            flowTasks.computeIfAbsent(bucket.bucketId().bucket(), b -> new LinkedList<>())
+                    .add(() -> future.complete(apply(function, bucket, term)));
+        } else {
+            future.complete(apply(function, bucket, term));
+        }
         return future;
+    }
+
+    /**
+     * Applies the given function to the given bucket.
+     *
+     * @param function the function to apply
+     * @param bucket the bucket to which to apply the function
+     * @param term the term in which to apply the function
+     * @param <T> the expected result type
+     * @return the function result
+     */
+    private <T> T apply(BiFunction<FlowBucket, Long, T> function, FlowBucket bucket, long term) {
+        synchronized (bucket) {
+            return function.apply(bucket, term);
+        }
     }
 
     /**
@@ -483,7 +495,9 @@ public class DeviceFlowTable {
         if (log.isDebugEnabled()) {
             log.debug("Backing up {} flow entries in bucket {} to {}", bucket.count(), bucket.bucketId(), nodeId);
         }
-        return sendWithTimestamp(bucket, backupSubject, nodeId);
+        synchronized (bucket) {
+            return sendWithTimestamp(bucket, backupSubject, nodeId);
+        }
     }
 
     /**
