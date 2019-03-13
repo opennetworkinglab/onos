@@ -1,6 +1,9 @@
+# Prefix string to remove from proto import statements
+IMPORT_PREFIX = "github.com/openconfig/gnmi/proto/"
+
 proto_library(
     name = "gnmi_proto",
-    srcs = ["gnmi/gnmi.proto"],
+    srcs = [":gnmi_proto_sed"],
     deps = [
         ":gnmi_ext_proto",
         "@com_google_protobuf//:descriptor_proto",
@@ -9,9 +12,17 @@ proto_library(
     visibility = ["//visibility:public"],
 )
 
-
 proto_library(
     name = "gnmi_ext_proto",
     srcs = ["gnmi_ext/gnmi_ext.proto"],
     visibility = ["//visibility:public"],
+)
+
+
+genrule(
+    name = "gnmi_proto_sed",
+    srcs = [":gnmi/gnmi.proto"],
+    outs = ["new/gnmi/gnmi.proto"],
+    cmd = "sed -e 's:import \"%s:import \":g' $(location :gnmi/gnmi.proto) > \"$@\""
+        % IMPORT_PREFIX,
 )
