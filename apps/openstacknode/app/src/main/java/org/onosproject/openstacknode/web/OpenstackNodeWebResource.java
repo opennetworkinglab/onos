@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
+import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeAdminService;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
@@ -46,6 +47,7 @@ import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static javax.ws.rs.core.Response.created;
 import static org.onlab.util.Tools.nullIsIllegal;
 import static org.onlab.util.Tools.readTreeFromStream;
+import static org.onosproject.openstacknode.api.NodeState.INCOMPLETE;
 
 /**
  * Handles REST API call of openstack node config.
@@ -62,6 +64,7 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
     private static final String NODE_ID = "NODE_ID";
     private static final String DELETE = "DELETE";
     private static final String QUERY = "QUERY";
+    private static final String INIT = "INIT";
 
     private static final String HOST_NAME = "hostname";
     private static final String ERROR_MESSAGE = " cannot be null";
@@ -178,6 +181,69 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
             osJsonNodes.add(codec(OpenstackNode.class).encode(osNode, this));
         }
         return ok(root).build();
+    }
+
+    /**
+     * Initializes openstack node.
+     *
+     * @param hostname hostname of openstack node
+     * @return 200 OK with init result, 404 not found, 500 server error
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("init/node/{hostname}")
+    public Response initNode(@PathParam("hostname") String hostname) {
+        log.trace(String.format(MESSAGE_NODE, QUERY));
+
+        OpenstackNode osNode = osNodeService.node(hostname);
+        if (osNode == null) {
+            log.error("Given node {} does not exist", hostname);
+            return Response.serverError().build();
+        }
+        OpenstackNode updated = osNode.updateState(NodeState.INIT);
+        osNodeAdminService.updateNode(updated);
+        return ok(mapper().createObjectNode()).build();
+    }
+
+    /**
+     * Initializes all openstack nodes.
+     *
+     * @return 200 OK with init result, 500 server error
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("init/all")
+    public Response initAllNodes() {
+        log.trace(String.format(MESSAGE_NODE, QUERY));
+
+        osNodeService.nodes()
+                .forEach(n -> {
+                    OpenstackNode updated = n.updateState(NodeState.INIT);
+                    osNodeAdminService.updateNode(updated);
+                });
+
+        return ok(mapper().createObjectNode()).build();
+    }
+
+    /**
+     * Initializes incomplete openstack nodes.
+     *
+     * @return 200 OK with init result, 500 server error
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("init/incomplete")
+    public Response initIncompleteNodes() {
+        log.trace(String.format(MESSAGE_NODE, QUERY));
+
+        osNodeService.nodes().stream()
+                .filter(n -> n.state() == INCOMPLETE)
+                .forEach(n -> {
+                    OpenstackNode updated = n.updateState(NodeState.INIT);
+                    osNodeAdminService.updateNode(updated);
+                });
+
+        return ok(mapper().createObjectNode()).build();
     }
 
     private Set<OpenstackNode> readNodeConfiguration(InputStream input) {
