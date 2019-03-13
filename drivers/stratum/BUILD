@@ -2,6 +2,7 @@ COMPILE_DEPS = CORE_DEPS + KRYO + JACKSON + [
     "@io_grpc_grpc_java//core",
     "//drivers/p4runtime:onos-drivers-p4runtime",
     "//drivers/gnmi:onos-drivers-gnmi",
+    "//drivers/gnoi:onos-drivers-gnoi",
     "//pipelines/basic:onos-pipelines-basic",
 ]
 
@@ -18,6 +19,7 @@ onos_app(
     required_apps = [
         "org.onosproject.generaldeviceprovider",
         "org.onosproject.drivers.gnmi",
+        "org.onosproject.drivers.gnoi",
         "org.onosproject.drivers.p4runtime",
         "org.onosproject.pipelines.basic",
     ],

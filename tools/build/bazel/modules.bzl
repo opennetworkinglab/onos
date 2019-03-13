@@ -104,6 +104,7 @@ ONOS_DRIVERS = [
     "//drivers/hp:onos-drivers-hp-oar",
     "//drivers/p4runtime:onos-drivers-p4runtime-oar",
     "//drivers/gnmi:onos-drivers-gnmi-oar",
+    "//drivers/gnoi:onos-drivers-gnoi-oar",
     "//drivers/polatis/netconf:onos-drivers-polatis-netconf-oar",
     "//drivers/polatis/openflow:onos-drivers-polatis-openflow-oar",
     "//drivers/odtn-driver:onos-drivers-odtn-driver-oar",
@@ -256,6 +257,7 @@ PROTOCOL_APPS = [
     "//protocols/grpc:onos-protocols-grpc-oar",
     "//protocols/p4runtime:onos-protocols-p4runtime-oar",
     "//protocols/gnmi:onos-protocols-gnmi-oar",
+    "//protocols/gnoi:onos-protocols-gnoi-oar",
     "//protocols/xmpp/core:onos-protocols-xmpp-core-oar",
     "//protocols/xmpp/pubsub:onos-protocols-xmpp-pubsub-oar",
 ]

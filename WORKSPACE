@@ -80,6 +80,10 @@ load("//tools/build/bazel:gnmi_workspace.bzl", "generate_gnmi")
 
 generate_gnmi()
 
+load("//tools/build/bazel:gnoi_workspace.bzl", "generate_gnoi")
+
+generate_gnoi()
+
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
 git_repository(

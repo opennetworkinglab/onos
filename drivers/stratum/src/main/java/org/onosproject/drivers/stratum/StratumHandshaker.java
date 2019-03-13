@@ -17,6 +17,7 @@
 package org.onosproject.drivers.stratum;
 
 import org.onosproject.drivers.gnmi.GnmiHandshaker;
+import org.onosproject.drivers.gnoi.GnoiHandshaker;
 import org.onosproject.drivers.p4runtime.P4RuntimeHandshaker;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.device.DeviceAgentListener;
@@ -33,7 +34,7 @@ public class StratumHandshaker
         implements DeviceHandshaker {
 
     public StratumHandshaker() {
-        super(new P4RuntimeHandshaker(), new GnmiHandshaker());
+        super(new P4RuntimeHandshaker(), new GnmiHandshaker(), new GnoiHandshaker());
     }
 
     @Override
@@ -89,17 +90,19 @@ public class StratumHandshaker
     @Override
     public CompletableFuture<Boolean> connect() {
         // We should execute connections in parallel.
-        return p4runtime.connect().thenCombine(gnmi.connect(), Boolean::logicalAnd);
+        return p4runtime.connect().thenCombine(gnmi.connect(), Boolean::logicalAnd)
+                .thenCombine(gnoi.connect(), Boolean::logicalAnd);
     }
 
     @Override
     public boolean isConnected() {
-        return p4runtime.isConnected() && gnmi.isConnected();
+        return p4runtime.isConnected() && gnmi.isConnected() && gnoi.isConnected();
     }
 
     @Override
     public void disconnect() {
         p4runtime.disconnect();
         gnmi.disconnect();
+        gnoi.disconnect();
     }
 }

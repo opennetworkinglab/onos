@@ -16,7 +16,7 @@
   -->
 <drivers>
     <driver name="stratum" manufacturer="Open Networking Foundation"
-            hwVersion="master" swVersion="Stratum" extends="p4runtime,gnmi">
+            hwVersion="master" swVersion="Stratum" extends="p4runtime,gnmi,gnoi">
         <behaviour api="org.onosproject.net.device.DeviceHandshaker"
                    impl="org.onosproject.drivers.stratum.StratumHandshaker"/>
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"

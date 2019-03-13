@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package org.onosproject.drivers.stratum;
+package org.onosproject.drivers.gnoi;
 
-import org.onosproject.drivers.gnmi.OpenConfigGnmiDeviceDescriptionDiscovery;
-import org.onosproject.drivers.gnoi.GnoiDeviceDescriptionDiscovery;
-import org.onosproject.drivers.p4runtime.P4RuntimeDeviceDescriptionDiscovery;
+import org.onlab.packet.ChassisId;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
@@ -27,31 +25,20 @@ import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceDescriptionDiscovery;
 import org.onosproject.net.device.PortDescription;
 
+import java.util.Collections;
 import java.util.List;
 
-import static java.lang.String.format;
-
 /**
- * Implementation of DeviceDescriptionDiscovery for Stratum devices.
+ * Implementation of DeviceDescriptionDiscovery for gNOI devices.
  */
-public class StratumDeviceDescriptionDiscovery
-        extends AbstractStratumBehaviour<DeviceDescriptionDiscovery>
-        implements DeviceDescriptionDiscovery {
+public class GnoiDeviceDescriptionDiscovery
+        extends AbstractGnoiHandlerBehaviour implements DeviceDescriptionDiscovery {
 
     private static final String UNKNOWN = "unknown";
 
-
-    public StratumDeviceDescriptionDiscovery() {
-        super(new P4RuntimeDeviceDescriptionDiscovery(),
-              new OpenConfigGnmiDeviceDescriptionDiscovery(),
-              new GnoiDeviceDescriptionDiscovery());
-    }
-
     @Override
     public DeviceDescription discoverDeviceDetails() {
-        final DeviceDescription p4Descr = p4runtime.discoverDeviceDetails();
-        final DeviceDescription gnoiDescr = gnoi.discoverDeviceDetails();
-        final DeviceDescription gnmiDescr = gnmi.discoverDeviceDetails();
+
         return new DefaultDeviceDescription(
                 data().deviceId().uri(),
                 Device.Type.SWITCH,
@@ -59,20 +46,16 @@ public class StratumDeviceDescriptionDiscovery
                 data().driver().hwVersion(),
                 data().driver().swVersion(),
                 UNKNOWN,
-                p4Descr.chassisId(),
-                // Availability is mandated by P4Runtime.
-                p4Descr.isDefaultAvailable(),
+                new ChassisId(),
+                false,
                 DefaultAnnotations.builder()
-                        .set(AnnotationKeys.PROTOCOL, format(
-                                "%s, %s, %s",
-                                p4Descr.annotations().value(AnnotationKeys.PROTOCOL),
-                                gnoiDescr.annotations().value(AnnotationKeys.PROTOCOL),
-                                gnmiDescr.annotations().value(AnnotationKeys.PROTOCOL)))
+                        .set(AnnotationKeys.PROTOCOL, "gNOI")
                         .build());
     }
 
+
     @Override
     public List<PortDescription> discoverPortDetails() {
-        return gnmi.discoverPortDetails();
+        return Collections.emptyList();
     }
 }

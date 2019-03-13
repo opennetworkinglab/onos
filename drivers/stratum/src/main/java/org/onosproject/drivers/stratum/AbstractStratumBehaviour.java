@@ -32,10 +32,12 @@ public abstract class AbstractStratumBehaviour<B extends HandlerBehaviour>
 
     protected B p4runtime;
     protected B gnmi;
+    protected B gnoi;
 
-    public AbstractStratumBehaviour(B p4runtime, B gnmi) {
+    public AbstractStratumBehaviour(B p4runtime, B gnmi, B gnoi) {
         this.p4runtime = p4runtime;
         this.gnmi = gnmi;
+        this.gnoi = gnoi;
     }
 
     @Override
@@ -43,6 +45,7 @@ public abstract class AbstractStratumBehaviour<B extends HandlerBehaviour>
         super.setHandler(handler);
         p4runtime.setHandler(handler);
         gnmi.setHandler(handler);
+        gnoi.setHandler(handler);
     }
 
     @Override
@@ -50,5 +53,6 @@ public abstract class AbstractStratumBehaviour<B extends HandlerBehaviour>
         super.setData(data);
         p4runtime.setData(data);
         gnmi.setData(data);
+        gnoi.setData(data);
     }
 }

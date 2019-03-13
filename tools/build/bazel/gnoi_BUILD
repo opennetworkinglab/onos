@@ -1,0 +1,47 @@
+# Prefix string to remove from proto import statements
+IMPORT_PREFIX_COMMON = "github.com/openconfig/gnoi/common/"
+IMPORT_PREFIX = "github.com/openconfig/gnoi/"
+
+proto_library(
+    name = "gnoi_system_proto",
+    srcs = [":gnoi_system_sed"],
+    deps = [
+        ":gnoi_types_proto",
+        ":gnoi_common_proto",
+        "@com_google_protobuf//:any_proto",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "gnoi_types_proto",
+    srcs = ["types/types.proto"],
+    deps = [
+        "@com_google_protobuf//:descriptor_proto",
+        "@com_google_protobuf//:any_proto",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "gnoi_common_proto",
+    srcs = [":gnoi_common_sed"],
+    deps = [":gnoi_types_proto"],
+    visibility = ["//visibility:public"],
+)
+
+genrule(
+    name = "gnoi_common_sed",
+    srcs = ["common/common.proto"],
+    outs = ["common.proto"],
+    cmd = "sed -e 's:import \"%s:import \":g' $(location common/common.proto) > \"$@\""
+        % IMPORT_PREFIX,
+)
+
+genrule(
+    name = "gnoi_system_sed",
+    srcs = ["system/system.proto"],
+    outs = ["system.proto"],
+    cmd = "sed -e 's:import \"%s:import \":g' -e 's:import \"%s:import \":g' $(location system/system.proto) > \"$@\""
+        % (IMPORT_PREFIX_COMMON, IMPORT_PREFIX),
+)

@@ -1,0 +1,33 @@
+COMPILE_DEPS = CORE_DEPS + KRYO + [
+    "@com_google_protobuf//:protobuf_java",
+    "@io_grpc_grpc_java//core",
+    "@io_grpc_grpc_java//netty",
+    "@io_grpc_grpc_java//stub",
+    "//protocols/gnoi/stub:onos-protocols-gnoi-stub",
+    "//protocols/gnoi/api:onos-protocols-gnoi-api",
+    "//protocols/grpc/api:onos-protocols-grpc-api",
+]
+
+BUNDLES = [
+    ":onos-drivers-gnoi",
+]
+
+osgi_jar(
+    resources = glob(["src/main/resources/**"]),
+    resources_root = "src/main/resources",
+    deps = COMPILE_DEPS,
+)
+
+onos_app(
+    app_name = "org.onosproject.drivers.gnoi",
+    category = "Drivers",
+    description = "Adds support for devices using gNOI protocol based on " +
+                  " openconfig proto definitions: https://github.com/openconfig/gnoi/ .",
+    included_bundles = BUNDLES,
+    required_apps = [
+        "org.onosproject.generaldeviceprovider",
+        "org.onosproject.protocols.gnoi",
+    ],
+    title = "gNOI Drivers",
+    url = "https://github.com/openconfig/gnoi/",
+)
