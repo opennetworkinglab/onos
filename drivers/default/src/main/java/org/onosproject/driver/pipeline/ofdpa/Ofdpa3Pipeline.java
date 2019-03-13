@@ -113,132 +113,132 @@ public class Ofdpa3Pipeline extends Ofdpa2Pipeline {
                                  ApplicationId applicationId) {
 
         // Check if filter is intended for pseudowire
-        boolean isPw = isPseudowire(filteringObjective);
+        // boolean isPw = isPseudowire(filteringObjective);
 
-        if (isPw) {
-            FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
-            PortCriterion portCriterion;
+        // if (isPw) {
+        //     FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
+        //     PortCriterion portCriterion;
 
-            VlanIdCriterion innerVlanIdCriterion = null;
-            for (Criterion criterion : filteringObjective.conditions()) {
-                if (criterion.type() == INNER_VLAN_VID) {
-                    innerVlanIdCriterion = (VlanIdCriterion) criterion;
-                    break;
-                }
-            }
+        //     VlanIdCriterion innerVlanIdCriterion = null;
+        //     for (Criterion criterion : filteringObjective.conditions()) {
+        //         if (criterion.type() == INNER_VLAN_VID) {
+        //             innerVlanIdCriterion = (VlanIdCriterion) criterion;
+        //             break;
+        //         }
+        //     }
 
-            VlanIdCriterion outerVlanIdCriterion = null;
-            // We extract the expected port criterion in the key.
-            portCriterion = (PortCriterion) filteringObjective.key();
-            // We extract the outer vlan id criterion.
-            for (Criterion criterion : filteringObjective.conditions()) {
-                if (criterion.type() == VLAN_VID) {
-                    outerVlanIdCriterion = (VlanIdCriterion) criterion;
-                    break;
-                }
-            }
+        //     VlanIdCriterion outerVlanIdCriterion = null;
+        //     // We extract the expected port criterion in the key.
+        //     portCriterion = (PortCriterion) filteringObjective.key();
+        //     // We extract the outer vlan id criterion.
+        //     for (Criterion criterion : filteringObjective.conditions()) {
+        //         if (criterion.type() == VLAN_VID) {
+        //             outerVlanIdCriterion = (VlanIdCriterion) criterion;
+        //             break;
+        //         }
+        //     }
 
-            // We extract the tunnel id.
-            long tunnelId;
-            VlanId egressVlan;
+        //     // We extract the tunnel id.
+        //     long tunnelId;
+        //     VlanId egressVlan;
 
-            if (filteringObjective.meta() != null &&
-                    filteringObjective.meta().allInstructions().size() != 2) {
-                log.warn("Bad filtering objective from app: {}. Not"
-                                 + "processing filtering objective", applicationId);
-                fail(filteringObjective, ObjectiveError.BADPARAMS);
-                return;
-            } else if (filteringObjective.meta() != null &&
-                    filteringObjective.meta().allInstructions().size() == 2 &&
-                    filteringObjective.meta().allInstructions().get(0).type() == L2MODIFICATION &&
-                    filteringObjective.meta().allInstructions().get(1).type() == L2MODIFICATION) {
+        //     if (filteringObjective.meta() != null &&
+        //             filteringObjective.meta().allInstructions().size() != 2) {
+        //         log.warn("Bad filtering objective from app: {}. Not"
+        //                          + "processing filtering objective", applicationId);
+        //         fail(filteringObjective, ObjectiveError.BADPARAMS);
+        //         return;
+        //     } else if (filteringObjective.meta() != null &&
+        //             filteringObjective.meta().allInstructions().size() == 2 &&
+        //             filteringObjective.meta().allInstructions().get(0).type() == L2MODIFICATION &&
+        //             filteringObjective.meta().allInstructions().get(1).type() == L2MODIFICATION) {
 
-                L2ModificationInstruction l2instruction = (L2ModificationInstruction)
-                        filteringObjective.meta().allInstructions().get(0);
+        //         L2ModificationInstruction l2instruction = (L2ModificationInstruction)
+        //                 filteringObjective.meta().allInstructions().get(0);
 
-                if (l2instruction.subtype() != L2SubType.TUNNEL_ID) {
-                    log.warn("Bad filtering objective from app: {}. Not"
-                                     + "processing filtering objective", applicationId);
-                    fail(filteringObjective, ObjectiveError.BADPARAMS);
-                    return;
-                } else {
-                    tunnelId = ((ModTunnelIdInstruction) l2instruction).tunnelId();
-                }
+        //         if (l2instruction.subtype() != L2SubType.TUNNEL_ID) {
+        //             log.warn("Bad filtering objective from app: {}. Not"
+        //                              + "processing filtering objective", applicationId);
+        //             fail(filteringObjective, ObjectiveError.BADPARAMS);
+        //             return;
+        //         } else {
+        //             tunnelId = ((ModTunnelIdInstruction) l2instruction).tunnelId();
+        //         }
 
-                L2ModificationInstruction vlanInstruction = (L2ModificationInstruction)
-                        filteringObjective.meta().allInstructions().get(1);
+        //         L2ModificationInstruction vlanInstruction = (L2ModificationInstruction)
+        //                 filteringObjective.meta().allInstructions().get(1);
 
-                if (vlanInstruction.subtype() != L2SubType.VLAN_ID) {
-                    log.warn("Bad filtering objective from app: {}. Not"
-                                     + "processing filtering objective", applicationId);
-                    fail(filteringObjective, ObjectiveError.BADPARAMS);
-                    return;
-                } else {
-                    egressVlan = ((L2ModificationInstruction.ModVlanIdInstruction) vlanInstruction).vlanId();
-                }
-            } else {
-                log.warn("Bad filtering objective from app: {}. Not"
-                                 + "processing filtering objective", applicationId);
-                fail(filteringObjective, ObjectiveError.BADPARAMS);
-                return;
-            }
+        //         if (vlanInstruction.subtype() != L2SubType.VLAN_ID) {
+        //             log.warn("Bad filtering objective from app: {}. Not"
+        //                              + "processing filtering objective", applicationId);
+        //             fail(filteringObjective, ObjectiveError.BADPARAMS);
+        //             return;
+        //         } else {
+        //             egressVlan = ((L2ModificationInstruction.ModVlanIdInstruction) vlanInstruction).vlanId();
+        //         }
+        //     } else {
+        //         log.warn("Bad filtering objective from app: {}. Not"
+        //                          + "processing filtering objective", applicationId);
+        //         fail(filteringObjective, ObjectiveError.BADPARAMS);
+        //         return;
+        //     }
 
-            // Mpls tunnel ids according to the OFDPA manual have to be
-            // in the range [2^17-1, 2^16].
-            tunnelId = MPLS_TUNNEL_ID_BASE | tunnelId;
-            // Sanity check for the filtering objective.
-            if (portCriterion == null ||
-                    outerVlanIdCriterion == null ||
-                    tunnelId > MPLS_TUNNEL_ID_MAX) {
-                log.warn("Bad filtering objective from app: {}. Not"
-                                 + "processing filtering objective", applicationId);
-                fail(filteringObjective, ObjectiveError.BADPARAMS);
-                return;
-            }
-            // 0x0000XXXX is UNI interface.
-            if (portCriterion.port().toLong() > MPLS_UNI_PORT_MAX) {
-                log.error("Filtering Objective invalid logical port {}",
-                          portCriterion.port().toLong());
-                fail(filteringObjective, ObjectiveError.BADPARAMS);
-                return;
-            }
+        //     // Mpls tunnel ids according to the OFDPA manual have to be
+        //     // in the range [2^17-1, 2^16].
+        //     tunnelId = MPLS_TUNNEL_ID_BASE | tunnelId;
+        //     // Sanity check for the filtering objective.
+        //     if (portCriterion == null ||
+        //             outerVlanIdCriterion == null ||
+        //             tunnelId > MPLS_TUNNEL_ID_MAX) {
+        //         log.warn("Bad filtering objective from app: {}. Not"
+        //                          + "processing filtering objective", applicationId);
+        //         fail(filteringObjective, ObjectiveError.BADPARAMS);
+        //         return;
+        //     }
+        //     // 0x0000XXXX is UNI interface.
+        //     if (portCriterion.port().toLong() > MPLS_UNI_PORT_MAX) {
+        //         log.error("Filtering Objective invalid logical port {}",
+        //                   portCriterion.port().toLong());
+        //         fail(filteringObjective, ObjectiveError.BADPARAMS);
+        //         return;
+        //     }
 
-            // We create the flows.
-            List<FlowRule> pwRules = processPwFilter(portCriterion,
-                                                     innerVlanIdCriterion,
-                                                     outerVlanIdCriterion,
-                                                     tunnelId,
-                                                     applicationId,
-                                                     egressVlan
-            );
-            // We tag the flow for adding or for removing.
-            for (FlowRule pwRule : pwRules) {
-                log.debug("adding filtering rule in VLAN tables: {} for dev: {}",
-                          pwRule, deviceId);
-                ops = install ? ops.add(pwRule) : ops.remove(pwRule);
-            }
-            // We push the filtering rules for the pw.
-            flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
-                @Override
-                public void onSuccess(FlowRuleOperations ops) {
-                    log.info("Applied {} filtering rules in device {}",
-                             ops.stages().get(0).size(), deviceId);
-                    pass(filteringObjective);
-                }
+        //     // We create the flows.
+        //     List<FlowRule> pwRules = processPwFilter(portCriterion,
+        //                                              innerVlanIdCriterion,
+        //                                              outerVlanIdCriterion,
+        //                                              tunnelId,
+        //                                              applicationId,
+        //                                              egressVlan
+        //     );
+        //     // We tag the flow for adding or for removing.
+        //     for (FlowRule pwRule : pwRules) {
+        //         log.debug("adding filtering rule in VLAN tables: {} for dev: {}",
+        //                   pwRule, deviceId);
+        //         ops = install ? ops.add(pwRule) : ops.remove(pwRule);
+        //     }
+        //     // We push the filtering rules for the pw.
+        //     flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
+        //         @Override
+        //         public void onSuccess(FlowRuleOperations ops) {
+        //             log.info("Applied {} filtering rules in device {}",
+        //                      ops.stages().get(0).size(), deviceId);
+        //             pass(filteringObjective);
+        //         }
 
-                @Override
-                public void onError(FlowRuleOperations ops) {
-                    log.info("Failed to apply all filtering rules in dev {}", deviceId);
-                    fail(filteringObjective, ObjectiveError.FLOWINSTALLATIONFAILED);
-                }
-            }));
-        } else if (isDoubleTagged(filteringObjective)) {
-            processDoubleTaggedFilter(filteringObjective, install, applicationId);
-        } else {
-            // If it is not a pseudo wire flow or double-tagged filter, we fall back
-            // to the OFDPA 2.0 pipeline.
+        //         @Override
+        //         public void onError(FlowRuleOperations ops) {
+        //             log.info("Failed to apply all filtering rules in dev {}", deviceId);
+        //             fail(filteringObjective, ObjectiveError.FLOWINSTALLATIONFAILED);
+        //         }
+        //     }));
+        // } else if (isDoubleTagged(filteringObjective)) {
+        //     processDoubleTaggedFilter(filteringObjective, install, applicationId);
+        // } else {
+        //     // If it is not a pseudo wire flow or double-tagged filter, we fall back
+        //     // to the OFDPA 2.0 pipeline.
             super.processFilter(filteringObjective, install, applicationId);
-        }
+        // }
     }
 
     /**
@@ -643,6 +643,10 @@ public class Ofdpa3Pipeline extends Ofdpa2Pipeline {
         OutputInstruction outputInstruction = getOutputInstruction(fwd.treatment());
         if (modTunnelIdInstruction != null && outputInstruction != null) {
             return processTermPwVersatile(fwd, modTunnelIdInstruction, outputInstruction);
+        } else if (fwd.treatment() != null) {  //Not in onos 1.11.0
+            if (modTunnelIdInstruction != null && outputInstruction != null) {
+                return processTermPwVersatile(fwd, modTunnelIdInstruction, outputInstruction);
+            }
         }
         // If it is not a pseudo wire flow we fall back
         // to the OFDPA 2.0 pipeline.

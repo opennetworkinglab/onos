@@ -23,6 +23,8 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onosproject.driver.extensions.Ofdpa3MatchOvid;
+import org.onosproject.driver.extensions.OfdpaSetVlanVid;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.ConnectPoint;
@@ -54,10 +56,14 @@ import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
+import org.onosproject.driver.extensions.Ofdpa3SetOvid;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 import org.onosproject.net.flow.instructions.Instructions.NoActionInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.ObjectiveError;
@@ -71,6 +77,7 @@ import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.packet.PacketPriority;
+import org.onosproject.driver.extensions.OfdpaMatchVlanVid;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -209,13 +216,19 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
     protected void processFilter(FilteringObjective filteringObjective,
                                  boolean install,
                                  ApplicationId applicationId) {
+	
         if (isDoubleTagged(filteringObjective)) {
             processDoubleTaggedFilter(filteringObjective, install, applicationId);
-        } else {
+        }
+        else{
+            processFilterCpqd(filteringObjective, install, applicationId);
+        }
+            
+         //else {
             // If it is not a double-tagged filter, we fall back
             // to the OFDPA 2.0 pipeline.
-            super.processFilter(filteringObjective, install, applicationId);
-        }
+            //super.processFilter(filteringObjective, install, applicationId);
+        //}
     }
 
     /**
@@ -231,6 +244,172 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
                         L2ModificationInstruction.L2SubType.VLAN_POP) &&
                 fob.conditions().stream().filter(criterion -> criterion.type() == VLAN_VID).count() == 2;
     }
+    protected void processFilterCpqd(FilteringObjective filt,
+                                     boolean install,
+                                     ApplicationId applicationId){
+        // This driver only processes filtering criteria defined with switch
+        // ports as the key
+       
+        PortCriterion portCriterion = null;
+        EthCriterion ethCriterion = null;
+        VlanIdCriterion vidCriterion = null;
+        VlanIdCriterion innerVidCriterion = null;
+        boolean popAndSet;
+
+        if (!filt.key().equals(Criteria.dummy()) &&
+                filt.key().type() == Criterion.Type.IN_PORT) {
+            portCriterion = (PortCriterion) filt.key();
+        }
+        if (portCriterion == null) {
+            log.debug("No IN_PORT defined in filtering objective from app: {}",
+                    applicationId);
+        } else {
+            log.debug("Received filtering objective for dev/port: {}/{}", deviceId,
+                    portCriterion.port());
+        }
+        // convert filtering conditions for switch-intfs into flowrules
+        FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
+        for (Criterion criterion : filt.conditions()) {
+            switch (criterion.type()) {
+                case ETH_DST:
+
+                case ETH_DST_MASKED:
+                    ethCriterion = (EthCriterion) criterion;
+                    break;
+
+                case VLAN_VID:
+                    vidCriterion = (VlanIdCriterion) criterion;
+                    break;
+
+                case INNER_VLAN_VID:
+                    innerVidCriterion = (VlanIdCriterion) criterion;
+                    break;
+                default:
+                    log.warn("Unsupported filter {}", criterion);
+                    fail(filt, ObjectiveError.UNSUPPORTED);
+                    return;
+            }
+        }
+
+        VlanId assignedVlan = null;
+        if (vidCriterion != null) {
+            // Use the VLAN in criterion if metadata is not present and the traffic is tagged
+            if (!vidCriterion.vlanId().equals(VlanId.NONE)) {
+                assignedVlan = vidCriterion.vlanId();
+            }
+            // If the meta VLAN is present let's update the assigned vlan
+            if (filt.meta() != null) {
+                VlanId metaVlan = readVlanFromTreatment(filt.meta());
+                if (metaVlan != null) {
+                    assignedVlan = metaVlan;
+                }
+            }
+
+            if (assignedVlan == null) {
+                log.error("Driver fails to extract VLAN information. "
+                        + "Not processing VLAN filters on device {}.", deviceId);
+                log.debug("VLAN ID in criterion={}, metadata={}",
+                        readVlanFromTreatment(filt.meta()), vidCriterion.vlanId());
+                fail(filt, ObjectiveError.BADPARAMS);
+                return;
+            }
+        }
+
+        if (ethCriterion == null || ethCriterion.mac().equals(NONE)) {
+            // NOTE: it is possible that a filtering objective only has vidCriterion
+            log.debug("filtering objective missing dstMac, won't program TMAC table");
+        } else {
+            MacAddress unicastMac = readEthDstFromTreatment(filt.meta());
+            List<List<FlowRule>> allStages = processEthDstFilter(portCriterion, ethCriterion,
+                    vidCriterion, assignedVlan, unicastMac, applicationId);
+            for (List<FlowRule> flowRules : allStages) {
+                log.trace("Starting a new flow rule stage for TMAC table flow");
+                ops.newStage();
+
+                for (FlowRule flowRule : flowRules) {
+                    log.trace("{} flow rules in TMAC table: {} for dev: {}",
+                            (install) ? "adding" : "removing", flowRules, deviceId);
+                    if (install) {
+                        ops = ops.add(flowRule);
+                    } else {
+                        // NOTE: Only remove TMAC flow when there is no more enabled port within the
+                        // same VLAN on this device if TMAC doesn't support matching on in_port.
+                        if (matchInPortTmacTable() || (filt.meta() != null && filt.meta().clearedDeferred())) {
+                            ops = ops.remove(flowRule);
+                        } else {
+                            log.debug("Abort TMAC flow removal on {}. Some other ports still share this TMAC flow");
+                        }
+                    }
+                }
+            }
+        }
+
+        if (innerVidCriterion == null) {
+            // NOTE: it is possible that a filtering objective does not have innerVidCriteria  //Not in onos 1.11.0
+            log.debug("filtering objective missing INNER VLAN, "
+                    + "cannot program VLAN 1 Table");
+        } else if (vidCriterion != null) {
+            List<FlowRule> allRules = processInnerVlanIdFilter(
+                    portCriterion, vidCriterion, innerVidCriterion, applicationId, filt);
+
+            for (FlowRule filteringRule : allRules) {
+                log.debug("adding VLAN filtering rule in VLAN 1 table: {} for dev: {}",
+                        filteringRule, deviceId);
+                ops = install ? ops.add(filteringRule) : ops.remove(filteringRule);
+            }
+            ops.newStage();
+        }
+        if (vidCriterion == null) {
+            // NOTE: it is possible that a filtering objective only has ethCriterion
+            log.info("filtering objective missing VLAN, cannot program VLAN Table");
+        } else if ( !vidCriterion.vlanId().equals(VlanId.NONE) &&
+            (innerVidCriterion != null)) {
+            // readVlanFromTreatment(filt.meta()) != null) ) {  //Not in onos 1.11.0
+            List<FlowRule> allRules = processVlanIdFilterWithOvi(
+                portCriterion, vidCriterion, innerVidCriterion, applicationId, filt);
+            for (FlowRule filteringRule : allRules) {
+                log.debug("adding VLAN QinQ filtering rule in VLAN table: {} for dev: {}",
+                    filteringRule, deviceId);
+                ops = install ? ops.add(filteringRule) : ops.remove(filteringRule);
+            }
+            ops.newStage();
+        } else {
+            
+            List<List<FlowRule>> allStages = processVlanIdFilter(
+                    portCriterion, vidCriterion, assignedVlan, applicationId);  // Added for bypass
+            log.debug("processVlanIdFilter executed!");
+            for (List<FlowRule> flowRules : allStages) {
+                log.trace("Starting a new flow rule stage for VLAN table flow");
+                ops.newStage();
+
+                for (FlowRule flowRule : flowRules) {
+                    log.trace("{} flow rules in VLAN table: {} for dev: {}",
+                            (install) ? "adding" : "removing", flowRule, deviceId);
+                    ops = install ? ops.add(flowRule) : ops.remove(flowRule);
+                }
+            }
+        }
+
+        // apply filtering flow rules
+        flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
+            @Override
+            public void onSuccess(FlowRuleOperations ops) {
+                
+                log.debug("Applied {} filtering rules in device {}",
+                         ops.stages().get(0).size(), deviceId);
+                pass(filt);
+            }
+
+            @Override
+            public void onError(FlowRuleOperations ops) {
+                
+                log.info("Failed to apply all filtering rules in dev {}", deviceId);
+                fail(filt, ObjectiveError.FLOWINSTALLATIONFAILED);
+            }
+        }));
+
+    }
+
 
     /**
      * Determines if the forwarding objective will be used for double-tagged packets.
@@ -505,7 +684,7 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
     protected Collection<FlowRule> processEgress(ForwardingObjective fwd) {
         log.debug("Processing egress forwarding objective:{} in dev:{}",
                   fwd, deviceId);
-
+       log.error("entre al egress del cpqd");
         List<FlowRule> rules = new ArrayList<>();
 
         // Build selector
@@ -670,6 +849,7 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
                                                  VlanIdCriterion vidCriterion,
                                                  VlanId assignedVlan,
                                                  ApplicationId applicationId) {
+        
         List<FlowRule> rules = new ArrayList<>();
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
@@ -677,6 +857,7 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
         treatment.transition(TMAC_TABLE);
 
         if (vidCriterion.vlanId() == VlanId.NONE) {
+            
             // untagged packets are assigned vlans
             treatment.pushVlan().setVlanId(assignedVlan);
         } else if (!vidCriterion.vlanId().equals(assignedVlan)) {
@@ -1406,6 +1587,17 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
                 .makePermanent()
                 .forTable(PUNT_TABLE).build();
         ops.add(bbdpRule);
+       
+        TrafficSelector selector = DefaultTrafficSelector.builder().build();
+        FlowRule probeRule = DefaultFlowRule.builder()
+		.forDevice(deviceId)
+  		.withSelector(selector)
+		.withTreatment(treatment)
+		.withPriority(LOWEST_PRIORITY)
+		.fromApp(driverId)
+		.makePermanent()
+        	.forTable(PUNT_TABLE).build();
+	ops.add(probeRule);
 
         flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
             @Override
@@ -1443,6 +1635,17 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
 
         log.info("Initialized pop vlan punt group on {}", deviceId);
     }
+    private static VlanId readVlanFromTreatment(TrafficTreatment treatment) {
+        if (treatment == null) {
+            return null;
+        }
+        for (Instruction i : treatment.allInstructions()) {
+            if (i instanceof ModVlanIdInstruction) {
+                return ((ModVlanIdInstruction) i).vlanId();
+            }
+        }
+        return null;
+    }
 
     /**
      * Generates group key for a static indirect group that pop vlan and punt to
@@ -1454,6 +1657,171 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
         int hash = POP_VLAN_PUNT_GROUP_ID | (Objects.hash(deviceId) & FOUR_BIT_MASK);
         return new DefaultGroupKey(Ofdpa2Pipeline.appKryo.serialize(hash));
     }
+    protected static MacAddress readEthDstFromTreatment(TrafficTreatment treatment) {
+        if (treatment == null) {
+            return null;
+        }
+        for (Instruction i : treatment.allInstructions()) {
+            if (i instanceof ModEtherInstruction) {
+                ModEtherInstruction modEtherInstruction = (ModEtherInstruction) i;
+                if (modEtherInstruction.subtype() == L2SubType.ETH_DST) {
+                    return modEtherInstruction.mac();
+                }
+            }
+        }
+        return null;
+    }
+     protected List<FlowRule> processInnerVlanIdFilter(PortCriterion portCriterion, //Not in onos 1.11.0
+                                                 VlanIdCriterion vidCriterion,
+                                                 VlanIdCriterion innerVidCriterion,
+                                                 ApplicationId applicationId, FilteringObjective filt) {
+        List<FlowRule> rules = new ArrayList<>();
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+        TrafficSelector.Builder preSelector = null;
+        TrafficTreatment.Builder preTreatment = null;
+
+        /*  Goto Instruction */
+        treatment.transition(VLAN_1_TABLE);
+
+        /*  Match: Inner VlanId */
+        if (requireVlanExtensions()) {
+            OfdpaMatchVlanVid ofdpaMatchVlanVid = new OfdpaMatchVlanVid(vidCriterion.vlanId());
+            selector.extension(ofdpaMatchVlanVid, deviceId);
+        } else {
+            selector.matchVlanId(vidCriterion.vlanId());
+        }
+
+        /*  Treatment: Set OVI metadata with the outer Vlan */
+        Ofdpa3SetOvid ofdpaSetOvid = new Ofdpa3SetOvid(vidCriterion.vlanId());
+        treatment.extension(ofdpaSetOvid, deviceId);
+
+        /*  Treatment: Pop Vlan*/
+        treatment.popVlan();
+
+        // ofdpa cannot match on ALL portnumber, so we need to use separate
+        // rules for each port.
+        List<PortNumber> portnums = new ArrayList<>();
+        if (portCriterion.port() == PortNumber.ALL) {
+            for (Port port : deviceService.getPorts(deviceId)) {
+                if (port.number().toLong() > 0 && port.number().toLong() < OFPP_MAX) {
+                    portnums.add(port.number());
+                }
+            }
+        } else {
+            portnums.add(portCriterion.port());
+        }
+
+        for (PortNumber pnum : portnums) {
+            selector.matchInPort(pnum);
+            FlowRule.Builder rule = DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .withSelector(selector.build())
+                .withTreatment(treatment.build())
+                .withPriority(DEFAULT_PRIORITY)
+                .fromApp(applicationId)
+                .forTable(VLAN_TABLE);
+            if (filt.permanent()) {
+                rule.makePermanent();
+            } else {
+                rule.makeTemporary(filt.timeout());
+            }
+
+            rules.add(rule.build());
+        }
+        return rules;
+    }
+    protected List<FlowRule> processVlanIdFilterWithOvi(PortCriterion portCriterion, //Not in onos 1.11.0
+                                                 VlanIdCriterion vidCriterion,
+                                                 VlanIdCriterion innerVidCriterion,
+                                                 ApplicationId applicationId, FilteringObjective filt) {
+        List<FlowRule> rules = new ArrayList<>();
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+        TrafficSelector.Builder preSelector = null;
+        TrafficTreatment.Builder preTreatment = null;
+
+        VlanId vlanFromTreatment = readVlanFromTreatment(filt.meta());
+
+        if (vlanFromTreatment == null)
+            vlanFromTreatment = vidCriterion.vlanId();
+
+        /*  Goto Instruction */
+        treatment.transition(TMAC_TABLE);
+
+        /*  Match: Inner VlanId */
+        if(innerVidCriterion != null)
+        {
+            if (requireVlanExtensions()) {
+                OfdpaMatchVlanVid ofdpaMatchVlanVid = new OfdpaMatchVlanVid(innerVidCriterion.vlanId());
+                selector.extension(ofdpaMatchVlanVid, deviceId);
+            } else {
+                selector.matchVlanId(innerVidCriterion.vlanId());
+            }
+             /*  Match: Outer Vlan Id */
+             Ofdpa3MatchOvid ofdpaMatchOvid = new Ofdpa3MatchOvid(vidCriterion.vlanId());
+             selector.extension(ofdpaMatchOvid, deviceId);
+        }
+        else
+        {
+            if (requireVlanExtensions()) {
+                OfdpaMatchVlanVid ofdpaMatchVlanVid = new OfdpaMatchVlanVid(vidCriterion.vlanId());
+                selector.extension(ofdpaMatchVlanVid, deviceId);
+            } else {
+                selector.matchVlanId(vidCriterion.vlanId());
+            }
+            treatment.pushVlan();
+        }
+
+        /*  Treatment: Set Outer Vlan tag */
+
+        if (requireVlanExtensions()) {
+            OfdpaSetVlanVid ofdpaSetVlanVid = new OfdpaSetVlanVid(vlanFromTreatment);
+            treatment.extension(ofdpaSetVlanVid, deviceId);
+        } else {
+            treatment.setVlanId(vlanFromTreatment);
+        }
+
+        // ofdpa cannot match on ALL portnumber, so we need to use separate
+        // rules for each port.
+        List<PortNumber> portnums = new ArrayList<>();
+        if (portCriterion.port() == PortNumber.ALL) {
+            for (Port port : deviceService.getPorts(deviceId)) {
+                if (port.number().toLong() > 0 && port.number().toLong() < OFPP_MAX) {
+                    portnums.add(port.number());
+                }
+            }
+        } else {
+            portnums.add(portCriterion.port());
+        }
+
+        for (PortNumber pnum : portnums) {
+            selector.matchInPort(pnum);
+            FlowRule.Builder rule = DefaultFlowRule.builder()
+                    .forDevice(deviceId)
+                    .withSelector(selector.build())
+                    .withTreatment(treatment.build())
+                    .withPriority(DEFAULT_PRIORITY)
+                    .fromApp(applicationId);
+
+            if (innerVidCriterion!=null){
+                rule.forTable(VLAN_1_TABLE);
+            } else {
+                rule.forTable(VLAN_TABLE);
+            }
+
+            if (filt.permanent()) {
+                rule.makePermanent();
+            } else {
+                rule.makeTemporary(filt.timeout());
+            }
+            rules.add(rule.build());
+        }
+        return rules;
+    }
+   
+
+
 
     private class PopVlanPuntGroupChecker implements Runnable {
         @Override

@@ -145,6 +145,7 @@ ONOS_PROVIDERS = [
 ONOS_APPS = [
     # Apps
     "//apps/dhcp:onos-apps-dhcp-oar",
+    "//apps/closfwd:onos-apps-closfwd-oar",
     "//apps/dhcprelay:onos-apps-dhcprelay-oar",
     "//apps/fwd:onos-apps-fwd-oar",
     "//apps/packet-stats:onos-apps-packet-stats-oar",
@@ -280,6 +281,7 @@ PIPELINES = [
 
 APP_JARS = [
     "//apps/cpman/api:onos-apps-cpman-api",
+    "//apps/closfwd:onos-apps-closfwd",
     "//apps/routing-api:onos-apps-routing-api",
     "//apps/dhcp/api:onos-apps-dhcp-api",
     "//apps/dhcp/app:onos-apps-dhcp-app",

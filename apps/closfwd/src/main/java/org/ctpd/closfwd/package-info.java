@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-present Open Networking Foundation
+ * Copyright 2014 Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.driver.pipeline.ofdpa;
-
 /**
- * Group handler that emulates Broadcom OF-DPA TTP on OVS.
+ * ClosFwd application handling CLOS network hardware.
  */
-public class OvsOfdpa2GroupHandler extends CpqdOfdpa2GroupHandler {
-    @Override
-    protected boolean supportCopyTtl() {
-        return false;
-    }
-
-    @Override
-    protected boolean supportSetMplsBos() {
-        return false;
-    }
-
-    @Override
-    protected boolean requireVlanPopBeforeMplsPush() {
-        return true;
-    }
-}
+package org.ctpd.closfwd;

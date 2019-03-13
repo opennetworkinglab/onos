@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-present Open Networking Foundation
+ * Copyright 2015-present Open Networking Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,18 @@
  * limitations under the License.
  */
 
-package org.onosproject.driver.pipeline.ofdpa;
+package org.ctpd.closfwd;
+
+import org.onlab.rest.AbstractWebApplication;
+
+import java.util.Set;
 
 /**
- * Group handler that emulates Broadcom OF-DPA TTP on OVS.
+ * ClosFwd Web application.
  */
-public class OvsOfdpa2GroupHandler extends CpqdOfdpa2GroupHandler {
+public class ClosFwdWebApplication extends AbstractWebApplication {
     @Override
-    protected boolean supportCopyTtl() {
-        return false;
-    }
-
-    @Override
-    protected boolean supportSetMplsBos() {
-        return false;
-    }
-
-    @Override
-    protected boolean requireVlanPopBeforeMplsPush() {
-        return true;
+    public Set<Class<?>> getClasses() {
+        return getClasses(ClosFwdWebResource.class);
     }
 }

@@ -430,13 +430,9 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         Criterion outerVlan = selector.getCriterion(Criterion.Type.VLAN_VID);
         Criterion innerVlan = selector.getCriterion(Criterion.Type.INNER_VLAN_VID);
         Criterion inport = selector.getCriterion(Criterion.Type.IN_PORT);
+        Criterion bullshit = Criteria.matchMetadata(output.port().toLong());
 
-        long cvid = ((VlanIdCriterion) innerVlan).vlanId().toShort();
-        long outPort = output.port().toLong() & 0x0FFFFFFFFL;
-
-        Criterion metadata = Criteria.matchMetadata((cvid << 32) | outPort);
-
-        if (outerVlan == null || inport == null) {
+        if (outerVlan == null || innerVlan == null || inport == null) {
             log.error("Forwarding objective is underspecified: {}", fwd);
             fail(fwd, ObjectiveError.BADPARAMS);
             return;
@@ -449,7 +445,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 .forDevice(deviceId)
                 .makePermanent()
                 .withPriority(fwd.priority())
-                .withSelector(buildSelector(inport, outerVlan, metadata))
+                .withSelector(buildSelector(inport, outerVlan, bullshit))
                 .withTreatment(buildTreatment(popAndRewrite.getLeft(),
                                               Instructions.transition(QQ_TABLE)));
 
@@ -514,6 +510,8 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
         VlanId cVlanId = ((L2ModificationInstruction.ModVlanIdInstruction)
                 innerPair.getRight()).vlanId();
+        
+        Criterion metadata = fwd.selector().getCriterion(Criterion.Type.METADATA);
 
         FlowRule.Builder outer = DefaultFlowRule.builder()
                 .fromApp(fwd.appId())
@@ -522,7 +520,8 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 .makePermanent()
                 .withPriority(fwd.priority())
                 .withSelector(buildSelector(inPort,
-                                            Criteria.matchVlanId(cVlanId)))
+                                            Criteria.matchVlanId(cVlanId),
+                                            metadata))
                 .withTreatment(buildTreatment(outerPair.getLeft(),
                                               outerPair.getRight(),
                                               output));

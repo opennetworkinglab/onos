@@ -25,17 +25,22 @@ COMPILE = [
     "@org_apache_karaf_system_core//jar",
     "@org_apache_servicemix_bundles_dom4j//jar",
     "@com_google_code_findbugs_jsr305//jar",
+    
 ]
 CORE_DEPS = [] + COMPILE + [
     "//core/api:onos-api",
     "//utils/misc:onlab-misc",
     "//utils/osgi:onlab-osgi",
 ]
+
+
+
 JAXB = [
     "@jaxb_api//jar",
     "@jaxb_core//jar",
     "@jaxb_impl//jar",
     "@javax_activation//jar",
+    "@javax_ws_rs_api//jar",
 ]
 TEST = [
     "@junit//jar",
@@ -105,6 +110,7 @@ KRYO = [
 ]
 CLI = [
     "@org_apache_karaf_shell_core//jar",
+    "@org_apache_karaf_shell_console//jar",
     "//cli:onos-cli",
 ]
 REST = [
