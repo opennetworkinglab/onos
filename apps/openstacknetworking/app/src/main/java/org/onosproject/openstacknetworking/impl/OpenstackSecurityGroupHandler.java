@@ -1107,7 +1107,7 @@ public class OpenstackSecurityGroupHandler {
 
         @Override
         public boolean isRelevant(OpenstackNodeEvent event) {
-            return event.subject().type() == COMPUTE;
+            return event.subject().type() == COMPUTE && useSecurityGroup;
         }
 
         private boolean isRelevantHelper() {
