@@ -84,8 +84,6 @@ import static org.onosproject.net.intent.IntentState.WITHDRAWN;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.optical.OchPort;
-import org.onosproject.net.ChannelSpacing;
-import org.onosproject.net.OchSignal;
 import org.onosproject.net.OduSignalType;
 
 import java.util.Objects;
@@ -253,7 +251,7 @@ public class ServiceApplicationComponent implements TapiConnectivityService  {
      */
     protected Intent createOpticalIntent(ConnectPoint ingress, ConnectPoint egress,
                                          Key key, ApplicationId appId) {
-        Intent intent = null;
+
         if (ingress == null || egress == null) {
             log.error("Invalid endpoint(s) for optical intent: ingress {}, egress {}",
                 ingress, egress);
@@ -268,19 +266,15 @@ public class ServiceApplicationComponent implements TapiConnectivityService  {
             return null;
         }
 
-        // OchSignal signal = new OchSignal(GridType.FLEX, ChannelSpacing.CHL_6P25GHZ, 1, 1);
-        OchSignal signal = OchSignal.newDwdmSlot(ChannelSpacing.CHL_50GHZ, 1);
         OduSignalType signalType = ((OchPort) srcPort).signalType();
-        intent = OpticalConnectivityIntent.builder()
+        return OpticalConnectivityIntent.builder()
             .appId(appId)
             .key(key)
             .src(ingress)
             .dst(egress)
             .signalType(signalType)
-            .bidirectional(true)
-            .ochSignal(signal)
+            .bidirectional(true) //TODO Revisit this.
             .build();
-        return intent;
     }
 
 
