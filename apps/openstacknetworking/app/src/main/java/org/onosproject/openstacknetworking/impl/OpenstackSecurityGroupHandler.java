@@ -589,7 +589,7 @@ public class OpenstackSecurityGroupHandler {
         } else if (netType == VXLAN || netType == GRE || netType == GENEVE) {
             sBuilder.matchTunnelId(Long.valueOf(segId));
         } else {
-            log.warn("Cannot tag the VID due to lack of support of virtual network type {}", netType);
+            log.debug("Cannot tag the VID due to lack of support of virtual network type {}", netType);
         }
     }
 
@@ -1107,7 +1107,7 @@ public class OpenstackSecurityGroupHandler {
 
         @Override
         public boolean isRelevant(OpenstackNodeEvent event) {
-            return event.subject().type() == COMPUTE && useSecurityGroup;
+            return event.subject().type() == COMPUTE;
         }
 
         private boolean isRelevantHelper() {
