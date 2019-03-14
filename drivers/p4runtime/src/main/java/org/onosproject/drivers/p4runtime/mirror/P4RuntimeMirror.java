@@ -107,4 +107,12 @@ public interface P4RuntimeMirror
      * @param request P4Runtime write request
      */
     void applyWriteRequest(P4RuntimeWriteClient.WriteRequest request);
+
+    /**
+     * Uses the given P4Runtime write response to update the state of this
+     * mirror.
+     *
+     * @param response P4Runtime write response
+     */
+    void applyWriteResponse(P4RuntimeWriteClient.WriteResponse response);
 }

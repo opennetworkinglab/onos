@@ -16,8 +16,11 @@
 
 package org.onosproject.drivers.p4runtime.mirror;
 
+import com.google.common.base.MoreObjects;
 import org.onosproject.net.pi.runtime.PiEntity;
 import org.onosproject.store.service.WallClockTimestamp;
+
+import java.util.Objects;
 
 public class TimedEntry<E extends PiEntity> {
 
@@ -40,5 +43,31 @@ public class TimedEntry<E extends PiEntity> {
     public long lifeSec() {
         final long now = new WallClockTimestamp().unixTimestamp();
         return (now - timestamp) / 1000;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(timestamp, entity);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final TimedEntry other = (TimedEntry) obj;
+        return Objects.equals(this.timestamp, other.timestamp)
+                && Objects.equals(this.entity, other.entity);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("timestamp", timestamp)
+                .add("entity", entity)
+                .toString();
     }
 }

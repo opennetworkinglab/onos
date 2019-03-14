@@ -28,7 +28,9 @@ import org.onosproject.net.pi.runtime.PiHandle;
 import org.onosproject.net.pi.service.PiPipeconfWatchdogEvent;
 import org.onosproject.net.pi.service.PiPipeconfWatchdogListener;
 import org.onosproject.net.pi.service.PiPipeconfWatchdogService;
-import org.onosproject.p4runtime.api.P4RuntimeWriteClient;
+import org.onosproject.p4runtime.api.P4RuntimeWriteClient.EntityUpdateRequest;
+import org.onosproject.p4runtime.api.P4RuntimeWriteClient.WriteRequest;
+import org.onosproject.p4runtime.api.P4RuntimeWriteClient.WriteResponse;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.StorageService;
@@ -233,9 +235,20 @@ public abstract class AbstractDistributedP4RuntimeMirror
     }
 
     @Override
+    public void applyWriteRequest(WriteRequest request) {
+        // Optimistically assume all requests will be successful.
+        applyUpdates(request.pendingUpdates());
+    }
+
+    @Override
+    public void applyWriteResponse(WriteResponse response) {
+        // Record only successful updates.
+        applyUpdates(response.success());
+    }
+
     @SuppressWarnings("unchecked")
-    public void applyWriteRequest(P4RuntimeWriteClient.WriteRequest request) {
-        request.pendingUpdates().stream()
+    private void applyUpdates(Collection<? extends EntityUpdateRequest> updates) {
+        updates.stream()
                 .filter(r -> r.entityType().equals(this.entityType))
                 .forEach(r -> {
                     switch (r.updateType()) {

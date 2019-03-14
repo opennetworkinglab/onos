@@ -173,23 +173,19 @@ public class P4RuntimeFlowRuleProgrammable
             // Trigger clean up of inconsistent entries.
             log.warn("Found {} inconsistent table entries on {}, removing them...",
                      inconsistentEntries.size(), deviceId);
-            final WriteRequest request = client.write(pipeconf)
-                    .entities(inconsistentEntries, DELETE);
-            WRITE_LOCKS.get(deviceId).lock();
-            // Update mirror and async submit delete request.
-            try {
-                tableMirror.applyWriteRequest(request);
-                request.submit().whenComplete((response, ex) -> {
-                    if (ex != null) {
-                        log.error("Exception removing inconsistent table entries", ex);
-                    } else {
-                        log.debug("Successfully removed {} out of {} inconsistent entries",
-                                  response.success().size(), response.all().size());
-                    }
-                });
-            } finally {
-                WRITE_LOCKS.get(deviceId).unlock();
-            }
+            // Submit delete request and update mirror when done.
+            client.write(pipeconf)
+                    .entities(inconsistentEntries, DELETE)
+                    .submit().whenComplete((response, ex) -> {
+                if (ex != null) {
+                    log.error("Exception removing inconsistent table entries", ex);
+                } else {
+                    log.debug("Successfully removed {} out of {} inconsistent entries",
+                              response.success().size(), response.all().size());
+                }
+                tableMirror.applyWriteResponse(response);
+            });
+
         }
 
         return result.build();
@@ -285,6 +281,7 @@ public class P4RuntimeFlowRuleProgrammable
         WRITE_LOCKS.get(deviceId).lock();
         try {
             for (FlowRule rule : rules) {
+                // Translate.
                 final PiTableEntry entry;
                 try {
                     entry = translator.translate(rule, pipeconf);
@@ -296,13 +293,22 @@ public class P4RuntimeFlowRuleProgrammable
                 }
                 final PiTableEntryHandle handle = entry.handle(deviceId);
                 handleToRuleMap.put(handle, rule);
+                // Update translation store.
+                if (driverOperation.equals(APPLY)) {
+                    translator.learn(handle, new PiTranslatedEntity<>(
+                            rule, entry, handle));
+                } else {
+                    translator.forget(handle);
+                }
                 // Append entry to batched write request (returns false), or skip (true)
                 if (appendEntryToWriteRequestOrSkip(
                         request, handle, entry, driverOperation)) {
                     skippedRules.add(rule);
-                    updateTranslationStore(
-                            driverOperation, handle, rule, entry);
                 }
+            }
+            if (request.pendingUpdates().isEmpty()) {
+                // All good. No need to write on device.
+                return rules;
             }
             // Update mirror.
             tableMirror.applyWriteRequest(request);
@@ -314,14 +320,14 @@ public class P4RuntimeFlowRuleProgrammable
         // Wait for response.
         final WriteResponse response = Futures.getUnchecked(futureResponse);
         // Derive successfully applied flow rule from response.
-        final List<FlowRule> appliedRules = getAppliedFlowRulesAndUpdateTranslator(
+        final List<FlowRule> appliedRules = getAppliedFlowRules(
                 response, handleToRuleMap, driverOperation);
         // Return skipped and applied rules.
         return ImmutableList.<FlowRule>builder()
                 .addAll(skippedRules).addAll(appliedRules).build();
     }
 
-    private List<FlowRule> getAppliedFlowRulesAndUpdateTranslator(
+    private List<FlowRule> getAppliedFlowRules(
             WriteResponse response,
             Map<PiHandle, FlowRule> handleToFlowRuleMap,
             Operation driverOperation) {
@@ -329,24 +335,19 @@ public class P4RuntimeFlowRuleProgrammable
         // server according to the given write response and operation.
         return response.success().stream()
                 .filter(r -> r.entityType().equals(PiEntityType.TABLE_ENTRY))
-                .map(r -> {
-                    final PiHandle handle = r.handle();
-                    final FlowRule rule = handleToFlowRuleMap.get(handle);
-                    if (rule == null) {
-                        log.error("Server returned unrecognized table entry " +
-                                          "handle in write response: {}", handle);
-                        return null;
-                    }
+                .filter(r -> {
                     // Filter intermediate responses (e.g. P4Runtime DELETE
                     // during FlowRule APPLY because we are performing
                     // delete-before-update)
-                    if (isUpdateTypeRelevant(r.updateType(), driverOperation)) {
-                        updateTranslationStore(
-                                driverOperation, (PiTableEntryHandle) handle,
-                                rule, (PiTableEntry) r.entity());
-                        return rule;
+                    return isUpdateTypeRelevant(r.updateType(), driverOperation);
+                })
+                .map(r -> {
+                    final FlowRule rule = handleToFlowRuleMap.get(r.handle());
+                    if (rule == null) {
+                        log.warn("Server returned unrecognized table entry " +
+                                         "handle in write response: {}", r.handle());
                     }
-                    return null;
+                    return rule;
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
@@ -370,17 +371,6 @@ public class P4RuntimeFlowRuleProgrammable
                 return false;
         }
         return true;
-    }
-
-    private void updateTranslationStore(
-            Operation operation, PiTableEntryHandle handle,
-            FlowRule rule, PiTableEntry entry) {
-        if (operation.equals(APPLY)) {
-            translator.learn(handle, new PiTranslatedEntity<>(
-                    rule, entry, handle));
-        } else {
-            translator.forget(handle);
-        }
     }
 
     private boolean appendEntryToWriteRequestOrSkip(
