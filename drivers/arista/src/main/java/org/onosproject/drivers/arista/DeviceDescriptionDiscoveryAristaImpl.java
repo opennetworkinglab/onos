@@ -95,8 +95,11 @@ public class DeviceDescriptionDiscoveryAristaImpl extends AbstractHandlerBehavio
 
             log.debug("systemMacAddress: {}", systemMacAddress);
 
+            SparseAnnotations annotations = device == null ?
+                    DefaultAnnotations.builder().build() : (SparseAnnotations) device.annotations();
+
             return new DefaultDeviceDescription(deviceId.uri(), Device.Type.SWITCH,
-                    MANUFACTURER, hwVer, swVer, serialNum, chassisId, (SparseAnnotations) device.annotations());
+                    MANUFACTURER, hwVer, swVer, serialNum, chassisId, annotations);
         } catch (Exception e) {
             log.error("Exception occurred because of {}, trace: {}", e, e.getStackTrace());
             return null;
