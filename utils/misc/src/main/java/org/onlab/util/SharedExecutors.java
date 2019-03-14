@@ -39,18 +39,10 @@ public final class SharedExecutors {
 
     public static final int DEFAULT_POOL_SIZE = 30;
 
-    private static SharedExecutorService singleThreadExecutor =
-            new SharedExecutorService(
-                    newSingleThreadExecutor(groupedThreads("onos/shared",
-                                                           "onos-single-executor")));
+    private static SharedExecutorService singleThreadExecutor;
+    private static SharedExecutorService poolThreadExecutor;
 
-    private static SharedExecutorService poolThreadExecutor =
-            new SharedExecutorService(
-                    newFixedThreadPool(DEFAULT_POOL_SIZE,
-                                       groupedThreads("onos/shared",
-                                                      "onos-pool-executor-%d")));
-
-    private static SharedTimer sharedTimer = new SharedTimer();
+    private static SharedTimer sharedTimer;
 
     // Ban public construction
     private SharedExecutors() {
@@ -62,6 +54,7 @@ public final class SharedExecutors {
      * @return shared single thread executor
      */
     public static ExecutorService getSingleThreadExecutor() {
+        setup();
         return singleThreadExecutor;
     }
 
@@ -71,6 +64,7 @@ public final class SharedExecutors {
      * @return shared executor pool
      */
     public static ExecutorService getPoolThreadExecutor() {
+        setup();
         return poolThreadExecutor;
     }
 
@@ -80,6 +74,7 @@ public final class SharedExecutors {
      * @return shared timer
      */
     public static Timer getTimer() {
+        setup();
         return sharedTimer;
     }
 
@@ -114,6 +109,26 @@ public final class SharedExecutors {
         sharedTimer.shutdown();
         singleThreadExecutor.backingExecutor().shutdown();
         poolThreadExecutor.backingExecutor().shutdown();
+        sharedTimer = null;
+        singleThreadExecutor = null;
+        poolThreadExecutor = null;
+    }
+
+    private static synchronized void setup() {
+        if (sharedTimer == null) {
+            sharedTimer = new SharedTimer();
+
+            singleThreadExecutor =
+                new SharedExecutorService(
+                    newSingleThreadExecutor(groupedThreads("onos/shared",
+                        "onos-single-executor")));
+
+            poolThreadExecutor =
+                new SharedExecutorService(
+                    newFixedThreadPool(DEFAULT_POOL_SIZE,
+                        groupedThreads("onos/shared",
+                            "onos-pool-executor-%d")));
+        }
     }
 
     // Timer extension which does not allow outside cancel method.
