@@ -24,30 +24,30 @@
             <!-- Bi-Directional link between s204 and s226 -->
             <!-- Link 1 -->
             <step name="Net-Trellis-P4-Links.Query-204-226-Link-1"
-                  exec="find-link.py ${OC1} link_204_226_1_ device:bmv2:s204 1 device:bmv2:s226 1"/>
+                  exec="find-link.py ${OC1} link_204_226_1_ device:s204 1 device:s226 1"/>
             <step name="Net-Trellis-P4-Links.Validate-204-226-Link-1-State" requires="^"
                   exec="test '${link_204_226_1_State}' == 'ACTIVE'"/>
             <step name="Net-Trellis-P4-Links.Validate-204-226-Link-1-Type" requires="^"
                   exec="test '${link_204_226_1_Type}' == 'DIRECT'"/>
             <step name="Net-Trellis-P4-Links.Validate-204-226-Link-1-Src-Device" requires="^"
-                  exec="test '${link_204_226_1_SrcDevice}' == 'device:bmv2:s204'"/>
+                  exec="test '${link_204_226_1_SrcDevice}' == 'device:s204'"/>
             <step name="Net-Trellis-P4-Links.Validate-204-226-Link-1-Dst-Device" requires="^"
-                  exec="test '${link_204_226_1_DstDevice}' == 'device:bmv2:s226'"/>
+                  exec="test '${link_204_226_1_DstDevice}' == 'device:s226'"/>
             <step name="Net-Trellis-P4-Links.Validate-204-226-Link-1-Src-Port" requires="^"
                   exec="test '${link_204_226_1_SrcPort}' == '1'"/>
             <step name="Net-Trellis-P4-Links.Validate-204-226-Link-1-Dst-Port" requires="^"
                   exec="test '${link_204_226_1_DstPort}' == '1'"/>
 
             <step name="Net-Trellis-P4-Links.Query-226-204-Link-2"
-                  exec="find-link.py ${OC1} link_226_204_2_ device:bmv2:s226 1 device:bmv2:s204 1"/>
+                  exec="find-link.py ${OC1} link_226_204_2_ device:s226 1 device:s204 1"/>
             <step name="Net-Trellis-P4-Links.Validate-226-204-Link-2-State" requires="^"
                   exec="test '${link_226_204_2_State}' == 'ACTIVE'"/>
             <step name="Net-Trellis-P4-Links.Validate-226-204-Link-2-Type" requires="^"
                   exec="test '${link_226_204_2_Type}' == 'DIRECT'"/>
             <step name="Net-Trellis-P4-Links.Validate-226-204-Link-2-Src-Device" requires="^"
-                  exec="test '${link_226_204_2_SrcDevice}' == 'device:bmv2:s226'"/>
+                  exec="test '${link_226_204_2_SrcDevice}' == 'device:s226'"/>
             <step name="Net-Trellis-P4-Links.Validate-226-204-Link-2-Dst-Device" requires="^"
-                  exec="test '${link_226_204_2_DstDevice}' == 'device:bmv2:s204'"/>
+                  exec="test '${link_226_204_2_DstDevice}' == 'device:s204'"/>
             <step name="Net-Trellis-P4-Links.Validate-226-204-Link-2-Src-Port" requires="^"
                   exec="test '${link_226_204_2_SrcPort}' == '1'"/>
             <step name="Net-Trellis-P4-Links.Validate-226-204-Link-2-Dst-Port" requires="^"
@@ -56,30 +56,30 @@
             <!-- Bi-Directional link between s205 and s227 -->
             <!-- Link 1 -->
             <step name="Net-Trellis-P4-Links.Query-205-227-Link-1"
-                  exec="find-link.py ${OC1} link_205_227_1_ device:bmv2:s205 2 device:bmv2:s227 2"/>
+                  exec="find-link.py ${OC1} link_205_227_1_ device:s205 2 device:s227 2"/>
             <step name="Net-Trellis-P4-Links.Validate-205-227-Link-1-State" requires="^"
                   exec="test '${link_205_227_1_State}' == 'ACTIVE'"/>
             <step name="Net-Trellis-P4-Links.Validate-205-227-Link-1-Type" requires="^"
                   exec="test '${link_205_227_1_Type}' == 'DIRECT'"/>
             <step name="Net-Trellis-P4-Links.Validate-205-227-Link-1-Src-Device" requires="^"
-                  exec="test '${link_205_227_1_SrcDevice}' == 'device:bmv2:s205'"/>
+                  exec="test '${link_205_227_1_SrcDevice}' == 'device:s205'"/>
             <step name="Net-Trellis-P4-Links.Validate-205-227-Link-1-Dst-Device" requires="^"
-                  exec="test '${link_205_227_1_DstDevice}' == 'device:bmv2:s227'"/>
+                  exec="test '${link_205_227_1_DstDevice}' == 'device:s227'"/>
             <step name="Net-Trellis-P4-Links.Validate-205-227-Link-1-Src-Port" requires="^"
                   exec="test '${link_205_227_1_SrcPort}' == '2'"/>
             <step name="Net-Trellis-P4-Links.Validate-205-227-Link-1-Dst-Port" requires="^"
                   exec="test '${link_205_227_1_DstPort}' == '2'"/>
 
             <step name="Net-Trellis-P4-Links.Query-227-205-Link-2"
-                  exec="find-link.py ${OC1} link_227_205_2_ device:bmv2:s227 2 device:bmv2:s205 2"/>
+                  exec="find-link.py ${OC1} link_227_205_2_ device:s227 2 device:s205 2"/>
             <step name="Net-Trellis-P4-Links.Validate-227-205-Link-2-State" requires="^"
                   exec="test '${link_227_205_2_State}' == 'ACTIVE'"/>
             <step name="Net-Trellis-P4-Links.Validate-227-205-Link-2-Type" requires="^"
                   exec="test '${link_227_205_2_Type}' == 'DIRECT'"/>
             <step name="Net-Trellis-P4-Links.Validate-227-205-Link-2-Src-Device" requires="^"
-                  exec="test '${link_227_205_2_SrcDevice}' == 'device:bmv2:s227'"/>
+                  exec="test '${link_227_205_2_SrcDevice}' == 'device:s227'"/>
             <step name="Net-Trellis-P4-Links.Validate-227-205-Link-2-Dst-Device" requires="^"
-                  exec="test '${link_227_205_2_DstDevice}' == 'device:bmv2:s205'"/>
+                  exec="test '${link_227_205_2_DstDevice}' == 'device:s205'"/>
             <step name="Net-Trellis-P4-Links.Validate-227-205-Link-2-Src-Port" requires="^"
                   exec="test '${link_227_205_2_SrcPort}' == '2'"/>
             <step name="Net-Trellis-P4-Links.Validate-227-205-Link-2-Dst-Port" requires="^"

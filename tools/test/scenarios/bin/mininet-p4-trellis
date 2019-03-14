@@ -4,7 +4,6 @@
 # Starts mininet in the network machine with the Trellis P4 topology
 # -----------------------------------------------------------------------------
 
-set -e
 set -x
 
 [[ ! -d "$ONOS_ROOT" ]] && echo "ONOS_ROOT is not defined" >&2 && exit 1
@@ -25,7 +24,7 @@ ssh -tt ${remote} "
 "
 
 (
-    ssh -t -t ${remote} "screen -L -S mininet sudo ${trellisp4Sh}"
+    ssh -t -t ${remote} "screen -L -S mininet ${trellisp4Sh}"
     scp ${ONOS_USER}@[${OCN}]:$log /tmp/mininet.log
     ssh ${remote} rm -f $log
 ) &

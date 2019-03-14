@@ -32,7 +32,7 @@ from mininet.node import Switch, Host
 SIMPLE_SWITCH_GRPC = 'simple_switch_grpc'
 PKT_BYTES_TO_DUMP = 80
 VALGRIND_PREFIX = 'valgrind --leak-check=yes'
-SWITCH_START_TIMEOUT = 5  # seconds
+SWITCH_START_TIMEOUT = 10  # seconds
 BMV2_LOG_LINES = 5
 BMV2_DEFAULT_DEVICE_ID = 1
 DEFAULT_PIPECONF = "org.onosproject.pipelines.basic"
@@ -81,7 +81,8 @@ def watchDog(sw):
             if sw.stopped:
                 return
             with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
-                if s.connect_ex(('127.0.0.1', sw.grpcPort)) == 0:
+                port = sw.grpcPortInternal if sw.grpcPortInternal else sw.grpcPort
+                if s.connect_ex(('localhost', port)) == 0:
                     time.sleep(1)
                 else:
                     warn("\n*** WARN: switch %s died ☠️ \n" % sw.name)
@@ -126,6 +127,7 @@ class ONOSBmv2Switch(Switch):
                  **kwargs):
         Switch.__init__(self, name, **kwargs)
         self.grpcPort = grpcport
+        self.grpcPortInternal = None  # Needed for Stratum (local_hercules_url)
         self.thriftPort = thriftport
         self.cpuPort = cpuport
         self.json = json
@@ -303,6 +305,8 @@ nodes {{
             os.mkdir(config_dir)
             with open(self.chassisConfigFile, 'w') as fp:
                 fp.write(self.chassisConfig())
+            if self.grpcPortInternal is None:
+                self.grpcPortInternal = pickUnusedPort()
             cmdString = self.getStratumCmdString(config_dir)
         else:
             if self.thriftPort is None:
@@ -320,6 +324,8 @@ nodes {{
                 # Start the switch
                 self.stopped = False
                 self.logfd = open(self.logfile, "w")
+                self.logfd.write(cmdString + "\n\n" + "-" * 80 + "\n\n")
+                self.logfd.flush()
                 self.bmv2popen = self.popen(cmdString,
                                             stdout=self.logfd,
                                             stderr=self.logfd)
@@ -346,11 +352,12 @@ nodes {{
             stratumRoot + STRATUM_BINARY,
             '-device_id=%d' % self.p4DeviceId,
             '-chassis_config_file=%s' % self.chassisConfigFile,
-            '-forwarding_pipeline_configs_file=%s/config.txt' % config_dir,
+            '-forwarding_pipeline_configs_file=%s/pipeline_config.txt' % config_dir,
             '-persistent_config_dir=' + config_dir,
             '-initial_pipeline=' + stratumRoot + STRATUM_INIT_PIPELINE,
             '-cpu_port=%s' % self.cpuPort,
             '-external_hercules_urls=0.0.0.0:%d' % self.grpcPort,
+            '-local_hercules_url=localhost:%d' % self.grpcPortInternal,
             '-max_num_controllers_per_node=10'
         ]
         return " ".join(args)
@@ -390,7 +397,8 @@ nodes {{
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         endtime = time.time() + SWITCH_START_TIMEOUT
         while True:
-            result = sock.connect_ex(('127.0.0.1', self.grpcPort))
+            port = self.grpcPortInternal if self.grpcPortInternal else self.grpcPort
+            result = sock.connect_ex(('localhost', port))
             if result == 0:
                 # No new line
                 sys.stdout.write("⚡️ %s @ %d" % (self.targetName, self.bmv2popen.pid))

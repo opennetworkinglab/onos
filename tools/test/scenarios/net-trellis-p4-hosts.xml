@@ -20,13 +20,13 @@
 
         <group name="Net-Trellis-P4-Hosts">
             <step name="Net-Trellis-P4-Hosts.Host-1"
-                  exec="onos-find-host ${OC1} 00:AA:00:00:00:01 device:bmv2:s204/3 10.0.2.1"/>
+                  exec="onos-find-host ${OC1} 00:AA:00:00:00:01 device:s204/3 10.0.2.1"/>
             <step name="Net-Trellis-P4-Hosts.Host-2"
-                  exec="onos-find-host ${OC1} 00:AA:00:00:00:02 device:bmv2:s204/4 10.0.2.2"/>
+                  exec="onos-find-host ${OC1} 00:AA:00:00:00:02 device:s204/4 10.0.2.2"/>
             <step name="Net-Trellis-P4-Hosts.Host-3"
-                  exec="onos-find-host ${OC1} 00:AA:00:00:00:03 device:bmv2:s205/3 10.0.3.1"/>
+                  exec="onos-find-host ${OC1} 00:AA:00:00:00:03 device:s205/3 10.0.3.1"/>
             <step name="Net-Trellis-P4-Hosts.Host-4"
-                  exec="onos-find-host ${OC1} 00:AA:00:00:00:04 device:bmv2:s205/4 10.0.3.2"/>
+                  exec="onos-find-host ${OC1} 00:AA:00:00:00:04 device:s205/4 10.0.3.2"/>
         </group>
 
 </scenario>

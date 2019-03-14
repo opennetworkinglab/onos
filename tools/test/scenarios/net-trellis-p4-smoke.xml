@@ -24,7 +24,7 @@
 
         <step name="Net-Trellis-P4-Smoke.Check-Summary"
               requires="Trellis-Net-P4-Setup.Wait-For-Mininet" delay="5"
-              exec="onos-check-summary ${OC1} [0-9]* 4 8 0 112"/>
+              exec="onos-check-summary ${OC1} [0-9]* 4 8 0 [0-9]*"/>
 
         <import file="${ONOS_SCENARIOS}/net-trellis-p4-devices.xml"/>
         <dependency name="Net-Trellis-P4-Devices"

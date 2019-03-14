@@ -21,16 +21,16 @@
         <group name="Net-Trellis-P4-Devices">
 
             <step name="Net-Trellis-P4-Devices.Device-1"
-                  exec="onos-find-device ${OC1} device:bmv2:s204"/>
+                  exec="onos-find-device ${OC1} device:s204"/>
 
             <step name="Net-Trellis-P4-Devices.Device-2"
-                  exec="onos-find-device ${OC1} device:bmv2:s205"/>
+                  exec="onos-find-device ${OC1} device:s205"/>
 
             <step name="Net-Trellis-P4-Devices.Device-3"
-                  exec="onos-find-device ${OC1} device:bmv2:s226"/>
+                  exec="onos-find-device ${OC1} device:s226"/>
 
             <step name="Net-Trellis-P4-Devices.Device-4"
-                  exec="onos-find-device ${OC1} device:bmv2:s227"/>
+                  exec="onos-find-device ${OC1} device:s227"/>
 
         </group>
 
