@@ -205,6 +205,7 @@ public class NetconfDeviceProvider extends AbstractProvider
         controller.addDeviceListener(innerNodeListener);
         deviceService.addListener(deviceListener);
         pollingExecutor.execute(NetconfDeviceProvider.this::connectDevices);
+        scheduledTask = schedulePolling();
         modified(context);
         log.info("Started");
     }
@@ -236,17 +237,22 @@ public class NetconfDeviceProvider extends AbstractProvider
     public void modified(ComponentContext context) {
         if (context != null) {
             Dictionary<?, ?> properties = context.getProperties();
-            pollFrequency = Tools.getIntegerProperty(properties, POLL_FREQUENCY_SECONDS,
+            int newPollFrequency = Tools.getIntegerProperty(properties, POLL_FREQUENCY_SECONDS,
                     POLL_FREQUENCY_SECONDS_DEFAULT);
-            log.info("Configured. Poll frequency is configured to {} seconds", pollFrequency);
+
+            if (newPollFrequency != pollFrequency) {
+                pollFrequency = newPollFrequency;
+
+                if (scheduledTask != null) {
+                    scheduledTask.cancel(false);
+                }
+                scheduledTask = schedulePolling();
+                log.info("Configured. Poll frequency is configured to {} seconds", pollFrequency);
+            }
 
             maxRetries = Tools.getIntegerProperty(properties, MAX_RETRIES, MAX_RETRIES_DEFAULT);
             log.info("Configured. Number of retries is configured to {} times", maxRetries);
         }
-        if (scheduledTask != null) {
-            scheduledTask.cancel(false);
-        }
-        scheduledTask = schedulePolling();
     }
 
     public NetconfDeviceProvider() {
