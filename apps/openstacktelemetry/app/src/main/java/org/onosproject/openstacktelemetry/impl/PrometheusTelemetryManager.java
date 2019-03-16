@@ -186,10 +186,17 @@ public class PrometheusTelemetryManager implements PrometheusTelemetryAdminServi
 
     @Override
     public void publish(Set<FlowInfo> flowInfos) {
+        if (prometheusExporters == null || prometheusExporters.isEmpty()) {
+            log.debug("Prometheus telemetry service has not been enabled!");
+            return;
+        }
+
         if (flowInfos.size() == 0) {
             log.debug("No record to publish");
             return;
         }
+
+        log.debug("Publish {} stats records to Prometheus", flowInfos.size());
 
         long flowByte;
         int flowPkt;
@@ -205,8 +212,18 @@ public class PrometheusTelemetryManager implements PrometheusTelemetryAdminServi
             pktVM2VM.labels(labelValues).set(flowPkt);
             pktVM2VMPrev.labels(labelValues).set(flowInfo.statsInfo().prevAccPkts());
             pktVM2VMCurr.labels(labelValues).set(flowInfo.statsInfo().currAccPkts());
-            pktError.labels(labelValues).inc(flowInfo.statsInfo().errorPkts());
-            pktDrop.labels(labelValues).inc(flowInfo.statsInfo().dropPkts());
+
+            if (flowInfo.statsInfo().errorPkts() == -1) {
+                pktError.labels(labelValues).inc(0);
+            } else {
+                pktError.labels(labelValues).inc(flowInfo.statsInfo().errorPkts());
+            }
+
+            if (flowInfo.statsInfo().dropPkts() == -1) {
+                pktDrop.labels(labelValues).inc(0);
+            } else {
+                pktDrop.labels(labelValues).inc(flowInfo.statsInfo().dropPkts());
+            }
         }
     }
 
