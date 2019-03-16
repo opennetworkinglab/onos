@@ -18,6 +18,7 @@ package org.onosproject.workflow.cli;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.workflow.api.DefaultWorkflowDescription;
@@ -33,10 +34,21 @@ import java.util.Objects;
 @Command(scope = "onos", name = "workflow", description = "workflow cli")
 public class WorkFlowCommand extends AbstractShellCommand {
 
-    @Argument(index = 0, name = "cmd", description = "command(invoke|eval)", required = true)
+    static final String INVOKE = "invoke";
+    static final String EVAL   = "eval";
+
+
+
+    @Argument(index = 0, name = "cmd",
+            description = "command(" + INVOKE + "|" + EVAL + "eval)",
+            required = true)
+    @Completion(WorkFlowCompleter.class)
     private String cmd = null;
 
-    @Argument(index = 1, name = "name", description = "workflow context name(workflow@workplace)", required = true)
+    @Argument(index = 1, name = "name",
+            description = "workflow context name(workflow@workplace)",
+            required = true)
+    @Completion(WorkFlowCtxtNameCompleter.class)
     private String name = null;
 
     @Override
@@ -61,10 +73,10 @@ public class WorkFlowCommand extends AbstractShellCommand {
         String workplace = tokens[1];
 
         switch (cmd) {
-            case "invoke":
+            case INVOKE:
                 invoke(workflowId, workplace);
                 break;
-            case "eval":
+            case EVAL:
                 eval(name);
                 break;
             default:
