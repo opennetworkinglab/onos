@@ -109,7 +109,7 @@ export class ZoomUtils {
      * @param mapBounds - the bounding box of the chosen map in lat and long
      * @param log The LogService
      */
-static convertBoundsToZoomLevel(mapBounds: MapBounds, log?: LogService): TopoZoomPrefs {
+    static convertBoundsToZoomLevel(mapBounds: MapBounds, log?: LogService): TopoZoomPrefs {
 
         const min: MetaUi = this.convertGeoToCanvas(<LocMeta>{
             lng: mapBounds.lngMin,
@@ -134,5 +134,35 @@ static convertBoundsToZoomLevel(mapBounds: MapBounds, log?: LogService): TopoZoo
         //     'Centre', centreX, centreY, 'translate', zoomx, zoomy, 'Scale', zoomscale);
 
         return <TopoZoomPrefs>{tx: zoomx, ty: zoomy, sc: zoomscale};
+    }
+
+    /**
+     * Calculate Zoom settings to fit the 1000x1000 grid in to the available window height
+     * less the banner height
+     *
+     * Scaling always happens from the top left 0,0
+     * If the height is greater than the width then no scaling is required - grid will
+     * need to fill the SVG canvas
+     * @param bannerHeight - the top band of the screen for the mast
+     * @param innerWidth - the actual width of the screen
+     * @param innerHeight - the actual height of the screen
+     * @return Zoom settings - scale and translate
+     */
+    static zoomToWindowSize(bannerHeight: number, innerWidth: number, innerHeight: number): TopoZoomPrefs {
+        const newHeight = innerHeight - bannerHeight;
+        if (newHeight > innerWidth) {
+            return <TopoZoomPrefs>{
+                sc: 1.0,
+                tx: 0,
+                ty: 0
+            };
+        } else {
+            const scale = newHeight / innerWidth;
+            return <TopoZoomPrefs>{
+                sc: scale,
+                tx: (500 / scale - 500) * scale,
+                ty: 0
+            };
+        }
     }
 }

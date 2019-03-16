@@ -1,0 +1,171 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "projects": {
+    "gui2-topo-lib": {
+      "root": "projects/gui2-topo-lib",
+      "sourceRoot": "projects/gui2-topo-lib/src",
+      "projectType": "library",
+      "prefix": "topo",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-ng-packagr:build",
+          "options": {
+            "tsConfig": "projects/gui2-topo-lib/tsconfig.lib.json",
+            "project": "projects/gui2-topo-lib/ng-package.json"
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/gui2-topo-lib/src/test.ts",
+            "tsConfig": "projects/gui2-topo-lib/tsconfig.spec.json",
+            "karmaConfig": "projects/gui2-topo-lib/karma.conf.js"
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "projects/gui2-topo-lib/tsconfig.lib.json",
+              "projects/gui2-topo-lib/tsconfig.spec.json"
+            ],
+            "exclude": [
+              "**/node_modules/**"
+            ]
+          }
+        }
+      }
+    },
+    "gui2-topo-tester": {
+      "root": "projects/gui2-topo-tester/",
+      "sourceRoot": "projects/gui2-topo-tester/src",
+      "projectType": "application",
+      "prefix": "app",
+      "schematics": {},
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:browser",
+          "options": {
+            "outputPath": "dist/gui2-topo-tester",
+            "index": "projects/gui2-topo-tester/src/index.html",
+            "main": "projects/gui2-topo-tester/src/main.ts",
+            "polyfills": "projects/gui2-topo-tester/src/polyfills.ts",
+            "tsConfig": "projects/gui2-topo-tester/tsconfig.app.json",
+            "assets": [
+              "projects/gui2-topo-tester/src/favicon.ico",
+              "projects/gui2-topo-tester/src/assets",
+              "projects/gui2-topo-tester/src/data"
+            ],
+            "styles": [
+              "projects/gui2-topo-tester/src/styles.css"
+            ],
+            "scripts": []
+          },
+          "configurations": {
+            "production": {
+              "fileReplacements": [
+                {
+                  "replace": "projects/gui2-topo-tester/src/environments/environment.ts",
+                  "with": "projects/gui2-topo-tester/src/environments/environment.prod.ts"
+                }
+              ],
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "extractCss": true,
+              "namedChunks": false,
+              "aot": true,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": true,
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "2mb",
+                  "maximumError": "5mb"
+                }
+              ]
+            }
+          }
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "browserTarget": "gui2-topo-tester:build"
+          },
+          "configurations": {
+            "production": {
+              "browserTarget": "gui2-topo-tester:build:production"
+            }
+          }
+        },
+        "extract-i18n": {
+          "builder": "@angular-devkit/build-angular:extract-i18n",
+          "options": {
+            "browserTarget": "gui2-topo-tester:build"
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/gui2-topo-tester/src/test.ts",
+            "polyfills": "projects/gui2-topo-tester/src/polyfills.ts",
+            "tsConfig": "projects/gui2-topo-tester/tsconfig.spec.json",
+            "karmaConfig": "projects/gui2-topo-tester/karma.conf.js",
+            "styles": [
+              "projects/gui2-topo-tester/src/styles.css"
+            ],
+            "scripts": [],
+            "assets": [
+              "projects/gui2-topo-tester/src/favicon.ico",
+              "projects/gui2-topo-tester/src/assets"
+            ]
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "projects/gui2-topo-tester/tsconfig.app.json",
+              "projects/gui2-topo-tester/tsconfig.spec.json"
+            ],
+            "exclude": [
+              "**/node_modules/**"
+            ]
+          }
+        }
+      }
+    },
+    "gui2-topo-tester-e2e": {
+      "root": "projects/gui2-topo-tester-e2e/",
+      "projectType": "application",
+      "prefix": "",
+      "architect": {
+        "e2e": {
+          "builder": "@angular-devkit/build-angular:protractor",
+          "options": {
+            "protractorConfig": "projects/gui2-topo-tester-e2e/protractor.conf.js",
+            "devServerTarget": "gui2-topo-tester:serve"
+          },
+          "configurations": {
+            "production": {
+              "devServerTarget": "gui2-topo-tester:serve:production"
+            }
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": "projects/gui2-topo-tester-e2e/tsconfig.e2e.json",
+            "exclude": [
+              "**/node_modules/**"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "defaultProject": "gui2-topo-lib"
+}

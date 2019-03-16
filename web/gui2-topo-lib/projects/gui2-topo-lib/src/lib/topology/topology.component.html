@@ -1,0 +1,92 @@
+<!--
+~ Copyright 2019-present Open Networking Foundation
+~
+~ Licensed under the Apache License, Version 2.0 (the "License");
+~ you may not use this file except in compliance with the License.
+~ You may obtain a copy of the License at
+~
+~     http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS,
+~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~ See the License for the specific language governing permissions and
+~ limitations under the License.
+-->
+<!-- Template explaination - Add in the flash message component - and link it to
+the local variable - this is used to display messages when keyboard shortcuts are pressed
+-->
+<onos-flash id="topoMsgFlash" message="{{ flashMsg }}" (closed)="flashMsg = ''"></onos-flash>
+
+<onos-quickhelp id="topoQuickHelp"></onos-quickhelp>
+<!-- Template explanation - Add in the Panel components for the Topology view
+    These are referenced inside the typescript by @ViewChild and their label
+-->
+<onos-instance #instance [divTopPx]="80"
+               (mastershipEvent)="force.onosInstMastership = $event"
+               [on]="prefsState.insts">
+</onos-instance>
+<onos-summary #summary [on]="prefsState.summary"></onos-summary>
+<onos-toolbar #toolbar
+              (buttonEvent)="toolbarButtonClicked($event)"
+              [on]="prefsState.toolbar"
+              [backgroundVisible]="prefsState.bg"
+              [detailsVisible]="prefsState.detail"
+              [hostsVisible]="prefsState.hosts"
+              [instancesVisible]="prefsState.insts"
+              [portsVisible]="prefsState.porthl"
+              [summaryVisible]="prefsState.summary">
+</onos-toolbar>
+<onos-details #details [on]="prefsState.detail"></onos-details>
+<onos-mapselector *ngIf="mapSelShown" (chosenMap)="changeMap($event)"></onos-mapselector>
+
+<div id="ov-topo2">
+    <!-- Template explanation -
+    Line 0) This is the root of the whole SVG canvas of the Topology View - all
+        components beneath it are SVG components only (no HTML)
+    line 1) the No Devices Connected banner is shown if the force component
+        (from line 4) does not contain any devices
+    line 2) Create an SVG Grouping and apply the onosZoomableOf directive to it,
+        passing in the whole SVG canvas (#svgZoom)
+    line 3) Add in the Background Svg Component (if showBackground is true - toggled
+        by toolbar and by keyboard shortcut 'B'
+    line 4) Add in the layer of the Force Svg Component. If any item is selected on it, pass
+        to the details view and deselect all others. This is node and line graph
+        whose contents are supplied through the Topology Service, and whose positions
+        are driven by the d3.force engine
+    -->
+    <svg:svg #svgZoom xmlns:svg="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" id="topo2"
+        preserveAspectRatio="xMaxYMax meet">
+        <svg:desc>The main SVG canvas of the Topology View</svg:desc>
+        <svg:g *ngIf="force.regionData?.devices[0].length +
+                        force.regionData?.devices[1].length +
+                        force.regionData?.devices[2].length=== 0"
+               onos-nodeviceconnected />
+        <svg:g id="topo-zoomlayer" onosZoomableOf [zoomableOf]="svgZoom">
+            <svg:desc>A logical layer that allows the main SVG canvas to be zoomed and panned</svg:desc>
+            <svg:g #gridFull *ngIf="prefsState.grid == 1 || prefsState.grid == 3" onos-gridsvg>
+            </svg:g>
+            <svg:g #geoGrid *ngIf="prefsState.grid == 2 || prefsState.grid == 3"
+                   onos-gridsvg [horizLowerLimit]="-180" [horizUpperLimit]="180"
+                   [vertLowerLimit]="-75" [vertUpperLimit]="75" [spacing]="15"
+                   [invertVertical]="true" [fit]="'fit1000high'" [aspectRatio]="0.83333"
+                   [gridcolor]="'#bfe7fb'">
+            </svg:g>
+            <svg:g *ngIf="prefsState.bg"
+                   onos-backgroundsvg [map]="mapIdState" (zoomlevel)="mapExtentsZoom($event)">
+                <svg:desc>The Background SVG component - contains maps</svg:desc>
+            </svg:g>
+            <svg:g #force onos-forcesvg
+                   [deviceLabelToggle]="prefsState.dlbls"
+                   [hostLabelToggle]="prefsState.hlbls"
+                   [showHosts]="prefsState.hosts"
+                   [highlightPorts]="prefsState.porthl"
+                   [scale]="window.innerHeight / (window.innerWidth * zoomDirective.zoomCached.sc)"
+                   (selectedNodeEvent)="nodeSelected($event)">
+                <svg:desc>The Force SVG component - contains all the devices, hosts and links</svg:desc>
+            </svg:g>
+        </svg:g>
+    </svg:svg>
+</div>
+
+<div id="breadcrumbs"></div>

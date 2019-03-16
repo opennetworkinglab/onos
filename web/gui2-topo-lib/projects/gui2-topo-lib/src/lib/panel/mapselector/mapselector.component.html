@@ -1,0 +1,33 @@
+<!--
+~ Copyright 2019-present Open Networking Foundation
+~
+~ Licensed under the Apache License, Version 2.0 (the "License");
+~ you may not use this file except in compliance with the License.
+~ You may obtain a copy of the License at
+~
+~     http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS,
+~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~ See the License for the specific language governing permissions and
+~ limitations under the License.
+-->
+<div id="topo-p-dialog"
+     class="floatpanel dialog topo-p"
+     style="opacity: 1; left: 20px; width: 300px;">
+    <div class="header">
+        <h2>{{ lionFn('title_select_map') }}</h2>
+    </div>
+    <div class="map-list">
+        <form [formGroup]="form">
+            <select formControlName="mapid">
+                <option *ngFor="let o of mapSelectorResponse.order" [ngValue]="o">{{ mapSelectorResponse.maps[o]['description'] }}</option>
+            </select>
+        </form>
+    </div>
+    <div class="footer">
+        <div class="dialog-button" (click)="choice(form.value)">{{ lionFn('ok') }}</div>
+        <div class="dialog-button" (click)="choice(undefined)">{{ lionFn('close') }}</div>
+    </div>
+</div>

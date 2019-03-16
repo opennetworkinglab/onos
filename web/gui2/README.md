@@ -88,7 +88,23 @@ ng lint gui2-fw-lib && \
 ng test gui2-fw-lib
 ```
 
-This packages the Framework up in to __onos/web/gui2-fw-lib/dist/gui2-fw-lib/gui2-fw-lib-0.14.0.tgz__
+This packages the Framework up in to __onos/web/gui2-fw-lib/dist/gui2-fw-lib/gui2-fw-lib-2.0.0.tgz__
+
+## GUI2 Topo library
+The GUI2 __Topology__ is in __~/onos/web/gui2-topo-lib__ and the GUI __application__
+includes this Topology application through the __onos-routing-module__. The 
+Topology app has its own README file.
+
+If you make any changes here or are using it for the first time it will need to be built
+```text
+pushd ~/onos/web/gui2-topo-lib && \
+ng build gui2-topo-lib && \
+cd dist/gui2-topo-lib && \
+npm pack && \
+popd && \
+npm install gui2-topo-lib
+```
+This packages the Framework up in to __onos/web/gui2-topo-lib/dist/gui2-topo-lib/gui2-topo-lib-2.0.0.tgz__
 
 ## GUI2 Application
 The application contains the ONOS index.html and all of the tabular views and the topology view.
@@ -233,4 +249,4 @@ index 60ec9d7da6..3abb62376a 100644
      {
          path: '',
          redirectTo: 'device', // Default to devices view - change to topo in future
-```  
+```

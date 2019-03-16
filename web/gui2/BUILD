@@ -120,6 +120,7 @@ genrule(
         "//web/gui2-fw-lib:onos-gui2-fw-npm-install",
         "//web/gui2-fw-lib:onos-gui2-fw-ng-build",
         "//web/gui2-fw-lib:gui2_fw_lib_ext_css",
+        "//web/gui2-topo-lib:gui2-topo-lib-build",
         "//apps/faultmanagement/fm-gui2-lib:fm-gui2-lib-build",
         ":_root_level_files",
         ":_web_app_all",
@@ -140,6 +141,9 @@ genrule(
           " tar xf $$ROOT/$${FWLIB_FILES[0]} &&" +
           " mv package/ node_modules/gui2-fw-lib/ &&" +
           # Add in modules from external packages
+          " GUI2_TOPO_LIB_FILES=($(locations //web/gui2-topo-lib:gui2-topo-lib-build)) &&" +  # An array of filenames - sorted by time created
+          " tar xf $$ROOT/$${GUI2_TOPO_LIB_FILES[0]} &&" +
+          " mv package/ node_modules/gui2-topo-lib/ &&" +
           " FM_GUI2_LIB_FILES=($(locations //apps/faultmanagement/fm-gui2-lib:fm-gui2-lib-build)) &&" +  # An array of filenames - sorted by time created
           " tar xf $$ROOT/$${FM_GUI2_LIB_FILES[0]} &&" +
           " mv package/ node_modules/fm-gui2-lib/ &&" +
