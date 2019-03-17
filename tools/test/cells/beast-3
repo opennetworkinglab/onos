@@ -14,4 +14,4 @@ export OC3=10.192.19.66
 # IP address of Mininet
 export OCN=10.192.19.69
 
-export ONOS_APPS="drivers,null,intentperf"
+export ONOS_APPS="gui,drivers,null,intentperf"

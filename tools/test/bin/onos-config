@@ -36,7 +36,7 @@ remote_scp=$ONOS_USER@[$node]
 export ONOS_BOOT_FEATURES="${ONOS_BOOT_FEATURES:-webconsole,onos-api,onos-core,onos-incubator,onos-cli,onos-rest,onos-gui}"
 
 # ONOS builtin apps and providers ignited by default
-export ONOS_APPS="${ONOS_APPS:-drivers,openflow}"
+export ONOS_APPS="${ONOS_APPS:-gui,drivers,openflow}"
 
 ssh -tt $remote "
     echo \"onos.ip = \$(sudo ifconfig | grep $ONOS_NIC | cut -d: -f2 | cut -d\\  -f1)\" \

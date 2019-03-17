@@ -15,4 +15,4 @@ export OC5=192.168.200.105
 export OC6=192.168.200.106
 export OC7=192.168.200.107
 
-export ONOS_APPS="drivers,null,intentperf"
+export ONOS_APPS="gui,drivers,null,intentperf"

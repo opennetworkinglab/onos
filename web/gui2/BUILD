@@ -153,7 +153,7 @@ genrule(
           " npm -v >> ../../$(location onos-gui2-ng-build-prod.log) &&" +
           " ng version >> ../../$(location onos-gui2-ng-build-prod.log) &&" +
           " ng build --extract-css --prod --preserve-symlinks" +
-          "   --base-href /onos/ui2/ --deploy-url /onos/ui2/ >> $$ROOT/$(location onos-gui2-ng-build-prod.log) 2>&1 ||" +
+          "   --base-href /onos/ui/ --deploy-url /onos/ui/ >> $$ROOT/$(location onos-gui2-ng-build-prod.log) 2>&1 ||" +
           " if [ $$? -eq 0 ]; then echo 'Successfully ran build';" +
           " else " +
           "   echo 'Error running \'ng build\' on \'//web/gui2:_onos-gui2-ng-build\'. \\\n" +
@@ -327,7 +327,7 @@ osgi_jar_with_tests(
     ],
     suppress_checkstyle = True,
     test_deps = TEST_DEPS,
-    web_context = "/onos/ui2",
+    web_context = "/onos/ui",
     deps = COMPILE_DEPS,
 )
 
@@ -336,7 +336,7 @@ osgi_jar_with_tests(
 """
 
 genrule(
-    name = "onos-gui2",
+    name = "onos-web-gui2",
     srcs = [
         ":_onos-gui2-ng-build",
         ":_onos-gui2-base-jar",
@@ -380,4 +380,12 @@ sh_test(
     deps = [
         "@bazel_tools//tools/bash/runfiles",
     ],
+)
+
+onos_app(
+    category = "Graphical User Interface",
+    description = "ONOS GUI2 - a reengineered version of the original ONOS GUI " +
+                  "based on the latest Angular framework components",
+    title = "ONOS GUI2",
+    url = "http://onosproject.org",
 )

@@ -34,7 +34,7 @@
         <group name="DriversTest.Check-Fujitsu-App-Activated" requires="DriversTest.ActivateFujitsuDriverApp">
             <parallel var="${OC#}">
                 <step name="DriversTest.Check-Fujitsu-App-Activated-${#}"
-                      exec="onos-check-apps ${OC#} drivers,openflow,proxyarp,dhcp,fujitsu includes"/>
+                      exec="onos-check-apps ${OC#} gui,drivers,openflow,proxyarp,dhcp,fujitsu includes"/>
             </parallel>
         </group>
         -->

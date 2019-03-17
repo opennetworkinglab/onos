@@ -5,4 +5,4 @@ export OC1="10.128.4.65"
 export OC2="10.128.4.66"
 export OC3="10.128.4.67"
 
-export ONOS_APPS="drivers,openflow,fwd,proxyarp,mobility,config,sdnip"
+export ONOS_APPS="gui,drivers,openflow,fwd,proxyarp,mobility,config,sdnip"

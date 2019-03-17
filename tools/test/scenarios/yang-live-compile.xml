@@ -17,7 +17,7 @@
     <group name="YANG-Live-Compile">
         <step name="Activate-YANG-Runtime" exec="onos ${OC1} app activate org.onosproject.yang"/>
         <step name="Pre-Cleanup-YANG-Model" exec="onos ${OC1} app uninstall l3vpn" env="~"/>
-        <step name="Check-YANG-Runtime" exec="onos-check-apps ${OC1} drivers,yang includes"
+        <step name="Check-YANG-Runtime" exec="onos-check-apps ${OC1} gui,drivers,yang includes"
               requires="Activate-YANG-Runtime"/>
         <step name="Compile-YANG-Model" exec="onos-compile-yang ${OC1} ${ONOS_ROOT}/tools/test/configs/yang"
               requires="Check-YANG-Runtime,Pre-Cleanup-YANG-Model"/>
@@ -29,7 +29,7 @@
                 <step name="Verify-Model-Component-${#}"
                       exec="onos-check-component ${OC#} yang.YangModelRegistrator ACTIVE"/>
                 <step name="Verify-YANG-Apps-${#}"
-                      exec="onos-check-apps ${OC#} drivers,yang,l3vpn includes"/>
+                      exec="onos-check-apps ${OC#} gui,drivers,yang,l3vpn includes"/>
             </parallel>
         </group>
 

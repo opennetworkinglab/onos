@@ -64,8 +64,8 @@ describe('WebSocketService', () => {
                 port: '80',
                 protocol: 'http',
                 search: { debug: 'true'},
-                href: 'ws://foo:123/onos/ui2/websock/path',
-                absUrl: 'ws://foo:123/onos/ui2/websock/path'
+                href: 'ws://foo:123/onos/ui/websock/path',
+                absUrl: 'ws://foo:123/onos/ui/websock/path'
             }
         };
         fs = new FnService(ar, logSpy, windowMock);
@@ -108,13 +108,13 @@ describe('WebSocketService', () => {
 
     it('should use the appropriate URL, createWebsocket', () => {
         const url = wss.createWebSocket();
-        expect(url).toEqual('ws://foo:80/onos/ui2/websock/core');
+        expect(url).toEqual('ws://foo:80/onos/ui/websock/core');
     });
 
     it('should use the appropriate URL with modified port, createWebsocket',
         () => {
             const url = wss.createWebSocket(<WsOptions>{ wsport: 1243 });
-            expect(url).toEqual('ws://foo:1243/onos/ui2/websock/core');
+            expect(url).toEqual('ws://foo:1243/onos/ui/websock/core');
     });
 
     it('should verify websocket event handlers, createWebsocket', () => {

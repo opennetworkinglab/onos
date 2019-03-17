@@ -6,7 +6,7 @@ export OC2="192.168.56.102"
 export OC3="192.168.56.103"
 export OCN="192.168.56.100"
 
-export ONOS_APPS="drivers,openflow,fwd,proxyarp,mobility"
+export ONOS_APPS="gui,drivers,openflow,fwd,proxyarp,mobility"
 
 export ONOS_USER=sdn
 export ONOS_WEB_PASS=sdnrocks

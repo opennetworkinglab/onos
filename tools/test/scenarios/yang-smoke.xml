@@ -21,7 +21,7 @@
                requires="Activate-YANG-Apps">
             <parallel var="${OC#}">
                 <step name="Check-YANG-Apps-Activated-${#}"
-                      exec="onos-check-apps ${#} drivers,yang,yang-gui,models.openroadm includes"/>
+                      exec="onos-check-apps ${#} gui,drivers,yang,yang-gui,models.openroadm includes"/>
             </parallel>
         </group>
         <step name="Verify-Models" exec="onos ${OC1} models | grep org-openroadm-interfaces"

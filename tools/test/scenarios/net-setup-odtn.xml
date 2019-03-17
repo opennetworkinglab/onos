@@ -57,7 +57,7 @@
         <group name="ODTN-Net-Setup.Verify-Apps" requires="ODTN-Net-Setup.Activate-Apps" delay="40">
             <parallel var="${OC#}">
                 <step name="Check-Apps-${#}" exec="onos-check-apps ${OC#} optical-model,yang,config,configsync,faultmanagement,
-                netconf,configsync-netconf,drivers,drivers.netconf,drivers.optical,restconf,protocols.restconfserver,
+                netconf,configsync-netconf,gui,drivers,drivers.netconf,drivers.optical,restconf,protocols.restconfserver,
                 odtn-api,drivers.odtn-driver,odtn-service,models.tapi,models.ietf,models.openconfig,models.openconfig-infinera,
                 models.openconfig-odtn includes"
                       requires="ODTN-Net-Setup.Activate-Apps"/>

@@ -26,7 +26,7 @@ for attempt in {1..30}; do
 
     # Normalize the expected apps
     apps=${2:-$ONOS_APPS}
-    apps=${apps:-drivers,openflow}
+    apps=${apps:-gui,drivers,openflow}
     (for app in ${apps//,/ }; do echo ${appnameextra}${app}; done) | sort > $aux.2
 
     # Check for differences

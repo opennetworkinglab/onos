@@ -71,8 +71,6 @@ CORE = UTILS + API + [
     "//providers/general/device:onos-providers-general-device",
     "//providers/p4runtime/packet:onos-providers-p4runtime-packet",
     "//web/api:onos-rest",
-    "//web/gui2:onos-gui2",
-    "//web/gui:onos-gui",
     "//core/protobuf/models/proto:onos-core-protobuf-models-proto",
     "//core/protobuf/models:onos-core-protobuf-models",
 ]
@@ -248,7 +246,8 @@ ONOS_APPS = [
     "//apps/imr:onos-apps-imr-oar",
     "//apps/nodemetrics:onos-apps-nodemetrics-oar",
     "//apps/inbandtelemetry:onos-apps-inbandtelemetry-oar",
-    # "//web/gui2:onos-web-gui2-oar",
+    "//web/gui2:onos-web-gui2-oar",
+    "//web/gui:onos-web-gui-oar",
     "//apps/workflow:onos-apps-workflow-oar",
     "//apps/workflow/ofoverlay:onos-apps-workflow-ofoverlay-oar",
 ]
@@ -308,8 +307,6 @@ FEATURES = [
     "//tools/package/features:onos-core",
     "//tools/package/features:onos-cli",
     "//tools/package/features:onos-rest",
-    "//tools/package/features:onos-gui",
-    "//tools/package/features:onos-gui2",
     # "//tools/package/features:onos-security",
 ]
 

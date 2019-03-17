@@ -4,4 +4,4 @@ export ONOS_NIC=192.168.56.*
 export OC1="192.168.56.101"
 export OCN="192.168.56.103"
 
-export ONOS_APPS="drivers,openflow,fwd,proxyarp,mobility"
+export ONOS_APPS="gui,drivers,openflow,fwd,proxyarp,mobility"

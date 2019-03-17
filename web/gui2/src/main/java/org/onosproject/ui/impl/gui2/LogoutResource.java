@@ -39,7 +39,7 @@ public class LogoutResource extends BaseResource {
     public Response logout() throws IOException, URISyntaxException {
         servletRequest.getSession().invalidate();
         String url = servletRequest.getRequestURL().toString();
-        url = url.replaceFirst("/onos/ui2/.*", "/onos/ui2/login.html");
+        url = url.replaceFirst("/onos/ui/.*", "/onos/ui/login.html");
         return Response.temporaryRedirect(new URI(url)).build();
     }
 

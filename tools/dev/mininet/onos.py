@@ -99,7 +99,7 @@ def initONOSEnv():
     environ[ 'ONOS_USER' ] = defaultUser()
     ONOS_USER = sd( 'ONOS_USER', defaultUser() )
     ONOS_APPS = sd( 'ONOS_APPS',
-                     'drivers,openflow,fwd,proxyarp,mobility' )
+                     'gui,drivers,openflow,fwd,proxyarp,mobility' )
     JAVA_OPTS = sd( 'JAVA_OPTS', '-Xms128m -Xmx512m' )
     # ONOS_WEB_{USER,PASS} isn't respected by onos-karaf:
     environ.update( ONOS_WEB_USER='karaf', ONOS_WEB_PASS='karaf' )

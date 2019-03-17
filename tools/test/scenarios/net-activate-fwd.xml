@@ -21,7 +21,7 @@
                requires="Activate-Fwd-Apps">
             <parallel var="${OC#}">
                 <step name="Check-Fwd-Apps-Activated-${#}"
-                      exec="onos-check-apps ${#} drivers,openflow,proxyarp,fwd includes"/>
+                      exec="onos-check-apps ${#} gui,drivers,openflow,proxyarp,fwd includes"/>
             </parallel>
         </group>
 

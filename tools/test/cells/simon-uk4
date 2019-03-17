@@ -37,7 +37,7 @@ export OCI=$OC1
 export ONOS_USER=sdn
 
 ## the apps we want activated at startup
-export ONOS_APPS="drivers,openflow,proxyarp,drivermatrix,mlb"
+export ONOS_APPS="gui,drivers,openflow,proxyarp,drivermatrix,mlb"
 
 ## mininet VM
 export OCN="192.168.56.99"

@@ -241,7 +241,7 @@ genrule(
 """
 
 genrule(
-    name = "onos-gui",
+    name = "onos-web-gui",
     srcs = [
         ":_onos-gui-npm-build",
         ":onos-gui-jar",
@@ -265,4 +265,12 @@ genrule(
           " jar cmf META-INF/MANIFEST.MF $$ROOT/$@ .",
     output_to_bindir = 1,
     visibility = ["//visibility:public"],
+)
+
+onos_app(
+    category = "Graphical User Interface",
+    description = "ONOS GUI - the original ONOS GUI based " +
+                  "on the latest AngularJS - new development should be on GUI2",
+    title = "ONOS Legacy GUI",
+    url = "http://onosproject.org",
 )

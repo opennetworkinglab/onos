@@ -16,7 +16,7 @@
 import { Injectable, Inject } from '@angular/core';
 import { LogService } from '../log.service';
 
-const UICONTEXT = '/onos/ui2/';
+const UICONTEXT = '/onos/ui/';
 const RSSUFFIX = UICONTEXT + 'rs/';
 const WSSUFFIX = UICONTEXT + 'websock/';
 

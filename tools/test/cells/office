@@ -3,4 +3,4 @@
 export ONOS_NIC="10.1.10.*"
 export OC1="10.1.10.223"
 
-export ONOS_APPS="drivers,openflow,fwd,proxyarp,mobility"
+export ONOS_APPS="gui,drivers,openflow,fwd,proxyarp,mobility"

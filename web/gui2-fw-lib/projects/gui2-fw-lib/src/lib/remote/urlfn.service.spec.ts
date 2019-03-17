@@ -71,7 +71,7 @@ describe('UrlFnService', () => {
         windowMock.location.port = p;
         windowMock.location.protocol = prot;
         windowMock.location.href = prot + '://' + h + ':' + p +
-            ctx + '/onos/ui2/';
+            ctx + '/onos/ui/';
     }
 
     it('should define UrlFnService', () => {
@@ -87,37 +87,37 @@ describe('UrlFnService', () => {
 
     it('should return the correct (http) RS url', () => {
         setLoc('http', 'foo', '123');
-        expect(ufs.rsUrl('path')).toEqual('http://foo:123/onos/ui2/rs/path');
+        expect(ufs.rsUrl('path')).toEqual('http://foo:123/onos/ui/rs/path');
     });
 
     it('should return the correct (https) RS url', () => {
         setLoc('https', 'foo', '123');
-        expect(ufs.rsUrl('path')).toEqual('https://foo:123/onos/ui2/rs/path');
+        expect(ufs.rsUrl('path')).toEqual('https://foo:123/onos/ui/rs/path');
     });
 
     it('should return the correct (ws) WS url', () => {
         setLoc('http', 'foo', '123');
-        expect(ufs.wsUrl('path')).toEqual('ws://foo:123/onos/ui2/websock/path');
+        expect(ufs.wsUrl('path')).toEqual('ws://foo:123/onos/ui/websock/path');
     });
 
     it('should return the correct (wss) WS url', () => {
         setLoc('https', 'foo', '123');
-        expect(ufs.wsUrl('path')).toEqual('wss://foo:123/onos/ui2/websock/path');
+        expect(ufs.wsUrl('path')).toEqual('wss://foo:123/onos/ui/websock/path');
     });
 
     it('should allow us to define an alternate WS port', () => {
         setLoc('http', 'foo', '123');
-        expect(ufs.wsUrl('xyyzy', '456')).toEqual('ws://foo:456/onos/ui2/websock/xyyzy');
+        expect(ufs.wsUrl('xyyzy', '456')).toEqual('ws://foo:456/onos/ui/websock/xyyzy');
     });
 
     it('should allow us to define an alternate host', () => {
         setLoc('http', 'foo', '123');
-        expect(ufs.wsUrl('core', '456', 'bar')).toEqual('ws://bar:456/onos/ui2/websock/core');
+        expect(ufs.wsUrl('core', '456', 'bar')).toEqual('ws://bar:456/onos/ui/websock/core');
     });
 
     it('should allow us to inject an app context', () => {
         setLoc('http', 'foo', '123', '/my/app');
-        expect(ufs.wsUrl('path')).toEqual('ws://foo:123/my/app/onos/ui2/websock/path');
+        expect(ufs.wsUrl('path')).toEqual('ws://foo:123/my/app/onos/ui/websock/path');
     });
 
 });

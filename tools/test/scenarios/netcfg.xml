@@ -26,7 +26,7 @@
         <group name="Netcfg.Check-Dhcp-App-Activated" requires="Netcfg.Activate-Dhcp">
             <parallel var="${OC#}">
                 <step name="Netcfg.Check-Dhcp-App-Activated-${#}"
-                      exec="onos-check-apps ${OC#} drivers,openflow,proxyarp,dhcp includes"/>
+                      exec="onos-check-apps ${OC#} gui,drivers,openflow,proxyarp,dhcp includes"/>
                 <step name="Netcfg.Check-Dhcp-Component-Active-${#}"
                       exec="onos-check-component ${OC#} org.onosproject.dhcp.impl.DhcpManager ACTIVE"/>
             </parallel>
