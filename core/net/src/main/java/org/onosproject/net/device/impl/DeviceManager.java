@@ -1063,13 +1063,20 @@ public class DeviceManager
     private class InternalNetworkConfigListener implements NetworkConfigListener {
         @Override
         public boolean isRelevant(NetworkConfigEvent event) {
+            DeviceId deviceId;
+            if (event.configClass().equals(PortAnnotationConfig.class)) {
+                deviceId = ((ConnectPoint) event.subject()).deviceId();
+            } else {
+                deviceId = (DeviceId) event.subject();
+            }
             return (event.type() == NetworkConfigEvent.Type.CONFIG_ADDED
-                    || event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED)
+                    || event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED
+                    || event.type() == NetworkConfigEvent.Type.CONFIG_REMOVED)
                     && (event.configClass().equals(BasicDeviceConfig.class)
                     || portOpsIndex.containsKey(event.configClass())
                     || event.configClass().equals(PortDescriptionsConfig.class)
                     || event.configClass().equals(DeviceAnnotationConfig.class))
-                    && mastershipService.isLocalMaster((DeviceId) event.subject());
+                    && mastershipService.isLocalMaster(deviceId);
         }
 
         @Override
@@ -1127,7 +1134,7 @@ public class DeviceManager
                 //       but cannot add new port purely from Config.
                 de = Optional.ofNullable(dp)
                         .map(provider -> store.getPortDescription(provider.id(), did, cpt.port()))
-                        .map(desc -> applyAllPortOps(cpt, desc))
+                        .map(desc -> applyAllPortOps(cpt, desc, event.prevConfig()))
                         .map(desc -> store.updatePortStatus(dp.id(), did, desc))
                         .orElse(null);
             }
@@ -1225,6 +1232,23 @@ public class DeviceManager
             work = portOp.combine(cpt, work);
         }
         return portAnnotationOp.combine(cpt, work);
+    }
+
+    /**
+     * Merges the appropriate PortConfig with the description.
+     *
+     * @param cpt  ConnectPoint where the port is attached
+     * @param desc {@link PortDescription}
+     * @param prevConfig previous configuration
+     * @return merged {@link PortDescription}
+     */
+    private PortDescription applyAllPortOps(ConnectPoint cpt, PortDescription desc,
+                                            Optional<Config> prevConfig) {
+        PortDescription work = desc;
+        for (PortConfigOperator portOp : portOps) {
+            work = portOp.combine(cpt, work, prevConfig);
+        }
+        return portAnnotationOp.combine(cpt, work, prevConfig);
     }
 
     /**

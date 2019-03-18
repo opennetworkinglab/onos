@@ -15,11 +15,14 @@
  */
 package org.onosproject.net.device.impl;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultAnnotations.Builder;
+import org.onosproject.net.config.Config;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.PortConfigOperator;
 import org.onosproject.net.config.basics.PortAnnotationConfig;
@@ -72,8 +75,33 @@ public class PortAnnotationOperator implements PortConfigOperator {
         builder.putAll(annotations);
 
         return DefaultPortDescription.builder(descr)
-                    .annotations(builder.build())
-                    .build();
+                .annotations(builder.build())
+                .build();
+    }
+
+    @Override
+    public PortDescription combine(ConnectPoint cp, PortDescription descr,
+                                   Optional<Config> prevConfig) {
+        PortAnnotationConfig cfg = lookupConfig(cp);
+        Map<String, String> annotations = new HashMap<>();
+        if (cfg != null) {
+            annotations.putAll(cfg.annotations());
+        }
+
+        Builder builder = DefaultAnnotations.builder();
+        builder.putAll(descr.annotations());
+        if (prevConfig.isPresent()) {
+            PortAnnotationConfig prevDeviceAnnotationConfig = (PortAnnotationConfig) prevConfig.get();
+            for (String key : prevDeviceAnnotationConfig.annotations().keySet()) {
+                if (!annotations.containsKey(key)) {
+                    builder.remove(key);
+                }
+            }
+        }
+        builder.putAll(annotations);
+        return DefaultPortDescription.builder(descr)
+                .annotations(builder.build())
+                .build();
     }
 
 }
