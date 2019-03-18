@@ -26,4 +26,7 @@ public final class OsgiPropertyConstants {
     public static final String POLL_FREQUENCY = "pollFrequency";
     public static final int POLL_FREQUENCY_DEFAULT = 30;
 
+    public static final String TIMEOUT = "replyTimeout";
+    public static final int TIMEOUT_DEFAULT = 5;
+
 }

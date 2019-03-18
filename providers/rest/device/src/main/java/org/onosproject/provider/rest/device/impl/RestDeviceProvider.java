@@ -95,14 +95,17 @@ import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_REMOVED;
 import static org.onosproject.net.config.NetworkConfigEvent.Type.CONFIG_UPDATED;
 import static org.onosproject.provider.rest.device.impl.OsgiPropertyConstants.POLL_FREQUENCY;
 import static org.onosproject.provider.rest.device.impl.OsgiPropertyConstants.POLL_FREQUENCY_DEFAULT;
+import static org.onosproject.provider.rest.device.impl.OsgiPropertyConstants.TIMEOUT;
+import static org.onosproject.provider.rest.device.impl.OsgiPropertyConstants.TIMEOUT_DEFAULT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Provider for devices that use REST as means of configuration communication.
  */
-@Component(immediate = true, service = DeviceProvider.class,
+@Component(immediate = true,
         property = {
                 POLL_FREQUENCY + ":Integer=" + POLL_FREQUENCY_DEFAULT,
+                TIMEOUT + ":Integer=" + TIMEOUT_DEFAULT,
         })
 public class RestDeviceProvider extends AbstractProvider
         implements DeviceProvider {
@@ -113,9 +116,7 @@ public class RestDeviceProvider extends AbstractProvider
     private static final String DEVICENULL = "Rest device is null";
     private static final String DRIVERNULL = "Driver is null";
     private static final String UNKNOWN = "unknown";
-    private static final int REST_TIMEOUT_SEC = 5;
     private static final int EXECUTOR_THREAD_POOL_SIZE = 8;
-    private static final int DEVICE_POLL_SEC = 30;
     private final Logger log = getLogger(getClass());
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
@@ -141,6 +142,9 @@ public class RestDeviceProvider extends AbstractProvider
 
     /** Configure poll frequency for port status and statistics; default is 30 seconds. */
     private int pollFrequency = POLL_FREQUENCY_DEFAULT;
+
+    /** Configure timeout for a device reply; default is 5 seconds. */
+    private int replyTimeout = TIMEOUT_DEFAULT;
 
     private DeviceProviderService providerService;
     private ApplicationId appId;
@@ -191,7 +195,10 @@ public class RestDeviceProvider extends AbstractProvider
             Dictionary<?, ?> properties = context.getProperties();
             pollFrequency = Tools.getIntegerProperty(properties, POLL_FREQUENCY,
                                                      POLL_FREQUENCY_DEFAULT);
-            log.info("Configured. Poll frequency is configured to {} seconds", pollFrequency);
+            replyTimeout = Tools.getIntegerProperty(properties, TIMEOUT,
+                    TIMEOUT_DEFAULT);
+            log.info("Configured. Poll frequency = {} seconds, reply timeout = {} seconds ",
+                    pollFrequency, replyTimeout);
         }
 
         // Re-schedule only if frequency has changed
@@ -265,7 +272,7 @@ public class RestDeviceProvider extends AbstractProvider
             } catch (Exception e) {
                 log.error("Exception at schedule Device polling", e);
             }
-        }, 1, DEVICE_POLL_SEC, TimeUnit.SECONDS);
+        }, 1, pollFrequency, TimeUnit.SECONDS);
     }
 
     private DeviceDescription getDesc(RestSBDevice restSBDev) {
@@ -562,7 +569,7 @@ public class RestDeviceProvider extends AbstractProvider
 
             Future<Boolean> future = executor.submit(connectionSuccess);
             try {
-                return future.get(REST_TIMEOUT_SEC, TimeUnit.SECONDS);
+                return future.get(replyTimeout, TimeUnit.SECONDS);
             } catch (TimeoutException ex) {
                 log.warn("Connection to device {} timed out: {}", dev.deviceId(), ex.getMessage());
                 return false;
