@@ -296,9 +296,9 @@
     "io_opencensus_opencensus_contrib_grpc_metrics": "mvn:io.opencensus:opencensus-contrib-grpc-metrics:0.18.0",
 
     // Openstack4j related jars
-    "openstack4j-core": "mvn:org.pacesys:openstack4j-core:3.1.0",
-    "openstack4j-http-connector": "mvn:org.pacesys.openstack4j.connectors:openstack4j-http-connector:3.1.0",
-    "openstack4j-httpclient": "mvn:org.pacesys.openstack4j.connectors:openstack4j-httpclient:3.1.0",
+    "openstack4j-core": "mvn:org.pacesys:openstack4j-core:3.2.0",
+    "openstack4j-http-connector": "mvn:org.pacesys.openstack4j.connectors:openstack4j-http-connector:3.2.0",
+    "openstack4j-httpclient": "mvn:org.pacesys.openstack4j.connectors:openstack4j-httpclient:3.2.0",
     "json-patch": "mvn:com.github.fge:json-patch:1.9",
     "jackson-coreutils": "mvn:com.github.fge:jackson-coreutils:1.6",
     "btf": "mvn:com.github.fge:btf:1.2",
