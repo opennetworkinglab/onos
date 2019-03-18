@@ -17,6 +17,7 @@
  */
 package org.onosproject.drivers.odtn.impl;
 
+import com.google.common.base.MoreObjects;
 import org.onosproject.net.flow.FlowRule;
 
 import java.util.Objects;
@@ -90,4 +91,12 @@ public final class DeviceConnection {
     public int hashCode() {
         return Objects.hash(id, fr);
     }
+
+     @Override
+     public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("id", id)
+                .add("fr", fr)
+                .toString();
+     }
 }

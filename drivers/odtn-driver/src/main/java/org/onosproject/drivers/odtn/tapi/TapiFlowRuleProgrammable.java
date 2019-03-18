@@ -80,7 +80,7 @@ public class TapiFlowRuleProgrammable extends AbstractHandlerBehaviour
     private static final String CONN_REQ_REMOVE_DATA_API = "/restconf/data/tapi-common:context/" +
             "tapi-connectivity:connectivity-context/connectivity-service=";
     private static final String CONN_REQ_GET_API = "/restconf/data/tapi-common:context/" +
-            "tapi-connectivity:connectivity-context/connectivity-service/";
+            "tapi-connectivity:connectivity-context/";
 
 
     @Override
@@ -95,7 +95,7 @@ public class TapiFlowRuleProgrammable extends AbstractHandlerBehaviour
 //        try {
 //            jsonNode = reader.readTree(response);
 //            if (jsonNode == null) {
-//                log.debug("JsonNode is null for response {}", response);
+//                log.error("JsonNode is null for response {}", response);
 //                return ImmutableList.of();
 //            }
 //            Set<String> uuids = parseTapiGetConnectivityRequest(jsonNode);
@@ -214,7 +214,7 @@ public class TapiFlowRuleProgrammable extends AbstractHandlerBehaviour
         if (tapiConnectivityReply.has(TAPI_CONNECTIVITY_CONNECTIVITY_SERVICE)) {
             tapiConnectivityReply.get(TAPI_CONNECTIVITY_CONNECTIVITY_SERVICE).elements()
                     .forEachRemaining(node -> uuids.add(node.get(TapiDeviceHelper.UUID).asText()));
-        } else if (tapiConnectivityReply.size() != 0) {
+        } else {
             log.warn("Can't retrieve connectivity UUID from {}", tapiConnectivityReply);
         }
         //This is only one uuid or empty in case of failures
