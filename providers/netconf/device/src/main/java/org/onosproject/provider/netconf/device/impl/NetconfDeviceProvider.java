@@ -109,7 +109,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true,
         property = {
-                POLL_FREQUENCY_SECONDS_DEFAULT + ":Integer=" + POLL_FREQUENCY_SECONDS_DEFAULT,
+                POLL_FREQUENCY_SECONDS + ":Integer=" + POLL_FREQUENCY_SECONDS_DEFAULT,
                 MAX_RETRIES + ":Integer=" + MAX_RETRIES_DEFAULT,
         })
 public class NetconfDeviceProvider extends AbstractProvider
