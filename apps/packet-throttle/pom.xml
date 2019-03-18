@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2019 Open Networking Foundation
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <artifactId>onos-apps</artifactId>
+        <groupId>org.onosproject</groupId>
+        <version>1.12.2-SNAPSHOT</version>
+    </parent>
+
+    <groupId>org.onosproject</groupId>
+    <artifactId>onos-apps-packet-throttle</artifactId>
+    <version>1.12.2-SNAPSHOT</version>
+    <packaging>bundle</packaging>
+
+    <description>Packet throttle application to make ONOS drop packets crossing threshold.</description>
+
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <onos.version>1.12.2-SNAPSHOT</onos.version>
+        <onos.app.name>org.onosproject.packetthrottle</onos.app.name>
+        <onos.app.title>onos-apps-packet-throttle</onos.app.title>
+        <onos.app.origin>Infosys, Inc.</onos.app.origin>
+        <onos.app.category>Traffic Steering</onos.app.category>
+        <onos.app.url>http://onosproject.org</onos.app.url>
+        <onos.app.readme>Packet throttle application to make ONOS drop non-important packets.</onos.app.readme>
+    </properties>
+
+    <modules>
+        <module>app</module>
+    </modules>
+
+</project>
