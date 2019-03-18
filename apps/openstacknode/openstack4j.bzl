@@ -9,7 +9,7 @@ def get_openstack4j_deps_path():
         "openstack4j-http-connector",
         "openstack4j-httpclient",
     ]
-    OPENSTACK4J_VER = "3.1.0"
+    OPENSTACK4J_VER = "3.2.0"
 
     openstack_deps_path = ""
 
@@ -27,7 +27,7 @@ def get_jackson_deps_path():
         "jackson-coreutils-1.6.jar",
         "msg-simple-1.1.jar",
         "btf-1.2.jar",
-        "snakeyaml-1.15.jar",
+        "snakeyaml-1.18.jar",
     ]
 
     jackson_deps_path = ""
