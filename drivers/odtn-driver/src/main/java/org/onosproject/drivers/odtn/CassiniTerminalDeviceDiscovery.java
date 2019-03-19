@@ -259,8 +259,8 @@ public class CassiniTerminalDeviceDiscovery
 
          // Store all properties as port properties
 
-         Pattern clientPattern = Pattern.compile("ce(\\d*)/1"); // e.g. ce1/1
-         Pattern linePattern = Pattern.compile("oc(\\d*)/(\\d*)"); // e.g. oe1
+         Pattern clientPattern = Pattern.compile("xe(\\d*)/1"); // e.g. xe1/1
+         Pattern linePattern = Pattern.compile("oe(\\d*)/(\\d*)"); // e.g. oe1
          Matcher clientMatch = clientPattern.matcher(description);
          Matcher lineMatch = linePattern.matcher(description);
 
