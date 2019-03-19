@@ -134,7 +134,7 @@ public class DistributedVirtualFlowRuleStore
             = new MessageSubject("virtual-peer-apply-completed");
 
     /** Number of threads in the message handler pool. */
-    private int msgHandlerThreadPoolSize = MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT;
+    private int messageHandlerThreadPoolSize = MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT;
 
     /** Delay in ms between successive backup runs. */
     private int backupPeriod = BACKUP_PERIOD_MILLIS_DEFAULT;
@@ -197,7 +197,7 @@ public class DistributedVirtualFlowRuleStore
         eventHandler = Executors.newSingleThreadExecutor(
                 groupedThreads("onos/virtual-flow", "event-handler", log));
         messageHandlingExecutor = Executors.newFixedThreadPool(
-                msgHandlerThreadPoolSize, groupedThreads("onos/store/virtual-flow", "message-handlers", log));
+            messageHandlerThreadPoolSize, groupedThreads("onos/store/virtual-flow", "message-handlers", log));
 
         registerMessageHandlers(messageHandlingExecutor);
 
@@ -238,7 +238,7 @@ public class DistributedVirtualFlowRuleStore
         int newBackupPeriod;
         try {
             String s = get(properties, MESSAGE_HANDLER_THREAD_POOL_SIZE);
-            newPoolSize = isNullOrEmpty(s) ? msgHandlerThreadPoolSize : Integer.parseInt(s.trim());
+            newPoolSize = isNullOrEmpty(s) ? messageHandlerThreadPoolSize : Integer.parseInt(s.trim());
 
             s = get(properties, BACKUP_PERIOD_MILLIS);
             newBackupPeriod = isNullOrEmpty(s) ? backupPeriod : Integer.parseInt(s.trim());
@@ -256,11 +256,11 @@ public class DistributedVirtualFlowRuleStore
         if (restartBackupTask) {
             log.warn("Currently, backup tasks are not supported.");
         }
-        if (newPoolSize != msgHandlerThreadPoolSize) {
-            msgHandlerThreadPoolSize = newPoolSize;
+        if (newPoolSize != messageHandlerThreadPoolSize) {
+            messageHandlerThreadPoolSize = newPoolSize;
             ExecutorService oldMsgHandler = messageHandlingExecutor;
             messageHandlingExecutor = Executors.newFixedThreadPool(
-                    msgHandlerThreadPoolSize, groupedThreads("onos/store/virtual-flow", "message-handlers", log));
+                messageHandlerThreadPoolSize, groupedThreads("onos/store/virtual-flow", "message-handlers", log));
 
             // replace previously registered handlers.
             registerMessageHandlers(messageHandlingExecutor);
@@ -566,7 +566,7 @@ public class DistributedVirtualFlowRuleStore
 
     private void logConfig(String prefix) {
         log.info("{} with msgHandlerPoolSize = {}; backupPeriod = {}",
-                 prefix, msgHandlerThreadPoolSize, backupPeriod);
+                 prefix, messageHandlerThreadPoolSize, backupPeriod);
     }
 
     private void storeBatchInternal(NetworkId networkId, FlowRuleBatchOperation operation) {

@@ -219,7 +219,7 @@ public class ReactiveForwarding {
     private boolean matchIcmpFields = MATCH_ICMP_FIELDS_DEFAULT;
 
     /** Ignore (do not forward) IPv4 multicast packets; default is false. */
-    private boolean ignoreIpv4McastPackets = IGNORE_IPV4_MCAST_PACKETS_DEFAULT;
+    private boolean ignoreIPv4Multicast = IGNORE_IPV4_MCAST_PACKETS_DEFAULT;
 
     /** Enable record metrics for reactive forwarding. */
     private boolean recordMetrics = RECORD_METRICS_DEFAULT;
@@ -436,11 +436,11 @@ public class ReactiveForwarding {
                 Tools.isPropertyEnabled(properties, IGNORE_IPV4_MCAST_PACKETS);
         if (ignoreIpv4McastPacketsEnabled == null) {
             log.info("Ignore IPv4 multi-cast packet is not configured, " +
-                     "using current value of {}", ignoreIpv4McastPackets);
+                     "using current value of {}", ignoreIPv4Multicast);
         } else {
-            ignoreIpv4McastPackets = ignoreIpv4McastPacketsEnabled;
+            ignoreIPv4Multicast = ignoreIpv4McastPacketsEnabled;
             log.info("Configured. Ignore IPv4 multicast packets is {}",
-                    ignoreIpv4McastPackets ? "enabled" : "disabled");
+                    ignoreIPv4Multicast ? "enabled" : "disabled");
         }
         Boolean recordMetricsEnabled =
                 Tools.isPropertyEnabled(properties, RECORD_METRICS);
@@ -507,7 +507,7 @@ public class ReactiveForwarding {
             }
 
             // Do not process IPv4 multicast packets, let mfwd handle them
-            if (ignoreIpv4McastPackets && ethPkt.getEtherType() == Ethernet.TYPE_IPV4) {
+            if (ignoreIPv4Multicast && ethPkt.getEtherType() == Ethernet.TYPE_IPV4) {
                 if (id.mac().isMulticast()) {
                     return;
                 }

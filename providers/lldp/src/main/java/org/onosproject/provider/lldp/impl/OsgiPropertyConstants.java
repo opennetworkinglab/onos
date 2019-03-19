@@ -26,7 +26,7 @@ public final class OsgiPropertyConstants {
     public static final String PROP_ENABLED = "enabled";
     public static final boolean ENABLED_DEFAULT = true;
 
-    public static final String PROP_USE_BDDP = "useBDDP";
+    public static final String PROP_USE_BDDP = "useBddp";
     public static final boolean USE_BDDP_DEFAULT = true;
 
     public static final String PROP_PROBE_RATE = "probeRate";

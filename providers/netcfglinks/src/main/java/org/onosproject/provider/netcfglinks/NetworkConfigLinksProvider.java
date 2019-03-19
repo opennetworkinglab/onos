@@ -112,7 +112,7 @@ public class NetworkConfigLinksProvider
     private int probeRate = PROBE_RATE_DEFAULT;
 
     /** Number of millis beyond which an LLDP packet will not be accepted. */
-    private int maxDiscoveryDelayMs = DISCOVERY_DELAY_DEFAULT;
+    private int maxLldpAge = DISCOVERY_DELAY_DEFAULT;
 
     // Device link discovery helpers.
     protected final Map<DeviceId, LinkDiscovery> discoverers = new ConcurrentHashMap<>();
@@ -284,7 +284,7 @@ public class NetworkConfigLinksProvider
 
         @Override
         public long maxDiscoveryDelay() {
-            return maxDiscoveryDelayMs;
+            return maxLldpAge;
         }
     }
 

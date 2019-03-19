@@ -66,7 +66,7 @@ import static org.slf4j.LoggerFactory.getLogger;
     immediate = true,
     service = TransactionPerfApp.class,
     property = {
-        MAP_NAME_DEFAULT + "=" + MAP_NAME,
+        MAP_NAME + "=" + MAP_NAME_DEFAULT,
         READ_PERCENTAGE + ":Double=" + READ_PERCENTAGE_DEFAULT,
         TOTAL_OPERATIONS + ":Integer=" + TOTAL_OPERATIONS_DEFAULT,
         WITH_CONTENTION + ":Boolean=" + WITH_CONTENTION_DEFAULT,

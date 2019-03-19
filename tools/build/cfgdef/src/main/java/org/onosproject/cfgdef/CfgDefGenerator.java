@@ -147,7 +147,7 @@ public class CfgDefGenerator {
             String comment = field.getComment();
             return comment != null ? comment : NO_DESCRIPTION;
         }
-        return null;
+        throw new IllegalStateException("cfgdef could not find a variable named " + name + " in " + javaClass.getName());
     }
 
     private String elaborate(AnnotationValue value) {
