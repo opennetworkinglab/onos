@@ -97,7 +97,7 @@ public class CoreManager implements CoreService {
     private int maxEventTimeLimit = MAX_EVENT_TIME_LIMIT_DEFAULT;
 
     /** Enable queue performance check on shared pool. */
-    private boolean calculatePoolPerformance = CALCULATE_PERFORMANCE_CHECK_DEFAULT;
+    private boolean sharedThreadPerformanceCheck = CALCULATE_PERFORMANCE_CHECK_DEFAULT;
 
 
     @Activate
@@ -184,11 +184,11 @@ public class CoreManager implements CoreService {
 
         Boolean performanceCheck = Tools.isPropertyEnabled(properties, CALCULATE_PERFORMANCE_CHECK);
         if (performanceCheck != null) {
-            calculatePoolPerformance = performanceCheck;
-            SharedExecutors.setMetricsService(calculatePoolPerformance ? metricsService : null);
+            sharedThreadPerformanceCheck = performanceCheck;
+            SharedExecutors.setMetricsService(sharedThreadPerformanceCheck ? metricsService : null);
         }
 
-        log.info("Settings: sharedThreadPoolSize={}, maxEventTimeLimit={}, calculatePoolPerformance={}",
-                 sharedThreadPoolSize, maxEventTimeLimit, calculatePoolPerformance);
+        log.info("Settings: sharedThreadPoolSize={}, maxEventTimeLimit={}, sharedThreadPerformanceCheck={}",
+                 sharedThreadPoolSize, maxEventTimeLimit, sharedThreadPerformanceCheck);
     }
 }

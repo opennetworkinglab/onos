@@ -126,13 +126,13 @@ public class OpenFlowControllerImpl implements OpenFlowController {
     protected NetworkConfigRegistry netCfgService;
 
     /** Port numbers (comma separated) used by OpenFlow protocol; default is 6633,6653. */
-    private String openflowPortsValue = OFPORTS_DEFAULT;
+    private String openflowPorts = OFPORTS_DEFAULT;
 
     /** Number of controller worker threads. */
     private int workerThreads = WORKER_THREADS_DEFAULT;
 
       /** TLS mode for OpenFlow channel; options are: disabled [default], enabled, strict. */
-    private String tlsModeString;
+    private String tlsMode;
 
     /** File path to key store for TLS connections. */
     private String keyStore;

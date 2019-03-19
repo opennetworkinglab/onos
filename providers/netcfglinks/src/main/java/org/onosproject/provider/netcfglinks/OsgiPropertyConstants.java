@@ -26,7 +26,7 @@ public final class OsgiPropertyConstants {
     public static final String PROP_PROBE_RATE = "probeRate";
     public static final int PROBE_RATE_DEFAULT = 3000;
 
-    public static final String PROP_DISCOVERY_DELAY = "maxLLDPAge";
+    public static final String PROP_DISCOVERY_DELAY = "maxLldpAge";
     public static final int DISCOVERY_DELAY_DEFAULT = 1000;
 
 }

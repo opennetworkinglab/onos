@@ -32,7 +32,7 @@ public final class OsgiPropertyConstants {
     public static final String ANTI_ENTROPY_PERIOD_MILLIS = "antiEntropyPeriod";
     public static final int ANTI_ENTROPY_PERIOD_MILLIS_DEFAULT = 5000;
 
-    public static final String EC_FLOW_RULE_STORE_PERSISTENCE_ENABLED = "flowRuleStorePersistenceEnabled";
+    public static final String EC_FLOW_RULE_STORE_PERSISTENCE_ENABLED = "persistenceEnabled";
     public static final boolean EC_FLOW_RULE_STORE_PERSISTENCE_ENABLED_DEFAULT = false;
 
     public static final String MAX_BACKUP_COUNT = "backupCount";

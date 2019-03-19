@@ -123,7 +123,6 @@ import static org.onosproject.net.flowobjective.Objective.Operation.REMOVE;
 @Component(
     service = { DhcpHandler.class, HostProvider.class },
     property = {
-        "version:Integer = 4",
         LEARN_ROUTE_FROM_LEASE_QUERY + ":Boolean=" + LEARN_ROUTE_FROM_LEASE_QUERY_DEFAULT
     }
 )

@@ -183,18 +183,18 @@ public class GeneralDeviceProvider extends AbstractProvider
     /**
      * Configure poll frequency for port status and statistics; default is 10 sec.
      */
-    private int statsPollFrequency = STATS_POLL_FREQUENCY_DEFAULT;
+    private int deviceStatsPollFrequency = STATS_POLL_FREQUENCY_DEFAULT;
 
     /**
      * Configure probe frequency for checking device availability; default is 10 sec.
      */
-    private int probeFrequency = PROBE_FREQUENCY_DEFAULT;
+    private int deviceProbeFrequency = PROBE_FREQUENCY_DEFAULT;
 
     /**
      * Configure timeout in seconds for device operations that are supposed to take a short time
      * (e.g. checking device reachability); default is 10 seconds.
      */
-    private int opTimeoutShort = OP_TIMEOUT_SHORT_DEFAULT;
+    private int deviceOperationTimeoutShort = OP_TIMEOUT_SHORT_DEFAULT;
 
     //FIXME to be removed when netcfg will issue device events in a bundle or
     //ensures all configuration needed is present
@@ -252,26 +252,26 @@ public class GeneralDeviceProvider extends AbstractProvider
         }
 
         Dictionary<?, ?> properties = context.getProperties();
-        final int oldStatsPollFrequency = statsPollFrequency;
-        statsPollFrequency = Tools.getIntegerProperty(
+        final int oldStatsPollFrequency = deviceStatsPollFrequency;
+        deviceStatsPollFrequency = Tools.getIntegerProperty(
                 properties, STATS_POLL_FREQUENCY, STATS_POLL_FREQUENCY_DEFAULT);
         log.info("Configured. {} is configured to {} seconds",
-                 STATS_POLL_FREQUENCY, statsPollFrequency);
-        final int oldProbeFrequency = probeFrequency;
-        probeFrequency = Tools.getIntegerProperty(
+                 STATS_POLL_FREQUENCY, deviceStatsPollFrequency);
+        final int oldProbeFrequency = deviceProbeFrequency;
+        deviceProbeFrequency = Tools.getIntegerProperty(
                 properties, PROBE_FREQUENCY, PROBE_FREQUENCY_DEFAULT);
         log.info("Configured. {} is configured to {} seconds",
-                 PROBE_FREQUENCY, probeFrequency);
-        opTimeoutShort = Tools.getIntegerProperty(
+                 PROBE_FREQUENCY, deviceProbeFrequency);
+        deviceOperationTimeoutShort = Tools.getIntegerProperty(
                 properties, OP_TIMEOUT_SHORT, OP_TIMEOUT_SHORT_DEFAULT);
         log.info("Configured. {} is configured to {} seconds",
-                 OP_TIMEOUT_SHORT, opTimeoutShort);
+                 OP_TIMEOUT_SHORT, deviceOperationTimeoutShort);
 
-        if (oldStatsPollFrequency != statsPollFrequency) {
+        if (oldStatsPollFrequency != deviceStatsPollFrequency) {
             rescheduleStatsPollingTasks();
         }
 
-        if (oldProbeFrequency != probeFrequency) {
+        if (oldProbeFrequency != deviceProbeFrequency) {
             rescheduleProbeTask(true);
         }
     }
@@ -283,8 +283,8 @@ public class GeneralDeviceProvider extends AbstractProvider
             }
             probeTask = probeExecutor.scheduleAtFixedRate(
                     this::triggerProbeAllDevices,
-                    deelay ? probeFrequency : 0,
-                    probeFrequency,
+                    deelay ? deviceProbeFrequency : 0,
+                deviceProbeFrequency,
                     TimeUnit.SECONDS);
         }
     }
@@ -370,7 +370,7 @@ public class GeneralDeviceProvider extends AbstractProvider
         }
         return getFutureWithDeadline(
                 handshaker.isReachable(), "checking reachability",
-                deviceId, false, opTimeoutShort);
+                deviceId, false, deviceOperationTimeoutShort);
     }
 
     private boolean isConnected(DeviceId deviceId) {
@@ -404,7 +404,7 @@ public class GeneralDeviceProvider extends AbstractProvider
                 : portAdmin.disable(portNumber);
         final String descr = (enable ? "enabling" : "disabling") + " port " + portNumber;
         getFutureWithDeadline(
-                modifyTask, descr, deviceId, null, opTimeoutShort);
+                modifyTask, descr, deviceId, null, deviceOperationTimeoutShort);
     }
 
     @Override
@@ -475,7 +475,7 @@ public class GeneralDeviceProvider extends AbstractProvider
         // Start connection via handshaker.
         final Boolean connectSuccess = getFutureWithDeadline(
                 handshaker.connect(), "initiating connection",
-                deviceId, false, opTimeoutShort);
+                deviceId, false, deviceOperationTimeoutShort);
         if (!connectSuccess) {
             log.warn("Unable to connect to {}", deviceId);
         }
@@ -652,7 +652,7 @@ public class GeneralDeviceProvider extends AbstractProvider
         handshakersWithListeners.remove(deviceId);
         final boolean disconnectSuccess = getFutureWithDeadline(
                 handshaker.disconnect(), "performing disconnection",
-                deviceId, false, opTimeoutShort);
+                deviceId, false, deviceOperationTimeoutShort);
         if (!disconnectSuccess) {
             log.warn("Unable to disconnect from {}", deviceId);
         }
@@ -831,7 +831,7 @@ public class GeneralDeviceProvider extends AbstractProvider
                     ? new SecureRandom().nextInt(10) : 0;
             return statsExecutor.scheduleAtFixedRate(
                     exceptionSafe(() -> updatePortStatistics(deviceId)),
-                    delay, statsPollFrequency, TimeUnit.SECONDS);
+                    delay, deviceStatsPollFrequency, TimeUnit.SECONDS);
         });
     }
 
