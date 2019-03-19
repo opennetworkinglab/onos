@@ -19,15 +19,11 @@ package org.onosproject.drivers.p4runtime.mirror;
 import com.google.common.annotations.Beta;
 import com.google.common.collect.Maps;
 import org.onlab.util.KryoNamespace;
-import org.onlab.util.SharedExecutors;
 import org.onosproject.net.Annotations;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.pi.runtime.PiEntity;
 import org.onosproject.net.pi.runtime.PiEntityType;
 import org.onosproject.net.pi.runtime.PiHandle;
-import org.onosproject.net.pi.service.PiPipeconfWatchdogEvent;
-import org.onosproject.net.pi.service.PiPipeconfWatchdogListener;
-import org.onosproject.net.pi.service.PiPipeconfWatchdogService;
 import org.onosproject.p4runtime.api.P4RuntimeWriteClient.EntityUpdateRequest;
 import org.onosproject.p4runtime.api.P4RuntimeWriteClient.WriteRequest;
 import org.onosproject.p4runtime.api.P4RuntimeWriteClient.WriteResponse;
@@ -43,12 +39,10 @@ import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.net.pi.service.PiPipeconfWatchdogService.PipelineStatus.READY;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -68,16 +62,10 @@ public abstract class AbstractDistributedP4RuntimeMirror
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    protected PiPipeconfWatchdogService pipeconfWatchdogService;
-
     private EventuallyConsistentMap<PiHandle, TimedEntry<E>> mirrorMap;
     private EventuallyConsistentMap<PiHandle, Annotations> annotationsMap;
 
     private final PiEntityType entityType;
-
-    private final PiPipeconfWatchdogListener pipeconfListener =
-            new InternalPipeconfWatchdogListener();
 
     AbstractDistributedP4RuntimeMirror(PiEntityType entityType) {
         this.entityType = entityType;
@@ -106,13 +94,11 @@ public abstract class AbstractDistributedP4RuntimeMirror
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
 
-        pipeconfWatchdogService.addListener(pipeconfListener);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        pipeconfWatchdogService.removeListener(pipeconfListener);
         mirrorMap.destroy();
         mirrorMap = null;
         log.info("Stopped");
@@ -137,14 +123,6 @@ public abstract class AbstractDistributedP4RuntimeMirror
     public void put(H handle, E entry) {
         checkNotNull(handle);
         checkNotNull(entry);
-        final PiPipeconfWatchdogService.PipelineStatus status =
-                pipeconfWatchdogService.getStatus(handle.deviceId());
-        if (!status.equals(READY)) {
-            log.info("Ignoring device mirror update because pipeline " +
-                             "status of {} is {}: {}",
-                     handle.deviceId(), status, entry);
-            return;
-        }
         final long now = new WallClockTimestamp().unixTimestamp();
         final TimedEntry<E> timedEntry = new TimedEntry<>(now, entry);
         mirrorMap.put(handle, timedEntry);
@@ -212,26 +190,12 @@ public abstract class AbstractDistributedP4RuntimeMirror
         }
     }
 
-    private Set<PiHandle> getHandlesForDevice(DeviceId deviceId) {
-        return mirrorMap.keySet().stream()
-                .filter(h -> h.deviceId().equals(deviceId))
-                .collect(Collectors.toSet());
-    }
-
     private Map<PiHandle, E> deviceHandleMap(DeviceId deviceId) {
         final Map<PiHandle, E> deviceMap = Maps.newHashMap();
         mirrorMap.entrySet().stream()
                 .filter(e -> e.getKey().deviceId().equals(deviceId))
                 .forEach(e -> deviceMap.put(e.getKey(), e.getValue().entry()));
         return deviceMap;
-    }
-
-
-    private void removeAll(DeviceId deviceId) {
-        checkNotNull(deviceId);
-        @SuppressWarnings("unchecked")
-        Collection<H> handles = (Collection<H>) getHandlesForDevice(deviceId);
-        handles.forEach(this::remove);
     }
 
     @Override
@@ -263,20 +227,5 @@ public abstract class AbstractDistributedP4RuntimeMirror
                             log.error("Unknown update type {}", r.updateType());
                     }
                 });
-    }
-
-    public class InternalPipeconfWatchdogListener implements PiPipeconfWatchdogListener {
-        @Override
-        public void event(PiPipeconfWatchdogEvent event) {
-            log.debug("Flushing mirror for {}, pipeline status is {}",
-                      event.subject(), event.type());
-            SharedExecutors.getPoolThreadExecutor().execute(
-                    () -> removeAll(event.subject()));
-        }
-
-        @Override
-        public boolean isRelevant(PiPipeconfWatchdogEvent event) {
-            return event.type().equals(PiPipeconfWatchdogEvent.Type.PIPELINE_UNKNOWN);
-        }
     }
 }
