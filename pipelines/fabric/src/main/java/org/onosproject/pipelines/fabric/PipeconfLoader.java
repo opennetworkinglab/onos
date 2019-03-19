@@ -16,11 +16,6 @@
 
 package org.onosproject.pipelines.fabric;
 
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onosproject.core.CoreService;
 import org.onosproject.inbandtelemetry.api.IntProgrammable;
 import org.onosproject.net.behaviour.Pipeliner;
@@ -36,6 +31,11 @@ import org.onosproject.p4runtime.model.P4InfoParserException;
 import org.onosproject.pipelines.fabric.pipeliner.FabricPipeliner;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.wiring.BundleWiring;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -79,8 +79,8 @@ public class PipeconfLoader {
     private static final String P4INFO_TXT = "p4info.txt";
     private static final String CPU_PORT_TXT = "cpu_port.txt";
     private static final String SPECTRUM_BIN = "spectrum.bin";
-    private static final String TOFINO_BIN = "tofino.bin";
-    private static final String TOFINO_CTX_JSON = "context.json";
+    private static final String TOFINO_BIN = "pipe/tofino.bin";
+    private static final String TOFINO_CTX_JSON = "pipe/context.json";
     private static final String INT_PROFILE_SUFFIX = "-int";
     private static final String FULL_PROFILE_SUFFIX = "-full";
 

@@ -17,6 +17,7 @@
 #include <core.p4>
 #include <v1model.p4>
 
+#include "include/size.p4"
 #include "include/control/filtering.p4"
 #include "include/control/forwarding.p4"
 #include "include/control/acl.p4"

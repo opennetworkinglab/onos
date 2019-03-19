@@ -40,6 +40,9 @@ control Forwarding (inout parsed_headers_t hdr,
         bridging_counter.count();
     }
 
+    // FIXME: using ternary for eth_dst prevents our ability to scale in
+    //  bridging heavy environments. Do we really need ternary? Can we come up
+    //  with a multi-table/algorithmic approach?
     table bridging {
         key = {
             fabric_metadata.vlan_id: exact @name("vlan_id");
@@ -51,6 +54,7 @@ control Forwarding (inout parsed_headers_t hdr,
         }
         const default_action = nop();
         counters = bridging_counter;
+        size = BRIDGING_TABLE_SIZE;
     }
 
     /*
@@ -74,6 +78,7 @@ control Forwarding (inout parsed_headers_t hdr,
         }
         const default_action = nop();
         counters = mpls_counter;
+        size = MPLS_TABLE_SIZE;
     }
 
     /*
@@ -90,6 +95,9 @@ control Forwarding (inout parsed_headers_t hdr,
         routing_v4_counter.count();
     }
 
+    #ifdef _ROUTING_V4_TABLE_ANNOT
+    _ROUTING_V4_TABLE_ANNOT
+    #endif
     table routing_v4 {
         key = {
             hdr.ipv4.dst_addr: lpm @name("ipv4_dst");
@@ -101,6 +109,7 @@ control Forwarding (inout parsed_headers_t hdr,
         }
         const default_action = nop();
         counters = routing_v4_counter;
+        size = ROUTING_V4_TABLE_SIZE;
     }
 
 #ifdef WITH_IPV6
@@ -124,6 +133,7 @@ control Forwarding (inout parsed_headers_t hdr,
         }
         const default_action = nop();
         counters = routing_v6_counter;
+        size = ROUTING_V6_TABLE_SIZE;
     }
 #endif // WITH_IPV6
 

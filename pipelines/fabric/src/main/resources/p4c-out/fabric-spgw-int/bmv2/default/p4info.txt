@@ -311,7 +311,7 @@ tables {
   }
   const_default_action_id: 16827694
   direct_resource_ids: 318801025
-  size: 128
+  size: 1024
 }
 tables {
   preamble {
@@ -844,10 +844,11 @@ action_profiles {
     id: 285217164
     name: "FabricIngress.next.hashed_selector"
     alias: "hashed_selector"
+    annotations: "@max_group_size(16)"
   }
   table_ids: 33608588
   with_selector: true
-  size: 64
+  size: 1024
 }
 counters {
   preamble {

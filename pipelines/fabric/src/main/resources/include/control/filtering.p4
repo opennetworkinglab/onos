@@ -61,6 +61,7 @@ control Filtering (inout parsed_headers_t hdr,
         }
         const default_action = deny();
         counters = ingress_port_vlan_counter;
+        size = PORT_VLAN_TABLE_SIZE;
     }
 
     /*
@@ -94,6 +95,7 @@ control Filtering (inout parsed_headers_t hdr,
         }
         const default_action = set_forwarding_type(FWD_BRIDGING);
         counters = fwd_classifier_counter;
+        size = FWD_CLASSIFIER_TABLE_SIZE;
     }
 
     apply {

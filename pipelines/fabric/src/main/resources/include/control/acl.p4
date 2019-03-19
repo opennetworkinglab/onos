@@ -82,7 +82,7 @@ control Acl (inout parsed_headers_t hdr,
         }
 
         const default_action = nop_acl();
-        size = 128;
+        size = ACL_TABLE_SIZE;
         counters = acl_counter;
     }
 

@@ -81,6 +81,7 @@ control Next (inout parsed_headers_t hdr,
         }
         const default_action = nop();
         counters = next_vlan_counter;
+        size = NEXT_VLAN_TABLE_SIZE;
     }
 
 #ifdef WITH_XCONNECT
@@ -112,6 +113,7 @@ control Next (inout parsed_headers_t hdr,
         }
         counters = xconnect_counter;
         const default_action = nop();
+        size = XCONNECT_NEXT_TABLE_SIZE;
     }
 #endif // WITH_XCONNECT
 
@@ -150,6 +152,7 @@ control Next (inout parsed_headers_t hdr,
         }
         const default_action = nop();
         counters = simple_counter;
+        size = SIMPLE_NEXT_TABLE_SIZE;
     }
 #endif // WITH_SIMPLE_NEXT
 
@@ -158,7 +161,8 @@ control Next (inout parsed_headers_t hdr,
      * Hashed table.
      * Execute an action profile selector based on next id.
      */
-    action_selector(HashAlgorithm.crc16, 32w64, 32w16) hashed_selector;
+    @max_group_size(HASHED_SELECTOR_MAX_GROUP_SIZE)
+    action_selector(HashAlgorithm.crc16, HASHED_ACT_PROFILE_SIZE, 32w16) hashed_selector;
     direct_counter(CounterType.packets_and_bytes) hashed_counter;
 
     action output_hashed(port_num_t port_num) {
@@ -195,6 +199,7 @@ control Next (inout parsed_headers_t hdr,
         implementation = hashed_selector;
         counters = hashed_counter;
         const default_action = nop();
+        size = HASHED_NEXT_TABLE_SIZE;
     }
 #endif // WITH_HASHED_NEXT
 
@@ -220,6 +225,7 @@ control Next (inout parsed_headers_t hdr,
         }
         counters = multicast_counter;
         const default_action = nop();
+        size = MULTICAST_NEXT_TABLE_SIZE;
     }
 
     apply {
@@ -293,6 +299,7 @@ control EgressNextControl (inout parsed_headers_t hdr,
         }
         const default_action = nop();
         counters = egress_vlan_counter;
+        size = EGRESS_VLAN_TABLE_SIZE;
     }
 
     apply {
