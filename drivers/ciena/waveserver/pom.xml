@@ -21,7 +21,7 @@
     <parent>
         <artifactId>onos-drivers-general</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.13.9-rc3</version>
+        <version>1.13.9-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
