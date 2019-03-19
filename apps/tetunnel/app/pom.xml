@@ -21,7 +21,7 @@
     <parent>
         <artifactId>onos-tetunnel</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.13.9-SNAPSHOT</version>
+        <version>1.13.9-rc3</version>
     </parent>
 
     <artifactId>onos-app-tetunnel</artifactId>
