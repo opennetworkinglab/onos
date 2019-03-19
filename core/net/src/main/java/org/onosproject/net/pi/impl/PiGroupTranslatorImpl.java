@@ -102,13 +102,16 @@ final class PiGroupTranslatorImpl {
                     actionProfileId, actionProfileModel.maxGroupSize()));
         }
 
+        // If not INDIRECT, we set the maximum group size as specified in the
+        // model, however this might be highly inefficient for some HW targets
+        // which pre-allocate resources for the whole group.
+        final int maxGroupSize = group.type() == GroupDescription.Type.INDIRECT
+                ? 1 : group.buckets().buckets().size();
+
         final PiActionProfileGroup.Builder piActionGroupBuilder = PiActionProfileGroup.builder()
                 .withId(PiActionProfileGroupId.of(group.id().id()))
                 .withActionProfileId(groupKey.actionProfileId())
-                // We set the maximum group size as specified in the model,
-                // however this might be highly inefficient for some HW targets
-                // which pre-allocate resources for the whole group.
-                .withMaxSize(actionProfileModel.maxGroupSize());
+                .withMaxSize(maxGroupSize);
 
         // Translate group buckets to PI group members
         final PiPipelineInterpreter interpreter = getInterpreterOrNull(device, pipeconf);
