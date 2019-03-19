@@ -28,8 +28,6 @@ import org.onosproject.net.pi.model.PiActionParamId;
 import org.onosproject.net.pi.model.PiActionParamModel;
 import org.onosproject.net.pi.model.PiActionProfileId;
 import org.onosproject.net.pi.model.PiActionProfileModel;
-import org.onosproject.net.pi.model.PiPacketMetadataId;
-import org.onosproject.net.pi.model.PiPacketMetadataModel;
 import org.onosproject.net.pi.model.PiCounterId;
 import org.onosproject.net.pi.model.PiCounterModel;
 import org.onosproject.net.pi.model.PiCounterType;
@@ -39,6 +37,8 @@ import org.onosproject.net.pi.model.PiMatchType;
 import org.onosproject.net.pi.model.PiMeterId;
 import org.onosproject.net.pi.model.PiMeterModel;
 import org.onosproject.net.pi.model.PiMeterType;
+import org.onosproject.net.pi.model.PiPacketMetadataId;
+import org.onosproject.net.pi.model.PiPacketMetadataModel;
 import org.onosproject.net.pi.model.PiPacketOperationModel;
 import org.onosproject.net.pi.model.PiPacketOperationType;
 import org.onosproject.net.pi.model.PiPipelineModel;
@@ -47,6 +47,7 @@ import org.onosproject.net.pi.model.PiRegisterModel;
 import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.model.PiTableModel;
 import org.onosproject.net.pi.model.PiTableType;
+import org.slf4j.Logger;
 import p4.config.v1.P4InfoOuterClass;
 import p4.config.v1.P4InfoOuterClass.Action;
 import p4.config.v1.P4InfoOuterClass.ActionProfile;
@@ -71,11 +72,14 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Parser of P4Info to PI pipeline model instances.
  */
 public final class P4InfoParser {
+
+    private static final Logger log = getLogger(P4InfoParser.class);
 
     private static final String PACKET_IN = "packet_in";
     private static final String PACKET_OUT = "packet_out";
@@ -325,6 +329,26 @@ public final class P4InfoParser {
             for (int tableId : actProfileMsg.getTableIdsList()) {
                 tableIdSetBuilder.add(PiTableId.of(getTableName(tableId, p4info)));
             }
+            // TODO: we should copy all annotations to model classes for later
+            //  use in the PI framework.
+            // This is a temporary workaround to the inability of p4c to
+            // correctly interpret P4Runtime-defined max_group_size annotation:
+            // https://s3-us-west-2.amazonaws.com/p4runtime/docs/master/
+            // P4Runtime-Spec.html#sec-p4info-action-profile
+            final String maxSizeAnnString = findAnnotation(
+                    "max_group_size", actProfileMsg.getPreamble());
+            final int maxSizeAnn = maxSizeAnnString != null
+                    ? Integer.valueOf(maxSizeAnnString) : 0;
+            final int maxGroupSize;
+            if (actProfileMsg.getMaxGroupSize() == 0 && maxSizeAnn != 0) {
+                log.warn("Found valid 'max_group_size' annotation for " +
+                                 "ActionProfile {}, using that...",
+                         actProfileMsg.getPreamble().getName());
+                maxGroupSize = maxSizeAnn;
+            } else {
+                maxGroupSize = actProfileMsg.getMaxGroupSize();
+            }
+
             actProfileMap.put(
                     actProfileMsg.getPreamble().getId(),
                     new P4ActionProfileModel(
@@ -332,7 +356,7 @@ public final class P4InfoParser {
                             tableIdSetBuilder.build(),
                             actProfileMsg.getWithSelector(),
                             actProfileMsg.getSize(),
-                            actProfileMsg.getMaxGroupSize()));
+                            maxGroupSize));
         }
         return actProfileMap;
     }
@@ -430,5 +454,14 @@ public final class P4InfoParser {
                     "Unrecognized match field type '%s'", type));
         }
         return MATCH_TYPE_MAP.get(type);
+    }
+
+    private static String findAnnotation(String name, P4InfoOuterClass.Preamble preamble) {
+        return preamble.getAnnotationsList().stream()
+                .filter(a -> a.startsWith("@" + name))
+                // e.g. @my_annotaion(value)
+                .map(a -> a.substring(name.length() + 2, a.length() - 1))
+                .findFirst()
+                .orElse(null);
     }
 }

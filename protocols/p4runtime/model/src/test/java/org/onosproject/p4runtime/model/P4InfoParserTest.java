@@ -70,7 +70,7 @@ public class P4InfoParserTest {
 
     private static final Long DEFAULT_MAX_TABLE_SIZE = 1024L;
     private static final Long DEFAULT_MAX_ACTION_PROFILE_SIZE = 64L;
-    private static final int DEFAULT_MAX_GROUP_SIZE = 0;
+    private static final int DEFAULT_MAX_GROUP_SIZE = 16;
 
     /**
      * Tests parse method.

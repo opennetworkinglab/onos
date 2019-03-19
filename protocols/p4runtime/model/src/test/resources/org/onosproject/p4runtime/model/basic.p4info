@@ -147,6 +147,7 @@ action_profiles {
     id: 285259294
     name: "wcmp_control.wcmp_selector"
     alias: "wcmp_selector"
+    annotations: "@max_group_size(16)"
   }
   table_ids: 33592597
   with_selector: true
