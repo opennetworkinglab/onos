@@ -239,6 +239,8 @@ function cell {
         curl -sS -X POST "http://$CELL_WARDEN:4321/?$query" -d "$(cat ~/.ssh/id_rsa.pub)" > $aux
         . $aux
         rm -f $aux
+        # This is a hack to get master running on the existing cell infrastructure
+        export ONOS_APPS=$ONOS_APPS,gui
         setPrimaryInstance 1 >/dev/null
         setMinorityMajority >/dev/null
         onos-verify-cell
