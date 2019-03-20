@@ -21,6 +21,7 @@ import org.onosproject.cli.AbstractChoicesCompleter;
 
 import java.util.List;
 
+import static org.onosproject.workflow.cli.WorkFlowTestCommand.EXCEPTION_SAMPLE;
 import static org.onosproject.workflow.cli.WorkFlowTestCommand.INVOKE_SAMPLE;
 
 /**
@@ -30,6 +31,6 @@ import static org.onosproject.workflow.cli.WorkFlowTestCommand.INVOKE_SAMPLE;
 public class WorkFlowTestCompleter  extends AbstractChoicesCompleter {
     @Override
     protected List<String> choices() {
-        return ImmutableList.of(INVOKE_SAMPLE);
+        return ImmutableList.of(INVOKE_SAMPLE, EXCEPTION_SAMPLE);
     }
 }
