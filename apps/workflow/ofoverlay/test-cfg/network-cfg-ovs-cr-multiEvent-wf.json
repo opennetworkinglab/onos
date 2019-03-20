@@ -1,0 +1,41 @@
+{
+    "apps": {
+        "org.onosproject.workflow": {
+          "workflow" : {
+            "rpc" : [
+              {
+                "op"   : "workflow.invoke",
+                "params" : {
+                  "workplace" : "Nova-000",
+                  "id"        : "of-overlay.workflow-nova-multiEvent-test",
+                  "data"      : {
+
+                    "mgmtIp" : "192.168.10.8",
+                    "ovsdbPort" : 6641,
+
+                    "sshAccessInfo" : {
+                      "remoteIp" : "192.168.10.8",
+                      "port"     : 22,
+                      "user"     : "root",
+                      "password" : "iloveyou",
+                      "keyfile"  : "~/.ssh/id_rsa"
+                    },
+
+                    "ovsDatapathType" : "system",
+                    "physicalPorts" : [ "enp4s2" ],
+                    "vtepIp" : "120.0.0.200/24",
+
+                    "annotations" : {
+                      "rackId" : 1,
+                      "rackPosition" : 3
+                    }
+
+                  }
+                },
+                "id" : "00001@10.0.0.1"
+              }
+            ]
+          }
+        }
+    }
+}

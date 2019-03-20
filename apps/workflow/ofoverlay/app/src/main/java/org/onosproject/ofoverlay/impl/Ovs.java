@@ -65,6 +65,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -598,6 +599,108 @@ public final class Ovs {
                 context.waitCompletion(DeviceEvent.class, ofDeviceId.toString(),
                         () -> ovsdbClient.setControllersWithDeviceId(bd.deviceId().get(), ofControllers),
                         TIMEOUT_DEVICE_CREATION_MS
+                );
+                return;
+            }
+        }
+
+        @Override
+        public boolean isCompleted(WorkflowContext context, Event event)throws WorkflowException {
+            if (!(event instanceof DeviceEvent)) {
+                return false;
+            }
+            DeviceEvent deviceEvent = (DeviceEvent) event;
+            Device device = deviceEvent.subject();
+            switch (deviceEvent.type()) {
+                case DEVICE_ADDED:
+                case DEVICE_AVAILABILITY_CHANGED:
+                case DEVICE_UPDATED:
+                    return context.getService(DeviceService.class).isAvailable(device.id());
+                default:
+                    return false;
+            }
+        }
+
+        @Override
+        public void timeout(WorkflowContext context) throws WorkflowException {
+            if (!isNext(context)) {
+                context.completed(); //Complete the job of worklet by timeout
+            } else {
+                super.timeout(context);
+            }
+        }
+    }
+
+    /**
+     * Work-let class for creating overlay openflow bridge.
+     */
+    public static class CreateOverlayBridgeMultiEvent extends AbstractWorklet {
+
+        @JsonDataModel(path = MODEL_MGMT_IP)
+        String strMgmtIp;
+
+        @JsonDataModel(path = MODEL_OVSDB_PORT)
+        Integer intOvsdbPort;
+
+        @JsonDataModel(path = MODEL_OVS_DATAPATH_TYPE)
+        String strOvsDatapath;
+
+        @JsonDataModel(path = MODEL_OF_DEVID_OVERLAY_BRIDGE, optional = true)
+        String strOfDevIdOverlay;
+
+        @Override
+        public boolean isNext(WorkflowContext context) throws WorkflowException {
+
+            check(strOfDevIdOverlay != null, "invalid strOfDevIdOverlay");
+            return !OvsUtil.isAvailableBridge(context, DeviceId.deviceId(strOfDevIdOverlay));
+        }
+
+        @Override
+        public void process(WorkflowContext context) throws WorkflowException {
+
+            check(strOfDevIdOverlay != null, "invalid strOfDevIdOverlay");
+            BridgeConfig bridgeConfig = OvsUtil.getOvsdbBehaviour(context, strMgmtIp, BridgeConfig.class);
+            List<ControllerInfo> ofControllers = OvsUtil.getOpenflowControllerInfoList(context);
+            DeviceId ofDeviceId = DeviceId.deviceId(strOfDevIdOverlay);
+
+            if (ofControllers == null || ofControllers.size() == 0) {
+                throw new WorkflowException("Invalid of controllers");
+            }
+
+            Optional<BridgeDescription> optBd = OvsUtil.getBridgeDescription(bridgeConfig, BRIDGE_OVERLAY);
+            if (!optBd.isPresent()) {
+
+                Set<String> eventHints = Sets.newHashSet(ofDeviceId.toString());
+
+                context.waitAnyCompletion(DeviceEvent.class, eventHints,
+                        () -> OvsUtil.createBridge(bridgeConfig,
+                                                   BRIDGE_OVERLAY,
+                                                   OvsUtil.bridgeDatapathId(ofDeviceId),
+                                                   ofControllers,
+                                                   OvsUtil.buildOvsDatapathType(strOvsDatapath)),
+                        TIMEOUT_DEVICE_CREATION_MS
+                );
+                return;
+
+            } else {
+                BridgeDescription bd = optBd.get();
+                if (OvsUtil.isEqual(ofControllers, bd.controllers())) {
+                    log.error("{} has valid controller setting({})", BRIDGE_OVERLAY, bd.controllers());
+                    context.completed();
+                    return;
+                }
+
+                OvsdbClientService ovsdbClient = OvsUtil.getOvsdbClient(context, strMgmtIp, intOvsdbPort);
+                if (ovsdbClient == null || !ovsdbClient.isConnected()) {
+                    throw new WorkflowException("Invalid ovsdb client for " + strMgmtIp);
+                }
+
+                // If controller settings are not matched, set controller with valid controller information.
+                Set<String> eventHints = Sets.newHashSet(ofDeviceId.toString());
+
+                context.waitAnyCompletion(DeviceEvent.class, eventHints,
+                                       () -> ovsdbClient.setControllersWithDeviceId(bd.deviceId().get(), ofControllers),
+                                       TIMEOUT_DEVICE_CREATION_MS
                 );
                 return;
             }

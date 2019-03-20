@@ -97,6 +97,23 @@ public class OfOverlayWorkflow {
                 .build();
         workflowStore.register(workflow);
 
+        // registering new workflow definition based on multi-event handling
+        uri = URI.create("of-overlay.workflow-nova-multiEvent-test");
+        workflow = ImmutableListWorkflow.builder()
+                .id(uri)
+                //.attribute(WorkflowAttribute.REMOVE_AFTER_COMPLETE)
+                .chain(Ovs.CreateOvsdbDevice.class.getName())
+                .chain(Ovs.UpdateOvsVersion.class.getName())
+                .chain(Ovs.UpdateOverlayBridgeId.class.getName())
+                .chain(Ovs.CreateOverlayBridgeMultiEvent.class.getName())
+                .chain(Ovs.UpdateUnderlayBridgeId.class.getName())
+                .chain(Ovs.CreateUnderlayBridge.class.getName())
+                .chain(Ovs.CreateOverlayBridgeVxlanPort.class.getName())
+                .chain(Ovs.AddPhysicalPortsOnUnderlayBridge.class.getName())
+                .chain(Ovs.ConfigureUnderlayBridgeLocalIp.class.getName())
+                .build();
+        workflowStore.register(workflow);
+
         uri = URI.create("of-overlay.clean-workflow-nova");
         workflow = ImmutableListWorkflow.builder()
                 .id(uri)
