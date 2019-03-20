@@ -19,6 +19,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.flow.TrafficSelector;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,6 +51,22 @@ public interface PacketService {
      * @param processor packet processor
      */
     void removeProcessor(PacketProcessor processor);
+
+    /**
+     * Adds the specified filter to the list of packet filters.
+     * It will be added into the list in the order in which it is added.
+     *
+     * @param filter filter to be added
+     */
+    default void addFilter(PacketInFilter filter) {}
+
+
+    /**
+     * Removes the specified filter from the filters list.
+     *
+     * @param filter filter to be removed
+     */
+    default void removeFilter(PacketInFilter filter) {}
 
     /**
      * Returns priority bindings of all registered packet processor entries.
@@ -122,5 +139,21 @@ public interface PacketService {
      * @param packet outbound packet
      */
     void emit(OutboundPacket packet);
+
+    /**
+     * Get the list of packet filters present in ONOS.
+     *
+     * @return List of packet filters
+     */
+    default List<PacketInFilter> getFilters() {
+        return new ArrayList<>();
+    }
+
+    /**
+     * Clear all packet filters in one shot.
+     *
+     */
+    default void clearFilters() {}
+
 
 }
