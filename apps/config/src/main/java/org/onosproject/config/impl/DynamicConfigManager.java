@@ -15,6 +15,10 @@
  */
 package org.onosproject.config.impl;
 
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.Leadership;
+import org.onosproject.cluster.LeadershipService;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.config.DynamicConfigEvent;
 import org.onosproject.config.DynamicConfigListener;
 import org.onosproject.config.DynamicConfigService;
@@ -63,6 +67,7 @@ public class DynamicConfigManager
         extends AbstractListenerManager<DynamicConfigEvent, DynamicConfigListener>
         implements DynamicConfigService, RpcRegistry {
 
+    protected static final String DCS_STORE_INIT = "dcs-store-init";
     private final Logger log = getLogger(getClass());
     private final DynamicConfigStoreDelegate storeDelegate = new InternalStoreDelegate();
 
@@ -72,12 +77,24 @@ public class DynamicConfigManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected SchemaContextProvider contextProvider;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected LeadershipService leadershipService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected ClusterService clusterService;
+
+
+
     // FIXME is it OK this is not using the Store?
     private ConcurrentHashMap<String, RpcService> handlerRegistry = new ConcurrentHashMap<>();
 
     @Activate
     public void activate() {
-        initStore();
+        NodeId localnodeId = clusterService.getLocalNode().id();
+        Leadership leadership = leadershipService.runForLeadership(DCS_STORE_INIT);
+        if (leadership.leaderNodeId().equals(localnodeId)) {
+            initStore();
+        }
         store.setDelegate(storeDelegate);
         eventDispatcher.addSink(DynamicConfigEvent.class, listenerRegistry);
         log.info("Started");
