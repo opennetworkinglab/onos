@@ -75,7 +75,7 @@ export class TopologyService {
                         <ModelEventType><unknown>(ModelEventType[event.type]), // Number based enum
                         <ModelEventMemo>(event.memo), // String based enum
                         event.subject, event.data);
-                    this.log.debug('Region Data updated from WSS as topo2UiModelEvent', force.regionData);
+                    this.log.debug('Region Data updated from WSS as topo2UiModelEvent', event.subject, event.data);
                 }
             ],
             // topo2Highlights is handled by TrafficService

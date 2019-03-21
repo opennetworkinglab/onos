@@ -20,17 +20,16 @@ import * as d3 from 'd3-force';
 import {LogService} from 'gui2-fw-lib';
 
 const FORCES = {
-    LINKS: 1 / 50,
     COLLISION: 1,
     GRAVITY: 0.4,
     FRICTION: 0.7
 };
 
 const CHARGES = {
-    device: -80,
-    host: -200,
-    region: -80,
-    _def_: -120
+    device: -800,
+    host: -2000,
+    region: -800,
+    _def_: -1200
 };
 
 const LINK_DISTANCE = {
@@ -41,10 +40,12 @@ const LINK_DISTANCE = {
     _def_: 50,
 };
 
+/**
+ * note: key is link.type
+ * range: {0.0 ... 1.0}
+ */
 const LINK_STRENGTH = {
-    // note: key is link.type
-    // range: {0.0 ... 1.0}
-    _def_: 0.1
+    _def_: 0.5
 };
 
 export interface Options {
@@ -55,87 +56,68 @@ export interface Options {
 /**
  * The inspiration for this approach comes from
  * https://medium.com/netscape/visualizing-data-with-angular-and-d3-209dde784aeb
+ *
+ * Do yourself a favour and read https://d3indepth.com/force-layout/
  */
 export class ForceDirectedGraph {
     public ticker: EventEmitter<d3.Simulation<Node, Link>> = new EventEmitter();
     public simulation: d3.Simulation<any, any>;
-
+    public canvasOptions: Options;
     public nodes: Node[] = [];
     public links: Link[] = [];
 
     constructor(options: Options, public log: LogService) {
-        this.initSimulation(options);
+        this.canvasOptions = options;
+        const ticker = this.ticker;
+
+        // Creating the force simulation and defining the charges
+        this.simulation = d3.forceSimulation()
+            .force('charge',
+                d3.forceManyBody().strength(this.charges.bind(this)))
+            // .distanceMin(100).distanceMax(500))
+            .force('gravity',
+                d3.forceManyBody().strength(FORCES.GRAVITY))
+            .force('friction',
+                d3.forceManyBody().strength(FORCES.FRICTION))
+            .force('center',
+                d3.forceCenter(this.canvasOptions.width / 2, this.canvasOptions.height / 2))
+            .force('x', d3.forceX())
+            .force('y', d3.forceY())
+            .on('tick', () => {
+                ticker.emit(this.simulation); // ForceSvgComponent.ngOnInit listens
+            });
+
     }
 
-    initNodes() {
-        if (!this.simulation) {
-            throw new Error('simulation was not initialized yet');
-        }
-
+    /**
+     * Assigning updated node and restarting the simulation
+     * Setting alpha to 0.3 and it will count down to alphaTarget=0
+     */
+    public reinitSimulation() {
         this.simulation.nodes(this.nodes);
-    }
-
-    initLinks() {
-        if (!this.simulation) {
-            throw new Error('simulation was not initialized yet');
-        }
-
-        // Initializing the links force simulation
-        this.simulation.force('links',
+        this.simulation.force('link',
             d3.forceLink(this.links)
                 .strength(this.strength.bind(this))
                 .distance(this.distance.bind(this))
         );
+        this.simulation.alpha(0.3).restart();
     }
 
-    charges(node) {
+    charges(node: Node) {
         const nodeType = node.nodeType;
         return CHARGES[nodeType] || CHARGES._def_;
     }
 
-    distance(node) {
-        const nodeType = node.nodeType;
-        return LINK_DISTANCE[nodeType] || LINK_DISTANCE._def_;
+    distance(link: Link) {
+        const linkType = link.type;
+        this.log.debug('Link type', linkType, LINK_DISTANCE[linkType]);
+        return LINK_DISTANCE[linkType] || LINK_DISTANCE._def_;
     }
 
-    strength(node) {
-        const nodeType = node.nodeType;
-        return LINK_STRENGTH[nodeType] || LINK_STRENGTH._def_;
-    }
-
-    initSimulation(options: Options) {
-        if (!options || !options.width || !options.height) {
-            throw new Error('missing options when initializing simulation');
-        }
-
-        /** Creating the simulation */
-        if (!this.simulation) {
-            const ticker = this.ticker;
-
-            // Creating the force simulation and defining the charges
-            this.simulation = d3.forceSimulation()
-                .force('charge',
-                    d3.forceManyBody().strength(this.charges.bind(this)))
-                        // .distanceMin(100).distanceMax(500))
-                .force('gravity',
-                    d3.forceManyBody().strength(FORCES.GRAVITY))
-                .force('friction',
-                    d3.forceManyBody().strength(FORCES.FRICTION));
-
-            // Connecting the d3 ticker to an angular event emitter
-            this.simulation.on('tick', function () {
-                ticker.emit(this);
-            });
-
-            this.initNodes();
-            // this.initLinks();
-        }
-
-        /** Updating the central force of the simulation */
-        this.simulation.force('centers', d3.forceCenter(options.width / 2, options.height / 2));
-
-        /** Restarting the simulation internal timer */
-        this.simulation.restart();
+    strength(link: Link) {
+        const linkType = link.type;
+        this.log.debug('Link type', linkType, LINK_STRENGTH[linkType]);
+        return LINK_STRENGTH[linkType] || LINK_STRENGTH._def_;
     }
 
     stopSimulation() {
@@ -143,8 +125,8 @@ export class ForceDirectedGraph {
         this.log.debug('Simulation stopped');
     }
 
-    restartSimulation() {
-        this.simulation.restart();
-        this.log.debug('Simulation restarted');
+    public restartSimulation(alpha: number = 0.3) {
+        this.simulation.alpha(alpha).restart();
+        this.log.debug('Simulation restarted. Alpha:', alpha);
     }
 }

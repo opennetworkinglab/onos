@@ -39,6 +39,8 @@ export const EQMASTER_BTN = 'eqMaster-btn';
 export const CANCEL_TRAFFIC = 'cancel-traffic';
 export const ALL_TRAFFIC = 'all-traffic';
 export const QUICKHELP_BTN = 'quickhelp-btn';
+export const LAYOUT_DEFAULT_BTN = 'layout-default-btn';
+export const LAYOUT_ACCESS_BTN = 'layout-access-btn';
 
 
 /*

@@ -55,8 +55,7 @@ describe('ForceDirectedGraph', () => {
         }
         fdg.nodes = nodes;
         fdg.links = links;
-        fdg.initSimulation(options);
-        fdg.initNodes();
+        fdg.reinitSimulation();
         logServiceSpy = TestBed.get(LogService);
     });
 
@@ -64,7 +63,7 @@ describe('ForceDirectedGraph', () => {
         fdg.stopSimulation();
         fdg.nodes = [];
         fdg.links = [];
-        fdg.initSimulation(options);
+        fdg.reinitSimulation();
     });
 
     it('should be created', () => {
@@ -96,14 +95,7 @@ describe('ForceDirectedGraph', () => {
     // it('init links chould be called ', () => {
     //     spyOn(fdg, 'initLinks');
     //     // expect(fdg).toBeTruthy();
-    //     fdg.initSimulation(options);
+    //     fdg.reinitSimulation(options);
     //     expect(fdg.initLinks).toHaveBeenCalled();
     // });
-
-    it ('throws error on no options', () => {
-        expect(fdg.initSimulation).toThrowError('missing options when initializing simulation');
-    });
-
-
-
 });

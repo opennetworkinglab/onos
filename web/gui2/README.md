@@ -1,6 +1,6 @@
 # ONOS GUI 2.0.0
 
-This project is based on __[Angular 6](https://angular.io/docs)__ 
+This project is based on __[Angular 7](https://angular.io/docs)__ 
 and __[ES6](http://www.ecma-international.org/ecma-262/6.0/index.html)__ (aka __ES2015__), 
 as an alternative to the 1.0.0 GUI which was based 
 off __[AngularJS 1.3.5](https://angularjs.org/)__
@@ -9,9 +9,20 @@ Building, testing and running lint are all handled by Bazel. See web/gui2/BUILD 
 
 To use this new GUI you simply have to start the GUI in a running ONOS at the __onos>__ cli:
 ```
-feature:install onos-gui2
+app activate gui2
 ```
-and the gui will be accessible at [http://localhost:8181/onos/ui2](http://localhost:8181/onos/ui2)
+and the gui will be accessible at [http://localhost:8181/onos/ui](http://localhost:8181/onos/ui)
+
+Gui2 can also be loaded every time ONOS starts by adding it to ONOS_APPS
+```
+export ONOS_APPS=${ONOS_APPS:-drivers,openflow,gui2}
+```
+
+The original legacy GUI is also loadable as an app, and is available at the same web resource onos/ui
+The legacy GUI should be disabled if GUI2 is active and vice versa
+```
+app deactivate gui
+```
 
 As usual with ONOS if you want to run it in a different language set the __ONOS_LOCALE__ environment variable
 to the locale you want before starting onos. e.g.
@@ -25,17 +36,17 @@ There are 2 ways to go about development -
  (this is not optimal though since in this mode the browser side code is built in '--prod' mode
  and all debug symbols are stripped and debug statements are not logged and the code is uglified and minimized.
  It is useful for testing "prod" mode works though and saves having to set up direct development) OR
-2. use Angular 6 CLI (__ng__ command) to rebuild on the fly (must faster for development) 
+2. use Angular 7 CLI (__ng__ command) to rebuild on the fly (must faster for development) 
 
 For 1) (this needs to be updated for Bazel commands) if you change the code you can redeploy the application without restarting ONOS with (requires you to be in ~/onos directory):
 ```
-onos-buck build //web/gui2:onos-web-gui2-oar --show-output|grep /app.oar | cut -d\  -f2 | xargs onos-app localhost reinstall!
+bazel build //web/gui2:onos-web-gui2-oar && onos-app localhost reinstall! bazel-bin/web/gui2/onos-web-gui2-oar.oar
 ```
 
 For 2) it's well worth becoming familiar with Angular CLI.
-The project is created with [Angular CLI](https://github.com/angular/angular-cli) v6 to simplify development of the browser side code.
+The project is created with [Angular CLI](https://github.com/angular/angular-cli) v7 to simplify development of the browser side code.
 It is complicated to set up, but is worth the effort if you have more than a day's worth of development to do.
-This allows you to develop the Angular 6 TypeScript code independent of ONOS in a separate container. 
+This allows you to develop the Angular 7 TypeScript code independent of ONOS in a separate container. 
 Since WebSockets have been implemented - there is a requirement to run ONOS in the background.
 
 There is no need to install node, npm or ng again on your system, and indeed if they are already installed, it's best

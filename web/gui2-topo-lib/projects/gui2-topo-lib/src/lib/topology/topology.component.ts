@@ -22,14 +22,17 @@ import {
 } from '@angular/core';
 import * as d3 from 'd3';
 import {
-    FnService, IconService,
+    FnService,
+    IconService,
     KeysService,
-    KeysToken, LionService,
+    KeysToken,
+    LionService,
     LogService,
     PrefsService,
     SvgUtilService,
+    TopoZoomPrefs,
     WebSocketService,
-    TopoZoomPrefs, ZoomUtils
+    ZoomUtils
 } from 'gui2-fw-lib';
 import {InstanceComponent} from '../panel/instance/instance.component';
 import {DetailsComponent} from '../panel/details/details.component';
@@ -43,15 +46,29 @@ import {
     UiElement
 } from '../layer/forcesvg/models';
 import {
-    INSTANCE_TOGGLE, SUMMARY_TOGGLE, DETAILS_TOGGLE,
-    HOSTS_TOGGLE, OFFLINE_TOGGLE, PORTS_TOGGLE,
-    BKGRND_TOGGLE, CYCLELABELS_BTN, CYCLEHOSTLABEL_BTN,
-    CYCLEGRIDDISPLAY_BTN, RESETZOOM_BTN, EQMASTER_BTN,
-    CANCEL_TRAFFIC, ALL_TRAFFIC, QUICKHELP_BTN, BKGRND_SELECT
+    ALL_TRAFFIC,
+    BKGRND_SELECT,
+    BKGRND_TOGGLE,
+    CANCEL_TRAFFIC,
+    CYCLEGRIDDISPLAY_BTN,
+    CYCLEHOSTLABEL_BTN,
+    CYCLELABELS_BTN,
+    DETAILS_TOGGLE,
+    EQMASTER_BTN,
+    HOSTS_TOGGLE,
+    INSTANCE_TOGGLE,
+    LAYOUT_ACCESS_BTN,
+    LAYOUT_DEFAULT_BTN,
+    OFFLINE_TOGGLE,
+    PORTS_TOGGLE,
+    QUICKHELP_BTN,
+    RESETZOOM_BTN,
+    SUMMARY_TOGGLE
 } from '../panel/toolbar/toolbar.component';
 import {TrafficService} from '../traffic.service';
 import {ZoomableDirective} from '../layer/zoomable.directive';
 import {MapObject} from '../layer/maputils';
+import {LayoutService, LayoutType} from '../layout.service';
 
 const TOPO2_PREFS = 'topo2_prefs';
 const TOPO_MAPID_PREFS = 'topo_mapid';
@@ -165,6 +182,7 @@ export class TopologyComponent implements AfterContentInit, OnInit, OnDestroy {
         protected trs: TrafficService,
         protected is: IconService,
         private lion: LionService,
+        private layout: LayoutService,
         @Inject('Window') public window: any,
     ) {
         if (this.lion.ubercache.length === 0) {
@@ -199,6 +217,8 @@ export class TopologyComponent implements AfterContentInit, OnInit, OnDestroy {
         this.is.loadIconDef('groupTable');
         this.is.loadIconDef('meterTable');
         this.is.loadIconDef('triangleUp');
+        this.is.loadIconDef('m_disjointPaths');
+        this.is.loadIconDef('m_fiberSwitch');
         this.log.debug('Topology component constructed');
     }
 
@@ -349,6 +369,12 @@ export class TopologyComponent implements AfterContentInit, OnInit, OnDestroy {
                 break;
             case QUICKHELP_BTN:
                 this.ks.quickHelpShown = true;
+                break;
+            case LAYOUT_DEFAULT_BTN:
+                this.layout.changeLayout(LayoutType.LAYOUT_DEFAULT);
+                break;
+            case LAYOUT_ACCESS_BTN:
+                this.layout.changeLayout(LayoutType.LAYOUT_ACCESS);
                 break;
             default:
                 this.log.warn('Unhandled Toolbar action', name);

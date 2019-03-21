@@ -50,6 +50,7 @@ import {LinkSvgComponent} from '../layer/forcesvg/visuals/linksvg/linksvg.compon
 import {DeviceNodeSvgComponent} from '../layer/forcesvg/visuals/devicenodesvg/devicenodesvg.component';
 import {SubRegionNodeSvgComponent} from '../layer/forcesvg/visuals/subregionnodesvg/subregionnodesvg.component';
 import {HostNodeSvgComponent} from '../layer/forcesvg/visuals/hostnodesvg/hostnodesvg.component';
+import {LayoutService} from '../layout.service';
 
 
 class MockActivatedRoute extends ActivatedRoute {
@@ -104,6 +105,8 @@ class MockKeysService {
 }
 
 class MockTrafficService {}
+
+class MockLayoutService {}
 
 class MockPrefsService {
     listeners: ((data) => void)[] = [];
@@ -200,6 +203,7 @@ describe('TopologyComponent', () => {
                 { provide: HttpClient, useClass: MockHttpClient },
                 { provide: TopologyService, useClass: MockTopologyService },
                 { provide: TrafficService, useClass: MockTrafficService },
+                { provide: LayoutService, useClass: MockLayoutService },
                 { provide: IconService, useClass: MockIconService },
                 { provide: PrefsService, useClass: MockPrefsService },
                 { provide: KeysService, useClass: MockKeysService },

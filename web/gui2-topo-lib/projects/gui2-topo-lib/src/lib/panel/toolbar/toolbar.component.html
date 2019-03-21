@@ -74,4 +74,12 @@
             <onos-icon [iconSize]="25" iconId="m_cycleGridDisplay" [toolTip]="lionFn('tbtt_cyc_grid_display')" classes="button"></onos-icon>
         </div>
     </div>
+    <div class="tbar-row">
+        <div class="button" id="toolbar-topo2-toolbar-topo2-layout-default" (click)="buttonClicked('layout-default-btn')">
+            <onos-icon iconSize="25" iconId="m_fiberSwitch" toolTip="Default (force-based) layout" classes="button"></onos-icon>
+        </div>
+        <div class="button" id="toolbar-topo2-toolbar-topo2-layout-access" (click)="buttonClicked('layout-access-btn')">
+            <onos-icon iconSize="25" iconId="m_disjointPaths" toolTip="Access layout - separate service leafs" classes="button"></onos-icon>
+        </div>
+    </div>
 </div>

@@ -107,6 +107,8 @@ export namespace GridDisplayToggle {
 export interface DeviceProps {
     latitude: number;
     longitude: number;
+    gridX: number;
+    gridY: number;
     name: string;
     locType: LocationType;
     uiType: string;

@@ -36,7 +36,7 @@ import {
     ZoomUtils
 } from 'gui2-fw-lib';
 import {
-    Device,
+    Device, DeviceProps,
     ForceDirectedGraph,
     Host,
     HostLabelToggle,
@@ -47,6 +47,7 @@ import {
     Location,
     ModelEventMemo,
     ModelEventType,
+    Node,
     Region,
     RegionLink,
     SubRegion,
@@ -56,11 +57,22 @@ import {LocationType} from '../backgroundsvg/backgroundsvg.component';
 import {DeviceNodeSvgComponent} from './visuals/devicenodesvg/devicenodesvg.component';
 import { HostNodeSvgComponent} from './visuals/hostnodesvg/hostnodesvg.component';
 import { LinkSvgComponent} from './visuals/linksvg/linksvg.component';
+import { Options } from './models/force-directed-graph';
 
 interface UpdateMeta {
     id: string;
     class: string;
     memento: MetaUi;
+}
+
+const SVGCANVAS = <Options>{
+    width: 1000,
+    height: 1000
+};
+
+interface ChangeSummary {
+    numChanges: number;
+    locationChanged: boolean;
 }
 
 /**
@@ -88,7 +100,6 @@ export class ForceSvgComponent implements OnInit, OnChanges {
     @Output() linkSelected = new EventEmitter<RegionLink>();
     @Output() selectedNodeEvent = new EventEmitter<UiElement>();
     public graph: ForceDirectedGraph;
-    private _options: { width, height } = { width: 800, height: 600 };
 
     // References to the children of this component - these are created in the
     // template view with the *ngFor and we get them by a query here
@@ -131,16 +142,26 @@ export class ForceSvgComponent implements OnInit, OnChanges {
      * @param existingNode 1st object
      * @param updatedNode 2nd object
      */
-    private static updateObject(existingNode: Object, updatedNode: Object): number {
-        let changed: number = 0;
+    private static updateObject(existingNode: Object, updatedNode: Object): ChangeSummary {
+        const changed = <ChangeSummary>{numChanges: 0, locationChanged: false};
         for (const key of Object.keys(updatedNode)) {
             const o = updatedNode[key];
-            if (key === 'id') {
+            if (['id', 'x', 'y', 'fx', 'fy', 'vx', 'vy', 'index'].some(k => k === key)) {
                 continue;
             } else if (o && typeof o === 'object' && o.constructor === Object) {
-                changed += ForceSvgComponent.updateObject(existingNode[key], updatedNode[key]);
+                const subChanged = ForceSvgComponent.updateObject(existingNode[key], updatedNode[key]);
+                changed.numChanges += subChanged.numChanges;
+                changed.locationChanged = subChanged.locationChanged ? true : changed.locationChanged;
+            } else if (existingNode === undefined) {
+                // Copy the whole object
+                existingNode = updatedNode;
+                changed.locationChanged = true;
+                changed.numChanges++;
             } else if (existingNode[key] !== updatedNode[key]) {
-                changed++;
+                if (['locType', 'latOrY', 'longOrX', 'latitude', 'longitude', 'gridX', 'gridY'].some(k => k === key)) {
+                    changed.locationChanged = true;
+                }
+                changed.numChanges++;
                 existingNode[key] = updatedNode[key];
             }
         }
@@ -149,8 +170,8 @@ export class ForceSvgComponent implements OnInit, OnChanges {
 
     @HostListener('window:resize', ['$event'])
     onResize(event) {
-        this.graph.initSimulation(this.options);
-        this.log.debug('Simulation reinit after resize', event);
+        this.graph.restartSimulation();
+        this.log.debug('Simulation restart after resize', event);
     }
 
     /**
@@ -161,7 +182,7 @@ export class ForceSvgComponent implements OnInit, OnChanges {
      */
     ngOnInit() {
         // Receiving an initialized simulated graph from our custom d3 service
-        this.graph = new ForceDirectedGraph(this.options, this.log);
+        this.graph = new ForceDirectedGraph(SVGCANVAS, this.log);
 
         /** Binding change detection check on each tick
          * This along with an onPush change detection strategy should enforce
@@ -171,9 +192,11 @@ export class ForceSvgComponent implements OnInit, OnChanges {
          * simulations data binding.
          */
         this.graph.ticker.subscribe((simulation) => {
-            // this.log.debug("Force simulation has ticked", simulation);
+            // this.log.debug("Force simulation has ticked. Alpha",
+            //     Math.round(simulation.alpha() * 1000) / 1000);
             this.ref.markForCheck();
         });
+
         this.log.debug('ForceSvgComponent initialized - waiting for nodes and links');
 
     }
@@ -208,20 +231,7 @@ export class ForceSvgComponent implements OnInit, OnChanges {
                 this.graph.nodes = this.graph.nodes.concat(subRegions);
             }
 
-            // If a node has a fixed location then assign it to fx and fy so
-            // that it doesn't get affected by forces
-            this.graph.nodes
-            .forEach((n) => {
-                const loc: Location = <Location>n['location'];
-                if (loc && loc.locType === LocationType.GEO) {
-                    const position: MetaUi =
-                        ZoomUtils.convertGeoToCanvas(
-                            <LocMeta>{lng: loc.longOrX, lat: loc.latOrY});
-                    n.fx = position.x;
-                    n.fy = position.y;
-                    this.log.debug('Found node', n.id, 'with', loc.locType);
-                }
-            });
+            this.graph.nodes.forEach((n) => this.fixPosition(n));
 
             // Associate the endpoints of each link with a real node
             this.graph.links = [];
@@ -240,15 +250,42 @@ export class ForceSvgComponent implements OnInit, OnChanges {
             }
 
             this.graph.links = this.regionData.links;
-
-            this.graph.initSimulation(this.options);
-            this.graph.initNodes();
-            this.graph.initLinks();
+            if (this.graph.nodes.length > 0) {
+                this.graph.reinitSimulation();
+            }
             this.log.debug('ForceSvgComponent input changed',
                 this.graph.nodes.length, 'nodes,', this.graph.links.length, 'links');
         }
+    }
 
-        this.ref.markForCheck();
+    /**
+     * If a node has a fixed location then assign it to fx and fy so
+     * that it doesn't get affected by forces
+     * @param graphNode The node whose location should be processed
+     */
+    private fixPosition(graphNode: Node): void {
+        const loc: Location = <Location>graphNode['location'];
+        const props: DeviceProps = <DeviceProps>graphNode['props'];
+        const metaUi = <MetaUi>graphNode['metaUi'];
+        if (loc && loc.locType === LocationType.GEO) {
+            const position: MetaUi =
+                ZoomUtils.convertGeoToCanvas(
+                    <LocMeta>{lng: loc.longOrX, lat: loc.latOrY});
+            graphNode.fx = position.x;
+            graphNode.fy = position.y;
+            this.log.debug('Found node', graphNode.id, 'with', loc.locType);
+        } else if (loc && loc.locType === LocationType.GRID) {
+            graphNode.fx = loc.longOrX;
+            graphNode.fy = loc.latOrY;
+            this.log.debug('Found node', graphNode.id, 'with', loc.locType);
+        } else if (props && props.locType === LocationType.NONE && metaUi) {
+            graphNode.fx = metaUi.x;
+            graphNode.fy = metaUi.y;
+            this.log.debug('Found node', graphNode.id, 'with locType=none and metaUi');
+        } else {
+            graphNode.fx = null;
+            graphNode.fy = null;
+        }
     }
 
     /**
@@ -268,13 +305,6 @@ export class ForceSvgComponent implements OnInit, OnChanges {
     selectLink(link: RegionLink): void {
         this.selectedLink = link;
         this.linkSelected.emit(link);
-    }
-
-    get options() {
-        return this._options = {
-            width: window.innerWidth,
-            height: window.innerHeight
-        };
     }
 
     /**
@@ -326,23 +356,7 @@ export class ForceSvgComponent implements OnInit, OnChanges {
         switch (type) {
             case ModelEventType.DEVICE_ADDED_OR_UPDATED:
                 if (memo === ModelEventMemo.ADDED) {
-                    const loc = (<Device>data).location;
-                    if (loc && loc.locType === LocationType.GEO) {
-                        const position =
-                            ZoomUtils.convertGeoToCanvas(<LocMeta>{ lng: loc.longOrX, lat: loc.latOrY});
-                        (<Device>data).fx = position.x;
-                        (<Device>data).fy = position.y;
-                        this.log.debug('Using long', loc.longOrX, 'lat', loc.latOrY, '(', position.x, position.y, ')');
-                    } else if (loc && loc.locType === LocationType.GRID) {
-                        (<Device>data).fx = loc.longOrX;
-                        (<Device>data).fy = loc.latOrY;
-                        this.log.debug('Using grid', loc.longOrX, loc.latOrY);
-                    } else {
-                        (<Device>data).fx = null;
-                        (<Device>data).fy = null;
-                        // (<Device>data).x = 500;
-                        // (<Device>data).y = 500;
-                    }
+                    this.fixPosition(<Device>data);
                     this.graph.nodes.push(<Device>data);
                     this.regionData.devices[this.visibleLayerIdx()].push(<Device>data);
                     this.log.debug('Device added', (<Device>data).id);
@@ -351,8 +365,11 @@ export class ForceSvgComponent implements OnInit, OnChanges {
                         this.regionData.devices[this.visibleLayerIdx()]
                             .find((d) => d.id === subject);
                     const changes = ForceSvgComponent.updateObject(oldDevice, <Device>data);
-                    if (changes > 0) {
+                    if (changes.numChanges > 0) {
                         this.log.debug('Device ', oldDevice.id, memo, ' - ', changes, 'changes');
+                        if (changes.locationChanged) {
+                            this.fixPosition(oldDevice);
+                        }
                     }
                 } else {
                     this.log.warn('Device ', memo, ' - not yet implemented', data);
@@ -360,15 +377,19 @@ export class ForceSvgComponent implements OnInit, OnChanges {
                 break;
             case ModelEventType.HOST_ADDED_OR_UPDATED:
                 if (memo === ModelEventMemo.ADDED) {
-                    this.regionData.hosts[this.visibleLayerIdx()].push(<Host>data);
+                    this.fixPosition(<Host>data);
                     this.graph.nodes.push(<Host>data);
+                    this.regionData.hosts[this.visibleLayerIdx()].push(<Host>data);
                     this.log.debug('Host added', (<Host>data).id);
                 } else if (memo === ModelEventMemo.UPDATED) {
                     const oldHost: Host = this.regionData.hosts[this.visibleLayerIdx()]
                         .find((h) => h.id === subject);
                     const changes = ForceSvgComponent.updateObject(oldHost, <Host>data);
-                    if (changes > 0) {
+                    if (changes.numChanges > 0) {
                         this.log.debug('Host ', oldHost.id, memo, ' - ', changes, 'changes');
+                        if (changes.locationChanged) {
+                            this.fixPosition(oldHost);
+                        }
                     }
                 } else {
                     this.log.warn('Host change', memo, ' - unexpected');
@@ -424,10 +445,8 @@ export class ForceSvgComponent implements OnInit, OnChanges {
             default:
                 this.log.error('Unexpected model event', type, 'for', subject);
         }
-        this.ref.markForCheck();
-        this.graph.initSimulation(this.options);
-        this.graph.initNodes();
-        this.graph.initLinks();
+        this.graph.links = this.regionData.links;
+        this.graph.reinitSimulation();
     }
 
     private removeRelatedLinks(subject: string) {
@@ -500,7 +519,7 @@ export class ForceSvgComponent implements OnInit, OnChanges {
      * @param newLocation - the new Location of the node
      */
     nodeMoved(klass: string, id: string, newLocation: MetaUi) {
-        this.wss.sendEvent('updateMeta', <UpdateMeta>{
+        this.wss.sendEvent('updateMeta2', <UpdateMeta>{
             id: id,
             class: klass,
             memento: newLocation

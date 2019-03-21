@@ -37,6 +37,7 @@ import { LinkSvgComponent} from './layer/forcesvg/visuals/linksvg/linksvg.compon
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import { GridsvgComponent } from './layer/gridsvg/gridsvg.component';
 import {TrafficService} from './traffic.service';
+import {LayoutService} from './layout.service';
 
 /**
  * ONOS GUI -- Topology View Module
@@ -75,7 +76,8 @@ import {TrafficService} from './traffic.service';
     ],
     providers: [
         TopologyService,
-        TrafficService
+        TrafficService,
+        LayoutService
     ],
     exports: [
         BackgroundSvgComponent,

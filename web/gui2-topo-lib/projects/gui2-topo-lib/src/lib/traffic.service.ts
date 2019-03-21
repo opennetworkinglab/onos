@@ -39,9 +39,7 @@ const ALL_TRAFFIC_MSGS = [
 /**
  * ONOS GUI -- Traffic Service Module.
  */
-@Injectable({
-    providedIn: 'root'
-})
+@Injectable()
 export class TrafficService {
     private handlers: string[] = [];
     private openListener: any;

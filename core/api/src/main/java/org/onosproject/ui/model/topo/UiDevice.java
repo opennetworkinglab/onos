@@ -45,6 +45,7 @@ public class UiDevice extends UiNode {
         checkNotNull(device, DEVICE_CANNOT_BE_NULL);
         this.topology = topology;
         this.deviceId = device.id();
+        this.regionId = RegionId.regionId(UiRegion.NULL_NAME);
     }
 
     /**

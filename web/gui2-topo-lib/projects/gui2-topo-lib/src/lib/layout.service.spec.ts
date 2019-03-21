@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-present Open Networking Foundation
+ * Copyright 2019-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,10 @@
  */
 import { TestBed } from '@angular/core/testing';
 
-import { TrafficService } from './traffic.service';
-import {FnService, LogService} from 'gui2-fw-lib';
+import { LayoutService } from './layout.service';
 import {ActivatedRoute, Params} from '@angular/router';
 import {of} from 'rxjs';
+import {FnService, LogService} from 'gui2-fw-lib';
 
 class MockActivatedRoute extends ActivatedRoute {
     constructor(params: Params) {
@@ -27,7 +27,7 @@ class MockActivatedRoute extends ActivatedRoute {
     }
 }
 
-describe('TrafficService', () => {
+describe('LayoutService', () => {
     let logServiceSpy: jasmine.SpyObj<LogService>;
     let ar: ActivatedRoute;
     let fs: FnService;
@@ -55,7 +55,7 @@ describe('TrafficService', () => {
         fs = new FnService(ar, logSpy, mockWindow);
 
         TestBed.configureTestingModule({
-            providers: [TrafficService,
+            providers: [LayoutService,
                 { provide: FnService, useValue: fs},
                 { provide: LogService, useValue: logSpy },
                 { provide: ActivatedRoute, useValue: ar },
@@ -66,7 +66,7 @@ describe('TrafficService', () => {
     });
 
     it('should be created', () => {
-        const service: TrafficService = TestBed.get(TrafficService);
+        const service: LayoutService = TestBed.get(LayoutService);
         expect(service).toBeTruthy();
     });
 });

@@ -37,7 +37,7 @@ import static org.onosproject.net.region.RegionId.regionId;
  */
 public class UiRegion extends UiNode {
 
-    private static final String NULL_NAME = "(root)";
+    public static final String NULL_NAME = "(root)";
     private static final String NO_NAME = "???";
     private static final String MEMO_ADDED = "added";
 
@@ -338,9 +338,11 @@ public class UiRegion extends UiNode {
                 return isRegionRelevant(((UiRegion) event.subject()).id());
 
             case DEVICE_ADDED_OR_UPDATED:
+                final UiDevice uiDevice = (UiDevice) event.subject();
                 if (MEMO_ADDED.equalsIgnoreCase(event.memo()) &&
-                        regionId.toString().equalsIgnoreCase(
-                          ((UiDevice) event.subject()).regionId().toString())) {
+                        uiDevice.regionId() != null &&
+                        regionId.equals(
+                          ((UiDevice) event.subject()).regionId())) {
                     return true;
                 } else {
                     return isDeviceRelevant(((UiDevice) event.subject()).id());
@@ -360,7 +362,7 @@ public class UiRegion extends UiNode {
                                 uiHost.regionId().toString())) {
                     return true;
                 } else {
-                    return isDeviceRelevant(((UiDevice) event.subject()).id());
+                    return isHostRelevant(((UiHost) event.subject()).id());
                 }
             case HOST_MOVED:
             case HOST_REMOVED:
@@ -373,6 +375,10 @@ public class UiRegion extends UiNode {
 
     private boolean isDeviceRelevant(DeviceId deviceId) {
         return deviceIds.contains(deviceId);
+    }
+
+    private boolean isHostRelevant(HostId hostId) {
+        return hostIds.contains(hostId);
     }
 
     private boolean isLinkRelevant(UiLink uiLink) {
