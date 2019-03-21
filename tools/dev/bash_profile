@@ -240,6 +240,7 @@ function cell {
         . $aux
         rm -f $aux
         # This is a hack to get master running on the existing cell infrastructure
+        apps=${ONOS_APPS:-}
         export ONOS_APPS=$ONOS_APPS,gui
         setPrimaryInstance 1 >/dev/null
         setMinorityMajority >/dev/null
