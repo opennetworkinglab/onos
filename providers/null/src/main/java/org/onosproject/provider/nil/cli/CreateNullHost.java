@@ -78,7 +78,13 @@ public class CreateNullHost extends CreateNullEntity {
 
         CustomTopologySimulator sim = (CustomTopologySimulator) simulator;
         HostId id = sim.nextHostId();
-        Set<HostLocation> locations = getLocations(sim, deviceNames);
+        Set<HostLocation> locations;
+        try {
+            locations = getLocations(sim, deviceNames);
+        } catch (NoLocationException e) {
+            error("\u001B[1;31mHost not created - no location (free port) available on %s\u001B[0m", e.getMessage());
+            return;
+        }
         Set<IpAddress> ips = getIps(hostIps);
 
         BasicHostConfig cfg = cfgService.addConfig(id, BasicHostConfig.class);
@@ -97,10 +103,15 @@ public class CreateNullHost extends CreateNullEntity {
         return ips.build();
     }
 
-    private Set<HostLocation> getLocations(CustomTopologySimulator sim, String deviceNames) {
+    private Set<HostLocation> getLocations(CustomTopologySimulator sim, String deviceNames)
+            throws NoLocationException {
         ImmutableSet.Builder<HostLocation> locations = ImmutableSet.builder();
         String[] csv = deviceNames.split(",");
         for (String s : csv) {
+            HostLocation loc = findAvailablePort(sim.deviceId(s));
+            if (loc == null) {
+                throw new NoLocationException(deviceNames);
+            }
             locations.add(requireNonNull(findAvailablePort(sim.deviceId(s))));
         }
         return locations.build();

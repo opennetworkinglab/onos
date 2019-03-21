@@ -62,6 +62,13 @@ public class CreateNullLink extends CreateNullEntity {
         CustomTopologySimulator sim = (CustomTopologySimulator) simulator;
         ConnectPoint one = findAvailablePort(sim.deviceId(src), null);
         ConnectPoint two = findAvailablePort(sim.deviceId(dst), one);
+        if (one == null) {
+            error("\u001B[1;31mLink not created - no location (free port) available on src %s\u001B[0m", src);
+            return;
+        } else if (two == null) {
+            error("\u001B[1;31mLink not created - no location (free port) available on dst %s\u001B[0m", dst);
+            return;
+        }
         sim.createLink(one, two, Link.Type.valueOf(type.toUpperCase()), !unidirectional);
     }
 
