@@ -16,7 +16,6 @@ ssh $remote "
     tar zxf /tmp/$ONOS_BITS.tar.gz
 
     cd $ONOS_TMP
-    export ONOS_NIC=$ONOS_NIC
     bin/onos-service server 1>/tmp/onos.out 2>/tmp/onos.err &
 
     # Setup a few symlinks to allow other tools to work

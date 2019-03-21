@@ -15,8 +15,7 @@
   -->
 <scenario name="prerequisites" description="ONOS test pre-requisites">
     <group name="Prerequisites">
-        <step name="Check-Environment"
-              exec="test -n ${ONOS_ROOT} -a -n ${ONOS_NIC} -a -n ${OC1}"/>
+        <step name="Check-Environment" exec="test -n ${ONOS_ROOT} -a -n ${OC1}"/>
         <step name="Check-ONOS-Bits" exec="onos-check-bits"/>
         <step name="Set-OpenJDK-11-As-Default" if="${stcOpenJDK}" exec="stc-set-openjdk11"/>
         <parallel var="${OC#}">

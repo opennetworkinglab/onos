@@ -39,10 +39,7 @@ export ONOS_BOOT_FEATURES="${ONOS_BOOT_FEATURES:-webconsole,onos-api,onos-core,o
 export ONOS_APPS="${ONOS_APPS:-gui,drivers,openflow}"
 
 ssh -tt $remote "
-    echo \"onos.ip = \$(sudo ifconfig | grep $ONOS_NIC | cut -d: -f2 | cut -d\\  -f1)\" \
-        >> $ONOS_INSTALL_DIR/$KARAF_DIST/etc/system.properties
-
-    # Drop copycat related log level for the console
+    # Drop atomix related log level for the console
     echo "log4j2.logger.atomix.name = io.atomix.protocols.raft" >> $ONOS_INSTALL_DIR/$KARAF_DIST/etc/org.ops4j.pax.logging.cfg
     echo "log4j2.logger.atomix.level = INFO" >> $ONOS_INSTALL_DIR/$KARAF_DIST/etc/org.ops4j.pax.logging.cfg
 

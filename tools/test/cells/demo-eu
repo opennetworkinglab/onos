@@ -5,7 +5,6 @@ export OC1="10.100.198.201"
 export OC2="10.100.198.202"
 export OC3="10.100.198.203"
 export OCN="10.100.198.200"
-export ONOS_NIC="10.100.198.*"
 export ONOS_APPS=gui,drivers,openflow,proxyarp,mobility,mlb,pathpainter
 export ONOS_GROUP=sdn
 export ONOS_SCENARIOS=$ONOS/tools/test/scenarios

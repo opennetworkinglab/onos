@@ -111,7 +111,7 @@ def initONOSEnv():
 def updateNodeIPs( env, nodes ):
     "Update env dict and environ with node IPs"
     # Get rid of stale junk
-    for var in 'ONOS_NIC', 'ONOS_CELL', 'ONOS_INSTANCES':
+    for var in 'ONOS_CELL', 'ONOS_INSTANCES':
         env[ var ] = ''
     for var in environ.keys():
         if var.startswith( 'OC' ):
