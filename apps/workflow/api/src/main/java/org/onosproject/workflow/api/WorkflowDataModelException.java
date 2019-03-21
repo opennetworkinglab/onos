@@ -17,19 +17,22 @@
 package org.onosproject.workflow.api;
 
 
-import java.util.Map;
+import com.fasterxml.jackson.databind.JsonNode;
+
+import java.net.URI;
+import java.util.List;
 
 /**
  * Workflow DataModel exception class.
  */
 public class WorkflowDataModelException extends WorkflowException {
 
-    private String workflowName;
-    private Map<String, Map<String, String>> errorListMap;
-
+    private URI workflowId;
+    private JsonNode parameterJson;
+    private List<String> errorMsgs;
 
     /**
-     * Constructor for Workflow DataModel Exception.
+     * Default Constructor for Workflow DataModel Exception.
      *
      * @param msg exception message
      */
@@ -41,22 +44,17 @@ public class WorkflowDataModelException extends WorkflowException {
     /**
      * Constructor for Workflow DataModel Exception.
      *
-     * @param msg          exception message
-     * @param workflowName workflow name
-     * @param errorListMap throwable to deliver
+     * @param workflowId id of workflow
+     * @param parameterJson paramter json data model
+     * @param errorMsgs error message for json data model
      */
-    public WorkflowDataModelException(String msg, String workflowName, Map<String, Map<String, String>> errorListMap) {
-        super(msg);
-        this.workflowName = workflowName;
-        this.errorListMap = errorListMap;
+    public WorkflowDataModelException(URI workflowId, JsonNode parameterJson, List<String> errorMsgs) {
+        super("Invalid workflow data model: " +
+                " workflow: " + workflowId.toString() +
+                ", parameter json: " + parameterJson.toString() +
+                ", errors: " + errorMsgs);
+        this.workflowId = workflowId;
+        this.parameterJson = parameterJson;
+        this.errorMsgs = errorMsgs;
     }
-
-    @Override
-    public String toString() {
-        return "WorkflowDataModelException{" +
-                "workflowName='" + workflowName + '\'' +
-                ", errorListMap=" + errorListMap.toString() +
-                '}';
-    }
-
 }

@@ -792,7 +792,7 @@ public final class Ovs {
         @JsonDataModel(path = MODEL_OVS_DATAPATH_TYPE)
         String strOvsDatapath;
 
-        @JsonDataModel(path = MODEL_OF_DEVID_UNDERLAY_BRIDGE)
+        @JsonDataModel(path = MODEL_OF_DEVID_UNDERLAY_BRIDGE, optional = true)
         String strOfDevIdUnderlay;
 
         @Override

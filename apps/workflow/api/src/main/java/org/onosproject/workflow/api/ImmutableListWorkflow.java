@@ -143,6 +143,10 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
     @Override
     public Worklet getWorkletInstance(String workletType) throws WorkflowException {
 
+        if (Worklet.Common.INIT.tag().equals(workletType)) {
+            return Worklet.Common.INIT;
+        }
+
         if (Worklet.Common.COMPLETED.tag().equals(workletType)) {
             return Worklet.Common.COMPLETED;
         }

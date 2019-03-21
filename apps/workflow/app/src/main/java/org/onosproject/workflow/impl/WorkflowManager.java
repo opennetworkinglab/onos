@@ -17,8 +17,10 @@ package org.onosproject.workflow.impl;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
+import com.fasterxml.jackson.databind.node.MissingNode;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.workflow.api.WorkflowService;
@@ -46,10 +48,10 @@ import org.slf4j.Logger;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.net.URI;
-import java.util.Map;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
-import java.util.Arrays;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -140,9 +142,7 @@ public class WorkflowManager implements WorkflowService {
             throw new WorkflowException("Invalid Workflow");
         }
 
-        if (!checkWorkflowSchema(workflow, worklowDescJson)) {
-            throw new WorkflowException("Invalid Workflow " + worklowDescJson.get("id").asText());
-        }
+        checkWorkflowSchema(workflow, worklowDescJson);
 
         Workflow wfCreationWf = workflowStore.get(URI.create(WorkplaceWorkflow.WF_CREATE_WORKFLOW));
         if (Objects.isNull(wfCreationWf)) {
@@ -157,92 +157,119 @@ public class WorkflowManager implements WorkflowService {
      * Checks if the type of worklet is same as that of wfdesc Json.
      *
      * @param workflow workflow
-     * @param jsonNode jsonNode
+     * @param worklowDescJson jsonNode
      * @throws WorkflowException workflow exception
      */
+    private void checkWorkflowSchema(Workflow workflow, JsonNode worklowDescJson) throws WorkflowException {
 
-    private boolean checkWorkflowSchema(Workflow workflow, JsonNode jsonNode) throws WorkflowException {
+        List<String> errors = new ArrayList<>();
 
-        Map<String, Map<String, String>> workletDataTypeMap = new HashMap<>();
+        JsonNode dataNode = worklowDescJson.get("data");
+        if (Objects.isNull(dataNode) || dataNode instanceof MissingNode) {
+            errors.add("workflow description json does not have 'data'");
+            throw new WorkflowDataModelException(workflow.id(), worklowDescJson, errors);
+        }
+
         for (String workletType : workflow.getWorkletTypeList()) {
-            Map<String, String> jsonDataModelMap = new HashMap<>();
-            if (Objects.equals(workletType, Worklet.Common.INIT.tag())
-                    || (Objects.equals(workletType, Worklet.Common.COMPLETED.tag()))) {
+
+            Worklet worklet = workflow.getWorkletInstance(workletType);
+            if (Worklet.Common.COMPLETED.equals(worklet) || Worklet.Common.INIT.equals(worklet)) {
                 continue;
             }
-            Worklet worklet = workflow.getWorkletInstance(workletType);
+
             Class cls = worklet.getClass();
             for (Field field : cls.getDeclaredFields()) {
+
                 if (field.isSynthetic()) {
                     continue;
                 }
-                Annotation[] annotations = field.getAnnotations();
-                for (Annotation annotation : annotations) {
+
+                for (Annotation annotation : field.getAnnotations()) {
+
                     if (annotation instanceof JsonDataModel) {
+
                         JsonDataModel jsonDataModel = (JsonDataModel) annotation;
                         Matcher matcher = Pattern.compile("(\\w+)").matcher(jsonDataModel.path());
                         if (!matcher.find()) {
-                            throw new WorkflowException("Invalid Json Data Model Path");
+                            throw new WorkflowException(
+                                    "Invalid Json Data Model Path(" + jsonDataModel.path() + ") in " + worklet.tag());
                         }
                         String path = matcher.group(1);
-                        if (checkJsonNodeDataType(jsonNode, field, path)) {
-                            jsonDataModelMap.put(path, field.getType().getName());
+
+                        Optional<String> optError =
+                                getJsonNodeDataError(dataNode, worklet, field, path, jsonDataModel.optional());
+
+                        if (optError.isPresent()) {
+                            errors.add(optError.get());
                         }
                     }
                 }
             }
-            if (!jsonDataModelMap.isEmpty()) {
-                workletDataTypeMap.put(worklet.tag(), jsonDataModelMap);
-            }
+        }
 
+        if (!errors.isEmpty()) {
+            throw new WorkflowDataModelException(workflow.id(), worklowDescJson, errors);
         }
-        if (!workletDataTypeMap.isEmpty()) {
-            throw new WorkflowDataModelException("invalid workflow ", workflow.id().toString(), workletDataTypeMap);
-        }
-        return true;
     }
 
+    private Optional<String> getJsonNodeDataError(
+            JsonNode dataNode, Worklet worklet, Field field, String path, boolean isOptional) throws WorkflowException {
 
-    private boolean checkJsonNodeDataType(JsonNode jsonNode, Field field, String path) throws WorkflowException {
-        if (!Objects.nonNull(jsonNode.get("data")) && !Objects.nonNull(jsonNode.get("data").get(path))) {
-            throw new WorkflowException("Invalid Json");
-        }
-        JsonNodeType jsonNodeType = jsonNode.get("data").get(path).getNodeType();
-        if (jsonNodeType != null) {
-            switch (jsonNodeType) {
-                case NUMBER:
-                    if (!(field.getType().isAssignableFrom(Integer.class))) {
-                        return true;
-                    }
-                    break;
-                case STRING:
-                    if (!(field.getType().isAssignableFrom(String.class))) {
-                        return true;
-                    }
-                    break;
-                case OBJECT:
-                    if (!(field.getType().isAssignableFrom(Objects.class))) {
-                        return true;
-                    }
-                    break;
-                case BOOLEAN:
-                    if (!(field.getType().isAssignableFrom(Boolean.class))) {
-                        return true;
-                    }
-                    break;
-                case ARRAY:
-                    if (!(field.getType().isAssignableFrom(Arrays.class))) {
-                        return true;
-                    }
-                    break;
-                default:
-                    return true;
+        // Checking the existence of path in dataNode
+        JsonNode pathNode = dataNode.get(path);
+        if (Objects.isNull(pathNode) || pathNode instanceof MissingNode) {
+
+            if (isOptional) {
+                return Optional.empty();
+
+            } else {
+                return Optional.of("data doesn't have '" + path + "' in worklet<" + worklet.tag() + ">");
             }
-        } else {
-            return false;
-
         }
-        return false;
+
+        // Checking the type of path
+        JsonNodeType type = pathNode.getNodeType();
+
+        if (Objects.isNull(type)) {
+            throw new WorkflowException("Invalid type for " + pathNode);
+        }
+
+        switch (type) {
+            case NUMBER:
+                if (!(field.getType().isAssignableFrom(Integer.class))) {
+                    return Optional.of("'" + path + "<NUMBER>' cannot be assigned to " +
+                            field.getName() + "<" + field.getType() + "> in worklet<" + worklet.tag() + ">");
+                }
+                break;
+            case STRING:
+                if (!(field.getType().isAssignableFrom(String.class))) {
+                    return Optional.of("'" + path + "<STRING>' cannot be assigned to " +
+                            field.getName() + "<" + field.getType() + "> in worklet<" + worklet.tag() + ">");
+                }
+                break;
+            case BOOLEAN:
+                if (!(field.getType().isAssignableFrom(Boolean.class))) {
+                    return Optional.of("'" + path + "<BOOLEAN>' cannot be assigned to " +
+                            field.getName() + "<" + field.getType() + "> in worklet<" + worklet.tag() + ">");
+                }
+                break;
+            case OBJECT:
+                if (!(field.getType().isAssignableFrom(JsonNode.class))) {
+                    return Optional.of("'" + path + "<OBJECT>' cannot be assigned to " +
+                            field.getName() + "<" + field.getType() + "> in worklet<" + worklet.tag() + ">");
+                }
+                break;
+            case ARRAY:
+                if (!(field.getType().isAssignableFrom(ArrayNode.class))) {
+                    return Optional.of("'" + path + "<ARRAY>' cannot be assigned to " +
+                            field.getName() + "<" + field.getType() + "> in worklet<" + worklet.tag() + ">");
+                }
+                break;
+            default:
+                return Optional.of("'" + path + "<" + type + ">' is not supported");
+        }
+
+        return Optional.empty();
     }
 
     @Override
