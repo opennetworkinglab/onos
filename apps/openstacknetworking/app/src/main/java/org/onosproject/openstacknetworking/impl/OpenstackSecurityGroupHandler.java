@@ -454,7 +454,7 @@ public class OpenstackSecurityGroupHandler {
         TrafficTreatment.Builder tb = DefaultTrafficTreatment.builder();
 
         if (commit == CT_COMMIT || recircTable > 0) {
-            RulePopulatorUtil.NiriraConnTrackTreatmentBuilder natTreatmentBuilder =
+            RulePopulatorUtil.NiciraConnTrackTreatmentBuilder natTreatmentBuilder =
                     niciraConnTrackTreatmentBuilder(driverService, deviceId);
             natTreatmentBuilder.natAction(false);
             if (commit == CT_COMMIT) {
