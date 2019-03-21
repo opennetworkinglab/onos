@@ -1,7 +1,0 @@
-# Optical use-case VirtualBox-based single ONOS instance & ONOS mininet box
-
-export ONOS_NIC=192.168.56.*
-export OC1="192.168.56.101"
-export OCN="192.168.56.103"
-
-export ONOS_APPS="gui,drivers,drivers.optical,openflow,fwd,proxyarp,mobility,optical"

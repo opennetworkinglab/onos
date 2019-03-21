@@ -1,6 +1,0 @@
-# ONLAB_OF Wifi ProxMox-based cell; single node; no mininet-box
-
-export ONOS_NIC="10.1.10.*"
-export OC1="10.1.10.223"
-
-export ONOS_APPS="gui,drivers,openflow,fwd,proxyarp,mobility"
