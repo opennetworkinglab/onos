@@ -11,12 +11,12 @@ TEST_DEPS = TEST + [
 ]
 
 osgi_jar_with_tests(
+    api_description = "REST API for Route Service App",
+    api_package = "org.onosproject.routeservice.rest",
+    api_title = "Route Service App",
+    api_version = "1.0",
     karaf_command_packages = ["org.onosproject.routeservice.cli"],
     test_deps = TEST_DEPS,
+    web_context = "/onos/routeservice",
     deps = COMPILE_DEPS,
-    #web_context = "/onos/routeservice",
-    #api_title = "Route Service App",
-    #api_version = "1.0",
-    #api_description = "REST API for Route Service App",
-    #api_package = "org.onosproject.routeservice.rest",
 )
