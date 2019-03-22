@@ -147,14 +147,14 @@ public class FpmManager implements FpmInfoService {
                bind = "bindRipStore",
                unbind = "unbindRipStore",
                policy = ReferencePolicy.DYNAMIC,
-               target = "(fpm_type=RIP)")
+               target = "(_fpm_type=RIP)")
     protected volatile FpmPrefixStore ripStore;
 
     @Reference(cardinality = ReferenceCardinality.OPTIONAL,
                bind = "bindDhcpStore",
                unbind = "unbindDhcpStore",
                policy = ReferencePolicy.DYNAMIC,
-               target = "(fpm_type=DHCP)")
+               target = "(_fpm_type=DHCP)")
     protected volatile FpmPrefixStore dhcpStore;
 
     private final StoreDelegate<FpmPrefixStoreEvent> fpmPrefixStoreDelegate
