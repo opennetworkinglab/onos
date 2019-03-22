@@ -30,7 +30,6 @@ import java.util.Set;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Strings.isNullOrEmpty;
-import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.net.region.RegionId.regionId;
 
 /**
@@ -354,9 +353,11 @@ public class UiRegion extends UiNode {
                 return isLinkRelevant((UiLink) event.subject());
 
             case HOST_ADDED_OR_UPDATED:
+                final UiHost uiHost = (UiHost) event.subject();
                 if (MEMO_ADDED.equalsIgnoreCase(event.memo()) &&
+                        uiHost.regionId() != null &&
                         regionId.toString().equalsIgnoreCase(
-                          ((UiHost) event.subject()).regionId().toString())) {
+                                uiHost.regionId().toString())) {
                     return true;
                 } else {
                     return isDeviceRelevant(((UiDevice) event.subject()).id());
