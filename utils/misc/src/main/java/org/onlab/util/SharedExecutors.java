@@ -43,6 +43,7 @@ public final class SharedExecutors {
     private static SharedExecutorService poolThreadExecutor;
 
     private static SharedTimer sharedTimer;
+    private static final Object SHARED_TIMER_LOCK = new Object();
 
     // Ban public construction
     private SharedExecutors() {
@@ -106,28 +107,32 @@ public final class SharedExecutors {
      * called only by the framework.
      */
     public static void shutdown() {
-        sharedTimer.shutdown();
-        singleThreadExecutor.backingExecutor().shutdown();
-        poolThreadExecutor.backingExecutor().shutdown();
-        sharedTimer = null;
-        singleThreadExecutor = null;
-        poolThreadExecutor = null;
+        synchronized (SHARED_TIMER_LOCK) {
+            sharedTimer.shutdown();
+            singleThreadExecutor.backingExecutor().shutdown();
+            poolThreadExecutor.backingExecutor().shutdown();
+            sharedTimer = null;
+            singleThreadExecutor = null;
+            poolThreadExecutor = null;
+        }
     }
 
-    private static synchronized void setup() {
-        if (sharedTimer == null) {
-            sharedTimer = new SharedTimer();
+    private static void setup() {
+        synchronized (SHARED_TIMER_LOCK) {
+            if (sharedTimer == null) {
+                sharedTimer = new SharedTimer();
 
-            singleThreadExecutor =
-                new SharedExecutorService(
-                    newSingleThreadExecutor(groupedThreads("onos/shared",
-                        "onos-single-executor")));
+                singleThreadExecutor =
+                    new SharedExecutorService(
+                        newSingleThreadExecutor(groupedThreads("onos/shared",
+                            "onos-single-executor")));
 
-            poolThreadExecutor =
-                new SharedExecutorService(
-                    newFixedThreadPool(DEFAULT_POOL_SIZE,
-                        groupedThreads("onos/shared",
-                            "onos-pool-executor-%d")));
+                poolThreadExecutor =
+                    new SharedExecutorService(
+                        newFixedThreadPool(DEFAULT_POOL_SIZE,
+                            groupedThreads("onos/shared",
+                                "onos-pool-executor-%d")));
+            }
         }
     }
 
