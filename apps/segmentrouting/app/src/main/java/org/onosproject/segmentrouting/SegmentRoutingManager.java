@@ -201,7 +201,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private ComponentConfigService compCfgService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    private NeighbourResolutionService neighbourResolutionService;
+    public NeighbourResolutionService neighbourResolutionService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     public CoreService coreService;

@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -468,7 +469,27 @@ public class DeviceConfiguration implements DeviceProperties {
     }
 
     /**
-     * Returns the configured subnet prefixes for a segment router.
+     * Returns configured subnets for a segment router.
+     *
+     * @param deviceId device identifier
+     * @return list of ip prefixes or null if not found
+     */
+    public Set<IpPrefix> getConfiguredSubnets(DeviceId deviceId) {
+        Set<IpPrefix> subnets = srManager.interfaceService.getInterfaces().stream()
+                .filter(intf -> Objects.equals(deviceId, intf.connectPoint().deviceId()))
+                .flatMap(intf -> intf.ipAddressesList().stream())
+                .map(InterfaceIpAddress::subnetAddress)
+                .collect(Collectors.toSet());
+
+        if (subnets.isEmpty()) {
+            log.debug(NO_SUBNET, deviceId);
+            return Collections.emptySet();
+        }
+        return subnets;
+    }
+
+    /**
+     * Returns all subnets for a segment router, including subnets learnt from route service.
      *
      * @param deviceId device identifier
      * @return list of ip prefixes or null if not found
@@ -501,17 +522,15 @@ public class DeviceConfiguration implements DeviceProperties {
             return Collections.emptySet();
         }
 
-        Set<IpPrefix> subnets =
-                srManager.interfaceService.getInterfacesByPort(connectPoint).stream()
-                        .flatMap(intf -> intf.ipAddressesList().stream())
-                        .map(InterfaceIpAddress::subnetAddress)
-                        .collect(Collectors.toSet());
+        Set<IpPrefix> subnets = srManager.interfaceService.getInterfacesByPort(connectPoint).stream()
+                .flatMap(intf -> intf.ipAddressesList().stream())
+                .map(InterfaceIpAddress::subnetAddress)
+                .collect(Collectors.toSet());
 
         if (subnets.isEmpty()) {
             log.debug(NO_SUBNET, connectPoint);
             return Collections.emptySet();
         }
-
         return subnets;
     }
 
@@ -610,8 +629,7 @@ public class DeviceConfiguration implements DeviceProperties {
      * within any subnet defined in the router
      */
     public boolean inSameSubnet(DeviceId deviceId, IpAddress hostIp) {
-
-        Set<IpPrefix> subnets = getSubnets(deviceId);
+        Set<IpPrefix> subnets = getConfiguredSubnets(deviceId);
         if (subnets == null) {
             return false;
         }
@@ -622,7 +640,6 @@ public class DeviceConfiguration implements DeviceProperties {
                 return true;
             }
         }
-
         return false;
     }
 
