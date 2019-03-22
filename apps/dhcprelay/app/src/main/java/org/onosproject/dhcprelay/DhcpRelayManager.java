@@ -198,11 +198,11 @@ public class DhcpRelayManager implements DhcpRelayService {
     protected DhcpFpmPrefixStore dhcpFpmPrefixStore;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY,
-            target = "(version=4)")
+            target = "(_version=4)")
     protected DhcpHandler v4Handler;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY,
-            target = "(version=6)")
+            target = "(_version=6)")
     protected DhcpHandler v6Handler;
 
     /** Enable Address resolution protocol. */
