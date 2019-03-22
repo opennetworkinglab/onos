@@ -106,7 +106,7 @@ final class PiGroupTranslatorImpl {
         // model, however this might be highly inefficient for some HW targets
         // which pre-allocate resources for the whole group.
         final int maxGroupSize = group.type() == GroupDescription.Type.INDIRECT
-                ? 1 : group.buckets().buckets().size();
+                ? 1 : actionProfileModel.maxGroupSize();
 
         final PiActionProfileGroup.Builder piActionGroupBuilder = PiActionProfileGroup.builder()
                 .withId(PiActionProfileGroupId.of(group.id().id()))

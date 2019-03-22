@@ -111,7 +111,11 @@ public final class PiActionProfileGroup implements PiEntity {
         final PiActionProfileGroup other = (PiActionProfileGroup) obj;
         return Objects.equal(this.groupId, other.groupId)
                 && Objects.equal(this.members, other.members)
-                && Objects.equal(this.maxSize, other.maxSize)
+                // FIXME: re-enable when this PI bug will be fixed:
+                // https://github.com/p4lang/PI/issues/452
+                // Currently PI-based devices always return max_group_size 0,
+                // event if we set a different one.
+                // && Objects.equal(this.maxSize, other.maxSize)
                 && Objects.equal(this.actionProfileId, other.actionProfileId);
     }
 

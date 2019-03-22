@@ -45,6 +45,8 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Implementation of the PI translation service.
  */
@@ -131,6 +133,8 @@ public class PiTranslationServiceImpl implements PiTranslationService {
         @Override
         public PiTableEntry translate(FlowRule original, PiPipeconf pipeconf)
                 throws PiTranslationException {
+            checkNotNull(original);
+            checkNotNull(pipeconf);
             return PiFlowRuleTranslatorImpl
                     .translate(original, pipeconf, getDevice(original.deviceId()));
         }
@@ -147,6 +151,8 @@ public class PiTranslationServiceImpl implements PiTranslationService {
         @Override
         public PiActionProfileGroup translate(Group original, PiPipeconf pipeconf)
                 throws PiTranslationException {
+            checkNotNull(original);
+            checkNotNull(pipeconf);
             return PiGroupTranslatorImpl
                     .translate(original, pipeconf, getDevice(original.deviceId()));
         }
@@ -163,6 +169,8 @@ public class PiTranslationServiceImpl implements PiTranslationService {
         @Override
         public PiMulticastGroupEntry translate(Group original, PiPipeconf pipeconf)
                 throws PiTranslationException {
+            checkNotNull(original);
+            checkNotNull(pipeconf);
             return PiMulticastGroupTranslatorImpl.translate(
                     original, pipeconf, getDevice(original.deviceId()));
         }
@@ -179,6 +187,8 @@ public class PiTranslationServiceImpl implements PiTranslationService {
         @Override
         public PiMeterCellConfig translate(Meter original, PiPipeconf pipeconf)
                 throws PiTranslationException {
+            checkNotNull(original);
+            checkNotNull(pipeconf);
             return PiMeterTranslatorImpl
                     .translate(original, pipeconf, getDevice(original.deviceId()));
         }

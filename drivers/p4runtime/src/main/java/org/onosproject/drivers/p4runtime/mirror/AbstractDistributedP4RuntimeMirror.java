@@ -185,8 +185,8 @@ public abstract class AbstractDistributedP4RuntimeMirror
             }
         });
         if (removeCount.get() + updateCount.get() + addCount.get() > 0) {
-            log.info("Synchronized mirror entries for {}: {} removed, {} updated, {} added",
-                     deviceId, removeCount, updateCount, addCount);
+            log.info("Synchronized {} mirror for {}: {} removed, {} updated, {} added",
+                     entityType, deviceId, removeCount, updateCount, addCount);
         }
     }
 

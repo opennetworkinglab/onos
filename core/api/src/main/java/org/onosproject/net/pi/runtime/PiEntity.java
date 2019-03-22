@@ -20,8 +20,7 @@ import com.google.common.annotations.Beta;
 import org.onosproject.net.DeviceId;
 
 /**
- * Abstraction of an entity of a protocol-independent that can be read or write
- * at runtime.
+ * Abstraction of a runtime entity of a protocol-independent pipeline.
  */
 @Beta
 public interface PiEntity {
