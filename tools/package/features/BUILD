@@ -147,30 +147,6 @@ osgi_feature(
     visibility = ["//visibility:public"],
 )
 
-osgi_feature(
-    name = "onos-gui",
-    description = "ONOS GUI console components",
-    included_bundles = [
-        "//web/gui:onos-gui",
-    ],
-    required_features = [
-        "onos-api",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-osgi_feature(
-    name = "onos-gui2",
-    description = "ONOS GUI2 components",
-    included_bundles = [
-        "//web/gui2:onos-gui2",
-    ],
-    required_features = [
-        "onos-api",
-    ],
-    visibility = ["//visibility:public"],
-)
-
 #osgi_feature(
 #    name = "onos-security",
 #    description = "Security-Mode ONOS",
