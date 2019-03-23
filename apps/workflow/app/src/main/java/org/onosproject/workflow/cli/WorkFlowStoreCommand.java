@@ -17,6 +17,7 @@ package org.onosproject.workflow.cli;
 
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.workflow.api.Workflow;
@@ -29,10 +30,16 @@ import java.net.URI;
 @Command(scope = "onos", name = "workflowstore", description = "workflow store cli")
 public class WorkFlowStoreCommand extends AbstractShellCommand {
 
-    @Argument(index = 0, name = "cmd", description = "command(rm)", required = false)
+    static final String RM = "rm";
+
+    @Argument(index = 0, name = "cmd",
+            description = "command(" + RM + ")", required = false)
+    @Completion(WorkFlowStoreCompleter.class)
     private String cmd = null;
 
-    @Argument(index = 1, name = "id", description = "workflow id(URI)", required = false)
+    @Argument(index = 1, name = "id",
+            description = "workflow id(URI)", required = false)
+    @Completion(WorkFlowIdCompleter.class)
     private String id = null;
 
     @Override
@@ -49,7 +56,7 @@ public class WorkFlowStoreCommand extends AbstractShellCommand {
         }
 
         switch (cmd) {
-            case "rm":
+            case RM:
                 rmWorkflow(id);
                 break;
             default:
