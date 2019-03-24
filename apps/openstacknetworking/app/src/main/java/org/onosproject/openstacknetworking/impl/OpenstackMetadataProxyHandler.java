@@ -74,6 +74,7 @@ import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -257,6 +258,9 @@ public class OpenstackMetadataProxyHandler {
             if (proxyResponse == null) {
                 log.warn("No response was received from metadata server");
                 return;
+            } else {
+                log.debug("Metadata response headers {}", Arrays.toString(proxyResponse.getAllHeaders()));
+                log.debug("Metadata response entity {}", proxyResponse.getEntity().toString());
             }
 
             HttpResponse response = new BasicHttpResponse(proxyResponse.getStatusLine());
