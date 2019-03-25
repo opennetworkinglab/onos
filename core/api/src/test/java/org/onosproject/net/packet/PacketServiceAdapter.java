@@ -69,4 +69,9 @@ public class PacketServiceAdapter implements PacketService {
     @Override
     public void emit(OutboundPacket packet) {
     }
+
+    @Override
+    public List<PacketInFilter> getFilters() {
+        return null;
+    }
 }
