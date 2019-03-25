@@ -22,8 +22,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
-import static org.onlab.packet.PacketUtils.checkHeaderLength;
-import static org.onlab.packet.PacketUtils.checkInput;
+import static org.onlab.packet.PacketUtils.*;
 
 /**
  * Implements TCP packet format.
@@ -43,8 +42,6 @@ public class TCP extends BasePacket {
     protected short checksum;
     protected short urgentPointer;
     protected byte[] options;
-
-    protected byte[] payloadBytes;
 
     /**
      * Gets TCP source port.
@@ -254,26 +251,6 @@ public class TCP extends BasePacket {
     }
 
     /**
-     * Obtains the payload in byte array format.
-     *
-     * @return the payload in byte array format
-     */
-    public byte[] getPayloadBytes() {
-        return this.payloadBytes;
-    }
-
-    /**
-     * Sets the payload in byte array format.
-     *
-     * @param payloadBytes payload in byte array format
-     * @return this
-     */
-    public TCP setPayloadBytes(byte[] payloadBytes) {
-        this.payloadBytes = payloadBytes;
-        return this;
-    }
-
-    /**
      * Serializes the packet. Will compute and set the following fields if they
      * are set to specific values at the time serialize is called: -checksum : 0
      * -length : 0
@@ -289,11 +266,6 @@ public class TCP extends BasePacket {
         if (this.payload != null) {
             this.payload.setParent(this);
             payloadData = this.payload.serialize();
-            length += payloadData.length;
-        }
-
-        if (this.payloadBytes != null) {
-            payloadData = this.payloadBytes;
             length += payloadData.length;
         }
 
@@ -417,8 +389,7 @@ public class TCP extends BasePacket {
                 && this.flags == other.flags
                 && this.windowSize == other.windowSize
                 && this.urgentPointer == other.urgentPointer
-                && (this.dataOffset == 5 || Arrays.equals(this.options, other.options))
-                && (Arrays.equals(this.payloadBytes, other.payloadBytes));
+                && (this.dataOffset == 5 || Arrays.equals(this.options, other.options));
     }
 
     /**
@@ -470,7 +441,6 @@ public class TCP extends BasePacket {
                 .add("checksum", Short.toString(checksum))
                 .add("urgentPointer", Short.toString(urgentPointer))
                 .add("options", Arrays.toString(options))
-                .add("payloadBytes", Arrays.toString(payloadBytes))
                 .toString();
     }
 }
