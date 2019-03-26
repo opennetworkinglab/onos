@@ -74,8 +74,8 @@ import static org.onlab.packet.ICMP.TYPE_ECHO_REPLY;
 import static org.onlab.packet.ICMP.TYPE_ECHO_REQUEST;
 import static org.onosproject.net.NetTestTools.connectPoint;
 
-public class OpenstackRoutingIcmpHandlerTest {
-    private OpenstackRoutingIcmpHandler icmpHandler;
+public class OpenstackRoutingSnatIcmpHandlerTest {
+    private OpenstackRoutingSnatIcmpHandler icmpHandler;
     private static final byte CODE_ECHO_REQUEST = 0x00;
     private static final byte CODE_ECHO_REPLY = 0x00;
 
@@ -110,7 +110,7 @@ public class OpenstackRoutingIcmpHandlerTest {
     @Before
     public void setUp() {
 
-        icmpHandler = new OpenstackRoutingIcmpHandler();
+        icmpHandler = new OpenstackRoutingSnatIcmpHandler();
 
         icmpHandler.coreService = new TestCoreService();
         icmpHandler.packetService = new TestPacketService();
@@ -433,11 +433,11 @@ public class OpenstackRoutingIcmpHandlerTest {
 
 
     private void createPort() {
-        InputStream portJsonStream1 = OpenstackRoutingIcmpHandlerTest.class
+        InputStream portJsonStream1 = OpenstackRoutingSnatIcmpHandlerTest.class
                 .getResourceAsStream("openstack-port-1.json");
         port1 = (Port) OpenstackNetworkingUtil.jsonToModelEntity(portJsonStream1, NeutronPort.class);
 
-        InputStream portJsonStream2 = OpenstackRoutingIcmpHandlerTest.class
+        InputStream portJsonStream2 = OpenstackRoutingSnatIcmpHandlerTest.class
                 .getResourceAsStream("openstack-port-external.json");
         externalPort = (Port) OpenstackNetworkingUtil.jsonToModelEntity(portJsonStream2, NeutronPort.class);
 
@@ -447,7 +447,7 @@ public class OpenstackRoutingIcmpHandlerTest {
     }
 
     private void createSubnet() {
-        InputStream subnetJsonStream1 = OpenstackRoutingIcmpHandlerTest.class
+        InputStream subnetJsonStream1 = OpenstackRoutingSnatIcmpHandlerTest.class
                 .getResourceAsStream("openstack-subnet-1.json");
         subnet1 = (Subnet) OpenstackNetworkingUtil.jsonToModelEntity(subnetJsonStream1, NeutronSubnet.class);
     }
@@ -462,7 +462,7 @@ public class OpenstackRoutingIcmpHandlerTest {
     }
 
     private void createRouterMap() {
-        InputStream routerStream1 = OpenstackRoutingIcmpHandlerTest.class
+        InputStream routerStream1 = OpenstackRoutingSnatIcmpHandlerTest.class
                 .getResourceAsStream("openstack-router-1.json");
         router1 = (Router)
                 OpenstackNetworkingUtil.jsonToModelEntity(routerStream1, NeutronRouter.class);

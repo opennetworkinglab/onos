@@ -35,6 +35,11 @@ import org.slf4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_LOAD;
+import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ETH_SRC_TO_DST;
+import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_IP_SRC_TO_DST;
+import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_POP_NSH;
+import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_PUSH_NSH;
 import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_TUNNEL_DST;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -77,6 +82,36 @@ public final class RulePopulatorUtil {
     public static final long CT_STATE_EST = 0x02;
     public static final long CT_STATE_NOT_TRK = 0x20;
     public static final long CT_STATE_TRK = 0x20;
+
+    private static final String OFF_SET_N_BITS = "ofsNbits";
+    private static final String DESTINATION = "dst";
+    private static final String VALUE = "value";
+
+    private static final int OFF_SET_BIT = 0;
+    private static final int REMAINDER_BIT = 8;
+
+    // layer 3 nicira fields
+    public static final int NXM_OF_IP_SRC = 0x00000e04;
+    public static final int NXM_OF_IP_DST = 0x00001004;
+    public static final int NXM_OF_IP_PROT = 0x00000c01;
+
+    public static final int NXM_NX_IP_TTL = 0x00013a01;
+    public static final int NXM_NX_IP_FRAG = 0x00013401;
+    public static final int NXM_OF_ARP_OP = 0x00001e02;
+    public static final int NXM_OF_ARP_SPA = 0x00002004;
+    public static final int NXM_OF_ARP_TPA = 0x00002204;
+    public static final int NXM_NX_ARP_SHA = 0x00012206;
+    public static final int NXM_NX_ARP_THA = 0x00012406;
+
+    // layer 4 nicira fields
+    public static final int NXM_OF_TCP_SRC = 0x00001202;
+    public static final int NXM_OF_TCP_DST = 0x00001402;
+    public static final int NXM_NX_TCP_FLAGS = 0x00014402;
+    public static final int NXM_OF_UDP_SRC = 0x00001602;
+    public static final int NXM_OF_UDP_DST = 0x00001802;
+
+    public static final int NXM_OF_ICMP_TYPE = 0x00001a01;
+    public static final int NXM_OF_ICMP_CODE = 0x00001c01;
 
     private RulePopulatorUtil() {
     }
@@ -154,6 +189,104 @@ public final class RulePopulatorUtil {
         }
 
         return extensionSelector;
+    }
+
+    /**
+     * Returns the nicira load extension treatment.
+     *
+     * @param device        device instance
+     * @param field         field code
+     * @param value         value to load
+     * @return load extension treatment
+     */
+    public static ExtensionTreatment buildLoadExtension(Device device,
+                                                        long field,
+                                                        long value) {
+        if (device == null || !device.is(ExtensionTreatmentResolver.class)) {
+            log.warn("Nicira extension treatment is not supported");
+            return null;
+        }
+
+        ExtensionTreatmentResolver resolver = device.as(ExtensionTreatmentResolver.class);
+        ExtensionTreatment treatment =
+                resolver.getExtensionInstruction(NICIRA_LOAD.type());
+
+        int ofsNbits = OFF_SET_BIT << 6 | (REMAINDER_BIT - 1);
+
+        try {
+            treatment.setPropertyValue(OFF_SET_N_BITS, ofsNbits);
+            treatment.setPropertyValue(DESTINATION, field);
+            treatment.setPropertyValue(VALUE, value);
+            return treatment;
+        } catch (ExtensionPropertyException e) {
+            log.error("Failed to set nicira load extension treatment for {}",
+                    device.id());
+            return null;
+        }
+    }
+
+    /**
+     * Returns the nicira push extension treatment.
+     *
+     * @param device        device instance
+     * @return push extension treatment
+     */
+    public static ExtensionTreatment buildPushExtension(Device device) {
+        if (device == null || !device.is(ExtensionTreatmentResolver.class)) {
+            log.warn("Nicira extension treatment is not supported");
+            return null;
+        }
+
+        ExtensionTreatmentResolver resolver = device.as(ExtensionTreatmentResolver.class);
+        return resolver.getExtensionInstruction(NICIRA_PUSH_NSH.type());
+    }
+
+    /**
+     * Returns the nicira pop extension treatment.
+     *
+     * @param device        device instance
+     * @return pop extension treatment
+     */
+    public static ExtensionTreatment buildPopExtension(Device device) {
+        if (device == null || !device.is(ExtensionTreatmentResolver.class)) {
+            log.warn("Nicira extension treatment is not supported");
+            return null;
+        }
+
+        ExtensionTreatmentResolver resolver = device.as(ExtensionTreatmentResolver.class);
+        return resolver.getExtensionInstruction(NICIRA_POP_NSH.type());
+    }
+
+    /**
+     * Returns the nicira move source MAC to destination MAC extension treatment.
+     *
+     * @param device        device instance
+     * @return move extension treatment
+     */
+    public static ExtensionTreatment buildMoveEthSrcToDstExtension(Device device) {
+        if (device == null || !device.is(ExtensionTreatmentResolver.class)) {
+            log.warn("Nicira extension treatment is not supported");
+            return null;
+        }
+
+        ExtensionTreatmentResolver resolver = device.as(ExtensionTreatmentResolver.class);
+        return resolver.getExtensionInstruction(NICIRA_MOV_ETH_SRC_TO_DST.type());
+    }
+
+    /**
+     * Returns the nicira move source IP to destination IP extension treatment.
+     *
+     * @param device        device instance
+     * @return move extension treatment
+     */
+    public static ExtensionTreatment buildMoveIpSrcToDstExtension(Device device) {
+        if (device == null || !device.is(ExtensionTreatmentResolver.class)) {
+            log.warn("Nicira extension treatment is not supported");
+            return null;
+        }
+
+        ExtensionTreatmentResolver resolver = device.as(ExtensionTreatmentResolver.class);
+        return resolver.getExtensionInstruction(NICIRA_MOV_IP_SRC_TO_DST.type());
     }
 
     /**

@@ -264,6 +264,11 @@ public class OpenstackRoutingSnatHandler {
     }
 
     private void processSnatPacket(PacketContext context, Ethernet eth) {
+
+        if (useStatefulSnat) {
+            return;
+        }
+
         IPv4 iPacket = (IPv4) eth.getPayload();
         InboundPacket packetIn = context.inPacket();
 
@@ -814,7 +819,7 @@ public class OpenstackRoutingSnatHandler {
         String netId = osNetworkAdminService.subnet(routerIface.getSubnetId()).getNetworkId();
 
         Map<OpenstackNode, PortRange> gwPortRangeMap = getAssignedPortsForGateway(
-                ImmutableList.copyOf(osNodeService.completeNodes(GATEWAY)));
+                ImmutableList.copyOf(osNodeService.nodes(GATEWAY)));
 
         osNodeService.completeNodes(GATEWAY)
                 .forEach(gwNode -> {

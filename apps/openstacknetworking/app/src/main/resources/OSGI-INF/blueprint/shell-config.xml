@@ -78,6 +78,12 @@
             </completers>
         </command>
         <command>
+            <action class="org.onosproject.openstacknetworking.cli.OpenstackConfigStatefulSnatCommand" />
+            <completers>
+                <ref component-id="booleanCompleter"/>
+            </completers>
+        </command>
+        <command>
             <action class="org.onosproject.openstacknetworking.cli.OpenstackAddAclCommand" />
         </command>
         <command>
@@ -120,6 +126,7 @@
     <bean id="macAddressCompleter" class="org.onosproject.openstacknetworking.cli.MacAddressCompleter"/>
     <bean id="vlanIdCompleter" class="org.onosproject.openstacknetworking.cli.VlanIdCompleter"/>
     <bean id="arpModeCompleter" class="org.onosproject.openstacknetworking.cli.ArpModeCompleter"/>
+    <bean id="booleanCompleter" class="org.onosproject.openstacknetworking.cli.BooleanCompleter"/>
     <bean id="instancePortIdCompleter" class="org.onosproject.openstacknetworking.cli.InstancePortIdCompleter"/>
     <bean id="instanceIpAddressCompleter" class="org.onosproject.openstacknetworking.cli.InstanceIpAddressCompleter"/>
 </blueprint>

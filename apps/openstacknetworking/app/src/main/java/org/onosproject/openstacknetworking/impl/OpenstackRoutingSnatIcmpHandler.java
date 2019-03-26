@@ -29,6 +29,8 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
+import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
@@ -84,6 +86,7 @@ import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWOR
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_INTERNAL_ROUTING_RULE;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.externalIpFromSubnet;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.externalPeerRouterFromSubnet;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValueAsBoolean;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -95,12 +98,14 @@ import static org.slf4j.LoggerFactory.getLogger;
  * external connectivity.
  */
 @Component(immediate = true)
-public class OpenstackRoutingIcmpHandler {
+public class OpenstackRoutingSnatIcmpHandler {
 
     protected final Logger log = getLogger(getClass());
 
     private static final String ERR_REQ = "Failed to handle ICMP request: ";
     private static final String ERR_DUPLICATE = " already exists";
+
+    private static final String USE_STATEFUL_SNAT = "useStatefulSnat";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -116,6 +121,9 @@ public class OpenstackRoutingIcmpHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected InstancePortService instancePortService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ComponentConfigService configService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackNetworkService osNetworkService;
@@ -175,10 +183,15 @@ public class OpenstackRoutingIcmpHandler {
         log.info("Stopped");
     }
 
+    private boolean getStatefulSnatFlag() {
+        Set<ConfigProperty> properties = configService.getProperties(OpenstackRoutingSnatHandler.class.getName());
+        return getPropertyValueAsBoolean(properties, USE_STATEFUL_SNAT);
+    }
+
     private class InternalNodeEventListener implements OpenstackNodeListener {
         @Override
         public boolean isRelevant(OpenstackNodeEvent event) {
-            return event.subject().type() == GATEWAY;
+            return event.subject().type() == GATEWAY && !getStatefulSnatFlag();
         }
 
         private boolean isRelevantHelper() {
@@ -250,6 +263,10 @@ public class OpenstackRoutingIcmpHandler {
             eventExecutor.execute(() -> {
 
                 if (!isRelevantHelper(context)) {
+                    return;
+                }
+
+                if (getStatefulSnatFlag()) {
                     return;
                 }
 
@@ -515,6 +532,7 @@ public class OpenstackRoutingIcmpHandler {
             switch (osNetworkService.networkType(netId)) {
                 case VXLAN:
                 case GRE:
+                case GENEVE:
                     tBuilder.setTunnelId(Long.valueOf(segId));
                     break;
                 case VLAN:
@@ -536,5 +554,4 @@ public class OpenstackRoutingIcmpHandler {
             return ((ICMPEcho) icmp.getPayload()).getIdentifier();
         }
     }
-
 }
