@@ -29,6 +29,7 @@ import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupAdminService;
 import org.onosproject.openstacknetworking.impl.OpenstackRoutingArpHandler;
+import org.onosproject.openstacknetworking.impl.OpenstackRoutingSnatHandler;
 import org.onosproject.openstacknetworking.impl.OpenstackSecurityGroupHandler;
 import org.onosproject.openstacknetworking.impl.OpenstackSwitchingArpHandler;
 import org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil;
@@ -61,6 +62,7 @@ import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.a
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.checkActivationFlag;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.checkArpMode;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValue;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValueAsBoolean;
 import static org.onosproject.openstacknode.api.NodeState.COMPLETE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.CONTROLLER;
@@ -76,6 +78,7 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
     private static final String FLOATINGIPS = "floatingips";
     private static final String ARP_MODE_NAME = "arpMode";
     private static final String USE_SECURITY_GROUP_NAME = "useSecurityGroup";
+    private static final String USE_STATEFUL_SNAT_NAME = "useStatefulSnat";
 
     private static final long SLEEP_MS = 3000; // we wait 3s for init each node
     private static final long TIMEOUT_MS = 10000; // we wait 10s
@@ -83,6 +86,7 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
     private static final String DEVICE_OWNER_IFACE = "network:router_interface";
 
     private static final String ARP_MODE_REQUIRED = "ARP mode is not specified";
+    private static final String STATEFUL_SNAT_REQUIRED = "Stateful SNAT flag nis not specified";
 
     private static final String SECURITY_GROUP_FLAG_REQUIRED = "Security Group flag is not specified";
 
@@ -273,6 +277,39 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
     }
 
     /**
+     * Configures the stateful SNAT flag (enable | disable).
+     *
+     * @param statefulSnat stateful SNAT flag
+     * @return 200 OK with config result, 404 not found
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("config/statefulSnat/{statefulSnat}")
+    public Response configStatefulSnat(@PathParam("statefulSnat") String statefulSnat) {
+        String statefulSnatStr = nullIsIllegal(statefulSnat, STATEFUL_SNAT_REQUIRED);
+        boolean flag = checkActivationFlag(statefulSnatStr);
+        configStatefulSnatBase(flag);
+
+        ComponentConfigService service = get(ComponentConfigService.class);
+        String snatComponent = OpenstackRoutingSnatHandler.class.getName();
+
+        while (true) {
+            boolean snatValue =
+                    getPropertyValueAsBoolean(
+                            service.getProperties(snatComponent), USE_STATEFUL_SNAT_NAME);
+
+            if (flag == snatValue) {
+                break;
+            }
+        }
+
+        purgeRulesBase();
+        syncRulesBase();
+
+        return ok(mapper().createObjectNode()).build();
+    }
+
+    /**
      * Configures the security group (enable | disable).
      *
      * @param securityGroup security group activation flag
@@ -432,5 +469,12 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
 
         service.setProperty(switchingComponent, ARP_MODE_NAME, arpMode);
         service.setProperty(routingComponent, ARP_MODE_NAME, arpMode);
+    }
+
+    private void configStatefulSnatBase(boolean snatFlag) {
+        ComponentConfigService service = get(ComponentConfigService.class);
+        String snatComponent = OpenstackRoutingSnatHandler.class.getName();
+
+        service.setProperty(snatComponent, USE_STATEFUL_SNAT_NAME, String.valueOf(snatFlag));
     }
 }

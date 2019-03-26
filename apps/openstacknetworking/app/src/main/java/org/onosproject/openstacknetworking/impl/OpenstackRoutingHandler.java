@@ -22,6 +22,8 @@ import org.onlab.packet.IPv4;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.VlanId;
+import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
@@ -65,6 +67,7 @@ import java.util.stream.Collectors;
 
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.openstacknetworking.api.Constants.ARP_BROADCAST_MODE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ADMIN_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ICMP_RULE;
@@ -72,10 +75,10 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_INTERNA
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SWITCHING_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.ROUTING_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.STAT_OUTBOUND_TABLE;
-import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.GENEVE;
-import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.GRE;
-import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.VLAN;
-import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.VXLAN;
+import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.ARP_MODE;
+import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.USE_STATEFUL_SNAT;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValue;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValueAsBoolean;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.tunnelPortNumByNetType;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildExtension;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
@@ -101,6 +104,9 @@ public class OpenstackRoutingHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterService clusterService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected ComponentConfigService configService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OpenstackNodeService osNodeService;
@@ -191,7 +197,7 @@ public class OpenstackRoutingHandler {
         }
 
         setInternalRoutes(osRouter, osSubnet, true);
-        setGatewayIcmp(osSubnet, osRouter, true);
+        setGatewayRules(osSubnet, osRouter, true);
         log.info("Connected subnet({}) to {}", osSubnet.getCidr(), osRouter.getName());
     }
 
@@ -212,11 +218,11 @@ public class OpenstackRoutingHandler {
         }
 
         setInternalRoutes(osRouter, osSubnet, false);
-        setGatewayIcmp(osSubnet, osRouter, false);
+        setGatewayRules(osSubnet, osRouter, false);
         log.info("Disconnected subnet({}) from {}", osSubnet.getCidr(), osRouter.getName());
     }
 
-    private void setGatewayIcmp(Subnet osSubnet, Router osRouter, boolean install) {
+    private void setGatewayRules(Subnet osSubnet, Router osRouter, boolean install) {
         OpenstackNode srcNatGw = osNodeService.completeNodes(GATEWAY)
                                          .stream().findFirst().orElse(null);
 
@@ -229,107 +235,33 @@ public class OpenstackRoutingHandler {
             return;
         }
 
-        // take ICMP request to a subnet gateway through gateway node group
         Network net = osNetworkAdminService.network(osSubnet.getNetworkId());
         Type netType = osNetworkAdminService.networkType(osSubnet.getNetworkId());
         Set<Subnet> routableSubnets = routableSubnets(osRouter, osSubnet.getId());
 
-        switch (netType) {
-            case VXLAN:
-                setGatewayIcmpForVxlan(osSubnet, srcNatGw, net, routableSubnets, install);
-                break;
-            case GRE:
-                setGatewayIcmpForGre(osSubnet, srcNatGw, net, routableSubnets, install);
-                break;
-            case GENEVE:
-                setGatewayIcmpForGeneve(osSubnet, srcNatGw, net, routableSubnets, install);
-                break;
-            case VLAN:
-                setGatewayIcmpForVlan(osSubnet, srcNatGw, net, routableSubnets, install);
-                break;
-            default:
-                final String error = String.format("%s %s", ERR_UNSUPPORTED_NET_TYPE,
-                                                            netType.toString());
-                throw new IllegalStateException(error);
+        // install rules to each compute node for routing IP packets to gateways
+        osNodeService.completeNodes(COMPUTE).stream()
+                .filter(cNode -> cNode.dataIp() != null)
+                .forEach(cNode -> setRulesToGatewayWithRoutableSubnets(
+                        cNode,
+                        srcNatGw,
+                        net.getProviderSegID(),
+                        osSubnet,
+                        routableSubnets,
+                        netType,
+                        install));
+
+        if (!getStatefulSnatFlag()) {
+            // install rules to punt ICMP packets to controller at gateway node
+            // this rule is only valid for stateless ICMP SNAT case
+            osNodeService.completeNodes(GATEWAY).forEach(gNode ->
+                    setReactiveGatewayIcmpRule(
+                            IpAddress.valueOf(osSubnet.getGateway()),
+                            gNode.intgBridge(), install));
         }
 
-        IpAddress gatewayIp = IpAddress.valueOf(osSubnet.getGateway());
-        osNodeService.completeNodes(GATEWAY).forEach(gNode ->
-            setGatewayIcmpRule(
-                    gatewayIp,
-                    gNode.intgBridge(),
-                    install));
-
         final String updateStr = install ? MSG_ENABLED : MSG_DISABLED;
-        log.debug(updateStr + "ICMP to {}", osSubnet.getGateway());
-    }
-
-    private void setGatewayIcmpForVxlan(Subnet osSubnet,
-                                        OpenstackNode srcNatGw,
-                                        Network network,
-                                        Set<Subnet> routableSubnets,
-                                        boolean install) {
-        osNodeService.completeNodes(COMPUTE).stream()
-                .filter(cNode -> cNode.dataIp() != null)
-                .forEach(cNode -> setRulesToGatewayWithRoutableSubnets(
-                        cNode,
-                        srcNatGw,
-                        network.getProviderSegID(),
-                        osSubnet,
-                        routableSubnets,
-                        VXLAN,
-                        install));
-    }
-
-    private void setGatewayIcmpForGre(Subnet osSubnet,
-                                      OpenstackNode srcNatGw,
-                                      Network network,
-                                      Set<Subnet> routableSubnets,
-                                      boolean install) {
-        osNodeService.completeNodes(COMPUTE).stream()
-                .filter(cNode -> cNode.dataIp() != null)
-                .forEach(cNode -> setRulesToGatewayWithRoutableSubnets(
-                        cNode,
-                        srcNatGw,
-                        network.getProviderSegID(),
-                        osSubnet,
-                        routableSubnets,
-                        GRE,
-                        install));
-    }
-
-    private void setGatewayIcmpForGeneve(Subnet osSubnet,
-                                         OpenstackNode srcNatGw,
-                                         Network network,
-                                         Set<Subnet> routableSubnets,
-                                         boolean install) {
-        osNodeService.completeNodes(COMPUTE).stream()
-                .filter(cNode -> cNode.dataIp() != null)
-                .forEach(cNode -> setRulesToGatewayWithRoutableSubnets(
-                        cNode,
-                        srcNatGw,
-                        network.getProviderSegID(),
-                        osSubnet,
-                        routableSubnets,
-                        GENEVE,
-                        install));
-    }
-
-    private void setGatewayIcmpForVlan(Subnet osSubnet,
-                                       OpenstackNode srcNatGw,
-                                       Network network,
-                                       Set<Subnet> routableSubnets,
-                                       boolean install) {
-        osNodeService.completeNodes(COMPUTE).stream()
-                .filter(cNode -> cNode.vlanPortNum() != null)
-                .forEach(cNode -> setRulesToGatewayWithRoutableSubnets(
-                        cNode,
-                        srcNatGw,
-                        network.getProviderSegID(),
-                        osSubnet,
-                        routableSubnets,
-                        VLAN,
-                        install));
+        log.debug(updateStr + "IP to {}", osSubnet.getGateway());
     }
 
     private void setInternalRoutes(Router osRouter, Subnet updatedSubnet, boolean install) {
@@ -393,7 +325,17 @@ public class OpenstackRoutingHandler {
         return osNetworkAdminService.network(osSubnet.getNetworkId()).getProviderSegID();
     }
 
-    private void setGatewayIcmpRule(IpAddress gatewayIp, DeviceId deviceId, boolean install) {
+    private boolean getStatefulSnatFlag() {
+        Set<ConfigProperty> properties = configService.getProperties(OpenstackRoutingSnatHandler.class.getName());
+        return getPropertyValueAsBoolean(properties, USE_STATEFUL_SNAT);
+    }
+
+    private String getArpMode() {
+        Set<ConfigProperty> properties = configService.getProperties(OpenstackRoutingArpHandler.class.getName());
+        return getPropertyValue(properties, ARP_MODE);
+    }
+
+    private void setReactiveGatewayIcmpRule(IpAddress gatewayIp, DeviceId deviceId, boolean install) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPProtocol(IPv4.PROTOCOL_ICMP)
@@ -546,7 +488,12 @@ public class OpenstackRoutingHandler {
                                                       Set<Subnet> routableSubnets,
                                                       Type networkType,
                                                       boolean install) {
-        //At first we install flow rules to gateway with segId and gatewayIp of updated subnet
+
+        if (getStatefulSnatFlag() && ARP_BROADCAST_MODE.equals(getArpMode())) {
+            return;
+        }
+
+        // at first we install flow rules to gateway with segId and gatewayIp of updated subnet
         setRulesToGatewayWithDstIp(osNode, sourceNatGateway, segmentId,
                 IpAddress.valueOf(updatedSubnet.getGateway()), networkType, install);
 

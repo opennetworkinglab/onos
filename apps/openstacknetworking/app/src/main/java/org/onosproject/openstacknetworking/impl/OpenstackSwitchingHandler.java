@@ -117,7 +117,6 @@ public class OpenstackSwitchingHandler {
     protected ComponentConfigService configService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-
     protected LeadershipService leadershipService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
