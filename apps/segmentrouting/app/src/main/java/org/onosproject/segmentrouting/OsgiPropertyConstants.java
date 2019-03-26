@@ -44,4 +44,8 @@ public final class OsgiPropertyConstants {
     static final String PROP_SYMMETRIC_PROBING = "symmetricProbing";
     static final boolean SYMMETRIC_PROBING_DEFAULT = false;
 
+    public static final String PROP_ROUTE_SIMPLIFICATION = "routeSimplification";
+    public static final boolean ROUTE_SIMPLIFICATION_DEFAULT = false;
+
+
 }

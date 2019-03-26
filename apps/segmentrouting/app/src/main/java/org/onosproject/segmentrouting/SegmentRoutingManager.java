@@ -165,11 +165,13 @@ import static org.onosproject.segmentrouting.OsgiPropertyConstants.PROP_DEFAULT_
 import static org.onosproject.segmentrouting.OsgiPropertyConstants.PROP_PW_TRANSPORT_VLAN;
 import static org.onosproject.segmentrouting.OsgiPropertyConstants.PROP_RESPOND_TO_UNKNOWN_HOSTS;
 import static org.onosproject.segmentrouting.OsgiPropertyConstants.PROP_ROUTE_DOUBLE_TAGGED_HOSTS;
+import static org.onosproject.segmentrouting.OsgiPropertyConstants.PROP_ROUTE_SIMPLIFICATION;
 import static org.onosproject.segmentrouting.OsgiPropertyConstants.PROP_SINGLE_HOMED_DOWN;
 import static org.onosproject.segmentrouting.OsgiPropertyConstants.PROP_SYMMETRIC_PROBING;
 import static org.onosproject.segmentrouting.OsgiPropertyConstants.PW_TRANSPORT_VLAN_DEFAULT;
 import static org.onosproject.segmentrouting.OsgiPropertyConstants.RESPOND_TO_UNKNOWN_HOSTS_DEFAULT;
 import static org.onosproject.segmentrouting.OsgiPropertyConstants.ROUTE_DOUBLE_TAGGED_HOSTS_DEFAULT;
+import static org.onosproject.segmentrouting.OsgiPropertyConstants.ROUTE_SIMPLIFICATION_DEFAULT;
 import static org.onosproject.segmentrouting.OsgiPropertyConstants.SINGLE_HOMED_DOWN_DEFAULT;
 import static org.onosproject.segmentrouting.OsgiPropertyConstants.SYMMETRIC_PROBING_DEFAULT;
 
@@ -186,7 +188,8 @@ import static org.onosproject.segmentrouting.OsgiPropertyConstants.SYMMETRIC_PRO
         PROP_ROUTE_DOUBLE_TAGGED_HOSTS + ":Boolean=" + ROUTE_DOUBLE_TAGGED_HOSTS_DEFAULT,
         PROP_DEFAULT_INTERNAL_VLAN + ":Integer=" + DEFAULT_INTERNAL_VLAN_DEFAULT,
         PROP_PW_TRANSPORT_VLAN + ":Integer=" + PW_TRANSPORT_VLAN_DEFAULT,
-        PROP_SYMMETRIC_PROBING + ":Boolean=" + SYMMETRIC_PROBING_DEFAULT
+        PROP_SYMMETRIC_PROBING + ":Boolean=" + SYMMETRIC_PROBING_DEFAULT,
+        PROP_ROUTE_SIMPLIFICATION + ":Boolean=" + ROUTE_SIMPLIFICATION_DEFAULT
     }
 )
 public class SegmentRoutingManager implements SegmentRoutingService {
@@ -280,6 +283,9 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
     /** vlan used for transport of pseudowires between switches. */
     private int pwTransportVlan = PW_TRANSPORT_VLAN_DEFAULT;
+
+    /** Enabling route simplification. */
+    boolean  routeSimplification = ROUTE_SIMPLIFICATION_DEFAULT;
 
     ArpHandler arpHandler = null;
     IcmpHandler icmpHandler = null;
@@ -749,6 +755,13 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 log.warn("Cannot change pseudowire transport vlan to unusable "
                         + "value {}", pwTxpVlan);
             }
+        }
+
+        String strRouteSimplification = Tools.get(properties, PROP_ROUTE_SIMPLIFICATION);
+        boolean expectRouteSimplification = Boolean.parseBoolean(strRouteSimplification);
+        if (expectRouteSimplification != routeSimplification) {
+            routeSimplification = expectRouteSimplification;
+            log.info("{} route simplification", routeSimplification ? "Enabling" : "Disabling");
         }
 
     }

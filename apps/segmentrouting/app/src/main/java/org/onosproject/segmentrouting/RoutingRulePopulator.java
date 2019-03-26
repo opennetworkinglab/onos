@@ -90,6 +90,7 @@ public class RoutingRulePopulator {
     private AtomicLong rulePopulationCounter;
     private SegmentRoutingManager srManager;
     private DeviceConfiguration config;
+    private RouteSimplifierUtils routeSimplifierUtils;
 
     /**
      * Creates a RoutingRulePopulator object.
@@ -100,6 +101,7 @@ public class RoutingRulePopulator {
         this.srManager = srManager;
         this.config = checkNotNull(srManager.deviceConfiguration);
         this.rulePopulationCounter = new AtomicLong(0);
+        this.routeSimplifierUtils = new RouteSimplifierUtils(srManager);
     }
 
     /**
@@ -470,9 +472,35 @@ public class RoutingRulePopulator {
      */
     boolean populateIpRuleForSubnet(DeviceId targetSw, Set<IpPrefix> subnets,
             DeviceId destSw1, DeviceId destSw2, Map<DeviceId, Set<DeviceId>> nextHops) {
-        for (IpPrefix subnet : subnets) {
-            if (!populateIpRuleForRouter(targetSw, subnet, destSw1, destSw2, nextHops)) {
-                return false;
+        // Get pair device of the target switch
+        Optional<DeviceId> pairDev = srManager.getPairDeviceId(targetSw);
+        // Route simplification will be off in case of the nexthop location at target switch is down
+        // (routing through spine case)
+        boolean routeSimplOff = pairDev.isPresent() && pairDev.get().equals(destSw1) && destSw2 == null;
+        // Iterates over the routes
+        // If route simplification is enabled
+        // If the target device is another leaf in the network
+        if (srManager.routeSimplification && !routeSimplOff) {
+            for (IpPrefix subnet : subnets) {
+                // Skip route programming on the target device
+                // If route simplification applies
+                if (routeSimplifierUtils.hasLeafExclusionEnabledForPrefix(subnet)) {
+                    // XXX route simplification assumes that source of the traffic
+                    // towards the nexthops are co-located with the nexthops. In different
+                    // scenarios will not work properly.
+                    continue;
+                }
+                // populate the route in the remaning scenarios
+                if (!populateIpRuleForRouter(targetSw, subnet, destSw1, destSw2, nextHops)) {
+                    return false;
+                }
+            }
+        } else {
+            // Populate IP flow rules for all the subnets.
+            for (IpPrefix subnet : subnets) {
+                if (!populateIpRuleForRouter(targetSw, subnet, destSw1, destSw2, nextHops)) {
+                    return false;
+                }
             }
         }
         return true;
