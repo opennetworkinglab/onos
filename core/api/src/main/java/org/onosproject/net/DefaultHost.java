@@ -38,6 +38,7 @@ public class DefaultHost extends AbstractElement implements Host {
     private final Set<HostLocation> locations;
     private final Set<IpAddress> ips;
     private final boolean configured;
+    private final boolean suspended;
 
     /**
      * Creates an end-station host using the supplied information.
@@ -96,6 +97,32 @@ public class DefaultHost extends AbstractElement implements Host {
         this.locations = new HashSet<>(locations);
         this.ips = new HashSet<>(ips);
         this.configured = configured;
+        this.suspended = false;
+    }
+
+    /**
+     * Creates an end-station host using the supplied information.
+     *
+     * @param providerId  provider identity
+     * @param id          host identifier
+     * @param mac         host MAC address
+     * @param vlan        host VLAN identifier
+     * @param locations   set of host locations
+     * @param ips         host IP addresses
+     * @param configured  true if configured via NetworkConfiguration
+     * @param suspended   true if the host is suspended due to policy violation.
+     * @param annotations optional key/value annotations
+     */
+    public DefaultHost(ProviderId providerId, HostId id, MacAddress mac,
+                       VlanId vlan, Set<HostLocation> locations, Set<IpAddress> ips,
+                       boolean configured, boolean suspended, Annotations... annotations) {
+        super(providerId, id, annotations);
+        this.mac = mac;
+        this.vlan = vlan;
+        this.locations = new HashSet<>(locations);
+        this.ips = new HashSet<>(ips);
+        this.configured = configured;
+        this.suspended = suspended;
     }
 
     @Override
@@ -140,8 +167,14 @@ public class DefaultHost extends AbstractElement implements Host {
     }
 
     @Override
+    public boolean suspended() {
+        return this.suspended;
+    }
+
+
+    @Override
     public int hashCode() {
-        return Objects.hash(id, mac, vlan, locations);
+        return Objects.hash(id, mac, vlan, locations, suspended);
     }
 
     @Override
@@ -156,7 +189,8 @@ public class DefaultHost extends AbstractElement implements Host {
                     Objects.equals(this.vlan, other.vlan) &&
                     Objects.equals(this.locations, other.locations) &&
                     Objects.equals(this.ipAddresses(), other.ipAddresses()) &&
-                    Objects.equals(this.annotations(), other.annotations());
+                    Objects.equals(this.annotations(), other.annotations()) &&
+                    Objects.equals(this.suspended, other.suspended);
         }
         return false;
     }
@@ -171,6 +205,7 @@ public class DefaultHost extends AbstractElement implements Host {
                 .add("ipAddresses", ipAddresses())
                 .add("annotations", annotations())
                 .add("configured", configured())
+                .add("suspended", suspended())
                 .toString();
     }
 

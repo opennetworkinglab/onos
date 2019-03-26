@@ -357,6 +357,48 @@ public class DistributedHostStore
         return ImmutableSet.copyOf(filtered);
     }
 
+    @Override
+    public void suspend(HostId hostId) {
+        hosts.compute(hostId, (id, existingHost) -> {
+            if (existingHost != null) {
+                if (!existingHost.suspended()) {
+                    return new DefaultHost(existingHost.providerId(),
+                            hostId,
+                            existingHost.mac(),
+                            existingHost.vlan(),
+                            existingHost.locations(),
+                            existingHost.ipAddresses(),
+                            existingHost.configured(),
+                            true,
+                            existingHost.annotations());
+                }
+
+            }
+            return null;
+        });
+    }
+
+    @Override
+    public void unsuspend(HostId hostId) {
+        hosts.compute(hostId, (id, existingHost) -> {
+            if (existingHost != null) {
+                if (existingHost.suspended()) {
+                    return new DefaultHost(existingHost.providerId(),
+                            hostId,
+                            existingHost.mac(),
+                            existingHost.vlan(),
+                            existingHost.locations(),
+                            existingHost.ipAddresses(),
+                            existingHost.configured(),
+                            false,
+                            existingHost.annotations());
+
+                }
+            }
+            return null;
+        });
+    }
+
     private Set<Host> filter(Collection<DefaultHost> collection, Predicate<DefaultHost> predicate) {
         return collection.stream().filter(predicate).collect(Collectors.toSet());
     }
@@ -414,7 +456,11 @@ public class DistributedHostStore
                     break;
                 case UPDATE:
                     updateHostsByIp(host, prevHost);
-                    if (!Objects.equals(prevHost.locations(), host.locations())) {
+                    if (host.suspended() && !prevHost.suspended()) {
+                        notifyDelegate(new HostEvent(HOST_SUSPENDED, host, prevHost));
+                    } else if (!host.suspended() && prevHost.suspended()) {
+                        notifyDelegate(new HostEvent(HOST_UNSUSPENDED, host, prevHost));
+                    } else if (!Objects.equals(prevHost.locations(), host.locations())) {
                         notifyDelegate(new HostEvent(HOST_MOVED, host, prevHost));
                     } else if (!Objects.equals(prevHost, host)) {
                         notifyDelegate(new HostEvent(HOST_UPDATED, host, prevHost));

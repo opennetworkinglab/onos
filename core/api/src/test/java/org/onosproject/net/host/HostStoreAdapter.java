@@ -113,4 +113,6 @@ public class HostStoreAdapter implements HostStore {
     public Set<Host> getConnectedHosts(DeviceId deviceId) {
         return null;
     }
+
+
 }

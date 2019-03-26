@@ -72,11 +72,20 @@ public interface Host extends Element {
 
     /**
      * Returns true if configured by NetworkConfiguration.
+     *
      * @return configured/learnt dynamically
      */
     default boolean configured() {
         return false;
     }
     // TODO: explore capturing list of recent locations to aid in mobility
+
+    /**
+     * Returns the state of host whether it is in suspended state(offending host due to frequent movement.).
+     *
+     * @return state true if suspended else false.
+     */
+    boolean suspended();
+
 
 }
