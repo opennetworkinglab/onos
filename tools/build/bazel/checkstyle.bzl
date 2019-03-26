@@ -62,7 +62,7 @@ _execute_checkstyle_test = rule(
             Label("@com_google_guava_guava//jar"),
             Label("@commons_logging//jar"),
         ]),
-        "srcs": attr.label_list(allow_files = FileType([".java"])),
+        "srcs": attr.label_list(allow_files = [".java"]),
         "_config": attr.label(default = Label("//tools/build/conf:checkstyle_xml")),
         "_suppressions": attr.label(default = Label("//tools/build/conf:suppressions_xml")),
         "_java_header": attr.label(default = Label("//tools/build/conf:onos_java_header")),
