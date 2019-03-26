@@ -14,12 +14,12 @@
 package org.onosproject.bgp.controller.impl;
 
 import com.google.common.base.MoreObjects;
-
 import org.onosproject.bgp.controller.BgpController;
 import org.onosproject.bgp.controller.BgpId;
 import org.onosproject.bgp.controller.BgpLinkListener;
 import org.onosproject.bgp.controller.BgpLocalRib;
 import org.onosproject.bgp.controller.BgpNodeListener;
+import org.onosproject.bgp.controller.BgpPrefixListener;
 import org.onosproject.bgp.controller.BgpSessionInfo;
 import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.protocol.BgpLSNlri;
@@ -183,10 +183,16 @@ public class BgpLocalRibImpl implements BgpLocalRib {
                 decisionResult = selectionAlgo.compare(prefixTree.get(prefixIdentifier), detailsLocRib);
                 if (decisionResult <= 0) {
                     prefixTree.replace(prefixIdentifier, detailsLocRib);
+                    for (BgpPrefixListener l : bgpController.prefixListener()) {
+                        l.addPrefix((BgpPrefixIPv4LSNlriVer4) nlri, details);
+                    }
                     log.debug("Local RIB update prefix: {}", detailsLocRib.toString());
                 }
             } else {
                 prefixTree.put(prefixIdentifier, detailsLocRib);
+                for (BgpPrefixListener l : bgpController.prefixListener()) {
+                    l.addPrefix((BgpPrefixIPv4LSNlriVer4) nlri, details);
+                }
                 log.debug("Local RIB add prefix: {}", detailsLocRib.toString());
             }
         }
@@ -397,6 +403,9 @@ public class BgpLocalRibImpl implements BgpLocalRib {
         BgpPrefixLSIdentifier prefixIdentifier = ((BgpPrefixIPv4LSNlriVer4) nlri).getPrefixIdentifier();
         if (prefixTree.containsKey(prefixIdentifier)) {
             log.debug("Local RIB remove prefix: {}", prefixIdentifier.toString());
+            for (BgpPrefixListener l : bgpController.prefixListener()) {
+                l.deletePrefix((BgpPrefixIPv4LSNlriVer4) nlri);
+            }
             prefixTree.remove(prefixIdentifier);
         }
 

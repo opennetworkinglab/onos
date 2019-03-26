@@ -23,6 +23,7 @@ import org.onosproject.bgp.controller.BgpLocalRib;
 import org.onosproject.bgp.controller.BgpNodeListener;
 import org.onosproject.bgp.controller.BgpPeer;
 import org.onosproject.bgp.controller.BgpPeerManager;
+import org.onosproject.bgp.controller.BgpPrefixListener;
 import org.onosproject.bgp.controller.BgpRouteListener;
 import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.protocol.BgpMessage;
@@ -111,6 +112,12 @@ public class BgpControllerAdapter implements BgpController {
     }
 
     @Override
+    public Set<BgpPrefixListener> prefixListener() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
     public void activeSessionExceptionAdd(String peerId, String exception) {
         return;
     }
@@ -162,6 +169,16 @@ public class BgpControllerAdapter implements BgpController {
 
     @Override
     public void removeLinkListener(BgpLinkListener listener) {
+        // TODO Auto-generated method stub
+    }
+
+    @Override
+    public void addPrefixListener(BgpPrefixListener listener) {
+        // TODO Auto-generated method stub
+    }
+
+    @Override
+    public void removePrefixListener(BgpPrefixListener listener) {
         // TODO Auto-generated method stub
     }
 }

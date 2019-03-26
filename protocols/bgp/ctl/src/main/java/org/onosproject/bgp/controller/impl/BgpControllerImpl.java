@@ -24,6 +24,7 @@ import org.onosproject.bgp.controller.BgpLocalRib;
 import org.onosproject.bgp.controller.BgpNodeListener;
 import org.onosproject.bgp.controller.BgpPeer;
 import org.onosproject.bgp.controller.BgpPeerManager;
+import org.onosproject.bgp.controller.BgpPrefixListener;
 import org.onosproject.bgp.controller.BgpRouteListener;
 import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.protocol.BgpMessage;
@@ -62,6 +63,7 @@ public class BgpControllerImpl implements BgpController {
 
     protected Set<BgpNodeListener> bgpNodeListener = new CopyOnWriteArraySet<>();
     protected Set<BgpLinkListener> bgpLinkListener = new CopyOnWriteArraySet<>();
+    protected Set<BgpPrefixListener> bgpPrefixListener = new CopyOnWriteArraySet<>();
     protected BgpController bgpController;
     private BgpConfig bgpconfig = new BgpConfig(this);
     private List<String> activeExceptionList = new LinkedList();
@@ -365,5 +367,20 @@ public class BgpControllerImpl implements BgpController {
     @Override
     public Set<BgpLinkListener> linkListener() {
         return bgpLinkListener;
+    }
+
+    @Override
+    public void addPrefixListener(BgpPrefixListener listener) {
+        bgpPrefixListener.add(listener);
+    }
+
+    @Override
+    public void removePrefixListener(BgpPrefixListener listener) {
+        bgpPrefixListener.remove(listener);
+    }
+
+    @Override
+    public Set<BgpPrefixListener> prefixListener() {
+        return bgpPrefixListener;
     }
 }
