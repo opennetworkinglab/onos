@@ -17,6 +17,8 @@ package org.onosproject.ofoverlay.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -87,6 +89,7 @@ public final class Ovs {
     private static final String MODEL_SSH_ACCESSINFO = "/sshAccessInfo";
     private static final String MODEL_OF_DEVID_OVERLAY_BRIDGE = "/ofDevIdBrInt";
     private static final String MODEL_OF_DEVID_UNDERLAY_BRIDGE = "/ofDevIdBrPhy";
+    private static final String MODEL_OF_DEVID_FOR_OVERLAY_UNDERLAY_BRIDGE = "/ofDevIdBrIntBrPhy";
     private static final String MODEL_PHY_PORTS = "/physicalPorts";
     private static final String MODEL_VTEP_IP = "/vtepIp";
 
@@ -1305,6 +1308,98 @@ public final class Ovs {
             DeviceEvent deviceEvent = (DeviceEvent) event;
             switch (deviceEvent.type()) {
                 case DEVICE_REMOVED:
+                    return !isNext(context);
+                default:
+                    return false;
+            }
+        }
+
+        @Override
+        public void timeout(WorkflowContext context) throws WorkflowException {
+            if (!isNext(context)) {
+                context.completed(); //Complete the job of worklet by timeout
+            } else {
+                super.timeout(context);
+            }
+        }
+    }
+
+    /**
+     * Work-let class for removing underlay bridge and overlay openflow device.
+     */
+    public static class RemoveBridgeOfDevice extends AbstractWorklet {
+
+        @JsonDataModel(path = MODEL_MGMT_IP)
+        String strMgmtIp;
+
+        @JsonDataModel(path = MODEL_OF_DEVID_FOR_OVERLAY_UNDERLAY_BRIDGE, optional = true)
+        ObjectNode ofDevId;
+
+        @Override
+        public boolean isNext(WorkflowContext context) throws WorkflowException {
+
+            boolean isOfDevicePresent = true;
+
+            if (ofDevId == null) {
+                ofDevId = JsonNodeFactory.instance.objectNode();
+                ofDevId.put(String.valueOf(DEVID_IDX_BRIDGE_OVERLAY), OvsUtil.buildOfDeviceId(
+                        IpAddress.valueOf(strMgmtIp), DEVID_IDX_BRIDGE_OVERLAY).toString());
+                ofDevId.put(String.valueOf(DEVID_IDX_BRIDGE_UNDERLAY_NOVA), OvsUtil.buildOfDeviceId(
+                        IpAddress.valueOf(strMgmtIp), DEVID_IDX_BRIDGE_UNDERLAY_NOVA).toString());
+            }
+
+            if (context.getService(DeviceService.class).
+                    getDevice(DeviceId.deviceId(
+                            ofDevId.get(String.valueOf(DEVID_IDX_BRIDGE_OVERLAY)).asText())) == null) {
+                isOfDevicePresent = false;
+            }
+            if (context.getService(DeviceService.class).
+                    getDevice(DeviceId.deviceId(
+                            ofDevId.get(String.valueOf(DEVID_IDX_BRIDGE_UNDERLAY_NOVA)).asText())) == null) {
+                isOfDevicePresent = false;
+            }
+
+            return isOfDevicePresent;
+        }
+
+        @Override
+        public void process(WorkflowContext context) throws WorkflowException {
+
+            DeviceAdminService adminService = context.getService(DeviceAdminService.class);
+            String ofDevIdOverlay;
+            String ofDevIdUnderlay;
+
+            if (ofDevId == null) {
+                ofDevId = JsonNodeFactory.instance.objectNode();
+                ofDevId.put(String.valueOf(DEVID_IDX_BRIDGE_OVERLAY), OvsUtil.buildOfDeviceId(
+                        IpAddress.valueOf(strMgmtIp), DEVID_IDX_BRIDGE_OVERLAY).toString());
+                ofDevId.put(String.valueOf(DEVID_IDX_BRIDGE_UNDERLAY_NOVA), OvsUtil.buildOfDeviceId(
+                        IpAddress.valueOf(strMgmtIp), DEVID_IDX_BRIDGE_UNDERLAY_NOVA).toString());
+            }
+
+            ofDevIdOverlay = ofDevId.get(String.valueOf(DEVID_IDX_BRIDGE_OVERLAY)).asText();
+            ofDevIdUnderlay = ofDevId.get(String.valueOf(DEVID_IDX_BRIDGE_UNDERLAY_NOVA)).asText();
+
+            Set<String> eventHints = Sets.newHashSet(ofDevIdOverlay, ofDevIdUnderlay);
+
+            context.waitAnyCompletion(DeviceEvent.class, eventHints,
+                                      () -> {
+                                                adminService.removeDevice(DeviceId.deviceId(ofDevIdOverlay));
+                                                adminService.removeDevice(DeviceId.deviceId(ofDevIdUnderlay));
+                                            },
+                                   TIMEOUT_DEVICE_CREATION_MS
+            );
+        }
+
+        @Override
+        public boolean isCompleted(WorkflowContext context, Event event)throws WorkflowException {
+            if (!(event instanceof DeviceEvent)) {
+                return false;
+            }
+            DeviceEvent deviceEvent = (DeviceEvent) event;
+            switch (deviceEvent.type()) {
+                case DEVICE_REMOVED:
+                    log.trace("GOT DEVICE REMOVED EVENT FOR DEVICE {}", event.subject());
                     return !isNext(context);
                 default:
                     return false;

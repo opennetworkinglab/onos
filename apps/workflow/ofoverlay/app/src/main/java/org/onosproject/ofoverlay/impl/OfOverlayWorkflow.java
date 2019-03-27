@@ -126,6 +126,17 @@ public class OfOverlayWorkflow {
                 .build();
         workflowStore.register(workflow);
 
+        uri = URI.create("of-overlay.clean-workflow-nova-waitAll-Bridge-Del");
+        workflow = ImmutableListWorkflow.builder()
+                .id(uri)
+                //.attribute(WorkflowAttribute.REMOVE_AFTER_COMPLETE)
+                .chain(Ovs.DeleteOverlayBridgeConfig.class.getName())
+                .chain(Ovs.DeleteUnderlayBridgeConfig.class.getName())
+                .chain(Ovs.RemoveBridgeOfDevice.class.getName())
+                .chain(Ovs.RemoveOvsdbDevice.class.getName())
+                .build();
+        workflowStore.register(workflow);
+
         uri = URI.create("of-overlay.workflow-ovs-leaf");
         workflow = ImmutableListWorkflow.builder()
                 .id(uri)
