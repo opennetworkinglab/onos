@@ -1,0 +1,9 @@
+cd /tmp
+rm -rf stratum
+mkdir stratum
+cd stratum
+git init
+git clone git@github.com:opennetworkinglab/stratum.git
+tar cvf stratum-sources.tar stratum
+scp stratum-sources.tar sdn@$OCN:/tmp
+scp $ONOS_ROOT/tools/dev/p4vm/install-p4-tools.sh sdn@$OCN:/tmp
