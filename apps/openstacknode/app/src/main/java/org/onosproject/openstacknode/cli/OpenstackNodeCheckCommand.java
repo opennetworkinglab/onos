@@ -100,6 +100,9 @@ public class OpenstackNodeCheckCommand extends AbstractShellCommand {
                 if (osNode.vlanIntf() != null) {
                     printPortState(deviceService, osNode.intgBridge(), osNode.vlanIntf());
                 }
+                osNode.phyIntfs().forEach(intf -> {
+                    printPortState(deviceService, osNode.intgBridge(), intf.intf());
+                });
                 if (osNode.type() == GATEWAY) {
                     printPortState(deviceService, osNode.intgBridge(), osNode.uplinkPort());
                 }
