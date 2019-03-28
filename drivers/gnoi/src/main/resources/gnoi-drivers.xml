@@ -20,6 +20,8 @@
                    impl="org.onosproject.drivers.gnoi.GnoiDeviceDescriptionDiscovery"/>
         <behaviour api="org.onosproject.net.behaviour.BasicSystemOperations"
                    impl="org.onosproject.drivers.gnoi.GnoiBasicSystemOperationsImpl"/>
+        <behaviour api="org.onosproject.net.behaviour.SoftwareUpgrade"
+                   impl="org.onosproject.drivers.gnoi.GnoiSoftwareUpgradeImpl"/>
         <behaviour api="org.onosproject.net.device.DeviceHandshaker"
                    impl="org.onosproject.drivers.gnoi.GnoiHandshaker"/>
     </driver>
