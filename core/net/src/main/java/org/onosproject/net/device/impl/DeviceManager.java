@@ -1061,14 +1061,20 @@ public class DeviceManager
     }
 
     private class InternalNetworkConfigListener implements NetworkConfigListener {
-        @Override
-        public boolean isRelevant(NetworkConfigEvent event) {
-            DeviceId deviceId;
+        private DeviceId extractDeviceId(NetworkConfigEvent event) {
+            DeviceId deviceId = null;
             if (event.configClass().equals(PortAnnotationConfig.class)) {
                 deviceId = ((ConnectPoint) event.subject()).deviceId();
-            } else {
+            } else if (event.subject().getClass() == DeviceId.class) {
                 deviceId = (DeviceId) event.subject();
             }
+            return deviceId;
+        }
+
+        @Override
+        public boolean isRelevant(NetworkConfigEvent event) {
+            DeviceId deviceId = extractDeviceId(event);
+
             return (event.type() == NetworkConfigEvent.Type.CONFIG_ADDED
                     || event.type() == NetworkConfigEvent.Type.CONFIG_UPDATED
                     || event.type() == NetworkConfigEvent.Type.CONFIG_REMOVED)
@@ -1076,7 +1082,7 @@ public class DeviceManager
                     || portOpsIndex.containsKey(event.configClass())
                     || event.configClass().equals(PortDescriptionsConfig.class)
                     || event.configClass().equals(DeviceAnnotationConfig.class))
-                    && mastershipService.isLocalMaster(deviceId);
+                    && deviceId != null && mastershipService.isLocalMaster(deviceId);
         }
 
         @Override
