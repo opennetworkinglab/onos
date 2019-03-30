@@ -18,28 +18,65 @@
  */
 package ${package};
 
+import com.google.common.collect.ImmutableSet;
+import org.onosproject.cfg.ComponentConfigService;
+import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Dictionary;
+import java.util.Properties;
+
+import static org.onlab.util.Tools.get;
 
 /**
  * Skeletal ONOS application component.
  */
-@Component(immediate = true)
-public class AppComponent {
+@Component(immediate = true,
+           service = {SomeInterface.class},
+           property = {
+               "someProperty=Some Default String Value",
+           })
+public class AppComponent implements SomeInterface {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    /** Some configurable property. */
+    private String someProperty;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected ComponentConfigService cfgService;
+
     @Activate
     protected void activate() {
+        cfgService.registerProperties(getClass());
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
+        cfgService.unregisterProperties(getClass(), false);
         log.info("Stopped");
+    }
+
+    @Modified
+    public void modified(ComponentContext context) {
+        Dictionary<?, ?> properties = context != null ? context.getProperties() : new Properties();
+        if (context != null) {
+            someProperty = get(properties, "someProperty");
+        }
+        log.info("Reconfigured");
+    }
+
+    @Override
+    public void someMethod() {
+        log.info("Invoked");
     }
 
 }
