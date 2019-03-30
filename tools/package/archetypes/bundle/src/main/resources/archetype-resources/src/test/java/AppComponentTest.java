@@ -21,6 +21,10 @@ package ${package};
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.cfg.ConfigProperty;
+
+import java.util.Set;
 
 /**
  * Set of tests of the ONOS application component.
@@ -32,8 +36,8 @@ public class AppComponentTest {
     @Before
     public void setUp() {
         component = new AppComponent();
+        component.cfgService = new TestComponentConfigService();
         component.activate();
-
     }
 
     @After
@@ -44,6 +48,48 @@ public class AppComponentTest {
     @Test
     public void basics() {
 
+    }
+
+    private class TestComponentConfigService implements ComponentConfigService {
+        @Override
+        public Set<String> getComponentNames() {
+            return null;
+        }
+
+        @Override
+        public void registerProperties(Class<?> componentClass) {
+
+        }
+
+        @Override
+        public void unregisterProperties(Class<?> componentClass, boolean clear) {
+
+        }
+
+        @Override
+        public Set<ConfigProperty> getProperties(String componentName) {
+            return null;
+        }
+
+        @Override
+        public void setProperty(String componentName, String name, String value) {
+
+        }
+
+        @Override
+        public void preSetProperty(String componentName, String name, String value) {
+
+        }
+
+        @Override
+        public void unsetProperty(String componentName, String name) {
+
+        }
+
+        @Override
+        public ConfigProperty getProperty(String componentName, String attribute) {
+            return null;
+        }
     }
 
 }
