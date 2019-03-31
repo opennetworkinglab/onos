@@ -41,7 +41,7 @@ import static javax.ws.rs.core.Response.status;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.jsonToModelEntity;
 
 /**
- * Handles REST API call of Neutron ML2 plugin.
+ * Handles network REST API call of Neutron ML2 plugin.
  */
 @Path("networks")
 public class OpenstackNetworkWebResource extends AbstractWebResource {

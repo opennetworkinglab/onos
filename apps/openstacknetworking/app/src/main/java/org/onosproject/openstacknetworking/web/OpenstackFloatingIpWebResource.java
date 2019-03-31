@@ -42,7 +42,7 @@ import static javax.ws.rs.core.Response.status;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.jsonToModelEntity;
 
 /**
- * Handles REST API call of Neutron L3 plugin.
+ * Handles floating IP REST API call of Neutron L3 plugin.
  */
 @Path("floatingips")
 public class OpenstackFloatingIpWebResource extends AbstractWebResource {

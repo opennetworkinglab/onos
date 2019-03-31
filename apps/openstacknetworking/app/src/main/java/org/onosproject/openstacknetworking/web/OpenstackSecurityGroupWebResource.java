@@ -40,7 +40,7 @@ import static javax.ws.rs.core.Response.noContent;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.jsonToModelEntity;
 
 /**
- * Handles Security Group Rest API call from Neutron ML2 plugin.
+ * Handles Security Group REST API call from Neutron ML2 plugin.
  */
 @Path("security-groups")
 public class OpenstackSecurityGroupWebResource extends AbstractWebResource {

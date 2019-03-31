@@ -15,10 +15,6 @@
  */
 package org.onosproject.openstacknetworking.web;
 
-/**
- * Handles Rest API call from Neutron ML2 plugin.
- */
-
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.rest.AbstractWebResource;
 import org.openstack4j.openstack.networking.domain.NeutronSubnet;
@@ -44,6 +40,9 @@ import static javax.ws.rs.core.Response.noContent;
 import static javax.ws.rs.core.Response.status;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.jsonToModelEntity;
 
+/**
+ * Handles subnet REST API call from Neutron ML2 plugin.
+ */
 @Path("subnets")
 public class OpenstackSubnetWebResource extends AbstractWebResource {
     protected final Logger log = LoggerFactory.getLogger(getClass());
