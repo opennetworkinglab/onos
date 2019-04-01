@@ -31,6 +31,7 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.Device;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -98,6 +99,9 @@ import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.g
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.swapStaleLocation;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.tunnelPortNumByNetId;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildExtension;
+import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildMoveArpShaToThaExtension;
+import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildMoveArpSpaToTpaExtension;
+import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildMoveEthSrcToDstExtension;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 
 /**
@@ -338,24 +342,37 @@ public class OpenstackSwitchingArpHandler {
                     .matchArpOp(ARP.OP_REQUEST)
                     .matchArpTpa(Ip4Address.valueOf(gateway));
 
-            tBuilder.setArpOp(ARP.OP_REPLY)
-                    .setArpSha(MacAddress.valueOf(gatewayMac))
-                    .setArpSpa(Ip4Address.valueOf(gateway))
-                    .setOutput(PortNumber.IN_PORT);
-
             if (osNode == null) {
-                osNodeService.completeNodes(COMPUTE).forEach(n ->
-                        osFlowRuleService.setRule(
-                                appId,
-                                n.intgBridge(),
-                                sBuilder.build(),
-                                tBuilder.build(),
-                                PRIORITY_ARP_GATEWAY_RULE,
-                                ARP_TABLE,
-                                install
-                        )
-                );
+                osNodeService.completeNodes(COMPUTE).forEach(n -> {
+                    Device device = deviceService.getDevice(n.intgBridge());
+                    tBuilder.extension(buildMoveEthSrcToDstExtension(device), device.id())
+                            .extension(buildMoveArpShaToThaExtension(device), device.id())
+                            .extension(buildMoveArpSpaToTpaExtension(device), device.id())
+                            .setArpOp(ARP.OP_REPLY)
+                            .setArpSha(MacAddress.valueOf(gatewayMac))
+                            .setArpSpa(Ip4Address.valueOf(gateway))
+                            .setOutput(PortNumber.IN_PORT);
+
+                    osFlowRuleService.setRule(
+                            appId,
+                            n.intgBridge(),
+                            sBuilder.build(),
+                            tBuilder.build(),
+                            PRIORITY_ARP_GATEWAY_RULE,
+                            ARP_TABLE,
+                            install
+                    );
+                });
             } else {
+                Device device = deviceService.getDevice(osNode.intgBridge());
+                tBuilder.extension(buildMoveEthSrcToDstExtension(device), device.id())
+                        .extension(buildMoveArpShaToThaExtension(device), device.id())
+                        .extension(buildMoveArpSpaToTpaExtension(device), device.id())
+                        .setArpOp(ARP.OP_REPLY)
+                        .setArpSha(MacAddress.valueOf(gatewayMac))
+                        .setArpSpa(Ip4Address.valueOf(gateway))
+                        .setOutput(PortNumber.IN_PORT);
+
                 osFlowRuleService.setRule(
                         appId,
                         osNode.intgBridge(),
@@ -366,7 +383,6 @@ public class OpenstackSwitchingArpHandler {
                         install
                 );
             }
-
         }
     }
 
