@@ -364,10 +364,16 @@ public class ComponentConfigManager implements ComponentConfigService {
                     } else if (!Objects.equals(globalValue, localValue)) {
                         // If the local value is different from global value
                         // validate the global value and apply it locally.
+                        String newValue;
+                        if (globalValue != null) {
+                            newValue = globalValue;
+                        } else {
+                            newValue = localValue;
+                        }
                         log.debug("Setting {} property {} to {}",
-                                  componentName, name, globalValue);
-                        checkValidity(componentName, name, globalValue);
-                        set(componentName, name, globalValue);
+                                  componentName, name, newValue);
+                        checkValidity(componentName, name, newValue);
+                        set(componentName, name, newValue);
 
                     } else {
                         // Otherwise, simply update the registered property
@@ -377,8 +383,8 @@ public class ComponentConfigManager implements ComponentConfigService {
                         map.put(name, ConfigProperty.setProperty(p, globalValue));
                     }
                 } catch (IllegalArgumentException e) {
-                    log.warn("Value {} is not a valid {}; using default",
-                             globalValue, p.type());
+                    log.warn("Value {} for property {} is not a valid {}; using default",
+                             globalValue, name, p.type());
                     reset(componentName, name);
                 }
             }

@@ -1064,7 +1064,9 @@ public class DeviceManager
         private DeviceId extractDeviceId(NetworkConfigEvent event) {
             DeviceId deviceId = null;
             if (event.configClass().equals(PortAnnotationConfig.class)) {
-                deviceId = ((ConnectPoint) event.subject()).deviceId();
+                if (event.subject().getClass() == ConnectPoint.class) {
+                    deviceId = ((ConnectPoint) event.subject()).deviceId();
+                }
             } else if (event.subject().getClass() == DeviceId.class) {
                 deviceId = (DeviceId) event.subject();
             }
