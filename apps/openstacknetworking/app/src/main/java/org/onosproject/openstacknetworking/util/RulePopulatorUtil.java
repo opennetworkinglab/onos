@@ -36,6 +36,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_LOAD;
+import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ARP_SHA_TO_THA;
+import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ARP_SPA_TO_TPA;
 import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ETH_SRC_TO_DST;
 import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_IP_SRC_TO_DST;
 import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_POP_NSH;
@@ -140,8 +142,7 @@ public final class RulePopulatorUtil {
                                                     DeviceId deviceId,
                                                     Ip4Address remoteIp) {
         Device device = deviceService.getDevice(deviceId);
-        if (device != null && !device.is(ExtensionTreatmentResolver.class)) {
-            log.error("The extension treatment is not supported");
+        if (!checkTreatmentResolver(device)) {
             return null;
         }
 
@@ -202,8 +203,7 @@ public final class RulePopulatorUtil {
     public static ExtensionTreatment buildLoadExtension(Device device,
                                                         long field,
                                                         long value) {
-        if (device == null || !device.is(ExtensionTreatmentResolver.class)) {
-            log.warn("Nicira extension treatment is not supported");
+        if (!checkTreatmentResolver(device)) {
             return null;
         }
 
@@ -232,8 +232,7 @@ public final class RulePopulatorUtil {
      * @return push extension treatment
      */
     public static ExtensionTreatment buildPushExtension(Device device) {
-        if (device == null || !device.is(ExtensionTreatmentResolver.class)) {
-            log.warn("Nicira extension treatment is not supported");
+        if (!checkTreatmentResolver(device)) {
             return null;
         }
 
@@ -248,8 +247,7 @@ public final class RulePopulatorUtil {
      * @return pop extension treatment
      */
     public static ExtensionTreatment buildPopExtension(Device device) {
-        if (device == null || !device.is(ExtensionTreatmentResolver.class)) {
-            log.warn("Nicira extension treatment is not supported");
+        if (!checkTreatmentResolver(device)) {
             return null;
         }
 
@@ -264,8 +262,7 @@ public final class RulePopulatorUtil {
      * @return move extension treatment
      */
     public static ExtensionTreatment buildMoveEthSrcToDstExtension(Device device) {
-        if (device == null || !device.is(ExtensionTreatmentResolver.class)) {
-            log.warn("Nicira extension treatment is not supported");
+        if (!checkTreatmentResolver(device)) {
             return null;
         }
 
@@ -280,13 +277,42 @@ public final class RulePopulatorUtil {
      * @return move extension treatment
      */
     public static ExtensionTreatment buildMoveIpSrcToDstExtension(Device device) {
-        if (device == null || !device.is(ExtensionTreatmentResolver.class)) {
-            log.warn("Nicira extension treatment is not supported");
+        if (!checkTreatmentResolver(device)) {
             return null;
         }
 
         ExtensionTreatmentResolver resolver = device.as(ExtensionTreatmentResolver.class);
         return resolver.getExtensionInstruction(NICIRA_MOV_IP_SRC_TO_DST.type());
+    }
+
+    /**
+     * Returns the nicira move ARP SHA to THA extension treatment.
+     *
+     * @param device        device instance
+     * @return move extension treatment
+     */
+    public static ExtensionTreatment buildMoveArpShaToThaExtension(Device device) {
+        if (!checkTreatmentResolver(device)) {
+            return null;
+        }
+
+        ExtensionTreatmentResolver resolver = device.as(ExtensionTreatmentResolver.class);
+        return resolver.getExtensionInstruction(NICIRA_MOV_ARP_SHA_TO_THA.type());
+    }
+
+    /**
+     * Returns the nicira move ARP SPA to TPA extension treatment.
+     *
+     * @param device        device instance
+     * @return move extension treatment
+     */
+    public static ExtensionTreatment buildMoveArpSpaToTpaExtension(Device device) {
+        if (!checkTreatmentResolver(device)) {
+            return null;
+        }
+
+        ExtensionTreatmentResolver resolver = device.as(ExtensionTreatmentResolver.class);
+        return resolver.getExtensionInstruction(NICIRA_MOV_ARP_SPA_TO_TPA.type());
     }
 
     /**
@@ -347,6 +373,15 @@ public final class RulePopulatorUtil {
         }
 
         return ctMaskFlag;
+    }
+
+    private static boolean checkTreatmentResolver(Device device) {
+        if (device == null || !device.is(ExtensionTreatmentResolver.class)) {
+            log.warn("Nicira extension treatment is not supported");
+            return false;
+        }
+
+        return true;
     }
 
     /**
