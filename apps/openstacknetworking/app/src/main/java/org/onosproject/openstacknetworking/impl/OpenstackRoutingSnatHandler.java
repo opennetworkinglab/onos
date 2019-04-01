@@ -1343,6 +1343,8 @@ public class OpenstackRoutingSnatHandler {
                     break;
                 case OPENSTACK_NODE_REMOVED:
                     eventExecutor.execute(() -> processGatewayRemoval(osNode));
+                    eventExecutor.execute(() -> reconfigureRouters(osNode));
+                    break;
                 case OPENSTACK_NODE_INCOMPLETE:
                 case OPENSTACK_NODE_UPDATED:
                     eventExecutor.execute(() -> reconfigureRouters(osNode));
