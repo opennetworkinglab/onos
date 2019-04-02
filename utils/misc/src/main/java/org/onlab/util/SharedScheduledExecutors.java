@@ -36,8 +36,8 @@ public final class SharedScheduledExecutors {
 
     public static final int DEFAULT_POOL_SIZE = 30;
 
+    private static final Object EXECUTORS_LOCK = new Object();
     private static SharedScheduledExecutorService singleThreadExecutor = null;
-
     private static SharedScheduledExecutorService poolThreadExecutor = null;
 
     // Ban public construction
@@ -45,18 +45,20 @@ public final class SharedScheduledExecutors {
     }
 
     private static void setup() {
-        if (singleThreadExecutor == null) {
-            singleThreadExecutor =
-                new SharedScheduledExecutorService(
-                    newSingleThreadScheduledExecutor(
-                        groupedThreads("onos/shared/scheduled",
-                            "onos-single-executor")));
+        synchronized (EXECUTORS_LOCK) {
+            if (singleThreadExecutor == null) {
+                singleThreadExecutor =
+                    new SharedScheduledExecutorService(
+                        newSingleThreadScheduledExecutor(
+                            groupedThreads("onos/shared/scheduled",
+                                "onos-single-executor")));
 
-            poolThreadExecutor =
-                new SharedScheduledExecutorService(
-                    newScheduledThreadPool(DEFAULT_POOL_SIZE,
-                        groupedThreads("onos/shared/scheduled",
-                            "onos-pool-executor-%d")));
+                poolThreadExecutor =
+                    new SharedScheduledExecutorService(
+                        newScheduledThreadPool(DEFAULT_POOL_SIZE,
+                            groupedThreads("onos/shared/scheduled",
+                                "onos-pool-executor-%d")));
+            }
         }
     }
 
@@ -113,9 +115,11 @@ public final class SharedScheduledExecutors {
      * This is not intended to be called by application directly.
      */
     public static void shutdown() {
-        singleThreadExecutor.backingExecutor().shutdown();
-        singleThreadExecutor = null;
-        poolThreadExecutor.backingExecutor().shutdown();
-        poolThreadExecutor = null;
+        synchronized (EXECUTORS_LOCK) {
+            singleThreadExecutor.backingExecutor().shutdown();
+            singleThreadExecutor = null;
+            poolThreadExecutor.backingExecutor().shutdown();
+            poolThreadExecutor = null;
+        }
     }
 }
