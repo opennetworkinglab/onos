@@ -179,11 +179,8 @@ public class ECFlowRuleStore
     private ExecutorService messageHandlingExecutor;
     private ExecutorService eventHandler;
 
-    private final ScheduledExecutorService backupScheduler = Executors.newSingleThreadScheduledExecutor(
-                groupedThreads("onos/flow", "backup-scheduler", log));
-    private final ExecutorService backupExecutor = Executors.newFixedThreadPool(
-            max(min(Runtime.getRuntime().availableProcessors() * 2, 16), 4),
-            groupedThreads("onos/flow", "backup-%d", log));
+    private ScheduledExecutorService backupScheduler;
+    private ExecutorService backupExecutor;
 
     private EventuallyConsistentMap<DeviceId, List<TableStatisticsEntry>> deviceTableStats;
     private final EventuallyConsistentMapListener<DeviceId, List<TableStatisticsEntry>> tableStatsListener =
@@ -212,6 +209,12 @@ public class ECFlowRuleStore
     @Activate
     public void activate(ComponentContext context) {
         configService.registerProperties(getClass());
+
+        backupScheduler = Executors.newSingleThreadScheduledExecutor(
+            groupedThreads("onos/flow", "backup-scheduler", log));
+        backupExecutor = Executors.newFixedThreadPool(
+            max(min(Runtime.getRuntime().availableProcessors() * 2, 16), 4),
+            groupedThreads("onos/flow", "backup-%d", log));
 
         idGenerator = coreService.getIdGenerator(FlowRuleService.FLOW_OP_TOPIC);
 
@@ -255,6 +258,8 @@ public class ECFlowRuleStore
         messageHandlingExecutor.shutdownNow();
         backupScheduler.shutdownNow();
         backupExecutor.shutdownNow();
+        backupScheduler = null;
+        backupExecutor = null;
         log.info("Stopped");
     }
 
