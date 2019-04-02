@@ -19,7 +19,6 @@ import {
     LogService,
     MastService,
     DetailsPanelBaseImpl,
-    LoadingService,
     IconService,
     LionService,
     PanelService,
@@ -87,7 +86,6 @@ export class ClusterDetailsDirective extends DetailsPanelBaseImpl implements OnI
     lionFn; // Function
 
     constructor(protected fs: FnService,
-                protected ls: LoadingService,
                 protected is: IconService,
                 protected lion: LionService,
                 protected wss: WebSocketService,
@@ -96,7 +94,7 @@ export class ClusterDetailsDirective extends DetailsPanelBaseImpl implements OnI
                 protected ps: PanelService,
                 protected el: ElementRef,
                 @Inject('Window') private w: Window) {
-        super(fs, ls, log, wss, 'cluster');
+        super(fs, log, wss, 'cluster');
 
         if (this.lion.ubercache.length === 0) {
             this.lionFn = this.dummyLion;

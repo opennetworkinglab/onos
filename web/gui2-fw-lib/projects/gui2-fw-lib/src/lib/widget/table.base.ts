@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { FnService } from '../util/fn.service';
-import { LoadingService } from '../layer/loading.service';
 import { LogService } from '../log.service';
 import { WebSocketService } from '../remote/websocket.service';
 import { Observable, of } from 'rxjs';
@@ -84,6 +83,7 @@ export abstract class TableBaseImpl {
     public selectCallback; // Function
     protected parentSelCb = null;
     protected responseCallback; // Function
+    public loadingIconShown: boolean = false;
     selId: string = undefined;
     tableData: any[] = [];
     tableDataFilter: TableFilter;
@@ -99,7 +99,6 @@ export abstract class TableBaseImpl {
 
     protected constructor(
         protected fs: FnService,
-        protected ls: LoadingService,
         protected log: LogService,
         protected wss: WebSocketService,
         protected tag: string,
@@ -144,7 +143,7 @@ export abstract class TableBaseImpl {
     destroy() {
         this.wss.unbindHandlers(this.handlers);
         this.stopRefresh();
-        this.ls.stop();
+        this.loadingIconShown = false;
     }
 
     /**
@@ -154,7 +153,7 @@ export abstract class TableBaseImpl {
      * Happens every 2 seconds
      */
     tableDataResponseCb(data: TableResponse) {
-        this.ls.stop();
+        this.loadingIconShown = false;
 
         const newTableData: any[] = Array.from(data[this.root]);
         this.annots.noRowsMsg = data.annots.no_rows_msg;
@@ -196,7 +195,7 @@ export abstract class TableBaseImpl {
                 this.log.debug('Table data REQUEST:', this.req, p);
             }
             this.wss.sendEvent(this.req, p);
-            this.ls.start();
+            this.loadingIconShown = true;
         }
     }
 
@@ -218,7 +217,7 @@ export abstract class TableBaseImpl {
     startRefresh() {
         this.refreshPromise =
             setInterval(() => {
-                if (!this.ls.waiting()) {
+                if (!this.loadingIconShown) {
                     if (this.fs.debugOn('table')) {
                         this.log.debug('Refreshing ' + this.root + ' page');
                     }

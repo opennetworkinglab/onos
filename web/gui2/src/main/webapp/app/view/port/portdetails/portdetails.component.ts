@@ -18,7 +18,6 @@ import { animate, state, style, transition, trigger } from '@angular/animations'
 import {
     FnService,
     IconService,
-    LoadingService,
     LogService,
     DetailsPanelBaseImpl,
     WebSocketService
@@ -60,12 +59,11 @@ export class PortDetailsComponent extends DetailsPanelBaseImpl implements OnInit
     @Input() devId: string;
 
     constructor(protected fs: FnService,
-        protected ls: LoadingService,
         protected log: LogService,
         protected is: IconService,
         protected wss: WebSocketService
     ) {
-        super(fs, ls, log, wss, 'port');
+        super(fs, log, wss, 'port');
     }
 
     ngOnInit() {

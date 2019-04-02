@@ -1,13 +1,13 @@
 
 import {
-    Component, EventEmitter, OnChanges,
+    Component, EventEmitter,
     OnDestroy,
-    OnInit, Output, SimpleChanges,
+    OnInit, Output,
 } from '@angular/core';
 import {
     DetailsPanelBaseImpl,
     FnService,
-    LionService, LoadingService,
+    LionService,
     LogService,
     WebSocketService
 } from 'gui2-fw-lib';
@@ -38,11 +38,10 @@ export class MapSelectorComponent extends DetailsPanelBaseImpl implements OnInit
     constructor(
         protected fs: FnService,
         protected log: LogService,
-        protected ls: LoadingService,
         protected wss: WebSocketService,
         private lion: LionService
     ) {
-        super(fs, ls, log, wss, 'topo');
+        super(fs, log, wss, 'topo');
 
         if (this.lion.ubercache.length === 0) {
             this.lionFn = this.dummyLion;

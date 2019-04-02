@@ -15,7 +15,6 @@
  */
 import {
     FnService,
-    LoadingService,
     LogService,
     PanelBaseImpl
 } from 'gui2-fw-lib';
@@ -31,11 +30,10 @@ export abstract class TopoPanelBaseImpl extends PanelBaseImpl {
 
     protected constructor(
         protected fs: FnService,
-        protected ls: LoadingService,
         protected log: LogService,
         protected id: string
     ) {
-        super(fs, ls, log);
+        super(fs, log);
     }
 
     protected init(el: any) {

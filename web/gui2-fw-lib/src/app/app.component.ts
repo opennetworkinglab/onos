@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { Component } from '@angular/core';
-import { FnService } from 'gui2-fw-lib';
+import {Component} from '@angular/core';
+import {FnService, LogService} from 'gui2-fw-lib';
 
 @Component({
   selector: 'app-root',
@@ -24,10 +24,15 @@ import { FnService } from 'gui2-fw-lib';
 })
 export class AppComponent {
   title = 'Test app for GUI Framework Library';
+  loadingRunning: boolean = false;
 
   constructor(
     protected fs: FnService
   ) {
     this.title = this.fs.cap(this.title);
   }
+
+    toggleLoadingRunning() {
+        this.loadingRunning = !this.loadingRunning;
+    }
 }

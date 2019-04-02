@@ -25,7 +25,6 @@ import {animate, state, style, transition, trigger} from '@angular/animations';
 import {
     DetailsPanelBaseImpl,
     FnService, LionService,
-    LoadingService,
     LogService,
     WebSocketService
 } from 'gui2-fw-lib';
@@ -119,12 +118,11 @@ export class DetailsComponent extends DetailsPanelBaseImpl implements OnInit, On
     constructor(
         protected fs: FnService,
         protected log: LogService,
-        protected ls: LoadingService,
         protected router: Router,
         protected wss: WebSocketService,
         private lion: LionService
     ) {
-        super(fs, ls, log, wss, 'topo');
+        super(fs, log, wss, 'topo');
 
         if (this.lion.ubercache.length === 0) {
             this.lionFn = this.dummyLion;

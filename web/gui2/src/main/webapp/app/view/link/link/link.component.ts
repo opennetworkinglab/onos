@@ -16,7 +16,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import {
     FnService,
-    LoadingService,
     LogService,
     WebSocketService,
     SortDir, TableBaseImpl, TableResponse
@@ -53,11 +52,10 @@ export class LinkComponent extends TableBaseImpl implements OnInit, OnDestroy {
 
     constructor(
         protected fs: FnService,
-        protected ls: LoadingService,
         protected log: LogService,
         protected wss: WebSocketService,
     ) {
-        super(fs, ls, log, wss, 'link');
+        super(fs, log, wss, 'link');
         this.responseCallback = this.linkResponseCb;
         this.sortParams = {
             firstCol: 'one',

@@ -25,10 +25,9 @@ import {
     IconComponent,
     ConfirmComponent,
     FlashComponent,
-    LoadingService,
     LogService,
     TableFilterPipe,
-    WebSocketService
+    WebSocketService, LoadingComponent
 } from 'gui2-fw-lib';
 
 import { of } from 'rxjs';
@@ -45,12 +44,6 @@ class MockActivatedRoute extends ActivatedRoute {
 
 class MockIconService {
     loadIconDef() { }
-}
-
-class MockLoadingService {
-    startAnim() { }
-    stop() { }
-    waiting() { }
 }
 
 class MockWebSocketService {
@@ -92,11 +85,17 @@ describe('IntentComponent', () => {
         fs = new FnService(ar, logSpy, windowMock);
         TestBed.configureTestingModule({
             imports: [BrowserAnimationsModule, FormsModule],
-            declarations: [IntentComponent, IconComponent, TableFilterPipe, ConfirmComponent, FlashComponent],
+            declarations: [
+                IntentComponent,
+                IconComponent,
+                TableFilterPipe,
+                ConfirmComponent,
+                FlashComponent,
+                LoadingComponent
+            ],
             providers: [
                 { provide: FnService, useValue: fs },
                 { provide: IconService, useClass: MockIconService },
-                { provide: LoadingService, useClass: MockLoadingService },
                 { provide: LogService, useValue: logSpy },
                 { provide: WebSocketService, useClass: MockWebSocketService },
                 { provide: 'Window', useValue: windowMock },

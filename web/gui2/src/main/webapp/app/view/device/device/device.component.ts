@@ -17,10 +17,8 @@ import { Component, OnInit, OnDestroy} from '@angular/core';
 
 import {
     FnService,
-    LoadingService,
     LogService,
     WebSocketService,
-    LionService,
     SortDir, TableBaseImpl, TableResponse
 } from 'gui2-fw-lib';
 
@@ -72,13 +70,12 @@ export class DeviceComponent extends TableBaseImpl implements OnInit, OnDestroy 
 
     constructor(
         protected fs: FnService,
-        protected ls: LoadingService,
         protected log: LogService,
         protected as: ActivatedRoute,
         protected router: Router,
         protected wss: WebSocketService,
     ) {
-        super(fs, ls, log, wss, 'device');
+        super(fs, log, wss, 'device');
         this.responseCallback = this.deviceResponseCb;
 
         this.as.queryParams.subscribe(params => {

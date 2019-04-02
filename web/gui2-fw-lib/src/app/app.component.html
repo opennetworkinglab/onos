@@ -45,3 +45,5 @@ Note: Please remember that in Angular 6 rebuilding of libraries is not automatic
   it is picked up in this app.
 </p>
 <onos-quickhelp></onos-quickhelp>
+<onos-loading [running]="loadingRunning"></onos-loading>
+<button (click)="toggleLoadingRunning()">Toggle loading image</button>

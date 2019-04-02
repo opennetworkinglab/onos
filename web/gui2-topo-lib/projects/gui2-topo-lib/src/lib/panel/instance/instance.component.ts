@@ -22,7 +22,6 @@ import {
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import {
     LogService,
-    LoadingService,
     FnService,
     PanelBaseImpl,
     IconService,
@@ -83,12 +82,11 @@ export class InstanceComponent extends PanelBaseImpl {
     constructor(
         protected fs: FnService,
         protected log: LogService,
-        protected ls: LoadingService,
         protected is: IconService,
         protected sus: SvgUtilService,
         private lion: LionService
     ) {
-        super(fs, ls, log);
+        super(fs, log);
         this.onosInstances = <Array<Instance>>[];
 
         if (this.lion.ubercache.length === 0) {

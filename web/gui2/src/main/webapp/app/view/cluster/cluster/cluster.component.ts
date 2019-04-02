@@ -16,7 +16,6 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {
     FnService,
-    LoadingService,
     LogService,
     WebSocketService,
     LionService,
@@ -59,12 +58,11 @@ export class ClusterComponent extends TableBaseImpl implements OnInit, OnDestroy
 
     constructor(
         protected fs: FnService,
-        protected ls: LoadingService,
         protected log: LogService,
         protected lion: LionService,
         protected wss: WebSocketService,
     ) {
-        super(fs, ls, log, wss, 'cluster');
+        super(fs, log, wss, 'cluster');
         this.responseCallback = this.clusterResponseCb;
 
         this.sortParams = {

@@ -15,24 +15,16 @@
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Params } from '@angular/router';
-import { DebugElement } from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
-import { By } from '@angular/platform-browser';
 import { AlarmTableComponent } from './alarmtable.component';
 import { AlarmDetailsComponent } from '../alarmdetails/alarmdetails.component';
 import {
     FnService,
     IconService,
-    GlyphService,
     IconComponent,
-    LoadingService,
     LogService,
-    NavService,
-    MastService,
-    TableFilterPipe,
-    ThemeService,
-    WebSocketService
+    TableFilterPipe, LoadingComponent,
 } from 'gui2-fw-lib';
 
 import { of } from 'rxjs';
@@ -48,12 +40,6 @@ class MockActivatedRoute extends ActivatedRoute {
 
 class MockIconService {
     loadIconDef() { }
-}
-
-class MockLoadingService {
-    startAnim() { }
-    stop() { }
-    waiting() { }
 }
 
 describe('AlarmTableComponent', () => {
@@ -85,12 +71,11 @@ describe('AlarmTableComponent', () => {
             imports: [BrowserAnimationsModule, FormsModule, RouterTestingModule],
             declarations: [
                 AlarmTableComponent, AlarmDetailsComponent,
-                IconComponent, TableFilterPipe
+                IconComponent, TableFilterPipe, LoadingComponent
              ],
             providers: [
                 { provide: FnService, useValue: fs },
                 { provide: LogService, useValue: logSpy },
-                { provide: LoadingService, useClass: MockLoadingService },
                 { provide: IconService, useClass: MockIconService },
                 { provide: 'Window', useValue: windowMock },
             ]

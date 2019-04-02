@@ -22,9 +22,8 @@ import {
     FnService,
     IconService,
     IconComponent,
-    LoadingService,
     LogService,
-    WebSocketService
+    WebSocketService, LoadingComponent
 } from 'gui2-fw-lib';
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
@@ -40,12 +39,6 @@ class MockActivatedRoute extends ActivatedRoute {
 
 class MockIconService {
     loadIconDef() { }
-}
-
-class MockLoadingService {
-    startAnim() { }
-    stop() { }
-    waiting() { }
 }
 
 class MockWebSocketService {
@@ -85,11 +78,15 @@ describe('SettingsComponent', () => {
     beforeEach(async(() => {
         TestBed.configureTestingModule({
             imports: [BrowserAnimationsModule],
-            declarations: [SettingsComponent, IconComponent, SettingsDetailsComponent],
+            declarations: [
+                SettingsComponent,
+                IconComponent,
+                SettingsDetailsComponent,
+                LoadingComponent
+            ],
             providers: [
                 { provide: FnService, useValue: fs },
                 { provide: IconService, useClass: MockIconService },
-                { provide: LoadingService, useClass: MockLoadingService },
                 { provide: LogService, useValue: logSpy },
                 { provide: WebSocketService, useClass: MockWebSocketService },
             ]

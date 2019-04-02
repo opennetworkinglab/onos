@@ -25,16 +25,14 @@ import {
     FnService,
     IconService,
     LionService,
-    LoadingService,
     LogService,
-    TableBaseImpl, TableResponse, TableFilter, SortParams, SortDir,
     UrlFnService,
     WebSocketService,
     TableFilterPipe,
     ConfirmComponent,
     FlashComponent,
     IconComponent,
-    ThemeService,
+    ThemeService, LoadingComponent,
 } from 'gui2-fw-lib';
 
 import { AppsComponent } from './apps.component';
@@ -55,12 +53,6 @@ class MockHttpClient {}
 
 class MockIconService {
     loadIconDef() { }
-}
-
-class MockLoadingService {
-    startAnim() { }
-    stop() { }
-    waiting() { }
 }
 
 class MockThemeService { }
@@ -118,7 +110,8 @@ describe('AppsComponent', () => {
                 IconComponent,
                 AppsDetailsComponent,
                 TableFilterPipe,
-                FlashComponent
+                FlashComponent,
+                LoadingComponent
             ],
             providers: [
                 { provide: FnService, useValue: fs },
@@ -133,7 +126,6 @@ describe('AppsComponent', () => {
                         };
                     })
                 },
-                { provide: LoadingService, useClass: MockLoadingService },
                 { provide: LogService, useValue: logSpy },
                 { provide: ThemeService, useClass: MockThemeService },
                 { provide: UrlFnService, useClass: MockUrlFnService },

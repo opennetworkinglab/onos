@@ -16,8 +16,6 @@
 import { Component, OnInit, Input, OnDestroy, OnChanges } from '@angular/core';
 import {
     FnService,
-    IconService,
-    LoadingService,
     LogService,
     DetailsPanelBaseImpl,
     WebSocketService
@@ -63,11 +61,10 @@ export class SettingsDetailsComponent extends DetailsPanelBaseImpl implements On
 
     constructor(
         protected fs: FnService,
-        protected ls: LoadingService,
         protected log: LogService,
         protected wss: WebSocketService
     ) {
-        super(fs, ls, log, wss, 'setting');
+        super(fs, log, wss, 'setting');
     }
 
     ngOnInit() {

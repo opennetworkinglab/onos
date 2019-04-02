@@ -16,7 +16,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import {
     FnService,
-    LoadingService,
     LogService,
     WebSocketService,
     SortDir, TableBaseImpl, TableResponse
@@ -57,11 +56,10 @@ export class SettingsComponent extends TableBaseImpl implements OnInit, OnDestro
 
     constructor(
         protected fs: FnService,
-        protected ls: LoadingService,
         protected log: LogService,
         protected wss: WebSocketService
     ) {
-        super(fs, ls, log, wss, 'setting');
+        super(fs, log, wss, 'setting');
         this.responseCallback = this.settingsResponseCb;
         this.parentSelCb = this.rowSelection;
 

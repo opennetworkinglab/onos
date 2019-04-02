@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { FnService } from '../util/fn.service';
-import { LoadingService } from '../layer/loading.service';
 import { LogService } from '../log.service';
 import { WebSocketService } from '../remote/websocket.service';
 
@@ -50,12 +49,11 @@ export abstract class DetailsPanelBaseImpl extends PanelBaseImpl {
 
     constructor(
         protected fs: FnService,
-        protected ls: LoadingService,
         protected log: LogService,
         protected wss: WebSocketService,
         protected tag: string,
     ) {
-        super(fs, ls, log);
+        super(fs, log);
         this.root = tag + 's';
         this.req = tag + 'DetailsRequest';
         this.resp = tag + 'DetailsResponse';

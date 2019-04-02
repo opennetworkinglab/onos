@@ -16,7 +16,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import {
     FnService,
-    LoadingService,
     LogService,
     PrefsService,
     WebSocketService,
@@ -82,13 +81,12 @@ export class PortComponent extends TableBaseImpl implements OnInit, OnDestroy {
     toggleNZTip = 'Toggle non zero port statistics';
 
     constructor(protected fs: FnService,
-        protected ls: LoadingService,
         protected log: LogService,
         protected ar: ActivatedRoute,
         protected wss: WebSocketService,
         protected prefs: PrefsService,
     ) {
-        super(fs, ls, log, wss, 'port');
+        super(fs, log, wss, 'port');
         this.ar.queryParams.subscribe(params => {
             this.devId = params['devId'];
 

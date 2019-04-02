@@ -16,7 +16,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import {
     FnService,
-    LoadingService,
     LogService,
     WebSocketService,
     SortDir, TableBaseImpl, TableResponse
@@ -88,10 +87,9 @@ export class IntentComponent extends TableBaseImpl implements OnInit, OnDestroy 
     constructor(
         protected log: LogService,
         protected fs: FnService,
-        protected ls: LoadingService,
         protected wss: WebSocketService,
     ) {
-        super(fs, ls, log, wss, 'intent', 'key');
+        super(fs, log, wss, 'intent', 'key');
         this.responseCallback = this.intentResponseCb;
         this.parentSelCb = this.rowSelection;
         this.brief = true;

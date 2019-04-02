@@ -31,7 +31,6 @@ export * from './lib/remote/wsock.service';
 export * from './lib/remote/urlfn.service';
 export * from './lib/remote/websocket.service';
 export * from './lib/onos.service';
-export * from './lib/layer/loading.service';
 export * from './lib/layer/panel.service';
 export * from './lib/svg/svgutil.service';
 export * from './lib/svg/glyphdata.service';
@@ -50,6 +49,7 @@ export * from './lib/layer/veil/veil.component';
 export * from './lib/layer/flash/flash.component';
 export * from './lib/layer/confirm/confirm.component';
 export * from './lib/layer/quickhelp/quickhelp.component';
+export * from './lib/layer/loading/loading.component';
 export * from './lib/svg/icon/icon.component';
 
 export * from './lib/widget/tableresize.directive';

@@ -165,7 +165,9 @@ genrule(
           #"   tail -n 100 ../../$(location onos-gui2-ng-test.log) >&2;" +
           "   exit 1;" +
           " fi;" +
-          " cd src/main/webapp/dist && jar Mcf $$ROOT/$(location onos-gui2-ng-build.jar) .",
+          " cp -r node_modules/gui2-fw-lib/assets src/main/webapp/dist &&" +
+          " cd src/main/webapp/dist &&" +
+          " jar Mcf $$ROOT/$(location onos-gui2-ng-build.jar) .",
     message = "Angular CLI 7 build",
 )
 
@@ -362,7 +364,7 @@ genrule(
           " mv web/gui/src/main/resources/core WEB-INF/classes/ &&" +
           " unzip -q $$ROOT/$(location //web/gui:onos-gui-data-for-gui2) web/gui/src/main/webapp/data/**/* &&" +
           " mv web/gui/src/main/webapp/data WEB-INF/classes/ &&" +
-          " find . -type f -exec touch -t 201901200000 {} \; &&" +
+          " find . -type f -exec touch -t 201903200000 {} \; &&" +
           " jar cmf META-INF/MANIFEST.MF $$ROOT/$@ WEB-INF/web.xml WEB-INF/classes OSGI-INF/*.xml",
     output_to_bindir = 1,
     visibility = ["//visibility:public"],

@@ -21,15 +21,15 @@ import {
     FnService,
     IconService,
     IconComponent,
-    LoadingService,
     LogService,
-    WebSocketService
+    WebSocketService, LoadingComponent
 } from 'gui2-fw-lib';
 import { of } from 'rxjs';
 import { } from 'jasmine';
 import { RouterTestingModule } from '@angular/router/testing';
 
 import { ProcessorComponent } from './processor.component';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 
 class MockActivatedRoute extends ActivatedRoute {
     constructor(params: Params) {
@@ -41,12 +41,6 @@ class MockActivatedRoute extends ActivatedRoute {
 
 class MockIconService {
     loadIconDef() { }
-}
-
-class MockLoadingService {
-    startAnim() { }
-    stop() { }
-    waiting() { }
 }
 
 class MockWebSocketService {
@@ -88,11 +82,14 @@ describe('ProcessorComponent', () => {
         fs = new FnService(ar, logSpy, windowMock);
 
         TestBed.configureTestingModule({
-            imports: [RouterTestingModule],
-            declarations: [ProcessorComponent, IconComponent],
+            imports: [BrowserAnimationsModule, RouterTestingModule],
+            declarations: [
+                ProcessorComponent,
+                IconComponent,
+                LoadingComponent
+            ],
             providers: [
                 { provide: FnService, useValue: fs },
-                { provide: LoadingService, useClass: MockLoadingService },
                 { provide: IconService, useClass: MockIconService },
                 { provide: LogService, useValue: logSpy },
                 { provide: WebSocketService, useClass: MockWebSocketService },

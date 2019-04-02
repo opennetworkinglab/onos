@@ -15,6 +15,7 @@
 -->
 <!-- Port partial HTML -->
 <div id="ov-port">
+    <onos-loading [theme]="'light'" [running]="loadingIconShown"></onos-loading>
     <div class="tabular-header">
         <h2>
             Ports for Device {{devId}} ({{tableData.length}} Total)

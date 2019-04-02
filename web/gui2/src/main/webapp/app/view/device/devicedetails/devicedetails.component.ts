@@ -18,8 +18,6 @@ import { trigger, state, style, animate, transition } from '@angular/animations'
 import {
     FnService,
     IconService,
-    LionService,
-    LoadingService,
     LogService,
     DetailsPanelBaseImpl,
     WebSocketService
@@ -64,12 +62,11 @@ export class DeviceDetailsComponent extends DetailsPanelBaseImpl implements OnIn
     @Input() id: string;
 
     constructor(protected fs: FnService,
-        protected ls: LoadingService,
         protected log: LogService,
         protected is: IconService,
         protected wss: WebSocketService
     ) {
-        super(fs, ls, log, wss, 'device');
+        super(fs, log, wss, 'device');
     }
 
     ngOnInit() {

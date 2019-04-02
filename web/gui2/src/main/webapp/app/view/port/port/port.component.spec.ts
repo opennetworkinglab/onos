@@ -24,14 +24,13 @@ import {
     IconService,
     GlyphService,
     IconComponent,
-    LoadingService,
     LogService,
     NavService,
     MastService,
     PrefsService,
     TableFilterPipe,
     ThemeService,
-    WebSocketService
+    WebSocketService, LoadingComponent
 } from 'gui2-fw-lib';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
@@ -39,6 +38,7 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { PortDetailsComponent } from '../portdetails/portdetails.component';
+
 class MockActivatedRoute extends ActivatedRoute {
     constructor(params: Params) {
         super();
@@ -58,11 +58,6 @@ class MockPrefsService {
 }
 
 class MockGlyphService { }
-
-class MockLoadingService {
-    startAnim() { }
-    stop() { }
-}
 
 class MockNavService { }
 
@@ -110,12 +105,17 @@ describe('PortComponent', () => {
 
         TestBed.configureTestingModule({
             imports: [BrowserAnimationsModule, FormsModule, RouterTestingModule],
-            declarations: [PortComponent, IconComponent, TableFilterPipe, PortDetailsComponent],
+            declarations: [
+                PortComponent,
+                IconComponent,
+                TableFilterPipe,
+                PortDetailsComponent,
+                LoadingComponent
+            ],
             providers: [
                 { provide: FnService, useValue: fs },
                 { provide: IconService, useClass: MockIconService },
                 { provide: GlyphService, useClass: MockGlyphService },
-                { provide: LoadingService, useClass: MockLoadingService },
                 { provide: MastService, useClass: MockMastService },
                 { provide: NavService, useClass: MockNavService },
                 { provide: PrefsService, useClass: MockPrefsService },

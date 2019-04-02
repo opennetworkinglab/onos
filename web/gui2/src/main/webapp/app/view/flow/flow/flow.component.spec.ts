@@ -24,13 +24,12 @@ import {
     GlyphService,
     IconComponent,
     LionService,
-    LoadingService,
     LogService,
     NavService,
     MastService,
     TableFilterPipe,
     ThemeService,
-    WebSocketService
+    WebSocketService, LoadingComponent
 } from 'gui2-fw-lib';
 
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -52,11 +51,6 @@ class MockIconService {
 }
 
 class MockGlyphService { }
-
-class MockLoadingService {
-    startAnim() { }
-    stop() { }
-}
 
 class MockNavService { }
 
@@ -111,7 +105,13 @@ describe('FlowComponent', () => {
 
         TestBed.configureTestingModule({
             imports: [BrowserAnimationsModule, FormsModule, RouterTestingModule],
-            declarations: [FlowComponent, IconComponent, TableFilterPipe, FlowDetailsComponent],
+            declarations: [
+                FlowComponent,
+                IconComponent,
+                TableFilterPipe,
+                FlowDetailsComponent,
+                LoadingComponent
+            ],
             providers: [
                 { provide: FnService, useValue: fs },
                 { provide: IconService, useClass: MockIconService },
@@ -125,7 +125,6 @@ describe('FlowComponent', () => {
                         };
                     })
                 },
-                { provide: LoadingService, useClass: MockLoadingService },
                 { provide: MastService, useClass: MockMastService },
                 { provide: NavService, useClass: MockNavService },
                 { provide: LogService, useValue: logSpy },

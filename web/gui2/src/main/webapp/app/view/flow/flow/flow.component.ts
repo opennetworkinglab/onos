@@ -17,7 +17,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import {
     FnService,
-    LoadingService,
     LogService,
     WebSocketService,
     LionService,
@@ -70,13 +69,12 @@ export class FlowComponent extends TableBaseImpl implements OnInit, OnDestroy {
     pipeconfTip: string;
 
     constructor(protected fs: FnService,
-        protected ls: LoadingService,
         protected log: LogService,
         protected as: ActivatedRoute,
         protected wss: WebSocketService,
         protected lion: LionService,
     ) {
-        super(fs, ls, log, wss, 'flow');
+        super(fs, log, wss, 'flow');
         this.as.queryParams.subscribe(params => {
             this.id = params['devId'];
 

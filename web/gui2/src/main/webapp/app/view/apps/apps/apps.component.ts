@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 import { Component, OnInit, OnDestroy, Inject } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 
 import {
     FnService,
     IconService,
     LionService,
-    LoadingService,
     LogService,
-    TableBaseImpl, TableResponse, TableFilter, SortParams, SortDir,
+    TableBaseImpl, TableResponse, SortDir,
     UrlFnService,
-    WebSocketService,
-    TableFilterPipe
+    WebSocketService
 } from 'gui2-fw-lib';
 
 const INSTALLED = 'INSTALLED';
@@ -133,14 +131,13 @@ export class AppsComponent extends TableBaseImpl implements OnInit, OnDestroy {
         protected fs: FnService,
         private is: IconService,
         private lion: LionService,
-        protected ls: LoadingService,
         protected log: LogService,
         private ufs: UrlFnService,
         protected wss: WebSocketService,
         @Inject('Window') private window: Window,
         private httpClient: HttpClient
     ) {
-        super(fs, null, log, wss, 'app');
+        super(fs, log, wss, 'app');
         this.responseCallback = this.appResponseCb;
         this.parentSelCb =  this.rowSelection;
         // pre-populate sort so active apps are at the top of the list

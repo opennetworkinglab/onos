@@ -14,9 +14,10 @@
 ~ limitations under the License.
 -->
 <div id="ov-app" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
+    <onos-flash id="appMsgFlash" message="{{ alertMsg }}" dwell="5000" warning="true" (closed)="alertMsg = ''"></onos-flash>
+    <onos-loading [theme]="'light'" [running]="loadingIconShown"></onos-loading>
+    <onos-confirm title="{{ lionFn('dlg_confirm_action') }}" message="{{ confirmMsg }}" warning="{{ strongWarning }}" (chosen)="dOk($event)"></onos-confirm>
     <div class="tabular-header">
-        <onos-flash id="appMsgFlash" message="{{ alertMsg }}" dwell="5000" warning="true" (closed)="alertMsg = ''"></onos-flash>
-        <onos-confirm title="{{ lionFn('dlg_confirm_action') }}" message="{{ confirmMsg }}" warning="{{ strongWarning }}" (chosen)="dOk($event)"></onos-confirm>
         <h2>
             {{lionFn('title_apps')}}
             ({{ tableData.length }}

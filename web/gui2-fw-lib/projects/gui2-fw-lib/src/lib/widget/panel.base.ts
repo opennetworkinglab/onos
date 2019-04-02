@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { FnService } from '../util/fn.service';
-import { LoadingService } from '../layer/loading.service';
 import { LogService } from '../log.service';
 
 
@@ -39,7 +38,6 @@ export abstract class PanelBaseImpl implements PanelBase {
 
     protected constructor(
         protected fs: FnService,
-        protected ls: LoadingService,
         protected log: LogService
     ) {
 //        this.log.debug('Panel base class constructed');

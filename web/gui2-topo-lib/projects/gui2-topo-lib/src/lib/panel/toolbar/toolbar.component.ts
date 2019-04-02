@@ -16,7 +16,6 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {
     LogService,
-    LoadingService,
     FnService,
     PanelBaseImpl, LionService
 } from 'gui2-fw-lib';
@@ -88,10 +87,9 @@ export class ToolbarComponent extends PanelBaseImpl {
     constructor(
         protected fs: FnService,
         protected log: LogService,
-        protected ls: LoadingService,
         private lion: LionService
     ) {
-        super(fs, ls, log);
+        super(fs, log);
 
         if (this.lion.ubercache.length === 0) {
             this.lionFn = this.dummyLion;

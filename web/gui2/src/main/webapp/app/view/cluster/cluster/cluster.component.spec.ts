@@ -19,7 +19,6 @@ import {ClusterComponent} from './cluster.component';
 
 import {
     FnService,
-    LoadingService,
     LogService,
     WebSocketService,
     IconComponent,
@@ -27,7 +26,7 @@ import {
     GlyphService,
     MastService,
     NavService,
-    ThemeService,
+    ThemeService, LoadingComponent,
 
 } from 'gui2-fw-lib';
 
@@ -52,14 +51,6 @@ class MockIconService {
 }
 
 class MockGlyphService {
-}
-
-class MockLoadingService {
-    startAnim() {
-    }
-
-    stop() {
-    }
 }
 
 class MockNavService {
@@ -116,12 +107,11 @@ describe('ClusterComponent', () => {
 
         TestBed.configureTestingModule({
             imports: [BrowserAnimationsModule, FormsModule, RouterTestingModule],
-            declarations: [ClusterComponent, IconComponent],
+            declarations: [ClusterComponent, IconComponent, LoadingComponent],
             providers: [
                 {provide: FnService, useValue: fs},
                 {provide: IconService, useClass: MockIconService},
                 {provide: GlyphService, useClass: MockGlyphService},
-                {provide: LoadingService, useClass: MockLoadingService},
                 {provide: MastService, useClass: MockMastService},
                 {provide: NavService, useClass: MockNavService},
                 {provide: LogService, useValue: logSpy},

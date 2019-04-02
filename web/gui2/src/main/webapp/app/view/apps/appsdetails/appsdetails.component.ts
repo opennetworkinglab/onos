@@ -18,7 +18,6 @@ import { trigger, state, style, animate, transition } from '@angular/animations'
 import {
     FnService,
     LionService,
-    LoadingService,
     LogService,
     DetailsPanelBaseImpl,
     WebSocketService
@@ -66,12 +65,11 @@ export class AppsDetailsComponent extends DetailsPanelBaseImpl implements OnInit
     lionFn; // Function
     constructor(
         protected fs: FnService,
-        protected ls: LoadingService,
         protected log: LogService,
         protected wss: WebSocketService,
         protected lion: LionService,
     ) {
-        super(fs, ls, log, wss, 'app');
+        super(fs, log, wss, 'app');
         if (this.lion.ubercache.length === 0) {
             this.lionFn = this.dummyLion;
             this.lion.loadCbs.set('appsdetails', () => this.doLion());

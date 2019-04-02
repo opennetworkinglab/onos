@@ -23,17 +23,13 @@ import { MeterComponent } from './meter.component';
 import {
     FnService,
     IconService,
-    GlyphService,
     IconComponent,
     LionService,
-    LoadingService,
     LogService,
-    NavService,
-    MastService,
     TableFilterPipe,
     ThemeService,
     UrlFnService,
-    WebSocketService
+    WebSocketService, LoadingComponent
 } from 'gui2-fw-lib';
 import { of, Subject } from 'rxjs';
 import { } from 'jasmine';
@@ -52,12 +48,6 @@ class MockFnService { }
 
 class MockIconService {
     loadIconDef() { }
-}
-
-class MockLoadingService {
-    startAnim() { }
-    stop() { }
-    waiting() { }
 }
 
 class MockThemeService { }
@@ -117,7 +107,12 @@ describe('MeterComponent', () => {
 
         TestBed.configureTestingModule({
             imports: [BrowserAnimationsModule, FormsModule, RouterTestingModule],
-            declarations: [MeterComponent, IconComponent, TableFilterPipe],
+            declarations: [
+                MeterComponent,
+                IconComponent,
+                TableFilterPipe,
+                LoadingComponent
+            ],
             providers: [
                 { provide: FnService, useValue: fs },
                 { provide: IconService, useClass: MockIconService },
@@ -130,7 +125,6 @@ describe('MeterComponent', () => {
                         };
                     })
                 },
-                { provide: LoadingService, useClass: MockLoadingService },
                 { provide: LogService, useValue: logSpy },
                 { provide: ThemeService, useClass: MockThemeService },
                 { provide: UrlFnService, useClass: MockUrlFnService },

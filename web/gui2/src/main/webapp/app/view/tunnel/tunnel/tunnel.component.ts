@@ -16,7 +16,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import {
     FnService,
-    LoadingService,
     LogService,
     WebSocketService,
     SortDir, TableBaseImpl, TableResponse
@@ -55,11 +54,10 @@ export class TunnelComponent extends TableBaseImpl implements OnInit, OnDestroy 
 
     constructor(
         protected fs: FnService,
-        protected ls: LoadingService,
         protected log: LogService,
         protected wss: WebSocketService,
     ) {
-        super(fs, ls, log, wss, 'tunnel');
+        super(fs, log, wss, 'tunnel');
         this.responseCallback = this.tunnelResponseCb;
         this.sortParams = {
             firstCol: 'id',

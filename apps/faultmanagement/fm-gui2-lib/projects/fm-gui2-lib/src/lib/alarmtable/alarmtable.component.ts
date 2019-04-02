@@ -17,7 +17,6 @@ import { Component, Input, Inject, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import {
     FnService,
-    LoadingService,
     LogService,
     WebSocketService,
     SortDir, TableBaseImpl, TableResponse
@@ -85,11 +84,10 @@ export class AlarmTableComponent extends TableBaseImpl implements OnInit, OnDest
         private route: ActivatedRoute,
         @Inject('Window') private w: any,
         protected log: LogService,
-        protected ls: LoadingService,
         protected fs: FnService,
         protected wss: WebSocketService,
     ) {
-        super(fs, ls, log, wss, 'alarmTable');
+        super(fs, log, wss, 'alarmTable');
 
         this.route.queryParams.subscribe(params => {
             this.devId = params['devId'];

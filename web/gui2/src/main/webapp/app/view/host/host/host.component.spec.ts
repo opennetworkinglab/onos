@@ -22,16 +22,12 @@ import { By } from '@angular/platform-browser';
 import {
     FnService,
     IconService,
-    GlyphService,
     IconComponent,
-    LoadingService,
     LogService,
-    NavService,
-    MastService,
     TableFilterPipe,
     ThemeService,
     UrlFnService,
-    WebSocketService
+    WebSocketService, LoadingComponent
 } from 'gui2-fw-lib';
 import { HostComponent } from './host.component';
 import { HostDetailsComponent } from '../hostdetails/hostdetails.component';
@@ -44,8 +40,6 @@ class MockActivatedRoute extends ActivatedRoute {
         this.queryParams = of(params);
     }
 }
-
-class MockFnService { }
 
 class MockIconService {
     loadIconDef() { }
@@ -106,11 +100,16 @@ describe('HostComponent', () => {
 
         TestBed.configureTestingModule({
             imports: [BrowserAnimationsModule, FormsModule],
-            declarations: [HostComponent, HostDetailsComponent, IconComponent, TableFilterPipe],
+            declarations: [
+                HostComponent,
+                HostDetailsComponent,
+                IconComponent,
+                TableFilterPipe,
+                LoadingComponent
+            ],
             providers: [
                 { provide: FnService, useValue: fs },
                 { provide: IconService, useClass: MockIconService },
-                { provide: LoadingService, useClass: MockLoadingService },
                 { provide: LogService, useValue: logSpy },
                 { provide: ThemeService, useClass: MockThemeService },
                 { provide: UrlFnService, useClass: MockUrlFnService },

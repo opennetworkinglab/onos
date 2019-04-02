@@ -18,7 +18,6 @@ import { trigger, state, style, animate, transition } from '@angular/animations'
 import {
     FnService,
     IconService,
-    LoadingService,
     LogService,
     DetailsPanelBaseImpl,
     WebSocketService,
@@ -63,12 +62,11 @@ export class AlarmDetailsComponent extends DetailsPanelBaseImpl implements OnIni
 
     constructor(
         protected fs: FnService,
-        protected ls: LoadingService,
         protected log: LogService,
         protected is: IconService,
         protected wss: WebSocketService
     ) {
-        super(fs, ls, log, wss, 'alarmTable');
+        super(fs, log, wss, 'alarmTable');
     }
 
     ngOnInit() {

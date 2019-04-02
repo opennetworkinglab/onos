@@ -24,6 +24,7 @@ import { MastComponent } from './mast/mast/mast.component';
 import { TableFilterPipe } from './widget/tablefilter.pipe';
 import { TableResizeDirective } from './widget/tableresize.directive';
 import { QuickhelpComponent } from './layer/quickhelp/quickhelp.component';
+import { LoadingComponent } from './layer/loading/loading.component';
 
 @NgModule({
   imports: [
@@ -38,7 +39,8 @@ import { QuickhelpComponent } from './layer/quickhelp/quickhelp.component';
     ConfirmComponent,
     QuickhelpComponent,
     MastComponent,
-    TableFilterPipe
+    TableFilterPipe,
+    LoadingComponent
   ],
   exports: [
     DetectBrowserDirective,
@@ -49,7 +51,8 @@ import { QuickhelpComponent } from './layer/quickhelp/quickhelp.component';
     ConfirmComponent,
     QuickhelpComponent,
     MastComponent,
-    TableFilterPipe
+    TableFilterPipe,
+    LoadingComponent
   ]
 })
 export class Gui2FwLibModule { }

@@ -16,10 +16,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import {
     FnService,
-    LoadingService,
     LogService,
     WebSocketService,
-    SortDir, TableBaseImpl, TableResponse
+    SortDir, TableBaseImpl
 } from 'gui2-fw-lib';
 import { ActivatedRoute } from '@angular/router';
 
@@ -36,11 +35,10 @@ export class PartitionComponent extends TableBaseImpl implements OnInit, OnDestr
     constructor(
         protected fs: FnService,
         protected log: LogService,
-        protected ls: LoadingService,
         protected as: ActivatedRoute,
         protected wss: WebSocketService,
     ) {
-        super(fs, ls, log, wss, 'partition');
+        super(fs, log, wss, 'partition');
         this.sortParams = {
             firstCol: 'name',
             firstDir: SortDir.desc,

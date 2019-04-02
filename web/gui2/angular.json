@@ -17,8 +17,7 @@
             "tsConfig": "src/main/webapp/tsconfig.app.json",
             "polyfills": "src/main/webapp/polyfills.ts",
             "assets": [
-              "src/main/webapp/data",
-              "src/main/webapp/app/fw/layer/loading.service.css"
+              "src/main/webapp/data"
             ],
             "styles": ["src/main/webapp/onos.global.css"],
             "scripts": []
@@ -72,8 +71,7 @@
               "src/main/webapp/app/onos.theme.css"
             ],
             "assets": [
-              "src/main/webapp/data",
-              "src/main/webapp/app/fw/layer/loading.service.css"
+              "src/main/webapp/data"
             ]
           }
         },

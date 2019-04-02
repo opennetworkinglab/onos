@@ -207,6 +207,7 @@ genrule(
         "@nodejs//:bin/nodejs/bin/node",
         "@nodejs//:bin/nodejs/bin/npm",
         ":onos-gui2-fw-npm-install",
+        "//web/gui:onos-gui-data-for-gui2",
         ":_root_level_files",
         ":_gui2_fw_lib_src",
     ],
@@ -233,6 +234,10 @@ genrule(
           "   See bazel-genfiles/web/gui2-fw-lib/gui2-fw-ng-build-prod.log for more details' >&2;" +
           "   exit 1;" +
           " fi;" +
+          # see https://github.com/angular/angular-cli/issues/11071 - Angular CLI does not yet copy across assets
+          " unzip -q $$ROOT/$(location //web/gui:onos-gui-data-for-gui2) web/gui/src/main/webapp/data/img/loading/* &&" +
+          " mkdir -p dist/gui2-fw-lib/assets &&" +
+          " mv web/gui/src/main/webapp/data/img/loading dist/gui2-fw-lib/assets &&" +
           " cd dist/gui2-fw-lib &&" +
           " npm pack &&" +
           " mv gui2-fw-lib-*.tgz $$ROOT/$(location gui2-fw-lib-ver.tgz) &&" +

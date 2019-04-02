@@ -18,7 +18,6 @@ import { Component, Input, OnInit, OnDestroy, OnChanges } from '@angular/core';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 import {
     FnService,
-    LoadingService,
     LogService,
     DetailsPanelBaseImpl,
     WebSocketService
@@ -62,11 +61,10 @@ export class HostDetailsComponent extends DetailsPanelBaseImpl implements OnInit
 
     constructor(
         protected fs: FnService,
-        protected ls: LoadingService,
         protected log: LogService,
         protected wss: WebSocketService
     ) {
-        super(fs, ls, log, wss, 'host');
+        super(fs, log, wss, 'host');
     }
 
     ngOnInit() {

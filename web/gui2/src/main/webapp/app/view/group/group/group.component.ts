@@ -16,10 +16,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import {
     FnService,
-    LoadingService,
     LogService,
     WebSocketService,
-    LionService,
     SortDir, TableBaseImpl, TableResponse
 } from 'gui2-fw-lib';
 import { ActivatedRoute } from '@angular/router';
@@ -67,11 +65,10 @@ export class GroupComponent extends TableBaseImpl implements OnInit, OnDestroy {
     constructor(
         protected log: LogService,
         protected fs: FnService,
-        protected ls: LoadingService,
         protected wss: WebSocketService,
         protected ar: ActivatedRoute,
     ) {
-        super(fs, ls, log, wss, 'group');
+        super(fs, log, wss, 'group');
         this.ar.queryParams.subscribe(params => {
             this.id = params['devId'];
         });

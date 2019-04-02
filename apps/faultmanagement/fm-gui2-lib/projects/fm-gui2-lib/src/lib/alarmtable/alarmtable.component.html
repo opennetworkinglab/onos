@@ -14,7 +14,8 @@
 ~ limitations under the License.
 -->
 <div id="ov-alarm-table">
-  <div class="tabular-header">
+    <onos-loading [theme]="'light'" [running]="loadingIconShown"></onos-loading>
+    <div class="tabular-header">
     <h2>Alarms  for {{ "all devices."}} ({{ tableData.length }} total)</h2>
     <div class="ctrl-btns">
       <div class="refresh" (click)="toggleRefresh()">

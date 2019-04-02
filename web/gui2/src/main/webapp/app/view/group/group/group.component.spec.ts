@@ -20,16 +20,12 @@ import {
     ConsoleLoggerService,
     FnService,
     IconService,
-    GlyphService,
     IconComponent,
-    LoadingService,
     LogService,
-    NavService,
-    MastService,
     TableFilterPipe,
     ThemeService,
     UrlFnService,
-    WebSocketService
+    WebSocketService, LoadingComponent
 } from 'gui2-fw-lib';
 import { ActivatedRoute, Params } from '@angular/router';
 import { of } from 'rxjs';
@@ -46,16 +42,8 @@ class MockActivatedRoute extends ActivatedRoute {
     }
 }
 
-class MockFnService { }
-
 class MockIconService {
     loadIconDef() { }
-}
-
-class MockLoadingService {
-    startAnim() { }
-    stop() { }
-    waiting() { }
 }
 
 class MockThemeService { }
@@ -108,11 +96,15 @@ describe('GroupComponent', () => {
 
         TestBed.configureTestingModule({
             imports: [BrowserAnimationsModule, FormsModule, RouterTestingModule],
-            declarations: [GroupComponent, IconComponent, TableFilterPipe],
+            declarations: [
+                GroupComponent,
+                IconComponent,
+                TableFilterPipe,
+                LoadingComponent
+            ],
             providers: [
                 { provide: FnService, useValue: fs },
                 { provide: IconService, useClass: MockIconService },
-                { provide: LoadingService, useClass: MockLoadingService },
                 { provide: LogService, useValue: log },
                 { provide: ThemeService, useClass: MockThemeService },
                 { provide: UrlFnService, useClass: MockUrlFnService },

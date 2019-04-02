@@ -16,9 +16,7 @@
 import { Component, OnInit, OnDestroy, OnChanges, Input, Output, EventEmitter } from '@angular/core';
 import {
     FnService,
-    IconService,
     LionService,
-    LoadingService,
     LogService,
     DetailsPanelBaseImpl,
     WebSocketService
@@ -70,12 +68,11 @@ export class FlowDetailsComponent extends DetailsPanelBaseImpl implements OnInit
 
     constructor(
         protected fs: FnService,
-        protected ls: LoadingService,
         protected log: LogService,
         protected wss: WebSocketService,
         protected lion: LionService,
     ) {
-        super(fs, ls, log, wss, 'flow');
+        super(fs, log, wss, 'flow');
         if (this.lion.ubercache.length === 0) {
             this.lionFn = this.dummyLion;
             this.lion.loadCbs.set('flowdetails', () => this.doLion());

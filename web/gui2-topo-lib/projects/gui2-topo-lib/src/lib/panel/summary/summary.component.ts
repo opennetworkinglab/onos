@@ -25,7 +25,6 @@ import * as d3 from 'd3';
 import { TopoPanelBaseImpl } from '../topopanel.base';
 import {
     LogService,
-    LoadingService,
     FnService,
     WebSocketService,
     GlyphService
@@ -74,11 +73,10 @@ export class SummaryComponent extends TopoPanelBaseImpl implements OnInit, OnDes
     constructor(
         protected fs: FnService,
         protected log: LogService,
-        protected ls: LoadingService,
         protected wss: WebSocketService,
         protected gs: GlyphService
     ) {
-        super(fs, ls, log, 'summary');
+        super(fs, log, 'summary');
         this.summaryData = <SummaryResponse>{};
         this.log.debug('SummaryComponent constructed');
     }

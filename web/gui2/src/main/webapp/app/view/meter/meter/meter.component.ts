@@ -16,7 +16,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import {
     FnService,
-    LoadingService,
     LogService,
     WebSocketService,
     SortDir, TableBaseImpl, TableResponse
@@ -66,11 +65,10 @@ export class MeterComponent extends TableBaseImpl implements OnInit, OnDestroy {
     constructor(
         protected fs: FnService,
         protected log: LogService,
-        protected ls: LoadingService,
         protected as: ActivatedRoute,
         protected wss: WebSocketService,
     ) {
-        super(fs, ls, log, wss, 'meter');
+        super(fs, log, wss, 'meter');
         this.as.queryParams.subscribe(params => {
             this.id = params['devId'];
         });
