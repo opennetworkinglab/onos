@@ -316,11 +316,10 @@ public class OpenstackSwitchingArpHandler {
             }
 
             TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
-            TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
 
             if (netType == VLAN) {
                 sBuilder.matchVlanId(VlanId.vlanId(network.getProviderSegID()));
-                tBuilder.popVlan();
+
             } else if (netType == VXLAN || netType == GRE || netType == GENEVE) {
                 // do not remove fake gateway ARP rules, if there is another gateway
                 // which has the same subnet that to be removed
@@ -345,6 +344,13 @@ public class OpenstackSwitchingArpHandler {
             if (osNode == null) {
                 osNodeService.completeNodes(COMPUTE).forEach(n -> {
                     Device device = deviceService.getDevice(n.intgBridge());
+
+                    TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+
+                    if (netType == VLAN) {
+                        tBuilder.popVlan();
+                    }
+
                     tBuilder.extension(buildMoveEthSrcToDstExtension(device), device.id())
                             .extension(buildMoveArpShaToThaExtension(device), device.id())
                             .extension(buildMoveArpSpaToTpaExtension(device), device.id())
@@ -365,6 +371,13 @@ public class OpenstackSwitchingArpHandler {
                 });
             } else {
                 Device device = deviceService.getDevice(osNode.intgBridge());
+
+                TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+
+                if (netType == VLAN) {
+                    tBuilder.popVlan();
+                }
+
                 tBuilder.extension(buildMoveEthSrcToDstExtension(device), device.id())
                         .extension(buildMoveArpShaToThaExtension(device), device.id())
                         .extension(buildMoveArpSpaToTpaExtension(device), device.id())

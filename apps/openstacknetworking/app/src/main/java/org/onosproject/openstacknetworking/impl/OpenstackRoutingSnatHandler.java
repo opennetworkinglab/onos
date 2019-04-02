@@ -840,18 +840,25 @@ public class OpenstackRoutingSnatHandler {
                     setStatefulSnatDownstreamRule(gwNode.intgBridge(),
                             IpPrefix.valueOf(natAddress, VM_PREFIX), install);
 
-                    PortRange gwPortRange = gwPortRangeMap.get(gwNode);
+                    if (install) {
+                        PortRange gwPortRange = gwPortRangeMap.get(gwNode);
 
-                    Map<String, PortRange> netPortRangeMap =
-                            getAssignedPortsForNet(getNetIdByRouterId(routerIface.getId()),
-                                    gwPortRange.min(), gwPortRange.max());
+                        Map<String, PortRange> netPortRangeMap =
+                                getAssignedPortsForNet(getNetIdByRouterId(routerIface.getId()),
+                                        gwPortRange.min(), gwPortRange.max());
 
-                    PortRange netPortRange = netPortRangeMap.get(osNet.getId());
+                        PortRange netPortRange = netPortRangeMap.get(osNet.getId());
 
-                    setStatefulSnatUpstreamRule(gwNode, natAddress,
-                            Long.parseLong(osNet.getProviderSegID()),
-                            externalPeerRouter, netPortRange.min(),
-                            netPortRange.max(), install);
+                        setStatefulSnatUpstreamRule(gwNode, natAddress,
+                                Long.parseLong(osNet.getProviderSegID()),
+                                externalPeerRouter, netPortRange.min(),
+                                netPortRange.max(), install);
+                    } else {
+                        setStatefulSnatUpstreamRule(gwNode, natAddress,
+                                Long.parseLong(osNet.getProviderSegID()),
+                                externalPeerRouter, 0, 0, install);
+                    }
+
                 });
     }
 
@@ -1022,28 +1029,31 @@ public class OpenstackRoutingSnatHandler {
                 .matchTunnelId(vni)
                 .build();
 
-        ExtensionTreatment natTreatment = RulePopulatorUtil
-                .niciraConnTrackTreatmentBuilder(driverService, gwNode.intgBridge())
-                .commit(true)
-                .natFlag(CT_NAT_SRC_FLAG)
-                .natAction(true)
-                .natIp(gatewayIp)
-                .natPortMin(TpPort.tpPort(minPortNum))
-                .natPortMax(TpPort.tpPort(maxPortNum))
-                .build();
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
 
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .extension(natTreatment, gwNode.intgBridge())
-                .setEthDst(extPeerRouter.macAddress())
-                .setEthSrc(DEFAULT_GATEWAY_MAC)
-                .setOutput(gwNode.uplinkPortNum())
-                .build();
+        // we do not consider to much like port range on removing the rules...
+        if (install) {
+            ExtensionTreatment natTreatment = RulePopulatorUtil
+                    .niciraConnTrackTreatmentBuilder(driverService, gwNode.intgBridge())
+                    .commit(true)
+                    .natFlag(CT_NAT_SRC_FLAG)
+                    .natAction(true)
+                    .natIp(gatewayIp)
+                    .natPortMin(TpPort.tpPort(minPortNum))
+                    .natPortMax(TpPort.tpPort(maxPortNum))
+                    .build();
+
+            tBuilder.extension(natTreatment, gwNode.intgBridge())
+                    .setEthDst(extPeerRouter.macAddress())
+                    .setEthSrc(DEFAULT_GATEWAY_MAC)
+                    .setOutput(gwNode.uplinkPortNum());
+        }
 
         osFlowRuleService.setRule(
                 appId,
                 gwNode.intgBridge(),
                 selector,
-                treatment,
+                tBuilder.build(),
                 PRIORITY_STATEFUL_SNAT_RULE,
                 GW_COMMON_TABLE,
                 install);

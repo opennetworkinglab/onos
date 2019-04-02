@@ -46,6 +46,7 @@ import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeEvent;
 import org.onosproject.openstacknode.api.OpenstackNodeListener;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
+import org.openstack4j.model.network.Network;
 import org.openstack4j.model.network.Router;
 import org.openstack4j.model.network.RouterInterface;
 import org.openstack4j.model.network.Subnet;
@@ -57,6 +58,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
@@ -71,6 +73,8 @@ import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWOR
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ICMP_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.ROUTING_TABLE;
 import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.USE_STATEFUL_SNAT;
+import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.FLAT;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getExternalIp;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValueAsBoolean;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.NXM_NX_IP_TTL;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.NXM_OF_ICMP_TYPE;
@@ -169,12 +173,42 @@ public class OpenstackSwitchingIcmpHandler {
 
         osNodeService.completeNodes(COMPUTE).stream()
                 .filter(cNode -> cNode.dataIp() != null)
-                .forEach(cNode -> setRoutableSubnetsIcmpRules(
-                        cNode, segId, routableSubnets, gatewayIp, netType, install));
+                .forEach(cNode -> {
+                    setRoutableSubnetsIcmpRules(cNode, segId, osSubnet,
+                            routableSubnets, gatewayIp, netType, install);
+                    setExtGatewayIcmpReplyRules(cNode, routerIface,
+                            netType, install);
+                });
+    }
+
+    private void setExtGatewayIcmpReplyRules(OpenstackNode osNode,
+                                             RouterInterface routerIface,
+                                             Type networkType, boolean install) {
+
+        if (networkType == FLAT) {
+            return;
+        }
+
+        Optional<Router> osRouter = osRouterService.routers().stream()
+                .filter(router -> osRouterService.routerInterfaces(routerIface.getId()) != null)
+                .findAny();
+
+        if (!osRouter.isPresent()) {
+            log.error("Cannot find a router for router interface {} ", routerIface);
+            return;
+        }
+
+        IpAddress natAddress = getExternalIp(osRouter.get(), osNetworkService);
+        if (natAddress == null) {
+            return;
+        }
+
+        setGatewayIcmpReplyRule(osNode, null, natAddress, networkType, install);
     }
 
     private void setRoutableSubnetsIcmpRules(OpenstackNode osNode,
                                              String segmentId,
+                                             Subnet updatedSubnet,
                                              Set<Subnet> routableSubnets,
                                              IpAddress gatewayIp,
                                              Type networkType,
@@ -184,6 +218,11 @@ public class OpenstackSwitchingIcmpHandler {
         routableSubnets.forEach(subnet -> {
             setGatewayIcmpReplyRule(osNode, segmentId,
                     IpAddress.valueOf(subnet.getGateway()), networkType, install);
+
+            Network network = osNetworkService.network(subnet.getNetworkId());
+
+            setGatewayIcmpReplyRule(osNode, network.getProviderSegID(),
+                    IpAddress.valueOf(updatedSubnet.getGateway()), networkType, install);
         });
     }
 
@@ -208,17 +247,19 @@ public class OpenstackSwitchingIcmpHandler {
                 .matchIcmpCode(CODE_ECHO_REQEUST)
                 .matchIPDst(gatewayIp.getIp4Address().toIpPrefix());
 
-        switch (networkType) {
-            case VXLAN:
-            case GRE:
-            case GENEVE:
-                sBuilder.matchTunnelId(Long.parseLong(segmentId));
-                break;
-            case VLAN:
-                sBuilder.matchVlanId(VlanId.vlanId(segmentId));
-                break;
-            default:
-                break;
+        if (segmentId != null) {
+            switch (networkType) {
+                case VXLAN:
+                case GRE:
+                case GENEVE:
+                    sBuilder.matchTunnelId(Long.parseLong(segmentId));
+                    break;
+                case VLAN:
+                    sBuilder.matchVlanId(VlanId.vlanId(segmentId));
+                    break;
+                default:
+                    break;
+            }
         }
 
         Device device = deviceService.getDevice(osNode.intgBridge());
