@@ -46,12 +46,12 @@ export ONOS_TEST_TAR=$ONOS_STAGE_ROOT/$ONOS_TEST_BITS.tar.gz
 export ONOS_ADMIN_BITS=onos-admin-${ONOS_VERSION%~*}
 export ONOS_ADMIN_TAR=$ONOS_STAGE_ROOT/$ONOS_ADMIN_BITS.tar.gz
 
-export ONOS_INSTALL_DIR="/opt/onos"     # Installation directory on remote
-export ATOMIX_INSTALL_DIR="/opt/atomix" # Installation directory for Atomix
+export ONOS_INSTALL_DIR="${ONOS_INSTALL_DIR:-/opt/onos}"     # Installation directory on remote
+export ATOMIX_INSTALL_DIR="${ATOMIX_INSTALL_DIR:-/opt/atomix}" # Installation directory for Atomix
 export OCI="${OCI:-localhost}"          # ONOS Controller Instance
 export ONOS_USER="${ONOS_USER:-sdn}"    # ONOS user on remote system
 export ONOS_GROUP="${ONOS_GROUP:-sdn}"  # ONOS group on remote system
-export ONOS_PWD="rocks"                 # ONOS user password on remote system
+export ONOS_PWD="${ONOS_PWD:-rocks}"                 # ONOS user password on remote system
 export ONOS_SCENARIOS=$ONOS_ROOT/tools/test/scenarios
 
 export ONOS_CLUSTER_KEY_FILE="/tmp/onos.jks"
