@@ -171,6 +171,8 @@ public class PortLoadBalancerManager implements PortLoadBalancerService, PortLoa
         portLoadBalancerStore.removeListener(portLoadBalancerStoreListener);
         portLoadBalancerNextStore.removeListener(portLoadBalancerNextStoreListener);
 
+        deviceService.removeListener(deviceListener);
+
         portLoadBalancerEventExecutor.shutdown();
         portLoadBalancerProvExecutor.shutdown();
         deviceEventExecutor.shutdown();

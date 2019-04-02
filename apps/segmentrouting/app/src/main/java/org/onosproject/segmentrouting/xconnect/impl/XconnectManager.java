@@ -250,6 +250,7 @@ public class XconnectManager implements XconnectService {
         xconnectStore.removeListener(xconnectListener);
         deviceService.removeListener(deviceListener);
         hostService.removeListener(hostListener);
+        portLoadBalancerService.removeListener(portLoadBalancerListener);
         codecService.unregisterCodec(XconnectDesc.class);
 
         deviceEventExecutor.shutdown();
