@@ -857,6 +857,10 @@ public class OpenstackRoutingSnatHandler {
 
     private void setStatefulDownstreamRules(Router osRouter, boolean install) {
 
+        if (!getStatefulSnatFlag()) {
+            return;
+        }
+
         IpAddress natAddress = getExternalIp(osRouter, osNetworkAdminService);
         if (natAddress == null) {
             return;
