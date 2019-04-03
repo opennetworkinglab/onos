@@ -30,6 +30,7 @@ import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
@@ -116,6 +117,7 @@ import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.USE
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.externalIpFromSubnet;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.externalPeerRouterFromSubnet;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getExternalIp;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValueAsBoolean;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.tunnelPortNumByNetType;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.CT_NAT_SRC_FLAG;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildExtension;
@@ -272,7 +274,7 @@ public class OpenstackRoutingSnatHandler {
 
     private void processSnatPacket(PacketContext context, Ethernet eth) {
 
-        if (useStatefulSnat) {
+        if (getStatefulSnatFlag()) {
             return;
         }
 
@@ -627,7 +629,7 @@ public class OpenstackRoutingSnatHandler {
     }
 
     private void resetSnatRules() {
-        if (useStatefulSnat) {
+        if (getStatefulSnatFlag()) {
             osRouterService.routerInterfaces().forEach(
                     routerIface -> {
                         setReactiveSnatRules(routerIface, false);
@@ -782,7 +784,7 @@ public class OpenstackRoutingSnatHandler {
                     IpPrefix.valueOf(osSubnet.getCidr()), netType, install);
         });
 
-        if (useStatefulSnat) {
+        if (getStatefulSnatFlag()) {
             setStatefulSnatRules(routerIface, install);
         } else {
             setReactiveSnatRules(routerIface, install);
@@ -1116,6 +1118,12 @@ public class OpenstackRoutingSnatHandler {
                 install);
     }
 
+    private boolean getStatefulSnatFlag() {
+        Set<ConfigProperty> properties =
+                configService.getProperties(getClass().getName());
+        return getPropertyValueAsBoolean(properties, USE_STATEFUL_SNAT);
+    }
+
     private class InternalInstancePortListener implements InstancePortListener {
 
         private boolean isRelevantHelper(InstancePortEvent event) {
@@ -1202,7 +1210,7 @@ public class OpenstackRoutingSnatHandler {
                 return;
             }
 
-            if (useStatefulSnat) {
+            if (getStatefulSnatFlag()) {
                 osNodeService.completeNodes(GATEWAY).forEach(gwNode ->
                         setGatewayToInstanceDownstreamRule(gwNode, instPort, true));
             }
@@ -1215,7 +1223,7 @@ public class OpenstackRoutingSnatHandler {
                 return;
             }
 
-            if (useStatefulSnat) {
+            if (getStatefulSnatFlag()) {
                 osNodeService.completeNodes(GATEWAY).forEach(gwNode ->
                         setGatewayToInstanceDownstreamRule(gwNode, instPort, false));
             }
@@ -1403,7 +1411,7 @@ public class OpenstackRoutingSnatHandler {
                 return;
             }
 
-            if (useStatefulSnat && osNode.type() == GATEWAY) {
+            if (getStatefulSnatFlag() && osNode.type() == GATEWAY) {
                 instancePortService.instancePorts().forEach(instPort ->
                         setGatewayToInstanceDownstreamRule(osNode, instPort, true));
             }
@@ -1414,7 +1422,7 @@ public class OpenstackRoutingSnatHandler {
                 return;
             }
 
-            if (useStatefulSnat && osNode.type() == GATEWAY) {
+            if (getStatefulSnatFlag() && osNode.type() == GATEWAY) {
                 instancePortService.instancePorts().forEach(instPort ->
                         setGatewayToInstanceDownstreamRule(osNode, instPort, false));
             }
