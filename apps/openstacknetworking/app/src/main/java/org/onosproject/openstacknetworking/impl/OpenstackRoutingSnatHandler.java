@@ -727,6 +727,8 @@ public class OpenstackRoutingSnatHandler {
             osNetworkAdminService.deriveExternalPeerRouterMac(exGateway, osRouter, vlanId);
             osRouterService.routerInterfaces(osRouter.getId()).forEach(iface ->
                     setSourceNat(iface, exGateway.isEnableSnat()));
+
+            setStatefulDownstreamRules(osRouter, exGateway.isEnableSnat());
         }
     }
 
@@ -837,9 +839,6 @@ public class OpenstackRoutingSnatHandler {
                             .forEach(port -> setGatewayToInstanceDownstreamRule(
                                     gwNode, port, install));
 
-                    setStatefulSnatDownstreamRule(gwNode.intgBridge(),
-                            IpPrefix.valueOf(natAddress, VM_PREFIX), install);
-
                     if (install) {
                         PortRange gwPortRange = gwPortRangeMap.get(gwNode);
 
@@ -860,6 +859,20 @@ public class OpenstackRoutingSnatHandler {
                     }
 
                 });
+    }
+
+    private void setStatefulDownstreamRules(Router osRouter, boolean install) {
+
+        IpAddress natAddress = getExternalIp(osRouter, osNetworkAdminService);
+        if (natAddress == null) {
+            return;
+        }
+
+        osNodeService.completeNodes(GATEWAY)
+                .forEach(gwNode -> {
+                    setStatefulSnatDownstreamRule(gwNode.intgBridge(),
+                            IpPrefix.valueOf(natAddress, VM_PREFIX), install);
+        });
     }
 
     private List<String> getNetIdByRouterId(String routerId) {
@@ -1231,12 +1244,10 @@ public class OpenstackRoutingSnatHandler {
                     eventExecutor.execute(() -> processRouterIntfRemoval(event));
                     break;
                 case OPENSTACK_ROUTER_GATEWAY_ADDED:
-                    log.debug("Router external gateway {} added",
-                            event.externalGateway().getNetworkId());
+                    eventExecutor.execute(() -> processRouterGatewayAddition(event));
                     break;
                 case OPENSTACK_ROUTER_GATEWAY_REMOVED:
-                    log.debug("Router external gateway {} removed",
-                            event.externalGateway().getNetworkId());
+                    eventExecutor.execute(() -> processRouterGatewayRemoval(event));
                     break;
                 default:
                     break;
@@ -1289,6 +1300,28 @@ public class OpenstackRoutingSnatHandler {
                     event.routerIface().getId());
 
             routerIfaceRemoved(event.subject(), event.routerIface());
+        }
+
+        private void processRouterGatewayAddition(OpenstackRouterEvent event) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            log.debug("Router external gateway {} added",
+                    event.externalGateway().getNetworkId());
+
+            setStatefulDownstreamRules(event.subject(), true);
+        }
+
+        private void processRouterGatewayRemoval(OpenstackRouterEvent event) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            log.debug("Router external gateway {} removed",
+                    event.externalGateway().getNetworkId());
+
+            setStatefulDownstreamRules(event.subject(), false);
         }
     }
 

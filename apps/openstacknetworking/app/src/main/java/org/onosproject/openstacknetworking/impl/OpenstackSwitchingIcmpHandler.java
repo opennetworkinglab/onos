@@ -58,7 +58,6 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
@@ -73,7 +72,6 @@ import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWOR
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ICMP_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.ROUTING_TABLE;
 import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.USE_STATEFUL_SNAT;
-import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.FLAT;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getExternalIp;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValueAsBoolean;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.NXM_NX_IP_TTL;
@@ -176,34 +174,31 @@ public class OpenstackSwitchingIcmpHandler {
                 .forEach(cNode -> {
                     setRoutableSubnetsIcmpRules(cNode, segId, osSubnet,
                             routableSubnets, gatewayIp, netType, install);
-                    setExtGatewayIcmpReplyRules(cNode, routerIface,
-                            netType, install);
+                });
+    }
+
+    private void processRouteGatewayEvent(Router osRouter, boolean install) {
+        if (!getStatefulSnatFlag()) {
+            return;
+        }
+
+        osNodeService.completeNodes(COMPUTE).stream()
+                .filter(cNode -> cNode.dataIp() != null)
+                .forEach(cNode -> {
+                    setExtGatewayIcmpReplyRules(cNode, osRouter, install);
                 });
     }
 
     private void setExtGatewayIcmpReplyRules(OpenstackNode osNode,
-                                             RouterInterface routerIface,
-                                             Type networkType, boolean install) {
+                                             Router osRouter,
+                                             boolean install) {
 
-        if (networkType == FLAT) {
-            return;
-        }
-
-        Optional<Router> osRouter = osRouterService.routers().stream()
-                .filter(router -> osRouterService.routerInterfaces(routerIface.getId()) != null)
-                .findAny();
-
-        if (!osRouter.isPresent()) {
-            log.error("Cannot find a router for router interface {} ", routerIface);
-            return;
-        }
-
-        IpAddress natAddress = getExternalIp(osRouter.get(), osNetworkService);
+        IpAddress natAddress = getExternalIp(osRouter, osNetworkService);
         if (natAddress == null) {
             return;
         }
 
-        setGatewayIcmpReplyRule(osNode, null, natAddress, networkType, install);
+        setGatewayIcmpReplyRule(osNode, null, natAddress, null, install);
     }
 
     private void setRoutableSubnetsIcmpRules(OpenstackNode osNode,
@@ -296,6 +291,12 @@ public class OpenstackSwitchingIcmpHandler {
                 case OPENSTACK_ROUTER_INTERFACE_REMOVED:
                     eventExecutor.execute(() -> processRouterIntfRemoval(event));
                     break;
+                case OPENSTACK_ROUTER_GATEWAY_ADDED:
+                    eventExecutor.execute(() -> processRouterGatewayAddition(event));
+                    break;
+                case OPENSTACK_ROUTER_GATEWAY_REMOVED:
+                    eventExecutor.execute(() -> processRouterGatewayRemoval(event));
+                    break;
                 default:
                     // do nothing for the other events
                     break;
@@ -324,6 +325,28 @@ public class OpenstackSwitchingIcmpHandler {
                     event.routerIface().getId());
 
             processRouterIntfEvent(event.subject(), event.routerIface(), false);
+        }
+
+        private void processRouterGatewayAddition(OpenstackRouterEvent event) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            log.debug("Router external gateway {} added",
+                    event.externalGateway().getNetworkId());
+
+            processRouteGatewayEvent(event.subject(), true);
+        }
+
+        private void processRouterGatewayRemoval(OpenstackRouterEvent event) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            log.debug("Router external gateway {} removed",
+                    event.externalGateway().getNetworkId());
+
+            processRouteGatewayEvent(event.subject(), false);
         }
     }
 
@@ -358,6 +381,7 @@ public class OpenstackSwitchingIcmpHandler {
                 osRouterService.routerInterfaces(osRouter.getId()).forEach(iface -> {
                     processRouterIntfEvent(osRouter, iface, true);
                 });
+                processRouteGatewayEvent(osRouter, true);
             });
             log.info("Reconfigure routers for {}", osNode.hostname());
         }
