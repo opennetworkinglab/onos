@@ -404,7 +404,7 @@ public class NetconfDeviceProvider extends AbstractProvider
     //Connecting devices with initial config
     private void connectDevices() {
         Set<DeviceId> deviceSubjects = cfgService.getSubjects(DeviceId.class, NetconfDeviceConfig.class);
-        deviceSubjects.forEach(deviceId -> {
+        deviceSubjects.parallelStream().forEach(deviceId -> {
             connectionExecutor.execute(exceptionSafe(() -> runElectionFor(deviceId)));
         });
     }
@@ -412,7 +412,7 @@ public class NetconfDeviceProvider extends AbstractProvider
     //updating keys and device info
     private void checkAndUpdateDevices() {
         Set<DeviceId> deviceSubjects = cfgService.getSubjects(DeviceId.class, NetconfDeviceConfig.class);
-        deviceSubjects.forEach(deviceId -> {
+        deviceSubjects.parallelStream().forEach(deviceId -> {
             log.debug("check and update {}", deviceId);
             NetconfDeviceConfig config = cfgService.getConfig(deviceId, NetconfDeviceConfig.class);
             storeDeviceKey(config.sshKey(), config.username(), config.password(), deviceId);
