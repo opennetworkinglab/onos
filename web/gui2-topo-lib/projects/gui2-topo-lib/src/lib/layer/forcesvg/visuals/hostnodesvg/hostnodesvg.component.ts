@@ -23,7 +23,7 @@ import {
 } from '@angular/core';
 import {Host, HostLabelToggle, Node} from '../../models';
 import {LogService} from 'gui2-fw-lib';
-import {NodeVisual} from '../nodevisual';
+import {NodeVisual, SelectedEvent} from '../nodevisual';
 
 /**
  * The Host node in the force graph
@@ -40,7 +40,7 @@ export class HostNodeSvgComponent extends NodeVisual implements OnChanges {
     @Input() host: Host;
     @Input() scale: number = 1.0;
     @Input() labelToggle: HostLabelToggle.Enum = HostLabelToggle.Enum.IP;
-    @Output() selectedEvent = new EventEmitter<Node>();
+    @Output() selectedEvent = new EventEmitter<SelectedEvent>();
 
     constructor(
         protected log: LogService

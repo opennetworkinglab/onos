@@ -646,11 +646,12 @@ export class TopologyComponent implements AfterContentInit, OnInit, OnDestroy {
     /**
      * An event handler that updates the details panel as items are
      * selected in the forcesvg layer
-     * @param nodeOrLink the item to display details of
+     *
+     * @param nodesOrLink the item(s) to display details of
      */
-    nodeSelected(nodeOrLink: UiElement) {
-        this.details.ngOnChanges({'selectedNode':
-            new SimpleChange(undefined, nodeOrLink, true)});
+    nodeSelected(nodesOrLink: UiElement[]) {
+        this.details.ngOnChanges({'selectedNodes':
+            new SimpleChange(undefined, nodesOrLink, true)});
     }
 
     /**

@@ -48,6 +48,7 @@ import {
     ModelEventMemo,
     ModelEventType,
     Node,
+    Options,
     Region,
     RegionLink,
     SubRegion,
@@ -57,7 +58,7 @@ import {LocationType} from '../backgroundsvg/backgroundsvg.component';
 import {DeviceNodeSvgComponent} from './visuals/devicenodesvg/devicenodesvg.component';
 import { HostNodeSvgComponent} from './visuals/hostnodesvg/hostnodesvg.component';
 import { LinkSvgComponent} from './visuals/linksvg/linksvg.component';
-import { Options } from './models/force-directed-graph';
+import {SelectedEvent} from './visuals/nodevisual';
 
 interface UpdateMeta {
     id: string;
@@ -98,8 +99,9 @@ export class ForceSvgComponent implements OnInit, OnChanges {
     @Input() scale: number = 1;
     @Input() regionData: Region = <Region>{devices: [ [], [], [] ], hosts: [ [], [], [] ], links: []};
     @Output() linkSelected = new EventEmitter<RegionLink>();
-    @Output() selectedNodeEvent = new EventEmitter<UiElement>();
+    @Output() selectedNodeEvent = new EventEmitter<UiElement[]>();
     public graph: ForceDirectedGraph;
+    private selectedNodes: UiElement[] = [];
 
     // References to the children of this component - these are created in the
     // template view with the *ngFor and we get them by a query here
@@ -308,28 +310,52 @@ export class ForceSvgComponent implements OnInit, OnChanges {
     }
 
     /**
-     * Iterate through all hosts and devices to deselect the previously selected
+     * Iterate through all hosts and devices and links to deselect the previously selected
      * node. The emit an event to the parent that lets it know the selection has
      * changed.
+     *
+     * This function collates all of the nodes that have been selected and passes
+     * a collection of nodes up to the topology component
+     *
      * @param selectedNode the newly selected node
      */
-    updateSelected(selectedNode: UiElement): void {
-        this.log.debug('Node or link selected', selectedNode ? selectedNode.id : 'none');
-        this.devices
-            .filter((d) =>
-                selectedNode === undefined || d.device.id !== selectedNode.id)
-            .forEach((d) => d.deselect());
-        this.hosts
-            .filter((h) =>
-                selectedNode === undefined || h.host.id !== selectedNode.id)
-            .forEach((h) => h.deselect());
+    updateSelected(selectedNode: SelectedEvent): void {
+        this.log.debug('Node or link ',
+            selectedNode.uiElement,
+            selectedNode.deselecting ? 'deselected' : 'selected',
+            selectedNode.isShift ? 'Multiple' : '');
 
-        this.links
-            .filter((l) =>
-                selectedNode === undefined || l.link.id !== selectedNode.id)
-            .forEach((l) => l.deselect());
+        if (selectedNode.isShift && selectedNode.deselecting) {
+            const idx = this.selectedNodes.findIndex((n) =>
+                n.id === selectedNode.uiElement.id
+            );
+            this.selectedNodes.splice(idx, 1);
+            this.log.debug('Removed node', idx);
+
+        } else if (selectedNode.isShift) {
+            this.selectedNodes.push(selectedNode.uiElement);
+
+        } else if (selectedNode.deselecting) {
+            this.selectedNodes = [];
+
+        } else {
+            const selNodeId = selectedNode.uiElement.id;
+            // Otherwise if shift was not pressed deselect previous
+            this.devices
+                .filter((d) => d.device.id !== selNodeId)
+                .forEach((d) => d.deselect());
+            this.hosts
+                .filter((h) => h.host.id !== selNodeId)
+                .forEach((h) => h.deselect());
+
+            this.links
+                .filter((l) => l.link.id !== selNodeId)
+                .forEach((l) => l.deselect());
+
+            this.selectedNodes = [selectedNode.uiElement];
+        }
         // Push the changes back up to parent (Topology Component)
-        this.selectedNodeEvent.emit(selectedNode);
+        this.selectedNodeEvent.emit(this.selectedNodes);
     }
 
     /**

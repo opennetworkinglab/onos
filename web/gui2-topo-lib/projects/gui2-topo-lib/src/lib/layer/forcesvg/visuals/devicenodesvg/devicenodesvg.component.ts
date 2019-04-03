@@ -24,7 +24,7 @@ import {
 } from '@angular/core';
 import {Device, LabelToggle, UiElement} from '../../models';
 import {IconService, LocMeta, LogService, MetaUi, ZoomUtils} from 'gui2-fw-lib';
-import {NodeVisual} from '../nodevisual';
+import {NodeVisual, SelectedEvent} from '../nodevisual';
 import {animate, state, style, transition, trigger} from '@angular/animations';
 import {LocationType} from '../../../backgroundsvg/backgroundsvg.component';
 
@@ -68,7 +68,7 @@ export class DeviceNodeSvgComponent extends NodeVisual implements OnChanges {
     @Input() device: Device;
     @Input() scale: number = 1.0;
     @Input() labelToggle: LabelToggle.Enum = LabelToggle.Enum.NONE;
-    @Output() selectedEvent = new EventEmitter<UiElement>();
+    @Output() selectedEvent = new EventEmitter<SelectedEvent>();
     textWidth: number = 36;
     constructor(
         protected log: LogService,

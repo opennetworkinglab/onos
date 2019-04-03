@@ -74,7 +74,7 @@ export class MapSelectorComponent extends DetailsPanelBaseImpl implements OnInit
     }
 
     /**
-     * Read the LION bundle for Details panel and set up the lionFn
+     * Read the LION bundle for panel and set up the lionFn
      */
     doLion() {
         this.lionFn = this.lion.bundle('core.view.Topo');

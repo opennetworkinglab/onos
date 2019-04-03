@@ -47,7 +47,7 @@
 <svg:g xmlns:svg="http://www.w3.org/2000/svg"
        [attr.transform]="'translate(' + device?.x + ',' + device?.y + '), scale(' + scale + ')'"
         [ngClass]="['node', 'device', device.online?'online':'', selected?'selected':'']"
-        (click)="toggleSelected(device)">
+        (click)="toggleSelected(device, $event)">
     <svg:desc>Device {{device.id}}</svg:desc>
     <!-- Template explanation: Creates an SVG Rectangle and in
         line 1) set a css style and shift so that it's centred

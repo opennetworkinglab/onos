@@ -45,7 +45,7 @@
 <svg:g  xmlns:svg="http://www.w3.org/2000/svg"
         [attr.transform]="'translate(' + host?.x + ',' + host?.y + '), scale(' + scale + ')'"
         [ngClass]="['node', 'host', 'endstation', 'fixed', selected?'selected':'', 'hovered']"
-        (click)="toggleSelected(host)">
+        (click)="toggleSelected(host, $event)">
     <svg:desc>Host {{host.id}}</svg:desc>
     <!-- Template explanation: Creates an SVG Circle and in
         line 1) Apply the drop shadow defined above to this circle

@@ -20,7 +20,7 @@ import {
 } from '@angular/core';
 import {Link, LinkHighlight, UiElement} from '../../models';
 import {LogService} from 'gui2-fw-lib';
-import {NodeVisual} from '../nodevisual';
+import {NodeVisual, SelectedEvent} from '../nodevisual';
 import {animate, state, style, transition, trigger} from '@angular/animations';
 
 interface Point {
@@ -52,7 +52,7 @@ export class LinkSvgComponent extends NodeVisual implements OnChanges {
     @Input() label: string;
     @Input() scale = 1.0;
     isHighlighted: boolean = false;
-    @Output() selectedEvent = new EventEmitter<UiElement>();
+    @Output() selectedEvent = new EventEmitter<SelectedEvent>();
     @Output() enhancedEvent = new EventEmitter<Link>();
     enhanced: boolean = false;
     labelPosSrc: Point = {x: 0, y: 0};
