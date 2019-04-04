@@ -34,9 +34,6 @@
             <action class="org.onosproject.openstacknetworking.cli.OpenstackFloatingIpListCommand"/>
         </command>
         <command>
-            <action class="org.onosproject.openstacknetworking.cli.OpenstackPurgeStateCommand"/>
-        </command>
-        <command>
             <action class="org.onosproject.openstacknetworking.cli.OpenstackSyncStateCommand"/>
         </command>
         <command>

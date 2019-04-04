@@ -81,30 +81,6 @@ public class OpenstackManagementWebResourceTest extends ResourceTest {
     }
 
     /**
-     * Tests the purge states method.
-     */
-    @Test
-    public void testPurgeStates() {
-        mockOpenstackRouterAdminService.clear();
-        replay(mockOpenstackRouterAdminService);
-
-        mockOpenstackNetworkAdminService.clear();
-        replay(mockOpenstackNetworkAdminService);
-
-        mockOpenstackSecurityGroupAdminService.clear();
-        replay(mockOpenstackSecurityGroupAdminService);
-
-        final WebTarget wt = target();
-
-        Response response = wt.path(PATH + "/purge/states")
-                                .request()
-                                .get();
-        final int status = response.getStatus();
-
-        assertThat(status, is(200));
-    }
-
-    /**
      * Tests the get all floating IPs method.
      */
     @Test
