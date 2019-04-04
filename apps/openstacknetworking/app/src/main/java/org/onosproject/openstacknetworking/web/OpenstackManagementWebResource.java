@@ -202,23 +202,6 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
     }
 
     /**
-     * Purges the network states.
-     *
-     * @return 200 OK with purge result, 404 not found
-     */
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("purge/states")
-    public Response purgeStates() {
-
-        osRouterAdminService.clear();
-        osNetAdminService.clear();
-        osSgAdminService.clear();
-
-        return ok(mapper().createObjectNode()).build();
-    }
-
-    /**
      * Purges the flow rules installed by openstacknetworking.
      *
      * @return 200 OK with purge result, 404 not found

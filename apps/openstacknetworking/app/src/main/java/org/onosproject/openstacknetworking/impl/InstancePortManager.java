@@ -51,10 +51,13 @@ import org.slf4j.Logger;
 
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.openstacknetworking.api.Constants.ANNOTATION_NETWORK_ID;
 import static org.onosproject.openstacknetworking.api.Constants.ANNOTATION_PORT_ID;
 import static org.onosproject.openstacknetworking.api.InstancePort.State.ACTIVE;
@@ -110,6 +113,8 @@ public class InstancePortManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OpenstackRouterService routerService;
 
+    private final ExecutorService eventExecutor = newSingleThreadExecutor(
+            groupedThreads(this.getClass().getSimpleName(), "event-handler"));
     private final InstancePortStoreDelegate
                             delegate = new InternalInstancePortStoreDelegate();
     private final InternalHostListener
@@ -308,19 +313,28 @@ public class InstancePortManager
 
             switch (event.type()) {
                 case HOST_UPDATED:
-                    updateInstancePort(instPort);
+                    eventExecutor.execute(() -> processHostUpdate(instPort));
                     break;
                 case HOST_ADDED:
-                    processHostAddition(instPort);
+                    eventExecutor.execute(() -> processHostAddition(instPort));
                     break;
                 case HOST_REMOVED:
-                    processHostRemoval(instPort);
+                    eventExecutor.execute(() -> processHostRemoval(instPort));
                     break;
                 case HOST_MOVED:
-                    processHostMove(event, instPort);
+                    eventExecutor.execute(() -> processHostMove(event, instPort));
                     break;
                 default:
                     break;
+            }
+        }
+
+        private void processHostUpdate(InstancePort instPort) {
+            InstancePort existingPort = instancePort(instPort.portId());
+            if (existingPort == null) {
+                createInstancePort(instPort);
+            } else {
+                updateInstancePort(instPort);
             }
         }
 

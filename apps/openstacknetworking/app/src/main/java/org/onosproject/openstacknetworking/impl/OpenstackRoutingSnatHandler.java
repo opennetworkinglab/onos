@@ -61,6 +61,8 @@ import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
 import org.onosproject.openstacknetworking.api.OpenstackNetwork.Type;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
+import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent;
+import org.onosproject.openstacknetworking.api.OpenstackNetworkListener;
 import org.onosproject.openstacknetworking.api.OpenstackRouterEvent;
 import org.onosproject.openstacknetworking.api.OpenstackRouterListener;
 import org.onosproject.openstacknetworking.api.OpenstackRouterService;
@@ -109,7 +111,6 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_EXTERNA
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SNAT_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_STATEFUL_SNAT_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.ROUTING_TABLE;
-import static org.onosproject.openstacknetworking.api.InstancePort.State.ACTIVE;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.FLAT;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.VLAN;
 import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.USE_STATEFUL_SNAT;
@@ -144,6 +145,7 @@ public class OpenstackRoutingSnatHandler {
     private static final int TP_PORT_MINIMUM_NUM = 1025;
     private static final int TP_PORT_MAXIMUM_NUM = 65535;
     private static final int VM_PREFIX = 32;
+    private static final String DEVICE_OWNER_ROUTER_GW = "network:router_gateway";
 
     private static final String MSG_ENABLED = "Enabled ";
     private static final String MSG_DISABLED = "Disabled ";
@@ -206,6 +208,7 @@ public class OpenstackRoutingSnatHandler {
     private final InstancePortListener instancePortListener = new InternalInstancePortListener();
     private final OpenstackRouterListener osRouterListener = new InternalRouterEventListener();
     private final OpenstackNodeListener osNodeListener = new InternalNodeEventListener();
+    private final OpenstackNetworkListener osNetworkListener = new InternalNetworkEventListener();
 
     private ConsistentMap<Integer, Long> allocatedPortNumMap;
     private DistributedSet<Integer> unUsedPortNumSet;
@@ -236,6 +239,7 @@ public class OpenstackRoutingSnatHandler {
         instancePortService.addListener(instancePortListener);
         osRouterService.addListener(osRouterListener);
         osNodeService.addListener(osNodeListener);
+        osNetworkAdminService.addListener(osNetworkListener);
 
         eventExecutor.execute(this::initializeUnusedPortNumSet);
 
@@ -244,6 +248,7 @@ public class OpenstackRoutingSnatHandler {
 
     @Deactivate
     protected void deactivate() {
+        osNetworkAdminService.removeListener(osNetworkListener);
         osRouterService.removeListener(osRouterListener);
         osNodeService.removeListener(osNodeListener);
         instancePortService.removeListener(instancePortListener);
@@ -729,8 +734,6 @@ public class OpenstackRoutingSnatHandler {
             osNetworkAdminService.deriveExternalPeerRouterMac(exGateway, osRouter, vlanId);
             osRouterService.routerInterfaces(osRouter.getId()).forEach(iface ->
                     setSourceNat(iface, exGateway.isEnableSnat()));
-
-            setStatefulDownstreamRules(osRouter, exGateway.isEnableSnat());
         }
     }
 
@@ -828,39 +831,29 @@ public class OpenstackRoutingSnatHandler {
             return;
         }
 
-        String netId = osNetworkAdminService.subnet(routerIface.getSubnetId()).getNetworkId();
-
         Map<OpenstackNode, PortRange> gwPortRangeMap = getAssignedPortsForGateway(
                 ImmutableList.copyOf(osNodeService.nodes(GATEWAY)));
 
-        osNodeService.completeNodes(GATEWAY)
-                .forEach(gwNode -> {
-                    instancePortService.instancePorts(netId)
-                            .stream()
-                            .filter(port -> port.state() == ACTIVE)
-                            .forEach(port -> setGatewayToInstanceDownstreamRule(
-                                    gwNode, port, install));
+        osNodeService.completeNodes(GATEWAY).forEach(gwNode -> {
+            if (install) {
+                PortRange gwPortRange = gwPortRangeMap.get(gwNode);
 
-                    if (install) {
-                        PortRange gwPortRange = gwPortRangeMap.get(gwNode);
+                Map<String, PortRange> netPortRangeMap =
+                        getAssignedPortsForNet(getNetIdByRouterId(routerIface.getId()),
+                                gwPortRange.min(), gwPortRange.max());
 
-                        Map<String, PortRange> netPortRangeMap =
-                                getAssignedPortsForNet(getNetIdByRouterId(routerIface.getId()),
-                                        gwPortRange.min(), gwPortRange.max());
+                PortRange netPortRange = netPortRangeMap.get(osNet.getId());
 
-                        PortRange netPortRange = netPortRangeMap.get(osNet.getId());
-
-                        setStatefulSnatUpstreamRule(gwNode, natAddress,
-                                Long.parseLong(osNet.getProviderSegID()),
-                                externalPeerRouter, netPortRange.min(),
-                                netPortRange.max(), install);
-                    } else {
-                        setStatefulSnatUpstreamRule(gwNode, natAddress,
-                                Long.parseLong(osNet.getProviderSegID()),
-                                externalPeerRouter, 0, 0, install);
-                    }
-
-                });
+                setStatefulSnatUpstreamRule(gwNode, natAddress,
+                        Long.parseLong(osNet.getProviderSegID()),
+                        externalPeerRouter, netPortRange.min(),
+                        netPortRange.max(), install);
+            } else {
+                setStatefulSnatUpstreamRule(gwNode, natAddress,
+                        Long.parseLong(osNet.getProviderSegID()),
+                        externalPeerRouter, 0, 0, install);
+            }
+        });
     }
 
     private void setStatefulDownstreamRules(Router osRouter, boolean install) {
@@ -874,11 +867,15 @@ public class OpenstackRoutingSnatHandler {
             return;
         }
 
+        setStatefulDownstreamRules(natAddress, install);
+    }
+
+    private void setStatefulDownstreamRules(IpAddress natAddress, boolean install) {
         osNodeService.completeNodes(GATEWAY)
                 .forEach(gwNode -> {
                     setStatefulSnatDownstreamRule(gwNode.intgBridge(),
                             IpPrefix.valueOf(natAddress, VM_PREFIX), install);
-        });
+                });
     }
 
     private List<String> getNetIdByRouterId(String routerId) {
@@ -1234,6 +1231,67 @@ public class OpenstackRoutingSnatHandler {
         }
     }
 
+    private class InternalNetworkEventListener implements OpenstackNetworkListener {
+
+        @Override
+        public boolean isRelevant(OpenstackNetworkEvent event) {
+            Port osPort = event.port();
+            if (osPort == null || osPort.getFixedIps() == null) {
+                return false;
+            }
+
+            return DEVICE_OWNER_ROUTER_GW.equals(osPort.getDeviceOwner()) &&
+                    getStatefulSnatFlag();
+        }
+
+        private boolean isRelevantHelper() {
+            return Objects.equals(localNodeId, leadershipService.getLeader(appId.name()));
+        }
+
+        @Override
+        public void event(OpenstackNetworkEvent event) {
+            IpAddress ipAddress = externalIp(event.port());
+            switch (event.type()) {
+                case OPENSTACK_PORT_CREATED:
+                case OPENSTACK_PORT_UPDATED:
+                    eventExecutor.execute(() -> processPortCreation(ipAddress));
+                    break;
+                case OPENSTACK_PORT_REMOVED:
+                    eventExecutor.execute(() -> processPortRemoval(ipAddress));
+                    break;
+                default:
+                    // do nothing
+                    break;
+            }
+        }
+
+        private void processPortCreation(IpAddress ipAddress) {
+            if (!isRelevantHelper() || ipAddress == null) {
+                return;
+            }
+
+            setStatefulDownstreamRules(ipAddress, true);
+        }
+
+        private void processPortRemoval(IpAddress ipAddress) {
+            if (!isRelevantHelper() || ipAddress == null) {
+                return;
+            }
+
+            setStatefulDownstreamRules(ipAddress, false);
+        }
+
+        private IpAddress externalIp(Port port) {
+            IP ip = port.getFixedIps().stream().findAny().orElse(null);
+
+            if (ip != null && ip.getIpAddress() != null) {
+                return IpAddress.valueOf(ip.getIpAddress());
+            }
+
+            return null;
+        }
+    }
+
     private class InternalRouterEventListener implements OpenstackRouterListener {
 
         private boolean isRelevantHelper() {
@@ -1254,12 +1312,6 @@ public class OpenstackRoutingSnatHandler {
                     break;
                 case OPENSTACK_ROUTER_INTERFACE_REMOVED:
                     eventExecutor.execute(() -> processRouterIntfRemoval(event));
-                    break;
-                case OPENSTACK_ROUTER_GATEWAY_ADDED:
-                    eventExecutor.execute(() -> processRouterGatewayAddition(event));
-                    break;
-                case OPENSTACK_ROUTER_GATEWAY_REMOVED:
-                    eventExecutor.execute(() -> processRouterGatewayRemoval(event));
                     break;
                 default:
                     break;
@@ -1312,28 +1364,6 @@ public class OpenstackRoutingSnatHandler {
                     event.routerIface().getId());
 
             routerIfaceRemoved(event.subject(), event.routerIface());
-        }
-
-        private void processRouterGatewayAddition(OpenstackRouterEvent event) {
-            if (!isRelevantHelper()) {
-                return;
-            }
-
-            log.debug("Router external gateway {} added",
-                    event.externalGateway().getNetworkId());
-
-            setStatefulDownstreamRules(event.subject(), true);
-        }
-
-        private void processRouterGatewayRemoval(OpenstackRouterEvent event) {
-            if (!isRelevantHelper()) {
-                return;
-            }
-
-            log.debug("Router external gateway {} removed",
-                    event.externalGateway().getNetworkId());
-
-            setStatefulDownstreamRules(event.subject(), false);
         }
     }
 
@@ -1442,6 +1472,8 @@ public class OpenstackRoutingSnatHandler {
                 osRouterService.routerInterfaces(osRouter.getId()).forEach(iface -> {
                     routerIfaceAdded(osRouter, iface);
                 });
+
+                setStatefulDownstreamRules(osRouter, true);
             });
             log.info("Reconfigure routers for {}", osNode.hostname());
         }
