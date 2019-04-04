@@ -248,7 +248,7 @@ ONOS_APPS = [
     '//apps/mcast:onos-apps-mcast-oar',
     '//apps/layout:onos-apps-layout-oar',
     '//apps/imr:onos-apps-imr-oar',
-    '//apps/packet-throttle:onos-apps-packet-throttle-oar',
+    '//apps/workflow:onos-apps-workflow-oar',
 ]
 
 PROTOCOL_APPS = [

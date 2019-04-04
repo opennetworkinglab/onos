@@ -1,0 +1,317 @@
+{
+    "apps": {
+        "org.onosproject.workflow": {
+          "workflow" : {
+            "rpc" : [
+              {
+                "op"   : "workflow.invoke",
+                "params" : {
+                  "workplace" : "Nova-000",
+                  "id"        : "of-overlay.workflow-nova",
+                  "data"      : {
+
+                    "mgmtIp" : "192.168.10.8",
+                    "ovsdbPort" : 6641,
+
+                    "sshAccessInfo" : {
+                      "remoteIp" : "192.168.10.8",
+                      "port"     : 22,
+                      "user"     : "root",
+                      "password" : "iloveyou",
+                      "keyfile"  : "~/.ssh/id_rsa"
+                    },
+
+                    "ovsDatapathType" : "system",
+                    "physicalPorts" : [ "nova0_1" ],
+                    "vtepIp" : "120.0.0.200/24",
+
+                    "annotations" : {
+                      "rackId" : 1,
+                      "rackPosition" : 3
+                    }
+
+                  }
+                },
+                "id" : "00001@10.0.0.1"
+              },
+              {
+                "op"   : "workflow.invoke",
+                "params" : {
+                  "workplace" : "Nova-001",
+                  "id"        : "of-overlay.workflow-nova",
+                  "data"      : {
+
+                    "mgmtIp" : "192.168.10.9",
+                    "ovsdbPort" : 6641,
+
+                    "sshAccessInfo" : {
+                      "remoteIp" : "192.168.10.9",
+                      "port"     : 22,
+                      "user"     : "root",
+                      "password" : "iloveyou",
+                      "keyfile"  : "~/.ssh/id_rsa"
+                    },
+
+                    "ovsDatapathType" : "system",
+                    "physicalPorts" : [ "nova1_1" ],
+                    "vtepIp" : "120.0.0.201/24",
+
+                    "annotations" : {
+                      "rackId" : 1,
+                      "rackPosition" : 3
+                    }
+
+                  }
+                },
+                "id" : "00001@10.0.0.1"
+              },
+              {
+                "op"   : "workflow.invoke",
+                "params" : {
+                  "workplace" : "Nova-002",
+                  "id"        : "of-overlay.workflow-nova",
+                  "data"      : {
+
+                    "mgmtIp" : "192.168.10.10",
+                    "ovsdbPort" : 6641,
+
+                    "sshAccessInfo" : {
+                      "remoteIp" : "192.168.10.10",
+                      "port"     : 22,
+                      "user"     : "root",
+                      "password" : "iloveyou",
+                      "keyfile"  : "~/.ssh/id_rsa"
+                    },
+
+                    "ovsDatapathType" : "system",
+                    "physicalPorts" : [ "nova2_1" ],
+                    "vtepIp" : "120.0.0.202/24",
+
+                    "annotations" : {
+                      "rackId" : 1,
+                      "rackPosition" : 3
+                    }
+
+                  }
+                },
+                "id" : "00001@10.0.0.1"
+              },
+              {
+                "op"   : "workflow.invoke",
+                "params" : {
+                  "workplace" : "Nova-003",
+                  "id"        : "of-overlay.workflow-nova",
+                  "data"      : {
+
+                    "mgmtIp" : "192.168.10.11",
+                    "ovsdbPort" : 6641,
+
+                    "sshAccessInfo" : {
+                      "remoteIp" : "192.168.10.11",
+                      "port"     : 22,
+                      "user"     : "root",
+                      "password" : "iloveyou",
+                      "keyfile"  : "~/.ssh/id_rsa"
+                    },
+
+                    "ovsDatapathType" : "system",
+                    "physicalPorts" : [ "nova3_1" ],
+                    "vtepIp" : "120.0.0.203/24",
+
+                    "annotations" : {
+                      "rackId" : 1,
+                      "rackPosition" : 3
+                    }
+
+                  }
+                },
+                "id" : "00001@10.0.0.1"
+              },
+
+              {
+                "op"   : "workflow.invoke",
+                "params" : {
+                  "workplace" : "Leaf-000",
+                  "id"        : "of-overlay.workflow-ovs-leaf",
+                  "data"      : {
+
+                    "mgmtIp" : "192.168.10.4",
+                    "ovsdbPort" : 6641,
+
+                    "sshAccessInfo" : {
+                      "remoteIp" : "192.168.10.4",
+                      "port"     : 22,
+                      "user"     : "root",
+                      "password" : "iloveyou",
+                      "keyfile"  : "~/.ssh/id_rsa"
+                    },
+
+                    "ovsDatapathType" : "system",
+                    "physicalPorts" : [ "leaf0_0", "leaf0_1", "leaf0_nova00" ],
+
+                    "annotations" : {
+                      "rackId" : 1,
+                      "rackPosition" : 3
+                    }
+
+                  }
+                },
+                "id" : "00001@10.0.0.1"
+              },
+              {
+                "op"   : "workflow.invoke",
+                "params" : {
+                  "workplace" : "Leaf-001",
+                  "id"        : "of-overlay.workflow-ovs-leaf",
+                  "data"      : {
+
+                    "mgmtIp" : "192.168.10.5",
+                    "ovsdbPort" : 6641,
+
+                    "sshAccessInfo" : {
+                      "remoteIp" : "192.168.10.5",
+                      "port"     : 22,
+                      "user"     : "root",
+                      "password" : "iloveyou",
+                      "keyfile"  : "~/.ssh/id_rsa"
+                    },
+
+                    "ovsDatapathType" : "system",
+                    "physicalPorts" : [ "leaf1_0", "leaf1_1", "leaf1_nova10" ],
+
+                    "annotations" : {
+                      "rackId" : 1,
+                      "rackPosition" : 3
+                    }
+
+                  }
+                },
+                "id" : "00001@10.0.0.1"
+              },
+              {
+                "op"   : "workflow.invoke",
+                "params" : {
+                  "workplace" : "Leaf-002",
+                  "id"        : "of-overlay.workflow-ovs-leaf",
+                  "data"      : {
+
+                    "mgmtIp" : "192.168.10.6",
+                    "ovsdbPort" : 6641,
+
+                    "sshAccessInfo" : {
+                      "remoteIp" : "192.168.10.6",
+                      "port"     : 22,
+                      "user"     : "root",
+                      "password" : "iloveyou",
+                      "keyfile"  : "~/.ssh/id_rsa"
+                    },
+
+                    "ovsDatapathType" : "system",
+                    "physicalPorts" : [ "leaf2_0", "leaf2_1", "leaf2_nova20" ],
+
+                    "annotations" : {
+                      "rackId" : 1,
+                      "rackPosition" : 3
+                    }
+
+                  }
+                },
+                "id" : "00001@10.0.0.1"
+              },
+
+              {
+                "op"   : "workflow.invoke",
+                "params" : {
+                  "workplace" : "Leaf-003",
+                  "id"        : "of-overlay.workflow-ovs-leaf",
+                  "data"      : {
+
+                    "mgmtIp" : "192.168.10.7",
+                    "ovsdbPort" : 6641,
+
+                    "sshAccessInfo" : {
+                      "remoteIp" : "192.168.10.7",
+                      "port"     : 22,
+                      "user"     : "root",
+                      "password" : "iloveyou",
+                      "keyfile"  : "~/.ssh/id_rsa"
+                    },
+
+                    "ovsDatapathType" : "system",
+                    "physicalPorts" : [ "leaf3_0", "leaf3_1", "leaf3_nova30" ],
+
+                    "annotations" : {
+                      "rackId" : 1,
+                      "rackPosition" : 3
+                    }
+
+                  }
+                },
+                "id" : "00001@10.0.0.1"
+              },
+              {
+                "op"   : "workflow.invoke",
+                "params" : {
+                  "workplace" : "Spine-000",
+                  "id"        : "of-overlay.workflow-ovs-spine",
+                  "data"      : {
+
+                    "mgmtIp" : "192.168.10.2",
+                    "ovsdbPort" : 6641,
+
+                    "sshAccessInfo" : {
+                      "remoteIp" : "192.168.10.2",
+                      "port"     : 22,
+                      "user"     : "root",
+                      "password" : "iloveyou",
+                      "keyfile"  : "~/.ssh/id_rsa"
+                    },
+
+                    "ovsDatapathType" : "system",
+                    "physicalPorts" : [ "spine0_0", "spine0_1", "spine0_2", "spine0_3" ],
+
+                    "annotations" : {
+                      "rackId" : 1,
+                      "rackPosition" : 3
+                    }
+
+                  }
+                },
+                "id" : "00001@10.0.0.1"
+              },
+              {
+                "op"   : "workflow.invoke",
+                "params" : {
+                  "workplace" : "Spine-001",
+                  "id"        : "of-overlay.workflow-ovs-spine",
+                  "data"      : {
+
+                    "mgmtIp" : "192.168.10.3",
+                    "ovsdbPort" : 6641,
+
+                    "sshAccessInfo" : {
+                      "remoteIp" : "192.168.10.3",
+                      "port"     : 22,
+                      "user"     : "root",
+                      "password" : "iloveyou",
+                      "keyfile"  : "~/.ssh/id_rsa"
+                    },
+
+                    "ovsDatapathType" : "system",
+                    "physicalPorts" : [ "spine1_0", "spine1_1", "spine1_2", "spine1_3" ],
+
+                    "annotations" : {
+                      "rackId" : 1,
+                      "rackPosition" : 3
+                    }
+
+                  }
+                },
+                "id" : "00001@10.0.0.1"
+              }
+
+            ]
+          }
+        }
+    }
+}

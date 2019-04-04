@@ -1,0 +1,98 @@
+{
+    "apps": {
+        "org.onosproject.workflow": {
+          "workflow" : {
+            "rpc" : [
+              {
+                "op"   : "workflow.invoke",
+                "params" : {
+                  "workplace" : "Nova-000",
+                  "id"        : "of-overlay.clean-workflow-nova",
+                  "data"      : {
+
+                    "mgmtIp" : "192.168.10.8",
+                    "ovsdbPort" : 6641,
+
+                    "sshAccessInfo" : {
+                      "remoteIp" : "192.168.10.8",
+                      "port"     : 22,
+                      "user"     : "root",
+                      "password" : "iloveyou",
+                      "keyfile"  : "~/.ssh/id_rsa"
+                    }
+                  }
+                },
+                "id" : "00001@10.0.0.1"
+              },
+              {
+                "op"   : "workflow.invoke",
+                "params" : {
+                  "workplace" : "Nova-001",
+                  "id"        : "of-overlay.clean-workflow-nova",
+                  "data"      : {
+
+                    "mgmtIp" : "192.168.10.9",
+                    "ovsdbPort" : 6641,
+
+                    "sshAccessInfo" : {
+                      "remoteIp" : "192.168.10.9",
+                      "port"     : 22,
+                      "user"     : "root",
+                      "password" : "iloveyou",
+                      "keyfile"  : "~/.ssh/id_rsa"
+                    }
+                  }
+                },
+                "id" : "00001@10.0.0.1"
+              },
+              {
+                "op"   : "workflow.invoke",
+                "params" : {
+                  "workplace" : "Nova-002",
+                  "id"        : "of-overlay.clean-workflow-nova",
+                  "data"      : {
+
+                    "mgmtIp" : "192.168.10.10",
+                    "ovsdbPort" : 6641,
+
+                    "sshAccessInfo" : {
+                      "remoteIp" : "192.168.10.10",
+                      "port"     : 22,
+                      "user"     : "root",
+                      "password" : "iloveyou",
+                      "keyfile"  : "~/.ssh/id_rsa"
+                    }
+                  }
+                },
+                "id" : "00001@10.0.0.1"
+              },
+              {
+                "op"   : "workflow.invoke",
+                "params" : {
+                  "workplace" : "Nova-003",
+                  "id"        : "of-overlay.clean-workflow-nova",
+                  "data"      : {
+
+                    "mgmtIp" : "192.168.10.11",
+                    "ovsdbPort" : 6641,
+
+                    "sshAccessInfo" : {
+                      "remoteIp" : "192.168.10.11",
+                      "port"     : 22,
+                      "user"     : "root",
+                      "password" : "iloveyou",
+                      "keyfile"  : "~/.ssh/id_rsa"
+                    }
+                  }
+                },
+                "id" : "00001@10.0.0.1"
+              }
+
+
+            ]
+
+          }
+
+        }
+    }
+}

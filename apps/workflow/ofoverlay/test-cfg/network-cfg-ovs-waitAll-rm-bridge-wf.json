@@ -1,0 +1,34 @@
+{
+    "apps": {
+        "org.onosproject.workflow": {
+          "workflow" : {
+            "rpc" : [
+              {
+                "op"   : "workflow.invoke",
+                "params" : {
+                  "workplace" : "Nova-000",
+                  "id"        : "of-overlay.clean-workflow-nova-waitAll-Bridge-Del",
+                  "data"      : {
+
+                    "mgmtIp" : "192.168.10.8",
+                    "ovsdbPort" : 6641,
+
+                    "sshAccessInfo" : {
+                      "remoteIp" : "192.168.10.8",
+                      "port"     : 22,
+                      "user"     : "root",
+                      "password" : "iloveyou",
+                      "keyfile"  : "~/.ssh/id_rsa"
+                    }
+                  }
+                },
+                "id" : "00001@10.0.0.1"
+              }
+
+            ]
+
+          }
+
+        }
+    }
+}

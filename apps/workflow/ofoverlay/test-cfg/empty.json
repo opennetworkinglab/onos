@@ -1,0 +1,12 @@
+{
+    "apps": {
+        "org.onosproject.workflow": {
+          "workflow" : {
+            "rpc" : [
+            ]
+
+          }
+
+        }
+    }
+}
