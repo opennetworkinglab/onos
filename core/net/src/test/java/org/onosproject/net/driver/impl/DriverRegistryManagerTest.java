@@ -54,7 +54,7 @@ public class DriverRegistryManagerTest {
         mgr.deviceService = new DeviceServiceAdapter();
         mgr.componentConfigService = new ComponentConfigAdapter();
         mgr.eventDispatcher = new TestEventDispatcher();
-        mgr.componenService = componentService;
+        mgr.componentService = componentService;
         mgr.activate(null);
     }
 

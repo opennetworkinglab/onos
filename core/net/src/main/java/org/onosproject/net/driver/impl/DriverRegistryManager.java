@@ -89,7 +89,7 @@ public class DriverRegistryManager extends DefaultDriverProvider implements Driv
     protected ComponentConfigService componentConfigService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    protected ComponentService componenService;
+    protected ComponentService componentService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected EventDeliveryService eventDispatcher;
@@ -181,11 +181,11 @@ public class DriverRegistryManager extends DefaultDriverProvider implements Driv
         boolean isReady = driverSet.containsAll(requiredDriverSet);
         if (isReady && !isStarted) {
             log.info("Starting driver subsystem");
-            componenService.activate(null, DRIVER_COMPONENT);
+            componentService.activate(null, DRIVER_COMPONENT);
             isStarted = true;
         } else if (!isReady && isStarted) {
             log.info("Stopping driver subsystem");
-            componenService.deactivate(null, DRIVER_COMPONENT);
+            componentService.deactivate(null, DRIVER_COMPONENT);
             isStarted = false;
         }
     }
