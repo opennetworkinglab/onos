@@ -35,6 +35,7 @@
         <module>faultmanagement</module>
         <module>fwd</module>
         <module>packet-stats</module>
+        <module>packet-throttle</module>
         <module>mobility</module>
         <module>proxyarp</module>
         <module>sdnip</module>
