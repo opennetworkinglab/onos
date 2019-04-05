@@ -25,7 +25,7 @@
     <groupId>org.onosproject</groupId>
     <artifactId>onos-apps-packet-stats</artifactId>
     <version>1.12.2-SNAPSHOT</version>
-    <packaging>bundle</packaging>
+    <packaging>pom</packaging>
 
     <description>ONOS OSGi bundle archetype</description>
     <url>http://onosproject.org</url>
