@@ -25,7 +25,6 @@
     </parent>
 
     <artifactId>onos-apps-packet-stats-app</artifactId>
-    <version>1.13.9-SNAPSHOT</version>
     <packaging>bundle</packaging>
 
     <description>ONOS OSGi bundle archetype</description>

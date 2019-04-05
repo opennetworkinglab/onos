@@ -26,12 +26,11 @@
 
     <groupId>org.onosproject</groupId>
     <artifactId>onos-apps-packet-throttle-app</artifactId>
-    <version>1.12.2-SNAPSHOT</version>
     <packaging>bundle</packaging>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <onos.version>1.12.2-SNAPSHOT</onos.version>
+        <onos.version>${onos.version}</onos.version>
     </properties>
 
     <dependencies>
