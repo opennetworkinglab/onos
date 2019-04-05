@@ -26,16 +26,6 @@
     <artifactId>onos-apps-dhcprelay-web</artifactId>
     <packaging>bundle</packaging>
 
-    <properties>
-        <web.context>/onos/v1/dhcprelay</web.context>
-        <api.version>1.0.0</api.version>
-        <api.title>ONOS DHCP Relay Agent Application REST API</api.title>
-        <api.description>
-            APIs for interacting with the DHCP Relay Agent application.
-        </api.description>
-        <api.package>org.onosproject.dhcprelay.web</api.package>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.onosproject</groupId>
