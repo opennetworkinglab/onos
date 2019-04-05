@@ -429,10 +429,10 @@ public class RestDeviceProvider extends AbstractProvider
                                 new DefaultDeviceDescription(
                                         updatedDeviceDescription, true,
                                         updatedDeviceDescription.annotations()));
-                        //if ports are not discovered, retry the discovery
-                        if (deviceService.getPorts(deviceId).isEmpty()) {
-                            discoverPorts(deviceId);
-                        }
+                    }
+                    //if ports are not discovered, retry the discovery
+                    if (deviceService.getPorts(deviceId).isEmpty()) {
+                        discoverPorts(deviceId);
                     }
                 } else {
                     log.warn("No DeviceDescriptionDiscovery behaviour for device {}", deviceId);
