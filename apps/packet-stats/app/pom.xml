@@ -33,7 +33,6 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <onos.version>1.12.2-SNAPSHOT</onos.version>
         <onos.app.name>org.onosproject.packetstats</onos.app.name>
         <onos.app.title>onos-apps-packet-stats-app</onos.app.title>
         <onos.app.origin>Raleigh, NC Comcast</onos.app.origin>
@@ -51,7 +50,7 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onlab-osgi</artifactId>
-            <version>${onos.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -62,18 +61,18 @@
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-cli</artifactId>
-            <version>${onos.version}</version>
+            <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-apps-route-service-app</artifactId>
-            <version>${onos.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onlab-misc</artifactId>
-            <version>${onos.version}</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>

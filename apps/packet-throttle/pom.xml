@@ -27,21 +27,9 @@
     <groupId>org.onosproject</groupId>
     <artifactId>onos-apps-packet-throttle</artifactId>
     <version>1.12.2-SNAPSHOT</version>
-    <packaging>bundle</packaging>
+    <packaging>pom</packaging>
 
     <description>Packet throttle application to make ONOS drop packets crossing threshold.</description>
-
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <onos.version>1.12.2-SNAPSHOT</onos.version>
-        <onos.app.name>org.onosproject.packetthrottle</onos.app.name>
-        <onos.app.title>onos-apps-packet-throttle</onos.app.title>
-        <onos.app.origin>Infosys, Inc.</onos.app.origin>
-        <onos.app.category>Traffic Steering</onos.app.category>
-        <onos.app.url>http://onosproject.org</onos.app.url>
-        <onos.app.readme>Packet throttle application to make ONOS drop non-important packets.</onos.app.readme>
-    </properties>
 
     <modules>
         <module>app</module>
