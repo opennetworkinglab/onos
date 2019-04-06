@@ -16,7 +16,7 @@
 import * as d3 from 'd3';
 import {LocationType} from '../../backgroundsvg/backgroundsvg.component';
 import {LayerType, Location, NodeType, RegionProps} from './regions';
-import {MetaUi} from 'gui2-fw-lib';
+import {LocMeta, MetaUi, ZoomUtils} from 'gui2-fw-lib';
 
 export interface UiElement {
     index?: number;
@@ -129,7 +129,7 @@ export interface HostProps {
 /**
  * Implementing SimulationNodeDatum interface into our custom Node class
  */
-export abstract class Node implements UiElement, d3.SimulationNodeDatum {
+export class Node implements UiElement, d3.SimulationNodeDatum {
     // Optional - defining optional implementation properties - required for relevant typing assistance
     index?: number;
     x: number;
@@ -139,12 +139,65 @@ export abstract class Node implements UiElement, d3.SimulationNodeDatum {
     fx?: number | null;
     fy?: number | null;
     nodeType: NodeType;
+    location: Location;
     id: string;
 
     protected constructor(id) {
         this.id = id;
         this.x = 0;
         this.y = 0;
+    }
+
+    /**
+     * Static method to reset the node's position to that specified in its
+     * coordinates
+     * This is overridden for host
+     * @param node The node to reset
+     */
+    static resetNodeLocation(node: Node): void {
+        let origLoc: MetaUi;
+
+        if (!node.location || node.location.locType === LocationType.NONE) {
+            // No location - nothing to do
+            return;
+        } else if (node.location.locType === LocationType.GEO) {
+            origLoc = ZoomUtils.convertGeoToCanvas(<LocMeta>{
+                lng: node.location.longOrX,
+                lat: node.location.latOrY
+            });
+        } else if (node.location.locType === LocationType.GRID) {
+            origLoc = ZoomUtils.convertXYtoGeo(
+                node.location.longOrX, node.location.latOrY);
+        }
+        Node.moveNodeTo(node, origLoc);
+    }
+
+    protected static moveNodeTo(node: Node, origLoc: MetaUi) {
+        const currentX = node.fx;
+        const currentY = node.fy;
+        const distX = origLoc.x - node.fx;
+        const distY = origLoc.y - node.fy;
+        let count = 0;
+        const task = setInterval(() => {
+            count++;
+            if (count >= 10) {
+                clearInterval(task);
+            }
+            node.fx = currentX + count * distX / 10;
+            node.fy = currentY + count * distY / 10;
+        }, 50);
+    }
+
+    static unpinOrFreezeNode(node: Node, freeze: boolean): void {
+        if (!node.location || node.location.locType === LocationType.NONE) {
+            if (freeze) {
+                node.fx = node.x;
+                node.fy = node.y;
+            } else {
+                node.fx = null;
+                node.fy = null;
+            }
+        }
     }
 }
 
@@ -154,7 +207,6 @@ export abstract class Node implements UiElement, d3.SimulationNodeDatum {
 export class Device extends Node {
     id: string;
     layer: LayerType;
-    location: Location;
     metaUi: MetaUi;
     master: string;
     online: boolean;
@@ -178,6 +230,24 @@ export class Host extends Node {
 
     constructor(id: string) {
         super(id);
+    }
+
+    static resetNodeLocation(host: Host): void {
+        let origLoc: MetaUi;
+
+        if (!host.props || host.props.locType === LocationType.NONE) {
+            // No location - nothing to do
+            return;
+        } else if (host.props.locType === LocationType.GEO) {
+            origLoc = ZoomUtils.convertGeoToCanvas(<LocMeta>{
+                lng: host.props.longitude,
+                lat: host.props.latitude
+            });
+        } else if (host.props.locType === LocationType.GRID) {
+            origLoc = ZoomUtils.convertXYtoGeo(
+                host.props.gridX, host.props.gridY);
+        }
+        Node.moveNodeTo(host, origLoc);
     }
 }
 

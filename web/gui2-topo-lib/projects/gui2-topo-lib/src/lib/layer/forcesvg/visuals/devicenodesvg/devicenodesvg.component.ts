@@ -131,25 +131,4 @@ export class DeviceNodeSvgComponent extends NodeVisual implements OnChanges {
             return 'm_' + this.device.type;
         }
     }
-
-    resetNodeLocation(): void {
-        this.log.debug('Resetting device', this.device.id, this.device.type);
-        let origLoc: MetaUi;
-
-        if (!this.device.location || this.device.location.locType === LocationType.NONE) {
-            // No location - nothing to do
-            return;
-        } else if (this.device.location.locType === LocationType.GEO) {
-            origLoc = ZoomUtils.convertGeoToCanvas(<LocMeta>{
-                lng: this.device.location.longOrX,
-                lat: this.device.location.latOrY
-            });
-        } else if (this.device.location.locType === LocationType.GRID) {
-            origLoc = ZoomUtils.convertXYtoGeo(
-                this.device.location.longOrX, this.device.location.latOrY);
-        }
-        this.device.metaUi = origLoc;
-        this.device['fx'] = origLoc.x;
-        this.device['fy'] = origLoc.y;
-    }
 }

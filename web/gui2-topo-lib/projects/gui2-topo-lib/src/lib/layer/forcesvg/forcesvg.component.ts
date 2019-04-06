@@ -553,10 +553,74 @@ export class ForceSvgComponent implements OnInit, OnChanges {
         this.log.debug(klass, id, 'has been moved to', newLocation);
     }
 
-    resetNodeLocations() {
-        this.devices.forEach((d) => {
-            d.resetNodeLocation();
-        });
+    /**
+     * If any nodes with fixed positions had been dragged out of place
+     * then put back where they belong
+     * If there are some devices selected reset only these
+     */
+    resetNodeLocations(): number {
+        let numbernodes = 0;
+        if (this.selectedNodes.length > 0) {
+            this.devices
+                .filter((d) => this.selectedNodes.some((s) => s.id === d.device.id))
+                .forEach((dev) => {
+                    Node.resetNodeLocation(<Node>dev.device);
+                    numbernodes++;
+                });
+            this.hosts
+                .filter((h) => this.selectedNodes.some((s) => s.id === h.host.id))
+                .forEach((h) => {
+                    Host.resetNodeLocation(<Host>h.host);
+                    numbernodes++;
+                });
+        } else {
+            this.devices.forEach((dev) => {
+                Node.resetNodeLocation(<Node>dev.device);
+                numbernodes++;
+            });
+            this.hosts.forEach((h) => {
+                Host.resetNodeLocation(<Host>h.host);
+                numbernodes++;
+            });
+        }
+        this.graph.reinitSimulation();
+        return numbernodes;
     }
+
+    /**
+     * Toggle floating nodes between unpinned and frozen
+     * There may be frozen and unpinned in the selection
+     *
+     * If there are nodes selected toggle only these
+     */
+    unpinOrFreezeNodes(freeze: boolean): number {
+        let numbernodes = 0;
+        if (this.selectedNodes.length > 0) {
+            this.devices
+                .filter((d) => this.selectedNodes.some((s) => s.id === d.device.id))
+                .forEach((d) => {
+                    Node.unpinOrFreezeNode(<Node>d.device, freeze);
+                    numbernodes++;
+                });
+            this.hosts
+                .filter((h) => this.selectedNodes.some((s) => s.id === h.host.id))
+                .forEach((h) => {
+                    Node.unpinOrFreezeNode(<Node>h.host, freeze);
+                    numbernodes++;
+                });
+        } else {
+            this.devices.forEach((d) => {
+                Node.unpinOrFreezeNode(<Node>d.device, freeze);
+                numbernodes++;
+            });
+            this.hosts.forEach((h) => {
+                Node.unpinOrFreezeNode(<Node>h.host, freeze);
+                numbernodes++;
+            });
+        }
+        this.graph.reinitSimulation();
+        return numbernodes;
+    }
+
 }
 

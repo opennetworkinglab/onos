@@ -10,7 +10,7 @@ import {HttpClientModule} from '@angular/common/http';
 
 const appRoutes: Routes = [
     { path: '**', component: AppComponent }
-]
+];
 
 @NgModule({
     declarations: [

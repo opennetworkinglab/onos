@@ -84,6 +84,7 @@ const PREF_OFFDEV = 'offdev';
 const PREF_PORTHL = 'porthl';
 const PREF_SUMMARY = 'summary';
 const PREF_TOOLBAR = 'toolbar';
+const PREF_PINNED = 'pinned';
 
 /**
  * Model of the topo2_prefs object - this is a subset of the overall Prefs returned
@@ -103,6 +104,7 @@ export interface Topo2Prefs {
     summary: number;
     toolbar: number;
     grid: number;
+    pinned: number;
 }
 
 /**
@@ -402,7 +404,7 @@ export class TopologyComponent implements AfterContentInit, OnInit, OnDestroy {
             P: [(token) => {this.togglePorts(token); }, 'Toggle Port Highlighting'],
             Q: [() => {this.cycleGridDisplay(); }, 'Cycle grid display'],
             R: [() => {this.resetZoom(); }, 'Reset pan / zoom'],
-            U: [() => {this.unpinNode(); }, 'Unpin node (mouse over)'],
+            U: [() => {this.unpinOrFreezeNodes(); }, 'Unpin or freeze nodes'],
             X: [() => {this.resetNodeLocation(); }, 'Reset Node Location'],
             dot: [() => {this.toggleToolbar(); }, 'Toggle Toolbar'],
             0: [() => {this.cancelTraffic(); }, 'Cancel traffic monitoring'],
@@ -602,16 +604,30 @@ export class TopologyComponent implements AfterContentInit, OnInit, OnDestroy {
         this.log.debug('equalizing masters');
     }
 
+    /**
+     * If any nodes with fixed positions had been dragged out of place
+     * then put back where they belong
+     * If there are some devices selected reset only these
+     */
     protected resetNodeLocation() {
-        // TODO: Implement reset locations
-        this.force.resetNodeLocations();
-        this.flashMsg = this.lionFn('fl_reset_node_locations');
-        this.log.debug('resetting node location');
+        const numNodes = this.force.resetNodeLocations();
+        this.flashMsg = this.lionFn('fl_reset_node_locations') +
+            '(' + String(numNodes) + ')';
+        this.log.debug('resetting ', numNodes, 'node(s) location');
     }
 
-    protected unpinNode() {
-        // TODO: Implement this
-        this.log.debug('unpinning node');
+    /**
+     * Toggle floating nodes between pinned and frozen
+     * If there are floating nodes selected toggle only these
+     */
+    protected unpinOrFreezeNodes() {
+        const pinned: boolean = !Boolean(this.prefsState.pinned);
+        const numNodes = this.force.unpinOrFreezeNodes(pinned);
+        this.flashMsg = this.lionFn(pinned ?
+            'fl_pinned_floating_nodes' : 'fl_unpinned_floating_nodes') +
+            '(' + String(numNodes) + ')';
+        this.updatePrefsState(PREF_PINNED, pinned ? 1 : 0);
+        this.log.debug('Toggling pinning for floating ', numNodes, 'nodes', pinned);
     }
 
     /**

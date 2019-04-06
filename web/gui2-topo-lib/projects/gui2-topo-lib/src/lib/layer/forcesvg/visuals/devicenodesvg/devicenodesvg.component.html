@@ -69,6 +69,10 @@
     -->
     <svg:rect x="-16" y="-16" width="32" height="32" style="fill: url(#diagonal_blue)">
     </svg:rect>
+    <svg:path *ngIf="device.location && device.location.locType != 'none'"
+              d="M-15 12 v3 h5" style="stroke: white; stroke-width: 1; fill: none"></svg:path>
+    <svg:path *ngIf="device.fx != null"
+              d="M15 -12 v-3 h-5" style="stroke: white; stroke-width: 1; fill: none"></svg:path>
     <!-- Template explanation: Creates an SVG Text element and in
         line 1) make it left aligned and slightly down and to the right of the last rect
         line 2) set its text length to be the calculated value - see that function
