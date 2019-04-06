@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.workflow.api.ContextEventMapStore;
@@ -32,7 +33,11 @@ import java.util.Objects;
 @Command(scope = "onos", name = "workflow-eventmap", description = "workflow event map cli")
 public class WorkFlowEventMapCommand extends AbstractShellCommand {
 
-    @Argument(index = 0, name = "cmd", description = "command(print)", required = true)
+    static final String PRINT = "print";
+
+    @Argument(index = 0, name = "cmd",
+            description = "command(" + PRINT + ")", required = true)
+    @Completion(WorkFlowEventMapCompleter.class)
     private String cmd = null;
 
     @Override
@@ -45,7 +50,7 @@ public class WorkFlowEventMapCommand extends AbstractShellCommand {
         ContextEventMapStore store = get(ContextEventMapStore.class);
         try {
             switch (cmd) {
-                case "print":
+                case PRINT:
                     JsonNode tree = store.asJsonTree();
                     ObjectMapper mapper = new ObjectMapper();
                     try {
