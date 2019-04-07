@@ -27,9 +27,8 @@ import org.onosproject.workflow.api.JsonDataModelTree;
 import org.onosproject.workflow.api.Workflow;
 import org.onosproject.workflow.api.WorkflowContext;
 import org.onosproject.workflow.api.WorkflowException;
-import org.onosproject.workflow.api.WorkflowExecutionService;
+import org.onosproject.workflow.api.WorkflowService;
 import org.onosproject.workflow.api.WorkflowStore;
-import org.onosproject.workflow.api.WorkplaceStore;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -52,10 +51,7 @@ public class SampleWorkflow {
     protected WorkflowStore workflowStore;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    protected WorkplaceStore workplaceStore;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    protected WorkflowExecutionService workflowExecutionService;
+    protected WorkflowService workflowService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
@@ -65,8 +61,12 @@ public class SampleWorkflow {
     public void activate() {
         log.info("Activated");
 
-        registerWorkflows();
-
+        try {
+            registerWorkflows();
+        } catch (WorkflowException e) {
+            log.error("exception: " + e);
+            e.printStackTrace();
+        }
     }
 
     @Deactivate
@@ -77,7 +77,7 @@ public class SampleWorkflow {
     /**
      * Registers example workflows.
      */
-    private void registerWorkflows() {
+    private void registerWorkflows() throws WorkflowException {
         // registering class-loader
         workflowStore.registerLocal(this.getClass().getClassLoader());
 
@@ -91,7 +91,7 @@ public class SampleWorkflow {
                 .chain(SampleWorklet4.class.getName())
                 .chain(SampleWorklet5.class.getName())
                 .build();
-        workflowStore.register(workflow);
+        workflowService.register(workflow);
 
         // registering new workflow definition
         uri = URI.create("sample.workflow-1");
@@ -103,7 +103,7 @@ public class SampleWorkflow {
                 .chain(SampleWorklet4.class.getName())
                 .chain(SampleWorklet5.class.getName())
                 .build();
-        workflowStore.register(workflow);
+        workflowService.register(workflow);
 
         // registering new workflow definition
         uri = URI.create("sample.workflow-2");
@@ -115,15 +115,15 @@ public class SampleWorkflow {
                 .chain(SampleWorklet4.class.getName())
                 .chain(SampleWorklet5.class.getName())
                 .build();
-        workflowStore.register(workflow);
+        workflowService.register(workflow);
 
         // registering new workflow definition
-        uri = URI.create("sample.workflow-3");
+        uri = URI.create("sample.workflow-invalid-datamodel-type");
         workflow = ImmutableListWorkflow.builder()
                 .id(uri)
                 .chain(SampleWorklet6.class.getName())
                 .build();
-        workflowStore.register(workflow);
+        workflowService.register(workflow);
 
     }
 

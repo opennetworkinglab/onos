@@ -21,8 +21,10 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.fasterxml.jackson.databind.node.MissingNode;
+import com.google.common.base.MoreObjects;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.workflow.api.WorkflowDefinitionException;
 import org.onosproject.workflow.api.WorkflowService;
 import org.onosproject.workflow.api.WorkflowExecutionService;
 import org.onosproject.workflow.api.WorkplaceStore;
@@ -49,7 +51,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -92,6 +96,12 @@ public class WorkflowManager implements WorkflowService {
         networkConfigService.removeListener(netcfgListener);
         networkConfigRegistry.unregisterConfigFactory(netcfgListener.getConfigFactory());
         log.info("Stopped");
+    }
+
+    @Override
+    public void register(Workflow workflow) throws WorkflowException {
+        checkWorkflow(workflow);
+        workflowStore.register(workflow);
     }
 
     @Override
@@ -142,7 +152,7 @@ public class WorkflowManager implements WorkflowService {
             throw new WorkflowException("Invalid Workflow");
         }
 
-        checkWorkflowSchema(workflow, worklowDescJson);
+        checkWorkflowDataModelSchema(workflow, worklowDescJson);
 
         Workflow wfCreationWf = workflowStore.get(URI.create(WorkplaceWorkflow.WF_CREATE_WORKFLOW));
         if (Objects.isNull(wfCreationWf)) {
@@ -154,13 +164,129 @@ public class WorkflowManager implements WorkflowService {
     }
 
     /**
-     * Checks if the type of worklet is same as that of wfdesc Json.
+     * Checks the validity of workflow definition.
+     * @param workflow workflow to be checked
+     * @throws WorkflowException workflow exception
+     */
+    private void checkWorkflow(Workflow workflow) throws WorkflowException {
+
+        Map<String, WorkletDataModelFieldDesc> descMap = new HashMap<>();
+
+        List<String> errors = new ArrayList<>();
+
+        for (String workletType : workflow.getWorkletTypeList()) {
+
+            Worklet worklet = workflow.getWorkletInstance(workletType);
+            if (Worklet.Common.COMPLETED.equals(worklet) || Worklet.Common.INIT.equals(worklet)) {
+                continue;
+            }
+
+            Class cls = worklet.getClass();
+            for (Field field : cls.getDeclaredFields()) {
+
+                if (field.isSynthetic()) {
+                    continue;
+                }
+
+                for (Annotation annotation : field.getAnnotations()) {
+
+                    if (!(annotation instanceof JsonDataModel)) {
+                        continue;
+                    }
+
+                    JsonDataModel jsonDataModel = (JsonDataModel) annotation;
+                    Matcher matcher = Pattern.compile("(\\w+)").matcher(jsonDataModel.path());
+                    if (!matcher.find()) {
+                        throw new WorkflowException(
+                                "Invalid Json Data Model Path(" + jsonDataModel.path() + ") in " + worklet.tag());
+                    }
+                    String path = matcher.group(1);
+
+                    WorkletDataModelFieldDesc desc =
+                            new WorkletDataModelFieldDesc(workletType, path, field.getType(), jsonDataModel.optional());
+
+                    WorkletDataModelFieldDesc existing = descMap.get(path);
+
+                    if (Objects.isNull(existing)) {
+                        descMap.put(path, desc);
+                    } else {
+                        if (!desc.hasSameAttributes(existing)) {
+                            errors.add("" + desc + " is conflicted with " + existing + " in workflow " + workflow.id());
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!errors.isEmpty()) {
+            throw new WorkflowDefinitionException(workflow.id(), errors);
+        }
+    }
+
+    /**
+     * Description of worklet data model field.
+     */
+    private static class WorkletDataModelFieldDesc {
+
+        private final String workletType;
+
+        private final String path;
+
+        private final Class type;
+
+        private final boolean optional;
+
+        /**
+         * Constructor of worklet data model field description.
+         * @param workletType worklet type
+         * @param path path of data model
+         * @param type type of data model
+         * @param optional optional
+         */
+        public WorkletDataModelFieldDesc(String workletType, String path, Class type, boolean optional) {
+            this.workletType = workletType;
+            this.path = path;
+            this.type = type;
+            this.optional = optional;
+        }
+
+        /**
+         * Checks the attributes of worklet data model field.
+         * @param desc worklet data model description
+         * @return true means that this worklet data model field description has same attributes with desc
+         */
+        public boolean hasSameAttributes(WorkletDataModelFieldDesc desc) {
+
+            if (!Objects.equals(type, desc.type)) {
+                return false;
+            }
+
+            if (!Objects.equals(optional, desc.optional)) {
+                return false;
+            }
+
+            return true;
+        }
+
+        @Override
+        public String toString() {
+            return MoreObjects.toStringHelper(getClass())
+                    .add("worklet", workletType)
+                    .add("path", path)
+                    .add("type", type)
+                    .add("optional", optional)
+                    .toString();
+        }
+    }
+
+    /**
+     * Checks the schema of workflow data.
      *
      * @param workflow workflow
      * @param worklowDescJson jsonNode
      * @throws WorkflowException workflow exception
      */
-    private void checkWorkflowSchema(Workflow workflow, JsonNode worklowDescJson) throws WorkflowException {
+    private void checkWorkflowDataModelSchema(Workflow workflow, JsonNode worklowDescJson) throws WorkflowException {
 
         List<String> errors = new ArrayList<>();
 
@@ -186,23 +312,25 @@ public class WorkflowManager implements WorkflowService {
 
                 for (Annotation annotation : field.getAnnotations()) {
 
-                    if (annotation instanceof JsonDataModel) {
-
-                        JsonDataModel jsonDataModel = (JsonDataModel) annotation;
-                        Matcher matcher = Pattern.compile("(\\w+)").matcher(jsonDataModel.path());
-                        if (!matcher.find()) {
-                            throw new WorkflowException(
-                                    "Invalid Json Data Model Path(" + jsonDataModel.path() + ") in " + worklet.tag());
-                        }
-                        String path = matcher.group(1);
-
-                        Optional<String> optError =
-                                getJsonNodeDataError(dataNode, worklet, field, path, jsonDataModel.optional());
-
-                        if (optError.isPresent()) {
-                            errors.add(optError.get());
-                        }
+                    if (!(annotation instanceof JsonDataModel)) {
+                        continue;
                     }
+
+                    JsonDataModel jsonDataModel = (JsonDataModel) annotation;
+                    Matcher matcher = Pattern.compile("(\\w+)").matcher(jsonDataModel.path());
+                    if (!matcher.find()) {
+                        throw new WorkflowException(
+                                "Invalid Json Data Model Path(" + jsonDataModel.path() + ") in " + worklet.tag());
+                    }
+                    String path = matcher.group(1);
+
+                    Optional<String> optError =
+                            getJsonNodeDataError(dataNode, worklet, field, path, jsonDataModel.optional());
+
+                    if (optError.isPresent()) {
+                        errors.add(optError.get());
+                    }
+
                 }
             }
         }

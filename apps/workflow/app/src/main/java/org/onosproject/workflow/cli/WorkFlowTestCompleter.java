@@ -21,7 +21,8 @@ import org.onosproject.cli.AbstractChoicesCompleter;
 
 import java.util.List;
 
-import static org.onosproject.workflow.cli.WorkFlowTestCommand.EXCEPTION_SAMPLE;
+import static org.onosproject.workflow.cli.WorkFlowTestCommand.DEFINE_INVALID_WORKFLOW;
+import static org.onosproject.workflow.cli.WorkFlowTestCommand.INVOKE_INVALID_DATAMODEL_TYPE;
 import static org.onosproject.workflow.cli.WorkFlowTestCommand.INVOKE_SAMPLE;
 
 /**
@@ -31,6 +32,6 @@ import static org.onosproject.workflow.cli.WorkFlowTestCommand.INVOKE_SAMPLE;
 public class WorkFlowTestCompleter  extends AbstractChoicesCompleter {
     @Override
     protected List<String> choices() {
-        return ImmutableList.of(INVOKE_SAMPLE, EXCEPTION_SAMPLE);
+        return ImmutableList.of(INVOKE_SAMPLE, INVOKE_INVALID_DATAMODEL_TYPE, DEFINE_INVALID_WORKFLOW);
     }
 }

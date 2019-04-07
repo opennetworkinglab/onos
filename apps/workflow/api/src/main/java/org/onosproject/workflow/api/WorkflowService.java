@@ -23,6 +23,14 @@ import com.fasterxml.jackson.databind.JsonNode;
  */
 public interface WorkflowService {
 
+
+    /**
+     * Registers workflow.
+     * @param workflow registering workflow
+     * @throws WorkflowException workflow exception
+     */
+    void register(Workflow workflow) throws WorkflowException;
+
     /**
      * Creates workplace.
      * @param wpDesc workplace description

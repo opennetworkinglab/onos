@@ -23,9 +23,13 @@ import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.workflow.api.DefaultWorkflowDescription;
+import org.onosproject.workflow.api.ImmutableListWorkflow;
+import org.onosproject.workflow.api.Workflow;
 import org.onosproject.workflow.api.WorkflowException;
 import org.onosproject.workflow.api.WorkflowService;
+import org.onosproject.workflow.impl.example.SampleWorkflow;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -37,16 +41,19 @@ import java.util.Objects;
 public class WorkFlowTestCommand extends AbstractShellCommand {
 
     static final String INVOKE_SAMPLE = "invoke-sample";
-    static final String EXCEPTION_SAMPLE = "exception-sample";
+    static final String INVOKE_INVALID_DATAMODEL_TYPE = "invoke-invalid-datamodel-type";
+    static final String DEFINE_INVALID_WORKFLOW = "define-invalid-workflow";
 
     @Argument(index = 0, name = "test-name",
-            description = "Test name (" + INVOKE_SAMPLE + " | " + EXCEPTION_SAMPLE + ")",
+            description = "Test name (" + INVOKE_SAMPLE +
+                    " | " + INVOKE_INVALID_DATAMODEL_TYPE + ")",
             required = true)
     @Completion(WorkFlowTestCompleter.class)
     private String testName = null;
 
     @Argument(index = 1, name = "arg1",
-            description = "number of test for (" + INVOKE_SAMPLE + " | " + EXCEPTION_SAMPLE + ")",
+            description = "number of test for (" + INVOKE_SAMPLE +
+                    " | " + INVOKE_INVALID_DATAMODEL_TYPE + ")",
             required = false)
     private String arg1 = null;
 
@@ -78,9 +85,9 @@ public class WorkFlowTestCommand extends AbstractShellCommand {
                 invokeSampleTest(num);
                 break;
 
-            case EXCEPTION_SAMPLE:
+            case INVOKE_INVALID_DATAMODEL_TYPE:
                 if (Objects.isNull(arg1)) {
-                    error("arg1 is required for test " + EXCEPTION_SAMPLE);
+                    error("arg1 is required for test " + INVOKE_INVALID_DATAMODEL_TYPE);
                     return;
                 }
                 int count;
@@ -94,7 +101,11 @@ public class WorkFlowTestCommand extends AbstractShellCommand {
                     return;
                 }
 
-                invokeExceptionTest(count);
+                invokeInvalidDatamodelTypeTest(count);
+                break;
+
+            case DEFINE_INVALID_WORKFLOW:
+                defineInvalidWorkflow();
                 break;
 
             default:
@@ -117,14 +128,14 @@ public class WorkFlowTestCommand extends AbstractShellCommand {
     }
 
     /**
-     * Workflow datatype exception test.
+     * Workflow datatmodel type exception test.
      *
      * @param num the number of workflow to test
      */
-    private void invokeExceptionTest(int num) {
+    private void invokeInvalidDatamodelTypeTest(int num) {
         for (int i = 0; i <= num; i++) {
             String wpName = "test-" + i;
-            invoke("sample.workflow-3", wpName);
+            invoke("sample.workflow-invalid-datamodel-type", wpName);
         }
     }
 
@@ -150,7 +161,25 @@ public class WorkFlowTestCommand extends AbstractShellCommand {
                     .build();
             service.invokeWorkflow(wfDesc);
         } catch (WorkflowException e) {
-            error(e.getMessage() + "trace: " + Arrays.asList(e.getStackTrace()));
+            error(e.getMessage() + ", trace: " + Arrays.asList(e.getStackTrace()));
         }
     }
+
+    private void defineInvalidWorkflow() {
+
+        WorkflowService service = get(WorkflowService.class);
+
+        try {
+            URI uri = URI.create("sample.workflow-invalid-datamodel-type");
+            Workflow workflow = ImmutableListWorkflow.builder()
+                    .id(uri)
+                    .chain(SampleWorkflow.SampleWorklet5.class.getName())
+                    .chain(SampleWorkflow.SampleWorklet6.class.getName())
+                    .build();
+            service.register(workflow);
+        } catch (WorkflowException e) {
+            error(e.getMessage() + ", trace: " + Arrays.asList(e.getStackTrace()));
+        }
+    }
+
 }
