@@ -246,6 +246,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     + "when all uplinks are gone")
     boolean singleHomedDown = false;
 
+    @Property(name = "routeSimplification", boolValue = false,
+            label = "Enable route simplification")
+    boolean routeSimplification = false;
+
     ArpHandler arpHandler = null;
     IcmpHandler icmpHandler = null;
     IpHandler ipHandler = null;
@@ -636,6 +640,13 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 log.warn("Disabling singleHomedDown does not re-enable already "
                         + "downed ports for single-homed hosts");
             }
+        }
+
+        String strRouteSimplification = Tools.get(properties, "routeSimplification");
+        boolean expectRouteSimplification = Boolean.parseBoolean(strRouteSimplification);
+        if (expectRouteSimplification != routeSimplification) {
+            routeSimplification = expectRouteSimplification;
+            log.info("{} route simplification", routeSimplification ? "Enabling" : "Disabling");
         }
     }
 
