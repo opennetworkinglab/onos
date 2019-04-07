@@ -270,6 +270,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             label = "vlan used for transport of pseudowires between switches")
     private int pwTransportVlan = PW_TRANSPORT_VLAN;
 
+    @Property(name = "routeSimplification", boolValue = false,
+            label = "Enable route simplification")
+    boolean routeSimplification = false;
+
     ArpHandler arpHandler = null;
     IcmpHandler icmpHandler = null;
     IpHandler ipHandler = null;
@@ -737,6 +741,13 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 log.warn("Cannot change pseudowire transport vlan to unusable "
                         + "value {}", pwTxpVlan);
             }
+        }
+
+        String strRouteSimplification = Tools.get(properties, "routeSimplification");
+        boolean expectRouteSimplification = Boolean.parseBoolean(strRouteSimplification);
+        if (expectRouteSimplification != routeSimplification) {
+            routeSimplification = expectRouteSimplification;
+            log.info("{} route simplification", routeSimplification ? "Enabling" : "Disabling");
         }
 
     }
