@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-present Open Networking Foundation
+ * Copyright 2019-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,17 @@
 
 package org.onosproject.segmentrouting;
 
-/**
- * Utility class for route simplification.
- */
 import com.google.common.collect.ImmutableList;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.routeservice.ResolvedRoute;
 import org.onosproject.routeservice.Route;
 
+/**
+ * Utility class for route simplification.
+ */
 final class RouteSimplifierUtils {
 
-    /**
+    /*
      * When route with source type listed in leafExclusionRouteTypes,
      * it will programme only on the leaf pair the nexthop attaches to. Other leaves will be ignored.
      */
@@ -43,19 +43,21 @@ final class RouteSimplifierUtils {
     /**
      * Checking whether the leafExclusionRouteTypes contains the given source type.
      *
+     * @param s source type
      * @return boolean if it containsd the source type.
-     * */
-    private boolean hasLeafExclusionEnabledForType(Route.Source s) {
+     *
+     */
+    public boolean hasLeafExclusionEnabledForType(Route.Source s) {
         return LEAF_EXCLUSION_ROUTE_TYPES.contains(s);
     }
 
-    /*
+    /**
      * When route with any source of given prefix is  listed in leafExclusionRouteTypes,
      * it will programme only on the leaf pair the nexthop attaches to. Other leaves will be ignored.
      *
      * @param ipPrefix  ip prefix of the route.
      * @return boolean if contains the prefix of the mentioned source type.
-     * */
+     */
     public boolean hasLeafExclusionEnabledForPrefix(IpPrefix ipPrefix) {
         for (ResolvedRoute route : srManager.routeService.getAllResolvedRoutes(ipPrefix)) {
             if (hasLeafExclusionEnabledForType(route.route().source())) {
