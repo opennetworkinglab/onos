@@ -112,7 +112,6 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_EXTERNA
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SNAT_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_STATEFUL_SNAT_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.ROUTING_TABLE;
-import static org.onosproject.openstacknetworking.api.InstancePort.State.ACTIVE;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.FLAT;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.VLAN;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.externalIpFromSubnet;
@@ -831,11 +830,6 @@ public class OpenstackRoutingSnatHandler {
                 ImmutableList.copyOf(osNodeService.nodes(GATEWAY)));
 
         osNodeService.completeNodes(GATEWAY).forEach(gwNode -> {
-            instancePortService.instancePorts(netId)
-                    .stream()
-                    .filter(port -> port.state() == ACTIVE)
-                    .forEach(port -> setGatewayToInstanceDownstreamRule(
-                            gwNode, port, install));
             if (install) {
                 PortRange gwPortRange = gwPortRangeMap.get(gwNode);
 
