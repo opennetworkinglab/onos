@@ -19,13 +19,13 @@
     <!-- Verify the correct topology is present -->
     <step name="Net-ODTN-Restconf.Tapi-context" exec="execute-tapi-context-get-call.py ${OC1} empty"/>
     <!-- Verify empty connectivity service -->
-    <step name="Net-ODTN-Restconf.Confirm-conn-empty" requires="Net-ODTN-Restconf.Tapi-context" exec="execute-tapi-post-call.py ${OC1} tapi-connectivity:get-connectivity-service-list empty"/>
+    <step name="Net-ODTN-Restconf.Confirm-conn-empty" requires="Net-ODTN-Restconf.Tapi-context" exec="${ONOS_SCENARIOS}/bin/execute-tapi-post-call.py ${OC1} tapi-connectivity:get-connectivity-service-list empty"/>
     <!-- Push the line-side connectivity service request -->
     <group name="Net-ODTN-Restconf.Line-side-test" requires="Net-ODTN-Restconf.Confirm-conn-empty">
-      <step name="Net-ODTN-Restconf.Create-line-side" exec="execute-tapi-post-call.py ${OC1} tapi-connectivity:create-connectivity-service line-side"/>
-      <step name="Net-ODTN-Restconf.Check-line-side" requires="Net-ODTN-Restconf.Create-line-side" exec="${ONOS_SCENARIOS}/odtn/checkUntilSucc.sh 'execute-tapi-post-call.py+${OC1}+tapi-connectivity:get-connectivity-service-list+empty+|+grep+'tapi-connectivity:output'+|+grep+connection-uuid+-o+|+wc+-l' 1" />
-      <step name="Net-ODTN-Restconf.Delete-line-conn" requires="Net-ODTN-Restconf.Check-line-side" exec="execute-tapi-delete-call.py ${OC1} line"/>
-      <step name="Net-ODTN-Restconf.Confirm-conn-empty-2" requires="Net-ODTN-Restconf.Delete-line-conn" exec="execute-tapi-post-call.py ${OC1} tapi-connectivity:get-connectivity-service-list empty"/>
+      <step name="Net-ODTN-Restconf.Create-line-side" exec="${ONOS_SCENARIOS}/bin/execute-tapi-post-call.py ${OC1} tapi-connectivity:create-connectivity-service line-side"/>
+      <step name="Net-ODTN-Restconf.Check-line-side" requires="Net-ODTN-Restconf.Create-line-side" exec="${ONOS_SCENARIOS}/odtn/checkUntilSucc.sh 'python ${ONOS_SCENARIOS}/bin/execute-tapi-post-call.py+${OC1}+tapi-connectivity:get-connectivity-service-list+empty+|+grep+'tapi-connectivity:output'+|+grep+connection-uuid+-o+|+wc+-l' 1" />
+      <step name="Net-ODTN-Restconf.Delete-line-conn" requires="Net-ODTN-Restconf.Check-line-side" exec="${ONOS_SCENARIOS}/bin/execute-tapi-delete-call.py ${OC1} line"/>
+      <step name="Net-ODTN-Restconf.Confirm-conn-empty-2" requires="Net-ODTN-Restconf.Delete-line-conn" exec="${ONOS_SCENARIOS}/bin/execute-tapi-post-call.py ${OC1} tapi-connectivity:get-connectivity-service-list empty"/>
       <group name="Net-ODTN-Restconf.Verify-Logs" requires="Net-ODTN-Restconf.Confirm-conn-empty-2">
         <parallel var="${OC#}">
           <step name="Check-Logs-Restconf-1-${#}" exec="onos-check-logs ${OC#}"/>
@@ -34,10 +34,10 @@
     </group>
     <!-- Push the client-side connectivity service request -->
     <group name="Net-ODTN-Restconf.Client-side-test" requires="Net-ODTN-Restconf.Line-side-test" delay="10" >
-      <step name="Net-ODTN-Restconf.Create-client-side" exec="execute-tapi-post-call.py ${OC1} tapi-connectivity:create-connectivity-service client-side"/>
-      <step name="Net-ODTN-Restconf.Check-client-side" requires="Net-ODTN-Restconf.Create-client-side" exec="${ONOS_SCENARIOS}/odtn/checkUntilSucc.sh 'execute-tapi-post-call.py+${OC1}+tapi-connectivity:get-connectivity-service-list+empty+|+grep+'tapi-connectivity:output'+|+grep+connection-uuid+-o+|+wc+-l' 1" />
-      <step name="Net-ODTN-Restconf.Delete-client-conn" requires="Net-ODTN-Restconf.Check-client-side" exec="execute-tapi-delete-call.py ${OC1} both"/>
-      <step name="Net-ODTN-Restconf.Confirm-conn-empty-3" requires="Net-ODTN-Restconf.Delete-client-conn" exec="execute-tapi-post-call.py ${OC1} tapi-connectivity:get-connectivity-service-list empty"/>
+      <step name="Net-ODTN-Restconf.Create-client-side" exec="${ONOS_SCENARIOS}/bin/execute-tapi-post-call.py ${OC1} tapi-connectivity:create-connectivity-service client-side"/>
+      <step name="Net-ODTN-Restconf.Check-client-side" requires="Net-ODTN-Restconf.Create-client-side" exec="${ONOS_SCENARIOS}/odtn/checkUntilSucc.sh 'python ${ONOS_SCENARIOS}/bin/execute-tapi-post-call.py+${OC1}+tapi-connectivity:get-connectivity-service-list+empty+|+grep+'tapi-connectivity:output'+|+grep+connection-uuid+-o+|+wc+-l' 1" />
+      <step name="Net-ODTN-Restconf.Delete-client-conn" requires="Net-ODTN-Restconf.Check-client-side" exec="${ONOS_SCENARIOS}/bin/execute-tapi-delete-call.py ${OC1} both"/>
+      <step name="Net-ODTN-Restconf.Confirm-conn-empty-3" requires="Net-ODTN-Restconf.Delete-client-conn" exec="${ONOS_SCENARIOS}/bin/execute-tapi-post-call.py ${OC1} tapi-connectivity:get-connectivity-service-list empty"/>
       <group name="Net-ODTN-Restconf.Verify-Logs-2" requires="Net-ODTN-Restconf.Confirm-conn-empty-3">
         <parallel var="${OC#}">
           <step name="Check-Logs-Restconf-2-${#}" exec="onos-check-logs ${OC#}"/>
