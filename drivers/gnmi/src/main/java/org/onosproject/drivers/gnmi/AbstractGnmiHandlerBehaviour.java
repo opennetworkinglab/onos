@@ -20,7 +20,6 @@ import com.google.common.base.Strings;
 import org.onosproject.gnmi.api.GnmiClient;
 import org.onosproject.gnmi.api.GnmiClientKey;
 import org.onosproject.gnmi.api.GnmiController;
-import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.basics.BasicDeviceConfig;
@@ -40,18 +39,14 @@ public class AbstractGnmiHandlerBehaviour extends AbstractHandlerBehaviour {
     protected final Logger log = LoggerFactory.getLogger(getClass());
     protected DeviceId deviceId;
     protected DeviceService deviceService;
-    protected Device device;
-    protected GnmiController controller;
     protected GnmiClient client;
 
-    protected boolean setupBehaviour() {
+    protected boolean setupBehaviour(String opName) {
         deviceId = handler().data().deviceId();
         deviceService = handler().get(DeviceService.class);
-        controller = handler().get(GnmiController.class);
-        client = controller.getClient(deviceId);
-
+        client = getClientByKey();
         if (client == null) {
-            log.warn("Unable to find client for {}, aborting operation", deviceId);
+            log.warn("Missing client for {}, aborting {}", deviceId, opName);
             return false;
         }
 

@@ -152,7 +152,9 @@ public final class TableEntryCodec
                         .build());
 
         // Counter.
-        piTableEntryBuilder.withCounterCellData(decodeCounter(message.getCounterData()));
+        if (message.hasCounterData()) {
+            piTableEntryBuilder.withCounterCellData(decodeCounter(message.getCounterData()));
+        }
 
         return piTableEntryBuilder.build();
     }

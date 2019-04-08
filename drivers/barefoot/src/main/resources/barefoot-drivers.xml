@@ -19,6 +19,7 @@
             swVersion="1.0" extends="p4runtime">
         <behaviour api="org.onosproject.net.behaviour.PiPipelineProgrammable"
                    impl="org.onosproject.drivers.barefoot.TofinoPipelineProgrammable"/>
+        <property name="tableReadCountersWithTableEntries">false</property>
         <property name="tableDeleteBeforeUpdate">true</property>
     </driver>
 
@@ -27,8 +28,9 @@
         <behaviour api="org.onosproject.net.behaviour.PiPipelineProgrammable"
                    impl="org.onosproject.drivers.barefoot.TofinoPipelineProgrammable"/>
         <!-- The current version of p4lang/PI used in Stratum does not
-        support reading default  table entries -->
+        support reading default table entries -->
         <property name="supportDefaultTableEntry">false</property>
+        <property name="tableReadCountersWithTableEntries">false</property>
     </driver>
 
 </drivers>

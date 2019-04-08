@@ -50,7 +50,7 @@ public class OpenConfigGnmiPortStatisticsDiscovery extends AbstractGnmiHandlerBe
 
     @Override
     public Collection<PortStatistics> discoverPortStatistics() {
-        if (!setupBehaviour()) {
+        if (!setupBehaviour("discoverPortStatistics()")) {
             return Collections.emptyList();
         }
 

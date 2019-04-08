@@ -66,8 +66,8 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
     private PiPipelineModel pipelineModel;
 
     @Override
-    protected boolean setupBehaviour() {
-        if (!super.setupBehaviour()) {
+    protected boolean setupBehaviour(String opName) {
+        if (!super.setupBehaviour(opName)) {
             return false;
         }
 
@@ -80,7 +80,7 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
     @Override
     public CompletableFuture<Boolean> performMeterOperation(MeterOperation meterOp) {
 
-        if (!setupBehaviour()) {
+        if (!setupBehaviour("performMeterOperation()")) {
             return CompletableFuture.completedFuture(false);
         }
 
@@ -118,7 +118,7 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
     @Override
     public CompletableFuture<Collection<Meter>> getMeters() {
 
-        if (!setupBehaviour()) {
+        if (!setupBehaviour("getMeters()")) {
             return CompletableFuture.completedFuture(Collections.emptyList());
         }
 

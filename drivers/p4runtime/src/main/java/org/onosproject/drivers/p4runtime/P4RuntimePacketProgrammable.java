@@ -33,7 +33,7 @@ public class P4RuntimePacketProgrammable
     @Override
     public void emit(OutboundPacket packet) {
 
-        if (!this.setupBehaviour()) {
+        if (!this.setupBehaviour("emit()")) {
             return;
         }
 

@@ -20,11 +20,9 @@ import com.google.common.base.Strings;
 import org.onosproject.gnoi.api.GnoiClient;
 import org.onosproject.gnoi.api.GnoiClientKey;
 import org.onosproject.gnoi.api.GnoiController;
-import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.basics.BasicDeviceConfig;
-import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,19 +37,14 @@ public class AbstractGnoiHandlerBehaviour extends AbstractHandlerBehaviour {
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
     protected DeviceId deviceId;
-    protected DeviceService deviceService;
-    protected Device device;
-    protected GnoiController controller;
     protected GnoiClient client;
 
-    protected boolean setupBehaviour() {
+    protected boolean setupBehaviour(String opName) {
         deviceId = handler().data().deviceId();
-        deviceService = handler().get(DeviceService.class);
-        controller = handler().get(GnoiController.class);
-        client = controller.getClient(deviceId);
+        client = getClientByKey();
 
         if (client == null) {
-            log.warn("Unable to find client for {}, aborting operation", deviceId);
+            log.warn("Missing client for {}, aborting {}", deviceId, opName);
             return false;
         }
 

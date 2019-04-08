@@ -108,9 +108,9 @@ public class P4RuntimeFlowRuleProgrammable
     private PiFlowRuleTranslator translator;
 
     @Override
-    protected boolean setupBehaviour() {
+    protected boolean setupBehaviour(String opName) {
 
-        if (!super.setupBehaviour()) {
+        if (!super.setupBehaviour(opName)) {
             return false;
         }
 
@@ -123,7 +123,7 @@ public class P4RuntimeFlowRuleProgrammable
     @Override
     public Collection<FlowEntry> getFlowEntries() {
 
-        if (!setupBehaviour()) {
+        if (!setupBehaviour("getFlowEntries()")) {
             return Collections.emptyList();
         }
 
@@ -149,12 +149,13 @@ public class P4RuntimeFlowRuleProgrammable
             return Collections.emptyList();
         }
 
-        final Map<PiTableEntry, PiCounterCellData> counterCellMap =
+        final Map<PiTableEntryHandle, PiCounterCellData> counterCellMap =
                 readEntryCounters(deviceEntries);
         // Forge flow entries with counter values.
         for (PiTableEntry entry : deviceEntries) {
+            final PiTableEntryHandle handle = entry.handle(deviceId);
             final FlowEntry flowEntry = forgeFlowEntry(
-                    entry, counterCellMap.get(entry));
+                    entry, handle, counterCellMap.get(handle));
             if (flowEntry == null) {
                 // Entry is on device but unknown to translation service or
                 // device mirror. Inconsistent. Mark for removal.
@@ -228,8 +229,8 @@ public class P4RuntimeFlowRuleProgrammable
     }
 
     private FlowEntry forgeFlowEntry(PiTableEntry entry,
+                                     PiTableEntryHandle handle,
                                      PiCounterCellData cellData) {
-        final PiTableEntryHandle handle = entry.handle(deviceId);
         final Optional<PiTranslatedEntity<FlowRule, PiTableEntry>>
                 translatedEntity = translator.lookup(handle);
         final TimedEntry<PiTableEntry> timedEntry = tableMirror.get(handle);
@@ -262,14 +263,14 @@ public class P4RuntimeFlowRuleProgrammable
     private Collection<FlowEntry> getFlowEntriesFromMirror() {
         return tableMirror.getAll(deviceId).stream()
                 .map(timedEntry -> forgeFlowEntry(
-                        timedEntry.entry(), null))
+                        timedEntry.entry(), timedEntry.entry().handle(deviceId), null))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
     private Collection<FlowRule> processFlowRules(Collection<FlowRule> rules,
                                                   Operation driverOperation) {
-        if (!setupBehaviour() || rules.isEmpty()) {
+        if (!setupBehaviour("processFlowRules()") || rules.isEmpty()) {
             return Collections.emptyList();
         }
         // Created batched write request.
@@ -459,52 +460,38 @@ public class P4RuntimeFlowRuleProgrammable
                 originalDefaultEntry.action().equals(entry.action());
     }
 
-    private Map<PiTableEntry, PiCounterCellData> readEntryCounters(
+    private Map<PiTableEntryHandle, PiCounterCellData> readEntryCounters(
             Collection<PiTableEntry> tableEntries) {
+
         if (!driverBoolProperty(SUPPORT_TABLE_COUNTERS,
                                 DEFAULT_SUPPORT_TABLE_COUNTERS)
                 || tableEntries.isEmpty()) {
             return Collections.emptyMap();
         }
 
-        final Map<PiTableEntry, PiCounterCellData> cellDataMap = Maps.newHashMap();
-
-        // We expect the server to return table entries with counter data (if
-        // the table supports counter). Here we extract such counter data and we
-        // determine if there are missing counter cells (if, for example, the
-        // serves does not support returning counter data with table entries)
-        final Set<PiHandle> missingCellHandles = tableEntries.stream()
-                .map(t -> {
-                    if (t.counter() != null) {
-                        // Counter data found in table entry.
-                        cellDataMap.put(t, t.counter());
-                        return null;
-                    } else {
-                        return t;
-                    }
-                })
-                .filter(Objects::nonNull)
-                // Ignore for default entries and for tables without counters.
-                .filter(e -> !e.isDefaultAction())
-                .filter(e -> tableHasCounter(e.table()))
-                .map(PiCounterCellId::ofDirect)
-                .map(id -> PiCounterCellHandle.of(deviceId, id))
-                .collect(Collectors.toSet());
-        // We might be sending a large read request (for thousands or more
-        // of counter cell handles). We request the driver to vet this
-        // operation via driver property.
-        if (!missingCellHandles.isEmpty()
-                && !driverBoolProperty(READ_COUNTERS_WITH_TABLE_ENTRIES,
-                                       DEFAULT_READ_COUNTERS_WITH_TABLE_ENTRIES)) {
-            client.read(pipeconf)
-                    .handles(missingCellHandles)
+        if (driverBoolProperty(READ_COUNTERS_WITH_TABLE_ENTRIES,
+                               DEFAULT_READ_COUNTERS_WITH_TABLE_ENTRIES)) {
+            return tableEntries.stream()
+                    .filter(t -> t.counter() != null)
+                    .collect(Collectors.toMap(
+                            t -> t.handle(deviceId), PiTableEntry::counter));
+        } else {
+            final Set<PiHandle> cellHandles = tableEntries.stream()
+                    .filter(e -> !e.isDefaultAction())
+                    .filter(e -> tableHasCounter(e.table()))
+                    .map(PiCounterCellId::ofDirect)
+                    .map(id -> PiCounterCellHandle.of(deviceId, id))
+                    .collect(Collectors.toSet());
+            // FIXME: We might be sending a very large read request...
+            return client.read(pipeconf)
+                    .handles(cellHandles)
                     .submitSync()
                     .all(PiCounterCell.class).stream()
                     .filter(c -> c.cellId().counterType().equals(PiCounterType.DIRECT))
-                    .forEach(c -> cellDataMap.put(c.cellId().tableEntry(), c.data()));
+                    .collect(Collectors.toMap(
+                            c -> c.cellId().tableEntry().handle(deviceId),
+                            PiCounterCell::data));
         }
-
-        return cellDataMap;
     }
 
     private boolean tableHasCounter(PiTableId tableId) {

@@ -47,43 +47,29 @@ public class AbstractP4RuntimeHandlerBehaviour extends AbstractHandlerBehaviour 
 
     // Initialized by setupBehaviour()
     protected DeviceId deviceId;
-    protected DeviceService deviceService;
-    protected Device device;
-    protected P4RuntimeController controller;
     protected PiPipeconf pipeconf;
     protected P4RuntimeClient client;
     protected PiTranslationService translationService;
 
     /**
      * Initializes this behaviour attributes. Returns true if the operation was
-     * successful, false otherwise. This method assumes that the P4Runtime
-     * controller already has a client for this device and that the device has
-     * been created in the core.
+     * successful, false otherwise.
      *
+     * @param opName name of the operation
      * @return true if successful, false otherwise
      */
-    protected boolean setupBehaviour() {
+    protected boolean setupBehaviour(String opName) {
         deviceId = handler().data().deviceId();
 
-        deviceService = handler().get(DeviceService.class);
-        device = deviceService.getDevice(deviceId);
-        if (device == null) {
-            log.warn("Unable to find device with id {}", deviceId);
-            return false;
-        }
-
-        controller = handler().get(P4RuntimeController.class);
-        client = controller.getClient(deviceId);
+        client = getClientByKey();
         if (client == null) {
-            log.warn("Unable to find client for {}", deviceId);
+            log.warn("Missing client for {}, aborting {}", deviceId, opName);
             return false;
         }
 
         PiPipeconfService piPipeconfService = handler().get(PiPipeconfService.class);
         if (!piPipeconfService.getPipeconf(deviceId).isPresent()) {
-            log.warn("Unable to get assigned pipeconf for {} (mapping " +
-                             "missing in PiPipeconfService)",
-                     deviceId);
+            log.warn("Missing pipeconf for {}, cannot perform {}", deviceId, opName);
             return false;
         }
         pipeconf = piPipeconfService.getPipeconf(deviceId).get();
@@ -100,6 +86,11 @@ public class AbstractP4RuntimeHandlerBehaviour extends AbstractHandlerBehaviour 
      * @return interpreter or null
      */
     PiPipelineInterpreter getInterpreter() {
+        final Device device = handler().get(DeviceService.class).getDevice(deviceId);
+        if (device == null) {
+            log.warn("Unable to find device {}, cannot get interpreter", deviceId);
+            return null;
+        }
         if (!device.is(PiPipelineInterpreter.class)) {
             log.warn("Unable to get interpreter for {}, missing behaviour",
                      deviceId);

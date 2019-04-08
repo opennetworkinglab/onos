@@ -16,17 +16,18 @@
 
 package org.onosproject.drivers.gnoi;
 
+import gnoi.system.SystemOuterClass.RebootMethod;
 import gnoi.system.SystemOuterClass.RebootRequest;
 import gnoi.system.SystemOuterClass.RebootResponse;
-import gnoi.system.SystemOuterClass.RebootMethod;
 import org.onosproject.net.behaviour.BasicSystemOperations;
-import java.util.concurrent.CompletableFuture;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.CompletableFuture;
+
 /**
- * Implementation of the BasicSystemOperations behavior for gNOI-enabled devices.
+ * Implementation of the BasicSystemOperations behavior for gNOI-enabled
+ * devices.
  */
 public class GnoiBasicSystemOperationsImpl
         extends AbstractGnoiHandlerBehaviour implements BasicSystemOperations {
@@ -36,12 +37,13 @@ public class GnoiBasicSystemOperationsImpl
 
     @Override
     public CompletableFuture<Boolean> reboot() {
-        if (!setupBehaviour()) {
+        if (!setupBehaviour("reboot()")) {
             return CompletableFuture.completedFuture(false);
         }
 
         final RebootRequest.Builder requestMsg = RebootRequest.newBuilder().setMethod(RebootMethod.COLD);
-        final CompletableFuture<Boolean> future = client.reboot(requestMsg.build())
+
+        return client.reboot(requestMsg.build())
                 .handle((response, error) -> {
                     if (error == null) {
                         log.debug("gNOI reboot() for device {} returned {}", deviceId, response);
@@ -51,16 +53,14 @@ public class GnoiBasicSystemOperationsImpl
                         return false;
                     }
                 });
-
-        return future;
     }
 
     @Override
     public CompletableFuture<Long> time() {
-        if (!setupBehaviour()) {
+        if (!setupBehaviour("time()")) {
             return CompletableFuture.completedFuture(0L);
         }
-        final CompletableFuture<Long> future = client.time()
+        return client.time()
                 .handle((response, error) -> {
                     if (error == null) {
                         log.debug("gNOI time() for device {} returned {}", deviceId.uri(), response.getTime());
@@ -70,7 +70,5 @@ public class GnoiBasicSystemOperationsImpl
                         return 0L;
                     }
                 });
-
-        return future;
     }
 }

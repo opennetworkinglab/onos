@@ -66,8 +66,8 @@ public class StratumDeviceDescriptionDiscovery
                         .set(AnnotationKeys.PROTOCOL, format(
                                 "%s, %s, %s",
                                 p4Descr.annotations().value(AnnotationKeys.PROTOCOL),
-                                gnoiDescr.annotations().value(AnnotationKeys.PROTOCOL),
-                                gnmiDescr.annotations().value(AnnotationKeys.PROTOCOL)))
+                                gnmiDescr.annotations().value(AnnotationKeys.PROTOCOL),
+                                gnoiDescr.annotations().value(AnnotationKeys.PROTOCOL)))
                         .build());
     }
 

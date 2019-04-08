@@ -62,8 +62,8 @@ public class P4RuntimeMulticastGroupProgrammable
     private PiMulticastGroupTranslator mcGroupTranslator;
 
     @Override
-    protected boolean setupBehaviour() {
-        if (!super.setupBehaviour()) {
+    protected boolean setupBehaviour(String opName) {
+        if (!super.setupBehaviour(opName)) {
             return false;
         }
         mcGroupMirror = this.handler().get(P4RuntimeMulticastGroupMirror.class);
@@ -74,20 +74,25 @@ public class P4RuntimeMulticastGroupProgrammable
 
     @Override
     public void performGroupOperation(DeviceId deviceId, GroupOperations groupOps) {
-        if (!setupBehaviour()) {
+        if (!setupBehaviour("performGroupOperation()")) {
             return;
         }
         groupOps.operations().stream()
                 .filter(op -> op.groupType().equals(GroupDescription.Type.ALL))
                 .forEach(op -> {
                     final Group group = groupStore.getGroup(deviceId, op.groupId());
+                    if (group == null) {
+                        log.warn("Unable to find group {} in store, aborting {} operation [{}]",
+                                 op.groupId(), op.opType(), op);
+                        return;
+                    }
                     processMcGroupOp(group, op.opType());
                 });
     }
 
     @Override
     public Collection<Group> getGroups() {
-        if (!setupBehaviour()) {
+        if (!setupBehaviour("getGroups()")) {
             return Collections.emptyList();
         }
         return ImmutableList.copyOf(getMcGroups());

@@ -76,7 +76,7 @@ public class OpenConfigGnmiDeviceDescriptionDiscovery
 
     @Override
     public List<PortDescription> discoverPortDetails() {
-        if (!setupBehaviour()) {
+        if (!setupBehaviour("discoverPortDetails()")) {
             return Collections.emptyList();
         }
         log.debug("Discovering port details on device {}", handler().data().deviceId());

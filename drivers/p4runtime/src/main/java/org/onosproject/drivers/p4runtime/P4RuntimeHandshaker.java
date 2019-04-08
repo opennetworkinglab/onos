@@ -120,12 +120,12 @@ public class P4RuntimeHandshaker extends AbstractP4RuntimeHandlerBehaviour imple
 
     @Override
     public void roleChanged(MastershipRole newRole) {
+        if (!setupBehaviour("roleChanged()")) {
+            return;
+        }
         if (newRole.equals(MastershipRole.NONE)) {
-            final P4RuntimeClient client = getClientByKey();
-            if (client != null) {
-                log.info("Notified role NONE, closing session...");
-                client.closeSession();
-            }
+            log.info("Notified role NONE, closing session...");
+            client.closeSession();
         } else {
             throw new UnsupportedOperationException(
                     "Use preference-based way for setting MASTER or STANDBY roles");
@@ -134,18 +134,19 @@ public class P4RuntimeHandshaker extends AbstractP4RuntimeHandlerBehaviour imple
 
     @Override
     public void roleChanged(int preference, long term) {
-        if (setupBehaviour()) {
-            final int clusterSize = handler().get(ClusterService.class)
-                    .getNodes().size();
-            if (clusterSize > MAX_CLUSTER_SIZE) {
-                throw new IllegalStateException(
-                        "Cluster too big! Maz size supported is " + MAX_CLUSTER_SIZE);
-            }
-            BigInteger electionId = BigInteger.valueOf(term)
-                    .multiply(BigInteger.valueOf(MAX_CLUSTER_SIZE))
-                    .subtract(BigInteger.valueOf(preference));
-            client.setMastership(preference == 0, electionId);
+        if (!setupBehaviour("roleChanged()")) {
+            return;
         }
+        final int clusterSize = handler().get(ClusterService.class)
+                .getNodes().size();
+        if (clusterSize > MAX_CLUSTER_SIZE) {
+            throw new IllegalStateException(
+                    "Cluster too big! Maz size supported is " + MAX_CLUSTER_SIZE);
+        }
+        BigInteger electionId = BigInteger.valueOf(term)
+                .multiply(BigInteger.valueOf(MAX_CLUSTER_SIZE))
+                .subtract(BigInteger.valueOf(preference));
+        client.setMastership(preference == 0, electionId);
     }
 
     @Override

@@ -17,23 +17,23 @@ package org.onosproject.drivers.p4runtime;
 
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.TableStatisticsDiscovery;
-import org.onosproject.net.flow.FlowRuleService;
-import org.onosproject.net.flow.FlowEntry;
-import org.onosproject.net.flow.TableId;
-import org.onosproject.net.flow.IndexTableId;
-import org.onosproject.net.flow.TableStatisticsEntry;
 import org.onosproject.net.flow.DefaultTableStatisticsEntry;
-import org.onosproject.net.pi.model.PiPipelineModel;
+import org.onosproject.net.flow.FlowEntry;
+import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.flow.IndexTableId;
+import org.onosproject.net.flow.TableId;
+import org.onosproject.net.flow.TableStatisticsEntry;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
+import org.onosproject.net.pi.model.PiPipelineModel;
 import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.model.PiTableModel;
 
-import java.util.List;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import static com.google.common.collect.Lists.newArrayList;
 
@@ -45,7 +45,7 @@ public class P4RuntimeTableStatisticsDiscovery extends AbstractP4RuntimeHandlerB
 
     @Override
     public List<TableStatisticsEntry> getTableStatistics() {
-        if (!setupBehaviour()) {
+        if (!setupBehaviour("getTableStatistics()")) {
             return Collections.emptyList();
         }
         FlowRuleService flowService = handler().get(FlowRuleService.class);

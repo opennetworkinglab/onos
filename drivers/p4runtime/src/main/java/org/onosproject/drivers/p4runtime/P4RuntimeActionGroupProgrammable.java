@@ -81,8 +81,8 @@ public class P4RuntimeActionGroupProgrammable
     private PiGroupTranslator groupTranslator;
 
     @Override
-    protected boolean setupBehaviour() {
-        if (!super.setupBehaviour()) {
+    protected boolean setupBehaviour(String opName) {
+        if (!super.setupBehaviour(opName)) {
             return false;
         }
         groupMirror = this.handler().get(P4RuntimeActionProfileGroupMirror.class);
@@ -95,7 +95,7 @@ public class P4RuntimeActionGroupProgrammable
     @Override
     public void performGroupOperation(DeviceId deviceId,
                                       GroupOperations groupOps) {
-        if (!setupBehaviour()) {
+        if (!setupBehaviour("performGroupOperation()")) {
             return;
         }
 
@@ -107,8 +107,8 @@ public class P4RuntimeActionGroupProgrammable
                     // GroupDescription.
                     Group groupOnStore = groupStore.getGroup(deviceId, op.groupId());
                     if (groupOnStore == null) {
-                        log.warn("Unable to find group {} in store, aborting {} operation",
-                                 op.groupId(), op.opType());
+                        log.warn("Unable to find group {} in store, aborting {} operation [{}]",
+                                 op.groupId(), op.opType(), op);
                         return;
                     }
                     GroupDescription groupDesc = new DefaultGroupDescription(
@@ -121,7 +121,7 @@ public class P4RuntimeActionGroupProgrammable
 
     @Override
     public Collection<Group> getGroups() {
-        if (!setupBehaviour()) {
+        if (!setupBehaviour("getGroups()")) {
             return Collections.emptyList();
         }
 
