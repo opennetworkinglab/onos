@@ -18,6 +18,7 @@ package org.onosproject.openstacknetworking.impl;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.ICMP;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
@@ -70,6 +71,7 @@ import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.openstacknetworking.api.Constants.ARP_BROADCAST_MODE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ADMIN_RULE;
+import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ICMP_REQUEST_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ICMP_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_INTERNAL_ROUTING_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SWITCHING_RULE;
@@ -251,14 +253,12 @@ public class OpenstackRoutingHandler {
                         netType,
                         install));
 
-        if (!getStatefulSnatFlag()) {
-            // install rules to punt ICMP packets to controller at gateway node
-            // this rule is only valid for stateless ICMP SNAT case
-            osNodeService.completeNodes(GATEWAY).forEach(gNode ->
-                    setReactiveGatewayIcmpRule(
-                            IpAddress.valueOf(osSubnet.getGateway()),
-                            gNode.intgBridge(), install));
-        }
+        // install rules to punt ICMP packets to controller at gateway node
+        // this rule is only valid for stateless ICMP SNAT case
+        osNodeService.completeNodes(GATEWAY).forEach(gNode ->
+                setReactiveGatewayIcmpRule(
+                        IpAddress.valueOf(osSubnet.getGateway()),
+                        gNode.intgBridge(), install));
 
         final String updateStr = install ? MSG_ENABLED : MSG_DISABLED;
         log.debug(updateStr + "IP to {}", osSubnet.getGateway());
@@ -336,11 +336,21 @@ public class OpenstackRoutingHandler {
     }
 
     private void setReactiveGatewayIcmpRule(IpAddress gatewayIp, DeviceId deviceId, boolean install) {
-        TrafficSelector selector = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPProtocol(IPv4.PROTOCOL_ICMP)
-                .matchIPDst(gatewayIp.getIp4Address().toIpPrefix())
-                .build();
+
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
+        int icmpRulePriority;
+
+        if (getStatefulSnatFlag()) {
+            sBuilder.matchEthType(Ethernet.TYPE_IPV4)
+                    .matchIPProtocol(IPv4.PROTOCOL_ICMP)
+                    .matchIcmpType(ICMP.TYPE_ECHO_REQUEST);
+            icmpRulePriority = PRIORITY_ICMP_REQUEST_RULE;
+        } else {
+            sBuilder.matchEthType(Ethernet.TYPE_IPV4)
+                    .matchIPProtocol(IPv4.PROTOCOL_ICMP)
+                    .matchIPDst(gatewayIp.getIp4Address().toIpPrefix());
+            icmpRulePriority = PRIORITY_ICMP_RULE;
+        }
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .punt()
@@ -349,9 +359,9 @@ public class OpenstackRoutingHandler {
         osFlowRuleService.setRule(
                 appId,
                 deviceId,
-                selector,
+                sBuilder.build(),
                 treatment,
-                PRIORITY_ICMP_RULE,
+                icmpRulePriority,
                 Constants.GW_COMMON_TABLE,
                 install);
     }

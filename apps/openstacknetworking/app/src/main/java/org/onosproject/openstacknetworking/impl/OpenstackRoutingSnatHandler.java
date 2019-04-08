@@ -17,6 +17,7 @@ package org.onosproject.openstacknetworking.impl;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.onlab.packet.Ethernet;
@@ -111,6 +112,7 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_EXTERNA
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SNAT_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_STATEFUL_SNAT_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.ROUTING_TABLE;
+import static org.onosproject.openstacknetworking.api.InstancePort.State.ACTIVE;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.FLAT;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.VLAN;
 import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.USE_STATEFUL_SNAT;
@@ -831,10 +833,17 @@ public class OpenstackRoutingSnatHandler {
             return;
         }
 
+        String netId = osNetworkAdminService.subnet(routerIface.getSubnetId()).getNetworkId();
+
         Map<OpenstackNode, PortRange> gwPortRangeMap = getAssignedPortsForGateway(
                 ImmutableList.copyOf(osNodeService.nodes(GATEWAY)));
 
         osNodeService.completeNodes(GATEWAY).forEach(gwNode -> {
+            instancePortService.instancePorts(netId)
+                    .stream()
+                    .filter(port -> port.state() == ACTIVE)
+                    .forEach(port -> setGatewayToInstanceDownstreamRule(
+                            gwNode, port, install));
             if (install) {
                 PortRange gwPortRange = gwPortRangeMap.get(gwNode);
 
@@ -1005,10 +1014,18 @@ public class OpenstackRoutingSnatHandler {
                                                IpPrefix gatewayIp,
                                                boolean install) {
 
-        TrafficSelector selector = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPDst(gatewayIp)
-                .build();
+        Set<TrafficSelector> selectors = Sets.newConcurrentHashSet();
+
+        ImmutableSet<Byte> ipv4Proto = ImmutableSet.of(IPv4.PROTOCOL_TCP, IPv4.PROTOCOL_UDP);
+
+        ipv4Proto.forEach(proto -> {
+            TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
+            sBuilder.matchEthType(Ethernet.TYPE_IPV4)
+                    .matchIPDst(gatewayIp)
+                    .matchIPProtocol(proto);
+            selectors.add(sBuilder.build());
+        });
+
 
         ExtensionTreatment natTreatment = RulePopulatorUtil
                 .niciraConnTrackTreatmentBuilder(driverService, deviceId)
@@ -1021,14 +1038,16 @@ public class OpenstackRoutingSnatHandler {
                 .extension(natTreatment, deviceId)
                 .build();
 
-        osFlowRuleService.setRule(
-                appId,
-                deviceId,
-                selector,
-                treatment,
-                PRIORITY_STATEFUL_SNAT_RULE,
-                GW_COMMON_TABLE,
-                install);
+        selectors.forEach(s -> {
+            osFlowRuleService.setRule(
+                    appId,
+                    deviceId,
+                    s,
+                    treatment,
+                    PRIORITY_STATEFUL_SNAT_RULE,
+                    GW_COMMON_TABLE,
+                    install);
+        });
     }
 
     private void setStatefulSnatUpstreamRule(OpenstackNode gwNode,

@@ -66,6 +66,7 @@ public final class Constants {
     public static final int PRIORITY_FLOATING_EXTERNAL = 41000;
     public static final int PRIORITY_STATEFUL_SNAT_RULE = 40500;
     public static final int PRIORITY_ICMP_RULE = 43000;
+    public static final int PRIORITY_ICMP_REQUEST_RULE = 40800;
     public static final int PRIORITY_INTERNAL_ROUTING_RULE = 28000;
     public static final int PRIORITY_EXTERNAL_ROUTING_RULE = 25000;
     public static final int PRIORITY_EXTERNAL_FLOATING_ROUTING_RULE = 27000;

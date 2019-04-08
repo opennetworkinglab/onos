@@ -190,7 +190,7 @@ public class OpenstackRoutingSnatIcmpHandler {
     private class InternalNodeEventListener implements OpenstackNodeListener {
         @Override
         public boolean isRelevant(OpenstackNodeEvent event) {
-            return event.subject().type() == GATEWAY && !getStatefulSnatFlag();
+            return event.subject().type() == GATEWAY;
         }
 
         private boolean isRelevantHelper() {
@@ -262,10 +262,6 @@ public class OpenstackRoutingSnatIcmpHandler {
             eventExecutor.execute(() -> {
 
                 if (!isRelevantHelper(context)) {
-                    return;
-                }
-
-                if (getStatefulSnatFlag()) {
                     return;
                 }
 
