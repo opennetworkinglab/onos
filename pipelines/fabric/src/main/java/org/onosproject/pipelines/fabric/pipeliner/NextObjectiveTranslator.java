@@ -113,38 +113,44 @@ class NextObjectiveTranslator
                           ObjectiveTranslation.Builder resultBuilder)
             throws FabricPipelinerException {
 
-        // Set the egress VLAN for this next ID. Expect either a VLAN_ID
-        // criterion in meta, or a VLAN_ID instruction in the treatment (if
-        // SIMPLE, e.g. for a routing rule).
-
+        // Set the egress VLAN for this next ID. Expect a VLAN_ID instruction
+        // in the treatment, or use what's in meta.
+        final List<ModVlanIdInstruction> vlanInstructions = defaultNextTreatments(
+                obj.nextTreatments(), false).stream()
+                .map(t -> (ModVlanIdInstruction) l2Instruction(t.treatment(), VLAN_ID))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
         final VlanIdCriterion vlanIdCriterion = obj.meta() == null ? null
                 : (VlanIdCriterion) criterion(obj.meta().criteria(), Criterion.Type.VLAN_VID);
-        final ModVlanIdInstruction vlanIdInstruction;
-        if (obj.type() == NextObjective.Type.SIMPLE) {
-            final TrafficTreatment treatment = getFirstDefaultNextTreatmentIfAny(
-                    obj.nextTreatments());
-            vlanIdInstruction = treatment == null ? null
-                    : (ModVlanIdInstruction) l2Instruction(treatment, VLAN_ID);
-        } else {
-            vlanIdInstruction = null;
-        }
 
-        if (vlanIdCriterion == null && vlanIdInstruction == null) {
-            // Do nothing.
+        VlanId vlanId;
+        if (vlanInstructions.isEmpty() && vlanIdCriterion == null) {
+            // No VLAN_ID to apply.
             return;
-        }
-
-        if (vlanIdCriterion != null && vlanIdInstruction != null) {
-            if (!vlanIdCriterion.vlanId().equals(vlanIdInstruction.vlanId())) {
+        } else if (!vlanInstructions.isEmpty()) {
+            // Give priority to what found in the instructions.
+            // Expect the same VLAN ID for all instructions.
+            final Set<VlanId> vlanIds = vlanInstructions.stream()
+                    .map(ModVlanIdInstruction::vlanId)
+                    .collect(Collectors.toSet());
+            if (obj.nextTreatments().size() != vlanInstructions.size() ||
+                    vlanIds.size() != 1) {
                 throw new FabricPipelinerException(
-                        "Found both meta VLAN_ID criterion and VLAN_ID " +
-                                "treatment, but they have different ID " +
-                                "values. Cannot process next_vlan rule.");
+                        "Inconsistent VLAN_ID instructions, cannot process " +
+                                "next_vlan rule. It is required that all " +
+                                "treatments have the same VLAN_ID instruction.");
             }
+            vlanId = vlanIds.iterator().next();
+        } else {
+            // Use the value in meta.
+            // FIXME: there should be no need to generate a next_vlan rule for
+            //  the value found in meta. Meta describes the fields that were
+            //  expected to be matched in previous pipeline stages, i.e.
+            //  existing packet fields. But, for some reason, if we remove this
+            //  rule, traffic is not forwarded at spines. We might need to look
+            //  at the way default VLANs are handled in fabric.p4.
+            vlanId = vlanIdCriterion.vlanId();
         }
-
-        final VlanId vlanId = vlanIdCriterion != null
-                ? vlanIdCriterion.vlanId() : vlanIdInstruction.vlanId();
 
         final TrafficSelector selector = nextIdSelector(obj.id());
         final TrafficTreatment treatment = DefaultTrafficTreatment.builder()
