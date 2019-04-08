@@ -21,7 +21,7 @@
     <parent>
         <artifactId>onos-apps-packet-throttle</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.12.2-SNAPSHOT</version>
+        <version>1.13.9-SNAPSHOT</version>
     </parent>
 
     <groupId>org.onosproject</groupId>
