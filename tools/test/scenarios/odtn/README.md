@@ -1,7 +1,7 @@
 ## Description
 
 This directory contains several Shell scripts for ODTN project testing in STC environment.
-The normal steps of ODTN testing are listed:
+The normal steps of ODTN testing are listed (or see the wiki page: https://wiki.onosproject.org/display/ODTN/Cassini+with+STC):
 
 #### 1. `stc net-odtn-presmoke`
 This command completes preparation for testing, including latest onos image build, and onos/atomix cluster containers startup. Also, because of dynamic IP Address for containers, some related environment variables are stored in /tmp/odtn/OCvar.sh. All subsequent stc command should source this file as default environment. An example of this file is:

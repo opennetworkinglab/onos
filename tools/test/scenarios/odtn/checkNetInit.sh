@@ -1,15 +1,22 @@
 #!/bin/bash
 
-# Two input parameters:
+# Three input parameters:
 # $1 - one of {device, port, link}, specify what needs to be checked.
 # $2 - IP address of ONOS instance.
+# $3 - Optional. absolute path of net summary json file. The default path is "/tmp/odtn/net-summary.json".
 
-line_num=`cat ~/emulator/net-summary.json | wc -l`
+summary="/tmp/odtn/net-summary.json"
+if [[ $# == 3 ]];then
+    summary=$3
+fi
+
+line_num=`cat $summary | wc -l`
 if [[ "$line_num" != "1" ]]; then
     echo "JSON file should have only 1 line."
     exit 1
 fi
-
+content=`cat $summary`
+echo -e "The content of the json file is :\n $content"
 # Extract specific value from returned json string under onos command "odtn-show-tapi-context"
 function get_json_value()
 {
@@ -22,7 +29,7 @@ function get_json_value()
     local num=$3
     fi
 
-    local value=$(echo "${json}" | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'${key}'\042/){print $(i+1)}}}' | tr -d '"' | sed -n ${num}p)
+    eval value=$(echo "${json}" | awk -F"[,:}]" '{for(i=1;i<=NF;i++){if($i~/'${key}'\042/){print $(i+1)}}}' | tr -d '"' | sed -n ${num}p)
 
     return ${value}
 }
@@ -30,7 +37,7 @@ function get_json_value()
 tried=0
 case "$1" in
     "device" )
-        get_json_value $( cat ~/emulator/net-summary.json) device_num
+        eval get_json_value '$content' device_num
         device_num=$?
         num_in_topo=`onos $2 devices | wc -l`
         num_in_tapi=`onos $2 odtn-show-tapi-context | grep "<node>" | wc -l`
@@ -47,9 +54,9 @@ case "$1" in
         done
         ;;
     "port" )
-        get_json_value $( cat ~/emulator/net-summary.json) port_num
+        eval get_json_value '$content' port_num
         port_num=$?
-        get_json_value $( cat ~/emulator/net-summary.json) device_num
+        eval get_json_value '$content' device_num
         device_num=$?
         num_in_tapi=`onos $2 odtn-show-tapi-context | grep "<owned-node-edge-point>" | wc -l`
         num_in_topo=`onos $2 ports | wc -l`
@@ -68,7 +75,7 @@ case "$1" in
             done
             ;;
     "link" )
-        get_json_value $( cat ~/emulator/net-summary.json) link_num
+        eval get_json_value '$content' link_num
         link_num=$?
         num_in_topo=`onos $2 links | wc -l`
         num_in_tapi=`onos $2 odtn-show-tapi-context | grep "<link>" | wc -l`
