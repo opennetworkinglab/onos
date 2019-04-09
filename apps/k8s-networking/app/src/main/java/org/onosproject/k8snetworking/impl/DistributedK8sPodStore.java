@@ -16,6 +16,7 @@
 package org.onosproject.k8snetworking.impl;
 
 import com.google.common.collect.ImmutableSet;
+import io.fabric8.kubernetes.api.model.Affinity;
 import io.fabric8.kubernetes.api.model.Capabilities;
 import io.fabric8.kubernetes.api.model.ConfigMapEnvSource;
 import io.fabric8.kubernetes.api.model.ConfigMapKeySelector;
@@ -37,16 +38,26 @@ import io.fabric8.kubernetes.api.model.HTTPHeader;
 import io.fabric8.kubernetes.api.model.HostPathVolumeSource;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.KeyToPath;
+import io.fabric8.kubernetes.api.model.LabelSelector;
+import io.fabric8.kubernetes.api.model.LabelSelectorRequirement;
 import io.fabric8.kubernetes.api.model.Lifecycle;
+import io.fabric8.kubernetes.api.model.NodeAffinity;
+import io.fabric8.kubernetes.api.model.NodeSelector;
+import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
+import io.fabric8.kubernetes.api.model.NodeSelectorTerm;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimVolumeSource;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.PodAffinity;
+import io.fabric8.kubernetes.api.model.PodAffinityTerm;
+import io.fabric8.kubernetes.api.model.PodAntiAffinity;
 import io.fabric8.kubernetes.api.model.PodCondition;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodStatus;
+import io.fabric8.kubernetes.api.model.PreferredSchedulingTerm;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceFieldSelector;
@@ -61,6 +72,7 @@ import io.fabric8.kubernetes.api.model.Toleration;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeDevice;
 import io.fabric8.kubernetes.api.model.VolumeMount;
+import io.fabric8.kubernetes.api.model.WeightedPodAffinityTerm;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -157,6 +169,18 @@ public class DistributedK8sPodStore
             .register(ConfigMapVolumeSource.class)
             .register(KeyToPath.class)
             .register(HostPathVolumeSource.class)
+            .register(Affinity.class)
+            .register(NodeAffinity.class)
+            .register(NodeSelector.class)
+            .register(NodeSelectorTerm.class)
+            .register(NodeSelectorRequirement.class)
+            .register(PreferredSchedulingTerm.class)
+            .register(PodAffinity.class)
+            .register(WeightedPodAffinityTerm.class)
+            .register(PodAffinityTerm.class)
+            .register(LabelSelector.class)
+            .register(LabelSelectorRequirement.class)
+            .register(PodAntiAffinity.class)
             .register(LinkedHashMap.class)
             .register(Collection.class)
             .build();

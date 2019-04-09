@@ -21,6 +21,7 @@ import io.fabric8.kubernetes.api.model.EndpointAddress;
 import io.fabric8.kubernetes.api.model.EndpointPort;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServicePort;
 import org.onlab.packet.Ethernet;
@@ -40,6 +41,9 @@ import org.onosproject.k8snetworking.api.K8sEndpointsService;
 import org.onosproject.k8snetworking.api.K8sFlowRuleService;
 import org.onosproject.k8snetworking.api.K8sGroupRuleService;
 import org.onosproject.k8snetworking.api.K8sNetworkService;
+import org.onosproject.k8snetworking.api.K8sPodEvent;
+import org.onosproject.k8snetworking.api.K8sPodListener;
+import org.onosproject.k8snetworking.api.K8sPodService;
 import org.onosproject.k8snetworking.api.K8sServiceEvent;
 import org.onosproject.k8snetworking.api.K8sServiceListener;
 import org.onosproject.k8snetworking.api.K8sServiceService;
@@ -59,10 +63,7 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.ExtensionSelector;
 import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.group.GroupBucket;
-import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.AtomicCounter;
-import org.onosproject.store.service.ConsistentMap;
-import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
@@ -133,6 +134,8 @@ public class K8sServiceHandler {
 
     private static final String GROUP_ID_COUNTER_NAME = "group-id-counter";
 
+    private static final String IP_ADDRESS = "ipAddress";
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
@@ -172,6 +175,9 @@ public class K8sServiceHandler {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected K8sServiceService k8sServiceService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected K8sPodService k8sPodService;
+
     /** Service IP address translation mode. */
     private String serviceIpNatMode = SERVICE_IP_NAT_MODE_DEFAULT;
 
@@ -181,11 +187,10 @@ public class K8sServiceHandler {
             new InternalNodeEventListener();
     private final InternalK8sServiceListener internalK8sServiceListener =
             new InternalK8sServiceListener();
+    private final InternalK8sPodListener internalK8sPodListener =
+            new InternalK8sPodListener();
 
     private AtomicCounter groupIdCounter;
-
-    // service IP ports has following format IP_PORT_PROTO
-    private ConsistentMap<String, Integer> servicePortGroupIdMap;
 
     private ApplicationId appId;
     private NodeId localNodeId;
@@ -198,14 +203,9 @@ public class K8sServiceHandler {
         leadershipService.runForLeadership(appId.name());
         k8sNodeService.addListener(internalNodeEventListener);
         k8sServiceService.addListener(internalK8sServiceListener);
+        k8sPodService.addListener(internalK8sPodListener);
 
         groupIdCounter = storageService.getAtomicCounter(GROUP_ID_COUNTER_NAME);
-
-        servicePortGroupIdMap = storageService.<String, Integer>consistentMapBuilder()
-                .withName("k8s-service-ip-port-set")
-                .withSerializer(Serializer.using(KryoNamespaces.API))
-                .withApplicationId(appId)
-                .build();
 
         log.info("Started");
     }
@@ -213,6 +213,7 @@ public class K8sServiceHandler {
     @Deactivate
     protected void deactivate() {
         leadershipService.withdraw(appId.name());
+        k8sPodService.removeListener(internalK8sPodListener);
         k8sNodeService.removeListener(internalNodeEventListener);
         k8sServiceService.removeListener(internalK8sServiceListener);
         configService.unregisterProperties(getClass(), false);
@@ -345,8 +346,65 @@ public class K8sServiceHandler {
         return map;
     }
 
-    private void setStatelessGroupFlowRules(DeviceId deviceId, Service service,
-                                            boolean install) {
+    private void setGroupBuckets(DeviceId deviceId, Service service, Pod pod, boolean install) {
+
+        if (pod.getMetadata().getAnnotations() == null) {
+            return;
+        }
+
+        String podIpStr = pod.getMetadata().getAnnotations().get(IP_ADDRESS);
+
+        Map<ServicePort, Set<String>> spEpasMap = getSportEpAddressMap(service);
+        Map<ServicePort, List<GroupBucket>> spGrpBkts = Maps.newConcurrentMap();
+
+        spEpasMap.forEach((sp, epas) -> {
+            List<GroupBucket> bkts = Lists.newArrayList();
+
+            if (install) {
+                if (epas.contains(podIpStr)) {
+                    bkts = buildBuckets(deviceId, podIpStr, sp);
+                }
+            } else {
+                bkts = buildBuckets(deviceId, podIpStr, sp);
+            }
+
+            spGrpBkts.put(sp, bkts);
+        });
+
+        String serviceIp = service.getSpec().getClusterIP();
+        spGrpBkts.forEach((sp, bkts) -> {
+            String svcStr = servicePortStr(serviceIp, sp.getPort(), sp.getProtocol());
+            int groupId = svcStr.hashCode();
+
+            k8sGroupRuleService.setBuckets(appId, deviceId, groupId, bkts, install);
+        });
+    }
+
+    private List<GroupBucket> buildBuckets(DeviceId deviceId,
+                                           String podIpStr,
+                                           ServicePort sp) {
+        List<GroupBucket> bkts = Lists.newArrayList();
+
+        ExtensionTreatment resubmitTreatment = buildResubmitExtension(
+                deviceService.getDevice(deviceId), ROUTING_TABLE);
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
+                .setIpDst(IpAddress.valueOf(podIpStr))
+                .extension(resubmitTreatment, deviceId);
+
+        if (TCP.equals(sp.getProtocol())) {
+            tBuilder.setTcpDst(TpPort.tpPort(sp.getTargetPort().getIntVal()));
+        } else if (UDP.equals(sp.getProtocol())) {
+            tBuilder.setUdpDst(TpPort.tpPort(sp.getTargetPort().getIntVal()));
+        }
+
+        bkts.add(buildGroupBucket(tBuilder.build(), SELECT, (short) -1));
+
+        return bkts;
+    }
+
+    private synchronized void setStatelessGroupFlowRules(DeviceId deviceId,
+                                                         Service service,
+                                                         boolean install) {
         Map<ServicePort, Set<String>> spEpasMap = getSportEpAddressMap(service);
         Map<String, String> nodeIpGatewayIpMap =
                 nodeIpGatewayIpMap(k8sNodeService, k8sNetworkService);
@@ -376,23 +434,36 @@ public class K8sServiceHandler {
         String serviceIp = service.getSpec().getClusterIP();
         spGrpBkts.forEach((sp, bkts) -> {
             String svcStr = servicePortStr(serviceIp, sp.getPort(), sp.getProtocol());
-            int groupId;
+            int groupId = svcStr.hashCode();
 
-            if (servicePortGroupIdMap.asJavaMap().containsKey(svcStr)) {
-                groupId = servicePortGroupIdMap.asJavaMap().get(svcStr);
+            if (install) {
+
+                // add group table rules
+                k8sGroupRuleService.setRule(appId, deviceId, groupId,
+                        SELECT, bkts, true);
+
+                log.info("Adding group rule {}", groupId);
+
+                // if we failed to add group rule, we will not install flow rules
+                // as this might cause rule inconsistency
+                if (k8sGroupRuleService.hasGroup(deviceId, groupId)) {
+                    // add flow rules for shifting IP domain
+                    setShiftDomainRules(deviceId, SERVICE_TABLE, groupId,
+                            PRIORITY_NAT_RULE, serviceIp, sp.getPort(),
+                            sp.getProtocol(), true);
+                }
             } else {
-                groupId = (int) groupIdCounter.incrementAndGet();
-                servicePortGroupIdMap.put(svcStr, groupId);
+                // remove flow rules for shifting IP domain
+                setShiftDomainRules(deviceId, SERVICE_TABLE, groupId,
+                        PRIORITY_NAT_RULE, serviceIp, sp.getPort(),
+                        sp.getProtocol(), false);
+
+                // remove group table rules
+                k8sGroupRuleService.setRule(appId, deviceId, groupId,
+                        SELECT, bkts, false);
+
+                log.info("Removing group rule {}", groupId);
             }
-
-            // add group table rules
-            k8sGroupRuleService.setRule(appId, deviceId, groupId,
-                    SELECT, bkts, install);
-
-            // add flow rules for shifting IP domain
-            setShiftDomainRules(deviceId, SERVICE_TABLE, groupId,
-                    PRIORITY_NAT_RULE, serviceIp, sp.getPort(),
-                    sp.getProtocol(), install);
         });
 
         spEpasMap.forEach((sp, epas) ->
@@ -639,6 +710,16 @@ public class K8sServiceHandler {
         log.info("Configured. Service IP NAT mode is {}", serviceIpNatMode);
     }
 
+    private void setServiceNatRules(DeviceId deviceId, boolean install) {
+        if (NAT_STATEFUL.equals(serviceIpNatMode)) {
+            setStatefulServiceNatRules(deviceId, install);
+        } else if (NAT_STATELESS.equals(serviceIpNatMode)) {
+            setStatelessServiceNatRules(deviceId, install);
+        } else {
+            log.warn("Service IP NAT mode was not configured!");
+        }
+    }
+
     private class InternalK8sServiceListener implements K8sServiceListener {
 
         private boolean isRelevantHelper() {
@@ -649,6 +730,7 @@ public class K8sServiceHandler {
         public void event(K8sServiceEvent event) {
             switch (event.type()) {
                 case K8S_SERVICE_CREATED:
+                case K8S_SERVICE_UPDATED:
                     eventExecutor.execute(() -> processServiceCreation(event.subject()));
                     break;
                 case K8S_SERVICE_REMOVED:
@@ -697,6 +779,57 @@ public class K8sServiceHandler {
         }
     }
 
+    private class InternalK8sPodListener implements K8sPodListener {
+
+        private boolean isRelevantHelper() {
+            return Objects.equals(localNodeId, leadershipService.getLeader(appId.name()));
+        }
+
+        @Override
+        public void event(K8sPodEvent event) {
+            switch (event.type()) {
+                case K8S_POD_UPDATED:
+                    eventExecutor.execute(() -> processPodUpdate(event.subject()));
+                    break;
+                case K8S_POD_REMOVED:
+                    eventExecutor.execute(() -> processPodRemoval(event.subject()));
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void processPodUpdate(Pod pod) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            setServiceRuleFromPod(pod, true);
+        }
+
+        private void processPodRemoval(Pod pod) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            setServiceRuleFromPod(pod, false);
+        }
+
+        private void setServiceRuleFromPod(Pod pod, boolean install) {
+            k8sServiceService.services().forEach(s -> {
+                pod.getMetadata().getLabels().forEach((pk, pv) -> {
+                    Map<String, String> selectors = s.getSpec().getSelector();
+                    if (selectors != null && selectors.containsKey(pk)) {
+                        if (pv.equals(selectors.get(pk))) {
+                            k8sNodeService.completeNodes().forEach(n ->
+                                setGroupBuckets(n.intgBridge(), s, pod, install));
+                        }
+                    }
+                });
+            });
+        }
+    }
+
     private class InternalNodeEventListener implements K8sNodeListener {
 
         private boolean isRelevantHelper() {
@@ -711,8 +844,7 @@ public class K8sServiceHandler {
                     eventExecutor.execute(() -> processNodeCompletion(k8sNode));
                     break;
                 case K8S_NODE_INCOMPLETE:
-                    eventExecutor.execute(() -> processNodeIncompletion(k8sNode));
-                    break;
+                case K8S_NODE_REMOVED:
                 default:
                     break;
             }
@@ -723,28 +855,7 @@ public class K8sServiceHandler {
                 return;
             }
 
-            if (NAT_STATEFUL.equals(serviceIpNatMode)) {
-                setStatefulServiceNatRules(node.intgBridge(), true);
-            } else if (NAT_STATELESS.equals(serviceIpNatMode)) {
-                setStatelessServiceNatRules(node.intgBridge(), true);
-            } else {
-                log.warn("Service IP NAT mode was not configured!");
-            }
-
-        }
-
-        private void processNodeIncompletion(K8sNode node) {
-            if (!isRelevantHelper()) {
-                return;
-            }
-
-            if (NAT_STATEFUL.equals(serviceIpNatMode)) {
-                setStatefulServiceNatRules(node.intgBridge(), false);
-            } else if (NAT_STATELESS.equals(serviceIpNatMode)) {
-                setStatelessServiceNatRules(node.intgBridge(), false);
-            } else {
-                log.warn("Service IP NAT mode was not configured!");
-            }
+            setServiceNatRules(node.intgBridge(), true);
         }
     }
 }

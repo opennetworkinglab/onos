@@ -143,9 +143,7 @@ public class K8sEndpointsWatcher {
                     eventExecutor.execute(() -> processAddition(endpoints));
                     break;
                 case MODIFIED:
-                    // FIXME: there are too frequent endpoints update events
-                    // issued from kubernetes API server, we disable update for now
-                    // eventExecutor.execute(() -> processModification(endpoints));
+                    eventExecutor.execute(() -> processModification(endpoints));
                     break;
                 case DELETED:
                     eventExecutor.execute(() -> processDeletion(endpoints));

@@ -70,13 +70,31 @@ public class K8sGroupRuleManager implements K8sGroupRuleService {
     @Override
     public void setRule(ApplicationId appId, DeviceId deviceId, int groupId,
                         Type type, List<GroupBucket> buckets, boolean install) {
-        GroupDescription groupDesc = new DefaultGroupDescription(deviceId,
-                type, new GroupBuckets(buckets), getGroupKey(groupId), groupId, appId);
 
         if (install) {
+            GroupDescription groupDesc = new DefaultGroupDescription(deviceId,
+                    type, new GroupBuckets(buckets), getGroupKey(groupId), groupId, appId);
             groupService.addGroup(groupDesc);
         } else {
             groupService.removeGroup(deviceId, getGroupKey(groupId), appId);
+        }
+    }
+
+    @Override
+    public boolean hasGroup(DeviceId deviceId, int groupId) {
+        return groupService.getGroup(deviceId, getGroupKey(groupId)) != null;
+    }
+
+    @Override
+    public void setBuckets(ApplicationId appId, DeviceId deviceId, int groupId,
+                           List<GroupBucket> buckets, boolean install) {
+
+        if (install) {
+            groupService.addBucketsToGroup(deviceId, getGroupKey(groupId),
+                    new GroupBuckets(buckets), getGroupKey(groupId), appId);
+        } else {
+            groupService.removeBucketsFromGroup(deviceId, getGroupKey(groupId),
+                    new GroupBuckets(buckets), getGroupKey(groupId), appId);
         }
     }
 }

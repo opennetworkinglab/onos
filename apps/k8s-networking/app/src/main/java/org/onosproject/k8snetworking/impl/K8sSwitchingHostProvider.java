@@ -68,6 +68,7 @@ import static org.onosproject.k8snetworking.api.Constants.ANNOTATION_SEGMENT_ID;
 import static org.onosproject.k8snetworking.api.Constants.K8S_NETWORKING_APP_ID;
 import static org.onosproject.k8snetworking.api.Constants.PORT_NAME_PREFIX_CONTAINER;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.isContainer;
+import static org.onosproject.k8snode.api.K8sNodeState.INIT;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 
 /**
@@ -230,6 +231,31 @@ public class K8sSwitchingHostProvider extends AbstractProvider implements HostPr
         Set<Host> hosts = hostService.getConnectedHosts(connectPoint);
 
         hosts.forEach(h -> hostProviderService.hostVanished(h.id()));
+
+        K8sPort k8sPort = portToK8sPort(port);
+
+        if (k8sPort == null) {
+            log.warn(ERR_ADD_HOST + "Kubernetes port for {} not found", port);
+            return;
+        }
+
+        k8sNetworkService.removePort(k8sPort.portId());
+    }
+
+    /**
+     * Process port inactivate event.
+     *
+     * @param port ONOS port
+     */
+    private void processPortInactivated(Port port) {
+        K8sPort k8sPort = portToK8sPort(port);
+
+        if (k8sPort == null) {
+            log.warn(ERR_ADD_HOST + "Kubernetes port for {} not found", port);
+            return;
+        }
+
+        k8sNetworkService.updatePort(k8sPort.updateState(K8sPort.State.INACTIVE));
     }
 
     /**
@@ -349,14 +375,16 @@ public class K8sSwitchingHostProvider extends AbstractProvider implements HostPr
 
             switch (event.type()) {
                 case K8S_NODE_COMPLETE:
-                    executor.execute(() -> processCompleteNode(event, event.subject()));
+                    executor.execute(() -> processCompleteNode(event, k8sNode));
                     break;
-                case K8S_NODE_INCOMPLETE:
-                    log.warn("{} is changed to INCOMPLETE state", k8sNode);
+                case K8S_NODE_UPDATED:
+                    if (k8sNode.state() == INIT) {
+                        executor.execute(() -> processIncompleteNode(event, k8sNode));
+                    }
                     break;
                 case K8S_NODE_CREATED:
-                case K8S_NODE_UPDATED:
                 case K8S_NODE_REMOVED:
+                case K8S_NODE_INCOMPLETE:
                 default:
                     break;
             }
@@ -386,6 +414,24 @@ public class K8sSwitchingHostProvider extends AbstractProvider implements HostPr
                     .forEach(host -> {
                         log.info("Remove stale host {}", host.id());
                         hostProviderService.hostVanished(host.id());
+                    });
+        }
+
+        private void processIncompleteNode(K8sNodeEvent event, K8sNode k8sNode) {
+            if (!isRelevantHelper(event)) {
+                return;
+            }
+
+            log.info("INIT node {} is detected", k8sNode.hostname());
+
+            deviceService.getPorts(k8sNode.intgBridge()).stream()
+                    .filter(port -> isContainer(port.annotations().value(PORT_NAME)))
+                    .filter(Port::isEnabled)
+                    .forEach(port -> {
+                        log.debug("Container port {} is detected from {}",
+                                port.annotations().value(PORT_NAME),
+                                k8sNode.hostname());
+                        processPortInactivated(port);
                     });
         }
     }

@@ -39,4 +39,25 @@ public interface K8sGroupRuleService {
      */
     void setRule(ApplicationId appId, DeviceId deviceId, int groupId,
                  Type type, List<GroupBucket> buckets, boolean install);
+
+    /**
+     * Checks whether has the group in store with given device ID and group ID.
+     *
+     * @param deviceId      device ID
+     * @param groupId       group ID
+     * @return true if the group exists, false otherwise
+     */
+    boolean hasGroup(DeviceId deviceId, int groupId);
+
+    /**
+     * Configures buckets to the existing group.
+     *
+     * @param appId         application ID
+     * @param deviceId      device ID
+     * @param groupId       group ID
+     * @param buckets       a list of group buckets
+     * @param install       true for buckets addition, false for buckets removal
+     */
+    void setBuckets(ApplicationId appId, DeviceId deviceId, int groupId,
+                    List<GroupBucket> buckets, boolean install);
 }
