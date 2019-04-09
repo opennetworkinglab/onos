@@ -45,7 +45,7 @@
         <!-- Check additional flow rules for discovered hosts -->
         <step name="Net-Trellis-P4-Smoke.Check-Summary-2"
               requires="Net-Trellis-P4-Connectivity-Host-Discovery" delay="3"
-              exec="onos-check-summary ${OC1} [0-9]* 4 8 4 136"/>
+              exec="onos-check-summary ${OC1} [0-9]* 4 8 4 1[0-9][0-9]"/>
 
         <dependency name="Net-Trellis-P4-Connectivity-Bridging"
                     requires="Net-Trellis-P4-Smoke.Check-Summary-2"/>
