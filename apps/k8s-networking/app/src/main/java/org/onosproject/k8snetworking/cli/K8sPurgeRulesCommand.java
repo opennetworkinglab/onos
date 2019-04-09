@@ -19,7 +19,11 @@ import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.k8snode.api.K8sNode;
+import org.onosproject.k8snode.api.K8sNodeService;
 import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.group.Group;
+import org.onosproject.net.group.GroupService;
 
 import static java.lang.Thread.sleep;
 import static java.util.stream.StreamSupport.stream;
@@ -38,7 +42,9 @@ public class K8sPurgeRulesCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         FlowRuleService flowRuleService = get(FlowRuleService.class);
+        GroupService groupService = get(GroupService.class);
         CoreService coreService = get(CoreService.class);
+        K8sNodeService k8sNodeService = get(K8sNodeService.class);
         ApplicationId appId = coreService.getAppId(K8S_NETWORKING_APP_ID);
 
         if (appId == null) {
@@ -75,6 +81,12 @@ public class K8sPurgeRulesCommand extends AbstractShellCommand {
             if (waitMs <= 0) {
                 result = false;
                 break;
+            }
+        }
+
+        for (K8sNode node : k8sNodeService.completeNodes()) {
+            for (Group group : groupService.getGroups(node.intgBridge(), appId)) {
+                groupService.removeGroup(node.intgBridge(), group.appCookie(), appId);
             }
         }
 

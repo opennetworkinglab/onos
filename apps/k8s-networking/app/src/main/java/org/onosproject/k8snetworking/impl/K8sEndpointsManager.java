@@ -107,7 +107,7 @@ public class K8sEndpointsManager
 
         k8sEndpointsStore.updateEndpoints(endpoints);
 
-        log.info(String.format(MSG_ENDPOINTS, endpoints.getMetadata().getName(), MSG_UPDATED));
+        log.debug(String.format(MSG_ENDPOINTS, endpoints.getMetadata().getName(), MSG_UPDATED));
     }
 
     @Override
