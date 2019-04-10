@@ -7,7 +7,6 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + [
     "//protocols/gnmi/stub:onos-protocols-gnmi-stub",
     "//protocols/gnmi/api:onos-protocols-gnmi-api",
     "//protocols/grpc/api:onos-protocols-grpc-api",
-    "//protocols/grpc/proto:onos-protocols-grpc-proto",
 ]
 
 osgi_jar_with_tests(

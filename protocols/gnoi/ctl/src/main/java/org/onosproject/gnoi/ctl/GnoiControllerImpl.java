@@ -19,9 +19,9 @@ import io.grpc.ManagedChannel;
 import org.onosproject.event.AbstractEvent;
 import org.onosproject.event.EventListener;
 import org.onosproject.gnoi.api.GnoiClient;
-import org.onosproject.gnoi.api.GnoiClientKey;
 import org.onosproject.gnoi.api.GnoiController;
 import org.onosproject.grpc.ctl.AbstractGrpcClientController;
+import org.onosproject.net.DeviceId;
 import org.osgi.service.component.annotations.Component;
 
 /**
@@ -29,15 +29,15 @@ import org.osgi.service.component.annotations.Component;
  */
 @Component(immediate = true, service = GnoiController.class)
 public class GnoiControllerImpl
-        extends AbstractGrpcClientController<GnoiClientKey, GnoiClient, AbstractEvent, EventListener<AbstractEvent>>
+        extends AbstractGrpcClientController<GnoiClient, AbstractEvent, EventListener<AbstractEvent>>
         implements GnoiController {
 
     public GnoiControllerImpl() {
-        super(AbstractEvent.class);
+        super(AbstractEvent.class, "gNOI");
     }
 
     @Override
-    protected GnoiClient createClientInstance(GnoiClientKey clientKey, ManagedChannel channel) {
-        return new GnoiClientImpl(clientKey, channel, this);
+    protected GnoiClient createClientInstance(DeviceId deviceId, ManagedChannel channel) {
+        return new GnoiClientImpl(deviceId, channel, this);
     }
 }

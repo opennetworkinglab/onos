@@ -1,5 +1,7 @@
 COMPILE_DEPS = CORE_DEPS + KRYO + [
     "//core/store/serializers:onos-core-serializers",
+    "//protocols/grpc/api:onos-protocols-grpc-api",
+    "//protocols/grpc/utils:onos-protocols-grpc-utils",
     "//protocols/p4runtime/api:onos-protocols-p4runtime-api",
     "@io_grpc_grpc_java//core",
 ]

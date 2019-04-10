@@ -35,12 +35,14 @@ public interface P4RuntimeReadClient {
 
     /**
      * Returns a new {@link ReadRequest} instance that can bed used to build a
-     * batched read request, for the given pipeconf.
+     * batched read request, for the given P4Runtime-internal device ID and
+     * pipeconf.
      *
-     * @param pipeconf pipeconf
+     * @param p4DeviceId P4Runtime-internal device ID
+     * @param pipeconf   pipeconf
      * @return new read request
      */
-    ReadRequest read(PiPipeconf pipeconf);
+    ReadRequest read(long p4DeviceId, PiPipeconf pipeconf);
 
     /**
      * Abstraction of a batched P4Runtime read request. Multiple entities can be

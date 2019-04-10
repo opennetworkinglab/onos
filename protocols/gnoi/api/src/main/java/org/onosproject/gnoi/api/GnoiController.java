@@ -24,5 +24,5 @@ import org.onosproject.grpc.api.GrpcClientController;
  */
 @Beta
 public interface GnoiController
-        extends GrpcClientController<GnoiClientKey, GnoiClient> {
+        extends GrpcClientController<GnoiClient> {
 }

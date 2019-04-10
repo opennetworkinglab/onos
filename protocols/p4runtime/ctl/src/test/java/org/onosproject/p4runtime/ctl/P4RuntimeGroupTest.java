@@ -25,6 +25,7 @@ import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.internal.AbstractServerImplBuilder;
 import org.easymock.EasyMock;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -44,7 +45,6 @@ import org.onosproject.net.pi.runtime.PiActionProfileGroup;
 import org.onosproject.net.pi.runtime.PiActionProfileGroupId;
 import org.onosproject.net.pi.runtime.PiActionProfileMember;
 import org.onosproject.net.pi.runtime.PiActionProfileMemberId;
-import org.onosproject.p4runtime.api.P4RuntimeClientKey;
 import org.onosproject.p4runtime.ctl.client.P4RuntimeClientImpl;
 import org.onosproject.p4runtime.ctl.controller.P4RuntimeControllerImpl;
 import p4.v1.P4RuntimeOuterClass.ActionProfileGroup;
@@ -55,8 +55,6 @@ import p4.v1.P4RuntimeOuterClass.Update;
 import p4.v1.P4RuntimeOuterClass.WriteRequest;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.List;
@@ -64,7 +62,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static java.lang.String.format;
 import static org.easymock.EasyMock.niceMock;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -109,8 +106,6 @@ public class P4RuntimeGroupTest {
     private static final String GRPC_SERVER_NAME = "P4RuntimeGroupTest";
     private static final long DEFAULT_TIMEOUT_TIME = 10;
     private static final Uint128 DEFAULT_ELECTION_ID = Uint128.getDefaultInstance();
-    private static final String P4R_IP = "127.0.0.1";
-    private static final int P4R_PORT = 50010;
 
     private org.onosproject.p4runtime.ctl.client.P4RuntimeClientImpl client;
     private P4RuntimeControllerImpl controller;
@@ -160,20 +155,23 @@ public class P4RuntimeGroupTest {
 
 
     @Before
-    public void setup() throws URISyntaxException {
+    public void setup() {
         controller = niceMock(org.onosproject.p4runtime.ctl.controller.P4RuntimeControllerImpl.class);
-        P4RuntimeClientKey clientKey = new P4RuntimeClientKey(DEVICE_ID, new URI(
-                format("grpc://%s:%d?device_id=%d", P4R_IP, P4R_PORT, P4_DEVICE_ID)));
         client = new P4RuntimeClientImpl(
-                clientKey, grpcChannel, controller, new MockPipeconfService(),
+                DEVICE_ID, grpcChannel, controller, new MockPipeconfService(),
                 new MockMasterElectionIdStore());
+    }
+
+    @After
+    public void teardown() {
+        client.shutdown();
     }
 
     @Test
     public void testInsertPiActionProfileGroup() throws Exception {
         CompletableFuture<Void> complete = p4RuntimeServerImpl.expectRequests(1);
-        client.write(PIPECONF).insert(GROUP).submitSync();
-        assertTrue(client.write(PIPECONF).insert(GROUP).submitSync().isSuccess());
+        client.write(P4_DEVICE_ID, PIPECONF).insert(GROUP).submitSync();
+        assertTrue(client.write(P4_DEVICE_ID, PIPECONF).insert(GROUP).submitSync().isSuccess());
         complete.get(DEFAULT_TIMEOUT_TIME, TimeUnit.SECONDS);
         WriteRequest result = p4RuntimeServerImpl.getWriteReqs().get(0);
         assertEquals(1, result.getDeviceId());
@@ -202,7 +200,7 @@ public class P4RuntimeGroupTest {
     @Test
     public void testInsertPiActionMembers() throws Exception {
         CompletableFuture<Void> complete = p4RuntimeServerImpl.expectRequests(1);
-        assertTrue(client.write(PIPECONF).insert(GROUP_MEMBER_INSTANCES)
+        assertTrue(client.write(P4_DEVICE_ID, PIPECONF).insert(GROUP_MEMBER_INSTANCES)
                            .submitSync().isSuccess());
         complete.get(DEFAULT_TIMEOUT_TIME, TimeUnit.SECONDS);
         WriteRequest result = p4RuntimeServerImpl.getWriteReqs().get(0);
@@ -251,7 +249,7 @@ public class P4RuntimeGroupTest {
 
         p4RuntimeServerImpl.willReturnReadResult(responses);
         CompletableFuture<Void> complete = p4RuntimeServerImpl.expectRequests(1);
-        Collection<PiActionProfileGroup> groups = client.read(PIPECONF)
+        Collection<PiActionProfileGroup> groups = client.read(P4_DEVICE_ID, PIPECONF)
                 .actionProfileGroups(ACT_PROF_ID)
                 .submitSync().all(PiActionProfileGroup.class);
         complete.get(DEFAULT_TIMEOUT_TIME, TimeUnit.SECONDS);
@@ -300,7 +298,7 @@ public class P4RuntimeGroupTest {
 
         p4RuntimeServerImpl.willReturnReadResult(responses);
         CompletableFuture<Void> complete = p4RuntimeServerImpl.expectRequests(1);
-        Collection<PiActionProfileMember> piMembers = client.read(PIPECONF)
+        Collection<PiActionProfileMember> piMembers = client.read(P4_DEVICE_ID, PIPECONF)
                 .actionProfileMembers(ACT_PROF_ID).submitSync()
                 .all(PiActionProfileMember.class);
         complete.get(DEFAULT_TIMEOUT_TIME, TimeUnit.SECONDS);

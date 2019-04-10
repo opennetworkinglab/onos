@@ -44,13 +44,15 @@ import java.util.stream.Collectors;
 import static org.onosproject.net.pi.model.PiCounterType.INDIRECT;
 
 /**
- * Implementation of the PortStatisticsDiscovery behaviour for the mytunnel.p4 program. This behaviour works by using a
- * P4Runtime client to read the values of the ingress/egress port counters defined in the P4 program.
+ * Implementation of the PortStatisticsDiscovery behaviour for the mytunnel.p4
+ * program. This behaviour works by using a P4Runtime client to read the values
+ * of the ingress/egress port counters defined in the P4 program.
  */
 public final class PortStatisticsDiscoveryImpl extends AbstractHandlerBehaviour implements PortStatisticsDiscovery {
 
     private static final Logger log = LoggerFactory.getLogger(PortStatisticsDiscoveryImpl.class);
 
+    private static final long DEFAULT_P4_DEVICE_ID = 1;
     private static final PiCounterId INGRESS_COUNTER_ID = PiCounterId.of("c_ingress.rx_port_counter");
     private static final PiCounterId EGRESS_COUNTER_ID = PiCounterId.of("c_ingress.tx_port_counter");
 
@@ -62,7 +64,7 @@ public final class PortStatisticsDiscoveryImpl extends AbstractHandlerBehaviour 
 
         // Get a client for this device.
         P4RuntimeController controller = handler().get(P4RuntimeController.class);
-        P4RuntimeClient client = controller.getClient(deviceId);
+        P4RuntimeClient client = controller.get(deviceId);
         if (client == null) {
             log.warn("Unable to find client for {}, aborting operation", deviceId);
             return Collections.emptyList();
@@ -98,9 +100,10 @@ public final class PortStatisticsDiscoveryImpl extends AbstractHandlerBehaviour 
                 .collect(Collectors.toSet());
 
         // Query the device.
-        Collection<PiCounterCell> counterEntryResponse = client.read(pipeconf)
-                    .handles(counterCellHandles).submitSync()
-                    .all(PiCounterCell.class);
+        Collection<PiCounterCell> counterEntryResponse = client.read(
+                DEFAULT_P4_DEVICE_ID, pipeconf)
+                .handles(counterCellHandles).submitSync()
+                .all(PiCounterCell.class);
 
         // Process response.
         counterEntryResponse.forEach(counterCell -> {

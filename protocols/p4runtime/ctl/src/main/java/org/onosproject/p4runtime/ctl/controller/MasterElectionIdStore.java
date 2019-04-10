@@ -21,51 +21,71 @@ import org.onosproject.net.DeviceId;
 import java.math.BigInteger;
 
 /**
- * Store that keeps track of master election IDs for each device.
+ * Store that keeps track of master election IDs for each server (device) and
+ * P4Runtime-internal device ID.
  */
 public interface MasterElectionIdStore {
 
     /**
-     * Sets the master election ID for the given device.
+     * Sets the master election ID for the given device and P4Runtime-internal
+     * device ID.
      *
      * @param deviceId   device ID
+     * @param p4DeviceId P4Runtime-internal device ID
      * @param electionId election ID
      */
-    void set(DeviceId deviceId, BigInteger electionId);
+    void set(DeviceId deviceId, long p4DeviceId, BigInteger electionId);
 
     /**
-     * Returns the last known master election ID for the given device, or null.
+     * Returns the last known master election ID for the given device and
+     * P4Runtime-internal device ID, or null.
      *
-     * @param deviceId device ID
+     * @param deviceId   device ID
+     * @param p4DeviceId P4Runtime-internal device ID
      * @return election ID
      */
-    BigInteger get(DeviceId deviceId);
+    BigInteger get(DeviceId deviceId, long p4DeviceId);
 
     /**
-     * Removes any state associated with the given device.
+     * Removes any state associated with the given device and P4Runtime-internal
+     * device ID.
+     *
+     * @param deviceId   device ID
+     * @param p4DeviceId P4Runtime-internal device ID
+     */
+    void remove(DeviceId deviceId, long p4DeviceId);
+
+    /**
+     * Removes all state associated with the given device.
      *
      * @param deviceId device ID
      */
-    void remove(DeviceId deviceId);
+    void removeAll(DeviceId deviceId);
 
     /**
-     * Sets a listener for the given device that will be invoked every time
-     * there will be changes to the master election ID.
+     * Sets a listener for the given device and P4Runtime-internal device ID
+     * that will be invoked every time there will be changes to the master
+     * election ID.
      *
-     * @param deviceId device ID
-     * @param listener listener
+     * @param deviceId   device ID
+     * @param p4DeviceId P4Runtime-internal device ID
+     * @param listener   listener
      */
-    void setListener(DeviceId deviceId, MasterElectionIdListener listener);
+    void setListener(DeviceId deviceId, long p4DeviceId,
+                     MasterElectionIdListener listener);
 
     /**
-     * Unset the listener for the given device.
+     * Unset the listener for the given device and P4Runtime-internal device
+     * ID.
      *
-     * @param deviceId device ID
+     * @param deviceId   device ID
+     * @param p4DeviceId P4Runtime-internal device ID
      */
-    void unsetListener(DeviceId deviceId);
+    void unsetListener(DeviceId deviceId, long p4DeviceId);
 
     /**
-     * Listener of master election ID changes for a specific device.
+     * Listener of master election ID changes for a specific device and
+     * P4Runtime-internal device ID.
      */
     interface MasterElectionIdListener {
 

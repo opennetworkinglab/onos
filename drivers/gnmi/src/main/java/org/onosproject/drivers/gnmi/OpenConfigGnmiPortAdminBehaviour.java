@@ -18,6 +18,8 @@ package org.onosproject.drivers.gnmi;
 
 import gnmi.Gnmi;
 import org.onosproject.gnmi.api.GnmiClient;
+import org.onosproject.gnmi.api.GnmiController;
+import org.onosproject.grpc.utils.AbstractGrpcHandlerBehaviour;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.PortAdmin;
 
@@ -29,11 +31,18 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
  * Implementation of PortAdmin for gNMI devices with OpenConfig support.
  */
 public class OpenConfigGnmiPortAdminBehaviour
-        extends AbstractGnmiHandlerBehaviour
+        extends AbstractGrpcHandlerBehaviour<GnmiClient, GnmiController>
         implements PortAdmin {
+
+    public OpenConfigGnmiPortAdminBehaviour() {
+        super(GnmiController.class);
+    }
 
     @Override
     public CompletableFuture<Boolean> enable(PortNumber number) {
+        if (!setupBehaviour("enable()")) {
+            return completedFuture(false);
+        }
         doEnable(number, true);
         // Always returning true is OK assuming this is used only by the
         // GeneralDeviceProvider, which ignores the return value and instead
@@ -43,6 +52,9 @@ public class OpenConfigGnmiPortAdminBehaviour
 
     @Override
     public CompletableFuture<Boolean> disable(PortNumber number) {
+        if (!setupBehaviour("disable()")) {
+            return completedFuture(false);
+        }
         doEnable(number, false);
         return completedFuture(true);
     }
@@ -56,11 +68,6 @@ public class OpenConfigGnmiPortAdminBehaviour
         if (portNumber.isLogical()) {
             log.warn("Cannot update port status for logical port {} on {}",
                      portNumber, deviceId);
-            return;
-        }
-        final GnmiClient client = getClientByKey();
-        if (client == null) {
-            log.warn("Cannot update ports on {}, missing gNMI client", deviceId);
             return;
         }
         final Gnmi.Path path = Gnmi.Path.newBuilder()

@@ -55,7 +55,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Implementation of P4RuntimeStreamClient. Handles P4Runtime StreamChannel RPC
- * operations, such as arbitration update and packet-in/out.
+ * operations, such as arbitration update and packet-in/out, for a given
+ * P4Runtime-internal device ID.
  */
 public final class StreamClientImpl implements P4RuntimeStreamClient {
 
@@ -87,24 +88,27 @@ public final class StreamClientImpl implements P4RuntimeStreamClient {
             PiPipeconfService pipeconfService,
             MasterElectionIdStore masterElectionIdStore,
             P4RuntimeClientImpl client,
+            long p4DeviceId,
             P4RuntimeControllerImpl controller) {
         this.client = client;
         this.deviceId = client.deviceId();
-        this.p4DeviceId = client.p4DeviceId();
+        this.p4DeviceId = p4DeviceId;
         this.pipeconfService = pipeconfService;
         this.masterElectionIdStore = masterElectionIdStore;
         this.controller = controller;
     }
 
     @Override
-    public boolean isSessionOpen() {
+    public boolean isSessionOpen(long p4DeviceId) {
+        checkArgument(this.p4DeviceId == p4DeviceId);
         return streamChannelManager.isOpen();
     }
 
     @Override
-    public void closeSession() {
+    public void closeSession(long p4DeviceId) {
+        checkArgument(this.p4DeviceId == p4DeviceId);
         synchronized (requestedToBeMaster) {
-            this.masterElectionIdStore.unsetListener(deviceId);
+            this.masterElectionIdStore.unsetListener(deviceId, p4DeviceId);
             streamChannelManager.teardown();
             pendingElectionId = null;
             requestedToBeMaster.set(false);
@@ -113,14 +117,17 @@ public final class StreamClientImpl implements P4RuntimeStreamClient {
     }
 
     @Override
-    public void setMastership(boolean master, BigInteger newElectionId) {
+    public void setMastership(long p4DeviceId, boolean master,
+                              BigInteger newElectionId) {
+        checkArgument(this.p4DeviceId == p4DeviceId);
         checkNotNull(newElectionId);
         checkArgument(newElectionId.compareTo(BigInteger.ZERO) > 0,
                       "newElectionId must be a non zero positive number");
         synchronized (requestedToBeMaster) {
             requestedToBeMaster.set(master);
             pendingElectionId = newElectionId;
-            handlePendingElectionId(masterElectionIdStore.get(deviceId));
+            handlePendingElectionId(masterElectionIdStore.get(
+                    deviceId, p4DeviceId));
         }
     }
 
@@ -151,7 +158,8 @@ public final class StreamClientImpl implements P4RuntimeStreamClient {
                         > ARBITRATION_TIMEOUT_SECONDS * 1000;
             }
             if (timeoutExpired) {
-                log.warn("{} arbitration timeout expired! Will send pending election ID now...",
+                log.warn("Arbitration timeout expired for {}! " +
+                                 "Will send pending election ID now...",
                          deviceId);
             }
             if (!timeoutExpired &&
@@ -163,35 +171,41 @@ public final class StreamClientImpl implements P4RuntimeStreamClient {
                          deviceId, masterElectionId, pendingElectionId);
                 // Will try again as soon as the master election ID store is
                 // updated...
-                masterElectionIdStore.setListener(deviceId, masterElectionIdListener);
+                masterElectionIdStore.setListener(
+                        deviceId, p4DeviceId, masterElectionIdListener);
                 // ..or in ARBITRATION_RETRY_SECONDS at the latest (if we missed
                 // the store event).
                 pendingElectionIdRetryTask = SharedScheduledExecutors.newTimeout(
-                        () -> handlePendingElectionId(masterElectionIdStore.get(deviceId)),
+                        () -> handlePendingElectionId(
+                                masterElectionIdStore.get(deviceId, p4DeviceId)),
                         ARBITRATION_RETRY_SECONDS, TimeUnit.SECONDS);
             } else {
                 // Send now.
                 log.info("Setting mastership on {}... " +
-                                 "master={}, newElectionId={}, masterElectionId={}",
+                                 "master={}, newElectionId={}, " +
+                                 "masterElectionId={}, sessionOpen={}",
                          deviceId, requestedToBeMaster.get(),
-                         pendingElectionId, masterElectionId);
+                         pendingElectionId, masterElectionId,
+                         streamChannelManager.isOpen());
                 sendMasterArbitrationUpdate(pendingElectionId);
                 pendingElectionId = null;
                 pendingElectionIdTimestamp = 0;
                 // No need to listen for master election ID changes.
-                masterElectionIdStore.unsetListener(deviceId);
+                masterElectionIdStore.unsetListener(deviceId, p4DeviceId);
             }
         }
     }
 
     @Override
-    public boolean isMaster() {
+    public boolean isMaster(long p4DeviceId) {
+        checkArgument(this.p4DeviceId == p4DeviceId);
         return isMaster.get();
     }
 
     @Override
-    public void packetOut(PiPacketOperation packet, PiPipeconf pipeconf) {
-        if (!isSessionOpen()) {
+    public void packetOut(long p4DeviceId, PiPacketOperation packet, PiPipeconf pipeconf) {
+        checkArgument(this.p4DeviceId == p4DeviceId);
+        if (!isSessionOpen(p4DeviceId)) {
             log.warn("Dropping packet-out request for {}, session is closed",
                      deviceId);
             return;
@@ -293,7 +307,7 @@ public final class StreamClientImpl implements P4RuntimeStreamClient {
         // and that otherwise would not be aware of changes, keeping their
         // pending mastership operations forever.
         final BigInteger masterElectionId = uint128ToBigInteger(msg.getElectionId());
-        masterElectionIdStore.set(deviceId, masterElectionId);
+        masterElectionIdStore.set(deviceId, p4DeviceId, masterElectionId);
 
         log.debug("Received arbitration update from {}: isMaster={}, masterElectionId={}",
                   deviceId, isMaster.get(), masterElectionId);
@@ -332,7 +346,7 @@ public final class StreamClientImpl implements P4RuntimeStreamClient {
     }
 
     /**
-     * A manager for the P4Runtime stream channel that opportunistically creates
+     * A manager for the P4Runtime StreamChannel RPC that opportunistically creates
      * new stream RCP stubs (e.g. when one fails because of errors) and posts
      * channel events via the P4Runtime controller.
      */
@@ -355,7 +369,7 @@ public final class StreamClientImpl implements P4RuntimeStreamClient {
 
         private void initIfRequired() {
             if (requestObserver == null) {
-                log.debug("Creating new stream channel for {}...", deviceId);
+                log.debug("Starting new StreamChannel RPC for {}...", deviceId);
                 open.set(false);
                 client.execRpcNoTimeout(
                         s -> requestObserver =
@@ -397,7 +411,7 @@ public final class StreamClientImpl implements P4RuntimeStreamClient {
     }
 
     /**
-     * Handles messages received from the device on the stream channel.
+     * Handles messages received from the device on the StreamChannel RPC.
      */
     private final class InternalStreamResponseObserver
             implements StreamObserver<StreamMessageResponse> {
@@ -429,7 +443,7 @@ public final class StreamClientImpl implements P4RuntimeStreamClient {
                                  deviceId, message.getUpdateCase());
                 }
             } catch (Throwable ex) {
-                log.error("Exception while processing stream message from {}",
+                log.error("Exception while processing StreamMessageResponse from {}",
                           deviceId, ex);
             }
         }
@@ -442,12 +456,12 @@ public final class StreamClientImpl implements P4RuntimeStreamClient {
                     log.warn("{} is unreachable ({})",
                              deviceId, sre.getCause().getMessage());
                 } else {
-                    log.warn("Error on stream channel for {}: {}",
+                    log.warn("Error on StreamChannel RPC for {}: {}",
                              deviceId, throwable.getMessage());
                 }
                 log.debug("", throwable);
             } else {
-                log.error(format("Exception on stream channel for %s",
+                log.error(format("Exception on StreamChannel RPC for %s",
                                  deviceId), throwable);
             }
             streamChannelManager.teardown();
@@ -455,7 +469,7 @@ public final class StreamClientImpl implements P4RuntimeStreamClient {
 
         @Override
         public void onCompleted() {
-            log.warn("Stream channel for {} has completed", deviceId);
+            log.warn("StreamChannel RPC for {} has completed", deviceId);
             streamChannelManager.teardown();
         }
     }

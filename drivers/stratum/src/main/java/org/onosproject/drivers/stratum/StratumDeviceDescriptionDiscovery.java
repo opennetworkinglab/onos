@@ -63,6 +63,9 @@ public class StratumDeviceDescriptionDiscovery
                 // Availability is mandated by P4Runtime.
                 p4Descr.isDefaultAvailable(),
                 DefaultAnnotations.builder()
+                        .putAll(p4Descr.annotations())
+                        .putAll(gnmiDescr.annotations())
+                        .putAll(gnoiDescr.annotations())
                         .set(AnnotationKeys.PROTOCOL, format(
                                 "%s, %s, %s",
                                 p4Descr.annotations().value(AnnotationKeys.PROTOCOL),

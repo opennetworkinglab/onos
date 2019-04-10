@@ -23,6 +23,9 @@ import gnmi.Gnmi;
 import gnmi.Gnmi.GetRequest;
 import gnmi.Gnmi.GetResponse;
 import org.onlab.packet.ChassisId;
+import org.onosproject.gnmi.api.GnmiClient;
+import org.onosproject.gnmi.api.GnmiController;
+import org.onosproject.grpc.utils.AbstractGrpcHandlerBehaviour;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
@@ -48,7 +51,7 @@ import static gnmi.Gnmi.Update;
  * supports the gNMI protocol and Openconfig models.
  */
 public class OpenConfigGnmiDeviceDescriptionDiscovery
-        extends AbstractGnmiHandlerBehaviour
+        extends AbstractGrpcHandlerBehaviour<GnmiClient, GnmiController>
         implements DeviceDescriptionDiscovery {
 
     private static final Logger log = LoggerFactory
@@ -57,6 +60,10 @@ public class OpenConfigGnmiDeviceDescriptionDiscovery
     private static final String LAST_CHANGE = "last-changed";
 
     private static final String UNKNOWN = "unknown";
+
+    public OpenConfigGnmiDeviceDescriptionDiscovery() {
+        super(GnmiController.class);
+    }
 
     @Override
     public DeviceDescription discoverDeviceDetails() {

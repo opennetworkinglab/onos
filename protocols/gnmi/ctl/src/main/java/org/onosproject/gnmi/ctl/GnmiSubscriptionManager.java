@@ -77,7 +77,7 @@ final class GnmiSubscriptionManager {
                 if (existingSubscription.equals(request)) {
                     // Nothing to do. We are already subscribed for the same
                     // request.
-                    log.debug("Ignoring re-subscription to same request",
+                    log.debug("Ignoring re-subscription to same request for {}",
                               deviceId);
                     return;
                 }

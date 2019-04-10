@@ -4,6 +4,8 @@ COMPILE_DEPS = CORE_DEPS + KRYO + JACKSON + [
     "//drivers/gnmi:onos-drivers-gnmi",
     "//drivers/gnoi:onos-drivers-gnoi",
     "//pipelines/basic:onos-pipelines-basic",
+    "//protocols/grpc/api:onos-protocols-grpc-api",
+    "//protocols/grpc/utils:onos-protocols-grpc-utils",
 ]
 
 osgi_jar(

@@ -17,8 +17,6 @@ package org.onosproject.net.driver;
 
 import com.google.common.annotations.Beta;
 
-import java.util.concurrent.CompletableFuture;
-
 /**
  * Abstraction of handler behaviour used to set-up and tear-down connections
  * with a device. A connection is intended as the presence of state (e.g. a
@@ -31,22 +29,24 @@ public interface DeviceConnect extends HandlerBehaviour {
     /**
      * Connects to the device, for example by opening the transport session that
      * will be later used to send control messages. Returns true if the
-     * connection was initiated successfully, false otherwise. The
-     * implementation might require probing the device over the network to
-     * initiate the connection.
+     * connection was created successfully, false otherwise.
+     * <p>
+     * The implementation should trigger without blocking any necessary
+     * handshake with the device to initialize the connection over the network,
+     * eventually generating a {@link org.onosproject.net.device.DeviceAgentEvent.Type#CHANNEL_OPEN}
+     * event when ready.
      * <p>
      * When calling this method while a connection to the device already exists,
      * the behavior is not defined. For example, some implementations might
      * require to first call {@link #disconnect()}, while other might behave as
      * a no-op.
      *
-     * @return CompletableFuture eventually true if a connection was created
-     * successfully, false otherwise
+     * @return true if a connection was created successfully, false otherwise
      * @throws IllegalStateException if a connection already exists and the
      *                               implementation requires to call {@link
      *                               #disconnect()} first.
      */
-    CompletableFuture<Boolean> connect() throws IllegalStateException;
+    boolean connect() throws IllegalStateException;
 
     /**
      * Returns true if a connection to the device exists, false otherwise. This
@@ -61,14 +61,19 @@ public interface DeviceConnect extends HandlerBehaviour {
      *
      * @return true if the connection is open, false otherwise
      */
-    boolean isConnected();
+    boolean hasConnection();
 
     /**
-     * Disconnects from the device, for example closing the transport session
+     * Disconnects from the device, for example closing any transport session
      * previously opened.
      * <p>
      * Calling multiple times this method while a connection to the device is
      * already closed should result in a no-op.
+     * <p>
+     * If a connection to the device existed and it was open, the implementation
+     * is expected to generate a
+     * {@link org.onosproject.net.device.DeviceAgentEvent.Type#CHANNEL_CLOSED}
+     * event.
      */
     void disconnect();
 }

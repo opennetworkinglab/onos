@@ -21,7 +21,6 @@ import org.onosproject.grpc.ctl.AbstractGrpcClientController;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.pi.service.PiPipeconfService;
 import org.onosproject.p4runtime.api.P4RuntimeClient;
-import org.onosproject.p4runtime.api.P4RuntimeClientKey;
 import org.onosproject.p4runtime.api.P4RuntimeController;
 import org.onosproject.p4runtime.api.P4RuntimeEvent;
 import org.onosproject.p4runtime.api.P4RuntimeEventListener;
@@ -36,7 +35,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 @Component(immediate = true, service = P4RuntimeController.class)
 public class P4RuntimeControllerImpl
         extends AbstractGrpcClientController
-        <P4RuntimeClientKey, P4RuntimeClient, P4RuntimeEvent, P4RuntimeEventListener>
+        <P4RuntimeClient, P4RuntimeEvent, P4RuntimeEventListener>
         implements P4RuntimeController {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
@@ -46,27 +45,21 @@ public class P4RuntimeControllerImpl
     private MasterElectionIdStore masterElectionIdStore;
 
     public P4RuntimeControllerImpl() {
-        super(P4RuntimeEvent.class);
+        super(P4RuntimeEvent.class, "P4Runtime");
     }
 
     @Override
-    public void removeClient(DeviceId deviceId) {
-        super.removeClient(deviceId);
+    public void remove(DeviceId deviceId) {
+        super.remove(deviceId);
         // Assuming that when a client is removed, it is done so by all nodes,
         // this is the best place to clear master election ID state.
-        masterElectionIdStore.remove(deviceId);
-    }
-
-    @Override
-    public void removeClient(P4RuntimeClientKey clientKey) {
-        super.removeClient(clientKey);
-        masterElectionIdStore.remove(clientKey.deviceId());
+        masterElectionIdStore.removeAll(deviceId);
     }
 
     @Override
     protected P4RuntimeClient createClientInstance(
-            P4RuntimeClientKey clientKey, ManagedChannel channel) {
-        return new P4RuntimeClientImpl(clientKey, channel, this,
+            DeviceId deviceId, ManagedChannel channel) {
+        return new P4RuntimeClientImpl(deviceId, channel, this,
                                        pipeconfService, masterElectionIdStore);
     }
 }

@@ -24,21 +24,25 @@ import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceDescriptionDiscovery;
 import org.onosproject.net.device.PortDescription;
-import org.onosproject.net.driver.AbstractHandlerBehaviour;
 
 import java.util.Collections;
 import java.util.List;
+
+import static org.onosproject.drivers.p4runtime.P4RuntimeDriverUtils.extractP4DeviceId;
 
 /**
  * Implementation of DeviceDescriptionDiscovery for P4Runtime devices.
  */
 public class P4RuntimeDeviceDescriptionDiscovery
-        extends AbstractHandlerBehaviour implements DeviceDescriptionDiscovery {
+        extends AbstractP4RuntimeHandlerBehaviour
+        implements DeviceDescriptionDiscovery {
 
     private static final String UNKNOWN = "unknown";
+    private static final String P4_DEVICE_ID = "p4DeviceId";
 
     @Override
     public DeviceDescription discoverDeviceDetails() {
+        final Long p4DeviceId = extractP4DeviceId(mgmtUriFromNetcfg());
         return new DefaultDeviceDescription(
                 data().deviceId().uri(),
                 Device.Type.SWITCH,
@@ -49,6 +53,8 @@ public class P4RuntimeDeviceDescriptionDiscovery
                 new ChassisId(),
                 false,
                 DefaultAnnotations.builder()
+                        .set(P4_DEVICE_ID, p4DeviceId == null
+                                ? UNKNOWN : String.valueOf(p4DeviceId))
                         .set(AnnotationKeys.PROTOCOL, "P4Runtime")
                         .build());
     }

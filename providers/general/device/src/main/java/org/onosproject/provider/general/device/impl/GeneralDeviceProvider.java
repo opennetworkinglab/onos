@@ -541,7 +541,7 @@ public class GeneralDeviceProvider extends AbstractProvider
             return;
         }
 
-        if (!handshaker.isConnected()) {
+        if (!handshaker.hasConnection()) {
             // Device is in the core, but driver reports there is NOT a
             // connection to it. Perhaps the netcfg changed and we didn't
             // pick the event?
@@ -603,15 +603,12 @@ public class GeneralDeviceProvider extends AbstractProvider
             case CONNECTION_TEARDOWN:
                 return () -> handleConnectionTeardown(deviceId);
             case CHANNEL_OPEN:
-                return () -> handleProbeAvailability(deviceId);
-            case CHANNEL_CLOSED:
-                return () -> markOfflineIfNeeded(deviceId);
-            case PIPELINE_NOT_READY:
-                return () -> markOfflineIfNeeded(deviceId);
+            case PROBE_AVAILABILITY:
             case PIPELINE_READY:
                 return () -> handleProbeAvailability(deviceId);
-            case PROBE_AVAILABILITY:
-                return () -> handleProbeAvailability(deviceId);
+            case CHANNEL_CLOSED:
+            case PIPELINE_NOT_READY:
+                return () -> markOfflineIfNeeded(deviceId);
             case ROLE_MASTER:
                 return () -> handleMastershipResponse(deviceId, MastershipRole.MASTER);
             case ROLE_STANDBY:
@@ -631,29 +628,29 @@ public class GeneralDeviceProvider extends AbstractProvider
         bindPipeconfIfRequired(deviceId);
         // Get handshaker.
         final DeviceHandshaker handshaker = handshakerOrFail(deviceId);
-        if (handshaker.isConnected() || handshakersWithListeners.containsKey(deviceId)) {
+        if (handshaker.hasConnection() || handshakersWithListeners.containsKey(deviceId)) {
             throw new DeviceTaskException("connection already exists");
         }
         // Add device agent listener.
-        handshaker.addDeviceAgentListener(id(), deviceAgentListener);
         handshakersWithListeners.put(deviceId, handshaker);
+        handshaker.addDeviceAgentListener(id(), deviceAgentListener);
         // Start connection via handshaker.
-        if (!Futures.getUnchecked(handshaker.connect())) {
+        if (!handshaker.connect()) {
             // Failed! Remove listeners.
             handshaker.removeDeviceAgentListener(id());
             handshakersWithListeners.remove(deviceId);
+            // Clean up connection state leftovers.
+            handshaker.disconnect();
             throw new DeviceTaskException("connection failed");
         }
         createOrUpdateDevice(deviceId, false);
-        final List<PortDescription> ports = getPortDetails(deviceId);
-        providerService.updatePorts(deviceId, ports);
         // From here we expect a CHANNEL_OPEN event to update availability.
     }
 
     private void handleConnectionUpdate(DeviceId deviceId) {
         assertConfig(deviceId);
         final DeviceHandshaker handshaker = handshakerOrFail(deviceId);
-        if (!handshaker.isConnected()) {
+        if (!handshaker.hasConnection()) {
             // If driver reports that a connection still exists, perhaps the
             // part of the netcfg that changed does not affect the connection.
             // Otherwise, remove any previous connection state from the old
@@ -675,6 +672,11 @@ public class GeneralDeviceProvider extends AbstractProvider
         assertConfig(deviceId);
         providerService.deviceConnected(deviceId, getDeviceDescription(
                 deviceId, available));
+        if (available) {
+            // Push port descriptions.
+            final List<PortDescription> ports = getPortDetails(deviceId);
+            providerService.updatePorts(deviceId, ports);
+        }
     }
 
     private boolean probeAvailability(DeviceHandshaker handshaker) {
@@ -697,7 +699,7 @@ public class GeneralDeviceProvider extends AbstractProvider
     private void handleProbeAvailability(DeviceId deviceId) {
         assertDeviceRegistered(deviceId);
 
-        // Make device has a valid mastership role.
+        // Make sure device has a valid mastership role.
         final DeviceHandshaker handshaker = handshakerOrFail(deviceId);
         final MastershipRole deviceRole = handshaker.getRole();
         final MastershipRole expectedRole = mastershipService.getLocalRole(deviceId);

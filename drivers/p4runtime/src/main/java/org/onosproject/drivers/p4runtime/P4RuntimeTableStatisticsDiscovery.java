@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static org.onosproject.drivers.p4runtime.P4RuntimeDriverUtils.getInterpreter;
 
 /**
  * Implementation of behaviour TableStatisticsDiscovery for P4Runtime.
@@ -49,7 +50,7 @@ public class P4RuntimeTableStatisticsDiscovery extends AbstractP4RuntimeHandlerB
             return Collections.emptyList();
         }
         FlowRuleService flowService = handler().get(FlowRuleService.class);
-        PiPipelineInterpreter interpreter = getInterpreter();
+        PiPipelineInterpreter interpreter = getInterpreter(handler());
         PiPipelineModel model = pipeconf.pipelineModel();
         List<TableStatisticsEntry> tableStatsList;
 

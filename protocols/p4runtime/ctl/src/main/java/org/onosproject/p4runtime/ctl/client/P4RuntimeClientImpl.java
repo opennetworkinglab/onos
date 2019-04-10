@@ -16,6 +16,8 @@
 
 package org.onosproject.p4runtime.ctl.client;
 
+import com.google.common.collect.Maps;
+import io.grpc.ConnectivityState;
 import io.grpc.ManagedChannel;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
@@ -27,7 +29,6 @@ import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
 import org.onosproject.net.pi.service.PiPipeconfService;
 import org.onosproject.p4runtime.api.P4RuntimeClient;
-import org.onosproject.p4runtime.api.P4RuntimeClientKey;
 import org.onosproject.p4runtime.ctl.controller.MasterElectionIdStore;
 import org.onosproject.p4runtime.ctl.controller.P4RuntimeControllerImpl;
 import p4.v1.P4RuntimeGrpc;
@@ -38,6 +39,7 @@ import p4.v1.P4RuntimeOuterClass.GetForwardingPipelineConfigResponse;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -49,6 +51,8 @@ import static p4.v1.P4RuntimeOuterClass.GetForwardingPipelineConfigRequest.Respo
  */
 public final class P4RuntimeClientImpl
         extends AbstractGrpcClient implements P4RuntimeClient {
+
+    private static final long DEFAULT_P4_DEVICE_ID = 1;
 
     // TODO: consider making timeouts configurable per-device via netcfg
     /**
@@ -62,94 +66,103 @@ public final class P4RuntimeClientImpl
      */
     static final int LONG_TIMEOUT_SECONDS = 60;
 
-    private final long p4DeviceId;
     private final P4RuntimeControllerImpl controller;
-    private final StreamClientImpl streamClient;
     private final PipelineConfigClientImpl pipelineConfigClient;
+    private final PiPipeconfService pipeconfService;
+    private final MasterElectionIdStore masterElectionIdStore;
+    private final ConcurrentMap<Long, StreamClientImpl> streamClients = Maps.newConcurrentMap();
 
     /**
      * Instantiates a new client with the given arguments.
      *
-     * @param clientKey             client key
+     * @param deviceId              device ID
      * @param channel               gRPC managed channel
-     * @param controller            P$Runtime controller instance
+     * @param controller            P4Runtime controller instance
      * @param pipeconfService       pipeconf service instance
      * @param masterElectionIdStore master election ID store
      */
-    public P4RuntimeClientImpl(P4RuntimeClientKey clientKey,
+    public P4RuntimeClientImpl(DeviceId deviceId,
                                ManagedChannel channel,
                                P4RuntimeControllerImpl controller,
                                PiPipeconfService pipeconfService,
                                MasterElectionIdStore masterElectionIdStore) {
-        super(clientKey, channel, true, controller);
+        super(deviceId, channel, true, controller);
         checkNotNull(channel);
         checkNotNull(controller);
         checkNotNull(pipeconfService);
         checkNotNull(masterElectionIdStore);
 
-        this.p4DeviceId = clientKey.p4DeviceId();
         this.controller = controller;
-        this.streamClient = new StreamClientImpl(
-                pipeconfService, masterElectionIdStore, this, controller);
+        this.pipeconfService = pipeconfService;
+        this.masterElectionIdStore = masterElectionIdStore;
         this.pipelineConfigClient = new PipelineConfigClientImpl(this);
     }
 
     @Override
     public void shutdown() {
-        streamClient.closeSession();
+        streamClients.forEach((p4DeviceId, streamClient) ->
+                                      streamClient.closeSession(p4DeviceId));
         super.shutdown();
     }
 
     @Override
     public CompletableFuture<Boolean> setPipelineConfig(
-            PiPipeconf pipeconf, ByteBuffer deviceData) {
-        return pipelineConfigClient.setPipelineConfig(pipeconf, deviceData);
+            long p4DeviceId, PiPipeconf pipeconf, ByteBuffer deviceData) {
+        return pipelineConfigClient.setPipelineConfig(p4DeviceId, pipeconf, deviceData);
     }
 
     @Override
     public CompletableFuture<Boolean> isPipelineConfigSet(
-            PiPipeconf pipeconf, ByteBuffer deviceData) {
-        return pipelineConfigClient.isPipelineConfigSet(pipeconf, deviceData);
+            long p4DeviceId, PiPipeconf pipeconf, ByteBuffer deviceData) {
+        return pipelineConfigClient.isPipelineConfigSet(p4DeviceId, pipeconf, deviceData);
     }
 
     @Override
-    public CompletableFuture<Boolean> isAnyPipelineConfigSet() {
-        return pipelineConfigClient.isAnyPipelineConfigSet();
+    public CompletableFuture<Boolean> isAnyPipelineConfigSet(long p4DeviceId) {
+        return pipelineConfigClient.isAnyPipelineConfigSet(p4DeviceId);
     }
 
     @Override
-    public ReadRequest read(PiPipeconf pipeconf) {
-        return new ReadRequestImpl(this, pipeconf);
+    public ReadRequest read(long p4DeviceId, PiPipeconf pipeconf) {
+        return new ReadRequestImpl(this, p4DeviceId, pipeconf);
     }
 
     @Override
-    public boolean isSessionOpen() {
-        return streamClient.isSessionOpen();
+    public boolean isSessionOpen(long p4DeviceId) {
+        return streamClients.containsKey(p4DeviceId) &&
+                streamClients.get(p4DeviceId).isSessionOpen(p4DeviceId);
     }
 
     @Override
-    public void closeSession() {
-        streamClient.closeSession();
+    public void closeSession(long p4DeviceId) {
+        if (streamClients.containsKey(p4DeviceId)) {
+            streamClients.get(p4DeviceId).closeSession(p4DeviceId);
+        }
     }
 
     @Override
-    public void setMastership(boolean master, BigInteger newElectionId) {
-        streamClient.setMastership(master, newElectionId);
+    public void setMastership(long p4DeviceId, boolean master, BigInteger newElectionId) {
+        streamClients.putIfAbsent(p4DeviceId, new StreamClientImpl(
+                pipeconfService, masterElectionIdStore, this, p4DeviceId, controller));
+        streamClients.get(p4DeviceId).setMastership(p4DeviceId, master, newElectionId);
     }
 
     @Override
-    public boolean isMaster() {
-        return streamClient.isMaster();
+    public boolean isMaster(long p4DeviceId) {
+        return streamClients.containsKey(p4DeviceId) &&
+                streamClients.get(p4DeviceId).isMaster(p4DeviceId);
     }
 
     @Override
-    public void packetOut(PiPacketOperation packet, PiPipeconf pipeconf) {
-        streamClient.packetOut(packet, pipeconf);
+    public void packetOut(long p4DeviceId, PiPacketOperation packet, PiPipeconf pipeconf) {
+        if (streamClients.containsKey(p4DeviceId)) {
+            streamClients.get(p4DeviceId).packetOut(p4DeviceId, packet, pipeconf);
+        }
     }
 
     @Override
-    public WriteRequest write(PiPipeconf pipeconf) {
-        return new WriteRequestImpl(this, pipeconf);
+    public WriteRequest write(long p4DeviceId, PiPipeconf pipeconf) {
+        return new WriteRequestImpl(this, p4DeviceId, pipeconf);
     }
 
     @Override
@@ -164,14 +177,14 @@ public final class P4RuntimeClientImpl
 
                     @Override
                     public void onError(Throwable t) {
-                        if (Status.fromThrowable(t).getCode() ==
-                                Status.Code.FAILED_PRECONDITION) {
-                            // Pipeline not set but service is available.
-                            future.complete(true);
-                        } else {
-                            log.debug("", t);
-                        }
-                        future.complete(false);
+                        log.debug("", t);
+                        // FIXME: The P4Runtime spec is not explicit about error
+                        //  codes when a pipeline config is not set, which would
+                        //  be useful here as it's an indication that the
+                        //  service is available. As a workaround, we simply
+                        //  check the channel state.
+                        future.complete(ConnectivityState.READY.equals(
+                                channel.getState(false)));
                     }
 
                     @Override
@@ -179,6 +192,9 @@ public final class P4RuntimeClientImpl
                         // Ignore, unary call.
                     }
                 };
+        // Get any p4DeviceId under the control of this client or a default one.
+        final long p4DeviceId = streamClients.isEmpty() ? DEFAULT_P4_DEVICE_ID
+                : streamClients.keySet().iterator().next();
         // Use long timeout as the device might return the full P4 blob
         // (e.g. server does not support cookie), over a slow network.
         execRpc(s -> s.getForwardingPipelineConfig(
@@ -207,15 +223,6 @@ public final class P4RuntimeClientImpl
     }
 
     /**
-     * Returns the P4Runtime-internal device ID associated with this client.
-     *
-     * @return P4Runtime-internal device ID
-     */
-    long p4DeviceId() {
-        return this.p4DeviceId;
-    }
-
-    /**
      * Returns the ONOS device ID associated with this client.
      *
      * @return ONOS device ID
@@ -226,14 +233,20 @@ public final class P4RuntimeClientImpl
 
     /**
      * Returns the election ID last used in a MasterArbitrationUpdate message
-     * sent by the client to the server. No guarantees are given that this is
-     * the current election ID associated to the session, nor that the server
-     * has acknowledged this value as valid.
+     * sent by the client to the server for the given P4Runtime-internal device
+     * ID. No guarantees are given that this is the current election ID
+     * associated to the session, nor that the server has acknowledged this
+     * value as valid.
      *
+     * @param p4DeviceId P4Runtime-internal device ID
      * @return election ID uint128 protobuf message
      */
-    P4RuntimeOuterClass.Uint128 lastUsedElectionId() {
-        return streamClient.lastUsedElectionId();
+    P4RuntimeOuterClass.Uint128 lastUsedElectionId(long p4DeviceId) {
+        if (streamClients.containsKey(p4DeviceId)) {
+            return streamClients.get(p4DeviceId).lastUsedElectionId();
+        } else {
+            return P4RuntimeOuterClass.Uint128.getDefaultInstance();
+        }
     }
 
     /**

@@ -6,6 +6,7 @@ COMPILE_DEPS = CORE_DEPS + KRYO + [
     "//protocols/gnoi/stub:onos-protocols-gnoi-stub",
     "//protocols/gnoi/api:onos-protocols-gnoi-api",
     "//protocols/grpc/api:onos-protocols-grpc-api",
+    "//protocols/grpc/utils:onos-protocols-grpc-utils",
 ]
 
 BUNDLES = [

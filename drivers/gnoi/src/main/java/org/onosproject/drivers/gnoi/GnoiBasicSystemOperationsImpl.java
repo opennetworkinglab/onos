@@ -19,9 +19,10 @@ package org.onosproject.drivers.gnoi;
 import gnoi.system.SystemOuterClass.RebootMethod;
 import gnoi.system.SystemOuterClass.RebootRequest;
 import gnoi.system.SystemOuterClass.RebootResponse;
+import org.onosproject.gnoi.api.GnoiClient;
+import org.onosproject.gnoi.api.GnoiController;
+import org.onosproject.grpc.utils.AbstractGrpcHandlerBehaviour;
 import org.onosproject.net.behaviour.BasicSystemOperations;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -30,10 +31,12 @@ import java.util.concurrent.CompletableFuture;
  * devices.
  */
 public class GnoiBasicSystemOperationsImpl
-        extends AbstractGnoiHandlerBehaviour implements BasicSystemOperations {
+        extends AbstractGrpcHandlerBehaviour<GnoiClient, GnoiController>
+        implements BasicSystemOperations {
 
-    private static final Logger log = LoggerFactory
-            .getLogger(GnoiBasicSystemOperationsImpl.class);
+    public GnoiBasicSystemOperationsImpl() {
+        super(GnoiController.class);
+    }
 
     @Override
     public CompletableFuture<Boolean> reboot() {

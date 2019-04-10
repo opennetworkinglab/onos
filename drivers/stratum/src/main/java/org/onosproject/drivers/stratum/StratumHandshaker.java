@@ -38,6 +38,23 @@ public class StratumHandshaker
     }
 
     @Override
+    public boolean connect() {
+        return p4runtime.connect() && gnmi.connect() && gnoi.connect();
+    }
+
+    @Override
+    public boolean hasConnection() {
+        return p4runtime.hasConnection() && gnmi.hasConnection() && gnoi.hasConnection();
+    }
+
+    @Override
+    public void disconnect() {
+        p4runtime.disconnect();
+        gnmi.disconnect();
+        gnoi.disconnect();
+    }
+
+    @Override
     public boolean isReachable() {
         // Reachability is mainly used for mastership contests and it's a
         // prerequisite for availability. We can probably live without gNMI and
@@ -85,24 +102,5 @@ public class StratumHandshaker
     @Override
     public void removeDeviceAgentListener(ProviderId providerId) {
         p4runtime.removeDeviceAgentListener(providerId);
-    }
-
-    @Override
-    public CompletableFuture<Boolean> connect() {
-        // We should execute connections in parallel.
-        return p4runtime.connect().thenCombine(gnmi.connect(), Boolean::logicalAnd)
-                .thenCombine(gnoi.connect(), Boolean::logicalAnd);
-    }
-
-    @Override
-    public boolean isConnected() {
-        return p4runtime.isConnected() && gnmi.isConnected() && gnoi.isConnected();
-    }
-
-    @Override
-    public void disconnect() {
-        p4runtime.disconnect();
-        gnmi.disconnect();
-        gnoi.disconnect();
     }
 }

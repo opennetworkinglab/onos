@@ -23,6 +23,8 @@ import org.onosproject.net.pi.runtime.PiPacketOperation;
 
 import java.util.Collection;
 
+import static org.onosproject.drivers.p4runtime.P4RuntimeDriverUtils.getInterpreter;
+
 /**
  * Implementation of PacketProgrammable behaviour for P4Runtime.
  */
@@ -37,7 +39,7 @@ public class P4RuntimePacketProgrammable
             return;
         }
 
-        final PiPipelineInterpreter interpreter = getInterpreter();
+        final PiPipelineInterpreter interpreter = getInterpreter(handler());
         if (interpreter == null) {
             // Error logged by getInterpreter().
             return;
@@ -47,7 +49,7 @@ public class P4RuntimePacketProgrammable
             Collection<PiPacketOperation> operations = interpreter.mapOutboundPacket(packet);
             operations.forEach(piPacketOperation -> {
                 log.debug("Doing PiPacketOperation {}", piPacketOperation);
-                client.packetOut(piPacketOperation, pipeconf);
+                client.packetOut(p4DeviceId, piPacketOperation, pipeconf);
             });
         } catch (PiPipelineInterpreter.PiInterpreterException e) {
             log.error("Unable to translate outbound packet for {} with pipeconf {}: {}",

@@ -32,48 +32,58 @@ import java.math.BigInteger;
 public interface P4RuntimeStreamClient {
 
     /**
-     * Opportunistically opens a session with the server by starting a
-     * StreamChannel RPC and sends a {@code MasterArbitrationUpdate} message
-     * with the given election ID. The {@code master} boolean flag is used to
-     * indicated if we are trying to became master or not. If false, the
-     * implementation might delay sending the {@code MasterArbitrationUpdate}
-     * message until another node becomes master with a higher election ID.
+     * Opportunistically opens a session with the server for the given
+     * P4Runtime-internal device ID by starting a StreamChannel RPC and sending
+     * a {@code MasterArbitrationUpdate} message with the given election ID. The
+     * {@code master} boolean flag is used to indicated if we are trying to
+     * became master or not. If false, the implementation might delay sending
+     * the {@code MasterArbitrationUpdate} message until another node becomes
+     * master with a higher election ID.
      * <p>
      * If the server acknowledges this client as master, the {@link
      * P4RuntimeController} is expected to generate a {@link
      * org.onosproject.net.device.DeviceAgentEvent} with type {@link
      * org.onosproject.net.device.DeviceAgentEvent.Type#ROLE_MASTER}.
      *
-     * @param master true if we are trying to become master
+     * @param p4DeviceId P4Runtime-internal device ID
+     * @param master     true if we are trying to become master
      * @param electionId election ID
      */
-    void setMastership(boolean master, BigInteger electionId);
+    void setMastership(long p4DeviceId, boolean master, BigInteger electionId);
 
     /**
      * Returns true if the StreamChannel RPC is active and hence the P4Runtime
-     * session is open, false otherwise.
+     * session for the given P4Runtime-internal device ID is open, false
+     * otherwise.
      *
+     * @param p4DeviceId P4Runtime-internal device ID
      * @return boolean
      */
-    boolean isSessionOpen();
+    boolean isSessionOpen(long p4DeviceId);
 
     /**
-     * Closes the session to the server by terminating the Stream RPC.
-     */
-    void closeSession();
-
-    /**
-     * Returns true if this client is master for the server, false otherwise.
+     * Closes the session to the server by terminating the StreamChannel RPC for
+     * the given P4Runtime-internal device ID.
      *
+     * @param p4DeviceId P4Runtime-internal device ID
+     */
+    void closeSession(long p4DeviceId);
+
+    /**
+     * Returns true if this client is master for the given P4Runtime-internal
+     * device ID, false otherwise.
+     *
+     * @param p4DeviceId P4Runtime-internal device ID
      * @return boolean
      */
-    boolean isMaster();
+    boolean isMaster(long p4DeviceId);
 
     /**
-     * Sends a packet-out for the given pipeconf.
+     * Sends a packet-out for the given P4Runtime-internal device ID.
      *
-     * @param packet   packet-out operation to be performed by the device
-     * @param pipeconf pipeconf currently deployed on the device
+     * @param p4DeviceId P4Runtime-internal device ID
+     * @param packet     packet-out operation to be performed by the device
+     * @param pipeconf   pipeconf currently deployed on the device
      */
-    void packetOut(PiPacketOperation packet, PiPipeconf pipeconf);
+    void packetOut(long p4DeviceId, PiPacketOperation packet, PiPipeconf pipeconf);
 }

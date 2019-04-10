@@ -3,9 +3,9 @@ load("//tools/build/bazel:variables.bzl", "GRPC_JAVA_VERSION")
 load("//tools/build/bazel:variables.bzl", "PROTOBUF_VERSION")
 
 BUNDLES = [
-    "//protocols/grpc/proto:onos-protocols-grpc-proto",
     "//protocols/grpc/api:onos-protocols-grpc-api",
     "//protocols/grpc/ctl:onos-protocols-grpc-ctl",
+    "//protocols/grpc/utils:onos-protocols-grpc-utils",
     # gRPC dependencies (with patched core)
     ":grpc-core",
     ":grpc-stub",

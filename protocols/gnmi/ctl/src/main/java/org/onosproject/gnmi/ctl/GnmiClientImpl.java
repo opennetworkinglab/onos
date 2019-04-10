@@ -30,8 +30,8 @@ import io.grpc.ManagedChannel;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import org.onosproject.gnmi.api.GnmiClient;
-import org.onosproject.gnmi.api.GnmiClientKey;
 import org.onosproject.grpc.ctl.AbstractGrpcClient;
+import org.onosproject.net.DeviceId;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -51,8 +51,9 @@ public class GnmiClientImpl extends AbstractGrpcClient implements GnmiClient {
 
     private GnmiSubscriptionManager subscribeManager;
 
-    GnmiClientImpl(GnmiClientKey clientKey, ManagedChannel managedChannel, GnmiControllerImpl controller) {
-        super(clientKey, managedChannel, false, controller);
+    GnmiClientImpl(DeviceId deviceId, ManagedChannel managedChannel,
+                   GnmiControllerImpl controller) {
+        super(deviceId, managedChannel, false, controller);
         this.subscribeManager =
                 new GnmiSubscriptionManager(this, deviceId, controller);
     }

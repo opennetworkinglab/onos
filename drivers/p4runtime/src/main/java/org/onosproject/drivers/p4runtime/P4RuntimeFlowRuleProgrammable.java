@@ -58,6 +58,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
 
+import static org.onosproject.drivers.p4runtime.P4RuntimeDriverUtils.getInterpreter;
 import static org.onosproject.drivers.p4runtime.P4RuntimeFlowRuleProgrammable.Operation.APPLY;
 import static org.onosproject.drivers.p4runtime.P4RuntimeFlowRuleProgrammable.Operation.REMOVE;
 import static org.onosproject.net.flow.FlowEntry.FlowEntryState.ADDED;
@@ -175,7 +176,7 @@ public class P4RuntimeFlowRuleProgrammable
             log.warn("Found {} inconsistent table entries on {}, removing them...",
                      inconsistentEntries.size(), deviceId);
             // Submit delete request and update mirror when done.
-            client.write(pipeconf)
+            client.write(p4DeviceId, pipeconf)
                     .entities(inconsistentEntries, DELETE)
                     .submit().whenComplete((response, ex) -> {
                 if (ex != null) {
@@ -193,7 +194,8 @@ public class P4RuntimeFlowRuleProgrammable
     }
 
     private Collection<PiTableEntry> getAllTableEntriesFromDevice() {
-        final P4RuntimeReadClient.ReadRequest request = client.read(pipeconf);
+        final P4RuntimeReadClient.ReadRequest request = client.read(
+                p4DeviceId, pipeconf);
         // Read entries from all non-constant tables, including default ones.
         pipelineModel.tables().stream()
                 .filter(t -> !t.isConstantTable())
@@ -274,7 +276,7 @@ public class P4RuntimeFlowRuleProgrammable
             return Collections.emptyList();
         }
         // Created batched write request.
-        final WriteRequest request = client.write(pipeconf);
+        final WriteRequest request = client.write(p4DeviceId, pipeconf);
         // For each rule, translate to PI and append to write request.
         final Map<PiHandle, FlowRule> handleToRuleMap = Maps.newHashMap();
         final List<FlowRule> skippedRules = Lists.newArrayList();
@@ -433,7 +435,7 @@ public class P4RuntimeFlowRuleProgrammable
     }
 
     private PiTableEntry getOriginalDefaultEntry(PiTableId tableId) {
-        final PiPipelineInterpreter interpreter = getInterpreter();
+        final PiPipelineInterpreter interpreter = getInterpreter(handler());
         if (interpreter == null) {
             log.warn("Missing interpreter for {}, cannot get default action",
                      deviceId);
@@ -483,7 +485,7 @@ public class P4RuntimeFlowRuleProgrammable
                     .map(id -> PiCounterCellHandle.of(deviceId, id))
                     .collect(Collectors.toSet());
             // FIXME: We might be sending a very large read request...
-            return client.read(pipeconf)
+            return client.read(p4DeviceId, pipeconf)
                     .handles(cellHandles)
                     .submitSync()
                     .all(PiCounterCell.class).stream()

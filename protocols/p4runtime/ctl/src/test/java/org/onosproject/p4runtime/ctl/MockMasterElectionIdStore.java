@@ -24,27 +24,32 @@ import java.math.BigInteger;
 public class MockMasterElectionIdStore implements MasterElectionIdStore {
 
     @Override
-    public void set(DeviceId deviceId, BigInteger electionId) {
+    public void set(DeviceId deviceId, long p4DeviceId, BigInteger electionId) {
 
     }
 
     @Override
-    public BigInteger get(DeviceId deviceId) {
+    public BigInteger get(DeviceId deviceId, long p4DeviceId) {
         return null;
     }
 
     @Override
-    public void remove(DeviceId deviceId) {
+    public void remove(DeviceId deviceId, long p4DeviceId) {
 
     }
 
     @Override
-    public void setListener(DeviceId deviceId, MasterElectionIdListener listener) {
+    public void removeAll(DeviceId deviceId) {
 
     }
 
     @Override
-    public void unsetListener(DeviceId deviceId) {
+    public void setListener(DeviceId deviceId, long p4DeviceId, MasterElectionIdListener listener) {
+
+    }
+
+    @Override
+    public void unsetListener(DeviceId deviceId, long p4DeviceId) {
 
     }
 }

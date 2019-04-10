@@ -131,7 +131,8 @@ public class P4RuntimeActionGroupProgrammable
         }
 
         // Dump groups and members from device for all action profiles.
-        final P4RuntimeReadClient.ReadRequest request = client.read(pipeconf);
+        final P4RuntimeReadClient.ReadRequest request = client.read(
+                p4DeviceId, pipeconf);
         pipeconf.pipelineModel().actionProfiles()
                 .stream().map(PiActionProfileModel::id)
                 .forEach(id -> request.actionProfileGroups(id)
@@ -184,7 +185,7 @@ public class P4RuntimeActionGroupProgrammable
             log.warn("Cleaning up {} action profile groups and " +
                              "{} members on {}...",
                      groupHandlesToRemove.size(), memberHandlesToRemove.size(), deviceId);
-            client.write(pipeconf)
+            client.write(p4DeviceId, pipeconf)
                     .delete(groupHandlesToRemove)
                     .delete(memberHandlesToRemove)
                     .submit().whenComplete((r, ex) -> {
@@ -244,7 +245,8 @@ public class P4RuntimeActionGroupProgrammable
         // found on the device.
         if (!validateGroupMembers(piGroupFromStore, membersOnDevice)) {
             log.warn("Group on device {} refers to members that are different " +
-                             "than those found in translation store: {}", handle);
+                             "than those found in translation store: {}",
+                     deviceId, handle);
             return null;
         }
         if (mirrorEntry == null) {
@@ -308,7 +310,7 @@ public class P4RuntimeActionGroupProgrammable
         if (members == null) {
             return;
         }
-        final WriteRequest request = client.write(pipeconf);
+        final WriteRequest request = client.write(p4DeviceId, pipeconf);
         WRITE_LOCKS.get(deviceId).lock();
         try {
             if (operation == Operation.APPLY) {

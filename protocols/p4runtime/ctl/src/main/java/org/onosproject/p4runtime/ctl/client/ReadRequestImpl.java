@@ -51,11 +51,11 @@ public final class ReadRequestImpl implements P4RuntimeReadClient.ReadRequest {
     private final PiPipeconf pipeconf;
     private final P4RuntimeOuterClass.ReadRequest.Builder requestMsg;
 
-    ReadRequestImpl(P4RuntimeClientImpl client, PiPipeconf pipeconf) {
+    ReadRequestImpl(P4RuntimeClientImpl client, long p4DeviceId, PiPipeconf pipeconf) {
         this.client = client;
         this.pipeconf = pipeconf;
         this.requestMsg = P4RuntimeOuterClass.ReadRequest.newBuilder()
-                .setDeviceId(client.p4DeviceId());
+                .setDeviceId(p4DeviceId);
     }
 
     @Override

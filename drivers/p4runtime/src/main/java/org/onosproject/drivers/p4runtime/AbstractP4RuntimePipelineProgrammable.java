@@ -16,11 +16,8 @@
 
 package org.onosproject.drivers.p4runtime;
 
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.PiPipelineProgrammable;
 import org.onosproject.net.pi.model.PiPipeconf;
-import org.onosproject.p4runtime.api.P4RuntimeClient;
-import org.onosproject.p4runtime.api.P4RuntimeController;
 import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
@@ -49,42 +46,32 @@ public abstract class AbstractP4RuntimePipelineProgrammable
 
     @Override
     public CompletableFuture<Boolean> setPipeconf(PiPipeconf pipeconf) {
-        DeviceId deviceId = handler().data().deviceId();
-        P4RuntimeController controller = handler().get(P4RuntimeController.class);
-
-        P4RuntimeClient client = controller.getClient(deviceId);
-        if (client == null) {
-            log.warn("Unable to find client for {}, aborting pipeconf deploy", deviceId);
+        if (!setupBehaviour("setPipeconf()")) {
             return completedFuture(false);
         }
 
-        ByteBuffer deviceDataBuffer = createDeviceDataBuffer(pipeconf);
+        final ByteBuffer deviceDataBuffer = createDeviceDataBuffer(pipeconf);
         if (deviceDataBuffer == null) {
             // Hopefully the child class logged the problem.
             return completedFuture(false);
         }
 
-        return client.setPipelineConfig(pipeconf, deviceDataBuffer);
+        return client.setPipelineConfig(p4DeviceId, pipeconf, deviceDataBuffer);
     }
 
     @Override
     public CompletableFuture<Boolean> isPipeconfSet(PiPipeconf pipeconf) {
-        DeviceId deviceId = handler().data().deviceId();
-        P4RuntimeController controller = handler().get(P4RuntimeController.class);
-
-        P4RuntimeClient client = controller.getClient(deviceId);
-        if (client == null) {
-            log.warn("Unable to find client for {}, cannot check if pipeconf is set", deviceId);
+        if (!setupBehaviour("isPipeconfSet()")) {
             return completedFuture(false);
         }
 
-        ByteBuffer deviceDataBuffer = createDeviceDataBuffer(pipeconf);
+        final ByteBuffer deviceDataBuffer = createDeviceDataBuffer(pipeconf);
         if (deviceDataBuffer == null) {
             // Hopefully the child class logged the problem.
             return completedFuture(false);
         }
 
-        return client.isPipelineConfigSet(pipeconf, deviceDataBuffer);
+        return client.isPipelineConfigSet(p4DeviceId, pipeconf, deviceDataBuffer);
     }
 
     @Override

@@ -17,33 +17,23 @@
 package org.onosproject.drivers.gnmi;
 
 import org.onosproject.gnmi.api.GnmiClient;
-import org.onosproject.gnmi.api.GnmiClientKey;
 import org.onosproject.gnmi.api.GnmiController;
+import org.onosproject.grpc.utils.AbstractGrpcHandshaker;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.device.DeviceHandshaker;
 
 import java.util.concurrent.CompletableFuture;
 
-import static java.util.concurrent.CompletableFuture.completedFuture;
-
 /**
  * Implementation of DeviceHandshaker for gNMI.
  */
-public class GnmiHandshaker extends AbstractGnmiHandlerBehaviour implements DeviceHandshaker {
+public class GnmiHandshaker
+        extends AbstractGrpcHandshaker<GnmiClient, GnmiController>
+        implements DeviceHandshaker {
 
-    @Override
-    public boolean isReachable() {
-        final GnmiClient client = getClientByKey();
-        return client != null && client.isServerReachable();
-    }
 
-    @Override
-    public CompletableFuture<Boolean> probeReachability() {
-        final GnmiClient client = getClientByKey();
-        if (client == null) {
-            return completedFuture(false);
-        }
-        return client.probeService();
+    public GnmiHandshaker() {
+        super(GnmiController.class);
     }
 
     @Override
@@ -64,34 +54,5 @@ public class GnmiHandshaker extends AbstractGnmiHandlerBehaviour implements Devi
     @Override
     public MastershipRole getRole() {
         throw new UnsupportedOperationException("Mastership operation not supported");
-    }
-
-    @Override
-    public CompletableFuture<Boolean> connect() {
-        return CompletableFuture.supplyAsync(this::createClient);
-    }
-
-    private boolean createClient() {
-        GnmiClientKey clientKey = clientKey();
-        if (clientKey == null) {
-            return false;
-        }
-        if (!handler().get(GnmiController.class).createClient(clientKey)) {
-            log.warn("Unable to create client for {}",
-                     handler().data().deviceId());
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public boolean isConnected() {
-        return getClientByKey() != null;
-    }
-
-    @Override
-    public void disconnect() {
-        handler().get(GnmiController.class)
-                .removeClient(handler().data().deviceId());
     }
 }

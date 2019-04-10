@@ -23,6 +23,9 @@ import gnmi.Gnmi.GetRequest;
 import gnmi.Gnmi.GetResponse;
 import gnmi.Gnmi.Path;
 import org.apache.commons.lang3.tuple.Pair;
+import org.onosproject.gnmi.api.GnmiClient;
+import org.onosproject.gnmi.api.GnmiController;
+import org.onosproject.grpc.utils.AbstractGrpcHandlerBehaviour;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
@@ -41,12 +44,17 @@ import java.util.stream.Collectors;
 /**
  * Behaviour to get port statistics from device via gNMI.
  */
-public class OpenConfigGnmiPortStatisticsDiscovery extends AbstractGnmiHandlerBehaviour
+public class OpenConfigGnmiPortStatisticsDiscovery
+        extends AbstractGrpcHandlerBehaviour<GnmiClient, GnmiController>
         implements PortStatisticsDiscovery {
 
     private static final Map<Pair<DeviceId, PortNumber>, Long> PORT_START_TIMES =
             Maps.newConcurrentMap();
     private static final String LAST_CHANGE = "last-changed";
+
+    public OpenConfigGnmiPortStatisticsDiscovery() {
+        super(GnmiController.class);
+    }
 
     @Override
     public Collection<PortStatistics> discoverPortStatistics() {

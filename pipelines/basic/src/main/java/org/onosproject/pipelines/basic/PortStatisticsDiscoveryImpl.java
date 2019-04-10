@@ -52,6 +52,7 @@ import static org.onosproject.pipelines.basic.BasicConstants.INGRESS_PORT_COUNTE
  */
 public class PortStatisticsDiscoveryImpl extends AbstractHandlerBehaviour implements PortStatisticsDiscovery {
 
+    private static final long DEFAULT_P4_DEVICE_ID = 1;
     private static final Map<Pair<DeviceId, PortNumber>, Long> PORT_START_TIMES =
             Maps.newConcurrentMap();
 
@@ -90,7 +91,7 @@ public class PortStatisticsDiscoveryImpl extends AbstractHandlerBehaviour implem
         PiPipeconf pipeconf = piPipeconfService.getPipeconf(piPipeconfService.ofDevice(deviceId).get()).get();
 
         P4RuntimeController controller = handler().get(P4RuntimeController.class);
-        P4RuntimeClient client = controller.getClient(deviceId);
+        P4RuntimeClient client = controller.get(deviceId);
         if (client == null) {
             log.warn("Unable to find client for {}, aborting operation", deviceId);
             return Collections.emptyList();
@@ -116,7 +117,8 @@ public class PortStatisticsDiscoveryImpl extends AbstractHandlerBehaviour implem
                 .collect(Collectors.toSet());
 
         // Query the device.
-        Collection<PiCounterCell> counterEntryResponse = client.read(pipeconf)
+        Collection<PiCounterCell> counterEntryResponse = client.read(
+                DEFAULT_P4_DEVICE_ID, pipeconf)
                 .handles(counterCellHandles).submitSync()
                 .all(PiCounterCell.class);
 

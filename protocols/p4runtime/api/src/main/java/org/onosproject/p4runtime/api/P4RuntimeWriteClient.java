@@ -33,12 +33,14 @@ public interface P4RuntimeWriteClient {
 
     /**
      * Returns a new {@link WriteRequest} instance that can be used to build a
-     * batched write request, for the given pipeconf.
+     * batched write request, for the given P4Runtime-internal device ID and
+     * pipeconf.
      *
-     * @param pipeconf pipeconf
+     * @param p4DeviceId P4Runtime-internal device ID
+     * @param pipeconf   pipeconf
      * @return new write request
      */
-    WriteRequest write(PiPipeconf pipeconf);
+    WriteRequest write(long p4DeviceId, PiPipeconf pipeconf);
 
     /**
      * Signals the type of write operation for a given PI entity.
@@ -222,8 +224,6 @@ public interface P4RuntimeWriteClient {
          * responce from the device, in the same order they were added to this
          * batch.
          *
-         *
-         *
          * @return entity update requests
          */
         Collection<EntityUpdateRequest> pendingUpdates();
@@ -338,9 +338,9 @@ public interface P4RuntimeWriteClient {
         /**
          * Returns the status for this PI entity. If {@link #isSuccess()}
          * returns {@code true}, then this method is expected to return {@link
-         * EntityUpdateStatus#OK}. If {@link EntityUpdateStatus#OTHER_ERROR}
-         * is returned, further details might be provided in {@link
-         * #explanation()} and {@link #throwable()}.
+         * EntityUpdateStatus#OK}. If {@link EntityUpdateStatus#OTHER_ERROR} is
+         * returned, further details might be provided in {@link #explanation()}
+         * and {@link #throwable()}.
          *
          * @return status
          */

@@ -24,6 +24,7 @@ import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceDescriptionDiscovery;
 import org.onosproject.net.device.PortDescription;
+import org.onosproject.net.driver.AbstractHandlerBehaviour;
 
 import java.util.Collections;
 import java.util.List;
@@ -32,7 +33,8 @@ import java.util.List;
  * Implementation of DeviceDescriptionDiscovery for gNOI devices.
  */
 public class GnoiDeviceDescriptionDiscovery
-        extends AbstractGnoiHandlerBehaviour implements DeviceDescriptionDiscovery {
+        extends AbstractHandlerBehaviour
+        implements DeviceDescriptionDiscovery {
 
     private static final String UNKNOWN = "unknown";
 

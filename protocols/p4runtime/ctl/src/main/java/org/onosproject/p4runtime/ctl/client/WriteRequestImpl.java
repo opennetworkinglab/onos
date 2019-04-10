@@ -60,11 +60,11 @@ final class WriteRequestImpl implements P4RuntimeWriteClient.WriteRequest {
     // set once we receive a response from the device.
     private final WriteResponseImpl.Builder responseBuilder;
 
-    WriteRequestImpl(P4RuntimeClientImpl client, PiPipeconf pipeconf) {
+    WriteRequestImpl(P4RuntimeClientImpl client, long p4DeviceId, PiPipeconf pipeconf) {
         this.client = checkNotNull(client);
         this.pipeconf = checkNotNull(pipeconf);
         this.requestMsg = P4RuntimeOuterClass.WriteRequest.newBuilder()
-                .setDeviceId(client.p4DeviceId());
+                .setDeviceId(p4DeviceId);
         this.responseBuilder = WriteResponseImpl.builder(client.deviceId());
     }
 
@@ -160,7 +160,8 @@ final class WriteRequestImpl implements P4RuntimeWriteClient.WriteRequest {
         checkState(!submitted.getAndSet(true),
                    "Request has already been submitted, cannot submit again");
         final P4RuntimeOuterClass.WriteRequest writeRequest = requestMsg
-                .setElectionId(client.lastUsedElectionId())
+                .setElectionId(client.lastUsedElectionId(
+                        requestMsg.getDeviceId()))
                 .build();
         log.debug("Sending write request to {} with {} updates...",
                   client.deviceId(), writeRequest.getUpdatesCount());
@@ -186,11 +187,13 @@ final class WriteRequestImpl implements P4RuntimeWriteClient.WriteRequest {
                             future.complete(responseBuilder.setSuccessAllAndBuild());
                         }
                     }
+
                     @Override
                     public void onError(Throwable t) {
                         client.handleRpcError(t, "WRITE");
                         future.complete(responseBuilder.setErrorsAndBuild(t));
                     }
+
                     @Override
                     public void onCompleted() {
                         // Nothing to do, unary call.

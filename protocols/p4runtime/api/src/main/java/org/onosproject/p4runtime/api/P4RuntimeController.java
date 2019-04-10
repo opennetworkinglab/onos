@@ -25,7 +25,7 @@ import org.onosproject.grpc.api.GrpcClientController;
  */
 @Beta
 public interface P4RuntimeController
-        extends GrpcClientController<P4RuntimeClientKey, P4RuntimeClient>,
+        extends GrpcClientController<P4RuntimeClient>,
                 ListenerService<P4RuntimeEvent, P4RuntimeEventListener> {
 
 }

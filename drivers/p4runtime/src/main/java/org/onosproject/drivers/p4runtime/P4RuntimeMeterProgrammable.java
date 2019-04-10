@@ -105,7 +105,7 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
 
         final PiMeterCellHandle handle = PiMeterCellHandle.of(deviceId, piMeterCellConfig);
         ENTRY_LOCKS.getUnchecked(handle).lock();
-        final boolean result = client.write(pipeconf)
+        final boolean result = client.write(p4DeviceId, pipeconf)
                 .modify(piMeterCellConfig).submitSync().isSuccess();
         if (result) {
             meterMirror.put(handle, piMeterCellConfig);
@@ -129,7 +129,7 @@ public class P4RuntimeMeterProgrammable extends AbstractP4RuntimeHandlerBehaviou
             meterIds.add(mode.id());
         }
 
-        piMeterCellConfigs = client.read(pipeconf)
+        piMeterCellConfigs = client.read(p4DeviceId, pipeconf)
                 .meterCells(meterIds).submitSync().all(PiMeterCellConfig.class);
 
         Collection<Meter> meters = piMeterCellConfigs.stream()

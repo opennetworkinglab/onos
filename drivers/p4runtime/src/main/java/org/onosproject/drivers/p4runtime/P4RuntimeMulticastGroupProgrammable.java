@@ -145,7 +145,7 @@ public class P4RuntimeMulticastGroupProgrammable
                 return;
             case MODIFY:
                 // Since reading multicast groups is not supported yet on
-                // PI/Stratum, we cannot trust groupOnDevic) as we don't have a
+                // PI/Stratum, we cannot trust groupOnDevice as we don't have a
                 // mechanism to enforce consistency of the mirror with the
                 // device state.
                 // if (driverBoolProperty(CHECK_MIRROR_BEFORE_UPDATE,
@@ -169,7 +169,8 @@ public class P4RuntimeMulticastGroupProgrammable
 
     private boolean writeMcGroupOnDevice(
             PiMulticastGroupEntry group, P4RuntimeClient.UpdateType opType) {
-        return client.write(pipeconf).entity(group, opType).submitSync().isSuccess();
+        return client.write(p4DeviceId, pipeconf)
+                .entity(group, opType).submitSync().isSuccess();
     }
 
     private boolean mcGroupApply(PiMulticastGroupEntryHandle handle,

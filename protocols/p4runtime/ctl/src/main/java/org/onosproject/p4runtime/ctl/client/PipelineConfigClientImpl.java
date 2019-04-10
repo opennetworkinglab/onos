@@ -63,9 +63,9 @@ final class PipelineConfigClientImpl implements P4RuntimePipelineConfigClient {
 
     @Override
     public CompletableFuture<Boolean> setPipelineConfig(
-            PiPipeconf pipeconf, ByteBuffer deviceData) {
+            long p4DeviceId, PiPipeconf pipeconf, ByteBuffer deviceData) {
 
-        if (!client.isSessionOpen()) {
+        if (!client.isSessionOpen(p4DeviceId)) {
             log.warn("Dropping set pipeline config request for {}, session is CLOSED",
                      client.deviceId());
             return completedFuture(false);
@@ -86,8 +86,8 @@ final class PipelineConfigClientImpl implements P4RuntimePipelineConfigClient {
         final SetForwardingPipelineConfigRequest requestMsg =
                 SetForwardingPipelineConfigRequest
                         .newBuilder()
-                        .setDeviceId(client.p4DeviceId())
-                        .setElectionId(client.lastUsedElectionId())
+                        .setDeviceId(p4DeviceId)
+                        .setElectionId(client.lastUsedElectionId(p4DeviceId))
                         .setAction(VERIFY_AND_COMMIT)
                         .setConfig(pipelineConfigMsg)
                         .build();
@@ -159,15 +159,15 @@ final class PipelineConfigClientImpl implements P4RuntimePipelineConfigClient {
 
     @Override
     public CompletableFuture<Boolean> isPipelineConfigSet(
-            PiPipeconf pipeconf, ByteBuffer expectedDeviceData) {
-        return getPipelineCookieFromServer()
+            long p4DeviceId, PiPipeconf pipeconf, ByteBuffer expectedDeviceData) {
+        return getPipelineCookieFromServer(p4DeviceId)
                 .thenApply(cfgFromDevice -> comparePipelineConfig(
                         pipeconf, expectedDeviceData, cfgFromDevice));
     }
 
     @Override
-    public CompletableFuture<Boolean> isAnyPipelineConfigSet() {
-        return getPipelineCookieFromServer().thenApply(Objects::nonNull);
+    public CompletableFuture<Boolean> isAnyPipelineConfigSet(long p4DeviceId) {
+        return getPipelineCookieFromServer(p4DeviceId).thenApply(Objects::nonNull);
     }
 
     private boolean comparePipelineConfig(
@@ -211,11 +211,12 @@ final class PipelineConfigClientImpl implements P4RuntimePipelineConfigClient {
                 .equals(expectedCfg.getP4Info());
     }
 
-    private CompletableFuture<ForwardingPipelineConfig> getPipelineCookieFromServer() {
+    private CompletableFuture<ForwardingPipelineConfig> getPipelineCookieFromServer(
+            long p4DeviceId) {
         final GetForwardingPipelineConfigRequest request =
                 GetForwardingPipelineConfigRequest
                         .newBuilder()
-                        .setDeviceId(client.p4DeviceId())
+                        .setDeviceId(p4DeviceId)
                         .setResponseType(COOKIE_ONLY)
                         .build();
         final CompletableFuture<ForwardingPipelineConfig> future = new CompletableFuture<>();

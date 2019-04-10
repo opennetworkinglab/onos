@@ -26,12 +26,12 @@ import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
 import io.grpc.protobuf.lite.ProtoLiteUtils;
-import org.onosproject.grpc.api.GrpcChannelId;
 import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.StringJoiner;
@@ -55,13 +55,13 @@ final class GrpcLoggingInterceptor implements ClientInterceptor {
     private static final Logger log = getLogger(GrpcLoggingInterceptor.class);
 
     private final AtomicLong callIdGenerator = new AtomicLong();
-    private final GrpcChannelId channelId;
+    private final URI channelUri;
     private final AtomicBoolean enabled;
 
     private FileWriter writer;
 
-    GrpcLoggingInterceptor(GrpcChannelId channelId, AtomicBoolean enabled) {
-        this.channelId = channelId;
+    GrpcLoggingInterceptor(URI channelUri, AtomicBoolean enabled) {
+        this.channelUri = channelUri;
         this.enabled = enabled;
     }
 
@@ -69,14 +69,13 @@ final class GrpcLoggingInterceptor implements ClientInterceptor {
         if (writer != null) {
             return true;
         }
-        final String safeChName = channelId.id()
-                .replaceAll("[^A-Za-z0-9]", "_");
-        final String fileName = format("grpc_%s_", safeChName).toLowerCase();
+        final String safeChName = channelUri.toString()
+                .replaceAll("[^A-Za-z0-9]", "_").toLowerCase();
         try {
-            final File tmpFile = File.createTempFile(fileName, ".log");
+            final File tmpFile = File.createTempFile(safeChName + "_", ".log");
             this.writer = new FileWriter(tmpFile);
             log.info("Created gRPC call log file for channel {}: {}",
-                     channelId, tmpFile.getAbsolutePath());
+                     channelUri, tmpFile.getAbsolutePath());
             return true;
         } catch (IOException e) {
             log.error("Unable to initialize gRPC call log writer", e);
@@ -90,7 +89,7 @@ final class GrpcLoggingInterceptor implements ClientInterceptor {
                 return;
             }
             try {
-                log.info("Closing log writer for {}...", channelId);
+                log.info("Closing log writer for {}...", channelUri);
                 writer.close();
             } catch (IOException e) {
                 log.error("Unable to close gRPC call log writer", e);

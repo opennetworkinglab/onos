@@ -241,7 +241,7 @@ public class PiPipeconfWatchdogManager
         log.debug("Starting watchdog task for {} ({})", device.id(), pipeconf.id());
         final PiPipelineProgrammable pipelineProg = device.as(PiPipelineProgrammable.class);
         final DeviceHandshaker handshaker = device.as(DeviceHandshaker.class);
-        if (!handshaker.isConnected()) {
+        if (!handshaker.hasConnection()) {
             return false;
         }
         if (Futures.getUnchecked(pipelineProg.isPipeconfSet(pipeconf))) {

@@ -18,11 +18,11 @@ package org.onosproject.gnmi.ctl;
 
 import io.grpc.ManagedChannel;
 import org.onosproject.gnmi.api.GnmiClient;
-import org.onosproject.gnmi.api.GnmiClientKey;
 import org.onosproject.gnmi.api.GnmiController;
 import org.onosproject.gnmi.api.GnmiEvent;
 import org.onosproject.gnmi.api.GnmiEventListener;
 import org.onosproject.grpc.ctl.AbstractGrpcClientController;
+import org.onosproject.net.DeviceId;
 import org.osgi.service.component.annotations.Component;
 
 /**
@@ -31,16 +31,16 @@ import org.osgi.service.component.annotations.Component;
 @Component(immediate = true, service = GnmiController.class)
 public class GnmiControllerImpl
         extends AbstractGrpcClientController
-        <GnmiClientKey, GnmiClient, GnmiEvent, GnmiEventListener>
+        <GnmiClient, GnmiEvent, GnmiEventListener>
         implements GnmiController {
 
     public GnmiControllerImpl() {
-        super(GnmiEvent.class);
+        super(GnmiEvent.class, "gNMI");
     }
 
     @Override
     protected GnmiClient createClientInstance(
-            GnmiClientKey clientKey, ManagedChannel channel) {
-        return new GnmiClientImpl(clientKey, channel, this);
+            DeviceId deviceId, ManagedChannel channel) {
+        return new GnmiClientImpl(deviceId, channel, this);
     }
 }

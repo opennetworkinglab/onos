@@ -17,6 +17,7 @@
 package org.onosproject.p4runtime.ctl.controller;
 
 import com.google.common.collect.Maps;
+import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.net.DeviceId;
 import org.onosproject.store.serializers.KryoNamespaces;
@@ -49,64 +50,77 @@ public class DistributedMasterElectionIdStore implements MasterElectionIdStore {
 
     private static final KryoNamespace SERIALIZER = KryoNamespace.newBuilder()
             .register(KryoNamespaces.API)
+            .register(Pair.class)
+            .register(Long.class)
             .register(BigInteger.class)
             .build();
 
     private final Logger log = getLogger(getClass());
-    private final EventuallyConsistentMapListener<DeviceId, BigInteger> mapListener =
+    private final EventuallyConsistentMapListener<Pair<DeviceId, Long>, BigInteger> mapListener =
             new InternalMapListener();
 
-    private EventuallyConsistentMap<DeviceId, BigInteger> masterElectionIds;
-    private ConcurrentMap<DeviceId, MasterElectionIdListener> listeners =
+    private EventuallyConsistentMap<Pair<DeviceId, Long>, BigInteger> masterElectionIds;
+    private ConcurrentMap<Pair<DeviceId, Long>, MasterElectionIdListener> listeners =
             Maps.newConcurrentMap();
 
     @Activate
     public void activate() {
-        this.listeners = Maps.newConcurrentMap();
-        this.masterElectionIds = storageService.<DeviceId, BigInteger>eventuallyConsistentMapBuilder()
+        listeners = Maps.newConcurrentMap();
+        masterElectionIds = storageService.<Pair<DeviceId, Long>,
+                BigInteger>eventuallyConsistentMapBuilder()
                 .withName("p4runtime-master-election-ids")
                 .withSerializer(SERIALIZER)
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
-        this.masterElectionIds.addListener(mapListener);
+        masterElectionIds.addListener(mapListener);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        this.masterElectionIds.removeListener(mapListener);
-        this.masterElectionIds.destroy();
-        this.masterElectionIds = null;
-        this.listeners.clear();
-        this.listeners = null;
+        masterElectionIds.removeListener(mapListener);
+        masterElectionIds.destroy();
+        masterElectionIds = null;
+        listeners.clear();
+        listeners = null;
         log.info("Stopped");
     }
 
 
     @Override
-    public void set(DeviceId deviceId, BigInteger electionId) {
+    public void set(DeviceId deviceId, long p4DeviceId, BigInteger electionId) {
         checkNotNull(deviceId);
         checkNotNull(electionId);
-        this.masterElectionIds.put(deviceId, electionId);
+        masterElectionIds.put(Pair.of(deviceId, p4DeviceId), electionId);
     }
 
     @Override
-    public BigInteger get(DeviceId deviceId) {
+    public BigInteger get(DeviceId deviceId, long p4DeviceId) {
         checkNotNull(deviceId);
-        return this.masterElectionIds.get(deviceId);
+        return masterElectionIds.get(Pair.of(deviceId, p4DeviceId));
     }
 
     @Override
-    public void remove(DeviceId deviceId) {
+    public void remove(DeviceId deviceId, long p4DeviceId) {
         checkNotNull(deviceId);
-        this.masterElectionIds.remove(deviceId);
+        masterElectionIds.remove(Pair.of(deviceId, p4DeviceId));
     }
 
     @Override
-    public void setListener(DeviceId deviceId, MasterElectionIdListener newListener) {
+    public void removeAll(DeviceId deviceId) {
+        masterElectionIds.keySet().forEach(k -> {
+            if (k.getLeft().equals(deviceId)) {
+                masterElectionIds.remove(k);
+            }
+        });
+    }
+
+    @Override
+    public void setListener(DeviceId deviceId, long p4DeviceId,
+                            MasterElectionIdListener newListener) {
         checkNotNull(deviceId);
         checkNotNull(newListener);
-        listeners.compute(deviceId, (did, existingListener) -> {
+        listeners.compute(Pair.of(deviceId, p4DeviceId), (x, existingListener) -> {
             if (existingListener == null || existingListener == newListener) {
                 return newListener;
             } else {
@@ -117,13 +131,13 @@ public class DistributedMasterElectionIdStore implements MasterElectionIdStore {
     }
 
     @Override
-    public void unsetListener(DeviceId deviceId) {
-        listeners.remove(deviceId);
+    public void unsetListener(DeviceId deviceId, long p4DeviceId) {
+        listeners.remove(Pair.of(deviceId, p4DeviceId));
     }
 
-    private class InternalMapListener implements EventuallyConsistentMapListener<DeviceId, BigInteger> {
+    private class InternalMapListener implements EventuallyConsistentMapListener<Pair<DeviceId, Long>, BigInteger> {
         @Override
-        public void event(EventuallyConsistentMapEvent<DeviceId, BigInteger> event) {
+        public void event(EventuallyConsistentMapEvent<Pair<DeviceId, Long>, BigInteger> event) {
             final MasterElectionIdListener listener = listeners.get(event.key());
             if (listener == null) {
                 return;

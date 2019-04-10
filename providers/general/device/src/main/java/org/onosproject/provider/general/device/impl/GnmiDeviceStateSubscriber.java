@@ -103,7 +103,7 @@ class GnmiDeviceStateSubscriber {
     }
 
     private void checkSubscription(DeviceId deviceId) {
-        if (gnmiController.getClient(deviceId) == null) {
+        if (gnmiController.get(deviceId) == null) {
             // Ignore devices for which a gNMI client does not exist.
             return;
         }
@@ -137,7 +137,7 @@ class GnmiDeviceStateSubscriber {
     }
 
     private void unsubscribeIfNeeded(DeviceId deviceId) {
-        gnmiController.getClient(deviceId).unsubscribe();
+        gnmiController.get(deviceId).unsubscribe();
         if (deviceSubscribed.remove(deviceId) != null) {
             log.info("Cancelled gNMI subscription for {}", deviceId);
         }
@@ -167,7 +167,7 @@ class GnmiDeviceStateSubscriber {
                                 .setMode(SubscriptionMode.ON_CHANGE)
                                 .build()).collect(Collectors.toList()))
                 .build();
-        gnmiController.getClient(deviceId).subscribe(
+        gnmiController.get(deviceId).subscribe(
                 SubscribeRequest.newBuilder()
                         .setSubscribe(subscriptionList)
                         .build());

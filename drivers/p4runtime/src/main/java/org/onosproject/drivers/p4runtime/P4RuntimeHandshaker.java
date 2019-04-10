@@ -17,24 +17,27 @@
 package org.onosproject.drivers.p4runtime;
 
 import org.onosproject.cluster.ClusterService;
+import org.onosproject.grpc.utils.AbstractGrpcHandshaker;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.device.DeviceAgentListener;
 import org.onosproject.net.device.DeviceHandshaker;
 import org.onosproject.net.pi.service.PiPipeconfWatchdogService;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.p4runtime.api.P4RuntimeClient;
-import org.onosproject.p4runtime.api.P4RuntimeClientKey;
 import org.onosproject.p4runtime.api.P4RuntimeController;
 
 import java.math.BigInteger;
 import java.util.concurrent.CompletableFuture;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
+import static org.onosproject.drivers.p4runtime.P4RuntimeDriverUtils.extractP4DeviceId;
 
 /**
  * Implementation of DeviceHandshaker for P4Runtime.
  */
-public class P4RuntimeHandshaker extends AbstractP4RuntimeHandlerBehaviour implements DeviceHandshaker {
+public class P4RuntimeHandshaker
+        extends AbstractGrpcHandshaker<P4RuntimeClient, P4RuntimeController>
+        implements DeviceHandshaker {
 
     // This is needed to compute an election ID based on mastership term and
     // preference. At the time of writing the practical maximum cluster size is
@@ -44,60 +47,35 @@ public class P4RuntimeHandshaker extends AbstractP4RuntimeHandlerBehaviour imple
     // election IDs (e.g. two nodes seeing different cluster sizes).
     private static final int MAX_CLUSTER_SIZE = 20;
 
-    @Override
-    public CompletableFuture<Boolean> connect() {
-        return CompletableFuture
-                .supplyAsync(this::createClient);
+    private Long p4DeviceId;
+
+    public P4RuntimeHandshaker() {
+        super(P4RuntimeController.class);
     }
 
-    private boolean createClient() {
-        final P4RuntimeClientKey clientKey = clientKey();
-        if (clientKey == null) {
+    @Override
+    protected boolean setupBehaviour(String opName) {
+        if (!super.setupBehaviour(opName)) {
             return false;
         }
-        if (!handler().get(P4RuntimeController.class).createClient(clientKey)) {
-            log.debug("Unable to create client for {}", data().deviceId());
+
+        p4DeviceId = extractP4DeviceId(mgmtUriFromNetcfg());
+        if (p4DeviceId == null) {
+            log.warn("Unable to obtain the P4Runtime-internal device_id from " +
+                             "config of {}, cannot perform {}",
+                     deviceId, opName);
             return false;
         }
         return true;
     }
 
     @Override
-    public boolean isConnected() {
-        // This is based on the client key obtained from the current netcfg. If
-        // a client already exists for this device, but the netcfg with the
-        // server endpoints has changed, this will return false.
-        return getClientByKey() != null;
-    }
-
-    @Override
-    public void disconnect() {
-        // This removes clients associated with this device ID, even if the
-        // netcfg has changed and so the client key for this device.
-        handler().get(P4RuntimeController.class).removeClient(data().deviceId());
-    }
-
-    @Override
-    public boolean isReachable() {
-        final P4RuntimeClient client = getClientByKey();
-        return client != null && client.isServerReachable();
-    }
-
-    @Override
-    public CompletableFuture<Boolean> probeReachability() {
-        final P4RuntimeClient client = getClientByKey();
-        if (client == null) {
-            return completedFuture(false);
-        }
-        return client.probeService();
-    }
-
-    @Override
     public boolean isAvailable() {
         // To be available, we require a session open (for packet in/out) and a
         // pipeline config set.
-        final P4RuntimeClient client = getClientByKey();
-        if (client == null || !client.isServerReachable() || !client.isSessionOpen()) {
+        if (!setupBehaviour("isAvailable()") ||
+                !client.isServerReachable() ||
+                !client.isSessionOpen(p4DeviceId)) {
             return false;
         }
         // Since we cannot probe the device, we rely on what's known by the
@@ -111,11 +89,12 @@ public class P4RuntimeHandshaker extends AbstractP4RuntimeHandlerBehaviour imple
     public CompletableFuture<Boolean> probeAvailability() {
         // To be available, we require a session open (for packet in/out) and a
         // pipeline config set.
-        final P4RuntimeClient client = getClientByKey();
-        if (client == null || !client.isServerReachable() || !client.isSessionOpen()) {
+        if (!setupBehaviour("probeAvailability()") ||
+                !client.isServerReachable() ||
+                !client.isSessionOpen(p4DeviceId)) {
             return completedFuture(false);
         }
-        return client.isAnyPipelineConfigSet();
+        return client.isAnyPipelineConfigSet(p4DeviceId);
     }
 
     @Override
@@ -125,7 +104,7 @@ public class P4RuntimeHandshaker extends AbstractP4RuntimeHandlerBehaviour imple
         }
         if (newRole.equals(MastershipRole.NONE)) {
             log.info("Notified role NONE, closing session...");
-            client.closeSession();
+            client.closeSession(p4DeviceId);
         } else {
             throw new UnsupportedOperationException(
                     "Use preference-based way for setting MASTER or STANDBY roles");
@@ -143,19 +122,21 @@ public class P4RuntimeHandshaker extends AbstractP4RuntimeHandlerBehaviour imple
             throw new IllegalStateException(
                     "Cluster too big! Maz size supported is " + MAX_CLUSTER_SIZE);
         }
-        BigInteger electionId = BigInteger.valueOf(term)
+        final BigInteger electionId = BigInteger.valueOf(term)
                 .multiply(BigInteger.valueOf(MAX_CLUSTER_SIZE))
                 .subtract(BigInteger.valueOf(preference));
-        client.setMastership(preference == 0, electionId);
+        client.setMastership(p4DeviceId, preference == 0, electionId);
     }
 
     @Override
     public MastershipRole getRole() {
-        final P4RuntimeClient client = getClientByKey();
-        if (client == null || !client.isServerReachable() || !client.isSessionOpen()) {
+        if (!setupBehaviour("getRole()") ||
+                !client.isServerReachable() ||
+                !client.isSessionOpen(p4DeviceId)) {
             return MastershipRole.NONE;
         }
-        return client.isMaster() ? MastershipRole.MASTER : MastershipRole.STANDBY;
+        return client.isMaster(p4DeviceId)
+                ? MastershipRole.MASTER : MastershipRole.STANDBY;
     }
 
     @Override

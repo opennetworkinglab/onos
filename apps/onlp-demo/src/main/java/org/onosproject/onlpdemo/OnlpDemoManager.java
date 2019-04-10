@@ -152,7 +152,7 @@ public class OnlpDemoManager {
 
         private void fetchData(DeviceId deviceId) {
             ImmutableList.Builder<OnlpData> builder = ImmutableList.builder();
-            GnmiClient gnmiClient = gnmiController.getClient(deviceId);
+            GnmiClient gnmiClient = gnmiController.get(deviceId);
             deviceService.getPorts(deviceId)
                     .forEach(port -> builder.add(getOnlpData(gnmiClient, port)));
             cache.put(deviceId, builder.build());

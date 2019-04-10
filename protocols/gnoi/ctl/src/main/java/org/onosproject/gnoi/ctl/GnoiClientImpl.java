@@ -17,20 +17,21 @@
 package org.onosproject.gnoi.ctl;
 
 import gnoi.system.SystemGrpc;
-import gnoi.system.SystemOuterClass.TimeRequest;
-import gnoi.system.SystemOuterClass.TimeResponse;
 import gnoi.system.SystemOuterClass.RebootRequest;
 import gnoi.system.SystemOuterClass.RebootResponse;
+import gnoi.system.SystemOuterClass.TimeRequest;
+import gnoi.system.SystemOuterClass.TimeResponse;
 import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
 import org.onosproject.gnoi.api.GnoiClient;
-import org.onosproject.gnoi.api.GnoiClientKey;
 import org.onosproject.grpc.ctl.AbstractGrpcClient;
+import org.onosproject.net.DeviceId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Implementation of gNOI client.
@@ -40,8 +41,8 @@ public class GnoiClientImpl extends AbstractGrpcClient implements GnoiClient {
     private static final int RPC_TIMEOUT_SECONDS = 10;
     private static final Logger log = LoggerFactory.getLogger(GnoiClientImpl.class);
 
-    GnoiClientImpl(GnoiClientKey clientKey, ManagedChannel managedChannel, GnoiControllerImpl controller) {
-        super(clientKey, managedChannel, false, controller);
+    GnoiClientImpl(DeviceId deviceId, ManagedChannel managedChannel, GnoiControllerImpl controller) {
+        super(deviceId, managedChannel, false, controller);
     }
 
     @Override
@@ -123,19 +124,4 @@ public class GnoiClientImpl extends AbstractGrpcClient implements GnoiClient {
                 SystemGrpc.newStub(channel)
                         .withDeadlineAfter(RPC_TIMEOUT_SECONDS, TimeUnit.SECONDS)));
     }
-
-    /**
-     * Forces execution of an RPC in a cancellable context with no timeout.
-     *
-     * @param stubConsumer SystemStub stub consumer
-     */
-    void execRpcNoTimeout(Consumer<SystemGrpc.SystemStub> stubConsumer) {
-        if (log.isTraceEnabled()) {
-            log.trace("Executing RPC with no timeout (context deadline {})...",
-                    context().getDeadline());
-        }
-        runInCancellableContext(() -> stubConsumer.accept(
-                SystemGrpc.newStub(channel)));
-    }
-
 }
