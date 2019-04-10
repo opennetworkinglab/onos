@@ -36,7 +36,6 @@ import static org.onosproject.net.region.RegionId.regionId;
  * Represents a region.
  */
 public class UiRegion extends UiNode {
-
     public static final String NULL_NAME = "(root)";
     private static final String NO_NAME = "???";
     private static final String MEMO_ADDED = "added";
@@ -371,6 +370,14 @@ public class UiRegion extends UiNode {
             default:
                 return true;
         }
+    }
+
+    public void newDeviceAdded(DeviceId deviceId) {
+        deviceIds.add(deviceId);
+    }
+
+    public void deviceRemoved(DeviceId deviceId) {
+        deviceIds.remove(deviceId);
     }
 
     private boolean isDeviceRelevant(DeviceId deviceId) {

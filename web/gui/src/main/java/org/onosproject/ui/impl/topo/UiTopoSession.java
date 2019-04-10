@@ -16,6 +16,7 @@
 
 package org.onosproject.ui.impl.topo;
 
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.region.RegionId;
 import org.onosproject.ui.UiTopoLayoutService;
 import org.onosproject.ui.impl.UiWebSocket;
@@ -140,6 +141,17 @@ public class UiTopoSession implements UiModelListener {
 
     @Override
     public void event(UiModelEvent event) {
+        // To ensure link can be created devices have to be added to the list as
+        // they are created
+        if (event.type() == UiModelEvent.Type.DEVICE_ADDED_OR_UPDATED &&
+                event.memo() == "added") {
+            UiRegion uiRegion = sharedModel.getRegion(currentLayout.regionId());
+            uiRegion.newDeviceAdded(DeviceId.deviceId(event.subject().idAsString()));
+        } else if (event.type() == UiModelEvent.Type.DEVICE_REMOVED) {
+            UiRegion uiRegion = sharedModel.getRegion(currentLayout.regionId());
+            uiRegion.deviceRemoved(DeviceId.deviceId(event.subject().idAsString()));
+        }
+
         webSocket.sendMessage(TOPO2_UI_MODEL_EVENT, t2json.jsonEvent(event));
     }
 

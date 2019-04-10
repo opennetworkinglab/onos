@@ -36,7 +36,7 @@ const LINK_DISTANCE = {
     // note: key is link.type
     direct: 100,
     optical: 120,
-    UiEdgeLink: 100,
+    UiEdgeLink: 3,
     _def_: 50,
 };
 
