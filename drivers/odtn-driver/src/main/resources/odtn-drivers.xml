@@ -64,6 +64,8 @@
                    impl="org.onosproject.drivers.odtn.openconfig.TerminalDeviceLambdaQuery"/>
         <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
                    impl="org.onosproject.drivers.odtn.CassiniFlowRuleProgrammable"/>
+        <behaviour api="org.onosproject.net.behaviour.PowerConfig"
+                   impl="org.onosproject.drivers.odtn.CassiniTerminalDevicePowerConfig"/>
     </driver>
     <driver name="nokia-1830" manufacturer="nokia" hwVersion="1830" swVersion="R10.1.1">
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
