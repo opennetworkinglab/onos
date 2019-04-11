@@ -190,12 +190,12 @@ public final class SlidingWindowCounter {
     }
 
     void advanceHead() {
-        if (counters.size() - 1 < slotAfter(headSlot)) {
-            counters.add(0, new AtomicLong(0));
+        if (counters.size() < windowSlots) {
+            counters.add(new AtomicLong(0));
         } else {
             counters.get(slotAfter(headSlot)).set(0);
-            headSlot = slotAfter(headSlot);
         }
+        headSlot = slotAfter(headSlot);
         totalSlots.incrementAndGet();
     }
 
