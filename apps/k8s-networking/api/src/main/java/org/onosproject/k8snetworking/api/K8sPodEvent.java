@@ -46,6 +46,46 @@ public class K8sPodEvent extends AbstractEvent<K8sPodEvent.Type, Pod> {
         K8S_POD_UPDATED,
 
         /**
+         * Signifies that the kubernetes pod is in Pending phase.
+         */
+        K8S_POD_PENDING,
+
+        /**
+         * Signifies that the kubernetes pod is in Running phase.
+         */
+        K8S_POD_RUNNING,
+
+        /**
+         * Signifies that the kubernetes pod is in Succeeded phase.
+         */
+        K8S_POD_SUCCEEDED,
+
+        /**
+         * Signifies that the kubernetes pod is in Failed phase.
+         */
+        K8S_POD_FAILED,
+
+        /**
+         * Signifies that the kubernetes pod is in Unknown phase.
+         */
+        K8S_POD_UNKNOWN,
+
+        /**
+         * Signifies that the kubernetes pod is in Completed phase.
+         */
+        K8S_POD_COMPLETED,
+
+        /**
+         * Signifies that the kubernetes pod is in CrashLoopBackOff phase.
+         */
+        K8S_POD_CRASH_LOOP_BACK_OFF,
+
+        /**
+         * Signifies that the kubernetes pod annotation is added.
+         */
+        K8S_POD_ANNOTATION_ADDED,
+
+        /**
          * Signifies that the kubernetes pod is removed.
          */
         K8S_POD_REMOVED,

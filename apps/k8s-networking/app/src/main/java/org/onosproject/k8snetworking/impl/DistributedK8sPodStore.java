@@ -97,14 +97,23 @@ import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.k8snetworking.api.K8sPodEvent.Type.K8S_POD_ANNOTATION_ADDED;
+import static org.onosproject.k8snetworking.api.K8sPodEvent.Type.K8S_POD_COMPLETED;
+import static org.onosproject.k8snetworking.api.K8sPodEvent.Type.K8S_POD_CRASH_LOOP_BACK_OFF;
 import static org.onosproject.k8snetworking.api.K8sPodEvent.Type.K8S_POD_CREATED;
+import static org.onosproject.k8snetworking.api.K8sPodEvent.Type.K8S_POD_FAILED;
+import static org.onosproject.k8snetworking.api.K8sPodEvent.Type.K8S_POD_PENDING;
 import static org.onosproject.k8snetworking.api.K8sPodEvent.Type.K8S_POD_REMOVED;
+import static org.onosproject.k8snetworking.api.K8sPodEvent.Type.K8S_POD_RUNNING;
+import static org.onosproject.k8snetworking.api.K8sPodEvent.Type.K8S_POD_SUCCEEDED;
+import static org.onosproject.k8snetworking.api.K8sPodEvent.Type.K8S_POD_UNKNOWN;
 import static org.onosproject.k8snetworking.api.K8sPodEvent.Type.K8S_POD_UPDATED;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -122,6 +131,14 @@ public class DistributedK8sPodStore
     private static final String ERR_NOT_FOUND = " does not exist";
     private static final String ERR_DUPLICATE = " already exists";
     private static final String APP_ID = "org.onosproject.k8snetwork";
+
+    private static final String PENDING = "Pending";
+    private static final String RUNNING = "Running";
+    private static final String SUCCEEDED = "Succeeded";
+    private static final String FAILED = "Failed";
+    private static final String UNKNOWN = "Unknown";
+    private static final String COMPLETED = "Completed";
+    private static final String CRASH_LOOP_BACK_OFF = "CrashLoopBackOff";
 
     private static final KryoNamespace
             SERIALIZER_K8S_POD = KryoNamespace.newBuilder()
@@ -277,9 +294,7 @@ public class DistributedK8sPodStore
                     break;
                 case UPDATE:
                     log.debug("Kubernetes pod updated {}", event.newValue());
-                    eventExecutor.execute(() ->
-                            notifyDelegate(new K8sPodEvent(
-                                    K8S_POD_UPDATED, event.newValue().value())));
+                    eventExecutor.execute(() -> processUpdate(event));
                     break;
                 case REMOVE:
                     log.debug("Kubernetes pod removed {}", event.oldValue());
@@ -290,6 +305,57 @@ public class DistributedK8sPodStore
                 default:
                     // do nothing
                     break;
+            }
+        }
+
+        private void processUpdate(MapEvent<String, Pod> event) {
+            notifyDelegate(new K8sPodEvent(
+                    K8S_POD_UPDATED, event.newValue().value()));
+
+            String oldPhase = event.oldValue().value().getStatus().getPhase();
+            String newPhase = event.newValue().value().getStatus().getPhase();
+
+            if (!PENDING.equals(oldPhase) && PENDING.equals(newPhase)) {
+                notifyDelegate(new K8sPodEvent(
+                        K8S_POD_PENDING, event.newValue().value()));
+            }
+
+            if (!RUNNING.equals(oldPhase) && RUNNING.equals(newPhase)) {
+                notifyDelegate(new K8sPodEvent(
+                        K8S_POD_RUNNING, event.newValue().value()));
+            }
+
+            if (!SUCCEEDED.equals(oldPhase) && SUCCEEDED.equals(newPhase)) {
+                notifyDelegate(new K8sPodEvent(
+                        K8S_POD_SUCCEEDED, event.newValue().value()));
+            }
+
+            if (!FAILED.equals(oldPhase) && FAILED.equals(newPhase)) {
+                notifyDelegate(new K8sPodEvent(
+                        K8S_POD_FAILED, event.newValue().value()));
+            }
+
+            if (!UNKNOWN.equals(oldPhase) && UNKNOWN.equals(newPhase)) {
+                notifyDelegate(new K8sPodEvent(
+                        K8S_POD_UNKNOWN, event.newValue().value()));
+            }
+
+            if (!COMPLETED.equals(oldPhase) && COMPLETED.equals(newPhase)) {
+                notifyDelegate(new K8sPodEvent(
+                        K8S_POD_COMPLETED, event.newValue().value()));
+            }
+
+            if (!CRASH_LOOP_BACK_OFF.equals(oldPhase) && CRASH_LOOP_BACK_OFF.equals(newPhase)) {
+                notifyDelegate(new K8sPodEvent(
+                        K8S_POD_CRASH_LOOP_BACK_OFF, event.newValue().value()));
+            }
+
+            Map<String, String> oldAnnot = event.oldValue().value().getMetadata().getAnnotations();
+            Map<String, String> newAnnot = event.newValue().value().getMetadata().getAnnotations();
+
+            if (oldAnnot == null && newAnnot != null) {
+                notifyDelegate(new K8sPodEvent(
+                        K8S_POD_ANNOTATION_ADDED, event.newValue().value()));
             }
         }
     }
