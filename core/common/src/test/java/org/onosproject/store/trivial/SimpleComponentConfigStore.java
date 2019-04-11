@@ -54,6 +54,11 @@ public class SimpleComponentConfigStore
     }
 
     @Override
+    public void setProperty(String componentName, String name, String value, boolean override) {
+        setProperty(componentName, name, value);
+    }
+
+    @Override
     public void unsetProperty(String componentName, String name) {
         delegate.notify(new ComponentConfigEvent(PROPERTY_UNSET, componentName, name, null));
     }

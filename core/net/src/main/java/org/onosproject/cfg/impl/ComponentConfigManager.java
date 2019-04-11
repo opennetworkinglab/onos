@@ -172,12 +172,17 @@ public class ComponentConfigManager implements ComponentConfigService {
 
     @Override
     public void preSetProperty(String componentName, String name, String value) {
+        preSetProperty(componentName, name, value, true);
+    }
+
+    @Override
+    public void preSetProperty(String componentName, String name, String value, boolean override) {
         checkPermission(CONFIG_WRITE);
 
         checkNotNull(componentName, COMPONENT_NULL);
         checkNotNull(name, PROPERTY_NULL);
         checkValidity(componentName, name, value);
-        store.setProperty(componentName, name, value);
+        store.setProperty(componentName, name, value, override);
     }
 
     @Override
