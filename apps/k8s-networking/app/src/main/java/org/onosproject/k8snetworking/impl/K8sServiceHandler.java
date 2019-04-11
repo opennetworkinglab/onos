@@ -788,8 +788,8 @@ public class K8sServiceHandler {
         @Override
         public void event(K8sPodEvent event) {
             switch (event.type()) {
-                case K8S_POD_UPDATED:
-                    eventExecutor.execute(() -> processPodUpdate(event.subject()));
+                case K8S_POD_ANNOTATION_ADDED:
+                    eventExecutor.execute(() -> processPodAnnotAddition(event.subject()));
                     break;
                 case K8S_POD_REMOVED:
                     eventExecutor.execute(() -> processPodRemoval(event.subject()));
@@ -799,7 +799,7 @@ public class K8sServiceHandler {
             }
         }
 
-        private void processPodUpdate(Pod pod) {
+        private void processPodAnnotAddition(Pod pod) {
             if (!isRelevantHelper()) {
                 return;
             }
