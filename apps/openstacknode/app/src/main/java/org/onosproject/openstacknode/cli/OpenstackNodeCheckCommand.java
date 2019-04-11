@@ -86,7 +86,12 @@ public class OpenstackNodeCheckCommand extends AbstractShellCommand {
         } else {
             print("[Integration Bridge Status]");
             Device device = deviceService.getDevice(osNode.intgBridge());
+            Device ovsdbDevice = deviceService.getDevice(osNode.ovsdb());
             if (device != null) {
+                print("%s OvsdbDeviceId=%s available=%s",
+                        deviceService.isAvailable(ovsdbDevice.id()) ? MSG_OK : MSG_ERROR,
+                        ovsdbDevice.id(),
+                        deviceService.isAvailable(ovsdbDevice.id()));
                 print("%s %s=%s available=%s %s",
                         deviceService.isAvailable(device.id()) ? MSG_OK : MSG_ERROR,
                         INTEGRATION_BRIDGE,

@@ -65,11 +65,13 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
     private static final String DELETE = "DELETE";
     private static final String QUERY = "QUERY";
     private static final String INIT = "INIT";
+    private static final String NOT_EXIST = "Not exist";
+    private static final String STATE = "State";
 
     private static final String HOST_NAME = "hostname";
     private static final String ERROR_MESSAGE = " cannot be null";
 
-    private final ObjectNode root = mapper().createObjectNode();
+    private final ObjectNode  root = mapper().createObjectNode();
     private final ArrayNode osJsonNodes = root.putArray("nodes");
 
     private final OpenstackNodeAdminService osNodeAdminService =
@@ -181,6 +183,24 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
             osJsonNodes.add(codec(OpenstackNode.class).encode(osNode, this));
         }
         return ok(root).build();
+    }
+
+    /**
+     * Obtains the state of the openstack node.
+     *
+     * @param hostname hostname of the openstack
+     * @return the state of the openstack node in Json
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("state/{hostname}")
+    public Response stateOfNode(@PathParam("hostname") String hostname) {
+        log.trace(String.format(MESSAGE_NODE, QUERY));
+
+        OpenstackNode osNode = osNodeService.node(hostname);
+        String nodeState = osNode != null ? osNode.state().toString() : NOT_EXIST;
+
+        return ok(mapper().createObjectNode().put(STATE, nodeState)).build();
     }
 
     /**
