@@ -144,7 +144,7 @@ public class UiTopoSession implements UiModelListener {
         // To ensure link can be created devices have to be added to the list as
         // they are created
         if (event.type() == UiModelEvent.Type.DEVICE_ADDED_OR_UPDATED &&
-                event.memo() == "added") {
+                event.memo().equals("added")) {
             UiRegion uiRegion = sharedModel.getRegion(currentLayout.regionId());
             uiRegion.newDeviceAdded(DeviceId.deviceId(event.subject().idAsString()));
         } else if (event.type() == UiModelEvent.Type.DEVICE_REMOVED) {
