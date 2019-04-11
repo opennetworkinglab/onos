@@ -37,6 +37,16 @@ public interface ComponentConfigStore
     void setProperty(String componentName, String name, String value);
 
     /**
+     * Sets the value of the specified configuration property.
+     *
+     * @param componentName component name
+     * @param name          property name
+     * @param value         new property value
+     * @param override      true to override even if the property has been set to other value
+     */
+    void setProperty(String componentName, String name, String value, boolean override);
+
+    /**
      * Clears the value of the specified configuration property thus making
      * the property take on its default value.
      *
