@@ -266,7 +266,16 @@ public class GrpcNbComponentConfigServiceTest {
 
         @Override
         public void preSetProperty(String componentName, String name, String value) {
-            STRING_MAP1.put(componentName + "#" + name, value);
+            preSetProperty(componentName, name, value, true);
+        }
+
+        @Override
+        public void preSetProperty(String componentName, String name, String value, boolean override) {
+            if (override) {
+                STRING_MAP1.put(componentName + "#" + name, value);
+            } else {
+                STRING_MAP1.putIfAbsent(componentName + "#" + name, value);
+            }
         }
 
         @Override
