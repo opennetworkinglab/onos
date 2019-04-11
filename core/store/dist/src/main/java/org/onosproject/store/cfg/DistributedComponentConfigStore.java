@@ -84,8 +84,12 @@ public class DistributedComponentConfigStore
 
     @Override
     public void setProperty(String componentName, String name, String value) {
-        properties.put(key(componentName, name), value);
+        setProperty(componentName, name, value, true);
+    }
 
+    @Override
+    public void setProperty(String componentName, String name, String value, boolean override) {
+        properties.compute(key(componentName, name), (k, v) -> (override || v == null) ? value : v);
     }
 
     @Override

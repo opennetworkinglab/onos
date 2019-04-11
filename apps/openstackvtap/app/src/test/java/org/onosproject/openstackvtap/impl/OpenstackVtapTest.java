@@ -22,8 +22,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.TpPort;
 import org.onosproject.TestApplicationId;
-import org.onosproject.cfg.ComponentConfigService;
-import org.onosproject.cfg.ConfigProperty;
+import org.onosproject.cfg.ComponentConfigAdapter;
 import org.onosproject.cluster.ClusterServiceAdapter;
 import org.onosproject.cluster.LeadershipServiceAdapter;
 import org.onosproject.core.ApplicationId;
@@ -218,42 +217,8 @@ public abstract class OpenstackVtapTest {
 
     }
 
-    public static class TestComponentConfigService implements ComponentConfigService {
+    public static class TestComponentConfigService extends ComponentConfigAdapter {
 
-        @Override
-        public Set<String> getComponentNames() {
-            return null;
-        }
-
-        @Override
-        public void registerProperties(Class<?> componentClass) {
-        }
-
-        @Override
-        public void unregisterProperties(Class<?> componentClass, boolean clear) {
-        }
-
-        @Override
-        public Set<ConfigProperty> getProperties(String componentName) {
-            return null;
-        }
-
-        @Override
-        public void setProperty(String componentName, String name, String value) {
-        }
-
-        @Override
-        public void preSetProperty(String componentName, String name, String value) {
-        }
-
-        @Override
-        public void unsetProperty(String componentName, String name) {
-        }
-
-        @Override
-        public ConfigProperty getProperty(String componentName, String attribute) {
-            return null;
-        }
     }
 
     /**

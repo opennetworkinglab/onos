@@ -523,32 +523,32 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 .build();
 
         compCfgService.preSetProperty("org.onosproject.net.group.impl.GroupManager",
-                                      "purgeOnDisconnection", "true");
+                                      "purgeOnDisconnection", "true", false);
         compCfgService.preSetProperty("org.onosproject.net.flow.impl.FlowRuleManager",
-                                      "purgeOnDisconnection", "true");
+                                      "purgeOnDisconnection", "true", false);
         compCfgService.preSetProperty("org.onosproject.provider.host.impl.HostLocationProvider",
-                                      "requestInterceptsEnabled", "false");
+                                      "requestInterceptsEnabled", "false", false);
         compCfgService.preSetProperty("org.onosproject.net.neighbour.impl.NeighbourResolutionManager",
-                                      "requestInterceptsEnabled", "false");
+                                      "requestInterceptsEnabled", "false", false);
         compCfgService.preSetProperty("org.onosproject.dhcprelay.DhcpRelayManager",
-                                      "arpEnabled", "false");
+                                      "arpEnabled", "false", false);
         compCfgService.preSetProperty("org.onosproject.net.host.impl.HostManager",
-                                      "greedyLearningIpv6", "true");
+                                      "greedyLearningIpv6", "true", false);
         compCfgService.preSetProperty("org.onosproject.routing.cpr.ControlPlaneRedirectManager",
-                                      "forceUnprovision", "true");
+                                      "forceUnprovision", "true", false);
         compCfgService.preSetProperty("org.onosproject.routeservice.store.RouteStoreImpl",
-                                      "distributed", "true");
+                                      "distributed", "true", false);
         compCfgService.preSetProperty("org.onosproject.provider.host.impl.HostLocationProvider",
-                                      "multihomingEnabled", "true");
+                                      "multihomingEnabled", "true", false);
         compCfgService.preSetProperty("org.onosproject.provider.lldp.impl.LldpLinkProvider",
-                                      "staleLinkAge", "15000");
+                                      "staleLinkAge", "15000", false);
         compCfgService.preSetProperty("org.onosproject.net.host.impl.HostManager",
-                                      "allowDuplicateIps", "false");
+                                      "allowDuplicateIps", "false", false);
         // For P4 switches
         compCfgService.preSetProperty("org.onosproject.net.flow.impl.FlowRuleManager",
-                                      "fallbackFlowPollFrequency", "4");
+                                      "fallbackFlowPollFrequency", "4", false);
         compCfgService.preSetProperty("org.onosproject.net.group.impl.GroupManager",
-                                      "fallbackGroupPollFrequency", "3");
+                                      "fallbackGroupPollFrequency", "3", false);
         compCfgService.registerProperties(getClass());
         modified(context);
 
