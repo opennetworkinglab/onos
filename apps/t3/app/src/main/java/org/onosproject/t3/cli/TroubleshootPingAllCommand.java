@@ -170,7 +170,7 @@ public class TroubleshootPingAllCommand extends AbstractShellCommand {
         IpAddress ipAddress;
         if (ipv4) {
             Criterion.Type type = src ? Criterion.Type.IPV4_SRC : Criterion.Type.IPV4_DST;
-            if (trace.getInitialPacket().getCriterion(type) != null) {
+            if (trace.getInitialPacket() != null && trace.getInitialPacket().getCriterion(type) != null) {
                 ipAddress = ((IPCriterion) trace.getInitialPacket()
                         .getCriterion(type)).ip().address();
             } else {
@@ -179,7 +179,7 @@ public class TroubleshootPingAllCommand extends AbstractShellCommand {
             }
         } else {
             Criterion.Type type = src ? Criterion.Type.IPV6_SRC : Criterion.Type.IPV6_DST;
-            if (trace.getInitialPacket().getCriterion(type) != null) {
+            if (trace.getInitialPacket() != null && trace.getInitialPacket().getCriterion(type) != null) {
                 ipAddress = ((IPCriterion) trace.getInitialPacket()
                         .getCriterion(type)).ip().address();
             } else {
