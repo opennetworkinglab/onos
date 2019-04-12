@@ -47,7 +47,7 @@ import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static javax.ws.rs.core.Response.created;
 import static org.onlab.util.Tools.nullIsIllegal;
 import static org.onlab.util.Tools.readTreeFromStream;
-import static org.onosproject.openstacknode.api.NodeState.INCOMPLETE;
+import static org.onosproject.openstacknode.api.NodeState.COMPLETE;
 
 /**
  * Handles REST API call of openstack node config.
@@ -246,7 +246,7 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
     }
 
     /**
-     * Initializes incomplete openstack nodes.
+     * Initializes openstack nodes which are in the stats other than COMPLETE.
      *
      * @return 200 OK with init result, 500 server error
      */
@@ -257,7 +257,7 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
         log.trace(String.format(MESSAGE_NODE, QUERY));
 
         osNodeService.nodes().stream()
-                .filter(n -> n.state() == INCOMPLETE)
+                .filter(n -> n.state() != COMPLETE)
                 .forEach(n -> {
                     OpenstackNode updated = n.updateState(NodeState.INIT);
                     osNodeAdminService.updateNode(updated);
