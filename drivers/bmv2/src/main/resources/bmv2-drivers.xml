@@ -19,6 +19,7 @@
         <behaviour api="org.onosproject.net.behaviour.PiPipelineProgrammable"
                    impl="org.onosproject.drivers.bmv2.Bmv2PipelineProgrammable"/>
         <property name="tableDeleteBeforeUpdate">true</property>
+        <property name="supportDefaultTableEntry">false</property>
         <!--
         <behaviour api="org.onosproject.net.group.GroupProgrammable"
                    impl="org.onosproject.drivers.bmv2.Bmv2GroupProgrammable"/>
