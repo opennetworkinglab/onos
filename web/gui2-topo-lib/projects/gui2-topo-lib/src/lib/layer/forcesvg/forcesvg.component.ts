@@ -321,7 +321,7 @@ export class ForceSvgComponent implements OnInit, OnChanges {
      */
     updateSelected(selectedNode: SelectedEvent): void {
         this.log.debug('Node or link ',
-            selectedNode.uiElement,
+            selectedNode.uiElement ? selectedNode.uiElement.id : '--',
             selectedNode.deselecting ? 'deselected' : 'selected',
             selectedNode.isShift ? 'Multiple' : '');
 
@@ -336,6 +336,12 @@ export class ForceSvgComponent implements OnInit, OnChanges {
             this.selectedNodes.push(selectedNode.uiElement);
 
         } else if (selectedNode.deselecting) {
+            this.devices
+                .forEach((d) => d.deselect());
+            this.hosts
+                .forEach((h) => h.deselect());
+            this.links
+                .forEach((l) => l.deselect());
             this.selectedNodes = [];
 
         } else {
@@ -495,7 +501,7 @@ export class ForceSvgComponent implements OnInit, OnChanges {
      * @param hosts - an array of host highlights
      * @param links - an array of link highlights
      */
-    handleHighlights(devices: Device[], hosts: Host[], links: LinkHighlight[]): void {
+    handleHighlights(devices: Device[], hosts: Host[], links: LinkHighlight[], fadeMs: number = 0): void {
 
         if (devices.length > 0) {
             this.log.debug(devices.length, 'Devices highlighted');
@@ -526,12 +532,15 @@ export class ForceSvgComponent implements OnInit, OnChanges {
         if (links.length > 0) {
             this.log.debug(links.length, 'Links highlighted');
             links.forEach((lh) => {
-                const linkComponent: LinkSvgComponent = this.links.find((l) => l.link.id === lh.id );
+                const linkComponent: LinkSvgComponent =
+                    this.links.find((l) => l.link.id === Link.linkIdFromShowHighlights(lh.id) );
                 if (linkComponent) { // A link might not be present is hosts viewing is switched off
+                    if (fadeMs > 0) {
+                        lh.fadems = fadeMs;
+                    }
                     linkComponent.ngOnChanges(
                         {'linkHighlight': new SimpleChange(<LinkHighlight>{}, lh, true)}
                     );
-                    // this.log.debug('Highlighting link', linkComponent.link.id, lh.css, lh.label);
                 }
             });
         }

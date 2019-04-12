@@ -71,11 +71,14 @@ export class LinkSvgComponent extends NodeVisual implements OnChanges {
             this.highlighted = hl.css;
             this.label = hl.label;
             this.isHighlighted = true;
-            setTimeout(() => {
-                this.isHighlighted = false;
-                this.highlighted = '';
-                this.ref.markForCheck();
-            }, 4990);
+            this.log.debug('Link hightlighted', hl);
+            if (hl.fadems > 0) {
+                setTimeout(() => {
+                    this.isHighlighted = false;
+                    this.highlighted = '';
+                    this.ref.markForCheck();
+                }, hl.fadems);
+            }
 
         }
 

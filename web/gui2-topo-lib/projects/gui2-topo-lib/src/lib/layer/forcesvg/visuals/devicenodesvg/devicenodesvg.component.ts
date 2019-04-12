@@ -23,7 +23,7 @@ import {
     SimpleChanges,
 } from '@angular/core';
 import {Device, LabelToggle, UiElement} from '../../models';
-import {IconService, LocMeta, LogService, MetaUi, ZoomUtils} from 'gui2-fw-lib';
+import {IconService, LocMeta, LogService, MetaUi, SvgUtilService, ZoomUtils} from 'gui2-fw-lib';
 import {NodeVisual, SelectedEvent} from '../nodevisual';
 import {animate, state, style, transition, trigger} from '@angular/animations';
 import {LocationType} from '../../../backgroundsvg/backgroundsvg.component';
@@ -73,6 +73,7 @@ export class DeviceNodeSvgComponent extends NodeVisual implements OnChanges {
     constructor(
         protected log: LogService,
         private is: IconService,
+        protected sus: SvgUtilService,
         private ref: ChangeDetectorRef
     ) {
         super();
@@ -130,5 +131,13 @@ export class DeviceNodeSvgComponent extends NodeVisual implements OnChanges {
         } else {
             return 'm_' + this.device.type;
         }
+    }
+
+    /**
+     * Get a colour for the banner of the nth panel
+     * @param idx The index of the panel (0-6)
+     */
+    panelColour(idx: number): string {
+        return this.sus.cat7().getColor(idx, false, '');
     }
 }

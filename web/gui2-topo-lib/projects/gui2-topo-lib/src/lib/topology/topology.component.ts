@@ -69,6 +69,7 @@ import {TrafficService} from '../traffic.service';
 import {ZoomableDirective} from '../layer/zoomable.directive';
 import {MapObject} from '../layer/maputils';
 import {LayoutService, LayoutType} from '../layout.service';
+import {SelectedEvent} from '../layer/forcesvg/visuals/nodevisual';
 
 const TOPO2_PREFS = 'topo2_prefs';
 const TOPO_MAPID_PREFS = 'topo_mapid';
@@ -85,6 +86,11 @@ const PREF_PORTHL = 'porthl';
 const PREF_SUMMARY = 'summary';
 const PREF_TOOLBAR = 'toolbar';
 const PREF_PINNED = 'pinned';
+
+const BACKGROUND_ELEMENTS = [
+    'svg topo2',
+    'path bgmap'
+];
 
 /**
  * Model of the topo2_prefs object - this is a subset of the overall Prefs returned
@@ -599,7 +605,7 @@ export class TopologyComponent implements AfterContentInit, OnInit, OnDestroy {
     }
 
     protected equalizeMasters() {
-        this.wss.sendEvent('equalizeMasters', null);
+        this.wss.sendEvent('equalizeMasters', {});
         this.flashMsg = this.lionFn('fl_eq_masters');
         this.log.debug('equalizing masters');
     }
@@ -698,6 +704,18 @@ export class TopologyComponent implements AfterContentInit, OnInit, OnDestroy {
         // this.zoomDirective.updateZoomState(zoomPrefs.tx, zoomPrefs.ty, zoomPrefs.sc);
         this.zoomDirective.changeZoomLevel(zoomMapExtents);
         this.log.debug('Map zoom prefs updated', zoomMapExtents);
+    }
+
+    backgroundClicked(event: MouseEvent) {
+        const elemTagName = event.target['tagName'] + ' ' + event.target['id'];
+        if (BACKGROUND_ELEMENTS.includes(elemTagName)) {
+            this.force.updateSelected(
+                <SelectedEvent>{
+                    uiElement: undefined,
+                    deselecting: true
+                }
+            );
+        }
     }
 
     /**

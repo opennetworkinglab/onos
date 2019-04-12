@@ -54,7 +54,7 @@ export class TrafficService {
     init(force: ForceSvgComponent) {
         this.wss.bindHandlers(new Map<string, (data) => void>([
             ['topo2Highlights', (data) => {
-                  force.handleHighlights(data.devices, data.hosts, data.links);
+                  force.handleHighlights(data.devices, data.hosts, data.links, 5000);
                 }
             ]
         ]));
@@ -75,6 +75,7 @@ export class TrafficService {
     destroy() {
         this.wss.sendEvent('topo2CancelTraffic', {});
         this.wss.unbindHandlers(this.handlers);
+        this.handlers.pop();
         this.log.debug('Traffic monitoring canceled');
     }
 

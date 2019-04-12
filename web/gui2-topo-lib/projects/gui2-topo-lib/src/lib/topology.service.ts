@@ -78,6 +78,9 @@ export class TopologyService {
                     this.log.debug('Region Data updated from WSS as topo2UiModelEvent', event.subject, event.data);
                 }
             ],
+            ['showHighlights', (event) => {
+                force.handleHighlights(event.devices, event.hosts, event.links);
+            }]
             // topo2Highlights is handled by TrafficService
         ]));
         this.handlers.push('topo2AllInstances');

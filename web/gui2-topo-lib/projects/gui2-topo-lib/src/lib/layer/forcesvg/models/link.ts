@@ -59,6 +59,29 @@ export class Link implements UiElement, d3.SimulationLinkDatum<Node> {
         return ep;
     }
 
+    /**
+     * The WSS event showHighlights is sent up with a slightly different
+     * name format on the link id using the "-" separator rather than the "~"
+     * @param linkId The id of the link in either format
+     */
+    public static linkIdFromShowHighlights(linkId: string) {
+        if (linkId.includes('-')) {
+            const parts: string[] = linkId.split('-');
+            const part0 = Link.removeHostPortNum(parts[0]);
+            const part1 = Link.removeHostPortNum(parts[1]);
+            return part0 + '~' + part1;
+        }
+        return linkId;
+    }
+
+    private static removeHostPortNum(hostStr: string) {
+        if (hostStr.includes('/None/')) {
+            const subparts = hostStr.split('/');
+            return subparts[0] + '/' + subparts[1];
+        }
+        return hostStr;
+    }
+
     constructor(source, target) {
         this.source = source;
         this.target = target;
@@ -88,4 +111,5 @@ export interface LinkHighlight {
     id: string;
     css: string;
     label: string;
+    fadems: number;
 }

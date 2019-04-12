@@ -56,7 +56,7 @@ the local variable - this is used to display messages when keyboard shortcuts ar
         are driven by the d3.force engine
     -->
     <svg:svg #svgZoom xmlns:svg="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" id="topo2"
-        preserveAspectRatio="xMaxYMax meet">
+        preserveAspectRatio="xMaxYMax meet" (click)="backgroundClicked($event)">
         <svg:desc>The main SVG canvas of the Topology View</svg:desc>
         <svg:g *ngIf="force.regionData?.devices[0].length +
                         force.regionData?.devices[1].length +

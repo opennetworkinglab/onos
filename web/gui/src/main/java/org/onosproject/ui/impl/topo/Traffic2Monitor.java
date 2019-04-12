@@ -90,6 +90,7 @@ public class Traffic2Monitor extends TrafficMonitorBase {
 
     @Override
     protected void sendSelectedIntentTraffic() {
+        log.debug("sendSelectedIntentTraffic: NOT IMPLEMENTED YET");
     }
 
     @Override

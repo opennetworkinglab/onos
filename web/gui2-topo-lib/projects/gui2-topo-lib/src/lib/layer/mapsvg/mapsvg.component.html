@@ -14,7 +14,7 @@
 ~ limitations under the License.
 -->
 <svg:desc xmlns:svg="http://www.w3.org/2000/svg">Map of {{map.id}} in SVG format</svg:desc>
-<svg:path class="topo-map"
+<svg:path id="bgmap" class="topo-map"
         *ngFor="let f of geodata?.features"
         xmlns:svg="http://www.w3.org/2000/svg"
         [attr.d]="pathGenerator(f)">

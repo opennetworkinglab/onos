@@ -16,7 +16,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { DeviceNodeSvgComponent } from './devicenodesvg.component';
-import {IconService, LogService} from 'gui2-fw-lib';
+import {FnService, IconService, LogService} from 'gui2-fw-lib';
 import {ActivatedRoute, Params} from '@angular/router';
 import {of} from 'rxjs';
 import {ChangeDetectorRef} from '@angular/core';
@@ -35,9 +35,11 @@ class MockIconService {
 }
 
 describe('DeviceNodeSvgComponent', () => {
+    let fs: FnService;
     let logServiceSpy: jasmine.SpyObj<LogService>;
     let component: DeviceNodeSvgComponent;
     let fixture: ComponentFixture<DeviceNodeSvgComponent>;
+    let windowMock: Window;
     let ar: MockActivatedRoute;
     let testDevice: Device;
 
@@ -48,6 +50,19 @@ describe('DeviceNodeSvgComponent', () => {
         testDevice = new Device('test:1');
         testDevice.online = true;
 
+        windowMock = <any>{
+            location: <any>{
+                hostname: 'foo',
+                host: 'foo',
+                port: '80',
+                protocol: 'http',
+                search: { debug: 'true' },
+                href: 'ws://foo:123/onos/ui/websock/path',
+                absUrl: 'ws://foo:123/onos/ui/websock/path'
+            }
+        };
+        fs = new FnService(ar, logSpy, windowMock);
+
         TestBed.configureTestingModule({
             imports: [ BrowserAnimationsModule ],
             declarations: [ DeviceNodeSvgComponent ],
@@ -55,7 +70,8 @@ describe('DeviceNodeSvgComponent', () => {
                 { provide: LogService, useValue: logSpy },
                 { provide: ActivatedRoute, useValue: ar },
                 { provide: ChangeDetectorRef, useClass: ChangeDetectorRef },
-                { provide: IconService, useClass: MockIconService }
+                { provide: IconService, useClass: MockIconService },
+                { provide: 'Window', useValue: windowMock },
             ]
         })
         .compileComponents();
