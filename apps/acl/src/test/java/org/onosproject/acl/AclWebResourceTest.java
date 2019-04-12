@@ -22,32 +22,34 @@
 package org.onosproject.acl;
 
 import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
 import org.onlab.rest.BaseResource;
 import org.onosproject.core.IdGenerator;
+import org.onosproject.rest.resources.ResourceTest;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
-import java.io.IOException;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.easymock.EasyMock.*;
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 /**
  * Test class for ACL application REST resource.
  */
-public class AclWebResourceTest extends JerseyTest {
+public class AclWebResourceTest extends ResourceTest {
 
     final AclService mockAclService = createMock(AclService.class);
     final AclStore mockAclStore = createMock(AclStore.class);
@@ -66,8 +68,8 @@ public class AclWebResourceTest extends JerseyTest {
         ServiceDirectory testDirectory = new TestServiceDirectory()
                 .add(AclService.class, mockAclService)
                 .add(AclStore.class, mockAclStore);
+        setServiceDirectory(testDirectory);
         TestUtils.setField(BaseResource.class, "services", testDirectory);
-
         AclRule.idGenerator = new MockIdGenerator();
     }
 
@@ -89,61 +91,89 @@ public class AclWebResourceTest extends JerseyTest {
     }
 
     @Test
-    @Ignore("FIXME: This needs to get reworked")
-    public void addRule() throws IOException {
+    public void addInvalidRule() {
         WebTarget wt = target();
         String response;
-        String json;
+        InputStream jsonStream;
 
         replay(mockAclService);
 
-        // FIXME: following code snippet requires refactoring by extracting
-        // json string as a separated file
-
         // input a invalid JSON string that contains neither nw_src and nw_dst
-        json = "{\"ipProto\":\"TCP\",\"dstTpPort\":\"80\"}";
-        response = wt.request().post(Entity.json(json), String.class);
-        assertThat(response, containsString("Failed! Either srcIp or dstIp must be assigned."));
+        jsonStream = AclWebResourceTest.class
+                .getResourceAsStream("post-invalid-acl.json");
+        response = wt.path("rules").request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.json(jsonStream), String.class);
+        assertThat(response.toString(), containsString("Either srcIp or dstIp must be assigned."));
+
 
         // input a invalid JSON string that doesn't contain CIDR mask bits
-        json = "{\"ipProto\":\"TCP\",\"srcIp\":\"10.0.0.1\",\"dstTpPort\":\"80\",\"action\":\"DENY\"}";
-        response = wt.request().post(Entity.json(json), String.class);
+        jsonStream = AclWebResourceTest.class
+                .getResourceAsStream("post-invalid-ip-1.json");
+        response = wt.path("rules").request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.json(jsonStream), String.class);
         assertThat(response, containsString("Malformed IPv4 prefix string: 10.0.0.1. " +
                                                     "Address must take form \"x.x.x.x/y\""));
 
         // input a invalid JSON string that contains a invalid IP address
-        json = "{\"ipProto\":\"TCP\",\"srcIp\":\"10.0.0.256/32\",\"dstTpPort\":\"80\",\"action\":\"DENY\"}";
-        response = wt.request().post(Entity.json(json), String.class);
+        jsonStream = AclWebResourceTest.class
+                .getResourceAsStream("post-invalid-ip-2.json");
+        response = wt.path("rules").request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.json(jsonStream), String.class);
         assertThat(response, containsString("Invalid IP address string: 10.0.0.256"));
 
         // input a invalid JSON string that contains a invalid IP address
-        json = "{\"ipProto\":\"TCP\",\"srcIp\":\"10.0.01/32\",\"dstTpPort\":\"80\",\"action\":\"DENY\"}";
-        response = wt.request().post(Entity.json(json), String.class);
+
+        jsonStream = AclWebResourceTest.class
+                .getResourceAsStream("post-invalid-ip-3.json");
+        response = wt.path("rules").request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.json(jsonStream), String.class);
         assertThat(response, containsString("Invalid IP address string: 10.0.01"));
 
         // input a invalid JSON string that contains a invalid CIDR mask bits
-        json = "{\"ipProto\":\"TCP\",\"srcIp\":\"10.0.0.1/a\",\"dstTpPort\":\"80\",\"action\":\"DENY\"}";
-        response = wt.request().post(Entity.json(json), String.class);
-        assertThat(response, containsString("Failed! For input string: \"a\""));
+        jsonStream = AclWebResourceTest.class
+                .getResourceAsStream("post-invalid-cidr-1.json");
+        response = wt.path("rules").request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.json(jsonStream), String.class);
+        assertThat(response, containsString("For input string: \"a\""));
 
         // input a invalid JSON string that contains a invalid CIDR mask bits
-        json = "{\"ipProto\":\"TCP\",\"srcIp\":\"10.0.0.1/33\",\"dstTpPort\":\"80\",\"action\":\"DENY\"}";
-        response = wt.request().post(Entity.json(json), String.class);
+        jsonStream = AclWebResourceTest.class
+                .getResourceAsStream("post-invalid-cidr-2.json");
+        response = wt.path("rules").request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.json(jsonStream), String.class);
         assertThat(response, containsString("Invalid prefix length 33. The value must be in the interval [0, 32]"));
 
         // input a invalid JSON string that contains a invalid ipProto value
-        json = "{\"ipProto\":\"ARP\",\"srcIp\":\"10.0.0.1/32\",\"dstTpPort\":\"80\",\"action\":\"DENY\"}";
-        response = wt.request().post(Entity.json(json), String.class);
-        assertThat(response, containsString("ipProto must be assigned to TCP, UDP, or ICMP."));
-
-        // input a invalid JSON string that contains a invalid dstTpPort value
-        json = "{\"ipProto\":\"TCP\",\"srcIp\":\"10.0.0.1/32\",\"dstTpPort\":\"a\",\"action\":\"DENY\"}";
-        response = wt.request().post(Entity.json(json), String.class);
-        assertThat(response, containsString("dstTpPort must be assigned to a numerical value."));
+        jsonStream = AclWebResourceTest.class
+                .getResourceAsStream("post-invalid-proto.json");
+        response = wt.path("rules").request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.json(jsonStream), String.class);
+        assertThat(response, containsString("ipProto must be assigned to TCP, UDP, or ICMP"));
 
         // input a invalid JSON string that contains a invalid action value
-        json = "{\"ipProto\":\"TCP\",\"srcIp\":\"10.0.0.1/32\",\"dstTpPort\":\"80\",\"action\":\"PERMIT\"}";
-        response = wt.request().post(Entity.json(json), String.class);
-        assertThat(response, containsString("action must be assigned to ALLOW or DENY."));
+        jsonStream = AclWebResourceTest.class
+                .getResourceAsStream("post-invalid-action.json");
+        response = wt.path("rules").request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.json(jsonStream), String.class);
+        assertThat(response, containsString("action must be ALLOW or DENY"));
     }
+
+    @Test
+    public void addRule() {
+        mockAclService.addAclRule(anyObject());
+        expectLastCall().andReturn(true).anyTimes();
+        replay(mockAclService);
+
+        WebTarget wt = target();
+        InputStream jsonStream;
+
+        jsonStream = AclWebResourceTest.class
+                .getResourceAsStream("post-valid-acl.json");
+        Response response = wt.path("rules").request(MediaType.APPLICATION_JSON_TYPE)
+                .post(Entity.json(jsonStream));
+        assertEquals(response.getLocation().getPath(), "/0x0");
+
+    }
+
+
 }

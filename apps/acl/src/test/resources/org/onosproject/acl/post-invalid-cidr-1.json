@@ -1,0 +1,5 @@
+{"ipProto":"TCP",
+  "srcIp":"10.0.0.1/a",
+  "dstTpPort":"80",
+  "action":"DENY"
+}

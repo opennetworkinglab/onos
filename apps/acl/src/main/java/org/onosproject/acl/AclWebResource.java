@@ -40,7 +40,6 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
 
 import static org.onlab.util.Tools.readTreeFromStream;
@@ -50,6 +49,7 @@ import static org.onlab.util.Tools.readTreeFromStream;
  */
 @Path("rules")
 public class AclWebResource extends AbstractWebResource {
+    private static final int  MULTI_STATUS_RESPONSE = 207;
 
     /**
      * Get all ACL rules.
@@ -113,16 +113,19 @@ public class AclWebResource extends AbstractWebResource {
      * Add a new ACL rule.
      *
      * @param stream JSON data describing the rule
-     * @return 200 OK
-     * @throws URISyntaxException uri syntax exception
+     * @return 200 OK for successful aclRule application
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response addAclRule(InputStream stream) throws URISyntaxException {
-        AclRule newRule = jsonToRule(stream);
-        return get(AclService.class).addAclRule(newRule) ?
-                Response.created(new URI(newRule.id().toString())).build() :
-                Response.serverError().build();
+    public Response addAclRule(InputStream stream) {
+        try {
+            AclRule newRule = jsonToRule(stream);
+            return get(AclService.class).addAclRule(newRule) ?
+                    Response.created(new URI(newRule.id().toString())).build() :
+                    Response.serverError().build();
+        } catch (Exception e) {
+            return Response.status(MULTI_STATUS_RESPONSE).entity(e.getMessage()).build();
+        }
     }
 
     /**

@@ -1,0 +1,9 @@
+{"ipProto":"TCP",
+  "srcMac":"11:22:33:11:22:33",
+  "dstMac":"22:11:33:22:11:33",
+  "srcIp":"10.0.0.1/32",
+  "dstIp":"10.0.0.2/32",
+  "dstTpPort":20,
+  "srcTpPort":30,
+  "action":"DENY"
+}

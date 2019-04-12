@@ -6,6 +6,8 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + [
 
 TEST_DEPS = TEST_REST + [
     "@jersey_server//jar",
+    "@minimal_json//jar",
+    "//web/api:onos-rest-tests",
 ]
 
 osgi_jar_with_tests(
