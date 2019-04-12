@@ -17,6 +17,7 @@ package org.onosproject.k8snetworking.impl;
 
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
@@ -33,6 +34,7 @@ import org.onosproject.k8snode.api.K8sNodeListener;
 import org.onosproject.k8snode.api.K8sNodeService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -60,14 +62,20 @@ import static org.onosproject.k8snetworking.api.Constants.DEFAULT_GATEWAY_MAC;
 import static org.onosproject.k8snetworking.api.Constants.FORWARDING_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.JUMP_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.K8S_NETWORKING_APP_ID;
+import static org.onosproject.k8snetworking.api.Constants.PRIORITY_CIDR_RULE;
+import static org.onosproject.k8snetworking.api.Constants.PRIORITY_CT_RULE;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_SNAT_RULE;
 import static org.onosproject.k8snetworking.api.Constants.ROUTING_TABLE;
+import static org.onosproject.k8snetworking.api.Constants.SERVICE_FAKE_MAC_STR;
 import static org.onosproject.k8snetworking.api.Constants.SERVICE_IP_CIDR;
+import static org.onosproject.k8snetworking.api.Constants.SHIFTED_IP_CIDR;
 import static org.onosproject.k8snetworking.api.Constants.STAT_INBOUND_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.STAT_OUTBOUND_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.VTAG_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.VTAP_INBOUND_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.VTAP_OUTBOUND_TABLE;
+import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.tunnelPortNumByNetId;
+import static org.onosproject.k8snetworking.util.RulePopulatorUtil.buildExtension;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -87,6 +95,9 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterService clusterService;
@@ -227,6 +238,9 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
         // for ARP and ACL table transition
         connectTables(deviceId, ARP_TABLE, JUMP_TABLE);
 
+        // for JUMP table transition to routing table
+        connectTables(deviceId, JUMP_TABLE, ROUTING_TABLE);
+
         // for JUMP table transition
         // we need JUMP table for bypassing routing table which contains large
         // amount of flow rules which might cause performance degradation during
@@ -280,58 +294,83 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
         applyRule(flowRule, true);
     }
 
-    private void setAnyRoutingRule(IpPrefix srcIpPrefix, K8sNetwork k8sNetwork) {
+    private void setAnyRoutingRule(IpPrefix srcIpPrefix, MacAddress mac,
+                                   K8sNetwork k8sNetwork) {
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPSrc(srcIpPrefix)
                 .matchIPDst(IpPrefix.valueOf(k8sNetwork.cidr()));
 
-        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
-                .setTunnelId(Long.valueOf(k8sNetwork.segmentId()))
-                .transition(STAT_OUTBOUND_TABLE);
-
         for (K8sNode node : k8sNodeService.completeNodes()) {
+            TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
+                    .setTunnelId(Long.valueOf(k8sNetwork.segmentId()));
+
+            if (node.hostname().equals(k8sNetwork.name())) {
+                if (mac != null) {
+                    tBuilder.setEthSrc(mac);
+                }
+                tBuilder.transition(STAT_OUTBOUND_TABLE);
+            } else {
+                PortNumber portNum = tunnelPortNumByNetId(k8sNetwork.networkId(),
+                        k8sNetworkService, node);
+                K8sNode localNode = k8sNodeService.node(k8sNetwork.name());
+
+                tBuilder.extension(buildExtension(
+                        deviceService,
+                        node.intgBridge(),
+                        localNode.dataIp().getIp4Address()),
+                        node.intgBridge())
+                        .setOutput(portNum);
+            }
+
             FlowRule flowRule = DefaultFlowRule.builder()
                     .forDevice(node.intgBridge())
                     .withSelector(sBuilder.build())
                     .withTreatment(tBuilder.build())
-                    .withPriority(HIGH_PRIORITY)
+                    .withPriority(PRIORITY_CIDR_RULE)
                     .fromApp(appId)
                     .makePermanent()
                     .forTable(ROUTING_TABLE)
                     .build();
             applyRule(flowRule, true);
         }
+    }
+
+    private void setGroupingRule(IpPrefix srcPrefix) {
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPSrc(srcPrefix);
+
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
+                .transition(ROUTING_TABLE);
+
+        for (K8sNode node : k8sNodeService.completeNodes()) {
+            FlowRule flowRule = DefaultFlowRule.builder()
+                    .forDevice(node.intgBridge())
+                    .withSelector(sBuilder.build())
+                    .withTreatment(tBuilder.build())
+                    .withPriority(PRIORITY_CT_RULE)
+                    .fromApp(appId)
+                    .makePermanent()
+                    .forTable(JUMP_TABLE)
+                    .build();
+            applyRule(flowRule, true);
+        }
+    }
+
+    private void setupTransientRoutingRule() {
+        setGroupingRule(IpPrefix.valueOf(SHIFTED_IP_CIDR));
     }
 
     private void setupServiceRoutingRule(K8sNetwork k8sNetwork) {
-        setAnyRoutingRule(IpPrefix.valueOf(SERVICE_IP_CIDR), k8sNetwork);
+        setGroupingRule(IpPrefix.valueOf(SERVICE_IP_CIDR));
+        setAnyRoutingRule(IpPrefix.valueOf(SERVICE_IP_CIDR),
+                MacAddress.valueOf(SERVICE_FAKE_MAC_STR), k8sNetwork);
     }
 
     private void setupHostRoutingRule(K8sNetwork k8sNetwork) {
-        setAnyRoutingRule(IpPrefix.valueOf(k8sNetwork.gatewayIp(), 32), k8sNetwork);
-    }
-
-    private void setupGatewayRoutingRule(K8sNetwork k8sNetwork) {
-        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPDst(IpPrefix.valueOf(k8sNetwork.gatewayIp(), 32));
-
-        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
-                .setOutput(PortNumber.LOCAL);
-
-        for (K8sNode node : k8sNodeService.completeNodes()) {
-            FlowRule flowRule = DefaultFlowRule.builder()
-                    .forDevice(node.intgBridge())
-                    .withSelector(sBuilder.build())
-                    .withTreatment(tBuilder.build())
-                    .withPriority(HIGH_PRIORITY)
-                    .fromApp(appId)
-                    .makePermanent()
-                    .forTable(ROUTING_TABLE)
-                    .build();
-            applyRule(flowRule, true);
-        }
+        setAnyRoutingRule(IpPrefix.valueOf(
+                k8sNetwork.gatewayIp(), 32), null, k8sNetwork);
     }
 
     private class InternalK8sNodeListener implements K8sNodeListener {
@@ -360,10 +399,11 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
             }
 
             initializePipeline(node);
+            setupTransientRoutingRule();
+
             k8sNetworkService.networks().forEach(n -> {
                 setupHostRoutingRule(n);
                 setupServiceRoutingRule(n);
-                setupGatewayRoutingRule(n);
             });
         }
     }
@@ -394,7 +434,6 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
             }
 
             setupHostRoutingRule(network);
-            setupGatewayRoutingRule(network);
             setupServiceRoutingRule(network);
         }
     }

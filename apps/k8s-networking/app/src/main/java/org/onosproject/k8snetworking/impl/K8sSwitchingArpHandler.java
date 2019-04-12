@@ -32,6 +32,7 @@ import org.onosproject.core.CoreService;
 import org.onosproject.k8snetworking.api.K8sFlowRuleService;
 import org.onosproject.k8snetworking.api.K8sNetworkService;
 import org.onosproject.k8snetworking.api.K8sPort;
+import org.onosproject.k8snetworking.api.K8sServiceService;
 import org.onosproject.k8snode.api.K8sNode;
 import org.onosproject.k8snode.api.K8sNodeEvent;
 import org.onosproject.k8snode.api.K8sNodeListener;
@@ -62,6 +63,7 @@ import java.util.Dictionary;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
@@ -70,6 +72,7 @@ import static org.onosproject.k8snetworking.api.Constants.ARP_PROXY_MODE;
 import static org.onosproject.k8snetworking.api.Constants.ARP_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.K8S_NETWORKING_APP_ID;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_ARP_CONTROL_RULE;
+import static org.onosproject.k8snetworking.api.Constants.SERVICE_FAKE_MAC_STR;
 import static org.onosproject.k8snetworking.impl.OsgiPropertyConstants.ARP_MODE;
 import static org.onosproject.k8snetworking.impl.OsgiPropertyConstants.ARP_MODE_DEFAULT;
 import static org.onosproject.k8snetworking.impl.OsgiPropertyConstants.GATEWAY_MAC;
@@ -92,6 +95,9 @@ public class K8sSwitchingArpHandler {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final String API_SERVER_CLUSTER_IP = "10.96.0.1";
+
+    private static final String GATEWAY_MAC = "gatewayMac";
+    private static final String ARP_MODE = "arpMode";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
@@ -122,6 +128,9 @@ public class K8sSwitchingArpHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected K8sFlowRuleService k8sFlowRuleService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected K8sServiceService k8sServiceService;
 
     /** Fake MAC address for virtual network subnet gateway. */
     private String gatewayMac = GATEWAY_MAC_DEFAULT;
@@ -215,7 +224,7 @@ public class K8sSwitchingArpHandler {
                 .filter(n -> n.gatewayIp().equals(targetIp))
                 .count();
 
-        if (gwIpCnt > 0 || targetIp.equals(IpAddress.valueOf(API_SERVER_CLUSTER_IP))) {
+        if (gwIpCnt > 0) {
             replyMac = gwMacAddress;
         }
 
@@ -230,6 +239,15 @@ public class K8sSwitchingArpHandler {
                 if (replyMac != null) {
                     break;
                 }
+            }
+        }
+
+        if (replyMac == null) {
+            Set<String> serviceIps = k8sServiceService.services().stream()
+                    .map(s -> s.getSpec().getClusterIP())
+                    .collect(Collectors.toSet());
+            if (serviceIps.contains(targetIp.toString())) {
+                replyMac = MacAddress.valueOf(SERVICE_FAKE_MAC_STR);
             }
         }
 

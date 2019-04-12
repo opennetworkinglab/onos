@@ -18,10 +18,16 @@ package org.onosproject.k8snode.api;
 import com.google.common.base.MoreObjects;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.ovsdb.controller.OvsdbClientService;
+import org.onosproject.ovsdb.controller.OvsdbController;
+import org.onosproject.ovsdb.controller.OvsdbNodeId;
+import org.onosproject.ovsdb.rfc.notation.OvsdbMap;
+import org.onosproject.ovsdb.rfc.table.Interface;
 
 import java.util.Objects;
 
@@ -36,6 +42,9 @@ import static org.onosproject.net.AnnotationKeys.PORT_NAME;
  * Representation of a kubernetes node.
  */
 public class DefaultK8sNode implements K8sNode {
+
+    private static final int DEFAULT_OVSDB_PORT = 6640;
+    private static final String MAC_ADDRESS = "mac_address";
 
     private final String hostname;
     private final Type type;
@@ -151,6 +160,21 @@ public class DefaultK8sNode implements K8sNode {
                         Objects.equals(p.annotations().value(PORT_NAME), INTEGRATION_BRIDGE))
                 .findAny().orElse(null);
         return port != null ? port.number() : null;
+    }
+
+    @Override
+    public MacAddress intBridgeMac() {
+        OvsdbController ovsdbController =
+                DefaultServiceDirectory.getService(OvsdbController.class);
+        OvsdbNodeId ovsdb = new OvsdbNodeId(this.managementIp, DEFAULT_OVSDB_PORT);
+        OvsdbClientService client = ovsdbController.getOvsdbClient(ovsdb);
+        if (client == null) {
+            return null;
+        }
+
+        Interface iface = client.getInterface(INTEGRATION_BRIDGE);
+        OvsdbMap data = (OvsdbMap) iface.getExternalIdsColumn().data();
+        return MacAddress.valueOf((String) data.map().get(MAC_ADDRESS));
     }
 
     @Override

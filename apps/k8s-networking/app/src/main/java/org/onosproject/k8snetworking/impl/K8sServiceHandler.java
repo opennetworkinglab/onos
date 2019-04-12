@@ -92,6 +92,7 @@ import static org.onosproject.k8snetworking.api.Constants.NAT_STATELESS;
 import static org.onosproject.k8snetworking.api.Constants.NAT_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.POD_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_CT_RULE;
+import static org.onosproject.k8snetworking.api.Constants.PRIORITY_INTER_ROUTING_RULE;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_NAT_RULE;
 import static org.onosproject.k8snetworking.api.Constants.ROUTING_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.SERVICE_IP_CIDR;
@@ -101,6 +102,7 @@ import static org.onosproject.k8snetworking.api.Constants.SHIFTED_IP_PREFIX;
 import static org.onosproject.k8snetworking.api.Constants.SRC;
 import static org.onosproject.k8snetworking.impl.OsgiPropertyConstants.SERVICE_IP_NAT_MODE;
 import static org.onosproject.k8snetworking.impl.OsgiPropertyConstants.SERVICE_IP_NAT_MODE_DEFAULT;
+import static org.onosproject.k8snetworking.api.Constants.STAT_OUTBOUND_TABLE;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.nodeIpGatewayIpMap;
 import static org.onosproject.k8snetworking.util.RulePopulatorUtil.CT_NAT_DST_FLAG;
 import static org.onosproject.k8snetworking.util.RulePopulatorUtil.buildGroupBucket;
@@ -261,13 +263,16 @@ public class K8sServiceHandler {
 
     private void setStatelessServiceNatRules(DeviceId deviceId, boolean install) {
 
+        String srcCidr = k8sNetworkService.network(
+                k8sNodeService.node(deviceId).hostname()).cidr();
+
         k8sNetworkService.networks().forEach(n -> {
-            setSrcDstCidrRules(deviceId, n.cidr(), SERVICE_IP_CIDR, JUMP_TABLE,
+            setSrcDstCidrRules(deviceId, n.cidr(), SERVICE_IP_CIDR, null, JUMP_TABLE,
                     SERVICE_TABLE, PRIORITY_CT_RULE, install);
-            setSrcDstCidrRules(deviceId, n.cidr(), SHIFTED_IP_CIDR, JUMP_TABLE,
+            setSrcDstCidrRules(deviceId, n.cidr(), SHIFTED_IP_CIDR, null, JUMP_TABLE,
                     POD_TABLE, PRIORITY_CT_RULE, install);
-            setSrcDstCidrRules(deviceId, n.cidr(), n.cidr(), JUMP_TABLE,
-                    ROUTING_TABLE, PRIORITY_CT_RULE, install);
+            setSrcDstCidrRules(deviceId, srcCidr, n.cidr(), n.segmentId(), ROUTING_TABLE,
+                    STAT_OUTBOUND_TABLE, PRIORITY_INTER_ROUTING_RULE, install);
         });
 
         // setup load balancing rules using group table
@@ -277,7 +282,7 @@ public class K8sServiceHandler {
     }
 
     private void setSrcDstCidrRules(DeviceId deviceId, String srcCidr,
-                                    String dstCidr, int installTable,
+                                    String dstCidr, String segId, int installTable,
                                     int transitTable, int priority, boolean install) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
@@ -285,15 +290,18 @@ public class K8sServiceHandler {
                 .matchIPDst(IpPrefix.valueOf(dstCidr))
                 .build();
 
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .transition(transitTable)
-                .build();
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+
+        if (segId != null) {
+            tBuilder.setTunnelId(Long.valueOf(segId));
+        }
+        tBuilder.transition(transitTable);
 
         k8sFlowRuleService.setRule(
                 appId,
                 deviceId,
                 selector,
-                treatment,
+                tBuilder.build(),
                 priority,
                 installTable,
                 install);
@@ -385,17 +393,18 @@ public class K8sServiceHandler {
                                            ServicePort sp) {
         List<GroupBucket> bkts = Lists.newArrayList();
 
-        ExtensionTreatment resubmitTreatment = buildResubmitExtension(
-                deviceService.getDevice(deviceId), ROUTING_TABLE);
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
-                .setIpDst(IpAddress.valueOf(podIpStr))
-                .extension(resubmitTreatment, deviceId);
+                .setIpDst(IpAddress.valueOf(podIpStr));
 
         if (TCP.equals(sp.getProtocol())) {
             tBuilder.setTcpDst(TpPort.tpPort(sp.getTargetPort().getIntVal()));
         } else if (UDP.equals(sp.getProtocol())) {
             tBuilder.setUdpDst(TpPort.tpPort(sp.getTargetPort().getIntVal()));
         }
+
+        ExtensionTreatment resubmitTreatment = buildResubmitExtension(
+                deviceService.getDevice(deviceId), ROUTING_TABLE);
+        tBuilder.extension(resubmitTreatment, deviceId);
 
         bkts.add(buildGroupBucket(tBuilder.build(), SELECT, (short) -1));
 
@@ -414,17 +423,19 @@ public class K8sServiceHandler {
             List<GroupBucket> bkts = Lists.newArrayList();
             epas.forEach(epa -> {
                 String podIp = nodeIpGatewayIpMap.getOrDefault(epa, epa);
-                ExtensionTreatment resubmitTreatment = buildResubmitExtension(
-                        deviceService.getDevice(deviceId), ROUTING_TABLE);
+
                 TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
-                        .setIpDst(IpAddress.valueOf(podIp))
-                        .extension(resubmitTreatment, deviceId);
+                        .setIpDst(IpAddress.valueOf(podIp));
 
                 if (TCP.equals(sp.getProtocol())) {
                     tBuilder.setTcpDst(TpPort.tpPort(sp.getTargetPort().getIntVal()));
                 } else if (UDP.equals(sp.getProtocol())) {
                     tBuilder.setUdpDst(TpPort.tpPort(sp.getTargetPort().getIntVal()));
                 }
+
+                ExtensionTreatment resubmitTreatment = buildResubmitExtension(
+                        deviceService.getDevice(deviceId), ROUTING_TABLE);
+                tBuilder.extension(resubmitTreatment, deviceId);
 
                 bkts.add(buildGroupBucket(tBuilder.build(), SELECT, (short) -1));
             });
