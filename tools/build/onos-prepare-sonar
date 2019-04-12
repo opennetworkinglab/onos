@@ -253,7 +253,7 @@ def _extract_onos_version():
     with open(bazel_vars_path, 'r') as bazel_vars_file:
         for bazel_var in bazel_vars_file.readlines():
             if "ONOS_VERSION" in bazel_var:
-                return bazel_var.replace(" ", "").replace('ONOS_VERSION='2.1.0-rc1'
+                return bazel_var.replace(" ", "").replace('ONOS_VERSION='2.1.0-SNAPSHOT'
 
 
 def _main():
