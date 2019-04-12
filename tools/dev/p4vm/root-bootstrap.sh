@@ -5,6 +5,10 @@ ONOS_BRANCH_DEV="master"
 ONOS_BRANCH_TUTORIAL="onos-1.14"
 BAZEL_VER="0.22.0"
 
+# There is a known issue with some kernel versions that affects PTF tests:
+# https://github.com/jafingerhut/p4-guide/tree/master/linux-veth-bug
+KERNEL_VER="4.15.0-46-generic"
+
 VM_TYPE=${1:-dev}
 
 if [[ ${VM_TYPE} = "tutorial" ]]
@@ -62,6 +66,7 @@ apt-get -y --no-install-recommends install \
     automake \
     autoconf \
     libtool \
+    linux-image-${KERNEL_VER} \
     isc-dhcp-server
 
 DEBIAN_FRONTEND=noninteractive apt-get -yq install wireshark
