@@ -19,9 +19,9 @@
 set -e
 set -x
 
-BMV2_COMMIT="5d25d0d94681492d155d3e5b72b16a56121f8dfe"
-PI_COMMIT="81b7e84bf8c27ce87571f66e5ccc76ce228caa8c"
-P4C_COMMIT="5ae390430bd025b301854cd04c78b1ff9902180f"
+BMV2_COMMIT="8c6f852867c4a80b7c51c23db3419e1137f5038d"
+PI_COMMIT="9f6c1f23843b99fb582a9b893be628e5ae820b53"
+P4C_COMMIT="74bcfa32a6c782bc9a3c4c29d5656519dee4dfdb"
 
 # p4c seems to break when using protobuf versions newer than 3.2.0
 PROTOBUF_VER=${PROTOBUF_VER:-3.2.0}
@@ -93,7 +93,7 @@ function do_requirements {
         wget \
         unzip
 
-    sudo -H pip install setuptools cffi ipaddr ipaddress pypcap
+    sudo -H pip install setuptools cffi ipaddr ipaddress pypcap scapy
 }
 
 function do_requirements_1604 {
@@ -280,18 +280,6 @@ function do_p4c {
     sudo ldconfig
 }
 
-function do_scapy-vxlan {
-    cd ${BUILD_DIR}
-    if [[ ! -d scapy-vxlan ]]; then
-        git clone https://github.com/p4lang/scapy-vxlan.git
-    fi
-    cd scapy-vxlan
-
-    git pull origin master
-
-    sudo python setup.py install
-}
-
 function do_ptf {
     cd ${BUILD_DIR}
     if [[ ! -d ptf ]]; then
@@ -432,7 +420,6 @@ check_and_do ${BMV2_COMMIT} bmv2 do_pi_bmv2_deps bmv2-deps
 check_and_do ${PI_COMMIT} PI do_PI PI
 check_and_do ${BMV2_COMMIT} bmv2 do_bmv2 bmv2
 check_and_do ${P4C_COMMIT} p4c do_p4c p4c
-check_and_do master scapy-vxlan do_scapy-vxlan scapy-vxlan
 check_and_do master ptf do_ptf ptf
 
 all_done
