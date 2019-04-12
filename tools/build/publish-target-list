@@ -18,6 +18,11 @@
     //protocols/bgp/api:onos-protocols-bgp-api
     //protocols/bgp/bgpio:onos-protocols-bgp-bgpio
     //protocols/grpc/api:onos-protocols-grpc-api
+    //protocols/p4runtime/api:onos-protocols-p4runtime-api
+    //protocols/p4runtime/model:onos-protocols-p4runtime-model
+    //protocols/grpc/utils:onos-protocols-grpc-utils
+    //protocols/gnmi/api:onos-protocols-gnmi-api
+    //protocols/gnoi/api:onos-protocols-gnoi-api
     //protocols/isis/api:onos-protocols-isis-api
     //protocols/lisp/api:onos-protocols-lisp-api
     //protocols/lisp/msg:onos-protocols-lisp-msg
