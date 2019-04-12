@@ -1,4 +1,7 @@
-COMPILE_DEPS = CORE_DEPS
+COMPILE_DEPS = CORE_DEPS + [
+    "//protocols/ovsdb/api:onos-protocols-ovsdb-api",
+    "//protocols/ovsdb/rfc:onos-protocols-ovsdb-rfc",
+]
 
 TEST_DEPS = TEST_ADAPTERS + [
     "//core/api:onos-api-tests",

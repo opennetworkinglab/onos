@@ -37,6 +37,8 @@ public final class Constants {
     public static final String DEFAULT_ARP_MODE_STR = ARP_PROXY_MODE;
     public static final String DEFAULT_HOST_MAC_STR = "fe:00:00:00:00:08";
     public static final String DEFAULT_SERVICE_IP_NAT_MODE_STR = NAT_STATELESS;
+    public static final String CONTROLLER_MAC_STR = "fe:00:00:00:00:10";
+    public static final String SERVICE_FAKE_MAC_STR = "fe:00:00:00:00:20";
 
     public static final MacAddress DEFAULT_GATEWAY_MAC =
                         MacAddress.valueOf(DEFAULT_GATEWAY_MAC_STR);
@@ -62,10 +64,13 @@ public final class Constants {
     public static final int PRIORITY_TUNNEL_TAG_RULE = 30000;
     public static final int PRIORITY_TRANSLATION_RULE = 30000;
     public static final int PRIORITY_CT_HOOK_RULE = 30500;
+    public static final int PRIORITY_INTER_ROUTING_RULE = 29000;
     public static final int PRIORITY_CT_RULE = 32000;
     public static final int PRIORITY_CT_DROP_RULE = 32500;
     public static final int PRIORITY_NAT_RULE = 30000;
+    public static final int PRIORITY_GATEWAY_RULE = 30000;
     public static final int PRIORITY_SWITCHING_RULE = 30000;
+    public static final int PRIORITY_CIDR_RULE = 30000;
     public static final int PRIORITY_ARP_GATEWAY_RULE = 41000;
     public static final int PRIORITY_ARP_SUBNET_RULE = 40000;
     public static final int PRIORITY_ARP_CONTROL_RULE = 40000;

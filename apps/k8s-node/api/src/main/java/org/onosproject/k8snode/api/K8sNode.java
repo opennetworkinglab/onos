@@ -16,6 +16,7 @@
 package org.onosproject.k8snode.api;
 
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 
@@ -131,6 +132,13 @@ public interface K8sNode {
      * @return host port number; null if the host port does not exist
      */
     PortNumber intBridgePortNum();
+
+    /**
+     * Returns the integration bridge's MAC address.
+     *
+     * @return MAC address; null if the MAC address does not exist
+     */
+    MacAddress intBridgeMac();
 
     /**
      * Builder of new node entity.
