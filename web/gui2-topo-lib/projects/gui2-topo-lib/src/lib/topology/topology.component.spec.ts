@@ -104,7 +104,9 @@ class MockKeysService {
     }
 }
 
-class MockTrafficService {}
+class MockTrafficService {
+    init(force: ForceSvgComponent) {}
+}
 
 class MockLayoutService {}
 

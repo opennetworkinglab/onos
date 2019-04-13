@@ -65,7 +65,7 @@ import {
     RESETZOOM_BTN,
     SUMMARY_TOGGLE
 } from '../panel/toolbar/toolbar.component';
-import {TrafficService} from '../traffic.service';
+import {TrafficService, TrafficType} from '../traffic.service';
 import {ZoomableDirective} from '../layer/zoomable.directive';
 import {MapObject} from '../layer/maputils';
 import {LayoutService, LayoutType} from '../layout.service';
@@ -86,6 +86,7 @@ const PREF_PORTHL = 'porthl';
 const PREF_SUMMARY = 'summary';
 const PREF_TOOLBAR = 'toolbar';
 const PREF_PINNED = 'pinned';
+const PREF_TRAFFIC = 'traffic';
 
 const BACKGROUND_ELEMENTS = [
     'svg topo2',
@@ -111,6 +112,7 @@ export interface Topo2Prefs {
     toolbar: number;
     grid: number;
     pinned: number;
+    traffic: number;
 }
 
 /**
@@ -166,7 +168,9 @@ export class TopologyComponent implements AfterContentInit, OnInit, OnDestroy {
         spr: 0,
         summary: 1,
         toolbar: 0,
-        grid: 0
+        grid: 0,
+        pinned: 0,
+        traffic: 2 // default to PORTSTATSPKTSEC, as it will iterate over to 0 on init
     };
 
     mapIdState: MapObject = <MapObject>{
@@ -260,6 +264,14 @@ export class TopologyComponent implements AfterContentInit, OnInit, OnDestroy {
         }
     }
 
+    private static trafficTypeFlashMessage(index: number): string {
+        switch (index) {
+            case 0: return 'tr_fl_fstats_bytes';
+            case 1: return 'tr_fl_pstats_bits';
+            case 2: return 'tr_fl_pstats_pkts';
+        }
+    }
+
     /**
      * Pass the list of Key Commands to the KeyService, and initialize the Topology
      * Service - which communicates with through the WebSocket to the ONOS server
@@ -276,6 +288,7 @@ export class TopologyComponent implements AfterContentInit, OnInit, OnDestroy {
         this.ps.addListener((data) => this.prefsUpdateHandler(data));
         this.prefsState = this.ps.getPrefs(TOPO2_PREFS, this.prefsState);
         this.mapIdState = this.ps.getPrefs(TOPO_MAPID_PREFS, this.mapIdState);
+        this.trs.init(this.force);
 
         this.log.debug('Topology component initialized');
     }
@@ -311,6 +324,7 @@ export class TopologyComponent implements AfterContentInit, OnInit, OnDestroy {
     ngOnDestroy() {
         this.ts.destroy();
         this.ps.removeListener((data) => this.prefsUpdateHandler(data));
+        this.trs.destroy();
         this.log.debug('Topology component destroyed');
     }
 
@@ -373,7 +387,7 @@ export class TopologyComponent implements AfterContentInit, OnInit, OnDestroy {
                 this.cancelTraffic();
                 break;
             case ALL_TRAFFIC:
-                this.monitorAllTraffic();
+                this.cycleTrafficTypeDisplay();
                 break;
             case QUICKHELP_BTN:
                 this.ks.quickHelpShown = true;
@@ -397,7 +411,7 @@ export class TopologyComponent implements AfterContentInit, OnInit, OnDestroy {
      */
     actionMap() {
         return {
-            A: [() => {this.monitorAllTraffic(); }, 'Monitor all traffic'],
+            A: [() => {this.cycleTrafficTypeDisplay(); }, 'Monitor all traffic'],
             B: [(token) => {this.toggleBackground(token); }, 'Toggle background'],
             D: [(token) => {this.toggleDetails(token); }, 'Toggle details panel'],
             E: [() => {this.equalizeMasters(); }, 'Equalize mastership roles'],
@@ -525,6 +539,15 @@ export class TopologyComponent implements AfterContentInit, OnInit, OnDestroy {
         this.flashMsg = this.lionFn(TopologyComponent.gridDisplayFlashMessage(next));
         this.updatePrefsState(PREF_GRID, next);
         this.log.debug('Cycling grid display', old, next);
+    }
+
+    protected cycleTrafficTypeDisplay() {
+        const old: TrafficType.Enum = this.prefsState.traffic; // by number
+        const next = TrafficType.next(old);
+        this.flashMsg = this.lionFn(TopologyComponent.trafficTypeFlashMessage(next));
+        this.updatePrefsState(PREF_TRAFFIC, next);
+        this.trs.requestTraffic(next);
+        this.log.debug('Cycling traffic display', old, next);
     }
 
     /**
@@ -674,15 +697,7 @@ export class TopologyComponent implements AfterContentInit, OnInit, OnDestroy {
     nodeSelected(nodesOrLink: UiElement[]) {
         this.details.ngOnChanges({'selectedNodes':
             new SimpleChange(undefined, nodesOrLink, true)});
-    }
-
-    /**
-     * Enable traffic monitoring
-     */
-    monitorAllTraffic() {
-        // TODO: Implement support for toggling between bits, packets and octets
-        this.flashMsg = this.lionFn('tr_fl_pstats_bits');
-        this.trs.init(this.force);
+        this.trs.cancelTraffic();
     }
 
     /**
@@ -690,7 +705,7 @@ export class TopologyComponent implements AfterContentInit, OnInit, OnDestroy {
      */
     cancelTraffic() {
         this.flashMsg = this.lionFn('fl_monitoring_canceled');
-        this.trs.destroy();
+        this.trs.cancelTraffic();
     }
 
     changeMap(map: MapObject) {

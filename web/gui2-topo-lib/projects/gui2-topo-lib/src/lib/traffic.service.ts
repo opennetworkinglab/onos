@@ -17,24 +17,41 @@ import { Injectable } from '@angular/core';
 import {LogService, WebSocketService} from 'gui2-fw-lib';
 import {ForceSvgComponent} from './layer/forcesvg/forcesvg.component';
 
-export enum TrafficType {
-    IDLE,
-    FLOWSTATSBYTES = 'flowStatsBytes',
-    PORTSTATSBITSEC = 'portStatsBitSec',
-    PORTSTATSPKTSEC = 'portStatsPktSec',
+export namespace TrafficType {
+    /**
+     * Toggle state for how the traffic should be displayed
+     */
+    export enum Enum { // Do not add an alias - they need to be number indexed
+        FLOWSTATSBYTES, // 0 flowStatsBytes
+        PORTSTATSBITSEC, // 1 portStatsBitSec
+        PORTSTATSPKTSEC // 2 portStatsPktSec
+    }
+
+    /**
+     * Add the method 'next()' to the TrafficType enum above
+     */
+    export function next(current: Enum) {
+        if (current === Enum.FLOWSTATSBYTES) {
+            return Enum.PORTSTATSBITSEC;
+        } else if (current === Enum.PORTSTATSBITSEC) {
+            return Enum.PORTSTATSPKTSEC;
+        } else if (current === Enum.PORTSTATSPKTSEC) {
+            return Enum.FLOWSTATSBYTES;
+        } else { // e.g. undefined
+            return Enum.PORTSTATSBITSEC;
+        }
+    }
+
+    export function literal(type: Enum) {
+        if (type === Enum.FLOWSTATSBYTES) {
+            return 'flowStatsBytes';
+        } else if (type === Enum.PORTSTATSBITSEC) {
+            return 'portStatsBitSec';
+        } else if (type === Enum.PORTSTATSPKTSEC) {
+            return 'portStatsPktSec';
+        }
+    }
 }
-
-const ALL_TRAFFIC_TYPES = [
-    TrafficType.FLOWSTATSBYTES,
-    TrafficType.PORTSTATSBITSEC,
-    TrafficType.PORTSTATSPKTSEC
-];
-
-const ALL_TRAFFIC_MSGS = [
-    'Flow Stats (bytes)',
-    'Port Stats (bits / second)',
-    'Port Stats (packets / second)',
-];
 
 /**
  * ONOS GUI -- Traffic Service Module.
@@ -43,6 +60,7 @@ const ALL_TRAFFIC_MSGS = [
 export class TrafficService {
     private handlers: string[] = [];
     private openListener: any;
+    private trafficType: TrafficType.Enum;
 
     constructor(
         protected log: LogService,
@@ -64,26 +82,31 @@ export class TrafficService {
         // in case we fail over to a new server,
         // listen for wsock-open events
         this.openListener = this.wss.addOpenListener(() => this.wsOpen);
-
-        // tell the server we are ready to receive topology events
-        this.wss.sendEvent('topo2RequestAllTraffic', {
-            trafficType: TrafficType.FLOWSTATSBYTES
-        });
-        this.log.debug('Topo2Traffic: Show All Traffic');
     }
 
     destroy() {
-        this.wss.sendEvent('topo2CancelTraffic', {});
         this.wss.unbindHandlers(this.handlers);
         this.handlers.pop();
-        this.log.debug('Traffic monitoring canceled');
     }
 
     wsOpen(host: string, url: string) {
         this.log.debug('topo2RequestAllTraffic: WSopen - cluster node:', host, 'URL:', url);
         // tell the server we are ready to receive topo events
         this.wss.sendEvent('topo2RequestAllTraffic', {
-            trafficType: TrafficType.FLOWSTATSBYTES
+            trafficType: TrafficType.literal(this.trafficType)
         });
+    }
+
+    requestTraffic(trafficType: TrafficType.Enum) {
+        // tell the server we are ready to receive topology events
+        this.wss.sendEvent('topo2RequestAllTraffic', {
+            trafficType: TrafficType.literal(trafficType)
+        });
+        this.log.debug('Topo2Traffic: Show', trafficType);
+    }
+
+    cancelTraffic() {
+        this.wss.sendEvent('topo2CancelTraffic', {});
+        this.log.debug('Traffic monitoring canceled');
     }
 }
