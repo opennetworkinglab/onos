@@ -50,7 +50,7 @@ import org.onosproject.net.provider.ProviderId;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.ui.JsonUtils;
 import org.onosproject.ui.UiConnection;
-import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.impl.topo.TopoologyTrafficMessageHandlerAbstract;
 import org.onosproject.ui.impl.topo.util.ServicesBundle;
 import org.onosproject.ui.lion.LionBundle;
 import org.onosproject.ui.topo.PropertyPanel;
@@ -77,7 +77,7 @@ import static org.onosproject.ui.topo.TopoUtils.compactLinkString;
 /**
  * Facility for creating messages bound for the topology viewer.
  */
-public abstract class TopologyViewMessageHandlerBase extends UiMessageHandler {
+public abstract class TopologyViewMessageHandlerBase extends TopoologyTrafficMessageHandlerAbstract {
 
     private static final String NO_GEO_VALUE = "0.0";
     private static final String DASH = "-";

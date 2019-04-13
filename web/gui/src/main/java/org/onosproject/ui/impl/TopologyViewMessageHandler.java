@@ -743,7 +743,8 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     //=======================================================================
 
     // Converts highlights to JSON format and sends the message to the client
-    void sendHighlights(Highlights highlights) {
+    @Override
+    public void sendHighlights(Highlights highlights) {
         sendMessage(highlightsMessage(highlights));
     }
 

@@ -17,39 +17,262 @@
 
 package org.onosproject.ui.impl;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import org.onosproject.net.Device;
+import org.onosproject.net.ElementId;
+import org.onosproject.net.Host;
+import org.onosproject.net.HostId;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.intent.FlowObjectiveIntent;
+import org.onosproject.net.intent.FlowRuleIntent;
+import org.onosproject.net.intent.HostToHostIntent;
+import org.onosproject.net.intent.Intent;
+import org.onosproject.net.intent.LinkCollectionIntent;
+import org.onosproject.net.intent.OpticalConnectivityIntent;
+import org.onosproject.net.intent.OpticalPathIntent;
+import org.onosproject.net.intent.PathIntent;
+import org.onosproject.net.link.LinkService;
 import org.onosproject.net.statistic.PortStatisticsService.MetricType;
 import org.onosproject.net.DefaultEdgeLink;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.statistic.Load;
+import org.onosproject.ui.impl.topo.TopoologyTrafficMessageHandlerAbstract;
+import org.onosproject.ui.impl.topo.util.IntentSelection;
 import org.onosproject.ui.impl.topo.util.ServicesBundle;
+import org.onosproject.ui.impl.topo.util.TopoIntentFilter;
 import org.onosproject.ui.impl.topo.util.TrafficLink;
 import org.onosproject.ui.impl.topo.util.TrafficLinkMap;
 import org.onosproject.ui.topo.AbstractTopoMonitor;
+import org.onosproject.ui.topo.DeviceHighlight;
 import org.onosproject.ui.topo.Highlights;
+import org.onosproject.ui.topo.HostHighlight;
+import org.onosproject.ui.topo.LinkHighlight;
+import org.onosproject.ui.topo.NodeHighlight;
+import org.onosproject.ui.topo.NodeSelection;
 import org.onosproject.ui.topo.TopoUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.stream.Collectors;
 
+import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
 import static org.onosproject.net.statistic.PortStatisticsService.MetricType.BYTES;
 import static org.onosproject.net.statistic.PortStatisticsService.MetricType.PACKETS;
 import static org.onosproject.net.DefaultEdgeLink.createEdgeLinks;
 import static org.onosproject.ui.impl.TrafficMonitorBase.Mode.IDLE;
+import static org.onosproject.ui.impl.TrafficMonitorBase.Mode.SELECTED_INTENT;
 
 /**
  * Base superclass for traffic monitor (both 'classic' and 'topo2' versions).
  */
 public abstract class TrafficMonitorBase extends AbstractTopoMonitor {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    protected final Logger log = LoggerFactory.getLogger(getClass());
 
     // 4 Kilo Bytes as threshold
     protected static final double BPS_THRESHOLD = 4 * TopoUtils.N_KILO;
+    protected final TopoIntentFilter intentFilter;
+    protected IntentSelection selectedIntents = null;
+    protected final TopoologyTrafficMessageHandlerAbstract msgHandler;
+    protected NodeSelection selectedNodes = null;
+
+    protected void sendSelectedIntents() {
+        log.debug("sendSelectedIntents: {}", selectedIntents);
+        msgHandler.sendHighlights(intentGroup());
+    }
+
+    protected void ensureNodePresent(Highlights highlights, ElementId eid) {
+        String id = eid.toString();
+        NodeHighlight nh = highlights.getNode(id);
+        if (nh == null) {
+            if (eid instanceof DeviceId) {
+                nh = new DeviceHighlight(id);
+                highlights.add((DeviceHighlight) nh);
+            } else if (eid instanceof HostId) {
+                nh = new HostHighlight(id);
+                highlights.add((HostHighlight) nh);
+            }
+        }
+    }
+
+    protected void colorLinks(Highlights highlights, TrafficLinkMap linkMap) {
+        for (TrafficLink tlink : linkMap.biLinks()) {
+            highlights.add(tlink.highlight(TrafficLink.StatsType.TAGGED));
+        }
+    }
+
+    protected void processLinks(TrafficLinkMap linkMap, Iterable<Link> links,
+                                LinkHighlight.Flavor flavor, boolean isOptical,
+                                boolean showTraffic) {
+        if (links != null) {
+            for (Link link : links) {
+                TrafficLink tlink = linkMap.add(link);
+                tlink.tagFlavor(flavor);
+                tlink.optical(isOptical);
+                if (showTraffic) {
+                    tlink.addLoad(getLinkFlowLoad(link));
+                    tlink.antMarch(true);
+                }
+            }
+        }
+    }
+
+    protected void updateHighlights(Highlights highlights, Iterable<Link> links) {
+        for (Link link : links) {
+            ensureNodePresent(highlights, link.src().elementId());
+            ensureNodePresent(highlights, link.dst().elementId());
+        }
+    }
+
+    protected Iterable<Link> addEdgeLinksIfNeeded(Intent parentIntent,
+                                                  Collection<Link> links) {
+        if (parentIntent instanceof HostToHostIntent) {
+            links = new HashSet<>(links);
+            HostToHostIntent h2h = (HostToHostIntent) parentIntent;
+            Host h1 = services.host().getHost(h2h.one());
+            Host h2 = services.host().getHost(h2h.two());
+            links.add(createEdgeLink(h1, true));
+            links.add(createEdgeLink(h2, true));
+        }
+        return links;
+    }
+
+    // Extracts links from the specified flow rule intent resources
+    protected Collection<Link> linkResources(Intent installable) {
+        ImmutableList.Builder<Link> builder = ImmutableList.builder();
+        installable.resources().stream().filter(r -> r instanceof Link)
+                .forEach(r -> builder.add((Link) r));
+        return builder.build();
+    }
+
+    protected void createTrafficLinks(Highlights highlights,
+                                      TrafficLinkMap linkMap, Set<Intent> intents,
+                                      LinkHighlight.Flavor flavor, boolean showTraffic) {
+        for (Intent intent : intents) {
+            List<Intent> installables = services.intent()
+                    .getInstallableIntents(intent.key());
+            Iterable<Link> links = null;
+            if (installables != null) {
+                for (Intent installable : installables) {
+
+                    if (installable instanceof PathIntent) {
+                        links = ((PathIntent) installable).path().links();
+                    } else if (installable instanceof FlowRuleIntent) {
+                        Collection<Link> l = new ArrayList<>();
+                        l.addAll(linkResources(installable));
+                        // Add cross connect links
+                        if (intent instanceof OpticalConnectivityIntent) {
+                            OpticalConnectivityIntent ocIntent = (OpticalConnectivityIntent) intent;
+                            LinkService linkService = services.link();
+                            DeviceService deviceService = services.device();
+                            l.addAll(linkService.getDeviceIngressLinks(ocIntent.getSrc().deviceId()).stream()
+                                    .filter(i ->
+                                            deviceService.getDevice(i.src().deviceId()).type() == Device.Type.SWITCH)
+                                    .collect(Collectors.toList()));
+                            l.addAll(linkService.getDeviceEgressLinks(ocIntent.getDst().deviceId()).stream()
+                                    .filter(e ->
+                                            deviceService.getDevice(e.dst().deviceId()).type() == Device.Type.SWITCH)
+                                    .collect(Collectors.toList()));
+                        }
+                        links = l;
+                    } else if (installable instanceof FlowObjectiveIntent) {
+                        links = linkResources(installable);
+                    } else if (installable instanceof LinkCollectionIntent) {
+                        links = ((LinkCollectionIntent) installable).links();
+                    } else if (installable instanceof OpticalPathIntent) {
+                        links = ((OpticalPathIntent) installable).path().links();
+                    }
+
+                    if (links == null) {
+                        links = Lists.newArrayList();
+                    }
+
+                    links = addEdgeLinksIfNeeded(intent, Lists.newArrayList(links));
+
+                    boolean isOptical = intent instanceof OpticalConnectivityIntent;
+                    processLinks(linkMap, links, flavor, isOptical, showTraffic);
+                    updateHighlights(highlights, links);
+                }
+            }
+        }
+    }
+
+    protected void highlightIntentLinks(Highlights highlights,
+                                        Set<Intent> primary, Set<Intent> secondary) {
+        TrafficLinkMap linkMap = new TrafficLinkMap();
+        // NOTE: highlight secondary first, then primary, so that links shared
+        //       by intents are colored correctly ("last man wins")
+        createTrafficLinks(highlights, linkMap, secondary, LinkHighlight.Flavor.SECONDARY_HIGHLIGHT, false);
+        createTrafficLinks(highlights, linkMap, primary, LinkHighlight.Flavor.PRIMARY_HIGHLIGHT, false);
+        colorLinks(highlights, linkMap);
+    }
+
+    protected Highlights intentGroup() {
+        Highlights highlights = new Highlights();
+
+        if (selectedIntents != null && !selectedIntents.none()) {
+            // If 'all' intents are selected, they will all have primary
+            // highlighting; otherwise, the specifically selected intent will
+            // have primary highlighting, and the remainder will have secondary
+            // highlighting.
+            Set<Intent> primary;
+            Set<Intent> secondary;
+            int count = selectedIntents.size();
+
+            Set<Intent> allBut = new HashSet<>(selectedIntents.intents());
+            Intent current;
+
+            if (selectedIntents.all()) {
+                primary = allBut;
+                secondary = Collections.emptySet();
+                log.debug("Highlight all intents ({})", count);
+            } else {
+                current = selectedIntents.current();
+                primary = new HashSet<>();
+                primary.add(current);
+                allBut.remove(current);
+                secondary = allBut;
+                log.debug("Highlight intent: {} ([{}] of {})",
+                                         current.id(), selectedIntents.index(), count);
+            }
+
+            highlightIntentLinks(highlights, primary, secondary);
+        }
+        return highlights;
+    }
+
+    protected Highlights intentTraffic() {
+        Highlights highlights = new Highlights();
+
+        if (selectedIntents != null && selectedIntents.single()) {
+            Intent current = selectedIntents.current();
+            Set<Intent> primary = new HashSet<>();
+            primary.add(current);
+            log.debug("Highlight traffic for intent: {} ([{}] of {})",
+                                     current.id(), selectedIntents.index(), selectedIntents.size());
+
+            highlightIntentLinksWithTraffic(highlights, primary);
+            highlights.subdueAllElse(Highlights.Amount.MINIMALLY);
+        }
+        return highlights;
+    }
+
+    private void highlightIntentLinksWithTraffic(Highlights highlights,
+                                                 Set<Intent> primary) {
+        TrafficLinkMap linkMap = new TrafficLinkMap();
+        createTrafficLinks(highlights, linkMap, primary, LinkHighlight.Flavor.PRIMARY_HIGHLIGHT, true);
+        colorLinks(highlights, linkMap);
+    }
 
 
     /**
@@ -89,12 +312,16 @@ public abstract class TrafficMonitorBase extends AbstractTopoMonitor {
      *
      * @param trafficPeriod  traffic task period in ms
      * @param servicesBundle bundle of services
+     * @param msgHandler Traffic Message handler
      */
     protected TrafficMonitorBase(long trafficPeriod,
-                                 ServicesBundle servicesBundle) {
+                                 ServicesBundle servicesBundle,
+                                 TopoologyTrafficMessageHandlerAbstract msgHandler) {
         this.trafficPeriod = trafficPeriod;
         this.services = servicesBundle;
+        this.msgHandler = msgHandler;
         timer = new Timer("uiTopo-" + getClass().getSimpleName());
+        intentFilter = new TopoIntentFilter(servicesBundle);
     }
 
     /**
@@ -146,6 +373,74 @@ public abstract class TrafficMonitorBase extends AbstractTopoMonitor {
                 clearAll();
                 break;
         }
+    }
+
+    /**
+     * Monitor for traffic data to be sent back to the web client, under
+     * the given mode, using the given selection of devices and hosts.
+     * In the case of "device link flows", this causes a background traffic
+     * task to be scheduled to repeatedly compute and transmit the appropriate
+     * traffic data to the client. In the case of "related intents", no
+     * repeating task is scheduled.
+     * <p>
+     * The monitoring mode is expected to be one of:
+     * <ul>
+     * <li>DEV_LINK_FLOWS</li>
+     * <li>RELATED_INTENTS</li>
+     * </ul>
+     *
+     * @param mode          monitoring mode
+     * @param nodeSelection how to select a node
+     */
+    public synchronized void monitor(Mode mode, NodeSelection nodeSelection) {
+        log.debug("monitor: {} -- {}", mode, nodeSelection);
+        this.mode = mode;
+        this.selectedNodes = nodeSelection;
+
+        switch (mode) {
+            case DEV_LINK_FLOWS:
+                // only care about devices (not hosts)
+                if (selectedNodes.devicesWithHover().isEmpty()) {
+                    clearAll();
+                } else {
+                    scheduleTask();
+                    sendDeviceLinkFlows();
+                }
+                break;
+
+            case RELATED_INTENTS:
+                if (selectedNodes.none()) {
+                    clearAll();
+                } else {
+                    selectedIntents = new IntentSelection(selectedNodes, intentFilter);
+                    if (selectedIntents.none()) {
+                        clearAll();
+                    } else {
+                        sendSelectedIntents();
+                    }
+                }
+                break;
+
+            default:
+                log.debug("Unexpected call to monitor({}, {})", mode, nodeSelection);
+                clearAll();
+                break;
+        }
+    }
+
+    /**
+     * Monitor for traffic data to be sent back to the web client, for the
+     * given intent.
+     *
+     * @param intent the intent to monitor
+     */
+    public synchronized void monitor(Intent intent) {
+        log.debug("monitor intent: {}", intent.id());
+        selectedNodes = null;
+        selectedIntents = new IntentSelection(intent);
+        mode = SELECTED_INTENT;
+        scheduleTask();
+        sendSelectedIntentTraffic();
     }
 
     /**

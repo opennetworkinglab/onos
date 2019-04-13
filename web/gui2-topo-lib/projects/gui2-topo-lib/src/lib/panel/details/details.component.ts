@@ -318,13 +318,13 @@ export class DetailsComponent extends DetailsPanelBaseImpl implements OnInit, On
         const ids: string[] = [];
         Object.values(this.showDetails.propValues).forEach((v) => ids.push(v));
         if (path === 'relatedIntents' && this.showDetails.id === 'multiple') {
-            this.wss.sendEvent('requestRelatedIntents', {
+            this.wss.sendEvent('topo2RequestRelatedIntents', {
                 'ids': ids,
                 'hover': ''
             });
 
         } else if (path === 'create_h2h_flow' && this.showDetails.id === 'multiple') {
-            this.wss.sendEvent('addHostIntent', {
+            this.wss.sendEvent('topo2AddHostIntent', {
                 'one': ids[0],
                 'two': ids[1],
                 'ids': ids
@@ -332,7 +332,7 @@ export class DetailsComponent extends DetailsPanelBaseImpl implements OnInit, On
 
         } else if (path === 'create_msrc_flow' && this.showDetails.id === 'multiple') {
             // Should only happen when there are 3 or more ids
-            this.wss.sendEvent('addMultiSourceIntent', {
+            this.wss.sendEvent('topo2AddMultiSourceIntent', {
                 'src': ids.slice(0, ids.length - 1),
                 'dst': ids[ids.length - 1],
                 'ids': ids

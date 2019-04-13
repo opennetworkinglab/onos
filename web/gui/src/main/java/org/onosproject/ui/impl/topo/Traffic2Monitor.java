@@ -54,7 +54,7 @@ public class Traffic2Monitor extends TrafficMonitorBase {
      */
     public Traffic2Monitor(long trafficPeriod, ServicesBundle servicesBundle,
                            Topo2TrafficMessageHandler msgHandler) {
-        super(trafficPeriod, servicesBundle);
+        super(trafficPeriod, servicesBundle, msgHandler);
         this.msgHandler = msgHandler;
     }
 
@@ -90,7 +90,8 @@ public class Traffic2Monitor extends TrafficMonitorBase {
 
     @Override
     protected void sendSelectedIntentTraffic() {
-        log.debug("sendSelectedIntentTraffic: NOT IMPLEMENTED YET");
+        log.debug("sendSelectedIntentTraffic: {}", selectedIntents);
+        msgHandler.sendHighlights(intentTraffic());
     }
 
     @Override

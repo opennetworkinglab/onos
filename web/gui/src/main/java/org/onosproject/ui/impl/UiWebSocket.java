@@ -40,6 +40,7 @@ import org.onosproject.ui.impl.topo.Topo2Jsonifier;
 import org.onosproject.ui.impl.topo.Topo2OverlayCache;
 import org.onosproject.ui.impl.topo.Topo2TrafficMessageHandler;
 import org.onosproject.ui.impl.topo.Topo2ViewMessageHandler;
+import org.onosproject.ui.impl.topo.Traffic2Overlay;
 import org.onosproject.ui.impl.topo.UiTopoSession;
 import org.onosproject.ui.impl.topo.model.UiSharedTopologyModel;
 import org.onosproject.ui.lion.LionBundle;
@@ -323,8 +324,10 @@ public class UiWebSocket extends WebSocketAdapter implements UiConnection {
 
         handlerCrossConnects(handlerInstances);
 
-        log.debug("#handlers = {}, #overlays = {}",
-                  handlers.size(), overlayCache.size());
+        overlay2Cache.switchOverlay(null, Traffic2Overlay.OVERLAY_ID);
+
+        log.debug("#handlers = {}, #overlays = Topo: {}, Topo2: {}",
+                  handlers.size(), overlayCache.size(), overlay2Cache.size());
     }
 
     private Map<String, LionBundle> generateLionMap(UiExtensionService service) {
@@ -404,6 +407,7 @@ public class UiWebSocket extends WebSocketAdapter implements UiConnection {
                     handlers.get(Topo2TrafficMessageHandler.class);
             if (topo2traffic != null) {
                 topo2mh.setTrafficHandler(topo2traffic);
+                topo2traffic.setOverlayCache(overlay2Cache);
             } else {
                 log.error("No topo2 traffic handler found");
             }

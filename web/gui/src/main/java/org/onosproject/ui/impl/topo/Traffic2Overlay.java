@@ -29,7 +29,7 @@ public class Traffic2Overlay extends UiTopo2Overlay {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     // NOTE: this must match the ID defined in topo2TrafficOverlay.js
-    private static final String OVERLAY_ID = "traffic-2-overlay";
+    public static final String OVERLAY_ID = "traffic-2-overlay";
 
     /**
      * Creates a traffic overlay instance.

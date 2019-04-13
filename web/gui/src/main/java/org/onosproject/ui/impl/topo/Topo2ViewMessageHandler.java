@@ -67,7 +67,11 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
     private static final String CURRENT_REGION = "topo2CurrentRegion";
     private static final String PEER_REGIONS = "topo2PeerRegions";
     private static final String OVERLAYS = "topo2Overlays";
+    private static final String TOPO_SELECT_OVERLAY = "topoSelectOverlay";
 
+    // fields
+    private static final String ACTIVATE = "activate";
+    private static final String DEACTIVATE = "deactivate";
 
     private UiTopoSession topoSession;
     private Topo2Jsonifier t2json;
@@ -112,6 +116,19 @@ public class Topo2ViewMessageHandler extends UiMessageHandler {
                 new Topo2Stop(),
                 new Topo2UpdateMeta()
         );
+    }
+
+    private final class TopoSelectOverlay extends RequestHandler {
+        private TopoSelectOverlay() {
+            super(TOPO_SELECT_OVERLAY);
+        }
+
+        @Override
+        public void process(ObjectNode payload) {
+            String deact = string(payload, DEACTIVATE);
+            String act = string(payload, ACTIVATE);
+            overlay2Cache.switchOverlay(deact, act);
+        }
     }
 
     // ==================================================================
