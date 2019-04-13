@@ -4328,6 +4328,12 @@
         {
           "name" : "tbl_act",
           "id" : 0,
+          "source_info" : {
+            "filename" : "fabric.p4",
+            "line" : 58,
+            "column" : 50,
+            "source_fragment" : "hdr.gtpu_ipv4, hdr.gtpu_udp"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -4351,6 +4357,12 @@
         {
           "name" : "tbl_act_0",
           "id" : 1,
+          "source_info" : {
+            "filename" : "include/spgw.p4",
+            "line" : 30,
+            "column" : 32,
+            "source_fragment" : "return"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -4374,6 +4386,12 @@
         {
           "name" : "tbl_act_1",
           "id" : 2,
+          "source_info" : {
+            "filename" : "include/spgw.p4",
+            "line" : 31,
+            "column" : 18,
+            "source_fragment" : "= ipv4; ..."
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -4397,6 +4415,12 @@
         {
           "name" : "tbl_act_2",
           "id" : 3,
+          "source_info" : {
+            "filename" : "include/spgw.p4",
+            "line" : 35,
+            "column" : 16,
+            "source_fragment" : "="
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -4420,6 +4444,12 @@
         {
           "name" : "tbl_act_3",
           "id" : 4,
+          "source_info" : {
+            "filename" : "include/spgw.p4",
+            "line" : 37,
+            "column" : 12,
+            "source_fragment" : "udp.setInvalid()"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -4443,6 +4473,12 @@
         {
           "name" : "tbl_act_4",
           "id" : 5,
+          "source_info" : {
+            "filename" : "include/control/packetio.p4",
+            "line" : 25,
+            "column" : 42,
+            "source_fragment" : "= hdr.packet_out.egress_port; ..."
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -4466,6 +4502,12 @@
         {
           "name" : "tbl_act_5",
           "id" : 6,
+          "source_info" : {
+            "filename" : "include/control/filtering.p4",
+            "line" : 105,
+            "column" : 37,
+            "source_fragment" : "= hdr.vlan_tag.eth_type; ..."
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -4489,6 +4531,12 @@
         {
           "name" : "tbl_act_6",
           "id" : 7,
+          "source_info" : {
+            "filename" : "include/control/filtering.p4",
+            "line" : 115,
+            "column" : 37,
+            "source_fragment" : "="
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -4716,6 +4764,12 @@
         {
           "name" : "tbl_act_10",
           "id" : 14,
+          "source_info" : {
+            "filename" : "include/spgw.p4",
+            "line" : 148,
+            "column" : 16,
+            "source_fragment" : "mark_to_drop()"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -4739,6 +4793,12 @@
         {
           "name" : "tbl_act_11",
           "id" : 15,
+          "source_info" : {
+            "filename" : "include/spgw.p4",
+            "line" : 150,
+            "column" : 39,
+            "source_fragment" : "="
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -4762,6 +4822,12 @@
         {
           "name" : "tbl_spgw_ingress_gtpu_decap",
           "id" : 16,
+          "source_info" : {
+            "filename" : "include/spgw.p4",
+            "line" : 151,
+            "column" : 12,
+            "source_fragment" : "gtpu_decap()"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -4868,6 +4934,12 @@
         {
           "name" : "tbl_act_14",
           "id" : 20,
+          "source_info" : {
+            "filename" : "include/spgw.p4",
+            "line" : 153,
+            "column" : 39,
+            "source_fragment" : "="
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -4891,6 +4963,12 @@
         {
           "name" : "tbl_act_15",
           "id" : 21,
+          "source_info" : {
+            "filename" : "include/spgw.p4",
+            "line" : 155,
+            "column" : 39,
+            "source_fragment" : "= SPGW_DIR_UNKNOWN; ..."
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -4914,6 +4992,12 @@
         {
           "name" : "tbl_act_16",
           "id" : 22,
+          "source_info" : {
+            "filename" : "include/spgw.p4",
+            "line" : 174,
+            "column" : 34,
+            "source_fragment" : "="
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -5313,6 +5397,12 @@
         {
           "name" : "tbl_act_17",
           "id" : 31,
+          "source_info" : {
+            "filename" : "include/control/port_counter.p4",
+            "line" : 31,
+            "column" : 12,
+            "source_fragment" : "egress_port_counter.count((bit<32>)standard_metadata.egress_spec)"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -5336,6 +5426,12 @@
         {
           "name" : "tbl_act_18",
           "id" : 32,
+          "source_info" : {
+            "filename" : "include/control/port_counter.p4",
+            "line" : 34,
+            "column" : 12,
+            "source_fragment" : "ingress_port_counter.count((bit<32>)standard_metadata.ingress_port)"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -5855,6 +5951,12 @@
         {
           "name" : "tbl_act_19",
           "id" : 33,
+          "source_info" : {
+            "filename" : "include/control/packetio.p4",
+            "line" : 47,
+            "column" : 16,
+            "source_fragment" : "mark_to_drop()"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -5878,6 +5980,12 @@
         {
           "name" : "tbl_act_20",
           "id" : 34,
+          "source_info" : {
+            "filename" : "include/control/packetio.p4",
+            "line" : 49,
+            "column" : 12,
+            "source_fragment" : "hdr.packet_in.setValid(); ..."
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -5901,6 +6009,12 @@
         {
           "name" : "tbl_act_21",
           "id" : 35,
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 308,
+            "column" : 12,
+            "source_fragment" : "mark_to_drop()"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -5924,6 +6038,12 @@
         {
           "name" : "tbl_egress_next_pop_mpls_if_present",
           "id" : 36,
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 312,
+            "column" : 36,
+            "source_fragment" : "pop_mpls_if_present()"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -5947,6 +6067,12 @@
         {
           "name" : "tbl_egress_next_set_mpls",
           "id" : 37,
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 314,
+            "column" : 12,
+            "source_fragment" : "set_mpls()"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -6059,6 +6185,12 @@
         {
           "name" : "tbl_egress_next_push_vlan",
           "id" : 41,
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 320,
+            "column" : 16,
+            "source_fragment" : "push_vlan()"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -6082,6 +6214,12 @@
         {
           "name" : "tbl_act_24",
           "id" : 42,
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 326,
+            "column" : 25,
+            "source_fragment" : "="
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -6105,6 +6243,12 @@
         {
           "name" : "tbl_act_25",
           "id" : 43,
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 327,
+            "column" : 35,
+            "source_fragment" : "mark_to_drop()"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -6128,6 +6272,12 @@
         {
           "name" : "tbl_act_26",
           "id" : 44,
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 330,
+            "column" : 29,
+            "source_fragment" : "="
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -6151,6 +6301,12 @@
         {
           "name" : "tbl_act_27",
           "id" : 45,
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 331,
+            "column" : 39,
+            "source_fragment" : "mark_to_drop()"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -6174,6 +6330,12 @@
         {
           "name" : "tbl_spgw_egress_gtpu_encap",
           "id" : 46,
+          "source_info" : {
+            "filename" : "include/spgw.p4",
+            "line" : 227,
+            "column" : 12,
+            "source_fragment" : "gtpu_encap()"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",

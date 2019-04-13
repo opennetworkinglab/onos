@@ -780,11 +780,11 @@ action_profiles {
     id: 285217164
     name: "FabricIngress.next.hashed_selector"
     alias: "hashed_selector"
-    annotations: "@max_group_size(16)"
   }
   table_ids: 33608588
   with_selector: true
   size: 1024
+  max_group_size: 16
 }
 counters {
   preamble {

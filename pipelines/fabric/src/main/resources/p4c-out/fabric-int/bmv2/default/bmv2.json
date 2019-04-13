@@ -9851,6 +9851,12 @@
         {
           "name" : "tbl_act",
           "id" : 0,
+          "source_info" : {
+            "filename" : "include/control/packetio.p4",
+            "line" : 25,
+            "column" : 42,
+            "source_fragment" : "= hdr.packet_out.egress_port; ..."
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -9874,6 +9880,12 @@
         {
           "name" : "tbl_act_0",
           "id" : 1,
+          "source_info" : {
+            "filename" : "include/control/filtering.p4",
+            "line" : 105,
+            "column" : 37,
+            "source_fragment" : "= hdr.vlan_tag.eth_type; ..."
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -9897,6 +9909,12 @@
         {
           "name" : "tbl_act_1",
           "id" : 2,
+          "source_info" : {
+            "filename" : "include/control/filtering.p4",
+            "line" : 115,
+            "column" : 37,
+            "source_fragment" : "="
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -10394,6 +10412,12 @@
         {
           "name" : "tbl_act_2",
           "id" : 13,
+          "source_info" : {
+            "filename" : "include/control/port_counter.p4",
+            "line" : 31,
+            "column" : 12,
+            "source_fragment" : "egress_port_counter.count((bit<32>)standard_metadata.egress_spec)"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -10417,6 +10441,12 @@
         {
           "name" : "tbl_act_3",
           "id" : 14,
+          "source_info" : {
+            "filename" : "include/control/port_counter.p4",
+            "line" : 34,
+            "column" : 12,
+            "source_fragment" : "ingress_port_counter.count((bit<32>)standard_metadata.ingress_port)"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -10802,6 +10832,12 @@
         {
           "name" : "tbl_act_4",
           "id" : 16,
+          "source_info" : {
+            "filename" : "include/control/packetio.p4",
+            "line" : 47,
+            "column" : 16,
+            "source_fragment" : "mark_to_drop()"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -10825,6 +10861,12 @@
         {
           "name" : "tbl_act_5",
           "id" : 17,
+          "source_info" : {
+            "filename" : "include/control/packetio.p4",
+            "line" : 49,
+            "column" : 12,
+            "source_fragment" : "hdr.packet_in.setValid(); ..."
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -10848,6 +10890,12 @@
         {
           "name" : "tbl_act_6",
           "id" : 18,
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 308,
+            "column" : 12,
+            "source_fragment" : "mark_to_drop()"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -10871,6 +10919,12 @@
         {
           "name" : "tbl_egress_next_pop_mpls_if_present",
           "id" : 19,
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 312,
+            "column" : 36,
+            "source_fragment" : "pop_mpls_if_present()"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -10894,6 +10948,12 @@
         {
           "name" : "tbl_egress_next_set_mpls",
           "id" : 20,
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 314,
+            "column" : 12,
+            "source_fragment" : "set_mpls()"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -11006,6 +11066,12 @@
         {
           "name" : "tbl_egress_next_push_vlan",
           "id" : 24,
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 320,
+            "column" : 16,
+            "source_fragment" : "push_vlan()"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -11029,6 +11095,12 @@
         {
           "name" : "tbl_act_9",
           "id" : 25,
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 326,
+            "column" : 25,
+            "source_fragment" : "="
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -11052,6 +11124,12 @@
         {
           "name" : "tbl_act_10",
           "id" : 26,
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 327,
+            "column" : 35,
+            "source_fragment" : "mark_to_drop()"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -11075,6 +11153,12 @@
         {
           "name" : "tbl_act_11",
           "id" : 27,
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 330,
+            "column" : 29,
+            "source_fragment" : "="
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -11098,6 +11182,12 @@
         {
           "name" : "tbl_act_12",
           "id" : 28,
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 331,
+            "column" : 39,
+            "source_fragment" : "mark_to_drop()"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -11236,6 +11326,12 @@
         {
           "name" : "tbl_act_14",
           "id" : 32,
+          "source_info" : {
+            "filename" : "include/int/int_transit.p4",
+            "line" : 420,
+            "column" : 12,
+            "source_fragment" : "return"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -11975,6 +12071,12 @@
         {
           "name" : "tbl_act_15",
           "id" : 35,
+          "source_info" : {
+            "filename" : "include/int/int_transit.p4",
+            "line" : 425,
+            "column" : 37,
+            "source_fragment" : "="
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -11998,6 +12100,12 @@
         {
           "name" : "tbl_act_16",
           "id" : 36,
+          "source_info" : {
+            "filename" : "include/int/int_transit.p4",
+            "line" : 428,
+            "column" : 31,
+            "source_fragment" : "="
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -12021,6 +12129,12 @@
         {
           "name" : "tbl_act_17",
           "id" : 37,
+          "source_info" : {
+            "filename" : "include/int/int_transit.p4",
+            "line" : 431,
+            "column" : 24,
+            "source_fragment" : "="
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -12044,6 +12158,12 @@
         {
           "name" : "tbl_act_18",
           "id" : 38,
+          "source_info" : {
+            "filename" : "include/int/int_transit.p4",
+            "line" : 434,
+            "column" : 37,
+            "source_fragment" : "="
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
