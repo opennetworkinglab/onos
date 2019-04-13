@@ -670,13 +670,14 @@ public class GeneralDeviceProvider extends AbstractProvider
             return;
         }
         assertConfig(deviceId);
-        providerService.deviceConnected(deviceId, getDeviceDescription(
-                deviceId, available));
         if (available) {
-            // Push port descriptions.
+            // Push port descriptions. If marking online, make sure to update
+            // ports before other subsystems pick up the device  event.
             final List<PortDescription> ports = getPortDetails(deviceId);
             providerService.updatePorts(deviceId, ports);
         }
+        providerService.deviceConnected(deviceId, getDeviceDescription(
+                deviceId, available));
     }
 
     private boolean probeAvailability(DeviceHandshaker handshaker) {

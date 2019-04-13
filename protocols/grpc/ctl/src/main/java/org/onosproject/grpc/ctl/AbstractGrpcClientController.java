@@ -101,6 +101,8 @@ public abstract class AbstractGrpcClientController
                     "A %s client already exists for %s", serviceName, deviceId));
         }
 
+        log.info("Creating {}...", clientName(deviceId));
+
         final C client;
         try {
             client = createClientInstance(deviceId, channel);
@@ -133,6 +135,7 @@ public abstract class AbstractGrpcClientController
         withDeviceLock(() -> {
             final C client = clients.remove(deviceId);
             if (client != null) {
+                log.info("Removing {}...", clientName(deviceId));
                 client.shutdown();
             }
             return null;

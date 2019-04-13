@@ -397,11 +397,16 @@ public final class StreamClientImpl implements P4RuntimeStreamClient {
         void signalClosed() {
             synchronized (this) {
                 final boolean wasOpen = open.getAndSet(false);
-                if (wasOpen) {
-                    // We lost any valid mastership role.
-                    controller.postEvent(new DeviceAgentEvent(
-                            DeviceAgentEvent.Type.ROLE_NONE, deviceId));
-                }
+                // FIXME: in case of device disconnection, all clients will
+                //  signal role NONE, preventing the DeviceManager to mark the
+                //  device as offline, as only the master can do that. We should
+                //  change the DeviceManager. For now, we disable signaling role
+                //  NONE.
+                // if (wasOpen) {
+                //     // We lost any valid mastership role.
+                //     controller.postEvent(new DeviceAgentEvent(
+                //             DeviceAgentEvent.Type.ROLE_NONE, deviceId));
+                // }
             }
         }
 

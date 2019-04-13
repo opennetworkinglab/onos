@@ -22,7 +22,6 @@ import com.google.common.collect.Maps;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.TextFormat;
 import org.onosproject.net.pi.model.PiPipeconf;
-import org.onosproject.net.pi.model.PiPipeconfId;
 import org.slf4j.Logger;
 import p4.config.v1.P4InfoOuterClass.P4Info;
 
@@ -44,10 +43,10 @@ public final class PipeconfHelper {
     private static final int P4INFO_BROWSER_EXPIRE_TIME_IN_MIN = 10;
     private static final Logger log = getLogger(PipeconfHelper.class);
 
-    private static final Cache<PiPipeconfId, P4InfoBrowser> BROWSERS = CacheBuilder.newBuilder()
+    private static final Cache<Long, P4InfoBrowser> BROWSERS = CacheBuilder.newBuilder()
             .expireAfterAccess(P4INFO_BROWSER_EXPIRE_TIME_IN_MIN, TimeUnit.MINUTES)
             .build();
-    private static final Map<PiPipeconfId, P4Info> P4INFOS = Maps.newConcurrentMap();
+    private static final Map<Long, P4Info> P4INFOS = Maps.newConcurrentMap();
 
     private PipeconfHelper() {
         // hide.
@@ -61,7 +60,7 @@ public final class PipeconfHelper {
      * @return P4Info or null
      */
     public static P4Info getP4Info(PiPipeconf pipeconf) {
-        return P4INFOS.computeIfAbsent(pipeconf.id(), piPipeconfId -> {
+        return P4INFOS.computeIfAbsent(pipeconf.fingerprint(), piPipeconfId -> {
             if (!pipeconf.extension(P4_INFO_TEXT).isPresent()) {
                 log.warn("Missing P4Info extension in pipeconf {}", pipeconf.id());
                 return null;
@@ -90,7 +89,7 @@ public final class PipeconfHelper {
      */
     public static P4InfoBrowser getP4InfoBrowser(PiPipeconf pipeconf) {
         try {
-            return BROWSERS.get(pipeconf.id(), () -> {
+            return BROWSERS.get(pipeconf.fingerprint(), () -> {
                 P4Info p4info = PipeconfHelper.getP4Info(pipeconf);
                 if (p4info == null) {
                     return null;
