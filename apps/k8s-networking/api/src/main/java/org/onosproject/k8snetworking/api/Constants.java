@@ -49,8 +49,7 @@ public final class Constants {
     public static final String SRC = "src";
     public static final String DST = "dst";
 
-    // TODO: need to inject service IP CIDR through REST
-    public static final String SERVICE_IP_CIDR = "10.96.0.0/24";
+    public static final String DEFAULT_SERVICE_IP_CIDR = "10.96.0.0/12";
 
     public static final String PORT_NAME_PREFIX_CONTAINER = "veth";
 
@@ -68,6 +67,7 @@ public final class Constants {
     public static final int PRIORITY_CT_RULE = 32000;
     public static final int PRIORITY_CT_DROP_RULE = 32500;
     public static final int PRIORITY_NAT_RULE = 30000;
+    public static final int PRIORITY_SERVICE_CIDR_RULE = 32000;
     public static final int PRIORITY_GATEWAY_RULE = 30000;
     public static final int PRIORITY_SWITCHING_RULE = 30000;
     public static final int PRIORITY_CIDR_RULE = 30000;

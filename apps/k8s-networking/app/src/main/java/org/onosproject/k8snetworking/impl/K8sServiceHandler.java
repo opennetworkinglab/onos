@@ -35,6 +35,7 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
@@ -49,6 +50,9 @@ import org.onosproject.k8snetworking.api.K8sEndpointsListener;
 import org.onosproject.k8snetworking.api.K8sEndpointsService;
 import org.onosproject.k8snetworking.api.K8sFlowRuleService;
 import org.onosproject.k8snetworking.api.K8sGroupRuleService;
+import org.onosproject.k8snetworking.api.K8sNetwork;
+import org.onosproject.k8snetworking.api.K8sNetworkEvent;
+import org.onosproject.k8snetworking.api.K8sNetworkListener;
 import org.onosproject.k8snetworking.api.K8sNetworkService;
 import org.onosproject.k8snetworking.api.K8sPodEvent;
 import org.onosproject.k8snetworking.api.K8sPodListener;
@@ -63,6 +67,7 @@ import org.onosproject.k8snode.api.K8sNodeEvent;
 import org.onosproject.k8snode.api.K8sNodeListener;
 import org.onosproject.k8snode.api.K8sNodeService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -87,6 +92,7 @@ import java.util.stream.Collectors;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.k8snetworking.api.Constants.DEFAULT_SERVICE_IP_CIDR;
 import static org.onosproject.k8snetworking.api.Constants.DEFAULT_SERVICE_IP_NAT_MODE_STR;
 import static org.onosproject.k8snetworking.api.Constants.DST;
 import static org.onosproject.k8snetworking.api.Constants.JUMP_TABLE;
@@ -95,18 +101,21 @@ import static org.onosproject.k8snetworking.api.Constants.NAT_STATEFUL;
 import static org.onosproject.k8snetworking.api.Constants.NAT_STATELESS;
 import static org.onosproject.k8snetworking.api.Constants.NAT_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.POD_TABLE;
+import static org.onosproject.k8snetworking.api.Constants.PRIORITY_CIDR_RULE;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_CT_RULE;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_INTER_ROUTING_RULE;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_NAT_RULE;
 import static org.onosproject.k8snetworking.api.Constants.ROUTING_TABLE;
-import static org.onosproject.k8snetworking.api.Constants.SERVICE_IP_CIDR;
+import static org.onosproject.k8snetworking.api.Constants.SERVICE_FAKE_MAC_STR;
 import static org.onosproject.k8snetworking.api.Constants.SERVICE_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.SHIFTED_IP_CIDR;
 import static org.onosproject.k8snetworking.api.Constants.SHIFTED_IP_PREFIX;
 import static org.onosproject.k8snetworking.api.Constants.SRC;
 import static org.onosproject.k8snetworking.api.Constants.STAT_OUTBOUND_TABLE;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.nodeIpGatewayIpMap;
+import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.tunnelPortNumByNetId;
 import static org.onosproject.k8snetworking.util.RulePopulatorUtil.CT_NAT_DST_FLAG;
+import static org.onosproject.k8snetworking.util.RulePopulatorUtil.buildExtension;
 import static org.onosproject.k8snetworking.util.RulePopulatorUtil.buildGroupBucket;
 import static org.onosproject.k8snetworking.util.RulePopulatorUtil.buildLoadExtension;
 import static org.onosproject.k8snetworking.util.RulePopulatorUtil.buildResubmitExtension;
@@ -131,6 +140,7 @@ public class K8sServiceHandler {
     private static final String TCP = "TCP";
     private static final String UDP = "UDP";
     private static final String SERVICE_IP_NAT_MODE = "serviceIpNatMode";
+    private static final String SERVICE_CIDR = "serviceCidr";
 
     private static final String GROUP_ID_COUNTER_NAME = "group-id-counter";
 
@@ -179,6 +189,10 @@ public class K8sServiceHandler {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected K8sPodService k8sPodService;
 
+    @Property(name = SERVICE_CIDR, value = DEFAULT_SERVICE_IP_CIDR,
+            label = "Ranges of IP address for service VIP.")
+    protected String serviceCidr = DEFAULT_SERVICE_IP_CIDR;
+
     @Property(name = SERVICE_IP_NAT_MODE, value = DEFAULT_SERVICE_IP_NAT_MODE_STR,
             label = "Service IP address translation mode.")
     private String serviceIpNatMode = DEFAULT_SERVICE_IP_NAT_MODE_STR;
@@ -193,6 +207,8 @@ public class K8sServiceHandler {
             new InternalK8sPodListener();
     private final InternalK8sEndpointsListener internalK8sEndpointsListener =
             new InternalK8sEndpointsListener();
+    private final InternalK8sNetworkListener internalK8sNetworkListener =
+            new InternalK8sNetworkListener();
 
     private AtomicCounter groupIdCounter;
 
@@ -209,6 +225,7 @@ public class K8sServiceHandler {
         k8sServiceService.addListener(internalK8sServiceListener);
         k8sPodService.addListener(internalK8sPodListener);
         k8sEndpointsService.addListener(internalK8sEndpointsListener);
+        k8sNetworkService.addListener(internalK8sNetworkListener);
 
         groupIdCounter = storageService.getAtomicCounter(GROUP_ID_COUNTER_NAME);
 
@@ -222,6 +239,7 @@ public class K8sServiceHandler {
         k8sNodeService.removeListener(internalNodeEventListener);
         k8sServiceService.removeListener(internalK8sServiceListener);
         k8sEndpointsService.removeListener(internalK8sEndpointsListener);
+        k8sNetworkService.removeListener(internalK8sNetworkListener);
         configService.unregisterProperties(getClass(), false);
         eventExecutor.shutdown();
 
@@ -242,7 +260,7 @@ public class K8sServiceHandler {
 
         k8sNetworkService.networks().forEach(n -> {
             // TODO: need to provide a way to add multiple service IP CIDR ranges
-            setUntrack(deviceId, ctUntrack, ctMaskUntrack, n.cidr(), SERVICE_IP_CIDR,
+            setUntrack(deviceId, ctUntrack, ctMaskUntrack, n.cidr(), serviceCidr,
                     JUMP_TABLE, NAT_TABLE, PRIORITY_CT_RULE, install);
             setUntrack(deviceId, ctUntrack, ctMaskUntrack, n.cidr(), n.cidr(),
                     JUMP_TABLE, ROUTING_TABLE, PRIORITY_CT_RULE, install);
@@ -271,7 +289,7 @@ public class K8sServiceHandler {
                 k8sNodeService.node(deviceId).hostname()).cidr();
 
         k8sNetworkService.networks().forEach(n -> {
-            setSrcDstCidrRules(deviceId, n.cidr(), SERVICE_IP_CIDR, null, JUMP_TABLE,
+            setSrcDstCidrRules(deviceId, n.cidr(), serviceCidr, null, JUMP_TABLE,
                     SERVICE_TABLE, PRIORITY_CT_RULE, install);
             setSrcDstCidrRules(deviceId, n.cidr(), SHIFTED_IP_CIDR, null, JUMP_TABLE,
                     POD_TABLE, PRIORITY_CT_RULE, install);
@@ -309,10 +327,6 @@ public class K8sServiceHandler {
                 priority,
                 installTable,
                 install);
-    }
-
-    private String servicePortStr(String ip, int port, String protocol) {
-        return ip + "_" + port + "_" + protocol;
     }
 
     /**
@@ -555,6 +569,52 @@ public class K8sServiceHandler {
                 install);
     }
 
+    private void setCidrRoutingRule(IpPrefix prefix, MacAddress mac,
+                                    K8sNetwork network, boolean install) {
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPSrc(prefix)
+                .matchIPDst(IpPrefix.valueOf(network.cidr()));
+
+        k8sNodeService.completeNodes().forEach(n -> {
+            TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
+                    .setTunnelId(Long.valueOf(network.segmentId()));
+
+            if (n.hostname().equals(network.name())) {
+                if (mac != null) {
+                    tBuilder.setEthSrc(mac);
+                }
+                tBuilder.transition(STAT_OUTBOUND_TABLE);
+            } else {
+                PortNumber portNum = tunnelPortNumByNetId(network.networkId(),
+                        k8sNetworkService, n);
+                K8sNode localNode = k8sNodeService.node(network.name());
+
+                tBuilder.extension(buildExtension(
+                        deviceService,
+                        n.intgBridge(),
+                        localNode.dataIp().getIp4Address()),
+                        n.intgBridge())
+                        .setOutput(portNum);
+            }
+
+            k8sFlowRuleService.setRule(
+                    appId,
+                    n.intgBridge(),
+                    sBuilder.build(),
+                    tBuilder.build(),
+                    PRIORITY_CIDR_RULE,
+                    ROUTING_TABLE,
+                    install
+            );
+        });
+    }
+
+    private void setupServiceDefaultRule(K8sNetwork k8sNetwork, boolean install) {
+        setCidrRoutingRule(IpPrefix.valueOf(DEFAULT_SERVICE_IP_CIDR),
+                MacAddress.valueOf(SERVICE_FAKE_MAC_STR), k8sNetwork, install);
+    }
+
     private void setStatefulGroupFlowRules(DeviceId deviceId, long ctState,
                                            long ctMask, Service service,
                                            boolean install) {
@@ -724,6 +784,10 @@ public class K8sServiceHandler {
         }
     }
 
+    private String servicePortStr(String ip, int port, String protocol) {
+        return ip + "_" + port + "_" + protocol;
+    }
+
     /**
      * Extracts properties from the component configuration context.
      *
@@ -736,6 +800,11 @@ public class K8sServiceHandler {
         serviceIpNatMode = updatedNatMode != null ?
                 updatedNatMode : DEFAULT_SERVICE_IP_NAT_MODE_STR;
         log.info("Configured. Service IP NAT mode is {}", serviceIpNatMode);
+
+        String updatedServiceCidr = Tools.get(properties, SERVICE_CIDR);
+        serviceCidr = updatedServiceCidr != null ?
+                updatedServiceCidr : DEFAULT_SERVICE_IP_CIDR;
+        log.info("Configured. Service VIP range is {}", serviceCidr);
     }
 
     private void setServiceNatRules(DeviceId deviceId, boolean install) {
@@ -924,8 +993,36 @@ public class K8sServiceHandler {
             }
 
             setServiceNatRules(node.intgBridge(), true);
-
             k8sEndpointsService.endpointses().forEach(e -> setK8sApiRules(node, e, true));
+            k8sNetworkService.networks().forEach(n -> setupServiceDefaultRule(n, true));
+        }
+    }
+
+    private class InternalK8sNetworkListener implements K8sNetworkListener {
+
+        private boolean isRelevantHelper() {
+            return Objects.equals(localNodeId, leadershipService.getLeader(appId.name()));
+        }
+
+        @Override
+        public void event(K8sNetworkEvent event) {
+            switch (event.type()) {
+                case K8S_NETWORK_CREATED:
+                    eventExecutor.execute(() -> processNetworkCreation(event.subject()));
+                    break;
+                case K8S_NETWORK_UPDATED:
+                case K8S_NETWORK_REMOVED:
+                default:
+                    break;
+            }
+        }
+
+        private void processNetworkCreation(K8sNetwork network) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            setupServiceDefaultRule(network, true);
         }
     }
 }
