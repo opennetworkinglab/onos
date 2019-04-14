@@ -34,4 +34,6 @@ public final class OsgiPropertyConstants {
 
     static final String SERVICE_IP_NAT_MODE = "serviceIpNatMode";
     static final String SERVICE_IP_NAT_MODE_DEFAULT = "stateless";
+    static final String SERVICE_CIDR = "serviceCidr";
+    static final String SERVICE_IP_CIDR_DEFAULT = "10.96.0.0/12";
 }
