@@ -51,6 +51,9 @@ public interface K8sGroupRuleService {
 
     /**
      * Configures buckets to the existing group.
+     * With install flag true, this method will add buckets to existing buckets,
+     * while with install flag false, this method will remove buckets from
+     * existing buckets.
      *
      * @param appId         application ID
      * @param deviceId      device ID
@@ -60,4 +63,15 @@ public interface K8sGroupRuleService {
      */
     void setBuckets(ApplicationId appId, DeviceId deviceId, int groupId,
                     List<GroupBucket> buckets, boolean install);
+
+    /**
+     * Configures buckets.
+     *
+     * @param appId         application ID
+     * @param deviceId      device ID
+     * @param groupId       group ID
+     * @param buckets       a lit of group buckets
+     */
+    void setBuckets(ApplicationId appId, DeviceId deviceId, int groupId,
+                    List<GroupBucket> buckets);
 }

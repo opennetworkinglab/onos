@@ -154,47 +154,73 @@ public class K8sNodeManager
     public void createNode(K8sNode node) {
         checkNotNull(node, ERR_NULL_NODE);
 
-        K8sNode updatedNode;
+        K8sNode intNode;
+        K8sNode extNode;
 
         if (node.intgBridge() == null) {
             String deviceIdStr = genDpid(deviceIdCounter.incrementAndGet());
             checkNotNull(deviceIdStr, ERR_NULL_DEVICE_ID);
-            updatedNode = node.updateIntgBridge(DeviceId.deviceId(deviceIdStr));
-            checkArgument(!hasIntgBridge(updatedNode.intgBridge(), updatedNode.hostname()),
-                    NOT_DUPLICATED_MSG, updatedNode.intgBridge());
+            intNode = node.updateIntgBridge(DeviceId.deviceId(deviceIdStr));
+            checkArgument(!hasIntgBridge(intNode.intgBridge(), intNode.hostname()),
+                    NOT_DUPLICATED_MSG, intNode.intgBridge());
         } else {
-            updatedNode = node;
-            checkArgument(!hasIntgBridge(updatedNode.intgBridge(), updatedNode.hostname()),
-                    NOT_DUPLICATED_MSG, updatedNode.intgBridge());
+            intNode = node;
+            checkArgument(!hasIntgBridge(intNode.intgBridge(), intNode.hostname()),
+                    NOT_DUPLICATED_MSG, intNode.intgBridge());
         }
 
-        nodeStore.createNode(updatedNode);
-        log.info(String.format(MSG_NODE, updatedNode.hostname(), MSG_CREATED));
+        if (intNode.extBridge() == null) {
+            String deviceIdStr = genDpid(deviceIdCounter.incrementAndGet());
+            checkNotNull(deviceIdStr, ERR_NULL_DEVICE_ID);
+            extNode = intNode.updateExtBridge(DeviceId.deviceId(deviceIdStr));
+            checkArgument(!hasExtBridge(extNode.extBridge(), extNode.hostname()),
+                    NOT_DUPLICATED_MSG, extNode.extBridge());
+        } else {
+            extNode = intNode;
+            checkArgument(!hasExtBridge(extNode.extBridge(), extNode.hostname()),
+                    NOT_DUPLICATED_MSG, extNode.extBridge());
+        }
+
+        nodeStore.createNode(extNode);
+        log.info(String.format(MSG_NODE, extNode.hostname(), MSG_CREATED));
     }
 
     @Override
     public void updateNode(K8sNode node) {
         checkNotNull(node, ERR_NULL_NODE);
 
-        K8sNode updatedNode;
+        K8sNode intNode;
+        K8sNode extNode;
 
         K8sNode existingNode = nodeStore.node(node.hostname());
         checkNotNull(existingNode, ERR_NULL_NODE);
 
-        DeviceId existDeviceId = nodeStore.node(node.hostname()).intgBridge();
+        DeviceId existIntgBridge = nodeStore.node(node.hostname()).intgBridge();
 
         if (node.intgBridge() == null) {
-            updatedNode = node.updateIntgBridge(existDeviceId);
-            checkArgument(!hasIntgBridge(updatedNode.intgBridge(), updatedNode.hostname()),
-                    NOT_DUPLICATED_MSG, updatedNode.intgBridge());
+            intNode = node.updateIntgBridge(existIntgBridge);
+            checkArgument(!hasIntgBridge(intNode.intgBridge(), intNode.hostname()),
+                    NOT_DUPLICATED_MSG, intNode.intgBridge());
         } else {
-            updatedNode = node;
-            checkArgument(!hasIntgBridge(updatedNode.intgBridge(), updatedNode.hostname()),
-                    NOT_DUPLICATED_MSG, updatedNode.intgBridge());
+            intNode = node;
+            checkArgument(!hasIntgBridge(intNode.intgBridge(), intNode.hostname()),
+                    NOT_DUPLICATED_MSG, intNode.intgBridge());
         }
 
-        nodeStore.updateNode(updatedNode);
-        log.info(String.format(MSG_NODE, updatedNode.hostname(), MSG_UPDATED));
+        DeviceId existExtBridge = nodeStore.node(node.hostname()).extBridge();
+
+        if (intNode.extBridge() == null) {
+            extNode = intNode.updateExtBridge(existExtBridge);
+            checkArgument(!hasExtBridge(extNode.extBridge(), extNode.hostname()),
+                    NOT_DUPLICATED_MSG, extNode.extBridge());
+        } else {
+            extNode = intNode;
+            checkArgument(!hasExtBridge(extNode.extBridge(), extNode.hostname()),
+                    NOT_DUPLICATED_MSG, extNode.extBridge());
+        }
+
+        nodeStore.updateNode(extNode);
+        log.info(String.format(MSG_NODE, extNode.hostname(), MSG_UPDATED));
     }
 
     @Override
@@ -240,6 +266,7 @@ public class K8sNodeManager
         return nodeStore.node(hostname);
     }
 
+    // TODO: need to differentiate integration bridge and external bridge
     @Override
     public K8sNode node(DeviceId deviceId) {
         return nodeStore.nodes().stream()
@@ -251,7 +278,16 @@ public class K8sNodeManager
     private boolean hasIntgBridge(DeviceId deviceId, String hostname) {
         Optional<K8sNode> existNode = nodeStore.nodes().stream()
                 .filter(n -> !n.hostname().equals(hostname))
-                .filter(n -> n.intgBridge().equals(deviceId))
+                .filter(n -> deviceId.equals(n.intgBridge()))
+                .findFirst();
+
+        return existNode.isPresent();
+    }
+
+    private boolean hasExtBridge(DeviceId deviceId, String hostname) {
+        Optional<K8sNode> existNode = nodeStore.nodes().stream()
+                .filter(n -> !n.hostname().equals(hostname))
+                .filter(n -> deviceId.equals(n.extBridge()))
                 .findFirst();
 
         return existNode.isPresent();

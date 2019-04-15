@@ -55,17 +55,20 @@ public final class DefaultK8sNodeTest {
             HOSTNAME_1,
             MINION,
             DEVICE_1,
+            DEVICE_1,
             TEST_IP,
             INIT);
     private static final K8sNode K8S_NODE_2 = createNode(
             HOSTNAME_1,
             MINION,
             DEVICE_1,
+            DEVICE_1,
             TEST_IP,
             INIT);
     private static final K8sNode K8S_NODE_3 = createNode(
             HOSTNAME_2,
             MINION,
+            DEVICE_2,
             DEVICE_2,
             TEST_IP,
             INIT);
@@ -81,6 +84,7 @@ public final class DefaultK8sNodeTest {
                 .managementIp(MANAGEMENT_IP)
                 .dataIp(DATA_IP)
                 .intgBridge(DEVICE_1.id())
+                .extBridge(DEVICE_1.id())
                 .state(COMPLETE)
                 .build();
     }
@@ -103,6 +107,7 @@ public final class DefaultK8sNodeTest {
         checkCommonProperties(refNode);
         assertSame(refNode.state(), COMPLETE);
         assertEquals(refNode.intgBridge(), DEVICE_1.id());
+        assertEquals(refNode.extBridge(), DEVICE_1.id());
     }
 
     /**
@@ -134,6 +139,7 @@ public final class DefaultK8sNodeTest {
         DefaultK8sNode.builder()
                 .type(MINION)
                 .intgBridge(DEVICE_1.id())
+                .extBridge(DEVICE_1.id())
                 .managementIp(TEST_IP)
                 .dataIp(TEST_IP)
                 .state(INIT)
@@ -148,6 +154,7 @@ public final class DefaultK8sNodeTest {
         DefaultK8sNode.builder()
                 .hostname(HOSTNAME_1)
                 .intgBridge(DEVICE_1.id())
+                .extBridge(DEVICE_1.id())
                 .managementIp(TEST_IP)
                 .dataIp(TEST_IP)
                 .state(INIT)
@@ -164,6 +171,7 @@ public final class DefaultK8sNodeTest {
                 .hostname(HOSTNAME_1)
                 .type(MINION)
                 .intgBridge(DEVICE_1.id())
+                .extBridge(DEVICE_1.id())
                 .dataIp(TEST_IP)
                 .state(INIT)
                 .build();
@@ -188,12 +196,13 @@ public final class DefaultK8sNodeTest {
     }
 
     private static K8sNode createNode(String hostname, Type type,
-                                      Device intgBridge, IpAddress ipAddr,
-                                      K8sNodeState state) {
+                                      Device intgBridge, Device extBridge,
+                                      IpAddress ipAddr, K8sNodeState state) {
         return DefaultK8sNode.builder()
                 .hostname(hostname)
                 .type(type)
                 .intgBridge(intgBridge.id())
+                .extBridge(extBridge.id())
                 .managementIp(ipAddr)
                 .dataIp(ipAddr)
                 .state(state)

@@ -42,6 +42,7 @@ public final class K8sNodeCodec extends JsonCodec<K8sNode> {
     private static final String MANAGEMENT_IP = "managementIp";
     private static final String DATA_IP = "dataIp";
     private static final String INTEGRATION_BRIDGE = "integrationBridge";
+    private static final String EXTERNAL_BRIDGE = "externalBridge";
     private static final String STATE = "state";
 
     private static final String MISSING_MESSAGE = " is required in K8sNode";
@@ -58,6 +59,10 @@ public final class K8sNodeCodec extends JsonCodec<K8sNode> {
 
         if (node.intgBridge() != null) {
             result.put(INTEGRATION_BRIDGE, node.intgBridge().toString());
+        }
+
+        if (node.extBridge() != null) {
+            result.put(EXTERNAL_BRIDGE, node.extBridge().toString());
         }
 
         if (node.dataIp() != null) {
@@ -93,6 +98,11 @@ public final class K8sNodeCodec extends JsonCodec<K8sNode> {
         JsonNode intBridgeJson = json.get(INTEGRATION_BRIDGE);
         if (intBridgeJson != null) {
             nodeBuilder.intgBridge(DeviceId.deviceId(intBridgeJson.asText()));
+        }
+
+        JsonNode extBridgeJson = json.get(EXTERNAL_BRIDGE);
+        if (extBridgeJson != null) {
+            nodeBuilder.extBridge(DeviceId.deviceId(extBridgeJson.asText()));
         }
 
         log.trace("node is {}", nodeBuilder.build().toString());

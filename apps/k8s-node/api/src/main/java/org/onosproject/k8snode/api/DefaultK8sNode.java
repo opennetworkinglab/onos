@@ -49,6 +49,7 @@ public class DefaultK8sNode implements K8sNode {
     private final String hostname;
     private final Type type;
     private final DeviceId intgBridge;
+    private final DeviceId extBridge;
     private final IpAddress managementIp;
     private final IpAddress dataIp;
     private final K8sNodeState state;
@@ -63,16 +64,18 @@ public class DefaultK8sNode implements K8sNode {
      * @param hostname          hostname
      * @param type              node type
      * @param intgBridge        integration bridge
+     * @param extBridge         external bridge
      * @param managementIp      management IP address
      * @param dataIp            data IP address
      * @param state             node state
      */
     protected DefaultK8sNode(String hostname, Type type, DeviceId intgBridge,
-                             IpAddress managementIp, IpAddress dataIp,
-                             K8sNodeState state) {
+                             DeviceId extBridge, IpAddress managementIp,
+                             IpAddress dataIp, K8sNodeState state) {
         this.hostname = hostname;
         this.type = type;
         this.intgBridge = intgBridge;
+        this.extBridge = extBridge;
         this.managementIp = managementIp;
         this.dataIp = dataIp;
         this.state = state;
@@ -99,11 +102,30 @@ public class DefaultK8sNode implements K8sNode {
     }
 
     @Override
+    public DeviceId extBridge() {
+        return extBridge;
+    }
+
+    @Override
     public K8sNode updateIntgBridge(DeviceId deviceId) {
         return new Builder()
                 .hostname(hostname)
                 .type(type)
                 .intgBridge(deviceId)
+                .extBridge(extBridge)
+                .managementIp(managementIp)
+                .dataIp(dataIp)
+                .state(state)
+                .build();
+    }
+
+    @Override
+    public K8sNode updateExtBridge(DeviceId deviceId) {
+        return new Builder()
+                .hostname(hostname)
+                .type(type)
+                .intgBridge(intgBridge)
+                .extBridge(deviceId)
                 .managementIp(managementIp)
                 .dataIp(dataIp)
                 .state(state)
@@ -189,6 +211,7 @@ public class DefaultK8sNode implements K8sNode {
             return hostname.equals(that.hostname) &&
                     type == that.type &&
                     intgBridge.equals(that.intgBridge) &&
+                    extBridge.equals(that.extBridge) &&
                     managementIp.equals(that.managementIp) &&
                     dataIp.equals(that.dataIp) &&
                     state == that.state;
@@ -199,7 +222,8 @@ public class DefaultK8sNode implements K8sNode {
 
     @Override
     public int hashCode() {
-        return Objects.hash(hostname, type, intgBridge, managementIp, dataIp, state);
+        return Objects.hash(hostname, type, intgBridge, extBridge,
+                            managementIp, dataIp, state);
     }
 
     @Override
@@ -208,6 +232,7 @@ public class DefaultK8sNode implements K8sNode {
                 .add("hostname", hostname)
                 .add("type", type)
                 .add("intgBridge", intgBridge)
+                .add("extBridge", extBridge)
                 .add("managementIp", managementIp)
                 .add("dataIp", dataIp)
                 .add("state", state)
@@ -246,6 +271,7 @@ public class DefaultK8sNode implements K8sNode {
                 .hostname(node.hostname())
                 .type(node.type())
                 .intgBridge(node.intgBridge())
+                .extBridge(node.extBridge())
                 .managementIp(node.managementIp())
                 .dataIp(node.dataIp())
                 .state(node.state());
@@ -256,6 +282,7 @@ public class DefaultK8sNode implements K8sNode {
         private String hostname;
         private Type type;
         private DeviceId intgBridge;
+        private DeviceId extBridge;
         private IpAddress managementIp;
         private IpAddress dataIp;
         private K8sNodeState state;
@@ -275,6 +302,7 @@ public class DefaultK8sNode implements K8sNode {
             return new DefaultK8sNode(hostname,
                     type,
                     intgBridge,
+                    extBridge,
                     managementIp,
                     dataIp,
                     state);
@@ -295,6 +323,12 @@ public class DefaultK8sNode implements K8sNode {
         @Override
         public Builder intgBridge(DeviceId deviceId) {
             this.intgBridge = deviceId;
+            return this;
+        }
+
+        @Override
+        public Builder extBridge(DeviceId deviceId) {
+            this.extBridge = deviceId;
             return this;
         }
 

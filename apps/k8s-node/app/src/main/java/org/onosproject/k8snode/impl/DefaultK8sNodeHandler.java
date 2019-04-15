@@ -43,8 +43,10 @@ import org.onosproject.net.behaviour.BridgeConfig;
 import org.onosproject.net.behaviour.BridgeDescription;
 import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.net.behaviour.DefaultBridgeDescription;
+import org.onosproject.net.behaviour.DefaultPatchDescription;
 import org.onosproject.net.behaviour.DefaultTunnelDescription;
 import org.onosproject.net.behaviour.InterfaceConfig;
+import org.onosproject.net.behaviour.PatchDescription;
 import org.onosproject.net.behaviour.TunnelDescription;
 import org.onosproject.net.behaviour.TunnelEndPoints;
 import org.onosproject.net.behaviour.TunnelKeys;
@@ -66,11 +68,14 @@ import java.util.stream.Collectors;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.packet.TpPort.tpPort;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.k8snode.api.Constants.EXTERNAL_BRIDGE;
 import static org.onosproject.k8snode.api.Constants.GENEVE;
 import static org.onosproject.k8snode.api.Constants.GENEVE_TUNNEL;
 import static org.onosproject.k8snode.api.Constants.GRE;
 import static org.onosproject.k8snode.api.Constants.GRE_TUNNEL;
 import static org.onosproject.k8snode.api.Constants.INTEGRATION_BRIDGE;
+import static org.onosproject.k8snode.api.Constants.INTEGRATION_TO_EXTERNAL_BRIDGE;
+import static org.onosproject.k8snode.api.Constants.PHYSICAL_EXTERNAL_BRIDGE;
 import static org.onosproject.k8snode.api.Constants.VXLAN;
 import static org.onosproject.k8snode.api.Constants.VXLAN_TUNNEL;
 import static org.onosproject.k8snode.api.K8sNodeService.APP_ID;
@@ -187,6 +192,9 @@ public class DefaultK8sNodeHandler implements K8sNodeHandler {
         if (!deviceService.isAvailable(k8sNode.intgBridge())) {
             createBridge(k8sNode, INTEGRATION_BRIDGE, k8sNode.intgBridge());
         }
+        if (!deviceService.isAvailable(k8sNode.extBridge())) {
+            createBridge(k8sNode, EXTERNAL_BRIDGE, k8sNode.extBridge());
+        }
     }
 
     @Override
@@ -196,6 +204,9 @@ public class DefaultK8sNodeHandler implements K8sNodeHandler {
                 ovsdbController.connect(k8sNode.managementIp(), tpPort(ovsdbPort));
                 return;
             }
+
+            // create patch ports between integration and external bridges
+            createPatchInterfaces(k8sNode);
 
             if (k8sNode.dataIp() != null &&
                     !isIntfEnabled(k8sNode, VXLAN_TUNNEL)) {
@@ -309,6 +320,32 @@ public class DefaultK8sNodeHandler implements K8sNodeHandler {
         createTunnelInterface(k8sNode, GENEVE, GENEVE_TUNNEL);
     }
 
+    private void createPatchInterfaces(K8sNode k8sNode) {
+        Device device = deviceService.getDevice(k8sNode.ovsdb());
+        if (device == null || !device.is(InterfaceConfig.class)) {
+            log.error("Failed to create patch interface on {}", k8sNode.ovsdb());
+            return;
+        }
+
+        PatchDescription brIntPatchDesc =
+                DefaultPatchDescription.builder()
+                .deviceId(INTEGRATION_BRIDGE)
+                .ifaceName(INTEGRATION_TO_EXTERNAL_BRIDGE)
+                .peer(PHYSICAL_EXTERNAL_BRIDGE)
+                .build();
+
+        PatchDescription brExtPatchDesc =
+                DefaultPatchDescription.builder()
+                .deviceId(EXTERNAL_BRIDGE)
+                .ifaceName(PHYSICAL_EXTERNAL_BRIDGE)
+                .peer(INTEGRATION_TO_EXTERNAL_BRIDGE)
+                .build();
+
+        InterfaceConfig ifaceConfig = device.as(InterfaceConfig.class);
+        ifaceConfig.addPatchMode(INTEGRATION_TO_EXTERNAL_BRIDGE, brIntPatchDesc);
+        ifaceConfig.addPatchMode(PHYSICAL_EXTERNAL_BRIDGE, brExtPatchDesc);
+    }
+
     /**
      * Creates a tunnel interface in a given kubernetes node.
      *
@@ -396,7 +433,9 @@ public class DefaultK8sNodeHandler implements K8sNodeHandler {
                     return false;
                 }
 
-                return deviceService.isAvailable(k8sNode.intgBridge());
+                return k8sNode.intgBridge() != null && k8sNode.extBridge() != null &&
+                        deviceService.isAvailable(k8sNode.intgBridge()) &&
+                        deviceService.isAvailable(k8sNode.extBridge());
             case DEVICE_CREATED:
                 if (k8sNode.dataIp() != null &&
                         !isIntfEnabled(k8sNode, VXLAN_TUNNEL)) {
@@ -461,6 +500,9 @@ public class DefaultK8sNodeHandler implements K8sNodeHandler {
 
         // delete integration bridge from the node
         client.dropBridge(INTEGRATION_BRIDGE);
+
+        // delete external bridge from the node
+        client.dropBridge(EXTERNAL_BRIDGE);
 
         // disconnect ovsdb
         client.disconnect();
@@ -553,8 +595,10 @@ public class DefaultK8sNodeHandler implements K8sNodeHandler {
                             return;
                         }
 
+                        // TODO: also need to check the external bridge's availability
                         if (deviceService.isAvailable(device.id())) {
-                            log.debug("Integration bridge created on {}", k8sNode.hostname());
+                            log.debug("Integration bridge created on {}",
+                                    k8sNode.hostname());
                             bootstrapNode(k8sNode);
                         } else if (k8sNode.state() == COMPLETE) {
                             log.info("Device {} disconnected", device.id());
