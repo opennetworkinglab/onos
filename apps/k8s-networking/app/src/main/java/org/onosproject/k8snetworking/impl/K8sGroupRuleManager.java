@@ -97,4 +97,11 @@ public class K8sGroupRuleManager implements K8sGroupRuleService {
                     new GroupBuckets(buckets), getGroupKey(groupId), appId);
         }
     }
+
+    @Override
+    public void setBuckets(ApplicationId appId, DeviceId deviceId, int groupId,
+                           List<GroupBucket> buckets) {
+        groupService.setBucketsForGroup(deviceId, getGroupKey(groupId),
+                new GroupBuckets(buckets), getGroupKey(groupId), appId);
+    }
 }

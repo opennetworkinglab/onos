@@ -69,12 +69,27 @@ public interface K8sNode {
     DeviceId intgBridge();
 
     /**
+     * Returns the device ID of the external bridge at the node.
+     *
+     * @return device id
+     */
+    DeviceId extBridge();
+
+    /**
      * Returns new kubernetes node instance with given integration bridge.
      *
      * @param deviceId  integration bridge device ID
      * @return updated kubernetes node
      */
     K8sNode updateIntgBridge(DeviceId deviceId);
+
+    /**
+     * Returns new kubernetes node instance with given external bridge.
+     *
+     * @param deviceId external bridge device ID
+     * @return updated kubernetes node
+     */
+    K8sNode updateExtBridge(DeviceId deviceId);
 
     /**
      * Returns the management network IP address of the node.
@@ -169,12 +184,20 @@ public interface K8sNode {
         Builder type(Type type);
 
         /**
-         * Returns kubernetes node builder with supplied bridge name.
+         * Returns kubernetes node builder with supplied integration bridge name.
          *
          * @param deviceId integration bridge device ID
          * @return kubernetes node builder
          */
         Builder intgBridge(DeviceId deviceId);
+
+        /**
+         * Returns kubernetes node builder with supplied external bridge name.
+         *
+         * @param deviceId external bridge deviceID
+         * @return kubernetes node builder
+         */
+        Builder extBridge(DeviceId deviceId);
 
         /**
          * Returns kubernetes node builder with supplied management IP address.
