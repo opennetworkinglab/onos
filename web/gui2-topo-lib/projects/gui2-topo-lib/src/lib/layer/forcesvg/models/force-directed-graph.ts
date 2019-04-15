@@ -37,6 +37,7 @@ const LINK_DISTANCE = {
     direct: 100,
     optical: 120,
     UiEdgeLink: 3,
+    UiDeviceLink: 100,
     _def_: 50,
 };
 
@@ -97,7 +98,7 @@ export class ForceDirectedGraph {
         this.simulation.nodes(this.nodes);
         this.simulation.force('link',
             d3.forceLink(this.links)
-                .strength(this.strength.bind(this))
+                .strength(LINK_STRENGTH._def_)
                 .distance(this.distance.bind(this))
         );
         this.simulation.alpha(0.3).restart();
@@ -110,14 +111,7 @@ export class ForceDirectedGraph {
 
     distance(link: Link) {
         const linkType = link.type;
-        this.log.debug('Link type', linkType, LINK_DISTANCE[linkType]);
         return LINK_DISTANCE[linkType] || LINK_DISTANCE._def_;
-    }
-
-    strength(link: Link) {
-        const linkType = link.type;
-        this.log.debug('Link type', linkType, LINK_STRENGTH[linkType]);
-        return LINK_STRENGTH[linkType] || LINK_STRENGTH._def_;
     }
 
     stopSimulation() {

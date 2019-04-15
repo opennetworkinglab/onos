@@ -697,7 +697,6 @@ export class TopologyComponent implements AfterContentInit, OnInit, OnDestroy {
     nodeSelected(nodesOrLink: UiElement[]) {
         this.details.ngOnChanges({'selectedNodes':
             new SimpleChange(undefined, nodesOrLink, true)});
-        this.trs.cancelTraffic();
     }
 
     /**

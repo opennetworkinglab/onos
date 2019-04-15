@@ -310,22 +310,24 @@ public class ModelCacheTest extends AbstractTopoModelTest {
 
         // add a host
         cache.addOrUpdateHost(hostA);
-        dispatcher.assertLast(Type.HOST_ADDED_OR_UPDATED, hostA.id().toString());
-        dispatcher.assertEventCount(1);
+        UiLinkId hostALinkId = cache.accessHost(hostA.id()).edgeLinkId();
+        dispatcher.assertLast(Type.LINK_ADDED_OR_UPDATED, hostALinkId.toString());
+        dispatcher.assertEventCount(2);
         assertHostLinkCounts(1, 1);
         assertLocation(hostA.id(), DEVID_1, 101);
 
         // add a second host
         cache.addOrUpdateHost(hostB);
-        dispatcher.assertLast(Type.HOST_ADDED_OR_UPDATED, hostB.id().toString());
-        dispatcher.assertEventCount(2);
+        UiLinkId hostBLinkId = cache.accessHost(hostB.id()).edgeLinkId();
+        dispatcher.assertLast(Type.LINK_ADDED_OR_UPDATED, hostBLinkId.toString());
+        dispatcher.assertEventCount(4);
         assertHostLinkCounts(2, 2);
         assertLocation(hostB.id(), DEVID_1, 102);
 
         // update the first host
         cache.addOrUpdateHost(hostA);
-        dispatcher.assertLast(Type.HOST_ADDED_OR_UPDATED, hostA.id().toString());
-        dispatcher.assertEventCount(3);
+        dispatcher.assertLast(Type.LINK_ADDED_OR_UPDATED, hostALinkId.toString());
+        dispatcher.assertEventCount(6);
         assertHostLinkCounts(2, 2);
         assertLocation(hostA.id(), DEVID_1, 101);
 
@@ -334,7 +336,7 @@ public class ModelCacheTest extends AbstractTopoModelTest {
         // remove the second host
         cache.removeHost(hostB);
         dispatcher.assertLast(Type.HOST_REMOVED, hostB.id().toString());
-        dispatcher.assertEventCount(4);
+        dispatcher.assertEventCount(8);
         assertHostLinkCounts(1, 1);
         assertNull("still host B?", cache.accessHost(hostB.id()));
 
@@ -350,7 +352,7 @@ public class ModelCacheTest extends AbstractTopoModelTest {
 
         cache.moveHost(movedHost, hostA);
         dispatcher.assertLast(Type.HOST_MOVED, hostA.id().toString());
-        dispatcher.assertEventCount(5);
+        dispatcher.assertEventCount(9);
         assertHostLinkCounts(1, 1);
 
         assertLocation(hostA.id(), DEVID_1, 200);
@@ -362,7 +364,7 @@ public class ModelCacheTest extends AbstractTopoModelTest {
 
         cache.moveHost(movedAgain, movedHost);
         dispatcher.assertLast(Type.HOST_MOVED, hostA.id().toString());
-        dispatcher.assertEventCount(6);
+        dispatcher.assertEventCount(10);
         assertHostLinkCounts(1, 1);
 
         assertLocation(hostA.id(), DEVID_8, 800);

@@ -28,15 +28,10 @@ import {
     SimpleChanges,
     ViewChildren
 } from '@angular/core';
+import {LocMeta, LogService, MetaUi, WebSocketService, ZoomUtils} from 'gui2-fw-lib';
 import {
-    LocMeta,
-    LogService,
-    MetaUi,
-    WebSocketService,
-    ZoomUtils
-} from 'gui2-fw-lib';
-import {
-    Device, DeviceProps,
+    Device,
+    DeviceProps,
     ForceDirectedGraph,
     Host,
     HostLabelToggle,
@@ -56,8 +51,8 @@ import {
 } from './models';
 import {LocationType} from '../backgroundsvg/backgroundsvg.component';
 import {DeviceNodeSvgComponent} from './visuals/devicenodesvg/devicenodesvg.component';
-import { HostNodeSvgComponent} from './visuals/hostnodesvg/hostnodesvg.component';
-import { LinkSvgComponent} from './visuals/linksvg/linksvg.component';
+import {HostNodeSvgComponent} from './visuals/hostnodesvg/hostnodesvg.component';
+import {LinkSvgComponent} from './visuals/linksvg/linksvg.component';
 import {SelectedEvent} from './visuals/nodevisual';
 
 interface UpdateMeta {
@@ -446,7 +441,7 @@ export class ForceSvgComponent implements OnInit, OnChanges {
                             .findIndex((h) => h.id === subject);
                     this.regionData.hosts[this.visibleLayerIdx()].splice(removeIdx, 1);
                     this.removeRelatedLinks(subject);
-                    this.log.warn('Host ', subject, 'removed');
+                    this.log.debug('Host ', subject, 'removed');
                 } else {
                     this.log.warn('Host removed - unexpected memo', memo);
                 }
@@ -471,11 +466,18 @@ export class ForceSvgComponent implements OnInit, OnChanges {
                     const changes = ForceSvgComponent.updateObject(oldLink, <RegionLink>data);
                     this.log.debug('Link ', subject, '. Updated', changes, 'items');
                 } else {
-                    this.log.warn('Link added or updated - unexpected memo', memo);
+                    this.log.warn('Link event ignored', subject, data);
+                }
+                break;
+            case ModelEventType.LINK_REMOVED:
+                if (memo === ModelEventMemo.REMOVED) {
+                    const removeIdx = this.regionData.links.findIndex((l) => l.id === subject);
+                    this.regionData.links.splice(removeIdx, 1);
+                    this.log.debug('Link ', subject, 'removed');
                 }
                 break;
             default:
-                this.log.error('Unexpected model event', type, 'for', subject);
+                this.log.error('Unexpected model event', type, 'for', subject, 'Data', data);
         }
         this.graph.links = this.regionData.links;
         this.graph.reinitSimulation();
@@ -534,7 +536,7 @@ export class ForceSvgComponent implements OnInit, OnChanges {
             links.forEach((lh) => {
                 const linkComponent: LinkSvgComponent =
                     this.links.find((l) => l.link.id === Link.linkIdFromShowHighlights(lh.id) );
-                if (linkComponent) { // A link might not be present is hosts viewing is switched off
+                if (linkComponent) { // A link might not be present if hosts viewing is switched off
                     if (fadeMs > 0) {
                         lh.fadems = fadeMs;
                     }

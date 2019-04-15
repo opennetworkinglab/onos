@@ -511,6 +511,9 @@ class ModelCache {
         updateHost(uiHost, host);
 
         postEvent(HOST_ADDED_OR_UPDATED, uiHost, memo);
+        // Link event must be sent after the host event
+        UiEdgeLink uiEdgeLink = uiTopology.findEdgeLink(uiHost.edgeLinkId());
+        postEvent(LINK_ADDED_OR_UPDATED, uiEdgeLink, memo);
     }
 
     // invoked from UiSharedTopologyModel host listener
@@ -536,6 +539,7 @@ class ModelCache {
         if (uiHost != null) {
             UiEdgeLink edgeLink = uiTopology.findEdgeLink(uiHost.edgeLinkId());
             uiTopology.remove(edgeLink);
+            postEvent(LINK_REMOVED, edgeLink, MEMO_REMOVED);
             uiTopology.remove(uiHost);
             postEvent(HOST_REMOVED, uiHost, MEMO_REMOVED);
         } else {

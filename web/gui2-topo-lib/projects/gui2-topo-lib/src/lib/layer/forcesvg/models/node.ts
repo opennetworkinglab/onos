@@ -276,7 +276,8 @@ export enum ModelEventType {
     LINK_ADDED_OR_UPDATED,
     DEVICE_ADDED_OR_UPDATED,
     DEVICE_REMOVED,
-    HOST_REMOVED
+    HOST_REMOVED,
+    LINK_REMOVED,
 }
 
 /**

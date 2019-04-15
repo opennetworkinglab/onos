@@ -57,6 +57,7 @@ export class LinkSvgComponent extends NodeVisual implements OnChanges {
     enhanced: boolean = false;
     labelPosSrc: Point = {x: 0, y: 0};
     labelPosTgt: Point = {x: 0, y: 0};
+    lastTimer: any;
 
     constructor(
         protected log: LogService,
@@ -68,16 +69,17 @@ export class LinkSvgComponent extends NodeVisual implements OnChanges {
     ngOnChanges(changes: SimpleChanges) {
         if (changes['linkHighlight']) {
             const hl: LinkHighlight = changes['linkHighlight'].currentValue;
+            clearTimeout(this.lastTimer);
             this.highlighted = hl.css;
             this.label = hl.label;
             this.isHighlighted = true;
-            this.log.debug('Link hightlighted', hl);
+            this.log.debug('Link hightlighted', this.link.id, this.highlighted);
             if (hl.fadems > 0) {
-                setTimeout(() => {
+                this.lastTimer = setTimeout(() => {
                     this.isHighlighted = false;
                     this.highlighted = '';
                     this.ref.markForCheck();
-                }, hl.fadems);
+                }, hl.fadems); // Disappear slightly before next one comes in
             }
 
         }
