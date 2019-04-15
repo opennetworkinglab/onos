@@ -27,6 +27,7 @@ import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.onosproject.workflow.api.CheckCondition.check;
@@ -42,9 +43,9 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
     private String initWorkletType;
 
     /**
-     * List of worklet.
+     * List of worklet  description.
      */
-    private List<String> workletTypeList;
+    private List<WorkletDescription> workletDescList;
 
     /**
      * Set of workflow attributes.
@@ -52,6 +53,7 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
     private Set<WorkflowAttribute> attributes;
 
     private static JsonDataModelInjector dataModelInjector = new JsonDataModelInjector();
+    private static StaticDataModelInjector staticDataModelInjector = new StaticDataModelInjector();
 
     /**
      * Constructor of ImmutableListWorkflow.
@@ -61,7 +63,7 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
     private ImmutableListWorkflow(Builder builder) {
         super(builder.id);
         this.initWorkletType = builder.initWorkletType;
-        workletTypeList = ImmutableList.copyOf(builder.workletTypeList);
+        workletDescList = ImmutableList.copyOf(builder.workletDescList);
         attributes = ImmutableSet.copyOf(builder.attributes);
     }
 
@@ -84,12 +86,11 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
 
         ProgramCounter pc = current.clone();
 
-        for (int i = current.workletIndex(); i < workletTypeList.size(); pc = increased(pc), i++) {
+        for (int i = current.workletIndex(); i < workletDescList.size(); pc = increased(pc), i++) {
 
             if (cnt++ > Worklet.MAX_WORKS) {
                 throw new WorkflowException("Maximum worklet execution exceeded");
             }
-
             if (pc.isCompleted()) {
                 return pc;
             }
@@ -119,6 +120,12 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
             } else {
                 // isNext is read only. It does not perform 'inhale'.
                 dataModelInjector.inject(worklet, context);
+                WorkletDescription workletDesc = getWorkletDesc(pc);
+                if (Objects.nonNull(workletDesc)) {
+                    if (!(workletDesc.tag().equals("INIT") || workletDesc.tag().equals("COMPLETED"))) {
+                        staticDataModelInjector.inject(worklet, workletDesc);
+                    }
+                }
                 if (worklet.isNext(context)) {
                     return pc;
                 }
@@ -132,18 +139,18 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
     public ProgramCounter increased(ProgramCounter pc) throws WorkflowException {
 
         int increaedIndex = pc.workletIndex() + 1;
-        if (increaedIndex >= workletTypeList.size()) {
+        if (increaedIndex >= workletDescList.size()) {
             throw new WorkflowException("Out of bound in program counter(" + pc + ")");
         }
 
-        String workletType = workletTypeList.get(increaedIndex);
-        return ProgramCounter.valueOf(workletType, increaedIndex);
+        WorkletDescription workletDesc = workletDescList.get(increaedIndex);
+        return ProgramCounter.valueOf(workletDesc.tag(), increaedIndex);
     }
 
     @Override
     public Worklet getWorkletInstance(ProgramCounter pc) throws WorkflowException {
 
-        return getWorkletInstance(workletTypeList.get(pc.workletIndex()));
+        return getWorkletInstance(workletDescList.get(pc.workletIndex()).tag());
     }
 
     @Override
@@ -191,9 +198,20 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
     }
 
     @Override
-    public List<String> getWorkletTypeList() {
-        return ImmutableList.copyOf(workletTypeList);
+    public List<WorkletDescription> getWorkletDescList() {
+        return ImmutableList.copyOf(workletDescList);
     }
+
+    @Override
+    public WorkletDescription getWorkletDesc(ProgramCounter pc) {
+        Optional<WorkletDescription> workletDescription = workletDescList.stream().filter(a -> Objects.equals(a.tag(),
+                workletDescList.get(pc.workletIndex()).tag())).findAny();
+        if (workletDescription.isPresent()) {
+            return workletDescription.get();
+        }
+        return null;
+    }
+
 
     /**
      * Gets index of class in worklet type list.
@@ -202,8 +220,8 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
      * @return index of class in worklet type list
      */
     private int getClassIndex(Class aClass) {
-        for (int i = 0; i < workletTypeList.size(); i++) {
-            if (Objects.equals(aClass.getName(), workletTypeList.get(i))) {
+        for (int i = 0; i < workletDescList.size(); i++) {
+            if (Objects.equals(aClass.getName(), workletDescList.get(i))) {
                 return i;
             }
         }
@@ -247,7 +265,7 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
         }
         return Objects.equals(this.id(), ((ImmutableListWorkflow) obj).id())
                 && Objects.equals(this.initWorkletType, ((ImmutableListWorkflow) obj).initWorkletType)
-                && Objects.equals(this.workletTypeList, ((ImmutableListWorkflow) obj).workletTypeList)
+                && Objects.equals(this.workletDescList, ((ImmutableListWorkflow) obj).workletDescList)
                 && Objects.equals(this.attributes, ((ImmutableListWorkflow) obj).attributes);
     }
 
@@ -256,7 +274,7 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
         return MoreObjects.toStringHelper(getClass())
                 .add("id", id())
                 .add("initWorklet", initWorkletType)
-                .add("workList", workletTypeList)
+                .add("workList", workletDescList)
                 .add("attributes", attributes)
                 .toString();
     }
@@ -277,7 +295,7 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
 
         private URI id;
         private String initWorkletType;
-        private final List<String> workletTypeList = Lists.newArrayList();
+        private final List<WorkletDescription> workletDescList = Lists.newArrayList();
         private final Set<WorkflowAttribute> attributes = Sets.newHashSet();
 
         /**
@@ -288,7 +306,7 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
          */
         public Builder id(URI uri) {
             this.id = uri;
-            workletTypeList.add(Worklet.Common.INIT.tag());
+            workletDescList.add(new DefaultWorkletDescription(Worklet.Common.INIT.tag()));
             return this;
         }
 
@@ -310,7 +328,7 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
          * @return builder
          */
         public Builder chain(String workletClassName) {
-            workletTypeList.add(workletClassName);
+            workletDescList.add(new DefaultWorkletDescription(workletClassName));
             return this;
         }
 
@@ -331,8 +349,13 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
          * @return instance of ImmutableListWorkflow
          */
         public ImmutableListWorkflow build() {
-            workletTypeList.add(Worklet.Common.COMPLETED.tag());
+            workletDescList.add(new DefaultWorkletDescription(Worklet.Common.COMPLETED.tag()));
             return new ImmutableListWorkflow(this);
+        }
+
+        public Builder chain(DefaultWorkletDescription workletDesc) {
+            workletDescList.add(workletDesc);
+            return this;
         }
     }
 }

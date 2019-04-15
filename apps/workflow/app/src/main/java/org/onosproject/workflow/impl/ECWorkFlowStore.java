@@ -19,6 +19,15 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.onlab.util.KryoNamespace;
+import org.onosproject.store.service.EventuallyConsistentMap;
+import org.onosproject.store.service.StorageService;
+import org.onosproject.store.service.WallClockTimestamp;
+import org.onosproject.workflow.api.AbstractWorkflow;
+import org.onosproject.workflow.api.ImmutableListWorkflow;
+import org.onosproject.workflow.api.Workflow;
+import org.onosproject.workflow.api.WorkflowAttribute;
+import org.onosproject.workflow.api.WorkflowStore;
+import org.onosproject.workflow.api.WorkletDescription;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -27,18 +36,10 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.workflow.api.AbstractWorkflow;
-import org.onosproject.workflow.api.ImmutableListWorkflow;
-import org.onosproject.workflow.api.Workflow;
-import org.onosproject.workflow.api.WorkflowAttribute;
-import org.onosproject.workflow.api.WorkflowStore;
 import org.onosproject.net.group.GroupEvent;
 import org.onosproject.net.group.GroupStoreDelegate;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.service.EventuallyConsistentMap;
-import org.onosproject.store.service.StorageService;
-import org.onosproject.store.service.WallClockTimestamp;
 
 import java.net.URI;
 import java.util.Collection;
@@ -51,7 +52,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 @Component(immediate = true, service = WorkflowStore.class)
 public class ECWorkFlowStore
-    extends AbstractStore<GroupEvent, GroupStoreDelegate> implements WorkflowStore {
+        extends AbstractStore<GroupEvent, GroupStoreDelegate> implements WorkflowStore {
 
     private final Logger log = getLogger(getClass());
 
@@ -77,6 +78,7 @@ public class ECWorkFlowStore
                 .register(Workflow.class)
                 .register(AbstractWorkflow.class)
                 .register(ImmutableListWorkflow.class)
+                .register(WorkletDescription.class)
                 .register(List.class)
                 .register(ImmutableList.class)
                 .register(Class.class)
@@ -101,7 +103,6 @@ public class ECWorkFlowStore
     @Deactivate
     public void deactivate() {
         workflowStore.destroy();
-
         log.info("Stopped");
     }
 

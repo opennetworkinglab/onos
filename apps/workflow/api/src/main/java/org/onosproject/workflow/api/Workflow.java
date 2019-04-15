@@ -26,12 +26,14 @@ public interface Workflow {
 
     /**
      * Id of workflow.
+     *
      * @return id
      */
     URI id();
 
     /**
      * Returns init worklet.
+     *
      * @param context workflow context
      * @return init worklet
      * @throws WorkflowException workflow exception
@@ -40,6 +42,7 @@ public interface Workflow {
 
     /**
      * Returns next program counter.
+     *
      * @param context workflow context
      * @return next program counter
      * @throws WorkflowException workflow exception
@@ -48,6 +51,7 @@ public interface Workflow {
 
     /**
      * Gets increased program coounter.
+     *
      * @param pc program counter
      * @return increased program counter
      * @throws WorkflowException workflow exception
@@ -56,6 +60,7 @@ public interface Workflow {
 
     /**
      * Returns instance of worklet.
+     *
      * @param pc program counter
      * @return instance of worklet
      * @throws WorkflowException workflow exception
@@ -64,6 +69,7 @@ public interface Workflow {
 
     /**
      * Returns instance of worklet.
+     *
      * @param workletType class name of worklet
      * @return instance of worklet
      * @throws WorkflowException workflow exception
@@ -72,8 +78,9 @@ public interface Workflow {
 
     /**
      * Builds workflow context.
+     *
      * @param workplace workplace of system workflow
-     * @param data data model of system workflow context
+     * @param data      data model of system workflow context
      * @return workflow context
      * @throws WorkflowException workflow exception
      */
@@ -81,8 +88,9 @@ public interface Workflow {
 
     /**
      * Builds system workflow context.
+     *
      * @param workplace workplace of system workflow
-     * @param data data model of system workflow context
+     * @param data      data model of system workflow context
      * @return system workflow context
      * @throws WorkflowException workflow exception
      */
@@ -90,13 +98,23 @@ public interface Workflow {
 
     /**
      * Returns workflow attributes.
+     *
      * @return attributes
      */
     Set<WorkflowAttribute> attributes();
 
     /**
-     * Returns worklet type list.
-     * @return worklet type
+     * Returns worklet desc list.
+     *
+     * @return worklet description list
      */
-    List<String> getWorkletTypeList();
+    List<WorkletDescription> getWorkletDescList();
+
+    /**
+     * Returns worklet description.
+     * @param pc program counter
+     * @return worklet description list
+     */
+    WorkletDescription getWorkletDesc(ProgramCounter pc);
+
 }

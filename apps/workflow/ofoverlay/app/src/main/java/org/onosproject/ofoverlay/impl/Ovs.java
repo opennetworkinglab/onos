@@ -59,6 +59,7 @@ import org.onosproject.workflow.api.AbstractWorklet;
 import org.onosproject.workflow.api.JsonDataModel;
 import org.onosproject.workflow.api.WorkflowContext;
 import org.onosproject.workflow.api.WorkflowException;
+import org.onosproject.workflow.api.StaticDataModel;
 import org.onosproject.workflow.model.accessinfo.SshAccessInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,6 +84,7 @@ public final class Ovs {
     private static final Logger log = LoggerFactory.getLogger(Ovs.class);
 
     private static final String MODEL_MGMT_IP = "/mgmtIp";
+    private static final String BRIDGE_NAME = "/bridgeName";
     private static final String MODEL_OVSDB_PORT = "/ovsdbPort";
     private static final String MODEL_OVS_VERSION = "/ovsVersion";
     private static final String MODEL_OVS_DATAPATH_TYPE = "/ovsDatapathType";
@@ -534,6 +536,108 @@ public final class Ovs {
             context.completed();
         }
     }
+
+
+    public static class CreateBridge extends AbstractWorklet {
+
+        @StaticDataModel(path = BRIDGE_NAME)
+        String bridgeName;
+
+        @JsonDataModel(path = MODEL_MGMT_IP)
+        String strMgmtIp;
+
+        @JsonDataModel(path = MODEL_OVSDB_PORT)
+        Integer intOvsdbPort;
+
+        @JsonDataModel(path = MODEL_OVS_DATAPATH_TYPE)
+        String strOvsDatapath;
+
+        @JsonDataModel(path = MODEL_OF_DEVID_OVERLAY_BRIDGE, optional = true)
+        String strOfDevId;
+
+        @Override
+        public boolean isNext(WorkflowContext context) throws WorkflowException {
+
+            check(strOfDevId != null, "invalid strOfDevIdUnderlay");
+            return !OvsUtil.isAvailableBridge(context, DeviceId.deviceId(strOfDevId));
+        }
+
+        @Override
+        public void process(WorkflowContext context) throws WorkflowException {
+
+            check(strOfDevId != null, "invalid strOfDevIdOverlay");
+            BridgeConfig bridgeConfig = OvsUtil.getOvsdbBehaviour(context, strMgmtIp, BridgeConfig.class);
+            List<ControllerInfo> ofControllers = OvsUtil.getOpenflowControllerInfoList(context);
+            DeviceId ofDeviceId = DeviceId.deviceId(strOfDevId);
+
+            if (ofControllers == null || ofControllers.size() == 0) {
+                throw new WorkflowException("Invalid of controllers");
+            }
+
+            Optional<BridgeDescription> optBd = OvsUtil.getBridgeDescription(bridgeConfig, bridgeName);
+            if (!optBd.isPresent()) {
+
+                // If bridge does not exist, just creates a new bridge.
+                context.waitCompletion(DeviceEvent.class, ofDeviceId.toString(),
+                        () -> OvsUtil.createBridge(bridgeConfig,
+                                bridgeName,
+                                OvsUtil.bridgeDatapathId(ofDeviceId),
+                                ofControllers,
+                                OvsUtil.buildOvsDatapathType(strOvsDatapath)),
+                        TIMEOUT_DEVICE_CREATION_MS
+                );
+                return;
+
+            } else {
+                BridgeDescription bd = optBd.get();
+                if (OvsUtil.isEqual(ofControllers, bd.controllers())) {
+                    log.error("{} has valid controller setting({})", bridgeName, bd.controllers());
+                    context.completed();
+                    return;
+                }
+
+                OvsdbClientService ovsdbClient = OvsUtil.getOvsdbClient(context, strMgmtIp, intOvsdbPort);
+                if (ovsdbClient == null || !ovsdbClient.isConnected()) {
+                    throw new WorkflowException("Invalid ovsdb client for " + strMgmtIp);
+                }
+
+                // If controller settings are not matched, set controller with valid controller information.
+                context.waitCompletion(DeviceEvent.class, ofDeviceId.toString(),
+                        () -> ovsdbClient.setControllersWithDeviceId(bd.deviceId().get(), ofControllers),
+                        TIMEOUT_DEVICE_CREATION_MS
+                );
+                return;
+            }
+        }
+
+        @Override
+        public boolean isCompleted(WorkflowContext context, Event event)throws WorkflowException {
+            if (!(event instanceof DeviceEvent)) {
+                return false;
+            }
+            DeviceEvent deviceEvent = (DeviceEvent) event;
+            Device device = deviceEvent.subject();
+            switch (deviceEvent.type()) {
+                case DEVICE_ADDED:
+                case DEVICE_AVAILABILITY_CHANGED:
+                case DEVICE_UPDATED:
+                    return context.getService(DeviceService.class).isAvailable(device.id());
+                default:
+                    return false;
+            }
+        }
+
+        @Override
+        public void timeout(WorkflowContext context) throws WorkflowException {
+            if (!isNext(context)) {
+                context.completed(); //Complete the job of worklet by timeout
+            } else {
+                super.timeout(context);
+            }
+        }
+
+    }
+
 
     /**
      * Work-let class for creating overlay openflow bridge.

@@ -56,6 +56,7 @@ public final class JsonDataModelTree implements DataModelTree {
 
     /**
      * Constructor of JsonDataModelTree.
+     *
      * @param root root node of json data model tree
      */
     public JsonDataModelTree(JsonNode root) {
@@ -169,7 +170,8 @@ public final class JsonDataModelTree implements DataModelTree {
 
     /**
      * Allocates json data model tree on json pointer path with specific leaf type.
-     * @param ptr json pointer to allocate
+     *
+     * @param ptr      json pointer to allocate
      * @param leaftype type of leaf node
      * @return json data model tree
      * @throws WorkflowException workflow exception
@@ -194,6 +196,7 @@ public final class JsonDataModelTree implements DataModelTree {
 
     /**
      * Gets root json node.
+     *
      * @return root json node
      * @throws WorkflowException workflow exception
      */
@@ -203,6 +206,7 @@ public final class JsonDataModelTree implements DataModelTree {
 
     /**
      * Gets root json node as ObjectNode (MAP type).
+     *
      * @return root json node as ObjectNode
      * @throws WorkflowException workflow exception
      */
@@ -212,6 +216,7 @@ public final class JsonDataModelTree implements DataModelTree {
 
     /**
      * Gets root json node as ArrayNode (Array type).
+     *
      * @return root json node as ArrayNode
      * @throws WorkflowException workflow exception
      */
@@ -221,6 +226,7 @@ public final class JsonDataModelTree implements DataModelTree {
 
     /**
      * Gets json node on specific path.
+     *
      * @param path path of json node
      * @return json node on specific path
      * @throws WorkflowException workflow exception
@@ -232,6 +238,7 @@ public final class JsonDataModelTree implements DataModelTree {
 
     /**
      * Gets json node on specific json pointer.
+     *
      * @param ptr json pointer
      * @return json node on specific json pointer.
      * @throws WorkflowException workflow exception
@@ -246,6 +253,7 @@ public final class JsonDataModelTree implements DataModelTree {
 
     /**
      * Gets json node on specific path as ObjectNode.
+     *
      * @param path path of json node
      * @return ObjectNode type json node on specific path
      * @throws WorkflowException workflow exception
@@ -257,6 +265,7 @@ public final class JsonDataModelTree implements DataModelTree {
 
     /**
      * Gets json node on specific json pointer as ObjectNode.
+     *
      * @param ptr json pointer
      * @return ObjectNode type json node on specific json pointer.
      * @throws WorkflowException workflow exception
@@ -277,6 +286,7 @@ public final class JsonDataModelTree implements DataModelTree {
 
     /**
      * Gets json node on specific path as ArrayNode.
+     *
      * @param path path of json node
      * @return ArrayNode type json node on specific path
      * @throws WorkflowException workflow exception
@@ -288,6 +298,7 @@ public final class JsonDataModelTree implements DataModelTree {
 
     /**
      * Gets json node on specific json pointer as ArrayNode.
+     *
      * @param ptr json pointer
      * @return ArrayNode type json node on specific json pointer.
      * @throws WorkflowException workflow exception
@@ -308,6 +319,7 @@ public final class JsonDataModelTree implements DataModelTree {
 
     /**
      * Gets text node on specific path.
+     *
      * @param path path of json node
      * @return text on specific path
      * @throws WorkflowException workflow exception
@@ -319,6 +331,7 @@ public final class JsonDataModelTree implements DataModelTree {
 
     /**
      * Gets text on specific json pointer.
+     *
      * @param ptr json pointer
      * @return text on specific json pointer
      * @throws WorkflowException workflow exception
@@ -339,6 +352,7 @@ public final class JsonDataModelTree implements DataModelTree {
 
     /**
      * Gets integer node on specific path.
+     *
      * @param path path of json node
      * @return integer on specific path
      * @throws WorkflowException workflow exception
@@ -350,6 +364,7 @@ public final class JsonDataModelTree implements DataModelTree {
 
     /**
      * Gets integer on specific json pointer.
+     *
      * @param ptr json pointer
      * @return integer on specific json pointer
      * @throws WorkflowException workflow exception
@@ -370,6 +385,7 @@ public final class JsonDataModelTree implements DataModelTree {
 
     /**
      * Gets boolean on specific path.
+     *
      * @param path path of json node
      * @return boolean on specific path
      * @throws WorkflowException workflow exception
@@ -381,6 +397,7 @@ public final class JsonDataModelTree implements DataModelTree {
 
     /**
      * Gets boolean on specific json pointer.
+     *
      * @param ptr json pointer
      * @return boolean on specific json pointer
      * @throws WorkflowException workflow exception
@@ -401,6 +418,7 @@ public final class JsonDataModelTree implements DataModelTree {
 
     /**
      * Sets text on specific json path.
+     *
      * @param path json path
      * @param text text to set
      * @throws WorkflowException workflow exception
@@ -412,18 +430,21 @@ public final class JsonDataModelTree implements DataModelTree {
 
     /**
      * Sets text on the specific json pointer.
-     * @param ptr json pointer
+     *
+     * @param ptr  json pointer
      * @param text text to set
      * @throws WorkflowException workflow exception
      */
     public void setAt(JsonPointer ptr, String text) throws WorkflowException {
         TextNode textNode = TextNode.valueOf(text);
+
         attach(ptr, textNode);
     }
 
     /**
      * Sets boolean on specific json path.
-     * @param path json path
+     *
+     * @param path   json path
      * @param isTrue boolean to set
      * @throws WorkflowException workflow exception
      */
@@ -433,8 +454,83 @@ public final class JsonDataModelTree implements DataModelTree {
     }
 
     /**
+     * Sets text on the specific json pointer.
+     *
+     * @param ptr      json pointer
+     * @param jsonNode jsonNode to set
+     * @throws WorkflowException workflow exception
+     */
+    public void setAt(JsonPointer ptr, JsonNode jsonNode) throws WorkflowException {
+        JsonNode node = jsonNode;
+        attach(ptr, node);
+    }
+
+    /**
+     * Sets boolean on specific json path.
+     *
+     * @param path     json path
+     * @param jsonNode jsonNode to set
+     * @throws WorkflowException workflow exception
+     */
+    public void setAt(String path, JsonNode jsonNode) throws WorkflowException {
+        JsonPointer ptr = JsonPointer.compile(path);
+        setAt(ptr, jsonNode);
+    }
+
+
+    /**
+     * Sets text on the specific json pointer.
+     *
+     * @param ptr       json pointer
+     * @param arrayNode arrayNode to set
+     * @throws WorkflowException workflow exception
+     */
+    public void setAt(JsonPointer ptr, ArrayNode arrayNode) throws WorkflowException {
+        ArrayNode node = arrayNode;
+        attach(ptr, node);
+    }
+
+    /**
+     * Sets boolean on specific json path.
+     *
+     * @param path      json path
+     * @param arrayNode arrayNode to set
+     * @throws WorkflowException workflow exception
+     */
+    public void setAt(String path, ArrayNode arrayNode) throws WorkflowException {
+        JsonPointer ptr = JsonPointer.compile(path);
+        setAt(ptr, arrayNode);
+    }
+
+    /**
+     * Sets text on the specific json pointer.
+     *
+     * @param ptr        json pointer
+     * @param objectNode objectNode to set
+     * @throws WorkflowException workflow exception
+     */
+    public void setAt(JsonPointer ptr, ObjectNode objectNode) throws WorkflowException {
+        ObjectNode node = objectNode;
+        attach(ptr, node);
+    }
+
+    /**
+     * Sets boolean on specific json path.
+     *
+     * @param path       json path
+     * @param objectNode objectNode to set
+     * @throws WorkflowException workflow exception
+     */
+    public void setAt(String path, ObjectNode objectNode) throws WorkflowException {
+        JsonPointer ptr = JsonPointer.compile(path);
+        setAt(ptr, objectNode);
+    }
+
+
+    /**
      * Sets boolean on the specific json pointer.
-     * @param ptr json pointer
+     *
+     * @param ptr    json pointer
      * @param isTrue boolean to set
      * @throws WorkflowException workflow exception
      */
@@ -445,7 +541,8 @@ public final class JsonDataModelTree implements DataModelTree {
 
     /**
      * Sets integer on specific json path.
-     * @param path json path
+     *
+     * @param path   json path
      * @param number number to set
      * @throws WorkflowException workflow exception
      */
@@ -456,7 +553,8 @@ public final class JsonDataModelTree implements DataModelTree {
 
     /**
      * Sets integer on the specific json pointer.
-     * @param ptr json pointer
+     *
+     * @param ptr    json pointer
      * @param number number to set
      * @throws WorkflowException workflow exception
      */
@@ -467,8 +565,9 @@ public final class JsonDataModelTree implements DataModelTree {
 
     /**
      * Allocates json data model tree on json pointer path with specific leaf type.
-     * @param node current json node in the json tree path
-     * @param ptr json pointer
+     *
+     * @param node     current json node in the json tree path
+     * @param ptr      json pointer
      * @param leaftype leaf type to be allocated
      * @return allocated json node
      * @throws WorkflowException workflow exception
@@ -510,6 +609,7 @@ public final class JsonDataModelTree implements DataModelTree {
 
     /**
      * Creating empty json node.
+     *
      * @param type json node type to create
      * @return created json node
      * @throws WorkflowException workflow exception
@@ -528,6 +628,7 @@ public final class JsonDataModelTree implements DataModelTree {
 
     /**
      * Gets the pretty json formatted string of this json data model tree.
+     *
      * @return pretty json formatted string of this json data model tree
      */
     public String formattedRootString() {

@@ -122,8 +122,8 @@ public class WorkFlowTestCommand extends AbstractShellCommand {
         for (int i = 0; i <= num; i++) {
             String wpName = "test_name-" + i;
             invoke("sample.workflow-0", wpName);
-            invoke("sample.workflow-1", wpName);
-            invoke("sample.workflow-2", wpName);
+          //  invoke("sample.workflow-1", wpName);
+          //  invoke("sample.workflow-2", wpName);
         }
     }
 

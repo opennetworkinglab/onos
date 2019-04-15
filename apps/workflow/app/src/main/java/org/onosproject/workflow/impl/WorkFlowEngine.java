@@ -49,6 +49,8 @@ import org.onosproject.workflow.api.Workplace;
 import org.onosproject.workflow.api.WorkplaceStore;
 import org.onosproject.workflow.api.WorkplaceStoreDelegate;
 import org.onosproject.workflow.api.WorkflowExecutionService;
+import org.onosproject.workflow.api.WorkletDescription;
+import org.onosproject.workflow.api.StaticDataModelInjector;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.event.Event;
 import org.onosproject.net.intent.WorkPartitionService;
@@ -126,6 +128,7 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
     private TimerChain timerChain = new TimerChain();
 
     private JsonDataModelInjector dataModelInjector = new JsonDataModelInjector();
+    private StaticDataModelInjector staticDataModelInjector = new StaticDataModelInjector();
 
     public static final String APPID = "org.onosproject.workflow";
     private ApplicationId appId;
@@ -273,11 +276,11 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
             EventTask eventtask = null;
             try {
                 eventtask = EventTask.builder()
-                    .event(event)
-                    .eventHint(eventHint)
-                    .context(context)
-                    .programCounter(pc)
-                    .build();
+                        .event(event)
+                        .eventHint(eventHint)
+                        .context(context)
+                        .programCounter(pc)
+                        .build();
             } catch (WorkflowException e) {
                 log.error("Exception: ", e);
             }
@@ -358,6 +361,7 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
 
     /**
      * Checks whether this workflow data job is relevant to this ONOS node.
+     *
      * @param job workflow data
      * @return checking result
      */
@@ -368,6 +372,7 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
 
     /**
      * Gets hash of the string.
+     *
      * @param str string to get a hash
      * @return hash value
      */
@@ -404,6 +409,7 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
 
     /**
      * Initializes worklet execution.
+     *
      * @param context workflow context
      */
     private void initWorkletExecution(WorkflowContext context) {
@@ -418,6 +424,7 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
 
     /**
      * Processes handler tasks.
+     *
      * @param tasks handler tasks
      * @return handler tasks processed
      */
@@ -440,6 +447,7 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
 
     /**
      * Executes event task.
+     *
      * @param task event task
      * @return event task
      */
@@ -530,6 +538,7 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
 
     /**
      * Executes event timeout task.
+     *
      * @param task event timeout task
      * @return handler task
      */
@@ -576,6 +585,14 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
             log.trace("{} task:{}, context: {}", latestContext.name(), task, latestContext);
 
             dataModelInjector.inject(worklet, latestContext);
+
+            WorkletDescription workletDesc = workflow.getWorkletDesc(task.programCounter());
+            if (Objects.nonNull(workletDesc)) {
+                if (!(workletDesc.tag().equals("INIT") || workletDesc.tag().equals("COMPLETED"))) {
+                    staticDataModelInjector.inject(worklet, workletDesc);
+                }
+            }
+
             worklet.timeout(latestContext);
             dataModelInjector.inhale(worklet, latestContext);
 
@@ -605,6 +622,7 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
 
     /**
      * Executes timeout task.
+     *
      * @param task time out task
      * @return handler task
      */
@@ -644,6 +662,14 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
             log.trace("{} context: {}", latestContext.name(), latestContext);
 
             dataModelInjector.inject(worklet, latestContext);
+
+            WorkletDescription workletDesc = workflow.getWorkletDesc(task.programCounter());
+            if (Objects.nonNull(workletDesc)) {
+                if (!(workletDesc.tag().equals("INIT") || workletDesc.tag().equals("COMPLETED"))) {
+                    staticDataModelInjector.inject(worklet, workletDesc);
+                }
+            }
+
             worklet.timeout(latestContext);
             dataModelInjector.inhale(worklet, latestContext);
 
@@ -682,8 +708,8 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
                 List<CompletableFuture<WorkflowData>> futures = operations.stream()
                         .map(
                                 x -> CompletableFuture.completedFuture(x)
-                                .thenApplyAsync(WorkFlowEngine.this::execWorkflow, workflowExecutor)
-                                .exceptionally(e -> null)
+                                        .thenApplyAsync(WorkFlowEngine.this::execWorkflow, workflowExecutor)
+                                        .exceptionally(e -> null)
                         )
                         .collect(Collectors.toList());
 
@@ -699,6 +725,7 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
 
     /**
      * Executes workflow.
+     *
      * @param dataModelContainer workflow data model container(workflow or workplace)
      * @return
      */
@@ -715,6 +742,7 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
 
     /**
      * Executes workflow context.
+     *
      * @param context workflow context
      * @return workflow context
      */
@@ -759,7 +787,16 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
             log.info("{} worklet.process:{}", latestContext.name(), worklet.tag());
             log.trace("{} context: {}", latestContext.name(), latestContext);
 
+
             dataModelInjector.inject(worklet, latestContext);
+
+            WorkletDescription workletDesc = workflow.getWorkletDesc(pc);
+            if (Objects.nonNull(workletDesc)) {
+                if (!(workletDesc.tag().equals("INIT") || workletDesc.tag().equals("COMPLETED"))) {
+                    staticDataModelInjector.inject(worklet, workletDesc);
+                }
+            }
+
             worklet.process(latestContext);
             dataModelInjector.inhale(worklet, latestContext);
 
@@ -832,6 +869,7 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
 
     /**
      * Execute workplace.
+     *
      * @param workplace workplace
      * @return workplace
      */

@@ -21,6 +21,8 @@ import org.onosproject.workflow.api.Workflow;
 import org.onosproject.workflow.api.WorkflowExecutionService;
 import org.onosproject.workflow.api.WorkflowStore;
 import org.onosproject.workflow.api.WorkplaceStore;
+import org.onosproject.workflow.api.DefaultWorkletDescription;
+import org.onosproject.workflow.api.WorkflowException;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -57,6 +59,8 @@ public class OfOverlayWorkflow {
 
     private ScheduledExecutorService eventMapTriggerExecutor;
 
+    private static final String BRIDGE_NAME = "/bridgeName";
+
     @Activate
     public void activate() {
         log.info("Activated");
@@ -77,108 +81,117 @@ public class OfOverlayWorkflow {
      * Registers workflows.
      */
     private void registerWorkflows() {
-        // registering class-loader
-        workflowStore.registerLocal(this.getClass().getClassLoader());
+        try {
+            // registering class-loader
+            workflowStore.registerLocal(this.getClass().getClassLoader());
 
-        // registering new workflow definition
-        URI uri = URI.create("of-overlay.workflow-nova");
-        Workflow workflow = ImmutableListWorkflow.builder()
-                .id(uri)
-                //.attribute(WorkflowAttribute.REMOVE_AFTER_COMPLETE)
-                .chain(Ovs.CreateOvsdbDevice.class.getName())
-                .chain(Ovs.UpdateOvsVersion.class.getName())
-                .chain(Ovs.UpdateOverlayBridgeId.class.getName())
-                .chain(Ovs.CreateOverlayBridge.class.getName())
-                .chain(Ovs.UpdateUnderlayBridgeId.class.getName())
-                .chain(Ovs.CreateUnderlayBridge.class.getName())
-                .chain(Ovs.CreateOverlayBridgeVxlanPort.class.getName())
-                .chain(Ovs.AddPhysicalPortsOnUnderlayBridge.class.getName())
-                .chain(Ovs.ConfigureUnderlayBridgeLocalIp.class.getName())
-                .build();
-        workflowStore.register(workflow);
+            // registering new workflow definition
+            URI uri = URI.create("of-overlay.workflow-nova");
+            Workflow workflow = ImmutableListWorkflow.builder()
+                    .id(uri)
+                    //.attribute(WorkflowAttribute.REMOVE_AFTER_COMPLETE)
+                    .chain(Ovs.CreateOvsdbDevice.class.getName())
+                    .chain(Ovs.UpdateOvsVersion.class.getName())
+                    .chain(Ovs.UpdateOverlayBridgeId.class.getName())
+                    .chain(DefaultWorkletDescription.builder().name(Ovs.CreateBridge.class.getName())
+                            .staticDataModel(BRIDGE_NAME, "br-int")
+                            .build())
+                    .chain(Ovs.UpdateUnderlayBridgeId.class.getName())
+                    .chain(DefaultWorkletDescription.builder().name(Ovs.CreateBridge.class.getName())
+                            .staticDataModel(BRIDGE_NAME, "br-phy")
+                            .build())
+                    .chain(Ovs.CreateOverlayBridgeVxlanPort.class.getName())
+                    .chain(Ovs.AddPhysicalPortsOnUnderlayBridge.class.getName())
+                    .chain(Ovs.ConfigureUnderlayBridgeLocalIp.class.getName())
+                    .build();
 
-        // registering new workflow definition based on multi-event handling
-        uri = URI.create("of-overlay.workflow-nova-multiEvent-test");
-        workflow = ImmutableListWorkflow.builder()
-                .id(uri)
-                //.attribute(WorkflowAttribute.REMOVE_AFTER_COMPLETE)
-                .chain(Ovs.CreateOvsdbDevice.class.getName())
-                .chain(Ovs.UpdateOvsVersion.class.getName())
-                .chain(Ovs.UpdateOverlayBridgeId.class.getName())
-                .chain(Ovs.CreateOverlayBridgeMultiEvent.class.getName())
-                .chain(Ovs.UpdateUnderlayBridgeId.class.getName())
-                .chain(Ovs.CreateUnderlayBridge.class.getName())
-                .chain(Ovs.CreateOverlayBridgeVxlanPort.class.getName())
-                .chain(Ovs.AddPhysicalPortsOnUnderlayBridge.class.getName())
-                .chain(Ovs.ConfigureUnderlayBridgeLocalIp.class.getName())
-                .build();
-        workflowStore.register(workflow);
+            workflowStore.register(workflow);
 
-        uri = URI.create("of-overlay.clean-workflow-nova");
-        workflow = ImmutableListWorkflow.builder()
-                .id(uri)
-                //.attribute(WorkflowAttribute.REMOVE_AFTER_COMPLETE)
-                .chain(Ovs.DeleteOverlayBridgeConfig.class.getName())
-                .chain(Ovs.RemoveOverlayBridgeOfDevice.class.getName())
-                .chain(Ovs.DeleteUnderlayBridgeConfig.class.getName())
-                .chain(Ovs.RemoveUnderlayBridgeOfDevice.class.getName())
-                .chain(Ovs.RemoveOvsdbDevice.class.getName())
-                .build();
-        workflowStore.register(workflow);
+            // registering new workflow definition based on multi-event handling
+            uri = URI.create("of-overlay.workflow-nova-multiEvent-test");
+            workflow = ImmutableListWorkflow.builder()
+                    .id(uri)
+                    //.attribute(WorkflowAttribute.REMOVE_AFTER_COMPLETE)
+                    .chain(Ovs.CreateOvsdbDevice.class.getName())
+                    .chain(Ovs.UpdateOvsVersion.class.getName())
+                    .chain(Ovs.UpdateOverlayBridgeId.class.getName())
+                    .chain(Ovs.CreateOverlayBridgeMultiEvent.class.getName())
+                    .chain(Ovs.UpdateUnderlayBridgeId.class.getName())
+                    .chain(Ovs.CreateUnderlayBridge.class.getName())
+                    .chain(Ovs.CreateOverlayBridgeVxlanPort.class.getName())
+                    .chain(Ovs.AddPhysicalPortsOnUnderlayBridge.class.getName())
+                    .chain(Ovs.ConfigureUnderlayBridgeLocalIp.class.getName())
+                    .build();
+            workflowStore.register(workflow);
 
-        uri = URI.create("of-overlay.clean-workflow-nova-waitAll-Bridge-Del");
-        workflow = ImmutableListWorkflow.builder()
-                .id(uri)
-                //.attribute(WorkflowAttribute.REMOVE_AFTER_COMPLETE)
-                .chain(Ovs.DeleteOverlayBridgeConfig.class.getName())
-                .chain(Ovs.DeleteUnderlayBridgeConfig.class.getName())
-                .chain(Ovs.RemoveBridgeOfDevice.class.getName())
-                .chain(Ovs.RemoveOvsdbDevice.class.getName())
-                .build();
-        workflowStore.register(workflow);
+            uri = URI.create("of-overlay.clean-workflow-nova");
+            workflow = ImmutableListWorkflow.builder()
+                    .id(uri)
+                    //.attribute(WorkflowAttribute.REMOVE_AFTER_COMPLETE)
+                    .chain(Ovs.DeleteOverlayBridgeConfig.class.getName())
+                    .chain(Ovs.RemoveOverlayBridgeOfDevice.class.getName())
+                    .chain(Ovs.DeleteUnderlayBridgeConfig.class.getName())
+                    .chain(Ovs.RemoveUnderlayBridgeOfDevice.class.getName())
+                    .chain(Ovs.RemoveOvsdbDevice.class.getName())
+                    .build();
+            workflowStore.register(workflow);
 
-        uri = URI.create("of-overlay.workflow-ovs-leaf");
-        workflow = ImmutableListWorkflow.builder()
-                .id(uri)
-                .chain(Ovs.CreateOvsdbDevice.class.getName())
-                .chain(Ovs.UpdateOvsVersion.class.getName())
-                .chain(Ovs.UpdateUnderlayBridgeId.class.getName())
-                .chain(Ovs.CreateUnderlayBridge.class.getName())
-                .chain(Ovs.AddPhysicalPortsOnUnderlayBridge.class.getName())
-                .build();
-        workflowStore.register(workflow);
+            uri = URI.create("of-overlay.clean-workflow-nova-waitAll-Bridge-Del");
+            workflow = ImmutableListWorkflow.builder()
+                    .id(uri)
+                    //.attribute(WorkflowAttribute.REMOVE_AFTER_COMPLETE)
+                    .chain(Ovs.DeleteOverlayBridgeConfig.class.getName())
+                    .chain(Ovs.DeleteUnderlayBridgeConfig.class.getName())
+                    .chain(Ovs.RemoveBridgeOfDevice.class.getName())
+                    .chain(Ovs.RemoveOvsdbDevice.class.getName())
+                    .build();
+            workflowStore.register(workflow);
 
-        uri = URI.create("of-overlay.workflow-ovs-spine");
-        workflow = ImmutableListWorkflow.builder()
-                .id(uri)
-                .chain(Ovs.CreateOvsdbDevice.class.getName())
-                .chain(Ovs.UpdateOvsVersion.class.getName())
-                .chain(Ovs.UpdateUnderlayBridgeId.class.getName())
-                .chain(Ovs.CreateUnderlayBridge.class.getName())
-                .chain(Ovs.AddPhysicalPortsOnUnderlayBridge.class.getName())
-                .build();
-        workflowStore.register(workflow);
+            uri = URI.create("of-overlay.workflow-ovs-leaf");
+            workflow = ImmutableListWorkflow.builder()
+                    .id(uri)
+                    .chain(Ovs.CreateOvsdbDevice.class.getName())
+                    .chain(Ovs.UpdateOvsVersion.class.getName())
+                    .chain(Ovs.UpdateUnderlayBridgeId.class.getName())
+                    .chain(Ovs.CreateUnderlayBridge.class.getName())
+                    .chain(Ovs.AddPhysicalPortsOnUnderlayBridge.class.getName())
+                    .build();
+            workflowStore.register(workflow);
 
-        deviceService.addListener(
-                event -> {
-                    // trigger EventTask for DeviceEvent
-                    eventMapTriggerExecutor.submit(
-                            () -> workflowExecutionService.eventMapTrigger(
-                                    event,
-                                    // event hint supplier
-                                    (ev) -> {
-                                        if (ev == null || ev.subject() == null) {
-                                            return null;
+            uri = URI.create("of-overlay.workflow-ovs-spine");
+            workflow = ImmutableListWorkflow.builder()
+                    .id(uri)
+                    .chain(Ovs.CreateOvsdbDevice.class.getName())
+                    .chain(Ovs.UpdateOvsVersion.class.getName())
+                    .chain(Ovs.UpdateUnderlayBridgeId.class.getName())
+                    .chain(Ovs.CreateUnderlayBridge.class.getName())
+                    .chain(Ovs.AddPhysicalPortsOnUnderlayBridge.class.getName())
+                    .build();
+            workflowStore.register(workflow);
+
+            deviceService.addListener(
+                    event -> {
+                        // trigger EventTask for DeviceEvent
+                        eventMapTriggerExecutor.submit(
+                                () -> workflowExecutionService.eventMapTrigger(
+                                        event,
+                                        // event hint supplier
+                                        (ev) -> {
+                                            if (ev == null || ev.subject() == null) {
+                                                return null;
+                                            }
+                                            String hint = event.subject().id().toString();
+                                            log.debug("hint: {}", hint);
+                                            return hint;
                                         }
-                                        String hint = event.subject().id().toString();
-                                        log.debug("hint: {}", hint);
-                                        return hint;
-                                    }
-                            )
-                    );
-                }
-        );
+                                )
+                        );
+                    }
+            );
 
+        } catch (WorkflowException e) {
+            e.printStackTrace();
+        }
     }
 
 }

@@ -25,18 +25,21 @@ public interface WorkflowStore {
 
     /**
      * Registers workflow.
+     *
      * @param workflow registering workflow
      */
     void register(Workflow workflow);
 
     /**
      * Unregisters workflow.
+     *
      * @param id id of workflow
      */
     void unregister(URI id);
 
     /**
      * Gets workflow.
+     *
      * @param id id of workflow
      * @return workflow
      */
@@ -44,27 +47,32 @@ public interface WorkflowStore {
 
     /**
      * Gets all workflow.
+     *
      * @return collection of workflow
      */
     Collection<Workflow> getAll();
 
     /**
      * Registers local class loader.
+     *
      * @param loader class loader
      */
     void registerLocal(ClassLoader loader);
 
     /**
      * Unregisters local class loader.
+     *
      * @param loader class loader
      */
     void unregisterLocal(ClassLoader loader);
 
     /**
      * Gets class from registered class loaders.
+     *
      * @param name name of class
      * @return class
      * @throws ClassNotFoundException class not found exception
      */
     Class getClass(String name) throws ClassNotFoundException;
+
 }

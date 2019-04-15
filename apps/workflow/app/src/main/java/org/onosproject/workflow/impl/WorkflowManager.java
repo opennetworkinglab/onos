@@ -40,6 +40,7 @@ import org.onosproject.workflow.api.Workflow;
 import org.onosproject.workflow.api.Worklet;
 import org.onosproject.workflow.api.WorkflowContext;
 import org.onosproject.workflow.api.JsonDataModel;
+import org.onosproject.workflow.api.WorkletDescription;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -174,9 +175,9 @@ public class WorkflowManager implements WorkflowService {
 
         List<String> errors = new ArrayList<>();
 
-        for (String workletType : workflow.getWorkletTypeList()) {
+        for (WorkletDescription workletType : workflow.getWorkletDescList()) {
 
-            Worklet worklet = workflow.getWorkletInstance(workletType);
+            Worklet worklet = workflow.getWorkletInstance(workletType.tag());
             if (Worklet.Common.COMPLETED.equals(worklet) || Worklet.Common.INIT.equals(worklet)) {
                 continue;
             }
@@ -203,7 +204,8 @@ public class WorkflowManager implements WorkflowService {
                     String path = matcher.group(1);
 
                     WorkletDataModelFieldDesc desc =
-                            new WorkletDataModelFieldDesc(workletType, path, field.getType(), jsonDataModel.optional());
+                            new WorkletDataModelFieldDesc(workletType.tag(), path, field.getType(),
+                                    jsonDataModel.optional());
 
                     WorkletDataModelFieldDesc existing = descMap.get(path);
 
@@ -296,9 +298,9 @@ public class WorkflowManager implements WorkflowService {
             throw new WorkflowDataModelException(workflow.id(), worklowDescJson, errors);
         }
 
-        for (String workletType : workflow.getWorkletTypeList()) {
+        for (WorkletDescription workletType : workflow.getWorkletDescList()) {
 
-            Worklet worklet = workflow.getWorkletInstance(workletType);
+            Worklet worklet = workflow.getWorkletInstance(workletType.tag());
             if (Worklet.Common.COMPLETED.equals(worklet) || Worklet.Common.INIT.equals(worklet)) {
                 continue;
             }

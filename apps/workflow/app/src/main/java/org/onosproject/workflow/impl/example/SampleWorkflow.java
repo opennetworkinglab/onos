@@ -29,6 +29,8 @@ import org.onosproject.workflow.api.WorkflowContext;
 import org.onosproject.workflow.api.WorkflowException;
 import org.onosproject.workflow.api.WorkflowService;
 import org.onosproject.workflow.api.WorkflowStore;
+import org.onosproject.workflow.api.StaticDataModel;
+import org.onosproject.workflow.api.DefaultWorkletDescription;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -64,8 +66,7 @@ public class SampleWorkflow {
         try {
             registerWorkflows();
         } catch (WorkflowException e) {
-            log.error("exception: " + e);
-            e.printStackTrace();
+            log.error("invalid workflow");
         }
     }
 
@@ -76,14 +77,17 @@ public class SampleWorkflow {
 
     /**
      * Registers example workflows.
+     *
+     * @throws WorkflowException wfex
      */
-    private void registerWorkflows() throws WorkflowException {
+    public void registerWorkflows() throws WorkflowException {
         // registering class-loader
         workflowStore.registerLocal(this.getClass().getClassLoader());
 
         // registering new workflow definition
         URI uri = URI.create("sample.workflow-0");
-        Workflow workflow = ImmutableListWorkflow.builder()
+        Workflow workflow = null;
+        workflow = ImmutableListWorkflow.builder()
                 .id(uri)
                 .chain(SampleWorklet1.class.getName())
                 .chain(SampleWorklet2.class.getName())
@@ -125,6 +129,16 @@ public class SampleWorkflow {
                 .build();
         workflowService.register(workflow);
 
+        // registering new workflow definition
+        uri = URI.create("sample.workflow-static-datamodel");
+        workflow = ImmutableListWorkflow.builder()
+                .id(uri)
+                .chain(DefaultWorkletDescription.builder()
+                        .name(SampleWorklet6.class.getName())
+                        .staticDataModel("/sample", "value")
+                        .build())
+                .build();
+        workflowService.register(workflow);
     }
 
     /**
@@ -142,8 +156,10 @@ public class SampleWorkflow {
 
         }
 
+
         /**
          * Allocates or gets data model.
+         *
          * @param context workflow context
          * @return json object node
          * @throws WorkflowException workflow exception
@@ -161,6 +177,7 @@ public class SampleWorkflow {
 
         /**
          * Gets data model.
+         *
          * @param context workflow context
          * @return json object node
          * @throws WorkflowException workflow exception
@@ -172,6 +189,7 @@ public class SampleWorkflow {
 
         /**
          * Sleeps for 'ms' milli seconds.
+         *
          * @param ms milli seconds to sleep
          */
         protected void sleep(long ms) {
@@ -198,7 +216,6 @@ public class SampleWorkflow {
             node.put("work1", "done");
             log.info("workflow-process {}-{}", context.workplaceName(), this.getClass().getSimpleName());
             sleep(30);
-
             context.completed(); //Complete the job of worklet in the process
         }
 
@@ -226,6 +243,7 @@ public class SampleWorkflow {
             node.put("work2", "done");
             log.info("workflow-process {}-{}", context.workplaceName(), this.getClass().getSimpleName());
             sleep(50);
+
             intCount++;
 
             context.waitFor(50L); //Timeout will happen after 50 milli seconds.
@@ -243,6 +261,7 @@ public class SampleWorkflow {
             sleep(50);
             return !node.has("work2");
         }
+
     }
 
     public static class SampleWorklet3 extends AbsSampleWorklet {
@@ -342,4 +361,32 @@ public class SampleWorkflow {
             return !node.has("work6");
         }
     }
+
+    /**
+     * Class for sample worklet-7 to test workflow datamodel exception.
+     */
+    public static class SampleWorklet7 extends AbsSampleWorklet {
+
+        @StaticDataModel(path = "/sample")
+        String value;
+
+        @Override
+        public void process(WorkflowContext context) throws WorkflowException {
+            ObjectNode node = getDataModel(context);
+            node.put("work7", "done");
+            log.info("inside worklet - static data model {}", value);
+            log.info("workflow-process {}-{}", context.workplaceName(), this.getClass().getSimpleName());
+            sleep(10);
+            context.completed();
+        }
+
+        @Override
+        public boolean isNext(WorkflowContext context) throws WorkflowException {
+            ObjectNode node = allocOrGetModel(context);
+            log.info("workflow-isNext {}-{}", context.workplaceName(), this.getClass().getSimpleName());
+            sleep(10);
+            return !node.has("work7");
+        }
+    }
+
 }
