@@ -20,7 +20,9 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cfg.ConfigProperty;
+import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.k8snetworking.api.K8sFlowRuleService;
@@ -30,6 +32,8 @@ import org.onosproject.k8snetworking.api.K8sNetworkListener;
 import org.onosproject.k8snetworking.api.K8sNetworkService;
 import org.onosproject.k8snetworking.api.K8sPort;
 import org.onosproject.k8snode.api.K8sNode;
+import org.onosproject.k8snode.api.K8sNodeEvent;
+import org.onosproject.k8snode.api.K8sNodeListener;
 import org.onosproject.k8snode.api.K8sNodeService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.PortNumber;
@@ -46,6 +50,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
@@ -54,6 +59,7 @@ import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.k8snetworking.api.Constants.ACL_EGRESS_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.ARP_BROADCAST_MODE;
 import static org.onosproject.k8snetworking.api.Constants.ARP_TABLE;
+import static org.onosproject.k8snetworking.api.Constants.DEFAULT_GATEWAY_MAC;
 import static org.onosproject.k8snetworking.api.Constants.FORWARDING_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.K8S_NETWORKING_APP_ID;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_SWITCHING_RULE;
@@ -85,6 +91,9 @@ public class K8sSwitchingHandler {
     protected MastershipService mastershipService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected ClusterService clusterService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
@@ -109,13 +118,19 @@ public class K8sSwitchingHandler {
             groupedThreads(this.getClass().getSimpleName(), "event-handler"));
     private final InternalK8sNetworkListener k8sNetworkListener =
             new InternalK8sNetworkListener();
+    private final InternalK8sNodeListener k8sNodeListener =
+            new InternalK8sNodeListener();
 
     private ApplicationId appId;
+    private NodeId localNodeId;
 
     @Activate
     protected void activate() {
         appId = coreService.registerApplication(K8S_NETWORKING_APP_ID);
         k8sNetworkService.addListener(k8sNetworkListener);
+        localNodeId = clusterService.getLocalNode().id();
+        k8sNodeService.addListener(k8sNodeListener);
+        leadershipService.runForLeadership(appId.name());
 
         setGatewayRulesForTunnel(true);
 
@@ -124,6 +139,8 @@ public class K8sSwitchingHandler {
 
     @Deactivate
     protected void deactivate() {
+        leadershipService.withdraw(appId.name());
+        k8sNodeService.removeListener(k8sNodeListener);
         k8sNetworkService.removeListener(k8sNetworkListener);
         eventExecutor.shutdown();
 
@@ -245,6 +262,51 @@ public class K8sSwitchingHandler {
                 install);
     }
 
+    private void setExtToIntgTunnelTagFlowRules(K8sNode k8sNode, boolean install) {
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchEthSrc(DEFAULT_GATEWAY_MAC)
+                .matchInPort(k8sNode.intgToExtPatchPortNum())
+                .build();
+
+        K8sNetwork net = k8sNetworkService.network(k8sNode.hostname());
+
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
+                .setTunnelId(Long.valueOf(net.segmentId()))
+                .transition(ACL_EGRESS_TABLE);
+
+        k8sFlowRuleService.setRule(
+                appId,
+                k8sNode.intgBridge(),
+                selector,
+                tBuilder.build(),
+                PRIORITY_TUNNEL_TAG_RULE,
+                VTAG_TABLE,
+                install);
+    }
+
+    private void setLocalTunnelTagFlowRules(K8sNode k8sNode, boolean install) {
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchInPort(PortNumber.LOCAL)
+                .build();
+
+        K8sNetwork net = k8sNetworkService.network(k8sNode.hostname());
+
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
+                .setTunnelId(Long.valueOf(net.segmentId()))
+                .transition(ACL_EGRESS_TABLE);
+
+        k8sFlowRuleService.setRule(
+                appId,
+                k8sNode.intgBridge(),
+                selector,
+                tBuilder.build(),
+                PRIORITY_TUNNEL_TAG_RULE,
+                VTAG_TABLE,
+                install);
+    }
+
     private void setGatewayRulesForTunnel(boolean install) {
         k8sNetworkService.networks().forEach(n -> {
             // switching rules for the instPorts in the same node
@@ -353,6 +415,33 @@ public class K8sSwitchingHandler {
             }
 
             setNetworkRules(event.port(), false);
+        }
+    }
+
+    private class InternalK8sNodeListener implements K8sNodeListener {
+
+        private boolean isRelevantHelper() {
+            return Objects.equals(localNodeId, leadershipService.getLeader(appId.name()));
+        }
+
+        @Override
+        public void event(K8sNodeEvent event) {
+            switch (event.type()) {
+                case K8S_NODE_COMPLETE:
+                    eventExecutor.execute(() -> processNodeCompletion(event.subject()));
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void processNodeCompletion(K8sNode k8sNode) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            setExtToIntgTunnelTagFlowRules(k8sNode, true);
+            setLocalTunnelTagFlowRules(k8sNode, true);
         }
     }
 }

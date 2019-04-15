@@ -69,6 +69,8 @@ public final class Constants {
     public static final int PRIORITY_GATEWAY_RULE = 30000;
     public static final int PRIORITY_SWITCHING_RULE = 30000;
     public static final int PRIORITY_CIDR_RULE = 30000;
+    public static final int PRIORITY_STATEFUL_SNAT_RULE = 41000;
+    public static final int PRIORITY_EXTERNAL_ROUTING_RULE = 25000;
     public static final int PRIORITY_ARP_GATEWAY_RULE = 41000;
     public static final int PRIORITY_ARP_SUBNET_RULE = 40000;
     public static final int PRIORITY_ARP_CONTROL_RULE = 40000;
@@ -98,4 +100,5 @@ public final class Constants {
     public static final int VTAP_OUTBOUND_MIRROR_TABLE = 72;
     public static final int FORWARDING_TABLE = 80;
     public static final int ERROR_TABLE = 100;
+    public static final int GW_COMMON_TABLE = 0;
 }
