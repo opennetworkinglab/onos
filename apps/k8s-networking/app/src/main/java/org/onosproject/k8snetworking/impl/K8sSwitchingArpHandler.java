@@ -245,6 +245,10 @@ public class K8sSwitchingArpHandler {
         }
 
         if (replyMac == null) {
+            replyMac = MacAddress.valueOf(gatewayMac);
+        }
+
+        if (replyMac == null) {
             log.debug("Failed to find MAC address for {}", targetIp);
             return;
         }

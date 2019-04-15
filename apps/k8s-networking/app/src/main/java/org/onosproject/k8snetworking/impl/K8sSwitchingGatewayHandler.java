@@ -136,7 +136,7 @@ public class K8sSwitchingGatewayHandler {
             TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
 
             if (node.hostname().equals(k8sNetwork.name())) {
-                tBuilder.setEthDst(node.intBridgeMac())
+                tBuilder.setEthDst(node.intgBridgeMac())
                         .setOutput(PortNumber.LOCAL);
             } else {
                 PortNumber portNum = tunnelPortNumByNetId(k8sNetwork.networkId(),

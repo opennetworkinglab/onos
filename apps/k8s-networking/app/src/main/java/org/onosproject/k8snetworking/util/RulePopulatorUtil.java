@@ -42,6 +42,9 @@ import java.util.List;
 import static org.onosproject.k8snetworking.api.Constants.DST;
 import static org.onosproject.k8snetworking.api.Constants.SRC;
 import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_LOAD;
+import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ARP_SHA_TO_THA;
+import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ARP_SPA_TO_TPA;
+import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ETH_SRC_TO_DST;
 import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_RESUBMIT_TABLE;
 import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_SET_TUNNEL_DST;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -215,8 +218,8 @@ public final class RulePopulatorUtil {
                                                     DeviceId deviceId,
                                                     Ip4Address remoteIp) {
         Device device = deviceService.getDevice(deviceId);
-        if (device != null && !device.is(ExtensionTreatmentResolver.class)) {
-            log.error("The extension treatment is not supported");
+
+        if (!checkTreatmentResolver(device)) {
             return null;
         }
 
@@ -271,8 +274,7 @@ public final class RulePopulatorUtil {
      * @return resubmit extension treatment
      */
     public static ExtensionTreatment buildResubmitExtension(Device device, int tableId) {
-        if (device == null || !device.is(ExtensionTreatmentResolver.class)) {
-            log.warn("Nicira extension treatment is not supported");
+        if (!checkTreatmentResolver(device)) {
             return null;
         }
 
@@ -301,8 +303,7 @@ public final class RulePopulatorUtil {
     public static ExtensionTreatment buildLoadExtension(Device device,
                                                         String ipType,
                                                         String shift) {
-        if (device == null || !device.is(ExtensionTreatmentResolver.class)) {
-            log.warn("Nicira extension treatment is not supported");
+        if (!checkTreatmentResolver(device)) {
             return null;
         }
 
@@ -335,6 +336,52 @@ public final class RulePopulatorUtil {
         }
     }
 
+
+    /**
+     * Returns the nicira move source MAC to destination MAC extension treatment.
+     *
+     * @param device        device instance
+     * @return move extension treatment
+     */
+    public static ExtensionTreatment buildMoveEthSrcToDstExtension(Device device) {
+        if (!checkTreatmentResolver(device)) {
+            return null;
+        }
+
+        ExtensionTreatmentResolver resolver = device.as(ExtensionTreatmentResolver.class);
+        return resolver.getExtensionInstruction(NICIRA_MOV_ETH_SRC_TO_DST.type());
+    }
+
+    /**
+     * Returns the nicira move ARP SHA to THA extension treatment.
+     *
+     * @param device        device instance
+     * @return move extension treatment
+     */
+    public static ExtensionTreatment buildMoveArpShaToThaExtension(Device device) {
+        if (!checkTreatmentResolver(device)) {
+            return null;
+        }
+
+        ExtensionTreatmentResolver resolver = device.as(ExtensionTreatmentResolver.class);
+        return resolver.getExtensionInstruction(NICIRA_MOV_ARP_SHA_TO_THA.type());
+    }
+
+    /**
+     * Returns the nicira move ARP SPA to TPA extension treatment.
+     *
+     * @param device        device instance
+     * @return move extension treatment
+     */
+    public static ExtensionTreatment buildMoveArpSpaToTpaExtension(Device device) {
+        if (!checkTreatmentResolver(device)) {
+            return null;
+        }
+
+        ExtensionTreatmentResolver resolver = device.as(ExtensionTreatmentResolver.class);
+        return resolver.getExtensionInstruction(NICIRA_MOV_ARP_SPA_TO_TPA.type());
+    }
+
     /**
      * Calculate IP address upper string into integer.
      *
@@ -350,6 +397,15 @@ public final class RulePopulatorUtil {
         return firstOctet << 8 | secondOctet;
     }
 
+    private static boolean checkTreatmentResolver(Device device) {
+        if (device == null || !device.is(ExtensionTreatmentResolver.class)) {
+            log.warn("Nicira extension treatment is not supported");
+            return false;
+        }
+
+        return true;
+    }
+
     /**
      * Builder class for OVS Connection Tracking feature actions.
      */
@@ -358,7 +414,8 @@ public final class RulePopulatorUtil {
         private DriverService driverService;
         private DeviceId deviceId;
         private IpAddress natAddress = null;
-        private TpPort natPort = null;
+        private TpPort natPortMin = null;
+        private TpPort natPortMax = null;
         private int zone;
         private boolean commit;
         private short table = -1;
@@ -417,13 +474,24 @@ public final class RulePopulatorUtil {
         }
 
         /**
-         * Sets port for NAT.
+         * Sets min port for NAT.
          *
          * @param port port number
          * @return NiciraConnTrackTreatmentBuilder object
          */
-        public NiciraConnTrackTreatmentBuilder natPort(TpPort port) {
-            this.natPort = port;
+        public NiciraConnTrackTreatmentBuilder natPortMin(TpPort port) {
+            this.natPortMin = port;
+            return this;
+        }
+
+        /**
+         * Sets max port for NAT.
+         *
+         * @param port port number
+         * @return NiciraConnTrackTreatmentBuilder object
+         */
+        public NiciraConnTrackTreatmentBuilder natPortMax(TpPort port) {
+            this.natPortMax = port;
             return this;
         }
 
@@ -468,19 +536,28 @@ public final class RulePopulatorUtil {
                     ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_NAT.type());
             try {
 
-                natTreatment.setPropertyValue(CT_FLAGS, this.natFlag);
+                if (natAddress == null && natPortMin == null && natPortMax == null) {
+                    natTreatment.setPropertyValue(CT_FLAGS, 0);
+                    natTreatment.setPropertyValue(CT_PRESENT_FLAGS, 0);
+                } else {
+                    natTreatment.setPropertyValue(CT_FLAGS, this.natFlag);
 
-                natTreatment.setPropertyValue(CT_PRESENT_FLAGS,
-                        buildPresentFlag(natPort != null, natAddress != null));
+                    natTreatment.setPropertyValue(CT_PRESENT_FLAGS,
+                            buildPresentFlag((natPortMin != null && natPortMax != null),
+                                    natAddress != null));
+                }
 
                 if (natAddress != null) {
                     natTreatment.setPropertyValue(CT_IPADDRESS_MIN, natAddress);
                     natTreatment.setPropertyValue(CT_IPADDRESS_MAX, natAddress);
                 }
 
-                if (natPort != null) {
-                    natTreatment.setPropertyValue(CT_PORT_MIN, natPort.toInt());
-                    natTreatment.setPropertyValue(CT_PORT_MAX, natPort.toInt());
+                if (natPortMin != null) {
+                    natTreatment.setPropertyValue(CT_PORT_MIN, natPortMin.toInt());
+                }
+
+                if (natPortMax != null) {
+                    natTreatment.setPropertyValue(CT_PORT_MAX, natPortMax.toInt());
                 }
 
             } catch (Exception e) {

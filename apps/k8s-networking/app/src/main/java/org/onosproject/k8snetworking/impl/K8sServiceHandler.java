@@ -625,7 +625,9 @@ public class K8sServiceHandler {
 
                     ports.forEach(p -> {
                         ExtensionTreatment ctNatTreatment = connTreatmentBuilder
-                                .natPort(TpPort.tpPort(p.getPort())).build();
+                                .natPortMin(TpPort.tpPort(p.getPort()))
+                                .natPortMax(TpPort.tpPort(p.getPort()))
+                                .build();
                         ExtensionTreatment resubmitTreatment = buildResubmitExtension(
                                 deviceService.getDevice(deviceId), ROUTING_TABLE);
                         TrafficTreatment treatment = DefaultTrafficTreatment.builder()

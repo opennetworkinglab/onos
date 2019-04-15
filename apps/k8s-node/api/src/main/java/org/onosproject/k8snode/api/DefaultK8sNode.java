@@ -32,9 +32,12 @@ import org.onosproject.ovsdb.rfc.table.Interface;
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static org.onosproject.k8snode.api.Constants.EXTERNAL_BRIDGE;
 import static org.onosproject.k8snode.api.Constants.GENEVE_TUNNEL;
 import static org.onosproject.k8snode.api.Constants.GRE_TUNNEL;
 import static org.onosproject.k8snode.api.Constants.INTEGRATION_BRIDGE;
+import static org.onosproject.k8snode.api.Constants.INTEGRATION_TO_EXTERNAL_BRIDGE;
+import static org.onosproject.k8snode.api.Constants.PHYSICAL_EXTERNAL_BRIDGE;
 import static org.onosproject.k8snode.api.Constants.VXLAN_TUNNEL;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 
@@ -44,7 +47,11 @@ import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 public class DefaultK8sNode implements K8sNode {
 
     private static final int DEFAULT_OVSDB_PORT = 6640;
+    private static final String IP_ADDRESS = "ip_address";
     private static final String MAC_ADDRESS = "mac_address";
+    private static final String EXT_INTF = "ext_interface";
+    private static final String EXT_GW_IP = "ext_gw_ip_address";
+    private static final String EXT_GW_MAC = "ext_gw_mac_address";
 
     private final String hostname;
     private final Type type;
@@ -175,7 +182,7 @@ public class DefaultK8sNode implements K8sNode {
     }
 
     @Override
-    public PortNumber intBridgePortNum() {
+    public PortNumber intgBridgePortNum() {
         DeviceService deviceService = DefaultServiceDirectory.getService(DeviceService.class);
         Port port = deviceService.getPorts(intgBridge).stream()
                 .filter(p -> p.isEnabled() &&
@@ -185,18 +192,96 @@ public class DefaultK8sNode implements K8sNode {
     }
 
     @Override
-    public MacAddress intBridgeMac() {
-        OvsdbController ovsdbController =
-                DefaultServiceDirectory.getService(OvsdbController.class);
-        OvsdbNodeId ovsdb = new OvsdbNodeId(this.managementIp, DEFAULT_OVSDB_PORT);
-        OvsdbClientService client = ovsdbController.getOvsdbClient(ovsdb);
+    public MacAddress intgBridgeMac() {
+        OvsdbClientService client = getOvsClient();
+
         if (client == null) {
             return null;
         }
 
-        Interface iface = client.getInterface(INTEGRATION_BRIDGE);
+        Interface iface = getOvsClient().getInterface(INTEGRATION_BRIDGE);
         OvsdbMap data = (OvsdbMap) iface.getExternalIdsColumn().data();
         return MacAddress.valueOf((String) data.map().get(MAC_ADDRESS));
+    }
+
+    @Override
+    public IpAddress extBridgeIp() {
+        OvsdbClientService client = getOvsClient();
+
+        if (client == null) {
+            return null;
+        }
+
+        Interface iface = getOvsClient().getInterface(EXTERNAL_BRIDGE);
+        OvsdbMap data = (OvsdbMap) iface.getExternalIdsColumn().data();
+        return IpAddress.valueOf((String) data.map().get(IP_ADDRESS));
+    }
+
+    @Override
+    public MacAddress extBridgeMac() {
+        OvsdbClientService client = getOvsClient();
+
+        if (client == null) {
+            return null;
+        }
+
+        Interface iface = getOvsClient().getInterface(EXTERNAL_BRIDGE);
+        OvsdbMap data = (OvsdbMap) iface.getExternalIdsColumn().data();
+        return MacAddress.valueOf((String) data.map().get(MAC_ADDRESS));
+    }
+
+    @Override
+    public IpAddress extGatewayIp() {
+        OvsdbClientService client = getOvsClient();
+
+        if (client == null) {
+            return null;
+        }
+
+        Interface iface = getOvsClient().getInterface(EXTERNAL_BRIDGE);
+        OvsdbMap data = (OvsdbMap) iface.getExternalIdsColumn().data();
+        return IpAddress.valueOf((String) data.map().get(EXT_GW_IP));
+    }
+
+    @Override
+    public MacAddress extGatewayMac() {
+        OvsdbClientService client = getOvsClient();
+
+        if (client == null) {
+            return null;
+        }
+
+        Interface iface = getOvsClient().getInterface(EXTERNAL_BRIDGE);
+        OvsdbMap data = (OvsdbMap) iface.getExternalIdsColumn().data();
+        return MacAddress.valueOf((String) data.map().get(EXT_GW_MAC));
+    }
+
+    @Override
+    public PortNumber intgToExtPatchPortNum() {
+        return portNumber(intgBridge, INTEGRATION_TO_EXTERNAL_BRIDGE);
+    }
+
+    @Override
+    public PortNumber extToIntgPatchPortNum() {
+        return portNumber(extBridge, PHYSICAL_EXTERNAL_BRIDGE);
+    }
+
+    @Override
+    public PortNumber extBridgePortNum() {
+        OvsdbClientService client = getOvsClient();
+
+        if (client == null) {
+            return null;
+        }
+
+        Interface iface = getOvsClient().getInterface(EXTERNAL_BRIDGE);
+        OvsdbMap data = (OvsdbMap) iface.getExternalIdsColumn().data();
+        String extIface = (String) data.map().get(EXT_INTF);
+        if (extIface == null) {
+            return null;
+        }
+
+        return portNumber(extBridge, extIface);
     }
 
     @Override
@@ -243,12 +328,29 @@ public class DefaultK8sNode implements K8sNode {
         if (dataIp == null) {
             return null;
         }
+
+        return portNumber(intgBridge, tunnelType);
+    }
+
+    private PortNumber portNumber(DeviceId deviceId, String portName) {
         DeviceService deviceService = DefaultServiceDirectory.getService(DeviceService.class);
-        Port port = deviceService.getPorts(intgBridge).stream()
+        Port port = deviceService.getPorts(deviceId).stream()
                 .filter(p -> p.isEnabled() &&
-                        Objects.equals(p.annotations().value(PORT_NAME), tunnelType))
+                        Objects.equals(p.annotations().value(PORT_NAME), portName))
                 .findAny().orElse(null);
         return port != null ? port.number() : null;
+    }
+
+    private OvsdbClientService getOvsClient() {
+        OvsdbController ovsdbController =
+                DefaultServiceDirectory.getService(OvsdbController.class);
+        OvsdbNodeId ovsdb = new OvsdbNodeId(this.managementIp, DEFAULT_OVSDB_PORT);
+        OvsdbClientService client = ovsdbController.getOvsdbClient(ovsdb);
+        if (client == null) {
+            return null;
+        }
+
+        return client;
     }
 
     /**
