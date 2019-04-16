@@ -67,7 +67,7 @@
         overlaid on the above. This is the blue box, and its width and height does
         not change
     -->
-    <svg:rect x="-16" y="-16" width="32" height="32" [ngStyle]="{'fill': panelColour(0)}">
+    <svg:rect x="-16" y="-16" width="32" height="32" [ngStyle]="{'fill': panelColor}">
     </svg:rect>
     <svg:path *ngIf="device.location && device.location.locType != 'none'"
               d="M-15 12 v3 h5" style="stroke: white; stroke-width: 1; fill: none"></svg:path>

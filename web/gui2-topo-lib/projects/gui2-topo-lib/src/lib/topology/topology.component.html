@@ -23,7 +23,7 @@ the local variable - this is used to display messages when keyboard shortcuts ar
     These are referenced inside the typescript by @ViewChild and their label
 -->
 <onos-instance #instance [divTopPx]="80"
-               (mastershipEvent)="force.onosInstMastership = $event"
+               (mastershipEvent)="force.changeInstSelection($event)"
                [on]="prefsState.insts">
 </onos-instance>
 <onos-summary #summary [on]="prefsState.summary"></onos-summary>

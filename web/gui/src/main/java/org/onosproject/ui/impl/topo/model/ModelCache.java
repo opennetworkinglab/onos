@@ -191,7 +191,13 @@ class ModelCache {
         // To think about:: do we need to store mastership info?
         //  or can we rely on looking it up live?
         // TODO: store the updated mastership information
-        // TODO: post event
+        UiDevice uiDevice = uiTopology.findDevice(deviceId);
+        ObjectNode data = t2json != null ? t2json.jsonUiElement(uiDevice) : null;
+        String oldMaster = data.get("master").asText();
+        NodeId newMaster = roleInfo.master();
+        data.put("master", newMaster.toString());
+        log.debug("Changed master of {} to {} (was {})", deviceId, newMaster.toString(), oldMaster);
+        dispatcher.post(new UiModelEvent(DEVICE_ADDED_OR_UPDATED, uiDevice, data, MEMO_UPDATED));
     }
 
     // === THE NULL REGION

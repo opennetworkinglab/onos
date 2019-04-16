@@ -15,7 +15,7 @@
 -->
 <div id="topo-p-instance" class="floatpanel" [ngStyle]="{'left': '20px', 'top':divTopPx+'px', 'width': (onosInstances.length * 170)+'px', 'height': '85px'}" [@instancePanelState]="on">
     <div *ngFor="let inst of onosInstances | keyvalue ; let i=index"
-         [ngClass]="['onosInst', inst.value.online?'online':'', inst.value.ready? 'ready': '', mastership?'mastership':'', 'affinity']"
+         [ngClass]="['onosInst', inst.value.online?'online':'', inst.value.ready? 'ready': '', mastership===inst.value.id?'mastership':'', 'affinity']"
             (click)="chooseMastership(inst.value.id)">
         <svg xmlns="http://www.w3.org/2000/svg" width="170" height="85" viewBox="0 0 170 85">
             <!-- The following blue-glow effect is applied (through CSS) when mastership style is activated on a rectangle -->

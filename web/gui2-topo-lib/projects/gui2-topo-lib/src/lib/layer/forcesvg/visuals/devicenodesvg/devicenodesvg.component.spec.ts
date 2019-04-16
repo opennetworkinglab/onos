@@ -16,12 +16,13 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { DeviceNodeSvgComponent } from './devicenodesvg.component';
-import {FnService, IconService, LogService} from 'gui2-fw-lib';
+import {FnService, IconService, LogService, SvgUtilService} from 'gui2-fw-lib';
 import {ActivatedRoute, Params} from '@angular/router';
 import {of} from 'rxjs';
 import {ChangeDetectorRef} from '@angular/core';
 import {Device} from '../../models';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import {TopologyService} from '../../../../topology.service';
 
 class MockActivatedRoute extends ActivatedRoute {
     constructor(params: Params) {
@@ -32,6 +33,40 @@ class MockActivatedRoute extends ActivatedRoute {
 
 class MockIconService {
     loadIconDef() { }
+}
+
+class MockSvgUtilService {
+
+    cat7() {
+        const tcid = 'd3utilTestCard';
+
+        function getColor(id, muted, theme) {
+            // NOTE: since we are lazily assigning domain ids, we need to
+            //       get the color from all 4 scales, to keep the domains
+            //       in sync.
+            const ln = '#5b99d2';
+            const lm = '#9ebedf';
+            const dn = '#5b99d2';
+            const dm = '#9ebedf';
+            if (theme === 'dark') {
+                return muted ? dm : dn;
+            } else {
+                return muted ? lm : ln;
+            }
+        }
+
+        return {
+            // testCard: testCard,
+            getColor: getColor,
+        };
+    }
+}
+
+class MockTopologyService {
+    public instancesIndex: Map<string, number>;
+    constructor() {
+        this.instancesIndex = new Map();
+    }
 }
 
 describe('DeviceNodeSvgComponent', () => {
@@ -71,6 +106,8 @@ describe('DeviceNodeSvgComponent', () => {
                 { provide: ActivatedRoute, useValue: ar },
                 { provide: ChangeDetectorRef, useClass: ChangeDetectorRef },
                 { provide: IconService, useClass: MockIconService },
+                { provide: SvgUtilService, useClass: MockSvgUtilService },
+                { provide: TopologyService, useClass: MockTopologyService },
                 { provide: 'Window', useValue: windowMock },
             ]
         })

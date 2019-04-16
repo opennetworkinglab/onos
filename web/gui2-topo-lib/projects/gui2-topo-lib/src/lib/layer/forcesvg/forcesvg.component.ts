@@ -28,7 +28,7 @@ import {
     SimpleChanges,
     ViewChildren
 } from '@angular/core';
-import {LocMeta, LogService, MetaUi, WebSocketService, ZoomUtils} from 'gui2-fw-lib';
+import {LocMeta, LogService, MetaUi, SvgUtilService, WebSocketService, ZoomUtils} from 'gui2-fw-lib';
 import {
     Device,
     DeviceProps,
@@ -256,6 +256,21 @@ export class ForceSvgComponent implements OnInit, OnChanges {
     }
 
     /**
+     * If instance has a value then mute colors of devices not connected to it
+     * Otherwise if instance does not have a value unmute all
+     * @param instanceName name of the selected instance
+     */
+    changeInstSelection(instanceName: string) {
+        this.log.debug('Mastership changed', instanceName);
+        this.devices.filter((d) => d.device.master !== instanceName)
+            .forEach((d) => {
+                const isMuted = Boolean(instanceName);
+                d.ngOnChanges({'colorMuted': new SimpleChange(!isMuted, isMuted, true)});
+            }
+        );
+    }
+
+    /**
      * If a node has a fixed location then assign it to fx and fy so
      * that it doesn't get affected by forces
      * @param graphNode The node whose location should be processed
@@ -397,6 +412,11 @@ export class ForceSvgComponent implements OnInit, OnChanges {
                         if (changes.locationChanged) {
                             this.fixPosition(oldDevice);
                         }
+                        const svgDevice: DeviceNodeSvgComponent =
+                            this.devices.find((svgdevice) => svgdevice.device.id === subject);
+                        svgDevice.ngOnChanges({'device':
+                                new SimpleChange(<Device>{}, oldDevice, true)
+                        });
                     }
                 } else {
                     this.log.warn('Device ', memo, ' - not yet implemented', data);

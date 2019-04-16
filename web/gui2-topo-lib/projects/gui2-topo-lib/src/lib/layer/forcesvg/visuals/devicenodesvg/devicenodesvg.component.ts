@@ -19,7 +19,7 @@ import {
     Component,
     EventEmitter,
     Input,
-    OnChanges, Output,
+    OnChanges, OnInit, Output,
     SimpleChanges,
 } from '@angular/core';
 import {Device, LabelToggle, UiElement} from '../../models';
@@ -27,6 +27,7 @@ import {IconService, LocMeta, LogService, MetaUi, SvgUtilService, ZoomUtils} fro
 import {NodeVisual, SelectedEvent} from '../nodevisual';
 import {animate, state, style, transition, trigger} from '@angular/animations';
 import {LocationType} from '../../../backgroundsvg/backgroundsvg.component';
+import {TopologyService} from '../../../../topology.service';
 
 /**
  * The Device node in the force graph
@@ -64,19 +65,28 @@ import {LocationType} from '../../../backgroundsvg/backgroundsvg.component';
         ])
     ]
 })
-export class DeviceNodeSvgComponent extends NodeVisual implements OnChanges {
+export class DeviceNodeSvgComponent extends NodeVisual implements OnInit, OnChanges {
     @Input() device: Device;
     @Input() scale: number = 1.0;
     @Input() labelToggle: LabelToggle.Enum = LabelToggle.Enum.NONE;
+    @Input() colorMuted: boolean = false;
+    @Input() colorTheme: string = 'light';
     @Output() selectedEvent = new EventEmitter<SelectedEvent>();
     textWidth: number = 36;
+    panelColor: string = '#9ebedf';
+
     constructor(
         protected log: LogService,
         private is: IconService,
         protected sus: SvgUtilService,
+        protected ts: TopologyService,
         private ref: ChangeDetectorRef
     ) {
         super();
+    }
+
+    ngOnInit(): void {
+        this.panelColor = this.panelColour();
     }
 
     /**
@@ -92,6 +102,13 @@ export class DeviceNodeSvgComponent extends NodeVisual implements OnChanges {
                 this.device.x = 0;
                 this.device.y = 0;
             }
+            // The master might have changed - recalculate color
+            this.panelColor = this.panelColour();
+        }
+
+        if (changes['colorMuted']) {
+            this.colorMuted = changes['colorMuted'].currentValue;
+            this.panelColor = this.panelColour();
         }
         this.ref.markForCheck();
     }
@@ -137,7 +154,8 @@ export class DeviceNodeSvgComponent extends NodeVisual implements OnChanges {
      * Get a colour for the banner of the nth panel
      * @param idx The index of the panel (0-6)
      */
-    panelColour(idx: number): string {
-        return this.sus.cat7().getColor(idx, false, '');
+    panelColour(): string {
+        const idx = this.ts.instancesIndex.get(this.device.master);
+        return this.sus.cat7().getColor(idx, this.colorMuted, this.colorTheme);
     }
 }

@@ -17,7 +17,7 @@ import {Injectable, SimpleChange} from '@angular/core';
 import {
     LogService, WebSocketService,
 } from 'gui2-fw-lib';
-import { InstanceComponent } from './panel/instance/instance.component';
+import {Instance, InstanceComponent} from './panel/instance/instance.component';
 import { BackgroundSvgComponent } from './layer/backgroundsvg/backgroundsvg.component';
 import { ForceSvgComponent } from './layer/forcesvg/forcesvg.component';
 import {
@@ -34,11 +34,13 @@ export class TopologyService {
 
     private handlers: string[] = [];
     private openListener: any;
+    public instancesIndex: Map<string, number>;
 
     constructor(
         protected log: LogService,
         protected wss: WebSocketService
     ) {
+        this.instancesIndex = new Map();
         this.log.debug('TopologyService constructed');
     }
 
@@ -50,7 +52,14 @@ export class TopologyService {
         this.wss.bindHandlers(new Map<string, (data) => void>([
             ['topo2AllInstances', (data) => {
                     this.log.debug('Instances updated through WSS as topo2AllInstances', data);
-                    instance.onosInstances = data.members;
+                    instance.ngOnChanges(
+                        {'onosInstances': new SimpleChange({}, data.members, true)});
+
+                    // Also generate an index locally of the instances
+                    // needed so that devices can be coloured by instance
+                    this.instancesIndex.clear();
+                    (<Instance[]>data.members).forEach((inst, idx) => this.instancesIndex.set(inst.id, idx));
+                    this.log.debug('Created local index of instances', this.instancesIndex);
                 }
             ],
             ['topo2CurrentLayout', (data) => {
