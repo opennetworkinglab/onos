@@ -162,11 +162,11 @@ public class FlowRuleManager
 
     @Activate
     public void activate(ComponentContext context) {
-        modified(context);
         store.setDelegate(delegate);
         eventDispatcher.addSink(FlowRuleEvent.class, listenerRegistry);
         deviceService.addListener(deviceListener);
         cfgService.registerProperties(getClass());
+        modified(context);
         idGenerator = coreService.getIdGenerator(FLOW_OP_TOPIC);
         log.info("Started");
     }
