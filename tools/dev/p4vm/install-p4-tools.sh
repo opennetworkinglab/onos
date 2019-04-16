@@ -232,6 +232,9 @@ function do_bmv2 {
     ./autogen.sh
 
     confOpts="--with-pi --disable-elogger --without-nanomsg --without-targets"
+    # We are building --without-targets but we know for sure we need those
+    # parts of the BMv2 PI library for simple_switch.
+    cppFlags="-I${PWD}/targets/simple_switch -DWITH_SIMPLE_SWITCH"
     if [[ "${FAST_BUILD}" = true ]] ; then
         confOpts="${confOpts} --disable-dependency-tracking"
     fi
@@ -239,9 +242,10 @@ function do_bmv2 {
         confOpts="${confOpts} --disable-logging-macros"
     fi
     if [[ "${USE_STRATUM}" = true ]] ; then
-        confOpts="CPPFLAGS=\"-isystem${BMV2_INSTALL}/include\" --prefix=${BMV2_INSTALL} --without-thrift ${confOpts}"
+        confOpts="--prefix=${BMV2_INSTALL} --without-thrift ${confOpts}"
+        cppFlags="${cppFlags} -isystem${BMV2_INSTALL}/include"
     fi
-    confCmd="./configure ${confOpts}"
+    confCmd="./configure CPPFLAGS=\"${cppFlags}\" ${confOpts}"
     eval ${confCmd}
 
     make -j${NUM_CORES}
