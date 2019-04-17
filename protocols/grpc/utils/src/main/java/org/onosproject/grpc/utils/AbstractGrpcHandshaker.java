@@ -17,6 +17,7 @@
 package org.onosproject.grpc.utils;
 
 import com.google.common.util.concurrent.Striped;
+import io.grpc.ConnectivityState;
 import io.grpc.ManagedChannel;
 import org.onosproject.grpc.api.GrpcChannelController;
 import org.onosproject.grpc.api.GrpcClient;
@@ -159,6 +160,7 @@ public abstract class AbstractGrpcHandshaker
         if (!setupBehaviour("probeReachability()")) {
             return completedFuture(false);
         }
+        resetChannelConnectBackoffIfNeeded();
         return client.probeService();
     }
 
@@ -174,5 +176,27 @@ public abstract class AbstractGrpcHandshaker
         // Don't use controller/deviceId class variable as they might be uninitialized.
         handler().get(controllerClass)
                 .removeDeviceAgentListener(data().deviceId(), providerId);
+    }
+
+    private void resetChannelConnectBackoffIfNeeded()  {
+        // Stimulate channel reconnect if in failure state.
+        final ManagedChannel channel = getExistingChannel();
+        if (channel == null) {
+            // Where did the channel go?
+            return;
+        }
+        if (channel.getState(false)
+                        .equals(ConnectivityState.TRANSIENT_FAILURE)) {
+            channel.resetConnectBackoff();
+        }
+    }
+
+    private ManagedChannel getExistingChannel() {
+        final DeviceId deviceId = data().deviceId();
+        if (CHANNEL_URIS.containsKey(deviceId)) {
+            return handler().get(GrpcChannelController.class)
+                    .get(CHANNEL_URIS.get(deviceId)).orElse(null);
+        }
+        return null;
     }
 }

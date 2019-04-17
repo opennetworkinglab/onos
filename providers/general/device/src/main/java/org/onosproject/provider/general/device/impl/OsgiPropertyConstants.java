@@ -26,7 +26,7 @@ public final class OsgiPropertyConstants {
     public static final String STATS_POLL_INTERVAL = "statsPollInterval";
     public static final int STATS_POLL_INTERVAL_DEFAULT = 10;
 
-    public static final String PROBE_INTERVAL = "probeInterval";
-    public static final int PROBE_INTERVAL_DEFAULT = 10;
+    public static final String CHECKUP_INTERVAL = "checkupInterval";
+    public static final int CHECKUP_INTERVAL_DEFAULT = 10;
 
 }

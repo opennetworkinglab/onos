@@ -187,7 +187,12 @@ public final class StreamClientImpl implements P4RuntimeStreamClient {
                          deviceId, requestedToBeMaster.get(),
                          pendingElectionId, masterElectionId,
                          streamChannelManager.isOpen());
+                // Optimistically set the reported master status, if wrong, it
+                // will be updated by the arbitration response. This alleviates
+                // race conditions when calling isMaster() right after setting
+                // mastership.
                 sendMasterArbitrationUpdate(pendingElectionId);
+                isMaster.set(requestedToBeMaster.get());
                 pendingElectionId = null;
                 pendingElectionIdTimestamp = 0;
                 // No need to listen for master election ID changes.
@@ -199,7 +204,9 @@ public final class StreamClientImpl implements P4RuntimeStreamClient {
     @Override
     public boolean isMaster(long p4DeviceId) {
         checkArgument(this.p4DeviceId == p4DeviceId);
-        return isMaster.get();
+        synchronized (requestedToBeMaster) {
+            return isMaster.get();
+        }
     }
 
     @Override
@@ -397,16 +404,11 @@ public final class StreamClientImpl implements P4RuntimeStreamClient {
         void signalClosed() {
             synchronized (this) {
                 final boolean wasOpen = open.getAndSet(false);
-                // FIXME: in case of device disconnection, all clients will
-                //  signal role NONE, preventing the DeviceManager to mark the
-                //  device as offline, as only the master can do that. We should
-                //  change the DeviceManager. For now, we disable signaling role
-                //  NONE.
-                // if (wasOpen) {
-                //     // We lost any valid mastership role.
-                //     controller.postEvent(new DeviceAgentEvent(
-                //             DeviceAgentEvent.Type.ROLE_NONE, deviceId));
-                // }
+                if (wasOpen) {
+                    // We lost any valid mastership role.
+                    controller.postEvent(new DeviceAgentEvent(
+                            DeviceAgentEvent.Type.ROLE_NONE, deviceId));
+                }
             }
         }
 
