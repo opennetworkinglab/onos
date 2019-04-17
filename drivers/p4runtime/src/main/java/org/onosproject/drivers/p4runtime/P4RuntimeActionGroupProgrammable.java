@@ -112,8 +112,8 @@ public class P4RuntimeActionGroupProgrammable
                         return;
                     }
                     GroupDescription groupDesc = new DefaultGroupDescription(
-                            deviceId, op.groupType(), op.buckets(), groupOnStore.appCookie(),
-                            op.groupId().id(), groupOnStore.appId());
+                            deviceId, groupOnStore.type(), groupOnStore.buckets(), groupOnStore.appCookie(),
+                            groupOnStore.id().id(), groupOnStore.appId());
                     DefaultGroup groupToApply = new DefaultGroup(op.groupId(), groupDesc);
                     processPdGroup(groupToApply, op.opType());
                 });
