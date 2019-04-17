@@ -23,6 +23,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import org.onlab.packet.EthType;
+import com.google.common.collect.Streams;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpPrefix;
@@ -59,6 +60,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -694,56 +696,82 @@ public class DefaultRoutingHandler {
                               route.get(0), route.get(1), nhops);
                     perDstNextHops.put(route.get(1), nhops);
                 });
-                Set<IpPrefix> ipDev1 = (subnets == null) ? config.getSubnets(ep.dev1)
-                                                         : subnets;
-                Set<IpPrefix> ipDev2 = (subnets == null) ? config.getSubnets(ep.dev2)
-                                                         : subnets;
-                ipDev1 = (ipDev1 == null) ? Sets.newHashSet() : ipDev1;
-                ipDev2 = (ipDev2 == null) ? Sets.newHashSet() : ipDev2;
+
+                List<Set<IpPrefix>> batchedSubnetDev1, batchedSubnetDev2;
+                if (subnets != null) {
+                    batchedSubnetDev1 = Lists.<Set<IpPrefix>>newArrayList(Sets.newHashSet(subnets));
+                    batchedSubnetDev2 = Lists.<Set<IpPrefix>>newArrayList(Sets.newHashSet(subnets));
+                } else {
+                    batchedSubnetDev1 = config.getBatchedSubnets(ep.dev1);
+                    batchedSubnetDev2 = config.getBatchedSubnets(ep.dev2);
+                }
+                List<Set<IpPrefix>> batchedSubnetBoth = Streams
+                        .zip(batchedSubnetDev1.stream(), batchedSubnetDev2.stream(), (a, b) -> Sets.intersection(a, b))
+                        .filter(set -> !set.isEmpty())
+                        .collect(Collectors.toList());
+                List<Set<IpPrefix>> batchedSubnetDev1Only = Streams
+                        .zip(batchedSubnetDev1.stream(), batchedSubnetDev2.stream(), (a, b) -> Sets.difference(a, b))
+                        .filter(set -> !set.isEmpty())
+                        .collect(Collectors.toList());
+                List<Set<IpPrefix>> batchedSubnetDev2Only = Streams
+                        .zip(batchedSubnetDev1.stream(), batchedSubnetDev2.stream(), (a, b) -> Sets.difference(b, a))
+                        .filter(set -> !set.isEmpty())
+                        .collect(Collectors.toList());
+
                 Set<DeviceId> nhDev1 = perDstNextHops.get(ep.dev1);
                 Set<DeviceId> nhDev2 = perDstNextHops.get(ep.dev2);
+
                 // handle routing to subnets common to edge-pair
                 // only if the targetSw is not part of the edge-pair and there
                 // exists a next hop to at least one of the devices in the edge-pair
                 if (!ep.includes(targetSw)
-                        && ((nhDev1 != null && !nhDev1.isEmpty())
-                                || (nhDev2 != null && !nhDev2.isEmpty()))) {
-                    if (!populateEcmpRoutingRulePartial(
-                             targetSw,
-                             ep.dev1, ep.dev2,
-                             perDstNextHops,
-                             Sets.intersection(ipDev1, ipDev2))) {
-                        return false; // abort everything and fail fast
+                        && ((nhDev1 != null && !nhDev1.isEmpty()) || (nhDev2 != null && !nhDev2.isEmpty()))) {
+                    log.trace("getSubnets on both {} and {}: {}", ep.dev1, ep.dev2, batchedSubnetBoth);
+                    for (Set<IpPrefix> prefixes : batchedSubnetBoth) {
+                        if (!populateEcmpRoutingRulePartial(
+                                targetSw,
+                                ep.dev1, ep.dev2,
+                                perDstNextHops,
+                                prefixes)) {
+                            return false; // abort everything and fail fast
+                        }
                     }
+
                 }
                 // handle routing to subnets that only belong to dev1 only if
                 // a next-hop exists from the target to dev1
-                Set<IpPrefix> onlyDev1Subnets = Sets.difference(ipDev1, ipDev2);
-                if (!onlyDev1Subnets.isEmpty()
-                        && nhDev1 != null  && !nhDev1.isEmpty()) {
+                if (!batchedSubnetDev1Only.isEmpty() &&
+                        batchedSubnetDev1Only.stream().anyMatch(subnet -> !subnet.isEmpty()) &&
+                        nhDev1 != null  && !nhDev1.isEmpty()) {
                     Map<DeviceId, Set<DeviceId>> onlyDev1NextHops = new HashMap<>();
                     onlyDev1NextHops.put(ep.dev1, nhDev1);
-                    if (!populateEcmpRoutingRulePartial(
-                            targetSw,
-                            ep.dev1, null,
-                            onlyDev1NextHops,
-                            onlyDev1Subnets)) {
-                        return false; // abort everything and fail fast
+                    log.trace("getSubnets on {} only: {}", ep.dev1, batchedSubnetDev1Only);
+                    for (Set<IpPrefix> prefixes : batchedSubnetDev1Only) {
+                        if (!populateEcmpRoutingRulePartial(
+                                targetSw,
+                                ep.dev1, null,
+                                onlyDev1NextHops,
+                                prefixes)) {
+                            return false; // abort everything and fail fast
+                        }
                     }
                 }
                 // handle routing to subnets that only belong to dev2 only if
                 // a next-hop exists from the target to dev2
-                Set<IpPrefix> onlyDev2Subnets = Sets.difference(ipDev2, ipDev1);
-                if (!onlyDev2Subnets.isEmpty()
-                        && nhDev2 != null && !nhDev2.isEmpty()) {
+                if (!batchedSubnetDev2Only.isEmpty() &&
+                        batchedSubnetDev2Only.stream().anyMatch(subnet -> !subnet.isEmpty()) &&
+                        nhDev2 != null && !nhDev2.isEmpty()) {
                     Map<DeviceId, Set<DeviceId>> onlyDev2NextHops = new HashMap<>();
                     onlyDev2NextHops.put(ep.dev2, nhDev2);
-                    if (!populateEcmpRoutingRulePartial(
-                            targetSw,
-                            ep.dev2, null,
-                            onlyDev2NextHops,
-                            onlyDev2Subnets)) {
-                        return false; // abort everything and fail fast
+                    log.trace("getSubnets on {} only: {}", ep.dev2, batchedSubnetDev2Only);
+                    for (Set<IpPrefix> prefixes : batchedSubnetDev2Only) {
+                        if (!populateEcmpRoutingRulePartial(
+                                targetSw,
+                                ep.dev2, null,
+                                onlyDev2NextHops,
+                                prefixes)) {
+                            return false; // abort everything and fail fast
+                        }
                     }
                 }
             }
@@ -860,9 +888,12 @@ public class DefaultRoutingHandler {
         }
 
         if (targetIsEdge && dest1IsEdge) {
-            subnets = (subnets != null && !subnets.isEmpty())
-                            ? Sets.newHashSet(subnets)
-                            : Sets.newHashSet(config.getSubnets(destSw1));
+            List<Set<IpPrefix>> batchedSubnets;
+            if (subnets != null && !subnets.isEmpty()) {
+                batchedSubnets = Lists.<Set<IpPrefix>>newArrayList(Sets.newHashSet(subnets));
+            } else {
+                batchedSubnets = config.getBatchedSubnets(destSw1);
+            }
             // XXX - Rethink this - ignoring routerIPs in all other switches
             // even edge to edge switches
             /*subnets.add(dest1RouterIpv4.toIpPrefix());
@@ -875,15 +906,15 @@ public class DefaultRoutingHandler {
                     subnets.add(dest2RouterIpv6.toIpPrefix());
                 }
             }*/
-            log.debug(". populateEcmpRoutingRulePartial in device {} towards {} {} "
-                    + "for subnets {}", targetSw, destSw1,
-                                        (destSw2 != null) ? ("& " + destSw2) : "",
-                                        subnets);
-            result = rulePopulator.populateIpRuleForSubnet(targetSw, subnets,
-                                                           destSw1, destSw2,
-                                                           nextHops);
-            if (!result) {
-                return false;
+            log.trace("getSubnets on {}: {}", destSw1, batchedSubnets);
+            for (Set<IpPrefix> prefixes : batchedSubnets) {
+                log.debug(". populateEcmpRoutingRulePartial in device {} towards {} {} "
+                                + "for subnets {}", targetSw, destSw1,
+                        (destSw2 != null) ? ("& " + destSw2) : "",
+                        prefixes);
+                if (!rulePopulator.populateIpRuleForSubnet(targetSw, prefixes, destSw1, destSw2, nextHops)) {
+                    return false;
+                }
             }
         }
 

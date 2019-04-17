@@ -242,7 +242,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     public TopologyService topologyService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    RouteService routeService;
+    public RouteService routeService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     public NetworkConfigRegistry cfgService;
@@ -1223,7 +1223,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      * @param resolvedRoute resolved route
      * @return locations of nexthop. Might be empty if next hop is not found
      */
-    Set<ConnectPoint> nextHopLocations(ResolvedRoute resolvedRoute) {
+    public Set<ConnectPoint> nextHopLocations(ResolvedRoute resolvedRoute) {
         HostId hostId = HostId.hostId(resolvedRoute.nextHopMac(), resolvedRoute.nextHopVlan());
         return Optional.ofNullable(hostService.getHost(hostId))
                 .map(Host::locations).orElse(Sets.newHashSet())
