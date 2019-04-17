@@ -29,8 +29,6 @@ import org.onosproject.driver.extensions.OfdpaSetVlanVid;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.flow.criteria.Criterion;
-import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
@@ -101,7 +99,7 @@ public class Ofdpa3GroupHandler extends Ofdpa2GroupHandler {
         );
         if (groupInfo == null) {
             log.error("Could not process nextObj={} in dev:{}", nextObjective.id(), deviceId);
-            Ofdpa2Pipeline.fail(nextObjective, ObjectiveError.GROUPINSTALLATIONFAILED);
+            OfdpaPipelineUtility.fail(nextObjective, ObjectiveError.GROUPINSTALLATIONFAILED);
             return;
         }
         // We update the chain with the last two groups;
@@ -128,7 +126,7 @@ public class Ofdpa3GroupHandler extends Ofdpa2GroupHandler {
             log.error("Next Objective for pseudo wire should have at "
                               + "most {} mpls instruction sets. Next Objective Id:{}",
                       MAX_DEPTH_UNPROTECTED_PW, nextObjective.id());
-            Ofdpa2Pipeline.fail(nextObjective, ObjectiveError.BADPARAMS);
+            OfdpaPipelineUtility.fail(nextObjective, ObjectiveError.BADPARAMS);
             return;
         }
 
@@ -485,30 +483,6 @@ public class Ofdpa3GroupHandler extends Ofdpa2GroupHandler {
         log.debug("Trying L2Unfiltered: device:{} gid:{} gkey:{} nextId:{}",
                   deviceId, Integer.toHexString(l2groupId), l2groupkey, nextId);
         return new GroupInfo(l2groupDescription, outerGrpDesc);
-    }
-
-    /**
-     * Helper method to decide whether L2 Interface group or L2 Unfiltered group needs to be created.
-     * L2 Unfiltered group will be created if meta has VlanIdCriterion with VlanId.ANY, and
-     * treatment has set Vlan ID action.
-     *
-     * @param treatment  treatment passed in by the application as part of the nextObjective
-     * @param meta       metadata passed in by the application as part of the nextObjective
-     * @return true if L2 Unfiltered group needs to be created, false otherwise.
-     */
-    private boolean isUnfiltered(TrafficTreatment treatment, TrafficSelector meta) {
-        if (meta == null || treatment == null) {
-            return false;
-        }
-        VlanIdCriterion vlanIdCriterion = (VlanIdCriterion) meta.getCriterion(Criterion.Type.VLAN_VID);
-        if (vlanIdCriterion == null || !vlanIdCriterion.vlanId().equals(VlanId.ANY)) {
-            return false;
-        }
-
-        return treatment.allInstructions().stream()
-                .filter(i -> (i.type() == Instruction.Type.L2MODIFICATION
-                        && ((L2ModificationInstruction) i).subtype() == L2ModificationInstruction.L2SubType.VLAN_ID))
-                .count() == 1;
     }
 
 }

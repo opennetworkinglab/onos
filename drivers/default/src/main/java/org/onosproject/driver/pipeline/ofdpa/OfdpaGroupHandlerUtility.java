@@ -51,7 +51,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static org.onosproject.driver.pipeline.ofdpa.Ofdpa2Pipeline.isNotMplsBos;
+import static org.onosproject.driver.pipeline.ofdpa.OfdpaPipelineUtility.isNotMplsBos;
 import static org.onosproject.driver.pipeline.ofdpa.OfdpaGroupHandlerUtility.OfdpaMplsGroupSubType.OFDPA_GROUP_TYPE_SHIFT;
 import static org.onosproject.driver.pipeline.ofdpa.OfdpaGroupHandlerUtility.OfdpaMplsGroupSubType.OFDPA_MPLS_SUBTYPE_SHIFT;
 import static org.onosproject.net.flowobjective.NextObjective.Type.HASHED;
@@ -792,6 +792,30 @@ public final class OfdpaGroupHandlerUtility {
     public static int doubleVlanL3UnicastGroupId(VlanId vlanId, long portNum) {
         // <4bits-2><1bit-1><12bits-vlanId><15bits-portId>
         return L3_UNICAST_TYPE | 1 << 27 | (vlanId.toShort() << 15) | (int) (portNum & 0x7FFF);
+    }
+
+    /**
+     * Helper method to decide whether L2 Interface group or L2 Unfiltered group needs to be created.
+     * L2 Unfiltered group will be created if meta has VlanIdCriterion with VlanId.ANY, and
+     * treatment has set Vlan ID action.
+     *
+     * @param treatment  treatment passed in by the application as part of the nextObjective
+     * @param meta       metadata passed in by the application as part of the nextObjective
+     * @return true if L2 Unfiltered group needs to be created, false otherwise.
+     */
+     static boolean isUnfiltered(TrafficTreatment treatment, TrafficSelector meta) {
+        if (meta == null || treatment == null) {
+            return false;
+        }
+        VlanIdCriterion vlanIdCriterion = (VlanIdCriterion) meta.getCriterion(Criterion.Type.VLAN_VID);
+        if (vlanIdCriterion == null || !vlanIdCriterion.vlanId().equals(VlanId.ANY)) {
+            return false;
+        }
+
+        return treatment.allInstructions().stream()
+                .filter(i -> (i.type() == Instruction.Type.L2MODIFICATION
+                        && ((L2ModificationInstruction) i).subtype() == L2ModificationInstruction.L2SubType.VLAN_ID))
+                .count() == 1;
     }
 
 }
