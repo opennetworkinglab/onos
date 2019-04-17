@@ -39,9 +39,6 @@ sed -i".VERBACK" -E "s/-DarchetypeVersion=[^\"]*/-DarchetypeVersion=$NEW_VERSION
 # Fix the onos-build-conf version
 sed -i".VERBACK" -E "s/<onos-build-conf.version>.*<\/onos-build-conf.version>/<onos-build-conf.version>$NEW_VERSION<\/onos-build-conf.version>/g" $ONOS_ROOT/lib/pom.xml
 
-# Version the BUCK artifacts
-sed -i".VERBACK" -E "s/ONOS_VERSION=.*/ONOS_VERSION='$NEW_VERSION'/" tools/build/onos-prepare-sonar
-
 # Version the bazel artifacts
 sed -i".VERBACK" -E "s/ONOS_VERSION.*/ONOS_VERSION = \"$NEW_VERSION\"/" tools/build/bazel/variables.bzl
 
