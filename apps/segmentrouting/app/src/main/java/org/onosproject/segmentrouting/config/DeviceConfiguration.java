@@ -20,8 +20,10 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
+import com.google.common.collect.Sets;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpAddress;
@@ -35,6 +37,7 @@ import org.onosproject.net.config.ConfigException;
 import org.onosproject.net.config.basics.InterfaceConfig;
 import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.intf.Interface;
+import org.onosproject.routeservice.Route;
 import org.onosproject.segmentrouting.SegmentRoutingManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -492,8 +495,10 @@ public class DeviceConfiguration implements DeviceProperties {
      * Returns all subnets for a segment router, including subnets learnt from route service.
      *
      * @param deviceId device identifier
-     * @return list of ip prefixes or null if not found
+     * @return set of ip prefixes or null if not found
+     * @deprecated use getBatchedSubnets(DeviceId deviceId) instead
      */
+    @Deprecated
     public Set<IpPrefix> getSubnets(DeviceId deviceId) {
         SegmentRouterInfo srinfo = deviceConfigMap.get(deviceId);
         if (srinfo != null && srinfo.subnets != null) {
@@ -506,6 +511,40 @@ public class DeviceConfiguration implements DeviceProperties {
         return null;
     }
 
+    /**
+     * Returns batches of all subnets reachable on the given device.
+     * <p>
+     * First batch includes configured subnets, FPM and STATIC routes
+     * Second batch includes all other type of routes obtained from routeService, including DHCP routes.
+     *
+     * @param deviceId device identifier
+     * @return list of subnet batches, each batch includes a set of prefixes.
+     */
+    // TODO Querying routeService directly may be expensive. Some kind of reverse lookup cache should be developed.
+    public List<Set<IpPrefix>> getBatchedSubnets(DeviceId deviceId) {
+        Set<IpPrefix> high = Sets.newHashSet();
+        Set<IpPrefix> low = Sets.newHashSet();
+
+        high.addAll(getConfiguredSubnets(deviceId));
+        srManager.routeService.getRouteTables().stream()
+                .map(tableId -> srManager.routeService.getResolvedRoutes(tableId))
+                .flatMap(Collection::stream)
+                .forEach(resolvedRoute -> {
+                    // Continue to next resolved route if none of the next hop attaches to given device
+                    if (srManager.nextHopLocations(resolvedRoute).stream()
+                            .noneMatch(cp -> Objects.equals(deviceId, cp.deviceId()))) {
+                        return;
+                    }
+                    // Prioritize STATIC and FPM among others
+                    if (resolvedRoute.route().source() == Route.Source.STATIC ||
+                            resolvedRoute.route().source() == Route.Source.FPM) {
+                        high.add(resolvedRoute.prefix());
+                    } else {
+                        low.add(resolvedRoute.prefix());
+                    }
+                });
+        return Lists.newArrayList(high, low);
+    }
 
     /**
      * Returns the subnet configuration of given device and port.
