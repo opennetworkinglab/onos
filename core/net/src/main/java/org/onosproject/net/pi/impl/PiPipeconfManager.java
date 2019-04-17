@@ -20,6 +20,7 @@ import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Striped;
+import org.onlab.util.HexString;
 import org.onlab.util.ItemNotFoundException;
 import org.onlab.util.SharedExecutors;
 import org.onosproject.net.DeviceId;
@@ -56,6 +57,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -123,24 +125,28 @@ public class PiPipeconfManager implements PiPipeconfService {
 
     @Override
     public void register(PiPipeconf pipeconf) throws IllegalStateException {
+        checkNotNull(pipeconf);
         if (pipeconfs.containsKey(pipeconf.id())) {
             throw new IllegalStateException(format("Pipeconf %s is already registered", pipeconf.id()));
         }
         pipeconfs.put(pipeconf.id(), pipeconf);
-        log.info("New pipeconf registered: {}", pipeconf.id());
+        log.info("New pipeconf registered: {} (fingerprint={})",
+                 pipeconf.id(), HexString.toHexString(pipeconf.fingerprint()));
         executor.execute(() -> attemptMergeAll(pipeconf.id()));
     }
 
     @Override
     public void remove(PiPipeconfId pipeconfId) throws IllegalStateException {
+        checkNotNull(pipeconfId);
         // TODO add mechanism to remove from device.
         if (!pipeconfs.containsKey(pipeconfId)) {
             throw new IllegalStateException(format("Pipeconf %s is not registered", pipeconfId));
         }
         // TODO remove the binding from the distributed Store when the lifecycle of a pipeconf is defined.
         // pipeconfMappingStore.removeBindings(pipeconfId);
-        log.info("Removing pipeconf {}", pipeconfId);
-        pipeconfs.remove(pipeconfId);
+        final PiPipeconf pipeconf = pipeconfs.remove(pipeconfId);
+        log.info("Unregistered pipeconf: {} (fingerprint={})",
+                 pipeconfId, HexString.toHexString(pipeconf.fingerprint()));
     }
 
     @Override

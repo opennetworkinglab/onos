@@ -17,7 +17,8 @@
 package org.onosproject.net.pi.model;
 
 import com.google.common.collect.ImmutableMap;
-import org.apache.commons.io.IOUtils;
+import com.google.common.hash.Hashing;
+import com.google.common.hash.HashingInputStream;
 import org.onosproject.net.driver.Behaviour;
 
 import java.io.IOException;
@@ -188,21 +189,32 @@ public final class DefaultPiPipeconf implements PiPipeconf {
             checkNotNull(pipelineModel);
 
             Map<ExtensionType, URL> extensions = extensionMapBuilder.build();
-            return new DefaultPiPipeconf(id, pipelineModel, generateFingerprint(extensions),
-                                         behaviourMapBuilder.build(), extensions);
+            Map<Class<? extends Behaviour>, Class<? extends Behaviour>> behaviours =
+                    behaviourMapBuilder.build();
+            return new DefaultPiPipeconf(
+                    id, pipelineModel, generateFingerprint(extensions.values()),
+                    behaviours, extensions);
         }
 
-        private long generateFingerprint(Map<ExtensionType, URL> extensions) {
-            Collection<Integer> hashArray = new ArrayList<>();
-            for (Map.Entry<ExtensionType, URL> pair : extensions.entrySet()) {
+        private long generateFingerprint(Collection<URL> extensions) {
+            Collection<Integer> hashes = new ArrayList<>();
+            for (URL extUrl : extensions) {
                 try {
-                    hashArray.add(Arrays.hashCode(ByteBuffer.wrap(IOUtils.toByteArray(
-                            pair.getValue().openStream())).array()));
+                    HashingInputStream hin = new HashingInputStream(
+                            Hashing.crc32(), extUrl.openStream());
+                    //noinspection StatementWithEmptyBody
+                    while (hin.read() != -1) {
+                        // Do nothing. Reading all input stream to update hash.
+                    }
+                    hashes.add(hin.hash().asInt());
                 } catch (IOException e) {
                     throw new IllegalArgumentException(e);
                 }
             }
-            return Arrays.hashCode(hashArray.toArray());
+            //  FIXME: how to include behaviours in the hash?
+            int low = Arrays.hashCode(hashes.toArray());
+            int high = pipelineModel.hashCode();
+            return ByteBuffer.allocate(8).putInt(high).putInt(low).getLong(0);
         }
     }
 }
