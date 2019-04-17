@@ -58,6 +58,7 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 
+import static org.onosproject.driver.pipeline.ofdpa.OfdpaPipelineUtility.*;
 import static org.onosproject.driver.extensions.Ofdpa3MplsType.VPWS;
 import static org.onosproject.net.flow.criteria.Criterion.Type.INNER_VLAN_VID;
 import static org.onosproject.net.flow.criteria.Criterion.Type.IN_PORT;
@@ -232,32 +233,6 @@ public class Ofdpa3Pipeline extends Ofdpa2Pipeline {
         // If it is not a pseudo wire flow we fall back
         // to the OFDPA 2.0 pipeline.
         super.processFilter(filteringObjective, install, applicationId);
-    }
-
-    /**
-     * Determines if the filtering objective will be used for a pseudowire.
-     *
-     * @param filteringObjective
-     * @return True if objective was created for a pseudowire, false otherwise.
-     */
-    private boolean isPseudowire(FilteringObjective filteringObjective) {
-
-
-        if (filteringObjective.meta() != null) {
-
-            TrafficTreatment treatment = filteringObjective.meta();
-            for (Instruction instr : treatment.immediate()) {
-                if (instr.type().equals(Instruction.Type.L2MODIFICATION)) {
-
-                    L2ModificationInstruction l2Instr = (L2ModificationInstruction) instr;
-                    if (l2Instr.subtype().equals(L2SubType.TUNNEL_ID)) {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
     }
 
     /**
@@ -589,52 +564,6 @@ public class Ofdpa3Pipeline extends Ofdpa2Pipeline {
     }
 
     /**
-     * Utility function to get the mod tunnel id instruction
-     * if present.
-     *
-     * @param treatment the treatment to analyze
-     * @return the mod tunnel id instruction if present,
-     * otherwise null
-     */
-    private ModTunnelIdInstruction getModTunnelIdInstruction(TrafficTreatment treatment) {
-        if (treatment == null) {
-            return null;
-        }
-
-        L2ModificationInstruction l2ModificationInstruction;
-        for (Instruction instruction : treatment.allInstructions()) {
-            if (instruction.type() == L2MODIFICATION) {
-                l2ModificationInstruction = (L2ModificationInstruction) instruction;
-                if (l2ModificationInstruction.subtype() == L2SubType.TUNNEL_ID) {
-                    return (ModTunnelIdInstruction) l2ModificationInstruction;
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Utility function to get the output instruction
-     * if present.
-     *
-     * @param treatment the treatment to analyze
-     * @return the output instruction if present,
-     * otherwise null
-     */
-    private OutputInstruction getOutputInstruction(TrafficTreatment treatment) {
-        if (treatment == null) {
-            return null;
-        }
-
-        for (Instruction instruction : treatment.allInstructions()) {
-            if (instruction.type() == Instruction.Type.OUTPUT) {
-                return (OutputInstruction) instruction;
-            }
-        }
-        return null;
-    }
-
-    /**
      * Helper method for dividing the tunnel instructions from the mpls
      * instructions.
      *
@@ -685,4 +614,5 @@ public class Ofdpa3Pipeline extends Ofdpa2Pipeline {
             }
         }
     }
+
 }

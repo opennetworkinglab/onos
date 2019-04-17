@@ -84,6 +84,7 @@ import static org.onlab.packet.MacAddress.BROADCAST;
 import static org.onlab.packet.MacAddress.NONE;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.driver.pipeline.ofdpa.OfdpaGroupHandlerUtility.*;
+import static org.onosproject.driver.pipeline.ofdpa.OfdpaPipelineUtility.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 

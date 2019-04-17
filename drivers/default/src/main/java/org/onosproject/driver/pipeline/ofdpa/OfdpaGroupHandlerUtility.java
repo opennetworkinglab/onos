@@ -49,7 +49,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static org.onosproject.driver.pipeline.ofdpa.Ofdpa2Pipeline.isNotMplsBos;
+import static org.onosproject.driver.pipeline.ofdpa.OfdpaPipelineUtility.isNotMplsBos;
 import static org.onosproject.driver.pipeline.ofdpa.OfdpaGroupHandlerUtility.OfdpaMplsGroupSubType.OFDPA_GROUP_TYPE_SHIFT;
 import static org.onosproject.driver.pipeline.ofdpa.OfdpaGroupHandlerUtility.OfdpaMplsGroupSubType.OFDPA_MPLS_SUBTYPE_SHIFT;
 import static org.onosproject.net.flowobjective.NextObjective.Type.HASHED;

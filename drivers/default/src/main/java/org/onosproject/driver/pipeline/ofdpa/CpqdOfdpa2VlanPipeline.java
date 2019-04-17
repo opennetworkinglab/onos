@@ -51,6 +51,7 @@ import org.onosproject.net.group.Group;
 import org.onosproject.net.group.GroupKey;
 import org.slf4j.Logger;
 
+import static org.onosproject.driver.pipeline.ofdpa.OfdpaPipelineUtility.*;
 
 /**
  * Driver for software switch emulation of the OFDPA 2.0 pipeline.

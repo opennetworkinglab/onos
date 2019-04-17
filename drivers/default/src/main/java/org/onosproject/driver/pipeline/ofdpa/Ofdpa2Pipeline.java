@@ -43,7 +43,6 @@ import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.behaviour.PipelinerContext;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
-import org.onosproject.net.driver.Driver;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -57,8 +56,6 @@ import org.onosproject.net.flow.criteria.Criteria;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.EthTypeCriterion;
-import org.onosproject.net.flow.criteria.ExtensionCriterion;
-import org.onosproject.net.flow.criteria.ExtensionSelector;
 import org.onosproject.net.flow.criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.Icmpv6CodeCriterion;
 import org.onosproject.net.flow.criteria.Icmpv6TypeCriterion;
@@ -73,8 +70,6 @@ import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 import org.onosproject.net.flow.instructions.Instructions.NoActionInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType;
-import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
-import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModMplsHeaderInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flow.instructions.L3ModificationInstruction.L3SubType;
@@ -110,7 +105,7 @@ import static org.onlab.packet.MacAddress.IPV6_MULTICAST;
 import static org.onlab.packet.MacAddress.NONE;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.driver.pipeline.ofdpa.OfdpaGroupHandlerUtility.*;
-import static org.onosproject.net.flow.criteria.Criterion.Type.ETH_TYPE;
+import static org.onosproject.driver.pipeline.ofdpa.OfdpaPipelineUtility.*;
 import static org.onosproject.net.group.GroupDescription.Type.SELECT;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.onosproject.net.flow.criteria.Criterion.Type.MPLS_BOS;
@@ -122,36 +117,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     // Timer for the accumulator
     private static final Timer TIMER = new Timer("fwdobj-batching");
     private Accumulator<Pair<ForwardingObjective, Collection<FlowRule>>> accumulator;
-
-    protected static final int PORT_TABLE = 0;
-    protected static final int VLAN_TABLE = 10;
-    protected static final int VLAN_1_TABLE = 11;
-    protected static final int MPLS_L2_PORT_FLOW_TABLE = 13;
-    protected static final int MPLS_L2_PORT_PCP_TRUST_FLOW_TABLE = 16;
-    protected static final int TMAC_TABLE = 20;
-    protected static final int UNICAST_ROUTING_TABLE = 30;
-    protected static final int MULTICAST_ROUTING_TABLE = 40;
-    protected static final int MPLS_TABLE_0 = 23;
-    protected static final int MPLS_TABLE_1 = 24;
-    protected static final int MPLS_L3_TYPE_TABLE = 27;
-    protected static final int MPLS_TYPE_TABLE = 29;
-    protected static final int BRIDGING_TABLE = 50;
-    protected static final int ACL_TABLE = 60;
-    protected static final int MAC_LEARNING_TABLE = 254;
-    protected static final long OFPP_MAX = 0xffffff00L;
-
-    protected static final int HIGHEST_PRIORITY = 0xffff;
-    protected static final int DEFAULT_PRIORITY = 0x8000;
-    protected static final int LOWEST_PRIORITY = 0x0;
-
-    protected static final int MPLS_L2_PORT_PRIORITY = 2;
-    protected static final int MPLS_TUNNEL_ID_BASE = 0x10000;
-    protected static final int MPLS_TUNNEL_ID_MAX = 0x1FFFF;
-
-    protected static final int MPLS_UNI_PORT_MAX = 0x0000FFFF;
-    protected static final int MPLS_NNI_PORT_BASE = 0x00020000;
-    protected static final int MPLS_NNI_PORT_MAX = 0x0002FFFF;
-
+    // Internal objects
     private final Logger log = getLogger(getClass());
     protected ServiceDirectory serviceDirectory;
     protected FlowRuleService flowRuleService;
@@ -174,8 +140,6 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     // flows installations to be retried
     private ScheduledExecutorService retryExecutorService
         = newScheduledThreadPool(5, groupedThreads("OfdpaPipeliner", "retry-%d", log));
-    private static final int MAX_RETRY_ATTEMPTS = 10;
-    private static final int RETRY_MS = 1000;
 
     // accumulator executor service
     private ScheduledExecutorService accumulatorExecutorService
@@ -192,7 +156,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         flowObjectiveStore = context.store();
         deviceService = serviceDirectory.get(DeviceService.class);
         // Init the accumulator, if enabled
-        if (isAccumulatorEnabled()) {
+        if (isAccumulatorEnabled(this)) {
             accumulator = new ForwardingObjectiveAccumulator(context.accumulatorMaxObjectives(),
                                                              context.accumulatorMaxBatchMillis(),
                                                              context.accumulatorMaxIdleMillis());
@@ -218,15 +182,6 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         // OF-DPA does not require initializing the pipeline as it puts default
         // rules automatically in the hardware. However emulation of OFDPA in
         // software switches does require table-miss-entries.
-    }
-
-    public boolean isAccumulatorEnabled() {
-        Driver driver = super.data().driver();
-        // we cannot determine the property
-        if (driver == null) {
-            return false;
-        }
-        return Boolean.parseBoolean(driver.getProperty(ACCUMULATOR_ENABLED));
     }
 
     /**
@@ -384,7 +339,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             @Override
             public void onSuccess(FlowRuleOperations ops) {
                 log.trace("Flow rule operations onSuccess {}", ops);
-                fwdObjs.forEach(Ofdpa2Pipeline::pass);
+                fwdObjs.forEach(OfdpaPipelineUtility::pass);
             }
 
             @Override
@@ -1687,14 +1642,6 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
         return null;
     }
 
-    protected static void pass(Objective obj) {
-        obj.context().ifPresent(context -> context.onSuccess(obj));
-    }
-
-    protected static void fail(Objective obj, ObjectiveError error) {
-        obj.context().ifPresent(context -> context.onError(obj, error));
-    }
-
     @Override
     public List<String> getNextMappings(NextGroup nextGroup) {
         List<String> mappings = new ArrayList<>();
@@ -1726,119 +1673,6 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             mappings.add(gchain.toString());
         }
         return mappings;
-    }
-
-    /**
-     * Returns true iff the given selector matches on BOS==true, indicating that
-     * the selector is trying to match on a label that is bottom-of-stack.
-     *
-     * @param selector the given match
-     * @return true iff BoS==true; false if BOS==false, or BOS matching is not
-     *         expressed in the given selector
-     */
-    static boolean isMplsBos(TrafficSelector selector) {
-        MplsBosCriterion bosCriterion = (MplsBosCriterion) selector.getCriterion(MPLS_BOS);
-        return bosCriterion != null && bosCriterion.mplsBos();
-    }
-
-    /**
-     * Returns true iff the given selector matches on BOS==false, indicating
-     * that the selector is trying to match on a label that is not the
-     * bottom-of-stack label.
-     *
-     * @param selector the given match
-     * @return true iff BoS==false;
-     *         false if BOS==true, or BOS matching is not expressed in the given selector
-     */
-    static boolean isNotMplsBos(TrafficSelector selector) {
-        MplsBosCriterion bosCriterion = (MplsBosCriterion) selector.getCriterion(MPLS_BOS);
-        return bosCriterion != null && !bosCriterion.mplsBos();
-    }
-
-    /**
-     * Returns true iff the forwarding objective includes a treatment to pop the
-     * MPLS label.
-     *
-     * @param fwd the given forwarding objective
-     * @return true iff mpls pop treatment exists
-     */
-    static boolean isMplsPop(ForwardingObjective fwd) {
-        if (fwd.treatment() != null) {
-            for (Instruction instr : fwd.treatment().allInstructions()) {
-                if (instr instanceof L2ModificationInstruction
-                        && ((L2ModificationInstruction) instr)
-                                .subtype() == L2SubType.MPLS_POP) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    private static boolean isIpv6(TrafficSelector selector) {
-        EthTypeCriterion ethTypeCriterion = (EthTypeCriterion) selector.getCriterion(ETH_TYPE);
-        return ethTypeCriterion != null && ethTypeCriterion.ethType().toShort() == Ethernet.TYPE_IPV6;
-    }
-
-    static VlanId readVlanFromSelector(TrafficSelector selector) {
-        if (selector == null) {
-            return null;
-        }
-        Criterion criterion = selector.getCriterion(Criterion.Type.VLAN_VID);
-        return (criterion == null)
-                ? null : ((VlanIdCriterion) criterion).vlanId();
-    }
-
-    static MacAddress readEthDstFromSelector(TrafficSelector selector) {
-        if (selector == null) {
-            return null;
-        }
-        Criterion criterion = selector.getCriterion(Criterion.Type.ETH_DST);
-        return (criterion == null)
-                ? null : ((EthCriterion) criterion).mac();
-    }
-
-    static IpPrefix readIpDstFromSelector(TrafficSelector selector) {
-        if (selector == null) {
-            return null;
-        }
-        Criterion criterion = selector.getCriterion(Criterion.Type.IPV4_DST);
-        return (criterion == null) ? null : ((IPCriterion) criterion).ip();
-    }
-
-    private static VlanId readVlanFromTreatment(TrafficTreatment treatment) {
-        if (treatment == null) {
-            return null;
-        }
-        for (Instruction i : treatment.allInstructions()) {
-            if (i instanceof ModVlanIdInstruction) {
-                return ((ModVlanIdInstruction) i).vlanId();
-            }
-        }
-        return null;
-    }
-
-    private static MacAddress readEthDstFromTreatment(TrafficTreatment treatment) {
-        if (treatment == null) {
-            return null;
-        }
-        for (Instruction i : treatment.allInstructions()) {
-            if (i instanceof ModEtherInstruction) {
-                ModEtherInstruction modEtherInstruction = (ModEtherInstruction) i;
-                if (modEtherInstruction.subtype() == L2SubType.ETH_DST) {
-                    return modEtherInstruction.mac();
-                }
-            }
-        }
-        return null;
-    }
-
-    static ExtensionSelector readExtensionFromSelector(TrafficSelector selector) {
-        if (selector == null) {
-            return null;
-        }
-        ExtensionCriterion criterion = (ExtensionCriterion) selector.getCriterion(Criterion.Type.EXTENSION);
-        return (criterion == null) ? null : criterion.extensionSelector();
     }
 
     /**

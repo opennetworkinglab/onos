@@ -91,7 +91,7 @@ public class Ofdpa3GroupHandler extends Ofdpa2GroupHandler {
         );
         if (groupInfo == null) {
             log.error("Could not process nextObj={} in dev:{}", nextObjective.id(), deviceId);
-            Ofdpa2Pipeline.fail(nextObjective, ObjectiveError.GROUPINSTALLATIONFAILED);
+            OfdpaPipelineUtility.fail(nextObjective, ObjectiveError.GROUPINSTALLATIONFAILED);
             return;
         }
         // We update the chain with the last two groups;
@@ -118,7 +118,7 @@ public class Ofdpa3GroupHandler extends Ofdpa2GroupHandler {
             log.error("Next Objective for pseudo wire should have at "
                               + "most {} mpls instruction sets. Next Objective Id:{}",
                       MAX_DEPTH_UNPROTECTED_PW, nextObjective.id());
-            Ofdpa2Pipeline.fail(nextObjective, ObjectiveError.BADPARAMS);
+            OfdpaPipelineUtility.fail(nextObjective, ObjectiveError.BADPARAMS);
             return;
         }
 
