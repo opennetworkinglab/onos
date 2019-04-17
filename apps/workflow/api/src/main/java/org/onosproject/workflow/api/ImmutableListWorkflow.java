@@ -28,6 +28,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.onosproject.workflow.api.CheckCondition.check;
@@ -55,6 +56,8 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
     private static JsonDataModelInjector dataModelInjector = new JsonDataModelInjector();
     private static StaticDataModelInjector staticDataModelInjector = new StaticDataModelInjector();
 
+    private Optional<String> triggerWorkletClassName = Optional.empty();
+
     /**
      * Constructor of ImmutableListWorkflow.
      *
@@ -62,9 +65,15 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
      */
     private ImmutableListWorkflow(Builder builder) {
         super(builder.id);
+        triggerWorkletClassName = builder.triggerWorkletClassName;
         this.initWorkletType = builder.initWorkletType;
         program = ImmutableList.copyOf(builder.workletDescList);
         attributes = ImmutableSet.copyOf(builder.attributes);
+    }
+
+    @Override
+    public Optional<String> getTriggerWorkletClassName() {
+        return triggerWorkletClassName;
     }
 
     @Override
@@ -209,6 +218,12 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
     }
 
     @Override
+    public Worklet getTriggerWorkletInstance(String workletType) throws WorkflowException {
+        return getWorkletInstance(workletType);
+    }
+
+
+    @Override
     public WorkletDescription getWorkletDesc(ProgramCounter pc) {
 
         WorkletDescription workletDescription = program.get(pc.workletIndex());
@@ -297,6 +312,7 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
     public static class Builder {
 
         private URI id;
+        private Optional<String> triggerWorkletClassName = Optional.empty();
         private String initWorkletType;
         private final List<WorkletDescription> workletDescList = Lists.newArrayList();
         private final Set<WorkflowAttribute> attributes = Sets.newHashSet();
@@ -310,6 +326,17 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
         public Builder id(URI uri) {
             this.id = uri;
             workletDescList.add(new DefaultWorkletDescription(Worklet.Common.INIT.tag()));
+            return this;
+        }
+
+        /**
+         * Sets trigger flag of immutable list workflow.
+         *
+         * @param triggerWorkletClassName name of trigger worklet class
+         * @return builder
+         */
+        public Builder trigger(String triggerWorkletClassName) {
+            this.triggerWorkletClassName = Optional.of(triggerWorkletClassName);
             return this;
         }
 

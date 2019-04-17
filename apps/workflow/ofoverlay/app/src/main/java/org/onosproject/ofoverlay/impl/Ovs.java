@@ -57,6 +57,7 @@ import org.onosproject.ovsdb.controller.OvsdbController;
 import org.onosproject.ovsdb.controller.OvsdbNodeId;
 import org.onosproject.workflow.api.AbstractWorklet;
 import org.onosproject.workflow.api.JsonDataModel;
+import org.onosproject.workflow.api.TriggerWorklet;
 import org.onosproject.workflow.api.WorkflowContext;
 import org.onosproject.workflow.api.WorkflowException;
 import org.onosproject.workflow.api.StaticDataModel;
@@ -67,6 +68,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.Objects;
@@ -1309,6 +1311,41 @@ public final class Ovs {
                 context.completed(); //Complete the job of worklet by timeout
             } else {
                 super.timeout(context);
+            }
+        }
+    }
+
+    /**
+     * Work-let class for trigger event registration and validation.
+     */
+    public static class TrigerWorkflowAtDeviceReboot extends TriggerWorklet {
+
+        @JsonDataModel(path = MODEL_MGMT_IP)
+        String strMgmtIp;
+
+        String strOfDevIdUnderlay;
+
+        @Override
+        public void register(WorkflowContext context) throws WorkflowException {
+            DeviceId brphyDevId = OvsUtil.buildOfDeviceId(IpAddress.valueOf(strMgmtIp), DEVID_IDX_BRIDGE_UNDERLAY_NOVA);
+            Set<String> eventHintSet = new HashSet<>();
+            eventHintSet.add(brphyDevId.toString());
+            context.registerTriggerEvent(DeviceEvent.class, eventHintSet);
+        }
+
+        @Override
+        public boolean isTriggerValid(WorkflowContext context, Event event) throws WorkflowException {
+
+            if (!(event instanceof DeviceEvent)) {
+                return false;
+            }
+            DeviceEvent deviceEvent = (DeviceEvent) event;
+            Device device = deviceEvent.subject();
+            switch (deviceEvent.type()) {
+                case DEVICE_AVAILABILITY_CHANGED:
+                    return !context.getService(DeviceService.class).isAvailable(device.id());
+                default:
+                    return false;
             }
         }
     }

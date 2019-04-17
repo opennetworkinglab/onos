@@ -23,8 +23,10 @@ import org.onosproject.workflow.api.AbstractWorklet;
 import org.onosproject.workflow.api.DefaultWorkflowContext;
 import org.onosproject.workflow.api.DefaultWorkplace;
 import org.onosproject.workflow.api.ImmutableListWorkflow;
+import org.onosproject.workflow.api.JsonDataModelInjector;
 import org.onosproject.workflow.api.JsonDataModelTree;
 import org.onosproject.workflow.api.SystemWorkflowContext;
+import org.onosproject.workflow.api.TriggerWorklet;
 import org.onosproject.workflow.api.Workflow;
 import org.onosproject.workflow.api.WorkflowAttribute;
 import org.onosproject.workflow.api.WorkflowContext;
@@ -35,6 +37,7 @@ import org.onosproject.workflow.api.WorkflowDescription;
 import org.onosproject.workflow.api.WorkflowException;
 import org.onosproject.workflow.api.WorkflowExecutionService;
 import org.onosproject.workflow.api.WorkflowStore;
+import org.onosproject.workflow.api.Worklet;
 import org.onosproject.workflow.api.Workplace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -214,6 +217,17 @@ public class WorkplaceWorkflow {
             WorkflowContext buildingContext = workflow.buildContext(workplace, subTree);
             log.info("registerContext {}", buildingContext.name());
             context.workplaceStore().registerContext(buildingContext.name(), buildingContext);
+
+            if (workflow.getTriggerWorkletClassName().isPresent()) {
+                String triggerWorkletName = workflow.getTriggerWorkletClassName().get();
+                Worklet worklet = workflow.getTriggerWorkletInstance(triggerWorkletName);
+                if (worklet instanceof TriggerWorklet) {
+                    buildingContext.setEventMapStore(context.eventMapStore());
+                    JsonDataModelInjector dataModelInjector = new JsonDataModelInjector();
+                    dataModelInjector.inject(worklet, buildingContext);
+                    ((TriggerWorklet) worklet).register(buildingContext);
+                }
+            }
             submitTrue(context);
 
             context.completed();
