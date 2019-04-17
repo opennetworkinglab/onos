@@ -248,7 +248,7 @@ public class OvsOfdpaGroupHandler extends Ofdpa2GroupHandler {
         // the transport of a VPWS. The necessary info are contained in the
         // meta selector. In particular we are looking for the case of BoS==False;
         TrafficSelector metaSelector = nextObjective.meta();
-        if (metaSelector != null && Ofdpa2Pipeline.isNotMplsBos(metaSelector)) {
+        if (metaSelector != null && OfdpaPipelineUtility.isNotMplsBos(metaSelector)) {
             // storage for all group keys in the chain of groups created
             List<Deque<GroupKey>> allGroupKeys = new ArrayList<>();
             List<GroupInfo> unsentGroups = new ArrayList<>();

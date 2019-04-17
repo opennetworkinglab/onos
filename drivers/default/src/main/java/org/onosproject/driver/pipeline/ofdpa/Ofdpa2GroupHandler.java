@@ -90,6 +90,7 @@ import java.util.stream.Collectors;
 
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.driver.pipeline.ofdpa.Ofdpa2Pipeline.*;
+import static org.onosproject.driver.pipeline.ofdpa.OfdpaPipelineUtility.*;
 import static org.onosproject.driver.pipeline.ofdpa.OfdpaGroupHandlerUtility.*;
 import static org.onosproject.driver.pipeline.ofdpa.OfdpaGroupHandlerUtility.L2_MULTICAST_TYPE;
 import static org.onosproject.driver.pipeline.ofdpa.OfdpaGroupHandlerUtility.l2MulticastGroupKey;
