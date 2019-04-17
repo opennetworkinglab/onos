@@ -16,6 +16,7 @@
 package org.onosproject.store.flow.impl;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.onlab.util.KryoNamespace;
@@ -77,6 +79,7 @@ public class DeviceFlowTable {
     private final MessageSubject getDigestsSubject;
     private final MessageSubject getBucketSubject;
     private final MessageSubject backupSubject;
+    private final MessageSubject getFlowsSubject;
 
     private final DeviceId deviceId;
     private final ClusterCommunicationService clusterCommunicator;
@@ -131,6 +134,7 @@ public class DeviceFlowTable {
         getDigestsSubject = new MessageSubject(String.format("flow-store-%s-digests", deviceId));
         getBucketSubject = new MessageSubject(String.format("flow-store-%s-bucket", deviceId));
         backupSubject = new MessageSubject(String.format("flow-store-%s-backup", deviceId));
+        getFlowsSubject = new MessageSubject(String.format("flow-store-%s-flows", deviceId));
 
         addListeners();
 
@@ -197,11 +201,52 @@ public class DeviceFlowTable {
      *
      * @return the set of flow entries in the table
      */
-    public Set<FlowEntry> getFlowEntries() {
-        return flowBuckets.values().stream()
-            .flatMap(bucket -> bucket.getFlowBucket().values().stream())
-            .flatMap(entries -> entries.values().stream())
-            .collect(Collectors.toSet());
+    public CompletableFuture<Iterable<FlowEntry>> getFlowEntries() {
+        // Fetch the entries for each bucket in parallel and then concatenate the sets
+        // to create a single iterable.
+        return Tools.allOf(flowBuckets.values()
+            .stream()
+            .map(this::getFlowEntries)
+            .collect(Collectors.toList()))
+            .thenApply(Iterables::concat);
+    }
+
+    /**
+     * Fetches the set of flow entries in the given bucket.
+     *
+     * @param bucketId the bucket for which to fetch flow entries
+     * @return a future to be completed once the flow entries have been retrieved
+     */
+    private CompletableFuture<Set<FlowEntry>> getFlowEntries(BucketId bucketId) {
+        return getFlowEntries(getBucket(bucketId.bucket()));
+    }
+
+    /**
+     * Fetches the set of flow entries in the given bucket.
+     *
+     * @param bucket the bucket for which to fetch flow entries
+     * @return a future to be completed once the flow entries have been retrieved
+     */
+    private CompletableFuture<Set<FlowEntry>> getFlowEntries(FlowBucket bucket) {
+        DeviceReplicaInfo replicaInfo = lifecycleManager.getReplicaInfo();
+
+        // If the local node is the master, fetch the entries locally. Otherwise, request the entries
+        // from the current master. Note that there's a change of a brief cycle during a mastership change.
+        if (replicaInfo.isMaster(localNodeId)) {
+            return CompletableFuture.completedFuture(
+                bucket.getFlowBucket().values().stream()
+                    .flatMap(entries -> entries.values().stream())
+                    .collect(Collectors.toSet()));
+        } else if (replicaInfo.master() != null) {
+            return clusterCommunicator.sendAndReceive(
+                bucket.bucketId(),
+                getFlowsSubject,
+                SERIALIZER::encode,
+                SERIALIZER::decode,
+                replicaInfo.master());
+        } else {
+            return CompletableFuture.completedFuture(Collections.emptySet());
+        }
     }
 
     /**
@@ -826,6 +871,8 @@ public class DeviceFlowTable {
         receiveWithTimestamp(getDigestsSubject, v -> getDigests());
         receiveWithTimestamp(getBucketSubject, this::onGetBucket);
         receiveWithTimestamp(backupSubject, this::onBackup);
+        clusterCommunicator.<BucketId, Set<FlowEntry>>addSubscriber(
+            getFlowsSubject, SERIALIZER::decode, this::getFlowEntries, SERIALIZER::encode);
     }
 
     /**
@@ -835,6 +882,7 @@ public class DeviceFlowTable {
         clusterCommunicator.removeSubscriber(getDigestsSubject);
         clusterCommunicator.removeSubscriber(getBucketSubject);
         clusterCommunicator.removeSubscriber(backupSubject);
+        clusterCommunicator.removeSubscriber(getFlowsSubject);
     }
 
     /**
