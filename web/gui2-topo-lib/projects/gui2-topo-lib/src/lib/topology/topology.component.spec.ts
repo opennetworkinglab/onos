@@ -95,6 +95,20 @@ class MockIconService {
 class MockKeysService {
     quickHelpShown: boolean = true;
 
+    keyHandler: {
+        viewKeys: any[],
+        globalKeys: any[]
+    };
+
+    mockViewKeys: Object[];
+    constructor() {
+        this.mockViewKeys = [];
+        this.keyHandler = {
+            viewKeys: this.mockViewKeys,
+            globalKeys: this.mockViewKeys
+        };
+    }
+
     keyBindings(x) {
         return {};
     }

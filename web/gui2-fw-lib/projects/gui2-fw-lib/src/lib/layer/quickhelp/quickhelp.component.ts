@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Component} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {animate, state, style, transition, trigger} from '@angular/animations';
 import {LogService} from '../../log.service';
 import {FnService} from '../../util/fn.service';
 import {KeysService} from '../../util/keys.service';
 import {LionService} from '../../util/lion.service';
 
+export interface KeyEntry {
+    keystroke: string;
+    text: string;
+}
 
 @Component({
     selector: 'onos-quickhelp',
@@ -38,8 +42,22 @@ import {LionService} from '../../util/lion.service';
         ])
     ]
 })
-export class QuickhelpComponent {
+export class QuickhelpComponent implements OnInit {
     lionFn; // Function
+
+    dialogKeys: Object;
+    globalKeys: Object[];
+    maskedKeys: Object;
+    viewGestures: Object;
+    viewKeys: KeyEntry[][];
+
+    private static extractKeyEntry(viewKeyObj: Object, log: LogService): KeyEntry {
+        const subParts = Object.values(viewKeyObj[1]);
+        return <KeyEntry>{
+            keystroke: <string>viewKeyObj[0],
+            text: <string>subParts[1]
+        };
+    }
 
     constructor(
         private log: LogService,
@@ -53,9 +71,23 @@ export class QuickhelpComponent {
         } else {
             this.doLion();
         }
+        this.globalKeys = [];
+        this.viewKeys = [[], [], [], [], [], [], [], [], []];
 
-        this.log.debug('Quickhelp component constructed');
+        this.log.debug('QuickhelpComponent constructed');
     }
+
+    ngOnInit(): void {
+        Object.entries(this.ks.keyHandler.viewKeys)
+            .filter((vk) => vk[0] !== '_helpFormat' && vk[0] !== '9')
+            .forEach((vk, idx) => {
+                const ke = QuickhelpComponent.extractKeyEntry(vk, this.log);
+                this.viewKeys[Math.floor(idx / 3)][idx % 3] = ke;
+            });
+        this.log.debug('QuickhelpComponent initialized');
+        this.log.debug('view keys retrieved', this.ks.keyHandler.globalKeys);
+    }
+
 
     /**
      * Read the LION bundle for Toolbar and set up the lionFn

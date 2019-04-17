@@ -35,6 +35,7 @@
 
 #quickhelp div.help table {
     vertical-align: top;
+    width: 100%;
 }
 
 #quickhelp div.help p {

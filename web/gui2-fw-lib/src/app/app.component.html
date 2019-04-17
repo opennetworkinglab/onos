@@ -44,6 +44,5 @@ Note: Please remember that in Angular 6 rebuilding of libraries is not automatic
   If you change anything in the library, you will have to build it again before
   it is picked up in this app.
 </p>
-<onos-quickhelp></onos-quickhelp>
-<onos-loading [running]="loadingRunning"></onos-loading>
-<button (click)="toggleLoadingRunning()">Toggle loading image</button>
+<onos-quickhelp #qh></onos-quickhelp>
+<button (click)="qh.ks.quickHelpShown = true">Toggle quick help shown</button>

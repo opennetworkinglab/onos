@@ -408,34 +408,37 @@ export class TopologyComponent implements AfterContentInit, OnInit, OnDestroy {
      *
      * This action map is passed to the KeyService through the bindCommands()
      * when this component is being initialized
+     *
+     * TODO - Replace this doggy doo doo (copied over from GUI-1)
+     * with something more structured
      */
     actionMap() {
         return {
-            A: [() => {this.cycleTrafficTypeDisplay(); }, 'Monitor all traffic'],
-            B: [(token) => {this.toggleBackground(token); }, 'Toggle background'],
-            D: [(token) => {this.toggleDetails(token); }, 'Toggle details panel'],
-            E: [() => {this.equalizeMasters(); }, 'Equalize mastership roles'],
-            H: [() => {this.toggleHosts(); }, 'Toggle host visibility'],
-            I: [(token) => {this.toggleInstancePanel(token); }, 'Toggle ONOS Instance Panel'],
-            G: [() => {this.mapSelShown = !this.mapSelShown; }, 'Show map selection dialog'],
-            L: [() => {this.cycleDeviceLabels(); }, 'Cycle device labels'],
-            M: [() => {this.toggleOfflineDevices(); }, 'Toggle offline visibility'],
-            O: [() => {this.toggleSummary(); }, 'Toggle the Summary Panel'],
-            P: [(token) => {this.togglePorts(token); }, 'Toggle Port Highlighting'],
-            Q: [() => {this.cycleGridDisplay(); }, 'Cycle grid display'],
-            R: [() => {this.resetZoom(); }, 'Reset pan / zoom'],
-            U: [() => {this.unpinOrFreezeNodes(); }, 'Unpin or freeze nodes'],
-            X: [() => {this.resetNodeLocation(); }, 'Reset Node Location'],
-            dot: [() => {this.toggleToolbar(); }, 'Toggle Toolbar'],
-            0: [() => {this.cancelTraffic(); }, 'Cancel traffic monitoring'],
-            'shift-L': [() => {this.cycleHostLabels(); }, 'Cycle host labels'],
+            A: [() => {this.cycleTrafficTypeDisplay(); }, this.lionFn('tr_btn_monitor_all')],
+            B: [(token) => {this.toggleBackground(token); }, this.lionFn('tbtt_tog_map')],
+            D: [(token) => {this.toggleDetails(token); }, this.lionFn('tbtt_tog_use_detail')],
+            E: [() => {this.equalizeMasters(); }, this.lionFn('tbtt_eq_master')],
+            H: [() => {this.toggleHosts(); }, this.lionFn('tbtt_tog_host')],
+            I: [(token) => {this.toggleInstancePanel(token); }, this.lionFn('tbtt_tog_instances')],
+            G: [() => {this.mapSelShown = !this.mapSelShown; }, this.lionFn('tbtt_sel_map')],
+            L: [() => {this.cycleDeviceLabels(); }, this.lionFn('tbtt_cyc_dev_labs')],
+            M: [() => {this.toggleOfflineDevices(); }, this.lionFn('tbtt_tog_offline')],
+            O: [() => {this.toggleSummary(); }, this.lionFn('tbtt_tog_summary')],
+            P: [(token) => {this.togglePorts(token); }, this.lionFn('tbtt_tog_porthi')],
+            Q: [() => {this.cycleGridDisplay(); }, this.lionFn('tbtt_cyc_grid_display')],
+            R: [() => {this.resetZoom(); }, this.lionFn('tbtt_reset_zoom')],
+            U: [() => {this.unpinOrFreezeNodes(); }, this.lionFn('tbtt_unpin_node')],
+            X: [() => {this.resetNodeLocation(); }, this.lionFn('tbtt_reset_loc')],
+            dot: [() => {this.toggleToolbar(); }, this.lionFn('tbtt_tog_toolbar')],
+            0: [() => {this.cancelTraffic(); }, this.lionFn('tr_btn_cancel_monitoring')],
+            'shift-L': [() => {this.cycleHostLabels(); }, this.lionFn('tbtt_cyc_host_labs')],
 
             // -- instance color palette debug
             9: () => {
                 this.sus.cat7().testCard(d3.select('svg#topo2'));
             },
 
-            esc: [() => {this.handleEscape(); }, 'Cancel commands'],
+            esc: [() => {this.handleEscape(); }, this.lionFn('qh_hint_esc')],
 
             // TODO update after adding in Background Service
             // topology overlay selections
