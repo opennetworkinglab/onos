@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-present Open Networking Foundation
+ * Copyright 2019-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,26 @@
 
 package org.onosproject.net.pi.runtime;
 
-import com.google.common.annotations.Beta;
+import org.onosproject.net.DeviceId;
 
 /**
- * Configuration entry of a Packet Replication Engine (PRE) of
- * protocol-independent pipeline.
+ * Abstract implementation of a PI handle for PRE entries.
  */
-@Beta
-public interface PiPreEntry extends PiEntity {
+public abstract class PiPreEntryHandle extends PiHandle {
+
+    PiPreEntryHandle(DeviceId deviceId) {
+        super(deviceId);
+    }
 
     /**
-     * Returns the type of this PRE entry.
+     * Returns the type of PRE entry associated with this handle.
      *
      * @return PRE entry type
      */
-    PiPreEntryType preEntryType();
+    public abstract PiPreEntryType preEntryType();
+
+    @Override
+    public PiEntityType entityType() {
+        return PiEntityType.PRE_ENTRY;
+    }
 }

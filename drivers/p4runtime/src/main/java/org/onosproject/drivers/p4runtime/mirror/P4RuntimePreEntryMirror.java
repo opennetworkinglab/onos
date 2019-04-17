@@ -14,21 +14,14 @@
  * limitations under the License.
  */
 
-package org.onosproject.net.pi.runtime;
+package org.onosproject.drivers.p4runtime.mirror;
 
-import com.google.common.annotations.Beta;
+import org.onosproject.net.pi.runtime.PiPreEntry;
+import org.onosproject.net.pi.runtime.PiPreEntryHandle;
 
 /**
- * Configuration entry of a Packet Replication Engine (PRE) of
- * protocol-independent pipeline.
+ * Mirror of PRE entries installed on a P4Runtime device.
  */
-@Beta
-public interface PiPreEntry extends PiEntity {
-
-    /**
-     * Returns the type of this PRE entry.
-     *
-     * @return PRE entry type
-     */
-    PiPreEntryType preEntryType();
+public interface P4RuntimePreEntryMirror
+        extends P4RuntimeMirror<PiPreEntryHandle, PiPreEntry> {
 }

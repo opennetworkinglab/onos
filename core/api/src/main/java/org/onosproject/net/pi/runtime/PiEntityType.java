@@ -54,14 +54,9 @@ public enum PiEntityType {
     COUNTER_CELL("counter cell"),
 
     /**
-     * Packet Replication Engine (PRE) multicast group entry.
+     * Packet Replication Engine (PRE) entry.
      */
-    PRE_MULTICAST_GROUP_ENTRY("PRE multicast group entry"),
-
-    /**
-     * Packet Replication Engine (PRE) clone session entry.
-     */
-    PRE_CLONE_SESSION_ENTRY("PRE clone session entry");
+    PRE_ENTRY("PRE entry");
 
     private final String humanReadableName;
 

@@ -19,10 +19,12 @@ package org.onosproject.p4runtime.ctl.codec;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.runtime.PiActionProfileGroup;
 import org.onosproject.net.pi.runtime.PiActionProfileMember;
+import org.onosproject.net.pi.runtime.PiCloneSessionEntry;
 import org.onosproject.net.pi.runtime.PiCounterCell;
 import org.onosproject.net.pi.runtime.PiEntity;
 import org.onosproject.net.pi.runtime.PiMeterCellConfig;
 import org.onosproject.net.pi.runtime.PiMulticastGroupEntry;
+import org.onosproject.net.pi.runtime.PiPreEntry;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.p4runtime.ctl.utils.P4InfoBrowser;
 import p4.v1.P4RuntimeOuterClass;
@@ -56,13 +58,29 @@ public final class EntityCodec extends AbstractCodec<PiEntity, P4RuntimeOuterCla
                         CODECS.actionProfileMember().encode(
                                 (PiActionProfileMember) piEntity, null, pipeconf))
                         .build();
-            case PRE_MULTICAST_GROUP_ENTRY:
-                return p4Entity.setPacketReplicationEngineEntry(
-                        P4RuntimeOuterClass.PacketReplicationEngineEntry.newBuilder()
-                                .setMulticastGroupEntry(CODECS.multicastGroupEntry().encode(
-                                        (PiMulticastGroupEntry) piEntity, null, pipeconf))
-                                .build())
-                        .build();
+            case PRE_ENTRY:
+                final PiPreEntry preEntry = (PiPreEntry) piEntity;
+                switch (preEntry.preEntryType()) {
+                    case MULTICAST_GROUP:
+                        return p4Entity.setPacketReplicationEngineEntry(
+                                P4RuntimeOuterClass.PacketReplicationEngineEntry.newBuilder()
+                                        .setMulticastGroupEntry(CODECS.multicastGroupEntry().encode(
+                                                (PiMulticastGroupEntry) piEntity, null, pipeconf))
+                                        .build())
+                                .build();
+                    case CLONE_SESSION:
+                        return p4Entity.setPacketReplicationEngineEntry(
+                                P4RuntimeOuterClass.PacketReplicationEngineEntry.newBuilder()
+                                        .setCloneSessionEntry(CODECS.cloneSessionEntry().encode(
+                                                (PiCloneSessionEntry) piEntity, null, pipeconf))
+                                        .build())
+                                .build();
+                    default:
+                        throw new CodecException(format(
+                                "Encoding of %s of type %s is not supported",
+                                piEntity.piEntityType(),
+                                preEntry.preEntryType()));
+                }
             case METER_CELL_CONFIG:
                 final PiMeterCellConfig meterCellConfig = (PiMeterCellConfig) piEntity;
                 switch (meterCellConfig.cellId().meterType()) {
@@ -102,7 +120,6 @@ public final class EntityCodec extends AbstractCodec<PiEntity, P4RuntimeOuterCla
                                 counterCell.cellId().counterType()));
                 }
             case REGISTER_CELL:
-            case PRE_CLONE_SESSION_ENTRY:
             default:
                 throw new CodecException(format(
                         "Encoding of %s not supported",
@@ -113,7 +130,7 @@ public final class EntityCodec extends AbstractCodec<PiEntity, P4RuntimeOuterCla
     @Override
     protected PiEntity decode(
             P4RuntimeOuterClass.Entity message, Object ignored, PiPipeconf pipeconf, P4InfoBrowser browser)
-            throws CodecException, P4InfoBrowser.NotFoundException {
+            throws CodecException {
         switch (message.getEntityCase()) {
             case TABLE_ENTRY:
                 return CODECS.tableEntry().decode(
@@ -143,6 +160,9 @@ public final class EntityCodec extends AbstractCodec<PiEntity, P4RuntimeOuterCla
                                 message.getPacketReplicationEngineEntry()
                                         .getMulticastGroupEntry(), null, pipeconf);
                     case CLONE_SESSION_ENTRY:
+                        return CODECS.cloneSessionEntry().decode(
+                                message.getPacketReplicationEngineEntry()
+                                        .getCloneSessionEntry(), null, pipeconf);
                     case TYPE_NOT_SET:
                     default:
                         throw new CodecException(format(

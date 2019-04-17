@@ -17,20 +17,19 @@
 package org.onosproject.drivers.p4runtime.mirror;
 
 import org.onosproject.net.pi.runtime.PiEntityType;
-import org.onosproject.net.pi.runtime.PiMulticastGroupEntry;
-import org.onosproject.net.pi.runtime.PiMulticastGroupEntryHandle;
+import org.onosproject.net.pi.runtime.PiPreEntry;
+import org.onosproject.net.pi.runtime.PiPreEntryHandle;
 import org.osgi.service.component.annotations.Component;
 
 /**
- * Distributed implementation of a P4Runtime multicast group mirror.
+ * Distributed implementation of a P4Runtime PRE entry mirror.
  */
-@Component(immediate = true, service = P4RuntimeMulticastGroupMirror.class)
-public final class DistributedP4RuntimeMulticastGroupMirror
-        extends AbstractDistributedP4RuntimeMirror
-                        <PiMulticastGroupEntryHandle, PiMulticastGroupEntry>
-        implements P4RuntimeMulticastGroupMirror {
+@Component(immediate = true, service = P4RuntimePreEntryMirror.class)
+public final class DistributedP4RuntimePreEntryMirror
+        extends AbstractDistributedP4RuntimeMirror<PiPreEntryHandle, PiPreEntry>
+        implements P4RuntimePreEntryMirror {
 
-    public DistributedP4RuntimeMulticastGroupMirror() {
-        super(PiEntityType.PRE_MULTICAST_GROUP_ENTRY);
+    public DistributedP4RuntimePreEntryMirror() {
+        super(PiEntityType.PRE_ENTRY);
     }
 }

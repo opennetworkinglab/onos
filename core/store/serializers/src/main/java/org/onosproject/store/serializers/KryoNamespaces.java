@@ -231,8 +231,11 @@ import org.onosproject.net.pi.runtime.PiActionProfileGroupId;
 import org.onosproject.net.pi.runtime.PiActionProfileMember;
 import org.onosproject.net.pi.runtime.PiActionProfileMemberHandle;
 import org.onosproject.net.pi.runtime.PiActionProfileMemberId;
+import org.onosproject.net.pi.runtime.PiCloneSessionEntry;
+import org.onosproject.net.pi.runtime.PiCloneSessionEntryHandle;
 import org.onosproject.net.pi.runtime.PiCounterCell;
 import org.onosproject.net.pi.runtime.PiCounterCellData;
+import org.onosproject.net.pi.runtime.PiCounterCellHandle;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
 import org.onosproject.net.pi.runtime.PiEntity;
 import org.onosproject.net.pi.runtime.PiEntityType;
@@ -242,10 +245,21 @@ import org.onosproject.net.pi.runtime.PiGroupKey;
 import org.onosproject.net.pi.runtime.PiHandle;
 import org.onosproject.net.pi.runtime.PiLpmFieldMatch;
 import org.onosproject.net.pi.runtime.PiMatchKey;
+import org.onosproject.net.pi.runtime.PiMeterBand;
+import org.onosproject.net.pi.runtime.PiMeterCellConfig;
+import org.onosproject.net.pi.runtime.PiMeterCellHandle;
 import org.onosproject.net.pi.runtime.PiMeterCellId;
+import org.onosproject.net.pi.runtime.PiMulticastGroupEntry;
+import org.onosproject.net.pi.runtime.PiMulticastGroupEntryHandle;
 import org.onosproject.net.pi.runtime.PiPacketMetadata;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
+import org.onosproject.net.pi.runtime.PiPreEntry;
+import org.onosproject.net.pi.runtime.PiPreEntryHandle;
+import org.onosproject.net.pi.runtime.PiPreEntryType;
+import org.onosproject.net.pi.runtime.PiPreReplica;
 import org.onosproject.net.pi.runtime.PiRangeFieldMatch;
+import org.onosproject.net.pi.runtime.PiRegisterCell;
+import org.onosproject.net.pi.runtime.PiRegisterCellId;
 import org.onosproject.net.pi.runtime.PiTableAction;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.runtime.PiTableEntryHandle;
@@ -687,16 +701,18 @@ public final class KryoNamespaces {
                     PiTableType.class,
                     // PI Runtime
                     PiAction.class,
+                    PiActionParam.class,
                     PiActionProfileGroup.class,
                     PiActionProfileGroupHandle.class,
                     PiActionProfileGroupId.class,
                     PiActionProfileMember.class,
                     PiActionProfileMemberHandle.class,
                     PiActionProfileMemberId.class,
-                    PiActionParam.class,
-                    PiPacketMetadata.class,
+                    PiCloneSessionEntry.class,
+                    PiCloneSessionEntryHandle.class,
                     PiCounterCell.class,
                     PiCounterCellData.class,
+                    PiCounterCellHandle.class,
                     PiCounterCellId.class,
                     PiEntity.class,
                     PiEntityType.class,
@@ -706,13 +722,26 @@ public final class KryoNamespaces {
                     PiHandle.class,
                     PiLpmFieldMatch.class,
                     PiMatchKey.class,
+                    PiMeterBand.class,
+                    PiMeterCellConfig.class,
+                    PiMeterCellHandle.class,
+                    PiMeterCellId.class,
+                    PiMulticastGroupEntry.class,
+                    PiMulticastGroupEntryHandle.class,
+                    PiPacketMetadata.class,
                     PiPacketOperation.class,
+                    PiPreEntry.class,
+                    PiPreEntryHandle.class,
+                    PiPreEntryType.class,
+                    PiPreReplica.class,
                     PiRangeFieldMatch.class,
+                    PiRegisterCell.class,
+                    PiRegisterCellId.class,
                     PiTableAction.class,
                     PiTableEntry.class,
+                    PiTableEntryHandle.class,
                     PiTernaryFieldMatch.class,
                     // PI service
-                    PiTableEntryHandle.class,
                     PiTranslatedEntity.class,
                     PiTranslatable.class,
                     // Other

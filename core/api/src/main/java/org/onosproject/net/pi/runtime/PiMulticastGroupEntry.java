@@ -68,7 +68,7 @@ public final class PiMulticastGroupEntry implements PiPreEntry {
 
     @Override
     public PiEntityType piEntityType() {
-        return PiEntityType.PRE_MULTICAST_GROUP_ENTRY;
+        return PiEntityType.PRE_ENTRY;
     }
 
     @Override

@@ -18,7 +18,7 @@ package org.onosproject.drivers.p4runtime;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Striped;
-import org.onosproject.drivers.p4runtime.mirror.P4RuntimeMulticastGroupMirror;
+import org.onosproject.drivers.p4runtime.mirror.P4RuntimePreEntryMirror;
 import org.onosproject.drivers.p4runtime.mirror.TimedEntry;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.group.DefaultGroup;
@@ -28,9 +28,9 @@ import org.onosproject.net.group.GroupOperation;
 import org.onosproject.net.group.GroupOperations;
 import org.onosproject.net.group.GroupProgrammable;
 import org.onosproject.net.group.GroupStore;
-import org.onosproject.net.pi.runtime.PiMulticastGroupEntry;
-import org.onosproject.net.pi.runtime.PiMulticastGroupEntryHandle;
-import org.onosproject.net.pi.service.PiMulticastGroupTranslator;
+import org.onosproject.net.pi.runtime.PiPreEntry;
+import org.onosproject.net.pi.runtime.PiPreEntryHandle;
+import org.onosproject.net.pi.service.PiReplicationGroupTranslator;
 import org.onosproject.net.pi.service.PiTranslatedEntity;
 import org.onosproject.net.pi.service.PiTranslationException;
 import org.onosproject.p4runtime.api.P4RuntimeClient;
@@ -47,9 +47,9 @@ import static org.onosproject.p4runtime.api.P4RuntimeWriteClient.UpdateType.INSE
 import static org.onosproject.p4runtime.api.P4RuntimeWriteClient.UpdateType.MODIFY;
 
 /**
- * Implementation of GroupProgrammable to handle multicast groups in P4Runtime.
+ * Implementation of GroupProgrammable to handle PRE entries in P4Runtime.
  */
-public class P4RuntimeMulticastGroupProgrammable
+public class P4RuntimeReplicationGroupProgrammable
         extends AbstractP4RuntimeHandlerBehaviour implements GroupProgrammable {
 
     // TODO: implement reading groups from device and mirror sync.
@@ -58,17 +58,17 @@ public class P4RuntimeMulticastGroupProgrammable
     private static final Striped<Lock> STRIPED_LOCKS = Striped.lock(30);
 
     private GroupStore groupStore;
-    private P4RuntimeMulticastGroupMirror mcGroupMirror;
-    private PiMulticastGroupTranslator mcGroupTranslator;
+    private P4RuntimePreEntryMirror mirror;
+    private PiReplicationGroupTranslator translator;
 
     @Override
     protected boolean setupBehaviour(String opName) {
         if (!super.setupBehaviour(opName)) {
             return false;
         }
-        mcGroupMirror = this.handler().get(P4RuntimeMulticastGroupMirror.class);
+        mirror = this.handler().get(P4RuntimePreEntryMirror.class);
         groupStore = handler().get(GroupStore.class);
-        mcGroupTranslator = translationService.multicastGroupTranslator();
+        translator = translationService.replicationGroupTranslator();
         return true;
     }
 
@@ -86,7 +86,7 @@ public class P4RuntimeMulticastGroupProgrammable
                                  op.groupId(), op.opType(), op);
                         return;
                     }
-                    processMcGroupOp(group, op.opType());
+                    processGroupOp(group, op.opType());
                 });
     }
 
@@ -95,53 +95,47 @@ public class P4RuntimeMulticastGroupProgrammable
         if (!setupBehaviour("getGroups()")) {
             return Collections.emptyList();
         }
-        return ImmutableList.copyOf(getMcGroups());
-    }
-
-    private Collection<Group> getMcGroups() {
         // TODO: missing support for reading multicast groups in PI/Stratum.
-        return getMcGroupsFromMirror();
+        return ImmutableList.copyOf(getGroupsFromMirror());
     }
 
-    private Collection<Group> getMcGroupsFromMirror() {
-        return mcGroupMirror.getAll(deviceId).stream()
+    private Collection<Group> getGroupsFromMirror() {
+        return mirror.getAll(deviceId).stream()
                 .map(TimedEntry::entry)
-                .map(this::forgeMcGroupEntry)
+                .map(this::forgeGroupEntry)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
-    private void processMcGroupOp(Group pdGroup, GroupOperation.Type opType) {
-        final PiMulticastGroupEntry mcGroup;
+    private void processGroupOp(Group pdGroup, GroupOperation.Type opType) {
+        final PiPreEntry preEntry;
         try {
-            mcGroup = mcGroupTranslator.translate(pdGroup, pipeconf);
+            preEntry = translator.translate(pdGroup, pipeconf);
         } catch (PiTranslationException e) {
-            log.warn("Unable to translate multicast group, aborting {} operation: {} [{}]",
+            log.warn("Unable to translate replication group, aborting {} operation: {} [{}]",
                      opType, e.getMessage(), pdGroup);
             return;
         }
-        final PiMulticastGroupEntryHandle handle = PiMulticastGroupEntryHandle.of(
-                deviceId, mcGroup);
-        final PiMulticastGroupEntry groupOnDevice = mcGroupMirror.get(handle) == null
-                ? null
-                : mcGroupMirror.get(handle).entry();
+        final PiPreEntryHandle handle = (PiPreEntryHandle) preEntry.handle(deviceId);
+        final PiPreEntry entryOnDevice = mirror.get(handle) == null
+                ? null : mirror.get(handle).entry();
         final Lock lock = STRIPED_LOCKS.get(handle);
         lock.lock();
         try {
-            processMcGroup(handle, mcGroup,
-                           groupOnDevice, pdGroup, opType);
+            processPreEntry(handle, preEntry,
+                            entryOnDevice, pdGroup, opType);
         } finally {
             lock.unlock();
         }
     }
 
-    private void processMcGroup(PiMulticastGroupEntryHandle handle,
-                                PiMulticastGroupEntry groupToApply,
-                                PiMulticastGroupEntry groupOnDevice,
-                                Group pdGroup, GroupOperation.Type opType) {
+    private void processPreEntry(PiPreEntryHandle handle,
+                                 PiPreEntry entryToApply,
+                                 PiPreEntry entryOnDevice,
+                                 Group pdGroup, GroupOperation.Type opType) {
         switch (opType) {
             case ADD:
-                robustMcGroupAdd(handle, groupToApply, pdGroup);
+                robustInsert(handle, entryToApply, pdGroup);
                 return;
             case MODIFY:
                 // Since reading multicast groups is not supported yet on
@@ -156,10 +150,10 @@ public class P4RuntimeMulticastGroupProgrammable
                 //     // Ignore.
                 //     return;
                 // }
-                robustMcGroupModify(handle, groupToApply, pdGroup);
+                robustModify(handle, entryToApply, pdGroup);
                 return;
             case DELETE:
-                mcGroupApply(handle, groupToApply, pdGroup, DELETE);
+                preEntryWrite(handle, entryToApply, pdGroup, DELETE);
                 return;
             default:
                 log.error("Unknown group operation type {}, " +
@@ -167,31 +161,31 @@ public class P4RuntimeMulticastGroupProgrammable
         }
     }
 
-    private boolean writeMcGroupOnDevice(
-            PiMulticastGroupEntry group, P4RuntimeClient.UpdateType opType) {
+    private boolean writeEntryOnDevice(
+            PiPreEntry entry, P4RuntimeClient.UpdateType opType) {
         return client.write(p4DeviceId, pipeconf)
-                .entity(group, opType).submitSync().isSuccess();
+                .entity(entry, opType).submitSync().isSuccess();
     }
 
-    private boolean mcGroupApply(PiMulticastGroupEntryHandle handle,
-                                 PiMulticastGroupEntry piGroup,
-                                 Group pdGroup,
-                                 P4RuntimeClient.UpdateType opType) {
+    private boolean preEntryWrite(PiPreEntryHandle handle,
+                                  PiPreEntry preEntry,
+                                  Group pdGroup,
+                                  P4RuntimeClient.UpdateType opType) {
         switch (opType) {
             case DELETE:
-                if (writeMcGroupOnDevice(piGroup, DELETE)) {
-                    mcGroupMirror.remove(handle);
-                    mcGroupTranslator.forget(handle);
+                if (writeEntryOnDevice(preEntry, DELETE)) {
+                    mirror.remove(handle);
+                    translator.forget(handle);
                     return true;
                 } else {
                     return false;
                 }
             case INSERT:
             case MODIFY:
-                if (writeMcGroupOnDevice(piGroup, opType)) {
-                    mcGroupMirror.put(handle, piGroup);
-                    mcGroupTranslator.learn(handle, new PiTranslatedEntity<>(
-                            pdGroup, piGroup, handle));
+                if (writeEntryOnDevice(preEntry, opType)) {
+                    mirror.put(handle, preEntry);
+                    translator.learn(handle, new PiTranslatedEntity<>(
+                            pdGroup, preEntry, handle));
                     return true;
                 } else {
                     return false;
@@ -202,41 +196,40 @@ public class P4RuntimeMulticastGroupProgrammable
         }
     }
 
-    private void robustMcGroupAdd(PiMulticastGroupEntryHandle handle,
-                                  PiMulticastGroupEntry piGroup,
-                                  Group pdGroup) {
-        if (mcGroupApply(handle, piGroup, pdGroup, INSERT)) {
+    private void robustInsert(PiPreEntryHandle handle,
+                              PiPreEntry preEntry,
+                              Group pdGroup) {
+        if (preEntryWrite(handle, preEntry, pdGroup, INSERT)) {
             return;
         }
         // Try to delete (perhaps it already exists) and re-add...
-        mcGroupApply(handle, piGroup, pdGroup, DELETE);
-        mcGroupApply(handle, piGroup, pdGroup, INSERT);
+        preEntryWrite(handle, preEntry, pdGroup, DELETE);
+        preEntryWrite(handle, preEntry, pdGroup, INSERT);
     }
 
-    private void robustMcGroupModify(PiMulticastGroupEntryHandle handle,
-                                     PiMulticastGroupEntry piGroup,
-                                     Group pdGroup) {
-        if (mcGroupApply(handle, piGroup, pdGroup, MODIFY)) {
+    private void robustModify(PiPreEntryHandle handle,
+                              PiPreEntry preEntry,
+                              Group pdGroup) {
+        if (preEntryWrite(handle, preEntry, pdGroup, MODIFY)) {
             return;
         }
         // Not sure for which reason it cannot be modified, so try to delete and insert instead...
-        mcGroupApply(handle, piGroup, pdGroup, DELETE);
-        mcGroupApply(handle, piGroup, pdGroup, INSERT);
+        preEntryWrite(handle, preEntry, pdGroup, DELETE);
+        preEntryWrite(handle, preEntry, pdGroup, INSERT);
     }
 
-    private Group forgeMcGroupEntry(PiMulticastGroupEntry mcGroup) {
-        final PiMulticastGroupEntryHandle handle = PiMulticastGroupEntryHandle.of(
-                deviceId, mcGroup);
-        final Optional<PiTranslatedEntity<Group, PiMulticastGroupEntry>>
-                translatedEntity = mcGroupTranslator.lookup(handle);
-        final TimedEntry<PiMulticastGroupEntry> timedEntry = mcGroupMirror.get(handle);
+    private Group forgeGroupEntry(PiPreEntry preEntry) {
+        final PiPreEntryHandle handle = (PiPreEntryHandle) preEntry.handle(deviceId);
+        final Optional<PiTranslatedEntity<Group, PiPreEntry>>
+                translatedEntity = translator.lookup(handle);
+        final TimedEntry<PiPreEntry> timedEntry = mirror.get(handle);
         // Is entry consistent with our state?
         if (!translatedEntity.isPresent()) {
-            log.warn("Multicast group handle not found in translation store: {}", handle);
+            log.warn("PRE entry handle not found in translation store: {}", handle);
             return null;
         }
         if (timedEntry == null) {
-            log.warn("Multicast group handle not found in device mirror: {}", handle);
+            log.warn("PRE entry handle not found in device mirror: {}", handle);
             return null;
         }
         return addedGroup(translatedEntity.get().original(), timedEntry.lifeSec());

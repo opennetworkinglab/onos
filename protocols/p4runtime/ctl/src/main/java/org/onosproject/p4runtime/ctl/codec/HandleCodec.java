@@ -19,10 +19,12 @@ package org.onosproject.p4runtime.ctl.codec;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.runtime.PiActionProfileGroupHandle;
 import org.onosproject.net.pi.runtime.PiActionProfileMemberHandle;
+import org.onosproject.net.pi.runtime.PiCloneSessionEntryHandle;
 import org.onosproject.net.pi.runtime.PiCounterCellHandle;
 import org.onosproject.net.pi.runtime.PiHandle;
 import org.onosproject.net.pi.runtime.PiMeterCellHandle;
 import org.onosproject.net.pi.runtime.PiMulticastGroupEntryHandle;
+import org.onosproject.net.pi.runtime.PiPreEntryHandle;
 import org.onosproject.net.pi.runtime.PiTableEntryHandle;
 import org.onosproject.p4runtime.ctl.utils.P4InfoBrowser;
 import p4.v1.P4RuntimeOuterClass;
@@ -55,13 +57,29 @@ public final class HandleCodec extends AbstractCodec<PiHandle, P4RuntimeOuterCla
                         CODECS.actionProfileMember().encodeKey(
                                 (PiActionProfileMemberHandle) piHandle, null, pipeconf))
                         .build();
-            case PRE_MULTICAST_GROUP_ENTRY:
-                return p4Entity.setPacketReplicationEngineEntry(
-                        P4RuntimeOuterClass.PacketReplicationEngineEntry.newBuilder()
-                                .setMulticastGroupEntry(CODECS.multicastGroupEntry().encodeKey(
-                                        (PiMulticastGroupEntryHandle) piHandle, null, pipeconf))
-                                .build())
-                        .build();
+            case PRE_ENTRY:
+                final PiPreEntryHandle preEntryHandle = (PiPreEntryHandle) piHandle;
+                switch (preEntryHandle.preEntryType()) {
+                    case MULTICAST_GROUP:
+                        return p4Entity.setPacketReplicationEngineEntry(
+                                P4RuntimeOuterClass.PacketReplicationEngineEntry.newBuilder()
+                                        .setMulticastGroupEntry(CODECS.multicastGroupEntry().encodeKey(
+                                                (PiMulticastGroupEntryHandle) piHandle, null, pipeconf))
+                                        .build())
+                                .build();
+                    case CLONE_SESSION:
+                        return p4Entity.setPacketReplicationEngineEntry(
+                                P4RuntimeOuterClass.PacketReplicationEngineEntry.newBuilder()
+                                        .setCloneSessionEntry(CODECS.cloneSessionEntry().encodeKey(
+                                                (PiCloneSessionEntryHandle) piHandle, null, pipeconf))
+                                        .build())
+                                .build();
+                    default:
+                        throw new CodecException(format(
+                                "Encoding of handle for %s of type %s is not supported",
+                                piHandle.entityType(),
+                                preEntryHandle.preEntryType()));
+                }
             case METER_CELL_CONFIG:
                 final PiMeterCellHandle meterCellHandle = (PiMeterCellHandle) piHandle;
                 switch (meterCellHandle.cellId().meterType()) {
@@ -101,7 +119,6 @@ public final class HandleCodec extends AbstractCodec<PiHandle, P4RuntimeOuterCla
                                 counterCellHandle.cellId().counterType()));
                 }
             case REGISTER_CELL:
-            case PRE_CLONE_SESSION_ENTRY:
             default:
                 throw new CodecException(format(
                         "Encoding of handle for %s not supported",
@@ -113,7 +130,7 @@ public final class HandleCodec extends AbstractCodec<PiHandle, P4RuntimeOuterCla
     protected PiHandle decode(
             P4RuntimeOuterClass.Entity message, Object ignored,
             PiPipeconf pipeconf, P4InfoBrowser browser)
-            throws CodecException, P4InfoBrowser.NotFoundException {
+            throws CodecException {
         throw new CodecException("Decoding of Entity to PiHandle is not supported");
     }
 }

@@ -48,9 +48,9 @@ public interface PiTranslationService {
 
     /**
      * Returns a group translator for packet replication engine (PRE)
-     * multicast groups.
+     * entries.
      *
-     * @return multicast group translator
+     * @return replication group translator
      */
-    PiMulticastGroupTranslator multicastGroupTranslator();
+    PiReplicationGroupTranslator replicationGroupTranslator();
 }

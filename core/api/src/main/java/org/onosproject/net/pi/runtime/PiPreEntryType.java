@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-present Open Networking Foundation
+ * Copyright 2019-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,19 @@
  * limitations under the License.
  */
 
-package org.onosproject.drivers.p4runtime.mirror;
-
-import org.onosproject.net.pi.runtime.PiMulticastGroupEntry;
-import org.onosproject.net.pi.runtime.PiMulticastGroupEntryHandle;
+package org.onosproject.net.pi.runtime;
 
 /**
- * Mirror of multicast groups installed on a P4Runtime device.
+ * Type of entry of the packet replication engine (PRE) or a
+ * protocol-independent pipeline.
  */
-public interface P4RuntimeMulticastGroupMirror
-        extends P4RuntimeMirror<PiMulticastGroupEntryHandle, PiMulticastGroupEntry> {
+public enum PiPreEntryType {
+    /**
+     * Multicast group entry.
+     */
+    MULTICAST_GROUP,
+    /**
+     * Clone session entry.
+     */
+    CLONE_SESSION
 }

@@ -16,20 +16,21 @@
 
 package org.onosproject.store.pi.impl;
 
-import org.osgi.service.component.annotations.Component;
 import org.onosproject.net.group.Group;
-import org.onosproject.net.pi.runtime.PiMulticastGroupEntry;
-import org.onosproject.net.pi.service.PiMulticastGroupTranslationStore;
+import org.onosproject.net.pi.runtime.PiPreEntry;
+import org.onosproject.net.pi.service.PiReplicationGroupTranslationStore;
+import org.osgi.service.component.annotations.Component;
 
 /**
- * Distributed implementation of a PI translation store for multicast groups.
+ * Distributed implementation of a PI translation store for groups that require
+ * packet replication.
  */
-@Component(immediate = true, service = PiMulticastGroupTranslationStore.class)
-public class DistributedPiMulticastGroupTranslationStore
-        extends AbstractDistributedPiTranslationStore<Group, PiMulticastGroupEntry>
-        implements PiMulticastGroupTranslationStore {
+@Component(immediate = true, service = PiReplicationGroupTranslationStore.class)
+public class DistributedPiReplicationGroupTranslationStore
+        extends AbstractDistributedPiTranslationStore<Group, PiPreEntry>
+        implements PiReplicationGroupTranslationStore {
 
-    private static final String MAP_SIMPLE_NAME = "mc-group";
+    private static final String MAP_SIMPLE_NAME = "replication-group";
 
     @Override
     protected String mapSimpleName() {

@@ -18,13 +18,13 @@ package org.onosproject.net.pi.service;
 
 import com.google.common.annotations.Beta;
 import org.onosproject.net.group.Group;
-import org.onosproject.net.pi.runtime.PiMulticastGroupEntry;
+import org.onosproject.net.pi.runtime.PiPreEntry;
 
 /**
- * A PI translation store that keeps track of which groups have been
- * translated to which PI PRE multicast groups.
+ * A translator of groups for packet replication to PI packet replication engine
+ * (PRE) entries.
  */
 @Beta
-public interface PiMulticastGroupTranslationStore
-        extends PiTranslationStore<Group, PiMulticastGroupEntry> {
+public interface PiReplicationGroupTranslator
+        extends PiTranslator<Group, PiPreEntry> {
 }

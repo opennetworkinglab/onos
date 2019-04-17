@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.group.Group;
-import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.group.GroupOperation;
 import org.onosproject.net.group.GroupOperations;
 import org.onosproject.net.group.GroupProgrammable;
@@ -37,7 +36,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Implementation of GroupProgrammable for P4Runtime devices that uses two
  * different implementation of the same behavior to handle both action profile
- * groups and multicast groups.
+ * groups and PRE entries.
  */
 public class P4RuntimeGroupProgrammable
         extends AbstractHandlerBehaviour implements GroupProgrammable {
@@ -49,28 +48,36 @@ public class P4RuntimeGroupProgrammable
         checkArgument(deviceId.equals(data().deviceId()),
                       "passed deviceId must be the same assigned to this behavior");
         final List<GroupOperation> actionGroups = Lists.newArrayList();
-        final List<GroupOperation> multicastGroups = Lists.newArrayList();
+        final List<GroupOperation> preGroups = Lists.newArrayList();
         groupOps.operations().forEach(op -> {
-            if (op.groupType().equals(GroupDescription.Type.ALL)) {
-                multicastGroups.add(op);
-            } else {
-                actionGroups.add(op);
+            switch (op.groupType()) {
+                case SELECT:
+                    actionGroups.add(op);
+                    break;
+                case ALL:
+                case CLONE:
+                    preGroups.add(op);
+                    break;
+                case FAILOVER:
+                case INDIRECT:
+                default:
+                    log.warn("{} group type not supported [{}]", op.groupType(), op);
             }
         });
         if (!actionGroups.isEmpty()) {
             actionProgrammable().performGroupOperation(
                     deviceId, new GroupOperations(actionGroups));
         }
-        if (!multicastGroups.isEmpty()) {
-            multicastProgrammable().performGroupOperation(
-                    deviceId, new GroupOperations(multicastGroups));
+        if (!preGroups.isEmpty()) {
+            replicationProgrammable().performGroupOperation(
+                    deviceId, new GroupOperations(preGroups));
         }
     }
 
     private Collection<Group> doGetGroups() {
         return new ImmutableList.Builder<Group>()
                 .addAll(actionProgrammable().getGroups())
-                .addAll(multicastProgrammable().getGroups())
+                .addAll(replicationProgrammable().getGroups())
                 .build();
     }
 
@@ -81,8 +88,8 @@ public class P4RuntimeGroupProgrammable
         return prog;
     }
 
-    private P4RuntimeMulticastGroupProgrammable multicastProgrammable() {
-        P4RuntimeMulticastGroupProgrammable prog = new P4RuntimeMulticastGroupProgrammable();
+    private P4RuntimeReplicationGroupProgrammable replicationProgrammable() {
+        P4RuntimeReplicationGroupProgrammable prog = new P4RuntimeReplicationGroupProgrammable();
         prog.setData(data());
         prog.setHandler(handler());
         return prog;

@@ -29,7 +29,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * ID.
  */
 @Beta
-public final class PiMulticastGroupEntryHandle extends PiHandle {
+public final class PiMulticastGroupEntryHandle extends PiPreEntryHandle {
 
     private final int groupId;
 
@@ -74,8 +74,8 @@ public final class PiMulticastGroupEntryHandle extends PiHandle {
     }
 
     @Override
-    public PiEntityType entityType() {
-        return PiEntityType.PRE_MULTICAST_GROUP_ENTRY;
+    public PiPreEntryType preEntryType() {
+        return PiPreEntryType.MULTICAST_GROUP;
     }
 
     @Override

@@ -25,7 +25,7 @@ import org.onosproject.net.meter.Meter;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.runtime.PiActionProfileGroup;
 import org.onosproject.net.pi.runtime.PiMeterCellConfig;
-import org.onosproject.net.pi.runtime.PiMulticastGroupEntry;
+import org.onosproject.net.pi.runtime.PiPreEntry;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.service.PiFlowRuleTranslationStore;
 import org.onosproject.net.pi.service.PiFlowRuleTranslator;
@@ -33,8 +33,8 @@ import org.onosproject.net.pi.service.PiGroupTranslationStore;
 import org.onosproject.net.pi.service.PiGroupTranslator;
 import org.onosproject.net.pi.service.PiMeterTranslationStore;
 import org.onosproject.net.pi.service.PiMeterTranslator;
-import org.onosproject.net.pi.service.PiMulticastGroupTranslationStore;
-import org.onosproject.net.pi.service.PiMulticastGroupTranslator;
+import org.onosproject.net.pi.service.PiReplicationGroupTranslationStore;
+import org.onosproject.net.pi.service.PiReplicationGroupTranslator;
 import org.onosproject.net.pi.service.PiTranslationException;
 import org.onosproject.net.pi.service.PiTranslationService;
 import org.osgi.service.component.annotations.Activate;
@@ -67,21 +67,21 @@ public class PiTranslationServiceImpl implements PiTranslationService {
     private PiGroupTranslationStore groupTranslationStore;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    private PiMulticastGroupTranslationStore mcGroupTranslationStore;
+    private PiReplicationGroupTranslationStore repGroupTranslationStore;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private PiMeterTranslationStore meterTranslationStore;
 
     private PiFlowRuleTranslator flowRuleTranslator;
     private PiGroupTranslator groupTranslator;
-    private PiMulticastGroupTranslator mcGroupTranslator;
+    private PiReplicationGroupTranslator repGroupTranslator;
     private PiMeterTranslator meterTranslator;
 
     @Activate
     public void activate() {
         flowRuleTranslator = new InternalFlowRuleTranslator(flowRuleTranslationStore);
         groupTranslator = new InternalGroupTranslator(groupTranslationStore);
-        mcGroupTranslator = new InternalMulticastGroupTranslator(mcGroupTranslationStore);
+        repGroupTranslator = new InternalReplicationGroupTranslator(repGroupTranslationStore);
         meterTranslator = new InternalMeterTranslator(meterTranslationStore);
         log.info("Started");
     }
@@ -110,8 +110,8 @@ public class PiTranslationServiceImpl implements PiTranslationService {
     }
 
     @Override
-    public PiMulticastGroupTranslator multicastGroupTranslator() {
-        return mcGroupTranslator;
+    public PiReplicationGroupTranslator replicationGroupTranslator() {
+        return repGroupTranslator;
     }
 
     private Device getDevice(DeviceId deviceId) throws PiTranslationException {
@@ -158,20 +158,20 @@ public class PiTranslationServiceImpl implements PiTranslationService {
         }
     }
 
-    private final class InternalMulticastGroupTranslator
-            extends AbstractPiTranslatorImpl<Group, PiMulticastGroupEntry>
-            implements PiMulticastGroupTranslator {
+    private final class InternalReplicationGroupTranslator
+            extends AbstractPiTranslatorImpl<Group, PiPreEntry>
+            implements PiReplicationGroupTranslator {
 
-        private InternalMulticastGroupTranslator(PiMulticastGroupTranslationStore store) {
+        private InternalReplicationGroupTranslator(PiReplicationGroupTranslationStore store) {
             super(store);
         }
 
         @Override
-        public PiMulticastGroupEntry translate(Group original, PiPipeconf pipeconf)
+        public PiPreEntry translate(Group original, PiPipeconf pipeconf)
                 throws PiTranslationException {
             checkNotNull(original);
             checkNotNull(pipeconf);
-            return PiMulticastGroupTranslatorImpl.translate(
+            return PiReplicationGroupTranslatorImpl.translate(
                     original, pipeconf, getDevice(original.deviceId()));
         }
     }

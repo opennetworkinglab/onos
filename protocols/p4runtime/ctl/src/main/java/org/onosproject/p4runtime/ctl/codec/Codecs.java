@@ -34,6 +34,8 @@ public final class Codecs {
     private final HandleCodec handle;
     private final MeterEntryCodec meterEntry;
     private final MulticastGroupEntryCodec multicastGroupEntry;
+    private final CloneSessionEntryCodec cloneSessionEntry;
+    private final PreReplicaCodec preReplica;
     private final PacketInCodec packetIn;
     private final PacketMetadataCodec packetMetadata;
     private final PacketOutCodec packetOut;
@@ -51,6 +53,8 @@ public final class Codecs {
         this.handle = new HandleCodec();
         this.meterEntry = new MeterEntryCodec();
         this.multicastGroupEntry = new MulticastGroupEntryCodec();
+        this.cloneSessionEntry = new CloneSessionEntryCodec();
+        this.preReplica = new PreReplicaCodec();
         this.packetIn = new PacketInCodec();
         this.packetMetadata = new PacketMetadataCodec();
         this.packetOut = new PacketOutCodec();
@@ -99,6 +103,14 @@ public final class Codecs {
 
     MulticastGroupEntryCodec multicastGroupEntry() {
         return multicastGroupEntry;
+    }
+
+    CloneSessionEntryCodec cloneSessionEntry() {
+        return cloneSessionEntry;
+    }
+
+    PreReplicaCodec preReplica() {
+        return preReplica;
     }
 
     DirectMeterEntryCodec directMeterEntry() {

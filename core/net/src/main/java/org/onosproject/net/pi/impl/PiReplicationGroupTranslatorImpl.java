@@ -26,7 +26,9 @@ import org.onosproject.net.group.Group;
 import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipelineInterpreter;
+import org.onosproject.net.pi.runtime.PiCloneSessionEntry;
 import org.onosproject.net.pi.runtime.PiMulticastGroupEntry;
+import org.onosproject.net.pi.runtime.PiPreEntry;
 import org.onosproject.net.pi.runtime.PiPreReplica;
 import org.onosproject.net.pi.service.PiTranslationException;
 
@@ -41,19 +43,20 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 
 /**
- * Implementation of multicast group translation logic.
+ * Implementation of replication group translation logic.
  */
-final class PiMulticastGroupTranslatorImpl {
+final class PiReplicationGroupTranslatorImpl {
 
-    private PiMulticastGroupTranslatorImpl() {
+    private PiReplicationGroupTranslatorImpl() {
         // Hides constructor.
     }
 
     /**
-     * Returns a PI PRE multicast group entry equivalent to the given group, for
-     * the given pipeconf and device.
+     * Returns a PI PRE entry equivalent to the given group, for the given
+     * pipeconf and device.
      * <p>
-     * The passed group is expected to have type {@link GroupDescription.Type#ALL}.
+     * The passed group is expected to have type {@link GroupDescription.Type#ALL}
+     * or {@link GroupDescription.Type#CLONE}.
      *
      * @param group    group
      * @param pipeconf pipeconf
@@ -61,15 +64,10 @@ final class PiMulticastGroupTranslatorImpl {
      * @return PI PRE entry
      * @throws PiTranslationException if the group cannot be translated
      */
-    static PiMulticastGroupEntry translate(Group group, PiPipeconf pipeconf, Device device)
+    static PiPreEntry translate(Group group, PiPipeconf pipeconf, Device device)
             throws PiTranslationException {
 
         checkNotNull(group);
-
-        if (!group.type().equals(GroupDescription.Type.ALL)) {
-            throw new PiTranslationException(format(
-                    "group type %s not supported", group.type()));
-        }
 
         final List<Instruction> instructions = group.buckets().buckets().stream()
                 .flatMap(b -> b.treatment().allInstructions().stream())
@@ -88,10 +86,21 @@ final class PiMulticastGroupTranslatorImpl {
                 .map(i -> (OutputInstruction) i)
                 .collect(Collectors.toList());
 
-        return PiMulticastGroupEntry.builder()
-                .withGroupId(group.id().id())
-                .addReplicas(getReplicas(outInstructions, device))
-                .build();
+        switch (group.type()) {
+            case ALL:
+                return PiMulticastGroupEntry.builder()
+                        .withGroupId(group.id().id())
+                        .addReplicas(getReplicas(outInstructions, device))
+                        .build();
+            case CLONE:
+                return PiCloneSessionEntry.builder()
+                        .withSessionId(group.id().id())
+                        .addReplicas(getReplicas(outInstructions, device))
+                        .build();
+            default:
+                throw new PiTranslationException(format(
+                        "group type %s not supported", group.type()));
+        }
     }
 
     private static Set<PiPreReplica> getReplicas(
