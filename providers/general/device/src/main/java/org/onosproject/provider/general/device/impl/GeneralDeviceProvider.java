@@ -17,6 +17,7 @@
 package org.onosproject.provider.general.device.impl;
 
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Futures;
 import org.onlab.packet.ChassisId;
 import org.onlab.util.ItemNotFoundException;
@@ -80,6 +81,7 @@ import java.util.Dictionary;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -519,9 +521,18 @@ public class GeneralDeviceProvider extends AbstractProvider
     private void submitCheckupTasksForAllDevices() {
         // Async trigger a task for all devices in the cfg.
         log.debug("Submitting checkup task for all devices...");
+        final Set<DeviceId> deviceToCheck = Sets.newHashSet();
+        // All devices in the core and in the config that we care about.
+        deviceService.getDevices().forEach(d -> {
+            if (myScheme(d.id())) {
+                deviceToCheck.add(d.id());
+            }
+        });
         cfgService.getSubjects(DeviceId.class).stream()
                 .filter(GeneralDeviceProvider::myScheme)
-                .forEach(d -> submitTask(d, TaskType.CHECKUP));
+                .filter(this::configIsPresent)
+                .forEach(deviceToCheck::add);
+        deviceToCheck.forEach(d -> submitTask(d, TaskType.CHECKUP));
     }
 
     /**
