@@ -90,8 +90,8 @@ import static org.onlab.packet.MacAddress.BROADCAST;
 import static org.onlab.packet.MacAddress.NONE;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.driver.pipeline.ofdpa.OfdpaGroupHandlerUtility.*;
+import static org.onosproject.driver.pipeline.ofdpa.OfdpaPipelineUtility.*;
 import static org.onosproject.net.flow.criteria.Criterion.Type.VLAN_VID;
-import static org.onosproject.net.flow.instructions.Instruction.Type.L2MODIFICATION;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -161,30 +161,17 @@ public class OvsOfdpaPipeline extends Ofdpa2Pipeline {
         groupChecker.scheduleAtFixedRate(new PopVlanPuntGroupChecker(), 20, 50, TimeUnit.MILLISECONDS);
         super.init(deviceId, context);
     }
+
     protected void processFilter(FilteringObjective filteringObjective,
                                  boolean install,
                                  ApplicationId applicationId) {
-        if (isDoubleTagged(filteringObjective)) {
+        if (OfdpaPipelineUtility.isDoubleTagged(filteringObjective)) {
             processDoubleTaggedFilter(filteringObjective, install, applicationId);
         } else {
             // If it is not a double-tagged filter, we fall back
             // to the OFDPA 2.0 pipeline.
             super.processFilter(filteringObjective, install, applicationId);
         }
-    }
-
-    /**
-     * Determines if the filtering objective will be used for double-tagged packets.
-     *
-     * @param fob Filtering objective
-     * @return True if the objective was created for double-tagged packets, false otherwise.
-     */
-    private boolean isDoubleTagged(FilteringObjective fob) {
-        return fob.meta() != null &&
-                fob.meta().allInstructions().stream().anyMatch(inst -> inst.type() == L2MODIFICATION
-                        && ((L2ModificationInstruction) inst).subtype() ==
-                        L2ModificationInstruction.L2SubType.VLAN_POP) &&
-                fob.conditions().stream().filter(criterion -> criterion.type() == VLAN_VID).count() == 2;
     }
 
     /**
