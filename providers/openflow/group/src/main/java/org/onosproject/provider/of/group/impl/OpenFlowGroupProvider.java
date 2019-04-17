@@ -200,6 +200,21 @@ public class OpenFlowGroupProvider extends AbstractProvider implements GroupProv
                 log.error("SW {} is not found", dpid);
                 return;
             }
+
+            switch (groupOperation.groupType()) {
+                case SELECT:
+                case INDIRECT:
+                case ALL:
+                case FAILOVER:
+                    break;
+                case CLONE:
+                default:
+                    log.warn("Group type {} not supported, ignoring operation [{}]",
+                             groupOperation.groupType(), groupOperation);
+                    //  Next groupOperation.
+                    continue;
+            }
+
             final Long groupModXid = XID_COUNTER.getAndIncrement();
             GroupModBuilder builder = null;
             if (driverService == null) {

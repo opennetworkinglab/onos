@@ -146,6 +146,9 @@ public final class GroupCodec extends JsonCodec<Group> {
             case "ALL":
                 groupType = Group.Type.ALL;
                 break;
+            case "CLONE":
+                groupType = Group.Type.CLONE;
+                break;
             case "FAILOVER":
                 groupType = Group.Type.FAILOVER;
                 break;

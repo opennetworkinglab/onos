@@ -153,6 +153,20 @@ public final class DefaultGroupBucket implements GroupBucket, StoredGroupBucketE
                                       null);
     }
 
+    /**
+     * Creates clone group bucket.
+     *
+     * @param treatment traffic treatment associated with group bucket
+     * @return clone group bucket object
+     */
+    public static GroupBucket createCloneGroupBucket(TrafficTreatment treatment) {
+        return new DefaultGroupBucket(GroupDescription.Type.CLONE,
+                                      treatment,
+                                      (short) -1,
+                                      null,
+                                      null);
+    }
+
     @Override
     public GroupDescription.Type type() {
         return this.type;
