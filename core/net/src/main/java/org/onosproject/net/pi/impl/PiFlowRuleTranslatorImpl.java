@@ -54,7 +54,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
 
@@ -80,7 +79,8 @@ final class PiFlowRuleTranslatorImpl {
     }
 
     /**
-     * Returns a PI table entry equivalent to the given flow rule, for the given pipeconf and device.
+     * Returns a PI table entry equivalent to the given flow rule, for the given
+     * pipeconf and device.
      *
      * @param rule     flow rule
      * @param pipeconf pipeconf
@@ -148,7 +148,7 @@ final class PiFlowRuleTranslatorImpl {
                 tableEntryBuilder.withTimeout((double) rule.timeout());
             } else {
                 log.debug("Flow rule is temporary, but table '{}' doesn't support " +
-                                 "aging, translating to permanent.", tableModel.id());
+                                  "aging, translating to permanent.", tableModel.id());
             }
 
         }
@@ -158,16 +158,19 @@ final class PiFlowRuleTranslatorImpl {
 
 
     /**
-     * Returns a PI action equivalent to the given treatment, optionally using the given interpreter. This method also
-     * checks that the produced PI table action is suitable for the given table ID and pipeline model. If suitable, the
-     * returned action instance will have parameters well-sized, according to the table model.
+     * Returns a PI action equivalent to the given treatment, optionally using
+     * the given interpreter. This method also checks that the produced PI table
+     * action is suitable for the given table ID and pipeline model. If
+     * suitable, the returned action instance will have parameters well-sized,
+     * according to the table model.
      *
      * @param treatment     traffic treatment
      * @param interpreter   interpreter
      * @param tableId       PI table ID
      * @param pipelineModel pipeline model
      * @return PI table action
-     * @throws PiTranslationException if the treatment cannot be translated or if the PI action is not suitable for the
+     * @throws PiTranslationException if the treatment cannot be translated or
+     *                                if the PI action is not suitable for the
      *                                given pipeline model
      */
     static PiTableAction translateTreatment(TrafficTreatment treatment, PiPipelineInterpreter interpreter,
@@ -185,7 +188,8 @@ final class PiFlowRuleTranslatorImpl {
     }
 
     /**
-     * Builds a PI action out of the given treatment, optionally using the given interpreter.
+     * Builds a PI action out of the given treatment, optionally using the given
+     * interpreter.
      */
     private static PiTableAction buildAction(TrafficTreatment treatment, PiPipelineInterpreter interpreter,
                                              PiTableId tableId)
@@ -285,8 +289,9 @@ final class PiFlowRuleTranslatorImpl {
     }
 
     /**
-     * Builds a collection of PI field matches out of the given selector, optionally using the given interpreter. The
-     * field matches returned are guaranteed to be compatible for the given table model.
+     * Builds a collection of PI field matches out of the given selector,
+     * optionally using the given interpreter. The field matches returned are
+     * guaranteed to be compatible for the given table model.
      */
     private static Collection<PiFieldMatch> translateFieldMatches(PiPipelineInterpreter interpreter,
                                                                   TrafficSelector selector, PiTableModel tableModel)
@@ -312,18 +317,41 @@ final class PiFlowRuleTranslatorImpl {
         Set<PiMatchFieldId> usedPiCriterionFields = Sets.newHashSet();
         Set<PiMatchFieldId> ignoredPiCriterionFields = Sets.newHashSet();
 
+
+        Map<PiMatchFieldId, Criterion> criterionMap = Maps.newHashMap();
+        if (interpreter != null) {
+            // NOTE: if two criterion types map to the same match field ID, and
+            //  those two criterion types are present in the selector, this won't
+            //  work. This is unlikely to happen since those cases should be
+            //  mutually exclusive:
+            //  e.g. ICMPV6_TYPE ->  metadata.my_normalized_icmp_type
+            //       ICMPV4_TYPE ->  metadata.my_normalized_icmp_type
+            //  A packet can be either ICMPv6 or ICMPv4 but not both.
+            selector.criteria()
+                    .stream()
+                    .map(Criterion::type)
+                    .filter(t -> t != PROTOCOL_INDEPENDENT)
+                    .forEach(t -> {
+                        PiMatchFieldId mfid = interpreter.mapCriterionType(t)
+                                .orElse(null);
+                        if (mfid != null) {
+                            if (criterionMap.containsKey(mfid)) {
+                                log.warn("Detected criterion mapping " +
+                                                 "conflict for PiMatchFieldId {}",
+                                         mfid);
+                            }
+                            criterionMap.put(mfid, selector.getCriterion(t));
+                        }
+                    });
+        }
+
         for (PiMatchFieldModel fieldModel : tableModel.matchFields()) {
 
             PiMatchFieldId fieldId = fieldModel.id();
 
             int bitWidth = fieldModel.bitWidth();
 
-            Optional<Criterion.Type> criterionType =
-                    interpreter == null
-                            ? Optional.empty()
-                            : interpreter.mapPiMatchFieldId(fieldId);
-
-            Criterion criterion = criterionType.map(selector::getCriterion).orElse(null);
+            Criterion criterion = criterionMap.get(fieldId);
 
             if (!piCriterionFields.containsKey(fieldId) && criterion == null) {
                 // Neither a field in PiCriterion is available nor a Criterion mapping is possible.

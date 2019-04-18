@@ -99,25 +99,6 @@ public class FabricInterpreter extends AbstractFabricHandlerBehavior
                     .put(Criterion.Type.ICMPV6_CODE, FabricConstants.HDR_ICMP_CODE)
                     .build();
 
-    private static final ImmutableMap<PiMatchFieldId, Criterion.Type> INVERSE_CRITERION_MAP =
-            ImmutableMap.<PiMatchFieldId, Criterion.Type>builder()
-                    .put(FabricConstants.HDR_IG_PORT, Criterion.Type.IN_PORT)
-                    .put(FabricConstants.HDR_ETH_DST, Criterion.Type.ETH_DST_MASKED)
-                    .put(FabricConstants.HDR_ETH_SRC, Criterion.Type.ETH_SRC_MASKED)
-                    .put(FabricConstants.HDR_ETH_TYPE, Criterion.Type.ETH_TYPE)
-                    .put(FabricConstants.HDR_MPLS_LABEL, Criterion.Type.MPLS_LABEL)
-                    .put(FabricConstants.HDR_VLAN_ID, Criterion.Type.VLAN_VID)
-                    .put(FabricConstants.HDR_IPV4_DST, Criterion.Type.IPV4_DST)
-                    .put(FabricConstants.HDR_IPV4_SRC, Criterion.Type.IPV4_SRC)
-                    .put(FabricConstants.HDR_IPV6_DST, Criterion.Type.IPV6_DST)
-                    // FIXME: might be incorrect if we inverse the map....
-                    .put(FabricConstants.HDR_L4_SPORT, Criterion.Type.UDP_SRC)
-                    .put(FabricConstants.HDR_L4_DPORT, Criterion.Type.UDP_DST)
-                    .put(FabricConstants.HDR_IP_PROTO, Criterion.Type.IP_PROTO)
-                    .put(FabricConstants.HDR_ICMP_TYPE, Criterion.Type.ICMPV6_TYPE)
-                    .put(FabricConstants.HDR_ICMP_CODE, Criterion.Type.ICMPV6_CODE)
-                    .build();
-
     private static final PiAction NOP = PiAction.builder()
             .withId(FabricConstants.NOP).build();
 
@@ -132,19 +113,7 @@ public class FabricInterpreter extends AbstractFabricHandlerBehavior
     }
 
     @Override
-    public Optional<Criterion.Type> mapPiMatchFieldId(PiMatchFieldId fieldId) {
-        return Optional.ofNullable(INVERSE_CRITERION_MAP.get(fieldId));
-    }
-
-    @Override
     public Optional<PiTableId> mapFlowRuleTableId(int flowRuleTableId) {
-        // The only use case for Index ID->PiTableId is when using the single
-        // table pipeliner. fabric.p4 is never used with such pipeliner.
-        return Optional.empty();
-    }
-
-    @Override
-    public Optional<Integer> mapPiTableId(PiTableId piTableId) {
         // The only use case for Index ID->PiTableId is when using the single
         // table pipeliner. fabric.p4 is never used with such pipeliner.
         return Optional.empty();

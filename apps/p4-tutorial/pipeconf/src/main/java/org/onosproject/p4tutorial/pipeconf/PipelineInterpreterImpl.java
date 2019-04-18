@@ -16,9 +16,8 @@
 
 package org.onosproject.p4tutorial.pipeconf;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.onlab.packet.DeserializationException;
 import org.onlab.packet.Ethernet;
@@ -50,6 +49,7 @@ import org.onosproject.net.pi.runtime.PiPacketOperation;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static java.lang.String.format;
@@ -98,13 +98,13 @@ public final class PipelineInterpreterImpl
     private static final PiActionParamId ACT_PARAM_ID_PORT =
             PiActionParamId.of("port");
 
-    private static final BiMap<Integer, PiTableId> TABLE_MAP =
-            new ImmutableBiMap.Builder<Integer, PiTableId>()
+    private static final Map<Integer, PiTableId> TABLE_MAP =
+            new ImmutableMap.Builder<Integer, PiTableId>()
                     .put(0, TABLE_L2_FWD_ID)
                     .build();
 
-    private static final BiMap<Criterion.Type, PiMatchFieldId> CRITERION_MAP =
-            new ImmutableBiMap.Builder<Criterion.Type, PiMatchFieldId>()
+    private static final Map<Criterion.Type, PiMatchFieldId> CRITERION_MAP =
+            ImmutableMap.<Criterion.Type, PiMatchFieldId>builder()
                     .put(Criterion.Type.IN_PORT, INGRESS_PORT_ID)
                     .put(Criterion.Type.ETH_DST, ETH_DST_ID)
                     .put(Criterion.Type.ETH_SRC, ETH_SRC_ID)
@@ -117,18 +117,8 @@ public final class PipelineInterpreterImpl
     }
 
     @Override
-    public Optional<Criterion.Type> mapPiMatchFieldId(PiMatchFieldId headerFieldId) {
-        return Optional.ofNullable(CRITERION_MAP.inverse().get(headerFieldId));
-    }
-
-    @Override
     public Optional<PiTableId> mapFlowRuleTableId(int flowRuleTableId) {
         return Optional.ofNullable(TABLE_MAP.get(flowRuleTableId));
-    }
-
-    @Override
-    public Optional<Integer> mapPiTableId(PiTableId piTableId) {
-        return Optional.ofNullable(TABLE_MAP.inverse().get(piTableId));
     }
 
     @Override

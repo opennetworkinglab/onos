@@ -16,8 +16,8 @@
 
 package org.onosproject.pipelines.basic;
 
-import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.onlab.packet.DeserializationException;
 import org.onlab.packet.Ethernet;
 import org.onlab.util.ImmutableByteSequence;
@@ -45,6 +45,7 @@ import org.onosproject.net.pi.runtime.PiPacketOperation;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static java.lang.String.format;
@@ -80,12 +81,12 @@ public class BasicInterpreterImpl extends AbstractHandlerBehaviour
 
     private static final int PORT_BITWIDTH = 9;
 
-    private static final ImmutableBiMap<Integer, PiTableId> TABLE_MAP =
-            new ImmutableBiMap.Builder<Integer, PiTableId>()
+    private static final Map<Integer, PiTableId> TABLE_MAP =
+            new ImmutableMap.Builder<Integer, PiTableId>()
                     .put(0, BasicConstants.INGRESS_TABLE0_CONTROL_TABLE0)
                     .build();
-    private static final ImmutableBiMap<Criterion.Type, PiMatchFieldId> CRITERION_MAP =
-            new ImmutableBiMap.Builder<Criterion.Type, PiMatchFieldId>()
+    private static final Map<Criterion.Type, PiMatchFieldId> CRITERION_MAP =
+            new ImmutableMap.Builder<Criterion.Type, PiMatchFieldId>()
                     .put(Criterion.Type.IN_PORT, HDR_STANDARD_METADATA_INGRESS_PORT)
                     .put(Criterion.Type.ETH_DST, HDR_HDR_ETHERNET_DST_ADDR)
                     .put(Criterion.Type.ETH_SRC, HDR_HDR_ETHERNET_SRC_ADDR)
@@ -236,17 +237,7 @@ public class BasicInterpreterImpl extends AbstractHandlerBehaviour
     }
 
     @Override
-    public Optional<Criterion.Type> mapPiMatchFieldId(PiMatchFieldId headerFieldId) {
-        return Optional.ofNullable(CRITERION_MAP.inverse().get(headerFieldId));
-    }
-
-    @Override
     public Optional<PiTableId> mapFlowRuleTableId(int flowRuleTableId) {
         return Optional.ofNullable(TABLE_MAP.get(flowRuleTableId));
-    }
-
-    @Override
-    public Optional<Integer> mapPiTableId(PiTableId piTableId) {
-        return Optional.ofNullable(TABLE_MAP.inverse().get(piTableId));
     }
 }
