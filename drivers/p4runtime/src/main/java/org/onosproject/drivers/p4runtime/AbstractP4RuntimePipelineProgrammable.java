@@ -65,13 +65,7 @@ public abstract class AbstractP4RuntimePipelineProgrammable
             return completedFuture(false);
         }
 
-        final ByteBuffer deviceDataBuffer = createDeviceDataBuffer(pipeconf);
-        if (deviceDataBuffer == null) {
-            // Hopefully the child class logged the problem.
-            return completedFuture(false);
-        }
-
-        return client.isPipelineConfigSet(p4DeviceId, pipeconf, deviceDataBuffer);
+        return client.isPipelineConfigSet(p4DeviceId, pipeconf);
     }
 
     @Override

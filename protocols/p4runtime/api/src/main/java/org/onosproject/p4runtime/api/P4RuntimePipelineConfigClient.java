@@ -74,26 +74,24 @@ public interface P4RuntimePipelineConfigClient {
      *
      * @param p4DeviceId P4Runtime-internal device ID
      * @param pipeconf   pipeconf
-     * @param deviceData target-specific data
      * @return completable future, true if the device has the given pipeconf
      * set, false otherwise.
      */
     CompletableFuture<Boolean> isPipelineConfigSet(
-            long p4DeviceId, PiPipeconf pipeconf, ByteBuffer deviceData);
+            long p4DeviceId, PiPipeconf pipeconf);
 
     /**
-     * Same as {@link #isPipelineConfigSet(long, PiPipeconf, ByteBuffer)} but
-     * blocks execution.
+     * Same as {@link #isPipelineConfigSet(long, PiPipeconf)} but blocks
+     * execution.
      *
      * @param p4DeviceId P4Runtime-internal device ID
      * @param pipeconf   pipeconf
-     * @param deviceData target-specific data
      * @return true if the device has the given pipeconf set, false otherwise.
      */
     default boolean isPipelineConfigSetSync(
-            long p4DeviceId, PiPipeconf pipeconf, ByteBuffer deviceData) {
+            long p4DeviceId, PiPipeconf pipeconf) {
         return Futures.getUnchecked(isPipelineConfigSet(
-                p4DeviceId, pipeconf, deviceData));
+                p4DeviceId, pipeconf));
     }
 
     /**

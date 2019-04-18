@@ -113,8 +113,8 @@ public final class P4RuntimeClientImpl
 
     @Override
     public CompletableFuture<Boolean> isPipelineConfigSet(
-            long p4DeviceId, PiPipeconf pipeconf, ByteBuffer deviceData) {
-        return pipelineConfigClient.isPipelineConfigSet(p4DeviceId, pipeconf, deviceData);
+            long p4DeviceId, PiPipeconf pipeconf) {
+        return pipelineConfigClient.isPipelineConfigSet(p4DeviceId, pipeconf);
     }
 
     @Override

@@ -146,7 +146,9 @@ final class PipelineConfigClientImpl implements P4RuntimePipelineConfigClient {
                 .newBuilder()
                 .setExtras(P4Config.P4DeviceConfig.Extras.getDefaultInstance())
                 .setReassign(true)
-                .setDeviceData(ByteString.copyFrom(deviceData))
+                .setDeviceData(deviceData != null
+                                       ? ByteString.copyFrom(deviceData)
+                                       : ByteString.EMPTY)
                 .build();
         return ForwardingPipelineConfig
                 .newBuilder()
@@ -159,10 +161,10 @@ final class PipelineConfigClientImpl implements P4RuntimePipelineConfigClient {
 
     @Override
     public CompletableFuture<Boolean> isPipelineConfigSet(
-            long p4DeviceId, PiPipeconf pipeconf, ByteBuffer expectedDeviceData) {
+            long p4DeviceId, PiPipeconf pipeconf) {
         return getPipelineCookieFromServer(p4DeviceId)
                 .thenApply(cfgFromDevice -> comparePipelineConfig(
-                        pipeconf, expectedDeviceData, cfgFromDevice));
+                        pipeconf, cfgFromDevice));
     }
 
     @Override
@@ -171,14 +173,13 @@ final class PipelineConfigClientImpl implements P4RuntimePipelineConfigClient {
     }
 
     private boolean comparePipelineConfig(
-            PiPipeconf pipeconf, ByteBuffer expectedDeviceData,
-            ForwardingPipelineConfig cfgFromDevice) {
+            PiPipeconf pipeconf, ForwardingPipelineConfig cfgFromDevice) {
         if (cfgFromDevice == null) {
             return false;
         }
 
         final ForwardingPipelineConfig expectedCfg = buildForwardingPipelineConfigMsg(
-                pipeconf, expectedDeviceData);
+                pipeconf, null);
         if (expectedCfg == null) {
             return false;
         }
@@ -190,25 +191,11 @@ final class PipelineConfigClientImpl implements P4RuntimePipelineConfigClient {
         // No cookie.
         log.warn("{} returned GetForwardingPipelineConfigResponse " +
                          "with 'cookie' field unset. " +
-                         "Will try by comparing 'device_data' and 'p4_info'...",
+                         "Will try by comparing 'p4_info'...",
                  client.deviceId());
 
-        if (cfgFromDevice.getP4DeviceConfig().isEmpty()
-                && !expectedCfg.getP4DeviceConfig().isEmpty()) {
-            // Don't bother with a warn or error since we don't really allow
-            // updating the P4 blob to a different one without changing the
-            // P4Info. I.e, comparing just the P4Info should be enough for us.
-            log.debug("{} returned GetForwardingPipelineConfigResponse " +
-                              "with empty 'p4_device_config' field, " +
-                              "equality will be based only on P4Info",
-                      client.deviceId());
-            return cfgFromDevice.getP4Info().equals(expectedCfg.getP4Info());
-        }
-
-        return cfgFromDevice.getP4DeviceConfig()
-                .equals(expectedCfg.getP4DeviceConfig())
-                && cfgFromDevice.getP4Info()
-                .equals(expectedCfg.getP4Info());
+        return cfgFromDevice.hasP4Info() && expectedCfg.hasP4Info() &&
+                cfgFromDevice.getP4Info().equals(expectedCfg.getP4Info());
     }
 
     private CompletableFuture<ForwardingPipelineConfig> getPipelineCookieFromServer(
