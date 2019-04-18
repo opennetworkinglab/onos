@@ -23,7 +23,6 @@ import org.onosproject.drivers.p4runtime.mirror.TimedEntry;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.group.DefaultGroup;
 import org.onosproject.net.group.Group;
-import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.group.GroupOperation;
 import org.onosproject.net.group.GroupOperations;
 import org.onosproject.net.group.GroupProgrammable;
@@ -77,17 +76,15 @@ public class P4RuntimeReplicationGroupProgrammable
         if (!setupBehaviour("performGroupOperation()")) {
             return;
         }
-        groupOps.operations().stream()
-                .filter(op -> op.groupType().equals(GroupDescription.Type.ALL))
-                .forEach(op -> {
-                    final Group group = groupStore.getGroup(deviceId, op.groupId());
-                    if (group == null) {
-                        log.warn("Unable to find group {} in store, aborting {} operation [{}]",
-                                 op.groupId(), op.opType(), op);
-                        return;
-                    }
-                    processGroupOp(group, op.opType());
-                });
+        groupOps.operations().forEach(op -> {
+            final Group group = groupStore.getGroup(deviceId, op.groupId());
+            if (group == null) {
+                log.warn("Unable to find group {} in store, aborting {} operation [{}]",
+                         op.groupId(), op.opType(), op);
+                return;
+            }
+            processGroupOp(group, op.opType());
+        });
     }
 
     @Override

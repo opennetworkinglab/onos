@@ -64,11 +64,11 @@ public abstract class AbstractP4RuntimeHandlerBehaviour
 
         final PiPipeconfService pipeconfService = handler().get(
                 PiPipeconfService.class);
-        if (!pipeconfService.getPipeconf(deviceId).isPresent()) {
+        pipeconf = pipeconfService.getPipeconf(deviceId).orElse(null);
+        if (pipeconf == null) {
             log.warn("Missing pipeconf for {}, cannot perform {}", deviceId, opName);
             return false;
         }
-        pipeconf = pipeconfService.getPipeconf(deviceId).get();
 
         translationService = handler().get(PiTranslationService.class);
 

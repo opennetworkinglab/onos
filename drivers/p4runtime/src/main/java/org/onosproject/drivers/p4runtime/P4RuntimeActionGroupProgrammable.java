@@ -99,24 +99,22 @@ public class P4RuntimeActionGroupProgrammable
             return;
         }
 
-        groupOps.operations().stream()
-                .filter(op -> !op.groupType().equals(GroupDescription.Type.ALL))
-                .forEach(op -> {
-                    // ONOS-7785 We need the group app cookie (which includes
-                    // the action profile ID) but this is not part of the
-                    // GroupDescription.
-                    Group groupOnStore = groupStore.getGroup(deviceId, op.groupId());
-                    if (groupOnStore == null) {
-                        log.warn("Unable to find group {} in store, aborting {} operation [{}]",
-                                 op.groupId(), op.opType(), op);
-                        return;
-                    }
-                    GroupDescription groupDesc = new DefaultGroupDescription(
-                            deviceId, groupOnStore.type(), groupOnStore.buckets(), groupOnStore.appCookie(),
-                            groupOnStore.id().id(), groupOnStore.appId());
-                    DefaultGroup groupToApply = new DefaultGroup(op.groupId(), groupDesc);
-                    processPdGroup(groupToApply, op.opType());
-                });
+        groupOps.operations().forEach(op -> {
+            // ONOS-7785 We need the group app cookie (which includes
+            // the action profile ID) but this is not part of the
+            // GroupDescription.
+            Group groupOnStore = groupStore.getGroup(deviceId, op.groupId());
+            if (groupOnStore == null) {
+                log.warn("Unable to find group {} in store, aborting {} operation [{}]",
+                         op.groupId(), op.opType(), op);
+                return;
+            }
+            GroupDescription groupDesc = new DefaultGroupDescription(
+                    deviceId, groupOnStore.type(), groupOnStore.buckets(), groupOnStore.appCookie(),
+                    groupOnStore.id().id(), groupOnStore.appId());
+            DefaultGroup groupToApply = new DefaultGroup(op.groupId(), groupDesc);
+            processPdGroup(groupToApply, op.opType());
+        });
     }
 
     @Override
