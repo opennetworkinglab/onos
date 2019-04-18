@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.group.impl;
 
+import com.google.common.collect.Iterables;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
@@ -53,13 +54,17 @@ import org.slf4j.Logger;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.net.OsgiPropertyConstants.*;
+import static org.onosproject.net.OsgiPropertyConstants.GM_POLL_FREQUENCY;
+import static org.onosproject.net.OsgiPropertyConstants.GM_POLL_FREQUENCY_DEFAULT;
+import static org.onosproject.net.OsgiPropertyConstants.GM_PURGE_ON_DISCONNECTION;
+import static org.onosproject.net.OsgiPropertyConstants.GM_PURGE_ON_DISCONNECTION_DEFAULT;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.GROUP_READ;
 import static org.onosproject.security.AppPermission.Type.GROUP_WRITE;
@@ -330,7 +335,9 @@ public class GroupManager
     public Iterable<Group> getGroups(DeviceId deviceId,
                                      ApplicationId appId) {
         checkPermission(GROUP_READ);
-        return store.getGroups(deviceId);
+        return Iterables.filter(
+                store.getGroups(deviceId),
+                g -> g != null && Objects.equals(g.appId(), appId));
     }
 
     @Override
