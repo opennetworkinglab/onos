@@ -21,7 +21,7 @@ set -u  # exit on undefined variable
 ONOS_HOME=${ONOS_HOME:-$(cd $(dirname $0)/.. >/dev/null 2>&1 && pwd)}
 KARAF_ARGS=server
 SYS_APPS=drivers
-ONOS_APPS=${ONOS_APPS:-}  # Empty means don't activate any new apps
+ONOS_APPS=${ONOS_APPS:-gui2}  # Activate GUI2 unless specific apps were named
 
 cd $ONOS_HOME
 
