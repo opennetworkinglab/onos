@@ -32,6 +32,7 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.HostId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.config.ConfigException;
 import org.onosproject.net.config.basics.InterfaceConfig;
@@ -53,6 +54,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -509,6 +511,40 @@ public class DeviceConfiguration implements DeviceProperties {
             return builder.build();
         }
         return null;
+    }
+
+    /**
+     * Returns batches of all subnets reachable via given next hop
+     * <p>
+     * First batch includes FPM and STATIC routes
+     * Second batch includes all other type of routes obtained from routeService, including DHCP routes.
+     *
+     * @param hostId next hop host id
+     * @return list of subnet batches, each batch includes a set of prefixes.
+     */
+    // TODO Querying routeService directly may be expensive. Some kind of reverse lookup cache should be developed.
+    public List<Set<IpPrefix>> getBatchedSubnets(HostId hostId) {
+        Set<IpPrefix> high = Sets.newHashSet();
+        Set<IpPrefix> low = Sets.newHashSet();
+
+        srManager.routeService.getRouteTables().stream()
+                .map(tableId -> srManager.routeService.getResolvedRoutes(tableId))
+                .flatMap(Collection::stream)
+                .forEach(resolvedRoute -> {
+                    // Continue if next hop is not what we are looking for
+                    if (!Objects.equals(hostId.mac(), resolvedRoute.nextHopMac()) ||
+                            !Objects.equals(hostId.vlanId(), resolvedRoute.nextHopVlan())) {
+                        return;
+                    }
+                    // Prioritize STATIC and FPM among others
+                    if (resolvedRoute.route().source() == Route.Source.STATIC ||
+                            resolvedRoute.route().source() == Route.Source.FPM) {
+                        high.add(resolvedRoute.prefix());
+                    } else {
+                        low.add(resolvedRoute.prefix());
+                    }
+                });
+        return Stream.of(high, low).filter(set -> !set.isEmpty()).collect(Collectors.toList());
     }
 
     /**

@@ -18,6 +18,7 @@ package org.onosproject.segmentrouting;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.junit.Before;
@@ -407,6 +408,8 @@ public class RouteHandlerTest {
         ROUTE_STORE.put(P1, Sets.newHashSet(RR3));
 
         reset(srManager.deviceConfiguration);
+        expect(srManager.deviceConfiguration.getBatchedSubnets(H3D.id()))
+                .andReturn(Lists.<Set<IpPrefix>>newArrayList(Sets.newHashSet(P1)));
         srManager.deviceConfiguration.removeSubnet(CP2, P1);
         expectLastCall().once();
         replay(srManager.deviceConfiguration);
@@ -455,6 +458,8 @@ public class RouteHandlerTest {
         testDualHomedSingleLocationFail();
 
         reset(srManager.deviceConfiguration);
+        expect(srManager.deviceConfiguration.getBatchedSubnets(H3S.id()))
+                .andReturn(Lists.<Set<IpPrefix>>newArrayList(Sets.newHashSet(P1)));
         srManager.deviceConfiguration.addSubnet(CP2, P1);
         expectLastCall().once();
         replay(srManager.deviceConfiguration);
