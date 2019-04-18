@@ -30,11 +30,11 @@ function writeCatalog {
 }
 
 function jars {
-    egrep -v '(\#)' tools/build/publish-target-list
+    egrep -v '(\#|build/conf)' tools/build/publish-target-list
 }
 
 function testJars {
-    egrep -v '(\#)' tools/build/publish-test-target-list
+    egrep -v '(\#|build/conf)' tools/build/publish-test-target-list
 }
 
 echo "Cataloging jar files..."
