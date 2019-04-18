@@ -120,6 +120,7 @@ class MockKeysService {
 
 class MockTrafficService {
     init(force: ForceSvgComponent) {}
+    destroy() {}
 }
 
 class MockLayoutService {}

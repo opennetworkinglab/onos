@@ -1,0 +1,1204 @@
+{
+  "event": "topo2CurrentRegion",
+  "payload": {
+    "id": "(root)",
+    "subregions": [],
+    "links": [
+      {
+        "id": "00:AA:00:00:00:03/None~of:0000000000000205/6",
+        "epA": "00:AA:00:00:00:03/None",
+        "epB": "of:0000000000000205",
+        "type": "UiEdgeLink",
+        "portB": "6",
+        "rollup": [
+          {
+            "id": "00:AA:00:00:00:03/None~of:0000000000000205/6",
+            "epA": "00:AA:00:00:00:03/None",
+            "epB": "of:0000000000000205",
+            "type": "UiEdgeLink",
+            "portB": "6"
+          }
+        ]
+      },
+      {
+        "id": "of:0000000000000205/3~of:0000000000000227/5",
+        "epA": "of:0000000000000205/3",
+        "epB": "of:0000000000000227/5",
+        "type": "UiDeviceLink",
+        "portA": "3",
+        "portB": "5",
+        "rollup": [
+          {
+            "id": "of:0000000000000205/3~of:0000000000000227/5",
+            "epA": "of:0000000000000205/3",
+            "epB": "of:0000000000000227/5",
+            "type": "UiDeviceLink",
+            "portA": "3",
+            "portB": "5"
+          }
+        ]
+      },
+      {
+        "id": "of:0000000000000206/2~of:0000000000000226/8",
+        "epA": "of:0000000000000206/2",
+        "epB": "of:0000000000000226/8",
+        "type": "UiDeviceLink",
+        "portA": "2",
+        "portB": "8",
+        "rollup": [
+          {
+            "id": "of:0000000000000206/2~of:0000000000000226/8",
+            "epA": "of:0000000000000206/2",
+            "epB": "of:0000000000000226/8",
+            "type": "UiDeviceLink",
+            "portA": "2",
+            "portB": "8"
+          }
+        ]
+      },
+      {
+        "id": "00:BB:00:00:00:05/None~of:0000000000000203/7",
+        "epA": "00:BB:00:00:00:05/None",
+        "epB": "of:0000000000000203",
+        "type": "UiEdgeLink",
+        "portB": "7",
+        "rollup": [
+          {
+            "id": "00:BB:00:00:00:05/None~of:0000000000000203/7",
+            "epA": "00:BB:00:00:00:05/None",
+            "epB": "of:0000000000000203",
+            "type": "UiEdgeLink",
+            "portB": "7"
+          }
+        ]
+      },
+      {
+        "id": "00:DD:00:00:00:01/None~of:0000000000000207/3",
+        "epA": "00:DD:00:00:00:01/None",
+        "epB": "of:0000000000000207",
+        "type": "UiEdgeLink",
+        "portB": "3",
+        "rollup": [
+          {
+            "id": "00:DD:00:00:00:01/None~of:0000000000000207/3",
+            "epA": "00:DD:00:00:00:01/None",
+            "epB": "of:0000000000000207",
+            "type": "UiEdgeLink",
+            "portB": "3"
+          }
+        ]
+      },
+      {
+        "id": "of:0000000000000203/1~of:0000000000000226/1",
+        "epA": "of:0000000000000203/1",
+        "epB": "of:0000000000000226/1",
+        "type": "UiDeviceLink",
+        "portA": "1",
+        "portB": "1",
+        "rollup": [
+          {
+            "id": "of:0000000000000203/1~of:0000000000000226/1",
+            "epA": "of:0000000000000203/1",
+            "epB": "of:0000000000000226/1",
+            "type": "UiDeviceLink",
+            "portA": "1",
+            "portB": "1"
+          }
+        ]
+      },
+      {
+        "id": "of:0000000000000207/2~of:0000000000000247/1",
+        "epA": "of:0000000000000207/2",
+        "epB": "of:0000000000000247/1",
+        "type": "UiDeviceLink",
+        "portA": "2",
+        "portB": "1",
+        "rollup": [
+          {
+            "id": "of:0000000000000207/2~of:0000000000000247/1",
+            "epA": "of:0000000000000207/2",
+            "epB": "of:0000000000000247/1",
+            "type": "UiDeviceLink",
+            "portA": "2",
+            "portB": "1"
+          }
+        ]
+      },
+      {
+        "id": "00:99:66:00:00:01/None~of:0000000000000205/10",
+        "epA": "00:99:66:00:00:01/None",
+        "epB": "of:0000000000000205",
+        "type": "UiEdgeLink",
+        "portB": "10",
+        "rollup": [
+          {
+            "id": "00:99:66:00:00:01/None~of:0000000000000205/10",
+            "epA": "00:99:66:00:00:01/None",
+            "epB": "of:0000000000000205",
+            "type": "UiEdgeLink",
+            "portB": "10"
+          }
+        ]
+      },
+      {
+        "id": "of:0000000000000208/1~of:0000000000000246/2",
+        "epA": "of:0000000000000208/1",
+        "epB": "of:0000000000000246/2",
+        "type": "UiDeviceLink",
+        "portA": "1",
+        "portB": "2",
+        "rollup": [
+          {
+            "id": "of:0000000000000208/1~of:0000000000000246/2",
+            "epA": "of:0000000000000208/1",
+            "epB": "of:0000000000000246/2",
+            "type": "UiDeviceLink",
+            "portA": "1",
+            "portB": "2"
+          }
+        ]
+      },
+      {
+        "id": "of:0000000000000206/1~of:0000000000000226/7",
+        "epA": "of:0000000000000206/1",
+        "epB": "of:0000000000000226/7",
+        "type": "UiDeviceLink",
+        "portA": "1",
+        "portB": "7",
+        "rollup": [
+          {
+            "id": "of:0000000000000206/1~of:0000000000000226/7",
+            "epA": "of:0000000000000206/1",
+            "epB": "of:0000000000000226/7",
+            "type": "UiDeviceLink",
+            "portA": "1",
+            "portB": "7"
+          }
+        ]
+      },
+      {
+        "id": "of:0000000000000226/9~of:0000000000000246/3",
+        "epA": "of:0000000000000226/9",
+        "epB": "of:0000000000000246/3",
+        "type": "UiDeviceLink",
+        "portA": "9",
+        "portB": "3",
+        "rollup": [
+          {
+            "id": "of:0000000000000226/9~of:0000000000000246/3",
+            "epA": "of:0000000000000226/9",
+            "epB": "of:0000000000000246/3",
+            "type": "UiDeviceLink",
+            "portA": "9",
+            "portB": "3"
+          }
+        ]
+      },
+      {
+        "id": "00:AA:00:00:00:04/None~of:0000000000000205/7",
+        "epA": "00:AA:00:00:00:04/None",
+        "epB": "of:0000000000000205",
+        "type": "UiEdgeLink",
+        "portB": "7",
+        "rollup": [
+          {
+            "id": "00:AA:00:00:00:04/None~of:0000000000000205/7",
+            "epA": "00:AA:00:00:00:04/None",
+            "epB": "of:0000000000000205",
+            "type": "UiEdgeLink",
+            "portB": "7"
+          }
+        ]
+      },
+      {
+        "id": "00:88:00:00:00:03/110~of:0000000000000205/11",
+        "epA": "00:88:00:00:00:03/110",
+        "epB": "of:0000000000000205",
+        "type": "UiEdgeLink",
+        "portB": "11",
+        "rollup": [
+          {
+            "id": "00:88:00:00:00:03/110~of:0000000000000205/11",
+            "epA": "00:88:00:00:00:03/110",
+            "epB": "of:0000000000000205",
+            "type": "UiEdgeLink",
+            "portB": "11"
+          }
+        ]
+      },
+      {
+        "id": "of:0000000000000204/1~of:0000000000000226/3",
+        "epA": "of:0000000000000204/1",
+        "epB": "of:0000000000000226/3",
+        "type": "UiDeviceLink",
+        "portA": "1",
+        "portB": "3",
+        "rollup": [
+          {
+            "id": "of:0000000000000204/1~of:0000000000000226/3",
+            "epA": "of:0000000000000204/1",
+            "epB": "of:0000000000000226/3",
+            "type": "UiDeviceLink",
+            "portA": "1",
+            "portB": "3"
+          }
+        ]
+      },
+      {
+        "id": "of:0000000000000203/2~of:0000000000000226/2",
+        "epA": "of:0000000000000203/2",
+        "epB": "of:0000000000000226/2",
+        "type": "UiDeviceLink",
+        "portA": "2",
+        "portB": "2",
+        "rollup": [
+          {
+            "id": "of:0000000000000203/2~of:0000000000000226/2",
+            "epA": "of:0000000000000203/2",
+            "epB": "of:0000000000000226/2",
+            "type": "UiDeviceLink",
+            "portA": "2",
+            "portB": "2"
+          }
+        ]
+      },
+      {
+        "id": "00:88:00:00:00:01/None~of:0000000000000205/12",
+        "epA": "00:88:00:00:00:01/None",
+        "epB": "of:0000000000000205",
+        "type": "UiEdgeLink",
+        "portB": "12",
+        "rollup": [
+          {
+            "id": "00:88:00:00:00:01/None~of:0000000000000205/12",
+            "epA": "00:88:00:00:00:01/None",
+            "epB": "of:0000000000000205",
+            "type": "UiEdgeLink",
+            "portB": "12"
+          }
+        ]
+      },
+      {
+        "id": "00:88:00:00:00:04/160~of:0000000000000206/6",
+        "epA": "00:88:00:00:00:04/160",
+        "epB": "of:0000000000000206",
+        "type": "UiEdgeLink",
+        "portB": "6",
+        "rollup": [
+          {
+            "id": "00:88:00:00:00:04/160~of:0000000000000206/6",
+            "epA": "00:88:00:00:00:04/160",
+            "epB": "of:0000000000000206",
+            "type": "UiEdgeLink",
+            "portB": "6"
+          }
+        ]
+      },
+      {
+        "id": "00:DD:00:00:00:02/None~of:0000000000000208/3",
+        "epA": "00:DD:00:00:00:02/None",
+        "epB": "of:0000000000000208",
+        "type": "UiEdgeLink",
+        "portB": "3",
+        "rollup": [
+          {
+            "id": "00:DD:00:00:00:02/None~of:0000000000000208/3",
+            "epA": "00:DD:00:00:00:02/None",
+            "epB": "of:0000000000000208",
+            "type": "UiEdgeLink",
+            "portB": "3"
+          }
+        ]
+      },
+      {
+        "id": "of:0000000000000203/3~of:0000000000000227/1",
+        "epA": "of:0000000000000203/3",
+        "epB": "of:0000000000000227/1",
+        "type": "UiDeviceLink",
+        "portA": "3",
+        "portB": "1",
+        "rollup": [
+          {
+            "id": "of:0000000000000203/3~of:0000000000000227/1",
+            "epA": "of:0000000000000203/3",
+            "epB": "of:0000000000000227/1",
+            "type": "UiDeviceLink",
+            "portA": "3",
+            "portB": "1"
+          }
+        ]
+      },
+      {
+        "id": "of:0000000000000208/2~of:0000000000000247/2",
+        "epA": "of:0000000000000208/2",
+        "epB": "of:0000000000000247/2",
+        "type": "UiDeviceLink",
+        "portA": "2",
+        "portB": "2",
+        "rollup": [
+          {
+            "id": "of:0000000000000208/2~of:0000000000000247/2",
+            "epA": "of:0000000000000208/2",
+            "epB": "of:0000000000000247/2",
+            "type": "UiDeviceLink",
+            "portA": "2",
+            "portB": "2"
+          }
+        ]
+      },
+      {
+        "id": "of:0000000000000205/1~of:0000000000000226/5",
+        "epA": "of:0000000000000205/1",
+        "epB": "of:0000000000000226/5",
+        "type": "UiDeviceLink",
+        "portA": "1",
+        "portB": "5",
+        "rollup": [
+          {
+            "id": "of:0000000000000205/1~of:0000000000000226/5",
+            "epA": "of:0000000000000205/1",
+            "epB": "of:0000000000000226/5",
+            "type": "UiDeviceLink",
+            "portA": "1",
+            "portB": "5"
+          }
+        ]
+      },
+      {
+        "id": "of:0000000000000204/2~of:0000000000000226/4",
+        "epA": "of:0000000000000204/2",
+        "epB": "of:0000000000000226/4",
+        "type": "UiDeviceLink",
+        "portA": "2",
+        "portB": "4",
+        "rollup": [
+          {
+            "id": "of:0000000000000204/2~of:0000000000000226/4",
+            "epA": "of:0000000000000204/2",
+            "epB": "of:0000000000000226/4",
+            "type": "UiDeviceLink",
+            "portA": "2",
+            "portB": "4"
+          }
+        ]
+      },
+      {
+        "id": "00:AA:00:00:00:01/None~of:0000000000000204/6",
+        "epA": "00:AA:00:00:00:01/None",
+        "epB": "of:0000000000000204",
+        "type": "UiEdgeLink",
+        "portB": "6",
+        "rollup": [
+          {
+            "id": "00:AA:00:00:00:01/None~of:0000000000000204/6",
+            "epA": "00:AA:00:00:00:01/None",
+            "epB": "of:0000000000000204",
+            "type": "UiEdgeLink",
+            "portB": "6"
+          }
+        ]
+      },
+      {
+        "id": "00:BB:00:00:00:03/None~of:0000000000000205/8",
+        "epA": "00:BB:00:00:00:03/None",
+        "epB": "of:0000000000000205",
+        "type": "UiEdgeLink",
+        "portB": "8",
+        "rollup": [
+          {
+            "id": "00:BB:00:00:00:03/None~of:0000000000000205/8",
+            "epA": "00:BB:00:00:00:03/None",
+            "epB": "of:0000000000000205",
+            "type": "UiEdgeLink",
+            "portB": "8"
+          }
+        ]
+      },
+      {
+        "id": "of:0000000000000206/4~of:0000000000000227/8",
+        "epA": "of:0000000000000206/4",
+        "epB": "of:0000000000000227/8",
+        "type": "UiDeviceLink",
+        "portA": "4",
+        "portB": "8",
+        "rollup": [
+          {
+            "id": "of:0000000000000206/4~of:0000000000000227/8",
+            "epA": "of:0000000000000206/4",
+            "epB": "of:0000000000000227/8",
+            "type": "UiDeviceLink",
+            "portA": "4",
+            "portB": "8"
+          }
+        ]
+      },
+      {
+        "id": "00:AA:00:00:00:05/None~of:0000000000000203/6",
+        "epA": "00:AA:00:00:00:05/None",
+        "epB": "of:0000000000000203",
+        "type": "UiEdgeLink",
+        "portB": "6",
+        "rollup": [
+          {
+            "id": "00:AA:00:00:00:05/None~of:0000000000000203/6",
+            "epA": "00:AA:00:00:00:05/None",
+            "epB": "of:0000000000000203",
+            "type": "UiEdgeLink",
+            "portB": "6"
+          }
+        ]
+      },
+      {
+        "id": "of:0000000000000205/5~of:0000000000000206/5",
+        "epA": "of:0000000000000205/5",
+        "epB": "of:0000000000000206/5",
+        "type": "UiDeviceLink",
+        "portA": "5",
+        "portB": "5",
+        "rollup": [
+          {
+            "id": "of:0000000000000205/5~of:0000000000000206/5",
+            "epA": "of:0000000000000205/5",
+            "epB": "of:0000000000000206/5",
+            "type": "UiDeviceLink",
+            "portA": "5",
+            "portB": "5"
+          }
+        ]
+      },
+      {
+        "id": "00:BB:00:00:00:02/None~of:0000000000000204/9",
+        "epA": "00:BB:00:00:00:02/None",
+        "epB": "of:0000000000000204",
+        "type": "UiEdgeLink",
+        "portB": "9",
+        "rollup": [
+          {
+            "id": "00:BB:00:00:00:02/None~of:0000000000000204/9",
+            "epA": "00:BB:00:00:00:02/None",
+            "epB": "of:0000000000000204",
+            "type": "UiEdgeLink",
+            "portB": "9"
+          }
+        ]
+      },
+      {
+        "id": "of:0000000000000204/3~of:0000000000000227/3",
+        "epA": "of:0000000000000204/3",
+        "epB": "of:0000000000000227/3",
+        "type": "UiDeviceLink",
+        "portA": "3",
+        "portB": "3",
+        "rollup": [
+          {
+            "id": "of:0000000000000204/3~of:0000000000000227/3",
+            "epA": "of:0000000000000204/3",
+            "epB": "of:0000000000000227/3",
+            "type": "UiDeviceLink",
+            "portA": "3",
+            "portB": "3"
+          }
+        ]
+      },
+      {
+        "id": "00:EE:00:00:00:01/None~of:0000000000000207/4",
+        "epA": "00:EE:00:00:00:01/None",
+        "epB": "of:0000000000000207",
+        "type": "UiEdgeLink",
+        "portB": "4",
+        "rollup": [
+          {
+            "id": "00:EE:00:00:00:01/None~of:0000000000000207/4",
+            "epA": "00:EE:00:00:00:01/None",
+            "epB": "of:0000000000000207",
+            "type": "UiEdgeLink",
+            "portB": "4"
+          }
+        ]
+      },
+      {
+        "id": "of:0000000000000203/4~of:0000000000000227/2",
+        "epA": "of:0000000000000203/4",
+        "epB": "of:0000000000000227/2",
+        "type": "UiDeviceLink",
+        "portA": "4",
+        "portB": "2",
+        "rollup": [
+          {
+            "id": "of:0000000000000203/4~of:0000000000000227/2",
+            "epA": "of:0000000000000203/4",
+            "epB": "of:0000000000000227/2",
+            "type": "UiDeviceLink",
+            "portA": "4",
+            "portB": "2"
+          }
+        ]
+      },
+      {
+        "id": "of:0000000000000205/2~of:0000000000000226/6",
+        "epA": "of:0000000000000205/2",
+        "epB": "of:0000000000000226/6",
+        "type": "UiDeviceLink",
+        "portA": "2",
+        "portB": "6",
+        "rollup": [
+          {
+            "id": "of:0000000000000205/2~of:0000000000000226/6",
+            "epA": "of:0000000000000205/2",
+            "epB": "of:0000000000000226/6",
+            "type": "UiDeviceLink",
+            "portA": "2",
+            "portB": "6"
+          }
+        ]
+      },
+      {
+        "id": "00:99:00:00:00:01/None~of:0000000000000205/10",
+        "epA": "00:99:00:00:00:01/None",
+        "epB": "of:0000000000000205",
+        "type": "UiEdgeLink",
+        "portB": "10",
+        "rollup": [
+          {
+            "id": "00:99:00:00:00:01/None~of:0000000000000205/10",
+            "epA": "00:99:00:00:00:01/None",
+            "epB": "of:0000000000000205",
+            "type": "UiEdgeLink",
+            "portB": "10"
+          }
+        ]
+      },
+      {
+        "id": "of:0000000000000205/4~of:0000000000000227/6",
+        "epA": "of:0000000000000205/4",
+        "epB": "of:0000000000000227/6",
+        "type": "UiDeviceLink",
+        "portA": "4",
+        "portB": "6",
+        "rollup": [
+          {
+            "id": "of:0000000000000205/4~of:0000000000000227/6",
+            "epA": "of:0000000000000205/4",
+            "epB": "of:0000000000000227/6",
+            "type": "UiDeviceLink",
+            "portA": "4",
+            "portB": "6"
+          }
+        ]
+      },
+      {
+        "id": "of:0000000000000206/3~of:0000000000000227/7",
+        "epA": "of:0000000000000206/3",
+        "epB": "of:0000000000000227/7",
+        "type": "UiDeviceLink",
+        "portA": "3",
+        "portB": "7",
+        "rollup": [
+          {
+            "id": "of:0000000000000206/3~of:0000000000000227/7",
+            "epA": "of:0000000000000206/3",
+            "epB": "of:0000000000000227/7",
+            "type": "UiDeviceLink",
+            "portA": "3",
+            "portB": "7"
+          }
+        ]
+      },
+      {
+        "id": "00:BB:00:00:00:04/None~of:0000000000000205/9",
+        "epA": "00:BB:00:00:00:04/None",
+        "epB": "of:0000000000000205",
+        "type": "UiEdgeLink",
+        "portB": "9",
+        "rollup": [
+          {
+            "id": "00:BB:00:00:00:04/None~of:0000000000000205/9",
+            "epA": "00:BB:00:00:00:04/None",
+            "epB": "of:0000000000000205",
+            "type": "UiEdgeLink",
+            "portB": "9"
+          }
+        ]
+      },
+      {
+        "id": "00:AA:00:00:00:02/None~of:0000000000000204/7",
+        "epA": "00:AA:00:00:00:02/None",
+        "epB": "of:0000000000000204",
+        "type": "UiEdgeLink",
+        "portB": "7",
+        "rollup": [
+          {
+            "id": "00:AA:00:00:00:02/None~of:0000000000000204/7",
+            "epA": "00:AA:00:00:00:02/None",
+            "epB": "of:0000000000000204",
+            "type": "UiEdgeLink",
+            "portB": "7"
+          }
+        ]
+      },
+      {
+        "id": "00:BB:00:00:00:01/None~of:0000000000000204/8",
+        "epA": "00:BB:00:00:00:01/None",
+        "epB": "of:0000000000000204",
+        "type": "UiEdgeLink",
+        "portB": "8",
+        "rollup": [
+          {
+            "id": "00:BB:00:00:00:01/None~of:0000000000000204/8",
+            "epA": "00:BB:00:00:00:01/None",
+            "epB": "of:0000000000000204",
+            "type": "UiEdgeLink",
+            "portB": "8"
+          }
+        ]
+      },
+      {
+        "id": "of:0000000000000207/1~of:0000000000000246/1",
+        "epA": "of:0000000000000207/1",
+        "epB": "of:0000000000000246/1",
+        "type": "UiDeviceLink",
+        "portA": "1",
+        "portB": "1",
+        "rollup": [
+          {
+            "id": "of:0000000000000207/1~of:0000000000000246/1",
+            "epA": "of:0000000000000207/1",
+            "epB": "of:0000000000000246/1",
+            "type": "UiDeviceLink",
+            "portA": "1",
+            "portB": "1"
+          }
+        ]
+      },
+      {
+        "id": "00:88:00:00:00:02/None~of:0000000000000206/7",
+        "epA": "00:88:00:00:00:02/None",
+        "epB": "of:0000000000000206",
+        "type": "UiEdgeLink",
+        "portB": "7",
+        "rollup": [
+          {
+            "id": "00:88:00:00:00:02/None~of:0000000000000206/7",
+            "epA": "00:88:00:00:00:02/None",
+            "epB": "of:0000000000000206",
+            "type": "UiEdgeLink",
+            "portB": "7"
+          }
+        ]
+      },
+      {
+        "id": "00:EE:00:00:00:02/None~of:0000000000000208/4",
+        "epA": "00:EE:00:00:00:02/None",
+        "epB": "of:0000000000000208",
+        "type": "UiEdgeLink",
+        "portB": "4",
+        "rollup": [
+          {
+            "id": "00:EE:00:00:00:02/None~of:0000000000000208/4",
+            "epA": "00:EE:00:00:00:02/None",
+            "epB": "of:0000000000000208",
+            "type": "UiEdgeLink",
+            "portB": "4"
+          }
+        ]
+      },
+      {
+        "id": "of:0000000000000204/4~of:0000000000000227/4",
+        "epA": "of:0000000000000204/4",
+        "epB": "of:0000000000000227/4",
+        "type": "UiDeviceLink",
+        "portA": "4",
+        "portB": "4",
+        "rollup": [
+          {
+            "id": "of:0000000000000204/4~of:0000000000000227/4",
+            "epA": "of:0000000000000204/4",
+            "epB": "of:0000000000000227/4",
+            "type": "UiDeviceLink",
+            "portA": "4",
+            "portB": "4"
+          }
+        ]
+      },
+      {
+        "id": "of:0000000000000203/5~of:0000000000000204/5",
+        "epA": "of:0000000000000203/5",
+        "epB": "of:0000000000000204/5",
+        "type": "UiDeviceLink",
+        "portA": "5",
+        "portB": "5",
+        "rollup": [
+          {
+            "id": "of:0000000000000203/5~of:0000000000000204/5",
+            "epA": "of:0000000000000203/5",
+            "epB": "of:0000000000000204/5",
+            "type": "UiDeviceLink",
+            "portA": "5",
+            "portB": "5"
+          }
+        ]
+      },
+      {
+        "id": "of:0000000000000227/9~of:0000000000000247/3",
+        "epA": "of:0000000000000227/9",
+        "epB": "of:0000000000000247/3",
+        "type": "UiDeviceLink",
+        "portA": "9",
+        "portB": "3",
+        "rollup": [
+          {
+            "id": "of:0000000000000227/9~of:0000000000000247/3",
+            "epA": "of:0000000000000227/9",
+            "epB": "of:0000000000000247/3",
+            "type": "UiDeviceLink",
+            "portA": "9",
+            "portB": "3"
+          }
+        ]
+      }
+    ],
+    "devices": [
+      [],
+      [],
+      [
+        {
+          "id": "of:0000000000000246",
+          "nodeType": "device",
+          "type": "switch",
+          "online": true,
+          "master": "10.192.19.68",
+          "layer": "def",
+          "props": {
+            "managementAddress": "10.192.19.69",
+            "protocol": "OF_13",
+            "driver": "ofdpa-ovs",
+            "latitude": "40.15",
+            "name": "s246",
+            "locType": "geo",
+            "channelId": "10.192.19.69:59980",
+            "longitude": "-121.679"
+          },
+          "location": {
+            "locType": "geo",
+            "latOrY": 40.15,
+            "longOrX": -121.679
+          }
+        },
+        {
+          "id": "of:0000000000000206",
+          "nodeType": "device",
+          "type": "switch",
+          "online": true,
+          "master": "10.192.19.68",
+          "layer": "def",
+          "props": {
+            "managementAddress": "10.192.19.69",
+            "protocol": "OF_13",
+            "driver": "ofdpa-ovs",
+            "latitude": "36.766",
+            "name": "s206",
+            "locType": "geo",
+            "channelId": "10.192.19.69:59975",
+            "longitude": "-92.029"
+          },
+          "location": {
+            "locType": "geo",
+            "latOrY": 36.766,
+            "longOrX": -92.029
+          }
+        },
+        {
+          "id": "of:0000000000000227",
+          "nodeType": "device",
+          "type": "switch",
+          "online": true,
+          "master": "10.192.19.68",
+          "layer": "def",
+          "props": {
+            "managementAddress": "10.192.19.69",
+            "protocol": "OF_13",
+            "driver": "ofdpa-ovs",
+            "latitude": "44.205",
+            "name": "s227",
+            "locType": "geo",
+            "channelId": "10.192.19.69:59979",
+            "longitude": "-96.359"
+          },
+          "location": {
+            "locType": "geo",
+            "latOrY": 44.205,
+            "longOrX": -96.359
+          }
+        },
+        {
+          "id": "of:0000000000000208",
+          "nodeType": "device",
+          "type": "switch",
+          "online": true,
+          "master": "10.192.19.68",
+          "layer": "def",
+          "props": {
+            "managementAddress": "10.192.19.69",
+            "protocol": "OF_13",
+            "driver": "ofdpa-ovs",
+            "latitude": "36.766",
+            "name": "s208",
+            "locType": "geo",
+            "channelId": "10.192.19.69:59977",
+            "longitude": "-116.029"
+          },
+          "location": {
+            "locType": "geo",
+            "latOrY": 36.766,
+            "longOrX": -116.029
+          }
+        },
+        {
+          "id": "of:0000000000000205",
+          "nodeType": "device",
+          "type": "switch",
+          "online": true,
+          "master": "10.192.19.68",
+          "layer": "def",
+          "props": {
+            "managementAddress": "10.192.19.69",
+            "protocol": "OF_13",
+            "driver": "ofdpa-ovs",
+            "latitude": "36.766",
+            "name": "s205",
+            "locType": "geo",
+            "channelId": "10.192.19.69:59974",
+            "longitude": "-96.89"
+          },
+          "location": {
+            "locType": "geo",
+            "latOrY": 36.766,
+            "longOrX": -96.89
+          }
+        },
+        {
+          "id": "of:0000000000000247",
+          "nodeType": "device",
+          "type": "switch",
+          "online": true,
+          "master": "10.192.19.68",
+          "layer": "def",
+          "props": {
+            "managementAddress": "10.192.19.69",
+            "protocol": "OF_13",
+            "driver": "ofdpa-ovs",
+            "latitude": "40.205",
+            "name": "s247",
+            "locType": "geo",
+            "channelId": "10.192.19.69:59981",
+            "longitude": "-117.359"
+          },
+          "location": {
+            "locType": "geo",
+            "latOrY": 40.205,
+            "longOrX": -117.359
+          }
+        },
+        {
+          "id": "of:0000000000000226",
+          "nodeType": "device",
+          "type": "switch",
+          "online": true,
+          "master": "10.192.19.68",
+          "layer": "def",
+          "props": {
+            "managementAddress": "10.192.19.69",
+            "protocol": "OF_13",
+            "driver": "ofdpa-ovs",
+            "latitude": "44.15",
+            "name": "s226",
+            "locType": "geo",
+            "channelId": "10.192.19.69:59978",
+            "longitude": "-107.679"
+          },
+          "location": {
+            "locType": "geo",
+            "latOrY": 44.15,
+            "longOrX": -107.679
+          }
+        },
+        {
+          "id": "of:0000000000000203",
+          "nodeType": "device",
+          "type": "switch",
+          "online": true,
+          "master": "10.192.19.68",
+          "layer": "def",
+          "props": {
+            "managementAddress": "10.192.19.69",
+            "protocol": "OF_13",
+            "driver": "ofdpa-ovs",
+            "latitude": "36.766",
+            "name": "s203",
+            "locType": "geo",
+            "channelId": "10.192.19.69:59972",
+            "longitude": "-111.359"
+          },
+          "location": {
+            "locType": "geo",
+            "latOrY": 36.766,
+            "longOrX": -111.359
+          }
+        },
+        {
+          "id": "of:0000000000000204",
+          "nodeType": "device",
+          "type": "switch",
+          "online": true,
+          "master": "10.192.19.68",
+          "layer": "def",
+          "props": {
+            "managementAddress": "10.192.19.69",
+            "protocol": "OF_13",
+            "driver": "ofdpa-ovs",
+            "latitude": "36.766",
+            "name": "s204",
+            "locType": "geo",
+            "channelId": "10.192.19.69:59973",
+            "longitude": "-106.359"
+          },
+          "location": {
+            "locType": "geo",
+            "latOrY": 36.766,
+            "longOrX": -106.359
+          }
+        },
+        {
+          "id": "of:0000000000000207",
+          "nodeType": "device",
+          "type": "switch",
+          "online": true,
+          "master": "10.192.19.68",
+          "layer": "def",
+          "props": {
+            "managementAddress": "10.192.19.69",
+            "protocol": "OF_13",
+            "driver": "ofdpa-ovs",
+            "latitude": "36.766",
+            "name": "s207",
+            "locType": "geo",
+            "channelId": "10.192.19.69:59976",
+            "longitude": "-122.359"
+          },
+          "location": {
+            "locType": "geo",
+            "latOrY": 36.766,
+            "longOrX": -122.359
+          }
+        }
+      ]
+    ],
+    "hosts": [
+      [],
+      [],
+      [
+        {
+          "id": "00:88:00:00:00:03/110",
+          "nodeType": "host",
+          "layer": "def",
+          "ips": [
+            "fe80::288:ff:fe00:3",
+            "2000::102",
+            "10.0.1.2"
+          ],
+          "props": {},
+          "configured": false
+        },
+        {
+          "id": "00:DD:00:00:00:01/None",
+          "nodeType": "host",
+          "layer": "def",
+          "ips": [],
+          "props": {},
+          "configured": false
+        },
+        {
+          "id": "00:88:00:00:00:04/160",
+          "nodeType": "host",
+          "layer": "def",
+          "ips": [
+            "fe80::288:ff:fe00:4",
+            "10.0.6.2",
+            "2000::602"
+          ],
+          "props": {},
+          "configured": false
+        },
+        {
+          "id": "00:BB:00:00:00:02/None",
+          "nodeType": "host",
+          "layer": "def",
+          "ips": [
+            "fe80::2bb:ff:fe00:2"
+          ],
+          "props": {},
+          "configured": false
+        },
+        {
+          "id": "00:AA:00:00:00:05/None",
+          "nodeType": "host",
+          "layer": "def",
+          "ips": [],
+          "props": {},
+          "configured": false
+        },
+        {
+          "id": "00:88:00:00:00:01/None",
+          "nodeType": "host",
+          "layer": "def",
+          "ips": [
+            "fe80::288:ff:fe00:1",
+            "2000::101",
+            "10.0.1.1"
+          ],
+          "props": {},
+          "configured": false
+        },
+        {
+          "id": "00:AA:00:00:00:01/None",
+          "nodeType": "host",
+          "layer": "def",
+          "ips": [],
+          "props": {},
+          "configured": false
+        },
+        {
+          "id": "00:AA:00:00:00:03/None",
+          "nodeType": "host",
+          "layer": "def",
+          "ips": [],
+          "props": {},
+          "configured": false
+        },
+        {
+          "id": "00:BB:00:00:00:04/None",
+          "nodeType": "host",
+          "layer": "def",
+          "ips": [
+            "fe80::2bb:ff:fe00:4"
+          ],
+          "props": {},
+          "configured": false
+        },
+        {
+          "id": "00:EE:00:00:00:02/None",
+          "nodeType": "host",
+          "layer": "def",
+          "ips": [
+            "fe80::2ee:ff:fe00:2"
+          ],
+          "props": {},
+          "configured": false
+        },
+        {
+          "id": "00:99:00:00:00:01/None",
+          "nodeType": "host",
+          "layer": "def",
+          "ips": [
+            "10.0.3.253",
+            "fe80::299:ff:fe00:1"
+          ],
+          "props": {},
+          "configured": false
+        },
+        {
+          "id": "00:99:66:00:00:01/None",
+          "nodeType": "host",
+          "layer": "def",
+          "ips": [
+            "fe80::299:66ff:fe00:1",
+            "2000::3fd"
+          ],
+          "props": {},
+          "configured": false
+        },
+        {
+          "id": "00:EE:00:00:00:01/None",
+          "nodeType": "host",
+          "layer": "def",
+          "ips": [
+            "fe80::2ee:ff:fe00:1"
+          ],
+          "props": {},
+          "configured": false
+        },
+        {
+          "id": "00:BB:00:00:00:01/None",
+          "nodeType": "host",
+          "layer": "def",
+          "ips": [
+            "fe80::2bb:ff:fe00:1"
+          ],
+          "props": {},
+          "configured": false
+        },
+        {
+          "id": "00:BB:00:00:00:03/None",
+          "nodeType": "host",
+          "layer": "def",
+          "ips": [
+            "fe80::2bb:ff:fe00:3"
+          ],
+          "props": {},
+          "configured": false
+        },
+        {
+          "id": "00:AA:00:00:00:04/None",
+          "nodeType": "host",
+          "layer": "def",
+          "ips": [],
+          "props": {},
+          "configured": false
+        },
+        {
+          "id": "00:BB:00:00:00:05/None",
+          "nodeType": "host",
+          "layer": "def",
+          "ips": [
+            "fe80::2bb:ff:fe00:5"
+          ],
+          "props": {},
+          "configured": false
+        },
+        {
+          "id": "00:88:00:00:00:02/None",
+          "nodeType": "host",
+          "layer": "def",
+          "ips": [
+            "fe80::288:ff:fe00:2",
+            "2000::601",
+            "10.0.6.1"
+          ],
+          "props": {},
+          "configured": false
+        },
+        {
+          "id": "00:AA:00:00:00:02/None",
+          "nodeType": "host",
+          "layer": "def",
+          "ips": [],
+          "props": {},
+          "configured": false
+        },
+        {
+          "id": "00:DD:00:00:00:02/None",
+          "nodeType": "host",
+          "layer": "def",
+          "ips": [],
+          "props": {},
+          "configured": false
+        }
+      ]
+    ],
+    "layerOrder": [
+      "opt",
+      "pkt",
+      "def"
+    ]
+  }
+}

@@ -119,14 +119,17 @@ export class ForceSvgComponent implements OnInit, OnChanges {
      * name
      * @param endPtStr The end point name
      */
-    private static extractNodeName(endPtStr: string): string {
+    static extractNodeName(endPtStr: string): string {
         const slash: number = endPtStr.indexOf('/');
         if (slash === -1) {
             return endPtStr;
         } else {
             const afterSlash = endPtStr.substr(slash + 1);
+            const beforeSlash = endPtStr.substr(0, slash);
             if (afterSlash === 'None') {
                 return endPtStr;
+            } else if (beforeSlash.split(':').length > 2) {
+                return endPtStr; // Host name with mac address
             } else {
                 return endPtStr.substr(0, slash);
             }

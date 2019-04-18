@@ -47,6 +47,7 @@ export class Link implements UiElement, d3.SimulationLinkDatum<Node> {
     portA: string; // The number of the port at one end
     portB: string; // The number of the port at the other end
     type: LinkType;
+    rollup: RegionRollup[]; // Links in sub regions represented by this one link
 
     // Must - defining enforced implementation properties
     source: Node;
@@ -96,7 +97,6 @@ export class Link implements UiElement, d3.SimulationLinkDatum<Node> {
  * model of the topo2CurrentRegion region link from Region
  */
 export class RegionLink extends Link {
-    rollup: RegionRollup[]; // Links in sub regions represented by this one link
 
     constructor(type: LinkType, nodeA: Node, nodeB: Node) {
         super(nodeA, nodeB);

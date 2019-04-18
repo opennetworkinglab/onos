@@ -105,8 +105,8 @@ export namespace GridDisplayToggle {
  * model of the topo2CurrentRegion device props from Device below
  */
 export interface DeviceProps {
-    latitude: number;
-    longitude: number;
+    latitude: string;
+    longitude: string;
     gridX: number;
     gridY: number;
     name: string;
@@ -115,6 +115,7 @@ export interface DeviceProps {
     channelId: string;
     managementAddress: string;
     protocol: string;
+    driver: string;
 }
 
 export interface HostProps {
