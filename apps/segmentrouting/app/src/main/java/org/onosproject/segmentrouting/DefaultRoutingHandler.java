@@ -281,6 +281,10 @@ public class DefaultRoutingHandler {
             log.info("Completed all routing rule population. Total # of rules pushed : {}",
                     rulePopulator.getCounter());
             return;
+        } catch (Exception e) {
+            log.error("populateAllRoutingRules thrown an exception: {}",
+                      e.getMessage(), e);
+            populationStatus = Status.ABORTED;
         } finally {
             statusLock.unlock();
         }
@@ -413,6 +417,10 @@ public class DefaultRoutingHandler {
                     rulePopulator.getCounter());
             return;
 
+        } catch (Exception e) {
+            log.error("populateSubnet thrown an exception: {}",
+                      e.getMessage(), e);
+            populationStatus = Status.ABORTED;
         } finally {
             statusLock.unlock();
         }
@@ -541,6 +549,10 @@ public class DefaultRoutingHandler {
                 log.warn("Failed to repopulate the rules for link status change.");
                 return;
             }
+        } catch (Exception e) {
+            log.error("populateRoutingRulesForLinkStatusChange thrown an exception: {}",
+                      e.getMessage(), e);
+            populationStatus = Status.ABORTED;
         } finally {
             statusLock.unlock();
         }
