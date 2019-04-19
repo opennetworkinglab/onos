@@ -85,9 +85,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -193,6 +195,7 @@ public class NetconfDeviceProvider extends AbstractProvider
     private InternalDeviceListener deviceListener = new InternalDeviceListener();
     private boolean active;
 
+    private ForkJoinPool scheduledTaskPool = new ForkJoinPool(CORE_POOL_SIZE);
 
     @Activate
     public void activate(ComponentContext context) {
@@ -412,12 +415,20 @@ public class NetconfDeviceProvider extends AbstractProvider
     //updating keys and device info
     private void checkAndUpdateDevices() {
         Set<DeviceId> deviceSubjects = cfgService.getSubjects(DeviceId.class, NetconfDeviceConfig.class);
-        deviceSubjects.parallelStream().forEach(deviceId -> {
-            log.debug("check and update {}", deviceId);
-            NetconfDeviceConfig config = cfgService.getConfig(deviceId, NetconfDeviceConfig.class);
-            storeDeviceKey(config.sshKey(), config.username(), config.password(), deviceId);
-            discoverOrUpdatePorts(deviceId);
-        });
+        try {
+            scheduledTaskPool.submit(() -> {
+                deviceSubjects.parallelStream().forEach(deviceId -> {
+                    log.debug("check and update {}", deviceId);
+                    NetconfDeviceConfig config = cfgService.getConfig(deviceId, NetconfDeviceConfig.class);
+                    storeDeviceKey(config.sshKey(), config.username(), config.password(), deviceId);
+                    discoverOrUpdatePorts(deviceId);
+                });
+            }).get();
+        } catch (ExecutionException e) {
+            log.error("Can't update the devices due to {}", e.getMessage());
+        } catch (InterruptedException | CancellationException e) {
+            log.info("Update device is cancelled due to {}", e.getMessage());
+        }
     }
 
     //Saving device keys in the store
