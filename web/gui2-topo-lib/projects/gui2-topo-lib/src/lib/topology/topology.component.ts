@@ -144,7 +144,7 @@ export interface Topo2Prefs {
   templateUrl: './topology.component.html',
   styleUrls: ['./topology.component.css']
 })
-export class TopologyComponent implements AfterContentInit, OnInit, OnDestroy {
+export class TopologyComponent implements OnInit, OnDestroy {
     @Input() bannerHeight: number = 48;
     // These are references to the components inserted in the template
     @ViewChild(InstanceComponent) instance: InstanceComponent;
@@ -285,20 +285,20 @@ export class TopologyComponent implements AfterContentInit, OnInit, OnDestroy {
         // Service just to compartmentalize things a bit
         this.ts.init(this.instance, this.background, this.force);
 
-        this.ps.addListener((data) => this.prefsUpdateHandler(data));
+        // For the 2.1 release to not listen to updates of prefs as they are
+        // only the echo of what we have sent down and the event mechanism
+        // does not discern between users. Can get confused if multiple windows open
+        // this.ps.addListener((data) => this.prefsUpdateHandler(data));
+
         this.prefsState = this.ps.getPrefs(TOPO2_PREFS, this.prefsState);
         this.mapIdState = this.ps.getPrefs(TOPO_MAPID_PREFS, this.mapIdState);
         this.trs.init(this.force);
 
-        this.log.debug('Topology component initialized');
-    }
-
-    ngAfterContentInit(): void {
         // Scale the window initially - then after resize
         const zoomMapExtents = ZoomUtils.zoomToWindowSize(
             this.bannerHeight, this.window.innerWidth, this.window.innerHeight);
         this.zoomDirective.changeZoomLevel(zoomMapExtents, true);
-        this.log.debug('Topology zoom initialized',
+        this.log.debug('TopologyComponent initialized',
             this.bannerHeight, this.window.innerWidth, this.window.innerHeight,
             zoomMapExtents);
     }
@@ -462,8 +462,6 @@ export class TopologyComponent implements AfterContentInit, OnInit, OnDestroy {
     bindCommands(additional?: any) {
 
         const am = this.actionMap();
-        const add = this.fs.isO(additional);
-
         this.ks.keyBindings(am);
 
         this.ks.gestureNotes([
@@ -610,7 +608,7 @@ export class TopologyComponent implements AfterContentInit, OnInit, OnDestroy {
     protected toggleHosts() {
         const current: boolean = !Boolean(this.prefsState.hosts);
         this.flashMsg = this.lionFn('hosts') + ' ' +
-                        this.lionFn(this.force.showHosts ? 'visible' : 'hidden');
+                        this.lionFn(current ? 'visible' : 'hidden');
         this.updatePrefsState(PREF_HOSTS, current ? 1 : 0);
         this.log.debug('toggling hosts: ', this.prefsState.hosts ? 'Show' : 'Hide');
     }

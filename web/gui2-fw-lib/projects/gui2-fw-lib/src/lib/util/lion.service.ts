@@ -84,7 +84,7 @@ export class LionService {
         }
 
         return (key) =>  {
-            return bundleObj[key] || '%' + key + '%';
+            return bundleObj[key] || '?' + key + '?';
         };
     }
 }

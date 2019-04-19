@@ -44,6 +44,7 @@ export interface KeyEntry {
 })
 export class QuickhelpComponent implements OnInit {
     lionFn; // Function
+    lionFnTopo; // Function
 
     dialogKeys: Object;
     globalKeys: Object[];
@@ -67,6 +68,7 @@ export class QuickhelpComponent implements OnInit {
     ) {
         if (this.lion.ubercache.length === 0) {
             this.lionFn = this.dummyLion;
+            this.lionFnTopo = this.dummyLion;
             this.lion.loadCbs.set('quickhelp', () => this.doLion());
         } else {
             this.doLion();
@@ -79,7 +81,7 @@ export class QuickhelpComponent implements OnInit {
 
     ngOnInit(): void {
         Object.entries(this.ks.keyHandler.viewKeys)
-            .filter((vk) => vk[0] !== '_helpFormat' && vk[0] !== '9')
+            .filter((vk) => vk[0] !== '_helpFormat' && vk[0] !== '9' && vk[0] !== 'esc')
             .forEach((vk, idx) => {
                 const ke = QuickhelpComponent.extractKeyEntry(vk, this.log);
                 this.viewKeys[Math.floor(idx / 3)][idx % 3] = ke;
@@ -94,6 +96,7 @@ export class QuickhelpComponent implements OnInit {
      */
     doLion() {
         this.lionFn = this.lion.bundle('core.fw.QuickHelp');
+        this.lionFnTopo = this.lion.bundle('core.view.Topo');
     }
 
     /**

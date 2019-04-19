@@ -81,6 +81,10 @@ export class MapSelectorComponent extends DetailsPanelBaseImpl implements OnInit
     }
 
     choice(mapid: Object): void {
-        this.chosenMap.emit(<MapObject>this.mapSelectorResponse.maps[mapid['mapid']]);
+        if (mapid) {
+            this.chosenMap.emit(<MapObject>this.mapSelectorResponse.maps[mapid['mapid']]);
+        } else {
+            this.chosenMap.emit(<MapObject>{});
+        }
     }
 }

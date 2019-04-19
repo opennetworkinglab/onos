@@ -25,7 +25,8 @@
 #quickhelp {
     top: 100px;
     z-index: 5000;
-    position: relative;
+    position: absolute;
+    width: 100%;
 }
 
 #quickhelp div.help {

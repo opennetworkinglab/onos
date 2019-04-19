@@ -44,38 +44,73 @@ the local variable - this is used to display messages when keyboard shortcuts ar
     <!-- Template explanation -
     Line 0) This is the root of the whole SVG canvas of the Topology View - all
         components beneath it are SVG components only (no HTML)
-    line 1) the No Devices Connected banner is shown if the force component
-        (from line 4) does not contain any devices
-    line 2) Create an SVG Grouping and apply the onosZoomableOf directive to it,
-        passing in the whole SVG canvas (#svgZoom)
-    line 3) Add in the Background Svg Component (if showBackground is true - toggled
-        by toolbar and by keyboard shortcut 'B'
-    line 4) Add in the layer of the Force Svg Component. If any item is selected on it, pass
-        to the details view and deselect all others. This is node and line graph
-        whose contents are supplied through the Topology Service, and whose positions
-        are driven by the d3.force engine
+    Line 1) if the background is clicked then send the event to the function
+        where it is filtered to make sure it really applied to the background
+        or the map and then used to clear any selections made
     -->
     <svg:svg #svgZoom xmlns:svg="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" id="topo2"
-        preserveAspectRatio="xMaxYMax meet" (click)="backgroundClicked($event)">
+        preserveAspectRatio="xMaxYMax meet" (click)="backgroundClicked($event)"
+        transform="'translate(0,0), scale(1.0)'">
         <svg:desc>The main SVG canvas of the Topology View</svg:desc>
+        <!-- Template explanation -
+        line 0) the No Devices Connected banner is shown if the force component
+            (from later) does not contain any devices
+        -->
         <svg:g *ngIf="force.regionData?.devices[0].length +
                         force.regionData?.devices[1].length +
                         force.regionData?.devices[2].length=== 0"
                onos-nodeviceconnected />
+        <!-- Template explanation -
+        line 0) Create an SVG Grouping and apply the onosZoomableOf directive to it,
+            passing in the whole SVG canvas (#svgZoom)
+        -->
         <svg:g id="topo-zoomlayer" onosZoomableOf [zoomableOf]="svgZoom">
             <svg:desc>A logical layer that allows the main SVG canvas to be zoomed and panned</svg:desc>
+            <!-- Template explanation
+            Line 0) Create an instance of the onos-gridsvg component with the name gridFull
+                    All Inputs to that component will use default values
+                    This is the grey grid of 1000x1000 with origin at top left
+                    Only show it if the grid prefs value is 1 or 3
+            -->
             <svg:g #gridFull *ngIf="prefsState.grid == 1 || prefsState.grid == 3" onos-gridsvg>
             </svg:g>
+            <!-- Template explanation
+            Line 0) Create another instance of the onos-gridsvg component with the name geoGrid
+                    This is the blue geo grid of -180 to +180 longitude and -75
+                    to +75 latitude with with origin in the centre
+                    Only show it if the grid prefs value is 2 or 3
+            Line 1) Set the Inputs for the longitude extents
+            Line 2) Set the Inputs for the latitude extents and set the minor line
+                    spacing at 15 degrees long and lat
+            Line 3) Invert the vertical axis - positive in the y direction is up
+                    Set the vertical extents of this grid to 1000 units high in SVG terms
+                    Set the aspect ratio to 5/6 - this is because it is an eqi-
+                    rectangular projection and looks stretched out horizontally
+                    otherwise. This balances the distortion of equi-rect between
+                    equator and the poles
+            Line 4) Set the color of the grid to light blue
+            -->
             <svg:g #geoGrid *ngIf="prefsState.grid == 2 || prefsState.grid == 3"
                    onos-gridsvg [horizLowerLimit]="-180" [horizUpperLimit]="180"
                    [vertLowerLimit]="-75" [vertUpperLimit]="75" [spacing]="15"
                    [invertVertical]="true" [fit]="'fit1000high'" [aspectRatio]="0.83333"
                    [gridcolor]="'#bfe7fb'">
             </svg:g>
+            <!-- Template explanation -
+            line 0) Add in the Background Svg Component (if showBackground is true - toggled
+                by toolbar and by keyboard shortcut 'B'
+            -->
             <svg:g *ngIf="prefsState.bg"
                    onos-backgroundsvg [map]="mapIdState" (zoomlevel)="mapExtentsZoom($event)">
                 <svg:desc>The Background SVG component - contains maps</svg:desc>
             </svg:g>
+            <!-- Template explanation -
+            line 0) Add in the layer of the Force Svg Component.
+                This is node and line graph
+                whose contents are supplied through the Topology Service, and whose positions
+                are driven by the d3.force engine
+            line 6) If any item is selected on it, pass to the details view and deselect all others.
+            -->
             <svg:g #force onos-forcesvg
                    [deviceLabelToggle]="prefsState.dlbls"
                    [hostLabelToggle]="prefsState.hlbls"

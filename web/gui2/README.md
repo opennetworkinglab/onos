@@ -1,4 +1,4 @@
-# ONOS GUI 2.0.0
+# ONOS GUI 2.1.0
 
 This project is based on __[Angular 7](https://angular.io/docs)__ 
 and __[ES6](http://www.ecma-international.org/ecma-262/6.0/index.html)__ (aka __ES2015__), 
@@ -30,31 +30,72 @@ to the locale you want before starting onos. e.g.
 ONOS_LOCALE=fr_FR SHLVL=1 bazel run onos-local -- clean debug
 ```
 
+# Architecture
+The whole application comprises of a number of modules on the client side
+* __gui2-fw-lib__ This is a collection of client side component, services and base
+classes that are reused among all modules [more details..](../gui2-fw-lib/README.md)
+* __gui2-topo-lib__ This is the Topology view only [more details..](../gui2-topo-lib/README.md)
+* __fm_gui_lib__ This is the Fault Management table [more details..](../../apps/faultmanagement/fm-gui2-lib/README.md)
+* __gui2__ This is the front end entry point application and brings together all
+other libraries. It also holds all of the tabular applications such as Applications
+view and Devices view, and manages the routing between the different views. 
+
+All of these modules talk to the backend server mainly through a WebSocket connection
+passing JSON snippets asynchronously in both directions.
+In some places the client side code loads data through a plain HTTP GET call, and
+these are served by servlets on the backend. Similarly raster graphics are loaded
+through a servlet.
+
+Much of the graphics in the application are made from SVG paths and primitive objects,
+and are displayed smoothly by HTML5 compatible browsers. Occasionally the d3
+libraries (such as d3-force) are used to help position graphics, but an over
+dependence on d3 is mainly avoided.
+
+The main framework used is Angular 7, with a strong emphasis on making resuable
+components, directives, services and classes. Angular Routing and animation are
+also used.
+
+# Issues
+Issues found on the GUI2 should be added to the existing list on the
+[ONOS GUI Jira Kanban board](https://jira.onosproject.org/secure/RapidBoard.jspa?rapidView=31)
+(requires Jira login)
+
 # Development
 There are 2 ways to go about development - 
-1. rebuild the code and rerun through Bazel (much like can be done with any ordinary ONOS app) 
- (this is not optimal though since in this mode the browser side code is built in '--prod' mode
- and all debug symbols are stripped and debug statements are not logged and the code is uglified and minimized.
- It is useful for testing "prod" mode works though and saves having to set up direct development) OR
-2. use Angular 7 CLI (__ng__ command) to rebuild on the fly (must faster for development) 
+1. rebuild the code and rerun through Bazel (much like can be done with any ordinary ONOS app)
+(recommended for most people) 
+ OR
+2. use Angular 7 CLI (__ng__ command) to rebuild on the fly (faster for
+development). Be aware that if you are just changing the topology view it does not
+require all of the steps that __gui2__ does - see its own [README](../gui2-topo-lib/README.md)
+for more details
 
-For 1) (this needs to be updated for Bazel commands) if you change the code you can redeploy the application without restarting ONOS with (requires you to be in ~/onos directory):
+For 1) if you change the code you can redeploy the application without restarting
+ONOS with (requires you to be in ~/onos directory):
 ```
 bazel build //web/gui2:onos-web-gui2-oar && onos-app localhost reinstall! bazel-bin/web/gui2/onos-web-gui2-oar.oar
 ```
 
 For 2) it's well worth becoming familiar with Angular CLI.
-The project is created with [Angular CLI](https://github.com/angular/angular-cli) v7 to simplify development of the browser side code.
-It is complicated to set up, but is worth the effort if you have more than a day's worth of development to do.
-This allows you to develop the Angular 7 TypeScript code independent of ONOS in a separate container. 
-Since WebSockets have been implemented - there is a requirement to run ONOS in the background.
+> (this has the advantage of debug symbols and the code not is uglified and minimized)
 
-There is no need to install node, npm or ng again on your system, and indeed if they are already installed, it's best
-to use the versions of these that's used by Bazel. To do this add the following 2 entries to the __start__ of your PATH environment variable. 
+The project is created with [Angular CLI](https://github.com/angular/angular-cli) v7
+to simplify development of the browser side code. It is complicated to set up, 
+but is worth the effort if you have more than a few days worth of development to do.
+Since data is retrieved through WebSockets there is a requirement to run ONOS
+in the background.
+
+>There is no need to install node, npm or ng again on your system, and indeed if
+>they are already installed, it's best to use the versions of these that's used 
+>by Bazel in ONOS.
+
+Add the following 2 entries to the __start__ of 
+your PATH environment variable. 
 ```
 ~/.cache/bazel/_bazel_scondon/8beba376f58d295cf3282443fe02c21a/external/nodejs/bin/nodejs/bin
 ```
-(where ~/.cache/bazel/_bazel_scondon/8beba376f58d295cf3282443fe02c21a should be replaced by an equivalent folder on your system)
+> (where ~/.cache/bazel/_bazel_scondon/8beba376f58d295cf3282443fe02c21a should be
+> replaced by an equivalent folder on your system)
 ```text
 ~/onos/web/gui2-fw-lib/node_modules/@angular/cli/bin/
 ```
@@ -66,7 +107,7 @@ npm install
 ```
 
 This will install all the vendor Javascript implementations that are listed in package.json
- (including 'ng' - the Angular CLI command) in to ~/onos/web/gui2-fw-lib/node_modules
+(including 'ng' - the Angular CLI command) in to ~/onos/web/gui2-fw-lib/node_modules
 
 After this you should be able to cd in to ~/onos/web/gui2-fw-lib and run 'ng version' and see:
 ```
@@ -79,12 +120,15 @@ Angular: 7.0.2
 ## GUI FW Lib
 The GUI2 __framework__ is in __~/onos/web/gui2-fw-lib__ and the GUI __application__ is in __~/onos/web/gui2__ (and depends on the framework).
 
-The GUI2 framework is a library inside its own mini application (unrelated to the main GUI application) - every thing of importance 
-is in projects/gui2-fw-lib. The own application is just a wrapper around the framework
-library - it has to be there for Angular CLI to work. 
+The GUI2 framework is a library inside its own mini application (unrelated to the
+main GUI application) - every thing of importance is in projects/gui2-fw-lib. The
+own application is just a wrapper around the framework library - it has to be
+there for Angular CLI to work and can be useful for testing parts of the framework
+in isolation. 
 
-If you make any changes here or are using it for the first time it will need to be built
-```text
+For build method 2) above if you make any changes here or are using it for the
+first time it will need to be built. From ~/onos/web/gui2 run:
+```bash
 pushd ~/onos/web/gui2-fw-lib && \
 ng build gui2-fw-lib && \
 cd dist/gui2-fw-lib && \
@@ -93,20 +137,15 @@ popd && \
 npm install gui2-fw-lib
 ```
 
-To test and lint it use
-```text
-ng lint gui2-fw-lib && \
-ng test gui2-fw-lib
-```
-
-This packages the Framework up in to __onos/web/gui2-fw-lib/dist/gui2-fw-lib/gui2-fw-lib-2.0.0.tgz__
+This packages the Framework up in to __~/onos/web/gui2-fw-lib/dist/gui2-fw-lib/gui2-fw-lib-2.1.0.tgz__
 
 ## GUI2 Topo library
 The GUI2 __Topology__ is in __~/onos/web/gui2-topo-lib__ and the GUI __application__
 includes this Topology application through the __onos-routing-module__. The 
 Topology app has its own README file.
 
-If you make any changes here or are using it for the first time it will need to be built
+For build method 2) above if you make any changes here or are using it for the
+first time it will need to be built. From ~/onos/web/gui2 run:
 ```text
 pushd ~/onos/web/gui2-topo-lib && \
 ng build gui2-topo-lib && \
@@ -115,29 +154,35 @@ npm pack && \
 popd && \
 npm install gui2-topo-lib
 ```
-This packages the Framework up in to __onos/web/gui2-topo-lib/dist/gui2-topo-lib/gui2-topo-lib-2.0.0.tgz__
+This packages the Topo View up in to __onos/web/gui2-topo-lib/dist/gui2-topo-lib/gui2-topo-lib-2.1.0.tgz__
 
 ## GUI2 Application
-The application contains the ONOS index.html and all of the tabular views and the topology view.
-It references the gui2-fw-lib, as just another dependency. 
+The application contains the ONOS index.html and all of the tabular views and the
+topology view. It references the gui2-fw-lib and gui2-topo-lib as just other
+dependencies. 
 
-To use this application in Angular CLI for development on your system, you need to: 
+For build method 2) above to use this application in Angular CLI for development
+on your system, you need to: 
 1. Change directory in to onos/web/gui2 - this is where you will run the `ng` command from.
 2. Run `npm install` once from this folder to add dependencies
-3. Then run 'ng -v' from onos/web/gui2 and an additional version should be shown __Angular: 6.0.0__
+3. Then run 'ng version' from onos/web/gui2 and an additional version should be
+shown __Angular: 7.0.2__
 4. Temporarily make a change to disable authentication in UIWebSocket.java
 5. Temporarily make a change to disable external routes in onos-routing.module.ts
 6. Create symbolic links for some CSS files
 
 ### Disable authentication and external routes
+> Remember this is only for build method 2) above
+
 Before the server can be run a couple of small adjustments need to be temporarily made
 1. The file __~/onos/web/gui/src/main/java/org/onosproject/ui/impl/UiWebSocket.java__ 
 needs to be adjusted to remove authentication
 2. The file __~/onos/web/gui2/src/main/webapp/app/onos-routing.module.ts__ needs 
 to be adjusted to remove references to routes in external applications 
 
-These changes are given in Appendix A at the end of this document - these changes should not be 
-checked in though - as they are not required (and will break) the GUI2 embedded in ONOS.
+These changes are given in Appendix A at the end of this document - these changes
+should not be checked in though - as they are not required (and will break) the
+GUI2 embedded in ONOS.
 
 ### Create symbolic links for CSS files
 Also some files need to be symbolically linked - these should no be checked in
@@ -195,30 +240,31 @@ To run it manually in Angular CLI run `ng build` (and add on --prod --extract-cs
 ## Running unit tests
 This is automatically done when using "bazel test " - see the web/gui2/BUILD file for more details.
 
-To run it manually in Angular CLI run `ng test --watch` to execute the unit tests via [Karma](https://karma-runner.github.io).
-Running it directly like this will test with both Firefox and Chrome. To use only one use the __--browsers__ argument
+To run it manually in Angular CLI run `ng test --watch` to execute the unit tests
+via [Karma](https://karma-runner.github.io). Running it directly like this will
+test with both Firefox and Chrome. To use only one use the __--browsers__ argument
 
 ## Running checkstyle (lint)
-This is automatically done when using "bazel test" - see the web/gui2/BUILD file for more details.
+This is automatically done when using "bazel test" - see the web/gui2/BUILD file
+for more details.
 
-To run it manually in Angular CLI run `ng lint` to run codelyzer on your code, according to the rules in __tslint.json__
+To run it manually in Angular CLI run `ng lint` to run codelyzer on your code,
+according to the rules in __tslint.json__
 
 ## Running end-to-end tests
-
-To run it manually in Angular CLI run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
+To run it manually in Angular CLI run `ng e2e` to execute the end-to-end tests
+via [Protractor](http://www.protractortest.org/).
 
 ## Generating documentation
-This is automatically done when using "ob" - see the web/gui2/BUILD file for more details.
-
-To run it manually in Angular CLI run `npm run compodoc` to generate documentation via [Compodoc](https://github.com/compodoc/compodoc)
+To run it manually in Angular CLI run `npm run compodoc` to generate documentation
+via [Compodoc](https://github.com/compodoc/compodoc)
 
 ## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+To get more help on the Angular CLI use `ng help` or go check out the
+[Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
 
 
 # Appendix A - changes needed to run GUI2 application locally
-
 ```text
 diff --git a/web/gui/src/main/java/org/onosproject/ui/impl/UiWebSocket.java b/web/gui/src/main/java/org/onosproject/ui/impl/UiWebSocket.java
 index e53a00756b..63e538a4db 100644
