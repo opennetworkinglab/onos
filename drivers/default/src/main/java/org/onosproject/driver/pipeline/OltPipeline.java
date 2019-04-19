@@ -415,13 +415,14 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
     private void installNoModificationRules(ForwardingObjective fwd) {
         Instructions.OutputInstruction output = (Instructions.OutputInstruction) fetchOutput(fwd, DOWNSTREAM);
+        Instructions.MetadataInstruction writeMetadata = fetchWriteMetadata(fwd);
+        Instructions.MeterInstruction meter = (Instructions.MeterInstruction) fetchMeter(fwd);
 
         TrafficSelector selector = fwd.selector();
 
         Criterion inport = selector.getCriterion(Criterion.Type.IN_PORT);
         Criterion outerVlan = selector.getCriterion(Criterion.Type.VLAN_VID);
         Criterion innerVlan = selector.getCriterion(Criterion.Type.INNER_VLAN_VID);
-        Criterion metadata;
 
         if (inport == null || output == null || innerVlan == null || outerVlan == null) {
             log.error("Forwarding objective is underspecified: {}", fwd);
@@ -429,15 +430,14 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
             return;
         }
 
-        metadata = Criteria.matchMetadata(((VlanIdCriterion) innerVlan).vlanId().toShort());
 
         FlowRule.Builder outer = DefaultFlowRule.builder()
                 .fromApp(fwd.appId())
                 .forDevice(deviceId)
                 .makePermanent()
                 .withPriority(fwd.priority())
-                .withSelector(buildSelector(inport, outerVlan, metadata))
-                .withTreatment(buildTreatment(output));
+                .withSelector(buildSelector(inport, outerVlan))
+                .withTreatment(buildTreatment(output, writeMetadata, meter));
 
         applyRules(fwd, outer);
     }

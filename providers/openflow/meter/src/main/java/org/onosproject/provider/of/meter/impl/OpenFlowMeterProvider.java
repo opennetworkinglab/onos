@@ -138,6 +138,8 @@ public class OpenFlowMeterProvider extends AbstractProvider implements MeterProv
                 .expireAfterWrite(TIMEOUT, TimeUnit.SECONDS)
                 .removalListener((RemovalNotification<Long, MeterOperation> notification) -> {
                     if (notification.getCause() == RemovalCause.EXPIRED) {
+                        log.debug("Expired on meter provider. Meter key {} and operation {}",
+                                notification.getKey(), notification.getValue());
                         providerService.meterOperationFailed(notification.getValue(),
                                                              MeterFailReason.TIMEOUT);
                     }
@@ -205,9 +207,6 @@ public class OpenFlowMeterProvider extends AbstractProvider implements MeterProv
 
     private void performOperation(OpenFlowSwitch sw, MeterOperation op) {
 
-        pendingOperations.put(op.meter().id().id(), op);
-
-
         Meter meter = op.meter();
         MeterModBuilder builder = MeterModBuilder.builder(meter.id().id(), sw.factory());
         if (meter.isBurst()) {
@@ -219,12 +218,14 @@ public class OpenFlowMeterProvider extends AbstractProvider implements MeterProv
 
         switch (op.type()) {
             case ADD:
+                pendingOperations.put(op.meter().id().id(), op);
                 sw.sendMsg(builder.add());
                 break;
             case REMOVE:
                 sw.sendMsg(builder.remove());
                 break;
             case MODIFY:
+                pendingOperations.put(op.meter().id().id(), op);
                 sw.sendMsg(builder.modify());
                 break;
             default:
