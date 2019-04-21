@@ -9,8 +9,9 @@ summary="/tmp/odtn/net-summary.json"
 if [[ $# == 3 ]];then
     summary=$3
 fi
-
-line_num=`cat $summary | wc -l`
+# The 'sed'command behind 'wc -l' is uset to strip leading spaces.
+# Because in some scenarios, 'wc -l' always outputs leading spaces (https://lists.gnu.org/archive/html/bug-coreutils/2005-01/msg00029.html).
+line_num=`cat $summary | wc -l | sed -e 's/^[ ]*//g'`
 if [[ "$line_num" != "1" ]]; then
     echo "JSON file should have only 1 line."
     exit 1
@@ -39,14 +40,14 @@ case "$1" in
     "device" )
         eval get_json_value '$content' device_num
         device_num=$?
-        num_in_topo=`onos $2 devices | wc -l`
-        num_in_tapi=`onos $2 odtn-show-tapi-context | grep "<node>" | wc -l`
+        num_in_topo=`onos $2 devices | wc -l | sed -e 's/^[ ]*//g'`
+        num_in_tapi=`onos $2 odtn-show-tapi-context | grep "<node>" | wc -l | sed -e 's/^[ ]*//g'`
         while [[ "$num_in_topo" != "$device_num" || "$num_in_tapi" != "$device_num" ]]
         do
             echo "On ONOS $2, current device num in topo:$num_in_topo, num in tapi:$num_in_tapi, expected $device_num. Waiting..."
             sleep 10
-            num_in_topo=`onos $2 devices | wc -l`
-                num_in_tapi=`onos $2 odtn-show-tapi-context | grep "<node>" | wc -l`
+            num_in_topo=`onos $2 devices | wc -l | sed -e 's/^[ ]*//g'`
+                num_in_tapi=`onos $2 odtn-show-tapi-context | grep "<node>" | wc -l | sed -e 's/^[ ]*//g'`
             let "tried=tried+1"
             if [[ "$tried" == "10" ]]; then
                 exit 99
@@ -58,16 +59,16 @@ case "$1" in
         port_num=$?
         eval get_json_value '$content' device_num
         device_num=$?
-        num_in_tapi=`onos $2 odtn-show-tapi-context | grep "<owned-node-edge-point>" | wc -l`
-        num_in_topo=`onos $2 ports | wc -l`
+        num_in_tapi=`onos $2 odtn-show-tapi-context | grep "<owned-node-edge-point>" | wc -l | sed -e 's/^[ ]*//g'`
+        num_in_topo=`onos $2 ports | wc -l | sed -e 's/^[ ]*//g'`
         num_in_topo=$[num_in_topo-device_num]
         while [[ "$num_in_topo" != "$port_num" || "$num_in_tapi" != "$port_num" ]]
             do
             echo "On ONOS $2, current port num in topo: $num_in_topo, num in tapi: $num_in_tapi, expected $port_num. Waiting..."
                     sleep 10
-            num_in_topo=`onos $2 ports | wc -l`
+            num_in_topo=`onos $2 ports | wc -l | sed -e 's/^[ ]*//g'`
             num_in_topo=$[num_in_topo-device_num]
-            num_in_tapi=`onos $2 odtn-show-tapi-context | grep "<owned-node-edge-point>" | wc -l`
+            num_in_tapi=`onos $2 odtn-show-tapi-context | grep "<owned-node-edge-point>" | wc -l | sed -e 's/^[ ]*//g'`
             let "tried=tried+1"
             if [[ "$tried" == "10" ]]; then
                 exit 99
@@ -77,14 +78,14 @@ case "$1" in
     "link" )
         eval get_json_value '$content' link_num
         link_num=$?
-        num_in_topo=`onos $2 links | wc -l`
-        num_in_tapi=`onos $2 odtn-show-tapi-context | grep "<link>" | wc -l`
+        num_in_topo=`onos $2 links | wc -l | sed -e 's/^[ ]*//g'`
+        num_in_tapi=`onos $2 odtn-show-tapi-context | grep "<link>" | wc -l | sed -e 's/^[ ]*//g'`
             while [[ "$num_in_topo" != "$link_num" || "$num_in_tapi" != "$link_num" ]]
             do
                     echo "On ONOS $2, current link num: $num_in_topo, expected $link_num. Waiting..."
             sleep 10
-                    num_in_topo=`onos $2 links | wc -l`
-            num_in_tapi=`onos $2 odtn-show-tapi-context | grep "<link>" | wc -l`
+                    num_in_topo=`onos $2 links | wc -l | sed -e 's/^[ ]*//g'`
+            num_in_tapi=`onos $2 odtn-show-tapi-context | grep "<link>" | wc -l | sed -e 's/^[ ]*//g'`
             let "tried=tried+1"
             if [[ "$tried" == "10" ]]; then
                 exit 99

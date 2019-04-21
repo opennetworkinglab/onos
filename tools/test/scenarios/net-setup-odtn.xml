@@ -40,7 +40,7 @@
     </group>
     <!-- include 2 or more docker emulators to setup the network for phase 1.0-->
     <group name="ODTN-Net-Setup.Init-network" requires="ODTN-Net-Setup.Verify-Logs-1">
-      <step name="ODTN-Net-Setup.Start-emulators" exec="docker-compose -f /home/sdn/emulator/docker-compose.yaml up -d"/>
+      <step name="ODTN-Net-Setup.Start-emulators" exec="docker-compose -f ${HOME}/emulator/docker-compose.yaml up -d"/>
       <step name="ODTN-Net-Setup.Generate-cfg-files" requires="ODTN-Net-Setup.Start-emulators" exec="${ONOS_SCENARIOS}/odtn/createNetCfg.sh"/>
       <step name="ODTN-Net-Setup.Put-nodes" requires="ODTN-Net-Setup.Generate-cfg-files" exec="onos-netcfg ${OC1} /tmp/odtn/openconfig-devices.json"/>
       <group name="ODTN-Net-Setup.Wait-nodes" requires="ODTN-Net-Setup.Put-nodes">
