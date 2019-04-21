@@ -56,6 +56,14 @@ public interface Workflow {
 
     /**
      * Returns instance of worklet.
+     * @param pc program counter
+     * @return instance of worklet
+     * @throws WorkflowException workflow exception
+     */
+    Worklet getWorkletInstance(ProgramCounter pc) throws WorkflowException;
+
+    /**
+     * Returns instance of worklet.
      * @param workletType class name of worklet
      * @return instance of worklet
      * @throws WorkflowException workflow exception

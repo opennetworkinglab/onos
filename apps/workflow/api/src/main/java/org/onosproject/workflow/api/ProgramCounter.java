@@ -62,6 +62,30 @@ public final class ProgramCounter {
         this.workletIndex = workletIndex;
     }
 
+    /**
+     * Clones this workflow Program Counter.
+     * @return clone of this workflow Program Counter
+     */
+    public ProgramCounter clone() {
+        return ProgramCounter.valueOf(this.workletType(), this.workletIndex());
+    }
+
+    /**
+     * Returns whether this program counter is INIT worklet program counter.
+     * @return whether this program counter is INIT worklet program counter
+     */
+    public boolean isInit() {
+        return Worklet.Common.INIT.tag().equals(this.workletType);
+    }
+
+    /**
+     * Returns whether this program counter is COMPLETED worklet program counter.
+     * @return whether this program counter is COMPLETED worklet program counter
+     */
+    public boolean isCompleted() {
+        return Worklet.Common.COMPLETED.tag().equals(this.workletType);
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(this.toString());

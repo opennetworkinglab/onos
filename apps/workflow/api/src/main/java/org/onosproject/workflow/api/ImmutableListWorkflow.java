@@ -74,32 +74,31 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
         return getWorkletInstance(initWorkletType);
     }
 
-
     @Override
     public ProgramCounter next(WorkflowContext context) throws WorkflowException {
 
         int cnt = 0;
 
-        ProgramCounter pc = context.current();
-        check(pc != null, "Invalid program counter");
+        ProgramCounter current = context.current();
+        check(current != null, "Invalid program counter");
 
-        for (int i = pc.workletIndex(); i < workletTypeList.size(); i++) {
+        ProgramCounter pc = current.clone();
+
+        for (int i = current.workletIndex(); i < workletTypeList.size(); pc = increased(pc), i++) {
 
             if (cnt++ > Worklet.MAX_WORKS) {
                 throw new WorkflowException("Maximum worklet execution exceeded");
             }
 
-            String workletType = workletTypeList.get(i);
-
-            if (Worklet.Common.COMPLETED.tag().equals(workletType)) {
-                return ProgramCounter.valueOf(workletType, i);
+            if (pc.isCompleted()) {
+                return pc;
             }
 
-            if (Worklet.Common.INIT.tag().equals(workletType)) {
+            if (pc.isInit()) {
                 continue;
             }
 
-            Worklet worklet = getWorkletInstance(workletType);
+            Worklet worklet = getWorkletInstance(pc);
             Class workClass = worklet.getClass();
 
             if (BranchWorklet.class.isAssignableFrom(workClass)) {
@@ -121,11 +120,12 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
                 // isNext is read only. It does not perform 'inhale'.
                 dataModelInjector.inject(worklet, context);
                 if (worklet.isNext(context)) {
-                    return ProgramCounter.valueOf(workletType, i);
+                    return pc;
                 }
             }
         }
-        throw new WorkflowException("workflow reached to end but not COMPLETED");
+        throw new WorkflowException("workflow reached to end but not COMPLETED (pc:"
+                + current + ", workflow:" + this.toString());
     }
 
     @Override
@@ -138,6 +138,12 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
 
         String workletType = workletTypeList.get(increaedIndex);
         return ProgramCounter.valueOf(workletType, increaedIndex);
+    }
+
+    @Override
+    public Worklet getWorkletInstance(ProgramCounter pc) throws WorkflowException {
+
+        return getWorkletInstance(workletTypeList.get(pc.workletIndex()));
     }
 
     @Override

@@ -472,7 +472,7 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
                 return task;
             }
 
-            Worklet worklet = workflow.getWorkletInstance(task.programCounter().workletType());
+            Worklet worklet = workflow.getWorkletInstance(task.programCounter());
             if (Worklet.Common.COMPLETED.equals(worklet) || Worklet.Common.INIT.equals(worklet)) {
                 log.error("Current worklet is {}, Ignored", worklet);
                 return task;
@@ -562,7 +562,7 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
                 return task;
             }
 
-            Worklet worklet = workflow.getWorkletInstance(task.programCounter().workletType());
+            Worklet worklet = workflow.getWorkletInstance(task.programCounter());
             if (worklet == Worklet.Common.COMPLETED || worklet == Worklet.Common.INIT) {
                 log.error("execEventTimeoutTask: Current worklet is {}, Ignored", worklet);
                 return task;
@@ -632,7 +632,7 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
                 return task;
             }
 
-            Worklet worklet = workflow.getWorkletInstance(task.programCounter().workletType());
+            Worklet worklet = workflow.getWorkletInstance(task.programCounter());
             if (worklet == Worklet.Common.COMPLETED || worklet == Worklet.Common.INIT) {
                 log.error("execTimeoutTask: Current worklet is {}, Ignored", worklet);
                 return task;
@@ -736,7 +736,7 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
 
         try {
             final ProgramCounter pc = workflow.next(latestContext);
-            final Worklet worklet = workflow.getWorkletInstance(pc.workletType());
+            final Worklet worklet = workflow.getWorkletInstance(pc);
 
             if (worklet == Worklet.Common.INIT) {
                 log.error("workflow.next gave INIT. It cannot be executed (context: {})", context.name());
