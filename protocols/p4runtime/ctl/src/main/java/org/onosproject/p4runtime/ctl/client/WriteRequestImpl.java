@@ -18,6 +18,7 @@ package org.onosproject.p4runtime.ctl.client;
 
 import com.google.common.util.concurrent.Futures;
 import com.google.protobuf.TextFormat;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.runtime.PiEntity;
@@ -35,6 +36,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.completedFuture;
+import static org.onosproject.p4runtime.api.P4RuntimeWriteClient.EntityUpdateStatus.PENDING;
 import static org.onosproject.p4runtime.ctl.client.P4RuntimeClientImpl.SHORT_TIMEOUT_SECONDS;
 import static org.onosproject.p4runtime.ctl.codec.Codecs.CODECS;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -190,8 +192,18 @@ final class WriteRequestImpl implements P4RuntimeWriteClient.WriteRequest {
 
                     @Override
                     public void onError(Throwable t) {
-                        client.handleRpcError(t, "WRITE");
-                        future.complete(responseBuilder.setErrorsAndBuild(t));
+                        final WriteResponseImpl response = responseBuilder
+                                .setErrorsAndBuild(t);
+                        if (Status.fromThrowable(t).getCode() != Status.Code.UNKNOWN
+                                || !response.status(PENDING).isEmpty()) {
+                            // If UNKNOWN and no entities are in PENDING state,
+                            // it means we have processed the response error
+                            // details and a log message will be produced for
+                            // each failed entity. No need to log the top level
+                            // SRE.
+                            client.handleRpcError(t, "WRITE");
+                        }
+                        future.complete(response);
                     }
 
                     @Override

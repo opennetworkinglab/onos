@@ -77,7 +77,7 @@ public final class PipeconfLoader {
 
     @Deactivate
     public void deactivate() {
-        ALL_PIPECONFS.stream().map(PiPipeconf::id).forEach(piPipeconfService::remove);
+        ALL_PIPECONFS.stream().map(PiPipeconf::id).forEach(piPipeconfService::unregister);
     }
 
     private static PiPipeconf buildBasicPipeconf() {

@@ -17,6 +17,7 @@
 package org.onosproject.net.pi.service;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.event.ListenerService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconfId;
@@ -27,12 +28,12 @@ import java.util.Optional;
  * A service to manage the configurations of protocol-independent pipelines.
  */
 @Beta
-public interface PiPipeconfService {
+public interface PiPipeconfService extends ListenerService<PiPipeconfEvent, PiPipeconfListener> {
 
     // TODO: we might want to extend ListenerService to support the broadcasting of PipeconfEvent.
 
     /**
-     * Registers the given pipeconf.
+     * Registers the given pipeconf making it available to other subsystems.
      *
      * @param pipeconf a pipeconf
      * @throws IllegalStateException if the same pipeconf identifier is already
@@ -41,17 +42,14 @@ public interface PiPipeconfService {
     void register(PiPipeconf pipeconf) throws IllegalStateException;
 
     /**
-     * Unregisters the Pipeconf identified by the given PiPipeconfId.
-     * Unregistering a Pipeconf removes it from the ONOS controller, thus making
-     * it un-capable of controlling (e.g installing flow rules) the devices that
-     * have the pipeconf's P4 program deployed. For now this method DOES NOT
-     * remove the P4 program from the devices.
+     * Unregisters the given pipeconf. Once unregistered, other subsystems will
+     * not be able to access the pipeconf content.
      *
      * @param pipeconfId a pipeconfId
      * @throws IllegalStateException if the same pipeconf identifier is already
      *                               registered.
      */
-    void remove(PiPipeconfId pipeconfId) throws IllegalStateException;
+    void unregister(PiPipeconfId pipeconfId) throws IllegalStateException;
 
     /**
      * Returns all pipeconfs registered.

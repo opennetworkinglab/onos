@@ -35,6 +35,8 @@ import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconfId;
+import org.onosproject.net.pi.service.PiPipeconfEvent;
+import org.onosproject.net.pi.service.PiPipeconfListener;
 import org.onosproject.net.pi.service.PiPipeconfMappingStore;
 import org.onosproject.net.pi.service.PiPipeconfService;
 import org.onosproject.net.pi.service.PiPipeconfWatchdogEvent;
@@ -57,6 +59,7 @@ import org.slf4j.Logger;
 
 import java.util.Dictionary;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
@@ -75,11 +78,11 @@ import static org.slf4j.LoggerFactory.getLogger;
  * pipeline.
  */
 @Component(
-    immediate = true,
-    service = PiPipeconfWatchdogService.class,
-    property = {
-        PWM_PROBE_INTERVAL + ":Integer=" + PWM_PROBE_INTERVAL_DEFAULT
-    }
+        immediate = true,
+        service = PiPipeconfWatchdogService.class,
+        property = {
+                PWM_PROBE_INTERVAL + ":Integer=" + PWM_PROBE_INTERVAL_DEFAULT
+        }
 )
 public class PiPipeconfWatchdogManager
         extends AbstractListenerManager<PiPipeconfWatchdogEvent, PiPipeconfWatchdogListener>
@@ -107,13 +110,16 @@ public class PiPipeconfWatchdogManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private ComponentConfigService componentConfigService;
 
-    /** Configure interval in seconds for device pipeconf probing. */
+    /**
+     * Configure interval in seconds for device pipeconf probing.
+     */
     private int probeInterval = PWM_PROBE_INTERVAL_DEFAULT;
 
     protected ExecutorService executor = Executors.newFixedThreadPool(
             30, groupedThreads("onos/pipeconf-watchdog", "%d", log));
 
-    private final InternalDeviceListener deviceListener = new InternalDeviceListener();
+    private final DeviceListener deviceListener = new InternalDeviceListener();
+    private final PiPipeconfListener pipeconfListener = new InternalPipeconfListener();
 
     private Timer timer;
     private TimerTask task;
@@ -141,8 +147,9 @@ public class PiPipeconfWatchdogManager
         // Start periodic watchdog task.
         timer = new Timer();
         startProbeTask();
-        // Add device listener.
+        // Add listeners.
         deviceService.addListener(deviceListener);
+        pipeconfService.addListener(pipeconfListener);
         log.info("Started");
     }
 
@@ -167,6 +174,7 @@ public class PiPipeconfWatchdogManager
     @Deactivate
     public void deactivate() {
         eventDispatcher.removeSink(PiPipeconfWatchdogEvent.class);
+        pipeconfService.removeListener(pipeconfListener);
         deviceService.removeListener(deviceListener);
         stopProbeTask();
         timer = null;
@@ -205,7 +213,8 @@ public class PiPipeconfWatchdogManager
             }
 
             if (!pipeconfService.getPipeconf(pipeconfId).isPresent()) {
-                log.error("Pipeconf {} is not registered", pipeconfId);
+                log.warn("Pipeconf {} is not registered, skipping probe for {}",
+                         pipeconfId, device.id());
                 return;
             }
 
@@ -353,6 +362,19 @@ public class PiPipeconfWatchdogManager
                 default:
                     break;
             }
+        }
+    }
+
+    private class InternalPipeconfListener implements PiPipeconfListener {
+        @Override
+        public void event(PiPipeconfEvent event) {
+            pipeconfMappingStore.getDevices(event.subject())
+                    .forEach(PiPipeconfWatchdogManager.this::triggerProbe);
+        }
+
+        @Override
+        public boolean isRelevant(PiPipeconfEvent event) {
+            return Objects.equals(event.type(), PiPipeconfEvent.Type.REGISTERED);
         }
     }
 
