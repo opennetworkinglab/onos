@@ -19,6 +19,7 @@ package org.onosproject.net.pi;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconfId;
+import org.onosproject.net.pi.service.PiPipeconfListener;
 import org.onosproject.net.pi.service.PiPipeconfService;
 
 import java.util.Collections;
@@ -34,7 +35,7 @@ public class PiPipeconfServiceAdapter implements PiPipeconfService {
     }
 
     @Override
-    public void remove(PiPipeconfId pipeconfId) throws IllegalStateException {
+    public void unregister(PiPipeconfId pipeconfId) throws IllegalStateException {
 
     }
 
@@ -66,5 +67,15 @@ public class PiPipeconfServiceAdapter implements PiPipeconfService {
     @Override
     public Optional<PiPipeconfId> ofDevice(DeviceId deviceId) {
         return Optional.empty();
+    }
+
+    @Override
+    public void addListener(PiPipeconfListener listener) {
+
+    }
+
+    @Override
+    public void removeListener(PiPipeconfListener listener) {
+
     }
 }

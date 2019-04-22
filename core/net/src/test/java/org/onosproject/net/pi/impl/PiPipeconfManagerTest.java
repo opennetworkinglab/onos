@@ -24,6 +24,7 @@ import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.util.ItemNotFoundException;
+import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.config.ConfigApplyDelegate;
@@ -55,7 +56,9 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.onosproject.net.NetTestTools.injectEventDispatcher;
 import static org.onosproject.pipelines.basic.PipeconfLoader.BASIC_PIPECONF;
 
 
@@ -82,49 +85,50 @@ public class PiPipeconfManagerTest {
 
 
     //Services
-    private PiPipeconfManager piPipeconfService;
-    private PiPipeconf piPipeconf;
+    private PiPipeconfManager mgr;
+    private PiPipeconf pipeconf;
 
     @Before
     public void setUp() throws IOException {
-        piPipeconfService = new PiPipeconfManager();
-        piPipeconf = BASIC_PIPECONF;
-        piPipeconfService.cfgService = cfgService;
-        piPipeconfService.driverAdminService = driverAdminService;
+        mgr = new PiPipeconfManager();
+        pipeconf = BASIC_PIPECONF;
+        mgr.cfgService = cfgService;
+        mgr.driverAdminService = driverAdminService;
+        injectEventDispatcher(mgr, new TestEventDispatcher());
         ObjectMapper mapper = new ObjectMapper();
         ConfigApplyDelegate delegate = new MockDelegate();
         String keyBasic = "basic";
         JsonNode jsonNodeBasic = mapper.readTree(jsonStreamBasic);
         basicDeviceConfig.init(DEVICE_ID, keyBasic, jsonNodeBasic, mapper, delegate);
-        piPipeconfService.activate();
+        mgr.activate();
     }
 
     @Test
     public void activate() {
-        assertEquals("Incorrect driver admin service", driverAdminService, piPipeconfService.driverAdminService);
-        assertEquals("Incorrect driverAdminService service", driverAdminService, piPipeconfService.driverAdminService);
-        assertEquals("Incorrect configuration service", cfgService, piPipeconfService.cfgService);
+        assertEquals("Incorrect driver admin service", driverAdminService, mgr.driverAdminService);
+        assertEquals("Incorrect driverAdminService service", driverAdminService, mgr.driverAdminService);
+        assertEquals("Incorrect configuration service", cfgService, mgr.cfgService);
     }
 
     @Test
     public void deactivate() {
-        piPipeconfService.deactivate();
-        assertEquals("Incorrect driver admin service", null, piPipeconfService.driverAdminService);
-        assertEquals("Incorrect driverAdminService service", null, piPipeconfService.driverAdminService);
-        assertEquals("Incorrect configuration service", null, piPipeconfService.cfgService);
+        mgr.deactivate();
+        assertNull("Incorrect driver admin service", mgr.driverAdminService);
+        assertNull("Incorrect driverAdminService service", mgr.driverAdminService);
+        assertNull("Incorrect configuration service", mgr.cfgService);
     }
 
     @Test
     public void register() {
-        piPipeconfService.register(piPipeconf);
-        assertTrue("PiPipeconf should be registered", piPipeconfService.pipeconfs.containsValue(piPipeconf));
+        mgr.register(pipeconf);
+        assertTrue("PiPipeconf should be registered", mgr.pipeconfs.containsValue(pipeconf));
     }
 
     @Test
     public void getPipeconf() {
-        piPipeconfService.register(piPipeconf);
-        assertEquals("Returned PiPipeconf is not correct", piPipeconf,
-                     piPipeconfService.getPipeconf(piPipeconf.id()).get());
+        mgr.register(pipeconf);
+        assertEquals("Returned PiPipeconf is not correct", pipeconf,
+                     mgr.getPipeconf(pipeconf.id()).get());
     }
 
 
@@ -132,29 +136,29 @@ public class PiPipeconfManagerTest {
     public void mergeDriver() {
         PiPipeconfId piPipeconfId = new PiPipeconfId(cfgService.getConfig(
                 DEVICE_ID, BasicDeviceConfig.class).pipeconf());
-        assertEquals(piPipeconf.id(), piPipeconfId);
+        assertEquals(pipeconf.id(), piPipeconfId);
 
         String baseDriverName = cfgService.getConfig(DEVICE_ID, BasicDeviceConfig.class).driver();
         assertEquals(BASE_DRIVER, baseDriverName);
 
-        piPipeconfService.register(piPipeconf);
-        assertEquals("Returned PiPipeconf is not correct", piPipeconf,
-                     piPipeconfService.getPipeconf(piPipeconf.id()).get());
+        mgr.register(pipeconf);
+        assertEquals("Returned PiPipeconf is not correct", pipeconf,
+                     mgr.getPipeconf(pipeconf.id()).get());
 
-        String mergedDriverName = piPipeconfService.getMergedDriver(DEVICE_ID, piPipeconfId);
+        String mergedDriverName = mgr.getMergedDriver(DEVICE_ID, piPipeconfId);
 
         String expectedName = BASE_DRIVER + ":" + piPipeconfId.id();
         assertEquals(expectedName, mergedDriverName);
 
         //we assume that the provider is 1 and that it contains 1 driver
         //we also assume that everything after driverAdminService.registerProvider(provider); has been tested.
-        assertTrue("Provider should be registered", providers.size() == 1);
+        assertEquals("Provider should be registered", 1, providers.size());
 
         assertTrue("Merged driver name should be valid",
                    mergedDriverName != null && !mergedDriverName.isEmpty());
 
         DriverProvider provider = providers.iterator().next();
-        assertTrue("Provider should contain one driver", provider.getDrivers().size() == 1);
+        assertEquals("Provider should contain one driver", 1, provider.getDrivers().size());
 
         Driver driver = provider.getDrivers().iterator().next();
 

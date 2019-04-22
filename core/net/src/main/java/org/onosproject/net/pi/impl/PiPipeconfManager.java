@@ -23,6 +23,7 @@ import com.google.common.util.concurrent.Striped;
 import org.onlab.util.HexString;
 import org.onlab.util.ItemNotFoundException;
 import org.onlab.util.SharedExecutors;
+import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.basics.BasicDeviceConfig;
@@ -36,6 +37,8 @@ import org.onosproject.net.driver.DriverListener;
 import org.onosproject.net.driver.DriverProvider;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconfId;
+import org.onosproject.net.pi.service.PiPipeconfEvent;
+import org.onosproject.net.pi.service.PiPipeconfListener;
 import org.onosproject.net.pi.service.PiPipeconfMappingStore;
 import org.onosproject.net.pi.service.PiPipeconfService;
 import org.osgi.service.component.annotations.Activate;
@@ -68,7 +71,9 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 @Component(immediate = true, service = PiPipeconfService.class)
 @Beta
-public class PiPipeconfManager implements PiPipeconfService {
+public class PiPipeconfManager
+        extends AbstractListenerManager<PiPipeconfEvent, PiPipeconfListener>
+        implements PiPipeconfService {
 
     private final Logger log = getLogger(getClass());
 
@@ -100,6 +105,7 @@ public class PiPipeconfManager implements PiPipeconfService {
     @Activate
     public void activate() {
         driverAdminService.addListener(driverListener);
+        eventDispatcher.addSink(PiPipeconfEvent.class, listenerRegistry);
         checkMissingMergedDrivers();
         if (!missingMergedDrivers.isEmpty()) {
             // Missing drivers should be created upon detecting registration
@@ -114,6 +120,7 @@ public class PiPipeconfManager implements PiPipeconfService {
 
     @Deactivate
     public void deactivate() {
+        eventDispatcher.removeSink(PiPipeconfEvent.class);
         executor.shutdown();
         driverAdminService.removeListener(driverListener);
         pipeconfs.clear();
@@ -133,10 +140,11 @@ public class PiPipeconfManager implements PiPipeconfService {
         log.info("New pipeconf registered: {} (fingerprint={})",
                  pipeconf.id(), HexString.toHexString(pipeconf.fingerprint()));
         executor.execute(() -> attemptMergeAll(pipeconf.id()));
+        post(new PiPipeconfEvent(PiPipeconfEvent.Type.REGISTERED, pipeconf));
     }
 
     @Override
-    public void remove(PiPipeconfId pipeconfId) throws IllegalStateException {
+    public void unregister(PiPipeconfId pipeconfId) throws IllegalStateException {
         checkNotNull(pipeconfId);
         // TODO add mechanism to remove from device.
         if (!pipeconfs.containsKey(pipeconfId)) {
@@ -147,6 +155,7 @@ public class PiPipeconfManager implements PiPipeconfService {
         final PiPipeconf pipeconf = pipeconfs.remove(pipeconfId);
         log.info("Unregistered pipeconf: {} (fingerprint={})",
                  pipeconfId, HexString.toHexString(pipeconf.fingerprint()));
+        post(new PiPipeconfEvent(PiPipeconfEvent.Type.UNREGISTERED, pipeconfId));
     }
 
     @Override

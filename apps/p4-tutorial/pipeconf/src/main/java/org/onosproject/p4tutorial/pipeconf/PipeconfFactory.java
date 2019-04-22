@@ -70,7 +70,7 @@ public final class PipeconfFactory {
     public void deactivate() {
         // Unregisters the pipeconf at component deactivation.
         try {
-            piPipeconfService.remove(PIPECONF_ID);
+            piPipeconfService.unregister(PIPECONF_ID);
         } catch (IllegalStateException e) {
             log.warn("{} haven't been registered", PIPECONF_ID);
         }

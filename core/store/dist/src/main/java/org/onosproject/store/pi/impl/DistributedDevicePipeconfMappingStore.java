@@ -58,7 +58,7 @@ public class DistributedDevicePipeconfMappingStore
 
     protected ConsistentMap<DeviceId, PiPipeconfId> deviceToPipeconf;
 
-    protected final MapEventListener<DeviceId, PiPipeconfId> pipeconfListener =
+    protected final MapEventListener<DeviceId, PiPipeconfId> mapListener =
             new InternalPiPipeconfListener();
 
     protected SetMultimap<PiPipeconfId, DeviceId> pipeconfToDevices =
@@ -70,13 +70,13 @@ public class DistributedDevicePipeconfMappingStore
                 .withName("onos-pipeconf-table")
                 .withSerializer(Serializer.using(KryoNamespaces.API))
                 .build();
-        deviceToPipeconf.addListener(pipeconfListener);
+        deviceToPipeconf.addListener(mapListener);
         log.info("Started");
     }
 
     @Deactivate
     public void deactivate() {
-        deviceToPipeconf.removeListener(pipeconfListener);
+        deviceToPipeconf.removeListener(mapListener);
         deviceToPipeconf = null;
         pipeconfToDevices = null;
         log.info("Stopped");
