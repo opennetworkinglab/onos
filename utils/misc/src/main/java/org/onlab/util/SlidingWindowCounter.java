@@ -15,8 +15,8 @@
  */
 package org.onlab.util;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -60,7 +60,7 @@ public final class SlidingWindowCounter {
         this.headSlot = 0;
 
         // Initialize each item in the list to an AtomicLong of 0
-        this.counters = new ArrayList<>();
+        this.counters = new CopyOnWriteArrayList<>();
         this.counters.add(new AtomicLong());
 
         background = newSingleThreadScheduledExecutor(groupedThreads("SlidingWindowCounter", "bg-%d"));
