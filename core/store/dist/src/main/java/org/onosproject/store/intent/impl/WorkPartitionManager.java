@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -226,7 +227,12 @@ public class WorkPartitionManager implements WorkPartitionService {
             }
 
             if (event.type() == LeadershipEvent.Type.CANDIDATES_CHANGED) {
-                scheduleRebalance(0);
+                try {
+                    scheduleRebalance(0);
+                } catch (RejectedExecutionException ree) {
+                    // Queue was already shut down
+                    log.trace("executor already shut down", ree);
+                }
             }
         }
     }
