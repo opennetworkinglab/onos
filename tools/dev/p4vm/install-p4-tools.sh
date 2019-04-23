@@ -19,9 +19,9 @@
 set -e
 set -x
 
-BMV2_COMMIT="8c6f852867c4a80b7c51c23db3419e1137f5038d"
+BMV2_COMMIT="99d83115d498f0ebcc729dad4fa4c50577eccc81"
 PI_COMMIT="f9a5c6c74f7dcde382e27c63af2fe5dffc755364"
-P4C_COMMIT="74bcfa32a6c782bc9a3c4c29d5656519dee4dfdb"
+P4C_COMMIT="e2934ab32ace8a877bf2b34704950a4da69b6202"
 
 # p4c seems to break when using protobuf versions newer than 3.2.0
 PROTOBUF_VER=${PROTOBUF_VER:-3.2.0}
@@ -93,7 +93,9 @@ function do_requirements {
         wget \
         unzip
 
-    sudo -H pip install setuptools cffi ipaddr ipaddress pypcap scapy
+    sudo -H pip2.7 install setuptools cffi ipaddr ipaddress pypcap \
+        git+https://github.com/p4lang/scapy-vxlan \
+        git+https://github.com/p4lang/ptf.git
 }
 
 function do_requirements_1604 {
@@ -147,8 +149,8 @@ function do_protobuf {
     # Hack to get the -std=c++11 flag when building 3.6.1
     # https://github.com/protocolbuffers/protobuf/blob/v3.6.1/python/setup.py#L208
     export KOKORO_BUILD_NUMBER="hack"
-    sudo -E python setup.py build --cpp_implementation
-    sudo -E pip install .
+    sudo -E python2.7 setup.py build --cpp_implementation
+    sudo -E pip2.7 install .
     unset KOKORO_BUILD_NUMBER
 }
 
@@ -177,8 +179,8 @@ function do_grpc {
     sudo ldconfig
     unset LDFLAGS
 
-    sudo pip install -r requirements.txt
-    sudo pip install .
+    sudo pip2.7 install -r requirements.txt
+    sudo pip2.7 install .
 }
 
 function checkout_bmv2 {
@@ -282,17 +284,6 @@ function do_p4c {
     make -j${NUM_CORES}
     sudo make install
     sudo ldconfig
-}
-
-function do_ptf {
-    cd ${BUILD_DIR}
-    if [[ ! -d ptf ]]; then
-        git clone https://github.com/p4lang/ptf.git
-    fi
-    cd ptf
-    git pull origin master
-
-    sudo python setup.py install
 }
 
 function check_commit {
@@ -424,6 +415,5 @@ check_and_do ${BMV2_COMMIT} bmv2 do_pi_bmv2_deps bmv2-deps
 check_and_do ${PI_COMMIT} PI do_PI PI
 check_and_do ${BMV2_COMMIT} bmv2 do_bmv2 bmv2
 check_and_do ${P4C_COMMIT} p4c do_p4c p4c
-check_and_do master ptf do_ptf ptf
 
 all_done

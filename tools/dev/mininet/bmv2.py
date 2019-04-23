@@ -43,6 +43,17 @@ STRATUM_BINARY = '/bazel-bin/stratum/hal/bin/bmv2/' + STRATUM_BMV2
 STRATUM_INIT_PIPELINE = '/stratum/hal/bin/bmv2/dummy.json'
 
 
+def getEnvOrDefault(env, default):
+    try:
+        return os.environ[env]
+    except KeyError:
+        return default
+
+
+ONOS_WEB_USER = getEnvOrDefault('ONOS_WEB_USER', 'onos')
+ONOS_WEB_PASS = getEnvOrDefault('ONOS_WEB_PASS', 'rocks')
+
+
 def getStratumRoot():
     if 'STRATUM_ROOT' not in os.environ:
         raise Exception("Env variable STRATUM_ROOT not set")
@@ -272,9 +283,7 @@ nodes {{
         url = 'http://%s:8181/onos/v1/network/configuration/' % controllerIP
         # Instantiate password manager for HTTP auth
         pm = urllib2.HTTPPasswordMgrWithDefaultRealm()
-        pm.add_password(None, url,
-                        os.environ['ONOS_WEB_USER'],
-                        os.environ['ONOS_WEB_PASS'])
+        pm.add_password(None, url, ONOS_WEB_USER, ONOS_WEB_PASS)
         urllib2.install_opener(urllib2.build_opener(
             urllib2.HTTPBasicAuthHandler(pm)))
         # Push config data to controller

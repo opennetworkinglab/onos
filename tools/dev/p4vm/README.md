@@ -10,18 +10,18 @@ This document contains also instructions on how to download a pre-built VM.
 
 ## Contents
 
-The VM is based on Ubuntu 16.04 (server) and contains the following software:
+The VM is based on Ubuntu 18.04 (server) and contains the following software:
 
 - ONOS
-- BMv2 (P4 software switch with P4Runtime support)
+- BMv2 simple_switch_grpc (P4 software switch with P4Runtime support)
 - p4c (P4 compiler)
 - Mininet (network emulator)
 
 ### Tutorial VM
 
 It is possible to generate a variant of the VM to be used during tutorials. This
-version of the VM comes with a desktop environment and various code
-editors with P4 syntax highlighting (vim, Sublime Text, and Atom).
+version of the VM comes with a desktop environment, pre-built ONOS and code
+editors.
 
 ## Recommended system requirements
 
@@ -43,7 +43,7 @@ pre-built VM.
 
 ## Download a pre-built VM
 
-Building the VM takes around 30-50 minutes, depending on your Internet
+Building the VM takes around 30 minutes, depending on your Internet
 connection speed. If you would rather not wait, you can use the following link
 to download an Open Virtual Appliance (OVA) package to be imported using
 VirtualBox or any other x86 virtualization system that supports this format.
@@ -51,7 +51,7 @@ VirtualBox or any other x86 virtualization system that supports this format.
 Pre-built OVA package (approx. 1.5 GB):
 <http://onlab.vicci.org/onos/onos-p4-dev.ova>
 
-The tutorial variant of the OVA package can be found here (approx 2.3 GB):
+The tutorial variant of the OVA package can be found here (approx 3 GB):
 <http://onlab.vicci.org/onos/onos-p4-tutorial.ova>
 
 ### Login credentials
@@ -66,8 +66,8 @@ Use these credentials to log in the guest Ubuntu system.
 To build the VM you will need the following software installed in your host
 machine:
 
-- [Vagrant](https://www.vagrantup.com/) (tested v2.2.2)
-- [VirtualBox](https://www.virtualbox.org/wiki/Downloads) (tested with v5.2.22)
+- [Vagrant](https://www.vagrantup.com/) (tested v2.2.4)
+- [VirtualBox](https://www.virtualbox.org/wiki/Downloads) (tested with v6.0.6)
 
 Optionally, to export the VM as an OVA package you will also need
 [sshpass](https://gist.github.com/arunoda/7790979).
@@ -78,7 +78,7 @@ The VM can be generated locally using Vagrant. In a terminal window type:
 
 ```bash
 cd $ONOS_ROOT/tools/dev/p4vm
-vagrant up
+vagrant up dev
 ```
 
 Once Vagrant has provisioned the VM, you can access to it using the `vagrant
@@ -98,39 +98,41 @@ To generate the OVA file, in a terminal window type the following commands:
 
 ```bash
 cd $ONOS_ROOT/tools/dev/p4vm
-./export-ova.sh
+./export-ova.sh dev
 ```
 
 This script will:
 
 1. provision the VM using Vagrant;
-2. remove the `vagrant` user;
-3. reduce VM disk size (by removing build artifacts);
-4. generate a file named `onos-p4-dev.ova`.
+2. reduce VM disk size (by removing build artifacts);
+3. generate a file named `onos-p4-dev.ova`.
 
-### Building the tutorial VM
+### Build the tutorial VM
 
-To build the tutorial VM, simply set the environment variable `P4_VM_TYPE` to
-`tutorial` before building.
-
-For example:
+To build the tutorial VM, you can use the following command:
 
 ```bash
-P4_VM_TYPE=tutorial vagrant up
+./export-ova.sh tutorial
 ```
 
-In alternative, to generate the OVA package:
+## Known issues
 
-```bash
-P4_VM_TYPE=tutorial ./export-ova.sh
-```
+**Dev VM (Ubuntu 18.04 Server)**
 
-### Support for Ubuntu 18.04
+* VirtualBox shared folders are not mounted on startup even if "auto-mount" flag
+  is set. To fix it:
 
-We provide **experimental** support for Ubuntu 18.04 for both the dev and the
-tutorial VM. To specify the Ubuntu version to use, set the environment
-variable `P4_VM_UBUNTU_VERSION` before building. For example:
+  ```bash
+  sudo systemctl edit --full vboxadd-service
+  ```
 
-```bash
-P4_VM_UBUNTU_VERSION=18.04 ./export-ova.sh
-```
+  and remove `systemd-timesync.service` from the `Conflicts=` line, then reboot.
+  (<https://superuser.com/questions/1351003/after-upgrade-to-ubuntu-lts-18-virtualbox-shared-folders-marked-auto-mount-do>)
+
+**Tutorial VM (Ubuntu 18.04 Server)**
+
+* GNOME desktop can be very slow when using VirtualBox. Please select "Unity"
+  as your graphical shell when logging in:
+  <https://askubuntu.com/questions/1035410/ubuntu-18-04-gnome-hangs-on-virtualbox-with-3d-acceleration-enabled>
+
+* When using Unity, the Launcher menu is empty (no apps are shown).
