@@ -6,18 +6,18 @@ set -xe
 sudo userdel -r -f vagrant
 
 # Free space on disk
-sudo rm -rf ~/p4tools/protobuf*
-sudo rm -rf ~/p4tools/grpc*
-sudo rm -rf ~/p4tools/bmv2
-sudo rm -rf ~/p4tools/PI
-sudo rm -rf ~/p4tools/p4c
-sudo rm -rf ~/p4tools/scapy-vxlan
-sudo rm -rf ~/p4tools/ptf
+sudo rm -rf ~/p4tools
 sudo rm -rf ~/quagga
+sudo rm -rf ~/mininet
+sudo rm -rf ~/.mininet_history
+sudo rm -rf ~/.viminfo
+sudo rm -rf ~/.ssh
+sudo rm -rf ~/.cache/pip
 
 sudo apt-get clean
 sudo apt-get -y autoremove
-sudo sudo rm -rf /tmp/*
+
+sudo rm -rf /tmp/*
 
 # Zerofill virtual hd to save space when exporting
 time sudo dd if=/dev/zero of=/tmp/zero bs=1M || true

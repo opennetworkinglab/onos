@@ -343,5 +343,5 @@ alias atttopo='onos-netcfg $OCI $ONOS_ROOT/tools/test/topos/attmpls-cfg.json'
 alias uktopo='onos-netcfg $OCI $ONOS_ROOT/tools/test/topos/uk-cfg.json'
 
 # Mininet command that uses BMv2 instead of OVS
-alias mn-bmv2='sudo -E mn --custom $BMV2_MN_PY --switch onosbmv2 --controller remote,ip=$OC1'
-alias mn-stratum='sudo -E mn --custom $BMV2_MN_PY --switch stratum --controller remote,ip=$OC1'
+alias mn-bmv2='sudo -E mn --custom $BMV2_MN_PY --switch onosbmv2 --controller remote,ip=$OCI'
+alias mn-stratum='sudo -E mn --custom $BMV2_MN_PY --switch stratum --controller remote,ip=$OCI'

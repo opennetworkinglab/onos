@@ -1,27 +1,59 @@
-P4_VM_TYPE = ENV['P4_VM_TYPE'] || "dev"
-P4_VM_UBUNTU_VERSION = ENV['P4_VM_UBUNTU_VERSION'] || "16.04"
+USE_STRATUM = ENV['USE_STRATUM'] || "false"
+
+REQUIRED_PLUGINS = %w( vagrant-vbguest vagrant-reload vagrant-disksize )
 
 Vagrant.configure(2) do |config|
-  if P4_VM_TYPE == "tutorial"
-    config.vm.box = "lasp/ubuntu" + P4_VM_UBUNTU_VERSION + "-desktop"
-  else
-    config.vm.box = "bento/ubuntu-" + P4_VM_UBUNTU_VERSION
-  end
-  config.vm.provider "virtualbox" do |vb|
-    vb.name = "ONOS+P4 " + P4_VM_TYPE + " " + P4_VM_UBUNTU_VERSION + " " + Time.now.strftime("(%Y-%m-%d)")
-    vb.gui = true
-    vb.cpus = P4_VM_TYPE == "tutorial" ? 4 : 2
-    vb.memory = 4096
-    if P4_VM_TYPE == "tutorial"
-        vb.customize ["storageattach", :id,
-                        "--storagectl", "IDE Controller",
-                        "--port", "0", "--device", "1",
-                        "--type", "dvddrive",
-                        "--medium", "emptydrive"]
-        vb.customize ['modifyvm', :id, '--clipboard', 'bidirectional']
+
+  # Install plugins if missing...
+  _retry = false
+  REQUIRED_PLUGINS.each do |plugin|
+    unless Vagrant.has_plugin? plugin
+      system "vagrant plugin install #{plugin}"
+      _retry = true
     end
   end
-  config.vm.hostname = "onos-p4-" + P4_VM_TYPE
+
+  if (_retry)
+    exec "vagrant " + ARGV.join(' ')
+  end
+
+  # Common config.
+  config.vm.box = "ubuntu/bionic64"
+  config.vbguest.auto_update = true
+  config.disksize.size = '50GB'
+  config.vm.synced_folder ".", "/vagrant", disabled: false, type: "virtualbox"
   config.vm.network "private_network", :type => 'dhcp', :adapter => 2
-  config.vm.provision "shell", path: "root-bootstrap.sh", :args => P4_VM_TYPE
+
+  # Dev VM
+  config.vm.define "dev" do |d|
+    d.vm.hostname = "onos-p4-dev"
+    d.vm.provider "virtualbox" do |vb|
+      vb.name = "ONOS+P4 Dev " + Time.now.strftime("(%Y-%m-%d)")
+      vb.gui = false
+      vb.cpus = 2
+      vb.memory = 4096
+      vb.customize ["modifyvm", :id, "--vram", "32"]
+    end
+    d.vm.provision "shell", path: "root-bootstrap.sh", :args => ["dev", USE_STRATUM]
+    d.vm.provision "shell", inline: "su sdn '/vagrant/user-bootstrap.sh' dev %s" % ["dev", USE_STRATUM]
+  end
+
+  # Tutorial VM (with desktop)
+  config.vm.define "tutorial" do |d|
+    d.vm.hostname = "onos-p4-tutorial"
+    d.vm.provider "virtualbox" do |vb|
+      vb.name = "ONOS+P4 Tutorial " + Time.now.strftime("(%Y-%m-%d)")
+      vb.gui = true
+      vb.cpus = 4
+      vb.memory = 4096
+      vb.customize ['modifyvm', :id, '--clipboard', 'bidirectional']
+      vb.customize ["modifyvm", :id, "--accelerate3d", "on"]
+      vb.customize ["modifyvm", :id, "--vram", "128"]
+    end
+    d.vm.provision "shell", path: "root-bootstrap.sh", :args => ["tutorial"]
+    d.vm.provision "shell", path: "tutorial-bootstrap.sh"
+    d.vm.provision "shell", inline: "su sdn '/vagrant/user-bootstrap.sh' %s %s" % ["tutorial", USE_STRATUM]
+  end
+
+  config.vm.provision :reload
 end

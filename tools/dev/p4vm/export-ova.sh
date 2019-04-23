@@ -2,7 +2,11 @@
 
 set -xe
 
-VM_TYPE=${P4_VM_TYPE:-dev}
+VM_TYPE=${1:-dev}
+USE_STRATUM=${USE_STRATUM:-false}
+STRATUM_BMV2_TAR=${STRATUM_BMV2_TAR-unknown}
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 function wait_vm_shutdown {
     set +x
@@ -24,29 +28,51 @@ function wait_for_tcp_port {
     set -x
 }
 
-# Remove references to the existing vagrant-built VM (if any).
-# We want to build a new one from scratch, not start an existing one.
-rm -rf .vagrant/
-vagrant box update
-vagrant up
+rm -rf ./tmp
+if [[ ${VM_TYPE} = "tutorial" ]]
+then
+    bazel build //:onos
+    bazel build //:onos-package-admin
+    rm -rf ~/.m2/repository/org/onosproject
+    cd ${ONOS_ROOT}
+    onos-publish -l
+    cd ${DIR}
+    mkdir -p ./tmp
+    cp ../../../bazel-bin/onos.tar.gz ./tmp/onos.tar.gz
+    cp ../../../bazel-bin/onos-admin.tar.gz ./tmp/onos-admin.tar.gz
+    cp ../mininet/bmv2.py ./tmp/bmv2.py
+    mv ~/.m2/repository/org/onosproject ./tmp/artifacts
+    if [[ ${USE_STRATUM} = true ]]
+    then
+        cp ${STRATUM_BMV2_TAR} ./tmp/stratum_bmv2.tar.gz
+    fi
+fi
 
-SSH_PORT=`vagrant port --guest 22`
-VB_UUID=`cat .vagrant/machines/default/virtualbox/id`
+# Initial provisioning if necessary.
+USE_STRATUM=${USE_STRATUM} vagrant up ${VM_TYPE}
 
-# Take snapshot before cleanup for local use
-# e.g. to avoid re-building P4 tools from scratch
-vboxmanage controlvm ${VB_UUID} acpipowerbutton
-wait_vm_shutdown ${VB_UUID}
-VBoxManage snapshot ${VB_UUID} take "pre-cleanup"
+rm -rf ./tmp
+
+SSH_PORT=`vagrant port --guest 22 ${VM_TYPE}`
+VB_UUID=`cat .vagrant/machines/${VM_TYPE}/virtualbox/id`
+
+if [[ ${VM_TYPE} = "dev" ]]
+then
+    # Take snapshot before cleanup for local use
+    # e.g. to avoid re-building P4 tools from scratch
+    vboxmanage controlvm ${VB_UUID} acpipowerbutton
+    wait_vm_shutdown ${VB_UUID}
+    VBoxManage snapshot ${VB_UUID} take "pre-cleanup"
+    vagrant up ${VM_TYPE}
+    # SSH port forwarding might change after vagrant up.
+    SSH_PORT=`vagrant port --guest 22 ${VM_TYPE}`
+    wait_for_tcp_port 127.0.0.1 ${SSH_PORT}
+fi
 
 # Cleanup
-vagrant up
-# SSH port forwarding might change after vagrant up.
-SSH_PORT=`vagrant port --guest 22`
-wait_for_tcp_port 127.0.0.1 ${SSH_PORT}
 sshpass -p 'rocks' \
     ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no \
-    -p ${SSH_PORT} sdn@127.0.0.1 "bash /vagrant/pre-ova-cleanup.sh"
+    -p ${SSH_PORT} sdn@127.0.0.1 "bash /vagrant/ova-cleanup.sh"
 sleep 5
 vboxmanage controlvm ${VB_UUID} acpipowerbutton
 wait_vm_shutdown ${VB_UUID}
@@ -57,7 +83,10 @@ vboxmanage sharedfolder remove ${VB_UUID} -name "vagrant"
 rm -f onos-p4-${VM_TYPE}.ova
 vboxmanage export ${VB_UUID} -o onos-p4-${VM_TYPE}.ova
 
-sleep 1
-vboxmanage snapshot ${VB_UUID} restore pre-cleanup
-sleep 1
-vboxmanage snapshot ${VB_UUID} delete pre-cleanup
+if [[ ${VM_TYPE} = "dev" ]]
+then
+    sleep 1
+    vboxmanage snapshot ${VB_UUID} restore pre-cleanup
+    sleep 1
+    vboxmanage snapshot ${VB_UUID} delete pre-cleanup
+fi
