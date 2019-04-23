@@ -22,7 +22,7 @@
     <parent>
         <artifactId>onos-core</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.13.9-rc4</version>
+        <version>1.13.9-SNAPSHOT</version>
     </parent>
 
     <artifactId>onos-security</artifactId>
