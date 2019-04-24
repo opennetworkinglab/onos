@@ -28,6 +28,8 @@ import org.onlab.packet.Ip6Address;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onlab.util.PredictableExecutor;
+import org.onlab.util.PredictableExecutor.PickyCallable;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.net.ConnectPoint;
@@ -54,6 +56,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
@@ -91,6 +97,9 @@ public class DefaultRoutingHandler {
         = newScheduledThreadPool(1, groupedThreads("masterChg", "mstch-%d", log));
     private ScheduledExecutorService executorServiceFRR
         = newScheduledThreadPool(1, groupedThreads("fullRR", "fullRR-%d", log));
+    // Route populators - 0 will leverage available processors
+    private static final int DEFAULT_THREADS = 0;
+    private ExecutorService routePopulators;
 
     private Instant lastRoutingChange = Instant.EPOCH;
     private Instant lastFullReroute = Instant.EPOCH;
@@ -111,14 +120,10 @@ public class DefaultRoutingHandler {
     public enum Status {
         // population process is not started yet.
         IDLE,
-
         // population process started.
         STARTED,
-
-        // population process was aborted due to errors, mostly for groups not
-        // found.
+        // population process was aborted due to errors, mostly for groups not found.
         ABORTED,
-
         // population process was finished successfully.
         SUCCEEDED
     }
@@ -136,6 +141,8 @@ public class DefaultRoutingHandler {
                 .build().asJavaMap();
         this.shouldProgramCache = Maps.newConcurrentMap();
         update(srManager);
+        this.routePopulators = new PredictableExecutor(DEFAULT_THREADS,
+                                                      groupedThreads("onos/sr", "r-populator-%d", log));
     }
 
     /**
@@ -204,6 +211,7 @@ public class DefaultRoutingHandler {
         executorService.shutdown();
         executorServiceMstChg.shutdown();
         executorServiceFRR.shutdown();
+        routePopulators.shutdown();
     }
 
     //////////////////////////////////////
@@ -647,9 +655,8 @@ public class DefaultRoutingHandler {
      *                     the path.
      * @return true if successful
      */
-    private boolean redoRoutingEdgePairs(Set<EdgePair> edgePairs,
-                                      Set<IpPrefix> subnets,
-                                      Set<ArrayList<DeviceId>> changedRoutes) {
+    private boolean redoRoutingEdgePairs(Set<EdgePair> edgePairs, Set<IpPrefix> subnets,
+                                         Set<ArrayList<DeviceId>> changedRoutes) {
         for (EdgePair ep : edgePairs) {
             // temp store for a target's changedRoutes to this edge-pair
             Map<DeviceId, Set<ArrayList<DeviceId>>> targetRoutes = new HashMap<>();
@@ -682,100 +689,133 @@ public class DefaultRoutingHandler {
             }
             // so now for this edgepair we have a per target set of routechanges
             // process target->edgePair route
+            List<Future<Boolean>> futures = Lists.newArrayList();
             for (Map.Entry<DeviceId, Set<ArrayList<DeviceId>>> entry :
                             targetRoutes.entrySet()) {
                 log.debug("* redoRoutingDstPair Target:{} -> edge-pair {}",
                           entry.getKey(), ep);
-                DeviceId targetSw = entry.getKey();
-                Map<DeviceId, Set<DeviceId>> perDstNextHops = new HashMap<>();
-                entry.getValue().forEach(route -> {
-                    Set<DeviceId> nhops = getNextHops(route.get(0), route.get(1));
-                    log.debug("route: target {} -> dst {} found with next-hops {}",
-                              route.get(0), route.get(1), nhops);
-                    perDstNextHops.put(route.get(1), nhops);
-                });
-
-                List<Set<IpPrefix>> batchedSubnetDev1, batchedSubnetDev2;
-                if (subnets != null) {
-                    batchedSubnetDev1 = Lists.<Set<IpPrefix>>newArrayList(Sets.newHashSet(subnets));
-                    batchedSubnetDev2 = Lists.<Set<IpPrefix>>newArrayList(Sets.newHashSet(subnets));
-                } else {
-                    batchedSubnetDev1 = config.getBatchedSubnets(ep.dev1);
-                    batchedSubnetDev2 = config.getBatchedSubnets(ep.dev2);
-                }
-                List<Set<IpPrefix>> batchedSubnetBoth = Streams
-                        .zip(batchedSubnetDev1.stream(), batchedSubnetDev2.stream(), (a, b) -> Sets.intersection(a, b))
-                        .filter(set -> !set.isEmpty())
-                        .collect(Collectors.toList());
-                List<Set<IpPrefix>> batchedSubnetDev1Only = Streams
-                        .zip(batchedSubnetDev1.stream(), batchedSubnetDev2.stream(), (a, b) -> Sets.difference(a, b))
-                        .filter(set -> !set.isEmpty())
-                        .collect(Collectors.toList());
-                List<Set<IpPrefix>> batchedSubnetDev2Only = Streams
-                        .zip(batchedSubnetDev1.stream(), batchedSubnetDev2.stream(), (a, b) -> Sets.difference(b, a))
-                        .filter(set -> !set.isEmpty())
-                        .collect(Collectors.toList());
-
-                Set<DeviceId> nhDev1 = perDstNextHops.get(ep.dev1);
-                Set<DeviceId> nhDev2 = perDstNextHops.get(ep.dev2);
-
-                // handle routing to subnets common to edge-pair
-                // only if the targetSw is not part of the edge-pair and there
-                // exists a next hop to at least one of the devices in the edge-pair
-                if (!ep.includes(targetSw)
-                        && ((nhDev1 != null && !nhDev1.isEmpty()) || (nhDev2 != null && !nhDev2.isEmpty()))) {
-                    log.trace("getSubnets on both {} and {}: {}", ep.dev1, ep.dev2, batchedSubnetBoth);
-                    for (Set<IpPrefix> prefixes : batchedSubnetBoth) {
-                        if (!populateEcmpRoutingRulePartial(
-                                targetSw,
-                                ep.dev1, ep.dev2,
-                                perDstNextHops,
-                                prefixes)) {
-                            return false; // abort everything and fail fast
-                        }
-                    }
-
-                }
-                // handle routing to subnets that only belong to dev1 only if
-                // a next-hop exists from the target to dev1
-                if (!batchedSubnetDev1Only.isEmpty() &&
-                        batchedSubnetDev1Only.stream().anyMatch(subnet -> !subnet.isEmpty()) &&
-                        nhDev1 != null  && !nhDev1.isEmpty()) {
-                    Map<DeviceId, Set<DeviceId>> onlyDev1NextHops = new HashMap<>();
-                    onlyDev1NextHops.put(ep.dev1, nhDev1);
-                    log.trace("getSubnets on {} only: {}", ep.dev1, batchedSubnetDev1Only);
-                    for (Set<IpPrefix> prefixes : batchedSubnetDev1Only) {
-                        if (!populateEcmpRoutingRulePartial(
-                                targetSw,
-                                ep.dev1, null,
-                                onlyDev1NextHops,
-                                prefixes)) {
-                            return false; // abort everything and fail fast
-                        }
-                    }
-                }
-                // handle routing to subnets that only belong to dev2 only if
-                // a next-hop exists from the target to dev2
-                if (!batchedSubnetDev2Only.isEmpty() &&
-                        batchedSubnetDev2Only.stream().anyMatch(subnet -> !subnet.isEmpty()) &&
-                        nhDev2 != null && !nhDev2.isEmpty()) {
-                    Map<DeviceId, Set<DeviceId>> onlyDev2NextHops = new HashMap<>();
-                    onlyDev2NextHops.put(ep.dev2, nhDev2);
-                    log.trace("getSubnets on {} only: {}", ep.dev2, batchedSubnetDev2Only);
-                    for (Set<IpPrefix> prefixes : batchedSubnetDev2Only) {
-                        if (!populateEcmpRoutingRulePartial(
-                                targetSw,
-                                ep.dev2, null,
-                                onlyDev2NextHops,
-                                prefixes)) {
-                            return false; // abort everything and fail fast
-                        }
-                    }
-                }
+                futures.add(routePopulators.submit(new RedoRoutingEdgePair(entry.getKey(), entry.getValue(),
+                                                                           subnets, ep)));
+            }
+            if (!checkJobs(futures)) {
+                return false;
             }
             // if it gets here it has succeeded for all targets to this edge-pair
         }
         return true;
+    }
+
+    private final class RedoRoutingEdgePair implements PickyCallable<Boolean> {
+        private DeviceId targetSw;
+        private Set<ArrayList<DeviceId>> routes;
+        private Set<IpPrefix> subnets;
+        private EdgePair ep;
+
+        /**
+         * Builds a RedoRoutingEdgePair task which provides a result.
+         *
+         * @param targetSw the target switch
+         * @param routes the changed routes
+         * @param subnets the subnets
+         * @param ep the edge pair
+         */
+        RedoRoutingEdgePair(DeviceId targetSw, Set<ArrayList<DeviceId>> routes,
+                            Set<IpPrefix> subnets, EdgePair ep) {
+            this.targetSw = targetSw;
+            this.routes = routes;
+            this.subnets = subnets;
+            this.ep = ep;
+        }
+
+        @Override
+        public Boolean call() throws Exception {
+            return redoRoutingEdgePair();
+        }
+
+        @Override
+        public int hint() {
+            return targetSw.hashCode();
+        }
+
+        private boolean redoRoutingEdgePair() {
+            Map<DeviceId, Set<DeviceId>> perDstNextHops = new HashMap<>();
+            routes.forEach(route -> {
+                Set<DeviceId> nhops = getNextHops(route.get(0), route.get(1));
+                log.debug("route: target {} -> dst {} found with next-hops {}",
+                          route.get(0), route.get(1), nhops);
+                perDstNextHops.put(route.get(1), nhops);
+            });
+
+            List<Set<IpPrefix>> batchedSubnetDev1, batchedSubnetDev2;
+            if (subnets != null) {
+                batchedSubnetDev1 = Lists.<Set<IpPrefix>>newArrayList(Sets.newHashSet(subnets));
+                batchedSubnetDev2 = Lists.<Set<IpPrefix>>newArrayList(Sets.newHashSet(subnets));
+            } else {
+                batchedSubnetDev1 = config.getBatchedSubnets(ep.dev1);
+                batchedSubnetDev2 = config.getBatchedSubnets(ep.dev2);
+            }
+            List<Set<IpPrefix>> batchedSubnetBoth = Streams
+                    .zip(batchedSubnetDev1.stream(), batchedSubnetDev2.stream(), (a, b) -> Sets.intersection(a, b))
+                    .filter(set -> !set.isEmpty())
+                    .collect(Collectors.toList());
+            List<Set<IpPrefix>> batchedSubnetDev1Only = Streams
+                    .zip(batchedSubnetDev1.stream(), batchedSubnetDev2.stream(), (a, b) -> Sets.difference(a, b))
+                    .filter(set -> !set.isEmpty())
+                    .collect(Collectors.toList());
+            List<Set<IpPrefix>> batchedSubnetDev2Only = Streams
+                    .zip(batchedSubnetDev1.stream(), batchedSubnetDev2.stream(), (a, b) -> Sets.difference(b, a))
+                    .filter(set -> !set.isEmpty())
+                    .collect(Collectors.toList());
+
+            Set<DeviceId> nhDev1 = perDstNextHops.get(ep.dev1);
+            Set<DeviceId> nhDev2 = perDstNextHops.get(ep.dev2);
+
+            // handle routing to subnets common to edge-pair
+            // only if the targetSw is not part of the edge-pair and there
+            // exists a next hop to at least one of the devices in the edge-pair
+            if (!ep.includes(targetSw)
+                    && ((nhDev1 != null && !nhDev1.isEmpty()) || (nhDev2 != null && !nhDev2.isEmpty()))) {
+                log.trace("getSubnets on both {} and {}: {}", ep.dev1, ep.dev2, batchedSubnetBoth);
+                for (Set<IpPrefix> prefixes : batchedSubnetBoth) {
+                    if (!populateEcmpRoutingRulePartial(targetSw, ep.dev1, ep.dev2,
+                                                        perDstNextHops, prefixes)) {
+                        return false; // abort everything and fail fast
+                    }
+                }
+
+            }
+            // handle routing to subnets that only belong to dev1 only if
+            // a next-hop exists from the target to dev1
+            if (!batchedSubnetDev1Only.isEmpty() &&
+                    batchedSubnetDev1Only.stream().anyMatch(subnet -> !subnet.isEmpty()) &&
+                    nhDev1 != null  && !nhDev1.isEmpty()) {
+                Map<DeviceId, Set<DeviceId>> onlyDev1NextHops = new HashMap<>();
+                onlyDev1NextHops.put(ep.dev1, nhDev1);
+                log.trace("getSubnets on {} only: {}", ep.dev1, batchedSubnetDev1Only);
+                for (Set<IpPrefix> prefixes : batchedSubnetDev1Only) {
+                    if (!populateEcmpRoutingRulePartial(targetSw, ep.dev1, null,
+                                                        onlyDev1NextHops, prefixes)) {
+                        return false; // abort everything and fail fast
+                    }
+                }
+            }
+            // handle routing to subnets that only belong to dev2 only if
+            // a next-hop exists from the target to dev2
+            if (!batchedSubnetDev2Only.isEmpty() &&
+                    batchedSubnetDev2Only.stream().anyMatch(subnet -> !subnet.isEmpty()) &&
+                    nhDev2 != null && !nhDev2.isEmpty()) {
+                Map<DeviceId, Set<DeviceId>> onlyDev2NextHops = new HashMap<>();
+                onlyDev2NextHops.put(ep.dev2, nhDev2);
+                log.trace("getSubnets on {} only: {}", ep.dev2, batchedSubnetDev2Only);
+                for (Set<IpPrefix> prefixes : batchedSubnetDev2Only) {
+                    if (!populateEcmpRoutingRulePartial(targetSw, ep.dev2, null,
+                                                        onlyDev2NextHops, prefixes)) {
+                        return false; // abort everything and fail fast
+                    }
+                }
+            }
+            return true;
+        }
     }
 
     /**
@@ -793,8 +833,7 @@ public class DefaultRoutingHandler {
      *                     the path.
      * @return true if successful
      */
-    private boolean redoRoutingIndividualDests(Set<IpPrefix> subnets,
-                                               Set<ArrayList<DeviceId>> changedRoutes,
+    private boolean redoRoutingIndividualDests(Set<IpPrefix> subnets, Set<ArrayList<DeviceId>> changedRoutes,
                                                Set<DeviceId> updatedDevices) {
         // aggregate route-path changes for each dst device
         HashMap<DeviceId, ArrayList<ArrayList<DeviceId>>> routesBydevice =
@@ -809,28 +848,19 @@ public class DefaultRoutingHandler {
             }
             deviceRoutes.add(route);
         }
+        // iterate over the impacted devices
         for (DeviceId impactedDstDevice : routesBydevice.keySet()) {
             ArrayList<ArrayList<DeviceId>> deviceRoutes =
                     routesBydevice.get(impactedDstDevice);
+            List<Future<Boolean>> futures = Lists.newArrayList();
             for (ArrayList<DeviceId> route: deviceRoutes) {
                 log.debug("* redoRoutingIndiDst Target: {} -> dst: {}",
                           route.get(0), route.get(1));
-                DeviceId targetSw = route.get(0);
-                DeviceId dstSw = route.get(1); // same as impactedDstDevice
-                Set<DeviceId> nextHops = getNextHops(targetSw, dstSw);
-                if (nextHops.isEmpty()) {
-                    log.debug("Could not find next hop from target:{} --> dst {} "
-                            + "skipping this route", targetSw, dstSw);
-                    continue;
-                }
-                Map<DeviceId, Set<DeviceId>> nhops = new HashMap<>();
-                nhops.put(dstSw, nextHops);
-                if (!populateEcmpRoutingRulePartial(targetSw, dstSw, null, nhops,
-                         (subnets == null) ? Sets.newHashSet() : subnets)) {
-                    return false; // abort routing and fail fast
-                }
-                log.debug("Populating flow rules from target: {} to dst: {}"
-                        + " is successful", targetSw, dstSw);
+                futures.add(routePopulators.submit(new RedoRoutingIndividualDest(subnets, route)));
+            }
+            // check the execution of each job
+            if (!checkJobs(futures)) {
+                return false;
             }
             //Only if all the flows for all impacted routes to a
             //specific target are pushed successfully, update the
@@ -847,6 +877,49 @@ public class DefaultRoutingHandler {
         return true;
     }
 
+    private final class RedoRoutingIndividualDest implements PickyCallable<Boolean> {
+        private DeviceId targetSw;
+        private ArrayList<DeviceId> route;
+        private Set<IpPrefix> subnets;
+
+        /**
+         * Builds a RedoRoutingIndividualDest task, which provides a result.
+         *
+         * @param subnets a set of prefixes
+         * @param route a route-path change
+         */
+        RedoRoutingIndividualDest(Set<IpPrefix> subnets, ArrayList<DeviceId> route) {
+            this.targetSw = route.get(0);
+            this.route = route;
+            this.subnets = subnets;
+        }
+
+        @Override
+        public Boolean call() throws Exception {
+            DeviceId dstSw = route.get(1); // same as impactedDstDevice
+            Set<DeviceId> nextHops = getNextHops(targetSw, dstSw);
+            if (nextHops.isEmpty()) {
+                log.debug("Could not find next hop from target:{} --> dst {} "
+                                  + "skipping this route", targetSw, dstSw);
+                return true;
+            }
+            Map<DeviceId, Set<DeviceId>> nhops = new HashMap<>();
+            nhops.put(dstSw, nextHops);
+            if (!populateEcmpRoutingRulePartial(targetSw, dstSw, null, nhops,
+                                                (subnets == null) ? Sets.newHashSet() : subnets)) {
+                return false; // abort routing and fail fast
+            }
+            log.debug("Populating flow rules from target: {} to dst: {}"
+                              + " is successful", targetSw, dstSw);
+            return true;
+        }
+
+        @Override
+        public int hint() {
+            return targetSw.hashCode();
+        }
+    }
+
     /**
      * Populate ECMP rules for subnets from target to destination via nexthops.
      *
@@ -858,11 +931,8 @@ public class DefaultRoutingHandler {
      * @param subnets Subnets to be populated. If empty, populate all configured subnets.
      * @return true if it succeeds in populating rules
      */ // refactor
-    private boolean populateEcmpRoutingRulePartial(DeviceId targetSw,
-                                                   DeviceId destSw1,
-                                                   DeviceId destSw2,
-                                                   Map<DeviceId, Set<DeviceId>> nextHops,
-                                                   Set<IpPrefix> subnets) {
+    private boolean populateEcmpRoutingRulePartial(DeviceId targetSw, DeviceId destSw1, DeviceId destSw2,
+                                                   Map<DeviceId, Set<DeviceId>> nextHops, Set<IpPrefix> subnets) {
         boolean result;
         // If both target switch and dest switch are edge routers, then set IP
         // rule for both subnet and router IP.
@@ -921,9 +991,7 @@ public class DefaultRoutingHandler {
             // individual destinations, even if the dsts are part of edge-pairs.
             log.debug(". populateEcmpRoutingRulePartial in device{} towards {} for "
                     + "all MPLS rules", targetSw, destSw1);
-            result = rulePopulator.populateMplsRule(targetSw, destSw1,
-                                                    nextHops.get(destSw1),
-                                                    dest1RouterIpv4);
+            result = rulePopulator.populateMplsRule(targetSw, destSw1, nextHops.get(destSw1), dest1RouterIpv4);
             if (!result) {
                 return false;
             }
@@ -936,8 +1004,7 @@ public class DefaultRoutingHandler {
                     log.warn(e.getMessage());
                 }
                 if (v4sid != v6sid) {
-                    result = rulePopulator.populateMplsRule(targetSw, destSw1,
-                                                            nextHops.get(destSw1),
+                    result = rulePopulator.populateMplsRule(targetSw, destSw1, nextHops.get(destSw1),
                                                             dest1RouterIpv6);
                     if (!result) {
                         return false;
@@ -952,9 +1019,7 @@ public class DefaultRoutingHandler {
             log.debug(". populateEcmpRoutingRulePartial in device{} towards {} for "
                               + "all MPLS rules", targetSw, destSw1);
 
-            result = rulePopulator.populateMplsRule(targetSw, destSw1,
-                                                        nextHops.get(destSw1),
-                                                        dest1RouterIpv4);
+            result = rulePopulator.populateMplsRule(targetSw, destSw1, nextHops.get(destSw1), dest1RouterIpv4);
             if (!result) {
                 return false;
             }
@@ -968,8 +1033,7 @@ public class DefaultRoutingHandler {
                     log.warn(e.getMessage());
                 }
                 if (v4sid != v6sid) {
-                    result = rulePopulator.populateMplsRule(targetSw, destSw1,
-                                                            nextHops.get(destSw1),
+                    result = rulePopulator.populateMplsRule(targetSw, destSw1, nextHops.get(destSw1),
                                                             dest1RouterIpv6);
                     if (!result) {
                         return false;
@@ -1139,14 +1203,43 @@ public class DefaultRoutingHandler {
      * @return true if succeed
      */
     protected boolean revokeSubnet(Set<IpPrefix> subnets) {
-        statusLock.lock();
-        try {
-            return Sets.newHashSet(srManager.deviceService.getAvailableDevices()).stream()
-                    .map(Device::id)
-                    .filter(this::shouldProgram)
-                    .allMatch(targetSw -> srManager.routingRulePopulator.revokeIpRuleForSubnet(targetSw, subnets));
-        } finally {
-            statusLock.unlock();
+        DeviceId targetSw;
+        List<Future<Boolean>> futures = Lists.newArrayList();
+        for (Device sw : srManager.deviceService.getAvailableDevices()) {
+            targetSw = sw.id();
+            if (shouldProgram(targetSw)) {
+                futures.add(routePopulators.submit(new RevokeSubnet(targetSw, subnets)));
+            } else {
+                futures.add(CompletableFuture.completedFuture(true));
+            }
+        }
+        // check the execution of each job
+        return checkJobs(futures);
+    }
+
+    private final class RevokeSubnet implements PickyCallable<Boolean> {
+        private DeviceId targetSw;
+        private Set<IpPrefix> subnets;
+
+        /**
+         * Builds a RevokeSubnet task, which provides a result.
+         *
+         * @param subnets a set of prefixes
+         * @param targetSw target switch
+         */
+        RevokeSubnet(DeviceId targetSw, Set<IpPrefix> subnets) {
+            this.targetSw = targetSw;
+            this.subnets = subnets;
+        }
+
+        @Override
+        public Boolean call() throws Exception {
+            return srManager.routingRulePopulator.revokeIpRuleForSubnet(targetSw, subnets);
+        }
+
+        @Override
+        public int hint() {
+            return targetSw.hashCode();
         }
     }
 
@@ -1868,5 +1961,25 @@ public class DefaultRoutingHandler {
             }
             prevRun = (thisRun == null) ? prevRun : thisRun;
         }
+    }
+
+    // Check jobs completion. It returns false if one of the job fails
+    // and cancel the remaining
+    private boolean checkJobs(List<Future<Boolean>> futures) {
+        boolean completed = true;
+        for (Future<Boolean> future : futures) {
+            try {
+                if (completed) {
+                    if (!future.get()) {
+                        completed = false;
+                    }
+                } else {
+                    future.cancel(true);
+                }
+            } catch (InterruptedException | ExecutionException e) {
+                completed = false;
+            }
+        }
+        return completed;
     }
 }
