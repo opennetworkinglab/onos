@@ -285,6 +285,8 @@
     "io.socket-client": "mvn:io.socket:socket.io-client:jar:0.8.3",
     "json": "mvn:org.json:json:jar:20090211",
     "engine.io-client": "mvn:io.socket:engine.io-client:jar:0.8.3",
+    "org_codehaus_mojo_animal_sniffer_annotations": "mvn:org.codehaus.mojo:animal-sniffer-annotations:1.17",
+
 
     // grpc related jars
     "com_google_api_grpc_proto_google_common_protos": "mvn:com.google.api.grpc:proto-google-common-protos:1.12.0",
