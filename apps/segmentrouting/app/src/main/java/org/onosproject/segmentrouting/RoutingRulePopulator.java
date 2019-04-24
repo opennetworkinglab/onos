@@ -494,10 +494,11 @@ public class RoutingRulePopulator {
         // Route simplification will be off in case of the nexthop location at target switch is down
         // (routing through spine case)
         boolean routeSimplOff = pairDev.isPresent() && pairDev.get().equals(destSw1) && destSw2 == null;
-        // Iterates over the routes
+        // Iterates over the routes. Checking:
         // If route simplification is enabled
         // If the target device is another leaf in the network
         if (srManager.routeSimplification && !routeSimplOff) {
+            Set<IpPrefix> subnetsToBePopulated = Sets.newHashSet();
             for (IpPrefix subnet : subnets) {
                 // Skip route programming on the target device
                 // If route simplification applies
@@ -508,19 +509,12 @@ public class RoutingRulePopulator {
                     continue;
                 }
                 // populate the route in the remaning scenarios
-                if (!populateIpRuleForRouter(targetSw, subnet, destSw1, destSw2, nextHops)) {
-                    return false;
-                }
+                subnetsToBePopulated.add(subnet);
             }
-        } else {
-            // Populate IP flow rules for all the subnets.
-            for (IpPrefix subnet : subnets) {
-                if (!populateIpRuleForRouter(targetSw, subnet, destSw1, destSw2, nextHops)) {
-                    return false;
-                }
-            }
+            subnets = subnetsToBePopulated;
         }
-        return true;
+        // populate the remaining routes in the target switch
+        return populateIpRulesForRouter(targetSw, subnets, destSw1, destSw2, nextHops);
     }
 
     /**
@@ -540,11 +534,11 @@ public class RoutingRulePopulator {
     }
 
     /**
-     * Populates IP flow rules for an IP prefix in the target device. The prefix
-     * is reachable via destination device(s).
+     * Populates IP flow rules for a set of IP prefix in the target device.
+     * The prefix are reachable via destination device(s).
      *
      * @param targetSw target device ID to set the rules
-     * @param ipPrefix the IP prefix
+     * @param subnets the set of IP prefix
      * @param destSw1 destination switch where the prefixes are reachable
      * @param destSw2 paired destination switch if one exists for the subnets/prefixes.
      *                Should be null if there is no paired destination switch (by config)
@@ -555,98 +549,112 @@ public class RoutingRulePopulator {
      *                  should not be an entry for destSw2 in this map.
      * @return true if all rules are set successfully, false otherwise
      */
-    private boolean populateIpRuleForRouter(DeviceId targetSw,
-                                           IpPrefix ipPrefix, DeviceId destSw1,
-                                           DeviceId destSw2,
-                                           Map<DeviceId, Set<DeviceId>> nextHops) {
-        int segmentId1, segmentId2 = -1;
+    private boolean populateIpRulesForRouter(DeviceId targetSw,
+                                             Set<IpPrefix> subnets,
+                                             DeviceId destSw1, DeviceId destSw2,
+                                             Map<DeviceId, Set<DeviceId>> nextHops) {
+        // pre-compute the needed information
+        int segmentIdIPv41, segmentIdIPv42 = -1;
+        int segmentIdIPv61, segmentIdIPv62 = -1;
+        TrafficTreatment treatment = null;
+        DestinationSet dsIPv4, dsIPv6;
+        TrafficSelector metaIpv4Selector, metaIpv6Selector = null;
+        int nextIdIPv4, nextIdIPv6, nextId;
+        TrafficSelector selector;
+        // start with MPLS SIDs
         try {
-            if (ipPrefix.isIp4()) {
-                segmentId1 = config.getIPv4SegmentId(destSw1);
-                if (destSw2 != null) {
-                    segmentId2 = config.getIPv4SegmentId(destSw2);
-                }
-            } else {
-                segmentId1 = config.getIPv6SegmentId(destSw1);
-                if (destSw2 != null) {
-                    segmentId2 = config.getIPv6SegmentId(destSw2);
-                }
+            segmentIdIPv41 = config.getIPv4SegmentId(destSw1);
+            segmentIdIPv61 = config.getIPv6SegmentId(destSw1);
+            if (destSw2 != null) {
+                segmentIdIPv42 = config.getIPv4SegmentId(destSw2);
+                segmentIdIPv62 = config.getIPv6SegmentId(destSw2);
             }
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting populateIpRuleForRouter.");
             return false;
         }
-
-        TrafficSelector.Builder sbuilder = buildIpSelectorFromIpPrefix(ipPrefix);
-        TrafficSelector selector = sbuilder.build();
-
-        TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
-        DestinationSet ds;
-        TrafficTreatment treatment;
-        DestinationSet.DestinationSetType dsType;
-
+        // build the IPv4 and IPv6 destination set
         if (destSw2 == null) {
             // single dst - create destination set based on next-hop
             // If the next hop is the same as the final destination, then MPLS
             // label is not set.
             Set<DeviceId> nhd1 = nextHops.get(destSw1);
             if (nhd1.size() == 1 && nhd1.iterator().next().equals(destSw1)) {
-                tbuilder.immediate().decNwTtl();
-                ds = DestinationSet.createTypePushNone(destSw1);
-                treatment = tbuilder.build();
+                dsIPv4 = DestinationSet.createTypePushNone(destSw1);
+                dsIPv6 = DestinationSet.createTypePushNone(destSw1);
+                treatment = DefaultTrafficTreatment.builder()
+                        .immediate()
+                        .decNwTtl()
+                        .build();
             } else {
-                ds = DestinationSet.createTypePushBos(segmentId1, destSw1);
-                treatment = null;
+                dsIPv4 = DestinationSet.createTypePushBos(segmentIdIPv41, destSw1);
+                dsIPv6 = DestinationSet.createTypePushBos(segmentIdIPv61, destSw1);
             }
         } else {
             // dst pair - IP rules for dst-pairs are always from other edge nodes
             // the destination set needs to have both destinations, even if there
             // are no next hops to one of them
-            ds = DestinationSet.createTypePushBos(segmentId1, destSw1, segmentId2, destSw2);
-            treatment = null;
+            dsIPv4 = DestinationSet.createTypePushBos(segmentIdIPv41, destSw1, segmentIdIPv42, destSw2);
+            dsIPv6 = DestinationSet.createTypePushBos(segmentIdIPv61, destSw1, segmentIdIPv62, destSw2);
         }
 
         // setup metadata to pass to nextObjective - indicate the vlan on egress
         // if needed by the switch pipeline. Since neighbor sets are always to
         // other neighboring routers, there is no subnet assigned on those ports.
-        TrafficSelector.Builder metabuilder = DefaultTrafficSelector.builder(selector);
-        metabuilder.matchVlanId(srManager.getDefaultInternalVlan());
+        metaIpv4Selector = buildIpv4Selector()
+                .matchVlanId(srManager.getDefaultInternalVlan())
+                .build();
+        metaIpv6Selector = buildIpv6Selector()
+                .matchVlanId(srManager.getDefaultInternalVlan())
+                .build();
+        // get the group handler of the target switch
         DefaultGroupHandler grpHandler = srManager.getGroupHandler(targetSw);
         if (grpHandler == null) {
             log.warn("populateIPRuleForRouter: groupHandler for device {} "
-                    + "not found", targetSw);
+                             + "not found", targetSw);
             return false;
         }
-
-        int nextId = grpHandler.getNextObjectiveId(ds, nextHops,
-                                                   metabuilder.build(), false);
-        if (nextId <= 0) {
-            log.warn("No next objective in {} for ds: {}", targetSw, ds);
+        // get next id
+        nextIdIPv4 = grpHandler.getNextObjectiveId(dsIPv4, nextHops, metaIpv4Selector, false);
+        if (nextIdIPv4 <= 0) {
+            log.warn("No next objective in {} for ds: {}", targetSw, dsIPv4);
             return false;
         }
-
-        ForwardingObjective.Builder fwdBuilder = DefaultForwardingObjective
-                .builder()
-                .fromApp(srManager.appId)
-                .makePermanent()
-                .nextStep(nextId)
-                .withSelector(selector)
-                .withPriority(getPriorityFromPrefix(ipPrefix))
-                .withFlag(ForwardingObjective.Flag.SPECIFIC);
-        if (treatment != null) {
-            fwdBuilder.withTreatment(treatment);
+        nextIdIPv6 = grpHandler.getNextObjectiveId(dsIPv6, nextHops, metaIpv6Selector, false);
+        if (nextIdIPv6 <= 0) {
+            log.warn("No next objective in {} for ds: {}", targetSw, dsIPv6);
+            return false;
         }
-        log.debug("Installing IPv4 forwarding objective for router IP/subnet {} "
-                + "in switch {} with nextId: {}", ipPrefix, targetSw, nextId);
-        ObjectiveContext context = new DefaultObjectiveContext(
-                (objective) -> log.debug("IP rule for router {} populated in dev:{}",
-                                         ipPrefix, targetSw),
-                (objective, error) ->
-                        log.warn("Failed to populate IP rule for router {}: {} in dev:{}",
-                                 ipPrefix, error, targetSw));
-        srManager.flowObjectiveService.forward(targetSw, fwdBuilder.add(context));
-        rulePopulationCounter.incrementAndGet();
-
+        // build all the flow rules and send to the device
+        for (IpPrefix subnet : subnets) {
+            selector = buildIpSelectorFromIpPrefix(subnet).build();
+            if (subnet.isIp4()) {
+                nextId = nextIdIPv4;
+            } else {
+                nextId = nextIdIPv6;
+            }
+            ForwardingObjective.Builder fwdBuilder = DefaultForwardingObjective
+                    .builder()
+                    .fromApp(srManager.appId)
+                    .makePermanent()
+                    .nextStep(nextId)
+                    .withSelector(selector)
+                    .withPriority(getPriorityFromPrefix(subnet))
+                    .withFlag(ForwardingObjective.Flag.SPECIFIC);
+            if (treatment != null) {
+                fwdBuilder.withTreatment(treatment);
+            }
+            log.debug("Installing {} forwarding objective for router IP/subnet {} "
+                              + "in switch {} with nextId: {}", subnet.isIp4() ? "IPv4" : "IPv6",
+                      subnet, targetSw, nextId);
+            ObjectiveContext context = new DefaultObjectiveContext(
+                    (objective) -> log.debug("IP rule for router {} populated in dev:{}",
+                                             subnet, targetSw),
+                    (objective, error) -> log.warn("Failed to populate IP rule for router {}: {} in dev:{}",
+                                                   subnet, error, targetSw));
+            srManager.flowObjectiveService.forward(targetSw, fwdBuilder.add(context));
+        }
+        rulePopulationCounter.addAndGet(subnets.size());
         return true;
     }
 
@@ -1282,20 +1290,26 @@ public class RoutingRulePopulator {
         }
     }
 
-    /**
-     * Method to build IPv4 or IPv6 selector.
-     *
-     * @param addressToMatch the address to match
-     */
+    // Method for building an IPv4 selector
+    private TrafficSelector.Builder buildIpv4Selector() {
+        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
+        selectorBuilder.matchEthType(Ethernet.TYPE_IPV4);
+        return selectorBuilder;
+    }
+
+    // Method for building an IPv6 selector
+    private TrafficSelector.Builder buildIpv6Selector() {
+        TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
+        selectorBuilder.matchEthType(Ethernet.TYPE_IPV6);
+        return selectorBuilder;
+    }
+
+    // Method for building an IPv4 or IPv6 selector from an IP address
     private TrafficSelector.Builder buildIpSelectorFromIpAddress(IpAddress addressToMatch) {
         return buildIpSelectorFromIpPrefix(addressToMatch.toIpPrefix());
     }
 
-    /**
-     * Method to build IPv4 or IPv6 selector.
-     *
-     * @param prefixToMatch the prefix to match
-     */
+    // Method for building an IPv4 or IPv6 selector from an IP prefix
     private TrafficSelector.Builder buildIpSelectorFromIpPrefix(IpPrefix prefixToMatch) {
         TrafficSelector.Builder selectorBuilder = DefaultTrafficSelector.builder();
         // If the prefix is IPv4
