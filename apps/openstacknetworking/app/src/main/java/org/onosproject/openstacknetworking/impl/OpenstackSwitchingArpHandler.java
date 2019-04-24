@@ -355,6 +355,7 @@ public class OpenstackSwitchingArpHandler {
                             .setArpOp(ARP.OP_REPLY)
                             .setArpSha(MacAddress.valueOf(gatewayMac))
                             .setArpSpa(Ip4Address.valueOf(gateway))
+                            .setEthSrc(MacAddress.valueOf(gatewayMac))
                             .setOutput(PortNumber.IN_PORT);
 
                     osFlowRuleService.setRule(
