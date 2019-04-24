@@ -70,6 +70,7 @@ grpc_java_repositories(
     omit_javax_annotation = False,
     omit_junit_junit = True,
     omit_org_apache_commons_lang3 = True,
+    omit_org_codehaus_mojo_animal_sniffer_annotations = True,
 )
 
 load("//tools/build/bazel:p4lang_workspace.bzl", "generate_p4lang")
