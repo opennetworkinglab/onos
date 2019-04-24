@@ -39,6 +39,8 @@ import org.slf4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.onosproject.k8snetworking.api.Constants.A_CLASS;
+import static org.onosproject.k8snetworking.api.Constants.B_CLASS;
 import static org.onosproject.k8snetworking.api.Constants.DST;
 import static org.onosproject.k8snetworking.api.Constants.SRC;
 import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_LOAD;
@@ -98,7 +100,8 @@ public final class RulePopulatorUtil {
     private static final int SRC_IP = 0x00000e04;
     private static final int DST_IP = 0x00001004;
 
-    private static final int OFF_SET_BIT = 16;
+    private static final int A_CLASS_OFF_SET_BIT = 8;
+    private static final int B_CLASS_OFF_SET_BIT = 16;
     private static final int REMAINDER_BIT = 16;
 
     // not intended for direct invocation from external
@@ -296,11 +299,13 @@ public final class RulePopulatorUtil {
      * Returns the nicira load extension treatment.
      *
      * @param device        device instance
+     * @param cidrClass     CIDR class (a | b)
      * @param ipType        IP type (src|dst)
-     * @param shift         shift (e.g., 10.10., 20.20.,)
+     * @param shift         shift (e.g., 10.10., 20.20., 10, 20,)
      * @return load extension treatment
      */
     public static ExtensionTreatment buildLoadExtension(Device device,
+                                                        String cidrClass,
                                                         String ipType,
                                                         String shift) {
         if (!checkTreatmentResolver(device)) {
@@ -319,10 +324,16 @@ public final class RulePopulatorUtil {
             dst = DST_IP;
         }
 
-        long value = calculateUpperBit(shift);
+        long value = calculateUpperBit(cidrClass, shift);
 
-        // we only rewrite the upper 16 bits with value (A.B.X.Y -> C.D.X.Y)
-        int ofsNbits = OFF_SET_BIT << 6 | (REMAINDER_BIT - 1);
+        // we only rewrite the upper x bits with value
+        int ofsNbits = 0;
+
+        if (A_CLASS.equals(cidrClass)) {
+            ofsNbits = A_CLASS_OFF_SET_BIT << 6 | (REMAINDER_BIT - 1);
+        } else if (B_CLASS.equals(cidrClass)) {
+            ofsNbits = B_CLASS_OFF_SET_BIT << 6 | (REMAINDER_BIT - 1);
+        }
 
         try {
             treatment.setPropertyValue(OFF_SET_N_BITS, ofsNbits);
@@ -335,7 +346,6 @@ public final class RulePopulatorUtil {
             return null;
         }
     }
-
 
     /**
      * Returns the nicira move source MAC to destination MAC extension treatment.
@@ -385,16 +395,24 @@ public final class RulePopulatorUtil {
     /**
      * Calculate IP address upper string into integer.
      *
+     * @param cidrClass CIDR class type
      * @param shift IP address upper two octets with dot
      * @return calculated integer
      */
-    private static int calculateUpperBit(String shift) {
-        String[] strArray = shift.split("\\.");
+    private static int calculateUpperBit(String cidrClass, String shift) {
 
-        int firstOctet = Integer.valueOf(strArray[0]);
-        int secondOctet = Integer.valueOf(strArray[1]);
+        if (A_CLASS.equals(cidrClass)) {
+            return Integer.valueOf(shift);
+        }
 
-        return firstOctet << 8 | secondOctet;
+        if (B_CLASS.equals(cidrClass)) {
+            String[] strArray = shift.split("\\.");
+            int firstOctet = Integer.valueOf(strArray[0]);
+            int secondOctet = Integer.valueOf(strArray[1]);
+            return firstOctet << 8 | secondOctet;
+        }
+
+        return 0;
     }
 
     private static boolean checkTreatmentResolver(Device device) {

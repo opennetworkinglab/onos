@@ -45,9 +45,12 @@ public final class Constants {
 
     public static final String SHIFTED_IP_CIDR = "172.10.0.0/16";
     public static final String SHIFTED_IP_PREFIX = "172.10";
+    public static final String NODE_IP_PREFIX = "182";
 
     public static final String SRC = "src";
     public static final String DST = "dst";
+    public static final String A_CLASS = "a";
+    public static final String B_CLASS = "b";
 
     public static final String PORT_NAME_PREFIX_CONTAINER = "veth";
 
@@ -79,6 +82,9 @@ public final class Constants {
     public static final int PRIORITY_ARP_FLOOD_RULE = 39000;
     public static final int PRIORITY_FORCED_ACL_RULE = 50000;
     public static final int PRIORITY_ICMP_PROBE_RULE = 50000;
+    public static final int PRIORITY_NODE_PORT_RULE = 42000;
+    public static final int PRIORITY_NODE_PORT_REMOTE_RULE = 41500;
+    public static final int PRIORITY_NODE_PORT_INTER_RULE = 40000;
 
     // flow table index
     public static final int STAT_INBOUND_TABLE = 0;
@@ -100,5 +106,8 @@ public final class Constants {
     public static final int VTAP_OUTBOUND_MIRROR_TABLE = 72;
     public static final int FORWARDING_TABLE = 80;
     public static final int ERROR_TABLE = 100;
-    public static final int GW_COMMON_TABLE = 0;
+
+    public static final int EXT_ENTRY_TABLE = 0;
+    public static final int POD_RESOLUTION_TABLE = 11;
+    public static final int INBOUND_TABLE = 10;
 }

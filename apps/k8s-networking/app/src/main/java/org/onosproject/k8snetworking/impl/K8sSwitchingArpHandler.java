@@ -30,6 +30,7 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.k8snetworking.api.K8sFlowRuleService;
+import org.onosproject.k8snetworking.api.K8sNetwork;
 import org.onosproject.k8snetworking.api.K8sNetworkService;
 import org.onosproject.k8snetworking.api.K8sPort;
 import org.onosproject.k8snetworking.api.K8sServiceService;
@@ -71,12 +72,14 @@ import static org.onosproject.k8snetworking.api.Constants.ARP_BROADCAST_MODE;
 import static org.onosproject.k8snetworking.api.Constants.ARP_PROXY_MODE;
 import static org.onosproject.k8snetworking.api.Constants.ARP_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.K8S_NETWORKING_APP_ID;
+import static org.onosproject.k8snetworking.api.Constants.NODE_IP_PREFIX;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_ARP_CONTROL_RULE;
 import static org.onosproject.k8snetworking.api.Constants.SERVICE_FAKE_MAC_STR;
 import static org.onosproject.k8snetworking.impl.OsgiPropertyConstants.ARP_MODE;
 import static org.onosproject.k8snetworking.impl.OsgiPropertyConstants.ARP_MODE_DEFAULT;
 import static org.onosproject.k8snetworking.impl.OsgiPropertyConstants.GATEWAY_MAC;
 import static org.onosproject.k8snetworking.impl.OsgiPropertyConstants.GATEWAY_MAC_DEFAULT;
+import static org.onosproject.k8snetworking.api.Constants.SHIFTED_IP_PREFIX;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.getPropertyValue;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.unshiftIpDomain;
 
@@ -93,8 +96,6 @@ import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.unshiftIpDoma
 public class K8sSwitchingArpHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-
-    private static final String API_SERVER_CLUSTER_IP = "10.96.0.1";
 
     private static final String GATEWAY_MAC = "gatewayMac";
     private static final String ARP_MODE = "arpMode";
@@ -229,16 +230,17 @@ public class K8sSwitchingArpHandler {
         }
 
         if (replyMac == null) {
-            Set<String> unshiftedIps = unshiftIpDomain(targetIp.toString(), k8sNetworkService);
-            for (String ip : unshiftedIps) {
+            String cidr = k8sNetworkService.networks().stream()
+                    .map(K8sNetwork::cidr).findAny().orElse(null);
+
+            if (cidr != null) {
+                String unshiftedIp = unshiftIpDomain(targetIp.toString(),
+                        SHIFTED_IP_PREFIX, cidr);
+
                 replyMac = k8sNetworkService.ports().stream()
-                        .filter(p -> p.ipAddress().equals(IpAddress.valueOf(ip)))
+                        .filter(p -> p.ipAddress().equals(IpAddress.valueOf(unshiftedIp)))
                         .map(K8sPort::macAddress)
                         .findAny().orElse(null);
-
-                if (replyMac != null) {
-                    break;
-                }
             }
         }
 
@@ -248,6 +250,23 @@ public class K8sSwitchingArpHandler {
                     .collect(Collectors.toSet());
             if (serviceIps.contains(targetIp.toString())) {
                 replyMac = MacAddress.valueOf(SERVICE_FAKE_MAC_STR);
+            }
+        }
+
+        if (replyMac == null) {
+            String targetIpPrefix = targetIp.toString().split("\\.")[1];
+            String nodePrefix = NODE_IP_PREFIX + "." + targetIpPrefix;
+
+            String exBridgeCidr = k8sNodeService.completeNodes().stream()
+                    .map(n -> n.extBridgeIp().toString()).findAny().orElse(null);
+
+            if (exBridgeCidr != null) {
+                String extBridgeIp = unshiftIpDomain(targetIp.toString(),
+                nodePrefix, exBridgeCidr);
+
+                replyMac = k8sNodeService.completeNodes().stream()
+                        .filter(n -> extBridgeIp.equals(n.extBridgeIp().toString()))
+                        .map(K8sNode::extBridgeMac).findAny().orElse(null);
             }
         }
 

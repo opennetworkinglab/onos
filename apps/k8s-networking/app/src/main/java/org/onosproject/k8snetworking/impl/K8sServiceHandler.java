@@ -86,12 +86,15 @@ import java.util.stream.Collectors;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.k8snetworking.api.Constants.A_CLASS;
+import static org.onosproject.k8snetworking.api.Constants.B_CLASS;
 import static org.onosproject.k8snetworking.api.Constants.DST;
 import static org.onosproject.k8snetworking.api.Constants.JUMP_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.K8S_NETWORKING_APP_ID;
 import static org.onosproject.k8snetworking.api.Constants.NAT_STATEFUL;
 import static org.onosproject.k8snetworking.api.Constants.NAT_STATELESS;
 import static org.onosproject.k8snetworking.api.Constants.NAT_TABLE;
+import static org.onosproject.k8snetworking.api.Constants.NODE_IP_PREFIX;
 import static org.onosproject.k8snetworking.api.Constants.POD_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_CIDR_RULE;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_CT_RULE;
@@ -108,6 +111,7 @@ import static org.onosproject.k8snetworking.impl.OsgiPropertyConstants.SERVICE_C
 import static org.onosproject.k8snetworking.impl.OsgiPropertyConstants.SERVICE_IP_CIDR_DEFAULT;
 import static org.onosproject.k8snetworking.impl.OsgiPropertyConstants.SERVICE_IP_NAT_MODE;
 import static org.onosproject.k8snetworking.impl.OsgiPropertyConstants.SERVICE_IP_NAT_MODE_DEFAULT;
+import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.getBclassIpPrefixFromCidr;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.nodeIpGatewayIpMap;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.tunnelPortNumByNetId;
 import static org.onosproject.k8snetworking.util.RulePopulatorUtil.CT_NAT_DST_FLAG;
@@ -141,6 +145,10 @@ public class K8sServiceHandler {
     private static final String TCP = "TCP";
     private static final String UDP = "UDP";
     private static final String SERVICE_IP_NAT_MODE = "serviceIpNatMode";
+
+    private static final String SERVICE_CIDR = "serviceCidr";
+    private static final String B_CLASS_SUFFIX = ".0.0/16";
+    private static final String A_CLASS_SUFFIX = ".0.0.0/8";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
@@ -268,15 +276,32 @@ public class K8sServiceHandler {
 
     private void setStatelessServiceNatRules(DeviceId deviceId, boolean install) {
 
-        String srcCidr = k8sNetworkService.network(
+        String srcPodCidr = k8sNetworkService.network(
                 k8sNodeService.node(deviceId).hostname()).cidr();
+        String srcPodPrefix = getBclassIpPrefixFromCidr(srcPodCidr);
+        String fullSrcPodCidr = srcPodPrefix + B_CLASS_SUFFIX;
+        String fullSrcNodeCidr = NODE_IP_PREFIX + A_CLASS_SUFFIX;
+
+        // src: POD -> dst: service (unNAT POD) grouping
+        setSrcDstCidrRules(deviceId, fullSrcPodCidr, serviceCidr, B_CLASS, null,
+                SHIFTED_IP_PREFIX, SRC, JUMP_TABLE, SERVICE_TABLE,
+                PRIORITY_CT_RULE, install);
+        // src: POD (unNAT service) -> dst: shifted POD grouping
+        setSrcDstCidrRules(deviceId, fullSrcPodCidr, SHIFTED_IP_CIDR, B_CLASS, null,
+                srcPodPrefix, DST, JUMP_TABLE, POD_TABLE, PRIORITY_CT_RULE, install);
+
+        // src: node -> dst: service (unNAT POD) grouping
+        setSrcDstCidrRules(deviceId, fullSrcNodeCidr, serviceCidr, A_CLASS,
+                null, null, null, JUMP_TABLE, SERVICE_TABLE,
+                PRIORITY_CT_RULE, install);
+        // src: POD (unNAT service) -> dst: node grouping
+        setSrcDstCidrRules(deviceId, fullSrcPodCidr, fullSrcNodeCidr, A_CLASS,
+                null, null, null, JUMP_TABLE, POD_TABLE,
+                PRIORITY_CT_RULE, install);
 
         k8sNetworkService.networks().forEach(n -> {
-            setSrcDstCidrRules(deviceId, n.cidr(), serviceCidr, null, JUMP_TABLE,
-                    SERVICE_TABLE, PRIORITY_CT_RULE, install);
-            setSrcDstCidrRules(deviceId, n.cidr(), SHIFTED_IP_CIDR, null, JUMP_TABLE,
-                    POD_TABLE, PRIORITY_CT_RULE, install);
-            setSrcDstCidrRules(deviceId, srcCidr, n.cidr(), n.segmentId(), ROUTING_TABLE,
+            setSrcDstCidrRules(deviceId, fullSrcPodCidr, n.cidr(), B_CLASS,
+                    n.segmentId(), null, null, ROUTING_TABLE,
                     STAT_OUTBOUND_TABLE, PRIORITY_INTER_ROUTING_RULE, install);
         });
 
@@ -287,8 +312,11 @@ public class K8sServiceHandler {
     }
 
     private void setSrcDstCidrRules(DeviceId deviceId, String srcCidr,
-                                    String dstCidr, String segId, int installTable,
-                                    int transitTable, int priority, boolean install) {
+                                    String dstCidr, String cidrClass,
+                                    String segId, String shiftPrefix,
+                                    String shiftType, int installTable,
+                                    int transitTable, int priority,
+                                    boolean install) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPSrc(IpPrefix.valueOf(srcCidr))
@@ -300,6 +328,13 @@ public class K8sServiceHandler {
         if (segId != null) {
             tBuilder.setTunnelId(Long.valueOf(segId));
         }
+
+        if (shiftPrefix != null && shiftType != null) {
+            ExtensionTreatment loadTreatment = buildLoadExtension(
+                    deviceService.getDevice(deviceId), cidrClass, shiftType, shiftPrefix);
+            tBuilder.extension(loadTreatment, deviceId);
+        }
+
         tBuilder.transition(transitTable);
 
         k8sFlowRuleService.setRule(
@@ -480,11 +515,7 @@ public class K8sServiceHandler {
                     .matchUdpDst(TpPort.tpPort(servicePort));
         }
 
-        ExtensionTreatment loadTreatment = buildLoadExtension(
-                deviceService.getDevice(deviceId), SRC, SHIFTED_IP_PREFIX);
-
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .extension(loadTreatment, deviceId)
                 .group(GroupId.valueOf(groupId))
                 .build();
 
@@ -514,14 +545,7 @@ public class K8sServiceHandler {
                     .matchUdpSrc(TpPort.tpPort(podPort));
         }
 
-        String podIpPrefix = podIp.split("\\.")[0] +
-                                            "." + podIp.split("\\.")[1];
-
-        ExtensionTreatment loadTreatment = buildLoadExtension(
-                deviceService.getDevice(deviceId), DST, podIpPrefix);
-
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
-                .extension(loadTreatment, deviceId)
                 .setIpSrc(IpAddress.valueOf(serviceIp))
                 .transition(ROUTING_TABLE);
 
