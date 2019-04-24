@@ -60,8 +60,9 @@ import java.util.concurrent.ExecutorService;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.k8snetworking.api.Constants.DEFAULT_GATEWAY_MAC;
-import static org.onosproject.k8snetworking.api.Constants.GW_COMMON_TABLE;
+import static org.onosproject.k8snetworking.api.Constants.EXT_ENTRY_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.K8S_NETWORKING_APP_ID;
+import static org.onosproject.k8snetworking.api.Constants.POD_RESOLUTION_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_EXTERNAL_ROUTING_RULE;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_STATEFUL_SNAT_RULE;
 import static org.onosproject.k8snetworking.api.Constants.ROUTING_TABLE;
@@ -79,9 +80,12 @@ public class K8sRoutingSnatHandler {
 
     private final Logger log = getLogger(getClass());
 
-    private static final int POD_PREFIX = 32;
+    private static final int HOST_PREFIX = 32;
 
-    private static final int TP_PORT_MINIMUM_NUM = 1025;
+    // we try to avoid port number overlapping with node port (30000 ~ 32767)
+    // in case the user has customized node port range, the following static
+    // value should be changed accordingly
+    private static final int TP_PORT_MINIMUM_NUM = 32768;
     private static final int TP_PORT_MAXIMUM_NUM = 65535;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
@@ -180,7 +184,7 @@ public class K8sRoutingSnatHandler {
 
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPDst(IpPrefix.valueOf(k8sPort.ipAddress(), POD_PREFIX));
+                .matchIPDst(IpPrefix.valueOf(k8sPort.ipAddress(), HOST_PREFIX));
 
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
                 .setOutput(k8sNode.extToIntgPatchPortNum());
@@ -191,7 +195,7 @@ public class K8sRoutingSnatHandler {
                 sBuilder.build(),
                 tBuilder.build(),
                 PRIORITY_STATEFUL_SNAT_RULE,
-                GW_COMMON_TABLE,
+                POD_RESOLUTION_TABLE,
                 install);
     }
 
@@ -199,15 +203,15 @@ public class K8sRoutingSnatHandler {
                                        boolean install) {
         DeviceId deviceId = k8sNode.extBridge();
 
-        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
-        sBuilder.matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPDst(IpPrefix.valueOf(k8sNode.extBridgeIp(), POD_PREFIX));
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPDst(IpPrefix.valueOf(k8sNode.extBridgeIp(), HOST_PREFIX));
 
         ExtensionTreatment natTreatment = RulePopulatorUtil
                 .niciraConnTrackTreatmentBuilder(driverService, deviceId)
                 .commit(false)
                 .natAction(true)
-                .table((short) 0)
+                .table((short) POD_RESOLUTION_TABLE)
                 .build();
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
@@ -221,7 +225,7 @@ public class K8sRoutingSnatHandler {
                 sBuilder.build(),
                 treatment,
                 PRIORITY_STATEFUL_SNAT_RULE,
-                GW_COMMON_TABLE,
+                EXT_ENTRY_TABLE,
                 install);
     }
 
@@ -236,6 +240,7 @@ public class K8sRoutingSnatHandler {
 
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
+                .matchInPort(k8sNode.extToIntgPatchPortNum())
                 .matchEthDst(DEFAULT_GATEWAY_MAC)
                 .build();
 
@@ -264,38 +269,38 @@ public class K8sRoutingSnatHandler {
                 selector,
                 tBuilder.build(),
                 PRIORITY_STATEFUL_SNAT_RULE,
-                GW_COMMON_TABLE,
+                EXT_ENTRY_TABLE,
                 install);
     }
 
     private void setExtIntfArpRule(K8sNode k8sNode, boolean install) {
+        k8sNodeService.completeNodes().forEach(n -> {
+            Device device = deviceService.getDevice(n.extBridge());
+            TrafficSelector selector = DefaultTrafficSelector.builder()
+                    .matchEthType(Ethernet.TYPE_ARP)
+                    .matchArpOp(ARP.OP_REQUEST)
+                    .matchArpTpa(Ip4Address.valueOf(k8sNode.extBridgeIp().toString()))
+                    .build();
 
-        Device device = deviceService.getDevice(k8sNode.extBridge());
+            TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                    .setArpOp(ARP.OP_REPLY)
+                    .extension(buildMoveEthSrcToDstExtension(device), device.id())
+                    .extension(buildMoveArpShaToThaExtension(device), device.id())
+                    .extension(buildMoveArpSpaToTpaExtension(device), device.id())
+                    .setArpSpa(Ip4Address.valueOf(k8sNode.extBridgeIp().toString()))
+                    .setArpSha(k8sNode.extBridgeMac())
+                    .setOutput(PortNumber.IN_PORT)
+                    .build();
 
-        TrafficSelector selector = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_ARP)
-                .matchArpOp(ARP.OP_REQUEST)
-                .matchArpTpa(Ip4Address.valueOf(k8sNode.extBridgeIp().toString()))
-                .build();
-
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setArpOp(ARP.OP_REPLY)
-                .extension(buildMoveEthSrcToDstExtension(device), device.id())
-                .extension(buildMoveArpShaToThaExtension(device), device.id())
-                .extension(buildMoveArpSpaToTpaExtension(device), device.id())
-                .setArpSpa(Ip4Address.valueOf(k8sNode.extBridgeIp().toString()))
-                .setArpSha(k8sNode.extBridgeMac())
-                .setOutput(PortNumber.IN_PORT)
-                .build();
-
-        k8sFlowRuleService.setRule(
-                appId,
-                k8sNode.extBridge(),
-                selector,
-                treatment,
-                PRIORITY_STATEFUL_SNAT_RULE,
-                GW_COMMON_TABLE,
-                install);
+            k8sFlowRuleService.setRule(
+                    appId,
+                    n.extBridge(),
+                    selector,
+                    treatment,
+                    PRIORITY_STATEFUL_SNAT_RULE,
+                    EXT_ENTRY_TABLE,
+                    install);
+        });
     }
 
     private class InternalK8sNodeListener implements K8sNodeListener {

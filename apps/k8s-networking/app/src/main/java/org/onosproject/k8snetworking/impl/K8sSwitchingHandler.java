@@ -59,7 +59,6 @@ import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.k8snetworking.api.Constants.ACL_EGRESS_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.ARP_BROADCAST_MODE;
 import static org.onosproject.k8snetworking.api.Constants.ARP_TABLE;
-import static org.onosproject.k8snetworking.api.Constants.DEFAULT_GATEWAY_MAC;
 import static org.onosproject.k8snetworking.api.Constants.FORWARDING_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.K8S_NETWORKING_APP_ID;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_SWITCHING_RULE;
@@ -265,7 +264,6 @@ public class K8sSwitchingHandler {
     private void setExtToIntgTunnelTagFlowRules(K8sNode k8sNode, boolean install) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
-                .matchEthSrc(DEFAULT_GATEWAY_MAC)
                 .matchInPort(k8sNode.intgToExtPatchPortNum())
                 .build();
 

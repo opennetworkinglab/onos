@@ -20,13 +20,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.util.SubnetUtils;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.TpPort;
 import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.k8snetworking.api.K8sNetwork;
 import org.onosproject.k8snetworking.api.K8sNetworkService;
@@ -44,12 +44,12 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.onosproject.k8snetworking.api.Constants.PORT_NAME_PREFIX_CONTAINER;
-import static org.onosproject.k8snetworking.api.Constants.SHIFTED_IP_PREFIX;
 
 /**
  * An utility that used in kubernetes networking app.
@@ -60,6 +60,14 @@ public final class K8sNetworkingUtil {
 
     private static final String COLON_SLASH = "://";
     private static final String COLON = ":";
+
+    private static final String STR_ZERO = "0";
+    private static final String STR_ONE = "1";
+    private static final String STR_PADDING = "0000000000000000";
+    private static final int MASK_BEGIN_IDX = 0;
+    private static final int MASK_MAX_IDX = 16;
+    private static final int MASK_RADIX = 2;
+    private static final int PORT_RADIX = 16;
 
     private K8sNetworkingUtil() {
     }
@@ -288,22 +296,133 @@ public final class K8sNetworkingUtil {
     }
 
     /**
-     * Returns a set of unshifted IP addresses.
+     * Returns an unshifted IP address.
      *
-     * @param ipAddress     shifted IP address
-     * @param service       kubernetes network service
-     * @return unshifted IP addresses
+     * @param ipAddress     IP address to be unshifted
+     * @param ipPrefix      IP prefix which to be used for unshifting
+     * @param cidr          a POD network CIDR
+     * @return unshifted IP address
      */
-    public static Set<String> unshiftIpDomain(String ipAddress, K8sNetworkService service) {
+    public static String unshiftIpDomain(String ipAddress,
+                                         String ipPrefix,
+                                         String cidr) {
 
-        Set<String> unshiftedIps = Sets.newConcurrentHashSet();
+        String origIpPrefix = cidr.split("\\.")[0] + "." + cidr.split("\\.")[1];
+        return StringUtils.replace(ipAddress, ipPrefix, origIpPrefix);
+    }
 
-        service.networks().forEach(n -> {
-            String cidr = n.cidr();
-            String origIpPrefix = cidr.split("\\.")[0] + "." + cidr.split("\\.")[1];
-            unshiftedIps.add(StringUtils.replace(ipAddress, SHIFTED_IP_PREFIX, origIpPrefix));
-        });
+    /**
+     * Returns the B class IP prefix of the given CIDR.
+     *
+     * @param cidr  CIDR
+     * @return IP prefix
+     */
+    public static String getBclassIpPrefixFromCidr(String cidr) {
+        if (cidr == null) {
+            return null;
+        }
+        return cidr.split("\\.")[0] + "." + cidr.split("\\.")[1];
+    }
 
-        return unshiftedIps;
+    /**
+     * Returns the A class IP prefix of the given CIDR.
+     *
+     * @param cidr  CIDR
+     * @return IP prefix
+     */
+    public static String getAclassIpPrefixFromCidr(String cidr) {
+        if (cidr == null) {
+            return null;
+        }
+        return cidr.split("\\.")[0];
+    }
+
+    /**
+     * Returns the map of port range.
+     *
+     * @param portMin minimum port number
+     * @param portMax maximum port number
+     * @return map of port range
+     */
+    public static Map<TpPort, TpPort> buildPortRangeMatches(int portMin, int portMax) {
+
+        boolean processing = true;
+        int start = portMin;
+        Map<TpPort, TpPort> portMaskMap = Maps.newHashMap();
+        while (processing) {
+            String minStr = Integer.toBinaryString(start);
+            String binStrMinPadded = STR_PADDING.substring(minStr.length()) + minStr;
+
+            int mask = testMasks(binStrMinPadded, start, portMax);
+            int maskStart = binLower(binStrMinPadded, mask);
+            int maskEnd = binHigher(binStrMinPadded, mask);
+
+            log.debug("start : {} port/mask = {} / {} ", start, getMask(mask), maskStart);
+            portMaskMap.put(TpPort.tpPort(maskStart), TpPort.tpPort(
+                    Integer.parseInt(Objects.requireNonNull(getMask(mask)), PORT_RADIX)));
+
+            start = maskEnd + 1;
+            if (start > portMax) {
+                processing = false;
+            }
+        }
+
+        return portMaskMap;
+    }
+
+    private static int binLower(String binStr, int bits) {
+        StringBuilder outBin = new StringBuilder(
+                binStr.substring(MASK_BEGIN_IDX, MASK_MAX_IDX - bits));
+        for (int i = 0; i < bits; i++) {
+            outBin.append(STR_ZERO);
+        }
+
+        return Integer.parseInt(outBin.toString(), MASK_RADIX);
+    }
+
+    private static int binHigher(String binStr, int bits) {
+        StringBuilder outBin = new StringBuilder(
+                binStr.substring(MASK_BEGIN_IDX, MASK_MAX_IDX - bits));
+        for (int i = 0; i < bits; i++) {
+            outBin.append(STR_ONE);
+        }
+
+        return Integer.parseInt(outBin.toString(), MASK_RADIX);
+    }
+
+    private static int testMasks(String binStr, int start, int end) {
+        int mask = MASK_BEGIN_IDX;
+        for (; mask <= MASK_MAX_IDX; mask++) {
+            int maskStart = binLower(binStr, mask);
+            int maskEnd = binHigher(binStr, mask);
+            if (maskStart < start || maskEnd > end) {
+                return mask - 1;
+            }
+        }
+
+        return mask;
+    }
+
+    private static String getMask(int bits) {
+        switch (bits) {
+            case 0:  return "ffff";
+            case 1:  return "fffe";
+            case 2:  return "fffc";
+            case 3:  return "fff8";
+            case 4:  return "fff0";
+            case 5:  return "ffe0";
+            case 6:  return "ffc0";
+            case 7:  return "ff80";
+            case 8:  return "ff00";
+            case 9:  return "fe00";
+            case 10: return "fc00";
+            case 11: return "f800";
+            case 12: return "f000";
+            case 13: return "e000";
+            case 14: return "c000";
+            case 15: return "8000";
+            case 16: return "0000";
+            default: return null;
+        }
     }
 }
