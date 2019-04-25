@@ -51,14 +51,15 @@ writeCatalog $(jars)
 echo "Cataloging test jars..."
 writeCatalog $(testJars)
 
+echo "Cataloging pom files..."
+writeCatalog $(jars | sed 's/$/-pom/')
+
 [ $libsOnly = true ] && exit 0
 
 echo "Cataloging source jars..."
 writeCatalog $(sourceJars | sed 's/$/-sources/')
 echo "Cataloging javadoc jars..."
 writeCatalog $(javadocJars | sed 's/$/-javadoc/')
-echo "Cataloging pom files..."
-writeCatalog $(jars | sed 's/$/-pom/')
 
 echo "Cataloging oar files..."
 writeCatalog $(bazel query 'kind("_onos_oar rule", //...)')
