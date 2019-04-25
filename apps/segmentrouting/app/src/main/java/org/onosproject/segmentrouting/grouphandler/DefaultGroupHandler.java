@@ -531,7 +531,7 @@ public class DefaultGroupHandler {
         if (!foundNextObjective) {
             log.debug("Cannot find any nextObjectives for route targetSw:{} "
                     + "-> dstSw:{}", targetSw, destSw);
-            return true; // nothing to do, return true so ECMPspg is updated
+            return false; // nothing to do, return false so re-route will be performed
         }
 
         // update the dsNextObjectiveStore with new destinationSet to nextId mappings
