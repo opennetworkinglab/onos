@@ -416,7 +416,10 @@ public class GossipDeviceStore
                 !Objects.equals(oldDevice.hwVersion(), newDevice.hwVersion()) ||
                         !Objects.equals(oldDevice.swVersion(), newDevice.swVersion()) ||
                         !Objects.equals(oldDevice.providerId(), newDevice.providerId()) ||
-                        !Objects.equals(oldDevice.chassisId(), newDevice.chassisId());
+                        !Objects.equals(oldDevice.chassisId(), newDevice.chassisId()) ||
+                        !Objects.equals(oldDevice.serialNumber(), newDevice.serialNumber()) ||
+                        !Objects.equals(oldDevice.manufacturer(), newDevice.manufacturer());
+
         boolean annotationsChanged =
                 !AnnotationsUtil.isEqual(oldDevice.annotations(), newDevice.annotations());
 
