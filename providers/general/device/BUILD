@@ -1,7 +1,7 @@
 COMPILE_DEPS = CORE_DEPS + JACKSON + [
     "//protocols/gnmi/stub:onos-protocols-gnmi-stub",
     "//protocols/gnmi/api:onos-protocols-gnmi-api",
-    "@com_google_protobuf//:protobuf_java",
+    "//lib:com_google_protobuf_protobuf_java",
     "//protocols/grpc/api:onos-protocols-grpc-api",
 ]
 

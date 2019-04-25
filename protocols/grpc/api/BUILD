@@ -1,3 +1,3 @@
 osgi_jar(
-    deps = CORE_DEPS + ["@io_grpc_grpc_java//core"],
+    deps = CORE_DEPS + ["//lib:io_grpc_grpc_core_context"],
 )

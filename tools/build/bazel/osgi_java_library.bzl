@@ -364,7 +364,8 @@ def wrapped_osgi_jar(
         version = ONOS_VERSION,
         group = "org.onosproject",
         import_packages = "*",
-        visibility = ["//visibility:private"]):
+        visibility = ["//visibility:private"],
+        generate_pom = False):
     _bnd(
         name = name,
         source = jar,
@@ -375,6 +376,14 @@ def wrapped_osgi_jar(
         import_packages = import_packages,
         web_xml = None,
     )
+
+    if generate_pom:
+        pom_file(
+            name = name + "-pom",
+            artifact = name,
+            deps = deps,
+            visibility = visibility,
+        )
 
 """
     Creates an OSGI jar and test jar file from a set of source and test files.
@@ -698,7 +707,7 @@ def osgi_proto_jar(
         ":%s-proto-srcjar" % name,
     ]
     base_deps = [
-        "@com_google_protobuf//:protobuf_java",
+        "//lib:com_google_protobuf_protobuf_java",
     ]
     if grpc_proto_lib != None:
         java_grpc_library(
@@ -711,9 +720,9 @@ def osgi_proto_jar(
         )
         base_deps.extend([
             "@com_google_guava_guava//jar",
-            "@io_grpc_grpc_java//core",
-            "@io_grpc_grpc_java//stub",
-            "@io_grpc_grpc_java//protobuf",
+            "//lib:io_grpc_grpc_core_context",
+            "//lib:io_grpc_grpc_stub",
+            "//lib:io_grpc_grpc_protobuf",
         ])
     osgi_jar(
         name = name,
