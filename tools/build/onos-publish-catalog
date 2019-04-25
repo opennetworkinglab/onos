@@ -33,6 +33,14 @@ function jars {
     egrep -v '(\#|build/conf)' tools/build/publish-target-list
 }
 
+function sourceJars {
+    egrep -v '(\#|lib\:|p4runtime/proto|build/conf)' tools/build/publish-target-list
+}
+
+function javadocJars {
+    egrep -v '(\#|lib\:|p4runtime/proto|build/conf)' tools/build/publish-target-list
+}
+
 function testJars {
     egrep -v '(\#|build/conf)' tools/build/publish-test-target-list
 }
@@ -46,9 +54,9 @@ writeCatalog $(testJars)
 [ $libsOnly = true ] && exit 0
 
 echo "Cataloging source jars..."
-writeCatalog $(jars | sed 's/$/-sources/')
+writeCatalog $(sourceJars | sed 's/$/-sources/')
 echo "Cataloging javadoc jars..."
-writeCatalog $(jars | sed 's/$/-javadoc/')
+writeCatalog $(javadocJars | sed 's/$/-javadoc/')
 echo "Cataloging pom files..."
 writeCatalog $(jars | sed 's/$/-pom/')
 

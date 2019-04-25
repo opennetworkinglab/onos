@@ -20,6 +20,7 @@
     //protocols/grpc/api:onos-protocols-grpc-api
     //protocols/p4runtime/api:onos-protocols-p4runtime-api
     //protocols/p4runtime/model:onos-protocols-p4runtime-model
+    //protocols/p4runtime/proto:onos-protocols-p4runtime-proto
     //protocols/grpc/utils:onos-protocols-grpc-utils
     //protocols/gnmi/api:onos-protocols-gnmi-api
     //protocols/gnoi/api:onos-protocols-gnoi-api
@@ -45,3 +46,7 @@
     //utils/osgi:onlab-osgi
     //utils/rest:onlab-rest
     //web/api:onos-rest
+    //lib:com_google_protobuf_protobuf_java
+    //lib:io_grpc_grpc_core_context
+    //lib:io_grpc_grpc_stub
+    //lib:io_grpc_grpc_protobuf

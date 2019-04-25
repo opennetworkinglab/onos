@@ -1,6 +1,6 @@
 COMPILE_DEPS = CORE_DEPS + [
     "//protocols/grpc/api:onos-protocols-grpc-api",
-    "@io_grpc_grpc_java//core",
+    "//lib:io_grpc_grpc_core_context",
 ]
 
 osgi_jar(
