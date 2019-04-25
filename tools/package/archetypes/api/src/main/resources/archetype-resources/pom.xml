@@ -32,7 +32,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <onos.version>2.1.0-rc4</onos.version>
+        <onos.version>2.1.0-SNAPSHOT</onos.version>
     </properties>
 
     <dependencies>
