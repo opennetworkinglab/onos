@@ -17,7 +17,7 @@ def _impl(ctx):
     jar = ctx.outputs.jar
 
     cmd = [
-        "touch %s" % (jar.path),
+        "mkdir readme && touch readme/README && jar cf %s readme/README" % (jar.path),
     ]
 
     ctx.action(
