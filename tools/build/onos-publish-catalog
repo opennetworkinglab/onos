@@ -25,8 +25,13 @@ rm -f $CATALOG
 export SHLVL=1
 
 function writeCatalog {
-    bazel build $* --aspects tools/build/bazel/publish_catalog.bzl%publish_catalog 2>&1 \
-        | egrep "^DEBUG: .*/publish_catalog.bzl:" | cut -d\  -f3- >> $CATALOG
+    if ! bazel build $* --aspects tools/build/bazel/publish_catalog.bzl%publish_catalog >/tmp/onos.catalog.bazel.out 2>&1; then
+        echo Bazel build of catalog failed
+        cat /tmp/onos.catalog.bazel.out
+        exit 1
+    fi
+
+    egrep "^DEBUG: .*/publish_catalog.bzl:" /tmp/onos.catalog.bazel.out | cut -d\  -f3- >> $CATALOG
 }
 
 function jars {
