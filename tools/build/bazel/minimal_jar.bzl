@@ -13,7 +13,6 @@
 # limitations under the License.
 
 def _impl(ctx):
-    dir = ctx.label.name
     jar = ctx.outputs.jar
 
     cmd = [
@@ -22,11 +21,11 @@ def _impl(ctx):
 
     ctx.action(
         outputs = [jar],
-        progress_message = "Generating empty jar for %s" % ctx.attr.name,
+        progress_message = "Generating minimal jar for %s" % ctx.attr.name,
         command = ";\n".join(cmd),
     )
 
-empty_jar = rule(
+minimal_jar = rule(
     implementation = _impl,
     outputs = {"jar": "%{name}.jar"},
 )
