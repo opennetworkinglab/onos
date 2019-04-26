@@ -33,14 +33,6 @@ function jars {
     egrep -v '(\#|build/conf)' tools/build/publish-target-list
 }
 
-function sourceJars {
-    egrep -v '(\#|lib\:|p4runtime/proto|build/conf)' tools/build/publish-target-list
-}
-
-function javadocJars {
-    egrep -v '(\#|lib\:|p4runtime/proto|build/conf)' tools/build/publish-target-list
-}
-
 function testJars {
     egrep -v '(\#|build/conf)' tools/build/publish-test-target-list
 }
@@ -57,9 +49,9 @@ writeCatalog $(jars | sed 's/$/-pom/')
 [ $libsOnly = true ] && exit 0
 
 echo "Cataloging source jars..."
-writeCatalog $(sourceJars | sed 's/$/-sources/')
+writeCatalog $(jars | sed 's/$/-sources/')
 echo "Cataloging javadoc jars..."
-writeCatalog $(javadocJars | sed 's/$/-javadoc/')
+writeCatalog $(jars | sed 's/$/-javadoc/')
 
 echo "Cataloging oar files..."
 writeCatalog $(bazel query 'kind("_onos_oar rule", //...)')

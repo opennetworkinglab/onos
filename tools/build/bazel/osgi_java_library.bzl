@@ -22,6 +22,7 @@ load("//tools/build/bazel:pom_file.bzl", "pom_file")
 load("//tools/build/bazel:java_sources.bzl", "java_sources")
 load("//tools/build/bazel:java_sources.bzl", "java_sources_alt")
 load("//tools/build/bazel:javadoc.bzl", "javadoc")
+load("//tools/build/bazel:empty_jar.bzl", "empty_jar")
 load("@io_grpc_grpc_java//:java_grpc_library.bzl", "java_grpc_library")
 
 def _auto_name():
@@ -384,6 +385,8 @@ def wrapped_osgi_jar(
             deps = deps,
             visibility = visibility,
         )
+    empty_jar(name = name + "-sources", visibility = visibility)
+    empty_jar(name = name + "-javadoc", visibility = visibility)
 
 """
     Creates an OSGI jar and test jar file from a set of source and test files.
@@ -541,6 +544,9 @@ def osgi_jar_with_tests(
     # rule for building javadocs
     if not suppress_javadocs:
         javadoc(name = name + "-javadoc", deps = deps, srcs = srcs, visibility = visibility)
+    else:
+        empty_jar(name = name + "-javadoc", visibility = visibility)
+        empty_jar(name = name + "-sources", visibility = visibility)
 
     if test_srcs != []:
         native.java_library(
