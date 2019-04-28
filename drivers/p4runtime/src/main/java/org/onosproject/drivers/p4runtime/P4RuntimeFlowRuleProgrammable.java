@@ -421,12 +421,20 @@ public class P4RuntimeFlowRuleProgrammable
             if (piEntryToApply.isDefaultAction()) {
                 // Cannot remove default action. Instead we should use the
                 // original defined by the interpreter (if any).
-                piEntryToApply = getOriginalDefaultEntry(piEntryToApply.table());
-                if (piEntryToApply == null) {
+                final PiTableEntry originalDefaultEntry = getOriginalDefaultEntry(
+                        piEntryToApply.table());
+                if (originalDefaultEntry == null) {
                     return false;
                 }
-                updateType = MODIFY;
+                return appendEntryToWriteRequestOrSkip(
+                        writeRequest, originalDefaultEntry.handle(deviceId),
+                        originalDefaultEntry, APPLY);
             } else {
+                if (piEntryOnDevice == null) {
+                    log.debug("Ignoring delete of missing entry: {}",
+                              piEntryToApply);
+                    return true;
+                }
                 updateType = DELETE;
             }
         }
