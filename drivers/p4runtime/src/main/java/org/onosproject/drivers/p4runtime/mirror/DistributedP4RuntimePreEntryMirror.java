@@ -30,6 +30,9 @@ public final class DistributedP4RuntimePreEntryMirror
         implements P4RuntimePreEntryMirror {
 
     public DistributedP4RuntimePreEntryMirror() {
-        super(PiEntityType.PRE_ENTRY);
+        // PI does not support reading PRE entries. To avoid inconsistencies,
+        // flush mirror on device disconnection and other events which
+        // invalidate pipeline status.
+        super(PiEntityType.PRE_ENTRY, true);
     }
 }
