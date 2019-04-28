@@ -121,9 +121,12 @@ public class DriverManager implements DriverService {
 
         // Special processing for devices with pipeconf.
         if (pipeconfService.ofDevice(deviceId).isPresent()) {
-            // No fallback for pipeconf merged drivers. Returns null if driver
-            // does not exist.
-            return getPipeconfMergedDriver(deviceId);
+            // No fallback for pipeconf merged drivers.
+            // Throws exception if pipeconf driver does not exist.
+            return nullIsNotFound(
+                    getPipeconfMergedDriver(deviceId),
+                    "Device is pipeconf-capable but a " +
+                            "pipeconf-merged driver was not found");
         }
 
         // Primary source of driver configuration is the network config.
