@@ -171,7 +171,7 @@ public class DefaultHostProbingProvider extends AbstractProvider implements Host
                     // Remove this location if this is a verify probe.
                     if (hostProbe.mode() == ProbeMode.VERIFY) {
                         providerService.removeLocationFromHost(hostProbe.id(),
-                                (HostLocation) hostProbe.connectPoint());
+                                new HostLocation(hostProbe.connectPoint(), 0L));
                     }
                     break;
                 case PROBE_COMPLETED:
