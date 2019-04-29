@@ -38,7 +38,7 @@ public class VersionManager implements VersionService {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final File VERSION_FILE = new File("../VERSION");
-    private static Version version = Version.version("2.1.0-rc7");
+    private static Version version = Version.version("2.1.0-SNAPSHOT");
 
     @Activate
     protected void activate() {
