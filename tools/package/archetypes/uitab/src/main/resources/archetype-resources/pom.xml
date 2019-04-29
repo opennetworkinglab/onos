@@ -33,7 +33,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <onos.version>2.1.0-SNAPSHOT</onos.version>
+        <onos.version>2.1.0-rc7</onos.version>
         <!-- Uncomment to generate ONOS app from this module.
         <onos.app.name>org.foo.app</onos.app.name>
         <onos.app.title>Foo App</onos.app.title>
