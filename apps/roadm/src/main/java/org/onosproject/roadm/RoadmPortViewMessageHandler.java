@@ -31,6 +31,7 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.intent.OpticalPathIntent;
 import org.onosproject.net.optical.OpticalAnnotations;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiConnection;
@@ -69,6 +70,7 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
     private static final String ROADM_SET_OPS_MODE_RESP = "roadmSetOpsModeResponse";
 
     private static final String ID = "id";
+    private static final String REVERSE_PORT = "reversePort";
     private static final String NAME = "name";
     private static final String TYPE = "type";
     private static final String ENABLED = "enabled";
@@ -82,7 +84,7 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
     private static final String SERVICE_STATE = "serviceState";
 
     private static final String[] COLUMN_IDS = {
-            ID, TYPE, NAME, ENABLED, MIN_FREQ, MAX_FREQ, GRID, POWER_RANGE,
+            ID, REVERSE_PORT, TYPE, NAME, ENABLED, MIN_FREQ, MAX_FREQ, GRID, POWER_RANGE,
             CURRENT_POWER, SERVICE_STATE, TARGET_POWER, HAS_TARGET_POWER
     };
 
@@ -139,6 +141,8 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
             PortNumber portNum = port.number();
             getFrequencyLimit(deviceId, portNum);
             row.cell(ID, portNum.toLong())
+                    .cell(REVERSE_PORT, RoadmUtil.getAnnotation(port.annotations(),
+                            OpticalPathIntent.REVERSE_PORT_ANNOTATION_KEY))
                     .cell(TYPE, port.type())
                     .cell(ENABLED, port.isEnabled())
                     .cell(NAME, RoadmUtil.getAnnotation(port.annotations(), AnnotationKeys.PORT_NAME))

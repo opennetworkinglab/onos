@@ -16,7 +16,6 @@
 
 package org.onosproject.drivers.lumentum;
 
-import org.onosproject.driver.optical.flowrule.CrossConnectFlowRule;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.PortNumber;
 import org.slf4j.Logger;
@@ -45,6 +44,8 @@ public class LumentumConnection {
     protected double inputPower;
     protected double outputPower;
 
+    protected LumentumFlowRule rule;
+
     //TODO: compute target attenuation to obtain the desired targetPower
 
     /**
@@ -54,7 +55,7 @@ public class LumentumConnection {
      * @param flowRuleHash the hash code associated to the Flow Rule
      * @param xc the cross connect flow rule
      */
-    public LumentumConnection(Integer id, Integer flowRuleHash, CrossConnectFlowRule xc) {
+    public LumentumConnection(Integer id, Integer flowRuleHash, LumentumFlowRule xc) {
 
         connectionId = id;
         hashCode = flowRuleHash;
@@ -64,6 +65,7 @@ public class LumentumConnection {
         attenuation = 0.0; //dB
         inputPower = 0.0;  //dBm
         outputPower = 0.0; //dBm
+        rule = xc;
 
         if (isAddRule) {
             outPortNumber = LumentumNetconfRoadmFlowRuleProgrammable.LINE_PORT_NUMBER;

@@ -31,6 +31,7 @@
             <table>
                 <tr>
                     <td colId="id" sortable>Port Number </td>
+                    <td colId="reversePort" sortable>Reverse </td>
                     <td colId="name" sortable>Name </td>
                     <td colId="type" sortable>Type </td>
                     <td colId="enabled" sortable>Enabled </td>
@@ -56,6 +57,7 @@
                 <tr ng-repeat="item in tableData track by $index"
                     ng-class="{selected: item.id === selId}">
                     <td>{{item.id}}</td>
+                    <td>{{item.reversePort}}</td>
                     <td>{{item.name}}</td>
                     <td>{{item.type}}</td>
                     <td>{{item.enabled}}</td>

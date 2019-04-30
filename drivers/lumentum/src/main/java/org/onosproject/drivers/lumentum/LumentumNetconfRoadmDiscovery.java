@@ -23,14 +23,17 @@ import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang3.StringUtils;
 
+import org.onlab.packet.ChassisId;
+import org.onlab.util.Frequency;
 import org.onosproject.drivers.utilities.XmlConfigParser;
+import org.onosproject.net.ChannelSpacing;
+import org.onosproject.net.SparseAnnotations;
+import org.onosproject.net.DefaultAnnotations;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Device;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.DefaultAnnotations;
-import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.AnnotationKeys;
-import org.onosproject.net.Device;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DefaultDeviceDescription;
 import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.DeviceDescription;
@@ -38,6 +41,7 @@ import org.onosproject.net.device.DeviceDescriptionDiscovery;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
+import org.onosproject.net.intent.OpticalPathIntent;
 import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
@@ -49,6 +53,7 @@ import java.io.ByteArrayInputStream;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.net.optical.device.OmsPortHelper.omsPortDescription;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -72,27 +77,33 @@ public class LumentumNetconfRoadmDiscovery
     private static final String IN_SERVICE = "in-service";
     private static final String PORT_NAME = "entity-description";
 
+    public static final ChannelSpacing CHANNEL_SPACING_50 = ChannelSpacing.CHL_50GHZ;
+    public static final Frequency START_CENTER_FREQ_50 = Frequency.ofGHz(191_350);
+    public static final Frequency END_CENTER_FREQ_50 = Frequency.ofGHz(196_100);
+
+    private static final int MIN_MUX_PORT = 4101;
+    private static final int MAX_MUX_PORT = 4120;
+    private static final int MIN_DEM_PORT = 5201;
+    private static final int MAX_DEM_PORT = 5220;
+    private static final int DELTA_MUX_DEM_PORT = MIN_DEM_PORT - MIN_MUX_PORT;
+
     private final Logger log = getLogger(getClass());
 
     @Override
     public DeviceDescription discoverDeviceDetails() {
+        SparseAnnotations annotations = DefaultAnnotations.builder().build();
+
+        log.info("Lumentum NETCONF - starting discoverDeviceDetails");
 
         // Some defaults values
         String vendor       = "Lumentum";
         String hwVersion    = "not loaded";
         String swVersion    = "not loaded";
         String serialNumber = "not loaded";
-        String chassisId    = "not loaded";
+        String chassisData    = "ne=1;chassis=10";
 
+        ChassisId chassisId = null;
         DeviceId deviceId = handler().data().deviceId();
-        DeviceService deviceService = checkNotNull(handler().get(DeviceService.class));
-        Device device = deviceService.getDevice(deviceId);
-
-        //Get the configuration from the device
-        if (device == null) {
-            log.error("Lumentum NETCONF - device object not found for {}", deviceId);
-            return null;
-        }
 
         NetconfSession session = getNetconfSession();
 
@@ -131,7 +142,10 @@ public class LumentumNetconfRoadmDiscovery
 
             hwVersion    = xconf.getString("data.chassis-list.chassis.state.loteq:hardware-rev", hwVersion);
             serialNumber = xconf.getString("data.chassis-list.chassis.state.loteq:serial-no", serialNumber);
-            chassisId    = xconf.getString("data.chassis-list.chassis.dn", chassisId);
+            chassisData  = xconf.getString("data.chassis-list.chassis.dn", chassisData);
+
+            String[] parts = chassisData.split("chassis=");
+            chassisId = new ChassisId(Long.valueOf(parts[1], 10));
 
         } catch (NetconfException e) {
             log.error("Lumentum NETCONF error in session.get", e);
@@ -151,8 +165,7 @@ public class LumentumNetconfRoadmDiscovery
 
         //Return the Device Description
         return new DefaultDeviceDescription(deviceId.uri(), Device.Type.ROADM,
-                                            vendor, hwVersion, swVersion, serialNumber,
-                                            device.chassisId(), (SparseAnnotations) device.annotations());
+                vendor, hwVersion, swVersion, serialNumber, chassisId, annotations);
     }
 
     @Override
@@ -246,6 +259,27 @@ public class LumentumNetconfRoadmDiscovery
                 log.error("Port Type not correctly loaded");
             }
 
+            //Store reverse port index in the annotations
+            Long reversePortId;
+
+            /**
+             * Setting the reverse port value for the unidirectional ports.
+             *
+             * In this device each port includes an input fiber and an output fiber.
+             * The 20 input  fibers are numbered from MIN_MUX_PORT = 4101 to MAX_MUX_PORT = 4120.
+             * The 20 output fibers are numbered from MIN_DEM_PORT = 5201 to MAX_DEM_PORT = 5220.
+             *
+             * Where port 520x is always the reverse of 410x.
+             */
+            if ((portNum.toLong() >= MIN_MUX_PORT) && (portNum.toLong() <= MAX_MUX_PORT)) {
+                reversePortId = portNum.toLong() + DELTA_MUX_DEM_PORT;
+                annotations.set(OpticalPathIntent.REVERSE_PORT_ANNOTATION_KEY, reversePortId.toString());
+            }
+            if ((portNum.toLong() >= MIN_DEM_PORT) && (portNum.toLong() <= MAX_DEM_PORT)) {
+                reversePortId = portNum.toLong() - DELTA_MUX_DEM_PORT;
+                annotations.set(OpticalPathIntent.REVERSE_PORT_ANNOTATION_KEY, reversePortId.toString());
+            }
+
             //Load other information
             pcfg.getKeys().forEachRemaining(k -> {
                 if (!k.contains(DN) && !k.contains(PORT_SPEED) && !k.contains(PORT_EXTENSION)
@@ -271,14 +305,23 @@ public class LumentumNetconfRoadmDiscovery
             log.debug("Lumentum NETCONF - retrieved port {},{},{},{},{}",
                     portNum, isEnabled, type, speed, annotations.build());
 
-            DefaultPortDescription.Builder portDescriptionBuilder = DefaultPortDescription.builder();
-            portDescriptionBuilder.withPortNumber(portNum)
-                    .isEnabled(isEnabled)
-                    .type(type)
-                    .portSpeed(speed)
-                    .annotations(annotations.build());
+            if (type == Port.Type.FIBER) {
+                portDescriptions.add(omsPortDescription(portNum,
+                        isEnabled,
+                        START_CENTER_FREQ_50,
+                        END_CENTER_FREQ_50,
+                        CHANNEL_SPACING_50.frequency(),
+                        annotations.build()));
+            } else {
+                DefaultPortDescription.Builder portDescriptionBuilder = DefaultPortDescription.builder();
+                portDescriptionBuilder.withPortNumber(portNum)
+                        .isEnabled(isEnabled)
+                        .type(type)
+                        .portSpeed(speed)
+                        .annotations(annotations.build());
 
-            portDescriptions.add(portDescriptionBuilder.build());
+                portDescriptions.add(portDescriptionBuilder.build());
+            }
         });
 
         return portDescriptions;

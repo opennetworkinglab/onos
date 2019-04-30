@@ -102,7 +102,7 @@ public class LumentumPowerConfig<T> extends AbstractHandlerBehaviour
     //TODO implement actual get configuration from the device
     //This is used by ROADM application to retrieve attenuation parameter, with T instanceof OchSignal
     private Long acquireTargetPower(PortNumber port, T component) {
-        log.info("Lumentum get port {} target power...", port);
+        log.debug("Lumentum get port {} target power...", port);
 
         if (component instanceof OchSignal) {
             //FIXME include port in the filter
@@ -112,10 +112,10 @@ public class LumentumPowerConfig<T> extends AbstractHandlerBehaviour
                     .orElse(null);
 
             if (conn == null) {
-                log.info("Lumentum NETCONF fail to retrieve attenuation signal {} port {}", component, port);
+                log.debug("Lumentum NETCONF fail to retrieve attenuation signal {} port {}", component, port);
                 return 0L;
             } else {
-                log.info("Lumentum NETCONF on port {} attenuation {}", port, conn.attenuation);
+                log.debug("Lumentum NETCONF on port {} attenuation {}", port, conn.attenuation);
                 return ((long) (conn.attenuation * 100));
             }
         }
@@ -126,7 +126,7 @@ public class LumentumPowerConfig<T> extends AbstractHandlerBehaviour
     //TODO implement actual get configuration from the device
     //This is used by ROADM application to retrieve attenuation parameter, with T instanceof OchSignal
     private Long acquireCurrentPower(PortNumber port, T component) {
-        log.info("Lumentum get port {} current power...", port);
+        log.debug("Lumentum get port {} current power...", port);
 
         if (component instanceof OchSignal) {
             //FIXME include port in the filter
@@ -136,10 +136,10 @@ public class LumentumPowerConfig<T> extends AbstractHandlerBehaviour
                     .orElse(null);
 
             if (conn == null) {
-                log.info("Lumentum NETCONF fail to retrieve power signal {} port {}", component, port);
+                log.debug("Lumentum NETCONF fail to retrieve power signal {} port {}", component, port);
                 return 0L;
             } else {
-                log.info("Lumentum NETCONF on port {} power {}", port, conn.inputPower);
+                log.debug("Lumentum NETCONF on port {} power {}", port, conn.inputPower);
                 return ((long) (conn.inputPower * 100));
             }
         }

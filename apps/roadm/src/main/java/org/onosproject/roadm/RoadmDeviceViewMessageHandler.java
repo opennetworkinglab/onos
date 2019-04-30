@@ -92,7 +92,8 @@ public class RoadmDeviceViewMessageHandler extends UiMessageHandler {
         protected void populateTable(TableModel tm, ObjectNode payload) {
             for (Device device : deviceService.getDevices()) {
                 Type type = device.type();
-                if (type == Type.ROADM || type == Type.OPTICAL_AMPLIFIER || type == Type.FIBER_SWITCH) {
+                if (type == Type.ROADM || type == Type.TERMINAL_DEVICE
+                        || type == Type.OPTICAL_AMPLIFIER || type == Type.FIBER_SWITCH) {
                     populateRow(tm.addRow(), device);
                 }
             }
