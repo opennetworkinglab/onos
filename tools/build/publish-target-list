@@ -5,6 +5,7 @@
     //apps/restconf/api:onos-apps-restconf-api
     //apps/routing-api:onos-apps-routing-api
     //apps/route-service/api:onos-apps-route-service-api
+    //apps/vpls:onos-apps-vpls
     //cli:onos-cli
     //core/api:onos-api
     //core/common:onos-core-common
