@@ -89,8 +89,9 @@ load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
 git_repository(
     name = "build_bazel_rules_nodejs",
+    commit = "70406e05de721520ca568a17186de73e972d7651",
     remote = "https://github.com/bazelbuild/rules_nodejs.git",
-    tag = "0.26.0",  # check for the latest tag when you install
+    shallow_since = "1551145517 -0800",
 )
 
 load("@build_bazel_rules_nodejs//:defs.bzl", "node_repositories")
@@ -106,11 +107,13 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 # See https://github.com/bazelbuild/rules_go for the up to date setup instructions.
 http_archive(
     name = "io_bazel_rules_go",
+    sha256 = "b7a62250a3a73277ade0ce306d22f122365b513f5402222403e507f2f997d421",
     url = "https://github.com/bazelbuild/rules_go/releases/download/0.16.3/rules_go-0.16.3.tar.gz",
 )
 
 http_archive(
     name = "com_github_bazelbuild_buildtools",
+    sha256 = "e0b5b400cfef17d65886365dc7289cb4ef8dfe07066165607413a271a32aa2a4",
     strip_prefix = "buildtools-db073457c5a56d810e46efc18bb93a4fd7aa7b5e",
     url = "https://github.com/bazelbuild/buildtools/archive/db073457c5a56d810e46efc18bb93a4fd7aa7b5e.zip",
 )
