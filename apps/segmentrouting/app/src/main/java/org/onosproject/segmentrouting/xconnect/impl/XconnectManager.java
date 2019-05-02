@@ -396,6 +396,11 @@ public class XconnectManager implements XconnectService {
             hostEventExecutor.execute(() -> {
 
                 switch (event.type()) {
+                    case HOST_ADDED:
+                    case HOST_REMOVED:
+                    case HOST_UPDATED:
+                        log.trace("Unhandled host event type: {} received. Ignoring.", event.type());
+                        break;
                     case HOST_MOVED:
                         log.trace("Processing host event {}", event);
 
