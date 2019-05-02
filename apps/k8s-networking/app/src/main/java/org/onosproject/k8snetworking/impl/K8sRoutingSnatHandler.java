@@ -315,6 +315,9 @@ public class K8sRoutingSnatHandler {
                 case K8S_NODE_COMPLETE:
                     eventExecutor.execute(() -> processNodeCompletion(event.subject()));
                     break;
+                case K8S_NODE_UPDATED:
+                    eventExecutor.execute(() -> processNodeUpdate(event.subject()));
+                    break;
                 case K8S_NODE_INCOMPLETE:
                 default:
                     break;
@@ -327,9 +330,14 @@ public class K8sRoutingSnatHandler {
             }
 
             setExtIntfArpRule(k8sNode, true);
-            setSnatUpstreamRule(k8sNode, true);
             setSnatDownstreamRule(k8sNode, true);
             setContainerToExtRule(k8sNode, true);
+        }
+
+        private void processNodeUpdate(K8sNode k8sNode) {
+            if (k8sNode.extGatewayMac() != null) {
+                setSnatUpstreamRule(k8sNode, true);
+            }
         }
     }
 

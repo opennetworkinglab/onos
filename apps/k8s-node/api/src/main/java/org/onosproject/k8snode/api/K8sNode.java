@@ -121,6 +121,14 @@ public interface K8sNode {
     K8sNode updateState(K8sNodeState newState);
 
     /**
+     * Returns new kubernetes node instance with given external gateway MAC address.
+     *
+     * @param macAddress updated MAC address
+     * @return updated kubernetes node
+     */
+    K8sNode updateExtGatewayMac(MacAddress macAddress);
+
+    /**
      * Returns the GRE tunnel port number.
      *
      * @return GRE port number; null if the GRE tunnel port does not exist
@@ -271,5 +279,13 @@ public interface K8sNode {
          * @return kubernetes node builder
          */
         Builder state(K8sNodeState state);
+
+        /**
+         * Returns kubernetes node builder with supplied external gateway MAC.
+         *
+         * @param extGatewayMac external gateway MAC address
+         * @return kubernetes node builder
+         */
+        Builder extGatewayMac(MacAddress extGatewayMac);
     }
 }

@@ -287,6 +287,8 @@ public class K8sSwitchingArpHandler {
                 context.inPacket().receivedFrom().deviceId(),
                 treatment,
                 ByteBuffer.wrap(ethReply.serialize())));
+
+        context.block();
     }
 
     private String getArpMode() {
