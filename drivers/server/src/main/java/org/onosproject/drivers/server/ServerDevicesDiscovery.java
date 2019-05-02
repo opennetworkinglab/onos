@@ -66,7 +66,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.ImmutableList;
 
-import javax.ws.rs.ProcessingException;
 import java.io.InputStream;
 import java.io.IOException;
 import java.net.URI;
@@ -80,6 +79,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import javax.ws.rs.ProcessingException;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -293,6 +293,9 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         JsonNode nicNode = objNode.path(PARAM_NICS);
 
         DefaultAnnotations.Builder annotations = DefaultAnnotations.builder();
+
+        // Pass the southbound protocol as an annotation
+        annotations.set(AnnotationKeys.PROTOCOL, "REST");
 
         // Construct NIC objects
         for (JsonNode nn : nicNode) {
@@ -848,7 +851,7 @@ public class ServerDevicesDiscovery extends BasicServerDriver
             DefaultPortStatistics.Builder nicBuilder = DefaultPortStatistics.builder();
 
             nicBuilder.setDeviceId(deviceId)
-                    .setPort((int) portNumber)
+                    .setPort(PortNumber.portNumber(portNumber))
                     .setPacketsReceived(rxCount)
                     .setPacketsSent(txCount)
                     .setBytesReceived(rxBytes)
