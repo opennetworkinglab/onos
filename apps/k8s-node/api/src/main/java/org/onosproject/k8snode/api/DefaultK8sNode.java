@@ -60,6 +60,7 @@ public class DefaultK8sNode implements K8sNode {
     private final IpAddress managementIp;
     private final IpAddress dataIp;
     private final K8sNodeState state;
+    private final MacAddress extGatewayMac;
 
     private static final String NOT_NULL_MSG = "Node % cannot be null";
 
@@ -75,10 +76,12 @@ public class DefaultK8sNode implements K8sNode {
      * @param managementIp      management IP address
      * @param dataIp            data IP address
      * @param state             node state
+     * @param extGatewayMac     external gateway MAC address
      */
     protected DefaultK8sNode(String hostname, Type type, DeviceId intgBridge,
                              DeviceId extBridge, IpAddress managementIp,
-                             IpAddress dataIp, K8sNodeState state) {
+                             IpAddress dataIp, K8sNodeState state,
+                             MacAddress extGatewayMac) {
         this.hostname = hostname;
         this.type = type;
         this.intgBridge = intgBridge;
@@ -86,6 +89,7 @@ public class DefaultK8sNode implements K8sNode {
         this.managementIp = managementIp;
         this.dataIp = dataIp;
         this.state = state;
+        this.extGatewayMac = extGatewayMac;
     }
 
     @Override
@@ -123,6 +127,7 @@ public class DefaultK8sNode implements K8sNode {
                 .managementIp(managementIp)
                 .dataIp(dataIp)
                 .state(state)
+                .extGatewayMac(extGatewayMac)
                 .build();
     }
 
@@ -136,6 +141,7 @@ public class DefaultK8sNode implements K8sNode {
                 .managementIp(managementIp)
                 .dataIp(dataIp)
                 .state(state)
+                .extGatewayMac(extGatewayMac)
                 .build();
     }
 
@@ -163,7 +169,22 @@ public class DefaultK8sNode implements K8sNode {
                 .managementIp(managementIp)
                 .dataIp(dataIp)
                 .state(newState)
+                .extGatewayMac(extGatewayMac)
                 .build();
+    }
+
+    @Override
+    public K8sNode updateExtGatewayMac(MacAddress newMac) {
+        return new Builder()
+                .hostname(hostname)
+                .type(type)
+                .intgBridge(intgBridge)
+                .managementIp(managementIp)
+                .dataIp(dataIp)
+                .state(state)
+                .extGatewayMac(newMac)
+                .build();
+
     }
 
     @Override
@@ -245,15 +266,7 @@ public class DefaultK8sNode implements K8sNode {
 
     @Override
     public MacAddress extGatewayMac() {
-        OvsdbClientService client = getOvsClient();
-
-        if (client == null) {
-            return null;
-        }
-
-        Interface iface = getOvsClient().getInterface(EXTERNAL_BRIDGE);
-        OvsdbMap data = (OvsdbMap) iface.getExternalIdsColumn().data();
-        return MacAddress.valueOf((String) data.map().get(EXT_GW_MAC));
+        return extGatewayMac;
     }
 
     @Override
@@ -308,7 +321,7 @@ public class DefaultK8sNode implements K8sNode {
     @Override
     public int hashCode() {
         return Objects.hash(hostname, type, intgBridge, extBridge,
-                            managementIp, dataIp, state);
+                            managementIp, dataIp, state, extGatewayMac);
     }
 
     @Override
@@ -321,6 +334,7 @@ public class DefaultK8sNode implements K8sNode {
                 .add("managementIp", managementIp)
                 .add("dataIp", dataIp)
                 .add("state", state)
+                .add("extGatewayMac", extGatewayMac)
                 .toString();
     }
 
@@ -376,7 +390,8 @@ public class DefaultK8sNode implements K8sNode {
                 .extBridge(node.extBridge())
                 .managementIp(node.managementIp())
                 .dataIp(node.dataIp())
-                .state(node.state());
+                .state(node.state())
+                .extGatewayMac(node.extGatewayMac());
     }
 
     public static final class Builder implements K8sNode.Builder {
@@ -389,6 +404,7 @@ public class DefaultK8sNode implements K8sNode {
         private IpAddress dataIp;
         private K8sNodeState state;
         private K8sApiConfig apiConfig;
+        private MacAddress extGatewayMac;
 
         // private constructor not intended to use from external
         private Builder() {
@@ -407,7 +423,8 @@ public class DefaultK8sNode implements K8sNode {
                     extBridge,
                     managementIp,
                     dataIp,
-                    state);
+                    state,
+                    extGatewayMac);
         }
 
         @Override
@@ -449,6 +466,12 @@ public class DefaultK8sNode implements K8sNode {
         @Override
         public Builder state(K8sNodeState state) {
             this.state = state;
+            return this;
+        }
+
+        @Override
+        public Builder extGatewayMac(MacAddress extGatewayMac) {
+            this.extGatewayMac = extGatewayMac;
             return this;
         }
     }
