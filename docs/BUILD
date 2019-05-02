@@ -1,5 +1,6 @@
 load("//tools/build/bazel:project_javadoc.bzl", "project_javadoc")
-load("//tools/build/bazel:generate_workspace.bzl", "CORE_DEPS", "ONOS_VERSION")
+load("//tools/build/bazel:generate_workspace.bzl", "CORE_DEPS")
+load("//tools/build/bazel:variables.bzl", "ONOS_VERSION")
 
 SOURCES = glob(["src/main/javadoc/doc-files/*"]) + [
     "src/main/javadoc/overview.html",
