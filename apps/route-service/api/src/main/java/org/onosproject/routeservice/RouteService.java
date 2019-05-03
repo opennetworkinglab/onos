@@ -37,6 +37,14 @@ public interface RouteService extends ListenerService<RouteEvent, RouteListener>
     Collection<RouteInfo> getRoutes(RouteTableId id);
 
     /**
+     * Returns all resolved routes in the given route table.
+     *
+     * @param id route table ID
+     * @return collection of resolved route
+     */
+    Collection<ResolvedRoute> getResolvedRoutes(RouteTableId id);
+
+    /**
      * Returns the set of route tables in the system.
      *
      * @return collection of route table IDs.
