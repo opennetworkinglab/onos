@@ -145,7 +145,7 @@ public class DefaultK8sApiConfigHandler {
                 .filter(l -> l.contains(K8S_ROLE))
                 .findFirst().orElse(null);
 
-        K8sNode.Type nodeType = MASTER;
+        K8sNode.Type nodeType = MINION;
 
         if (roleStr != null) {
             String role = roleStr.split("/")[1];

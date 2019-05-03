@@ -35,7 +35,7 @@ import static org.onosproject.k8snode.util.K8sNodeUtil.prettyJson;
         description = "Lists all nodes registered in kubernetes node service")
 public class K8sNodeListCommand extends AbstractShellCommand {
 
-    private static final String FORMAT = "%-20s%-15s%-24s%-24s%-20s%-15s";
+    private static final String FORMAT = "%-28s%-15s%-24s%-20s%-15s";
 
     @Override
     protected void execute() {
@@ -46,13 +46,11 @@ public class K8sNodeListCommand extends AbstractShellCommand {
         if (outputJson()) {
             print("%s", json(nodes));
         } else {
-            print(FORMAT, "Hostname", "Type", "Integration Bridge",
-                    "Management IP", "Data IP", "State");
+            print(FORMAT, "Hostname", "Type", "Management IP", "Data IP", "State");
             for (K8sNode node : nodes) {
                 print(FORMAT,
                         node.hostname(),
                         node.type(),
-                        node.intgBridge(),
                         node.managementIp(),
                         node.dataIp() != null ? node.dataIp() : "",
                         node.state());
