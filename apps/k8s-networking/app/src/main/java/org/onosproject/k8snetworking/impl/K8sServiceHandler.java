@@ -139,6 +139,7 @@ public class K8sServiceHandler {
     private static final String UDP = "UDP";
     private static final String SERVICE_IP_NAT_MODE = "serviceIpNatMode";
     private static final String SERVICE_CIDR = "serviceCidr";
+    private static final String NONE = "None";
     private static final String B_CLASS_SUFFIX = ".0.0/16";
     private static final String A_CLASS_SUFFIX = ".0.0.0/8";
 
@@ -496,6 +497,11 @@ public class K8sServiceHandler {
     private void setShiftDomainRules(DeviceId deviceId, int installTable,
                                      int groupId, int priority, String serviceIp,
                                      int servicePort, String protocol, boolean install) {
+
+        if (serviceIp == null || NONE.equals(serviceIp)) {
+            return;
+        }
+
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPDst(IpPrefix.valueOf(IpAddress.valueOf(serviceIp), HOST_CIDR_NUM));

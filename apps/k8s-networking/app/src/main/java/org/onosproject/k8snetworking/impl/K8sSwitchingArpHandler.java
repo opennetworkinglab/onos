@@ -28,6 +28,8 @@ import org.onlab.packet.Ethernet;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
+import org.onlab.util.KryoNamespace;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cfg.ConfigProperty;
@@ -46,6 +48,7 @@ import org.onosproject.k8snode.api.K8sNodeEvent;
 import org.onosproject.k8snode.api.K8sNodeListener;
 import org.onosproject.k8snode.api.K8sNodeService;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -56,6 +59,10 @@ import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.ConsistentMap;
+import org.onosproject.store.service.Serializer;
+import org.onosproject.store.service.StorageService;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,6 +100,10 @@ public class K8sSwitchingArpHandler {
     private static final String GATEWAY_MAC = "gatewayMac";
     private static final String ARP_MODE = "arpMode";
 
+    private static final KryoNamespace SERIALIZER_HOST_MAC = KryoNamespace.newBuilder()
+            .register(KryoNamespaces.API)
+            .build();
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
 
@@ -113,6 +124,9 @@ public class K8sSwitchingArpHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected MastershipService mastershipService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected StorageService storageService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected K8sNodeService k8sNodeService;
@@ -136,6 +150,8 @@ public class K8sSwitchingArpHandler {
 
     private MacAddress gwMacAddress;
 
+    private ConsistentMap<IpAddress, MacAddress> extHostMacStore;
+
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
 
@@ -153,6 +169,12 @@ public class K8sSwitchingArpHandler {
         leadershipService.runForLeadership(appId.name());
         k8sNodeService.addListener(k8sNodeListener);
         packetService.addProcessor(packetProcessor, PacketProcessor.director(0));
+
+        extHostMacStore = storageService.<IpAddress, MacAddress>consistentMapBuilder()
+                .withSerializer(Serializer.using(SERIALIZER_HOST_MAC))
+                .withName("k8s-host-mac-store")
+                .withApplicationId(appId)
+                .build();
 
         log.info("Started");
     }
@@ -188,10 +210,15 @@ public class K8sSwitchingArpHandler {
         }
 
         ARP arpPacket = (ARP) ethPacket.getPayload();
-        if (arpPacket.getOpCode() != ARP.OP_REQUEST) {
-            return;
+        if (arpPacket.getOpCode() == ARP.OP_REQUEST) {
+            processArpRequest(context, ethPacket);
+        } else if (arpPacket.getOpCode() == ARP.OP_REPLY) {
+            processArpReply(context, ethPacket);
         }
+    }
 
+    private void processArpRequest(PacketContext context, Ethernet ethPacket) {
+        ARP arpPacket = (ARP) ethPacket.getPayload();
         K8sPort srcPort = k8sNetworkService.ports().stream()
                 .filter(p -> p.macAddress().equals(ethPacket.getSourceMAC()))
                 .findAny().orElse(null);
@@ -211,7 +238,7 @@ public class K8sSwitchingArpHandler {
         IpAddress targetIp = Ip4Address.valueOf(arpPacket.getTargetProtocolAddress());
 
         MacAddress replyMac = k8sNetworkService.ports().stream()
-        //        .filter(p -> p.networkId().equals(srcPort.networkId()))
+                //        .filter(p -> p.networkId().equals(srcPort.networkId()))
                 .filter(p -> p.ipAddress().equals(targetIp))
                 .map(K8sPort::macAddress)
                 .findAny().orElse(null);
@@ -249,19 +276,43 @@ public class K8sSwitchingArpHandler {
         }
 
         if (replyMac == null) {
-            String targetIpPrefix = targetIp.toString().split("\\.")[1];
-            String nodePrefix = NODE_IP_PREFIX + "." + targetIpPrefix;
 
-            String exBridgeCidr = k8sNodeService.completeNodes().stream()
-                    .map(n -> n.extBridgeIp().toString()).findAny().orElse(null);
+            if (targetIp.toString().startsWith(NODE_IP_PREFIX)) {
+                String targetIpPrefix = targetIp.toString().split("\\.")[1];
+                String nodePrefix = NODE_IP_PREFIX + "." + targetIpPrefix;
 
-            if (exBridgeCidr != null) {
-                String extBridgeIp = unshiftIpDomain(targetIp.toString(),
-                nodePrefix, exBridgeCidr);
+                String exBridgeCidr = k8sNodeService.completeNodes().stream()
+                        .map(n -> n.extBridgeIp().toString()).findAny().orElse(null);
 
-                replyMac = k8sNodeService.completeNodes().stream()
-                        .filter(n -> extBridgeIp.equals(n.extBridgeIp().toString()))
-                        .map(K8sNode::extBridgeMac).findAny().orElse(null);
+                if (exBridgeCidr != null) {
+                    String extBridgeIp = unshiftIpDomain(targetIp.toString(),
+                            nodePrefix, exBridgeCidr);
+
+                    replyMac = k8sNodeService.completeNodes().stream()
+                            .filter(n -> extBridgeIp.equals(n.extBridgeIp().toString()))
+                            .map(K8sNode::extBridgeMac).findAny().orElse(null);
+
+                    if (replyMac == null) {
+                        replyMac = extHostMacStore.asJavaMap().get(
+                                IpAddress.valueOf(extBridgeIp));
+                    }
+
+                    // if the source hosts are not in k8s cluster range,
+                    // we need to manually learn their MAC addresses
+                    if (replyMac == null) {
+                        ConnectPoint cp = context.inPacket().receivedFrom();
+                        K8sNode k8sNode = k8sNodeService.node(cp.deviceId());
+
+                        if (k8sNode != null) {
+                            setArpRequest(k8sNode.extBridgeMac().toBytes(),
+                                    k8sNode.extBridgeIp().toOctets(),
+                                    IpAddress.valueOf(extBridgeIp).toOctets(),
+                                    k8sNode);
+                            context.block();
+                            return;
+                        }
+                    }
+                }
             }
         }
 
@@ -289,6 +340,40 @@ public class K8sSwitchingArpHandler {
                 ByteBuffer.wrap(ethReply.serialize())));
 
         context.block();
+    }
+
+    private void processArpReply(PacketContext context, Ethernet ethPacket) {
+        ARP arpPacket = (ARP) ethPacket.getPayload();
+        ConnectPoint cp = context.inPacket().receivedFrom();
+        K8sNode k8sNode = k8sNodeService.node(cp.deviceId());
+
+        if (k8sNode != null &&
+                ethPacket.getDestinationMAC().equals(k8sNode.extBridgeMac())) {
+            IpAddress srcIp = IpAddress.valueOf(IpAddress.Version.INET,
+                    arpPacket.getSenderProtocolAddress());
+            MacAddress srcMac = MacAddress.valueOf(arpPacket.getSenderHardwareAddress());
+
+            // we only add the host IP - MAC map store once,
+            // mutable MAP scenario is not considered for now
+            if (!extHostMacStore.containsKey(srcIp)) {
+                extHostMacStore.put(srcIp, srcMac);
+            }
+        }
+    }
+
+    private void setArpRequest(byte[] senderMac, byte[] senderIp,
+                               byte[] targetIp, K8sNode k8sNode) {
+        Ethernet ethRequest = ARP.buildArpRequest(senderMac,
+                                                  senderIp, targetIp, VlanId.NO_VID);
+
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setOutput(k8sNode.intgToExtPatchPortNum())
+                .build();
+
+        packetService.emit(new DefaultOutboundPacket(
+                k8sNode.intgBridge(),
+                treatment,
+                ByteBuffer.wrap(ethRequest.serialize())));
     }
 
     private String getArpMode() {

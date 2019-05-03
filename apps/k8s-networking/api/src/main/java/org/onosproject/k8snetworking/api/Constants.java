@@ -80,7 +80,7 @@ public final class Constants {
     public static final int PRIORITY_ARP_SUBNET_RULE = 40000;
     public static final int PRIORITY_ARP_CONTROL_RULE = 40000;
     public static final int PRIORITY_ARP_REPLY_RULE = 40000;
-    public static final int PRIORITY_ARP_REQUEST_RULE = 40000;
+    public static final int PRIORITY_ARP_POD_RULE = 39000;
     public static final int PRIORITY_ARP_FLOOD_RULE = 39000;
     public static final int PRIORITY_FORCED_ACL_RULE = 50000;
     public static final int PRIORITY_ICMP_PROBE_RULE = 50000;
