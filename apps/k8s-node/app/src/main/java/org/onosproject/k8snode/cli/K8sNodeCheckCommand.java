@@ -27,9 +27,12 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.device.DeviceService;
 
+import static org.onosproject.k8snode.api.Constants.EXTERNAL_BRIDGE;
 import static org.onosproject.k8snode.api.Constants.GENEVE_TUNNEL;
 import static org.onosproject.k8snode.api.Constants.GRE_TUNNEL;
 import static org.onosproject.k8snode.api.Constants.INTEGRATION_BRIDGE;
+import static org.onosproject.k8snode.api.Constants.INTEGRATION_TO_EXTERNAL_BRIDGE;
+import static org.onosproject.k8snode.api.Constants.PHYSICAL_EXTERNAL_BRIDGE;
 import static org.onosproject.k8snode.api.Constants.VXLAN_TUNNEL;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 
@@ -61,14 +64,16 @@ public class K8sNodeCheckCommand extends AbstractShellCommand {
         }
 
         print("[Integration Bridge Status]");
-        Device device = deviceService.getDevice(node.intgBridge());
-        if (device != null) {
+        Device intgBridge = deviceService.getDevice(node.intgBridge());
+        if (intgBridge != null) {
             print("%s %s=%s available=%s %s",
-                    deviceService.isAvailable(device.id()) ? MSG_OK : MSG_ERROR,
+                    deviceService.isAvailable(intgBridge.id()) ? MSG_OK : MSG_ERROR,
                     INTEGRATION_BRIDGE,
-                    device.id(),
-                    deviceService.isAvailable(device.id()),
-                    device.annotations());
+                    intgBridge.id(),
+                    deviceService.isAvailable(intgBridge.id()),
+                    intgBridge.annotations());
+            printPortState(deviceService, node.intgBridge(), INTEGRATION_BRIDGE);
+            printPortState(deviceService, node.intgBridge(), INTEGRATION_TO_EXTERNAL_BRIDGE);
             if (node.dataIp() != null) {
                 printPortState(deviceService, node.intgBridge(), VXLAN_TUNNEL);
                 printPortState(deviceService, node.intgBridge(), GRE_TUNNEL);
@@ -79,6 +84,24 @@ public class K8sNodeCheckCommand extends AbstractShellCommand {
                     MSG_ERROR,
                     INTEGRATION_BRIDGE,
                     node.intgBridge());
+        }
+
+        print("[External Bridge Status]");
+        Device extBridge = deviceService.getDevice(node.extBridge());
+        if (extBridge != null) {
+            print("%s %s=%s available=%s %s",
+                    deviceService.isAvailable(extBridge.id()) ? MSG_OK : MSG_ERROR,
+                    EXTERNAL_BRIDGE,
+                    extBridge.id(),
+                    deviceService.isAvailable(extBridge.id()),
+                    extBridge.annotations());
+            printPortState(deviceService, node.extBridge(), EXTERNAL_BRIDGE);
+            printPortState(deviceService, node.extBridge(), PHYSICAL_EXTERNAL_BRIDGE);
+        } else {
+            print("%s %s=%s is not available",
+                    MSG_ERROR,
+                    EXTERNAL_BRIDGE,
+                    node.extBridge());
         }
     }
 
