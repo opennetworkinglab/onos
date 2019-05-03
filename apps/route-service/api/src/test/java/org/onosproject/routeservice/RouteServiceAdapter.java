@@ -43,6 +43,11 @@ public class RouteServiceAdapter implements RouteAdminService {
     }
 
     @Override
+    public Collection<ResolvedRoute> getResolvedRoutes(RouteTableId id) {
+        return null;
+    }
+
+    @Override
     public Collection<RouteTableId> getRouteTables() {
         return null;
     }
