@@ -58,6 +58,7 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.k8snetworking.api.Constants.EXT_ENTRY_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.K8S_NETWORKING_APP_ID;
+import static org.onosproject.k8snetworking.api.Constants.PRIORITY_ARP_POD_RULE;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_ARP_REPLY_RULE;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -180,6 +181,50 @@ public class K8sRoutingArpHandler {
         );
     }
 
+    private void setPodArpRequestRule(K8sNode k8sNode, boolean install) {
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchInPort(k8sNode.extToIntgPatchPortNum())
+                .matchEthType(Ethernet.TYPE_ARP)
+                .matchArpOp(ARP.OP_REQUEST)
+                .build();
+
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setOutput(k8sNode.extBridgePortNum())
+                .build();
+
+        k8sFlowRuleService.setRule(
+                appId,
+                k8sNode.extBridge(),
+                selector,
+                treatment,
+                PRIORITY_ARP_POD_RULE,
+                EXT_ENTRY_TABLE,
+                install
+        );
+    }
+
+    private void setPodArpReplyRule(K8sNode k8sNode, boolean install) {
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchInPort(k8sNode.extBridgePortNum())
+                .matchEthType(Ethernet.TYPE_ARP)
+                .matchArpOp(ARP.OP_REPLY)
+                .build();
+
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setOutput(k8sNode.extToIntgPatchPortNum())
+                .build();
+
+        k8sFlowRuleService.setRule(
+                appId,
+                k8sNode.extBridge(),
+                selector,
+                treatment,
+                PRIORITY_ARP_POD_RULE,
+                EXT_ENTRY_TABLE,
+                install
+        );
+    }
+
     private class InternalK8sNodeListener implements K8sNodeListener {
 
         private boolean isRelevantHelper() {
@@ -204,6 +249,8 @@ public class K8sRoutingArpHandler {
             }
 
             setArpReplyRule(k8sNode, true);
+            setPodArpRequestRule(k8sNode, true);
+            setPodArpReplyRule(k8sNode, true);
 
             try {
                 sleep(SLEEP_MS);
