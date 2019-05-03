@@ -209,6 +209,11 @@ public class RouteManager implements RouteService, RouteAdminService {
     }
 
     @Override
+    public Collection<ResolvedRoute> getResolvedRoutes(RouteTableId id) {
+        return resolvedRouteStore.getRoutes(id);
+    }
+
+    @Override
     public Optional<ResolvedRoute> longestPrefixLookup(IpAddress ip) {
         return resolvedRouteStore.longestPrefixMatch(ip);
     }
