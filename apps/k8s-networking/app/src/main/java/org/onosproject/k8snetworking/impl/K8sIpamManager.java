@@ -92,6 +92,18 @@ public class K8sIpamManager
     }
 
     @Override
+    public void reserveIp(String networkId, IpAddress ipAddress) {
+        if (!allocatedIps(networkId).contains(ipAddress)) {
+            String ipamId = networkId + "-" + ipAddress.toString();
+            k8sIpamStore.removeAvailableIp(ipamId);
+            k8sIpamStore.createAllocatedIp(
+                    new DefaultK8sIpam(ipamId, ipAddress, networkId));
+
+            log.info("Reserved the IP {}", ipAddress.toString());
+        }
+    }
+
+    @Override
     public boolean releaseIp(String networkId, IpAddress ipAddress) {
         IpAddress releasedIp = allocatedIps(networkId).stream()
                 .filter(ip -> ip.equals(ipAddress))

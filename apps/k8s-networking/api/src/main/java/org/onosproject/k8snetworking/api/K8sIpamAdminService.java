@@ -33,6 +33,14 @@ public interface K8sIpamAdminService extends K8sIpamService {
     IpAddress allocateIp(String networkId);
 
     /**
+     * Reserves an IP address with the given network.
+     *
+     * @param networkId network identifier
+     * @param ipAddress IP address
+     */
+    void reserveIp(String networkId, IpAddress ipAddress);
+
+    /**
      * Releases the IP address from the given network.
      *
      * @param networkId network identifier
