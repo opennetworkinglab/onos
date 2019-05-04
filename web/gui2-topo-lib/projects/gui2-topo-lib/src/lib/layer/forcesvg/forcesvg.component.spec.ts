@@ -26,7 +26,6 @@ import {
 import {DraggableDirective} from './draggable/draggable.directive';
 import {ActivatedRoute, Params} from '@angular/router';
 import {of} from 'rxjs';
-import {MapSvgComponent} from '../mapsvg/mapsvg.component';
 import {DeviceNodeSvgComponent} from './visuals/devicenodesvg/devicenodesvg.component';
 import {SubRegionNodeSvgComponent} from './visuals/subregionnodesvg/subregionnodesvg.component';
 import {HostNodeSvgComponent} from './visuals/hostnodesvg/hostnodesvg.component';
@@ -96,8 +95,12 @@ describe('ForceSvgComponent', () => {
     let logServiceSpy: jasmine.SpyObj<LogService>;
     let component: ForceSvgComponent;
     let fixture: ComponentFixture<ForceSvgComponent>;
-    const sampledata = require('./tests/test-module-topo2CurrentRegion.json');
-    const regionData: Region = <Region><unknown>(sampledata.payload);
+    const openflowSampleData = require('./tests/test-module-topo2CurrentRegion.json');
+    const openflowRegionData: Region = <Region><unknown>(openflowSampleData.payload);
+
+    const odtnSampleData = require('./tests/test-OdtnConfig-topo2CurrentRegion.json');
+    const odtnRegionData: Region = <Region><unknown>(odtnSampleData.payload);
+
     const emptyRegion: Region = <Region>{devices: [ [], [], [] ], hosts: [ [], [], [] ], links: []};
 
     beforeEach(() => {
@@ -169,26 +172,30 @@ describe('ForceSvgComponent', () => {
         expect(component).toBeTruthy();
     });
 
-    it('load sample file', () => {
-        expect(sampledata).toBeTruthy();
-        expect(sampledata.payload).toBeTruthy();
-        expect(sampledata.payload.id).toBe('(root)');
+    it('load sample files', () => {
+        expect(openflowSampleData).toBeTruthy();
+        expect(openflowSampleData.payload).toBeTruthy();
+        expect(openflowSampleData.payload.id).toBe('(root)');
+
+        expect(odtnSampleData).toBeTruthy();
+        expect(odtnSampleData.payload).toBeTruthy();
+        expect(odtnSampleData.payload.id).toBe('(root)');
     });
 
     it('should read sample data payload as Region', () => {
-        expect(regionData).toBeTruthy();
+        expect(openflowRegionData).toBeTruthy();
         // console.log(regionData);
-        expect(regionData.id).toBe('(root)');
-        expect(regionData.devices).toBeTruthy();
-        expect(regionData.devices.length).toBe(3);
-        expect(regionData.devices[2].length).toBe(10);
-        expect(regionData.hosts.length).toBe(3);
-        expect(regionData.hosts[2].length).toBe(20);
-        expect(regionData.links.length).toBe(44);
+        expect(openflowRegionData.id).toBe('(root)');
+        expect(openflowRegionData.devices).toBeTruthy();
+        expect(openflowRegionData.devices.length).toBe(3);
+        expect(openflowRegionData.devices[2].length).toBe(10);
+        expect(openflowRegionData.hosts.length).toBe(3);
+        expect(openflowRegionData.hosts[2].length).toBe(20);
+        expect(openflowRegionData.links.length).toBe(44);
     });
 
     it('should read device246 correctly', () => {
-        const device246: Device = regionData.devices[2][0];
+        const device246: Device = openflowRegionData.devices[2][0];
         expect(device246.id).toBe('of:0000000000000246');
         expect(device246.nodeType).toBe('device');
         expect(device246.type).toBe('switch');
@@ -211,7 +218,7 @@ describe('ForceSvgComponent', () => {
     });
 
     it('should read host 3 correctly', () => {
-        const host3: Host = regionData.hosts[2][0];
+        const host3: Host = openflowRegionData.hosts[2][0];
         expect(host3.id).toBe('00:88:00:00:00:03/110');
         expect(host3.nodeType).toBe('host');
         expect(host3.layer).toBe('def');
@@ -223,7 +230,7 @@ describe('ForceSvgComponent', () => {
     });
 
     it('should read link 3-205 correctly', () => {
-        const link3_205: Link = regionData.links[0];
+        const link3_205: Link = openflowRegionData.links[0];
         expect(link3_205.id).toBe('00:AA:00:00:00:03/None~of:0000000000000205/6');
         expect(link3_205.epA).toBe('00:AA:00:00:00:03/None');
         expect(link3_205.epB).toBe('of:0000000000000205');
@@ -249,25 +256,41 @@ describe('ForceSvgComponent', () => {
         expect(component.graph.nodes.length).toBe(0);
     });
 
-    it('should know hwo to format names', () => {
-        expect(ForceSvgComponent.extractNodeName('00:AA:00:00:00:03/None'))
+    it('should know how to format names', () => {
+        expect(ForceSvgComponent.extractNodeName('00:AA:00:00:00:03/None', undefined))
             .toEqual('00:AA:00:00:00:03/None');
 
-        expect(ForceSvgComponent.extractNodeName('00:AA:00:00:00:03/161'))
-            .toEqual('00:AA:00:00:00:03/161');
+        expect(ForceSvgComponent.extractNodeName('00:AA:00:00:00:03/161', '161'))
+            .toEqual('00:AA:00:00:00:03');
 
-        expect(ForceSvgComponent.extractNodeName('of:0000000000000206/6'))
+        // Like epB of first example in sampleData file - endPtStr contains port number
+        expect(ForceSvgComponent.extractNodeName('of:0000000000000206/6', '6'))
+            .toEqual('of:0000000000000206');
+
+        // Like epB of second example in sampleData file - endPtStr does not contain port number
+        expect(ForceSvgComponent.extractNodeName('of:0000000000000206', '6'))
             .toEqual('of:0000000000000206');
     });
 
-    it('should handle regionData change - sample Region', () => {
-        component.regionData = regionData;
+    it('should handle openflow regionData change - sample Region', () => {
+        component.regionData = openflowRegionData;
         component.ngOnChanges(
-            {'regionData' : new SimpleChange(<Region>{}, regionData, true)});
+            {'regionData' : new SimpleChange(<Region>{}, openflowRegionData, true)});
 
         expect(component.graph.nodes.length).toBe(30);
 
         expect(component.graph.links.length).toBe(44);
+
+    });
+
+    it('should handle odtn regionData change - sample odtn Region', () => {
+        component.regionData = odtnRegionData;
+        component.ngOnChanges(
+            {'regionData' : new SimpleChange(<Region>{}, odtnRegionData, true)});
+
+        expect(component.graph.nodes.length).toBe(2);
+
+        expect(component.graph.links.length).toBe(6);
 
     });
 });

@@ -1,0 +1,165 @@
+{
+    "event": "topo2CurrentRegion",
+    "payload": {
+        "id": "(root)",
+        "subregions": [],
+        "links": [
+            {
+                "id": "netconf:127.0.0.1:11002/201~netconf:127.0.0.1:11003/201",
+                "epA": "netconf:127.0.0.1:11002/201",
+                "epB": "netconf:127.0.0.1:11003/201",
+                "type": "UiDeviceLink",
+                "portA": "201",
+                "portB": "201",
+                "rollup": [
+                    {
+                        "id": "netconf:127.0.0.1:11002/201~netconf:127.0.0.1:11003/201",
+                        "epA": "netconf:127.0.0.1:11002/201",
+                        "epB": "netconf:127.0.0.1:11003/201",
+                        "type": "UiDeviceLink",
+                        "portA": "201",
+                        "portB": "201"
+                    }
+                ]
+            },
+            {
+                "id": "netconf:127.0.0.1:11002/202~netconf:127.0.0.1:11003/202",
+                "epA": "netconf:127.0.0.1:11002/202",
+                "epB": "netconf:127.0.0.1:11003/202",
+                "type": "UiDeviceLink",
+                "portA": "202",
+                "portB": "202",
+                "rollup": [
+                    {
+                        "id": "netconf:127.0.0.1:11002/202~netconf:127.0.0.1:11003/202",
+                        "epA": "netconf:127.0.0.1:11002/202",
+                        "epB": "netconf:127.0.0.1:11003/202",
+                        "type": "UiDeviceLink",
+                        "portA": "202",
+                        "portB": "202"
+                    }
+                ]
+            },
+            {
+                "id": "netconf:127.0.0.1:11002/203~netconf:127.0.0.1:11003/203",
+                "epA": "netconf:127.0.0.1:11002/203",
+                "epB": "netconf:127.0.0.1:11003/203",
+                "type": "UiDeviceLink",
+                "portA": "203",
+                "portB": "203",
+                "rollup": [
+                    {
+                        "id": "netconf:127.0.0.1:11002/203~netconf:127.0.0.1:11003/203",
+                        "epA": "netconf:127.0.0.1:11002/203",
+                        "epB": "netconf:127.0.0.1:11003/203",
+                        "type": "UiDeviceLink",
+                        "portA": "203",
+                        "portB": "203"
+                    }
+                ]
+            },
+            {
+                "id": "netconf:127.0.0.1:11002/204~netconf:127.0.0.1:11003/204",
+                "epA": "netconf:127.0.0.1:11002/204",
+                "epB": "netconf:127.0.0.1:11003/204",
+                "type": "UiDeviceLink",
+                "portA": "204",
+                "portB": "204",
+                "rollup": [
+                    {
+                        "id": "netconf:127.0.0.1:11002/204~netconf:127.0.0.1:11003/204",
+                        "epA": "netconf:127.0.0.1:11002/204",
+                        "epB": "netconf:127.0.0.1:11003/204",
+                        "type": "UiDeviceLink",
+                        "portA": "204",
+                        "portB": "204"
+                    }
+                ]
+            },
+            {
+                "id": "netconf:127.0.0.1:11002/205~netconf:127.0.0.1:11003/205",
+                "epA": "netconf:127.0.0.1:11002/205",
+                "epB": "netconf:127.0.0.1:11003/205",
+                "type": "UiDeviceLink",
+                "portA": "205",
+                "portB": "205",
+                "rollup": [
+                    {
+                        "id": "netconf:127.0.0.1:11002/205~netconf:127.0.0.1:11003/205",
+                        "epA": "netconf:127.0.0.1:11002/205",
+                        "epB": "netconf:127.0.0.1:11003/205",
+                        "type": "UiDeviceLink",
+                        "portA": "205",
+                        "portB": "205"
+                    }
+                ]
+            },
+            {
+                "id": "netconf:127.0.0.1:11002/206~netconf:127.0.0.1:11003/206",
+                "epA": "netconf:127.0.0.1:11002/206",
+                "epB": "netconf:127.0.0.1:11003/206",
+                "type": "UiDeviceLink",
+                "portA": "206",
+                "portB": "206",
+                "rollup": [
+                    {
+                        "id": "netconf:127.0.0.1:11002/206~netconf:127.0.0.1:11003/206",
+                        "epA": "netconf:127.0.0.1:11002/206",
+                        "epB": "netconf:127.0.0.1:11003/206",
+                        "type": "UiDeviceLink",
+                        "portA": "206",
+                        "portB": "206"
+                    }
+                ]
+            }
+        ],
+        "devices": [
+            [],
+            [],
+            [
+                {
+                    "id": "netconf:127.0.0.1:11002",
+                    "nodeType": "device",
+                    "type": "terminal_device",
+                    "online": true,
+                    "master": "127.0.0.1",
+                    "layer": "def",
+                    "props": {
+                        "ipaddress": "127.0.0.1",
+                        "protocol": "NETCONF",
+                        "driver": "cassini-ocnos",
+                        "port": "11002",
+                        "name": "cassini2",
+                        "locType": "none"
+                    }
+                },
+                {
+                    "id": "netconf:127.0.0.1:11003",
+                    "nodeType": "device",
+                    "type": "terminal_device",
+                    "online": true,
+                    "master": "127.0.0.1",
+                    "layer": "def",
+                    "props": {
+                        "ipaddress": "127.0.0.1",
+                        "protocol": "NETCONF",
+                        "driver": "cassini-ocnos",
+                        "port": "11003",
+                        "name": "cassini1",
+                        "locType": "none"
+                    }
+                }
+            ]
+        ],
+        "hosts": [
+            [],
+            [],
+            []
+        ],
+        "layerOrder": [
+            "opt",
+            "pkt",
+            "def"
+        ]
+    }
+}

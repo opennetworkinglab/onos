@@ -119,21 +119,13 @@ export class ForceSvgComponent implements OnInit, OnChanges {
      * name
      * @param endPtStr The end point name
      */
-    static extractNodeName(endPtStr: string): string {
-        const slash: number = endPtStr.indexOf('/');
-        if (slash === -1) {
+    static extractNodeName(endPtStr: string, portStr: string): string {
+        if (portStr === undefined || endPtStr === undefined) {
             return endPtStr;
-        } else {
-            const afterSlash = endPtStr.substr(slash + 1);
-            const beforeSlash = endPtStr.substr(0, slash);
-            if (afterSlash === 'None') {
-                return endPtStr;
-            } else if (beforeSlash.split(':').length > 2) {
-                return endPtStr; // Host name with mac address
-            } else {
-                return endPtStr.substr(0, slash);
-            }
+        } else if (endPtStr.includes('/')) {
+            return endPtStr.substr(0, endPtStr.length - portStr.length - 1);
         }
+        return endPtStr;
     }
 
     /**
@@ -236,13 +228,21 @@ export class ForceSvgComponent implements OnInit, OnChanges {
             // Associate the endpoints of each link with a real node
             this.graph.links = [];
             for (const linkIdx of Object.keys(this.regionData.links)) {
-                const epA = ForceSvgComponent.extractNodeName(
-                                        this.regionData.links[linkIdx].epA);
+                const link = this.regionData.links[linkIdx];
+                const epA = ForceSvgComponent.extractNodeName(link.epA, link.portA);
+                if (!this.graph.nodes.find((node) => node.id === epA)) {
+                    this.log.error('ngOnChange Could not find endpoint A', epA, 'for', link);
+                    continue;
+                }
+                const epB = ForceSvgComponent.extractNodeName(
+                    link.epB, link.portB);
+                if (!this.graph.nodes.find((node) => node.id === epB)) {
+                    this.log.error('ngOnChange Could not find endpoint B', epB, 'for', link);
+                    continue;
+                }
                 this.regionData.links[linkIdx].source =
                     this.graph.nodes.find((node) =>
                         node.id === epA);
-                const epB = ForceSvgComponent.extractNodeName(
-                    this.regionData.links[linkIdx].epB);
                 this.regionData.links[linkIdx].target =
                     this.graph.nodes.find((node) =>
                         node.id === epB);
@@ -472,17 +472,27 @@ export class ForceSvgComponent implements OnInit, OnChanges {
             case ModelEventType.LINK_ADDED_OR_UPDATED:
                 if (memo === ModelEventMemo.ADDED &&
                     this.regionData.links.findIndex((l) => l.id === subject) === -1) {
-                    const listLen = this.regionData.links.push(<RegionLink>data);
+                    const newLink = <RegionLink>data;
+
+
                     const epA = ForceSvgComponent.extractNodeName(
-                        this.regionData.links[listLen - 1].epA);
-                    this.regionData.links[listLen - 1].source =
-                        this.graph.nodes.find((node) =>
-                            node.id === epA);
+                        newLink.epA, newLink.portA);
+                    if (!this.graph.nodes.find((node) => node.id === epA)) {
+                        this.log.error('Could not find endpoint A', epA, 'of', newLink);
+                        break;
+                    }
                     const epB = ForceSvgComponent.extractNodeName(
-                        this.regionData.links[listLen - 1].epB);
+                        newLink.epB, newLink.portB);
+                    if (!this.graph.nodes.find((node) => node.id === epB)) {
+                        this.log.error('Could not find endpoint B', epB, 'of link', newLink);
+                        break;
+                    }
+
+                    const listLen = this.regionData.links.push(<RegionLink>data);
+                    this.regionData.links[listLen - 1].source =
+                        this.graph.nodes.find((node) => node.id === epA);
                     this.regionData.links[listLen - 1].target =
-                        this.graph.nodes.find((node) =>
-                            node.id === epB);
+                        this.graph.nodes.find((node) => node.id === epB);
                     this.log.debug('Link added', subject);
                 } else if (memo === ModelEventMemo.UPDATED) {
                     const oldLink = this.regionData.links.find((l) => l.id === subject);
@@ -510,8 +520,8 @@ export class ForceSvgComponent implements OnInit, OnChanges {
         const len = this.regionData.links.length;
         for (let i = 0; i < len; i++) {
             const linkIdx = this.regionData.links.findIndex((l) =>
-                (ForceSvgComponent.extractNodeName(l.epA) === subject ||
-                    ForceSvgComponent.extractNodeName(l.epB) === subject));
+                (ForceSvgComponent.extractNodeName(l.epA, l.portA) === subject ||
+                    ForceSvgComponent.extractNodeName(l.epB, l.portB) === subject));
             if (linkIdx >= 0) {
                 this.regionData.links.splice(linkIdx, 1);
                 this.log.debug('Link ', linkIdx, 'removed on attempt', i);
