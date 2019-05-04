@@ -46,10 +46,14 @@ export const glyphMapping = new Map<string, string>([
     ['thatsNoMoon', 'thatsNoMoon'],
     ['m_ports', 'm_ports'],
     ['m_switch', 'm_switch'],
+    ['switch', 'm_switch'],
     ['m_roadm', 'm_roadm'],
+    ['roadm', 'm_roadm'],
     ['m_router', 'm_router'],
+    ['router', 'm_router'],
     ['m_uiAttached', 'm_uiAttached'],
     ['m_endstation', 'm_endstation'],
+    ['endstation', 'm_endstation'],
     ['m_summary', 'm_summary'],
     ['m_details', 'm_details'],
     ['m_oblique', 'm_oblique'],
@@ -69,10 +73,17 @@ export const glyphMapping = new Map<string, string>([
     ['m_virtual', 'm_virtual'],
     ['m_other', 'm_other'],
     ['m_bgpSpeaker', 'm_bgpSpeaker'],
+    ['bgpSpeaker', 'm_bgpSpeaker'],
     ['m_otn', 'm_otn'],
+    ['otn', 'm_otn'],
+    ['m_terminal_device', 'm_otn'],
+    ['m_ols', 'm_roadm'],
     ['m_roadm_otn', 'm_roadm_otn'],
+    ['roadm_otn', 'm_roadm_otn'],
     ['m_fiberSwitch', 'm_fiberSwitch'],
+    ['fiber_switch', 'm_fiberSwitch'],
     ['m_microwave', 'm_microwave'],
+    ['microwave', 'm_microwave'],
     ['m_relatedIntents', 'm_relatedIntents'],
     ['m_intentTraffic', 'm_intentTraffic'],
     ['m_firewall', 'm_firewall'],
@@ -89,6 +100,7 @@ export const glyphMapping = new Map<string, string>([
     ['m_shortestPath', 'm_shortestPath'],
     ['m_disjointPaths', 'm_disjointPaths'],
     ['m_region', 'm_region'],
+    ['virtual', 'cord'],
 
     ['topo', 'topo'],
     ['bird', 'bird'],
@@ -251,8 +263,8 @@ export class IconService {
         if (!glyphName) {
             glyphName = iconCls;
         }
-        this.gs.loadDefs(this.ensureIconLibDefs(), [glyphName], true);
-        this.log.debug('icon definition', iconCls, 'added to defs');
+        this.gs.loadDefs(this.ensureIconLibDefs(), [glyphName], true, [iconCls]);
+        this.log.debug('icon definition', glyphName, 'added to defs as', iconCls);
     }
 
 

@@ -161,7 +161,7 @@ export class GlyphService {
      *
      * Note: defs should be a D3 selection of a single <defs> element
      */
-    loadDefs(defs, glyphIds: string[], noClear: boolean) {
+    loadDefs(defs, glyphIds: string[], noClear: boolean, asName?: string[]) {
         const list = this.fs.isA(glyphIds) || this.ids();
 
         if (!noClear) {
@@ -170,18 +170,22 @@ export class GlyphService {
         }
 
         // load up the requested glyphs
-        list.forEach((id) => {
+        list.forEach((id, idx) => {
             const g = this.glyph(id);
+            let asNameStr: string = asName[idx];
+            if (!asNameStr) {
+                asNameStr = id;
+            }
             if (g) {
                 if (noClear) {
                     // quick exit if symbol is already present
                     // TODO: check if this should be a continue or break instead
-                    if (defs.select('symbol#' + g.id).size() > 0) {
+                    if (defs.select('symbol#' + asNameStr).size() > 0) {
                         return;
                     }
                 }
                 defs.append('symbol')
-                    .attr('id', g.id)
+                    .attr('id', asNameStr)
                     .attr('viewBox', g.vb)
                     .append('path')
                     .attr('d', g.d);
