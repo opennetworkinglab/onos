@@ -1083,6 +1083,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         DHCP6 clientDhcp6 = (DHCP6) clientUdp.getPayload();
 
         boolean directConnFlag = Dhcp6HandlerUtil.directlyConnected(clientDhcp6);
+        boolean serverFound = false;
         List<InternalPacket> internalPackets = new ArrayList<>();
         List<DhcpServerInfo> serverInfoList = findValidServerInfo(directConnFlag);
         List<DhcpServerInfo> copyServerInfoList = new ArrayList<DhcpServerInfo>(serverInfoList);
@@ -1094,14 +1095,19 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
             }
             DhcpServerInfo newServerInfo = getHostInfoForServerInfo(serverInfo, serverInfoList);
             if (newServerInfo == null) {
-                log.warn("Can't get server interface with host info resolved, ignore");
+                log.debug("Can't get server interface with host info resolved, ignore serverInfo {} serverInfoList {}",
+                            serverInfo, serverInfoList);
                 continue;
             }
             Interface serverInterface = getServerInterface(newServerInfo);
             if (serverInterface == null) {
-                log.warn("Can't get server interface, ignore");
+                log.debug("Can't get server interface, ignore for serverInfo {}, serverInfoList {}",
+                           serverInfo, serverInfoList);
                 continue;
             }
+
+            serverFound = true;
+            log.debug("Server Info Found {}", serverInfo.getDhcpConnectMac());
             Ethernet etherRouted = (Ethernet) clientPacket.clone();
             MacAddress macFacingServer = serverInterface.mac();
             if (macFacingServer == null) {
@@ -1115,6 +1121,9 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                               serverInfo.getDhcpServerConnectPoint().get());
             internalPackets.add(internalPacket);
             log.debug("Sending LQ to DHCP server {}", newServerInfo.getDhcpServerIp6());
+        }
+        if (!serverFound) {
+            log.warn("ProcessDhcp6PacketFromClient No Server Found");
         }
         log.debug("num of client packets to send is{}", internalPackets.size());
 
@@ -1244,6 +1253,9 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         String clientConnectionPointStr = new String(interfaceIdOption.getInPort());
         ConnectPoint clientConnectionPoint = ConnectPoint.deviceConnectPoint(clientConnectionPointStr);
         VlanId vlanIdInUse = VlanId.vlanId(interfaceIdOption.getVlanId());
+
+        log.debug("processDhcp6PacketFromServer Interface Id Mac {}, port{}, vlan {}",
+                          peerMac, clientConnectionPointStr, vlanIdInUse);
         Interface clientInterface = interfaceService.getInterfacesByPort(clientConnectionPoint)
                 .stream().filter(iface -> Dhcp6HandlerUtil.interfaceContainsVlan(iface, vlanIdInUse))
                 .findFirst().orElse(null);
@@ -1555,7 +1567,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
             log.debug("DHCP server {} host info found. ConnectPt{}  Mac {} vlan {}", serverInfo.getDhcpServerIp6(),
                     dhcpServerConnectPoint, dhcpServerConnectMac, dhcpConnectVlan);
         } else {
-            log.warn("DHCP server {} not resolve yet connectPt {} mac {} vlan {}", serverInfo.getDhcpServerIp6(),
+            log.debug("DHCP server {} not resolve yet connectPt {} mac {} vlan {}", serverInfo.getDhcpServerIp6(),
                     dhcpServerConnectPoint, dhcpServerConnectMac, dhcpConnectVlan);
 
             Ip6Address ipToProbe;
@@ -1567,7 +1579,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
             String hostToProbe = serverInfo.getDhcpGatewayIp6()
                     .map(ip -> "gateway").orElse("server");
 
-            log.info("Dynamically probing to resolve {} IP {}", hostToProbe, ipToProbe);
+            log.debug("Dynamically probing to resolve {} IP {}", hostToProbe, ipToProbe);
             hostService.startMonitoringIp(ipToProbe);
 
             Set<Host> hosts = hostService.getHostsByIp(ipToProbe);
@@ -1581,7 +1593,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
                 newServerInfo = serverInfo;
                 log.warn("Dynamically host found host {}", host);
             } else {
-                log.warn("No host found host ip {} dynamically", ipToProbe);
+                log.debug("No host found host ip {} dynamically", ipToProbe);
             }
         }
         return newServerInfo;
