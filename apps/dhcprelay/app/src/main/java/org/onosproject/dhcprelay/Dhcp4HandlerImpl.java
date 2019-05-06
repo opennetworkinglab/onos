@@ -745,8 +745,6 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
         IPv4 ipv4Packet = (IPv4) etherReply.getPayload();
         UDP udpPacket = (UDP) ipv4Packet.getPayload();
         DHCP dhcpPacket = (DHCP) udpPacket.getPayload();
-
-
         Ip4Address clientInterfaceIp =
                 interfaceService.getInterfacesByPort(context.inPacket().receivedFrom())
                         .stream()
@@ -777,9 +775,10 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
         List<InternalPacket> internalPackets = new ArrayList<>();
         List<DhcpServerInfo> serverInfoList = findValidServerInfo(directConnFlag);
         List<DhcpServerInfo> copyServerInfoList = new ArrayList<DhcpServerInfo>(serverInfoList);
-
+        boolean serverFound = false;
 
         for (DhcpServerInfo serverInfo : copyServerInfoList) {
+
             etherReply = (Ethernet) ethernetPacket.clone();
             ipv4Packet = (IPv4) etherReply.getPayload();
             udpPacket = (UDP) ipv4Packet.getPayload();
@@ -790,13 +789,14 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
             }
             DhcpServerInfo newServerInfo = getHostInfoForServerInfo(serverInfo, serverInfoList);
             if (newServerInfo == null) {
-                log.warn("Can't get server interface with host info resolved, ignore");
+                log.debug("Can't get server interface with host info resolved, ignore serverInfo {} serverInfoList {}",
+                              serverInfo, serverInfoList);
                 continue;
             }
-
             Interface serverInterface = getServerInterface(newServerInfo);
             if (serverInterface == null) {
-                log.warn("Can't get server interface, ignore");
+                log.debug("Can't get server interface, ignore for serverInfo {}, serverInfoList {}",
+                           serverInfo, serverInfoList);
                 continue;
             }
 
@@ -804,11 +804,12 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
             MacAddress macFacingServer = serverInterface.mac();
             log.debug("Interfacing server {} Mac : {} ", ipFacingServer, macFacingServer);
             if (ipFacingServer == null || macFacingServer == null) {
-                log.warn("No IP address for server Interface {}", serverInterface);
+                log.debug("No IP address for server Interface {}", serverInterface);
                 continue;
             }
 
-
+            serverFound = true;
+            log.debug("Server Info Found {}", serverInfo.getDhcpConnectMac());
             etherReply.setSourceMACAddress(macFacingServer);
             // set default info and replace with indirect if available later on.
             if (newServerInfo.getDhcpConnectMac().isPresent()) {
@@ -891,7 +892,6 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
 
             // Remove broadcast flag
             dhcpPacket.setFlags((short) 0);
-
             udpPacket.setPayload(dhcpPacket);
             // As a DHCP relay, the source port should be server port( instead
             // of client port.
@@ -904,6 +904,9 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
                     serverInfo.getDhcpServerConnectPoint().get());
 
             internalPackets.add(internalPacket);
+        }
+        if (!serverFound) {
+            log.warn("ProcessDhcp4PacketFromClient No Server Found");
         }
         return internalPackets;
     }
@@ -1907,7 +1910,7 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
             log.debug("DHCP server {} host info found. ConnectPt{}  Mac {} vlan {}", serverInfo.getDhcpServerIp4(),
                     dhcpServerConnectPoint, dhcpServerConnectMac, dhcpConnectVlan);
         } else {
-            log.warn("DHCP server {} not resolve yet connectPt {} mac {} vlan {}", serverInfo.getDhcpServerIp4(),
+            log.debug("DHCP server {} not resolve yet connectPt {} mac {} vlan {}", serverInfo.getDhcpServerIp4(),
                     dhcpServerConnectPoint, dhcpServerConnectMac, dhcpConnectVlan);
 
             Ip4Address ipToProbe;
@@ -1919,7 +1922,7 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
             String hostToProbe = serverInfo.getDhcpGatewayIp6()
                     .map(ip -> "gateway").orElse("server");
 
-            log.warn("Dynamically probing to resolve {} IP {}", hostToProbe, ipToProbe);
+            log.debug("Dynamically probing to resolve {} IP {}", hostToProbe, ipToProbe);
             hostService.startMonitoringIp(ipToProbe);
 
             Set<Host> hosts = hostService.getHostsByIp(ipToProbe);
@@ -1933,7 +1936,7 @@ public class Dhcp4HandlerImpl implements DhcpHandler, HostProvider {
                 newServerInfo = serverInfo;
                 log.warn("Dynamically host found host {}", host);
             } else {
-                log.warn("No host found host ip {} dynamically", ipToProbe);
+                log.debug("No host found host ip {} dynamically", ipToProbe);
             }
         }
         return newServerInfo;
