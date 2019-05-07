@@ -157,6 +157,27 @@ public interface K8sNode {
     PortNumber intgBridgePortNum();
 
     /**
+     * Returns the integration to external patch port number.
+     *
+     * @return patch port number
+     */
+    PortNumber intgToExtPatchPortNum();
+
+    /**
+     * Returns the external to integration patch port number.
+     *
+     * @return patch port number
+     */
+    PortNumber extToIntgPatchPortNum();
+
+    /**
+     * Returns the external bridge to router port number.
+     *
+     * @return port number, null if the port does not exist
+     */
+    PortNumber extBridgePortNum();
+
+    /**
      * Returns the integration bridge's MAC address.
      *
      * @return MAC address; null if the MAC address does not exist
@@ -190,27 +211,6 @@ public interface K8sNode {
      * @return MAC address; null if the MAC address does not exist
      */
     MacAddress extGatewayMac();
-
-    /**
-     * Returns the integration to external patch port number.
-     *
-     * @return patch port number
-     */
-    PortNumber intgToExtPatchPortNum();
-
-    /**
-     * Returns the external to integration patch port number.
-     *
-     * @return patch port number
-     */
-    PortNumber extToIntgPatchPortNum();
-
-    /**
-     * Returns the external bridge to router port number.
-     *
-     * @return port number, null if the port does not exist
-     */
-    PortNumber extBridgePortNum();
 
     /**
      * Builder of new node entity.

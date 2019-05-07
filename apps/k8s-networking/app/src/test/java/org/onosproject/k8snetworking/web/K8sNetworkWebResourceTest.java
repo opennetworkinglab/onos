@@ -20,7 +20,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
-import org.onlab.packet.IpAddress;
 import org.onosproject.codec.CodecService;
 import org.onosproject.codec.impl.CodecManager;
 import org.onosproject.k8snetworking.api.DefaultK8sNetwork;
@@ -80,8 +79,7 @@ public class K8sNetworkWebResourceTest extends ResourceTest {
                 .name("sona-network")
                 .type(K8sNetwork.Type.VXLAN)
                 .segmentId("1")
-                .cidr("10.10.10.0/24")
-                .gatewayIp(IpAddress.valueOf("10.10.10.1"))
+                .cidr("10.10.0.0/24")
                 .mtu(1500)
                 .build();
     }

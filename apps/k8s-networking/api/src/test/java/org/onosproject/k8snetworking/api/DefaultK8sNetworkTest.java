@@ -18,7 +18,6 @@ package org.onosproject.k8snetworking.api;
 import com.google.common.testing.EqualsTester;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.packet.IpAddress;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
@@ -38,10 +37,8 @@ public class DefaultK8sNetworkTest {
     private static final Integer MTU_2 = 1600;
     private static final String SEGMENT_ID_1 = "1";
     private static final String SEGMENT_ID_2 = "2";
-    private static final IpAddress GATEWAY_IP_1 = IpAddress.valueOf("10.10.10.1");
-    private static final IpAddress GATEWAY_IP_2 = IpAddress.valueOf("20.20.20.1");
-    private static final String CIDR_1 = "32";
-    private static final String CIDR_2 = "32";
+    private static final String CIDR_1 = "10.10.0.0/24";
+    private static final String CIDR_2 = "10.10.1.0/24";
 
     private K8sNetwork k8sNetwork1;
     private K8sNetwork sameAsK8sNetwork1;
@@ -58,7 +55,6 @@ public class DefaultK8sNetworkTest {
                 .type(TYPE_1)
                 .mtu(MTU_1)
                 .segmentId(SEGMENT_ID_1)
-                .gatewayIp(GATEWAY_IP_1)
                 .cidr(CIDR_1)
                 .build();
 
@@ -68,7 +64,6 @@ public class DefaultK8sNetworkTest {
                 .type(TYPE_1)
                 .mtu(MTU_1)
                 .segmentId(SEGMENT_ID_1)
-                .gatewayIp(GATEWAY_IP_1)
                 .cidr(CIDR_1)
                 .build();
 
@@ -78,7 +73,6 @@ public class DefaultK8sNetworkTest {
                 .type(TYPE_2)
                 .mtu(MTU_2)
                 .segmentId(SEGMENT_ID_2)
-                .gatewayIp(GATEWAY_IP_2)
                 .cidr(CIDR_2)
                 .build();
     }
@@ -113,7 +107,6 @@ public class DefaultK8sNetworkTest {
         assertEquals(TYPE_1, k8sNetwork.type());
         assertEquals(MTU_1, k8sNetwork.mtu());
         assertEquals(SEGMENT_ID_1, k8sNetwork.segmentId());
-        assertEquals(GATEWAY_IP_1, k8sNetwork.gatewayIp());
         assertEquals(CIDR_1, k8sNetwork.cidr());
     }
 }
