@@ -8,8 +8,6 @@ PROTOS = [
         "p4data_proto",
         "p4runtime_proto",
     ]
-] + [
-    "@com_github_p4lang_pi//:p4config_proto",
 ]
 
 osgi_proto_jar(

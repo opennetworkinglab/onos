@@ -3,9 +3,6 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 P4RUNTIME_VER = "1.0.0"
 P4RUNTIME_SHA = "667464bd369b40b58dc9552be2c84e190a160b6e77137b735bd86e5b81c6adc0"
 
-PI_COMMIT = "539e4624f16aac39f8890a6dfb11c65040e735ad"
-PI_SHA = "a16024972c15e6d35466996bbb748e4b7bef819c1c93f05a0f2228062736c35a"
-
 def generate_p4lang():
     http_archive(
         name = "com_github_p4lang_p4runtime",
@@ -13,13 +10,4 @@ def generate_p4lang():
         sha256 = P4RUNTIME_SHA,
         strip_prefix = "p4runtime-%s/proto" % P4RUNTIME_VER,
         build_file = "//tools/build/bazel:p4runtime_BUILD",
-    )
-
-    # Needed for PI/proto/p4/tmp/p4config.proto
-    http_archive(
-        name = "com_github_p4lang_pi",
-        urls = ["https://github.com/p4lang/PI/archive/%s.zip" % PI_COMMIT],
-        sha256 = PI_SHA,
-        strip_prefix = "PI-%s/proto" % PI_COMMIT,
-        build_file = "//tools/build/bazel:pi_BUILD",
     )
