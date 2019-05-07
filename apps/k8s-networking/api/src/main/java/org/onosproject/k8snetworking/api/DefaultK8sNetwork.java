@@ -17,6 +17,7 @@ package org.onosproject.k8snetworking.api;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import org.apache.commons.net.util.SubnetUtils;
 import org.onlab.packet.IpAddress;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -27,6 +28,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 public final class DefaultK8sNetwork implements K8sNetwork {
 
     private static final int DEFAULT_MTU = 1500;
+    private static final Type DEFAULT_TYPE = Type.VXLAN;
+    private static final String DEFAULT_SEGMENT_ID = String.valueOf(100);
 
     private final String networkId;
     private final String name;
@@ -147,10 +150,22 @@ public final class DefaultK8sNetwork implements K8sNetwork {
         public K8sNetwork build() {
             checkArgument(networkId != null, NOT_NULL_MSG, "networkId");
             checkArgument(name != null, NOT_NULL_MSG, "name");
-            checkArgument(type != null, NOT_NULL_MSG, "type");
-            checkArgument(segmentId != null, NOT_NULL_MSG, "segmentId");
-            checkArgument(gatewayIp != null, NOT_NULL_MSG, "gatewayIp");
+
+            // TODO: CIDR can be retrieve from k8s node info, therefore, such
+            // value injection should be purged sooner
             checkArgument(cidr != null, NOT_NULL_MSG, "cidr");
+
+            // gateway IP address is derived from subnet CIDR
+            gatewayIp = getGatewayIp(cidr);
+
+            if (segmentId == null) {
+                segmentId = DEFAULT_SEGMENT_ID;
+            }
+
+            // VXLAN as the default tunneling protocol if not specified
+            if (type == null) {
+                type = DEFAULT_TYPE;
+            }
 
             if (mtu == null) {
                 mtu = DEFAULT_MTU;
@@ -199,6 +214,14 @@ public final class DefaultK8sNetwork implements K8sNetwork {
         public Builder cidr(String cidr) {
             this.cidr = cidr;
             return this;
+        }
+
+        private IpAddress getGatewayIp(String cidr) {
+            SubnetUtils utils = new SubnetUtils(cidr);
+            utils.setInclusiveHostCount(false);
+            SubnetUtils.SubnetInfo info = utils.getInfo();
+
+            return IpAddress.valueOf(info.getLowAddress());
         }
     }
 }

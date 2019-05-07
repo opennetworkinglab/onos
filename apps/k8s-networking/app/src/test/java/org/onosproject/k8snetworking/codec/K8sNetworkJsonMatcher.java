@@ -32,7 +32,6 @@ public final class K8sNetworkJsonMatcher extends TypeSafeDiagnosingMatcher<JsonN
     private static final String TYPE = "type";
     private static final String MTU = "mtu";
     private static final String SEGMENT_ID = "segmentId";
-    private static final String GATEWAY_IP = "gatewayIp";
     private static final String CIDR = "cidr";
 
     private K8sNetworkJsonMatcher(K8sNetwork network) {
@@ -59,11 +58,13 @@ public final class K8sNetworkJsonMatcher extends TypeSafeDiagnosingMatcher<JsonN
         }
 
         // check type
-        String jsonType = jsonNode.get(TYPE).asText();
-        String type = network.type().name();
-        if (!jsonType.equals(type)) {
-            description.appendText("network type was " + jsonType);
-            return false;
+        JsonNode jsonType = jsonNode.get(TYPE);
+        if (jsonType != null) {
+            String type = network.type().name();
+            if (!jsonType.asText().equals(type)) {
+                description.appendText("network type was " + jsonType);
+                return false;
+            }
         }
 
         // check MTU
@@ -75,19 +76,13 @@ public final class K8sNetworkJsonMatcher extends TypeSafeDiagnosingMatcher<JsonN
         }
 
         // check segment ID
-        String jsonSegmentId = jsonNode.get(SEGMENT_ID).asText();
-        String segmentId = network.segmentId();
-        if (!jsonSegmentId.equals(segmentId)) {
-            description.appendText("segment ID was " + jsonSegmentId);
-            return false;
-        }
-
-        // check gateway IP
-        String jsonGatewayIp = jsonNode.get(GATEWAY_IP).asText();
-        String gatewayIp = network.gatewayIp().toString();
-        if (!jsonGatewayIp.equals(gatewayIp)) {
-            description.appendText("gateway IP was " + jsonGatewayIp);
-            return false;
+        JsonNode jsonSegmentId = jsonNode.get(SEGMENT_ID);
+        if (jsonSegmentId != null) {
+            String segmentId = network.segmentId();
+            if (!jsonSegmentId.asText().equals(segmentId)) {
+                description.appendText("segment ID was " + jsonSegmentId);
+                return false;
+            }
         }
 
         // check CIDR

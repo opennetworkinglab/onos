@@ -15,8 +15,8 @@
  */
 package org.onosproject.k8snetworking.codec;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.onlab.packet.IpAddress;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.k8snetworking.api.DefaultK8sNetwork;
@@ -39,7 +39,6 @@ public final class K8sNetworkCodec extends JsonCodec<K8sNetwork> {
     private static final String TYPE = "type";
     private static final String MTU = "mtu";
     private static final String SEGMENT_ID = "segmentId";
-    private static final String GATEWAY_IP = "gatewayIp";
     private static final String CIDR = "cidr";
 
     private static final String MISSING_MESSAGE = " is required in K8sNetwork";
@@ -51,10 +50,15 @@ public final class K8sNetworkCodec extends JsonCodec<K8sNetwork> {
         ObjectNode result = context.mapper().createObjectNode()
                 .put(NETWORK_ID, network.networkId())
                 .put(NAME, network.name())
-                .put(TYPE, network.type().name())
-                .put(SEGMENT_ID, network.segmentId())
-                .put(GATEWAY_IP, network.gatewayIp().toString())
                 .put(CIDR, network.cidr());
+
+        if (network.type() != null) {
+            result.put(TYPE, network.type().name());
+        }
+
+        if (network.segmentId() != null) {
+            result.put(SEGMENT_ID, network.segmentId());
+        }
 
         if (network.mtu() != null) {
             result.put(MTU, network.mtu());
@@ -73,22 +77,24 @@ public final class K8sNetworkCodec extends JsonCodec<K8sNetwork> {
                 NETWORK_ID + MISSING_MESSAGE);
         String name = nullIsIllegal(json.get(NAME).asText(),
                 NAME + MISSING_MESSAGE);
-        String type = nullIsIllegal(json.get(TYPE).asText(),
-                TYPE + MISSING_MESSAGE);
-        String segmentId = nullIsIllegal(json.get(SEGMENT_ID).asText(),
-                SEGMENT_ID + MISSING_MESSAGE);
-        String gatewayIp = nullIsIllegal(json.get(GATEWAY_IP).asText(),
-                GATEWAY_IP + MISSING_MESSAGE);
         String cidr = nullIsIllegal(json.get(CIDR).asText(),
                 CIDR + MISSING_MESSAGE);
+
+        JsonNode type = json.get(TYPE);
+        JsonNode segmentId = json.get(SEGMENT_ID);
 
         DefaultK8sNetwork.Builder networkBuilder = DefaultK8sNetwork.builder()
                 .networkId(networkId)
                 .name(name)
-                .type(K8sNetwork.Type.valueOf(type))
-                .segmentId(segmentId)
-                .gatewayIp(IpAddress.valueOf(gatewayIp))
                 .cidr(cidr);
+
+        if (type != null) {
+            networkBuilder.type(K8sNetwork.Type.valueOf(type.asText()));
+        }
+
+        if (segmentId != null) {
+            networkBuilder.segmentId(segmentId.asText());
+        }
 
         if (json.get(MTU) != null) {
             networkBuilder.mtu(json.get(MTU).asInt());

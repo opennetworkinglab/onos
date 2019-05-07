@@ -67,8 +67,7 @@ public class K8sNetworkManagerTest {
             .name(NETWORK_NAME)
             .type(K8sNetwork.Type.VXLAN)
             .segmentId("1")
-            .gatewayIp(IpAddress.valueOf("10.10.10.1"))
-            .cidr("32")
+            .cidr("10.10.0.0/24")
             .mtu(1500)
             .build();
     private static final K8sNetwork NETWORK_UPDATED = DefaultK8sNetwork.builder()
@@ -76,8 +75,7 @@ public class K8sNetworkManagerTest {
             .name(UPDATED_NAME)
             .type(K8sNetwork.Type.VXLAN)
             .segmentId("1")
-            .gatewayIp(IpAddress.valueOf("10.10.10.1"))
-            .cidr("32")
+            .cidr("10.10.0.0/24")
             .mtu(1500)
             .build();
 
