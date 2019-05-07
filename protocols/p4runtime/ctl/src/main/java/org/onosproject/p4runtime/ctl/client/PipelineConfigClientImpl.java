@@ -25,7 +25,6 @@ import org.onosproject.p4runtime.api.P4RuntimePipelineConfigClient;
 import org.onosproject.p4runtime.ctl.utils.PipeconfHelper;
 import org.slf4j.Logger;
 import p4.config.v1.P4InfoOuterClass;
-import p4.tmp.P4Config;
 import p4.v1.P4RuntimeOuterClass.ForwardingPipelineConfig;
 import p4.v1.P4RuntimeOuterClass.GetForwardingPipelineConfigRequest;
 import p4.v1.P4RuntimeOuterClass.GetForwardingPipelineConfigResponse;
@@ -140,20 +139,12 @@ final class PipelineConfigClientImpl implements P4RuntimePipelineConfigClient {
                         .newBuilder()
                         .setCookie(pipeconf.fingerprint())
                         .build();
-        // FIXME: This is specific to PI P4Runtime implementation and should be
-        //  moved to driver.
-        final P4Config.P4DeviceConfig p4DeviceConfigMsg = P4Config.P4DeviceConfig
-                .newBuilder()
-                .setExtras(P4Config.P4DeviceConfig.Extras.getDefaultInstance())
-                .setReassign(true)
-                .setDeviceData(deviceData != null
-                                       ? ByteString.copyFrom(deviceData)
-                                       : ByteString.EMPTY)
-                .build();
         return ForwardingPipelineConfig
                 .newBuilder()
                 .setP4Info(p4Info)
-                .setP4DeviceConfig(p4DeviceConfigMsg.toByteString())
+                .setP4DeviceConfig(deviceData != null
+                        ? ByteString.copyFrom(deviceData)
+                        : ByteString.EMPTY)
                 .setCookie(cookieMsg)
                 .build();
     }
