@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.hamcrest.MatcherAssert;
 import org.junit.Before;
 import org.junit.Test;
-import org.onlab.packet.IpAddress;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.codec.impl.CodecManager;
@@ -82,8 +81,7 @@ public class K8sNetworkCodecTest {
                 .name("network-1")
                 .segmentId("1")
                 .type(K8sNetwork.Type.VXLAN)
-                .gatewayIp(IpAddress.valueOf("10.10.10.1"))
-                .cidr("32")
+                .cidr("10.10.0.0/24")
                 .mtu(1500)
                 .build();
 
@@ -102,8 +100,8 @@ public class K8sNetworkCodecTest {
         assertEquals("network-1", network.name());
         assertEquals("1", network.segmentId());
         assertEquals("VXLAN", network.type().name());
-        assertEquals("10.10.10.1", network.gatewayIp().toString());
-        assertEquals("32", network.cidr());
+        assertEquals("10.10.0.1", network.gatewayIp().toString());
+        assertEquals("10.10.0.0/24", network.cidr());
         assertThat(network.mtu(), is(1500));
     }
 

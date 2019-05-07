@@ -6,6 +6,7 @@ COMPILE_DEPS = CORE_DEPS + [
     "@logging_interceptor//jar",
     "@jackson_dataformat_yaml//jar",
     "@snakeyaml//jar",
+    "@commons_net//jar",
 ]
 
 TEST_DEPS = TEST_ADAPTERS + [
