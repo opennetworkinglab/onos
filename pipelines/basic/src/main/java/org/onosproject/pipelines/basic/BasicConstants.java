@@ -80,7 +80,8 @@ public final class BasicConstants {
             PiActionId.of("ingress.table0_control.set_next_hop_id");
     public static final PiActionId INGRESS_TABLE0_CONTROL_SET_EGRESS_PORT =
             PiActionId.of("ingress.table0_control.set_egress_port");
-    public static final PiActionId DROP = PiActionId.of("_drop");
+    public static final PiActionId INGRESS_TABLE0_CONTROL_DROP =
+            PiActionId.of("ingress.table0_control.drop");
     public static final PiActionId INGRESS_HOST_METER_CONTROL_READ_METER =
             PiActionId.of("ingress.host_meter_control.read_meter");
     // Action Param IDs

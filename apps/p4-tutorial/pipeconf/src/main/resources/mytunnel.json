@@ -33,10 +33,11 @@
         ["mcast_grp", 16, false],
         ["resubmit_flag", 32, false],
         ["egress_rid", 16, false],
-        ["checksum_error", 1, false],
         ["recirculate_flag", 32, false],
+        ["checksum_error", 1, false],
         ["parser_error", 32, false],
-        ["_padding_0", 5, false]
+        ["priority", 3, false],
+        ["_padding_0", 2, false]
       ]
     },
     {
@@ -148,12 +149,13 @@
   "header_union_stacks" : [],
   "field_lists" : [],
   "errors" : [
-    ["NoError", 1],
-    ["PacketTooShort", 2],
-    ["NoMatch", 3],
-    ["StackOutOfBounds", 4],
-    ["HeaderTooShort", 5],
-    ["ParserTimeout", 6]
+    ["NoError", 0],
+    ["PacketTooShort", 1],
+    ["NoMatch", 2],
+    ["StackOutOfBounds", 3],
+    ["HeaderTooShort", 4],
+    ["ParserTimeout", 5],
+    ["ParserInvalidArgument", 6]
   ],
   "enums" : [],
   "parsers" : [
@@ -500,13 +502,18 @@
       "runtime_data" : [],
       "primitives" : [
         {
-          "op" : "drop",
-          "parameters" : [],
+          "op" : "mark_to_drop",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "standard_metadata"
+            }
+          ],
           "source_info" : {
             "filename" : "mytunnel.p4",
             "line" : 173,
             "column" : 8,
-            "source_fragment" : "mark_to_drop()"
+            "source_fragment" : "mark_to_drop(standard_metadata)"
           }
         }
       ]
@@ -517,13 +524,18 @@
       "runtime_data" : [],
       "primitives" : [
         {
-          "op" : "drop",
-          "parameters" : [],
+          "op" : "mark_to_drop",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "standard_metadata"
+            }
+          ],
           "source_info" : {
             "filename" : "mytunnel.p4",
             "line" : 173,
             "column" : 8,
-            "source_fragment" : "mark_to_drop()"
+            "source_fragment" : "mark_to_drop(standard_metadata)"
           }
         }
       ]
@@ -534,13 +546,18 @@
       "runtime_data" : [],
       "primitives" : [
         {
-          "op" : "drop",
-          "parameters" : [],
+          "op" : "mark_to_drop",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "standard_metadata"
+            }
+          ],
           "source_info" : {
             "filename" : "mytunnel.p4",
             "line" : 173,
             "column" : 8,
-            "source_fragment" : "mark_to_drop()"
+            "source_fragment" : "mark_to_drop(standard_metadata)"
           }
         }
       ]
@@ -1016,6 +1033,12 @@
         {
           "name" : "tbl_act_0",
           "id" : 1,
+          "source_info" : {
+            "filename" : "mytunnel.p4",
+            "line" : 241,
+            "column" : 42,
+            "source_fragment" : "= hdr.packet_out.egress_port; ..."
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -1140,6 +1163,12 @@
         {
           "name" : "tbl_act_3",
           "id" : 5,
+          "source_info" : {
+            "filename" : "mytunnel.p4",
+            "line" : 250,
+            "column" : 16,
+            "source_fragment" : "return"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -1238,6 +1267,12 @@
         {
           "name" : "tbl_act_4",
           "id" : 8,
+          "source_info" : {
+            "filename" : "mytunnel.p4",
+            "line" : 266,
+            "column" : 12,
+            "source_fragment" : "tx_port_counter.count((bit<32>) standard_metadata.egress_spec)"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -1261,6 +1296,12 @@
         {
           "name" : "tbl_act_5",
           "id" : 9,
+          "source_info" : {
+            "filename" : "mytunnel.p4",
+            "line" : 269,
+            "column" : 12,
+            "source_fragment" : "rx_port_counter.count((bit<32>) standard_metadata.ingress_port)"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -1561,6 +1602,10 @@
     [
       "intrinsic_metadata.recirculate_flag",
       ["standard_metadata", "recirculate_flag"]
+    ],
+    [
+      "intrinsic_metadata.priority",
+      ["standard_metadata", "priority"]
     ]
   ],
   "program" : "mytunnel.p4",

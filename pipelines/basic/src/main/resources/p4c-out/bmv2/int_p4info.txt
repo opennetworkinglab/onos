@@ -71,9 +71,9 @@ tables {
     id: 16777316
   }
   action_refs {
-    id: 16784184
+    id: 16815319
   }
-  const_default_action_id: 16784184
+  const_default_action_id: 16815319
   direct_resource_ids: 318816189
   size: 1024
 }
@@ -214,13 +214,6 @@ tables {
 }
 actions {
   preamble {
-    id: 16784184
-    name: "_drop"
-    alias: "_drop"
-  }
-}
-actions {
-  preamble {
     id: 16819938
     name: "nop"
     alias: "nop"
@@ -255,6 +248,13 @@ actions {
     id: 1
     name: "port"
     bitwidth: 9
+  }
+}
+actions {
+  preamble {
+    id: 16815319
+    name: "ingress.table0_control.drop"
+    alias: "drop"
   }
 }
 actions {

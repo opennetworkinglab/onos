@@ -170,7 +170,7 @@ control c_ingress(inout headers_t hdr,
     }
 
     action _drop() {
-        mark_to_drop();
+        mark_to_drop(standard_metadata);
     }
 
     action my_tunnel_ingress(bit<32> tun_id) {

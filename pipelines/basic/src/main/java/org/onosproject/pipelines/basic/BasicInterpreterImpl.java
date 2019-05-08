@@ -56,7 +56,6 @@ import static org.onosproject.net.PortNumber.FLOOD;
 import static org.onosproject.net.flow.instructions.Instruction.Type.OUTPUT;
 import static org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 import static org.onosproject.net.pi.model.PiPacketOperationType.PACKET_OUT;
-import static org.onosproject.pipelines.basic.BasicConstants.DROP;
 import static org.onosproject.pipelines.basic.BasicConstants.EGRESS_PORT;
 import static org.onosproject.pipelines.basic.BasicConstants.HDR_HDR_ETHERNET_DST_ADDR;
 import static org.onosproject.pipelines.basic.BasicConstants.HDR_HDR_ETHERNET_ETHER_TYPE;
@@ -65,6 +64,7 @@ import static org.onosproject.pipelines.basic.BasicConstants.HDR_HDR_IPV4_DST_AD
 import static org.onosproject.pipelines.basic.BasicConstants.HDR_HDR_IPV4_SRC_ADDR;
 import static org.onosproject.pipelines.basic.BasicConstants.HDR_STANDARD_METADATA_INGRESS_PORT;
 import static org.onosproject.pipelines.basic.BasicConstants.INGRESS_PORT;
+import static org.onosproject.pipelines.basic.BasicConstants.INGRESS_TABLE0_CONTROL_DROP;
 import static org.onosproject.pipelines.basic.BasicConstants.INGRESS_TABLE0_CONTROL_SEND_TO_CPU;
 import static org.onosproject.pipelines.basic.BasicConstants.INGRESS_TABLE0_CONTROL_SET_EGRESS_PORT;
 import static org.onosproject.pipelines.basic.BasicConstants.INGRESS_TABLE0_CONTROL_TABLE0;
@@ -100,7 +100,7 @@ public class BasicInterpreterImpl extends AbstractHandlerBehaviour
             throws PiInterpreterException {
         if (treatment.allInstructions().isEmpty()) {
             // No actions means drop.
-            return PiAction.builder().withId(DROP).build();
+            return PiAction.builder().withId(INGRESS_TABLE0_CONTROL_DROP).build();
         } else if (treatment.allInstructions().size() > 1) {
             // We understand treatments with only 1 instruction.
             throw new PiInterpreterException("Treatment has multiple instructions");

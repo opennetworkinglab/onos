@@ -40,12 +40,13 @@ control spgw_normalizer(
 }
 
 control spgw_ingress(
-        inout ipv4_t            gtpu_ipv4,
-        inout udp_t             gtpu_udp,
-        inout gtpu_t            gtpu,
-        inout ipv4_t            ipv4,
-        inout udp_t             udp,
-        inout fabric_metadata_t fabric_meta
+        inout ipv4_t              gtpu_ipv4,
+        inout udp_t               gtpu_udp,
+        inout gtpu_t              gtpu,
+        inout ipv4_t              ipv4,
+        inout udp_t               udp,
+        inout fabric_metadata_t   fabric_meta,
+        inout standard_metadata_t standard_metadata
     ) {
 
     direct_counter(CounterType.packets_and_bytes) ue_counter;
@@ -145,7 +146,7 @@ control spgw_ingress(
             // S1U_SGW_PREFIX/S1U_SGW_PREFIX_LEN subnet.
             // TODO: check also that gtpu.msgtype == GTP_GPDU
             if (!s1u_filter_table.apply().hit) {
-                mark_to_drop();
+                mark_to_drop(standard_metadata);
             }
             fabric_meta.spgw.direction = SPGW_DIR_UPLINK;
             gtpu_decap();
@@ -166,7 +167,7 @@ control spgw_ingress(
         pcc_info_lookup.apply();
 
         if (fabric_meta.spgw.pcc_gate_status == PCC_GATE_CLOSED) {
-            mark_to_drop();
+            mark_to_drop(standard_metadata);
         }
 #endif // WITH_SPGW_PCC_GATING
 
