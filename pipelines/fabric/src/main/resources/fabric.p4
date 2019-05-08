@@ -62,7 +62,7 @@ control FabricIngress (inout parsed_headers_t hdr,
         filtering.apply(hdr, fabric_metadata, standard_metadata);
 #ifdef WITH_SPGW
         spgw_ingress.apply(hdr.gtpu_ipv4, hdr.gtpu_udp, hdr.gtpu,
-                           hdr.ipv4, hdr.udp, fabric_metadata);
+                           hdr.ipv4, hdr.udp, fabric_metadata, standard_metadata);
 #endif // WITH_SPGW
         if (fabric_metadata.skip_forwarding == _FALSE) {
             forwarding.apply(hdr, fabric_metadata, standard_metadata);

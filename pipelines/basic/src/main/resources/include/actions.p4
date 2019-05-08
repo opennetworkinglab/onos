@@ -20,10 +20,6 @@
 #include "headers.p4"
 #include "defines.p4"
 
-action _drop() {
-    mark_to_drop();
-}
-
 action nop() {
     NoAction();
 }

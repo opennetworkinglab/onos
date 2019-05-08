@@ -38,10 +38,11 @@
         ["mcast_grp", 16, false],
         ["resubmit_flag", 32, false],
         ["egress_rid", 16, false],
-        ["checksum_error", 1, false],
         ["recirculate_flag", 32, false],
+        ["checksum_error", 1, false],
         ["parser_error", 32, false],
-        ["_padding_0", 5, false]
+        ["priority", 3, false],
+        ["_padding_0", 2, false]
       ]
     },
     {
@@ -180,12 +181,13 @@
   "header_union_stacks" : [],
   "field_lists" : [],
   "errors" : [
-    ["NoError", 1],
-    ["PacketTooShort", 2],
-    ["NoMatch", 3],
-    ["StackOutOfBounds", 4],
-    ["HeaderTooShort", 5],
-    ["ParserTimeout", 6]
+    ["NoError", 0],
+    ["PacketTooShort", 1],
+    ["NoMatch", 2],
+    ["StackOutOfBounds", 3],
+    ["HeaderTooShort", 4],
+    ["ParserTimeout", 5],
+    ["ParserInvalidArgument", 6]
   ],
   "enums" : [],
   "parsers" : [
@@ -593,21 +595,10 @@
   "learn_lists" : [],
   "actions" : [
     {
-      "name" : "_drop",
+      "name" : "NoAction",
       "id" : 0,
       "runtime_data" : [],
-      "primitives" : [
-        {
-          "op" : "drop",
-          "parameters" : [],
-          "source_info" : {
-            "filename" : "include/actions.p4",
-            "line" : 24,
-            "column" : 4,
-            "source_fragment" : "mark_to_drop()"
-          }
-        }
-      ]
+      "primitives" : []
     },
     {
       "name" : "NoAction",
@@ -616,14 +607,8 @@
       "primitives" : []
     },
     {
-      "name" : "NoAction",
-      "id" : 2,
-      "runtime_data" : [],
-      "primitives" : []
-    },
-    {
       "name" : "ingress.table0_control.set_next_hop_id",
-      "id" : 3,
+      "id" : 2,
       "runtime_data" : [
         {
           "name" : "next_hop_id",
@@ -654,7 +639,7 @@
     },
     {
       "name" : "ingress.table0_control.send_to_cpu",
-      "id" : 4,
+      "id" : 3,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -680,7 +665,7 @@
     },
     {
       "name" : "ingress.table0_control.set_egress_port",
-      "id" : 5,
+      "id" : 4,
       "runtime_data" : [
         {
           "name" : "port",
@@ -705,6 +690,28 @@
             "line" : 38,
             "column" : 8,
             "source_fragment" : "standard_metadata.egress_spec = port"
+          }
+        }
+      ]
+    },
+    {
+      "name" : "ingress.table0_control.drop",
+      "id" : 5,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "mark_to_drop",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "standard_metadata"
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/table0.p4",
+            "line" : 42,
+            "column" : 8,
+            "source_fragment" : "mark_to_drop(standard_metadata)"
           }
         }
       ]
@@ -752,13 +759,18 @@
       "runtime_data" : [],
       "primitives" : [
         {
-          "op" : "drop",
-          "parameters" : [],
+          "op" : "mark_to_drop",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "standard_metadata"
+            }
+          ],
           "source_info" : {
             "filename" : "include/port_meters.p4",
             "line" : 29,
             "column" : 12,
-            "source_fragment" : "mark_to_drop()"
+            "source_fragment" : "mark_to_drop(standard_metadata)"
           }
         }
       ]
@@ -914,6 +926,16 @@
             "column" : 12,
             "source_fragment" : "hdr.packet_out.setInvalid()"
           }
+        },
+        {
+          "op" : "exit",
+          "parameters" : [],
+          "source_info" : {
+            "filename" : "include/packet_io.p4",
+            "line" : 29,
+            "column" : 12,
+            "source_fragment" : "exit"
+          }
         }
       ]
     },
@@ -949,13 +971,18 @@
       "runtime_data" : [],
       "primitives" : [
         {
-          "op" : "drop",
-          "parameters" : [],
+          "op" : "mark_to_drop",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "standard_metadata"
+            }
+          ],
           "source_info" : {
             "filename" : "include/host_meter_table.p4",
             "line" : 48,
             "column" : 12,
-            "source_fragment" : "mark_to_drop()"
+            "source_fragment" : "mark_to_drop(standard_metadata)"
           }
         }
       ]
@@ -966,13 +993,18 @@
       "runtime_data" : [],
       "primitives" : [
         {
-          "op" : "drop",
-          "parameters" : [],
+          "op" : "mark_to_drop",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "standard_metadata"
+            }
+          ],
           "source_info" : {
             "filename" : "include/port_meters.p4",
             "line" : 43,
             "column" : 12,
-            "source_fragment" : "mark_to_drop()"
+            "source_fragment" : "mark_to_drop(standard_metadata)"
           }
         }
       ]
@@ -1147,6 +1179,12 @@
         {
           "name" : "tbl_act",
           "id" : 0,
+          "source_info" : {
+            "filename" : "include/port_counters.p4",
+            "line" : 29,
+            "column" : 8,
+            "source_fragment" : "ingress_port_counter.count((bit<32>) standard_metadata.ingress_port); ..."
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -1170,6 +1208,12 @@
         {
           "name" : "tbl_act_0",
           "id" : 1,
+          "source_info" : {
+            "filename" : "include/port_meters.p4",
+            "line" : 29,
+            "column" : 12,
+            "source_fragment" : "mark_to_drop(standard_metadata)"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -1193,6 +1237,12 @@
         {
           "name" : "tbl_act_1",
           "id" : 2,
+          "source_info" : {
+            "filename" : "include/packet_io.p4",
+            "line" : 27,
+            "column" : 42,
+            "source_fragment" : "= hdr.packet_out.egress_port; ..."
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -1202,9 +1252,9 @@
           "direct_meters" : null,
           "action_ids" : [10],
           "actions" : ["act_1"],
-          "base_default_next" : null,
+          "base_default_next" : "ingress.table0_control.table0",
           "next_tables" : {
-            "act_1" : null
+            "act_1" : "ingress.table0_control.table0"
           },
           "default_entry" : {
             "action_id" : 10,
@@ -1218,7 +1268,7 @@
           "id" : 3,
           "source_info" : {
             "filename" : "include/table0.p4",
-            "line" : 41,
+            "line" : 45,
             "column" : 10,
             "source_fragment" : "table0"
           },
@@ -1284,17 +1334,17 @@
           "with_counters" : true,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [5, 4, 3, 0],
-          "actions" : ["ingress.table0_control.set_egress_port", "ingress.table0_control.send_to_cpu", "ingress.table0_control.set_next_hop_id", "_drop"],
+          "action_ids" : [4, 3, 2, 5],
+          "actions" : ["ingress.table0_control.set_egress_port", "ingress.table0_control.send_to_cpu", "ingress.table0_control.set_next_hop_id", "ingress.table0_control.drop"],
           "base_default_next" : "tbl_act_2",
           "next_tables" : {
             "ingress.table0_control.set_egress_port" : "tbl_act_2",
             "ingress.table0_control.send_to_cpu" : "tbl_act_2",
             "ingress.table0_control.set_next_hop_id" : "tbl_act_2",
-            "_drop" : "tbl_act_2"
+            "ingress.table0_control.drop" : "tbl_act_2"
           },
           "default_entry" : {
-            "action_id" : 0,
+            "action_id" : 5,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -1303,6 +1353,12 @@
         {
           "name" : "tbl_act_2",
           "id" : 4,
+          "source_info" : {
+            "filename" : "include/host_meter_table.p4",
+            "line" : 26,
+            "column" : 4,
+            "source_fragment" : "MeterColor meter_tag = MeterColor_GREEN;"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -1346,7 +1402,7 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : "ingress.host_meter_control.host_meter",
-          "action_ids" : [6, 1],
+          "action_ids" : [6, 0],
           "actions" : ["ingress.host_meter_control.read_meter", "NoAction"],
           "base_default_next" : "node_10",
           "next_tables" : {
@@ -1354,7 +1410,7 @@
             "NoAction" : "node_10"
           },
           "default_entry" : {
-            "action_id" : 1,
+            "action_id" : 0,
             "action_const" : false,
             "action_data" : [],
             "action_entry_const" : false
@@ -1363,6 +1419,12 @@
         {
           "name" : "tbl_act_3",
           "id" : 6,
+          "source_info" : {
+            "filename" : "include/host_meter_table.p4",
+            "line" : 48,
+            "column" : 12,
+            "source_fragment" : "mark_to_drop(standard_metadata)"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -1407,7 +1469,7 @@
           "with_counters" : true,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [7, 2],
+          "action_ids" : [7, 1],
           "actions" : ["ingress.wcmp_control.set_egress_port", "NoAction"],
           "base_default_next" : null,
           "next_tables" : {
@@ -1575,6 +1637,12 @@
         {
           "name" : "tbl_act_4",
           "id" : 8,
+          "source_info" : {
+            "filename" : "include/port_counters.p4",
+            "line" : 39,
+            "column" : 8,
+            "source_fragment" : "egress_port_counter.count((bit<32>) standard_metadata.egress_port); ..."
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -1598,6 +1666,12 @@
         {
           "name" : "tbl_act_5",
           "id" : 9,
+          "source_info" : {
+            "filename" : "include/port_meters.p4",
+            "line" : 43,
+            "column" : 12,
+            "source_fragment" : "mark_to_drop(standard_metadata)"
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -1621,6 +1695,12 @@
         {
           "name" : "tbl_act_6",
           "id" : 10,
+          "source_info" : {
+            "filename" : "include/packet_io.p4",
+            "line" : 38,
+            "column" : 12,
+            "source_fragment" : "hdr.packet_in.setValid(); ..."
+          },
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -1773,6 +1853,10 @@
     [
       "intrinsic_metadata.recirculate_flag",
       ["standard_metadata", "recirculate_flag"]
+    ],
+    [
+      "intrinsic_metadata.priority",
+      ["standard_metadata", "priority"]
     ]
   ],
   "program" : "basic.p4",

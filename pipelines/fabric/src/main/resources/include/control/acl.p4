@@ -48,7 +48,7 @@ control Acl (inout parsed_headers_t hdr,
     }
 
     action drop() {
-        mark_to_drop();
+        mark_to_drop(standard_metadata);
         fabric_metadata.skip_next = _TRUE;
         acl_counter.count();
     }

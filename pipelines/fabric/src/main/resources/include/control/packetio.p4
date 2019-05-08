@@ -44,7 +44,7 @@ control PacketIoEgress(inout parsed_headers_t hdr,
             if (fabric_metadata.is_multicast == _TRUE &&
                 fabric_metadata.clone_to_cpu == _FALSE) {
                 // Is multicast but clone was not requested.
-                mark_to_drop();
+                mark_to_drop(standard_metadata);
             }
             hdr.packet_in.setValid();
             hdr.packet_in.ingress_port = standard_metadata.ingress_port;

@@ -26,7 +26,7 @@ control port_meters_ingress(inout headers_t hdr,
     apply {
         ingress_port_meter.execute_meter<MeterColor>((bit<32>)standard_metadata.ingress_port, ingress_color);
         if (ingress_color == MeterColor_RED) {
-            mark_to_drop();
+            mark_to_drop(standard_metadata);
         } 
     }
 }
@@ -40,7 +40,7 @@ control port_meters_egress(inout headers_t hdr,
     apply {
         egress_port_meter.execute_meter<MeterColor>((bit<32>)standard_metadata.egress_port, egress_color);
         if (egress_color == MeterColor_RED) {
-            mark_to_drop();
+            mark_to_drop(standard_metadata);
         } 
     }
 }

@@ -45,7 +45,7 @@ control host_meter_control(inout headers_t hdr,
     apply {
         host_meter_table.apply();
         if (meter_tag == MeterColor_RED) {
-            mark_to_drop();
+            mark_to_drop(standard_metadata);
         }
      }
 }

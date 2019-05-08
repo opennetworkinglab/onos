@@ -38,6 +38,10 @@ control table0_control(inout headers_t hdr,
         standard_metadata.egress_spec = port;
     }
 
+    action drop() {
+        mark_to_drop(standard_metadata);
+    }
+
     table table0 {
         key = {
             standard_metadata.ingress_port : ternary;
@@ -54,9 +58,9 @@ control table0_control(inout headers_t hdr,
             set_egress_port;
             send_to_cpu;
             set_next_hop_id;
-            _drop;
+            drop;
         }
-        const default_action = _drop();
+        const default_action = drop();
         counters = table0_counter;
     }
 
