@@ -34,6 +34,9 @@ public final class OsgiPropertyConstants {
     public static final String REQUEST_NDP = "requestIpv6ND";
     public static final boolean REQUEST_NDP_DEFAULT = false;
 
+    public static final String REQUEST_NDP_RS_RA = "requestIpv6NdpRsRa";
+    public static final boolean REQUEST_NDP_RS_RA_DEFAULT = false;
+
     public static final String USE_DHCP = "useDhcp";
     public static final boolean USE_DHCP_DEFAULT = false;
 

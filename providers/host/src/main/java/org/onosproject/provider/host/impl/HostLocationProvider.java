@@ -115,6 +115,7 @@ import static org.slf4j.LoggerFactory.getLogger;
                 HOST_REMOVAL_ENABLED + ":Boolean=" + HOST_REMOVAL_ENABLED_DEFAULT,
                 REQUEST_ARP + ":Boolean=" + REQUEST_ARP_DEFAULT,
                 REQUEST_NDP + ":Boolean=" + REQUEST_NDP_DEFAULT,
+                REQUEST_NDP_RS_RA + ":Boolean=" + REQUEST_NDP_RS_RA_DEFAULT,
                 USE_DHCP + ":Boolean=" + USE_DHCP_DEFAULT,
                 USE_DHCP6 + ":Boolean=" + USE_DHCP6_DEFAULT,
                 REQUEST_INTERCEPTS_ENABLED + ":Boolean=" + REQUEST_INTERCEPTS_ENABLED_DEFAULT,
@@ -162,8 +163,11 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
     /** Request ARP packets for neighbor discovery by the Host Location Provider; default is true. */
     private boolean requestArp = true;
 
-    /** Requests IPv6 Neighbor Discovery by the Host Location Provider; default is false. */
+    /** Requests IPv6 NDP Neighbor Solicitation and Advertisement by the Host Location Provider; default is false. */
     private boolean requestIpv6ND = false;
+
+    /** Requests IPv6 NDP Router Solicitation and Advertisement by the Host Location Provider; default is false. */
+    private boolean requestIpv6NdpRsRa = false;
 
     /** Use DHCP to update IP address of the host; default is false. */
     private boolean useDhcp = false;
@@ -257,32 +261,40 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
      */
     private void requestIntercepts() {
         // Use ARP
-        TrafficSelector arpSelector = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_ARP)
-                .build();
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_ARP);
         if (requestArp) {
-            packetService.requestPackets(arpSelector, PacketPriority.CONTROL, appId);
+            packetService.requestPackets(selector.build(), PacketPriority.CONTROL, appId);
         } else {
-            packetService.cancelPackets(arpSelector, PacketPriority.CONTROL, appId);
+            packetService.cancelPackets(selector.build(), PacketPriority.CONTROL, appId);
         }
 
-        // Use IPv6 Neighbor Discovery
-        TrafficSelector ipv6NsSelector = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV6)
-                .matchIPProtocol(IPv6.PROTOCOL_ICMP6)
-                .matchIcmpv6Type(ICMP6.NEIGHBOR_SOLICITATION)
-                .build();
-        TrafficSelector ipv6NaSelector = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV6)
-                .matchIPProtocol(IPv6.PROTOCOL_ICMP6)
-                .matchIcmpv6Type(ICMP6.NEIGHBOR_ADVERTISEMENT)
-                .build();
+        // Use IPv6 NDP Neighbor Solicitation and Advertisement
+        selector.matchEthType(Ethernet.TYPE_IPV6)
+                .matchIPProtocol(IPv6.PROTOCOL_ICMP6);
         if (requestIpv6ND) {
-            packetService.requestPackets(ipv6NsSelector, PacketPriority.CONTROL, appId);
-            packetService.requestPackets(ipv6NaSelector, PacketPriority.CONTROL, appId);
+            selector.matchIcmpv6Type(ICMP6.NEIGHBOR_SOLICITATION);
+            packetService.requestPackets(selector.build(), PacketPriority.CONTROL, appId);
+            selector.matchIcmpv6Type(ICMP6.NEIGHBOR_ADVERTISEMENT);
+            packetService.requestPackets(selector.build(), PacketPriority.CONTROL, appId);
         } else {
-            packetService.cancelPackets(ipv6NsSelector, PacketPriority.CONTROL, appId);
-            packetService.cancelPackets(ipv6NaSelector, PacketPriority.CONTROL, appId);
+            selector.matchIcmpv6Type(ICMP6.NEIGHBOR_SOLICITATION);
+            packetService.cancelPackets(selector.build(), PacketPriority.CONTROL, appId);
+            selector.matchIcmpv6Type(ICMP6.NEIGHBOR_ADVERTISEMENT);
+            packetService.cancelPackets(selector.build(), PacketPriority.CONTROL, appId);
+        }
+
+        // Use IPv6 NDP Router Solicitation and Advertisement
+        if (requestIpv6NdpRsRa) {
+            selector.matchIcmpv6Type(ICMP6.ROUTER_SOLICITATION);
+            packetService.requestPackets(selector.build(), PacketPriority.CONTROL, appId);
+            selector.matchIcmpv6Type(ICMP6.ROUTER_ADVERTISEMENT);
+            packetService.requestPackets(selector.build(), PacketPriority.CONTROL, appId);
+        } else {
+            selector.matchIcmpv6Type(ICMP6.ROUTER_SOLICITATION);
+            packetService.cancelPackets(selector.build(), PacketPriority.CONTROL, appId);
+            selector.matchIcmpv6Type(ICMP6.ROUTER_ADVERTISEMENT);
+            packetService.cancelPackets(selector.build(), PacketPriority.CONTROL, appId);
         }
     }
 
@@ -340,8 +352,18 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                              "using current value of {}", requestIpv6ND);
         } else {
             requestIpv6ND = flag;
-            log.info("Configured. Using IPv6 Neighbor Discovery is {}",
+            log.info("Configured. Using IPv6 NDP Neighbor Solicitation and Advertisement is {}",
                      requestIpv6ND ? "enabled" : "disabled");
+        }
+
+        flag = Tools.isPropertyEnabled(properties, REQUEST_NDP_RS_RA);
+        if (flag == null) {
+            log.info("Using IPv6 Neighbor Discovery is not configured, " +
+                    "using current value of {}", requestIpv6NdpRsRa);
+        } else {
+            requestIpv6NdpRsRa = flag;
+            log.info("Configured. Using IPv6 NDP Router Solicitation and Advertisement is {}",
+                    requestIpv6NdpRsRa ? "enabled" : "disabled");
         }
 
         flag = Tools.isPropertyEnabled(properties, USE_DHCP);
@@ -610,8 +632,12 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                     // Neighbor Discovery Protocol
                     pkt = pkt.getPayload();
                     if (pkt != null) {
-                        // RouterSolicitation, RouterAdvertisement
-                        if (pkt instanceof RouterAdvertisement || pkt instanceof RouterSolicitation) {
+                        if ((pkt instanceof RouterAdvertisement || pkt instanceof RouterSolicitation)) {
+                            if (ip.isZero()) {
+                                return;
+                            }
+                            // RouterSolicitation, RouterAdvertisement
+                            createOrUpdateHost(hid, srcMac, vlan, innerVlan, outerTpid, hloc, ip);
                             return;
                         }
                         if (pkt instanceof NeighborSolicitation || pkt instanceof NeighborAdvertisement) {
