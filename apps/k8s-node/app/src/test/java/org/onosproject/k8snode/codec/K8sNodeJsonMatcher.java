@@ -18,6 +18,7 @@ package org.onosproject.k8snode.codec;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
+import org.onlab.packet.IpAddress;
 import org.onosproject.k8snode.api.K8sNode;
 
 /**
@@ -33,6 +34,9 @@ public final class K8sNodeJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode
     private static final String DATA_IP = "dataIp";
     private static final String INTEGRATION_BRIDGE = "integrationBridge";
     private static final String STATE = "state";
+    private static final String EXTERNAL_INTF = "externalInterface";
+    private static final String EXTERNAL_BRIDGE_IP = "externalBridgeIp";
+    private static final String EXTERNAL_GATEWAY_IP = "externalGatewayIp";
 
     private K8sNodeJsonMatcher(K8sNode node) {
         this.node = node;
@@ -89,6 +93,36 @@ public final class K8sNodeJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode
             String dataIp = node.dataIp().toString();
             if (!jsonDataIp.asText().equals(dataIp)) {
                 description.appendText("Data IP was " + jsonDataIp.asText());
+                return false;
+            }
+        }
+
+        // check external interface
+        JsonNode jsonExtIntf = jsonNode.get(EXTERNAL_INTF);
+        if (jsonExtIntf != null) {
+            String extIntf = node.extIntf();
+            if (!jsonExtIntf.asText().equals(extIntf)) {
+                description.appendText("External interface was " + jsonExtIntf.asText());
+                return false;
+            }
+        }
+
+        // check external bridge IP
+        JsonNode jsonExtBridgeIp = jsonNode.get(EXTERNAL_BRIDGE_IP);
+        if (jsonExtBridgeIp != null) {
+            IpAddress extBridgeIp = node.extBridgeIp();
+            if (!jsonExtBridgeIp.asText().equals(extBridgeIp.toString())) {
+                description.appendText("External bridge IP was " + jsonExtBridgeIp.asText());
+                return false;
+            }
+        }
+
+        // check external gateway IP
+        JsonNode jsonExtGatewayIp = jsonNode.get(EXTERNAL_GATEWAY_IP);
+        if (jsonExtGatewayIp != null) {
+            IpAddress extGatewayIp = node.extGatewayIp();
+            if (!jsonExtGatewayIp.asText().equals(extGatewayIp.toString())) {
+                description.appendText("External gateway IP was " + jsonExtGatewayIp.asText());
                 return false;
             }
         }

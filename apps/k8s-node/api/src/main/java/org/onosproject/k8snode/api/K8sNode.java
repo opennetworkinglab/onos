@@ -76,6 +76,13 @@ public interface K8sNode {
     DeviceId extBridge();
 
     /**
+     * Returns the external interface name.
+     *
+     * @return external interface name
+     */
+    String extIntf();
+
+    /**
      * Returns new kubernetes node instance with given integration bridge.
      *
      * @param deviceId  integration bridge device ID
@@ -111,6 +118,13 @@ public interface K8sNode {
      * @return node state
      */
     K8sNodeState state();
+
+    /**
+     * Returns the POD CIDR of the node.
+     *
+     * @return POD CIDR (e.g., 10.10.0.0/24)
+     */
+    String podCidr();
 
     /**
      * Returns new kubernetes node instance with given state.
@@ -257,6 +271,14 @@ public interface K8sNode {
         Builder extBridge(DeviceId deviceId);
 
         /**
+         * Returns kubernetes node builder with supplied external interface.
+         *
+         * @param intf external interface
+         * @return kubernetes node builder
+         */
+        Builder extIntf(String intf);
+
+        /**
          * Returns kubernetes node builder with supplied management IP address.
          *
          * @param managementIp management IP address
@@ -281,11 +303,35 @@ public interface K8sNode {
         Builder state(K8sNodeState state);
 
         /**
+         * Returns kubernetes node builder with supplied external bridge IP.
+         *
+         * @param extBridgeIp external bridge IP
+         * @return kubernetes node builder
+         */
+        Builder extBridgeIp(IpAddress extBridgeIp);
+
+        /**
+         * Returns kubernetes node builder with supplied gateway IP.
+         *
+         * @param extGatewayIp external gateway IP
+         * @return kubernetes node builder
+         */
+        Builder extGatewayIp(IpAddress extGatewayIp);
+
+        /**
          * Returns kubernetes node builder with supplied external gateway MAC.
          *
          * @param extGatewayMac external gateway MAC address
          * @return kubernetes node builder
          */
         Builder extGatewayMac(MacAddress extGatewayMac);
+
+        /**
+         * Returns kubernetes node builder with supplied POD CIDR.
+         *
+         * @param podCidr POD CIDR
+         * @return kubernetes node builder
+         */
+        Builder podCidr(String podCidr);
     }
 }

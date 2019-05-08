@@ -84,6 +84,9 @@ public class K8sNodeCodecTest {
                 .managementIp(IpAddress.valueOf("10.10.10.1"))
                 .dataIp(IpAddress.valueOf("20.20.20.2"))
                 .intgBridge(DeviceId.deviceId("kbr-int"))
+                .extIntf("eth1")
+                .extBridgeIp(IpAddress.valueOf("10.10.10.5"))
+                .extGatewayIp(IpAddress.valueOf("10.10.10.1"))
                 .build();
 
         ObjectNode nodeJson = k8sNodeCodec.encode(node, context);
@@ -104,6 +107,9 @@ public class K8sNodeCodecTest {
         assertEquals("172.16.130.4", node.managementIp().toString());
         assertEquals("172.16.130.4", node.dataIp().toString());
         assertEquals("of:00000000000000a1", node.intgBridge().toString());
+        assertEquals("eth1", node.extIntf());
+        assertEquals("172.16.130.5", node.extBridgeIp().toString());
+        assertEquals("172.16.130.1", node.extGatewayIp().toString());
     }
 
     private K8sNode getK8sNode(String resourceName) throws IOException {
