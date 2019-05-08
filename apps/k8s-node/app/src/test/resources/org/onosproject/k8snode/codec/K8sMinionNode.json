@@ -4,5 +4,8 @@
   "managementIp": "172.16.130.4",
   "dataIp": "172.16.130.4",
   "integrationBridge": "of:00000000000000a1",
-  "externalBridge": "of:00000000000000b1"
+  "externalBridge": "of:00000000000000b1",
+  "externalInterface": "eth1",
+  "externalBridgeIp": "172.16.130.5",
+  "externalGatewayIp": "172.16.130.1"
 }

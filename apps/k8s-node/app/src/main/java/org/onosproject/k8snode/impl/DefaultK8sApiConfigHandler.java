@@ -38,6 +38,7 @@ import org.onosproject.k8snode.api.K8sNode;
 import org.onosproject.k8snode.api.K8sNodeAdminService;
 import org.slf4j.Logger;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 
@@ -60,6 +61,9 @@ public class DefaultK8sApiConfigHandler {
 
     private static final String INTERNAL_IP = "InternalIP";
     private static final String K8S_ROLE = "node-role.kubernetes.io";
+    private static final String EXT_BRIDGE_IP = "external.bridge.ip";
+    private static final String EXT_GATEWAY_IP = "external.gateway.ip";
+    private static final String EXT_INTF_NAME = "external.interface.name";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -156,12 +160,22 @@ public class DefaultK8sApiConfigHandler {
             }
         }
 
+        Map<String, String> annots = node.getMetadata().getAnnotations();
+
+        String extIntf = annots.get(EXT_INTF_NAME);
+        String extGatewayIpStr = annots.get(EXT_GATEWAY_IP);
+        String extBridgeIpStr = annots.get(EXT_BRIDGE_IP);
+
         return DefaultK8sNode.builder()
                 .hostname(hostname)
                 .managementIp(managementIp)
                 .dataIp(dataIp)
-                .type(nodeType)  // need to get correct node type
+                .extIntf(extIntf)
+                .type(nodeType)
                 .state(INIT)
+                .extBridgeIp(IpAddress.valueOf(extBridgeIpStr))
+                .extGatewayIp(IpAddress.valueOf(extGatewayIpStr))
+                .podCidr(node.getSpec().getPodCIDR())
                 .build();
     }
 
