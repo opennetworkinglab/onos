@@ -44,6 +44,9 @@ public final class K8sNodeCodec extends JsonCodec<K8sNode> {
     private static final String INTEGRATION_BRIDGE = "integrationBridge";
     private static final String EXTERNAL_BRIDGE = "externalBridge";
     private static final String STATE = "state";
+    private static final String EXTERNAL_INTF = "externalInterface";
+    private static final String EXTERNAL_BRIDGE_IP = "externalBridgeIp";
+    private static final String EXTERNAL_GATEWAY_IP = "externalGatewayIp";
 
     private static final String MISSING_MESSAGE = " is required in K8sNode";
 
@@ -67,6 +70,18 @@ public final class K8sNodeCodec extends JsonCodec<K8sNode> {
 
         if (node.dataIp() != null) {
             result.put(DATA_IP, node.dataIp().toString());
+        }
+
+        if (node.extIntf() != null) {
+            result.put(EXTERNAL_INTF, node.extIntf());
+        }
+
+        if (node.extBridgeIp() != null) {
+            result.put(EXTERNAL_BRIDGE_IP, node.extBridgeIp().toString());
+        }
+
+        if (node.extGatewayIp() != null) {
+            result.put(EXTERNAL_GATEWAY_IP, node.extGatewayIp().toString());
         }
 
         return result;
@@ -103,6 +118,21 @@ public final class K8sNodeCodec extends JsonCodec<K8sNode> {
         JsonNode extBridgeJson = json.get(EXTERNAL_BRIDGE);
         if (extBridgeJson != null) {
             nodeBuilder.extBridge(DeviceId.deviceId(extBridgeJson.asText()));
+        }
+
+        JsonNode extIntfJson = json.get(EXTERNAL_INTF);
+        if (extIntfJson != null) {
+            nodeBuilder.extIntf(extIntfJson.asText());
+        }
+
+        JsonNode extBridgeIpJson = json.get(EXTERNAL_BRIDGE_IP);
+        if (extBridgeIpJson != null) {
+            nodeBuilder.extBridgeIp(IpAddress.valueOf(extBridgeIpJson.asText()));
+        }
+
+        JsonNode extGatewayIpJson = json.get(EXTERNAL_GATEWAY_IP);
+        if (extGatewayIpJson != null) {
+            nodeBuilder.extGatewayIp(IpAddress.valueOf(extGatewayIpJson.asText()));
         }
 
         log.trace("node is {}", nodeBuilder.build().toString());
