@@ -834,14 +834,13 @@ public class DefaultGroupHandler {
      *
      * @param macAddr the mac addr for the simple next objective
      * @param vlanId the vlan for the simple next objective
-     * @param treatment the actions to apply on the packets (should include outport)
-     * @param meta optional metadata passed into the creation of the next objective
+     * @param port port with which to create the Next Obj.
      * @param createIfMissing true if a next object should be created if not found
      * @return int if found or created, -1 if there are errors during the
      *          creation of the next objective.
      */
-    public int getMacVlanNextObjectiveId(MacAddress macAddr, VlanId vlanId, TrafficTreatment treatment,
-                                      TrafficSelector meta, boolean createIfMissing) {
+    public int getMacVlanNextObjectiveId(MacAddress macAddr, VlanId vlanId, PortNumber port,
+                                      boolean createIfMissing) {
 
         Integer nextId = macVlanNextObjStore
                 .get(new MacVlanNextObjectiveStoreKey(deviceId, macAddr, vlanId));
@@ -858,8 +857,55 @@ public class DefaultGroupHandler {
             return -1;
         }
 
+        MacAddress deviceMac;
+        try {
+            deviceMac = deviceConfig.getDeviceMac(deviceId);
+        } catch (DeviceConfigNotFoundException e) {
+            log.warn(e.getMessage() + " in getMacVlanNextObjectiveId");
+            return -1;
+        }
+
+        // since we are creating now, port cannot be null
+        if (port == null) {
+           log.debug("getMacVlanNextObjectiveId : port information cannot be null "
+                          + "for device {}, host {}/{}", deviceId, macAddr, vlanId);
+           return -1;
+        }
+
+        TrafficSelector.Builder meta = DefaultTrafficSelector.builder();
+
+        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+        treatment.deferred()
+                .setEthDst(macAddr)
+                .setEthSrc(deviceMac)
+                .setOutput(port);
+
+        ConnectPoint connectPoint = new ConnectPoint(deviceId, port);
+        VlanId untaggedVlan = srManager.interfaceService.getUntaggedVlanId(connectPoint);
+        Set<VlanId> taggedVlans = srManager.interfaceService.getTaggedVlanId(connectPoint);
+        VlanId nativeVlan = srManager.interfaceService.getNativeVlanId(connectPoint);
+
+        // Adjust the meta according to VLAN configuration
+        if (taggedVlans.contains(vlanId)) {
+            treatment.setVlanId(vlanId);
+        } else if (vlanId.equals(VlanId.NONE)) {
+            if (untaggedVlan != null) {
+                meta.matchVlanId(untaggedVlan);
+            } else if (nativeVlan != null) {
+                meta.matchVlanId(nativeVlan);
+            } else {
+                log.warn("Untagged nexthop {}/{} is not allowed on {} without untagged or native vlan",
+                        macAddr, vlanId, connectPoint);
+                return -1;
+            }
+        } else {
+            log.warn("Tagged nexthop {}/{} is not allowed on {} without VLAN listed"
+                    + " in tagged vlan", macAddr, vlanId, connectPoint);
+            return -1;
+        }
+
         /* create missing next objective */
-        nextId = createGroupFromMacVlan(macAddr, vlanId, treatment, meta);
+        nextId = createGroupFromMacVlan(macAddr, vlanId, treatment.build(), meta.build());
         if (nextId == null) {
             log.warn("getMacVlanNextObjectiveId: unable to create next obj"
                     + "for dev:{} host:{}/{}", deviceId, macAddr, vlanId);
@@ -1493,43 +1539,6 @@ public class DefaultGroupHandler {
                 });
 
         flowObjectiveService.next(deviceId, nextObjBuilder.modify(context));
-    }
-
-    /**
-     * Returns the next ID for the given host port from the store.
-     *
-     * @param hostMac mac of host for which Next ID is required.
-     * @param hostVlanId vlan of host for which Next ID is required.
-     * @param port port of device for which next ID is required.
-     * @return next objective ID or -1 if an error occurred during retrieval
-     */
-    public int getNextIdForHostPort(MacAddress hostMac, VlanId hostVlanId, PortNumber port) {
-
-       MacAddress deviceMac;
-        try {
-            deviceMac = deviceConfig.getDeviceMac(deviceId);
-        } catch (DeviceConfigNotFoundException e) {
-            log.warn(e.getMessage() + " in getNextIdForHostPort");
-            return -1;
-        }
-
-        TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
-        tbuilder.deferred()
-                .setEthDst(hostMac)
-                .setEthSrc(deviceMac)
-                .setVlanId(hostVlanId)
-                .setOutput(port);
-
-        TrafficSelector metadata =
-                 DefaultTrafficSelector.builder().matchVlanId(hostVlanId).build();
-
-        int nextId = getMacVlanNextObjectiveId(hostMac, hostVlanId,
-                tbuilder.build(), metadata, true);
-
-        log.debug("getNextId : hostMac {}, deviceMac {}, port {}, hostVlanId {} Treatment {} Meta {} nextId {} ",
-                                          hostMac, deviceMac, port, hostVlanId, tbuilder.build(), metadata, nextId);
-
-        return nextId;
     }
 
     /**

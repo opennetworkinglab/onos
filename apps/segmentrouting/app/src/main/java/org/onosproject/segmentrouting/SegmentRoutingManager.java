@@ -1308,41 +1308,17 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      * @param deviceId Device ID
      * @param macAddr mac of host for which Next ID is required.
      * @param vlanId vlan of host for which Next ID is required.
-     * @param treatment the actions to apply on the packets (should include outport)
-     * @param meta metadata passed into the creation of a Next Objective if necessary
+     * @param port port with which to create the Next Obj.
      * @param createIfMissing true if a next object should be created if not found
      * @return next objective ID or -1 if an error occurred during retrieval or creation
      */
     public int getMacVlanNextObjectiveId(DeviceId deviceId, MacAddress macAddr, VlanId vlanId,
-                                      TrafficTreatment treatment,
-                                      TrafficSelector meta,
-                                      boolean createIfMissing) {
+                                      PortNumber port, boolean createIfMissing) {
         DefaultGroupHandler ghdlr = groupHandlerMap.get(deviceId);
         if (ghdlr != null) {
-            return ghdlr.getMacVlanNextObjectiveId(macAddr, vlanId, treatment, meta, createIfMissing);
+            return ghdlr.getMacVlanNextObjectiveId(macAddr, vlanId, port, createIfMissing);
         } else {
             log.warn("getMacVlanNextObjectiveId query - groupHandler for device {}"
-                    + " not found", deviceId);
-            return -1;
-        }
-    }
-
-    /**
-     * Returns the next ID for the given host port from the store.
-     *
-     * @param deviceId Device ID
-     * @param hostMac mac of host for which Next ID is required.
-     * @param hostVlanId vlan of host for which Next ID is required.
-     * @param port port of device for which next ID is required.
-     * @return next objective ID or -1 if an error occurred during retrieval
-     */
-    public int getNextIdForHostPort(DeviceId deviceId, MacAddress hostMac,
-                                     VlanId hostVlanId, PortNumber port) {
-        DefaultGroupHandler ghdlr = groupHandlerMap.get(deviceId);
-        if (ghdlr != null) {
-            return ghdlr.getNextIdForHostPort(hostMac, hostVlanId, port);
-        } else {
-            log.warn("getNextIdForHostPort query - groupHandler for device {}"
                     + " not found", deviceId);
             return -1;
         }
