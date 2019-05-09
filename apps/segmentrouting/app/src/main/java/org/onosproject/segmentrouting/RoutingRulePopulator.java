@@ -453,7 +453,7 @@ public class RoutingRulePopulator {
           // if the objective is to revoke an existing rule, and for some reason
           // the next-objective does not exist, then a new one should not be created
           nextObjId = srManager.getMacVlanNextObjectiveId(deviceId, hostMac, hostVlanId,
-                                          tbuilder.build(), mbuilder.build(), !revoke);
+                                          outPort, !revoke);
         }
         if (nextObjId == -1) {
             // Warning log will come from getMacVlanNextObjective method
