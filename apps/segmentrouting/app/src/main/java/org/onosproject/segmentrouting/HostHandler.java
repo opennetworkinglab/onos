@@ -129,6 +129,15 @@ public class HostHandler {
                 });
             }
         });
+
+        int nextId = srManager.getMacVlanNextObjectiveId(location.deviceId(), hostMac, hostVlanId, null, false);
+        if (nextId != -1) {
+            VlanId vlanId = Optional.ofNullable(srManager.getInternalVlanId(location)).orElse(hostVlanId);
+            log.debug(" Updating next objective for device {}, host {}/{}, port {}, nextid {}",
+                                location.deviceId(), hostMac, vlanId, location.port(), nextId);
+            srManager.updateMacVlanTreatment(location.deviceId(), hostMac, vlanId,
+                                location.port(), nextId);
+        }
     }
 
     void processHostRemovedEvent(HostEvent event) {
@@ -181,6 +190,7 @@ public class HostHandler {
                     }
                 });
             });
+
         });
     }
 
