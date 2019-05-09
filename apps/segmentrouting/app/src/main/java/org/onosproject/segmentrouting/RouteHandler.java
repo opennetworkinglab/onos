@@ -32,9 +32,7 @@ import org.onosproject.routeservice.RouteInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
@@ -234,37 +232,51 @@ public class RouteHandler {
         log.info("processHostMovedEvent {}", event);
         MacAddress hostMac = event.subject().mac();
         VlanId hostVlanId = event.subject().vlan();
-        // map of nextId for prev port in each device
-        Map<DeviceId, Integer> nextIdMap = new HashMap<>();
+
         Set<HostLocation> prevLocations = event.prevSubject().locations();
         Set<HostLocation> newLocations = event.subject().locations();
-        Set<ConnectPoint> connectPoints = newLocations.stream().map(l -> (ConnectPoint) l).collect(Collectors.toSet());
+        Set<ConnectPoint> connectPoints = newLocations.stream()
+                .map(l -> (ConnectPoint) l).collect(Collectors.toSet());
         List<Set<IpPrefix>> batchedSubnets =
                 srManager.deviceConfiguration.getBatchedSubnets(event.subject().id());
+        Set<DeviceId> newDeviceIds = newLocations.stream().map(HostLocation::deviceId)
+                .collect(Collectors.toSet());
+
+        // Set of deviceIDs of the previous locations where the host was connected
+        // Used to determine if host moved to different connect points
+        // on same device or moved to a different device altogether
+        Set<DeviceId> oldDeviceIds = prevLocations.stream().map(HostLocation::deviceId)
+                .collect(Collectors.toSet());
+
+        // L3 Ucast bucket needs to be updated only once per host
+        // and only when the no. of routes with the host as next-hop is not zero
+        if (!batchedSubnets.isEmpty()) {
+           // For each new location, if NextObj exists for the host, update with new location ..
+           Sets.difference(newLocations, prevLocations).forEach(newLocation -> {
+                  int nextId = srManager.getMacVlanNextObjectiveId(newLocation.deviceId(),
+                                                                   hostMac, hostVlanId, null, false);
+                  VlanId vlanId = Optional.ofNullable(srManager.getInternalVlanId(newLocation)).orElse(hostVlanId);
+
+                  if (nextId != -1) {
+                      //Update the nextId group bucket
+                      log.debug("HostMoved. NextId exists, update L3 Ucast Group Bucket {}, {}, {} --> {}",
+                                             newLocation, hostMac, vlanId, nextId);
+                      srManager.updateMacVlanTreatment(newLocation.deviceId(), hostMac, vlanId,
+                                                       newLocation.port(), nextId);
+                  } else {
+                      log.debug("HostMoved. NextId does not exist for this location {}, host {}/{}",
+                                              newLocation, hostMac, vlanId);
+                  }
+           });
+        }
 
         batchedSubnets.forEach(subnets -> {
             log.debug("HostMoved. populateSubnet {}, {}", newLocations, subnets);
             srManager.defaultRoutingHandler.populateSubnet(connectPoints, subnets);
 
             subnets.forEach(prefix -> {
-                Set<DeviceId> newDeviceIds = newLocations.stream().map(HostLocation::deviceId)
-                        .collect(Collectors.toSet());
-
-                // Set of deviceIDs of the previous locations where the host was connected
-                // Used to determine if host moved to different connect points
-                // on same device or moved to a different device altogether
-                Set<DeviceId> oldDeviceIds = prevLocations.stream().map(HostLocation::deviceId)
-                        .collect(Collectors.toSet());
-
                 // For each old location
                 Sets.difference(prevLocations, newLocations).forEach(prevLocation -> {
-                    //find next Id for each old port, add to map
-                    int nextId = srManager.getNextIdForHostPort(prevLocation.deviceId(), hostMac,
-                                                                 hostVlanId, prevLocation.port());
-                    log.debug("HostMoved. NextId For Host {}, {}, {}, {} {}", prevLocation, prefix,
-                                                                 hostMac, hostVlanId, nextId);
-
-                    nextIdMap.put(prevLocation.deviceId(), nextId);
 
                     // Remove flows for unchanged IPs only when the host moves from a switch to another.
                     // Otherwise, do not remove and let the adding part update the old flow
@@ -297,18 +309,11 @@ public class RouteHandler {
                        log.debug("HostMoved. populateRoute {}, {}, {}, {}", newLocation, prefix, hostMac, hostVlanId);
                        srManager.defaultRoutingHandler.populateRoute(newLocation.deviceId(), prefix,
                               hostMac, hostVlanId, newLocation.port(), false);
-                    } else {
-                      // update same flow to point to new nextObj
-                      VlanId vlanId = Optional.ofNullable(srManager.getInternalVlanId(newLocation)).orElse(hostVlanId);
-                      //use nextIdMap to send new port details to update the nextId group bucket
-                      log.debug("HostMoved. update L3 Ucast Group Bucket {}, {}, {} --> {}",
-                                             newLocation, hostMac, vlanId, nextIdMap.get(newLocation.deviceId()));
-                      srManager.updateMacVlanTreatment(newLocation.deviceId(), hostMac, vlanId,
-                              newLocation.port(), nextIdMap.get(newLocation.deviceId()));
                     }
                 });
             });
         });
+
     }
 
     private boolean isReady() {
