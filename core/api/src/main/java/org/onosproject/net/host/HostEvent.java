@@ -48,7 +48,15 @@ public class HostEvent extends AbstractEvent<HostEvent.Type, Host> {
         /**
          * Signifies that a host location has changed.
          */
-        HOST_MOVED
+        HOST_MOVED,
+        /**
+         * Signifies that a host is in offending state, eg: frequent  host movement.
+         */
+        HOST_SUSPENDED,
+        /**
+         * Signifies that host state in non offending state.
+         */
+        HOST_UNSUSPENDED
     }
 
     private Host prevSubject;
