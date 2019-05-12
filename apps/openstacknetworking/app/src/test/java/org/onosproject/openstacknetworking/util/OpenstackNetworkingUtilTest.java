@@ -47,6 +47,7 @@ import org.onosproject.openstacknetworking.impl.OpenstackRouterServiceAdapter;
 import org.onosproject.openstacknetworking.impl.TestRouterInterface;
 import org.onosproject.openstacknetworking.web.OpenstackFloatingIpWebResourceTest;
 import org.onosproject.openstacknetworking.web.OpenstackNetworkWebResourceTest;
+import org.onosproject.openstacknode.api.DefaultKeystoneConfig;
 import org.onosproject.openstacknode.api.DefaultOpenstackAuth;
 import org.onosproject.openstacknode.api.DefaultOpenstackNode;
 import org.onosproject.openstacknode.api.KeystoneConfig;
@@ -54,7 +55,6 @@ import org.onosproject.openstacknode.api.NodeState;
 import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeTest;
-import org.onosproject.openstacknode.api.DefaultKeystoneConfig;
 import org.openstack4j.model.network.NetFloatingIP;
 import org.openstack4j.model.network.Network;
 import org.openstack4j.model.network.Port;
@@ -75,6 +75,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
+import static org.onosproject.openstacknetworking.api.Constants.REST_UTF8;
 import static org.onosproject.openstacknetworking.api.Constants.UNSUPPORTED_VENDOR;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.addRouterIface;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.associatedFloatingIp;
@@ -109,7 +110,7 @@ public final class OpenstackNetworkingUtilTest {
     private OpenstackNode openstackControlNodeV3;
 
     @Before
-    public void setUp() {
+    public void setUp() throws IOException {
 
         instancePort1 = DefaultInstancePort.builder()
                 .networkId("net-id-1")
@@ -151,11 +152,14 @@ public final class OpenstackNetworkingUtilTest {
                 .getResourceAsStream("openstack-floatingip3.json");
 
         floatingIp1 = (NetFloatingIP)
-                jsonToModelEntity(floatingIpjsonStream1, NeutronFloatingIP.class);
+                jsonToModelEntity(IOUtils.toString(floatingIpjsonStream1, REST_UTF8),
+                        NeutronFloatingIP.class);
         floatingIp2 = (NetFloatingIP)
-                jsonToModelEntity(floatingIpjsonStream2, NeutronFloatingIP.class);
+                jsonToModelEntity(IOUtils.toString(floatingIpjsonStream2, REST_UTF8),
+                        NeutronFloatingIP.class);
         floatingIp3 = (NetFloatingIP)
-                jsonToModelEntity(floatingIpjsonStream3, NeutronFloatingIP.class);
+                jsonToModelEntity(IOUtils.toString(floatingIpjsonStream3, REST_UTF8),
+                        NeutronFloatingIP.class);
 
         InputStream portJsonStream = OpenstackNetworkWebResourceTest.class
                 .getResourceAsStream("openstack-port.json");
@@ -168,14 +172,18 @@ public final class OpenstackNetworkingUtilTest {
                 .getResourceAsStream("openstack-port-sriov3.json");
 
         openstackPort = (Port)
-                jsonToModelEntity(portJsonStream, NeutronPort.class);
+                jsonToModelEntity(
+                        IOUtils.toString(portJsonStream, REST_UTF8), NeutronPort.class);
 
         openstackSriovPort1 = (Port)
-                jsonToModelEntity(sriovPortJsonStream1, NeutronPort.class);
+                jsonToModelEntity(IOUtils.toString(sriovPortJsonStream1, REST_UTF8),
+                        NeutronPort.class);
         openstackSriovPort2 = (Port)
-                jsonToModelEntity(sriovPortJsonStream2, NeutronPort.class);
+                jsonToModelEntity(IOUtils.toString(sriovPortJsonStream2, REST_UTF8),
+                        NeutronPort.class);
         openstackSriovPort3 = (Port)
-                jsonToModelEntity(sriovPortJsonStream3, NeutronPort.class);
+                jsonToModelEntity(IOUtils.toString(sriovPortJsonStream3, REST_UTF8),
+                        NeutronPort.class);
     }
 
     @After
@@ -191,7 +199,7 @@ public final class OpenstackNetworkingUtilTest {
                 modelEntityToJson(floatingIp1, NeutronFloatingIP.class);
         InputStream is = IOUtils.toInputStream(floatingIpNode.toString(), StandardCharsets.UTF_8.name());
         NetFloatingIP floatingIp2 = (NetFloatingIP)
-                jsonToModelEntity(is, NeutronFloatingIP.class);
+                jsonToModelEntity(IOUtils.toString(is, REST_UTF8), NeutronFloatingIP.class);
         new EqualsTester().addEqualityGroup(floatingIp1, floatingIp2).testEquals();
     }
 

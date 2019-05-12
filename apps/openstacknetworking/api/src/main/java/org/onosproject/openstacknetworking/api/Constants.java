@@ -18,6 +18,7 @@ package org.onosproject.openstacknetworking.api;
 import com.google.common.collect.ImmutableMap;
 import org.onlab.packet.MacAddress;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
@@ -41,6 +42,11 @@ public final class Constants {
 
     public static final String OPENSTACK_NETWORKING_APP_ID =
                                             "org.onosproject.openstacknetworking";
+    public static final String OPENSTACK_NETWORKING_REST_PATH = "onos/openstacknetworking";
+    public static final int REST_PORT = 8181;
+    public static final String REST_USER = "onos";
+    public static final String REST_PASSWORD = "rocks";
+    public static final String REST_UTF8 = StandardCharsets.UTF_8.name();
 
     public static final String ARP_BROADCAST_MODE = "broadcast";
     public static final String ARP_PROXY_MODE = "proxy";

@@ -18,6 +18,7 @@ package org.onosproject.openstacknetworking.impl;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.MoreExecutors;
+import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -60,6 +61,7 @@ import org.openstack4j.openstack.networking.domain.NeutronPort;
 import org.openstack4j.openstack.networking.domain.NeutronRouter;
 import org.openstack4j.openstack.networking.domain.NeutronSubnet;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Map;
@@ -73,6 +75,7 @@ import static org.onlab.packet.Ethernet.TYPE_IPV4;
 import static org.onlab.packet.ICMP.TYPE_ECHO_REPLY;
 import static org.onlab.packet.ICMP.TYPE_ECHO_REQUEST;
 import static org.onosproject.net.NetTestTools.connectPoint;
+import static org.onosproject.openstacknetworking.api.Constants.REST_UTF8;
 
 public class OpenstackRoutingSnatIcmpHandlerTest {
     private OpenstackRoutingSnatIcmpHandler icmpHandler;
@@ -108,7 +111,7 @@ public class OpenstackRoutingSnatIcmpHandlerTest {
      * Initial setup for this unit test.
      */
     @Before
-    public void setUp() {
+    public void setUp() throws IOException {
 
         icmpHandler = new OpenstackRoutingSnatIcmpHandler();
 
@@ -432,24 +435,27 @@ public class OpenstackRoutingSnatIcmpHandlerTest {
     }
 
 
-    private void createPort() {
+    private void createPort() throws IOException {
         InputStream portJsonStream1 = OpenstackRoutingSnatIcmpHandlerTest.class
                 .getResourceAsStream("openstack-port-1.json");
-        port1 = (Port) OpenstackNetworkingUtil.jsonToModelEntity(portJsonStream1, NeutronPort.class);
+        port1 = (Port) OpenstackNetworkingUtil.jsonToModelEntity(
+                IOUtils.toString(portJsonStream1, REST_UTF8), NeutronPort.class);
 
         InputStream portJsonStream2 = OpenstackRoutingSnatIcmpHandlerTest.class
                 .getResourceAsStream("openstack-port-external.json");
-        externalPort = (Port) OpenstackNetworkingUtil.jsonToModelEntity(portJsonStream2, NeutronPort.class);
+        externalPort = (Port) OpenstackNetworkingUtil.jsonToModelEntity(
+                IOUtils.toString(portJsonStream2, REST_UTF8), NeutronPort.class);
 
         portMap.put(port1.getId(), port1);
         portMap.put(externalPort.getId(), externalPort);
 
     }
 
-    private void createSubnet() {
+    private void createSubnet() throws IOException {
         InputStream subnetJsonStream1 = OpenstackRoutingSnatIcmpHandlerTest.class
                 .getResourceAsStream("openstack-subnet-1.json");
-        subnet1 = (Subnet) OpenstackNetworkingUtil.jsonToModelEntity(subnetJsonStream1, NeutronSubnet.class);
+        subnet1 = (Subnet) OpenstackNetworkingUtil.jsonToModelEntity(
+                IOUtils.toString(subnetJsonStream1, REST_UTF8), NeutronSubnet.class);
     }
 
     private void createRouterInterfaceMap() {
@@ -461,11 +467,12 @@ public class OpenstackRoutingSnatIcmpHandlerTest {
         osRouterInterfaceMap.put(routerInterface1.getPortId(), routerInterface1);
     }
 
-    private void createRouterMap() {
+    private void createRouterMap() throws IOException {
         InputStream routerStream1 = OpenstackRoutingSnatIcmpHandlerTest.class
                 .getResourceAsStream("openstack-router-1.json");
         router1 = (Router)
-                OpenstackNetworkingUtil.jsonToModelEntity(routerStream1, NeutronRouter.class);
+                OpenstackNetworkingUtil.jsonToModelEntity(
+                        IOUtils.toString(routerStream1, REST_UTF8), NeutronRouter.class);
         osRouterMap.put(router1.getId(), router1);
 
     }

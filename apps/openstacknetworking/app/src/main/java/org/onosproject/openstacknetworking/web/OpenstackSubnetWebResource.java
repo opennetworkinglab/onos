@@ -15,6 +15,8 @@
  */
 package org.onosproject.openstacknetworking.web;
 
+import org.apache.commons.io.IOUtils;
+import org.onosproject.openstacknetworking.api.OpenstackHaService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.rest.AbstractWebResource;
 import org.openstack4j.openstack.networking.domain.NeutronSubnet;
@@ -33,12 +35,17 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+import java.io.IOException;
 import java.io.InputStream;
 
 import static javax.ws.rs.core.Response.created;
 import static javax.ws.rs.core.Response.noContent;
 import static javax.ws.rs.core.Response.status;
+import static org.onosproject.openstacknetworking.api.Constants.REST_UTF8;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.jsonToModelEntity;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.syncDelete;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.syncPost;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.syncPut;
 
 /**
  * Handles subnet REST API call from Neutron ML2 plugin.
@@ -52,6 +59,7 @@ public class OpenstackSubnetWebResource extends AbstractWebResource {
 
     private final OpenstackNetworkAdminService adminService =
                                         get(OpenstackNetworkAdminService.class);
+    private final OpenstackHaService haService = get(OpenstackHaService.class);
 
     @Context
     private UriInfo uriInfo;
@@ -62,16 +70,23 @@ public class OpenstackSubnetWebResource extends AbstractWebResource {
      * @param input subnet JSON input stream
      * @return 201 CREATED if the JSON is correct, 400 BAD_REQUEST if the JSON
      * is invalid or duplicated subnet already exists
+     * @throws IOException exception
      * @onos.rsModel NeutronSubnet
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createSubnet(InputStream input) {
+    public Response createSubnet(InputStream input) throws IOException {
         log.trace(String.format(MESSAGE, "CREATE"));
 
+        String inputStr = IOUtils.toString(input, REST_UTF8);
+
+        if (!haService.isActive()) {
+            return syncPost(haService, SUBNETS, inputStr);
+        }
+
         final NeutronSubnet subnet = (NeutronSubnet)
-                            jsonToModelEntity(input, NeutronSubnet.class);
+                jsonToModelEntity(inputStr, NeutronSubnet.class);
 
         adminService.createSubnet(subnet);
         UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()
@@ -89,17 +104,24 @@ public class OpenstackSubnetWebResource extends AbstractWebResource {
      * @param input subnet JSON input stream
      * @return 200 OK with the updated subnet, 400 BAD_REQUEST if the requested
      * subnet does not exist
+     * @throws IOException exception
      * @onos.rsModel NeutronSubnet
      */
     @PUT
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateSubnet(@PathParam("id") String id, InputStream input) {
+    public Response updateSubnet(@PathParam("id") String id, InputStream input) throws IOException {
         log.trace(String.format(MESSAGE, "UPDATE " + id));
 
+        String inputStr = IOUtils.toString(input, REST_UTF8);
+
+        if (!haService.isActive()) {
+            return syncPut(haService, SUBNETS, id, inputStr);
+        }
+
         final NeutronSubnet subnet = (NeutronSubnet)
-                            jsonToModelEntity(input, NeutronSubnet.class);
+                            jsonToModelEntity(inputStr, NeutronSubnet.class);
 
         adminService.updateSubnet(subnet);
 
@@ -118,6 +140,10 @@ public class OpenstackSubnetWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteSubnet(@PathParam("id") String id) {
         log.trace(String.format(MESSAGE, "DELETE " + id));
+
+        if (!haService.isActive()) {
+            return syncDelete(haService, SUBNETS, id);
+        }
 
         adminService.removeSubnet(id);
         return noContent().build();

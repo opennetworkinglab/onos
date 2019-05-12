@@ -19,12 +19,14 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import org.onlab.packet.IpAddress;
 import org.onlab.util.ItemNotFoundException;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.openstacknetworking.api.Constants;
+import org.onosproject.openstacknetworking.api.OpenstackHaService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupAdminService;
@@ -42,7 +44,9 @@ import org.openstack4j.model.network.NetFloatingIP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -57,6 +61,7 @@ import java.util.Optional;
 
 import static java.lang.Thread.sleep;
 import static java.util.stream.StreamSupport.stream;
+import static javax.ws.rs.core.Response.status;
 import static org.onlab.util.Tools.nullIsIllegal;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.addRouterIface;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.checkActivationFlag;
@@ -93,6 +98,9 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
     private static final String HTTP_HEADER_ACCEPT = "accept";
     private static final String HTTP_HEADER_VALUE_JSON = "application/json";
 
+    private static final String FLAG_TRUE = "true";
+    private static final String FLAG_FALSE = "false";
+
     private final ObjectNode root = mapper().createObjectNode();
     private final ArrayNode floatingipsNode = root.putArray(FLOATINGIPS);
 
@@ -104,6 +112,7 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
             get(OpenstackRouterAdminService.class);
     private final OpenstackNodeAdminService osNodeAdminService =
             get(OpenstackNodeAdminService.class);
+    private final OpenstackHaService osHaService = get(OpenstackHaService.class);
     private final FlowRuleService flowRuleService = get(FlowRuleService.class);
     private final CoreService coreService = get(CoreService.class);
 
@@ -353,6 +362,46 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
                 .forEach(fip -> floatingipsNode.add(fip.getFloatingIpAddress()));
 
         return ok(root).build();
+    }
+
+    /**
+     * Configures the HA active-standby status.
+     *
+     * @param flag active-standby status
+     * @return 200 OK or 400 BAD_REQUEST
+     */
+    @PUT
+    @Path("active/status/{flag}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateActiveStatus(@PathParam("flag") String flag) {
+
+        if (FLAG_TRUE.equalsIgnoreCase(flag)) {
+            osHaService.setActive(true);
+        }
+
+        if (FLAG_FALSE.equalsIgnoreCase(flag)) {
+            osHaService.setActive(false);
+        }
+
+        return status(Response.Status.OK).build();
+    }
+
+    /**
+     * Configures the HA active IP address.
+     *
+     * @param ip IP address of active node
+     * @return 200 OK or 400 BAD_REQUEST
+     */
+    @PUT
+    @Path("active/ip/{ip}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateActiveIp(@PathParam("ip") String ip) {
+
+        osHaService.setActiveIp(IpAddress.valueOf(ip));
+
+        return status(Response.Status.OK).build();
     }
 
     private void syncRulesBase() {

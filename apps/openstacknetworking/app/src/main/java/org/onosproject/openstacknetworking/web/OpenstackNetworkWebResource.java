@@ -15,6 +15,8 @@
  */
 package org.onosproject.openstacknetworking.web;
 
+import org.apache.commons.io.IOUtils;
+import org.onosproject.openstacknetworking.api.OpenstackHaService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.rest.AbstractWebResource;
 import org.openstack4j.openstack.networking.domain.NeutronNetwork;
@@ -33,12 +35,17 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+import java.io.IOException;
 import java.io.InputStream;
 
 import static javax.ws.rs.core.Response.created;
 import static javax.ws.rs.core.Response.noContent;
 import static javax.ws.rs.core.Response.status;
+import static org.onosproject.openstacknetworking.api.Constants.REST_UTF8;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.jsonToModelEntity;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.syncDelete;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.syncPost;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.syncPut;
 
 /**
  * Handles network REST API call of Neutron ML2 plugin.
@@ -52,6 +59,7 @@ public class OpenstackNetworkWebResource extends AbstractWebResource {
 
     private final OpenstackNetworkAdminService adminService =
                                         get(OpenstackNetworkAdminService.class);
+    private final OpenstackHaService haService = get(OpenstackHaService.class);
 
     @Context
     private UriInfo uriInfo;
@@ -62,16 +70,23 @@ public class OpenstackNetworkWebResource extends AbstractWebResource {
      * @param input network JSON input stream
      * @return 201 CREATED if the JSON is correct, 400 BAD_REQUEST if the JSON
      * is invalid or duplicated network already exists
+     * @throws IOException exception
      * @onos.rsModel NeutronNetwork
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createNetwork(InputStream input) {
+    public Response createNetwork(InputStream input) throws IOException {
         log.trace(String.format(MESSAGE, "CREATE"));
 
+        String inputStr = IOUtils.toString(input, REST_UTF8);
+
+        if (!haService.isActive()) {
+            return syncPost(haService, NETWORKS, inputStr);
+        }
+
         final NeutronNetwork net = (NeutronNetwork)
-                             jsonToModelEntity(input, NeutronNetwork.class);
+                jsonToModelEntity(inputStr, NeutronNetwork.class);
 
         adminService.createNetwork(net);
 
@@ -89,17 +104,24 @@ public class OpenstackNetworkWebResource extends AbstractWebResource {
      * @param input network JSON input stream
      * @return 200 OK with the updated network, 400 BAD_REQUEST if the requested
      * network does not exist
+     * @throws IOException exception
      * @onos.rsModel NeutronNetwork
      */
     @PUT
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateNetwork(@PathParam("id") String id, InputStream input) {
+    public Response updateNetwork(@PathParam("id") String id, InputStream input) throws IOException {
         log.trace(String.format(MESSAGE, "UPDATE " + id));
 
+        String inputStr = IOUtils.toString(input, REST_UTF8);
+
+        if (!haService.isActive()) {
+            return syncPut(haService, NETWORKS, id, inputStr);
+        }
+
         final NeutronNetwork net = (NeutronNetwork)
-                             jsonToModelEntity(input, NeutronNetwork.class);
+                jsonToModelEntity(inputStr, NeutronNetwork.class);
 
         adminService.updateNetwork(net);
 
@@ -118,6 +140,10 @@ public class OpenstackNetworkWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteNetwork(@PathParam("id") String id) {
         log.trace(String.format(MESSAGE, "DELETE " + id));
+
+        if (!haService.isActive()) {
+            return syncDelete(haService, NETWORKS, id);
+        }
 
         adminService.removeNetwork(id);
         return noContent().build();

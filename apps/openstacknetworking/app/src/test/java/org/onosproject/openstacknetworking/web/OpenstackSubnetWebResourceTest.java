@@ -20,6 +20,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
+import org.onosproject.openstacknetworking.api.OpenstackHaService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
 import org.onosproject.rest.resources.ResourceTest;
 
@@ -32,6 +33,7 @@ import java.io.InputStream;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
@@ -45,6 +47,7 @@ public class OpenstackSubnetWebResourceTest extends ResourceTest {
 
     final OpenstackNetworkAdminService mockOpenstackNetworkAdminService =
             createMock(OpenstackNetworkAdminService.class);
+    final OpenstackHaService mockOpenstackHaService = createMock(OpenstackHaService.class);
     private static final String PATH = "subnets";
 
     /**
@@ -62,7 +65,8 @@ public class OpenstackSubnetWebResourceTest extends ResourceTest {
         ServiceDirectory testDirectory =
                 new TestServiceDirectory()
                         .add(OpenstackNetworkAdminService.class,
-                                mockOpenstackNetworkAdminService);
+                                mockOpenstackNetworkAdminService)
+                        .add(OpenstackHaService.class, mockOpenstackHaService);
         setServiceDirectory(testDirectory);
 
     }
@@ -72,6 +76,8 @@ public class OpenstackSubnetWebResourceTest extends ResourceTest {
      */
     @Test
     public void testCreateSubnetWithCreationOperation() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
         mockOpenstackNetworkAdminService.createSubnet(anyObject());
         replay(mockOpenstackNetworkAdminService);
 
@@ -93,6 +99,8 @@ public class OpenstackSubnetWebResourceTest extends ResourceTest {
      */
     @Test
     public void testCreateSubnetWithIncorrectInput() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
         final WebTarget wt = target();
         InputStream jsonStream = OpenstackSubnetWebResourceTest.class
                 .getResourceAsStream("dummy.json");
@@ -109,6 +117,8 @@ public class OpenstackSubnetWebResourceTest extends ResourceTest {
      */
     @Test
     public void testCreateSubnetWithDuplicatedId() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
         mockOpenstackNetworkAdminService.createSubnet(anyObject());
         expectLastCall().andThrow(new IllegalArgumentException());
         replay(mockOpenstackNetworkAdminService);
@@ -131,6 +141,8 @@ public class OpenstackSubnetWebResourceTest extends ResourceTest {
      */
     @Test
     public void testUpdateSubnetWithUpdatingOperation() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
         mockOpenstackNetworkAdminService.updateSubnet(anyObject());
         replay(mockOpenstackNetworkAdminService);
 
@@ -153,6 +165,9 @@ public class OpenstackSubnetWebResourceTest extends ResourceTest {
      */
     @Test
     public void testUpdateSubnetWithIncorrectInput() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
+
         final WebTarget wt = target();
         InputStream jsonStream = OpenstackSubnetWebResourceTest.class
                 .getResourceAsStream("dummy.json");
@@ -170,6 +185,8 @@ public class OpenstackSubnetWebResourceTest extends ResourceTest {
      */
     @Test
     public void testUpdateSubnetWithNonexistId() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
         mockOpenstackNetworkAdminService.updateSubnet(anyObject());
         expectLastCall().andThrow(new IllegalArgumentException());
         replay(mockOpenstackNetworkAdminService);
@@ -193,6 +210,8 @@ public class OpenstackSubnetWebResourceTest extends ResourceTest {
      */
     @Test
     public void testDeleteSubnetWithDeletionOperation() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
         mockOpenstackNetworkAdminService.removeSubnet(anyString());
         replay(mockOpenstackNetworkAdminService);
 
@@ -213,6 +232,8 @@ public class OpenstackSubnetWebResourceTest extends ResourceTest {
      */
     @Test
     public void testDeleteSubnetWithNonexistId() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
         mockOpenstackNetworkAdminService.removeSubnet(anyString());
         expectLastCall().andThrow(new IllegalArgumentException());
         replay(mockOpenstackNetworkAdminService);

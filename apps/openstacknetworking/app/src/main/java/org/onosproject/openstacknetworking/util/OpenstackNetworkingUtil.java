@@ -42,6 +42,7 @@ import org.apache.sshd.client.channel.ClientChannelEvent;
 import org.apache.sshd.client.future.OpenFuture;
 import org.apache.sshd.client.session.ClientSession;
 import org.apache.sshd.common.util.io.NoCloseInputStream;
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.Ip4Address;
@@ -59,6 +60,7 @@ import org.onosproject.net.packet.PacketService;
 import org.onosproject.openstacknetworking.api.Constants.VnicType;
 import org.onosproject.openstacknetworking.api.ExternalPeerRouter;
 import org.onosproject.openstacknetworking.api.InstancePort;
+import org.onosproject.openstacknetworking.api.OpenstackHaService;
 import org.onosproject.openstacknetworking.api.OpenstackNetwork.Type;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
@@ -95,6 +97,11 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -115,13 +122,20 @@ import java.util.concurrent.TimeUnit;
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.onlab.packet.Ip4Address.valueOf;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_MAC_STR;
+import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_REST_PATH;
 import static org.onosproject.openstacknetworking.api.Constants.PCISLOT;
 import static org.onosproject.openstacknetworking.api.Constants.PCI_VENDOR_INFO;
 import static org.onosproject.openstacknetworking.api.Constants.PORT_NAME_PREFIX_VM;
 import static org.onosproject.openstacknetworking.api.Constants.PORT_NAME_VHOST_USER_PREFIX_VM;
+import static org.onosproject.openstacknetworking.api.Constants.REST_PASSWORD;
+import static org.onosproject.openstacknetworking.api.Constants.REST_PORT;
+import static org.onosproject.openstacknetworking.api.Constants.REST_USER;
+import static org.onosproject.openstacknetworking.api.Constants.REST_UTF8;
 import static org.onosproject.openstacknetworking.api.Constants.UNSUPPORTED_VENDOR;
 import static org.onosproject.openstacknetworking.api.Constants.portNamePrefixMap;
 import static org.openstack4j.core.transport.ObjectMapperSingleton.getContext;
@@ -177,13 +191,14 @@ public final class OpenstackNetworkingUtil {
     /**
      * Interprets JSON string to corresponding openstack model entity object.
      *
-     * @param input JSON string
+     * @param inputStr JSON string
      * @param entityClazz openstack model entity class
      * @return openstack model entity object
      */
-    public static ModelEntity jsonToModelEntity(InputStream input, Class entityClazz) {
+    public static ModelEntity jsonToModelEntity(String inputStr, Class entityClazz) {
         ObjectMapper mapper = new ObjectMapper();
         try {
+            InputStream input = toInputStream(inputStr, REST_UTF8);
             JsonNode jsonTree = mapper.enable(INDENT_OUTPUT).readTree(input);
             log.trace(new ObjectMapper().writeValueAsString(jsonTree));
             return ObjectMapperSingleton.getContext(entityClazz)
@@ -1086,6 +1101,118 @@ public final class OpenstackNetworkingUtil {
             default:
                 return null;
         }
+    }
+
+    /**
+     * Returns the REST URL of active node.
+     *
+     * @param haService openstack HA service
+     * @return REST URL of active node
+     */
+    public static String getActiveUrl(OpenstackHaService haService) {
+        return "http://" + haService.getActiveIp().toString() + ":" +
+                REST_PORT + "/" + OPENSTACK_NETWORKING_REST_PATH + "/";
+    }
+
+    /**
+     * Returns the REST client instance with given resource path.
+     *
+     * @param haService         openstack HA service
+     * @param resourcePath      resource path
+     * @return REST client instance
+     */
+    public static WebTarget getActiveClient(OpenstackHaService haService,
+                                            String resourcePath) {
+        HttpAuthenticationFeature feature =
+                HttpAuthenticationFeature.universal(REST_USER, REST_PASSWORD);
+        Client client = ClientBuilder.newClient().register(feature);
+        return client.target(getActiveUrl(haService)).path(resourcePath);
+    }
+
+    /**
+     * Returns the post response from the active node.
+     *
+     * @param haService         openstack HA service
+     * @param resourcePath      resource path
+     * @param input             input
+     * @return post response
+     */
+    public static Response syncPost(OpenstackHaService haService,
+                                    String resourcePath,
+                                    String input) {
+
+        log.debug("Sync POST request with {} on {}",
+                            haService.getActiveIp().toString(), resourcePath);
+
+        return getActiveClient(haService, resourcePath)
+                .request(APPLICATION_JSON_TYPE)
+                .post(Entity.json(input));
+    }
+
+    /**
+     * Returns the put response from the active node.
+     *
+     * @param haService         openstack HA service
+     * @param resourcePath      resource path
+     * @param id                resource identifier
+     * @param input             input
+     * @return put response
+     */
+    public static Response syncPut(OpenstackHaService haService,
+                                   String resourcePath,
+                                   String id, String input) {
+        return syncPut(haService, resourcePath, null, id, input);
+    }
+
+    /**
+     * Returns the put response from the active node.
+     *
+     * @param haService         openstack HA service
+     * @param resourcePath      resource path
+     * @param id                resource identifier
+     * @param suffix            resource suffix
+     * @param input             input
+     * @return put response
+     */
+    public static Response syncPut(OpenstackHaService haService,
+                                   String resourcePath,
+                                   String suffix,
+                                   String id, String input) {
+
+        log.debug("Sync PUT request with {} on {}",
+                haService.getActiveIp().toString(), resourcePath);
+
+        String pathStr = "/" + id;
+
+        if (suffix != null) {
+            pathStr += "/" + suffix;
+        }
+
+        return getActiveClient(haService, resourcePath)
+                .path(pathStr)
+                .request(APPLICATION_JSON_TYPE)
+                .put(Entity.json(input));
+    }
+
+    /**
+     * Returns the delete response from the active node.
+     *
+     * @param haService         openstack HA service
+     * @param resourcePath      resource path
+     * @param id            resource identifier
+     * @return delete response
+     */
+    public static Response syncDelete(OpenstackHaService haService,
+                                      String resourcePath,
+                                      String id) {
+
+        log.debug("Sync DELETE request with {} on {}",
+                haService.getActiveIp().toString(), resourcePath);
+
+        return getActiveClient(haService, resourcePath)
+                .path("/" + id)
+                .request(APPLICATION_JSON_TYPE)
+                .delete();
     }
 
     private static Router getRouterFromSubnet(Subnet subnet,

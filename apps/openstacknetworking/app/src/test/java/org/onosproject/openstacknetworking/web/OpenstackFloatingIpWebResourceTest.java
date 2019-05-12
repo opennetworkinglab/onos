@@ -20,6 +20,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
+import org.onosproject.openstacknetworking.api.OpenstackHaService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
 import org.onosproject.rest.resources.ResourceTest;
 
@@ -32,6 +33,7 @@ import java.io.InputStream;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
@@ -45,6 +47,7 @@ public class OpenstackFloatingIpWebResourceTest extends ResourceTest {
 
     final OpenstackRouterAdminService mockOpenstackRouterAdminService =
             createMock(OpenstackRouterAdminService.class);
+    final OpenstackHaService mockOpenstackHaService = createMock(OpenstackHaService.class);
     private static final String PATH = "floatingips";
 
     /**
@@ -62,9 +65,9 @@ public class OpenstackFloatingIpWebResourceTest extends ResourceTest {
         ServiceDirectory testDirectory =
                 new TestServiceDirectory()
                         .add(OpenstackRouterAdminService.class,
-                                mockOpenstackRouterAdminService);
+                                mockOpenstackRouterAdminService)
+                        .add(OpenstackHaService.class, mockOpenstackHaService);
         setServiceDirectory(testDirectory);
-
     }
 
     /**
@@ -74,6 +77,8 @@ public class OpenstackFloatingIpWebResourceTest extends ResourceTest {
     public void testCreateFloatingIpWithCreationOperation() {
         mockOpenstackRouterAdminService.createFloatingIp(anyObject());
         replay(mockOpenstackRouterAdminService);
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
 
         final WebTarget wt = target();
         InputStream jsonStream = OpenstackFloatingIpWebResourceTest.class
@@ -93,6 +98,8 @@ public class OpenstackFloatingIpWebResourceTest extends ResourceTest {
      */
     @Test
     public void testCreateFloatingIpWithIncorrectInput() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
         final WebTarget wt = target();
         InputStream jsonStream = OpenstackFloatingIpWebResourceTest.class
                 .getResourceAsStream("dummy.json");
@@ -109,6 +116,8 @@ public class OpenstackFloatingIpWebResourceTest extends ResourceTest {
      */
     @Test
     public void testCreateFloatingIpWithDuplicatedIp() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
         mockOpenstackRouterAdminService.createFloatingIp(anyObject());
         expectLastCall().andThrow(new IllegalArgumentException());
         replay(mockOpenstackRouterAdminService);
@@ -131,6 +140,8 @@ public class OpenstackFloatingIpWebResourceTest extends ResourceTest {
      */
     @Test
     public void testUpdateFloatingIpWithUpdatingOperation() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
         mockOpenstackRouterAdminService.updateFloatingIp(anyObject());
         replay(mockOpenstackRouterAdminService);
 
@@ -153,6 +164,8 @@ public class OpenstackFloatingIpWebResourceTest extends ResourceTest {
      */
     @Test
     public void testUpdateFloatingIpWithIncorrectInput() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
         final WebTarget wt = target();
         InputStream jsonStream = OpenstackFloatingIpWebResourceTest.class
                 .getResourceAsStream("dummy.json");
@@ -170,6 +183,8 @@ public class OpenstackFloatingIpWebResourceTest extends ResourceTest {
      */
     @Test
     public void testUpdateFloatingIpWithNonexistId() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
         mockOpenstackRouterAdminService.updateFloatingIp(anyObject());
         expectLastCall().andThrow(new IllegalArgumentException());
         replay(mockOpenstackRouterAdminService);
@@ -193,6 +208,8 @@ public class OpenstackFloatingIpWebResourceTest extends ResourceTest {
      */
     @Test
     public void testDeleteFloatingIpWithDeletionOperation() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
         mockOpenstackRouterAdminService.removeFloatingIp(anyString());
         replay(mockOpenstackRouterAdminService);
 
@@ -213,6 +230,8 @@ public class OpenstackFloatingIpWebResourceTest extends ResourceTest {
      */
     @Test
     public void testDeleteFloatingIpWithNonexistId() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
         mockOpenstackRouterAdminService.removeFloatingIp(anyString());
         expectLastCall().andThrow(new IllegalArgumentException());
         replay(mockOpenstackRouterAdminService);

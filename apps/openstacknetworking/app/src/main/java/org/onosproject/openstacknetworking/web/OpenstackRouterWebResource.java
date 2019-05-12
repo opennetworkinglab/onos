@@ -15,6 +15,8 @@
  */
 package org.onosproject.openstacknetworking.web;
 
+import org.apache.commons.io.IOUtils;
+import org.onosproject.openstacknetworking.api.OpenstackHaService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
 import org.onosproject.rest.AbstractWebResource;
 import org.openstack4j.openstack.networking.domain.NeutronRouter;
@@ -34,12 +36,17 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+import java.io.IOException;
 import java.io.InputStream;
 
 import static javax.ws.rs.core.Response.created;
 import static javax.ws.rs.core.Response.noContent;
 import static javax.ws.rs.core.Response.status;
+import static org.onosproject.openstacknetworking.api.Constants.REST_UTF8;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.jsonToModelEntity;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.syncDelete;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.syncPost;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.syncPut;
 
 /**
  * Handles router REST API call of Neutron L3 plugin.
@@ -55,6 +62,7 @@ public class OpenstackRouterWebResource extends AbstractWebResource {
 
     private final OpenstackRouterAdminService adminService =
                                         get(OpenstackRouterAdminService.class);
+    private final OpenstackHaService haService = get(OpenstackHaService.class);
 
     @Context
     private UriInfo uriInfo;
@@ -65,16 +73,23 @@ public class OpenstackRouterWebResource extends AbstractWebResource {
      * @param input router JSON input stream
      * @return 201 CREATED if the JSON is correct, 400 BAD_REQUEST if the JSON
      * is invalid or duplicated router already exists
+     * @throws IOException exception
      * @onos.rsModel NeutronRouter
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createRouter(InputStream input) {
+    public Response createRouter(InputStream input) throws IOException {
         log.trace(String.format(MESSAGE_ROUTER, "CREATE"));
 
+        String inputStr = IOUtils.toString(input, REST_UTF8);
+
+        if (!haService.isActive()) {
+            return syncPost(haService, ROUTERS, inputStr);
+        }
+
         final NeutronRouter osRouter = (NeutronRouter)
-                            jsonToModelEntity(input, NeutronRouter.class);
+                            jsonToModelEntity(inputStr, NeutronRouter.class);
 
         adminService.createRouter(osRouter);
 
@@ -92,17 +107,24 @@ public class OpenstackRouterWebResource extends AbstractWebResource {
      * @param input router JSON input stream
      * @return 200 OK with the updated router, 400 BAD_REQUEST if the requested
      * router does not exist
+     * @throws IOException exception
      * @onos.rsModel NeutronRouter
      */
     @PUT
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateRouter(@PathParam("id") String id, InputStream input) {
+    public Response updateRouter(@PathParam("id") String id, InputStream input) throws IOException {
         log.trace(String.format(MESSAGE_ROUTER, "UPDATE " + id));
 
+        String inputStr = IOUtils.toString(input, REST_UTF8);
+
+        if (!haService.isActive()) {
+            return syncPut(haService, ROUTERS, id, inputStr);
+        }
+
         final NeutronRouter osRouter = (NeutronRouter)
-                            jsonToModelEntity(input, NeutronRouter.class);
+                jsonToModelEntity(inputStr, NeutronRouter.class);
 
         osRouter.setId(id);
         adminService.updateRouter(osRouter);
@@ -117,17 +139,24 @@ public class OpenstackRouterWebResource extends AbstractWebResource {
      * @param input router interface JSON input stream
      * @return 200 OK with the updated router interface, 400 BAD_REQUEST if the
      * requested router does not exist
+     * @throws IOException exception
      * @onos.rsModel NeutronRouterInterface
      */
     @PUT
     @Path("{id}/add_router_interface")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response addRouterInterface(@PathParam("id") String id, InputStream input) {
+    public Response addRouterInterface(@PathParam("id") String id, InputStream input) throws IOException {
         log.trace(String.format(MESSAGE_ROUTER_IFACE, "UPDATE " + id));
 
+        String inputStr = IOUtils.toString(input, REST_UTF8);
+
+        if (!haService.isActive()) {
+            return syncPut(haService, ROUTERS, "add_router_interface", id, inputStr);
+        }
+
         final NeutronRouterInterface osRouterIface = (NeutronRouterInterface)
-                        jsonToModelEntity(input, NeutronRouterInterface.class);
+                        jsonToModelEntity(inputStr, NeutronRouterInterface.class);
 
         adminService.addRouterInterface(osRouterIface);
 
@@ -141,17 +170,24 @@ public class OpenstackRouterWebResource extends AbstractWebResource {
      * @param input router interface JSON input stream
      * @return 200 OK with the updated router interface, 400 BAD_REQUEST if the
      * requested router does not exist
+     * @throws IOException exception
      * @onos.rsModel NeutronRouterInterface
      */
     @PUT
     @Path("{id}/remove_router_interface")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteRouterInterface(@PathParam("id") String id, InputStream input) {
+    public Response deleteRouterInterface(@PathParam("id") String id, InputStream input) throws IOException {
         log.trace(String.format(MESSAGE_ROUTER_IFACE, "DELETE " + id));
 
+        String inputStr = IOUtils.toString(input, REST_UTF8);
+
+        if (!haService.isActive()) {
+            return syncPut(haService, ROUTERS, "remove_router_interface", id, inputStr);
+        }
+
         final NeutronRouterInterface osRouterIface = (NeutronRouterInterface)
-                        jsonToModelEntity(input, NeutronRouterInterface.class);
+                        jsonToModelEntity(inputStr, NeutronRouterInterface.class);
 
         adminService.removeRouterInterface(osRouterIface.getPortId());
 
@@ -169,6 +205,10 @@ public class OpenstackRouterWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteRouter(@PathParam("id") String id) {
         log.trace(String.format(MESSAGE_ROUTER, "DELETE " + id));
+
+        if (!haService.isActive()) {
+            return syncDelete(haService, ROUTERS, id);
+        }
 
         adminService.removeRouter(id);
         return noContent().build();

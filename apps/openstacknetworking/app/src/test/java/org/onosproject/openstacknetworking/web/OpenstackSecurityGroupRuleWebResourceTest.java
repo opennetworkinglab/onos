@@ -20,6 +20,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
+import org.onosproject.openstacknetworking.api.OpenstackHaService;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupAdminService;
 import org.onosproject.rest.resources.ResourceTest;
 
@@ -32,6 +33,7 @@ import java.io.InputStream;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
@@ -45,6 +47,7 @@ public class OpenstackSecurityGroupRuleWebResourceTest extends ResourceTest {
 
     final OpenstackSecurityGroupAdminService mockOpenstackSecurityGroupAdminService =
             createMock(OpenstackSecurityGroupAdminService.class);
+    final OpenstackHaService mockOpenstackHaService = createMock(OpenstackHaService.class);
     private static final String PATH = "security-group-rules";
 
     /**
@@ -62,7 +65,8 @@ public class OpenstackSecurityGroupRuleWebResourceTest extends ResourceTest {
         ServiceDirectory testDirectory =
                 new TestServiceDirectory()
                         .add(OpenstackSecurityGroupAdminService.class,
-                                mockOpenstackSecurityGroupAdminService);
+                                mockOpenstackSecurityGroupAdminService)
+                        .add(OpenstackHaService.class, mockOpenstackHaService);
         setServiceDirectory(testDirectory);
     }
 
@@ -71,6 +75,8 @@ public class OpenstackSecurityGroupRuleWebResourceTest extends ResourceTest {
      */
     @Test
     public void testCreateSecurityGroupRulesWithCreationOperation() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
         mockOpenstackSecurityGroupAdminService.createSecurityGroupRule(anyObject());
         replay(mockOpenstackSecurityGroupAdminService);
 
@@ -92,6 +98,9 @@ public class OpenstackSecurityGroupRuleWebResourceTest extends ResourceTest {
      */
     @Test
     public void testCreateSecurityGroupRulesWithIncorrectInput() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
+
         final WebTarget wt = target();
         InputStream jsonStream = OpenstackSecurityGroupRuleWebResourceTest.class
                 .getResourceAsStream("dummy.json");
@@ -108,6 +117,8 @@ public class OpenstackSecurityGroupRuleWebResourceTest extends ResourceTest {
      */
     @Test
     public void testCreateSecurityGroupRulesWithDuplicatedId() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
         mockOpenstackSecurityGroupAdminService.createSecurityGroupRule(anyObject());
         expectLastCall().andThrow(new IllegalArgumentException());
         replay(mockOpenstackSecurityGroupAdminService);
@@ -130,6 +141,8 @@ public class OpenstackSecurityGroupRuleWebResourceTest extends ResourceTest {
      */
     @Test
     public void testDeleteSecurityGroupRuleWithDeletionOperation() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
         mockOpenstackSecurityGroupAdminService.removeSecurityGroupRule(anyString());
         replay(mockOpenstackSecurityGroupAdminService);
 
@@ -150,6 +163,8 @@ public class OpenstackSecurityGroupRuleWebResourceTest extends ResourceTest {
      */
     @Test
     public void testDeleteSecurityGroupRuleWithNonexistId() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
         mockOpenstackSecurityGroupAdminService.removeSecurityGroupRule(anyString());
         expectLastCall().andThrow(new IllegalArgumentException());
         replay(mockOpenstackSecurityGroupAdminService);

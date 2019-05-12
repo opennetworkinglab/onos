@@ -15,6 +15,8 @@
  */
 package org.onosproject.openstacknetworking.web;
 
+import org.apache.commons.io.IOUtils;
+import org.onosproject.openstacknetworking.api.OpenstackHaService;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupAdminService;
 import org.onosproject.rest.AbstractWebResource;
 import org.openstack4j.openstack.networking.domain.NeutronSecurityGroupRule;
@@ -32,11 +34,15 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+import java.io.IOException;
 import java.io.InputStream;
 
 import static javax.ws.rs.core.Response.created;
 import static javax.ws.rs.core.Response.noContent;
+import static org.onosproject.openstacknetworking.api.Constants.REST_UTF8;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.jsonToModelEntity;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.syncDelete;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.syncPost;
 
 /**
  * Handles Security Group Rule Rest API call from Neutron ML2 plugin.
@@ -50,6 +56,7 @@ public class OpenstackSecurityGroupRuleWebResource extends AbstractWebResource {
 
     private final OpenstackSecurityGroupAdminService adminService =
                                     get(OpenstackSecurityGroupAdminService.class);
+    private final OpenstackHaService haService = get(OpenstackHaService.class);
 
     @Context
     private UriInfo uriInfo;
@@ -60,16 +67,23 @@ public class OpenstackSecurityGroupRuleWebResource extends AbstractWebResource {
      * @param input security group JSON input stream
      * @return 201 CREATED if the JSON is correct, 400 BAD_REQUEST if the JSON
      * is invalid or duplicated security group rule ID already exists
+     * @throws IOException exception
      * @onos.rsModel NeutronSecurityGroupRule
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createSecurityGroupRules(InputStream input) {
+    public Response createSecurityGroupRules(InputStream input) throws IOException {
         log.trace(String.format(MESSAGE, "CREATE"));
 
+        String inputStr = IOUtils.toString(input, REST_UTF8);
+
+        if (!haService.isActive()) {
+            return syncPost(haService, SECURITY_GROUP_RULES, inputStr);
+        }
+
         final NeutronSecurityGroupRule sgRule = (NeutronSecurityGroupRule)
-                        jsonToModelEntity(input, NeutronSecurityGroupRule.class);
+                        jsonToModelEntity(inputStr, NeutronSecurityGroupRule.class);
 
         adminService.createSecurityGroupRule(sgRule);
         UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()
@@ -91,6 +105,10 @@ public class OpenstackSecurityGroupRuleWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteSecurityGroupRule(@PathParam("id") String id) {
         log.trace(String.format(MESSAGE, "REMOVE " + id));
+
+        if (!haService.isActive()) {
+            return syncDelete(haService, SECURITY_GROUP_RULES, id);
+        }
 
         adminService.removeSecurityGroupRule(id);
         return noContent().build();
