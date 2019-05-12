@@ -20,6 +20,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
+import org.onosproject.openstacknetworking.api.OpenstackHaService;
 import org.onosproject.openstacknetworking.api.OpenstackRouterAdminService;
 import org.onosproject.rest.resources.ResourceTest;
 
@@ -32,6 +33,7 @@ import java.io.InputStream;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
@@ -45,6 +47,7 @@ public class OpenstackRouterWebResourceTest extends ResourceTest {
 
     final OpenstackRouterAdminService mockOpenstackRouterAdminService =
             createMock(OpenstackRouterAdminService.class);
+    final OpenstackHaService mockOpenstackHaService = createMock(OpenstackHaService.class);
     private static final String PATH = "routers";
 
     /**
@@ -62,7 +65,8 @@ public class OpenstackRouterWebResourceTest extends ResourceTest {
         ServiceDirectory testDirectory =
                 new TestServiceDirectory()
                         .add(OpenstackRouterAdminService.class,
-                                mockOpenstackRouterAdminService);
+                                mockOpenstackRouterAdminService)
+                        .add(OpenstackHaService.class, mockOpenstackHaService);
         setServiceDirectory(testDirectory);
     }
 
@@ -73,6 +77,8 @@ public class OpenstackRouterWebResourceTest extends ResourceTest {
     public void testCreateRouterWithCreationOperation() {
         mockOpenstackRouterAdminService.createRouter(anyObject());
         replay(mockOpenstackRouterAdminService);
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
 
         final WebTarget wt = target();
         InputStream jsonStream = OpenstackRouterWebResourceTest.class
@@ -92,6 +98,9 @@ public class OpenstackRouterWebResourceTest extends ResourceTest {
      */
     @Test
     public void testCreateRouterWithIncorrectInput() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
+
         final WebTarget wt = target();
         InputStream jsonStream = OpenstackRouterWebResourceTest.class
                 .getResourceAsStream("dummy.json");
@@ -108,6 +117,8 @@ public class OpenstackRouterWebResourceTest extends ResourceTest {
      */
     @Test
     public void testCreateRouterWithDuplicatedId() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
         mockOpenstackRouterAdminService.createRouter(anyObject());
         expectLastCall().andThrow(new IllegalArgumentException());
         replay(mockOpenstackRouterAdminService);
@@ -130,6 +141,8 @@ public class OpenstackRouterWebResourceTest extends ResourceTest {
      */
     @Test
     public void testUpdateRouterWithUpdatingOperation() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
         mockOpenstackRouterAdminService.updateRouter(anyObject());
         replay(mockOpenstackRouterAdminService);
 
@@ -152,6 +165,9 @@ public class OpenstackRouterWebResourceTest extends ResourceTest {
      */
     @Test
     public void testUpdateRouterWithIncorrectInput() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
+
         final WebTarget wt = target();
         InputStream jsonStream = OpenstackRouterWebResourceTest.class
                 .getResourceAsStream("dummy.json");
@@ -169,6 +185,8 @@ public class OpenstackRouterWebResourceTest extends ResourceTest {
      */
     @Test
     public void testUpdateRouterWithNonexistId() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
         mockOpenstackRouterAdminService.updateRouter(anyObject());
         expectLastCall().andThrow(new IllegalArgumentException());
         replay(mockOpenstackRouterAdminService);
@@ -192,6 +210,8 @@ public class OpenstackRouterWebResourceTest extends ResourceTest {
      */
     @Test
     public void testDeleteRouterWithDeletionOperation() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
         mockOpenstackRouterAdminService.removeRouter(anyString());
         replay(mockOpenstackRouterAdminService);
 
@@ -212,6 +232,8 @@ public class OpenstackRouterWebResourceTest extends ResourceTest {
      */
     @Test
     public void testDeleteRouterWithNonexistId() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
         mockOpenstackRouterAdminService.removeRouter(anyString());
         expectLastCall().andThrow(new IllegalArgumentException());
         replay(mockOpenstackRouterAdminService);
@@ -233,6 +255,8 @@ public class OpenstackRouterWebResourceTest extends ResourceTest {
      */
     @Test
     public void testAddRouterInterfaceWithAdditionOperation() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
         mockOpenstackRouterAdminService.addRouterInterface(anyObject());
         replay(mockOpenstackRouterAdminService);
 
@@ -255,6 +279,8 @@ public class OpenstackRouterWebResourceTest extends ResourceTest {
      */
     @Test
     public void testAddRouterInterfaceWithNonexistId() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
         mockOpenstackRouterAdminService.addRouterInterface(anyObject());
         expectLastCall().andThrow(new IllegalArgumentException());
         replay(mockOpenstackRouterAdminService);
@@ -278,6 +304,8 @@ public class OpenstackRouterWebResourceTest extends ResourceTest {
      */
     @Test
     public void testDeleteRouterInterfaceWithDeletionOperation() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
         mockOpenstackRouterAdminService.removeRouterInterface(anyString());
         replay(mockOpenstackRouterAdminService);
 
@@ -300,6 +328,8 @@ public class OpenstackRouterWebResourceTest extends ResourceTest {
      */
     @Test
     public void testDeleteRouterInterfaceWithNonexistId() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
         mockOpenstackRouterAdminService.removeRouterInterface(anyString());
         expectLastCall().andThrow(new IllegalArgumentException());
         replay(mockOpenstackRouterAdminService);

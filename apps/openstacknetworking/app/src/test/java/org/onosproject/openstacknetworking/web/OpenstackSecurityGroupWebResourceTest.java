@@ -20,6 +20,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.osgi.TestServiceDirectory;
+import org.onosproject.openstacknetworking.api.OpenstackHaService;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupAdminService;
 import org.onosproject.rest.resources.ResourceTest;
 
@@ -32,6 +33,7 @@ import java.io.InputStream;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
@@ -45,6 +47,7 @@ public class OpenstackSecurityGroupWebResourceTest extends ResourceTest {
 
     final OpenstackSecurityGroupAdminService mockOpenstackSecurityGroupAdminService =
             createMock(OpenstackSecurityGroupAdminService.class);
+    final OpenstackHaService mockOpenstackHaService = createMock(OpenstackHaService.class);
     private static final String PATH = "security-groups";
 
     /**
@@ -62,7 +65,8 @@ public class OpenstackSecurityGroupWebResourceTest extends ResourceTest {
         ServiceDirectory testDirectory =
                 new TestServiceDirectory()
                         .add(OpenstackSecurityGroupAdminService.class,
-                                mockOpenstackSecurityGroupAdminService);
+                                mockOpenstackSecurityGroupAdminService)
+                        .add(OpenstackHaService.class, mockOpenstackHaService);
         setServiceDirectory(testDirectory);
     }
 
@@ -73,6 +77,8 @@ public class OpenstackSecurityGroupWebResourceTest extends ResourceTest {
     public void testCreateSecurityGroupWithCreationOperation() {
         mockOpenstackSecurityGroupAdminService.createSecurityGroup(anyObject());
         replay(mockOpenstackSecurityGroupAdminService);
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
 
         final WebTarget wt = target();
         InputStream jsonStream = OpenstackSecurityGroupWebResourceTest.class
@@ -92,6 +98,9 @@ public class OpenstackSecurityGroupWebResourceTest extends ResourceTest {
      */
     @Test
     public void testCreateSecurityGroupWithIncorrectInput() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
+
         final WebTarget wt = target();
         InputStream jsonStream = OpenstackSecurityGroupWebResourceTest.class
                 .getResourceAsStream("dummy.json");
@@ -108,6 +117,8 @@ public class OpenstackSecurityGroupWebResourceTest extends ResourceTest {
      */
     @Test
     public void testCreateSecurityGroupWithDuplicatedId() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
         mockOpenstackSecurityGroupAdminService.createSecurityGroup(anyObject());
         expectLastCall().andThrow(new IllegalArgumentException());
         replay(mockOpenstackSecurityGroupAdminService);
@@ -130,6 +141,9 @@ public class OpenstackSecurityGroupWebResourceTest extends ResourceTest {
      */
     @Test
     public void testUpdateSecurityGroupWithUpdatingOperation() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
+
         final WebTarget wt = target();
         InputStream jsonStream = OpenstackSecurityGroupWebResourceTest.class
                 .getResourceAsStream("openstack-security-group.json");
@@ -147,6 +161,8 @@ public class OpenstackSecurityGroupWebResourceTest extends ResourceTest {
      */
     @Test
     public void testDeleteSecurityGroupWithDeletionOperation() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
         mockOpenstackSecurityGroupAdminService.removeSecurityGroup(anyString());
         replay(mockOpenstackSecurityGroupAdminService);
 
@@ -167,6 +183,8 @@ public class OpenstackSecurityGroupWebResourceTest extends ResourceTest {
      */
     @Test
     public void testDeleteSecurityGroupWithNonexistId() {
+        expect(mockOpenstackHaService.isActive()).andReturn(true).anyTimes();
+        replay(mockOpenstackHaService);
         mockOpenstackSecurityGroupAdminService.removeSecurityGroup(anyString());
         expectLastCall().andThrow(new IllegalArgumentException());
         replay(mockOpenstackSecurityGroupAdminService);

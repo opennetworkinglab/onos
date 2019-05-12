@@ -81,6 +81,15 @@
             </completers>
         </command>
         <command>
+            <action class="org.onosproject.openstacknetworking.cli.OpenstackHaShowCommand" />
+        </command>
+        <command>
+            <action class="org.onosproject.openstacknetworking.cli.OpenstackHaConfigCommand" />
+        </command>
+        <command>
+            <action class="org.onosproject.openstacknetworking.cli.OpenstackHaActiveIpCommand" />
+        </command>
+        <command>
             <action class="org.onosproject.openstacknetworking.cli.OpenstackAddAclCommand" />
         </command>
         <command>
