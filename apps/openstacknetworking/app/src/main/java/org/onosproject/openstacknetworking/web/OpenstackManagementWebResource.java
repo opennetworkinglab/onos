@@ -98,6 +98,7 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
     private static final String HTTP_HEADER_ACCEPT = "accept";
     private static final String HTTP_HEADER_VALUE_JSON = "application/json";
 
+    private static final String IS_ACTIVE = "isActive";
     private static final String FLAG_TRUE = "true";
     private static final String FLAG_FALSE = "false";
 
@@ -385,6 +386,19 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
         }
 
         return status(Response.Status.OK).build();
+    }
+
+    /**
+     * Configures the HA active-standby status.
+     *
+     * @return 200 OK with HA status.
+     *         True if the node runs in active mode, false otherwise
+     */
+    @GET
+    @Path("active/status")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getActiveStatus() {
+        return ok(mapper().createObjectNode().put(IS_ACTIVE, osHaService.isActive())).build();
     }
 
     /**
