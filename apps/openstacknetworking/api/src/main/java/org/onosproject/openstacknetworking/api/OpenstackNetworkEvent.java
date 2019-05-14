@@ -32,6 +32,7 @@ public class OpenstackNetworkEvent
     private final Port port;
     private final Subnet subnet;
     private final String securityGroupId;
+    private final ExternalPeerRouter peerRouter;
 
     public enum Type {
         /**
@@ -97,11 +98,32 @@ public class OpenstackNetworkEvent
         /**
          * Signifies that the OpenStack security group rule is removed from a specific port.
          */
-        OPENSTACK_PORT_SECURITY_GROUP_REMOVED
+        OPENSTACK_PORT_SECURITY_GROUP_REMOVED,
+
+        /**
+         * Signifies that the external peer router is created.
+         */
+        EXTERNAL_PEER_ROUTER_CREATED,
+
+        /**
+         * Signifies that the external peer router is updated.
+         */
+        EXTERNAL_PEER_ROUTER_UPDATED,
+
+        /**
+         * Signifies that the external peer router MAC is updated.
+         */
+        EXTERNAL_PEER_ROUTER_MAC_UPDATED,
+
+        /**
+         * Signifies that the external peer router is removed.
+         */
+        EXTERNAL_PEER_ROUTER_REMOVED,
     }
 
     /**
      * Creates an event of a given type for the specified network and the current time.
+     *
      * @param type    openstack network event type
      * @param network openstack network
      */
@@ -110,6 +132,7 @@ public class OpenstackNetworkEvent
         this.port = null;
         this.subnet = null;
         this.securityGroupId = null;
+        this.peerRouter = null;
     }
 
     /**
@@ -125,6 +148,7 @@ public class OpenstackNetworkEvent
         this.port = port;
         this.subnet = null;
         this.securityGroupId = null;
+        this.peerRouter = null;
     }
 
     /**
@@ -140,6 +164,7 @@ public class OpenstackNetworkEvent
         this.port = null;
         this.subnet = subnet;
         this.securityGroupId = null;
+        this.peerRouter = null;
     }
 
     /**
@@ -154,6 +179,21 @@ public class OpenstackNetworkEvent
         this.port = port;
         this.subnet = null;
         this.securityGroupId = securityGroupId;
+        this.peerRouter = null;
+    }
+
+    /**
+     * Creates an event of a given type for the specified external peer router.
+     *
+     * @param type openstack network event type
+     * @param peerRouter external peer router
+     */
+    public OpenstackNetworkEvent(Type type, ExternalPeerRouter peerRouter) {
+        super(type, null);
+        this.port = null;
+        this.subnet = null;
+        this.securityGroupId = null;
+        this.peerRouter = peerRouter;
     }
 
     /**
@@ -172,6 +212,15 @@ public class OpenstackNetworkEvent
      */
     public Subnet subnet() {
         return subnet;
+    }
+
+    /**
+     * Returns the external peer router.
+     *
+     * @return external peer router; null if the event is not peer router specific
+     */
+    public ExternalPeerRouter peerRouter() {
+        return peerRouter;
     }
 
     /**
@@ -195,6 +244,7 @@ public class OpenstackNetworkEvent
                 .add("port", port)
                 .add("subnet", subnet)
                 .add("security group", securityGroupId())
+                .add("external peer router", peerRouter)
                 .toString();
     }
 }

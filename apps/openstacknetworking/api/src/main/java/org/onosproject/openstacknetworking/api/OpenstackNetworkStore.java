@@ -140,6 +140,43 @@ public interface OpenstackNetworkStore
     Set<Port> ports();
 
     /**
+     * Returns external peer router with the given IP address.
+     *
+     * @param ipAddress IP address
+     * @return external peer router
+     */
+    ExternalPeerRouter externalPeerRouter(String ipAddress);
+
+    /**
+     * Returns all external peer routers.
+     *
+     * @return set of external peer routers
+     */
+    Set<ExternalPeerRouter> externalPeerRouters();
+
+    /**
+     * Creates a new external peer router.
+     *
+     * @param peerRouter the new external peer router
+     */
+    void createExternalPeerRouter(ExternalPeerRouter peerRouter);
+
+    /**
+     * Updates an existing external peer router.
+     *
+     * @param peerRouter the updated external peer router
+     */
+    void updateExternalPeerRouter(ExternalPeerRouter peerRouter);
+
+    /**
+     * Removes an existing external peer router with the given IP address.
+     *
+     * @param ipAddress IP address
+     * @return removed external peer router
+     */
+    ExternalPeerRouter removeExternalPeerRouter(String ipAddress);
+
+    /**
      * Removes the existing network and ports.
      */
     void clear();

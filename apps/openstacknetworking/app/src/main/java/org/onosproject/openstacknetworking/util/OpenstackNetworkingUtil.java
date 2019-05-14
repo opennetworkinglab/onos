@@ -952,7 +952,8 @@ public final class OpenstackNetworkingUtil {
             return null;
         }
 
-        Subnet subnet = osNetworkService.subnets(network.getId()).stream().findAny().orElse(null);
+        Subnet subnet = osNetworkService.subnets(network.getId())
+                .stream().findAny().orElse(null);
 
         if (subnet == null) {
             return null;

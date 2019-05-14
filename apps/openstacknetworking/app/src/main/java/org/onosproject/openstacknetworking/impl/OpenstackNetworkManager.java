@@ -131,6 +131,12 @@ public class OpenstackNetworkManager
                                 "OpenStack port ID cannot be null";
     private static final String ERR_NULL_PORT_NET_ID =
                                 "OpenStack port network ID cannot be null";
+    private static final String ERR_NULL_PEER_ROUTER =
+                                "External peer router cannot be null";
+    private static final String ERR_NULL_PEER_ROUTER_IP =
+                                "External peer router IP cannot be null";
+    private static final String ERR_NULL_PEER_ROUTER_MAC =
+                                "External peer router MAC cannot be null";
 
     private static final String ERR_IN_USE = " still in use";
 
@@ -158,18 +164,7 @@ public class OpenstackNetworkManager
     private final OpenstackNetworkStoreDelegate
                                 delegate = new InternalNetworkStoreDelegate();
 
-    private ConsistentMap<String, ExternalPeerRouter> externalPeerRouterMap;
     private ConsistentMap<String, OpenstackNetwork> augmentedNetworkMap;
-
-    private static final KryoNamespace
-            SERIALIZER_EXTERNAL_PEER_ROUTER_MAP = KryoNamespace.newBuilder()
-            .register(KryoNamespaces.API)
-            .register(ExternalPeerRouter.class)
-            .register(DefaultExternalPeerRouter.class)
-            .register(MacAddress.class)
-            .register(IpAddress.class)
-            .register(VlanId.class)
-            .build();
 
     private static final KryoNamespace
             SERIALIZER_AUGMENTED_NETWORK_MAP = KryoNamespace.newBuilder()
@@ -181,19 +176,12 @@ public class OpenstackNetworkManager
 
     private ApplicationId appId;
 
-
     @Activate
     protected void activate() {
         appId = coreService.registerApplication(Constants.OPENSTACK_NETWORKING_APP_ID);
 
         osNetworkStore.setDelegate(delegate);
         log.info("Started");
-
-        externalPeerRouterMap = storageService.<String, ExternalPeerRouter>consistentMapBuilder()
-                .withSerializer(Serializer.using(SERIALIZER_EXTERNAL_PEER_ROUTER_MAP))
-                .withName("external-routermap")
-                .withApplicationId(appId)
-                .build();
 
         augmentedNetworkMap = storageService.<String, OpenstackNetwork>consistentMapBuilder()
                 .withSerializer(Serializer.using(SERIALIZER_AUGMENTED_NETWORK_MAP))
@@ -339,7 +327,6 @@ public class OpenstackNetworkManager
     public void clear() {
         osNetworkStore.clear();
         augmentedNetworkMap.clear();
-        externalPeerRouterMap.clear();
     }
 
     @Override
@@ -480,10 +467,7 @@ public class OpenstackNetworkManager
 
     @Override
     public ExternalPeerRouter externalPeerRouter(IpAddress ipAddress) {
-        if (externalPeerRouterMap.containsKey(ipAddress.toString())) {
-            return externalPeerRouterMap.get(ipAddress.toString()).value();
-        }
-        return null;
+        return osNetworkStore.externalPeerRouter(ipAddress.toString());
     }
 
     @Override
@@ -494,11 +478,7 @@ public class OpenstackNetworkManager
             return null;
         }
 
-        if (externalPeerRouterMap.containsKey(ipAddress.toString())) {
-            return externalPeerRouterMap.get(ipAddress.toString()).value();
-        } else {
-            return null;
-        }
+        return externalPeerRouter(ipAddress);
     }
 
     @Override
@@ -515,9 +495,11 @@ public class OpenstackNetworkManager
             return;
         }
 
-        if (externalPeerRouterMap.containsKey(targetIp.toString()) &&
-                !externalPeerRouterMap.get(
-                        targetIp.toString()).value().macAddress().equals(MacAddress.NONE)) {
+        ExternalPeerRouter peerRouter = osNetworkStore.externalPeerRouter(targetIp.toString());
+
+        // if peer router's MAC address is not NONE, we assume that peer router's
+        // MAC address has been derived
+        if (peerRouter != null && !peerRouter.macAddress().equals(MacAddress.NONE)) {
             return;
         }
 
@@ -554,13 +536,12 @@ public class OpenstackNetworkManager
                 treatment,
                 ByteBuffer.wrap(ethRequest.serialize())));
 
-        externalPeerRouterMap.put(targetIp.toString(),
-                DefaultExternalPeerRouter.builder()
-                        .ipAddress(targetIp)
-                        .macAddress(MacAddress.NONE)
-                        .vlanId(vlanId)
-                        .build());
-
+        ExternalPeerRouter derivedRouter = DefaultExternalPeerRouter.builder()
+                .ipAddress(targetIp)
+                .macAddress(MacAddress.NONE)
+                .vlanId(vlanId)
+                .build();
+        osNetworkStore.createExternalPeerRouter(derivedRouter);
         log.info("Initializes external peer router map with peer router IP {}",
                                                             targetIp.toString());
     }
@@ -572,59 +553,45 @@ public class OpenstackNetworkManager
         }
 
         IpAddress targetIp = getExternalPeerRouterIp(externalGateway);
-        if (targetIp == null) {
-            return;
-        }
-
-        if (externalPeerRouterMap.containsKey(targetIp.toString())) {
-            externalPeerRouterMap.remove(targetIp.toString());
-        }
+        deleteExternalPeerRouter(targetIp.toString());
     }
 
     @Override
     public void deleteExternalPeerRouter(String ipAddress) {
-        if (ipAddress == null) {
-            return;
-        }
-
-        if (externalPeerRouterMap.containsKey(ipAddress)) {
-            externalPeerRouterMap.remove(ipAddress);
-        }
-
+        osNetworkStore.removeExternalPeerRouter(ipAddress);
     }
 
     @Override
     public void updateExternalPeerRouterMac(IpAddress ipAddress,
                                             MacAddress macAddress) {
-        try {
-            externalPeerRouterMap.computeIfPresent(ipAddress.toString(), (id, existing) ->
-                    DefaultExternalPeerRouter.builder()
-                            .ipAddress(ipAddress)
-                            .macAddress(macAddress)
-                            .vlanId(existing.vlanId())
-                            .build());
-
-            log.info("Updated external peer router map {}",
-                    externalPeerRouterMap.get(ipAddress.toString()).value().toString());
-        } catch (Exception e) {
-            log.error("Exception occurred because of {}", e);
-        }
+        updateExternalPeerRouter(ipAddress, macAddress, null);
     }
 
     @Override
     public void updateExternalPeerRouter(IpAddress ipAddress,
                                          MacAddress macAddress,
                                          VlanId vlanId) {
-        try {
-            externalPeerRouterMap.computeIfPresent(ipAddress.toString(), (id, existing) ->
-                    DefaultExternalPeerRouter.builder()
-                            .ipAddress(ipAddress)
-                            .macAddress(macAddress)
-                            .vlanId(vlanId)
-                            .build());
+        checkNotNull(ipAddress, ERR_NULL_PEER_ROUTER_IP);
 
-        } catch (Exception e) {
-            log.error("Exception occurred because of {}", e);
+        ExternalPeerRouter existingPeerRouter =
+                osNetworkStore.externalPeerRouter(ipAddress.toString());
+
+        if (existingPeerRouter != null) {
+            ExternalPeerRouter.Builder urBuilder = DefaultExternalPeerRouter.builder()
+                    .ipAddress(ipAddress);
+
+            if (macAddress == null) {
+                urBuilder.macAddress(existingPeerRouter.macAddress());
+            } else {
+                urBuilder.macAddress(macAddress);
+            }
+
+            if (vlanId == null) {
+                urBuilder.vlanId(existingPeerRouter.vlanId());
+            } else {
+                urBuilder.vlanId(vlanId);
+            }
+            osNetworkStore.updateExternalPeerRouter(urBuilder.build());
         }
     }
 
@@ -635,31 +602,25 @@ public class OpenstackNetworkManager
         if (ipAddress == null) {
             return null;
         }
-        if (externalPeerRouterMap.containsKey(ipAddress.toString())) {
-            return externalPeerRouterMap.get(ipAddress.toString()).value().macAddress();
-        } else {
+
+        ExternalPeerRouter peerRouter =
+                osNetworkStore.externalPeerRouter(ipAddress.toString());
+
+        if (peerRouter == null) {
             throw new NoSuchElementException();
+        } else {
+            return peerRouter.macAddress();
         }
     }
 
     @Override
     public void updateExternalPeerRouterVlan(IpAddress ipAddress, VlanId vlanId) {
-
-        try {
-            externalPeerRouterMap.computeIfPresent(ipAddress.toString(), (id, existing) ->
-                    DefaultExternalPeerRouter.builder()
-                            .ipAddress(ipAddress)
-                            .macAddress(existing.macAddress())
-                            .vlanId(vlanId).build());
-
-        } catch (Exception e) {
-            log.error("Exception occurred because of {}", e);
-        }
+        updateExternalPeerRouter(ipAddress, null, vlanId);
     }
 
     @Override
     public Set<ExternalPeerRouter> externalPeerRouters() {
-        return ImmutableSet.copyOf(externalPeerRouterMap.asJavaMap().values());
+        return ImmutableSet.copyOf(osNetworkStore.externalPeerRouters());
     }
 
     @Override
