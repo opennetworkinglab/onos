@@ -17,9 +17,13 @@ package org.onosproject.openstacknetworking.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.openstacknetworking.api.ExternalPeerRouter;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkStore;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkStoreDelegate;
@@ -54,6 +58,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
@@ -64,6 +69,10 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
+import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.EXTERNAL_PEER_ROUTER_CREATED;
+import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.EXTERNAL_PEER_ROUTER_MAC_UPDATED;
+import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.EXTERNAL_PEER_ROUTER_REMOVED;
+import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.EXTERNAL_PEER_ROUTER_UPDATED;
 import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_NETWORK_CREATED;
 import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_NETWORK_REMOVED;
 import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_NETWORK_UPDATED;
@@ -112,6 +121,16 @@ public class DistributedOpenstackNetworkStore
             .register(LinkedHashMap.class)
             .build();
 
+    private static final KryoNamespace
+            SERIALIZER_EXTERNAL_PEER_ROUTER_MAP = KryoNamespace.newBuilder()
+            .register(KryoNamespaces.API)
+            .register(ExternalPeerRouter.class)
+            .register(DefaultExternalPeerRouter.class)
+            .register(MacAddress.class)
+            .register(IpAddress.class)
+            .register(VlanId.class)
+            .build();
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
@@ -127,7 +146,10 @@ public class DistributedOpenstackNetworkStore
                         subnetMapListener = new OpenstackSubnetMapListener();
     private final MapEventListener<String, Port>
                         portMapListener = new OpenstackPortMapListener();
+    private final MapEventListener<String, ExternalPeerRouter>
+                        peerRouterListener = new ExternalPeerRouterMapListener();
 
+    private ConsistentMap<String, ExternalPeerRouter> externalPeerRouterStore;
     private ConsistentMap<String, Network> osNetworkStore;
     private ConsistentMap<String, Subnet> osSubnetStore;
     private ConsistentMap<String, Port> osPortStore;
@@ -157,6 +179,13 @@ public class DistributedOpenstackNetworkStore
                 .build();
         osPortStore.addListener(portMapListener);
 
+        externalPeerRouterStore = storageService.<String, ExternalPeerRouter>consistentMapBuilder()
+                .withSerializer(Serializer.using(SERIALIZER_EXTERNAL_PEER_ROUTER_MAP))
+                .withName("external-routermap")
+                .withApplicationId(appId)
+                .build();
+        externalPeerRouterStore.addListener(peerRouterListener);
+
         log.info("Started");
     }
 
@@ -165,6 +194,7 @@ public class DistributedOpenstackNetworkStore
         osNetworkStore.removeListener(networkMapListener);
         osSubnetStore.removeListener(subnetMapListener);
         osPortStore.removeListener(portMapListener);
+        externalPeerRouterStore.removeListener(peerRouterListener);
         eventExecutor.shutdown();
 
         log.info("Stopped");
@@ -273,10 +303,48 @@ public class DistributedOpenstackNetworkStore
     }
 
     @Override
+    public ExternalPeerRouter externalPeerRouter(String ipAddress) {
+        return externalPeerRouterStore.asJavaMap().get(ipAddress);
+    }
+
+    @Override
+    public Set<ExternalPeerRouter> externalPeerRouters() {
+        return new HashSet<>(externalPeerRouterStore.asJavaMap().values());
+    }
+
+    @Override
+    public void createExternalPeerRouter(ExternalPeerRouter peerRouter) {
+        externalPeerRouterStore.compute(
+                peerRouter.ipAddress().toString(), (id, existing) -> {
+            final String error = peerRouter.ipAddress().toString() + ERR_DUPLICATE;
+            checkArgument(existing == null, error);
+            return peerRouter;
+        });
+    }
+
+    @Override
+    public void updateExternalPeerRouter(ExternalPeerRouter peerRouter) {
+        externalPeerRouterStore.compute(
+                peerRouter.ipAddress().toString(), (id, existing) -> {
+            final String error = peerRouter.ipAddress() + ERR_NOT_FOUND;
+            checkArgument(existing != null, error);
+            return peerRouter;
+        });
+    }
+
+    @Override
+    public ExternalPeerRouter removeExternalPeerRouter(String ipAddress) {
+        Versioned<ExternalPeerRouter> peerRouter =
+                externalPeerRouterStore.remove(ipAddress);
+        return peerRouter == null ? null : peerRouter.value();
+    }
+
+    @Override
     public void clear() {
         osPortStore.clear();
         osSubnetStore.clear();
         osNetworkStore.clear();
+        externalPeerRouterStore.clear();
     }
 
     private class OpenstackNetworkMapListener
@@ -366,6 +434,62 @@ public class DistributedOpenstackNetworkStore
                     event.oldValue().value()));
         }
     }
+
+    private class ExternalPeerRouterMapListener
+            implements MapEventListener<String, ExternalPeerRouter> {
+
+        @Override
+        public void event(MapEvent<String, ExternalPeerRouter> event) {
+            switch (event.type()) {
+                case UPDATE:
+                    eventExecutor.execute(() -> processPeerRouterUpdate(event));
+                    break;
+                case INSERT:
+                    eventExecutor.execute(() -> processPeerRouterInsertion(event));
+                    break;
+                case REMOVE:
+                    eventExecutor.execute(() -> processPeerRouterRemoval(event));
+                    break;
+                default:
+                    log.error("Unsupported external peer router event type");
+                    break;
+            }
+        }
+
+        private void processPeerRouterUpdate(
+                MapEvent<String, ExternalPeerRouter> event) {
+            log.debug("External peer router updated");
+            notifyDelegate(new OpenstackNetworkEvent(
+                    EXTERNAL_PEER_ROUTER_UPDATED, event.newValue().value()));
+
+            processPeerRouterMacUpdated(event);
+        }
+
+        private void processPeerRouterInsertion(
+                MapEvent<String, ExternalPeerRouter> event) {
+            log.debug("External peer router inserted");
+            notifyDelegate(new OpenstackNetworkEvent(
+                    EXTERNAL_PEER_ROUTER_CREATED, event.newValue().value()));
+        }
+
+        private void processPeerRouterRemoval(
+                MapEvent<String, ExternalPeerRouter> event) {
+            log.debug("External peer router removed");
+            notifyDelegate(new OpenstackNetworkEvent(
+                    EXTERNAL_PEER_ROUTER_REMOVED, event.oldValue().value()));
+        }
+
+        private void processPeerRouterMacUpdated(
+                MapEvent<String, ExternalPeerRouter> event) {
+            ExternalPeerRouter oldPeerRouter = event.oldValue().value();
+            ExternalPeerRouter newPeerRouter = event.newValue().value();
+
+            if (!Objects.equals(oldPeerRouter.macAddress(), newPeerRouter.macAddress())) {
+                notifyDelegate(new OpenstackNetworkEvent(
+                        EXTERNAL_PEER_ROUTER_MAC_UPDATED, newPeerRouter));
+            }
+        }
+     }
 
     private class OpenstackPortMapListener implements MapEventListener<String, Port> {
 
