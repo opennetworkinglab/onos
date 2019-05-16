@@ -29,12 +29,12 @@ public final class ProgramCounter {
     /**
      * index of the worklet.
      */
-    private int workletIndex;
+    private final int workletIndex;
 
     /**
      * Type of worklet.
      */
-    private String workletType;
+    private final String workletType;
 
     /**
      * Index of worklet.
