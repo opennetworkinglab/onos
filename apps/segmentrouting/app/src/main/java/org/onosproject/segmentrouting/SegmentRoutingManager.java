@@ -663,6 +663,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         policyStore.destroy();
 
         mcastHandler.terminate();
+        hostHandler.terminate();
         log.info("Stopped");
     }
 
