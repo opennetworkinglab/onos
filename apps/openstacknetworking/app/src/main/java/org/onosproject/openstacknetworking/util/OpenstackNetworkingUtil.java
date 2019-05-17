@@ -25,6 +25,7 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -70,6 +71,9 @@ import org.onosproject.openstacknode.api.OpenstackAuth;
 import org.onosproject.openstacknode.api.OpenstackAuth.Perspective;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackSshAuth;
+import org.onosproject.ovsdb.controller.OvsdbClientService;
+import org.onosproject.ovsdb.controller.OvsdbController;
+import org.onosproject.ovsdb.controller.OvsdbNodeId;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.client.IOSClientBuilder;
 import org.openstack4j.api.exceptions.AuthenticationException;
@@ -181,6 +185,8 @@ public final class OpenstackNetworkingUtil {
     private static final long TIMEOUT_MS = 5000;
     private static final long WAIT_OUTPUT_STREAM_SECOND = 2;
     private static final int SSH_PORT = 22;
+
+    private static final int TAP_PORT_LENGTH = 11;
 
     /**
      * Prevents object instantiation from external.
@@ -1214,6 +1220,34 @@ public final class OpenstackNetworkingUtil {
                 .path("/" + id)
                 .request(APPLICATION_JSON_TYPE)
                 .delete();
+    }
+
+    /**
+     * Gets the ovsdb client with supplied openstack node.
+     *
+     * @param node          openstack node
+     * @param ovsdbPort     openvswitch DB port number
+     * @param controller    openvswitch DB controller instance
+     * @return ovsdb client instance
+     */
+    public static OvsdbClientService getOvsdbClient(OpenstackNode node, int ovsdbPort,
+                                                    OvsdbController controller) {
+        OvsdbNodeId ovsdb = new OvsdbNodeId(node.managementIp(), ovsdbPort);
+        return controller.getOvsdbClient(ovsdb);
+    }
+
+    /**
+     * Obtains the name of interface attached to the openstack VM.
+     *
+     * @param portId openstack port identifier
+     * @return name of interface
+     */
+    public static String ifaceNameFromOsPortId(String portId) {
+        if (portId != null) {
+            return PORT_NAME_PREFIX_VM + StringUtils.substring(portId, 0, TAP_PORT_LENGTH);
+        }
+
+        return null;
     }
 
     private static Router getRouterFromSubnet(Subnet subnet,
