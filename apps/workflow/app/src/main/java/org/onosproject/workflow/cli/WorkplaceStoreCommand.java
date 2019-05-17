@@ -159,6 +159,7 @@ public class WorkplaceStoreCommand extends AbstractShellCommand {
             return;
         }
         print(getWorkplaceString(workplace));
+        printWorkplaceContexts(workplaceStore, workplace.name());
     }
 
     /**

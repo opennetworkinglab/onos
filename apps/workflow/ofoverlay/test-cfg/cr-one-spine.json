@@ -1,0 +1,41 @@
+{
+    "apps": {
+        "org.onosproject.workflow": {
+          "workflow" : {
+            "rpc" : [
+              {
+                "op"   : "workflow.invoke",
+                "params" : {
+                  "workplace" : "Spine-000",
+                  "id"        : "of-overlay.workflow-ovs-spine",
+                  "data"      : {
+
+                    "mgmtIp" : "192.168.10.2",
+                    "ovsdbPort" : 6641,
+
+                    "sshAccessInfo" : {
+                      "remoteIp" : "192.168.10.2",
+                      "port"     : 22,
+                      "user"     : "root",
+                      "password" : "iloveyou",
+                      "keyfile"  : "~/.ssh/id_rsa"
+                    },
+
+                    "ovsDatapathType" : "system",
+                    "physicalPorts" : [ "spine0_0", "spine0_1", "spine0_2", "spine0_3" ],
+
+                    "annotations" : {
+                      "rackId" : 1,
+                      "rackPosition" : 3
+                    }
+
+                  }
+                },
+                "id" : "00001@10.0.0.1"
+              }
+
+            ]
+          }
+        }
+    }
+}
