@@ -46,6 +46,18 @@
             <action class="org.onosproject.openstacknetworking.cli.OpenstackSyncRulesCommand"/>
         </command>
         <command>
+            <action class="org.onosproject.openstacknetworking.cli.OpenstackRecoverPortsCommand"/>
+            <completers>
+                <ref component-id="computeNodeCompleter"/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onosproject.openstacknetworking.cli.OpenstackDetachedPortListCommand"/>
+            <completers>
+                <ref component-id="computeNodeCompleter"/>
+            </completers>
+        </command>
+        <command>
             <action class="org.onosproject.openstacknetworking.cli.ExternalPeerRouterListCommand"/>
         </command>
         <command>
@@ -142,4 +154,5 @@
     <bean id="instancePortIdCompleter" class="org.onosproject.openstacknetworking.cli.InstancePortIdCompleter"/>
     <bean id="instanceIpAddressCompleter" class="org.onosproject.openstacknetworking.cli.InstanceIpAddressCompleter"/>
     <bean id="vmDeviceIdCompleter" class="org.onosproject.openstacknetworking.cli.VmDeviceIdCompleter" />
+    <bean id="computeNodeCompleter" class="org.onosproject.openstacknetworking.cli.OpenstackComputeNodeCompleter"/>
 </blueprint>
