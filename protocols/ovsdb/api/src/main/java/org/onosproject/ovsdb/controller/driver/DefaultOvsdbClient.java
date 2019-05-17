@@ -1097,7 +1097,6 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
 
         if (getPortUuid(ovsdbIface.name(), bridgeUuid) != null) {
             log.warn("Interface {} already exists", ovsdbIface.name());
-            // remove existing one and re-create?
             return false;
         }
 
@@ -1118,11 +1117,12 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
         List<Mutation> mutations = Lists.newArrayList(mutation);
         operations.add(new Mutate(dbSchema.getTableSchema(BRIDGE), conditions, mutations));
 
-        // insert an interface
         Interface intf = (Interface) TableGenerator.createTable(dbSchema, OvsdbTable.INTERFACE);
         intf.setName(ovsdbIface.name());
 
-        intf.setType(ovsdbIface.typeToString());
+        if (ovsdbIface.type() != null) {
+            intf.setType(ovsdbIface.typeToString());
+        }
 
         if (ovsdbIface.mtu().isPresent()) {
             Set<Long> mtuSet = Sets.newConcurrentHashSet();
@@ -1132,6 +1132,13 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
         }
 
         intf.setOptions(ovsdbIface.options());
+
+        ovsdbIface.data().forEach((k, v) -> {
+            if (k == Interface.InterfaceColumn.EXTERNALIDS) {
+                intf.setExternalIds(v);
+            }
+        });
+
         Insert intfInsert = new Insert(dbSchema.getTableSchema(INTERFACE), INTERFACE, intf.getRow());
         operations.add(intfInsert);
 
