@@ -28,6 +28,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onlab.util.PredictableExecutor;
 import org.onosproject.net.config.ConfigApplyDelegate;
 import org.onosproject.net.host.HostProbingService;
 import org.onosproject.net.host.ProbeMode;
@@ -65,8 +66,9 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.*;
+import static org.onlab.util.Tools.groupedThreads;
 
-/**r
+/**
  * Unit test for {@link HostHandler}.
  */
 public class HostHandlerTest {
@@ -250,6 +252,8 @@ public class HostHandlerTest {
         replay(srManager.routeService);
 
         hostHandler = new HostHandler(srManager);
+        hostHandler.hostWorkers = new PredictableExecutor(
+                0, groupedThreads("onos/sr", "h-worker-%d"), true);
 
         ROUTING_TABLE.clear();
         BRIDGING_TABLE.clear();
