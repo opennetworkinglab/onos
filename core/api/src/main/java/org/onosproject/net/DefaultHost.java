@@ -41,6 +41,7 @@ public class DefaultHost extends AbstractElement implements Host {
     private final VlanId innerVlan;
     private final EthType tpid;
     private final boolean configured;
+    private final boolean suspended;
 
     // TODO consider moving this constructor to a builder pattern.
     /**
@@ -95,7 +96,7 @@ public class DefaultHost extends AbstractElement implements Host {
                        VlanId vlan, Set<HostLocation> locations, Set<IpAddress> ips,
                        boolean configured, Annotations... annotations) {
         this(providerId, id, mac, vlan, locations, ips, VlanId.NONE,
-             EthType.EtherType.UNKNOWN.ethType(), configured, annotations);
+                EthType.EtherType.UNKNOWN.ethType(), configured, annotations);
     }
 
     /**
@@ -123,6 +124,36 @@ public class DefaultHost extends AbstractElement implements Host {
         this.configured = configured;
         this.innerVlan = innerVlan;
         this.tpid = tpid;
+        this.suspended = false;
+    }
+
+    /**
+     * Creates an end-station host using the supplied information.
+     *
+     * @param providerId  provider identity
+     * @param id          host identifier
+     * @param mac         host MAC address
+     * @param vlan        host VLAN identifier
+     * @param locations   set of host locations
+     * @param ips         host IP addresses
+     * @param configured  true if configured via NetworkConfiguration
+     * @param innerVlan   host inner VLAN identifier
+     * @param tpid        outer TPID of a host
+     * @param suspended   true if the host is suspended due to policy violation.
+     * @param annotations optional key/value annotations
+     */
+    public DefaultHost(ProviderId providerId, HostId id, MacAddress mac,
+                       VlanId vlan, Set<HostLocation> locations, Set<IpAddress> ips, VlanId innerVlan,
+                       EthType tpid, boolean configured, boolean suspended, Annotations... annotations) {
+        super(providerId, id, annotations);
+        this.mac = mac;
+        this.vlan = vlan;
+        this.locations = new HashSet<>(locations);
+        this.ips = new HashSet<>(ips);
+        this.configured = configured;
+        this.innerVlan = innerVlan;
+        this.tpid = tpid;
+        this.suspended = suspended;
     }
 
     @Override
@@ -177,8 +208,14 @@ public class DefaultHost extends AbstractElement implements Host {
     }
 
     @Override
+    public boolean suspended() {
+        return this.suspended;
+    }
+
+
+    @Override
     public int hashCode() {
-        return Objects.hash(id, mac, vlan, locations);
+        return Objects.hash(id, mac, vlan, locations, suspended);
     }
 
     @Override
@@ -195,7 +232,8 @@ public class DefaultHost extends AbstractElement implements Host {
                     Objects.equals(this.ipAddresses(), other.ipAddresses()) &&
                     Objects.equals(this.innerVlan, other.innerVlan) &&
                     Objects.equals(this.tpid, other.tpid) &&
-                    Objects.equals(this.annotations(), other.annotations());
+                    Objects.equals(this.annotations(), other.annotations()) &&
+                    Objects.equals(this.suspended, other.suspended);
         }
         return false;
     }
@@ -212,6 +250,7 @@ public class DefaultHost extends AbstractElement implements Host {
                 .add("configured", configured())
                 .add("innerVlanId", innerVlan())
                 .add("outerTPID", tpid())
+                .add("suspended", suspended())
                 .toString();
     }
 

@@ -62,6 +62,21 @@ public final class OsgiPropertyConstants {
     public static final String HM_PROBE_RATE = "probeRate";
     public static final long HM_PROBE_RATE_DEFAULT = 30000;
 
+    public static final String HM_HOST_MOVE_TRACKER_ENABLE = "hostMoveTrackerEnabled";
+    public static final boolean HM_HOST_MOVE_TRACKER_ENABLE_DEFAULT = false;
+
+    public static final String HM_HOST_MOVED_THRESHOLD_IN_MILLIS = "hostMoveThresholdInMillis";
+    public static final int HM_HOST_MOVED_THRESHOLD_IN_MILLIS_DEFAULT = 200000;
+
+    public static final String HM_HOST_MOVE_COUNTER = "hostMoveCounter";
+    public static final int HM_HOST_MOVE_COUNTER_DEFAULT = 3;
+
+    public static final String HM_OFFENDING_HOST_EXPIRY_IN_MINS = "offendingHostExpiryInMins";
+    public static final long HM_OFFENDING_HOST_EXPIRY_IN_MINS_DEFAULT = 1;
+
+    public static final String HM_OFFENDING_HOST_THREADS_POOL_SIZE = "offendingHostClearThreadPool";
+    public static final int HM_OFFENDING_HOST_THREADS_POOL_SIZE_DEFAULT = 10;
+
     public static final String HM_GREEDY_LEARNING_IPV6 = "greedyLearningIpv6";
     public static final boolean HM_GREEDY_LEARNING_IPV6_DEFAULT = false;
 

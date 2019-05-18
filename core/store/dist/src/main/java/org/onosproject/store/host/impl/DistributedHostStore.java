@@ -37,11 +37,11 @@ import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
-import org.onosproject.store.service.DistributedPrimitive.Status;
 import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.MapEventListener;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
+import org.onosproject.store.service.DistributedPrimitive.Status;
 import org.onosproject.store.service.Versioned;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -66,10 +66,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.DefaultAnnotations.merge;
-import static org.onosproject.net.host.HostEvent.Type.HOST_ADDED;
-import static org.onosproject.net.host.HostEvent.Type.HOST_MOVED;
-import static org.onosproject.net.host.HostEvent.Type.HOST_REMOVED;
-import static org.onosproject.net.host.HostEvent.Type.HOST_UPDATED;
+import static org.onosproject.net.host.HostEvent.Type.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -164,7 +161,7 @@ public class DistributedHostStore
 
         if (replaceIPs) {
             if (!Objects.equals(hostDescription.ipAddress(),
-                                existingHost.ipAddresses())) {
+                    existingHost.ipAddresses())) {
                 return true;
             }
         } else {
@@ -176,8 +173,8 @@ public class DistributedHostStore
         // check to see if any of the annotations provided by hostDescription
         // differ from those in the existing host
         return hostDescription.annotations().keys().stream()
-                   .anyMatch(k -> !Objects.equals(hostDescription.annotations().value(k),
-                                                  existingHost.annotations().value(k)));
+                .anyMatch(k -> !Objects.equals(hostDescription.annotations().value(k),
+                        existingHost.annotations().value(k)));
 
 
     }
@@ -189,37 +186,37 @@ public class DistributedHostStore
                                         HostDescription hostDescription,
                                         boolean replaceIPs) {
         hostsConsistentMap.computeIf(hostId,
-                       existingHost -> shouldUpdate(existingHost, providerId,
-                                                    hostDescription, replaceIPs),
-                       (id, existingHost) -> {
+                existingHost -> shouldUpdate(existingHost, providerId,
+                        hostDescription, replaceIPs),
+                (id, existingHost) -> {
 
-                           final Set<IpAddress> addresses;
-                           if (existingHost == null || replaceIPs) {
-                               addresses = ImmutableSet.copyOf(hostDescription.ipAddress());
-                           } else {
-                               addresses = Sets.newHashSet(existingHost.ipAddresses());
-                               addresses.addAll(hostDescription.ipAddress());
-                           }
+                    final Set<IpAddress> addresses;
+                    if (existingHost == null || replaceIPs) {
+                        addresses = ImmutableSet.copyOf(hostDescription.ipAddress());
+                    } else {
+                        addresses = Sets.newHashSet(existingHost.ipAddresses());
+                        addresses.addAll(hostDescription.ipAddress());
+                    }
 
-                           final Annotations annotations;
-                           if (existingHost != null) {
-                               annotations = merge((DefaultAnnotations) existingHost.annotations(),
-                                       hostDescription.annotations());
-                           } else {
-                               annotations = hostDescription.annotations();
-                           }
+                    final Annotations annotations;
+                    if (existingHost != null) {
+                        annotations = merge((DefaultAnnotations) existingHost.annotations(),
+                                hostDescription.annotations());
+                    } else {
+                        annotations = hostDescription.annotations();
+                    }
 
-                           return new DefaultHost(providerId,
-                                                  hostId,
-                                                  hostDescription.hwAddress(),
-                                                  hostDescription.vlan(),
-                                                  hostDescription.locations(),
-                                                  addresses,
-                                                  hostDescription.innerVlan(),
-                                                  hostDescription.tpid(),
-                                                  hostDescription.configured(),
-                                                  annotations);
-                       });
+                    return new DefaultHost(providerId,
+                            hostId,
+                            hostDescription.hwAddress(),
+                            hostDescription.vlan(),
+                            hostDescription.locations(),
+                            addresses,
+                            hostDescription.innerVlan(),
+                            hostDescription.tpid(),
+                            hostDescription.configured(),
+                            annotations);
+                });
         return null;
     }
 
@@ -279,9 +276,9 @@ public class DistributedHostStore
                         .forEach(newLocations::add);
 
                 return new DefaultHost(existingHost.providerId(),
-                                hostId, existingHost.mac(), existingHost.vlan(),
-                                newLocations, existingHost.ipAddresses(),
-                                existingHost.configured(), existingHost.annotations());
+                        hostId, existingHost.mac(), existingHost.vlan(),
+                        newLocations, existingHost.ipAddresses(),
+                        existingHost.configured(), existingHost.annotations());
             }
             return null;
         });
@@ -361,6 +358,52 @@ public class DistributedHostStore
         return ImmutableSet.copyOf(filtered);
     }
 
+    @Override
+    public void suspend(HostId hostId) {
+        hosts.compute(hostId, (id, existingHost) -> {
+            if (existingHost != null) {
+                if (!existingHost.suspended()) {
+                    return new DefaultHost(existingHost.providerId(),
+                            hostId,
+                            existingHost.mac(),
+                            existingHost.vlan(),
+                            existingHost.locations(),
+                            existingHost.ipAddresses(),
+                            existingHost.innerVlan(),
+                            existingHost.tpid(),
+                            existingHost.configured(),
+                            true,
+                            existingHost.annotations());
+                }
+
+            }
+            return null;
+        });
+    }
+
+    @Override
+    public void unsuspend(HostId hostId) {
+        hosts.compute(hostId, (id, existingHost) -> {
+            if (existingHost != null) {
+                if (existingHost.suspended()) {
+                    return new DefaultHost(existingHost.providerId(),
+                            hostId,
+                            existingHost.mac(),
+                            existingHost.vlan(),
+                            existingHost.locations(),
+                            existingHost.ipAddresses(),
+                            existingHost.innerVlan(),
+                            existingHost.tpid(),
+                            existingHost.configured(),
+                            false,
+                            existingHost.annotations());
+
+                }
+            }
+            return null;
+        });
+    }
+
     private Set<Host> filter(Collection<DefaultHost> collection, Predicate<DefaultHost> predicate) {
         return collection.stream().filter(predicate).collect(Collectors.toSet());
     }
@@ -418,7 +461,11 @@ public class DistributedHostStore
                     break;
                 case UPDATE:
                     updateHostsByIp(host, prevHost);
-                    if (!Objects.equals(prevHost.locations(), host.locations())) {
+                    if (host.suspended() && !prevHost.suspended()) {
+                        notifyDelegate(new HostEvent(HOST_SUSPENDED, host, prevHost));
+                    } else if (!host.suspended() && prevHost.suspended()) {
+                        notifyDelegate(new HostEvent(HOST_UNSUSPENDED, host, prevHost));
+                    } else if (!Objects.equals(prevHost.locations(), host.locations())) {
                         notifyDelegate(new HostEvent(HOST_MOVED, host, prevHost));
                     } else if (!Objects.equals(prevHost, host)) {
                         notifyDelegate(new HostEvent(HOST_UPDATED, host, prevHost));
