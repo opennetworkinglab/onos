@@ -68,15 +68,6 @@ public interface Workflow {
     Worklet getWorkletInstance(ProgramCounter pc) throws WorkflowException;
 
     /**
-     * Returns instance of worklet.
-     *
-     * @param workletType class name of worklet
-     * @return instance of worklet
-     * @throws WorkflowException workflow exception
-     */
-    Worklet getWorkletInstance(String workletType) throws WorkflowException;
-
-    /**
      * Builds workflow context.
      *
      * @param workplace workplace of system workflow
@@ -104,11 +95,11 @@ public interface Workflow {
     Set<WorkflowAttribute> attributes();
 
     /**
-     * Returns worklet desc list.
+     * Build the list of ProgramCounters, and returns.
      *
-     * @return worklet description list
+     * @return program counter list
      */
-    List<WorkletDescription> getWorkletDescList();
+    List<ProgramCounter> getProgram();
 
     /**
      * Returns worklet description.

@@ -53,13 +53,21 @@ public class WorkplaceStoreCommand extends AbstractShellCommand {
     @Completion(WorkplaceNameCompleter.class)
     private String name = null;
 
-    @Option(name = "-f", aliases = "--filter", description = "including filter",
+    @Option(name = "-wf", aliases = "--whitefilter", description = "whitelisting filter",
             required = false, multiValued = false)
     private String inFilter = null;
 
-    @Option(name = "-e", aliases = "--excludefilter", description = "excluding filter",
+    @Option(name = "-bf", aliases = "--blackfilter", description = "blacklisting filter",
             required = false, multiValued = false)
     private String exFilter = null;
+
+    @Option(name = "-nc", aliases = "--notcompleted", description = "not completed workflow context",
+            required = false, multiValued = false)
+    private boolean notCompleted = false;
+
+    @Option(name = "-s", aliases = "--simpleprint", description = "simplified print format",
+            required = false, multiValued = false)
+    private boolean simplePrint = false;
 
     @Override
     protected void doExecute() {
@@ -180,26 +188,48 @@ public class WorkplaceStoreCommand extends AbstractShellCommand {
      */
     private void printWorkplaceContexts(WorkplaceStore workplaceStore, String workplaceName) {
         for (WorkflowContext context : workplaceStore.getWorkplaceContexts(workplaceName)) {
+
+            if (notCompleted && context.current().isCompleted()) {
+                continue;
+            }
+
             String str = context.toString();
             if (Objects.nonNull(inFilter)) {
                 if (str.indexOf(inFilter) != -1) {
                     if (Objects.nonNull(exFilter)) {
                         if (str.indexOf(exFilter) == -1) {
-                            print(" - " + context);
+                            printContext(context);
                         }
                     } else {
-                        print(" - " + context);
+                        printContext(context);
                     }
                 }
             } else {
                 if (Objects.nonNull(exFilter)) {
                     if (str.indexOf(exFilter) == -1) {
-                        print(" - " + context);
+                        printContext(context);
                     }
                 } else {
-                    print(" - " + context);
+                    printContext(context);
                 }
             }
+        }
+    }
+
+    /**
+     * Prints a workflow context.
+     * @param context a workflow context
+     */
+    private void printContext(WorkflowContext context) {
+        if (simplePrint) {
+            String str = " - "
+                     + "name=" + context.name()
+                     + ", state=" + context.state()
+                     + ", current=" + context.current().workletType();
+            print(str);
+
+        } else {
+            print(" - " + context);
         }
     }
 
@@ -209,6 +239,10 @@ public class WorkplaceStoreCommand extends AbstractShellCommand {
      * @return workplace string
      */
     private String getWorkplaceString(Workplace workplace) {
-        return workplace.toString();
+        if (simplePrint) {
+            return workplace.name();
+        } else {
+            return workplace.toString();
+        }
     }
 }

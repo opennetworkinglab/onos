@@ -25,6 +25,7 @@ import org.onlab.osgi.ServiceNotFoundException;
 
 import java.lang.reflect.Modifier;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -43,9 +44,9 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
     private String initWorkletType;
 
     /**
-     * List of worklet  description.
+     * Sequential program(List of worklet desc) to be executed.
      */
-    private List<WorkletDescription> workletDescList;
+    private List<WorkletDescription> program;
 
     /**
      * Set of workflow attributes.
@@ -63,7 +64,7 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
     private ImmutableListWorkflow(Builder builder) {
         super(builder.id);
         this.initWorkletType = builder.initWorkletType;
-        workletDescList = ImmutableList.copyOf(builder.workletDescList);
+        program = ImmutableList.copyOf(builder.workletDescList);
         attributes = ImmutableSet.copyOf(builder.attributes);
     }
 
@@ -86,7 +87,7 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
 
         ProgramCounter pc = current.clone();
 
-        for (int i = current.workletIndex(); i < workletDescList.size(); pc = increased(pc), i++) {
+        for (int i = current.workletIndex(); i < program.size(); pc = increased(pc), i++) {
 
             if (cnt++ > Worklet.MAX_WORKS) {
                 throw new WorkflowException("Maximum worklet execution exceeded");
@@ -139,22 +140,21 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
     public ProgramCounter increased(ProgramCounter pc) throws WorkflowException {
 
         int increaedIndex = pc.workletIndex() + 1;
-        if (increaedIndex >= workletDescList.size()) {
+        if (increaedIndex >= program.size()) {
             throw new WorkflowException("Out of bound in program counter(" + pc + ")");
         }
 
-        WorkletDescription workletDesc = workletDescList.get(increaedIndex);
+        WorkletDescription workletDesc = program.get(increaedIndex);
         return ProgramCounter.valueOf(workletDesc.tag(), increaedIndex);
     }
 
     @Override
     public Worklet getWorkletInstance(ProgramCounter pc) throws WorkflowException {
 
-        return getWorkletInstance(workletDescList.get(pc.workletIndex()).tag());
+        return getWorkletInstance(program.get(pc.workletIndex()).tag());
     }
 
-    @Override
-    public Worklet getWorkletInstance(String workletType) throws WorkflowException {
+    private Worklet getWorkletInstance(String workletType) throws WorkflowException {
 
         if (Worklet.Common.INIT.tag().equals(workletType)) {
             return Worklet.Common.INIT;
@@ -198,14 +198,23 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
     }
 
     @Override
-    public List<WorkletDescription> getWorkletDescList() {
-        return ImmutableList.copyOf(workletDescList);
+    public List<ProgramCounter> getProgram() {
+
+        int size = program.size();
+        List pcList = new ArrayList();
+        for (int i = 0; i < size; i++) {
+            pcList.add(ProgramCounter.valueOf(program.get(i).tag(), i));
+        }
+
+        return pcList;
     }
 
     @Override
     public WorkletDescription getWorkletDesc(ProgramCounter pc) {
-        Optional<WorkletDescription> workletDescription = workletDescList.stream().filter(a -> Objects.equals(a.tag(),
-                workletDescList.get(pc.workletIndex()).tag())).findAny();
+        Optional<WorkletDescription> workletDescription =
+                program.stream()
+                        .filter(a -> Objects.equals(a.tag(), program.get(pc.workletIndex()).tag()))
+                        .findAny();
         if (workletDescription.isPresent()) {
             return workletDescription.get();
         }
@@ -220,8 +229,8 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
      * @return index of class in worklet type list
      */
     private int getClassIndex(Class aClass) {
-        for (int i = 0; i < workletDescList.size(); i++) {
-            if (Objects.equals(aClass.getName(), workletDescList.get(i))) {
+        for (int i = 0; i < program.size(); i++) {
+            if (Objects.equals(aClass.getName(), program.get(i))) {
                 return i;
             }
         }
@@ -265,7 +274,7 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
         }
         return Objects.equals(this.id(), ((ImmutableListWorkflow) obj).id())
                 && Objects.equals(this.initWorkletType, ((ImmutableListWorkflow) obj).initWorkletType)
-                && Objects.equals(this.workletDescList, ((ImmutableListWorkflow) obj).workletDescList)
+                && Objects.equals(this.program, ((ImmutableListWorkflow) obj).program)
                 && Objects.equals(this.attributes, ((ImmutableListWorkflow) obj).attributes);
     }
 
@@ -274,7 +283,7 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
         return MoreObjects.toStringHelper(getClass())
                 .add("id", id())
                 .add("initWorklet", initWorkletType)
-                .add("workList", workletDescList)
+                .add("workList", program)
                 .add("attributes", attributes)
                 .toString();
     }

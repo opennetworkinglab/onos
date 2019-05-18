@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.node.MissingNode;
 import com.google.common.base.MoreObjects;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.workflow.api.ProgramCounter;
 import org.onosproject.workflow.api.WorkflowDefinitionException;
 import org.onosproject.workflow.api.WorkflowService;
 import org.onosproject.workflow.api.WorkflowExecutionService;
@@ -40,7 +41,6 @@ import org.onosproject.workflow.api.Workflow;
 import org.onosproject.workflow.api.Worklet;
 import org.onosproject.workflow.api.WorkflowContext;
 import org.onosproject.workflow.api.JsonDataModel;
-import org.onosproject.workflow.api.WorkletDescription;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -175,9 +175,9 @@ public class WorkflowManager implements WorkflowService {
 
         List<String> errors = new ArrayList<>();
 
-        for (WorkletDescription workletType : workflow.getWorkletDescList()) {
+        for (ProgramCounter pc : workflow.getProgram()) {
 
-            Worklet worklet = workflow.getWorkletInstance(workletType.tag());
+            Worklet worklet = workflow.getWorkletInstance(pc);
             if (Worklet.Common.COMPLETED.equals(worklet) || Worklet.Common.INIT.equals(worklet)) {
                 continue;
             }
@@ -204,7 +204,7 @@ public class WorkflowManager implements WorkflowService {
                     String path = matcher.group(1);
 
                     WorkletDataModelFieldDesc desc =
-                            new WorkletDataModelFieldDesc(workletType.tag(), path, field.getType(),
+                            new WorkletDataModelFieldDesc(pc.workletType(), path, field.getType(),
                                     jsonDataModel.optional());
 
                     WorkletDataModelFieldDesc existing = descMap.get(path);
@@ -298,9 +298,9 @@ public class WorkflowManager implements WorkflowService {
             throw new WorkflowDataModelException(workflow.id(), worklowDescJson, errors);
         }
 
-        for (WorkletDescription workletType : workflow.getWorkletDescList()) {
+        for (ProgramCounter pc : workflow.getProgram()) {
 
-            Worklet worklet = workflow.getWorkletInstance(workletType.tag());
+            Worklet worklet = workflow.getWorkletInstance(pc);
             if (Worklet.Common.COMPLETED.equals(worklet) || Worklet.Common.INIT.equals(worklet)) {
                 continue;
             }
