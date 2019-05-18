@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.host.impl;
 
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -56,14 +57,22 @@ import org.onosproject.net.host.HostStoreDelegate;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.net.provider.AbstractProviderService;
 import org.osgi.service.component.ComponentContext;
+
 import org.slf4j.Logger;
 
 import java.util.Dictionary;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.packet.IPv6.getLinkLocalAddress;
+import static org.onlab.util.Tools.get;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.HOST_EVENT;
 import static org.onosproject.security.AppPermission.Type.HOST_READ;
@@ -123,7 +132,38 @@ public class HostManager
             label = "Enable/Disable greedy learning of IPv6 link local address")
     private boolean greedyLearningIpv6 = false;
 
+    @Property(name = "hostMoveTrackerEnabled", boolValue = false,
+            label = "Enable tracking of rogue host moves")
+    private boolean hostMoveTrackerEnabled = false;
+
+    private static final int HOST_MOVED_THRESHOLD_IN_MILLIS = 200000;
+    // If the host move happening within given threshold then increment the host move counter
+    private static final int HOST_MOVE_COUNTER = 3;
+    // Max value of the counter after which the host will not be considered as offending host
+    private static final long OFFENDING_HOST_EXPIRY_IN_MINS = 1;
+    // Default pool size of offending host clear executor thread
+    private static final int DEFAULT_OFFENDING_HOST_THREADS_POOL_SIZE = 10;
+    private Map<HostId, HostMoveTracker> hostMoveTracker = new ConcurrentHashMap<>();
+
+    @Property(name = "hostMoveThresholdInMillis", intValue = HOST_MOVED_THRESHOLD_IN_MILLIS,
+            label = "Host move threshold in milliseconds")
+    private int hostMoveThresholdInMillis = HOST_MOVED_THRESHOLD_IN_MILLIS;
+
+    @Property(name = "hostMoveCounter", intValue = HOST_MOVE_COUNTER,
+            label = "Host move counter before host is marked as rogue host")
+    private int hostMoveCounter = HOST_MOVE_COUNTER;
+
+    @Property(name = "offendingHostExpiryInMins", longValue = OFFENDING_HOST_EXPIRY_IN_MINS,
+            label = "Expiry time after which the host is cleared from being rogue host")
+    private long offendingHostExpiryInMins = OFFENDING_HOST_EXPIRY_IN_MINS;
+
+    @Property(name = "offendingHostClearThreadPool", intValue = DEFAULT_OFFENDING_HOST_THREADS_POOL_SIZE,
+            label = "Thread pool capacity")
+    protected int offendingHostClearThreadPool = DEFAULT_OFFENDING_HOST_THREADS_POOL_SIZE;
+
     private HostMonitor monitor;
+    private ScheduledExecutorService offendingHostUnblockExecutor = null;
+
 
 
     @Activate
@@ -135,8 +175,8 @@ public class HostManager
         monitor = new HostMonitor(packetService, this, interfaceService, edgePortService);
         monitor.setProbeRate(probeRate);
         monitor.start();
-        modified(context);
         cfgService.registerProperties(getClass());
+        modified(context);
         log.info("Started");
     }
 
@@ -147,6 +187,9 @@ public class HostManager
         networkConfigService.removeListener(networkConfigListener);
         cfgService.unregisterProperties(getClass(), false);
         monitor.shutdown();
+        if (offendingHostUnblockExecutor != null) {
+            offendingHostUnblockExecutor.shutdown();
+        }
         log.info("Stopped");
     }
 
@@ -177,15 +220,19 @@ public class HostManager
     private void readComponentConfiguration(ComponentContext context) {
         Dictionary<?, ?> properties = context.getProperties();
         Boolean flag;
+        int newHostMoveThresholdInMillis;
+        int newHostMoveCounter;
+        int newOffendinghostPoolSize;
+        long newOffendingHostExpiryInMins;
 
         flag = Tools.isPropertyEnabled(properties, "monitorHosts");
         if (flag == null) {
             log.info("monitorHosts is not enabled " +
-                             "using current value of {}", monitorHosts);
+                    "using current value of {}", monitorHosts);
         } else {
             monitorHosts = flag;
             log.info("Configured. monitorHosts {}",
-                     monitorHosts ? "enabled" : "disabled");
+                    monitorHosts ? "enabled" : "disabled");
         }
 
         Long longValue = Tools.getLongProperty(properties, "probeRate");
@@ -202,19 +249,85 @@ public class HostManager
         } else {
             allowDuplicateIps = flag;
             log.info("Removal of duplicate ip address is {}",
-                     allowDuplicateIps ? "disabled" : "enabled");
+                    allowDuplicateIps ? "disabled" : "enabled");
         }
 
         flag = Tools.isPropertyEnabled(properties, "greedyLearningIpv6");
         if (flag == null) {
             log.info("greedy learning is not enabled " +
-                             "using current value of {}", greedyLearningIpv6);
+                    "using current value of {}", greedyLearningIpv6);
         } else {
             greedyLearningIpv6 = flag;
             log.info("Configured. greedyLearningIpv6 {}",
-                     greedyLearningIpv6 ? "enabled" : "disabled");
+                    greedyLearningIpv6 ? "enabled" : "disabled");
         }
 
+        flag = Tools.isPropertyEnabled(properties, "hostMoveTrackerEnabled");
+        if (flag == null) {
+            log.info("Host move tracker is not configured " +
+                    "using current value of {}", hostMoveTrackerEnabled);
+        } else {
+            hostMoveTrackerEnabled = flag;
+            log.info("Configured. hostMoveTrackerEnabled {}",
+                    hostMoveTrackerEnabled ? "enabled" : "disabled");
+
+            //On enable cfg ,sets default configuration vales added , else use the default values
+            properties = context.getProperties();
+            try {
+                String s = get(properties, "hostMoveThresholdInMillis");
+                newHostMoveThresholdInMillis = isNullOrEmpty(s) ?
+                        hostMoveThresholdInMillis : Integer.parseInt(s.trim());
+
+                s = get(properties, "hostMoveCounter");
+                newHostMoveCounter = isNullOrEmpty(s) ? hostMoveCounter : Integer.parseInt(s.trim());
+
+                s = get(properties, "offendingHostExpiryInMins");
+                newOffendingHostExpiryInMins = isNullOrEmpty(s) ?
+                        offendingHostExpiryInMins : Integer.parseInt(s.trim());
+
+                s = get(properties, "offendingHostClearThreadPool");
+                newOffendinghostPoolSize = isNullOrEmpty(s) ?
+                        offendingHostClearThreadPool : Integer.parseInt(s.trim());
+            } catch (NumberFormatException | ClassCastException e) {
+                newHostMoveThresholdInMillis = HOST_MOVED_THRESHOLD_IN_MILLIS;
+                newHostMoveCounter = HOST_MOVE_COUNTER;
+                newOffendingHostExpiryInMins = OFFENDING_HOST_EXPIRY_IN_MINS;
+                newOffendinghostPoolSize = DEFAULT_OFFENDING_HOST_THREADS_POOL_SIZE;
+            }
+            if (newHostMoveThresholdInMillis != hostMoveThresholdInMillis) {
+                hostMoveThresholdInMillis = newHostMoveThresholdInMillis;
+            }
+            if (newHostMoveCounter != hostMoveCounter) {
+                hostMoveCounter = newHostMoveCounter;
+            }
+            if (newOffendingHostExpiryInMins != offendingHostExpiryInMins) {
+                offendingHostExpiryInMins = newOffendingHostExpiryInMins;
+            }
+            if (hostMoveTrackerEnabled && offendingHostUnblockExecutor == null) {
+                setupThreadPool();
+            } else if (newOffendinghostPoolSize != offendingHostClearThreadPool
+                    && offendingHostUnblockExecutor != null) {
+                offendingHostClearThreadPool = newOffendinghostPoolSize;
+                offendingHostUnblockExecutor.shutdown();
+                offendingHostUnblockExecutor = null;
+                setupThreadPool();
+            } else if (!hostMoveTrackerEnabled && offendingHostUnblockExecutor != null) {
+                offendingHostUnblockExecutor.shutdown();
+                offendingHostUnblockExecutor = null;
+            }
+            if (newOffendinghostPoolSize != offendingHostClearThreadPool) {
+                offendingHostClearThreadPool = newOffendinghostPoolSize;
+            }
+
+            log.debug("modified hostMoveThresholdInMillis: {}, hostMoveCounter: {}, " +
+                            "offendingHostExpiryInMins: {} ", hostMoveThresholdInMillis,
+                    hostMoveCounter, offendingHostExpiryInMins);
+        }
+
+    }
+
+    private synchronized void setupThreadPool() {
+        offendingHostUnblockExecutor = Executors.newScheduledThreadPool(offendingHostClearThreadPool);
     }
 
     /**
@@ -338,8 +451,17 @@ public class HostManager
             if (!allowDuplicateIps) {
                 removeDuplicates(hostId, hostDescription);
             }
-            store.createOrUpdateHost(provider().id(), hostId,
-                                     hostDescription, replaceIps);
+
+            if (!hostMoveTrackerEnabled) {
+                store.createOrUpdateHost(provider().id(), hostId,
+                        hostDescription, replaceIps);
+            } else if (!shouldBlock(hostId, hostDescription.locations())) {
+                log.debug("Host move is allowed for host with Id: {} ", hostId);
+                store.createOrUpdateHost(provider().id(), hostId,
+                        hostDescription, replaceIps);
+            } else {
+                log.info("Host move is NOT allowed for host with Id: {} , removing from host store ", hostId);
+            }
 
             if (monitorHosts) {
                 hostDescription.ipAddress().forEach(ip -> {
@@ -391,7 +513,7 @@ public class HostManager
                 allHosts.forEach(eachHost -> {
                     if (!(eachHost.id().equals(hostId))) {
                         log.info("Duplicate ip {} found on host {} and {}", ip,
-                                 hostId.toString(), eachHost.id().toString());
+                                hostId.toString(), eachHost.id().toString());
                         store.removeIp(eachHost.id(), ip);
                     }
                 });
@@ -476,7 +598,82 @@ public class HostManager
             Host host = store.getHost(hostId);
             return host == null || !host.configured() || host.providerId().equals(provider().id());
         }
+
+
+        /**
+         * Deny host move if happening within the threshold time,
+         * track moved host to identify offending hosts.
+         *
+         * @param hostId    host identifier
+         * @param locations host locations
+         */
+        private boolean shouldBlock(HostId hostId, Set<HostLocation> locations) {
+            Host host = store.getHost(hostId);
+            // If host is not present in host store means host added for hte first time.
+            if (host != null) {
+                if (host.suspended()) {
+                    // Checks host is marked as offending in other onos cluster instance/local instance
+                    log.debug("Host id {} is moving frequently hence host moving " +
+                            "processing is ignored", hostId);
+                    return true;
+                }
+            } else {
+                //host added for the first time.
+                return false;
+            }
+            HostMoveTracker hostMove = hostMoveTracker.computeIfAbsent(hostId, id -> new HostMoveTracker(locations));
+            if (Sets.difference(hostMove.getLocations(), locations).isEmpty() &&
+                    Sets.difference(locations, hostMove.getLocations()).isEmpty()) {
+                log.debug("Not hostmove scenario: Host id: {}, Old Host Location: {}, New host Location: {}",
+                        hostId, hostMove.getLocations(), locations);
+                return false; // It is not a host move scenario
+            } else if (hostMove.getCounter() >= hostMoveCounter && System.currentTimeMillis() - hostMove.getTimeStamp()
+                    < hostMoveThresholdInMillis) {
+                //Check host move is crossed the threshold, then to mark as offending Host
+                log.debug("Host id {} is identified as offending host and entry is added in cache", hostId);
+                hostMove.resetHostMoveTracker(locations);
+                store.suspend(hostId);
+                //Set host suspended flag to false after given offendingHostExpiryInMins
+                offendingHostUnblockExecutor.schedule(new UnblockOffendingHost(hostId),
+                        offendingHostExpiryInMins,
+                        TimeUnit.MINUTES);
+                return true;
+            } else if (System.currentTimeMillis() - hostMove.getTimeStamp()
+                    < hostMoveThresholdInMillis) {
+                //Increment the host move count as hostmove occured within the hostMoveThresholdInMillis time
+                hostMove.updateHostMoveTracker(locations);
+                log.debug("Updated the tracker with the host move registered for host: {}", hostId);
+            } else if (System.currentTimeMillis() - hostMove.getTimeStamp()
+                    > hostMoveThresholdInMillis) {
+                //Hostmove is happened after hostMoveThresholdInMillis time so remove from host tracker.
+                hostMove.resetHostMoveTracker(locations);
+                store.unsuspend(hostId);
+                log.debug("Reset the tracker with the host move registered for host: {}", hostId);
+            }
+            return false;
+        }
+
+        // Set host suspended flag to false after given offendingHostExpiryInMins.
+        private final class UnblockOffendingHost implements Runnable {
+            private HostId hostId;
+
+            UnblockOffendingHost(HostId hostId) {
+                this.hostId = hostId;
+            }
+
+            @Override
+            public void run() {
+                // Set the host suspended flag to false
+                try {
+                    store.unsuspend(hostId);
+                    log.debug("Host {}: Marked host as unsuspended", hostId);
+                } catch (Exception ex) {
+                    log.debug("Host {}: not present in host list", hostId);
+                }
+            }
+        }
     }
+
 
     // Store delegate to re-post events emitted from the store.
     private class InternalStoreDelegate implements HostStoreDelegate {

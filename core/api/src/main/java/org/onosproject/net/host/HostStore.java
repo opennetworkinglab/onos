@@ -161,4 +161,21 @@ public interface HostStore extends Store<HostEvent, HostStoreDelegate> {
      * @param probeMac the source MAC address ONOS uses to probe the host
      */
     default void removePendingHostLocation(MacAddress probeMac) {}
+
+    /**
+     * Update the host to suspended state to true
+     * denotes host is in suspended state.
+     *
+     * @param id ID of the host
+     */
+    default void suspend(HostId id){}
+
+    /**
+     * Update the host suspended state to false
+     * denotes host is in unsuspended state.
+     *
+     * @param id ID of the host
+     */
+    default void unsuspend(HostId id){}
+
 }
