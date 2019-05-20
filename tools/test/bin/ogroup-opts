@@ -63,7 +63,7 @@ complete -F _topo-opts topo
 function _ocapp-opts () {
   local cur=${COMP_WORDS[COMP_CWORD]}
   if [ $COMP_CWORD -eq 1 ]; then
-    COMPREPLY=( $( compgen -W "app bundle ui uitab uitopo cli rest" -- $cur ) )
+    COMPREPLY=( $( compgen -W "app bundle ui ui2 uitab uitopo cli rest" -- $cur ) )
   fi
 }
 

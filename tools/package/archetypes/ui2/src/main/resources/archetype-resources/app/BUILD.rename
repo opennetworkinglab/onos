@@ -1,0 +1,6 @@
+onos_app(
+    category = "Graphical User Interface",
+    description = "ONOS OSGi GUI2 Custom-View app ${artifactId}.",
+    title = "${artifactId} Application",
+    url = "http://onosproject.org",
+)

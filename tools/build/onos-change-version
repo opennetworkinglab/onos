@@ -30,7 +30,7 @@ sed -i".VERBACK" -E "s/Version\.version\(\"[^\"]*\"\)/Version.version(\"$NEW_VER
 
 # Augment the version in archetypes tree.
 mvn -B -f tools/package/archetypes/pom.xml versions:set -DnewVersion=$NEW_VERSION versions:commit
-for atype in api bundle cli rest ui uitab uitopo; do
+for atype in api bundle cli rest ui ui2 uitab uitopo; do
     pom="tools/package/archetypes/$atype/src/main/resources/archetype-resources/pom.xml"
     sed -i".VERBACK" -E "1,/<onos.version>/s/<onos.version>[^<]*</<onos.version>$NEW_VERSION</g" $pom
 done

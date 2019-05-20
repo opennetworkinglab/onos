@@ -13,7 +13,7 @@ type=${1:-bundle}
 [ $type = app ] && archetype=bundle || archetype=$type
 
 if [ "$1" = "-?" -o "$1" = "-h" -o "$1" = "--help" ]; then
-    echo "usage: $(basename $0) {app|bundle|ui|uitab|uitopo|cli|api} groupId artifactId version package mvn-options"
+    echo "usage: $(basename $0) {app|bundle|ui|ui2|uitab|uitopo|cli|api} groupId artifactId version package mvn-options"
     echo "        All arguments are optional"
     exit 1
 fi
