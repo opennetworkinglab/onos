@@ -15,6 +15,7 @@
  */
 package org.onosproject.cluster.impl;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -83,7 +84,8 @@ public class TestClusterCommunicationService implements ClusterCommunicationServ
             MessageSubject subject,
             Function<M, byte[]> encoder,
             Function<byte[], R> decoder,
-            NodeId toNodeId) {
+            NodeId toNodeId,
+            Duration duration) {
         TestClusterCommunicationService node = nodes.get(toNodeId);
         if (node == null) {
             return Tools.exceptionalFuture(new MessagingException.NoRemoteHandler());

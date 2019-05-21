@@ -15,10 +15,13 @@
  */
 package org.onosproject.store.cluster.messaging;
 
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+
+import com.google.common.util.concurrent.MoreExecutors;
 
 /**
  * Interface for low level messaging primitives.
@@ -42,7 +45,9 @@ public interface MessagingService {
      * @param payload message payload.
      * @return a response future
      */
-    CompletableFuture<byte[]> sendAndReceive(Endpoint ep, String type, byte[] payload);
+    default CompletableFuture<byte[]> sendAndReceive(Endpoint ep, String type, byte[] payload) {
+        return sendAndReceive(ep, type, payload, Duration.ZERO, MoreExecutors.directExecutor());
+    }
 
     /**
      * Sends a message synchronously and expects a response.
@@ -52,7 +57,33 @@ public interface MessagingService {
      * @param executor executor over which any follow up actions after completion will be executed.
      * @return a response future
      */
-    CompletableFuture<byte[]> sendAndReceive(Endpoint ep, String type, byte[] payload, Executor executor);
+    default CompletableFuture<byte[]> sendAndReceive(Endpoint ep, String type, byte[] payload, Executor executor) {
+        return sendAndReceive(ep, type, payload, Duration.ZERO, executor);
+    }
+
+    /**
+     * Sends a message asynchronously and expects a response.
+     * @param ep end point to send the message to.
+     * @param type type of message.
+     * @param payload message payload.
+     * @param timeout operation timeout
+     * @return a response future
+     */
+    default CompletableFuture<byte[]> sendAndReceive(Endpoint ep, String type, byte[] payload, Duration timeout) {
+        return sendAndReceive(ep, type, payload, timeout, MoreExecutors.directExecutor());
+    }
+
+    /**
+     * Sends a message synchronously and expects a response.
+     * @param ep end point to send the message to.
+     * @param type type of message.
+     * @param payload message payload.
+     * @param executor executor over which any follow up actions after completion will be executed.
+     * @param timeout operation timeout
+     * @return a response future
+     */
+    CompletableFuture<byte[]> sendAndReceive(Endpoint ep, String type, byte[] payload, Duration timeout,
+                                             Executor executor);
 
     /**
      * Registers a new message handler for message type.
