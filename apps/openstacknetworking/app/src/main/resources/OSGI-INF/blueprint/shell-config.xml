@@ -125,6 +125,12 @@
         <command>
             <action class="org.onosproject.openstacknetworking.cli.OpenstackRouterInterfaceListCommand" />
         </command>
+        <command>
+            <action class="org.onosproject.openstacknetworking.cli.OpenstackVmStatsCommand" />
+            <completers>
+                <ref component-id="vmDeviceIdCompleter" />
+            </completers>
+        </command>
     </command-bundle>
 
     <bean id="ipAddressCompleter" class="org.onosproject.openstacknetworking.cli.IpAddressCompleter"/>
@@ -135,4 +141,5 @@
     <bean id="booleanCompleter" class="org.onosproject.openstacknetworking.cli.BooleanCompleter"/>
     <bean id="instancePortIdCompleter" class="org.onosproject.openstacknetworking.cli.InstancePortIdCompleter"/>
     <bean id="instanceIpAddressCompleter" class="org.onosproject.openstacknetworking.cli.InstanceIpAddressCompleter"/>
+    <bean id="vmDeviceIdCompleter" class="org.onosproject.openstacknetworking.cli.VmDeviceIdCompleter" />
 </blueprint>

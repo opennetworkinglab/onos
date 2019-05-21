@@ -22,6 +22,8 @@ import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.InstancePortService;
+import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
+import org.openstack4j.model.network.Port;
 
 import java.util.Comparator;
 import java.util.List;
@@ -35,21 +37,25 @@ import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.p
         description = "Lists all OpenStack instance ports")
 public class InstancePortListCommand extends AbstractShellCommand {
 
-    private static final String FORMAT = "%-40s%-10s%-25s%-15s%-20s";
+    private static final String FORMAT = "%-40s%-40s%-10s%-25s%-10s%-15s";
 
     @Override
     protected void execute() {
         InstancePortService service = get(InstancePortService.class);
+        OpenstackNetworkService osNetService = get(OpenstackNetworkService.class);
         List<InstancePort> instancePorts = Lists.newArrayList(service.instancePorts());
         instancePorts.sort(Comparator.comparing(InstancePort::portId));
 
         if (outputJson()) {
             print("%s", json(this, instancePorts));
         } else {
-            print(FORMAT, "ID", "State", "Device ID", "Port Number", "Fixed IP");
+            print(FORMAT, "Port ID", "VM Device ID", "State", "Device ID", "Port Number", "Fixed IP");
             for (InstancePort port : instancePorts) {
-                print(FORMAT, port.portId(), port.state(), port.deviceId().toString(),
-                        port.portNumber().toLong(), port.ipAddress().toString());
+                Port neutronPort = osNetService.port(port.portId());
+
+                print(FORMAT, port.portId(), neutronPort.getDeviceId(), port.state(),
+                        port.deviceId().toString(), port.portNumber().toLong(),
+                        port.ipAddress().toString());
             }
         }
     }
