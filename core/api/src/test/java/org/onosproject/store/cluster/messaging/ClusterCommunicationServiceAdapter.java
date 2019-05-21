@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.cluster.messaging;
 
+import java.time.Duration;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -63,7 +64,7 @@ public class ClusterCommunicationServiceAdapter
     @Override
     public <M, R> CompletableFuture<R> sendAndReceive(M message,
                                                       MessageSubject subject, Function<M, byte[]> encoder,
-                                                      Function<byte[], R> decoder, NodeId toNodeId) {
+                                                      Function<byte[], R> decoder, NodeId toNodeId, Duration timeout) {
         return null;
     }
 

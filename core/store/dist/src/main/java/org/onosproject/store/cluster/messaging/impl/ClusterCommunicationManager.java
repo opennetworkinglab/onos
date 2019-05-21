@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.cluster.messaging.impl;
 
+import java.time.Duration;
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
 import org.apache.felix.scr.annotations.Activate;
@@ -156,7 +157,8 @@ public class ClusterCommunicationManager implements ClusterCommunicationService 
                                                       MessageSubject subject,
                                                       Function<M, byte[]> encoder,
                                                       Function<byte[], R> decoder,
-                                                      NodeId toNodeId) {
+                                                      NodeId toNodeId,
+                                                      Duration timeout) {
         checkPermission(CLUSTER_WRITE);
         try {
             ClusterMessage envelope = new ClusterMessage(
@@ -164,7 +166,7 @@ public class ClusterCommunicationManager implements ClusterCommunicationService 
                     subject,
                     timeFunction(encoder, subjectMeteringAgent, SERIALIZING).
                             apply(message));
-            return sendAndReceive(subject, envelope.getBytes(), toNodeId).
+            return sendAndReceive(subject, envelope.getBytes(), toNodeId, timeout).
                     thenApply(bytes -> timeFunction(decoder, subjectMeteringAgent, DESERIALIZING).apply(bytes));
         } catch (Exception e) {
             return Tools.exceptionalFuture(e);
@@ -179,7 +181,8 @@ public class ClusterCommunicationManager implements ClusterCommunicationService 
         return messagingService.sendAsync(nodeEp, subject.toString(), payload).whenComplete((r, e) -> context.stop(e));
     }
 
-    private CompletableFuture<byte[]> sendAndReceive(MessageSubject subject, byte[] payload, NodeId toNodeId) {
+    private CompletableFuture<byte[]> sendAndReceive(
+        MessageSubject subject, byte[] payload, NodeId toNodeId, Duration timeout) {
         ControllerNode node = clusterService.getNode(toNodeId);
         checkArgument(node != null, "Unknown nodeId: %s", toNodeId);
         Endpoint nodeEp = new Endpoint(node.ip(), node.tcpPort());
@@ -187,7 +190,7 @@ public class ClusterCommunicationManager implements ClusterCommunicationService 
                 startTimer(NODE_PREFIX + toNodeId.toString() + ROUND_TRIP_SUFFIX);
         MeteringAgent.Context subjectContext = subjectMeteringAgent.
                 startTimer(subject.toString() + ROUND_TRIP_SUFFIX);
-        return messagingService.sendAndReceive(nodeEp, subject.toString(), payload).
+        return messagingService.sendAndReceive(nodeEp, subject.toString(), payload, timeout).
                 whenComplete((bytes, throwable) -> {
                     subjectContext.stop(throwable);
                     epContext.stop(throwable);
