@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.cluster.messaging;
 
+import java.time.Duration;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -105,11 +106,33 @@ public interface ClusterCommunicationService {
      * @param <R> reply type
      * @return reply future
      */
+    default <M, R> CompletableFuture<R> sendAndReceive(M message,
+            MessageSubject subject,
+            Function<M, byte[]> encoder,
+            Function<byte[], R> decoder,
+            NodeId toNodeId) {
+        return sendAndReceive(message, subject, encoder, decoder, toNodeId, Duration.ZERO);
+    }
+
+    /**
+     * Sends a message and expects a reply.
+     *
+     * @param message message to send
+     * @param subject message subject
+     * @param encoder function for encoding request to byte[]
+     * @param decoder function for decoding response from byte[]
+     * @param toNodeId recipient node identifier
+     * @param timeout the message timeout
+     * @param <M> request type
+     * @param <R> reply type
+     * @return reply future
+     */
     <M, R> CompletableFuture<R> sendAndReceive(M message,
             MessageSubject subject,
             Function<M, byte[]> encoder,
             Function<byte[], R> decoder,
-            NodeId toNodeId);
+            NodeId toNodeId,
+            Duration timeout);
 
     /**
      * Adds a new subscriber for the specified message subject.

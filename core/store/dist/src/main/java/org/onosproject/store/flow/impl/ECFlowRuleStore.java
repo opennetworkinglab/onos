@@ -136,6 +136,7 @@ public class ECFlowRuleStore
     private final Logger log = getLogger(getClass());
 
     private static final long FLOW_RULE_STORE_TIMEOUT_MILLIS = 5000;
+    private static final int GET_FLOW_ENTRIES_TIMEOUT = 30; //seconds
 
     /** Number of threads in the message handler pool. */
     private int msgHandlerPoolSize = MESSAGE_HANDLER_THREAD_POOL_SIZE_DEFAULT;
@@ -783,7 +784,7 @@ public class ECFlowRuleStore
         public Iterable<FlowEntry> getFlowEntries(DeviceId deviceId) {
             try {
                 return getFlowTable(deviceId).getFlowEntries()
-                    .get(FLOW_RULE_STORE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+                    .get(GET_FLOW_ENTRIES_TIMEOUT, TimeUnit.SECONDS);
             } catch (ExecutionException e) {
                 throw new FlowRuleStoreException(e.getCause());
             } catch (TimeoutException e) {
