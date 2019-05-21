@@ -28,6 +28,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
@@ -71,13 +72,9 @@ public class AtomixMessagingManager implements MessagingService {
     }
 
     @Override
-    public CompletableFuture<byte[]> sendAndReceive(Endpoint ep, String type, byte[] payload) {
-        return messagingService.sendAndReceive(toAddress(ep), type, payload);
-    }
-
-    @Override
-    public CompletableFuture<byte[]> sendAndReceive(Endpoint ep, String type, byte[] payload, Executor executor) {
-        return messagingService.sendAndReceive(toAddress(ep), type, payload, executor);
+    public CompletableFuture<byte[]> sendAndReceive(
+            Endpoint ep, String type, byte[] payload, Duration timeout, Executor executor) {
+        return messagingService.sendAndReceive(toAddress(ep), type, payload, timeout, executor);
     }
 
     @Override
