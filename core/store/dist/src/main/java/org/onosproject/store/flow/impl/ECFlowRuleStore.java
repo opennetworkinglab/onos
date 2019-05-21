@@ -131,6 +131,7 @@ public class ECFlowRuleStore
     private static final int DEFAULT_BACKUP_PERIOD_MILLIS = 2000;
     private static final int DEFAULT_ANTI_ENTROPY_PERIOD_MILLIS = 5000;
     private static final long FLOW_RULE_STORE_TIMEOUT_MILLIS = 5000;
+    private static final int GET_FLOW_ENTRIES_TIMEOUT = 30; //seconds
 
     @Property(name = "msgHandlerPoolSize", intValue = MESSAGE_HANDLER_THREAD_POOL_SIZE,
         label = "Number of threads in the message handler pool")
@@ -775,7 +776,7 @@ public class ECFlowRuleStore
         public Iterable<FlowEntry> getFlowEntries(DeviceId deviceId) {
             try {
                 return getFlowTable(deviceId).getFlowEntries()
-                    .get(FLOW_RULE_STORE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+                    .get(GET_FLOW_ENTRIES_TIMEOUT, TimeUnit.SECONDS);
             } catch (ExecutionException e) {
                 throw new RuntimeException(e.getCause());
             } catch (TimeoutException | InterruptedException e) {

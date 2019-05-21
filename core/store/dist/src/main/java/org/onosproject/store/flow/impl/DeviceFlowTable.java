@@ -15,6 +15,7 @@
  */
 package org.onosproject.store.flow.impl;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -73,6 +74,7 @@ public class DeviceFlowTable {
         .register(LogicalTimestamp.class)
         .register(Timestamped.class)
         .build());
+    private static final int GET_FLOW_ENTRIES_TIMEOUT = 15; // seconds
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -243,7 +245,8 @@ public class DeviceFlowTable {
                 getFlowsSubject,
                 SERIALIZER::encode,
                 SERIALIZER::decode,
-                replicaInfo.master());
+                replicaInfo.master(),
+                Duration.ofSeconds(GET_FLOW_ENTRIES_TIMEOUT));
         } else {
             return CompletableFuture.completedFuture(Collections.emptySet());
         }
