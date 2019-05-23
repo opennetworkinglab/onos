@@ -88,6 +88,8 @@ filegroup(
     srcs = glob(
         [
             "projects/gui2-fw-lib/**",
+            "README.md",
+            "LICENSE",
         ],
         exclude = [
             "projects/gui2-fw-lib/**/*.spec.*",  # Don't track tests here
@@ -238,8 +240,8 @@ genrule(
           " unzip -q $$ROOT/$(location //web/gui:onos-gui-data-for-gui2) web/gui/src/main/webapp/data/img/loading/* &&" +
           " mkdir -p dist/gui2-fw-lib/assets &&" +
           " mv web/gui/src/main/webapp/data/img/loading dist/gui2-fw-lib/assets &&" +
-          " cd dist/gui2-fw-lib &&" +
-          " npm pack &&" +
+          " cp README.md LICENSE dist/gui2-fw-lib &&" +
+          " npm pack ./dist/gui2-fw-lib  >> $$ROOT/$(location gui2-fw-ng-build-prod.log) 2>&1 &&" +
           " mv gui2-fw-lib-*.tgz $$ROOT/$(location gui2-fw-lib-ver.tgz) &&" +
           " touch $$ROOT/$(location gui2-fw-ng-build-prod.log)",  # to get the log always as the 2nd file
     message = "GUI FW Lib build",

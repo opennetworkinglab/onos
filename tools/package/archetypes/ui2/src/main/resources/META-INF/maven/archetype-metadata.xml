@@ -40,6 +40,7 @@
                 <include>**/*.ts</include>
                 <include>**/*.css</include>
                 <include>**/*.json</include>
+                <include>__artifactId__-gui/LICENSE</include>
                 <include>__artifactId__-gui/*.md</include>
                 <include>__artifactId__-gui/pom.xml</include>
                 <include>__artifactId__-gui/BUILD.rename</include>

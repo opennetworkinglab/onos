@@ -110,11 +110,11 @@ genrule(
           #"   tail -n 100 ../../$(location onos-gui2-ng-test.log) >&2;" +
           "   exit 1;" +
           " fi;" +
-          " cd dist/${artifactId}-gui-lib && " +
-          " npm pack >> $$ROOT/$(location ${artifactId}-gui-lib.log) 2>&1 &&" +
+          " cp README.md LICENSE dist/${artifactId}-gui-lib && " +
+          " npm pack ./dist/${artifactId}-gui-lib >> $$ROOT/$(location ${artifactId}-gui-lib.log) 2>&1 &&" +
           " mv ${artifactId}-gui-lib-*.tgz $$ROOT/$(location ${artifactId}-gui-lib-ver.tgz) &&" +
           " touch $$ROOT/$(location ${artifactId}-gui-lib.log)",  # to get the log always as the 2nd file,
-    message = "Angular Topo GUI2 build",
+    message = "Angular ${artifactId} GUI2 build",
     visibility = ["//visibility:public"],
 )
 
@@ -202,6 +202,8 @@ filegroup(
     srcs = glob(
         [
             "projects/${artifactId}-gui-lib/**/*",
+            "README.md",
+            "LICENSE",
         ],
         exclude = [
             "projects/${artifactId}-gui-lib/**/*.spec.*",  # Don't track tests here

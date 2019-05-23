@@ -1,6 +1,19 @@
 {
   "name": "gui2-fw-lib",
-  "version": "2.1.0",
+  "version": "2.1.1",
+  "author": {
+    "name": "Sean Condon",
+    "email": "sean@opennetworking.org"
+  },
+  "description": "ONOS Project GUI Framework Library built on Angular7+",
+  "keywords": "ONOS SDN Controller ONF Open Networking Foundation",
+  "homepage": "https://onosproject.org/",
+  "bugs": "support@opennetworking.org",
+  "license": "Apache-2.0",
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/opennetworkinglab/onos.git"
+  },
   "peerDependencies": {
     "@angular/common": "^7.0.0 || ^6.0.0-rc.0 || ^6.0.0",
     "@angular/core": "^7.0.0 || ^6.0.0-rc.0 || ^6.0.0"

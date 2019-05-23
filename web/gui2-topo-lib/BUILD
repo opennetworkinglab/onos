@@ -110,8 +110,8 @@ genrule(
           #"   tail -n 100 ../../$(location onos-gui2-ng-test.log) >&2;" +
           "   exit 1;" +
           " fi;" +
-          " cd dist/gui2-topo-lib && " +
-          " npm pack >> $$ROOT/$(location gui2-topo-lib.log) 2>&1 &&" +
+          " cp README.md LICENSE dist/gui2-topo-lib && " +
+          " npm pack ./dist/gui2-topo-lib >> $$ROOT/$(location gui2-topo-lib.log) 2>&1 &&" +
           " mv gui2-topo-lib-*.tgz $$ROOT/$(location gui2-topo-lib-ver.tgz) &&" +
           " touch $$ROOT/$(location gui2-topo-lib.log)",  # to get the log always as the 2nd file,
     message = "Angular Topo GUI2 build",
@@ -202,6 +202,8 @@ filegroup(
     srcs = glob(
         [
             "projects/gui2-topo-lib/**/*",
+            "README.md",
+            "LICENSE",
         ],
         exclude = [
             "projects/gui2-topo-lib/**/*.spec.*",  # Don't track tests here
