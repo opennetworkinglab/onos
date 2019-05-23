@@ -1,0 +1,10 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/19.2I0/junos" xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="1">
+    <chassis-mac-addresses>
+        <mac-address-information>
+            <public-base-address>f4:b5:2f:1f:81:00</public-base-address>
+            <public-count>192</public-count>
+            <private-base-address>f4:b5:2f:1f:81:c0</private-base-address>
+            <private-count>1088</private-count>
+        </mac-address-information>
+    </chassis-mac-addresses>
+</rpc-reply>

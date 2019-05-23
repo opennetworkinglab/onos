@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/19.2I0/junos" xmlns="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="1">
+    <system-information>
+        <hardware-model>acx6360-or</hardware-model>
+        <os-name>junos</os-name>
+        <os-version>19.2I-20190228_dev_common.0.2316</os-version>
+        <serial-number>DX004</serial-number>
+        <host-name>capella39</host-name>
+    </system-information>
+</rpc-reply>

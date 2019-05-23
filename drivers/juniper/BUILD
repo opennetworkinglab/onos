@@ -8,9 +8,12 @@ BUNDLES = [
     "//drivers/utilities:onos-drivers-utilities",
 ]
 
+TEST_DEPS = TEST_ADAPTERS
+
 osgi_jar_with_tests(
     resources = glob(["src/main/resources/**"]),
     resources_root = "src/main/resources",
+    test_deps = TEST_DEPS,
     deps = COMPILE_DEPS,
 )
 
