@@ -212,6 +212,7 @@ public class DefaultDeviceDescription extends AbstractDescription
                 .add("uri", uri).add("type", type).add("mfr", manufacturer)
                 .add("hw", hwVersion).add("sw", swVersion)
                 .add("serial", serialNumber)
+                .add("chassisId", chassisId)
                 .add("annotations", annotations())
                 .toString();
     }

@@ -68,7 +68,7 @@ public class LinkDiscoveryJuniperImpl extends AbstractHandlerBehaviour
         try {
             reply = session.get(requestBuilder(REQ_LLDP_NBR_INFO));
         } catch (NetconfException e) {
-            log.warn("Failed to retrieve ports for device {}", localDeviceId);
+            log.warn("Failed to retrieve lldp-neighbors-information for device {}", localDeviceId);
             return ImmutableSet.of();
         }
         log.debug("Reply from device {} : {}", localDeviceId, reply);
@@ -101,8 +101,8 @@ public class LinkDiscoveryJuniperImpl extends AbstractHandlerBehaviour
                     input -> input.chassisId().equals(linkAbs.remoteChassisId));
 
             if (!dev.isPresent()) {
-                log.warn("Device with chassis ID {} does not exist",
-                         linkAbs.remoteChassisId);
+                log.warn("Device with chassis ID {} does not exist. Referenced by {}/{}",
+                         linkAbs.remoteChassisId, localDeviceId, linkAbs);
                 continue;
             }
             Device remoteDevice = dev.get();
@@ -132,7 +132,8 @@ public class LinkDiscoveryJuniperImpl extends AbstractHandlerBehaviour
                         return false;
                     }).findAny();
             if (!remotePort.isPresent()) {
-                log.warn("Port Index and Port Id and Port description do not exist in device {}", remoteDevice.id());
+                log.warn("Port does not exist in remote device {}. Referenced by {}/{}",
+                        remoteDevice.id(), localDeviceId, linkAbs);
                 continue;
             }
 

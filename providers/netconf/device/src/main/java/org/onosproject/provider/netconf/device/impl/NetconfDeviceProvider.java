@@ -478,7 +478,7 @@ public class NetconfDeviceProvider extends AbstractProvider
                 //getting the device description
                 DeviceDescription deviceDescription = getDeviceDescription(deviceId, config);
                 //connecting device to ONOS
-                log.debug("Connected NETCONF device {}, on {}:{} with username {}",
+                log.debug("Connected NETCONF device {}, on {}:{} {} with username {}",
                         deviceId, config.ip(), config.port(),
                         (config.path().isPresent() ? "/" + config.path().get() : ""),
                         config.username());

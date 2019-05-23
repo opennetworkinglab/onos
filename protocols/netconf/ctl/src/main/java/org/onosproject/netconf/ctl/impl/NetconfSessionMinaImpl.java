@@ -475,7 +475,7 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
                 cleanUp();
                 startConnection();
             } else if (session.isClosed() || session.isClosing()) {
-                log.debug("Trying to restart the session with {}", session, deviceInfo.getDeviceId());
+                log.debug("Trying to restart the session {} with {}", session, deviceInfo.getDeviceId());
                 cleanUp();
                 startSession();
             } else if (channel.isClosed() || channel.isClosing()) {

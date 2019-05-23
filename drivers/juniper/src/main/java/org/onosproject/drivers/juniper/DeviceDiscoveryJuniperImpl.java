@@ -55,10 +55,10 @@ public class DeviceDiscoveryJuniperImpl extends AbstractHandlerBehaviour
         NetconfController controller = checkNotNull(handler().get(NetconfController.class));
         NetconfSession session = controller.getDevicesMap().get(devId).getSession();
         String sysInfo;
-        String chassis;
+        String chassisMacAddresses;
         try {
             sysInfo = session.get(requestBuilder(REQ_SYS_INFO));
-            chassis = session.get(requestBuilder(REQ_MAC_ADD_INFO));
+            chassisMacAddresses = session.get(requestBuilder(REQ_MAC_ADD_INFO));
         } catch (NetconfException e) {
             log.warn("Failed to retrieve device details for {}", devId);
             return null;
@@ -66,8 +66,8 @@ public class DeviceDiscoveryJuniperImpl extends AbstractHandlerBehaviour
         log.trace("Device {} system-information {}", devId, sysInfo);
         DeviceDescription description =
                 JuniperUtils.parseJuniperDescription(devId,
-                                                     loadXmlString(sysInfo),
-                                                     chassis);
+                        loadXmlString(sysInfo),
+                        chassisMacAddresses);
         log.debug("Device {} description {}", devId, description);
         return description;
     }
@@ -81,7 +81,7 @@ public class DeviceDiscoveryJuniperImpl extends AbstractHandlerBehaviour
         try {
             reply = session.get(requestBuilder(REQ_IF_INFO));
         } catch (NetconfException e) {
-            log.warn("Failed to retrieve ports for device {}", devId);
+            log.warn("Failed to retrieve interface-information for device {}", devId);
             return ImmutableList.of();
         }
         log.trace("Device {} interface-information {}", devId, reply);
