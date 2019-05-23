@@ -25,7 +25,6 @@ import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onosproject.drivers.utilities.XmlConfigParser;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.OchSignal;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.PowerConfig;
 import org.onosproject.net.device.DeviceService;
@@ -42,14 +41,15 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Driver Implementation of the PowerConfig for OpenConfig terminal devices.
  *
  */
-public class CassiniTerminalDevicePowerConfig
-        extends AbstractHandlerBehaviour implements PowerConfig<OchSignal> {
+public class CassiniTerminalDevicePowerConfig<T>
+        extends AbstractHandlerBehaviour implements PowerConfig<T> {
 
     private static final String RPC_TAG_NETCONF_BASE =
             "<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">";
@@ -59,6 +59,8 @@ public class CassiniTerminalDevicePowerConfig
     private static final long NO_POWER = -50;
 
     private static final Logger log = getLogger(CassiniTerminalDevicePowerConfig.class);
+
+    private ComponentType state = ComponentType.DIRECTION;
 
     /**
      * Returns the NetconfSession with the device for which the method was called.
@@ -84,38 +86,6 @@ public class CassiniTerminalDevicePowerConfig
      */
     private DeviceId did() {
         return handler().data().deviceId();
-    }
-
-    /**
-     * Parse filtering string from port and component.
-     * @param portNumber Port Number
-     * @param component port component (optical-channel)
-     * @param power power value set.
-     * @return filtering string in xml format
-     */
-    private String parsePort(PortNumber portNumber, OchSignal component, Long power) {
-        if (component == null) {
-            DeviceService deviceService = DefaultServiceDirectory.getService(DeviceService.class);
-            DeviceId deviceId = handler().data().deviceId();
-            String name = deviceService.getPort(deviceId, portNumber).annotations().value("oc-name");
-            StringBuilder sb = new StringBuilder("<components xmlns=\"http://openconfig.net/yang/platform\">");
-            sb.append("<component>").append("<name>").append(name).append("</name>");
-            if (power != null) {
-                // This is an edit-config operation.
-                sb.append("<optical-channel xmlns=\"http://openconfig.net/yang/terminal-device\">")
-                        .append("<config>")
-                        .append("<target-output-power>")
-                        .append(power)
-                        .append("</target-output-power>")
-                        .append("</config>")
-                        .append("</optical-channel>");
-            }
-            sb.append("</component>").append("</components>");
-            return sb.toString();
-        } else {
-            log.error("Cannot process the component {}.", component.getClass());
-            return null;
-        }
     }
 
     /**
@@ -149,79 +119,303 @@ public class CassiniTerminalDevicePowerConfig
      * @return target power value
      */
     @Override
-    public Optional<Long> getTargetPower(PortNumber port, OchSignal component) {
-        NetconfSession session = getNetconfSession(did());
-        if (session == null) {
-            log.error("discoverPortDetails called with null session for {}", did());
-            return Optional.of(NO_POWER);
+    public Optional<Long> getTargetPower(PortNumber port, T component) {
+        checkState(component);
+        return state.getTargetPower(port, component);
+    }
+
+    @Override
+    public void setTargetPower(PortNumber port, T component, long power) {
+        checkState(component);
+        state.setTargetPower(port, component, power);
+    }
+
+    @Override
+    public Optional<Long> currentPower(PortNumber port, T component) {
+        checkState(component);
+        return state.currentPower(port, component);
+    }
+
+    @Override
+    public Optional<Long> currentInputPower(PortNumber port, T component) {
+        checkState(component);
+        return state.currentInputPower(port, component);
+    }
+
+    @Override
+    public Optional<Range<Long>> getTargetPowerRange(PortNumber port, T component) {
+        checkState(component);
+        return state.getTargetPowerRange(port, component);
+    }
+
+    @Override
+    public Optional<Range<Long>> getInputPowerRange(PortNumber port, T component) {
+        checkState(component);
+        return state.getInputPowerRange(port, component);
+    }
+
+    @Override
+    public List<PortNumber> getPorts(T component) {
+        checkState(component);
+        return state.getPorts(component);
+    }
+
+
+    /**
+     * Set the ComponentType to invoke proper methods for different template T.
+     * @param component the component.
+     */
+    void checkState(Object component) {
+        String clsName = component.getClass().getName();
+        switch (clsName) {
+            case "org.onosproject.net.Direction":
+                state = ComponentType.DIRECTION;
+                break;
+            case "org.onosproject.net.OchSignal":
+                state = ComponentType.OCHSIGNAL;
+                break;
+            default:
+                log.error("Cannot parse the component type {}.", clsName);
+                log.info("The component content is {}.", component.toString());
+        }
+        state.cassini = this;
+    }
+
+    /**
+     * Component type.
+     */
+    enum ComponentType {
+
+        /**
+         * Direction.
+         */
+        DIRECTION() {
+            @Override
+            public Optional<Long> getTargetPower(PortNumber port, Object component) {
+                return super.getTargetPower(port, component);
+            }
+            @Override
+            public void setTargetPower(PortNumber port, Object component, long power) {
+                super.setTargetPower(port, component, power);
+            }
+        },
+
+        /**
+         * OchSignal.
+         */
+        OCHSIGNAL() {
+            @Override
+            public Optional<Long> getTargetPower(PortNumber port, Object component) {
+                return super.getTargetPower(port, component);
+            }
+
+            @Override
+            public void setTargetPower(PortNumber port, Object component, long power) {
+                super.setTargetPower(port, component, power);
+            }
+        };
+
+
+
+        CassiniTerminalDevicePowerConfig cassini;
+
+        /**
+         * mirror method in the internal class.
+         * @param port port
+         * @param component component
+         * @return target power
+         */
+        Optional<Long> getTargetPower(PortNumber port, Object component) {
+            NetconfSession session = cassini.getNetconfSession(cassini.did());
+            checkNotNull(session);
+            String filter = parsePort(cassini, port, null, null);
+            StringBuilder rpcReq = new StringBuilder();
+            rpcReq.append(RPC_TAG_NETCONF_BASE)
+                    .append("<get>")
+                    .append("<filter type='subtree'>")
+                    .append(filter)
+                    .append("</filter>")
+                    .append("</get>")
+                    .append(RPC_CLOSE_TAG);
+            XMLConfiguration xconf = cassini.executeRpc(session, rpcReq.toString());
+            try {
+                HierarchicalConfiguration config =
+                        xconf.configurationAt("data/components/component/optical-channel/config");
+                long power = Float.valueOf(config.getString("target-output-power")).longValue();
+                return Optional.of(power);
+            } catch (IllegalArgumentException e) {
+                return Optional.empty();
+            }
         }
 
-        String filter = parsePort(port, component, null);
-        StringBuilder rpcReq = new StringBuilder();
-        rpcReq.append(RPC_TAG_NETCONF_BASE)
-                .append("<get>")
-                .append("<filter type='subtree'>")
-                .append(filter)
-                .append("</filter>")
-                .append("</get>")
-                .append(RPC_CLOSE_TAG);
-        XMLConfiguration xconf = executeRpc(session, rpcReq.toString());
-        HierarchicalConfiguration config =
-                xconf.configurationAt("data/components/component/optical-channel/config");
-        long power = Float.valueOf(config.getString("target-output-power")).longValue();
-        return Optional.of(power);
-    }
-
-    @Override
-    public void setTargetPower(PortNumber port, OchSignal component, long power) {
-        NetconfSession session = getNetconfSession(did());
-        if (session == null) {
-            log.error("setTargetPower called with null session for {}", did());
-            return;
+        /**
+         * mirror method in the internal class.
+         * @param port port
+         * @param component component
+         * @param power target value
+         */
+        void setTargetPower(PortNumber port, Object component, long power) {
+            NetconfSession session = cassini.getNetconfSession(cassini.did());
+            checkNotNull(session);
+            String editConfig = parsePort(cassini, port, null, power);
+            StringBuilder rpcReq = new StringBuilder();
+            rpcReq.append(RPC_TAG_NETCONF_BASE)
+                    .append("<edit-config>")
+                    .append("<target><running/></target>")
+                    .append("<config>")
+                    .append(editConfig)
+                    .append("</config>")
+                    .append("</edit-config>")
+                    .append(RPC_CLOSE_TAG);
+            XMLConfiguration xconf = cassini.executeRpc(session, rpcReq.toString());
+            // The successful reply should be "<rpc-reply ...><ok /></rpc-reply>"
+            if (!xconf.getRoot().getChild(0).getName().equals("ok")) {
+                log.error("The <edit-config> operation to set target-output-power of Port({}:{}) is failed.",
+                        port.toString(), component.toString());
+            }
         }
-        String editConfig = parsePort(port, component, power);
-        StringBuilder rpcReq = new StringBuilder();
-        rpcReq.append(RPC_TAG_NETCONF_BASE)
-                .append("<edit-config>")
-                .append("<target><running/></target>")
-                .append("<config>")
-                .append(editConfig)
-                .append("</config>")
-                .append("</edit-config>")
-                .append(RPC_CLOSE_TAG);
-        XMLConfiguration xconf = executeRpc(session, rpcReq.toString());
-        // The successful reply should be "<rpc-reply ...><ok /></rpc-reply>"
-        if (!xconf.getRoot().getChild(0).getName().equals("ok")) {
-            log.error("The <edit-config> operation to set target-output-power of Port({}:{}) is failed.",
-                    port.toString(), component.toString());
+
+        /**
+         * mirror method in the internal class.
+         * @param port port
+         * @param component the component.
+         * @return current output power.
+         */
+        Optional<Long> currentPower(PortNumber port, Object component) {
+            XMLConfiguration xconf = getOpticalChannelState(
+                                    cassini, port, "<output-power><instant/></output-power>");
+            try {
+                HierarchicalConfiguration config =
+                        xconf.configurationAt("data/components/component/optical-channel/state/output-power");
+                long currentPower = Float.valueOf(config.getString("instant")).longValue();
+                return Optional.of(currentPower);
+            } catch (IllegalArgumentException e) {
+                return Optional.empty();
+            }
         }
-    }
 
-    @Override
-    public Optional<Long> currentPower(PortNumber port, OchSignal component) {
-        // FIXME
-        log.warn("Not Implemented Yet!");
-        return Optional.empty();
-    }
+        /**
+         * mirror method in the internal class.
+         * @param port port
+         * @param component the component
+         * @return current input power
+         */
+        Optional<Long> currentInputPower(PortNumber port, Object component) {
+            XMLConfiguration xconf = getOpticalChannelState(
+                    cassini, port, "<input-power><instant/></input-power>");
+            try {
+                HierarchicalConfiguration config =
+                        xconf.configurationAt("data/components/component/optical-channel/state/input-power");
+                long currentPower = Float.valueOf(config.getString("instant")).longValue();
+                return Optional.of(currentPower);
+            } catch (IllegalArgumentException e) {
+                return Optional.empty();
+            }
+        }
 
-    @Override
-    public Optional<Range<Long>> getTargetPowerRange(PortNumber port, OchSignal component) {
-        // FIXME
-        log.warn("Not Implemented Yet!");
-        return Optional.empty();
-    }
+        Optional<Range<Long>> getTargetPowerRange(PortNumber port, Object component) {
+            XMLConfiguration xconf = getOpticalChannelState(
+                    cassini, port, "<target-power-range/>");
+            try {
+                HierarchicalConfiguration config =
+                        xconf.configurationAt("data/components/component/optical-channel/state/target-power-range");
+                long targetMin = Float.valueOf(config.getString("min")).longValue();
+                long targetMax = Float.valueOf(config.getString("max")).longValue();
+                return Optional.of(Range.open(targetMin, targetMax));
+            } catch (IllegalArgumentException e) {
+                return Optional.empty();
+            }
 
-    @Override
-    public Optional<Range<Long>> getInputPowerRange(PortNumber port, OchSignal component) {
-        // FIXME
-        log.warn("Not Implemented Yet!");
-        return Optional.empty();
-    }
+        }
 
-    @Override
-    public List<PortNumber> getPorts(OchSignal component) {
-        // FIXME
-        log.warn("Not Implemented Yet!");
-        return new ArrayList<PortNumber>();
+        Optional<Range<Long>> getInputPowerRange(PortNumber port, Object component) {
+            XMLConfiguration xconf = getOpticalChannelState(
+                    cassini, port, "<input-power-range/>");
+            try {
+                HierarchicalConfiguration config =
+                        xconf.configurationAt("data/components/component/optical-channel/state/input-power-range");
+                long inputMin = Float.valueOf(config.getString("min")).longValue();
+                long inputMax = Float.valueOf(config.getString("max")).longValue();
+                return Optional.of(Range.open(inputMin, inputMax));
+            } catch (IllegalArgumentException e) {
+                return Optional.empty();
+            }
+        }
+
+        List<PortNumber> getPorts(Object component) {
+            // FIXME
+            log.warn("Not Implemented Yet!");
+            return new ArrayList<PortNumber>();
+        }
+
+        /**
+         * Get filtered content under <optical-channel><state>.
+         * @param pc power config instance
+         * @param port the port number
+         * @param underState the filter condition
+         * @return RPC reply
+         */
+        private static XMLConfiguration getOpticalChannelState(CassiniTerminalDevicePowerConfig pc,
+                                                 PortNumber port, String underState) {
+            NetconfSession session = pc.getNetconfSession(pc.did());
+            checkNotNull(session);
+            String name = ocName(pc, port);
+            StringBuilder rpcReq = new StringBuilder(RPC_TAG_NETCONF_BASE);
+            rpcReq.append("<get><filter><components xmlns=\"http://openconfig.net/yang/platform\"><component>")
+                    .append("<name>").append(name).append("</name>")
+                    .append("<optical-channel xmlns=\"http://openconfig.net/yang/terminal-device\">")
+                    .append("<state>")
+                    .append(underState)
+                    .append("</state></optical-channel></component></components></filter></get>")
+                    .append(RPC_CLOSE_TAG);
+            XMLConfiguration xconf = pc.executeRpc(session, rpcReq.toString());
+            return xconf;
+        }
+
+
+        /**
+         * Extract component name from portNumber's annotations.
+         * @param pc power config instance
+         * @param portNumber the port number
+         * @return the component name
+         */
+        private static String ocName(CassiniTerminalDevicePowerConfig pc, PortNumber portNumber) {
+            DeviceService deviceService = DefaultServiceDirectory.getService(DeviceService.class);
+            DeviceId deviceId = pc.handler().data().deviceId();
+            return deviceService.getPort(deviceId, portNumber).annotations().value("oc-name");
+        }
+
+
+
+        /**
+         * Parse filtering string from port and component.
+         * @param portNumber Port Number
+         * @param component port component (optical-channel)
+         * @param power power value set.
+         * @return filtering string in xml format
+         */
+        private static String parsePort(CassiniTerminalDevicePowerConfig pc, PortNumber portNumber,
+                                        Object component, Long power) {
+            if (component == null) {
+                String name = ocName(pc, portNumber);
+                StringBuilder sb = new StringBuilder("<components xmlns=\"http://openconfig.net/yang/platform\">");
+                sb.append("<component>").append("<name>").append(name).append("</name>");
+                if (power != null) {
+                    // This is an edit-config operation.
+                    sb.append("<optical-channel xmlns=\"http://openconfig.net/yang/terminal-device\">")
+                            .append("<config>")
+                            .append("<target-output-power>")
+                            .append(power)
+                            .append("</target-output-power>")
+                            .append("</config>")
+                            .append("</optical-channel>");
+                }
+                sb.append("</component>").append("</components>");
+                return sb.toString();
+            } else {
+                log.error("Cannot process the component {}.", component.getClass());
+                return null;
+            }
+        }
     }
 }

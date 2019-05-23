@@ -55,13 +55,23 @@ public interface PowerConfig<T> extends HandlerBehaviour {
     void setTargetPower(PortNumber port, T component, long power);
 
     /**
-     * Get the current power on the component.
+     * Get the current output power on the component.
      *
      * @param port the port
      * @param component the port component
      * @return power power in .01 dBm
      */
     Optional<Long> currentPower(PortNumber port, T component);
+
+    /**
+     * Get the current input power on the component.
+     * @param port the port
+     * @param component the port component
+     * @return power in .01 dBm
+     */
+    default Optional<Long> currentInputPower(PortNumber port, T component)  {
+        return Optional.empty();
+    }
 
     /**
      * Get the acceptable target power range for setTargetPower,
