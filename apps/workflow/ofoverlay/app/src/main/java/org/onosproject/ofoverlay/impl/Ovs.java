@@ -89,8 +89,7 @@ public final class Ovs {
     private static final String MODEL_OVS_VERSION = "/ovsVersion";
     private static final String MODEL_OVS_DATAPATH_TYPE = "/ovsDatapathType";
     private static final String MODEL_SSH_ACCESSINFO = "/sshAccessInfo";
-    private static final String MODEL_OF_DEVID_OVERLAY_BRIDGE = "/ofDevIdBrInt";
-    private static final String MODEL_OF_DEVID_UNDERLAY_BRIDGE = "/ofDevIdBrPhy";
+    private static final String MODEL_OF_DEVID_BRIDGE = "/ofDevId";
     private static final String MODEL_OF_DEVID_FOR_OVERLAY_UNDERLAY_BRIDGE = "/ofDevIdBrIntBrPhy";
     private static final String MODEL_PHY_PORTS = "/physicalPorts";
     private static final String MODEL_VTEP_IP = "/vtepIp";
@@ -102,7 +101,7 @@ public final class Ovs {
     private static final int DEVID_IDX_BRIDGE_UNDERLAY_NOVA = 1;
 
     private static final ControlProtocolVersion BRIDGE_DEFAULT_OF_VERSION = ControlProtocolVersion.OF_1_3;
-    private static final int    OPENFLOW_PORT = 6653;
+    private static final int OPENFLOW_PORT = 6653;
     private static final String OPENFLOW_CHANNEL_PROTO = "tcp";
     private static final String OVSDB_DEVICE_PREFIX = "ovsdb:";
 
@@ -123,7 +122,8 @@ public final class Ovs {
 
         /**
          * Builds Open-flow device id with ip address, and index.
-         * @param addr ip address
+         *
+         * @param addr  ip address
          * @param index index
          * @return created device id
          */
@@ -141,6 +141,7 @@ public final class Ovs {
 
         /**
          * Builds OVS data path type.
+         *
          * @param strOvsDatapathType string ovs data path type
          * @return ovs data path type
          * @throws WorkflowException workflow exception
@@ -155,15 +156,16 @@ public final class Ovs {
 
         /**
          * Gets OVSDB behavior.
-         * @param context workflow context
-         * @param mgmtIp management ip
+         *
+         * @param context        workflow context
+         * @param mgmtIp         management ip
          * @param behaviourClass behavior class
-         * @param <T> behavior class
+         * @param <T>            behavior class
          * @return OVSDB behavior
          * @throws WorkflowException workflow exception
          */
         public static final <T extends Behaviour> T getOvsdbBehaviour(WorkflowContext context, String mgmtIp,
-                                                                    Class<T> behaviourClass) throws WorkflowException {
+                                                             Class<T> behaviourClass) throws WorkflowException {
 
             DriverService driverService = context.getService(DriverService.class);
 
@@ -174,7 +176,7 @@ public final class Ovs {
             }
             T behaviour;
             try {
-                behaviour =  handler.behaviour(behaviourClass);
+                behaviour = handler.behaviour(behaviourClass);
                 if (Objects.isNull(behaviour)) {
                     throw new WorkflowException("Failed to get " + behaviourClass + " for " + devId + "-" + handler);
                 }
@@ -186,15 +188,16 @@ public final class Ovs {
 
         /**
          * Gets bridge description.
+         *
          * @param bridgeConfig bridge config
-         * @param bridgeName bridge name
+         * @param bridgeName   bridge name
          * @return bridge description optional
          */
         public static final Optional<BridgeDescription> getBridgeDescription(BridgeConfig bridgeConfig,
                                                                              String bridgeName) {
             try {
                 Collection<BridgeDescription> bridges = bridgeConfig.getBridges();
-                for (BridgeDescription br: bridges) {
+                for (BridgeDescription br : bridges) {
                     if (Objects.equals(bridgeName, br.name())) {
                         return Optional.of(br);
                     }
@@ -205,8 +208,20 @@ public final class Ovs {
             return Optional.empty();
         }
 
+        public static BridgeDescription getBridgeNames(BridgeConfig bridgeConfig) {
+            Collection<BridgeDescription> bridges = bridgeConfig.getBridges();
+            if (bridges.size() > 0) {
+                for (BridgeDescription description : bridges) {
+                    return description;
+                }
+            }
+            return null;
+        }
+
+
         /**
          * Builds OVSDB device id.
+         *
          * @param mgmtIp management ip address string
          * @return OVSDB device id
          */
@@ -217,8 +232,9 @@ public final class Ovs {
         /**
          * Returns {@code true} if this bridge is available;
          * returns {@code false} otherwise.
+         *
          * @param context workflow context
-         * @param devId device id
+         * @param devId   device id
          * @return {@code true} if this bridge is available; {@code false} otherwise.
          * @throws WorkflowException workflow exception
          */
@@ -240,6 +256,7 @@ public final class Ovs {
 
         /**
          * Gets openflow controller information list.
+         *
          * @param context workflow context
          * @return openflow controller information list
          * @throws WorkflowException workflow exception
@@ -262,11 +279,12 @@ public final class Ovs {
 
         /**
          * Creates bridge.
-         * @param bridgeConfig bridge config
-         * @param name bridge name to create
-         * @param dpid openflow data path id of bridge to create
+         *
+         * @param bridgeConfig  bridge config
+         * @param name          bridge name to create
+         * @param dpid          openflow data path id of bridge to create
          * @param ofControllers openflow controller information list
-         * @param datapathType OVS data path type
+         * @param datapathType  OVS data path type
          */
         public static final void createBridge(BridgeConfig bridgeConfig, String name, String dpid,
                                               List<ControllerInfo> ofControllers, OvsDatapathType datapathType) {
@@ -294,6 +312,7 @@ public final class Ovs {
 
         /**
          * Gets bridge data path id.
+         *
          * @param devId device id
          * @return bridge data path id
          */
@@ -303,8 +322,9 @@ public final class Ovs {
 
         /**
          * Gets OVSDB client.
-         * @param context workflow context
-         * @param strMgmtIp management ip address
+         *
+         * @param context      workflow context
+         * @param strMgmtIp    management ip address
          * @param intOvsdbPort OVSDB port
          * @return ovsdb client
          * @throws WorkflowException workflow exception
@@ -319,6 +339,7 @@ public final class Ovs {
 
         /**
          * Checks whether 2 controller informations include same controller information.
+         *
          * @param a controller information list
          * @param b controller information list
          * @return {@code true} if 2 controller informations include same controller information
@@ -341,6 +362,7 @@ public final class Ovs {
 
         /**
          * Gets the name of the port.
+         *
          * @param port port
          * @return the name of the port
          */
@@ -379,7 +401,7 @@ public final class Ovs {
         }
 
         @Override
-        public boolean isCompleted(WorkflowContext context, Event event)throws WorkflowException {
+        public boolean isCompleted(WorkflowContext context, Event event) throws WorkflowException {
             if (!(event instanceof DeviceEvent)) {
                 return false;
             }
@@ -437,7 +459,7 @@ public final class Ovs {
         }
 
         @Override
-        public boolean isCompleted(WorkflowContext context, Event event)throws WorkflowException {
+        public boolean isCompleted(WorkflowContext context, Event event) throws WorkflowException {
             if (!(event instanceof DeviceEvent)) {
                 return false;
             }
@@ -496,47 +518,55 @@ public final class Ovs {
     /**
      * Work-let class for updating overlay bridge device id.
      */
-    public static class UpdateOverlayBridgeId extends AbstractWorklet {
+    public static class UpdateBridgeId extends AbstractWorklet {
 
         @JsonDataModel(path = MODEL_MGMT_IP)
         String strMgmtIp;
 
-        @JsonDataModel(path = MODEL_OF_DEVID_OVERLAY_BRIDGE, optional = true)
-        String strOfDevIdOverlay;
+        @JsonDataModel(path = MODEL_OF_DEVID_BRIDGE, optional = true)
+        ObjectNode strOfDevId;
 
         @Override
         public boolean isNext(WorkflowContext context) throws WorkflowException {
 
-            return strOfDevIdOverlay == null;
+            return strOfDevId == null;
         }
 
         @Override
         public void process(WorkflowContext context) throws WorkflowException {
 
             BridgeConfig bridgeConfig = OvsUtil.getOvsdbBehaviour(context, strMgmtIp, BridgeConfig.class);
-            Optional<BridgeDescription> optBd = OvsUtil.getBridgeDescription(bridgeConfig, BRIDGE_OVERLAY);
-            if (optBd.isPresent()) {
-                Optional<DeviceId> optDevId = optBd.get().deviceId();
-                if (optDevId.isPresent()) {
-                    log.info("Updates {} of device id with existing device id {}", BRIDGE_OVERLAY, optDevId.get());
-                    strOfDevIdOverlay = optDevId.get().toString();
-                } else {
-                    DeviceId newDevId = OvsUtil.buildOfDeviceId(IpAddress.valueOf(strMgmtIp), DEVID_IDX_BRIDGE_OVERLAY);
-                    log.info("Failed to find devId. Updates {} of device id with new device id {}",
-                            BRIDGE_OVERLAY, newDevId);
-                    strOfDevIdOverlay = newDevId.toString();
+            BridgeDescription bridgeName = OvsUtil.getBridgeNames(bridgeConfig);
+            strOfDevId = JsonNodeFactory.instance.objectNode();
+            if (Objects.nonNull(bridgeName)) {
+                Optional<BridgeDescription> optBd = OvsUtil.getBridgeDescription(bridgeConfig, bridgeName.name());
+                if (optBd.isPresent()) {
+                    String ofDevIdOverlay = strOfDevId.get(BRIDGE_OVERLAY).asText();
+                    String ofDevIdUnderlay = strOfDevId.get(BRIDGE_UNDERLAY).asText();
+                    if (Objects.nonNull(ofDevIdOverlay) || Objects.nonNull(ofDevIdUnderlay)) {
+                        strOfDevId.put(BRIDGE_OVERLAY, OvsUtil.buildOfDeviceId(
+                                IpAddress.valueOf(strMgmtIp), DEVID_IDX_BRIDGE_OVERLAY).toString());
+                        strOfDevId.put(BRIDGE_UNDERLAY, OvsUtil.buildOfDeviceId(
+                                IpAddress.valueOf(strMgmtIp), DEVID_IDX_BRIDGE_UNDERLAY_NOVA).toString());
+                    } else {
+                        strOfDevId.put(BRIDGE_OVERLAY, OvsUtil.buildOfDeviceId(
+                                IpAddress.valueOf(strMgmtIp), DEVID_IDX_BRIDGE_OVERLAY).toString());
+                        strOfDevId.put(BRIDGE_UNDERLAY, OvsUtil.buildOfDeviceId(
+                                IpAddress.valueOf(strMgmtIp), DEVID_IDX_BRIDGE_UNDERLAY_NOVA).toString());
+                        log.info("Failed to find devId. Updates of device id with new device id {}", strOfDevId);
+                    }
                 }
             } else {
-                DeviceId newDevId = OvsUtil.buildOfDeviceId(IpAddress.valueOf(strMgmtIp), DEVID_IDX_BRIDGE_OVERLAY);
-                log.info("Failed to find description. Updates {} of device id with new device id {}",
-                        BRIDGE_OVERLAY, newDevId);
-                strOfDevIdOverlay = newDevId.toString();
+                strOfDevId.put(BRIDGE_OVERLAY, OvsUtil.buildOfDeviceId(
+                        IpAddress.valueOf(strMgmtIp), DEVID_IDX_BRIDGE_OVERLAY).toString());
+                strOfDevId.put(BRIDGE_UNDERLAY, OvsUtil.buildOfDeviceId(
+                        IpAddress.valueOf(strMgmtIp), DEVID_IDX_BRIDGE_UNDERLAY_NOVA).toString());
+                log.info("Failed to find description. Updates of device id with new device id {}",
+                        strOfDevId);
             }
-
             context.completed();
         }
     }
-
 
     public static class CreateBridge extends AbstractWorklet {
 
@@ -552,14 +582,15 @@ public final class Ovs {
         @JsonDataModel(path = MODEL_OVS_DATAPATH_TYPE)
         String strOvsDatapath;
 
-        @JsonDataModel(path = MODEL_OF_DEVID_OVERLAY_BRIDGE, optional = true)
-        String strOfDevId;
+        @JsonDataModel(path = MODEL_OF_DEVID_BRIDGE, optional = true)
+        ObjectNode strOfDevId;
 
         @Override
         public boolean isNext(WorkflowContext context) throws WorkflowException {
 
             check(strOfDevId != null, "invalid strOfDevIdUnderlay");
-            return !OvsUtil.isAvailableBridge(context, DeviceId.deviceId(strOfDevId));
+            String bridgeId = strOfDevId.get(bridgeName).asText();
+            return !OvsUtil.isAvailableBridge(context, DeviceId.deviceId(bridgeId));
         }
 
         @Override
@@ -568,7 +599,8 @@ public final class Ovs {
             check(strOfDevId != null, "invalid strOfDevIdOverlay");
             BridgeConfig bridgeConfig = OvsUtil.getOvsdbBehaviour(context, strMgmtIp, BridgeConfig.class);
             List<ControllerInfo> ofControllers = OvsUtil.getOpenflowControllerInfoList(context);
-            DeviceId ofDeviceId = DeviceId.deviceId(strOfDevId);
+            String bridge = strOfDevId.get(bridgeName).asText();
+            DeviceId ofDeviceId = DeviceId.deviceId(bridge);
 
             if (ofControllers == null || ofControllers.size() == 0) {
                 throw new WorkflowException("Invalid of controllers");
@@ -611,7 +643,7 @@ public final class Ovs {
         }
 
         @Override
-        public boolean isCompleted(WorkflowContext context, Event event)throws WorkflowException {
+        public boolean isCompleted(WorkflowContext context, Event event) throws WorkflowException {
             if (!(event instanceof DeviceEvent)) {
                 return false;
             }
@@ -638,11 +670,10 @@ public final class Ovs {
 
     }
 
-
     /**
      * Work-let class for creating overlay openflow bridge.
      */
-    public static class CreateOverlayBridge extends AbstractWorklet {
+    public static class CreateOverlayBridgeMultiEvent extends AbstractWorklet {
 
         @JsonDataModel(path = MODEL_MGMT_IP)
         String strMgmtIp;
@@ -653,14 +684,15 @@ public final class Ovs {
         @JsonDataModel(path = MODEL_OVS_DATAPATH_TYPE)
         String strOvsDatapath;
 
-        @JsonDataModel(path = MODEL_OF_DEVID_OVERLAY_BRIDGE, optional = true)
-        String strOfDevIdOverlay;
+        @JsonDataModel(path = MODEL_OF_DEVID_BRIDGE, optional = true)
+        ObjectNode strOfDevIdOverlay;
 
         @Override
         public boolean isNext(WorkflowContext context) throws WorkflowException {
 
             check(strOfDevIdOverlay != null, "invalid strOfDevIdOverlay");
-            return !OvsUtil.isAvailableBridge(context, DeviceId.deviceId(strOfDevIdOverlay));
+            String bridge = strOfDevIdOverlay.get(BRIDGE_OVERLAY).asText();
+            return !OvsUtil.isAvailableBridge(context, DeviceId.deviceId(bridge));
         }
 
         @Override
@@ -669,7 +701,8 @@ public final class Ovs {
             check(strOfDevIdOverlay != null, "invalid strOfDevIdOverlay");
             BridgeConfig bridgeConfig = OvsUtil.getOvsdbBehaviour(context, strMgmtIp, BridgeConfig.class);
             List<ControllerInfo> ofControllers = OvsUtil.getOpenflowControllerInfoList(context);
-            DeviceId ofDeviceId = DeviceId.deviceId(strOfDevIdOverlay);
+            String bridge = strOfDevIdOverlay.get(BRIDGE_OVERLAY).asText();
+            DeviceId ofDeviceId = DeviceId.deviceId(bridge);
 
             if (ofControllers == null || ofControllers.size() == 0) {
                 throw new WorkflowException("Invalid of controllers");
@@ -678,8 +711,9 @@ public final class Ovs {
             Optional<BridgeDescription> optBd = OvsUtil.getBridgeDescription(bridgeConfig, BRIDGE_OVERLAY);
             if (!optBd.isPresent()) {
 
-                // If bridge does not exist, just creates a new bridge.
-                context.waitCompletion(DeviceEvent.class, ofDeviceId.toString(),
+                Set<String> eventHints = Sets.newHashSet(ofDeviceId.toString());
+
+                context.waitAnyCompletion(DeviceEvent.class, eventHints,
                         () -> OvsUtil.createBridge(bridgeConfig,
                                 BRIDGE_OVERLAY,
                                 OvsUtil.bridgeDatapathId(ofDeviceId),
@@ -703,7 +737,9 @@ public final class Ovs {
                 }
 
                 // If controller settings are not matched, set controller with valid controller information.
-                context.waitCompletion(DeviceEvent.class, ofDeviceId.toString(),
+                Set<String> eventHints = Sets.newHashSet(ofDeviceId.toString());
+
+                context.waitAnyCompletion(DeviceEvent.class, eventHints,
                         () -> ovsdbClient.setControllersWithDeviceId(bd.deviceId().get(), ofControllers),
                         TIMEOUT_DEVICE_CREATION_MS
                 );
@@ -712,7 +748,7 @@ public final class Ovs {
         }
 
         @Override
-        public boolean isCompleted(WorkflowContext context, Event event)throws WorkflowException {
+        public boolean isCompleted(WorkflowContext context, Event event) throws WorkflowException {
             if (!(event instanceof DeviceEvent)) {
                 return false;
             }
@@ -736,253 +772,6 @@ public final class Ovs {
                 super.timeout(context);
             }
         }
-    }
-
-    /**
-     * Work-let class for creating overlay openflow bridge.
-     */
-    public static class CreateOverlayBridgeMultiEvent extends AbstractWorklet {
-
-        @JsonDataModel(path = MODEL_MGMT_IP)
-        String strMgmtIp;
-
-        @JsonDataModel(path = MODEL_OVSDB_PORT)
-        Integer intOvsdbPort;
-
-        @JsonDataModel(path = MODEL_OVS_DATAPATH_TYPE)
-        String strOvsDatapath;
-
-        @JsonDataModel(path = MODEL_OF_DEVID_OVERLAY_BRIDGE, optional = true)
-        String strOfDevIdOverlay;
-
-        @Override
-        public boolean isNext(WorkflowContext context) throws WorkflowException {
-
-            check(strOfDevIdOverlay != null, "invalid strOfDevIdOverlay");
-            return !OvsUtil.isAvailableBridge(context, DeviceId.deviceId(strOfDevIdOverlay));
-        }
-
-        @Override
-        public void process(WorkflowContext context) throws WorkflowException {
-
-            check(strOfDevIdOverlay != null, "invalid strOfDevIdOverlay");
-            BridgeConfig bridgeConfig = OvsUtil.getOvsdbBehaviour(context, strMgmtIp, BridgeConfig.class);
-            List<ControllerInfo> ofControllers = OvsUtil.getOpenflowControllerInfoList(context);
-            DeviceId ofDeviceId = DeviceId.deviceId(strOfDevIdOverlay);
-
-            if (ofControllers == null || ofControllers.size() == 0) {
-                throw new WorkflowException("Invalid of controllers");
-            }
-
-            Optional<BridgeDescription> optBd = OvsUtil.getBridgeDescription(bridgeConfig, BRIDGE_OVERLAY);
-            if (!optBd.isPresent()) {
-
-                Set<String> eventHints = Sets.newHashSet(ofDeviceId.toString());
-
-                context.waitAnyCompletion(DeviceEvent.class, eventHints,
-                        () -> OvsUtil.createBridge(bridgeConfig,
-                                                   BRIDGE_OVERLAY,
-                                                   OvsUtil.bridgeDatapathId(ofDeviceId),
-                                                   ofControllers,
-                                                   OvsUtil.buildOvsDatapathType(strOvsDatapath)),
-                        TIMEOUT_DEVICE_CREATION_MS
-                );
-                return;
-
-            } else {
-                BridgeDescription bd = optBd.get();
-                if (OvsUtil.isEqual(ofControllers, bd.controllers())) {
-                    log.error("{} has valid controller setting({})", BRIDGE_OVERLAY, bd.controllers());
-                    context.completed();
-                    return;
-                }
-
-                OvsdbClientService ovsdbClient = OvsUtil.getOvsdbClient(context, strMgmtIp, intOvsdbPort);
-                if (ovsdbClient == null || !ovsdbClient.isConnected()) {
-                    throw new WorkflowException("Invalid ovsdb client for " + strMgmtIp);
-                }
-
-                // If controller settings are not matched, set controller with valid controller information.
-                Set<String> eventHints = Sets.newHashSet(ofDeviceId.toString());
-
-                context.waitAnyCompletion(DeviceEvent.class, eventHints,
-                                       () -> ovsdbClient.setControllersWithDeviceId(bd.deviceId().get(), ofControllers),
-                                       TIMEOUT_DEVICE_CREATION_MS
-                );
-                return;
-            }
-        }
-
-        @Override
-        public boolean isCompleted(WorkflowContext context, Event event)throws WorkflowException {
-            if (!(event instanceof DeviceEvent)) {
-                return false;
-            }
-            DeviceEvent deviceEvent = (DeviceEvent) event;
-            Device device = deviceEvent.subject();
-            switch (deviceEvent.type()) {
-                case DEVICE_ADDED:
-                case DEVICE_AVAILABILITY_CHANGED:
-                case DEVICE_UPDATED:
-                    return context.getService(DeviceService.class).isAvailable(device.id());
-                default:
-                    return false;
-            }
-        }
-
-        @Override
-        public void timeout(WorkflowContext context) throws WorkflowException {
-            if (!isNext(context)) {
-                context.completed(); //Complete the job of worklet by timeout
-            } else {
-                super.timeout(context);
-            }
-        }
-    }
-
-    /**
-     * Work-let class for updating underlay bridge device id.
-     */
-    public static class UpdateUnderlayBridgeId extends AbstractWorklet {
-
-        @JsonDataModel(path = MODEL_MGMT_IP)
-        String strMgmtIp;
-
-        @JsonDataModel(path = MODEL_OF_DEVID_UNDERLAY_BRIDGE, optional = true)
-        String strOfDevIdUnderlay;
-
-        @Override
-        public boolean isNext(WorkflowContext context) throws WorkflowException {
-
-            return strOfDevIdUnderlay == null;
-        }
-
-        @Override
-        public void process(WorkflowContext context) throws WorkflowException {
-
-            BridgeConfig bridgeConfig = OvsUtil.getOvsdbBehaviour(context, strMgmtIp, BridgeConfig.class);
-            Optional<BridgeDescription> optBd = OvsUtil.getBridgeDescription(bridgeConfig, BRIDGE_UNDERLAY);
-            if (optBd.isPresent()) {
-                Optional<DeviceId> optDevId = optBd.get().deviceId();
-                if (optDevId.isPresent()) {
-                    log.info("Updates {} of device id with existing device id {}", BRIDGE_UNDERLAY, optDevId.get());
-                    strOfDevIdUnderlay = optDevId.get().toString();
-                } else {
-                    DeviceId devId = OvsUtil.buildOfDeviceId(IpAddress.valueOf(strMgmtIp),
-                            DEVID_IDX_BRIDGE_UNDERLAY_NOVA);
-                    log.info("Failed to find devId. Updates {} of device id with new device id {}",
-                            BRIDGE_UNDERLAY, devId);
-                    strOfDevIdUnderlay = devId.toString();
-                }
-            } else {
-                DeviceId devId = OvsUtil.buildOfDeviceId(IpAddress.valueOf(strMgmtIp), DEVID_IDX_BRIDGE_UNDERLAY_NOVA);
-                log.info("Failed to find description. Updates {} of device id with new device id {}",
-                        BRIDGE_UNDERLAY, devId);
-                strOfDevIdUnderlay = devId.toString();
-            }
-
-            context.completed();
-        }
-    }
-
-    /**
-     * Work-let class for creating underlay openflow bridge.
-     */
-    public static class CreateUnderlayBridge extends AbstractWorklet {
-
-        @JsonDataModel(path = MODEL_MGMT_IP)
-        String strMgmtIp;
-
-        @JsonDataModel(path = MODEL_OVSDB_PORT)
-        Integer intOvsdbPort;
-
-        @JsonDataModel(path = MODEL_OVS_DATAPATH_TYPE)
-        String strOvsDatapath;
-
-        @JsonDataModel(path = MODEL_OF_DEVID_UNDERLAY_BRIDGE, optional = true)
-        String strOfDevIdUnderlay;
-
-        @Override
-        public boolean isNext(WorkflowContext context) throws WorkflowException {
-
-            check(strOfDevIdUnderlay != null, "invalid strOfDevIdUnderlay");
-            return !OvsUtil.isAvailableBridge(context, DeviceId.deviceId(strOfDevIdUnderlay));
-        }
-
-        @Override
-        public void process(WorkflowContext context) throws WorkflowException {
-
-            check(strOfDevIdUnderlay != null, "invalid strOfDevIdUnderlay");
-            BridgeConfig bridgeConfig = OvsUtil.getOvsdbBehaviour(context, strMgmtIp, BridgeConfig.class);
-            List<ControllerInfo> ofControllers = OvsUtil.getOpenflowControllerInfoList(context);
-            DeviceId ofDeviceId = DeviceId.deviceId(strOfDevIdUnderlay);
-
-            if (ofControllers == null || ofControllers.size() == 0) {
-                throw new WorkflowException("Invalid of controllers");
-            }
-
-            Optional<BridgeDescription> optBd = OvsUtil.getBridgeDescription(bridgeConfig, BRIDGE_UNDERLAY);
-            if (!optBd.isPresent()) {
-
-                // If bridge does not exist, just creates a new bridge.
-                context.waitCompletion(DeviceEvent.class, ofDeviceId.toString(),
-                        () -> OvsUtil.createBridge(bridgeConfig,
-                                BRIDGE_UNDERLAY,
-                                OvsUtil.bridgeDatapathId(ofDeviceId),
-                                ofControllers,
-                                OvsUtil.buildOvsDatapathType(strOvsDatapath)),
-                        TIMEOUT_DEVICE_CREATION_MS
-                );
-                return;
-
-            } else {
-                BridgeDescription bd = optBd.get();
-                if (OvsUtil.isEqual(ofControllers, bd.controllers())) {
-                    log.error("{} has valid controller setting({})", BRIDGE_UNDERLAY, bd.controllers());
-                    context.completed();
-                    return;
-                }
-
-                OvsdbClientService ovsdbClient = OvsUtil.getOvsdbClient(context, strMgmtIp, intOvsdbPort);
-                if (ovsdbClient == null || !ovsdbClient.isConnected()) {
-                    throw new WorkflowException("Invalid ovsdb client for " + strMgmtIp);
-                }
-
-                // If controller settings are not matched, set controller with valid controller information.
-                context.waitCompletion(DeviceEvent.class, ofDeviceId.toString(),
-                        () -> ovsdbClient.setControllersWithDeviceId(bd.deviceId().get(), ofControllers),
-                        TIMEOUT_DEVICE_CREATION_MS
-                );
-                return;
-            }
-        }
-
-        @Override
-        public boolean isCompleted(WorkflowContext context, Event event)throws WorkflowException {
-            if (!(event instanceof DeviceEvent)) {
-                return false;
-            }
-            DeviceEvent deviceEvent = (DeviceEvent) event;
-            Device device = deviceEvent.subject();
-            switch (deviceEvent.type()) {
-                case DEVICE_ADDED:
-                case DEVICE_AVAILABILITY_CHANGED:
-                case DEVICE_UPDATED:
-                    return context.getService(DeviceService.class).isAvailable(device.id());
-                default:
-                    return false;
-            }
-        }
-
-        @Override
-        public void timeout(WorkflowContext context) throws WorkflowException {
-            if (!isNext(context)) {
-                context.completed(); //Complete the job of worklet by timeout
-            } else {
-                super.timeout(context);
-            }
-        }
-
     }
 
     /**
@@ -993,8 +782,8 @@ public final class Ovs {
         @JsonDataModel(path = MODEL_MGMT_IP)
         String strMgmtIp;
 
-        @JsonDataModel(path = MODEL_OF_DEVID_OVERLAY_BRIDGE, optional = true)
-        String strOfDevIdOverlay;
+        @JsonDataModel(path = MODEL_OF_DEVID_BRIDGE, optional = true)
+        ObjectNode strOfDevIdOverlay;
 
         private static final String OVS_VXLAN_PORTNAME = "vxlan";
 
@@ -1002,7 +791,8 @@ public final class Ovs {
         public boolean isNext(WorkflowContext context) throws WorkflowException {
 
             check(strOfDevIdOverlay != null, "invalid strOfDevIdOverlay");
-            DeviceId deviceId = DeviceId.deviceId(strOfDevIdOverlay);
+            String bridge = strOfDevIdOverlay.get(BRIDGE_OVERLAY).asText();
+            DeviceId deviceId = DeviceId.deviceId(bridge);
             if (Objects.isNull(deviceId)) {
                 throw new WorkflowException("Invalid br-int bridge, before creating VXLAN port");
             }
@@ -1027,7 +817,8 @@ public final class Ovs {
                     .key(TunnelKeys.flowTunnelKey())
                     .build();
 
-            DeviceId ofDeviceId = DeviceId.deviceId(strOfDevIdOverlay);
+            String bridge = strOfDevIdOverlay.get(BRIDGE_OVERLAY).asText();
+            DeviceId ofDeviceId = DeviceId.deviceId(bridge);
             InterfaceConfig interfaceConfig = OvsUtil.getOvsdbBehaviour(context, strMgmtIp, InterfaceConfig.class);
 
             context.waitCompletion(DeviceEvent.class, ofDeviceId.toString(),
@@ -1037,7 +828,7 @@ public final class Ovs {
         }
 
         @Override
-        public boolean isCompleted(WorkflowContext context, Event event)throws WorkflowException {
+        public boolean isCompleted(WorkflowContext context, Event event) throws WorkflowException {
             if (!(event instanceof DeviceEvent)) {
                 return false;
             }
@@ -1071,8 +862,8 @@ public final class Ovs {
         @JsonDataModel(path = MODEL_OVSDB_PORT)
         Integer intOvsdbPort;
 
-        @JsonDataModel(path = MODEL_OF_DEVID_UNDERLAY_BRIDGE, optional = true)
-        String strOfDevIdUnderlay;
+        @JsonDataModel(path = MODEL_OF_DEVID_BRIDGE, optional = true)
+        ObjectNode strOfDevIdUnderlay;
 
         @JsonDataModel(path = MODEL_OVS_DATAPATH_TYPE)
         String strOvsDatapath;
@@ -1083,14 +874,16 @@ public final class Ovs {
         @Override
         public boolean isNext(WorkflowContext context) throws WorkflowException {
             check(strOfDevIdUnderlay != null, "invalid strOfDevIdUnderlay");
-            DeviceId brphyDevId = DeviceId.deviceId(strOfDevIdUnderlay);
+            String bridge = strOfDevIdUnderlay.get(BRIDGE_UNDERLAY).asText();
+            DeviceId brphyDevId = DeviceId.deviceId(bridge);
             return !hasAllPhysicalPorts(context, brphyDevId);
         }
 
         @Override
         public void process(WorkflowContext context) throws WorkflowException {
             check(strOfDevIdUnderlay != null, "invalid strOfDevIdUnderlay");
-            DeviceId brphyDevId = DeviceId.deviceId(strOfDevIdUnderlay);
+            String bridge = strOfDevIdUnderlay.get(BRIDGE_UNDERLAY).asText();
+            DeviceId brphyDevId = DeviceId.deviceId(bridge);
 
             context.waitCompletion(DeviceEvent.class, brphyDevId.toString(),
                     () -> addPhysicalPorts(context, brphyDevId, BRIDGE_UNDERLAY, strOvsDatapath),
@@ -1099,7 +892,7 @@ public final class Ovs {
         }
 
         @Override
-        public boolean isCompleted(WorkflowContext context, Event event)throws WorkflowException {
+        public boolean isCompleted(WorkflowContext context, Event event) throws WorkflowException {
             if (!(event instanceof DeviceEvent)) {
                 return false;
             }
@@ -1138,7 +931,7 @@ public final class Ovs {
             check(physicalPorts != null, "Invalid physical ports" + context);
 
             log.info("physicalPorts: {} for {}", physicalPorts, devId);
-            for (String port: physicalPorts) {
+            for (String port : physicalPorts) {
                 if (devPorts.stream().noneMatch(p -> OvsUtil.portName(p).contains(port))) {
                     return false;
                 }
@@ -1168,7 +961,7 @@ public final class Ovs {
 
             List<String> sortedPhyPorts = physicalPorts.stream().sorted().collect(Collectors.toList());
 
-            for (String port: sortedPhyPorts) {
+            for (String port : sortedPhyPorts) {
                 if (hasPort(context, devId, port)) {
                     continue;
                 }
@@ -1307,7 +1100,7 @@ public final class Ovs {
         }
 
         @Override
-        public boolean isCompleted(WorkflowContext context, Event event)throws WorkflowException {
+        public boolean isCompleted(WorkflowContext context, Event event) throws WorkflowException {
             if (!(event instanceof DeviceEvent)) {
                 return false;
             }
@@ -1405,7 +1198,7 @@ public final class Ovs {
         }
 
         @Override
-        public boolean isCompleted(WorkflowContext context, Event event)throws WorkflowException {
+        public boolean isCompleted(WorkflowContext context, Event event) throws WorkflowException {
             if (!(event instanceof DeviceEvent)) {
                 return false;
             }
@@ -1487,16 +1280,16 @@ public final class Ovs {
             Set<String> eventHints = Sets.newHashSet(ofDevIdOverlay, ofDevIdUnderlay);
 
             context.waitAnyCompletion(DeviceEvent.class, eventHints,
-                                      () -> {
-                                                adminService.removeDevice(DeviceId.deviceId(ofDevIdOverlay));
-                                                adminService.removeDevice(DeviceId.deviceId(ofDevIdUnderlay));
-                                            },
-                                   TIMEOUT_DEVICE_CREATION_MS
+                    () -> {
+                        adminService.removeDevice(DeviceId.deviceId(ofDevIdOverlay));
+                        adminService.removeDevice(DeviceId.deviceId(ofDevIdUnderlay));
+                    },
+                    TIMEOUT_DEVICE_CREATION_MS
             );
         }
 
         @Override
-        public boolean isCompleted(WorkflowContext context, Event event)throws WorkflowException {
+        public boolean isCompleted(WorkflowContext context, Event event) throws WorkflowException {
             if (!(event instanceof DeviceEvent)) {
                 return false;
             }
@@ -1520,3 +1313,4 @@ public final class Ovs {
         }
     }
 }
+

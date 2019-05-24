@@ -28,7 +28,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 
 import static org.onosproject.workflow.api.CheckCondition.check;
@@ -211,14 +210,9 @@ public final class ImmutableListWorkflow extends AbstractWorkflow {
 
     @Override
     public WorkletDescription getWorkletDesc(ProgramCounter pc) {
-        Optional<WorkletDescription> workletDescription =
-                program.stream()
-                        .filter(a -> Objects.equals(a.tag(), program.get(pc.workletIndex()).tag()))
-                        .findAny();
-        if (workletDescription.isPresent()) {
-            return workletDescription.get();
-        }
-        return null;
+
+        WorkletDescription workletDescription = program.get(pc.workletIndex());
+        return workletDescription;
     }
 
 
