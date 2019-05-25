@@ -1,6 +1,12 @@
-onos_app(
-    category = "Graphical User Interface",
-    description = "ONOS OSGi GUI2 Custom-View app ${artifactId}.",
-    title = "${artifactId} Application",
-    url = "http://onosproject.org",
+COMPILE_DEPS = CORE_DEPS + JACKSON + [
+    "//core/store/serializers:onos-core-serializers",
+]
+
+TEST_DEPS = TEST_ADAPTERS + [
+    "//utils/osgi:onlab-osgi-tests",
+]
+
+osgi_jar_with_tests(
+    test_deps = TEST_DEPS,
+    deps = COMPILE_DEPS,
 )

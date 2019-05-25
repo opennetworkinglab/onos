@@ -40,13 +40,25 @@
                 <include>**/*.ts</include>
                 <include>**/*.css</include>
                 <include>**/*.json</include>
+                <include>__artifactId__-gui/projects/__artifactId__-gui-lib/karma.conf.js</include>
                 <include>__artifactId__-gui/LICENSE</include>
                 <include>__artifactId__-gui/*.md</include>
                 <include>__artifactId__-gui/pom.xml</include>
                 <include>__artifactId__-gui/BUILD.rename</include>
-<!--                Needs to be renamed-->
+                <!--                Needs to be renamed-->
                 <include>__artifactId__-gui/gitignore</include>
             </includes>
+        </fileSet>
+        <fileSet filtered="true" packaged="false" encoding="UTF-8">
+            <directory/>
+            <includes>
+                <include>README.md</include>
+                <include>BUILD.rename</include>
+            </includes>
+        </fileSet>
+        <fileSet filtered="false" packaged="false" encoding="UTF-8">
+            <directory>web/__artifactId__-gui</directory>
+            <include>ng-test.sh</include>
         </fileSet>
     </fileSets>
 </archetype-descriptor>

@@ -16,16 +16,68 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { WelcomeComponent } from './welcome.component';
+import {ActivatedRoute, Params} from '@angular/router';
+import { of } from 'rxjs';
+import { } from 'jasmine';
+import {
+    FnService,
+    IconService,
+    IconComponent,
+    LogService,
+    TableFilterPipe, LoadingComponent,
+} from 'gui2-fw-lib';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import {FormsModule} from '@angular/forms';
+import {RouterTestingModule} from '@angular/router/testing';
+
+class MockActivatedRoute extends ActivatedRoute {
+    constructor(params: Params) {
+        super();
+        this.queryParams = of(params);
+    }
+}
+
+class MockIconService {
+    loadIconDef() { }
+}
 
 describe('WelcomeComponent', () => {
+    let fs: FnService;
+    let ar: MockActivatedRoute;
+    let windowMock: Window;
+    let logServiceSpy: jasmine.SpyObj<LogService>;
     let component: WelcomeComponent;
     let fixture: ComponentFixture<WelcomeComponent>;
 
     beforeEach(async(() => {
+        const logSpy = jasmine.createSpyObj('LogService', ['info', 'debug', 'warn', 'error']);
+        ar = new MockActivatedRoute({ 'debug': 'txrx' });
+
+        windowMock = <any>{
+            location: <any>{
+                hostname: 'foo',
+                host: 'foo',
+                port: '80',
+                protocol: 'http',
+                search: { debug: 'true' },
+                href: 'ws://foo:123/onos/ui/websock/path',
+                absUrl: 'ws://foo:123/onos/ui/websock/path'
+            }
+        };
+        fs = new FnService(ar, logSpy, windowMock);
+
         TestBed.configureTestingModule({
-            declarations: [ WelcomeComponent ]
+            imports: [BrowserAnimationsModule, FormsModule, RouterTestingModule],
+            declarations: [ WelcomeComponent ],
+            providers: [
+                { provide: FnService, useValue: fs },
+                { provide: LogService, useValue: logSpy },
+                { provide: IconService, useClass: MockIconService },
+                { provide: 'Window', useValue: windowMock },
+            ]
         })
         .compileComponents();
+        logServiceSpy = TestBed.get(LogService);
     }));
 
     beforeEach(() => {

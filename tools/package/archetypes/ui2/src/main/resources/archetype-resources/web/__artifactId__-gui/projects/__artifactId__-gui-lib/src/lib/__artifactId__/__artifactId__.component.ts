@@ -38,7 +38,7 @@ export class ${appNameCap}${appNameEnd}Component implements OnInit {
     ngOnInit() {
         this.wss.bindHandlers(new Map<string, (data) => void>([
             [SAMPLE_CUSTOM_DATA_RESP, (data) => {
-                this.log.debug(SAMPLE_CUSTOM_DATA_RESP, data)
+                this.log.debug(SAMPLE_CUSTOM_DATA_RESP, data);
             }
             ]
         ]));

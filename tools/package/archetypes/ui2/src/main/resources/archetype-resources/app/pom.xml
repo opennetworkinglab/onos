@@ -33,8 +33,8 @@
     <packaging>bundle</packaging>
 
     <properties>
-        <onos.app.name>${package}.${artifactID}</onos.app.name>
-        <onos.app.title>Foo App</onos.app.title>
+        <onos.app.name>${package}.${artifactId}</onos.app.name>
+        <onos.app.title>${appNameCap}${appNameEnd} App</onos.app.title>
         <onos.app.origin>Foo, Inc.</onos.app.origin>
         <onos.app.category>UI</onos.app.category>
         <onos.app.url>http://onosproject.org</onos.app.url>

@@ -6,7 +6,8 @@
 #set ($artifactId = "${artifactId}")
 #set ($appNameCap = $artifactId.substring(0,1).toUpperCase())
 #set ($appNameEnd = $artifactId.substring(1).replace("-","").toLowerCase())
-#set ($appNameAllCaps = $artifactId.toUpperCase())
+#set ($appNameAllCaps = $artifactId.replace("-","_").toUpperCase())
+#set( $symbol_h2 = '##' )
 
 <?xml version="1.0" encoding="UTF-8"?>
 <!--

@@ -4,13 +4,13 @@
     "directive-selector": [
       true,
       "attribute",
-      "sample-app",
+      "${artifactId}",
       "camelCase"
     ],
     "component-selector": [
       true,
       "element",
-      "sample-app",
+      "${artifactId}",
       "kebab-case"
     ]
   }

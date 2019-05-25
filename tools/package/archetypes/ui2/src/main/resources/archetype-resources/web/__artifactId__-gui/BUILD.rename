@@ -65,7 +65,7 @@ filegroup(
 """
     Run ng build to create ${artifactId} GUI 2 library in production mode
     The output file ${artifactId}-gui-lib-ver.tgz is in the form that can be uploaded directly to https://www.npmjs.com/
-    See bazel-genfiles/web/${artifactId}-gui-lib/${artifactId}-gui-lib.log for details of the Angular CLI output
+    See bazel-genfiles/apps/${artifactId}/web/${artifactId}-gui/${artifactId}-gui-lib.log for details of the Angular CLI output
 """
 
 genrule(
@@ -91,37 +91,37 @@ genrule(
           " export XDG_CONFIG_HOME=$(@D)/config &&" +
           " NODE=$(location @nodejs//:bin/node) &&" +
           " INSTALL_FILES=($(locations //web/gui2-fw-lib:onos-gui2-fw-npm-install)) &&" +  # An array of filenames - sorted by time created
-          " ${appNameAllCaps}_FILES=($(locations //web/gui2-fw-lib:onos-gui2-fw-ng-build)) &&" +  # An array of filenames - sorted by time created
-          " mkdir -p web/${artifactId}-gui-lib &&" +
-          " cd web/${artifactId}-gui-lib &&" +
+          " FWLIB_FILES=($(locations //web/gui2-fw-lib:onos-gui2-fw-ng-build)) &&" +  # An array of filenames - sorted by time created
+          " mkdir -p apps/${artifactId}/web/${artifactId}-gui &&" +
+          " cd apps/${artifactId}/web/${artifactId}-gui &&" +
           " jar xf $$ROOT/$${INSTALL_FILES[0]} &&" +
-          " tar xf $$ROOT/$${${appNameAllCaps}_FILES[0]} &&" +
+          " tar xf $$ROOT/$${FWLIB_FILES[0]} &&" +
           " mv package/ node_modules/gui2-fw-lib/ &&" +
           " mkdir -p projects/${artifactId}-gui-lib/fw &&" +
           " (cd projects/${artifactId}-gui-lib/fw &&" +
           "  jar xf $$ROOT/$(location //web/gui2-fw-lib:gui2_fw_lib_ext_css)) &&" +
           " chmod +x node_modules/@angular/cli/bin/ng &&" +
-          " export PATH=$$ROOT/$$(dirname $${NODE}):$$ROOT/web/${artifactId}-gui-lib/node_modules/@angular/cli/bin:$$PATH &&" +
+          " export PATH=$$ROOT/$$(dirname $${NODE}):$$ROOT/apps/${artifactId}/web/${artifactId}-gui/node_modules/@angular/cli/bin:$$PATH &&" +
           " ng build ${artifactId}-gui-lib >> $$ROOT/$(location ${artifactId}-gui-lib.log) 2>&1 ||" +
           " if [ $$? -eq 0 ]; then echo 'Successfully ran build';" +
           " else " +
-          "   echo 'Error running \'ng build ${artifactId}-gui-lib\' on \'//web/${artifactId}-gui-lib:${artifactId}-gui-lib-build\'. \\\n" +
-          "     See bazel-genfiles/web/${artifactId}-gui-lib/${artifactId}-gui-lib.log for more details' >&2;" +
-          #"   tail -n 100 ../../$(location onos-gui2-ng-test.log) >&2;" +
+          "   echo 'Error running \'ng build ${artifactId}-gui-lib\' on \'//apps/${artifactId}/web/${artifactId}-gui:${artifactId}-gui-lib-build\'. \\\n" +
+          "     See bazel-genfiles/apps/${artifactId}/web/${artifactId}-gui/${artifactId}-gui-lib.log for more details' >&2;" +
+          #"   tail -n 100 ../../../../$(location onos-gui2-ng-test.log) >&2;" +
           "   exit 1;" +
           " fi;" +
           " cp README.md LICENSE dist/${artifactId}-gui-lib && " +
           " npm pack ./dist/${artifactId}-gui-lib >> $$ROOT/$(location ${artifactId}-gui-lib.log) 2>&1 &&" +
           " mv ${artifactId}-gui-lib-*.tgz $$ROOT/$(location ${artifactId}-gui-lib-ver.tgz) &&" +
           " touch $$ROOT/$(location ${artifactId}-gui-lib.log)",  # to get the log always as the 2nd file,
-    message = "Angular ${artifactId} GUI2 build",
+    message = "Angular ${artifactId} Lib build",
     visibility = ["//visibility:public"],
 )
 
 """
     Run 'ng test' to run Angular test and 'ng lint' for checkstyle
-    See bazel-genfiles/web/${artifactId}-gui-lib/${artifactId}-gui-lib-lint.log or
-    bazel-genfiles/web/${artifactId}-gui-lib/${artifactId}-gui-lib-test.log for details of the Angular CLI output
+    See bazel-genfiles/apps/${artifactId}/web/${artifactId}-gui/${artifactId}-gui-lib-lint.log or
+    bazel-genfiles/apps/${artifactId}/web/${artifactId}-gui/${artifactId}-gui-lib-test.log for details of the Angular CLI output
 """
 
 genrule(
@@ -149,25 +149,25 @@ genrule(
           " NODE=$(location @nodejs//:bin/node) &&" +
           " INSTALL_FILES=($(locations //web/gui2-fw-lib:onos-gui2-fw-npm-install)) &&" +  # An array of filenames - sorted by time created
           " FWLIB_FILES=($(locations //web/gui2-fw-lib:onos-gui2-fw-ng-build)) &&" +  # An array of filenames - sorted by time created
-          " mkdir -p web/${artifactId}-gui-lib &&" +
-          " cd web/${artifactId}-gui-lib &&" +
-          " jar xf ../../$(location :_${artifactId}_lib_src_tests) &&" +
+          " mkdir -p apps/${artifactId}/web/${artifactId}-gui &&" +
+          " cd apps/${artifactId}/web/${artifactId}-gui &&" +
+          " jar xf ../../../../$(location :_${artifactId}_lib_src_tests) &&" +
           " jar xf $$ROOT/$${INSTALL_FILES[0]} &&" +
           " tar xf $$ROOT/$${FWLIB_FILES[0]} &&" +
           " mv package/ node_modules/gui2-fw-lib/ &&" +
           " mkdir -p projects/${artifactId}-gui-lib/fw &&" +
           " (cd projects/${artifactId}-gui-lib/fw &&" +
           "  jar xf $$ROOT/$(location //web/gui2-fw-lib:gui2_fw_lib_ext_css)) &&" +
-          " chmod +x $$ROOT/web/${artifactId}-gui-lib/node_modules/@angular/cli/bin/ng &&" +
+          " chmod +x $$ROOT/apps/${artifactId}/web/${artifactId}-gui/node_modules/@angular/cli/bin/ng &&" +
           " export PATH=$$ROOT/$$(dirname $${NODE}):node_modules/@angular/cli/bin:$$PATH &&" +
-          " node -v > ../../$(location ${artifactId}-gui-lib-ver.log) &&" +
-          " npm -v >> ../../$(location ${artifactId}-gui-lib-ver.log) &&" +
-          " ng version >> ../../$(location ${artifactId}-gui-lib-ver.log) &&" +
-          " ng lint ${artifactId}-gui-lib > ../../$(location ${artifactId}-gui-lib-lint.log)  2>&1 ||" +
+          " node -v > ../../../../$(location ${artifactId}-gui-lib-ver.log) &&" +
+          " npm -v >> ../../../../$(location ${artifactId}-gui-lib-ver.log) &&" +
+          " ng version >> ../../../../$(location ${artifactId}-gui-lib-ver.log) &&" +
+          " ng lint ${artifactId}-gui-lib > ../../../../$(location ${artifactId}-gui-lib-lint.log)  2>&1 ||" +
           " if [ $$? -eq 0 ]; then echo 'Successfully ran lint';" +
           " else " +
-          "   echo 'Error running \'ng lint\' on \'//web/${artifactId}-gui-lib:_${artifactId}-gui-lib-test-genrule\'. \\\n" +
-          "     See bazel-genfiles/web/${artifactId}-gui-lib/${artifactId}-gui-lib-lint.log for more details' >&2;" +
+          "   echo 'Error running \'ng lint\' on \'//apps/${artifactId}/web/${artifactId}-gui:_${artifactId}-gui-lib-test-genrule\'. \\\n" +
+          "     See bazel-genfiles/apps/${artifactId}/web/${artifactId}-gui/${artifactId}-gui-lib-lint.log for more details' >&2;" +
           "   exit 1;" +
           " fi;" +
           " if [ -f /usr/bin/chromium-browser ]; then " +  # Add to this for Mac and Chrome
@@ -179,18 +179,18 @@ genrule(
           "   no binary for ChromeHeadless browser was found at /usr/bin/chromium-browser. \\n" +
           "   Install Google Chrome or Chromium Browser to allow this step to run.';" +
           "   echo -e $$MSG >&2;" +
-          "   echo -e $$MSG > ../../$(location ${artifactId}-gui-lib-test.log);" +
+          "   echo -e $$MSG > ../../../../$(location ${artifactId}-gui-lib-test.log);" +
           "   exit 0;" +
           " fi;" +
           " ng test ${artifactId}-gui-lib --preserve-symlinks --code-coverage --browsers=ChromeHeadless" +
-          "     --watch=false > ../../$(location ${artifactId}-gui-lib-test.log) 2>&1 ||" +
+          "     --watch=false > ../../../../$(location ${artifactId}-gui-lib-test.log) 2>&1 ||" +
           " if [ $$? -eq 0 ]; then echo 'Successfully ran tests';" +
           " else " +
-          "   echo 'Error running \'ng test ${artifactId}-gui-lib\' on \'//web/${artifactId}-gui-lib:_${artifactId}-gui-lib-test-genrule\'. \\\n" +
-          "     See bazel-genfiles/web/${artifactId}-gui-lib/${artifactId}-gui-lib-test.log for more details' >&2;" +
+          "   echo 'Error running \'ng test ${artifactId}-gui-lib\' on \'//apps/${artifactId}/web/${artifactId}-gui:_${artifactId}-gui-lib-test-genrule\'. \\\n" +
+          "     See bazel-genfiles/apps/${artifactId}/web/${artifactId}-gui/${artifactId}-gui-lib-test.log for more details' >&2;" +
           "   exit 1;" +
           " fi;",
-    message = "Angular Topo GUI2 Lib lint and test",
+    message = "Angular ${appNameCap}${appNameEnd} Lib lint and test",
 )
 
 """
@@ -250,8 +250,8 @@ genrule(
         ],
     ),
     outs = ["${artifactId}_gui_lib_src_tests.jar"],
-    cmd = "cd web/${artifactId}-gui-lib &&" +
-          " jar Mcf ../../$@ .",
+    cmd = "cd apps/${artifactId}/web/${artifactId}-gui &&" +
+          " jar Mcf ../../../../$@ .",
 )
 
 """
@@ -273,9 +273,9 @@ genrule(
         ],
     ),
     outs = ["${artifactId}_gui_lib_tests.jar"],
-    cmd = "cd web/${artifactId}-gui-lib &&" +
+    cmd = "cd apps/${artifactId}/web/${artifactId}-gui &&" +
           " find projects/${artifactId}-gui-lib/src/lib -type f -exec touch -t 201808280000 {} \; &&" +
-          " jar Mcf ../../$@ projects/${artifactId}-gui-lib/src/lib",
+          " jar Mcf ../../../../$@ projects/${artifactId}-gui-lib/src/lib",
 )
 
 """
