@@ -64,6 +64,8 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
     private static final String ROADM_PORTS = "roadmPorts";
     private static final String ROADM_SET_TARGET_POWER_REQ = "roadmSetTargetPowerRequest";
     private static final String ROADM_SET_TARGET_POWER_RESP = "roadmSetTargetPowerResponse";
+    private static final String ROADM_SYNC_TARGET_POWER_REQ = "roadmSyncTargetPowerRequest";
+    private static final String ROADM_SYNC_TARGET_POWER_RESP = "roadmSyncTargetPowerResp";
     private static final String ROADM_SHOW_ITEMS_REQ = "roadmShowPortItemsRequest";
     private static final String ROADM_SHOW_ITEMS_RESP = "roadmShowPortItemsResponse";
     private static final String ROADM_SET_OPS_MODE_REQ = "roadmSetOpsModeRequest";
@@ -105,7 +107,8 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
         return ImmutableSet.of(new PortTableDataRequestHandler(),
                 new SetTargetPowerRequestHandler(),
                 new CreateShowItemsRequestHandler(),
-                new CreateOpsModeSetRequestHandler()
+                new CreateOpsModeSetRequestHandler(),
+                new SyncTargetPowerRequestHandler()
                 );
     }
 
@@ -247,6 +250,28 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
             rootNode.put(RoadmUtil.VALID, validTargetPower);
             rootNode.put(RoadmUtil.MESSAGE, String.format(TARGET_POWER_ERR_MSG, range.toString()));
             sendMessage(ROADM_SET_TARGET_POWER_RESP, rootNode);
+        }
+    }
+
+    // Handler for sync-up port target power
+    private final class SyncTargetPowerRequestHandler extends RequestHandler {
+
+        private static final String SYNCED_TARGET_POWER = "Synced target power is %s.";
+        private SyncTargetPowerRequestHandler() {
+            super(ROADM_SYNC_TARGET_POWER_REQ);
+        }
+
+        @Override
+        public void process(ObjectNode payload) {
+            DeviceId deviceId = DeviceId.deviceId(string(payload, RoadmUtil.DEV_ID));
+            PortNumber portNumber = PortNumber.portNumber(payload.get(ID).asLong());
+            Long targetPower = roadmService.syncTargetPortPower(deviceId, portNumber);
+            String power = RoadmUtil.objectToString(targetPower, RoadmUtil.UNKNOWN);
+            ObjectNode rootNode = objectNode();
+            rootNode.put(ID, payload.get(ID).asText())
+                    .put(RoadmUtil.VALID, true)
+                    .put(RoadmUtil.MESSAGE, String.format(SYNCED_TARGET_POWER, power));
+            sendMessage(ROADM_SYNC_TARGET_POWER_RESP, rootNode);
         }
     }
 

@@ -4,6 +4,8 @@
 
     var SET_TARGET_POWER_REQ = "roadmSetTargetPowerRequest";
     var SET_TARGET_POWER_RESP = "roadmSetTargetPowerResponse";
+    var SYNC_TARGET_POWER_REQ = "roadmSyncTargetPowerRequest";
+    var SYNC_TARGET_POWER_RESP = "roadmSyncTargetPowerResponse";
     var SHOW_ITEMS_REQ = "roadmShowPortItemsRequest";
     var SHOW_ITEMS_RESP = "roadmShowPortItemsResponse";
     var SET_OPS_MODE_REQ = "roadmSetOpsModeRequest";
@@ -22,6 +24,16 @@
                 devId: $scope.devId,
                 id: port.id,
                 targetPower: targetVal
+            });
+    }
+
+    function syncPortPower(port, cb) {
+        var id = port.id;
+        portCbTable[id] = cb;
+        wss.sendEvent(SYNC_TARGET_POWER_REQ,
+            {
+                devId: $scope.devId,
+                id: port.id
             });
     }
 
@@ -95,6 +107,7 @@
 
             var handlers = {};
             handlers[SET_TARGET_POWER_RESP] = portPowerCb;
+            handlers[SYNC_TARGET_POWER_RESP] = portPowerCb;
             handlers[SHOW_ITEMS_RESP] = showItemsCb;
             handlers[SET_OPS_MODE_RESP] = changeOpsModeCb;
             wss.bindHandlers(handlers);
@@ -111,6 +124,7 @@
             });
 
             $scope.setPortPower = setPortPower;
+            $scope.syncPortPower = syncPortPower;
             $scope.queryShowItems = queryShowItems;
             $scope.changeOpsMode = changeOpsMode;
 
@@ -145,6 +159,7 @@
                 '<input type="number" name="formVal" ng-model="formVal">' +
                 '<button type="submit" ng-click="send()">Set</button>' +
                 '<button type="button" ng-click="cancel()">Cancel</button>' +
+                '<button type="submit" ng-click="sync()">Sync</button>' +
                 '<span class="input-error" ng-show="showError">{{errorMessage}}</span>' +
             '</form>';
 
@@ -152,7 +167,8 @@
             restrict: 'A',
             scope: {
                 currItem: '=roadmPower',
-                roadmSetPower: '&'
+                roadmSetPower: '&',
+                roadmSyncPower: '&'
             },
             template: retTemplate,
             link: function ($scope, $element) {
@@ -183,6 +199,10 @@
                         if ($scope.currItem.id === $scope.targetItem.id) {
                             // update the ui to display the new attenuation value
                             $scope.currItem.targetPower = $scope.formVal;
+                            if (message.startsWith("Synced")) {
+                                var str = message.split(' ');
+                                $scope.currItem.targetPower = str[str.length-1].slice(0, -1);
+                            }
                         }
                         $scope.cancel();
                     } else {
@@ -192,7 +212,7 @@
                     $timeout(function () {
                         $scope.$apply()
                     });
-                }
+                };
                 $scope.send = function() {
                     // check input is an integer
                     if (!isInteger($scope.formVal)) {
@@ -204,6 +224,9 @@
                 $scope.cancel = function() {
                     $scope.editMode = false;
                     $scope.showError = false;
+                };
+                $scope.sync = function() {
+                    $scope.roadmSyncPower({port: $scope.targetItem, cb: $scope.sendCb});
                 }
             }
         };

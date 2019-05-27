@@ -95,4 +95,11 @@ public class DistributedRoadmStore implements RoadmStore {
         }
         return null;
     }
+
+    @Override
+    public void removeTargetPower(DeviceId deviceId, PortNumber portNumber) {
+        if (powerMap.get(deviceId) != null) {
+            powerMap.get(deviceId).remove(portNumber);
+        }
+    }
 }

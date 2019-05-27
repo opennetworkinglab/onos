@@ -93,13 +93,21 @@ public interface RoadmService {
     void setTargetPortPower(DeviceId deviceId, PortNumber portNumber, long power);
 
     /**
-     * Returns the target power for a port if the port has configurable target power.
+     * Returns the target power stored in storage for a port if the port has configurable target power.
      *
      * @param deviceId DeviceId of the device to configure
      * @param portNumber PortNumber of the port to configure
      * @return the target power if the port has a target power, null otherwise
      */
     Long getTargetPortPower(DeviceId deviceId, PortNumber portNumber);
+
+    /**
+     * Sync-up the target power for a port if the operator want to check the configuration.
+     * @param deviceId DeviceId of the device to configure
+     * @param portNumber PortNumber of the port to configure
+     * @return the target power if the port has a target power, null otherwise
+     */
+    Long syncTargetPortPower(DeviceId deviceId, PortNumber portNumber);
 
     /**
      * Sets the attenuation of a connection. This does not check that attenuation

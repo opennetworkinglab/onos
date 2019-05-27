@@ -64,4 +64,12 @@ public interface RoadmStore {
      * @return target power if target power has already been set, null otherwise
      */
     Long getTargetPower(DeviceId deviceId, PortNumber portNumber);
+
+    /**
+     * Remove the targetPower for a port on a device. The power value is removed,
+     * however, the device isn't.
+     * @param deviceId DeviceId of the device
+     * @param portNumber PortNumber of the port
+     */
+    void removeTargetPower(DeviceId deviceId, PortNumber portNumber);
 }

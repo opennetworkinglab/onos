@@ -67,7 +67,9 @@
                     <td>{{item.powerRange}}</td>
                     <td>{{item.currentPower}}</td>
                     <td ng-show="showServiceState">{{item.serviceState}}</td>
-                    <td ng-show="showTargetPower" class="editable" roadm-power="item" roadm-set-power="setPortPower(port, targetVal, cb)"></td>
+                    <td ng-show="showTargetPower" class="editable" roadm-power="item"
+                        roadm-set-power="setPortPower(port, targetVal, cb)"
+                        roadm-sync-power="syncPortPower(port, cb)"></td>
                 </tr>
             </table>
             <div class="mode-select" ng-show="showServiceState">

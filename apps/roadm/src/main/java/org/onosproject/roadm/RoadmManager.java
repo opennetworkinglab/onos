@@ -203,8 +203,29 @@ public class RoadmManager implements RoadmService {
     public Long getTargetPortPower(DeviceId deviceId, PortNumber portNumber) {
         checkNotNull(deviceId);
         checkNotNull(portNumber);
-        // getTargetPortPower is not yet implemented in PowerConfig so we access store instead
-        return roadmStore.getTargetPower(deviceId, portNumber);
+        // Request target port power when it doesn't exist. Inactive updating mode.
+        Long power = roadmStore.getTargetPower(deviceId, portNumber);
+        if (power == null) {
+            return syncTargetPortPower(deviceId, portNumber);
+        }
+        return power;
+    }
+
+    @Override
+    public Long syncTargetPortPower(DeviceId deviceId, PortNumber portNumber) {
+        checkNotNull(deviceId);
+        checkNotNull(portNumber);
+        PowerConfig<Object> powerConfig = getPowerConfig(deviceId);
+        if (powerConfig != null) {
+            Optional<Long> pl = powerConfig.getTargetPower(portNumber, Direction.ALL);
+            if (pl.isPresent()) {
+                roadmStore.setTargetPower(deviceId, portNumber, pl.get());
+                return pl.get();
+            } else {
+                roadmStore.removeTargetPower(deviceId, portNumber);
+            }
+        }
+        return null;
     }
 
     @Override
