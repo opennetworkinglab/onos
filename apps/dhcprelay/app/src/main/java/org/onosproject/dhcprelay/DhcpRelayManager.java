@@ -50,6 +50,7 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.UDP;
 import org.onlab.packet.VlanId;
+
 import org.onlab.packet.ndp.NeighborSolicitation;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
@@ -67,6 +68,7 @@ import org.onosproject.dhcprelay.config.IgnoreDhcpConfig;
 import org.onosproject.dhcprelay.store.DhcpRecord;
 import org.onosproject.dhcprelay.store.DhcpRelayStore;
 import org.onosproject.dhcprelay.store.DhcpFpmPrefixStore;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.routing.fpm.api.FpmRecord;
 import org.onosproject.net.Device;
 import org.onosproject.net.Host;
@@ -177,6 +179,9 @@ public class DhcpRelayManager implements DhcpRelayService {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigRegistry cfgService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MastershipService mastershipService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -691,6 +696,10 @@ public class DhcpRelayManager implements DhcpRelayService {
         }
 
         private void portUpdatedEventHandler(Device device, Port port) {
+            if (!mastershipService.isLocalMaster(device.id())) {
+                log.warn("This instance is not the master for the device {}", device.id());
+                return;
+            }
             if (hostAutoRelearnEnabledDevices.contains(device.id()) && port.isEnabled()) {
                 ConnectPoint cp = new ConnectPoint(device.id(), port.number());
                 HostLocation hostLocation = new HostLocation(cp, 0);
@@ -702,8 +711,8 @@ public class DhcpRelayManager implements DhcpRelayService {
 
                 for (DhcpRecord i : records) {
                     //found a dhcprecord matching the connect point of the port event
-                    log.debug("portUpdatedEventHandler : DHCP record {}, sending message on CP {} Mac {} Vlan{}",
-                            i, cp, i.macAddress(), i.vlanId());
+                    log.debug("portUpdatedEventHandler:DHCP record {}, sending msg on CP {} Mac {} Vlan{} DeviceId {}",
+                            i, cp, i.macAddress(), i.vlanId(), device.id());
                     if (i.ip4Address().isPresent()) {
                         log.warn("Sending host relearn probe for v4 not supported for Mac {} Vlan{} ip {}",
                              i.macAddress(), i.vlanId(), i.ip4Address());
@@ -750,7 +759,6 @@ public class DhcpRelayManager implements DhcpRelayService {
         VlanId vlanId;
         Ip6Address ipv6Address;
         ConnectPoint connectPoint;
-
         PktTransmitter(MacAddress mac, VlanId vlanId, Ip6Address ipv6Address, ConnectPoint connectPoint) {
             this.mac = mac;
             this.vlanId = vlanId;
@@ -766,16 +774,23 @@ public class DhcpRelayManager implements DhcpRelayService {
                 return;
             }
 
-            byte[] senderMacAddress = new byte[MacAddress.MAC_ADDRESS_LENGTH];
-            byte[] senderIpAddress = new byte[Ip6Address.BYTE_LENGTH];
+            Interface senderInterface = interfaceService.getInterfacesByPort(connectPoint)
+                    .stream().filter(iface -> Dhcp6HandlerUtil.interfaceContainsVlan(iface, vlanId))
+                    .findFirst().orElse(null);
+            if (senderInterface == null) {
+                log.warn("Cannot get sender interface for from packet, abort... vlan {}", vlanId.toString());
+            }
+            MacAddress senderMacAddress = senderInterface.mac();
+            byte[] senderIpAddress = IPv6.getLinkLocalAddress(senderMacAddress.toBytes());
+            byte[] destIp = IPv6.getSolicitNodeAddress(ipv6Address.toOctets());
+
             Ethernet ethernet = NeighborSolicitation.buildNdpSolicit(
                     this.ipv6Address,
                     Ip6Address.valueOf(senderIpAddress),
-                    this.ipv6Address, //destip
-                    MacAddress.valueOf(senderMacAddress),
+                    Ip6Address.valueOf(destIp), //destip
+                    senderMacAddress,
                     this.mac,
                     this.vlanId);
-
             sendHostRelearnProbeToConnectPoint(ethernet, connectPoint);
 
             log.debug("Host Relearn Probe transmission completed.");
