@@ -2048,14 +2048,11 @@ public class Ofdpa2GroupHandler {
             int label = readLabelFromTreatment(bkt);
             if (portNumber == null) {
                 log.warn("treatment {} of next objective {} has no outport.. "
-                        + "cannot remove bucket from group in dev: {}", bkt,
-                        nextObjective.id(), deviceId);
+                        + "cannot remove bucket from group in dev: {}", bkt, nextObjective.id(), deviceId);
                 fail(nextObjective, ObjectiveError.BADPARAMS);
                 return;
             }
-            List<Integer> existing = existingPortAndLabel(allActiveKeys,
-                                                          groupService, deviceId,
-                                                          portNumber, label);
+            List<Integer> existing = existingPortAndLabel(allActiveKeys, groupService, deviceId, portNumber, label);
             if (existing.isEmpty()) {
                 // if it doesn't exist, mark this bucket for creation
                 bucketsToCreate.add(bkt);
@@ -2129,6 +2126,12 @@ public class Ofdpa2GroupHandler {
             // method will not be required.
             GroupKey topGroupKey = allActiveKeys.get(0).peekFirst();
             Group topGroup = groupService.getGroup(deviceId, topGroupKey);
+            // topGroup should not be null - adding guard
+            if (topGroup == null) {
+                log.warn("topGroup {} not found in GroupStore device:{}, nextId:{}",
+                         topGroupKey, deviceId, nextObjective.id());
+                return;
+            }
             int actualGroupSize = topGroup.buckets().buckets().size();
             int objGroupSize = nextObjective.next().size();
             if (actualGroupSize != objGroupSize) {
