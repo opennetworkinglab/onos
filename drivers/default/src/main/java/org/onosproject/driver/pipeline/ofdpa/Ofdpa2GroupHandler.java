@@ -1883,6 +1883,12 @@ public class Ofdpa2GroupHandler {
             // method will not be required.
             GroupKey topGroupKey = allActiveKeys.get(0).peekFirst();
             Group topGroup = groupService.getGroup(deviceId, topGroupKey);
+            // topGroup should not be null - adding guard
+            if (topGroup == null) {
+                log.warn("topGroup {} not found in GroupStore device:{}, nextId:{}",
+                         topGroupKey, deviceId, nextObjective.id());
+                return;
+            }
             int actualGroupSize = topGroup.buckets().buckets().size();
             int objGroupSize = nextObjective.next().size();
             if (actualGroupSize != objGroupSize) {
