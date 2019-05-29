@@ -1,6 +1,6 @@
 COMPILE_DEPS = CORE_DEPS + JACKSON + [
     "//lib:com_google_protobuf_protobuf_java",
-    "//lib:io_grpc_grpc_core_context",
+    "//lib:io_grpc_grpc_api_context",
     "//lib:io_grpc_grpc_netty",
     "//lib:io_grpc_grpc_stub",
     "//core/store/serializers:onos-core-serializers",

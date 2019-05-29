@@ -3,7 +3,7 @@ COMPILE_DEPS = CORE_DEPS + KRYO + [
     "//protocols/gnmi/stub:onos-protocols-gnmi-stub",
     "//protocols/grpc/api:onos-protocols-grpc-api",
     "//protocols/grpc/ctl:onos-protocols-grpc-ctl",
-    "//lib:io_grpc_grpc_core_context",
+    "//lib:io_grpc_grpc_api_context",
     "//lib:com_google_protobuf_protobuf_java",
     "//lib:io_grpc_grpc_netty",
     "//lib:io_grpc_grpc_protobuf_lite",
@@ -13,7 +13,7 @@ COMPILE_DEPS = CORE_DEPS + KRYO + [
 
 TEST_DEPS = TEST + [
     "@minimal_json//jar",
-    "//lib:io_grpc_grpc_core_context",
+    "//lib:io_grpc_grpc_api_context",
     "//lib:io_grpc_grpc_protobuf_lite",
 ]
 

@@ -4,7 +4,7 @@ COMPILE_DEPS = CORE_DEPS + KRYO + JACKSON + [
     "//pipelines/basic:onos-pipelines-basic",
     "//protocols/p4runtime/api:onos-protocols-p4runtime-api",
     "//protocols/p4runtime/model:onos-protocols-p4runtime-model",
-    "//lib:io_grpc_grpc_core_context",
+    "//lib:io_grpc_grpc_api_context",
     "//lib:io_grpc_grpc_netty",
     "@minimal_json//jar",
     # "//protocols/bmv2/thrift-api:onos-protocols-bmv2-thrift-api",

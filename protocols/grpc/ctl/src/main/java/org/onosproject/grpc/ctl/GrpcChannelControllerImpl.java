@@ -17,8 +17,12 @@
 package org.onosproject.grpc.ctl;
 
 import com.google.common.util.concurrent.Striped;
+import io.grpc.LoadBalancerRegistry;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.NameResolverRegistry;
+import io.grpc.internal.DnsNameResolverProvider;
+import io.grpc.internal.PickFirstLoadBalancerProvider;
 import io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.NettyChannelBuilder;
 import io.netty.handler.ssl.SslContext;
@@ -68,6 +72,11 @@ public class GrpcChannelControllerImpl implements GrpcChannelController {
     private static final int DEFAULT_MAX_INBOUND_MSG_SIZE = 256; // Megabytes.
     private static final int MEGABYTES = 1024 * 1024;
 
+    private static final PickFirstLoadBalancerProvider PICK_FIRST_LOAD_BALANCER_PROVIDER =
+            new PickFirstLoadBalancerProvider();
+    private static final DnsNameResolverProvider DNS_NAME_RESOLVER_PROVIDER =
+            new DnsNameResolverProvider();
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService componentConfigService;
 
@@ -89,6 +98,10 @@ public class GrpcChannelControllerImpl implements GrpcChannelController {
         componentConfigService.registerProperties(getClass());
         channels = new ConcurrentHashMap<>();
         interceptors = new ConcurrentHashMap<>();
+        LoadBalancerRegistry.getDefaultRegistry()
+                .register(PICK_FIRST_LOAD_BALANCER_PROVIDER);
+        NameResolverRegistry.getDefaultRegistry()
+                .register(DNS_NAME_RESOLVER_PROVIDER);
         log.info("Started");
     }
 
@@ -105,6 +118,10 @@ public class GrpcChannelControllerImpl implements GrpcChannelController {
 
     @Deactivate
     public void deactivate() {
+        LoadBalancerRegistry.getDefaultRegistry()
+                .deregister(PICK_FIRST_LOAD_BALANCER_PROVIDER);
+        NameResolverRegistry.getDefaultRegistry()
+                .register(DNS_NAME_RESOLVER_PROVIDER);
         componentConfigService.unregisterProperties(getClass(), false);
         channels.values().forEach(ManagedChannel::shutdownNow);
         channels.clear();
@@ -162,9 +179,12 @@ public class GrpcChannelControllerImpl implements GrpcChannelController {
         final boolean useTls = channelUri.getScheme().equals(GRPCS);
 
         final NettyChannelBuilder channelBuilder = NettyChannelBuilder
-                .forAddress(channelUri.getHost(),
-                            channelUri.getPort())
-                .maxInboundMessageSize(DEFAULT_MAX_INBOUND_MSG_SIZE * MEGABYTES);
+                .forAddress(channelUri.getHost(), channelUri.getPort())
+                .nameResolverFactory(DNS_NAME_RESOLVER_PROVIDER)
+                .defaultLoadBalancingPolicy(
+                        PICK_FIRST_LOAD_BALANCER_PROVIDER.getPolicyName())
+                .maxInboundMessageSize(
+                        DEFAULT_MAX_INBOUND_MSG_SIZE * MEGABYTES);
 
         if (useTls) {
             try {

@@ -90,12 +90,7 @@ public abstract class AbstractGrpcHandshaker
                         .orElseThrow(() -> new IllegalStateException(
                                 "Missing gRPC channel in controller"));
             } else {
-                try {
-                    channel = channelController.create(netcfgUri);
-                } catch (IllegalArgumentException ex) {
-                    throw new IllegalStateException(
-                            "A gRPC channel with same URI already exists", ex);
-                }
+                channel = channelController.create(netcfgUri);
                 // Store channel URI for future use.
                 CHANNEL_URIS.put(deviceId, netcfgUri);
                 // Trigger connection.
@@ -178,7 +173,7 @@ public abstract class AbstractGrpcHandshaker
                 .removeDeviceAgentListener(data().deviceId(), providerId);
     }
 
-    private void resetChannelConnectBackoffIfNeeded()  {
+    private void resetChannelConnectBackoffIfNeeded() {
         // Stimulate channel reconnect if in failure state.
         final ManagedChannel channel = getExistingChannel();
         if (channel == null) {
@@ -186,7 +181,7 @@ public abstract class AbstractGrpcHandshaker
             return;
         }
         if (channel.getState(false)
-                        .equals(ConnectivityState.TRANSIENT_FAILURE)) {
+                .equals(ConnectivityState.TRANSIENT_FAILURE)) {
             channel.resetConnectBackoff();
         }
     }

@@ -3,7 +3,11 @@ BUNDLES = [
     "//protocols/grpc/ctl:onos-protocols-grpc-ctl",
     "//protocols/grpc/utils:onos-protocols-grpc-utils",
     # gRPC dependencies (with patched core)
-    "//lib:io_grpc_grpc_core_context",
+    "//lib:io_grpc_grpc_api_context",
+    "//lib:io_grpc_grpc_core_internal",
+    "//lib:io_grpc_grpc_core_inprocess",
+    "//lib:io_grpc_grpc_core_util",
+    "//lib:io_grpc_grpc_core_perfmark",
     "//lib:io_grpc_grpc_stub",
     "//lib:io_grpc_grpc_netty",
     "//lib:io_grpc_grpc_auth",

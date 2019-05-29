@@ -1,6 +1,7 @@
 COMPILE_DEPS = CORE_DEPS + JACKSON + [
     "//protocols/ovsdb/api:onos-protocols-ovsdb-api",
     "//protocols/ovsdb/rfc:onos-protocols-ovsdb-rfc",
+    "@jaxb_api//jar",
 ]
 
 osgi_jar_with_tests(

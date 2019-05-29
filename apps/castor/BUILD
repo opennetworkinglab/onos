@@ -2,6 +2,7 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + REST + [
     "//core/store/serializers:onos-core-serializers",
     "//apps/routing-api:onos-apps-routing-api",
     "//apps/intentsync:onos-apps-intentsync",
+    "@jaxb_api//jar",
 ]
 
 BUNDLES = [

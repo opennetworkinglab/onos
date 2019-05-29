@@ -12,7 +12,7 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + CLI + REST + [
     "@jetty_util//jar",
     "@jetty_websocket//jar",
     "@servlet_api//jar",
-    "//lib:io_grpc_grpc_core_context",
+    "//lib:io_grpc_grpc_api_context",
     "//lib:io_grpc_grpc_protobuf_lite",
     "//core/store/serializers:onos-core-serializers",
     "//apps/openstacknode/api:onos-apps-openstacknode-api",

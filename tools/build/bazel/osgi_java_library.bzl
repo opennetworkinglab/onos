@@ -701,34 +701,41 @@ def osgi_proto_jar(
         karaf_command_packages = []):
     if name == None:
         name = _auto_name()
+    proto_name = name + "-java-proto"
     native.java_proto_library(
-        name = name + "-java-proto",
+        name = proto_name,
         deps = proto_libs,
     )
     java_sources_alt(
-        name = name + "-proto-srcjar",
-        srcs = [":%s-java-proto" % name],
+        name = proto_name + "-srcjar",
+        srcs = [":" + proto_name],
     )
     osgi_srcs = [
-        ":%s-proto-srcjar" % name,
+        proto_name + "-srcjar",
     ]
     base_deps = [
         "//lib:com_google_protobuf_protobuf_java",
     ]
     if grpc_proto_lib != None:
+        grpc_name = name + "-java-grpc"
         java_grpc_library(
-            name = name + "-java-grpc",
+            name = grpc_name,
             srcs = [grpc_proto_lib],
-            deps = [":%s-java-proto" % name],
+            deps = [":" + proto_name],
+        )
+        java_sources_alt(
+            name = grpc_name + "-srcjar",
+            srcs = [":lib%s-src.jar" % grpc_name],
         )
         osgi_srcs.append(
-            ":%s-java-grpc__do_not_reference__srcjar" % name,
+            ":" + grpc_name + "-srcjar",
         )
         base_deps.extend([
             "@com_google_guava_guava//jar",
-            "//lib:io_grpc_grpc_core_context",
+            "//lib:io_grpc_grpc_api_context",
             "//lib:io_grpc_grpc_stub",
             "//lib:io_grpc_grpc_protobuf",
+            "@javax_annotation_javax_annotation_api//jar",
         ])
     osgi_jar(
         name = name,

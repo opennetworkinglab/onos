@@ -5,7 +5,7 @@ COMPILE_DEPS = CORE_DEPS + KRYO + [
     "//protocols/p4runtime/api:onos-protocols-p4runtime-api",
     "//protocols/p4runtime/proto:onos-protocols-p4runtime-proto",
     "//lib:com_google_protobuf_protobuf_java",
-    "//lib:io_grpc_grpc_core_context",
+    "//lib:io_grpc_grpc_api_context",
     "//lib:io_grpc_grpc_netty",
     "//lib:io_grpc_grpc_protobuf_lite",
     "//lib:io_grpc_grpc_stub",
@@ -14,7 +14,9 @@ COMPILE_DEPS = CORE_DEPS + KRYO + [
 
 TEST_DEPS = TEST + [
     "@minimal_json//jar",
-    "//lib:io_grpc_grpc_core_context",
+    "//lib:io_grpc_grpc_api_context",
+    "//lib:io_grpc_grpc_core_internal",
+    "//lib:io_grpc_grpc_core_inprocess",
     "//lib:io_grpc_grpc_protobuf_lite",
 ]
 

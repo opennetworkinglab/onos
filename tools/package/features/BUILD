@@ -68,7 +68,7 @@ osgi_feature(
     description = "ONOS 3rd party dependencies for web apps",
     included_bundles = [
         "@jersey_common//jar",
-        "@javax_annotation_api_mvn//jar",
+        "@javax_annotation_javax_annotation_api//jar",
         "@javax_ws_rs_api//jar",
         "@hk2_api//jar",
         "@hk2_locator//jar",

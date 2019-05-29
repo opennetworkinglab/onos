@@ -1,3 +1,10 @@
+# Build options to use JDK 11
+# build --incompatible_use_jdk11_as_host_javabase
+# build --javabase=@bazel_tools//tools/jdk:remote_jdk11
+# build --host_javabase=@bazel_tools//tools/jdk:remote_jdk11
+# build --host_java_toolchain=@bazel_tools//tools/jdk:toolchain_vanilla
+# build --java_toolchain=@bazel_tools//tools/jdk:toolchain_vanilla
+
 build --nouse_ijars
 build --experimental_strict_action_env
 test --test_summary=terse

@@ -16,7 +16,7 @@ BUNDLES = [
     "@simpleclient_hotspot//jar",
     "@simpleclient_servlet//jar",
     # gRPC dependencies (with patched core)
-    "//lib:io_grpc_grpc_core_context",
+    "//lib:io_grpc_grpc_api_context",
     "//lib:io_grpc_grpc_stub",
     "//lib:io_grpc_grpc_netty",
     "//lib:io_grpc_grpc_auth",
