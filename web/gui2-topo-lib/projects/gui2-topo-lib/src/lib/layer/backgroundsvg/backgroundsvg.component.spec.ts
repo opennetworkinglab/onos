@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { async, ComponentFixture, TestBed, getTestBed } from '@angular/core/testing';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { BackgroundSvgComponent } from './backgroundsvg.component';
-import {MapSvgComponent} from '../mapsvg/mapsvg.component';
+import {MapSvgComponent, TopoData} from '../mapsvg/mapsvg.component';
 import {from} from 'rxjs';
 import {HttpClient} from '@angular/common/http';
 import {LocMeta, LogService, ZoomUtils} from 'gui2-fw-lib';
@@ -29,28 +29,29 @@ import {SubRegionNodeSvgComponent} from '../forcesvg/visuals/subregionnodesvg/su
 import {LinkSvgComponent} from '../forcesvg/visuals/linksvg/linksvg.component';
 import {HostNodeSvgComponent} from '../forcesvg/visuals/hostnodesvg/hostnodesvg.component';
 
-class MockHttpClient {
-    get() {
-        return from(['{"id":"app","icon":"nav_apps","cat":"PLATFORM","label":"Applications"}']);
-    }
-
-    subscribe() {}
-}
 
 describe('BackgroundSvgComponent', () => {
+    let httpMock: HttpTestingController;
+
     let logServiceSpy: jasmine.SpyObj<LogService>;
     let component: BackgroundSvgComponent;
     let fixture: ComponentFixture<BackgroundSvgComponent>;
+
     const testmap: MapObject = <MapObject>{
         scale: 1.0,
-        id: 'test',
-        description: 'test map'
+        id: 'bayareaGEO',
+        description: 'test map',
+        filePath: 'testmap'
     };
 
-    beforeEach(async(() => {
+    const sampleTopoData = <TopoData>require('../mapsvg/tests/bayarea.json');
+
+    beforeEach(() => {
         const logSpy = jasmine.createSpyObj('LogService', ['info', 'debug', 'warn', 'error']);
 
+
         TestBed.configureTestingModule({
+            imports: [HttpClientTestingModule],
             declarations: [
                 BackgroundSvgComponent,
                 MapSvgComponent,
@@ -63,23 +64,25 @@ describe('BackgroundSvgComponent', () => {
             ],
             providers: [
                 { provide: LogService, useValue: logSpy },
-                { provide: HttpClient, useClass: MockHttpClient },
             ]
         })
         .compileComponents();
 
         logServiceSpy = TestBed.get(LogService);
-    }));
-
-    beforeEach(() => {
+        httpMock = TestBed.get(HttpTestingController);
         fixture = TestBed.createComponent(BackgroundSvgComponent);
+
         component = fixture.componentInstance;
         component.map = testmap;
         fixture.detectChanges();
     });
 
     it('should create', () => {
+        httpMock.expectOne('testmap.topojson').flush(sampleTopoData);
+
         expect(component).toBeTruthy();
+
+        httpMock.verify();
     });
 
     it('should convert latlong to xy', () => {

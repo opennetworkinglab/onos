@@ -75,6 +75,15 @@ describe('NoDeviceConnectedSvgComponent', () => {
         };
         fs = new FnService(ar, logSpy, windowMock);
 
+        const bundleObj = {
+            'core.view.Topo': {
+                test: 'test1'
+            }
+        };
+        const mockLion = (key) => {
+            return bundleObj[key] || '%' + key + '%';
+        };
+
         TestBed.configureTestingModule({
             declarations: [ NoDeviceConnectedSvgComponent ],
             providers: [
@@ -83,6 +92,15 @@ describe('NoDeviceConnectedSvgComponent', () => {
                 { provide: SvgUtilService, useClass: MockSvgUtilService },
                 { provide: WebSocketService, useClass: MockWebSocketService },
                 { provide: PrefsService, useClass: MockPrefsService },
+                {
+                    provide: LionService, useFactory: (() => {
+                        return {
+                            bundle: ((bundleId) => mockLion),
+                            ubercache: new Array(),
+                            loadCbs: new Map<string, () => void>([])
+                        };
+                    })
+                },
                 { provide: 'Window', useValue: windowMock },
             ]
         }).compileComponents();
