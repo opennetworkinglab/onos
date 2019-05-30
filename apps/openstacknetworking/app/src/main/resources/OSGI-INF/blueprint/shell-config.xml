@@ -41,6 +41,9 @@
         </command>
         <command>
             <action class="org.onosproject.openstacknetworking.cli.OpenstackPurgeRulesCommand"/>
+            <completers>
+                <ref component-id="computeNodeCompleter"/>
+            </completers>
         </command>
         <command>
             <action class="org.onosproject.openstacknetworking.cli.OpenstackSyncRulesCommand"/>
