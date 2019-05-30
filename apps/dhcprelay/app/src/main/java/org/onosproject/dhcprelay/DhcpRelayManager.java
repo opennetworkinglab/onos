@@ -45,10 +45,13 @@ import org.onlab.packet.IPv6;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.Ip4Address;
+import org.onlab.packet.Ip6Address;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.UDP;
 import org.onlab.packet.VlanId;
+
+import org.onlab.packet.ndp.NeighborSolicitation;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
@@ -59,11 +62,13 @@ import org.onosproject.dhcprelay.api.DhcpServerInfo;
 import org.onosproject.dhcprelay.config.DefaultDhcpRelayConfig;
 import org.onosproject.dhcprelay.config.DhcpServerConfig;
 import org.onosproject.dhcprelay.config.EnableDhcpFpmConfig;
+import org.onosproject.dhcprelay.config.HostAutoRelearnConfig;
 import org.onosproject.dhcprelay.config.IndirectDhcpRelayConfig;
 import org.onosproject.dhcprelay.config.IgnoreDhcpConfig;
 import org.onosproject.dhcprelay.store.DhcpRecord;
 import org.onosproject.dhcprelay.store.DhcpRelayStore;
 import org.onosproject.dhcprelay.store.DhcpFpmPrefixStore;
+import org.onosproject.mastership.MastershipService;
 import org.onosproject.routing.fpm.api.FpmRecord;
 import org.onosproject.net.Device;
 import org.onosproject.net.Host;
@@ -75,6 +80,7 @@ import org.onosproject.net.intf.Interface;
 import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.HostId;
+import org.onosproject.net.HostLocation;
 import org.onosproject.net.config.ConfigFactory;
 import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
@@ -84,6 +90,7 @@ import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.HostService;
+import org.onosproject.net.Port;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.OutboundPacket;
 import org.onosproject.net.packet.PacketContext;
@@ -98,6 +105,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CopyOnWriteArraySet;
+
 import static org.onlab.util.Tools.groupedThreads;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FACTORY;
@@ -110,7 +119,6 @@ import static org.onosproject.net.config.basics.SubjectFactories.APP_SUBJECT_FAC
 public class DhcpRelayManager implements DhcpRelayService {
     public static final String DHCP_RELAY_APP = "org.onosproject.dhcprelay";
     public static final String ROUTE_STORE_IMPL = "org.onosproject.routeservice.store.RouteStoreImpl";
-
     private static final int DEFAULT_POOL_SIZE = 32;
 
     private static final TrafficSelector ARP_SELECTOR = DefaultTrafficSelector.builder()
@@ -118,6 +126,7 @@ public class DhcpRelayManager implements DhcpRelayService {
             .build();
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final InternalConfigListener cfgListener = new InternalConfigListener();
+    protected CopyOnWriteArraySet hostAutoRelearnEnabledDevices = new CopyOnWriteArraySet();
 
     private final Set<ConfigFactory> factories = ImmutableSet.of(
             new ConfigFactory<ApplicationId, DefaultDhcpRelayConfig>(APP_SUBJECT_FACTORY,
@@ -155,12 +164,24 @@ public class DhcpRelayManager implements DhcpRelayService {
                 public EnableDhcpFpmConfig createConfig() {
                     return new EnableDhcpFpmConfig();
                 }
+            },
+            new ConfigFactory<ApplicationId, HostAutoRelearnConfig>(APP_SUBJECT_FACTORY,
+                    HostAutoRelearnConfig.class,
+                    HostAutoRelearnConfig.KEY,
+                    true) {
+                @Override
+                public HostAutoRelearnConfig createConfig() {
+                    return new HostAutoRelearnConfig();
+                }
             }
     );
 
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkConfigRegistry cfgService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected MastershipService mastershipService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -206,13 +227,25 @@ public class DhcpRelayManager implements DhcpRelayService {
             label = "Enable DhcpRelay Fpm")
     protected boolean dhcpFpmEnabled = false;
 
+    @Property(name = "dhcpHostRelearnProbeInterval", intValue = 500,
+            label = "dhcp host relearn probe interval in millis")
+    protected int dhcpHostRelearnProbeInterval = 500;
+
+    @Property(name = "dhcpHostRelearnProbeCount", intValue = 3,
+            label = "dhcp host relearn probe count")
+    protected int dhcpHostRelearnProbeCount = 3;
+
     private ScheduledExecutorService timerExecutor;
+    private ScheduledExecutorService executorService = null;
     protected ExecutorService devEventExecutor;
     private ExecutorService packetExecutor;
 
     protected DeviceListener deviceListener = new InternalDeviceListener();
     private DhcpRelayPacketProcessor dhcpRelayPacketProcessor = new DhcpRelayPacketProcessor();
     private ApplicationId appId;
+
+    private static final int POOL_SIZE = 10;
+    private static final int HOST_PROBE_INIT_DELAY = 500;
 
     /**
      *   One second timer.
@@ -223,6 +256,7 @@ public class DhcpRelayManager implements DhcpRelayService {
             v6Handler.timeTick();
         }
     };
+
 
     @Activate
     protected void activate(ComponentContext context) {
@@ -253,6 +287,8 @@ public class DhcpRelayManager implements DhcpRelayService {
                                "distributed", Boolean.TRUE.toString());
         compCfgService.registerProperties(getClass());
 
+        executorService = Executors.newScheduledThreadPool(POOL_SIZE);
+
         deviceService.addListener(deviceListener);
 
         log.info("DHCP-RELAY Started");
@@ -272,7 +308,7 @@ public class DhcpRelayManager implements DhcpRelayService {
         packetExecutor.shutdown();
         timerExecutor = null;
         packetExecutor = null;
-
+        executorService.shutdown();
         log.info("DHCP-RELAY Stopped");
     }
 
@@ -344,6 +380,8 @@ public class DhcpRelayManager implements DhcpRelayService {
                 cfgService.getConfig(appId, IndirectDhcpRelayConfig.class);
         IgnoreDhcpConfig ignoreDhcpConfig =
                 cfgService.getConfig(appId, IgnoreDhcpConfig.class);
+        HostAutoRelearnConfig hostAutoRelearnConfig =
+                cfgService.getConfig(appId, HostAutoRelearnConfig.class);
 
         if (defaultConfig != null) {
             updateConfig(defaultConfig);
@@ -353,6 +391,9 @@ public class DhcpRelayManager implements DhcpRelayService {
         }
         if (ignoreDhcpConfig != null) {
             updateConfig(ignoreDhcpConfig);
+        }
+        if (hostAutoRelearnConfig != null) {
+            updateConfig(hostAutoRelearnConfig);
         }
     }
 
@@ -374,6 +415,9 @@ public class DhcpRelayManager implements DhcpRelayService {
         if (config instanceof IgnoreDhcpConfig) {
             v4Handler.updateIgnoreVlanConfig((IgnoreDhcpConfig) config);
             v6Handler.updateIgnoreVlanConfig((IgnoreDhcpConfig) config);
+        }
+        if (config instanceof HostAutoRelearnConfig) {
+            setHostAutoRelearnConfig((HostAutoRelearnConfig) config);
         }
     }
 
@@ -422,10 +466,12 @@ public class DhcpRelayManager implements DhcpRelayService {
     public Collection<DhcpRecord> getDhcpRecords() {
         return dhcpRelayStore.getDhcpRecords();
     }
+
     @Override
     public void updateDhcpRecord(HostId hostId, DhcpRecord dhcpRecord) {
         dhcpRelayStore.updateDhcpRecord(hostId, dhcpRecord);
     }
+
     @Override
     public Optional<MacAddress> getDhcpServerMacAddress() {
         // TODO: depreated it
@@ -498,6 +544,7 @@ public class DhcpRelayManager implements DhcpRelayService {
 
 
     private class DhcpRelayPacketProcessor implements PacketProcessor {
+
         @Override
         public void process(PacketContext context) {
             packetExecutor.execute(() -> processInternal(context));
@@ -616,7 +663,8 @@ public class DhcpRelayManager implements DhcpRelayService {
         public boolean isRelevant(NetworkConfigEvent event) {
             if (event.configClass().equals(DefaultDhcpRelayConfig.class) ||
                     event.configClass().equals(IndirectDhcpRelayConfig.class) ||
-                    event.configClass().equals(IgnoreDhcpConfig.class)) {
+                    event.configClass().equals(IgnoreDhcpConfig.class) ||
+                    event.configClass().equals(HostAutoRelearnConfig.class)) {
                 return true;
             }
             log.debug("Ignore irrelevant event class {}", event.configClass().getName());
@@ -629,7 +677,7 @@ public class DhcpRelayManager implements DhcpRelayService {
         @Override
         public void event(DeviceEvent event) {
           if (devEventExecutor != null) {
-            Device device = event.subject();
+            final Device device = event.subject();
             switch (event.type()) {
                 case DEVICE_ADDED:
                     devEventExecutor.execute(this::updateIgnoreVlanConfigs);
@@ -637,11 +685,43 @@ public class DhcpRelayManager implements DhcpRelayService {
                 case DEVICE_AVAILABILITY_CHANGED:
                     devEventExecutor.execute(() -> deviceAvailabilityChanged(device));
                     break;
+                case PORT_UPDATED:
+                    Port port = event.port();
+                    devEventExecutor.execute(() -> portUpdatedEventHandler(device, port));
+                    break;
                 default:
                     break;
             }
           }
         }
+
+        private void portUpdatedEventHandler(Device device, Port port) {
+            if (!mastershipService.isLocalMaster(device.id())) {
+                log.warn("This instance is not the master for the device {}", device.id());
+                return;
+            }
+            if (hostAutoRelearnEnabledDevices.contains(device.id()) && port.isEnabled()) {
+                ConnectPoint cp = new ConnectPoint(device.id(), port.number());
+                HostLocation hostLocation = new HostLocation(cp, 0);
+                Set<DhcpRecord> records = dhcpRelayStore.getDhcpRecords()
+                                          .stream()
+                                          .filter(i -> i.directlyConnected())
+                                          .filter(i -> i.locations().contains(hostLocation))
+                                          .collect(Collectors.toSet());
+
+                for (DhcpRecord i : records) {
+                    //found a dhcprecord matching the connect point of the port event
+                    log.debug("portUpdatedEventHandler:DHCP record {}, sending msg on CP {} Mac {} Vlan{} DeviceId {}",
+                            i, cp, i.macAddress(), i.vlanId(), device.id());
+                    if (i.ip4Address().isPresent()) {
+                        log.warn("Sending host relearn probe for v4 not supported for Mac {} Vlan{} ip {}",
+                             i.macAddress(), i.vlanId(), i.ip4Address());
+                    } else if (i.ip6Address().isPresent()) {
+                        sendHostRelearnProbe(cp, i.macAddress(), i.vlanId(), i.ip6Address());
+                    }
+                 }
+            }
+       }
 
         private void deviceAvailabilityChanged(Device device) {
             if (deviceService.isAvailable(device.id())) {
@@ -664,6 +744,82 @@ public class DhcpRelayManager implements DhcpRelayService {
         }
     }
 
+    private void setHostAutoRelearnConfig(HostAutoRelearnConfig config) {
+        hostAutoRelearnEnabledDevices.clear();
+        if (config == null) {
+            return;
+        }
+        hostAutoRelearnEnabledDevices.addAll(config.hostAutoRelearnEnabledDevices());
+    }
+
+    //  Packet transmission class.
+    private class PktTransmitter implements Runnable {
+
+        MacAddress mac;
+        VlanId vlanId;
+        Ip6Address ipv6Address;
+        ConnectPoint connectPoint;
+        PktTransmitter(MacAddress mac, VlanId vlanId, Ip6Address ipv6Address, ConnectPoint connectPoint) {
+            this.mac = mac;
+            this.vlanId = vlanId;
+            this.ipv6Address = ipv6Address;
+            this.connectPoint = connectPoint;
+        }
+
+        @Override
+        public void run() {
+            log.debug("Host Relearn probe packet transmission activated for Mac {} Vlan {} Ip {} ConnectPt {}",
+                                     mac, vlanId, ipv6Address, connectPoint);
+            if (mac == null || vlanId == null || ipv6Address == null || connectPoint == null) {
+                return;
+            }
+
+            Interface senderInterface = interfaceService.getInterfacesByPort(connectPoint)
+                    .stream().filter(iface -> Dhcp6HandlerUtil.interfaceContainsVlan(iface, vlanId))
+                    .findFirst().orElse(null);
+            if (senderInterface == null) {
+                log.warn("Cannot get sender interface for from packet, abort... vlan {}", vlanId.toString());
+            }
+            MacAddress senderMacAddress = senderInterface.mac();
+            byte[] senderIpAddress = IPv6.getLinkLocalAddress(senderMacAddress.toBytes());
+            byte[] destIp = IPv6.getSolicitNodeAddress(ipv6Address.toOctets());
+
+            Ethernet ethernet = NeighborSolicitation.buildNdpSolicit(
+                    this.ipv6Address,
+                    Ip6Address.valueOf(senderIpAddress),
+                    Ip6Address.valueOf(destIp), //destip
+                    senderMacAddress,
+                    this.mac,
+                    this.vlanId);
+            sendHostRelearnProbeToConnectPoint(ethernet, connectPoint);
+
+            log.debug("Host Relearn Probe transmission completed.");
+        }
+    }
+
+    //Create packet and schedule transmitter thread.
+    private void sendHostRelearnProbe(ConnectPoint connectPoint, MacAddress mac, VlanId vlanId,
+                                      Optional<Ip6Address> ipv6Address) {
+        PktTransmitter nsTransmitter = new PktTransmitter(mac, vlanId, ipv6Address.get(), connectPoint);
+        executorService.schedule(nsTransmitter, HOST_PROBE_INIT_DELAY, TimeUnit.MILLISECONDS);
+    }
+
+    // Send Host Relearn Probe packets to ConnectPoint
+    private void sendHostRelearnProbeToConnectPoint(Ethernet nsPacket, ConnectPoint connectPoint) {
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder().setOutput(connectPoint.port()).build();
+        OutboundPacket outboundPacket = new DefaultOutboundPacket(connectPoint.deviceId(),
+                treatment, ByteBuffer.wrap(nsPacket.serialize()));
+        int counter = 0;
+        try {
+            while (counter < dhcpHostRelearnProbeCount) {
+              packetService.emit(outboundPacket);
+              counter++;
+              Thread.sleep(dhcpHostRelearnProbeInterval);
+            }
+        } catch (Exception e) {
+            log.error("Exception while emmiting packet {}", e.getMessage(), e);
+        }
+    }
 
 
     public Optional<FpmRecord> getFpmRecord(IpPrefix prefix) {
@@ -683,6 +839,5 @@ public class DhcpRelayManager implements DhcpRelayService {
     public Optional<FpmRecord> removeFpmRecord(IpPrefix prefix) {
         return dhcpFpmPrefixStore.removeFpmRecord(prefix);
     }
-
 
 }
