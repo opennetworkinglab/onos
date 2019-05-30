@@ -16,7 +16,13 @@
 import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {ForceSvgComponent} from './forcesvg.component';
-import {FnService, LogService} from 'gui2-fw-lib';
+import {
+    FnService, IconService,
+    LionService,
+    LogService, SvgUtilService,
+    UrlFnService,
+    WebSocketService
+} from 'gui2-fw-lib';
 import {DraggableDirective} from './draggable/draggable.directive';
 import {ActivatedRoute, Params} from '@angular/router';
 import {of} from 'rxjs';
@@ -26,12 +32,60 @@ import {SubRegionNodeSvgComponent} from './visuals/subregionnodesvg/subregionnod
 import {HostNodeSvgComponent} from './visuals/hostnodesvg/hostnodesvg.component';
 import {LinkSvgComponent} from './visuals/linksvg/linksvg.component';
 import {Device, Host, Link, LinkType, Region} from './models';
-import {SimpleChange} from '@angular/core';
+import {ChangeDetectorRef, SimpleChange} from '@angular/core';
+import {TopologyService} from '../../topology.service';
 
 class MockActivatedRoute extends ActivatedRoute {
     constructor(params: Params) {
         super();
         this.queryParams = of(params);
+    }
+}
+
+class MockIconService {
+    loadIconDef() { }
+}
+
+class MockSvgUtilService {
+
+    cat7() {
+        const tcid = 'd3utilTestCard';
+
+        function getColor(id, muted, theme) {
+            // NOTE: since we are lazily assigning domain ids, we need to
+            //       get the color from all 4 scales, to keep the domains
+            //       in sync.
+            const ln = '#5b99d2';
+            const lm = '#9ebedf';
+            const dn = '#5b99d2';
+            const dm = '#9ebedf';
+            if (theme === 'dark') {
+                return muted ? dm : dn;
+            } else {
+                return muted ? lm : ln;
+            }
+        }
+
+        return {
+            // testCard: testCard,
+            getColor: getColor,
+        };
+    }
+}
+
+class MockUrlFnService { }
+
+class MockWebSocketService {
+    createWebSocket() { }
+    isConnected() { return false; }
+    unbindHandlers() { }
+    bindHandlers() { }
+}
+
+class MockTopologyService {
+    public instancesIndex: Map<string, number>;
+    constructor() {
+        this.instancesIndex = new Map();
     }
 }
 
@@ -46,7 +100,7 @@ describe('ForceSvgComponent', () => {
     const regionData: Region = <Region><unknown>(sampledata.payload);
     const emptyRegion: Region = <Region>{devices: [ [], [], [] ], hosts: [ [], [], [] ], links: []};
 
-    beforeEach(async(() => {
+    beforeEach(() => {
         const logSpy = jasmine.createSpyObj('LogService', ['info', 'debug', 'warn', 'error']);
         ar = new MockActivatedRoute({ 'debug': 'txrx' });
 
@@ -62,6 +116,15 @@ describe('ForceSvgComponent', () => {
             }
         };
 
+        const bundleObj = {
+            'core.view.Topo': {
+                test: 'test1'
+            }
+        };
+        const mockLion = (key) => {
+            return bundleObj[key] || '%' + key + '%';
+        };
+
         fs = new FnService(ar, logSpy, windowMock);
 
         TestBed.configureTestingModule({
@@ -71,20 +134,32 @@ describe('ForceSvgComponent', () => {
                 HostNodeSvgComponent,
                 SubRegionNodeSvgComponent,
                 LinkSvgComponent,
-                DraggableDirective,
-                MapSvgComponent
+                DraggableDirective
             ],
             providers: [
-                { provide: FnService, useValue: fs },
                 { provide: LogService, useValue: logSpy },
+                { provide: ActivatedRoute, useValue: ar },
+                { provide: FnService, useValue: fs },
+                { provide: ChangeDetectorRef, useClass: ChangeDetectorRef },
+                { provide: UrlFnService, useClass: MockUrlFnService },
+                { provide: WebSocketService, useClass: MockWebSocketService },
+                { provide: LionService, useFactory: (() => {
+                        return {
+                            bundle: ((bundleId) => mockLion),
+                            ubercache: new Array(),
+                            loadCbs: new Map<string, () => void>([])
+                        };
+                    })
+                },
+                { provide: IconService, useClass: MockIconService },
+                { provide: SvgUtilService, useClass: MockSvgUtilService },
+                { provide: TopologyService, useClass: MockTopologyService },
                 { provide: 'Window', useValue: windowMock },
             ]
         })
         .compileComponents();
         logServiceSpy = TestBed.get(LogService);
-    }));
 
-    beforeEach(() => {
         fixture = TestBed.createComponent(ForceSvgComponent);
         component = fixture.debugElement.componentInstance;
         fixture.detectChanges();

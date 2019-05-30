@@ -167,7 +167,7 @@ describe('TopologyComponent', () => {
         return bundleObj[key] || '%' + key + '%';
     };
 
-    beforeEach(async(() => {
+    beforeEach(() => {
         const logSpy = jasmine.createSpyObj('LogService', ['info', 'debug', 'warn', 'error']);
         ar = new MockActivatedRoute({ 'debug': 'txrx' });
 
@@ -235,7 +235,7 @@ describe('TopologyComponent', () => {
             ]
         }).compileComponents();
         logServiceSpy = TestBed.get(LogService);
-    }));
+    });
 
     beforeEach(() => {
         fixture = TestBed.createComponent(TopologyComponent);

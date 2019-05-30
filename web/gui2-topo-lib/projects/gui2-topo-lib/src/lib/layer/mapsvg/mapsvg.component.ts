@@ -56,7 +56,7 @@ interface FeatureCollection {
 /**
  * Model of the topojson file
  */
-interface TopoData {
+export interface TopoData {
     type: string; // Usually "Topology"
     objects: Object; // Can be a list of countries or individual countries
     arcs: number[][][]; // Coordinates
