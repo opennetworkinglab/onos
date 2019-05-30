@@ -29,6 +29,12 @@ public final class OsgiPropertyConstants {
     static final String DHCP_FPM_ENABLED = "dhcpFpmEnabled";
     static final boolean DHCP_FPM_ENABLED_DEFAULT = false;
 
+    static final String DHCP_PROBE_INTERVAL = "dhcpHostRelearnProbeInterval";
+    static final int DHCP_PROBE_INTERVAL_DEFAULT = 500;
+
+    static final String DHCP_PROBE_COUNT = "dhcpHostRelearnProbeCount";
+    static final int DHCP_PROBE_COUNT_DEFAULT = 3;
+
     static final String LEARN_ROUTE_FROM_LEASE_QUERY = "learnRouteFromLeasequery";
     static final boolean LEARN_ROUTE_FROM_LEASE_QUERY_DEFAULT = false;
 }
