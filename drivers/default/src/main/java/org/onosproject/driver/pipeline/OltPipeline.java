@@ -464,7 +464,13 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         VlanId innerVlan = ((VlanIdCriterion) innerVlanCriterion).vlanId();
         Criterion innerVid = Criteria.matchVlanId(innerVlan);
 
-        TrafficSelector outerSelector = buildSelector(inport, outerVlan);
+        // Required to differentiate the same match flows
+        // Please note that S tag and S p bit values will be same for the same service - so conflict flows!
+        // Metadata match criteria solves the conflict issue - but not used by the voltha
+        // Maybe - find a better way to solve the above problem
+        Criterion metadata = Criteria.matchMetadata(innerVlan.toShort());
+
+        TrafficSelector outerSelector = buildSelector(inport, metadata, outerVlan);
 
         if (innerVlan.toShort() == VlanId.ANY_VALUE) {
             installDownstreamRulesForAnyVlan(fwd, output, outerSelector, buildSelector(inport,
