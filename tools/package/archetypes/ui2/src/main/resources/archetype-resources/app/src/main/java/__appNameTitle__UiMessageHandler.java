@@ -30,10 +30,10 @@ import java.util.Collection;
 /**
  * Skeletal ONOS UI Custom-View message handler.
  */
-public class AppUiMessageHandler extends UiMessageHandler {
+public class ${appNameTitle}UiMessageHandler extends UiMessageHandler {
 
-    private static final String SAMPLE_CUSTOM_DATA_REQ = "sampleCustomDataRequest";
-    private static final String SAMPLE_CUSTOM_DATA_RESP = "sampleCustomDataResponse";
+    private static final String ${appNameAllCaps}_DATA_REQ = "${appNameAllLower}DataRequest";
+    private static final String ${appNameAllCaps}_DATA_RESP = "${appNameAllLower}DataResponse";
 
     private static final String NUMBER = "number";
     private static final String SQUARE = "square";
@@ -49,15 +49,15 @@ public class AppUiMessageHandler extends UiMessageHandler {
     @Override
     protected Collection<RequestHandler> createRequestHandlers() {
         return ImmutableSet.of(
-                new SampleCustomDataRequestHandler()
+                new ${appNameTitle}DataRequestHandler()
         );
     }
 
     // handler for sample data requests
-    private final class SampleCustomDataRequestHandler extends RequestHandler {
+    private final class ${appNameTitle}DataRequestHandler extends RequestHandler {
 
-        private SampleCustomDataRequestHandler() {
-            super(SAMPLE_CUSTOM_DATA_REQ);
+        private ${appNameTitle}DataRequestHandler() {
+            super(${appNameAllCaps}_DATA_REQ);
         }
 
         @Override
@@ -71,7 +71,7 @@ public class AppUiMessageHandler extends UiMessageHandler {
             result.put(SQUARE, someNumber * someNumber);
             result.put(CUBE, someNumber * someNumber * someNumber);
             result.put(MESSAGE, String.format(MSG_FORMAT, someIncrement + 1));
-            sendMessage(SAMPLE_CUSTOM_DATA_RESP, result);
+            sendMessage(${appNameAllCaps}_DATA_RESP, result);
         }
     }
 }

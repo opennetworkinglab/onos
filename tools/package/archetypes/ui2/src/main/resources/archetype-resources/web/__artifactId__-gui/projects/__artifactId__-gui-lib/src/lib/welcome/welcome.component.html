@@ -14,4 +14,12 @@
 ~ limitations under the License.
 -->
 
-<p>welcome works!</p>
+<svg:svg xmlns:svg="http://www.w3.org/2000/svg">
+    <svg:g (click)="welcomeClicked(colour)">
+        <svg:circle r="50" cx="100" cy="55" [attr.fill]="colour">
+        </svg:circle>
+        <svg:text x="100" y="60" width="200" text-anchor="middle" style="font-weight:bold;">Welcome: {{message}}</svg:text>
+        <svg:use [attr.xlink:href]="'#bird'" style="fill-opacity:0.2" width="80" height="80" x="60" y="10">
+        </svg:use>
+    </svg:g>
+</svg:svg>

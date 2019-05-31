@@ -37,10 +37,10 @@ import java.util.List;
  * Skeletal ONOS UI Custom-View application component.
  */
 @Component(immediate = true)
-public class AppUiComponent {
+public class ${appNameTitle}UiComponent {
 
-    private static final String VIEW_ID = "sampleCustom";
-    private static final String VIEW_TEXT = "Sample Custom";
+    private static final String VIEW_ID = "${artifactId}-gui";
+    private static final String VIEW_TEXT = "${appNameTitle} UI";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -55,14 +55,15 @@ public class AppUiComponent {
     // Factory for UI message handlers
     private final UiMessageHandlerFactory messageHandlerFactory =
             () -> ImmutableList.of(
-                    new AppUiMessageHandler()
+                    new ${appNameTitle}UiMessageHandler()
             );
 
-    // Application UI extension
+    // ${appNameTitle} UI extension
     protected UiExtension extension =
             new UiExtension.Builder(getClass().getClassLoader(), uiViews)
                     .resourcePath(VIEW_ID)
                     .messageHandlerFactory(messageHandlerFactory)
+                    .ui2()
                     .build();
 
     @Activate

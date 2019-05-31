@@ -14,4 +14,41 @@
 ~ limitations under the License.
 -->
 
-<p>${artifactId} works!</p>
+<div id="ov-${appNameAllLower}">
+    <div class="button-panel">
+        <div class="my-button" (click)="getData()">Fetch Data</div>
+    </div>
+
+    <div class="data-panel">
+        <table>
+            <tr>
+                <td> Number </td>
+                <td class="number"> {{socketData.number}} </td>
+            </tr>
+            <tr>
+                <td> Square </td>
+                <td class="number"> {{socketData.square}} </td>
+            </tr>
+            <tr>
+                <td> Cube </td>
+                <td class="number"> {{socketData.cube}} </td>
+            </tr>
+        </table>
+        <onos-icon [iconId]="'bird'" [iconSize]="40" [toolTip]="'ONOS bird icon'" [classes]="'enabled'"></onos-icon>
+        <p>
+            A message from our sponsors:
+        </p>
+        <p>
+            <span class="quote"> {{socketData.message}} </span>
+        </p>
+        <p>Request Number: {{requestNumber}}</p>
+    </div>
+</div>
+<!-- Create an instance of a component passing it lteral value for colour and bind to the socketData.number-->
+<${artifactId}-app-welcome [message]="socketData.number" [colour]="'magenta'" (welcomeEventEmitter)="childClicked($event)"></${artifactId}-app-welcome>
+<${artifactId}-app-welcome [message]="socketData.square" [colour]="'aqua'" (welcomeEventEmitter)="childClicked($event)"></${artifactId}-app-welcome>
+<${artifactId}-app-welcome [message]="socketData.cube" [colour]="'orange'" (welcomeEventEmitter)="childClicked($event)"></${artifactId}-app-welcome>
+
+
+<p>Click one of the circles: </p>
+<p [ngStyle]="{'background-color': childSelected }">Child selected: {{childSelected}}</p>

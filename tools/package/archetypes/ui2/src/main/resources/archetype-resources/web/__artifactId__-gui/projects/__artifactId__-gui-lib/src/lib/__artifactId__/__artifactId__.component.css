@@ -13,3 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#ov-${appNameAllLower} {
+    padding: 20px;
+    color: navy;
+}
+
+#ov-${appNameAllLower} .button-panel {
+    margin: 10px;
+    width: 200px;
+    background-color: #ccf;
+}
+
+#ov-${appNameAllLower} .my-button {
+    cursor: pointer;
+    padding: 4px;
+    text-align: center;
+    color: white;
+    background-color: #99d;
+}
+
+#ov-${appNameAllLower} .number {
+    font-size: 140%;
+    text-align: right;
+}
+
+#ov-${appNameAllLower} .quote {
+    margin: 10px 20px;
+    font-style: italic;
+}

@@ -53,6 +53,7 @@ public final class UiExtension {
     private final UiTopoMapFactory topoMapFactory;
 
     private boolean isValid = true;
+    private boolean ui2Valid = true;
 
     // private constructor - only the builder calls this
     private UiExtension(ClassLoader cl, String path, List<UiView> views,
@@ -60,7 +61,8 @@ public final class UiExtension {
                         UiMessageHandlerFactory mhFactory,
                         UiTopoOverlayFactory toFactory,
                         UiTopo2OverlayFactory to2Factory,
-                        UiTopoMapFactory tmFactory) {
+                        UiTopoMapFactory tmFactory,
+                        boolean ui2Vld) {
         classLoader = cl;
         resourcePath = path;
         viewList = views;
@@ -69,6 +71,7 @@ public final class UiExtension {
         topoOverlayFactory = toFactory;
         topo2OverlayFactory = to2Factory;
         topoMapFactory = tmFactory;
+        ui2Valid = ui2Vld;
     }
 
 
@@ -96,7 +99,7 @@ public final class UiExtension {
      * @return contributed view descriptors
      */
     public List<UiView> views() {
-        return isValid ? viewList : ImmutableList.of();
+        return (isValid || ui2Valid) ? viewList : ImmutableList.of();
     }
 
     /**
@@ -181,6 +184,7 @@ public final class UiExtension {
         private UiTopoOverlayFactory topoOverlayFactory = null;
         private UiTopo2OverlayFactory topo2OverlayFactory = null;
         private UiTopoMapFactory topoMapFactory = null;
+        private boolean ui2valid = false;
 
         /**
          * Create a builder with the given class loader.
@@ -268,6 +272,17 @@ public final class UiExtension {
         }
 
         /**
+         * Marks this as ui2valid for Ui2.
+         * This is because Ui2 does not include the same layout of embedded html, js and css
+         *
+         * @return self, for chaining
+         */
+        public Builder ui2() {
+            ui2valid = true;
+            return this;
+        }
+
+        /**
          * Builds the user interface extension.
          *
          * @return UI extension instance
@@ -276,7 +291,7 @@ public final class UiExtension {
             return new UiExtension(classLoader, resourcePath, viewList,
                                    lionBundles,
                                    messageHandlerFactory, topoOverlayFactory,
-                                   topo2OverlayFactory, topoMapFactory);
+                                   topo2OverlayFactory, topoMapFactory, ui2valid);
         }
     }
 }

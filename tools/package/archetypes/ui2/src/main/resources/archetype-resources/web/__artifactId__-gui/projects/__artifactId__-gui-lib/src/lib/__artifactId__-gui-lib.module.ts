@@ -15,17 +15,19 @@
  */
 
 import { NgModule } from '@angular/core';
+import {CommonModule} from '@angular/common';
 import { Gui2FwLibModule } from 'gui2-fw-lib';
-import { ${appNameCap}${appNameEnd}Component } from './${artifactId}/${artifactId}.component';
-import { ${appNameCap}${appNameEnd}RoutingModule } from './${artifactId}-routing.module';
+import { ${appNameTitle}Component } from './${artifactId}/${artifactId}.component';
+import { ${appNameTitle}RoutingModule } from './${artifactId}-routing.module';
 import { WelcomeComponent } from './welcome/welcome.component';
 
 @NgModule({
-    declarations: [${appNameCap}${appNameEnd}Component, WelcomeComponent],
+    declarations: [${appNameTitle}Component, WelcomeComponent],
     imports: [
-        ${appNameCap}${appNameEnd}RoutingModule,
-        Gui2FwLibModule
+        ${appNameTitle}RoutingModule,
+        Gui2FwLibModule,
+        CommonModule
     ],
-    exports: [${appNameCap}${appNameEnd}Component, WelcomeComponent]
+    exports: [${appNameTitle}Component, WelcomeComponent]
 })
-export class ${appNameCap}${appNameEnd}GuiLibModule { }
+export class ${appNameTitle}GuiLibModule { }

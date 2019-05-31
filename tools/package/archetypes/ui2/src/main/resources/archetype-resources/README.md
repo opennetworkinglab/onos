@@ -9,10 +9,6 @@ There are 2 main parts to it:
 in to a running ONOS system
 * A JavaScript library that may be embedded within an Angular Web project
 
-${symbol_h2} web/gitignore
-The file **web/gitignore** should be renamed to **web/.gitignore** before the app is added
-to any git repository
-
 ${symbol_h2} Standalone Application outside of ONOS
 In the standalone scenario this library can continue to be built with Maven like:
 * mvn clean install
@@ -45,12 +41,12 @@ the Angular Router and make a link to it
 ```angular2
   {
     path: '${artifactId}-gui',
-    loadChildren: '${artifactId}-gui-lib#${appNameCap}${appNameEnd}GuiLibModule'
+    loadChildren: '${artifactId}-gui-lib#${appNameTitle}GuiLibModule'
   }
 ```
 and
 ```angular2
- import { ${appNameCap}${appNameEnd}GuiLibModule } from '${artifactId}-gui-lib';
+ import { ${appNameTitle}GuiLibModule } from '${artifactId}-gui-lib';
 ```
 in the imports section at the top of the same file.
 
@@ -96,10 +92,12 @@ does not clash with anything already there).
 
 Run
 ```bash
-cd ${artifactId} && mvn install && mvn clean
+cd ~/onos/apps/${artifactId} && \
+    mvn -pl web/${artifactId}-gui install && \
+    mvn -pl web/${artifactId}-gui clean
 ```
-once inside the folder - this will fetch the dependent node modules for the
-Angular application.
+once inside the folder - this is the easiest way to fetch the dependent node
+modules for the Angular application.
 
 To ensure it gets built along with ONOS rename the files **BUILD.rename**,
 **app/BUILD.rename** and **web/${artifactId}/BUILD.rename** to **BUILD**, and
@@ -116,7 +114,6 @@ mv web/${artifactId}-gui/gitignore web/${artifactId}-gui/.gitignore && \
 chmod +x web/${artifactId}-gui/ng-test.sh && \
 rm -rf web/${artifactId}-gui/node_modules/rxjs/src
 ```
-
 
 In the file
 * ~/onos/apps/${artifactId}/web/${artifactId}-gui/projects/${artifactId}-gui-lib/package.json
@@ -150,12 +147,12 @@ in the "routes" array as:
 ```angular2
   {
     path: '${artifactId}-gui',
-    loadChildren: '${artifactId}-gui-lib#${appNameCap}${appNameEnd}GuiLibModule'
-  }
+    loadChildren: '${artifactId}-gui-lib#${appNameTitle}GuiLibModule'
+  },
 ```
 and in the imports section at the top of the same file
 ```angular2
- import { ${appNameCap}${appNameEnd}GuiLibModule } from '${artifactId}-gui-lib';
+ import { ${appNameTitle}GuiLibModule } from '${artifactId}-gui-lib';
 ```
 
 ### Run the build
@@ -165,3 +162,56 @@ cd ~/onos && \
 ob
 ```
 or equivalent.
+
+### Run the application
+Start ONOS in the normal way.
+
+Using the ONOS command line, activate the application:
+```bash
+app activate ${artifactId}
+```
+
+To turn on ONOS Server side logging, from the same ONOS CLI use:
+```bash
+log:set DEBUG ${package}
+log:set DEBUG org.onosproject.ui.impl
+```
+
+On the ONOS GUI the navigation menu should show the new application link. Clicking
+on it will navigate to the new app (there is a system of lazy-loading implemented
+here so that applications are not loaded until they are first used).
+
+### Rebuild
+To rebuild and run the **web** side of the application do:
+```bash
+bazel build //web/gui2:onos-web-gui2-oar && \
+    onos-app localhost reinstall! bazel-bin/web/gui2/onos-web-gui2-oar.oar
+```
+
+To rebuild and run the **server** side of the application do:
+```bash
+bazel build //apps/${artifactId}:onos-apps-${artifactId}-oar && \
+    onos-app localhost reinstall! bazel-bin/apps/${artifactId}/onos-apps-${artifactId}-oar.oar
+```
+
+
+### App structure
+The application demonstrates some major concepts:
+* The use of Angular 7 concepts like Modules, Components, Service
+
+* The top level component - contains the "Fetch Data" button and the connection
+to the server backend through a WebSocket
+ * Passing a number in the request
+ * Receiving a JSON object in reply
+
+* Reuse of items from the **gui2-fw-lib** - with LogService, WebSocketService and
+IconComponent
+
+* The use of a child component (WelcomeComponent) in 3 different ways
+  * The passing of Inputs to this component
+  * The passing of an Event out when the component is clicked
+
+* The embedding of SVG content in to the web page
+
+* The use of TypeScript (as opposed to JavaScript or ECMAScript directly) to ensure
+type safety

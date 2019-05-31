@@ -4,6 +4,7 @@
 /dist
 /tmp
 /out-tsc
+/gui2-fw-lib-*.tgz
 
 # dependencies
 /node_modules

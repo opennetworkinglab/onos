@@ -15,8 +15,10 @@
  */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ${appNameCap}${appNameEnd}Component } from './${artifactId}.component';
+import { ${appNameTitle}Component } from './${artifactId}.component';
+import { WelcomeComponent } from '../welcome/welcome.component';
 import {ActivatedRoute, Params} from '@angular/router';
+import {CommonModule} from '@angular/common';
 import { of } from 'rxjs';
 import { } from 'jasmine';
 import {
@@ -41,13 +43,13 @@ class MockIconService {
     loadIconDef() { }
 }
 
-describe('${appNameCap}${appNameEnd}Component', () => {
+describe('${appNameTitle}Component', () => {
     let fs: FnService;
     let ar: MockActivatedRoute;
     let windowMock: Window;
     let logServiceSpy: jasmine.SpyObj<LogService>;
-    let component: ${appNameCap}${appNameEnd}Component;
-    let fixture: ComponentFixture<${appNameCap}${appNameEnd}Component>;
+    let component: ${appNameTitle}Component;
+    let fixture: ComponentFixture<${appNameTitle}Component>;
 
     beforeEach(async(() => {
         const logSpy = jasmine.createSpyObj('LogService', ['info', 'debug', 'warn', 'error']);
@@ -67,8 +69,11 @@ describe('${appNameCap}${appNameEnd}Component', () => {
         fs = new FnService(ar, logSpy, windowMock);
 
         TestBed.configureTestingModule({
-            imports: [BrowserAnimationsModule, FormsModule, RouterTestingModule],
-            declarations: [ ${appNameCap}${appNameEnd}Component ],
+            imports: [BrowserAnimationsModule, CommonModule, FormsModule, RouterTestingModule],
+            declarations: [
+                ${appNameTitle}Component,
+                WelcomeComponent
+            ],
             providers: [
                 { provide: FnService, useValue: fs },
                 { provide: LogService, useValue: logSpy },
@@ -81,7 +86,7 @@ describe('${appNameCap}${appNameEnd}Component', () => {
     }));
 
     beforeEach(() => {
-        fixture = TestBed.createComponent(${appNameCap}${appNameEnd}Component);
+        fixture = TestBed.createComponent(${appNameTitle}Component);
         component = fixture.componentInstance;
         fixture.detectChanges();
     });

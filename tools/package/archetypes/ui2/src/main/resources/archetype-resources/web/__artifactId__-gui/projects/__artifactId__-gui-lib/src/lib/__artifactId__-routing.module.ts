@@ -15,17 +15,17 @@
  */
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
-import { ${appNameCap}${appNameEnd}Component } from './${artifactId}/${artifactId}.component';
+import { ${appNameTitle}Component } from './${artifactId}/${artifactId}.component';
 
 const appRoutes: Routes = [
     {
         path: '',
-        component: ${appNameCap}${appNameEnd}Component
+        component: ${appNameTitle}Component
     },
 ];
 
 /**
- * ONOS GUI -- ${appNameCap}${appNameEnd} View Feature Routing Module - allows it to be lazy loaded
+ * ONOS GUI -- ${appNameTitle} View Feature Routing Module - allows it to be lazy loaded
  *
  * See https://angular.io/guide/lazy-loading-ngmodules
  */
@@ -33,4 +33,4 @@ const appRoutes: Routes = [
     imports: [RouterModule.forChild(appRoutes)],
     exports: [RouterModule]
 })
-export class ${appNameCap}${appNameEnd}RoutingModule { }
+export class ${appNameTitle}RoutingModule { }

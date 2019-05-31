@@ -190,7 +190,7 @@ genrule(
           "     See bazel-genfiles/apps/${artifactId}/web/${artifactId}-gui/${artifactId}-gui-lib-test.log for more details' >&2;" +
           "   exit 1;" +
           " fi;",
-    message = "Angular ${appNameCap}${appNameEnd} Lib lint and test",
+    message = "Angular ${appNameTitle} Lib lint and test",
 )
 
 """

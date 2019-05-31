@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import {LogService} from 'gui2-fw-lib';
 
 @Component({
@@ -22,6 +22,9 @@ import {LogService} from 'gui2-fw-lib';
   styleUrls: ['./welcome.component.css']
 })
 export class WelcomeComponent implements OnInit {
+    @Input() message: string = 'Welcome';
+    @Input() colour: string;
+    @Output() welcomeEventEmitter = new EventEmitter<string>();
 
     constructor(
         protected log: LogService,
@@ -30,6 +33,11 @@ export class WelcomeComponent implements OnInit {
     }
 
     ngOnInit() {
+        this.log.debug('WelcomeComponent initialized', this.message, this.colour);
     }
 
+    welcomeClicked(colour: string) {
+        this.log.debug(colour, 'WelcomeComponent clicked - sending event to parent');
+        this.welcomeEventEmitter.emit(colour);
+    }
 }
