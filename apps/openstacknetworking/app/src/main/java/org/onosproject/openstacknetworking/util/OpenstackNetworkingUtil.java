@@ -373,10 +373,14 @@ public final class OpenstackNetworkingUtil {
                 log.warn("Unrecognized keystone version type");
                 return null;
             }
-        } catch (AuthenticationException e) {
-            log.error("Authentication failed due to {}", e);
-            return null;
+        } catch (Exception e) {
+            if (e instanceof AuthenticationException) {
+                log.error("Authentication failed");
+            } else {
+                log.error("Unknown exception on connecting to keystone");
+            }
         }
+        return null;
     }
 
     /**
