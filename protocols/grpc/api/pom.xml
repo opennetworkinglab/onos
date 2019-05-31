@@ -21,7 +21,7 @@
     <parent>
         <artifactId>onos-grpc-protocol</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.12.2-SNAPSHOT</version>
+        <version>1.12.2-rc2</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 

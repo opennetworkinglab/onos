@@ -22,7 +22,7 @@
     <parent>
         <artifactId>onos-apps-route-service</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.12.2-SNAPSHOT</version>
+        <version>1.12.2-rc2</version>
     </parent>
 
     <artifactId>onos-apps-route-service-app</artifactId>
