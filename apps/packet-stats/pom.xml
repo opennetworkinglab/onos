@@ -18,12 +18,12 @@
     <parent>
         <artifactId>onos-apps</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.12.2-rc2</version>
+        <version>1.12.2-SNAPSHOT</version>
     </parent>
 
     <groupId>org.onosproject</groupId>
     <artifactId>onos-apps-packet-stats</artifactId>
-    <version>1.12.2-rc2</version>
+    <version>1.12.2-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <description>ONOS OSGi bundle archetype</description>

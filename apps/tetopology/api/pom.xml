@@ -21,11 +21,11 @@
     <parent>
         <artifactId>onos-tetopology</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.12.2-rc2</version>
+        <version>1.12.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>onos-app-tetopology-api</artifactId>
-    <version>1.12.2-rc2</version>
+    <version>1.12.2-SNAPSHOT</version>
     <packaging>bundle</packaging>
     
     <description>IETF TE topology management API</description>
