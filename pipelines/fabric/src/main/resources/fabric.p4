@@ -35,6 +35,10 @@
 #include "include/spgw.p4"
 #endif // WITH_SPGW
 
+#ifdef WITH_BNG
+#include "include/bng.p4"
+#endif // WITH_BNG
+
 #ifdef WITH_INT
 #include "include/int/int_main.p4"
 #endif // WITH_INT
@@ -64,6 +68,9 @@ control FabricIngress (inout parsed_headers_t hdr,
         spgw_ingress.apply(hdr.gtpu_ipv4, hdr.gtpu_udp, hdr.gtpu,
                            hdr.ipv4, hdr.udp, fabric_metadata, standard_metadata);
 #endif // WITH_SPGW
+#ifdef WITH_BNG
+        bng_ingress.apply(hdr, fabric_metadata, standard_metadata);
+#endif // WITH_BNG
         if (fabric_metadata.skip_forwarding == _FALSE) {
             forwarding.apply(hdr, fabric_metadata, standard_metadata);
         }
@@ -97,6 +104,9 @@ control FabricEgress (inout parsed_headers_t hdr,
         spgw_egress.apply(hdr.ipv4, hdr.gtpu_ipv4, hdr.gtpu_udp, hdr.gtpu,
                           fabric_metadata, standard_metadata);
 #endif // WITH_SPGW
+#ifdef WITH_BNG
+        bng_egress.apply(hdr, fabric_metadata, standard_metadata);
+#endif // WITH_BNG
 #ifdef WITH_INT
         process_int_main.apply(hdr, fabric_metadata, standard_metadata);
 #endif

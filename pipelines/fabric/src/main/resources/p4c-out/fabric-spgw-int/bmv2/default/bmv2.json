@@ -498,13 +498,13 @@
   "header_union_stacks" : [],
   "field_lists" : [],
   "errors" : [
-    ["NoError", 0],
-    ["PacketTooShort", 1],
-    ["NoMatch", 2],
-    ["StackOutOfBounds", 3],
-    ["HeaderTooShort", 4],
-    ["ParserTimeout", 5],
-    ["ParserInvalidArgument", 6]
+    ["NoError", 1],
+    ["PacketTooShort", 2],
+    ["NoMatch", 3],
+    ["StackOutOfBounds", 4],
+    ["HeaderTooShort", 5],
+    ["ParserTimeout", 6],
+    ["ParserInvalidArgument", 7]
   ],
   "enums" : [],
   "parsers" : [
@@ -1309,7 +1309,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "include/parser.p4",
-        "line" : 243,
+        "line" : 260,
         "column" : 8,
         "source_fragment" : "FabricDeparser"
       },
@@ -2766,7 +2766,7 @@
           ],
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 58,
+            "line" : 62,
             "column" : 50,
             "source_fragment" : "hdr.gtpu_ipv4"
           }
@@ -2781,7 +2781,7 @@
           ],
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 58,
+            "line" : 62,
             "column" : 65,
             "source_fragment" : "hdr.gtpu_udp"
           }
@@ -3213,7 +3213,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 137,
+            "line" : 142,
             "column" : 36,
             "source_fragment" : "2w1; ..."
           }
@@ -3299,7 +3299,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 138,
+            "line" : 143,
             "column" : 38,
             "source_fragment" : "2w2; ..."
           }
@@ -3325,7 +3325,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 136,
+            "line" : 141,
             "column" : 37,
             "source_fragment" : "2w0; ..."
           }
@@ -3616,7 +3616,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 119,
+            "line" : 124,
             "column" : 28,
             "source_fragment" : "5; ..."
           }
@@ -3772,7 +3772,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 132,
+            "line" : 137,
             "column" : 32,
             "source_fragment" : "64; ..."
           }
@@ -3791,7 +3791,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 116,
+            "line" : 121,
             "column" : 25,
             "source_fragment" : "17; ..."
           }
@@ -4225,7 +4225,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 147,
+            "line" : 152,
             "column" : 36,
             "source_fragment" : "4; ..."
           }
@@ -4643,7 +4643,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 143,
+            "line" : 148,
             "column" : 24,
             "source_fragment" : "0x1; ..."
           }
@@ -11479,7 +11479,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "fabric.p4",
-        "line" : 42,
+        "line" : 46,
         "column" : 8,
         "source_fragment" : "FabricIngress"
       },
@@ -11490,7 +11490,7 @@
           "id" : 0,
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 58,
+            "line" : 62,
             "column" : 50,
             "source_fragment" : "hdr.gtpu_ipv4, hdr.gtpu_udp"
           },
@@ -12941,7 +12941,7 @@
           "id" : 10,
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 67,
+            "line" : 74,
             "column" : 12,
             "source_fragment" : "fabric_metadata.skip_forwarding == false"
           },
@@ -13052,7 +13052,7 @@
           "id" : 14,
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 71,
+            "line" : 78,
             "column" : 12,
             "source_fragment" : "fabric_metadata.skip_next == false"
           },
@@ -13139,7 +13139,7 @@
       "id" : 1,
       "source_info" : {
         "filename" : "fabric.p4",
-        "line" : 85,
+        "line" : 92,
         "column" : 8,
         "source_fragment" : "FabricEgress"
       },

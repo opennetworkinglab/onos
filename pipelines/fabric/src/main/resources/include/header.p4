@@ -53,6 +53,15 @@ header mpls_t {
     bit<8> ttl;
 }
 
+header pppoe_t {
+    bit<4>  version;
+    bit<4>  type_id;
+    bit<8>  code;
+    bit<16> session_id;
+    bit<16> length;
+    bit<16> protocol;
+}
+
 header ipv4_t {
     bit<4> version;
     bit<4> ihl;
@@ -140,6 +149,20 @@ struct spgw_meta_t {
 }
 #endif // WITH_SPGW
 
+#ifdef WITH_BNG
+
+typedef bit<2> bng_type_t;
+const bng_type_t BNG_TYPE_INVALID = 2w0x0;
+const bng_type_t BNG_TYPE_UPSTREAM = 2w0x1;
+const bng_type_t BNG_TYPE_DOWNSTREAM = 2w0x2;;
+
+struct bng_meta_t {
+    bit<2>  type; // upstream or downstream
+    bit<32> line_id; // subscriber line
+    bit<32> ds_meter_result; // for downstream metering
+}
+#endif // WITH_BNG
+
 //Custom metadata definition
 struct fabric_metadata_t {
     bit<16>       eth_type;
@@ -162,6 +185,9 @@ struct fabric_metadata_t {
 #ifdef WITH_SPGW
     spgw_meta_t   spgw;
 #endif // WITH_SPGW
+#ifdef WITH_BNG
+    bng_meta_t    bng;
+#endif // WITH_BNG
 #ifdef WITH_INT
     int_metadata_t int_meta;
 #endif // WITH_INT
@@ -170,9 +196,12 @@ struct fabric_metadata_t {
 struct parsed_headers_t {
     ethernet_t ethernet;
     vlan_tag_t vlan_tag;
-#ifdef WITH_XCONNECT
+#if defined(WITH_XCONNECT) || defined(WITH_BNG)
     vlan_tag_t inner_vlan_tag;
-#endif // WITH_XCONNECT
+#endif // WITH_XCONNECT || WITH_BNG
+#ifdef WITH_BNG
+    pppoe_t pppoe;
+#endif // WITH_BNG
     mpls_t mpls;
 #ifdef WITH_SPGW
     ipv4_t gtpu_ipv4;

@@ -61,14 +61,14 @@ parser FabricParser (packet_in packet,
             ETHERTYPE_IPV6: parse_ipv6;
 #endif // WITH_IPV6
             ETHERTYPE_MPLS: parse_mpls;
-#ifdef WITH_XCONNECT
+#if defined(WITH_XCONNECT) || defined(WITH_BNG)
             ETHERTYPE_VLAN: parse_inner_vlan_tag;
 #endif // WITH_XCONNECT
             default: accept;
         }
     }
 
-#ifdef WITH_XCONNECT
+#if defined(WITH_XCONNECT) || defined(WITH_BNG)
     state parse_inner_vlan_tag {
         packet.extract(hdr.inner_vlan_tag);
         transition select(hdr.inner_vlan_tag.eth_type){
@@ -77,10 +77,27 @@ parser FabricParser (packet_in packet,
             ETHERTYPE_IPV6: parse_ipv6;
 #endif // WITH_IPV6
             ETHERTYPE_MPLS: parse_mpls;
+#ifdef WITH_BNG
+            ETHERTYPE_PPPOED: parse_pppoe;
+            ETHERTYPE_PPPOES: parse_pppoe;
+#endif // WITH_BNG
             default: accept;
         }
     }
 #endif // WITH_XCONNECT
+
+#ifdef WITH_BNG
+    state parse_pppoe {
+        packet.extract(hdr.pppoe);
+        transition select(hdr.pppoe.protocol) {
+            PPPOE_PROTOCOL_IP4: parse_ipv4;
+#ifdef WITH_IPV6
+            PPPOE_PROTOCOL_IP6: parse_ipv6;
+#endif // WITH_IPV6
+            default: accept;
+        }
+    }
+#endif // WITH_BNG
 
     state parse_mpls {
         packet.extract(hdr.mpls);
@@ -252,9 +269,12 @@ control FabricDeparser(packet_out packet,in parsed_headers_t hdr) {
 #endif // WITH_INT_SINK
         packet.emit(hdr.ethernet);
         packet.emit(hdr.vlan_tag);
-#ifdef WITH_XCONNECT
+#if defined(WITH_XCONNECT) || defined(WITH_BNG)
         packet.emit(hdr.inner_vlan_tag);
 #endif // WITH_XCONNECT
+#ifdef WITH_BNG
+        packet.emit(hdr.pppoe);
+#endif // WITH_BNG
         packet.emit(hdr.mpls);
 #ifdef WITH_SPGW
         packet.emit(hdr.gtpu_ipv4);

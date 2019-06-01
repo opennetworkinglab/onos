@@ -438,13 +438,13 @@
   "header_union_stacks" : [],
   "field_lists" : [],
   "errors" : [
-    ["NoError", 0],
-    ["PacketTooShort", 1],
-    ["NoMatch", 2],
-    ["StackOutOfBounds", 3],
-    ["HeaderTooShort", 4],
-    ["ParserTimeout", 5],
-    ["ParserInvalidArgument", 6]
+    ["NoError", 1],
+    ["PacketTooShort", 2],
+    ["NoMatch", 3],
+    ["StackOutOfBounds", 4],
+    ["HeaderTooShort", 5],
+    ["ParserTimeout", 6],
+    ["ParserInvalidArgument", 7]
   ],
   "enums" : [],
   "parsers" : [
@@ -1055,7 +1055,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "include/parser.p4",
-        "line" : 243,
+        "line" : 260,
         "column" : 8,
         "source_fragment" : "FabricDeparser"
       },
@@ -2652,7 +2652,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 147,
+            "line" : 152,
             "column" : 36,
             "source_fragment" : "4; ..."
           }
@@ -3070,7 +3070,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 143,
+            "line" : 148,
             "column" : 24,
             "source_fragment" : "0x1; ..."
           }
@@ -9906,7 +9906,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "fabric.p4",
-        "line" : 42,
+        "line" : 46,
         "column" : 8,
         "source_fragment" : "FabricIngress"
       },
@@ -10689,7 +10689,7 @@
           "id" : 3,
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 67,
+            "line" : 74,
             "column" : 12,
             "source_fragment" : "fabric_metadata.skip_forwarding == false"
           },
@@ -10800,7 +10800,7 @@
           "id" : 7,
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 71,
+            "line" : 78,
             "column" : 12,
             "source_fragment" : "fabric_metadata.skip_next == false"
           },
@@ -10887,7 +10887,7 @@
       "id" : 1,
       "source_info" : {
         "filename" : "fabric.p4",
-        "line" : 85,
+        "line" : 92,
         "column" : 8,
         "source_fragment" : "FabricEgress"
       },
