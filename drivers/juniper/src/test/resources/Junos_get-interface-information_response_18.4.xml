@@ -1,0 +1,86 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/18.4R1/junos">
+    <interface-information xmlns="http://xml.juniper.net/junos/18.4R1/junos-interface" junos:style="normal">
+        <!-- Other physical-interface entries manually stripped out for brevity -->
+        <physical-interface>
+            <name>jsrv</name>
+            <admin-status junos:format="Enabled">up</admin-status>
+            <oper-status>up</oper-status>
+            <local-index>144</local-index>
+            <snmp-index>513</snmp-index>
+            <if-type>Ethernet</if-type>
+            <link-level-type>Ethernet</link-level-type>
+            <mtu>1514</mtu>
+
+            <if-device-flags>
+                <ifdf-present/>
+                <ifdf-running/>
+            </if-device-flags>
+            <ifd-specific-config-flags>
+                <internal-flags>0x200</internal-flags>
+            </ifd-specific-config-flags>
+            <if-config-flags>
+            </if-config-flags>
+            <link-type>Full-Duplex</link-type>
+            <if-media-flags>
+                <ifmf-none/>
+            </if-media-flags>
+            <current-physical-address junos:format="MAC 2c:6b:f5:03:ff:c0">2c:6b:f5:03:ff:c0</current-physical-address>
+            <hardware-physical-address junos:format="MAC 2c:6b:f5:03:ff:c0">2c:6b:f5:03:ff:c0</hardware-physical-address>
+            <interface-flapped junos:seconds="0">Never</interface-flapped>
+            <traffic-statistics junos:style="brief">
+                <input-packets>0</input-packets>
+                <output-packets>0</output-packets>
+            </traffic-statistics>
+            <logical-interface>
+                <name>jsrv.1</name>
+                <local-index>323</local-index>
+                <snmp-index>514</snmp-index>
+                <if-config-flags>
+                    <iff-up/>
+                    <internal-flags>0x24004000</internal-flags>
+                </if-config-flags>
+                <encapsulation>unknown</encapsulation>
+                <policer-overhead>
+                </policer-overhead>
+                <logical-interface-bandwidth>1Gbps</logical-interface-bandwidth>
+                <irb-domain>
+                    <irb-routing-instance>None</irb-routing-instance>
+                    <irb-bridge>None</irb-bridge>
+                </irb-domain>
+                <traffic-statistics junos:style="brief">
+                    <input-packets>0</input-packets>
+                    <output-packets>0</output-packets>
+                </traffic-statistics>
+                <filter-information>
+                </filter-information>
+                <address-family>
+                    <address-family-name>inet</address-family-name>
+                    <mtu>1514</mtu>
+                    <max-local-cache>75000</max-local-cache>
+                    <new-hold-limit>75000</new-hold-limit>
+                    <intf-curr-cnt>0</intf-curr-cnt>
+                    <intf-unresolved-cnt>0</intf-unresolved-cnt>
+                    <intf-dropcnt>0</intf-dropcnt>
+                    <address-family-flags>
+                        <ifff-is-primary/>
+                    </address-family-flags>
+                    <interface-address>
+                        <ifa-flags>
+                            <ifaf-primary/>
+                            <ifaf-current-default/>
+                            <ifaf-current-preferred/>
+                            <ifaf-current-primary/>
+                        </ifa-flags>
+                        <ifa-destination>128/2</ifa-destination>
+                        <ifa-local>128.0.0.127</ifa-local>
+                        <ifa-broadcast>191.255.255.255</ifa-broadcast>
+                    </interface-address>
+                </address-family>
+            </logical-interface>
+        </physical-interface>
+
+    </interface-information>
+    <cli>
+        <banner></banner>
+    </cli>
+</rpc-reply>

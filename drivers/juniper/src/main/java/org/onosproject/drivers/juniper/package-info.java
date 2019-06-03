@@ -15,6 +15,6 @@
  */
 
 /**
- * Package for juniper device drivers.
+ * Package for Juniper Networks device drivers.
  */
 package org.onosproject.drivers.juniper;

@@ -83,13 +83,8 @@ public class LinkDiscoveryJuniperImpl extends AbstractHandlerBehaviour
 
             //find source port by local port name
             Optional<Port> localPort = deviceService.getPorts(localDeviceId).stream()
-                    .filter(port -> {
-                        if (linkAbs.localPortName.equals(
-                                port.annotations().value(PORT_NAME))) {
-                            return true;
-                        }
-                        return false;
-                    }).findAny();
+                    .filter(port -> linkAbs.localPortName.equals(
+                            port.annotations().value(PORT_NAME))).findAny();
             if (!localPort.isPresent()) {
                 log.warn("Port name {} does not exist in device {}",
                          linkAbs.localPortName, localDeviceId);

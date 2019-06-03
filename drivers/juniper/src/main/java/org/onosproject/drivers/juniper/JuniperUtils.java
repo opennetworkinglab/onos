@@ -19,6 +19,8 @@ package org.onosproject.drivers.juniper;
 import com.google.common.base.MoreObjects;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
@@ -120,7 +122,7 @@ public final class JuniperUtils {
             Pattern.compile(".*Private base address\\s*([:,0-9,a-f,A-F]*).*", Pattern.DOTALL);
 
 
-    public static final String PROTOCOL_NAME = "protocol-name";
+    private static final String PROTOCOL_NAME = "protocol-name";
 
     private static final String JUNIPER = "JUNIPER";
     private static final String UNKNOWN = "UNKNOWN";
@@ -134,6 +136,12 @@ public final class JuniperUtils {
      * Annotation key for Logical link-layer encapsulation.
      */
     static final String AK_ENCAPSULATION = "encapsulation";
+
+    /**
+     * Annotation key for IP.
+     */
+    static final String AK_IP = "ip";
+
 
     /**
      * Annotation key for interface description.
@@ -168,7 +176,7 @@ public final class JuniperUtils {
     /**
      * Default port speed {@value} Mbps.
      */
-    private static final long DEFAULT_PORT_SPEED = 1000;
+    static final long DEFAULT_PORT_SPEED = 1000;
 
 
     private JuniperUtils() {
@@ -226,11 +234,11 @@ public final class JuniperUtils {
         rpc.append("<routing-options>\n");
         rpc.append("<static>\n");
         rpc.append("<route>\n");
-        rpc.append("<destination>" + staticRoute.ipv4Dst().toString() + "</destination>\n");
-        rpc.append("<next-hop>" + staticRoute.nextHop() + "</next-hop>\n");
+        rpc.append("<destination>").append(staticRoute.ipv4Dst().toString()).append("</destination>\n");
+        rpc.append("<next-hop>").append(staticRoute.nextHop()).append("</next-hop>\n");
 
         if (staticRoute.getMetric() != DEFAULT_METRIC_STATIC_ROUTE) {
-            rpc.append("<metric>" + staticRoute.getMetric() + "</metric>");
+            rpc.append("<metric>").append(staticRoute.getMetric()).append("</metric>");
         }
 
         rpc.append("</route>\n");
@@ -419,7 +427,7 @@ public final class JuniperUtils {
 
             // preserving former behavior
             setIfNonNull(lannotations,
-                         "ip",
+                         AK_IP,
                          logIntf.getString("address-family.interface-address.ifa-local"));
 
             setIfNonNull(lannotations,
@@ -445,7 +453,7 @@ public final class JuniperUtils {
      * @param portStatus port status
      * @return "up" if {@code portStats} is {@literal true}, "down" otherwise
      */
-    static String toUpDown(boolean portStatus) {
+    private static String toUpDown(boolean portStatus) {
         return portStatus ? "up" : "down";
     }
 
@@ -458,7 +466,7 @@ public final class JuniperUtils {
      * @param speed in String
      * @return Mbps
      */
-    static long toMbps(String speed) {
+    private static long toMbps(String speed) {
         String s = Strings.nullToEmpty(speed).trim().toLowerCase();
         Matcher matcher = SPEED_PATTERN.matcher(s);
         if (matcher.matches()) {
@@ -485,7 +493,7 @@ public final class JuniperUtils {
      * @param key Annotation key
      * @param value Annotation value (can be {@literal null})
      */
-    static void setIfNonNull(Builder builder, String key, String value) {
+    private static void setIfNonNull(Builder builder, String key, String value) {
         if (value != null) {
             builder.set(key, value.trim());
         }
@@ -499,7 +507,7 @@ public final class JuniperUtils {
      * @param s port number as string
      * @return PortNumber instance or null on error
      */
-    static PortNumber safePortNumber(String s) {
+    private static PortNumber safePortNumber(String s) {
         try {
             return portNumber(s);
         } catch (RuntimeException e) {
@@ -602,14 +610,14 @@ public final class JuniperUtils {
     }
 
     /**
-     * Device representation of the adjacency at the IP Layer.
+     * Device representation of the adjacency at the IP Layer. It is immutable.
      */
     static final class LinkAbstraction {
-        protected String localPortName;
-        protected ChassisId remoteChassisId;
-        protected long remotePortIndex;
-        protected String remotePortId;
-        protected String remotePortDescription;
+        protected final String localPortName;
+        protected final ChassisId remoteChassisId;
+        protected final long remotePortIndex;
+        protected final String remotePortId;
+        protected final String remotePortDescription;
 
         protected LinkAbstraction(String pName, long chassisId, long pIndex, String pPortId, String pDescription) {
             this.localPortName = pName;
@@ -627,6 +635,38 @@ public final class JuniperUtils {
                     .add("remotePortId", remotePortId)
                     .add("remotePortDescription", remotePortDescription)
                     .toString();
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) {
+                return true;
+            }
+
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            final LinkAbstraction that = (LinkAbstraction) o;
+
+            return new EqualsBuilder()
+                    .append(remotePortIndex, that.remotePortIndex)
+                    .append(localPortName, that.localPortName)
+                    .append(remoteChassisId, that.remoteChassisId)
+                    .append(remotePortId, that.remotePortId)
+                    .append(remotePortDescription, that.remotePortDescription)
+                    .isEquals();
+        }
+
+        @Override
+        public int hashCode() {
+            return new HashCodeBuilder(17, 37)
+                    .append(localPortName)
+                    .append(remoteChassisId)
+                    .append(remotePortIndex)
+                    .append(remotePortId)
+                    .append(remotePortDescription)
+                    .toHashCode();
         }
     }
 
@@ -737,7 +777,7 @@ public final class JuniperUtils {
     }
 
     public static List<ControllerInfo> getOpenFlowControllersFromConfig(HierarchicalConfiguration cfg) {
-        List<ControllerInfo> controllers = new ArrayList<ControllerInfo>();
+        List<ControllerInfo> controllers = new ArrayList<>();
         String ipKey = "configuration.protocols.openflow.mode.ofagent-mode.controller.ip";
 
         if (!cfg.configurationsAt(ipKey).isEmpty()) {

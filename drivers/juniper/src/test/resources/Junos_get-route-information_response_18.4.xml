@@ -1,0 +1,34 @@
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/18.4R1/junos">
+    <route-information xmlns="http://xml.juniper.net/junos/18.4R1/junos-routing">
+        <!-- keepalive -->
+        <route-table>
+            <table-name>inet.0</table-name>
+            <destination-count>28</destination-count>
+            <total-route-count>28</total-route-count>
+            <active-route-count>28</active-route-count>
+            <holddown-route-count>0</holddown-route-count>
+            <hidden-route-count>0</hidden-route-count>
+            <rt junos:style="brief">
+                <rt-destination>0.0.0.0/0</rt-destination>
+                <rt-entry>
+                    <active-tag>*</active-tag>
+                    <current-active/>
+                    <last-active/>
+                    <protocol-name>Static</protocol-name>
+                    <preference>5</preference>
+                    <age junos:seconds="7854905">12w6d 21:55:05</age>
+                    <nh>
+                        <selected-next-hop/>
+                        <to>172.26.138.1</to>
+                        <via>fxp0.0</via>
+                    </nh>
+                </rt-entry>
+            </rt>
+            <!-- Other rt entries manually stripped out for brevity -->
+        </route-table>
+        <!-- Other route-table entries manually stripped out for brevity -->
+    </route-information>
+    <cli>
+        <banner></banner>
+    </cli>
+</rpc-reply>

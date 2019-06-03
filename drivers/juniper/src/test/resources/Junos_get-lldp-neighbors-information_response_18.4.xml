@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<rpc-reply xmlns:junos="http://xml.juniper.net/junos/18.4R1/junos">
+    <lldp-neighbors-information junos:style="brief">
+        <lldp-neighbor-information>
+            <lldp-local-port-id>ge-0/0/1</lldp-local-port-id>
+            <lldp-local-parent-interface-name>-</lldp-local-parent-interface-name>
+            <lldp-remote-chassis-id-subtype>Mac address</lldp-remote-chassis-id-subtype>
+            <lldp-remote-chassis-id>2c:6b:f5:09:b0:c0</lldp-remote-chassis-id>
+            <lldp-remote-port-id-subtype>Locally assigned</lldp-remote-port-id-subtype>
+            <lldp-remote-port-id>527</lldp-remote-port-id>
+            <lldp-remote-system-name>access-pe1</lldp-remote-system-name>
+        </lldp-neighbor-information>
+        <lldp-neighbor-information>
+            <lldp-local-port-id>ge-0/0/2</lldp-local-port-id>
+            <lldp-local-parent-interface-name>-</lldp-local-parent-interface-name>
+            <lldp-remote-chassis-id-subtype>Mac address</lldp-remote-chassis-id-subtype>
+            <lldp-remote-chassis-id>2c:6b:f5:bd:e7:c0</lldp-remote-chassis-id>
+            <lldp-remote-port-id-subtype>Locally assigned</lldp-remote-port-id-subtype>
+            <lldp-remote-port-id>528</lldp-remote-port-id>
+            <lldp-remote-system-name>core-p1</lldp-remote-system-name>
+        </lldp-neighbor-information>
+    </lldp-neighbors-information>
+    <cli>
+        <banner></banner>
+    </cli>
+</rpc-reply>
