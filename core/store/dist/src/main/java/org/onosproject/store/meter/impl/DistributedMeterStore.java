@@ -98,7 +98,8 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
             .register(DefaultBand.class)
             .register(Band.Type.class)
             .register(MeterState.class)
-            .register(Meter.Unit.class);
+            .register(Meter.Unit.class)
+            .register(MeterFailReason.class);
 
     private Serializer serializer = Serializer.using(Lists.newArrayList(APP_KRYO_BUILDER.build()));
 
