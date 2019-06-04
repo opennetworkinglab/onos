@@ -124,6 +124,7 @@ genrule(
         "//apps/faultmanagement/fm-gui2-lib:fm-gui2-lib-build",
         ":_root_level_files",
         ":_web_app_all",
+        "//apps/roadm/web/roadm-gui:roadm-gui-lib-build",
     ],
     outs = [
         "onos-gui2-ng-build-prod.log",
@@ -147,6 +148,9 @@ genrule(
           " FM_GUI2_LIB_FILES=($(locations //apps/faultmanagement/fm-gui2-lib:fm-gui2-lib-build)) &&" +  # An array of filenames - sorted by time created
           " tar xf $$ROOT/$${FM_GUI2_LIB_FILES[0]} &&" +
           " mv package/ node_modules/fm-gui2-lib/ &&" +
+          " ROADM_GUI_LIB_FILES=($(locations //apps/roadm/web/roadm-gui:roadm-gui-lib-build)) &&" +  # An array of filenames - sorted by time created
+          " tar xf $$ROOT/$${ROADM_GUI_LIB_FILES[0]} &&" +
+          " mv package/ node_modules/roadm-gui-lib/ &&" +
           # End of add in modules from external packages
           " mkdir -p src/main/webapp/app/fw &&" +
           " (cd src/main/webapp/app/fw &&" +

@@ -1,22 +1,11 @@
-COMPILE_DEPS = CORE_DEPS + JACKSON + [
-    "//core/store/serializers:onos-core-serializers",
-    "//apps/optical-model:onos-apps-optical-model",
+BUNDLES = [
+    "//apps/roadm/app:onos-apps-roadm-app",
 ]
-
-TEST_DEPS = TEST_REST + [
-    "//core/api:onos-api-tests",
-]
-
-osgi_jar_with_tests(
-    test_deps = TEST_DEPS,
-    deps = COMPILE_DEPS,
-)
 
 onos_app(
-    category = "Optical",
-    description = "This application provides an interface and web GUI for monitoring and " +
-                  "configuring power on ROADM devices.",
-    required_apps = ["org.onosproject.optical-model"],
-    title = "ROADM",
+    category = "Graphical User Interface",
+    description = "ONOS OSGi GUI2 Custom-View app roadm.",
+    included_bundles = BUNDLES,
+    title = "roadm Application",
     url = "http://onosproject.org",
 )

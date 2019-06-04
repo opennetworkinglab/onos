@@ -1,0 +1,137 @@
+<!--
+~ Copyright 2019-present Open Networking Foundation
+~
+~ Licensed under the Apache License, Version 2.0 (the "License");
+~ you may not use this file except in compliance with the License.
+~ You may obtain a copy of the License at
+~
+~     http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS,
+~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~ See the License for the specific language governing permissions and
+~ limitations under the License.
+-->
+<!-- Port partial HTML -->
+<div id="ov-roadm-port">
+    <onos-loading [theme]="'light'" [running]="loadingIconShown"></onos-loading>
+    <div class="tabular-header">
+        <h2>
+            Ports for Roadm Device {{devId}} ({{tableData.length}} Total)
+        </h2>
+
+        <div class="ctrl-btns">
+            <div class="refresh" (click)="toggleRefresh()">
+                <!-- See icon.theme.css for the defintions of the classes active and refresh-->
+                <onos-icon classes="{{ autoRefresh?'active refresh':'refresh' }}" iconId="refresh" iconSize="42" toolTip="{{ autoRefreshTip }}"></onos-icon>
+            </div>
+
+            <div class="separator"></div>
+
+            <div routerLink="/roadm-gui" [queryParams]="{ devId: devId }" routerLinkActive="active">
+                <onos-icon classes="{{ devId ? 'active-rect':undefined }}" iconId="deviceTable" iconSize="42" toolTip="{{deviceTip}}"></onos-icon>
+            </div>
+
+            <!--<div routerLink="/flow" [queryParams]="{ devId: devId }" routerLinkActive="active">-->
+                <!--<onos-icon classes="{{ devId ? 'active-rect' :undefined}}" iconId="flowTable" iconSize="42" toolTip="{{ flowTip }}"></onos-icon>-->
+            <!--</div>-->
+
+            <div>
+                <onos-icon classes="{{ devId ? 'current-view' :undefined}}" iconId="portTable" iconSize="42"></onos-icon>
+            </div>
+
+        </div>
+
+        <div class="search">
+            <input id="searchinput" [(ngModel)]="tableDataFilter.queryStr" type="search" #search placeholder="Search" />
+            <select [(ngModel)]="tableDataFilter.queryBy">
+                <option value="" disabled>Search By</option>
+                <option value="$">All Fields</option>
+                <option value="id">Port ID</option>
+                <option value="name">Pkts Received</option>
+                <option value="type">Pkts Sent</option>
+                <option value="enabled">Bytes Received</option>
+                <option value="grid">Bytes Sent</option>
+                <option value="hasTargetPower">Pkts RX Dropped</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="summary-list" onosTableResize>
+        <div class="table-header">
+            <table>
+                <tr>
+                    <td colId="id" (click)="onSort('id')">Port ID
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('id')"></onos-icon>
+                    </td>
+                    <td colId="reversePort" (click)="onSort('reversePort')">Reverse Port
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('reversePort')"></onos-icon>
+                    </td>
+                    <td colId="name" (click)="onSort('name')">Name
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('name')"></onos-icon>
+                    </td>
+                    <td colId="type" (click)="onSort('type')">Type
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('type')"></onos-icon>
+                    </td>
+                    <td colId="enabled" (click)="onSort('enabled')">Enabled
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('enabled')"></onos-icon>
+                    </td>
+                    <td colId="minFreq" (click)="onSort('minFreq')">Min Freq (GHz)
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('minFreq')"></onos-icon>
+                    </td>
+                    <td colId="maxFreq" (click)="onSort('maxFreq')">Max Freq (GHz)
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('maxFreq')"></onos-icon>
+                    </td>
+                    <td colId="grid" (click)="onSort('grid')">Grid (GHz)
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('grid')"></onos-icon>
+                    </td>
+                    <td colId="powerRange" (click)="onSort('powerRange')">Power Range (dBm)
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('powerRange')"></onos-icon>
+                    </td>
+                    <td colId="currentPower" (click)="onSort('currentPower')">Current Power (dBm)
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('currentPower')"></onos-icon>
+                    </td>
+                    <td colId="targetPower" (click)="onSort('targetPower')">Target Power (dBm)
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('targetPower')"></onos-icon>
+                    </td>
+                    <td colId="hasTargetPower" (click)="onSort('hasTargetPower')">Has Target Power
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('hasTargetPower')"></onos-icon>
+                    </td>
+                    <td colId="serviceState" (click)="onSort('serviceState')">Service State
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('serviceState')"></onos-icon>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="table-body">
+            <table>
+                <tr class="table-body" *ngIf="tableData.length === 0" class="no-data">
+                    <td colspan="9">{{annots.noRowsMsg}}</td>
+                </tr>
+
+                <tr *ngFor="let port of tableData | filter : tableDataFilter" (click)="selectCallback($event, port)" [ngClass]="{selected: port.id === selId, 'data-change': isChanged(port.id)}">
+                    <td>{{port.id}}</td>
+                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.reversePort}}</td>
+                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.name}}</td>
+                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.type}}</td>
+                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.enabled}}</td>
+                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.minFreq}}</td>
+                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.maxFreq}}</td>
+                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.grid}}</td>
+                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.powerRange}}</td>
+                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.currentPower}}</td>
+                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.targetPower}}
+                        <form [formGroup]="powerForm" (ngSubmit)="submitPower(devId, port.id)" >
+                            <input type="text" formControlName="newPower" required>
+                            <button type="submit">Submit</button>
+                        </form>
+                    </td>
+                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.hasTargetPower}}</td>
+                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.serviceState}}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>

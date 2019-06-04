@@ -92,7 +92,8 @@ public class TapiDeviceDescriptionDiscovery
                     "0",
                     "2.1",
                     "Unknown",
-                    new ChassisId());
+                    new ChassisId(),
+                    DefaultAnnotations.builder().set("protocol", "REST").build());
         } else {
             return new DefaultDeviceDescription(device.id().uri(),
                     Device.Type.OLS,

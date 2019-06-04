@@ -115,7 +115,7 @@ public class CassiniTerminalDevicePowerConfig<T>
      * Get the target-output-power value on specific optical-channel.
      * @param port the port
      * @param component the port component. It should be 'oc-name' in the Annotations of Port.
-     *                  'oc-name' could be mapped to <component><name> in openconfig yang.
+     *                  'oc-name' could be mapped to '/component/name' in openconfig yang.
      * @return target power value
      */
     @Override

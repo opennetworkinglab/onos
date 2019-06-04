@@ -1,0 +1,19 @@
+{
+  "name": "roadm-gui-lib",
+  "version": "1.0.0",
+  "description": "ONOS roadm GUI",
+  "keywords": "ONOS SDN Controller ONF Open Networking Foundation",
+  "homepage": "https://onosproject.org/",
+  "bugs": "support@opennetworking.org",
+  "license": "Apache-2.0",
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/opennetworkinglab/onos.git"
+  },
+  "peerDependencies": {
+    "@angular/common": "^7.0.0",
+    "@angular/core": "^7.0.0",
+    "gui2-fw-lib": "^2.1.1",
+    "d3": "^5.9.2"
+  }
+}

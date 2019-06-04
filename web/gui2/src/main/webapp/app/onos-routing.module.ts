@@ -17,6 +17,7 @@ import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { Gui2TopoLibModule } from 'gui2-topo-lib';
 import { FmGui2LibModule } from 'fm-gui2-lib';
+import { RoadmGuiLibModule } from 'roadm-gui-lib';
 
 /**
  * The set of Routes in the application - can be chosen from nav menu or
@@ -87,6 +88,10 @@ const onosRoutes: Routes = [
     {
         path: 'alarmTable',
         loadChildren: 'fm-gui2-lib#FmGui2LibModule'
+    },
+    {
+        path: 'roadm-gui',
+        loadChildren: 'roadm-gui-lib#RoadmGuiLibModule'
     },
     {
         path: '',

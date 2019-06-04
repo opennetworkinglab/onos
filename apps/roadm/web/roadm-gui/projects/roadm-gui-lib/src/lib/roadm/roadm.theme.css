@@ -1,0 +1,60 @@
+/*
+ * Copyright 2019-present Open Networking Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ ONOS GUI -- Roadm Device View (theme) -- CSS file
+ */
+
+.light #device-details-panel .bottom th {
+    background-color: #e5e5e6;
+}
+
+.light #device-details-panel .bottom tr:nth-child(odd) {
+    background-color: #fbfbfb;
+}
+.light #device-details-panel .bottom tr:nth-child(even) {
+    background-color: #f4f4f4;
+}
+#ov-device .tabular-header {
+    text-align: left;
+}
+#ov-device div.summary-list .table-header td {
+    font-weight: bold;
+    font-variant: small-caps;
+    text-transform: uppercase;
+    font-size: 10pt;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    background-color: #e5e5e6;
+    color: #3c3a3a;
+}
+
+#ov-device div.summary-list .table-body {
+    overflow:scroll;
+}
+#ov-device h2 {
+    display: inline-block;
+}
+
+#ov-device, div.ctrl-btns {
+}
+
+#ov-device th, td {
+    text-align: left;
+    padding:  8px;
+}

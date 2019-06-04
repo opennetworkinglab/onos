@@ -1,0 +1,115 @@
+<!--
+~ Copyright 2019-present Open Networking Foundation
+~
+~ Licensed under the Apache License, Version 2.0 (the "License");
+~ you may not use this file except in compliance with the License.
+~ You may obtain a copy of the License at
+~
+~     http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS,
+~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~ See the License for the specific language governing permissions and
+~ limitations under the License.
+-->
+<div id="ov-device">
+    <onos-loading [theme]="'light'" [running]="loadingIconShown"></onos-loading>
+    <div class="tabular-header">
+        <h2>Devices ({{ tableData.length }} total)</h2>
+        <div class="ctrl-btns">
+            <div class="refresh" (click)="toggleRefresh()">
+                <!-- See icon.theme.css for the defintions of the classes active and refresh-->
+                <onos-icon classes="{{ autoRefresh?'active refresh':'refresh' }}" iconId="refresh" iconSize="42" toolTip="{{ autoRefreshTip }}"></onos-icon>
+            </div>
+            <div class="separator"></div>
+
+            <!--<div>-->
+                <!--<onos-icon classes="{{ selId ? 'current-view':undefined }}" iconId="deviceTable" iconSize="42"></onos-icon>-->
+            <!--</div>-->
+
+            <!--<div (click)="navto('/flow')">-->
+                <!--<onos-icon classes="{{ selId ? 'active-rect' :undefined}}" iconId="flowTable" iconSize="42" toolTip="{{ flowTip }}"></onos-icon>-->
+            <!--</div>-->
+
+            <div (click)="navto('/roadm-gui/roadm-port-gui')">
+                <onos-icon classes="{{ selId ? 'active-rect' :undefined}}" iconId="portTable" iconSize="42" toolTip="{{ portTip }}"></onos-icon>
+            </div>
+
+        </div>
+        <div class="search">
+            <input id="searchinput" [(ngModel)]="tableDataFilter.queryStr" type="search" #search placeholder="Search" />
+            <select [(ngModel)]="tableDataFilter.queryBy">
+                <option value="" disabled>Search By</option>
+                <option value="$">All Fields</option>
+                <option value="id">Device-Id</option>
+                <option value="name">Name</option>
+                <option value="protocol">Protocol</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="summary-list" class="summary-list" onosTableResize>
+        <div class="table-header">
+            <table>
+                <tr>
+                    <td colId="available" class="table-icon"></td>
+                    <td colId="type" class="table-icon"></td>
+                    <td colId="name" (click)="onSort('name')">Friendly Name
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('name')"></onos-icon>
+                    </td>
+                    <td colId="id" (click)="onSort('id')">Device ID
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('id')"></onos-icon>
+                    </td>
+                    <td colId="master" [ngClass]="{width: '130px'}" (click)="onSort('master')">Master
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('master')"></onos-icon>
+                    </td>
+                    <td colId="ports" [ngClass]="{width: '70px'}" (click)="onSort('ports')">Ports
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('ports')"></onos-icon>
+                    </td>
+                    <td colId="vendor" (click)="onSort('vendor')">Vendor
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('vendor')"></onos-icon>
+                    </td>
+                    <td colId="hwVersion" (click)="onSort('hwVersion')">H/W Version
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('hwVersion')"></onos-icon>
+                    </td>
+                    <td colId="swVersion" (click)="onSort('swVersion')">S/W Version
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('swVersion')"></onos-icon>
+                    </td>
+                    <td colId="protocol" [ngClass]="{width: '100px'}" (click)="onSort('protocol')">Protocol
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('protocol')"></onos-icon>
+                    </td>
+                    <td colId="type" (click)="onSort('type')">Type
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('type')"></onos-icon>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="table-body">
+            <table>
+                <tr class="table-body" *ngIf="tableData.length === 0" class="no-data">
+                    <td colspan="9">{{ annots.noRowsMsg }}</td>
+                </tr>
+                <tr *ngFor="let dev of tableData | filter : tableDataFilter" (click)="selectCallback($event, dev)" [ngClass]="{selected: dev.id === selId, 'data-change': isChanged(dev.id)}">
+                    <td class="table-icon">
+                        <onos-icon classes="{{ dev._iconid_available}}" iconId={{dev._iconid_available}}></onos-icon>
+                    </td>
+                    <td class="table-icon">
+                        <onos-icon classes="{{dev._iconid_type? 'active-type':undefined}}" iconId="{{dev._iconid_type}}"></onos-icon>
+                    </td>
+                    <td>{{ dev.name }}</td>
+                    <td>{{ dev.id }}</td>
+                    <td>{{ dev.master }}</td>
+                    <td>{{ dev.ports }}</td>
+                    <td>{{ dev.vendor }}</td>
+                    <td>{{ dev.hwVersion }}</td>
+                    <td>{{ dev.swVersion }}</td>
+                    <td>{{ dev.protocol }}</td>
+                    <td>{{ dev.type }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <!--<onos-devicedetails class="floatpanels" id="{{ selId }}" (closeEvent)="deselectRow($event)"></onos-devicedetails>-->
+</div>
