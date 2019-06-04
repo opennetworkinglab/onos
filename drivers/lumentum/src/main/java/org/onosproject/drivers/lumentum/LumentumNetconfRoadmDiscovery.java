@@ -45,7 +45,6 @@ import org.onosproject.net.intent.OpticalPathIntent;
 import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
-import org.onosproject.netconf.NetconfDevice;
 
 import org.slf4j.Logger;
 
@@ -87,13 +86,17 @@ public class LumentumNetconfRoadmDiscovery
     private static final int MAX_DEM_PORT = 5220;
     private static final int DELTA_MUX_DEM_PORT = MIN_DEM_PORT - MIN_MUX_PORT;
 
+    private static final String MUX_PORT_NAME = "Mux Input";
+    private static final String DEMUX_PORT_NAME = "Demux Output";
+    private static final String LINE_PORT_NAME = "Optical Line";
+
     private final Logger log = getLogger(getClass());
 
     @Override
     public DeviceDescription discoverDeviceDetails() {
         SparseAnnotations annotations = DefaultAnnotations.builder().build();
 
-        log.info("Lumentum NETCONF - starting discoverDeviceDetails");
+        log.debug("Lumentum NETCONF - starting discoverDeviceDetails");
 
         // Some defaults values
         String vendor       = "Lumentum";
@@ -106,7 +109,6 @@ public class LumentumNetconfRoadmDiscovery
         DeviceId deviceId = handler().data().deviceId();
 
         NetconfSession session = getNetconfSession();
-
         if (session == null) {
             log.error("Lumentum NETCONF - session not found for {}", deviceId);
             return null;
@@ -119,7 +121,7 @@ public class LumentumNetconfRoadmDiscovery
 
         try {
             String reply = session.get(systemRequestBuilder.toString(), null);
-            log.info("Lumentum NETCONF - session.get reply {}", reply);
+            log.debug("Lumentum NETCONF - session.get reply {}", reply);
 
             XMLConfiguration xconf = (XMLConfiguration) XmlConfigParser.loadXmlString(reply);
 
@@ -136,7 +138,7 @@ public class LumentumNetconfRoadmDiscovery
 
         try {
             String reply = session.get(chassisRequestBuilder.toString(), null);
-            log.info("Lumentum NETCONF - session.get reply {}", reply);
+            log.debug("Lumentum NETCONF - session.get reply {}", reply);
 
             XMLConfiguration xconf = (XMLConfiguration) XmlConfigParser.loadXmlString(reply);
 
@@ -152,10 +154,11 @@ public class LumentumNetconfRoadmDiscovery
         }
 
         //Upon connection of a new devices all pre-configured connections are removed
-        //TODO: do not cancel and import already configured connections
+        //TODO consider a way to keep "external" FlowRules
         rpcRemoveAllConnections("1");
         rpcRemoveAllConnections("2");
 
+        log.info("Lumentum ROADM20 - discovered details:");
         log.info("TYPE      {}", Device.Type.ROADM);
         log.info("VENDOR    {}", vendor);
         log.info("HWVERSION {}", hwVersion);
@@ -170,7 +173,6 @@ public class LumentumNetconfRoadmDiscovery
 
     @Override
     public List<PortDescription> discoverPortDetails() {
-        String reply;
         DeviceId deviceId = handler().data().deviceId();
         DeviceService deviceService = checkNotNull(handler().get(DeviceService.class));
         Device device = deviceService.getDevice(deviceId);
@@ -182,7 +184,6 @@ public class LumentumNetconfRoadmDiscovery
         }
 
         NetconfSession session = getNetconfSession();
-
         if (session == null) {
             log.error("Lumentum NETCONF - session not found for {}", deviceId);
             return ImmutableList.of();
@@ -195,6 +196,7 @@ public class LumentumNetconfRoadmDiscovery
         requestBuilder.append("xmlns:loteeth=\"http://www.lumentum.com/lumentum-ote-port-ethernet\">");
         requestBuilder.append("</physical-ports>");
 
+        String reply;
         try {
             reply = session.get(requestBuilder.toString(), null);
         } catch (NetconfException e) {
@@ -259,9 +261,6 @@ public class LumentumNetconfRoadmDiscovery
                 log.error("Port Type not correctly loaded");
             }
 
-            //Store reverse port index in the annotations
-            Long reversePortId;
-
             /**
              * Setting the reverse port value for the unidirectional ports.
              *
@@ -272,11 +271,11 @@ public class LumentumNetconfRoadmDiscovery
              * Where port 520x is always the reverse of 410x.
              */
             if ((portNum.toLong() >= MIN_MUX_PORT) && (portNum.toLong() <= MAX_MUX_PORT)) {
-                reversePortId = portNum.toLong() + DELTA_MUX_DEM_PORT;
+                Long reversePortId = portNum.toLong() + DELTA_MUX_DEM_PORT;
                 annotations.set(OpticalPathIntent.REVERSE_PORT_ANNOTATION_KEY, reversePortId.toString());
             }
             if ((portNum.toLong() >= MIN_DEM_PORT) && (portNum.toLong() <= MAX_DEM_PORT)) {
-                reversePortId = portNum.toLong() - DELTA_MUX_DEM_PORT;
+                Long reversePortId = portNum.toLong() - DELTA_MUX_DEM_PORT;
                 annotations.set(OpticalPathIntent.REVERSE_PORT_ANNOTATION_KEY, reversePortId.toString());
             }
 
@@ -305,7 +304,13 @@ public class LumentumNetconfRoadmDiscovery
             log.debug("Lumentum NETCONF - retrieved port {},{},{},{},{}",
                     portNum, isEnabled, type, speed, annotations.build());
 
-            if (type == Port.Type.FIBER) {
+
+            if ((type == Port.Type.FIBER) &&
+                    ((annotations.build().value(AnnotationKeys.PORT_NAME)).contains(MUX_PORT_NAME) ||
+                            (annotations.build().value(AnnotationKeys.PORT_NAME)).contains(DEMUX_PORT_NAME) ||
+                            (annotations.build().value(AnnotationKeys.PORT_NAME)).contains(LINE_PORT_NAME))) {
+
+                //These are the ports supporting OchSignals
                 portDescriptions.add(omsPortDescription(portNum,
                         isEnabled,
                         START_CENTER_FREQ_50,
@@ -313,6 +318,7 @@ public class LumentumNetconfRoadmDiscovery
                         CHANNEL_SPACING_50.frequency(),
                         annotations.build()));
             } else {
+                //These are COPPER ports, or FIBER ports not supporting OchSignals
                 DefaultPortDescription.Builder portDescriptionBuilder = DefaultPortDescription.builder();
                 portDescriptionBuilder.withPortNumber(portNum)
                         .isEnabled(isEnabled)
@@ -342,7 +348,6 @@ public class LumentumNetconfRoadmDiscovery
 
     private boolean editCrossConnect(String xcString) {
         NetconfSession session = getNetconfSession();
-
         if (session == null) {
             log.error("Lumentum NETCONF - session not found for {}", handler().data().deviceId());
             return false;
@@ -358,15 +363,19 @@ public class LumentumNetconfRoadmDiscovery
         }
     }
 
+    /**
+     * Helper method to get the Netconf session.
+     */
     private NetconfSession getNetconfSession() {
-        NetconfController controller = checkNotNull(handler().get(NetconfController.class));
-        NetconfDevice ncDevice = controller.getNetconfDevice(handler().data().deviceId());
+        NetconfController controller =
+                checkNotNull(handler().get(NetconfController.class));
+        return controller.getNetconfDevice(did()).getSession();
+    }
 
-        if (ncDevice == null) {
-            log.error("Lumentum NETCONF - device not found for {}", handler().data().deviceId());
-            return null;
-        }
-
-        return ncDevice.getSession();
+    /**
+     * Helper method to get the device id.
+     */
+    private DeviceId did() {
+        return data().deviceId();
     }
 }

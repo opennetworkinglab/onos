@@ -593,11 +593,12 @@ public class RoadmManager implements RoadmService {
     }
 
     // Delay the call to setTargetPower because the flow may not be in the store yet
+    // Tested with Lumentum ROADM-20 1 seconds was not enough, increased to 5 seconds
     private void delayedSetAttenuation(DeviceId deviceId, PortNumber outPort,
                                        OchSignal ochSignal, long attenuation) {
         Runnable setAtt = () -> {
             try {
-                TimeUnit.SECONDS.sleep(1);
+                TimeUnit.SECONDS.sleep(5);
             } catch (InterruptedException e) {
                 log.warn("Thread interrupted. Setting attenuation early.");
                 Thread.currentThread().interrupt();

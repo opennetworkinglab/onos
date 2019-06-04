@@ -5,6 +5,7 @@ COMPILE_DEPS = CORE_DEPS + [
     "//protocols/tl1/api:onos-protocols-tl1-api",
     "//protocols/netconf/api:onos-protocols-netconf-api",
     "//apps/optical-model:onos-apps-optical-model",
+    "//drivers/odtn-driver:onos-drivers-odtn-driver",
     "//drivers/optical:onos-drivers-optical",
 ]
 
@@ -31,6 +32,8 @@ onos_app(
         "org.onosproject.optical-model",
         "org.onosproject.tl1",
         "org.onosproject.netconf",
+        "org.onosproject.drivers.odtn-driver",
+        "org.onosproject.drivers.netconf",
         "org.onosproject.drivers.optical",
     ],
     title = "Lumentum Drivers",

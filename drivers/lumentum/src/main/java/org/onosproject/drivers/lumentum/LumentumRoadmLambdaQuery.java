@@ -17,17 +17,19 @@ package org.onosproject.drivers.lumentum;
 
 import org.onlab.util.Frequency;
 import org.onlab.util.Spectrum;
-import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.GridType;
+import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.OchSignal;
+import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.LambdaQuery;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.IntStream;
 import java.util.stream.Collectors;
-import com.google.common.collect.Sets;
 
 /**
  * Implementation of lambda query interface for Lumentum ROADMs.
@@ -53,19 +55,23 @@ public class LumentumRoadmLambdaQuery extends AbstractHandlerBehaviour implement
     private static final int LAMBDA_COUNT_100 = 48;
 
     @Override
-    public Set<OchSignal> queryLambdas(PortNumber port) {
+    public Set<OchSignal> queryLambdas(PortNumber portNumber) {
+        DeviceService deviceService = this.handler().get(DeviceService.class);
+        Port port = deviceService.getPort(data().deviceId(), portNumber);
 
-        //Complete set of 50GHz OchSignal
-        int startMultiplier50 = (int) (START_CENTER_FREQ_50.subtract(Spectrum.CENTER_FREQUENCY).asHz()
-                / Frequency.ofGHz(50).asHz());
+        if (port.type() == Port.Type.FIBER) {
 
-        Set<OchSignal> channels50 = IntStream.range(0, LAMBDA_COUNT_50)
-                .mapToObj(x -> new OchSignal(GRID_TYPE, CHANNEL_SPACING_50,
-                        startMultiplier50 + x,
-                        4))
-                .collect(Collectors.toSet());
+            //Complete set of 50GHz OchSignal
+            int startMultiplier50 = (int) (START_CENTER_FREQ_50.subtract(Spectrum.CENTER_FREQUENCY).asHz()
+                    / Frequency.ofGHz(50).asHz());
 
-        //Complete set of 100GHz OchSignal
+            Set<OchSignal> channels50 = IntStream.range(0, LAMBDA_COUNT_50)
+                    .mapToObj(x -> new OchSignal(GRID_TYPE, CHANNEL_SPACING_50,
+                            startMultiplier50 + x,
+                            4))
+                    .collect(Collectors.toSet());
+
+        /*//Complete set of 100GHz OchSignal
         int startMultiplier100 = (int) (START_CENTER_FREQ_100.subtract(Spectrum.CENTER_FREQUENCY).asHz()
                 / Frequency.ofGHz(100).asHz());
 
@@ -74,9 +80,12 @@ public class LumentumRoadmLambdaQuery extends AbstractHandlerBehaviour implement
                         CHANNEL_SPACING_100, startMultiplier100 + x, 8))
                 .collect(Collectors.toSet());
 
-        Set<OchSignal> channels = Sets.union(channels50, channels100);
+        Set<OchSignal> channels = Sets.union(channels50, channels100);*/
 
-        return channels;
+            return channels50;
+        } else {
+            return Collections.emptySet();
+        }
     }
 }
 

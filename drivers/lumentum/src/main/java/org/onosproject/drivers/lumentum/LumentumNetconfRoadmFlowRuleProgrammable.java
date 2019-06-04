@@ -21,27 +21,23 @@ import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.util.Frequency;
 import org.onlab.util.Spectrum;
-import org.onosproject.driver.optical.flowrule.CrossConnectCache;
+import org.onosproject.drivers.odtn.impl.DeviceConnectionCache;
 import org.onosproject.drivers.utilities.XmlConfigParser;
-import org.onosproject.net.ChannelSpacing;
-import org.onosproject.net.GridType;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.OchSignalType;
-import org.onosproject.net.PortNumber;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.ChannelSpacing;
+import org.onosproject.net.GridType;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.DefaultFlowEntry;
-import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
-import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowEntry;
-import org.onosproject.net.flow.FlowId;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleProgrammable;
 import org.onosproject.net.flow.TrafficSelector;
-import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criteria;
-import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
@@ -49,12 +45,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
-import java.util.stream.Collectors;
 import java.util.Collection;
-import java.util.Objects;
-import java.util.Set;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -91,14 +86,7 @@ public class LumentumNetconfRoadmFlowRuleProgrammable extends AbstractHandlerBeh
     protected static final long MUX_OUT = 4201;
     protected static final long DEMUX_IN = 5101;
     protected static final long GHZ = 1_000_000_000L;
-    protected static final int MAX_CONNECTIONS = 100;
-
-    //List of LumentumConnections to associate ConnectionId and other info to the relative hash
-
-    //This is required because CrossConnect, CrossConnect Cache do not include all parameters required by Lumentum
-    //TODO: Use an external cache as CrossConnectCache to avoid problems in case of multiple devices using this driver
-
-    protected static final Set<LumentumConnection> CONNECTION_SET = new HashSet<>();
+    protected static final int LUMENTUM_ROADM20_MAX_CONNECTIONS = 100;
 
     /**Get the flow entries that are present on the Lumentum device, called by FlowRuleDriverProvider.
      *
@@ -109,13 +97,15 @@ public class LumentumNetconfRoadmFlowRuleProgrammable extends AbstractHandlerBeh
      */
     @Override
     public Collection<FlowEntry> getFlowEntries() {
-        return ImmutableList.copyOf(
-                fetchConnectionsFromDevice().stream()
-                        .map(conn -> buildFlowrule(conn))
-                        .filter(Objects::nonNull)
-                        .map(fr -> new DefaultFlowEntry(
-                                fr, FlowEntry.FlowEntryState.ADDED, 0, 0, 0))
-                        .collect(Collectors.toList()));
+        Collection<FlowEntry> fetched = fetchConnectionsFromDevice().stream()
+                .map(conn -> buildFlowrule(conn))
+                .map(fr -> new DefaultFlowEntry(fr, FlowEntry.FlowEntryState.ADDED, 0, 0, 0))
+                .collect(Collectors.toList());
+
+        //Print out number of rules actually found on the device that are also included in the cache
+        log.debug("Device {} getFlowEntries fetched connections {}", did(), fetched.size());
+
+        return fetched;
     }
 
     /**Apply the flow entries specified in the collection rules.
@@ -125,40 +115,54 @@ public class LumentumNetconfRoadmFlowRuleProgrammable extends AbstractHandlerBeh
      */
     @Override
     public Collection<FlowRule> applyFlowRules(Collection<FlowRule> rules) {
-        // Apply the  rules on the device
-        Collection<FlowRule> added = rules.stream()
-                .map(r -> new LumentumFlowRule(r, getLinePorts()))
-                .filter(xc -> rpcAddConnection(xc))
-                .collect(Collectors.toList());
+        //Check NETCONF session
+        NetconfSession session = getNetconfSession();
+        if (session == null) {
+            log.error("Device {} null session", did());
+            return ImmutableList.of();
+        }
 
-        // Cache the cookie/priority
-        CrossConnectCache cache = this.handler().get(CrossConnectCache.class);
-        added.forEach(xc -> cache.set(
-                Objects.hash(data().deviceId(), xc.selector()),
-                xc.id(),
-                xc.priority()));
+        // Apply the  rules on the device and add to cache if success
+        Collection<FlowRule> added = new ArrayList<>();
+        for (FlowRule flowRule : rules) {
+            LumentumFlowRule lumFlowRule = new LumentumFlowRule(flowRule, getLinePorts());
 
-        added.forEach(xc -> log.debug("Lumentum build cached FlowRule selector {} treatment {}",
-                xc.selector().toString(), xc.treatment().toString()));
+            if (rpcAddConnection(lumFlowRule)) {
+                added.add(lumFlowRule);
+                getConnectionCache().add(did(), lumFlowRule.getConnectionName(), lumFlowRule);
+            }
+        }
+
+        //Print out number of rules sent to the device (without receiving errors)
+        log.debug("Device {} applyFlowRules added {}", did(), added.size());
 
         return added;
     }
 
     @Override
     public Collection<FlowRule> removeFlowRules(Collection<FlowRule> rules) {
-        // Remove the valid rules from the device
-        Collection<FlowRule> removed = rules.stream()
-                .map(r -> new LumentumFlowRule(r, getLinePorts()))
-                .filter(xc -> rpcDeleteConnection(xc))
-                .collect(Collectors.toList());
+        NetconfSession session = getNetconfSession();
+        if (session == null) {
+            log.error("Device {} null session", did());
+            return ImmutableList.of();
+        }
 
-        // Remove flow rule from cache
-        CrossConnectCache cache = this.handler().get(CrossConnectCache.class);
-        removed.forEach(xc -> cache.remove(
-                Objects.hash(data().deviceId(), xc.selector())));
+        // Remove the rules from the device and from the cache
+        List<FlowRule> removed = new ArrayList<>();
+        for (FlowRule r : rules) {
+            try {
+                LumentumFlowRule flowRule = new LumentumFlowRule(r, getLinePorts());
+                rpcDeleteConnection(flowRule);
+                getConnectionCache().remove(did(), r);
+                removed.add(r);
+            } catch (Exception e) {
+                log.error("Device {} Error {}", did(), e);
+                continue;
+            }
+        }
 
-        removed.forEach(xc -> log.debug("Lumentum NETCONF - removed cached FlowRule selector {} treatment {}",
-                xc.selector(), xc.treatment()));
+        //Print out number of removed rules from the device (without receiving errors)
+        log.debug("Device {} removeFlowRules removed {}", did(), removed.size());
 
         return removed;
     }
@@ -184,7 +188,6 @@ public class LumentumNetconfRoadmFlowRuleProgrammable extends AbstractHandlerBeh
         requestBuilder.append("</connections>");
 
         NetconfSession session = getNetconfSession();
-
         if (session == null) {
             log.error("Lumentum NETCONF - session not found for {}", handler().data().deviceId());
             return ImmutableList.of();
@@ -192,7 +195,7 @@ public class LumentumNetconfRoadmFlowRuleProgrammable extends AbstractHandlerBeh
 
         try {
             reply = session.get(requestBuilder.toString(), null);
-            log.info("Lumentum NETCONF - fetchConnectionsFromDevice reply {}", reply);
+            log.debug("Lumentum NETCONF - fetchConnectionsFromDevice reply {}", reply);
         } catch (NetconfException e) {
             log.error("Failed to retrieve configuration details for device {}",
                       handler().data().deviceId(), e);
@@ -238,6 +241,15 @@ public class LumentumNetconfRoadmFlowRuleProgrammable extends AbstractHandlerBeh
 
         String dn = connection.getString(DN);
         Pair<Short, Short> pair = parseDn(dn);
+        short connId = pair.getRight();
+        short moduleId = pair.getLeft();
+
+        if (pair == null) {
+            log.error("Lumentum NETCONF - device {} error in retrieving DN field", did());
+            return null;
+        }
+
+        log.debug("Lumentum NETCONF - retrieved FlowRule module {} connection {}", moduleId, connId);
 
         HierarchicalConfiguration config = connection.configurationAt(CONFIG);
         double startFreq = config.getDouble(START_FREQ);
@@ -250,65 +262,44 @@ public class LumentumNetconfRoadmFlowRuleProgrammable extends AbstractHandlerBeh
         double inputPower = state.getDouble(CHANNEL_INPUT_POWER);
         double outputPower = state.getDouble(CHANNEL_OUTPUT_POWER);
 
-        if (pair == null) {
-            return null;
-        }
+        PortNumber portNumber = getPortNumber(moduleId, inputPortReference, outputPortReference);
 
-        PortNumber portNumber = getPortNumber(pair.getLeft(), inputPortReference, outputPortReference);
-
+        //If rule is on module 1 it means input port in the Flow rule is contained in portNumber.
+        //Otherwise the input port in the Flow rule must is the line port.
         TrafficSelector selector = DefaultTrafficSelector.builder()
-                .matchInPort(pair.getLeft() == 1 ? portNumber : LINE_PORT_NUMBER)
+                .matchInPort(moduleId == 1 ? portNumber : LINE_PORT_NUMBER)
                 .add(Criteria.matchOchSignalType(OchSignalType.FIXED_GRID))
                 .add(Criteria.matchLambda(toOchSignal(startFreq, endFreq)))
                 .build();
 
         log.debug("Lumentum NETCONF - retrieved FlowRule startFreq {} endFreq {}", startFreq, endFreq);
 
-        // Lookup flow ID and priority
-        int hash = Objects.hash(data().deviceId(), selector);
-        CrossConnectCache cache = this.handler().get(CrossConnectCache.class);
-        Pair<FlowId, Integer> lookup = cache.get(hash);
-
-        LumentumConnection conn = CONNECTION_SET.stream()
-                .filter(c -> hash == c.getHash())
-                .findFirst()
-                .orElse(null);
-
-        TrafficTreatment treatment;
-        if (conn.rule.type == LumentumFlowRule.Type.OPTICAL_CONNECTIVITY_INTENT_RULE) {
-            treatment = DefaultTrafficTreatment.builder()
-                    .add(Instructions.modL0Lambda(toOchSignal(startFreq, endFreq)))
-                    .setOutput(pair.getLeft() == 1 ? LINE_PORT_NUMBER : portNumber)
-                    .build();
-        } else { // This is ROADM_APP_RULE
-            treatment = DefaultTrafficTreatment.builder()
-                    .setOutput(pair.getLeft() == 1 ? LINE_PORT_NUMBER : portNumber)
-                    .build();
+        //Lookup of connection
+        //Retrieved rules, cached rules are considered equal if the selector is equal
+        FlowRule cacheRule = null;
+        if (getConnectionCache().size(did()) != 0) {
+            cacheRule = getConnectionCache().get(did()).stream()
+                    .filter(r -> (r.selector().equals(selector)))
+                    .findFirst()
+                    .orElse(null);
         }
 
-        //If the flow entry is not in the cache: return null/publish the flow rule
-        if ((lookup == null) || (conn == null)) {
-           log.error("Lumentum NETCONF connection not in connectionSet {}", pair.getRight());
-           rpcDeleteUnwantedConnection(pair.getRight().toString());
-           return null;
+
+        if (cacheRule == null) {
+            //TODO consider a way to keep "external" FlowRules
+            log.error("Lumentum NETCONF connection not in the cache {}", pair.getRight());
+            rpcDeleteExternalConnection(moduleId, connId);
+            return null;
         } else {
-            log.debug("Lumentum NETCONF attenuation and parameters set {} for connection id {}",
-                    attenuation,
-                    conn.getConnectionId());
+            //Update monitored values
+            log.debug("Attenuation retrieved {} dB for connection {}",
+                    attenuation, ((LumentumFlowRule) cacheRule).getConnectionId());
+            ((LumentumFlowRule) cacheRule).setAttenuation(attenuation);
+            ((LumentumFlowRule) cacheRule).setInputPower(inputPower);
+            ((LumentumFlowRule) cacheRule).setOutputPower(outputPower);
 
-            conn.setAttenuation(attenuation);
-            conn.setInputPower(inputPower);
-            conn.setOutputPower(outputPower);
+            return cacheRule;
         }
-
-        return DefaultFlowRule.builder()
-                .forDevice(data().deviceId())
-                .makePermanent()
-                .withSelector(selector)
-                .withTreatment(treatment)
-                .withPriority(lookup.getRight())
-                .withCookie(lookup.getLeft().value())
-                .build();
     }
 
     /**
@@ -339,44 +330,13 @@ public class LumentumNetconfRoadmFlowRuleProgrammable extends AbstractHandlerBeh
      */
     private Pair<Short, Short> setModuleConnection(LumentumFlowRule xc, Integer id) {
         if (xc.isAddRule()) {
+            xc.setConnectionModule((short) 1);
+            xc.setConnectionId(id.shortValue());
             return Pair.of((short) 1, id.shortValue());
         } else {
+            xc.setConnectionModule((short) 2);
+            xc.setConnectionId(id.shortValue());
             return Pair.of((short) 2, id.shortValue());
-        }
-    }
-
-    /**
-     * Retrieve module and connection from the cache.
-     *
-     * Connection number is incremental within the class and associated to the rule hash.
-     *
-     * @param xc the cross connect flow
-     * @return pair of module (1 for MUX/ADD, 2 for DEMUX/DROP) and connection number
-     */
-    private Pair<Short, Short> retrieveModuleConnection(LumentumFlowRule xc) {
-
-        int hash = Objects.hash(data().deviceId(), xc.selector());
-
-        LumentumConnection retrievedConnection = CONNECTION_SET.stream()
-                .filter(conn -> conn.getHash() == hash)
-                .findFirst()
-                .orElse(null);
-
-        if (retrievedConnection == null) {
-            log.error("Lumentum connection not found");
-            return null;
-        }
-
-        //Remove connection id from the local cache
-        CONNECTION_SET.remove(retrievedConnection);
-
-        log.debug("Lumentum NETCONF - retrieveModuleConnection {} retrievedConnectionId {} port {}",
-                xc.isAddRule(), retrievedConnection.getConnectionId(), xc.addDrop());
-
-        if (xc.isAddRule()) {
-            return Pair.of((short) 1, retrievedConnection.getConnectionId().shortValue());
-        } else {
-            return Pair.of((short) 2, retrievedConnection.getConnectionId().shortValue());
         }
     }
 
@@ -389,11 +349,6 @@ public class LumentumNetconfRoadmFlowRuleProgrammable extends AbstractHandlerBeh
             log.error("Lumentum driver - 100 connections are already configured on the device");
             return false;
         }
-
-        LumentumConnection connection = new LumentumConnection(currentConnectionId,
-                Objects.hash(data().deviceId(), xc.selector()), xc);
-
-        CONNECTION_SET.add(connection);
 
         Pair<Short, Short> pair = setModuleConnection(xc, currentConnectionId);
         String module = pair.getLeft().toString();
@@ -431,7 +386,8 @@ public class LumentumNetconfRoadmFlowRuleProgrammable extends AbstractHandlerBeh
         stringBuilder.append("</add-connection>" + "\n");
         stringBuilder.append("</rpc>" + "\n");
 
-        log.info("Lumentum NETCONF - RPC add-connection {}", stringBuilder);
+        log.info("Lumentum ROADM20 - RPC add-connection sent to device {}", did());
+        log.debug("Lumentum ROADM20 - RPC add-connection sent to device {} {}", did(), stringBuilder);
 
         return editCrossConnect(stringBuilder.toString());
     }
@@ -467,48 +423,59 @@ public class LumentumNetconfRoadmFlowRuleProgrammable extends AbstractHandlerBeh
         stringBuilder.append("</edit-config>" + "\n");
         stringBuilder.append("</rpc>" + "\n");
 
-        log.info("Lumentum {} - edit-connection {}", data().deviceId(), stringBuilder);
+        log.info("Lumentum ROADM20 - edit-connection sent to device {}", did());
+        log.debug("Lumentum ROADM20 - edit-connection sent to device {} {}", did(), stringBuilder);
 
         return editCrossConnect(stringBuilder.toString());
     }
 
     //Following Lumentum documentation rpc operation to delete a new connection
     private boolean rpcDeleteConnection(LumentumFlowRule xc) {
-        Pair<Short, Short> pair = retrieveModuleConnection(xc);
 
-        if (pair == null) {
+        //Look for corresponding rule into the cache
+        FlowRule cacheRule = getConnectionCache().get(did()).stream()
+                .filter(r -> (r.selector().equals(xc.selector()) && r.treatment().equals(xc.treatment())))
+                .findFirst()
+                .orElse(null);
+
+        if (cacheRule == null) {
             log.error("Lumentum RPC delete-connection, connection not found on the local cache");
             throw new IllegalStateException("Lumentum RPC delete-connection, connection not found on the local cache");
         }
 
-        String module = pair.getLeft().toString();
-        String connection = pair.getRight().toString();
+
+        int moduleId = ((LumentumFlowRule) cacheRule).getConnectionModule();
+        int connId = ((LumentumFlowRule) cacheRule).getConnectionId();
+
 
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">" + "\n");
         stringBuilder.append("<delete-connection xmlns=\"http://www.lumentum.com/lumentum-ote-connection\">" + "\n");
         stringBuilder.append(
-                "<dn>ne=1;chassis=1;card=1;module=" + module + ";connection=" + connection + "</dn>" + "\n");
+                "<dn>ne=1;chassis=1;card=1;module=" + moduleId + ";connection=" + connId + "</dn>" + "\n");
         stringBuilder.append("</delete-connection>" + "\n");
         stringBuilder.append("</rpc>" + " \n");
 
-        log.info("Lumentum RPC delete-connection {}", stringBuilder);
+        log.info("Lumentum ROADM20 - RPC delete-connection sent to device {}", did());
+        log.debug("Lumentum ROADM20 - - RPC delete-connection sent to device {} {}", did(), stringBuilder);
 
         return editCrossConnect(stringBuilder.toString());
     }
 
     //Following Lumentum documentation rpc operation to delete a new connection
     //Executed if for some reason a connection not in the cache is detected
-    private boolean rpcDeleteUnwantedConnection(String connectionId) {
+    private boolean rpcDeleteExternalConnection(short moduleId, short connectionId) {
 
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">" + "\n");
         stringBuilder.append("<delete-connection xmlns=\"http://www.lumentum.com/lumentum-ote-connection\">" + "\n");
-        stringBuilder.append("<dn>ne=1;chassis=1;card=1;module=1;connection=" + connectionId + "</dn>" + "\n");
+        stringBuilder.append("<dn>ne=1;chassis=1;card=1;module="
+                + moduleId + ";connection=" + connectionId + "</dn>" + "\n");
         stringBuilder.append("</delete-connection>" + "\n");
         stringBuilder.append("</rpc>" + "\n");
 
-        log.info("Lumentum {} - RPC delete-connection unwanted {}", data().deviceId(), stringBuilder);
+        log.info("Lumentum ROADM20 - RPC delete-external-connection sent to device {}", did());
+        log.debug("Lumentum ROADM20 - - RPC delete-external-connection sent to device {} {}", did(), stringBuilder);
 
         return editCrossConnect(stringBuilder.toString());
     }
@@ -516,7 +483,6 @@ public class LumentumNetconfRoadmFlowRuleProgrammable extends AbstractHandlerBeh
 
     private boolean editCrossConnect(String xcString) {
         NetconfSession session = getNetconfSession();
-
         if (session == null) {
             log.error("Lumentum NETCONF - session not found for device {}", handler().data().deviceId());
             return false;
@@ -532,20 +498,7 @@ public class LumentumNetconfRoadmFlowRuleProgrammable extends AbstractHandlerBeh
         }
     }
 
-    private NetconfSession getNetconfSession() {
-        NetconfController controller = checkNotNull(handler().get(NetconfController.class));
-
-        try {
-            NetconfSession session = checkNotNull(
-                    controller.getNetconfDevice(handler().data().deviceId()).getSession());
-            return session;
-        } catch (NullPointerException e) {
-            log.error("Lumentum NETCONF - session not found for {}", handler().data().deviceId());
-            return null;
-        }
-    }
-
-     /**
+    /**
      * Convert start and end frequencies to OCh signal.
      *
      * FIXME: assumes slots of 12.5 GHz while devices allows granularity 6.25 GHz
@@ -585,18 +538,43 @@ public class LumentumNetconfRoadmFlowRuleProgrammable extends AbstractHandlerBeh
      *
      * Device only supports connection id < 100
      */
-    private static Integer generateConnectionId() {
+    private int generateConnectionId() {
+        //LUMENTUM_ROADM20_MAX_CONNECTIONS =  100, device only supports connection id < 100
+        for (int i = 1; i < LUMENTUM_ROADM20_MAX_CONNECTIONS; i++) {
+            Set<FlowRule> rulesForDevice = getConnectionCache().get(did());
 
-        //Device only supports connection id < 100
-        for (int i = 1; i < MAX_CONNECTIONS; i++) {
-            Set<Integer> connIds = CONNECTION_SET.stream()
-                    .map(conn -> conn.getConnectionId())
-                    .collect(Collectors.toSet());
+            if (rulesForDevice == null) {
+                return 1;
+            } else {
+                Set<Integer> connIds = rulesForDevice.stream()
+                        .map(flow -> ((LumentumFlowRule) flow).getConnectionId())
+                        .collect(Collectors.toSet());
 
-            if (!connIds.contains(i)) {
-                return i;
+                if (!connIds.contains(i)) {
+                    return i;
+                }
             }
         }
         return 0;
+    }
+
+    private DeviceConnectionCache getConnectionCache() {
+        return DeviceConnectionCache.init();
+    }
+
+    /**
+     * Helper method to get the device id.
+     */
+    private DeviceId did() {
+        return data().deviceId();
+    }
+
+    /**
+     * Helper method to get the Netconf session.
+     */
+    private NetconfSession getNetconfSession() {
+        NetconfController controller =
+                checkNotNull(handler().get(NetconfController.class));
+        return controller.getNetconfDevice(did()).getSession();
     }
 }
