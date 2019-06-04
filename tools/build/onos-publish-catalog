@@ -67,7 +67,6 @@ VERSION=$(egrep ONOS_VERSION tools/build/bazel/variables.bzl | cut -d\" -f2)
 # Inject the onos-dependencies pom, ONOS tar, admin tar and test tar.
 echo "Cataloging tar files..."
 cat >> $CATALOG <<EOF
-lib/pom.xml	org/onosproject/onos-dependencies/$VERSION/onos-dependencies-$VERSION.pom
 bazel-bin/onos.tar.gz	org/onosproject/onos-releases/$VERSION/onos-$VERSION.tar.gz
 bazel-bin/onos-admin.tar.gz	org/onosproject/onos-releases/$VERSION/onos-admin-$VERSION.tar.gz
 bazel-bin/onos-test.tar.gz	org/onosproject/onos-releases/$VERSION/onos-test-$VERSION.tar.gz
