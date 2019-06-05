@@ -100,6 +100,7 @@ import static org.slf4j.LoggerFactory.getLogger;
                 PROP_PROBE_RATE + ":Integer=" + PROBE_RATE_DEFAULT,
                 PROP_STALE_LINK_AGE + ":Integer=" + STALE_LINK_AGE_DEFAULT,
                 PROP_DISCOVERY_DELAY + ":Integer=" + DISCOVERY_DELAY_DEFAULT,
+                PROP_USE_STALE_LINK_AGE + ":Boolean=" + USE_STALE_LINK_AGE_DEFAULT,
         })
 public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProvider {
 
@@ -107,7 +108,7 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
 
     private static final String FORMAT =
             "Settings: enabled={}, useBDDP={}, probeRate={}, " +
-                    "staleLinkAge={}, maxLLDPage={}";
+                    "staleLinkAge={}, maxLLDPage={}, useStaleLinkAge={}";
 
     // When a Device/Port has this annotation, do not send out LLDP/BDDP
     public static final String NO_LLDP = "no-lldp";
@@ -169,6 +170,9 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
 
     /** Number of millis beyond which an LLDP packet will not be accepted. */
     private int maxDiscoveryDelayMs = DISCOVERY_DELAY_DEFAULT;
+
+    /** If false, StaleLinkAge capability is disabled. */
+    private boolean useStaleLinkAge = USE_STALE_LINK_AGE_DEFAULT;
 
     private final LinkDiscoveryContext context = new InternalDiscoveryContext();
     private final InternalRoleListener roleListener = new InternalRoleListener();
@@ -294,7 +298,7 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
     public void modified(ComponentContext context) {
         Dictionary<?, ?> properties = context != null ? context.getProperties() : new Properties();
 
-        boolean newEnabled, newUseBddp;
+        boolean newEnabled, newUseBddp, newUseStaleLinkAge;
         int newProbeRate, newStaleLinkAge, newDiscoveryDelay;
         try {
             String s = get(properties, PROP_ENABLED);
@@ -312,6 +316,9 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
             s = get(properties, PROP_DISCOVERY_DELAY);
             newDiscoveryDelay = isNullOrEmpty(s) ? maxDiscoveryDelayMs : Integer.parseInt(s.trim());
 
+            s = get(properties, PROP_USE_STALE_LINK_AGE);
+            newUseStaleLinkAge = isNullOrEmpty(s) || Boolean.parseBoolean(s.trim());
+
         } catch (NumberFormatException e) {
             log.warn("Component configuration had invalid values", e);
             newEnabled = enabled;
@@ -319,6 +326,7 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
             newProbeRate = probeRate;
             newStaleLinkAge = staleLinkAge;
             newDiscoveryDelay = maxDiscoveryDelayMs;
+            newUseStaleLinkAge = useStaleLinkAge;
         }
 
         boolean wasEnabled = enabled;
@@ -328,6 +336,7 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
         probeRate = newProbeRate;
         staleLinkAge = newStaleLinkAge;
         maxDiscoveryDelayMs = newDiscoveryDelay;
+        useStaleLinkAge = newUseStaleLinkAge;
 
         if (!wasEnabled && enabled) {
             enable();
@@ -340,7 +349,7 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
             }
         }
 
-        log.info(FORMAT, enabled, useBddp, probeRate, staleLinkAge, maxDiscoveryDelayMs);
+        log.info(FORMAT, enabled, useBddp, probeRate, staleLinkAge, maxDiscoveryDelayMs, useStaleLinkAge);
     }
 
     /**
@@ -730,10 +739,16 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
                         return true;
                     }
                     if (isStale(e.getValue())) {
-                        providerService.linkVanished(new DefaultLinkDescription(e.getKey().src(),
+                        if (useStaleLinkAge) {
+                            providerService.linkVanished(new DefaultLinkDescription(e.getKey().src(),
+
                                                                                 e.getKey().dst(),
                                                                                 DIRECT));
-                        return true;
+                            return true;
+                        }
+                        log.warn("VanishStaleLinkAge feature is disabled, " +
+                                "not bringing down link src {} dst {} with expired StaleLinkAge",
+                                e.getKey().src(), e.getKey().dst());
                     }
                     return false;
                 }).clear();

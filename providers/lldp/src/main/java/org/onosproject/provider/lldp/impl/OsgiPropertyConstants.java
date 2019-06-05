@@ -38,4 +38,7 @@ public final class OsgiPropertyConstants {
     public static final String PROP_DISCOVERY_DELAY = "maxDiscoveryDelayMs";
     public static final int DISCOVERY_DELAY_DEFAULT = 1000;
 
+    public static final String PROP_USE_STALE_LINK_AGE = "useStaleLinkAge";
+    public static final boolean USE_STALE_LINK_AGE_DEFAULT = true;
+
 }
