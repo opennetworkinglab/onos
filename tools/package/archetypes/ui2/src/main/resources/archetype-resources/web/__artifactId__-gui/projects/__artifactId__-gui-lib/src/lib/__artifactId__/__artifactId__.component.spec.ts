@@ -22,6 +22,7 @@ import {CommonModule} from '@angular/common';
 import { of } from 'rxjs';
 import { } from 'jasmine';
 import {
+    Gui2FwLibModule,
     FnService,
     IconService,
     IconComponent,
@@ -69,7 +70,13 @@ describe('${appNameTitle}Component', () => {
         fs = new FnService(ar, logSpy, windowMock);
 
         TestBed.configureTestingModule({
-            imports: [BrowserAnimationsModule, CommonModule, FormsModule, RouterTestingModule],
+            imports: [
+                BrowserAnimationsModule,
+                CommonModule,
+                FormsModule,
+                RouterTestingModule,
+                Gui2FwLibModule
+            ],
             declarations: [
                 ${appNameTitle}Component,
                 WelcomeComponent

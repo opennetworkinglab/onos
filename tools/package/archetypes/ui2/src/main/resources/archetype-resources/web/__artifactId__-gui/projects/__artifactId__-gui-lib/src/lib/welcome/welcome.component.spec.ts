@@ -20,6 +20,7 @@ import {ActivatedRoute, Params} from '@angular/router';
 import { of } from 'rxjs';
 import { } from 'jasmine';
 import {
+    Gui2FwLibModule,
     FnService,
     IconService,
     IconComponent,
@@ -67,7 +68,12 @@ describe('WelcomeComponent', () => {
         fs = new FnService(ar, logSpy, windowMock);
 
         TestBed.configureTestingModule({
-            imports: [BrowserAnimationsModule, FormsModule, RouterTestingModule],
+            imports: [
+                BrowserAnimationsModule,
+                FormsModule,
+                RouterTestingModule,
+                Gui2FwLibModule
+            ],
             declarations: [ WelcomeComponent ],
             providers: [
                 { provide: FnService, useValue: fs },
