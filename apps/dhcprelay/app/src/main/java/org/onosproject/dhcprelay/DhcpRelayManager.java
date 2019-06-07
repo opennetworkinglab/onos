@@ -71,6 +71,7 @@ import org.onosproject.dhcprelay.store.DhcpFpmPrefixStore;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.routing.fpm.api.FpmRecord;
 import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.device.DeviceEvent;
@@ -126,7 +127,7 @@ public class DhcpRelayManager implements DhcpRelayService {
             .build();
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final InternalConfigListener cfgListener = new InternalConfigListener();
-    protected CopyOnWriteArraySet hostAutoRelearnEnabledDevices = new CopyOnWriteArraySet();
+    private CopyOnWriteArraySet<DeviceId> hostAutoRelearnEnabledDevices = new CopyOnWriteArraySet<DeviceId>();
 
     private final Set<ConfigFactory> factories = ImmutableSet.of(
             new ConfigFactory<ApplicationId, DefaultDhcpRelayConfig>(APP_SUBJECT_FACTORY,
@@ -779,6 +780,7 @@ public class DhcpRelayManager implements DhcpRelayService {
                     .findFirst().orElse(null);
             if (senderInterface == null) {
                 log.warn("Cannot get sender interface for from packet, abort... vlan {}", vlanId.toString());
+                return;
             }
             MacAddress senderMacAddress = senderInterface.mac();
             byte[] senderIpAddress = IPv6.getLinkLocalAddress(senderMacAddress.toBytes());
