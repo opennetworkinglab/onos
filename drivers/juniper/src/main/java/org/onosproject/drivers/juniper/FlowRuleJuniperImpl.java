@@ -27,7 +27,6 @@ import org.onosproject.net.Link;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.FlowRuleProgrammable;
@@ -38,7 +37,6 @@ import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.netconf.DatastoreId;
-import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
 
@@ -77,7 +75,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * to find the next hop IP address.
  */
 @Beta
-public class FlowRuleJuniperImpl extends AbstractHandlerBehaviour
+public class FlowRuleJuniperImpl extends JuniperAbstractHandlerBehaviour
         implements FlowRuleProgrammable {
 
     private static final String OK = "<ok/>";
@@ -87,10 +85,8 @@ public class FlowRuleJuniperImpl extends AbstractHandlerBehaviour
     public Collection<FlowEntry> getFlowEntries() {
 
         DeviceId devId = checkNotNull(this.data().deviceId());
-        NetconfController controller = checkNotNull(handler().get(NetconfController.class));
-        NetconfSession session = controller.getDevicesMap().get(devId).getSession();
+        NetconfSession session = lookupNetconfSession(devId);
         if (session == null) {
-            log.warn("Device {} is not registered in netconf", devId);
             return Collections.emptyList();
         }
 
@@ -176,10 +172,7 @@ public class FlowRuleJuniperImpl extends AbstractHandlerBehaviour
         DeviceId deviceId = this.data().deviceId();
 
         log.debug("{} flow entries to NETCONF device {}", type, deviceId);
-        NetconfController controller = checkNotNull(handler()
-                .get(NetconfController.class));
-        NetconfSession session = controller.getDevicesMap().get(deviceId)
-                .getSession();
+        NetconfSession session = lookupNetconfSession(deviceId);
         Collection<FlowRule> managedRules = new HashSet<>();
 
         for (FlowRule flowRule : rules) {
@@ -324,10 +317,7 @@ public class FlowRuleJuniperImpl extends AbstractHandlerBehaviour
     }
 
     private boolean commit() {
-        NetconfController controller = checkNotNull(handler()
-                .get(NetconfController.class));
-        NetconfSession session = controller.getDevicesMap()
-                .get(handler().data().deviceId()).getSession();
+        NetconfSession session = lookupNetconfSession(handler().data().deviceId());
 
         String replay;
         try {
@@ -341,10 +331,7 @@ public class FlowRuleJuniperImpl extends AbstractHandlerBehaviour
     }
 
     private boolean rollback() {
-        NetconfController controller = checkNotNull(handler()
-                .get(NetconfController.class));
-        NetconfSession session = controller.getDevicesMap()
-                .get(handler().data().deviceId()).getSession();
+        NetconfSession session = lookupNetconfSession(handler().data().deviceId());
 
         String replay;
         try {

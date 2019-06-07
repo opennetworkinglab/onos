@@ -25,9 +25,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.behaviour.LinkDiscovery;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.onosproject.net.link.LinkDescription;
-import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
 import org.slf4j.Logger;
@@ -36,7 +34,6 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.drivers.juniper.JuniperUtils.LinkAbstraction;
 import static org.onosproject.drivers.juniper.JuniperUtils.parseJuniperLldp;
 import static org.onosproject.drivers.juniper.JuniperUtils.requestBuilder;
@@ -51,7 +48,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Tested with MX240 junos 14.2
  */
 @Beta
-public class LinkDiscoveryJuniperImpl extends AbstractHandlerBehaviour
+public class LinkDiscoveryJuniperImpl extends JuniperAbstractHandlerBehaviour
         implements LinkDiscovery {
 
     private final Logger log = getLogger(getClass());
@@ -59,10 +56,7 @@ public class LinkDiscoveryJuniperImpl extends AbstractHandlerBehaviour
     @Override
     public Set<LinkDescription> getLinks() {
         DeviceId localDeviceId = this.handler().data().deviceId();
-        NetconfController controller =
-                checkNotNull(handler().get(NetconfController.class));
-        NetconfSession session =
-                controller.getDevicesMap().get(localDeviceId).getSession();
+        NetconfSession session = lookupNetconfSession(localDeviceId);
 
         String reply;
         try {

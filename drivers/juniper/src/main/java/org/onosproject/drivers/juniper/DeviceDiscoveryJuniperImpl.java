@@ -23,15 +23,12 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceDescriptionDiscovery;
 import org.onosproject.net.device.PortDescription;
-import org.onosproject.net.driver.AbstractHandlerBehaviour;
-import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
 import org.slf4j.Logger;
 
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.drivers.juniper.JuniperUtils.REQ_IF_INFO;
 import static org.onosproject.drivers.juniper.JuniperUtils.REQ_MAC_ADD_INFO;
 import static org.onosproject.drivers.juniper.JuniperUtils.REQ_SYS_INFO;
@@ -44,7 +41,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Tested with MX240 junos 14.2
  */
 @Beta
-public class DeviceDiscoveryJuniperImpl extends AbstractHandlerBehaviour
+public class DeviceDiscoveryJuniperImpl extends JuniperAbstractHandlerBehaviour
         implements DeviceDescriptionDiscovery {
 
     private final Logger log = getLogger(getClass());
@@ -52,8 +49,7 @@ public class DeviceDiscoveryJuniperImpl extends AbstractHandlerBehaviour
     @Override
     public DeviceDescription discoverDeviceDetails() {
         DeviceId devId = handler().data().deviceId();
-        NetconfController controller = checkNotNull(handler().get(NetconfController.class));
-        NetconfSession session = controller.getDevicesMap().get(devId).getSession();
+        NetconfSession session = lookupNetconfSession(devId);
         String sysInfo;
         String chassisMacAddresses;
         try {
@@ -75,8 +71,7 @@ public class DeviceDiscoveryJuniperImpl extends AbstractHandlerBehaviour
     @Override
     public List<PortDescription> discoverPortDetails() {
         DeviceId devId = handler().data().deviceId();
-        NetconfController controller = checkNotNull(handler().get(NetconfController.class));
-        NetconfSession session = controller.getDevicesMap().get(devId).getSession();
+        NetconfSession session = lookupNetconfSession(devId);
         String reply;
         try {
             reply = session.get(requestBuilder(REQ_IF_INFO));
