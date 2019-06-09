@@ -74,6 +74,7 @@ import static org.onosproject.k8snetworking.api.Constants.ROUTING_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.SRC;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.getBclassIpPrefixFromCidr;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.getPropertyValue;
+import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.tunnelPortNumByNetId;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.unshiftIpDomain;
 import static org.onosproject.k8snetworking.util.RulePopulatorUtil.buildExtension;
 import static org.onosproject.k8snetworking.util.RulePopulatorUtil.buildLoadExtension;
@@ -235,10 +236,12 @@ public class K8sNodePortHandler {
         ExtensionTreatment remote = buildExtension(deviceService,
                 k8sNodeLocal.intgBridge(), k8sNodeRemote.dataIp().getIp4Address());
 
-        // TODO: need to consider other network types
+        PortNumber portNumber = tunnelPortNumByNetId(
+                    k8sNodeLocal.hostname(), k8sNetworkService, k8sNodeLocal);
+
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
                 .extension(remote, k8sNodeLocal.intgBridge())
-                .setOutput(k8sNodeLocal.vxlanPortNum());
+                .setOutput(portNumber);
 
         k8sFlowRuleService.setRule(
                 appId,
