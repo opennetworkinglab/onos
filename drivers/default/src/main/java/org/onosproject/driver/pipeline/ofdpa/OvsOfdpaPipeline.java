@@ -608,9 +608,10 @@ public class OvsOfdpaPipeline extends Ofdpa2Pipeline {
      */
     @Override
     protected List<List<FlowRule>> processVlanIdFilter(PortCriterion portCriterion,
-                                                 VlanIdCriterion vidCriterion,
-                                                 VlanId assignedVlan,
-                                                 ApplicationId applicationId) {
+                                                       VlanIdCriterion vidCriterion,
+                                                       VlanId assignedVlan,
+                                                       ApplicationId applicationId,
+                                                       boolean install) {
         List<FlowRule> rules = new ArrayList<>();
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();

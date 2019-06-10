@@ -547,7 +547,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             log.info("filtering objective missing VLAN, cannot program VLAN Table");
         } else {
             List<List<FlowRule>> allStages = processVlanIdFilter(
-                    portCriterion, vidCriterion, assignedVlan, applicationId);
+                    portCriterion, vidCriterion, assignedVlan, applicationId, install);
             for (List<FlowRule> flowRules : allStages) {
                 log.trace("Starting a new flow rule stage for VLAN table flow");
                 ops.newStage();
@@ -595,12 +595,14 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
      * @param vidCriterion        vlan assigned to port, or NONE for untagged
      * @param assignedVlan        assigned vlan-id for untagged packets
      * @param applicationId       for application programming this filter
+     * @param install   indicates whether to add or remove the objective
      * @return stages of flow rules for port-vlan filters
      */
     protected List<List<FlowRule>> processVlanIdFilter(PortCriterion portCriterion,
-                                                 VlanIdCriterion vidCriterion,
-                                                 VlanId assignedVlan,
-                                                 ApplicationId applicationId) {
+                                                       VlanIdCriterion vidCriterion,
+                                                       VlanId assignedVlan,
+                                                       ApplicationId applicationId,
+                                                       boolean install) {
         List<FlowRule> filteringRules = new ArrayList<>();
         List<FlowRule> assignmentRules = new ArrayList<>();
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
@@ -690,7 +692,8 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 filteringRules.add(preRule);
             }
         }
-        return ImmutableList.of(filteringRules, assignmentRules);
+        return install ? ImmutableList.of(filteringRules, assignmentRules) :
+                ImmutableList.of(assignmentRules, filteringRules);
     }
 
     /**
