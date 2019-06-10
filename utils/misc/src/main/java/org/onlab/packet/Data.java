@@ -117,7 +117,7 @@ public class Data extends BasePacket {
 
             Data dataObject = new Data();
 
-            dataObject.data = Arrays.copyOfRange(data, offset, data.length);
+            dataObject.data = Arrays.copyOfRange(data, offset, offset + length);
 
             return dataObject;
         };
