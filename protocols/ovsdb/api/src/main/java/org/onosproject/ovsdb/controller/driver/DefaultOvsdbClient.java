@@ -574,8 +574,6 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
             return;
         }
 
-        removeControllers.forEach(c -> deleteConfig(CONTROLLER, UUID, c.getRow().uuid().value(),
-                                                    BRIDGE, BRIDGE_CONTROLLER, c.getRow().uuid()));
         newControllers.stream().map(c -> {
             Controller controller = (Controller) TableGenerator
                     .createTable(dbSchema, OvsdbTable.CONTROLLER);
@@ -585,6 +583,8 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
                                     bridgeUuid.value(),
                                     c.getRow()));
 
+        removeControllers.forEach(c -> deleteConfig(CONTROLLER, UUID, c.getRow().uuid().value(),
+                BRIDGE, BRIDGE_CONTROLLER, c.getRow().uuid()));
     }
 
     @Override
