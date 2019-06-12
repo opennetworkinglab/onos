@@ -172,7 +172,7 @@ public class CassiniFlowRuleProgrammable
         StringBuilder sb = new StringBuilder();
         sb.append(
                 "<components xmlns='http://openconfig.net/yang/platform'>"
-                        + "<component operation='merge'>"
+                        + "<component nc:operation='merge'>"
                         + "<name>" + optChannel + "</name>"
                         + "<oc-opt-term:optical-channel "
                         +

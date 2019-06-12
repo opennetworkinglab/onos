@@ -138,7 +138,8 @@ public class TapiDeviceDescriptionDiscovery
             JsonNode sipAttributes = iter.next();
             if (checkValidEndpoint(sipAttributes)) {
                 String uuid = sipAttributes.get(UUID).textValue();
-                PortNumber portNumber = PortNumber.portNumber(uuid.split("-")[0]);
+                String[] uuidSeg = uuid.split("-");
+                PortNumber portNumber = PortNumber.portNumber(uuidSeg[uuidSeg.length - 1]);
                 annotations.set(UUID, uuid);
 
                 JsonNode mcPool = sipAttributes.get(MEDIA_CHANNEL_SERVICE_INTERFACE_POINT_SPEC).get(MC_POOL);
