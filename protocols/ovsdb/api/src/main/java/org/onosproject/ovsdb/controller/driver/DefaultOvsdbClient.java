@@ -232,14 +232,6 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
         return rowStore;
     }
 
-    /**
-     * Gets the ovsdb row.
-     *
-     * @param dbName    the ovsdb database name
-     * @param tableName the ovsdb table name
-     * @param uuid      the key of the row
-     * @return row, empty if row is find
-     */
     @Override
     public Row getRow(String dbName, String tableName, String uuid) {
         OvsdbTableStore tableStore = getTableStore(dbName);
@@ -282,12 +274,6 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
         ovsdbStore.createOrUpdateOvsdbStore(dbName, tableStore);
     }
 
-    /**
-     * Gets the Mirror uuid.
-     *
-     * @param mirrorName mirror name
-     * @return mirror uuid, empty if no uuid is found
-     */
     @Override
     public String getMirrorUuid(String mirrorName) {
         DatabaseSchema dbSchema = schema.get(DATABASENAME);
@@ -315,12 +301,6 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
         return null;
     }
 
-    /**
-     * Gets mirrors of the device.
-     *
-     * @param deviceId target device id
-     * @return set of mirroring; empty if no mirror is found
-     */
     @Override
     public Set<MirroringStatistics> getMirroringStatistics(DeviceId deviceId) {
         Uuid bridgeUuid = getBridgeUuid(deviceId);
@@ -583,8 +563,20 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
                                     bridgeUuid.value(),
                                     c.getRow()));
 
-        removeControllers.forEach(c -> deleteConfig(CONTROLLER, UUID, c.getRow().uuid().value(),
-                BRIDGE, BRIDGE_CONTROLLER, c.getRow().uuid()));
+        // Controller removal is extremely dangerous operation, because with
+        // empty controller list, all existing flow rules will be wiped out.
+        // To harden the setController operation, we need to double check whether
+        // the updated controller list size is bigger than the remove controller list size
+        List<Controller> updatedControllers = getControllers(bridgeUuid);
+        if (updatedControllers != null && updatedControllers.size() > removeControllers.size()) {
+            removeControllers.forEach(c ->
+                    deleteConfig(CONTROLLER, UUID, c.getRow().uuid().value(),
+                    BRIDGE, BRIDGE_CONTROLLER, c.getRow().uuid()));
+        } else {
+            log.warn("New controllers were not properly configured to OVS " +
+                    "bridge {} or failed to retrieve controller list from OVS " +
+                    "bridge {}", bridgeUuid, bridgeUuid);
+        }
     }
 
     @Override
@@ -950,15 +942,7 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
                 .collect(Collectors.toSet());
         return ovsdbqueues;
     }
-    /**
-     * Creates a mirror port. Mirrors the traffic
-     * that goes to selectDstPort or comes from
-     * selectSrcPort or packets containing selectVlan
-     * to mirrorPort or to all ports that trunk mirrorVlan.
-     *
-     * @param mirror the OVSDB mirror description
-     * @return true if mirror creation is successful, false otherwise
-     */
+
     @Override
     public boolean createMirror(String bridgeName, OvsdbMirror mirror) {
 
@@ -1070,11 +1054,6 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
         return true;
     }
 
-    /**
-     * Drops the configuration for mirror.
-     *
-     * @param mirroringName name of mirror to drop
-     */
     @Override
     public void dropMirror(MirroringName mirroringName) {
         String mirrorUuid = getMirrorUuid(mirroringName.name());
@@ -1929,13 +1908,6 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
                 .findFirst().orElse(null);
     }
 
-    /**
-     * Get first row of given table from given db.
-     *
-     * @param dbName  db name
-     * @param tblName table name
-     * @return firstRow, first row of the given table from given db if present
-     */
     @Override
     public Optional<Object> getFirstRow(String dbName, OvsdbTable tblName) {
 
@@ -1970,22 +1942,12 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
     }
 
 
-    /**
-     * Get memory usage of device.
-     *
-     * @return memoryStats, empty data as there is no generic way to fetch such stats
-     */
     @Override
     public Optional<DeviceMemoryStats> getDeviceMemoryUsage() {
         return Optional.empty();
     }
 
 
-    /**
-     * Get cpu usage of device.
-     *
-     * @return cpuStats, empty data as there is no generic way to fetch such stats
-     */
     @Override
     public Optional<DeviceCpuStats> getDeviceCpuUsage() {
         return Optional.empty();
