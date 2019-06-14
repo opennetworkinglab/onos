@@ -2,9 +2,6 @@
 
 set -xe
 
-# Delete vagrant user
-sudo userdel -r -f vagrant
-
 # Free space on disk
 sudo rm -rf ~/p4tools
 sudo rm -rf ~/quagga
@@ -25,3 +22,7 @@ sync ; sleep 1 ; sync ; sudo rm -f /tmp/zero
 
 history -c
 rm -f ~/.bash_history
+
+# Delete vagrant user
+sudo userdel -r -f vagrant
+
