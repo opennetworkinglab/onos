@@ -9,10 +9,10 @@ echo "gdm3 shared/default-x-display-manager select lightdm" | debconf-set-select
 echo "lightdm shared/default-x-display-manager select lightdm" | debconf-set-selections
 
 # Install ubuntu desktop from tasksel
-apt-get -y --no-install-recommends tasksel
-tasksel ubuntu-desktop
+apt-get install -y --no-install-recommends tasksel
+DEBIAN_FRONTEND=noninteractive tasksel install ubuntu-desktop
 # Remove gnome, install unity
-apt-get remove gdm3 ubuntu-desktop
+apt-get remove -y gdm3 ubuntu-desktop
 DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     ubuntu-unity-desktop lightdm \
     gnome-panel \

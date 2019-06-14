@@ -70,9 +70,7 @@ then
 fi
 
 # Cleanup
-sshpass -p 'rocks' \
-    ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no \
-    -p ${SSH_PORT} sdn@127.0.0.1 "bash /vagrant/ova-cleanup.sh"
+vagrant ssh -c 'bash /vagrant/ova-cleanup.sh' ${VM_TYPE}
 sleep 5
 vboxmanage controlvm ${VB_UUID} acpipowerbutton
 wait_vm_shutdown ${VB_UUID}
