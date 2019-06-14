@@ -90,6 +90,7 @@ def is_transponder_node(node):
 
 #
 # Parse src and dst sip-uuids of specific link from topo.
+# The ports should be line side but not client side.
 #
 def parse_src_dst(topo, link_index=-1):
     if link_index == -1:
@@ -118,7 +119,8 @@ def parse_src_dst(topo, link_index=-1):
             if cep[0]["parent-node-edge-point"]["node-uuid"] != node["uuid"] and is_transponder_node(node):
                 # If this node is not the node that includes src_onep, and not a OLS node
                 for onep in node["owned-node-edge-point"]:
-                    if parse_value(onep["name"])["odtn-connection-id"] == conn_id:
+                    if parse_value(onep["name"])["odtn-connection-id"] == conn_id\
+                            and parse_value(onep["name"])["odtn-port-type"] == "line":
                         dst_onep = onep
                         break
             if dst_onep is not None:
