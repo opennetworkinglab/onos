@@ -1,12 +1,16 @@
-# Build options to use JDK 11
-# build --incompatible_use_jdk11_as_host_javabase
-# build --javabase=@bazel_tools//tools/jdk:remote_jdk11
-# build --host_javabase=@bazel_tools//tools/jdk:remote_jdk11
-# build --host_java_toolchain=@bazel_tools//tools/jdk:toolchain_vanilla
-# build --java_toolchain=@bazel_tools//tools/jdk:toolchain_vanilla
-
+build --javabase=@bazel_tools//tools/jdk:remote_jdk11
+build --host_javabase=@bazel_tools//tools/jdk:remote_jdk11
+build --java_toolchain=@org_onosproject_onos//tools/build/bazel:default_toolchain
+build --host_java_toolchain=@org_onosproject_onos//tools/build/bazel:default_toolchain
 build --nouse_ijars
 build --experimental_strict_action_env
+
+# io_bazel_rules_go needs this
+build --incompatible_disable_deprecated_attr_params=false
+# intellij-bazel plugin needs this
+build --incompatible_depset_is_not_iterable=false
+build --incompatible_new_actions_api=false
+
 test --test_summary=terse
 test --test_output=errors
 test --test_verbose_timeout_warnings

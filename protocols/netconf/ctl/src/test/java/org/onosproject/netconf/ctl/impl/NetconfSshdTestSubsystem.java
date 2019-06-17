@@ -16,22 +16,6 @@
 package org.onosproject.netconf.ctl.impl;
 
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.EOFException;
-import java.nio.Buffer;
-import java.nio.ByteBuffer;
-import java.util.Collection;
-import java.util.Optional;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.regex.Pattern;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.util.threads.ThreadUtils;
@@ -44,6 +28,22 @@ import org.onosproject.netconf.DatastoreId;
 import org.onosproject.netconf.ctl.impl.NetconfStreamThread.NetconfMessageState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.BufferedReader;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.util.Collection;
+import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.regex.Pattern;
 
 /**
  * Mocks a NETCONF Device to test the NETCONF Southbound Interface etc.
@@ -464,12 +464,17 @@ public class NetconfSshdTestSubsystem extends Thread implements Command, Runnabl
 
     @Override
     public void interrupt() {
+        destroy();
+    }
+
+    @Override
+    public void destroy() {
         // if thread has not completed, cancel it
         if ((pendingFuture != null) && (!pendingFuture.isDone())) {
             boolean result = pendingFuture.cancel(true);
             // TODO consider waiting some reasonable (?) amount of time for cancellation
             if (log.isDebugEnabled()) {
-                log.debug("interrupt() - cancel pending future=" + result);
+                log.debug("destroy() - cancel pending future=" + result);
             }
         }
 
@@ -478,8 +483,8 @@ public class NetconfSshdTestSubsystem extends Thread implements Command, Runnabl
         if ((executors != null) && shutdownExecutor) {
             Collection<Runnable> runners = executors.shutdownNow();
             if (log.isDebugEnabled()) {
-                log.debug("interrupt() - shutdown executor service - runners count=" +
-                        runners.size());
+                log.debug("destroy() - shutdown executor service - runners count=" +
+                                  runners.size());
             }
         }
 
@@ -487,7 +492,7 @@ public class NetconfSshdTestSubsystem extends Thread implements Command, Runnabl
 
         if (!closed) {
             if (log.isDebugEnabled()) {
-                log.debug("interrupt() - mark as closed");
+                log.debug("destroy() - mark as closed");
             }
 
             closed = true;

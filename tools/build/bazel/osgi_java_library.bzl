@@ -448,7 +448,7 @@ def osgi_jar_with_tests(
     if import_packages == None:
         import_packages = "*"
     tests_name = name + "-tests"
-    tests_jar_deps = list(depset(deps + test_deps)) + [name]
+    tests_jar_deps = depset(deps + test_deps).to_list() + [name]
     all_test_deps = tests_jar_deps + [tests_name]
     web_xml = _webapp()
 

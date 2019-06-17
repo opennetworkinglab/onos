@@ -3,7 +3,7 @@ import os
 
 import subprocess
 
-JAVA_LANGUAGE_LEVEL = 8
+JAVA_LANGUAGE_LEVEL = 11
 
 EXCLUDE_DIRECTORIES = (
     "target",

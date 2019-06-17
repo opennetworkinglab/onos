@@ -390,9 +390,9 @@ public class GossipDeviceStoreTest {
         DeviceDescription description =
                 new DefaultDeviceDescription(DID1.uri(), SWITCH, MFR,
                         HW, SW1, SN, CID);
-        Capture<InternalDeviceEvent> message = new Capture<>();
-        Capture<MessageSubject> subject = new Capture<>();
-        Capture<Function<InternalDeviceEvent, byte[]>> encoder = new Capture<>();
+        Capture<InternalDeviceEvent> message = Capture.newInstance();
+        Capture<MessageSubject> subject = Capture.newInstance();
+        Capture<Function<InternalDeviceEvent, byte[]>> encoder = Capture.newInstance();
 
         resetCommunicatorExpectingSingleBroadcast(message, subject, encoder);
         DeviceEvent event = deviceStore.createOrUpdateDevice(PID, DID1, description);
@@ -423,11 +423,11 @@ public class GossipDeviceStoreTest {
         DeviceDescription description =
                 new DefaultDeviceDescription(DID1.uri(), SWITCH, MFR,
                         HW, SW1, SN, CID, A2);
-        Capture<ClusterMessage> bcast = new Capture<>();
+        Capture<ClusterMessage> bcast = Capture.newInstance();
 
-        Capture<InternalDeviceEvent> message = new Capture<>();
-        Capture<MessageSubject> subject = new Capture<>();
-        Capture<Function<InternalDeviceEvent, byte[]>> encoder = new Capture<>();
+        Capture<InternalDeviceEvent> message = Capture.newInstance();
+        Capture<MessageSubject> subject = Capture.newInstance();
+        Capture<Function<InternalDeviceEvent, byte[]>> encoder = Capture.newInstance();
 
         resetCommunicatorExpectingSingleBroadcast(message, subject, encoder);
         DeviceEvent event = deviceStore.createOrUpdateDevice(PIDA, DID1, description);
@@ -497,9 +497,9 @@ public class GossipDeviceStoreTest {
         putDevice(DID1, SW1);
         assertTrue(deviceStore.isAvailable(DID1));
 
-        Capture<InternalDeviceEvent> message = new Capture<>();
-        Capture<MessageSubject> subject = new Capture<>();
-        Capture<Function<InternalDeviceEvent, byte[]>> encoder = new Capture<>();
+        Capture<InternalDeviceEvent> message = Capture.newInstance();
+        Capture<MessageSubject> subject = Capture.newInstance();
+        Capture<Function<InternalDeviceEvent, byte[]>> encoder = Capture.newInstance();
 
         resetCommunicatorExpectingSingleBroadcast(message, subject, encoder);
         DeviceEvent event = deviceStore.markOffline(DID1);
@@ -525,9 +525,9 @@ public class GossipDeviceStoreTest {
                 DefaultPortDescription.builder().withPortNumber(P1).isEnabled(true).build(),
                 DefaultPortDescription.builder().withPortNumber(P2).isEnabled(true).build()
                 );
-        Capture<InternalDeviceEvent> message = new Capture<>();
-        Capture<MessageSubject> subject = new Capture<>();
-        Capture<Function<InternalDeviceEvent, byte[]>> encoder = new Capture<>();
+        Capture<InternalDeviceEvent> message = Capture.newInstance();
+        Capture<MessageSubject> subject = Capture.newInstance();
+        Capture<Function<InternalDeviceEvent, byte[]>> encoder = Capture.newInstance();
 
         resetCommunicatorExpectingSingleBroadcast(message, subject, encoder);
         List<DeviceEvent> events = deviceStore.updatePorts(PID, DID1, pds);
@@ -611,9 +611,9 @@ public class GossipDeviceStoreTest {
                 );
         deviceStore.updatePorts(PID, DID1, pds);
 
-        Capture<InternalPortStatusEvent> message = new Capture<>();
-        Capture<MessageSubject> subject = new Capture<>();
-        Capture<Function<InternalPortStatusEvent, byte[]>> encoder = new Capture<>();
+        Capture<InternalPortStatusEvent> message = Capture.newInstance();
+        Capture<MessageSubject> subject = Capture.newInstance();
+        Capture<Function<InternalPortStatusEvent, byte[]>> encoder = Capture.newInstance();
 
         resetCommunicatorExpectingSingleBroadcast(message, subject, encoder);
         final DefaultPortDescription desc = DefaultPortDescription.builder().withPortNumber(P1)
@@ -637,9 +637,9 @@ public class GossipDeviceStoreTest {
                 );
         deviceStore.updatePorts(PID, DID1, pds);
 
-        Capture<InternalPortStatusEvent> message = new Capture<>();
-        Capture<MessageSubject> subject = new Capture<>();
-        Capture<Function<InternalPortStatusEvent, byte[]>> encoder = new Capture<>();
+        Capture<InternalPortStatusEvent> message = Capture.newInstance();
+        Capture<MessageSubject> subject = Capture.newInstance();
+        Capture<Function<InternalPortStatusEvent, byte[]>> encoder = Capture.newInstance();
 
         // update port from primary
         resetCommunicatorExpectingSingleBroadcast(message, subject, encoder);
@@ -817,9 +817,9 @@ public class GossipDeviceStoreTest {
         assertAnnotationsEquals(deviceStore.getDevice(DID1).annotations(), A1);
         assertAnnotationsEquals(deviceStore.getPort(DID1, P1).annotations(), A2);
 
-        Capture<InternalDeviceEvent> message = new Capture<>();
-        Capture<MessageSubject> subject = new Capture<>();
-        Capture<Function<InternalDeviceEvent, byte[]>> encoder = new Capture<>();
+        Capture<InternalDeviceEvent> message = Capture.newInstance();
+        Capture<MessageSubject> subject = Capture.newInstance();
+        Capture<Function<InternalDeviceEvent, byte[]>> encoder = Capture.newInstance();
 
         resetCommunicatorExpectingSingleBroadcast(message, subject, encoder);
 

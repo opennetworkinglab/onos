@@ -1,3 +1,17 @@
+load("@bazel_tools//tools/jdk:default_java_toolchain.bzl", "default_java_toolchain")
+
+# This is where we define the language source and target values passed to javac
+# when building ONOS. This toolchain should be used when invoking bazel build
+# (see onos/.bazelrc)
+default_java_toolchain(
+    name = "default_toolchain",
+    source_version = "11",
+    target_version = "11",
+    visibility = [
+        "//visibility:public",
+    ],
+)
+
 py_binary(
     name = "osgi_feature_bundler",
     srcs = ["osgi_feature_bundler.py"],
