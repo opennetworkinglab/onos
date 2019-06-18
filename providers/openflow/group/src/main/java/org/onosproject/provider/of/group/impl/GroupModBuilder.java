@@ -140,85 +140,66 @@ public final class GroupModBuilder {
         return new GroupModBuilder(buckets, groupId, type, factory, xid, driverService);
     }
 
+    private OFBucket.Builder ofBucketBuilder(GroupBucket bucket) {
+        OFBucket.Builder bucketBuilder = factory.buildBucket();
+        List<OFAction> actions = buildActions(bucket.treatment());
+        bucketBuilder.setActions(actions);
+        if (type == GroupDescription.Type.SELECT) {
+            bucketBuilder.setWeight(bucket.weight());
+        }
+        if (type == GroupDescription.Type.FAILOVER && bucket.watchPort() != null) {
+            bucketBuilder.setWatchPort(OFPort.of((int) bucket.watchPort().toLong()));
+        } else {
+            bucketBuilder.setWatchPort(OFPort.ANY);
+        }
+        if (type == GroupDescription.Type.FAILOVER && bucket.watchGroup() != null) {
+            bucketBuilder.setWatchGroup(OFGroup.of(bucket.watchGroup().id()));
+        } else {
+            bucketBuilder.setWatchGroup(OFGroup.ANY);
+        }
+        return bucketBuilder;
+    }
+
     /**
      * Builds the GroupAdd OF message.
      *
      * @return GroupAdd OF message
      */
     public OFGroupAdd buildGroupAdd() {
-
+        // Build group add
         List<OFBucket> ofBuckets = new ArrayList<OFBucket>();
         for (GroupBucket bucket: buckets.buckets()) {
-            List<OFAction> actions = buildActions(bucket.treatment());
-
-            OFBucket.Builder bucketBuilder = factory.buildBucket();
-            bucketBuilder.setActions(actions);
-            if (type == GroupDescription.Type.SELECT) {
-                bucketBuilder.setWeight(bucket.weight());
-            }
-
-            if (type == GroupDescription.Type.FAILOVER && bucket.watchPort() != null) {
-                bucketBuilder.setWatchPort(OFPort.of((int) bucket.watchPort().toLong()));
-            } else {
-                bucketBuilder.setWatchPort(OFPort.ANY);
-            }
-            if (type == GroupDescription.Type.FAILOVER &&  bucket.watchGroup() != null) {
-                bucketBuilder.setWatchGroup(OFGroup.of(bucket.watchGroup().id()));
-            } else {
-                bucketBuilder.setWatchGroup(OFGroup.ANY);
-            }
-            OFBucket ofBucket = bucketBuilder.build();
+            OFBucket ofBucket = ofBucketBuilder(bucket).build();
             ofBuckets.add(ofBucket);
         }
-
-        OFGroupAdd groupMsg = factory.buildGroupAdd()
+        // Build the msg and return
+        return factory.buildGroupAdd()
                 .setGroup(OFGroup.of(groupId.id()))
                 .setBuckets(ofBuckets)
                 .setGroupType(getOFGroupType(type))
                 .setXid(xid)
                 .build();
+     }
 
-        return groupMsg;
-    }
-
-    /**
-     * Builds the GroupMod OF message.
-     *
-     * @return GroupMod OF message
-     */
-    public OFGroupMod buildGroupMod() {
-        List<OFBucket> ofBuckets = new ArrayList<OFBucket>();
-        for (GroupBucket bucket: buckets.buckets()) {
-            List<OFAction> actions = buildActions(bucket.treatment());
-
-            OFBucket.Builder bucketBuilder = factory.buildBucket();
-            bucketBuilder.setActions(actions);
-            if (type == GroupDescription.Type.SELECT) {
-                bucketBuilder.setWeight(bucket.weight());
-            }
-            if (type == GroupDescription.Type.FAILOVER && bucket.watchPort() != null) {
-                bucketBuilder.setWatchPort(OFPort.of((int) bucket.watchPort().toLong()));
-            } else {
-                bucketBuilder.setWatchPort(OFPort.ANY);
-            }
-            if (type == GroupDescription.Type.FAILOVER &&  bucket.watchGroup() != null) {
-                bucketBuilder.setWatchGroup(OFGroup.of(bucket.watchGroup().id()));
-            } else {
-                bucketBuilder.setWatchGroup(OFGroup.ANY);
-            }
-
-            OFBucket ofBucket = bucketBuilder.build();
-            ofBuckets.add(ofBucket);
-        }
-
-        OFGroupMod groupMsg = factory.buildGroupModify()
-                .setGroup(OFGroup.of(groupId.id()))
-                .setBuckets(ofBuckets)
-                .setGroupType(getOFGroupType(type))
-                .setXid(xid)
-                .build();
-
-        return groupMsg;
+     /**
+      * Builds the GroupMod OF message.
+      *
+      * @return GroupMod OF message
+      */
+     public OFGroupMod buildGroupMod() {
+         // Build group mod
+         List<OFBucket> ofBuckets = new ArrayList<OFBucket>();
+         for (GroupBucket bucket: buckets.buckets()) {
+             OFBucket ofBucket = ofBucketBuilder(bucket).build();
+             ofBuckets.add(ofBucket);
+         }
+         // Build the msg and return
+         return factory.buildGroupModify()
+                 .setGroup(OFGroup.of(groupId.id()))
+                 .setBuckets(ofBuckets)
+                 .setGroupType(getOFGroupType(type))
+                 .setXid(xid)
+                 .build();
     }
 
     /**
@@ -227,14 +208,12 @@ public final class GroupModBuilder {
      * @return GroupDel OF message
      */
     public OFGroupDelete buildGroupDel() {
-
-        OFGroupDelete groupMsg = factory.buildGroupDelete()
+        // Build the msg and return
+        return factory.buildGroupDelete()
                 .setGroup(OFGroup.of(groupId.id()))
-                .setGroupType(OFGroupType.SELECT)
+                .setGroupType(getOFGroupType(type))
                 .setXid(xid)
                 .build();
-
-        return groupMsg;
     }
 
     private List<OFAction> buildActions(TrafficTreatment treatment) {
