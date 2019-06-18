@@ -69,6 +69,9 @@ def _yang_library_impl(ctx):
         executable = ctx.executable._yang_compiler,
     )
 
+    java_runtime = ctx.attr._jdk[java_common.JavaRuntimeInfo]
+    jar_path = "%s/bin/jar" % java_runtime.java_home
+
     ctx.actions.run_shell(
         inputs = [generated_sources],
         outputs = [ctx.outputs.srcjar],
@@ -76,7 +79,8 @@ def _yang_library_impl(ctx):
             ctx.outputs.srcjar.path,
             generated_sources.path,
         ],
-        command = "jar cf $1 -C $2 src",
+        tools = java_runtime.files,
+        command = "%s cf $1 -C $2 src" % jar_path,
         progress_message = "Assembling YANG Java sources: %s" % ctx.attr.name,
     )
 
@@ -87,7 +91,8 @@ def _yang_library_impl(ctx):
             ctx.outputs.schema.path,
             generated_sources.path,
         ],
-        command = "jar cf $1 -C $2 schema",
+        tools = java_runtime.files,
+        command = "%s cf $1 -C $2 schema" % jar_path,
         progress_message = "Assembling YANG compiled schema: %s" % ctx.attr.name,
     )
 
@@ -102,6 +107,10 @@ _yang_library = rule(
             cfg = "host",
             allow_files = True,
             default = Label("//tools/build/bazel:onos_yang_compiler"),
+        ),
+        "_jdk": attr.label(
+            default = Label("@bazel_tools//tools/jdk:current_java_runtime"),
+            providers = [java_common.JavaRuntimeInfo],
         ),
     },
     outputs = {
@@ -139,13 +148,18 @@ def yang_library(
     srcs = [name + "-generate"]
 
     if len(java_srcs):
-        srcs += [name + "-srcjar"]
-        native.genrule(
-            name = name + "-srcjar",
-            srcs = java_srcs,
-            outs = [name + ".srcjar"],
-            cmd = "jar cf $(location %s.srcjar) $(SRCS)" % name,
-        )
+        srcs.extend(java_srcs)
+        # FIXME (carmelo): is this genrule really needed?
+        # srcs += [name + "-srcjar"]
+        # native.genrule(
+        #     name = name + "-srcjar",
+        #     srcs = java_srcs,
+        #     outs = [name + ".srcjar"],
+        #     cmd = "$(location //external:jar) cf $(location %s.srcjar) $(SRCS)" % name,
+        #     tools = [
+        #         "//external:jar",
+        #     ]
+        # )
 
     if not custom_registrator:
         srcs += [name + "-registrator"]

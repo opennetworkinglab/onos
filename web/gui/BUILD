@@ -28,6 +28,8 @@
     the sandbox at the proper locations and then returned as a tar ball.
 """
 
+load("//tools/build/bazel:jdk_genrule.bzl", genrule = "jdk_genrule")
+
 COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + CLI + [
     "@javax_ws_rs_api//jar",
     "@servlet_api//jar",

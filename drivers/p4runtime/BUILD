@@ -3,7 +3,7 @@ COMPILE_DEPS = CORE_DEPS + KRYO + [
     "//protocols/grpc/api:onos-protocols-grpc-api",
     "//protocols/grpc/utils:onos-protocols-grpc-utils",
     "//protocols/p4runtime/api:onos-protocols-p4runtime-api",
-    "//lib:io_grpc_grpc_api_context",
+    "//deps:io_grpc_grpc_api_context",
 ]
 
 BUNDLES = [

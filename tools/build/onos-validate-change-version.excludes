@@ -25,7 +25,7 @@
 \./drivers/p4runtime
 \./drivers/bmv2
 \./lib/BUCK
-\./lib/deps.json
+\./deps/deps.json
 \./models/openroadm/pom.xml
 \./out
 \./pom.xml.versionsBackup

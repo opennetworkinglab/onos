@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-JAVA_DOCS = "-link https://docs.oracle.com/javase/8/docs/api/"
+JAVA_DOCS = "-link https://docs.oracle.com/javase/11/docs/api/"
 
 def _impl(ctx):
     dir = ctx.label.name
-    jar = ctx.outputs.jar
+    outjar = ctx.outputs.jar
 
     dep_list = []
     for dep in ctx.files.deps:
@@ -26,24 +26,32 @@ def _impl(ctx):
     for src in ctx.files.srcs:
         src_list += [src.path]
 
+    java_runtime = ctx.attr._jdk[java_common.JavaRuntimeInfo]
+    jar_exe_path = "%s/bin/jar" % java_runtime.java_home
+
     cmd = [
         "mkdir %s" % dir,
         "javadoc -encoding UTF-8 -quiet -tag onos.rsModel:a:\"onos model\" %s -d %s -cp %s %s" %
         (JAVA_DOCS, dir, ":".join(dep_list), " ".join(src_list)),
-        "jar cf %s -C %s ." % (jar.path, dir),
+        "%s cf %s -C %s ." % (jar_exe_path, outjar.path, dir),
     ]
 
     ctx.action(
         inputs = ctx.files.srcs + ctx.files.deps,
-        outputs = [jar],
+        outputs = [outjar],
         progress_message = "Generating javadocs jar for %s" % ctx.attr.name,
         command = ";\n".join(cmd),
+        tools = java_runtime.files,
     )
 
 javadoc = rule(
     attrs = {
         "deps": attr.label_list(allow_files = True),
         "srcs": attr.label_list(allow_files = True),
+        "_jdk": attr.label(
+            default = Label("@bazel_tools//tools/jdk:current_java_runtime"),
+            providers = [java_common.JavaRuntimeInfo],
+        ),
     },
     implementation = _impl,
     outputs = {"jar": "%{name}.jar"},

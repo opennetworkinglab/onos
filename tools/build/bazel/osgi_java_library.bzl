@@ -714,7 +714,7 @@ def osgi_proto_jar(
         proto_name + "-srcjar",
     ]
     base_deps = [
-        "//lib:com_google_protobuf_protobuf_java",
+        "//deps:com_google_protobuf_protobuf_java",
     ]
     if grpc_proto_lib != None:
         grpc_name = name + "-java-grpc"
@@ -732,9 +732,9 @@ def osgi_proto_jar(
         )
         base_deps.extend([
             "@com_google_guava_guava//jar",
-            "//lib:io_grpc_grpc_api_context",
-            "//lib:io_grpc_grpc_stub",
-            "//lib:io_grpc_grpc_protobuf",
+            "//deps:io_grpc_grpc_api_context",
+            "//deps:io_grpc_grpc_stub",
+            "//deps:io_grpc_grpc_protobuf",
             "@javax_annotation_javax_annotation_api//jar",
         ])
     osgi_jar(

@@ -1,5 +1,5 @@
 COMPILE_DEPS = CORE_DEPS + KRYO + JACKSON + [
-    "//lib:io_grpc_grpc_api_context",
+    "//deps:io_grpc_grpc_api_context",
     "//drivers/p4runtime:onos-drivers-p4runtime",
     "//drivers/gnmi:onos-drivers-gnmi",
     "//drivers/gnoi:onos-drivers-gnoi",

@@ -1,15 +1,20 @@
 load("@bazel_tools//tools/jdk:default_java_toolchain.bzl", "default_java_toolchain")
 
-# This is where we define the language source and target values passed to javac
-# when building ONOS. This toolchain should be used when invoking bazel build
+# This is where we define the JDK used to build ONOS, as well as the language
+# source and target values passed to javac. The :default_toolchain and
+# :default_jdk are expected to be passed as arguments when invoking bazel build
 # (see onos/.bazelrc)
 default_java_toolchain(
     name = "default_toolchain",
     source_version = "11",
     target_version = "11",
-    visibility = [
-        "//visibility:public",
-    ],
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "default_jdk",
+    actual = "@bazel_tools//tools/jdk:remote_jdk11",
+    visibility = ["//visibility:public"],
 )
 
 py_binary(

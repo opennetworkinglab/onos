@@ -20,6 +20,8 @@
 
 """
 
+load("//tools/build/bazel:jdk_genrule.bzl", genrule = "jdk_genrule")
+
 COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + [
     "@javax_ws_rs_api//jar",
     "@servlet_api//jar",

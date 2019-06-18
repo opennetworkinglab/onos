@@ -13,19 +13,29 @@
 # limitations under the License.
 
 def _impl(ctx):
-    jar = ctx.outputs.jar
+    outjar = ctx.outputs.jar
+
+    java_runtime = ctx.attr._jdk[java_common.JavaRuntimeInfo]
+    jar_exe_path = "%s/bin/jar" % java_runtime.java_home
 
     cmd = [
-        "mkdir readme && touch readme/README && jar cf %s readme/README" % (jar.path),
+        "mkdir readme && touch readme/README && %s cf %s readme/README" % (jar_exe_path, outjar.path),
     ]
 
     ctx.action(
-        outputs = [jar],
+        outputs = [outjar],
         progress_message = "Generating minimal jar for %s" % ctx.attr.name,
         command = ";\n".join(cmd),
+        tools = java_runtime.files,
     )
 
 minimal_jar = rule(
+    attrs = {
+        "_jdk": attr.label(
+            default = Label("@bazel_tools//tools/jdk:current_java_runtime"),
+            providers = [java_common.JavaRuntimeInfo],
+        ),
+    },
     implementation = _impl,
     outputs = {"jar": "%{name}.jar"},
 )

@@ -1,34 +1,55 @@
-# First stage is the build environment
-FROM picoded/ubuntu-openjdk-8-jdk as builder
-MAINTAINER Ray Milkey <ray@opennetworking.org>
+ARG JDK_VER=11
+ARG BAZEL_VER=0.27.0
+ARG JOBS=2
 
-# Set the environment variables
-ENV HOME /root
+# First stage is the build environment.
+FROM ubuntu:18.04 as builder
+
+ENV BUILD_DEPS \
+    ca-certificates \
+    zip \
+    python \
+    python3 \
+    git \
+    bzip2 \
+    build-essential \
+    curl \
+    unzip
+RUN apt-get update
+RUN apt-get install -y ${BUILD_DEPS}
+
+# Install Bazel
+ARG BAZEL_VER
+RUN curl -L -o bazel.sh https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VER}/bazel-${BAZEL_VER}-installer-linux-x86_64.sh
+RUN chmod +x bazel.sh && ./bazel.sh --user
+
+# Build-stage environment variables
+ENV ONOS_ROOT=/src/onos
 ENV BUILD_NUMBER docker
 ENV JAVA_TOOL_OPTIONS=-Dfile.encoding=UTF8
 
-# Copy in the source
-COPY . /src/onos/
+# Build ONOS. We extract the tar in the build environment to avoid having to put
+# the tar in the runtime stage. This saves a lot of space.
+# Note: we don't install a JDK but instead we rely on that provided by Bazel.
 
-# Build ONOS
-# We extract the tar in the build environment to avoid having to put the tar
-# in the runtime environment - this saves a lot of space
-# FIXME - dependence on ONOS_ROOT and git at build time is a hack to work around
-# build problems
-WORKDIR /src/onos
-RUN apt-get update && apt-get install -y zip python git bzip2 build-essential && \
-        curl -L -o bazel.sh https://github.com/bazelbuild/bazel/releases/download/0.23.0/bazel-0.23.0-installer-linux-x86_64.sh && \
-        chmod +x bazel.sh && \
-        ./bazel.sh --user && \
-        export ONOS_ROOT=/src/onos && \
-        ~/bin/bazel build onos --verbose_failures --jobs 2 && \
-        mkdir -p /src/tar && \
-        cd /src/tar && \
-        tar -xf /src/onos/bazel-bin/onos.tar.gz --strip-components=1 && \
-        rm -rf /src/onos/bazel-* .git
+# Copy in the sources
+COPY . ${ONOS_ROOT}
+WORKDIR ${ONOS_ROOT}
 
-# Second stage is the runtime environment
-FROM adoptopenjdk/openjdk11:x86_64-ubuntu-jdk-11.0.1.13-slim
+ARG JOBS
+ENV BAZEL_BUILD_ARGS \
+    --jobs ${JOBS} \
+    --verbose_failures
+RUN ~/bin/bazel build onos ${BAZEL_BUILD_ARGS}
+
+RUN mkdir /src/tar
+RUN tar -xf bazel-bin/onos.tar.gz -C /src/tar --strip-components=1
+
+# Second stage is the runtime environment.
+# We use Amazon Corretto official Docker image, bazed on Amazon Linux 2 (rhel/fedora like)
+FROM amazoncorretto:${JDK_VER}
+
+MAINTAINER Ray Milkey <ray@opennetworking.org>
 
 # Change to /root directory
 RUN     mkdir -p /root/onos

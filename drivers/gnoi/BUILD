@@ -1,8 +1,8 @@
 COMPILE_DEPS = CORE_DEPS + KRYO + [
-    "//lib:com_google_protobuf_protobuf_java",
-    "//lib:io_grpc_grpc_api_context",
-    "//lib:io_grpc_grpc_netty",
-    "//lib:io_grpc_grpc_stub",
+    "//deps:com_google_protobuf_protobuf_java",
+    "//deps:io_grpc_grpc_api_context",
+    "//deps:io_grpc_grpc_netty",
+    "//deps:io_grpc_grpc_stub",
     "//protocols/gnoi/stub:onos-protocols-gnoi-stub",
     "//protocols/gnoi/api:onos-protocols-gnoi-api",
     "//protocols/grpc/api:onos-protocols-grpc-api",

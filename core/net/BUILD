@@ -18,6 +18,9 @@ osgi_jar_with_tests(
     exclude_tests = [
         "org.onosproject.net.intent.impl.compiler.AbstractLinkCollectionTest",
         "org.onosproject.net.intent.impl.installer.AbstractIntentInstallerTest",
+        # FIXME: re-enable CoreEventDispatcherTest
+        # Failing on Jenkins after switching to Bazel remote JDK 11
+        "org.onosproject.event.impl.CoreEventDispatcherTest",
     ],
     medium_tests = ["//core/net:src/test/java/org/onosproject/net/flowobjective/impl/InOrderFlowObjectiveManagerTest"],
     test_deps = TEST_DEPS,

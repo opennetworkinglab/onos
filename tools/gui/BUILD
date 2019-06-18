@@ -1,3 +1,5 @@
+load("//tools/build/bazel:jdk_genrule.bzl", genrule = "jdk_genrule")
+
 filegroup(
     name = "_tools-gui-gulp-files",
     srcs = [

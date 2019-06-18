@@ -1,7 +1,8 @@
-build --javabase=@bazel_tools//tools/jdk:remote_jdk11
-build --host_javabase=@bazel_tools//tools/jdk:remote_jdk11
+build --javabase=@org_onosproject_onos//tools/build/bazel:default_jdk
+build --host_javabase=@org_onosproject_onos//tools/build/bazel:default_jdk
 build --java_toolchain=@org_onosproject_onos//tools/build/bazel:default_toolchain
 build --host_java_toolchain=@org_onosproject_onos//tools/build/bazel:default_toolchain
+
 build --nouse_ijars
 build --experimental_strict_action_env
 
