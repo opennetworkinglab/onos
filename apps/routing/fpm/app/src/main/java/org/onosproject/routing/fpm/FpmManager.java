@@ -90,6 +90,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
+import java.util.Iterator;
+
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -526,6 +528,7 @@ public class FpmManager implements FpmInfoService {
     private void clearRoutes(FpmPeer peer) {
         log.info("Clearing all routes for peer {}", peer);
         Map<IpPrefix, Route> routes = fpmRoutes.remove(peer);
+
         if (routes != null) {
             updateRouteStore(Lists.newArrayList(), routes.values());
         }
@@ -679,6 +682,44 @@ public class FpmManager implements FpmInfoService {
                         e -> toFpmInfo(e.getKey(), e.getValue())));
     }
 
+
+
+    @Override
+    public void updateAcceptRouteFlag(Collection<FpmPeerAcceptRoutes> modifiedPeers) {
+            modifiedPeers.forEach(modifiedPeer -> {
+                log.debug("FPM connection to {} is disabled", modifiedPeer);
+                NodeId localNode = clusterService.getLocalNode().id();
+                log.debug("Peer Flag {}", modifiedPeer.isAcceptRoutes());
+                peers.compute(modifiedPeer.peer(), (p, infos) -> {
+                    if (infos == null) {
+                        return null;
+                    }
+                    Iterator<FpmConnectionInfo> iterator = infos.iterator();
+                    if (iterator.hasNext()) {
+                        FpmConnectionInfo connectionInfo = iterator.next();
+                        if (connectionInfo.isAcceptRoutes() == modifiedPeer.isAcceptRoutes()) {
+                            return null;
+                        }
+                        localPeers.remove(modifiedPeer.peer());
+                        infos.remove(connectionInfo);
+                        infos.add(new FpmConnectionInfo(localNode, modifiedPeer.peer(),
+                                                    System.currentTimeMillis(), modifiedPeer.isAcceptRoutes()));
+                        localPeers.put(modifiedPeer.peer(), infos);
+                    }
+                    Map<IpPrefix, Route> routes = fpmRoutes.get(modifiedPeer.peer());
+                    if (routes != null && !modifiedPeer.isAcceptRoutes()) {
+                        updateRouteStore(Lists.newArrayList(), routes.values());
+                    } else {
+                        updateRouteStore(routes.values(), Lists.newArrayList());
+                    }
+
+                    return infos;
+                });
+            });
+
+    }
+
+
     private class InternalFpmListener implements FpmListener {
         @Override
         public void fpmMessage(FpmPeer peer, FpmHeader fpmMessage) {
@@ -698,7 +739,7 @@ public class FpmManager implements FpmInfoService {
                     infos = new HashSet<>();
                 }
 
-                infos.add(new FpmConnectionInfo(localNode, peer, System.currentTimeMillis()));
+                infos.add(new FpmConnectionInfo(localNode, peer, System.currentTimeMillis(), true));
                 localPeers.put(peer, infos);
                 return infos;
             });
