@@ -129,7 +129,7 @@ public class K8sEndpointsWatcher {
             KubernetesClient client = k8sClient(k8sApiConfigService);
 
             if (client != null) {
-                client.endpoints().watch(internalEndpointsWatcher);
+                client.endpoints().inAnyNamespace().watch(internalEndpointsWatcher);
             }
         }
     }
