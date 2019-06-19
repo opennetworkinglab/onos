@@ -445,14 +445,6 @@ public final class Dhcp6HandlerUtil {
         return false;
     }
 
-    private static boolean isRelayAgentIpFromCfgEmpty(DhcpServerInfo serverInfo, DeviceId receivedFromDevice) {
-        if (!serverInfo.getRelayAgentIp6(receivedFromDevice).isPresent()) {
-            log.warn("indirect connection: relayAgentIp NOT availale from config file! Use dynamic.");
-            return true;
-        }
-        return false;
-    }
-
     private static Dhcp6Option getInterfaceIdIdOption(PacketContext context, Ethernet clientPacket) {
         String inPortString = "-" + context.inPacket().receivedFrom().toString() + ":";
         Dhcp6Option interfaceId = new Dhcp6Option();
@@ -567,7 +559,7 @@ public final class Dhcp6HandlerUtil {
                 etherReply.setVlanID(serverInfo.getDhcpConnectVlan().get().toShort());
                 ipv6Packet.setDestinationAddress(serverInfo.getDhcpServerIp6().get().toOctets());
             }
-            if (isRelayAgentIpFromCfgEmpty(serverInfo, receivedFromDevice)) {
+            if (!serverInfo.getRelayAgentIp6(receivedFromDevice).isPresent()) {
                 log.debug("indirect connection: relayAgentIp NOT availale from config file! Use dynamic. {}",
                         HexString.toHexString(relayAgentIp.toOctets(), ":"));
                 serverIpFacing = relayAgentIp;
