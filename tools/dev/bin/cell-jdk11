@@ -1,0 +1,15 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Tool to set JDK11 as the default JDK on all machines of borrowed test cell.
+# -----------------------------------------------------------------------------
+
+# Check environment
+[ -z "$ONOS_INSTANCES" ] && echo "Cell environment not established" && exit 1
+
+for n in $ONOS_INSTANCES $ONOS_CORES; do
+    echo $n:
+    ssh sdn@$n "
+        sudo update-java-alternatives -s java-1.11.0-openjdk-amd64
+        echo 'export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64' > .bash_aliases
+    "
+done
