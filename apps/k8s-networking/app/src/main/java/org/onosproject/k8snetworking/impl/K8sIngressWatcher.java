@@ -130,7 +130,7 @@ public class K8sIngressWatcher {
             KubernetesClient client = k8sClient(k8sApiConfigService);
 
             if (client != null) {
-                client.extensions().ingresses().watch(internalK8sIngressWatcher);
+                client.extensions().ingresses().inAnyNamespace().watch(internalK8sIngressWatcher);
             }
         }
     }

@@ -90,7 +90,7 @@ public class K8sSyncStateCommand extends AbstractShellCommand {
 
         print("Synchronizing kubernetes services");
         print(SERVICE_FORMAT, "Name", "Cluster IP", "Ports");
-        client.services().list().getItems().forEach(svc -> {
+        client.services().inAnyNamespace().list().getItems().forEach(svc -> {
             if (serviceAdminService.service(svc.getMetadata().getUid()) != null) {
                 serviceAdminService.updateService(svc);
             } else {
@@ -101,7 +101,7 @@ public class K8sSyncStateCommand extends AbstractShellCommand {
 
         print("\nSynchronizing kubernetes endpoints");
         print(ENDPOINTS_FORMAT, "Name", "IP Addresses", "Ports");
-        client.endpoints().list().getItems().forEach(ep -> {
+        client.endpoints().inAnyNamespace().list().getItems().forEach(ep -> {
             if (endpointsAdminService.endpoints(ep.getMetadata().getUid()) != null) {
                 endpointsAdminService.updateEndpoints(ep);
             } else {
@@ -112,7 +112,7 @@ public class K8sSyncStateCommand extends AbstractShellCommand {
 
         print("\nSynchronizing kubernetes pods");
         print(POD_FORMAT, "Name", "Namespace", "IP", "Containers");
-        client.pods().list().getItems().forEach(pod -> {
+        client.pods().inAnyNamespace().list().getItems().forEach(pod -> {
             if (podAdminService.pod(pod.getMetadata().getUid()) != null) {
                 podAdminService.updatePod(pod);
             } else {
@@ -126,7 +126,7 @@ public class K8sSyncStateCommand extends AbstractShellCommand {
 
         print("\nSynchronizing kubernetes ingresses");
         print(INGRESS_FORMAT, "Name", "Namespace", "LB Addresses");
-        client.extensions().ingresses().list().getItems().forEach(ingress -> {
+        client.extensions().ingresses().inAnyNamespace().list().getItems().forEach(ingress -> {
             if (ingressAdminService.ingress(ingress.getMetadata().getUid()) != null) {
                 ingressAdminService.updateIngress(ingress);
             } else {

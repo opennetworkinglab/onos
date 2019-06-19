@@ -128,7 +128,7 @@ public class K8sPodWatcher {
             KubernetesClient client = k8sClient(k8sApiConfigService);
 
             if (client != null) {
-                client.pods().watch(internalK8sPodWatcher);
+                client.pods().inAnyNamespace().watch(internalK8sPodWatcher);
             }
         }
     }

@@ -130,7 +130,7 @@ public class K8sServiceWatcher {
             KubernetesClient client = k8sClient(k8sApiConfigService);
 
             if (client != null) {
-                client.services().watch(internalK8sServiceWatcher);
+                client.services().inAnyNamespace().watch(internalK8sServiceWatcher);
             }
         }
     }
