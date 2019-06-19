@@ -122,10 +122,13 @@ genrule(
     name = "onos-local",
     srcs = [
         ":onos-package",
+        "//tools/build/jdk:default_jdk_tar",
         "tools/package/onos-run-karaf",
     ] + glob(["tools/package/config/**"]),
     outs = ["onos-runner"],
-    cmd = "sed \"s#ONOS_TAR=#ONOS_TAR=$(location :onos-package)#\" $(location tools/package/onos-run-karaf) > $(location onos-runner); chmod +x $(location onos-runner)",
+    cmd = "sed \"s#ONOS_TAR=#ONOS_TAR=$(location :onos-package)#\" $(location tools/package/onos-run-karaf) > foo; " +
+          "sed \"s#JDK_TAR=#JDK_TAR=$(location //tools/build/jdk:default_jdk_tar)#\" foo > $(location onos-runner); " +
+          "chmod +x $(location onos-runner)",
     executable = True,
     output_to_bindir = True,
     visibility = ["//visibility:public"],

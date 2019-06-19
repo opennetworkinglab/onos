@@ -4,6 +4,7 @@
 # -----------------------------------------------------------------------------
 
 ONOS_TAR=
+JDK_TAR=
 
 [ -f $ONOS_TAR ] || (echo "$ONOS_TAR not found" && exit 1)
 
@@ -26,6 +27,28 @@ case "$OSTYPE" in
   darwin*)  md5cmd='md5' ; md5cmdprm='-q' ;;
   *)        md5cmd='md5sum';;
 esac
+
+# Use provided JDK as JAVA_HOME if given
+if [[ -f ${JDK_TAR} ]]; then
+    JDK_DIR=$ONOS_DIR-jdk
+    JDK_MD5=$JDK_DIR/CHECKSUM
+
+    oldJdkMD5=$(cat $JDK_MD5 2>/dev/null)
+    newJdkMD5=$(${md5cmd} ${md5cmdprm} $JDK_TAR)
+
+    if [[ ! -d ${JDK_DIR} || "$oldJdkMD5" != "$newJdkMD5" ]]; then
+        echo "Unpacking JDK in ${JDK_DIR} (from $JDK_TAR)..."
+        # Unroll new JDK from the specified tar file
+        rm -fr $JDK_DIR
+        mkdir $JDK_DIR
+        tar zxf $JDK_TAR -C $JDK_DIR --strip-components 1
+        echo "$newJdkMD5" > $JDK_MD5
+    else
+        echo "Using JDK in ${JDK_DIR}..."
+    fi
+    # Use the extracted JDK as our new JAVA_HOME
+    export JAVA_HOME=${JDK_DIR}
+fi
 
 oldMD5=$(cat $ONOS_MD5 2>/dev/null)
 newMD5=$(${md5cmd} ${md5cmdprm} $ONOS_TAR)
