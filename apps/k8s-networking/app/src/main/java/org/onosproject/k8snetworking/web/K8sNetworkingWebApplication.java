@@ -28,7 +28,8 @@ public class K8sNetworkingWebApplication extends AbstractWebApplication {
         return getClasses(
                 K8sNetworkWebResource.class,
                 K8sPortWebResource.class,
-                K8sIpamWebResource.class
+                K8sIpamWebResource.class,
+                K8sManagementWebResource.class
         );
     }
 }
