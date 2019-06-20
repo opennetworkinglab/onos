@@ -948,7 +948,7 @@ public class McastHandler {
                                                       ConnectPoint source) {
         final Set<ConnectPoint> sinksToBeProcessed = Sets.newHashSet();
         prevsinks.forEach(((hostId, connectPoints) -> {
-            if (HostId.NONE.equals(hostId)) {
+            if (Objects.equal(HostId.NONE, hostId)) {
                 //in this case connect points are single homed sinks.
                 //just found the difference btw previous and new sinks for this source.
                 Set<ConnectPoint> difference = Sets.difference(connectPoints, newSinks.get(hostId));
@@ -1020,7 +1020,7 @@ public class McastHandler {
         final Set<ConnectPoint> sinksToBeProcessed = Sets.newHashSet();
         sinks.forEach(((hostId, connectPoints) -> {
             //add all connect points that are not tied with any host
-            if (hostId.equals(HostId.NONE)) {
+            if (Objects.equal(HostId.NONE, hostId)) {
                 sinksToBeProcessed.addAll(connectPoints);
                 return;
             }
