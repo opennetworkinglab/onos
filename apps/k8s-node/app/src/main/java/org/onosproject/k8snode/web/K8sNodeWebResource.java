@@ -23,12 +23,14 @@ import org.onosproject.k8snode.api.K8sApiConfig;
 import org.onosproject.k8snode.api.K8sApiConfigAdminService;
 import org.onosproject.k8snode.api.K8sNode;
 import org.onosproject.k8snode.api.K8sNodeAdminService;
+import org.onosproject.k8snode.api.K8sNodeState;
 import org.onosproject.rest.AbstractWebResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -64,6 +66,10 @@ public class K8sNodeWebResource extends AbstractWebResource {
     private static final String UPDATE = "UPDATE";
     private static final String NODE_ID = "NODE_ID";
     private static final String REMOVE = "REMOVE";
+    private static final String QUERY = "QUERY";
+    private static final String INIT = "INIT";
+    private static final String NOT_EXIST = "Not exist";
+    private static final String STATE = "State";
 
     private static final String HOST_NAME = "hostname";
     private static final String ENDPOINT = "endpoint";
@@ -158,6 +164,88 @@ public class K8sNodeWebResource extends AbstractWebResource {
         }
 
         return Response.noContent().build();
+    }
+
+
+    /**
+     * Obtains the state of the kubernetes node.
+     *
+     * @param hostname hostname of the kubernetes
+     * @return the state of the kubernetes node in Json
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("state/{hostname}")
+    public Response stateOfNode(@PathParam("hostname") String hostname) {
+        log.trace(String.format(MESSAGE_NODE, QUERY));
+
+        K8sNode k8sNode = nodeAdminService.node(hostname);
+        String nodeState = k8sNode != null ? k8sNode.state().toString() : NOT_EXIST;
+
+        return ok(mapper().createObjectNode().put(STATE, nodeState)).build();
+    }
+
+    /**
+     * Initializes kubernetes node.
+     *
+     * @param hostname hostname of kubernetes node
+     * @return 200 OK with init result, 404 not found, 500 server error
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("init/node/{hostname}")
+    public Response initNode(@PathParam("hostname") String hostname) {
+        log.trace(String.format(MESSAGE_NODE, QUERY));
+
+        K8sNode k8sNode = nodeAdminService.node(hostname);
+        if (k8sNode == null) {
+            log.error("Given node {} does not exist", hostname);
+            return Response.serverError().build();
+        }
+        K8sNode updated = k8sNode.updateState(K8sNodeState.INIT);
+        nodeAdminService.updateNode(updated);
+        return ok(mapper().createObjectNode()).build();
+    }
+
+    /**
+     * Initializes all kubernetes nodes.
+     *
+     * @return 200 OK with init result, 500 server error
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("init/all")
+    public Response initAllNodes() {
+        log.trace(String.format(MESSAGE_NODE, QUERY));
+
+        nodeAdminService.nodes()
+                .forEach(n -> {
+                    K8sNode updated = n.updateState(K8sNodeState.INIT);
+                    nodeAdminService.updateNode(updated);
+                });
+
+        return ok(mapper().createObjectNode()).build();
+    }
+
+    /**
+     * Initializes kubernetes nodes which are in the stats other than COMPLETE.
+     *
+     * @return 200 OK with init result, 500 server error
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("init/incomplete")
+    public Response initIncompleteNodes() {
+        log.trace(String.format(MESSAGE_NODE, QUERY));
+
+        nodeAdminService.nodes().stream()
+                .filter(n -> n.state() != K8sNodeState.COMPLETE)
+                .forEach(n -> {
+                    K8sNode updated = n.updateState(K8sNodeState.INIT);
+                    nodeAdminService.updateNode(updated);
+                });
+
+        return ok(mapper().createObjectNode()).build();
     }
 
     private Set<K8sNode> readNodeConfiguration(InputStream input) {
