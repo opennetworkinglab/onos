@@ -49,6 +49,7 @@ import org.onlab.packet.ndp.NeighborAdvertisement;
 import org.onlab.packet.ndp.NeighborSolicitation;
 import org.onlab.packet.ndp.RouterAdvertisement;
 import org.onlab.packet.ndp.RouterSolicitation;
+import org.onlab.util.PredictableExecutor;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
@@ -170,7 +171,9 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
 
     ExecutorService deviceEventHandler;
     private ExecutorService probeEventHandler;
-    private ExecutorService packetHandler;
+    // Packet workers - 0 will leverage available processors
+    private static final int DEFAULT_THREADS = 0;
+    private PredictableExecutor packetWorkers;
 
     /**
      * Creates an OpenFlow host provider.
@@ -187,8 +190,8 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
                 "device-event-handler", log));
         probeEventHandler = newSingleThreadScheduledExecutor(groupedThreads("onos/host-loc-provider",
                 "probe-event-handler", log));
-        packetHandler = newSingleThreadScheduledExecutor(groupedThreads("onos/host-loc-provider",
-                "packet-handler", log));
+        packetWorkers = new PredictableExecutor(DEFAULT_THREADS, groupedThreads("onos/host-loc-provider",
+                                                                                 "packet-worker-%d", log));
         providerService = providerRegistry.register(this);
         packetService.addProcessor(processor, PacketProcessor.advisor(1));
         deviceService.addListener(deviceListener);
@@ -209,7 +212,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         deviceService.removeListener(deviceListener);
         deviceEventHandler.shutdown();
         probeEventHandler.shutdown();
-        packetHandler.shutdown();
+        packetWorkers.shutdown();
         providerService = null;
         log.info("Stopped");
     }
@@ -462,18 +465,22 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
 
         @Override
         public void process(PacketContext context) {
-            packetHandler.execute(() -> processPacketInternal(context));
-        }
-
-        private void processPacketInternal(PacketContext context) {
+            // Verify valid context
             if (context == null) {
                 return;
             }
-
+            // Verify valid Ethernet packet
             Ethernet eth = context.inPacket().parsed();
             if (eth == null) {
                 return;
             }
+            // Dispatch to a worker thread
+            HostId hostId = HostId.hostId(eth.getSourceMAC(), VlanId.vlanId(eth.getVlanID()));
+            packetWorkers.execute(() -> processPacketInternal(context), hostId.hashCode());
+        }
+
+        private void processPacketInternal(PacketContext context) {
+            Ethernet eth = context.inPacket().parsed();
 
             MacAddress srcMac = eth.getSourceMAC();
             if (srcMac.isBroadcast() || srcMac.isMulticast()) {
