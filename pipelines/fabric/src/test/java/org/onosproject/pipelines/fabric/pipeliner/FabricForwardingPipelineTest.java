@@ -16,6 +16,7 @@
 
 package org.onosproject.pipelines.fabric.pipeliner;
 
+import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -24,6 +25,7 @@ import org.onlab.packet.IPv4;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.UDP;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -34,7 +36,13 @@ import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.net.group.DefaultGroupBucket;
+import org.onosproject.net.group.DefaultGroupDescription;
+import org.onosproject.net.group.DefaultGroupKey;
+import org.onosproject.net.group.GroupBucket;
+import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.group.GroupDescription;
+import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionParam;
@@ -84,11 +92,14 @@ public class FabricForwardingPipelineTest extends FabricPipelinerTest {
         List<FlowRule> flowRulesInstalled = (List<FlowRule>) result.flowRules();
         List<GroupDescription> groupsInstalled = (List<GroupDescription>) result.groups();
         assertEquals(1, flowRulesInstalled.size());
-        assertTrue(groupsInstalled.isEmpty());
+        assertEquals(1, groupsInstalled.size());
 
         FlowRule actualFlowRule = flowRulesInstalled.get(0);
         PiAction piAction = PiAction.builder()
-                .withId(FabricConstants.FABRIC_INGRESS_ACL_CLONE_TO_CPU)
+                .withId(FabricConstants.FABRIC_INGRESS_ACL_SET_CLONE_SESSION_ID)
+                .withParameter(new PiActionParam(
+                        FabricConstants.CLONE_ID,
+                        ForwardingObjectiveTranslator.CLONE_TO_CPU_ID))
                 .build();
         FlowRule expectedFlowRule = DefaultFlowRule.builder()
                 .forDevice(DEVICE_ID)
@@ -101,7 +112,28 @@ public class FabricForwardingPipelineTest extends FabricPipelinerTest {
                 .fromApp(APP_ID)
                 .build();
 
+        GroupDescription actualCloneGroup = groupsInstalled.get(0);
+        TrafficTreatment cloneGroupTreatment = DefaultTrafficTreatment.builder()
+                .setOutput(PortNumber.CONTROLLER)
+                .build();
+
+        List<GroupBucket> cloneBuckets = ImmutableList.of(
+                DefaultGroupBucket.createCloneGroupBucket(cloneGroupTreatment));
+
+        GroupBuckets cloneGroupBuckets = new GroupBuckets(cloneBuckets);
+        GroupKey cloneGroupKey = new DefaultGroupKey(
+                FabricPipeliner.KRYO.serialize(ForwardingObjectiveTranslator.CLONE_TO_CPU_ID));
+        GroupDescription expectedCloneGroup = new DefaultGroupDescription(
+                DEVICE_ID,
+                GroupDescription.Type.CLONE,
+                cloneGroupBuckets,
+                cloneGroupKey,
+                ForwardingObjectiveTranslator.CLONE_TO_CPU_ID,
+                APP_ID
+        );
+
         assertTrue(expectedFlowRule.exactMatch(actualFlowRule));
+        assertTrue(expectedCloneGroup.equals(actualCloneGroup));
     }
 
     /**

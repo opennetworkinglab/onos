@@ -42,7 +42,6 @@ import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2
 import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.VLAN_POP;
 import static org.onosproject.pipelines.fabric.FabricUtils.instruction;
 import static org.onosproject.pipelines.fabric.FabricUtils.l2Instruction;
-import static org.onosproject.pipelines.fabric.FabricUtils.outputPort;
 
 /**
  * Treatment translation logic.
@@ -193,23 +192,12 @@ final class FabricTreatmentInterpreter {
         if (isNoAction(treatment)) {
             return nop(tableId);
         }
+        treatmentException(
+                tableId, treatment,
+                "unsupported treatment");
 
-        final PortNumber outPort = outputPort(treatment);
-        if (outPort == null
-                || !outPort.equals(PortNumber.CONTROLLER)
-                || treatment.allInstructions().size() > 1) {
-            treatmentException(
-                    tableId, treatment,
-                    "supports only punt/clone to CPU actions");
-        }
-
-        final PiActionId actionId = treatment.clearedDeferred()
-                ? FabricConstants.FABRIC_INGRESS_ACL_PUNT_TO_CPU
-                : FabricConstants.FABRIC_INGRESS_ACL_CLONE_TO_CPU;
-
-        return PiAction.builder()
-                .withId(actionId)
-                .build();
+        // This function will never return null
+        return null;
     }
 
 

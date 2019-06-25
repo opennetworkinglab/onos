@@ -223,6 +223,8 @@ public final class FabricConstants {
             PiActionId.of("FabricEgress.process_int_main.process_int_transit.init_metadata");
     public static final PiActionId FABRIC_INGRESS_ACL_DROP =
             PiActionId.of("FabricIngress.acl.drop");
+    public static final PiActionId FABRIC_INGRESS_ACL_SET_CLONE_SESSION_ID =
+            PiActionId.of("FabricIngress.acl.set_clone_session_id");
     public static final PiActionId FABRIC_INGRESS_BNG_INGRESS_UPSTREAM_PUNT_TO_CPU =
             PiActionId.of("FabricIngress.bng_ingress.upstream.punt_to_cpu");
     public static final PiActionId FABRIC_INGRESS_BNG_INGRESS_UPSTREAM_SET_LINE =
@@ -276,8 +278,6 @@ public final class FabricConstants {
     public static final PiActionId NOP = PiActionId.of("nop");
     public static final PiActionId FABRIC_INGRESS_NEXT_OUTPUT_SIMPLE =
             PiActionId.of("FabricIngress.next.output_simple");
-    public static final PiActionId FABRIC_INGRESS_ACL_CLONE_TO_CPU =
-            PiActionId.of("FabricIngress.acl.clone_to_cpu");
     public static final PiActionId FABRIC_INGRESS_FILTERING_DENY =
             PiActionId.of("FabricIngress.filtering.deny");
     public static final PiActionId FABRIC_INGRESS_NEXT_SET_MCAST_GROUP_ID =
@@ -298,6 +298,8 @@ public final class FabricConstants {
     public static final PiActionParamId S1U_SGW_ADDR =
             PiActionParamId.of("s1u_sgw_addr");
     public static final PiActionParamId SMAC = PiActionParamId.of("smac");
+    public static final PiActionParamId CLONE_ID =
+            PiActionParamId.of("clone_id");
     public static final PiActionParamId VLAN_ID = PiActionParamId.of("vlan_id");
     public static final PiActionParamId LABEL = PiActionParamId.of("label");
     public static final PiActionParamId SRC_IP = PiActionParamId.of("src_ip");

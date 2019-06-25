@@ -28,24 +28,22 @@
         ["fabric_metadata_t._next_id10", 32, false],
         ["fabric_metadata_t._is_multicast11", 1, false],
         ["fabric_metadata_t._is_controller_packet_out12", 1, false],
-        ["fabric_metadata_t._clone_to_cpu13", 1, false],
-        ["fabric_metadata_t._ip_proto14", 8, false],
-        ["fabric_metadata_t._l4_sport15", 16, false],
-        ["fabric_metadata_t._l4_dport16", 16, false],
-        ["fabric_metadata_t._spgw_direction17", 2, false],
-        ["fabric_metadata_t._spgw_ipv4_len18", 16, false],
-        ["fabric_metadata_t._spgw_teid19", 32, false],
-        ["fabric_metadata_t._spgw_s1u_enb_addr20", 32, false],
-        ["fabric_metadata_t._spgw_s1u_sgw_addr21", 32, false],
-        ["fabric_metadata_t._int_meta_source22", 1, false],
-        ["fabric_metadata_t._int_meta_transit23", 1, false],
-        ["fabric_metadata_t._int_meta_sink24", 1, false],
-        ["fabric_metadata_t._int_meta_switch_id25", 32, false],
-        ["fabric_metadata_t._int_meta_new_words26", 8, false],
-        ["fabric_metadata_t._int_meta_new_bytes27", 16, false],
-        ["fabric_metadata_t._int_meta_ig_tstamp28", 32, false],
-        ["fabric_metadata_t._int_meta_eg_tstamp29", 32, false],
-        ["_padding_0", 7, false]
+        ["fabric_metadata_t._ip_proto13", 8, false],
+        ["fabric_metadata_t._l4_sport14", 16, false],
+        ["fabric_metadata_t._l4_dport15", 16, false],
+        ["fabric_metadata_t._spgw_direction16", 2, false],
+        ["fabric_metadata_t._spgw_ipv4_len17", 16, false],
+        ["fabric_metadata_t._spgw_teid18", 32, false],
+        ["fabric_metadata_t._spgw_s1u_enb_addr19", 32, false],
+        ["fabric_metadata_t._spgw_s1u_sgw_addr20", 32, false],
+        ["fabric_metadata_t._int_meta_source21", 1, false],
+        ["fabric_metadata_t._int_meta_transit22", 1, false],
+        ["fabric_metadata_t._int_meta_sink23", 1, false],
+        ["fabric_metadata_t._int_meta_switch_id24", 32, false],
+        ["fabric_metadata_t._int_meta_new_words25", 8, false],
+        ["fabric_metadata_t._int_meta_new_bytes26", 16, false],
+        ["fabric_metadata_t._int_meta_ig_tstamp27", 32, false],
+        ["fabric_metadata_t._int_meta_eg_tstamp28", 32, false]
       ]
     },
     {
@@ -496,7 +494,108 @@
   "header_union_types" : [],
   "header_unions" : [],
   "header_union_stacks" : [],
-  "field_lists" : [],
+  "field_lists" : [
+    {
+      "id" : 1,
+      "name" : "fl",
+      "source_info" : {
+        "filename" : "fabric.p4",
+        "line" : 77,
+        "column" : 40,
+        "source_fragment" : "standard_metadata"
+      },
+      "elements" : [
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "ingress_port"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "egress_spec"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "egress_port"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "clone_spec"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "instance_type"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "drop"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "recirculate_port"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "packet_length"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "enq_timestamp"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "enq_qdepth"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "deq_timedelta"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "deq_qdepth"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "ingress_global_timestamp"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "egress_global_timestamp"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "lf_field_list"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "mcast_grp"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "resubmit_flag"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "egress_rid"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "recirculate_flag"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "checksum_error"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "parser_error"]
+        },
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "priority"]
+        }
+      ]
+    }
+  ],
   "errors" : [
     ["NoError", 1],
     ["PacketTooShort", 2],
@@ -808,7 +907,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t._ip_proto14"]
+                  "value" : ["scalars", "fabric_metadata_t._ip_proto13"]
                 },
                 {
                   "type" : "field",
@@ -893,7 +992,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t._l4_sport15"]
+                  "value" : ["scalars", "fabric_metadata_t._l4_sport14"]
                 },
                 {
                   "type" : "field",
@@ -906,7 +1005,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t._l4_dport16"]
+                  "value" : ["scalars", "fabric_metadata_t._l4_dport15"]
                 },
                 {
                   "type" : "field",
@@ -942,7 +1041,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t._l4_sport15"]
+                  "value" : ["scalars", "fabric_metadata_t._l4_sport14"]
                 },
                 {
                   "type" : "field",
@@ -955,7 +1054,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t._l4_dport16"]
+                  "value" : ["scalars", "fabric_metadata_t._l4_dport15"]
                 },
                 {
                   "type" : "field",
@@ -1164,7 +1263,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t._l4_sport15"]
+                  "value" : ["scalars", "fabric_metadata_t._l4_sport14"]
                 },
                 {
                   "type" : "field",
@@ -1177,7 +1276,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t._l4_dport16"]
+                  "value" : ["scalars", "fabric_metadata_t._l4_dport15"]
                 },
                 {
                   "type" : "field",
@@ -1834,7 +1933,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._spgw_teid19"]
+              "value" : ["scalars", "fabric_metadata_t._spgw_teid18"]
             },
             {
               "type" : "runtime_data",
@@ -1853,7 +1952,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._spgw_s1u_enb_addr20"]
+              "value" : ["scalars", "fabric_metadata_t._spgw_s1u_enb_addr19"]
             },
             {
               "type" : "runtime_data",
@@ -1872,7 +1971,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._spgw_s1u_sgw_addr21"]
+              "value" : ["scalars", "fabric_metadata_t._spgw_s1u_sgw_addr20"]
             },
             {
               "type" : "runtime_data",
@@ -1898,7 +1997,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_source22"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_source21"]
             },
             {
               "type" : "expression",
@@ -2262,37 +2361,32 @@
       ]
     },
     {
-      "name" : "FabricIngress.acl.clone_to_cpu",
+      "name" : "FabricIngress.acl.set_clone_session_id",
       "id" : 23,
-      "runtime_data" : [],
+      "runtime_data" : [
+        {
+          "name" : "clone_id",
+          "bitwidth" : 32
+        }
+      ],
       "primitives" : [
         {
-          "op" : "assign",
+          "op" : "clone_ingress_pkt_to_egress",
           "parameters" : [
             {
-              "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._clone_to_cpu13"]
+              "type" : "runtime_data",
+              "value" : 0
             },
             {
-              "type" : "expression",
-              "value" : {
-                "type" : "expression",
-                "value" : {
-                  "op" : "b2d",
-                  "left" : null,
-                  "right" : {
-                    "type" : "bool",
-                    "value" : true
-                  }
-                }
-              }
+              "type" : "hexstr",
+              "value" : "0x1"
             }
           ],
           "source_info" : {
             "filename" : "include/control/acl.p4",
             "line" : 46,
-            "column" : 37,
-            "source_fragment" : "= true; ..."
+            "column" : 8,
+            "source_fragment" : "clone3<standard_metadata_t>(CloneType.I2E, clone_id, standard_metadata)"
           }
         }
       ]
@@ -3204,7 +3298,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._spgw_direction17"]
+              "value" : ["scalars", "fabric_metadata_t._spgw_direction16"]
             },
             {
               "type" : "hexstr",
@@ -3290,7 +3384,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._spgw_direction17"]
+              "value" : ["scalars", "fabric_metadata_t._spgw_direction16"]
             },
             {
               "type" : "hexstr",
@@ -3316,7 +3410,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._spgw_direction17"]
+              "value" : ["scalars", "fabric_metadata_t._spgw_direction16"]
             },
             {
               "type" : "hexstr",
@@ -3401,7 +3495,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._spgw_ipv4_len18"]
+              "value" : ["scalars", "fabric_metadata_t._spgw_ipv4_len17"]
             },
             {
               "type" : "field",
@@ -3805,7 +3899,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._spgw_s1u_enb_addr20"]
+              "value" : ["scalars", "fabric_metadata_t._spgw_s1u_enb_addr19"]
             }
           ],
           "source_info" : {
@@ -3824,7 +3918,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._spgw_s1u_sgw_addr21"]
+              "value" : ["scalars", "fabric_metadata_t._spgw_s1u_sgw_addr20"]
             }
           ],
           "source_info" : {
@@ -3925,7 +4019,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._spgw_ipv4_len18"]
+                        "value" : ["scalars", "fabric_metadata_t._spgw_ipv4_len17"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4124,7 +4218,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._spgw_ipv4_len18"]
+              "value" : ["scalars", "fabric_metadata_t._spgw_ipv4_len17"]
             }
           ],
           "source_info" : {
@@ -4143,7 +4237,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._spgw_teid19"]
+              "value" : ["scalars", "fabric_metadata_t._spgw_teid18"]
             }
           ],
           "source_info" : {
@@ -4516,7 +4610,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._l4_dport16"]
+              "value" : ["scalars", "fabric_metadata_t._l4_dport15"]
             }
           ],
           "source_info" : {
@@ -4665,7 +4759,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_transit23"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_transit22"]
             },
             {
               "type" : "expression",
@@ -4694,7 +4788,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id25"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id24"]
             },
             {
               "type" : "runtime_data",
@@ -4792,7 +4886,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
             },
             {
               "type" : "expression",
@@ -4806,7 +4900,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4834,7 +4928,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
             },
             {
               "type" : "expression",
@@ -4848,7 +4942,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4917,7 +5011,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
             },
             {
               "type" : "expression",
@@ -4931,7 +5025,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4959,7 +5053,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
             },
             {
               "type" : "expression",
@@ -4973,7 +5067,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5108,7 +5202,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
             },
             {
               "type" : "expression",
@@ -5122,7 +5216,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5150,7 +5244,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
             },
             {
               "type" : "expression",
@@ -5164,7 +5258,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5278,7 +5372,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
             },
             {
               "type" : "expression",
@@ -5292,7 +5386,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5320,7 +5414,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
             },
             {
               "type" : "expression",
@@ -5334,7 +5428,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5514,7 +5608,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
             },
             {
               "type" : "expression",
@@ -5528,7 +5622,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5556,7 +5650,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
             },
             {
               "type" : "expression",
@@ -5570,7 +5664,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5718,7 +5812,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
             },
             {
               "type" : "expression",
@@ -5732,7 +5826,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5760,7 +5854,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
             },
             {
               "type" : "expression",
@@ -5774,7 +5868,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5988,7 +6082,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
             },
             {
               "type" : "expression",
@@ -6002,7 +6096,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6030,7 +6124,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
             },
             {
               "type" : "expression",
@@ -6044,7 +6138,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6098,7 +6192,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id25"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id24"]
             }
           ],
           "source_info" : {
@@ -6113,7 +6207,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
             },
             {
               "type" : "expression",
@@ -6127,7 +6221,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6155,7 +6249,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
             },
             {
               "type" : "expression",
@@ -6169,7 +6263,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6289,7 +6383,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id25"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id24"]
             }
           ],
           "source_info" : {
@@ -6304,7 +6398,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
             },
             {
               "type" : "expression",
@@ -6318,7 +6412,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6346,7 +6440,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
             },
             {
               "type" : "expression",
@@ -6360,7 +6454,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6448,7 +6542,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id25"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id24"]
             }
           ],
           "source_info" : {
@@ -6463,7 +6557,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
             },
             {
               "type" : "expression",
@@ -6477,7 +6571,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6505,7 +6599,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
             },
             {
               "type" : "expression",
@@ -6519,7 +6613,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6673,7 +6767,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id25"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id24"]
             }
           ],
           "source_info" : {
@@ -6688,7 +6782,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
             },
             {
               "type" : "expression",
@@ -6702,7 +6796,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6730,7 +6824,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
             },
             {
               "type" : "expression",
@@ -6744,7 +6838,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6877,7 +6971,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id25"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id24"]
             }
           ],
           "source_info" : {
@@ -6892,7 +6986,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
             },
             {
               "type" : "expression",
@@ -6906,7 +7000,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6934,7 +7028,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
             },
             {
               "type" : "expression",
@@ -6948,7 +7042,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7147,7 +7241,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id25"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id24"]
             }
           ],
           "source_info" : {
@@ -7162,7 +7256,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
             },
             {
               "type" : "expression",
@@ -7176,7 +7270,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7204,7 +7298,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
             },
             {
               "type" : "expression",
@@ -7218,7 +7312,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7385,7 +7479,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id25"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id24"]
             }
           ],
           "source_info" : {
@@ -7400,7 +7494,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
             },
             {
               "type" : "expression",
@@ -7414,7 +7508,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7442,7 +7536,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
             },
             {
               "type" : "expression",
@@ -7456,7 +7550,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7689,7 +7783,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id25"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id24"]
             }
           ],
           "source_info" : {
@@ -7704,7 +7798,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
             },
             {
               "type" : "expression",
@@ -7718,7 +7812,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7746,7 +7840,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
             },
             {
               "type" : "expression",
@@ -7760,7 +7854,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7835,7 +7929,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
             },
             {
               "type" : "expression",
@@ -7849,7 +7943,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7877,7 +7971,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
             },
             {
               "type" : "expression",
@@ -7891,7 +7985,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7979,7 +8073,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
             },
             {
               "type" : "expression",
@@ -7993,7 +8087,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8021,7 +8115,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
             },
             {
               "type" : "expression",
@@ -8035,7 +8129,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8157,7 +8251,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
             },
             {
               "type" : "expression",
@@ -8171,7 +8265,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8199,7 +8293,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
             },
             {
               "type" : "expression",
@@ -8213,7 +8307,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8305,7 +8399,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
             },
             {
               "type" : "expression",
@@ -8319,7 +8413,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8347,7 +8441,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
             },
             {
               "type" : "expression",
@@ -8361,7 +8455,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8487,7 +8581,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
             },
             {
               "type" : "expression",
@@ -8501,7 +8595,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8529,7 +8623,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
             },
             {
               "type" : "expression",
@@ -8543,7 +8637,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8688,7 +8782,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
             },
             {
               "type" : "expression",
@@ -8702,7 +8796,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8730,7 +8824,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
             },
             {
               "type" : "expression",
@@ -8744,7 +8838,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8923,7 +9017,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
             },
             {
               "type" : "expression",
@@ -8937,7 +9031,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8965,7 +9059,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
             },
             {
               "type" : "expression",
@@ -8979,7 +9073,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -9048,7 +9142,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
             },
             {
               "type" : "expression",
@@ -9062,7 +9156,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -9090,7 +9184,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
             },
             {
               "type" : "expression",
@@ -9104,7 +9198,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -9207,7 +9301,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
             },
             {
               "type" : "expression",
@@ -9221,7 +9315,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -9249,7 +9343,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
             },
             {
               "type" : "expression",
@@ -9263,7 +9357,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -9385,7 +9479,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
             },
             {
               "type" : "expression",
@@ -9399,7 +9493,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -9427,7 +9521,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
             },
             {
               "type" : "expression",
@@ -9441,7 +9535,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -9597,7 +9691,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
             },
             {
               "type" : "expression",
@@ -9611,7 +9705,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -9639,7 +9733,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
             },
             {
               "type" : "expression",
@@ -9653,7 +9747,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -9779,7 +9873,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
             },
             {
               "type" : "expression",
@@ -9793,7 +9887,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -9821,7 +9915,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
             },
             {
               "type" : "expression",
@@ -9835,7 +9929,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -9995,7 +10089,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
             },
             {
               "type" : "expression",
@@ -10009,7 +10103,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -10037,7 +10131,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
             },
             {
               "type" : "expression",
@@ -10051,7 +10145,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -10230,7 +10324,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
             },
             {
               "type" : "expression",
@@ -10244,7 +10338,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -10272,7 +10366,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
             },
             {
               "type" : "expression",
@@ -10286,7 +10380,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -10499,7 +10593,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
             },
             {
               "type" : "expression",
@@ -10513,7 +10607,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -10541,7 +10635,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
             },
             {
               "type" : "expression",
@@ -10555,7 +10649,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -10919,28 +11013,6 @@
       "runtime_data" : [],
       "primitives" : [
         {
-          "op" : "mark_to_drop",
-          "parameters" : [
-            {
-              "type" : "header",
-              "value" : "standard_metadata"
-            }
-          ],
-          "source_info" : {
-            "filename" : "include/control/packetio.p4",
-            "line" : 47,
-            "column" : 16,
-            "source_fragment" : "mark_to_drop(standard_metadata)"
-          }
-        }
-      ]
-    },
-    {
-      "name" : "act_21",
-      "id" : 99,
-      "runtime_data" : [],
-      "primitives" : [
-        {
           "op" : "add_header",
           "parameters" : [
             {
@@ -10950,7 +11022,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/packetio.p4",
-            "line" : 49,
+            "line" : 44,
             "column" : 12,
             "source_fragment" : "hdr.packet_in.setValid()"
           }
@@ -10969,7 +11041,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/packetio.p4",
-            "line" : 50,
+            "line" : 45,
             "column" : 12,
             "source_fragment" : "hdr.packet_in.ingress_port = standard_metadata.ingress_port"
           }
@@ -10979,7 +11051,7 @@
           "parameters" : [],
           "source_info" : {
             "filename" : "include/control/packetio.p4",
-            "line" : 52,
+            "line" : 47,
             "column" : 12,
             "source_fragment" : "exit"
           }
@@ -10987,8 +11059,8 @@
       ]
     },
     {
-      "name" : "act_22",
-      "id" : 100,
+      "name" : "act_21",
+      "id" : 99,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -11009,8 +11081,8 @@
       ]
     },
     {
-      "name" : "act_23",
-      "id" : 101,
+      "name" : "act_22",
+      "id" : 100,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -11039,8 +11111,8 @@
       ]
     },
     {
-      "name" : "act_24",
-      "id" : 102,
+      "name" : "act_23",
+      "id" : 101,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -11069,8 +11141,8 @@
       ]
     },
     {
-      "name" : "act_25",
-      "id" : 103,
+      "name" : "act_24",
+      "id" : 102,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -11091,8 +11163,8 @@
       ]
     },
     {
-      "name" : "act_26",
-      "id" : 104,
+      "name" : "act_25",
+      "id" : 103,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -11140,8 +11212,8 @@
       ]
     },
     {
-      "name" : "act_27",
-      "id" : 105,
+      "name" : "act_26",
+      "id" : 104,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -11162,8 +11234,8 @@
       ]
     },
     {
-      "name" : "act_28",
-      "id" : 106,
+      "name" : "act_27",
+      "id" : 105,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -11211,8 +11283,8 @@
       ]
     },
     {
-      "name" : "act_29",
-      "id" : 107,
+      "name" : "act_28",
+      "id" : 106,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -11241,8 +11313,8 @@
       ]
     },
     {
-      "name" : "act_30",
-      "id" : 108,
+      "name" : "act_29",
+      "id" : 107,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -11277,8 +11349,8 @@
       ]
     },
     {
-      "name" : "act_31",
-      "id" : 109,
+      "name" : "act_30",
+      "id" : 108,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -11304,7 +11376,7 @@
                       },
                       "right" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       }
                     }
                   },
@@ -11326,8 +11398,8 @@
       ]
     },
     {
-      "name" : "act_32",
-      "id" : 110,
+      "name" : "act_31",
+      "id" : 109,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -11375,8 +11447,8 @@
       ]
     },
     {
-      "name" : "act_33",
-      "id" : 111,
+      "name" : "act_32",
+      "id" : 110,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -11402,7 +11474,7 @@
                       },
                       "right" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes27"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes26"]
                       }
                     }
                   },
@@ -11424,8 +11496,8 @@
       ]
     },
     {
-      "name" : "act_34",
-      "id" : 112,
+      "name" : "act_33",
+      "id" : 111,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -11451,7 +11523,7 @@
                       },
                       "right" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words26"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words25"]
                       }
                     }
                   },
@@ -12315,19 +12387,19 @@
             {
               "match_type" : "ternary",
               "name" : "ip_proto",
-              "target" : ["scalars", "fabric_metadata_t._ip_proto14"],
+              "target" : ["scalars", "fabric_metadata_t._ip_proto13"],
               "mask" : null
             },
             {
               "match_type" : "ternary",
               "name" : "l4_sport",
-              "target" : ["scalars", "fabric_metadata_t._l4_sport15"],
+              "target" : ["scalars", "fabric_metadata_t._l4_sport14"],
               "mask" : null
             },
             {
               "match_type" : "ternary",
               "name" : "l4_dport",
-              "target" : ["scalars", "fabric_metadata_t._l4_dport16"],
+              "target" : ["scalars", "fabric_metadata_t._l4_dport15"],
               "mask" : null
             },
             {
@@ -12386,12 +12458,12 @@
           "support_timeout" : false,
           "direct_meters" : null,
           "action_ids" : [21, 22, 23, 24, 25],
-          "actions" : ["FabricIngress.acl.set_next_id_acl", "FabricIngress.acl.punt_to_cpu", "FabricIngress.acl.clone_to_cpu", "FabricIngress.acl.drop", "FabricIngress.acl.nop_acl"],
+          "actions" : ["FabricIngress.acl.set_next_id_acl", "FabricIngress.acl.punt_to_cpu", "FabricIngress.acl.set_clone_session_id", "FabricIngress.acl.drop", "FabricIngress.acl.nop_acl"],
           "base_default_next" : "node_43",
           "next_tables" : {
             "FabricIngress.acl.set_next_id_acl" : "node_43",
             "FabricIngress.acl.punt_to_cpu" : "node_43",
-            "FabricIngress.acl.clone_to_cpu" : "node_43",
+            "FabricIngress.acl.set_clone_session_id" : "node_43",
             "FabricIngress.acl.drop" : "node_43",
             "FabricIngress.acl.nop_acl" : "node_43"
           },
@@ -12674,15 +12746,15 @@
               },
               {
                 "type" : "field",
-                "value" : ["scalars", "fabric_metadata_t._ip_proto14"]
+                "value" : ["scalars", "fabric_metadata_t._ip_proto13"]
               },
               {
                 "type" : "field",
-                "value" : ["scalars", "fabric_metadata_t._l4_sport15"]
+                "value" : ["scalars", "fabric_metadata_t._l4_sport14"]
               },
               {
                 "type" : "field",
-                "value" : ["scalars", "fabric_metadata_t._l4_dport16"]
+                "value" : ["scalars", "fabric_metadata_t._l4_dport15"]
               }
             ]
           }
@@ -13179,9 +13251,9 @@
           "id" : 35,
           "source_info" : {
             "filename" : "include/control/packetio.p4",
-            "line" : 47,
-            "column" : 16,
-            "source_fragment" : "mark_to_drop(standard_metadata)"
+            "line" : 44,
+            "column" : 12,
+            "source_fragment" : "hdr.packet_in.setValid(); ..."
           },
           "key" : [],
           "match_type" : "exact",
@@ -13192,9 +13264,9 @@
           "direct_meters" : null,
           "action_ids" : [98],
           "actions" : ["act_20"],
-          "base_default_next" : "tbl_act_21",
+          "base_default_next" : "node_59",
           "next_tables" : {
-            "act_20" : "tbl_act_21"
+            "act_20" : "node_59"
           },
           "default_entry" : {
             "action_id" : 98,
@@ -13207,10 +13279,10 @@
           "name" : "tbl_act_21",
           "id" : 36,
           "source_info" : {
-            "filename" : "include/control/packetio.p4",
-            "line" : 49,
+            "filename" : "include/control/next.p4",
+            "line" : 308,
             "column" : 12,
-            "source_fragment" : "hdr.packet_in.setValid(); ..."
+            "source_fragment" : "mark_to_drop(standard_metadata)"
           },
           "key" : [],
           "match_type" : "exact",
@@ -13233,37 +13305,8 @@
           }
         },
         {
-          "name" : "tbl_act_22",
-          "id" : 37,
-          "source_info" : {
-            "filename" : "include/control/next.p4",
-            "line" : 308,
-            "column" : 12,
-            "source_fragment" : "mark_to_drop(standard_metadata)"
-          },
-          "key" : [],
-          "match_type" : "exact",
-          "type" : "simple",
-          "max_size" : 1024,
-          "with_counters" : false,
-          "support_timeout" : false,
-          "direct_meters" : null,
-          "action_ids" : [100],
-          "actions" : ["act_22"],
-          "base_default_next" : "node_63",
-          "next_tables" : {
-            "act_22" : "node_63"
-          },
-          "default_entry" : {
-            "action_id" : 100,
-            "action_const" : true,
-            "action_data" : [],
-            "action_entry_const" : true
-          }
-        },
-        {
           "name" : "tbl_egress_next_pop_mpls_if_present",
-          "id" : 38,
+          "id" : 37,
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 312,
@@ -13292,7 +13335,7 @@
         },
         {
           "name" : "tbl_egress_next_set_mpls",
-          "id" : 39,
+          "id" : 38,
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 314,
@@ -13321,7 +13364,7 @@
         },
         {
           "name" : "FabricEgress.egress_next.egress_vlan",
-          "id" : 40,
+          "id" : 39,
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 291,
@@ -13352,11 +13395,34 @@
           "actions" : ["FabricEgress.egress_next.pop_vlan", "nop"],
           "base_default_next" : null,
           "next_tables" : {
-            "__HIT__" : "tbl_act_23",
-            "__MISS__" : "tbl_act_24"
+            "__HIT__" : "tbl_act_22",
+            "__MISS__" : "tbl_act_23"
           },
           "default_entry" : {
             "action_id" : 55,
+            "action_const" : true,
+            "action_data" : [],
+            "action_entry_const" : true
+          }
+        },
+        {
+          "name" : "tbl_act_22",
+          "id" : 40,
+          "key" : [],
+          "match_type" : "exact",
+          "type" : "simple",
+          "max_size" : 1024,
+          "with_counters" : false,
+          "support_timeout" : false,
+          "direct_meters" : null,
+          "action_ids" : [100],
+          "actions" : ["act_22"],
+          "base_default_next" : "node_68",
+          "next_tables" : {
+            "act_22" : "node_68"
+          },
+          "default_entry" : {
+            "action_id" : 100,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -13374,9 +13440,9 @@
           "direct_meters" : null,
           "action_ids" : [101],
           "actions" : ["act_23"],
-          "base_default_next" : "node_70",
+          "base_default_next" : "node_68",
           "next_tables" : {
-            "act_23" : "node_70"
+            "act_23" : "node_68"
           },
           "default_entry" : {
             "action_id" : 101,
@@ -13386,31 +13452,8 @@
           }
         },
         {
-          "name" : "tbl_act_24",
-          "id" : 42,
-          "key" : [],
-          "match_type" : "exact",
-          "type" : "simple",
-          "max_size" : 1024,
-          "with_counters" : false,
-          "support_timeout" : false,
-          "direct_meters" : null,
-          "action_ids" : [102],
-          "actions" : ["act_24"],
-          "base_default_next" : "node_70",
-          "next_tables" : {
-            "act_24" : "node_70"
-          },
-          "default_entry" : {
-            "action_id" : 102,
-            "action_const" : true,
-            "action_data" : [],
-            "action_entry_const" : true
-          }
-        },
-        {
           "name" : "tbl_egress_next_push_vlan",
-          "id" : 43,
+          "id" : 42,
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 320,
@@ -13426,9 +13469,9 @@
           "direct_meters" : null,
           "action_ids" : [95],
           "actions" : ["FabricEgress.egress_next.push_vlan"],
-          "base_default_next" : "node_73",
+          "base_default_next" : "node_71",
           "next_tables" : {
-            "FabricEgress.egress_next.push_vlan" : "node_73"
+            "FabricEgress.egress_next.push_vlan" : "node_71"
           },
           "default_entry" : {
             "action_id" : 95,
@@ -13438,8 +13481,8 @@
           }
         },
         {
-          "name" : "tbl_act_25",
-          "id" : 44,
+          "name" : "tbl_act_24",
+          "id" : 43,
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 326,
@@ -13453,22 +13496,22 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [104],
-          "actions" : ["act_26"],
-          "base_default_next" : "node_75",
+          "action_ids" : [103],
+          "actions" : ["act_25"],
+          "base_default_next" : "node_73",
           "next_tables" : {
-            "act_26" : "node_75"
+            "act_25" : "node_73"
           },
           "default_entry" : {
-            "action_id" : 104,
+            "action_id" : 103,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
           }
         },
         {
-          "name" : "tbl_act_26",
-          "id" : 45,
+          "name" : "tbl_act_25",
+          "id" : 44,
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 327,
@@ -13482,22 +13525,22 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [103],
-          "actions" : ["act_25"],
-          "base_default_next" : "node_81",
+          "action_ids" : [102],
+          "actions" : ["act_24"],
+          "base_default_next" : "node_79",
           "next_tables" : {
-            "act_25" : "node_81"
+            "act_24" : "node_79"
           },
           "default_entry" : {
-            "action_id" : 103,
+            "action_id" : 102,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
           }
         },
         {
-          "name" : "tbl_act_27",
-          "id" : 46,
+          "name" : "tbl_act_26",
+          "id" : 45,
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 330,
@@ -13511,22 +13554,22 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [106],
-          "actions" : ["act_28"],
-          "base_default_next" : "node_79",
+          "action_ids" : [105],
+          "actions" : ["act_27"],
+          "base_default_next" : "node_77",
           "next_tables" : {
-            "act_28" : "node_79"
+            "act_27" : "node_77"
           },
           "default_entry" : {
-            "action_id" : 106,
+            "action_id" : 105,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
           }
         },
         {
-          "name" : "tbl_act_28",
-          "id" : 47,
+          "name" : "tbl_act_27",
+          "id" : 46,
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 331,
@@ -13540,14 +13583,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [105],
-          "actions" : ["act_27"],
-          "base_default_next" : "node_81",
+          "action_ids" : [104],
+          "actions" : ["act_26"],
+          "base_default_next" : "node_79",
           "next_tables" : {
-            "act_27" : "node_81"
+            "act_26" : "node_79"
           },
           "default_entry" : {
-            "action_id" : 105,
+            "action_id" : 104,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -13555,7 +13598,7 @@
         },
         {
           "name" : "tbl_spgw_egress_gtpu_encap",
-          "id" : 48,
+          "id" : 47,
           "source_info" : {
             "filename" : "include/spgw.p4",
             "line" : 228,
@@ -13571,9 +13614,9 @@
           "direct_meters" : null,
           "action_ids" : [58],
           "actions" : ["FabricEgress.spgw_egress.gtpu_encap"],
-          "base_default_next" : "node_83",
+          "base_default_next" : "node_81",
           "next_tables" : {
-            "FabricEgress.spgw_egress.gtpu_encap" : "node_83"
+            "FabricEgress.spgw_egress.gtpu_encap" : "node_81"
           },
           "default_entry" : {
             "action_id" : 58,
@@ -13584,7 +13627,7 @@
         },
         {
           "name" : "FabricEgress.process_int_main.process_int_source.tb_int_source",
-          "id" : 49,
+          "id" : 48,
           "source_info" : {
             "filename" : "include/int/int_source.p4",
             "line" : 66,
@@ -13607,13 +13650,13 @@
             {
               "match_type" : "ternary",
               "name" : "l4_sport",
-              "target" : ["scalars", "fabric_metadata_t._l4_sport15"],
+              "target" : ["scalars", "fabric_metadata_t._l4_sport14"],
               "mask" : null
             },
             {
               "match_type" : "ternary",
               "name" : "l4_dport",
-              "target" : ["scalars", "fabric_metadata_t._l4_dport16"],
+              "target" : ["scalars", "fabric_metadata_t._l4_dport15"],
               "mask" : null
             }
           ],
@@ -13625,10 +13668,10 @@
           "direct_meters" : null,
           "action_ids" : [59, 53],
           "actions" : ["FabricEgress.process_int_main.process_int_source.int_source_dscp", "nop"],
-          "base_default_next" : "node_86",
+          "base_default_next" : "node_84",
           "next_tables" : {
-            "FabricEgress.process_int_main.process_int_source.int_source_dscp" : "node_86",
-            "nop" : "node_86"
+            "FabricEgress.process_int_main.process_int_source.int_source_dscp" : "node_84",
+            "nop" : "node_84"
           },
           "default_entry" : {
             "action_id" : 53,
@@ -13638,8 +13681,8 @@
           }
         },
         {
-          "name" : "tbl_act_29",
-          "id" : 50,
+          "name" : "tbl_act_28",
+          "id" : 49,
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -13647,14 +13690,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [107],
-          "actions" : ["act_29"],
+          "action_ids" : [106],
+          "actions" : ["act_28"],
           "base_default_next" : "FabricEgress.process_int_main.process_int_transit.tb_int_insert",
           "next_tables" : {
-            "act_29" : "FabricEgress.process_int_main.process_int_transit.tb_int_insert"
+            "act_28" : "FabricEgress.process_int_main.process_int_transit.tb_int_insert"
           },
           "default_entry" : {
-            "action_id" : 107,
+            "action_id" : 106,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -13662,7 +13705,7 @@
         },
         {
           "name" : "FabricEgress.process_int_main.process_int_transit.tb_int_insert",
-          "id" : 51,
+          "id" : 50,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 315,
@@ -13685,10 +13728,10 @@
           "direct_meters" : null,
           "action_ids" : [60, 54],
           "actions" : ["FabricEgress.process_int_main.process_int_transit.init_metadata", "nop"],
-          "base_default_next" : "node_89",
+          "base_default_next" : "node_87",
           "next_tables" : {
-            "FabricEgress.process_int_main.process_int_transit.init_metadata" : "node_89",
-            "nop" : "node_89"
+            "FabricEgress.process_int_main.process_int_transit.init_metadata" : "node_87",
+            "nop" : "node_87"
           },
           "default_entry" : {
             "action_id" : 54,
@@ -13698,8 +13741,8 @@
           }
         },
         {
-          "name" : "tbl_act_30",
-          "id" : 52,
+          "name" : "tbl_act_29",
+          "id" : 51,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 420,
@@ -13713,14 +13756,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [108],
-          "actions" : ["act_30"],
-          "base_default_next" : "node_91",
+          "action_ids" : [107],
+          "actions" : ["act_29"],
+          "base_default_next" : "node_89",
           "next_tables" : {
-            "act_30" : "node_91"
+            "act_29" : "node_89"
           },
           "default_entry" : {
-            "action_id" : 108,
+            "action_id" : 107,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -13728,7 +13771,7 @@
         },
         {
           "name" : "FabricEgress.process_int_main.process_int_transit.tb_int_inst_0003",
-          "id" : 53,
+          "id" : 52,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 331,
@@ -14086,7 +14129,7 @@
         },
         {
           "name" : "FabricEgress.process_int_main.process_int_transit.tb_int_inst_0407",
-          "id" : 54,
+          "id" : 53,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 375,
@@ -14109,25 +14152,25 @@
           "direct_meters" : null,
           "action_ids" : [77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 57],
           "actions" : ["FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i0", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i1", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i2", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i3", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i4", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i5", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i6", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i7", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i8", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i9", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i10", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i11", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i12", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i13", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i14", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i15", "NoAction"],
-          "base_default_next" : "tbl_act_31",
+          "base_default_next" : "tbl_act_30",
           "next_tables" : {
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i0" : "tbl_act_31",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i1" : "tbl_act_31",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i2" : "tbl_act_31",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i3" : "tbl_act_31",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i4" : "tbl_act_31",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i5" : "tbl_act_31",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i6" : "tbl_act_31",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i7" : "tbl_act_31",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i8" : "tbl_act_31",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i9" : "tbl_act_31",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i10" : "tbl_act_31",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i11" : "tbl_act_31",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i12" : "tbl_act_31",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i13" : "tbl_act_31",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i14" : "tbl_act_31",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i15" : "tbl_act_31",
-            "NoAction" : "tbl_act_31"
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i0" : "tbl_act_30",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i1" : "tbl_act_30",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i2" : "tbl_act_30",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i3" : "tbl_act_30",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i4" : "tbl_act_30",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i5" : "tbl_act_30",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i6" : "tbl_act_30",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i7" : "tbl_act_30",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i8" : "tbl_act_30",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i9" : "tbl_act_30",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i10" : "tbl_act_30",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i11" : "tbl_act_30",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i12" : "tbl_act_30",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i13" : "tbl_act_30",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i14" : "tbl_act_30",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i15" : "tbl_act_30",
+            "NoAction" : "tbl_act_30"
           },
           "default_entry" : {
             "action_id" : 57,
@@ -14443,8 +14486,8 @@
           ]
         },
         {
-          "name" : "tbl_act_31",
-          "id" : 55,
+          "name" : "tbl_act_30",
+          "id" : 54,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 425,
@@ -14458,22 +14501,22 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [110],
-          "actions" : ["act_32"],
-          "base_default_next" : "node_95",
+          "action_ids" : [109],
+          "actions" : ["act_31"],
+          "base_default_next" : "node_93",
           "next_tables" : {
-            "act_32" : "node_95"
+            "act_31" : "node_93"
           },
           "default_entry" : {
-            "action_id" : 110,
+            "action_id" : 109,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
           }
         },
         {
-          "name" : "tbl_act_32",
-          "id" : 56,
+          "name" : "tbl_act_31",
+          "id" : 55,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 428,
@@ -14487,22 +14530,22 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [109],
-          "actions" : ["act_31"],
-          "base_default_next" : "node_97",
+          "action_ids" : [108],
+          "actions" : ["act_30"],
+          "base_default_next" : "node_95",
           "next_tables" : {
-            "act_31" : "node_97"
+            "act_30" : "node_95"
           },
           "default_entry" : {
-            "action_id" : 109,
+            "action_id" : 108,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
           }
         },
         {
-          "name" : "tbl_act_33",
-          "id" : 57,
+          "name" : "tbl_act_32",
+          "id" : 56,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 431,
@@ -14516,22 +14559,22 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [111],
-          "actions" : ["act_33"],
-          "base_default_next" : "node_99",
+          "action_ids" : [110],
+          "actions" : ["act_32"],
+          "base_default_next" : "node_97",
           "next_tables" : {
-            "act_33" : "node_99"
+            "act_32" : "node_97"
           },
           "default_entry" : {
-            "action_id" : 111,
+            "action_id" : 110,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
           }
         },
         {
-          "name" : "tbl_act_34",
-          "id" : 58,
+          "name" : "tbl_act_33",
+          "id" : 57,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 434,
@@ -14545,14 +14588,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [112],
-          "actions" : ["act_34"],
+          "action_ids" : [111],
+          "actions" : ["act_33"],
           "base_default_next" : null,
           "next_tables" : {
-            "act_34" : null
+            "act_33" : null
           },
           "default_entry" : {
-            "action_id" : 112,
+            "action_id" : 111,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -14617,72 +14660,12 @@
               }
             }
           },
-          "true_next" : "node_58",
-          "false_next" : "node_61"
-        },
-        {
-          "name" : "node_58",
-          "id" : 19,
-          "source_info" : {
-            "filename" : "include/control/packetio.p4",
-            "line" : 44,
-            "column" : 16,
-            "source_fragment" : "fabric_metadata.is_multicast == true && ..."
-          },
-          "expression" : {
-            "type" : "expression",
-            "value" : {
-              "op" : "and",
-              "left" : {
-                "type" : "expression",
-                "value" : {
-                  "op" : "==",
-                  "left" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "d2b",
-                      "left" : null,
-                      "right" : {
-                        "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._is_multicast11"]
-                      }
-                    }
-                  },
-                  "right" : {
-                    "type" : "bool",
-                    "value" : true
-                  }
-                }
-              },
-              "right" : {
-                "type" : "expression",
-                "value" : {
-                  "op" : "==",
-                  "left" : {
-                    "type" : "expression",
-                    "value" : {
-                      "op" : "d2b",
-                      "left" : null,
-                      "right" : {
-                        "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._clone_to_cpu13"]
-                      }
-                    }
-                  },
-                  "right" : {
-                    "type" : "bool",
-                    "value" : false
-                  }
-                }
-              }
-            }
-          },
           "true_next" : "tbl_act_20",
-          "false_next" : "tbl_act_21"
+          "false_next" : "node_59"
         },
         {
-          "name" : "node_61",
-          "id" : 20,
+          "name" : "node_59",
+          "id" : 19,
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 306,
@@ -14730,12 +14713,12 @@
               }
             }
           },
-          "true_next" : "tbl_act_22",
-          "false_next" : "node_63"
+          "true_next" : "tbl_act_21",
+          "false_next" : "node_61"
         },
         {
-          "name" : "node_63",
-          "id" : 21,
+          "name" : "node_61",
+          "id" : 20,
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 311,
@@ -14756,12 +14739,12 @@
               }
             }
           },
-          "true_next" : "node_64",
+          "true_next" : "node_62",
           "false_next" : "tbl_egress_next_set_mpls"
         },
         {
-          "name" : "node_64",
-          "id" : 22,
+          "name" : "node_62",
+          "id" : 21,
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 312,
@@ -14783,8 +14766,8 @@
           "false_next" : "FabricEgress.egress_next.egress_vlan"
         },
         {
-          "name" : "node_70",
-          "id" : 23,
+          "name" : "node_68",
+          "id" : 22,
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 317,
@@ -14809,12 +14792,12 @@
               }
             }
           },
-          "true_next" : "node_71",
-          "false_next" : "node_73"
+          "true_next" : "node_69",
+          "false_next" : "node_71"
         },
         {
-          "name" : "node_71",
-          "id" : 24,
+          "name" : "node_69",
+          "id" : 23,
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 319,
@@ -14836,11 +14819,11 @@
             }
           },
           "true_next" : "tbl_egress_next_push_vlan",
-          "false_next" : "node_73"
+          "false_next" : "node_71"
         },
         {
-          "name" : "node_73",
-          "id" : 25,
+          "name" : "node_71",
+          "id" : 24,
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 325,
@@ -14858,12 +14841,12 @@
               }
             }
           },
-          "true_next" : "tbl_act_25",
-          "false_next" : "node_77"
+          "true_next" : "tbl_act_24",
+          "false_next" : "node_75"
         },
         {
-          "name" : "node_75",
-          "id" : 26,
+          "name" : "node_73",
+          "id" : 25,
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 327,
@@ -14884,12 +14867,12 @@
               }
             }
           },
-          "true_next" : "tbl_act_26",
-          "false_next" : "node_81"
+          "true_next" : "tbl_act_25",
+          "false_next" : "node_79"
         },
         {
-          "name" : "node_77",
-          "id" : 27,
+          "name" : "node_75",
+          "id" : 26,
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 329,
@@ -14907,12 +14890,12 @@
               }
             }
           },
-          "true_next" : "tbl_act_27",
-          "false_next" : "node_81"
+          "true_next" : "tbl_act_26",
+          "false_next" : "node_79"
         },
         {
-          "name" : "node_79",
-          "id" : 28,
+          "name" : "node_77",
+          "id" : 27,
           "source_info" : {
             "filename" : "include/control/next.p4",
             "line" : 331,
@@ -14933,12 +14916,12 @@
               }
             }
           },
-          "true_next" : "tbl_act_28",
-          "false_next" : "node_81"
+          "true_next" : "tbl_act_27",
+          "false_next" : "node_79"
         },
         {
-          "name" : "node_81",
-          "id" : 29,
+          "name" : "node_79",
+          "id" : 28,
           "source_info" : {
             "filename" : "include/spgw.p4",
             "line" : 227,
@@ -14951,7 +14934,7 @@
               "op" : "==",
               "left" : {
                 "type" : "field",
-                "value" : ["scalars", "fabric_metadata_t._spgw_direction17"]
+                "value" : ["scalars", "fabric_metadata_t._spgw_direction16"]
               },
               "right" : {
                 "type" : "hexstr",
@@ -14960,11 +14943,11 @@
             }
           },
           "true_next" : "tbl_spgw_egress_gtpu_encap",
-          "false_next" : "node_83"
+          "false_next" : "node_81"
         },
         {
-          "name" : "node_83",
-          "id" : 30,
+          "name" : "node_81",
+          "id" : 29,
           "source_info" : {
             "filename" : "include/int/int_main.p4",
             "line" : 102,
@@ -15040,11 +15023,11 @@
             }
           },
           "false_next" : null,
-          "true_next" : "node_84"
+          "true_next" : "node_82"
         },
         {
-          "name" : "node_84",
-          "id" : 31,
+          "name" : "node_82",
+          "id" : 30,
           "source_info" : {
             "filename" : "include/int/int_main.p4",
             "line" : 106,
@@ -15062,7 +15045,7 @@
                   "left" : null,
                   "right" : {
                     "type" : "field",
-                    "value" : ["scalars", "fabric_metadata_t._int_meta_source22"]
+                    "value" : ["scalars", "fabric_metadata_t._int_meta_source21"]
                   }
                 }
               },
@@ -15073,11 +15056,11 @@
             }
           },
           "true_next" : "FabricEgress.process_int_main.process_int_source.tb_int_source",
-          "false_next" : "node_86"
+          "false_next" : "node_84"
         },
         {
-          "name" : "node_86",
-          "id" : 32,
+          "name" : "node_84",
+          "id" : 31,
           "source_info" : {
             "filename" : "include/int/int_main.p4",
             "line" : 110,
@@ -15096,11 +15079,11 @@
             }
           },
           "false_next" : null,
-          "true_next" : "tbl_act_29"
+          "true_next" : "tbl_act_28"
         },
         {
-          "name" : "node_89",
-          "id" : 33,
+          "name" : "node_87",
+          "id" : 32,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 419,
@@ -15118,7 +15101,7 @@
                   "left" : null,
                   "right" : {
                     "type" : "field",
-                    "value" : ["scalars", "fabric_metadata_t._int_meta_transit23"]
+                    "value" : ["scalars", "fabric_metadata_t._int_meta_transit22"]
                   }
                 }
               },
@@ -15128,12 +15111,12 @@
               }
             }
           },
-          "true_next" : "tbl_act_30",
-          "false_next" : "node_91"
+          "true_next" : "tbl_act_29",
+          "false_next" : "node_89"
         },
         {
-          "name" : "node_91",
-          "id" : 34,
+          "name" : "node_89",
+          "id" : 33,
           "expression" : {
             "type" : "expression",
             "value" : {
@@ -15156,8 +15139,8 @@
           "true_next" : "FabricEgress.process_int_main.process_int_transit.tb_int_inst_0003"
         },
         {
-          "name" : "node_95",
-          "id" : 35,
+          "name" : "node_93",
+          "id" : 34,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 427,
@@ -15175,12 +15158,12 @@
               }
             }
           },
-          "true_next" : "tbl_act_32",
-          "false_next" : "node_97"
+          "true_next" : "tbl_act_31",
+          "false_next" : "node_95"
         },
         {
-          "name" : "node_97",
-          "id" : 36,
+          "name" : "node_95",
+          "id" : 35,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 430,
@@ -15198,12 +15181,12 @@
               }
             }
           },
-          "true_next" : "tbl_act_33",
-          "false_next" : "node_99"
+          "true_next" : "tbl_act_32",
+          "false_next" : "node_97"
         },
         {
-          "name" : "node_99",
-          "id" : 37,
+          "name" : "node_97",
+          "id" : 36,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 433,
@@ -15222,7 +15205,7 @@
             }
           },
           "false_next" : null,
-          "true_next" : "tbl_act_34"
+          "true_next" : "tbl_act_33"
         }
       ]
     }

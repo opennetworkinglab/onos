@@ -178,7 +178,6 @@ struct fabric_metadata_t {
     next_id_t     next_id;
     _BOOL         is_multicast;
     _BOOL         is_controller_packet_out;
-    _BOOL         clone_to_cpu;
     bit<8>        ip_proto;
     bit<16>       l4_sport;
     bit<16>       l4_dport;

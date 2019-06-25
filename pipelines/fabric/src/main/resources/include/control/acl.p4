@@ -41,9 +41,9 @@ control Acl (inout parsed_headers_t hdr,
         acl_counter.count();
     }
 
-    action clone_to_cpu() {
-        // FIXME: works only if pkt will be replicated via PRE multicast group.
-        fabric_metadata.clone_to_cpu = _TRUE;
+    // Set clone session id for a I2E clone session
+    action set_clone_session_id(bit<32> clone_id) {
+        clone3<standard_metadata_t>(CloneType.I2E, clone_id, standard_metadata);
         acl_counter.count();
     }
 
@@ -76,7 +76,7 @@ control Acl (inout parsed_headers_t hdr,
         actions = {
             set_next_id_acl;
             punt_to_cpu;
-            clone_to_cpu;
+            set_clone_session_id;
             drop;
             nop_acl;
         }

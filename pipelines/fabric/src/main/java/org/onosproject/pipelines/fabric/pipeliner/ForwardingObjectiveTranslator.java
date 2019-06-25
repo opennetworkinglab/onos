@@ -18,11 +18,14 @@ package org.onosproject.pipelines.fabric.pipeliner;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
+import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.FlowRule;
@@ -34,7 +37,14 @@ import org.onosproject.net.flow.criteria.IPCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flowobjective.ForwardingObjective;
+import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveError;
+import org.onosproject.net.group.DefaultGroupDescription;
+import org.onosproject.net.group.GroupBucket;
+import org.onosproject.net.group.GroupBuckets;
+import org.onosproject.net.group.DefaultGroupKey;
+import org.onosproject.net.group.GroupDescription;
+import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.pi.model.PiActionId;
 import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiAction;
@@ -49,6 +59,9 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.onosproject.pipelines.fabric.FabricUtils.criterionNotNull;
+import static org.onosproject.pipelines.fabric.FabricUtils.outputPort;
+import static org.onosproject.net.group.DefaultGroupBucket.createCloneGroupBucket;
+
 
 /**
  * ObjectiveTranslator implementation ForwardingObjective.
@@ -56,6 +69,8 @@ import static org.onosproject.pipelines.fabric.FabricUtils.criterionNotNull;
 class ForwardingObjectiveTranslator
         extends AbstractObjectiveTranslator<ForwardingObjective> {
 
+    //FIXME: Max number supported by PI
+    static final int CLONE_TO_CPU_ID = 511;
     private static final List<String> DEFAULT_ROUTE_PREFIXES = Lists.newArrayList(
             "0.0.0.0/1", "128.0.0.0/1");
 
@@ -245,9 +260,62 @@ class ForwardingObjectiveTranslator
     private void aclRule(ForwardingObjective obj,
                          ObjectiveTranslation.Builder resultBuilder)
             throws FabricPipelinerException {
+        if (obj.nextId() == null && obj.treatment() != null) {
+            final TrafficTreatment treatment = obj.treatment();
+            final PortNumber outPort = outputPort(treatment);
+            if (outPort != null
+                    && outPort.equals(PortNumber.CONTROLLER)
+                    && treatment.allInstructions().size() == 1) {
 
+                final PiAction aclAction;
+                if (treatment.clearedDeferred()) {
+                    aclAction = PiAction.builder()
+                            .withId(FabricConstants.FABRIC_INGRESS_ACL_PUNT_TO_CPU)
+                            .build();
+                } else {
+                    // Action is SET_CLONE_SESSION_ID
+                    if (obj.op() == Objective.Operation.ADD) {
+                        // Action is ADD, create clone group
+                        final DefaultGroupDescription cloneGroup =
+                                createCloneGroup(obj.appId(),
+                                                 CLONE_TO_CPU_ID,
+                                                 outPort);
+                        resultBuilder.addGroup(cloneGroup);
+                    }
+                    aclAction = PiAction.builder()
+                            .withId(FabricConstants.FABRIC_INGRESS_ACL_SET_CLONE_SESSION_ID)
+                            .withParameter(new PiActionParam(
+                                    FabricConstants.CLONE_ID, CLONE_TO_CPU_ID))
+                            .build();
+                }
+                final TrafficTreatment piTreatment = DefaultTrafficTreatment.builder()
+                        .piTableAction(aclAction)
+                        .build();
+                resultBuilder.addFlowRule(flowRule(
+                        obj, FabricConstants.FABRIC_INGRESS_ACL_ACL, obj.selector(), piTreatment));
+                return;
+            }
+        }
         resultBuilder.addFlowRule(flowRule(
                 obj, FabricConstants.FABRIC_INGRESS_ACL_ACL, obj.selector()));
+    }
+
+    private DefaultGroupDescription createCloneGroup(
+            ApplicationId appId,
+            int cloneSessionId,
+            PortNumber outPort) {
+        final GroupKey groupKey = new DefaultGroupKey(
+                FabricPipeliner.KRYO.serialize(cloneSessionId));
+
+        final List<GroupBucket> bucketList = ImmutableList.of(
+                createCloneGroupBucket(DefaultTrafficTreatment.builder()
+                                               .setOutput(outPort)
+                                               .build()));
+        final DefaultGroupDescription cloneGroup = new DefaultGroupDescription(
+                deviceId, GroupDescription.Type.CLONE,
+                new GroupBuckets(bucketList),
+                groupKey, cloneSessionId, appId);
+        return cloneGroup;
     }
 
     private FlowRule flowRule(

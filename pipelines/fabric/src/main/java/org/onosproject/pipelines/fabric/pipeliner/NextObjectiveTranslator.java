@@ -436,15 +436,6 @@ class NextObjectiveTranslator
                 .map(p -> DefaultTrafficTreatment.builder().setOutput(p).build())
                 .map(DefaultGroupBucket::createAllGroupBucket)
                 .collect(Collectors.toList());
-        // FIXME: remove once support for clone sessions is available
-        // Right now we add a CPU port to all multicast groups. The egress
-        // pipeline is expected to drop replicated packets to the CPU if a clone
-        // was  not requested in the ingress pipeline.
-        bucketList.add(
-                DefaultGroupBucket.createAllGroupBucket(
-                        DefaultTrafficTreatment.builder()
-                                .setOutput(PortNumber.CONTROLLER)
-                                .build()));
 
         final int groupId = obj.id();
         // Use DefaultGroupKey instead of PiGroupKey as we don't have any

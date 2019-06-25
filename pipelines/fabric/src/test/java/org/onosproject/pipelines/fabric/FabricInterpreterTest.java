@@ -89,23 +89,6 @@ public class FabricInterpreterTest {
     /* Forwarding control block */
 
     /**
-     * Map treatment to duplicate_to_controller action.
-     */
-    @Test
-    public void testAclTreatmentCloneToCpu() throws Exception {
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .punt()
-                .build();
-        PiAction mappedAction = interpreter.mapTreatment(treatment,
-                                                         FabricConstants.FABRIC_INGRESS_ACL_ACL);
-        PiAction expectedAction = PiAction.builder()
-                .withId(FabricConstants.FABRIC_INGRESS_ACL_CLONE_TO_CPU)
-                .build();
-
-        assertEquals(expectedAction, mappedAction);
-    }
-
-    /**
      * Map empty treatment for routing v4 table.
      */
     @Test

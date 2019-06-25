@@ -392,9 +392,6 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
         List<GroupBucket> allBuckets = allTreatments.stream()
                 .map(DefaultGroupBucket::createAllGroupBucket)
                 .collect(Collectors.toList());
-        // FIXME: remove when we implement proper clone to CPU behavior
-        allBuckets.add(DefaultGroupBucket.createAllGroupBucket(
-                DefaultTrafficTreatment.builder().punt().build()));
         GroupBuckets allGroupBuckets = new GroupBuckets(allBuckets);
         GroupKey allGroupKey = new DefaultGroupKey(FabricPipeliner.KRYO.serialize(NEXT_ID_1));
         GroupDescription expectedAllGroup = new DefaultGroupDescription(
