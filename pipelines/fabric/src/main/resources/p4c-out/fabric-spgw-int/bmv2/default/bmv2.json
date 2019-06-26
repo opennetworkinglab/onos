@@ -499,99 +499,15 @@
       "id" : 1,
       "name" : "fl",
       "source_info" : {
-        "filename" : "fabric.p4",
-        "line" : 77,
+        "filename" : "include/control/acl.p4",
+        "line" : 46,
         "column" : 40,
-        "source_fragment" : "standard_metadata"
+        "source_fragment" : "{standard_metadata.ingress_port}"
       },
       "elements" : [
         {
           "type" : "field",
           "value" : ["standard_metadata", "ingress_port"]
-        },
-        {
-          "type" : "field",
-          "value" : ["standard_metadata", "egress_spec"]
-        },
-        {
-          "type" : "field",
-          "value" : ["standard_metadata", "egress_port"]
-        },
-        {
-          "type" : "field",
-          "value" : ["standard_metadata", "clone_spec"]
-        },
-        {
-          "type" : "field",
-          "value" : ["standard_metadata", "instance_type"]
-        },
-        {
-          "type" : "field",
-          "value" : ["standard_metadata", "drop"]
-        },
-        {
-          "type" : "field",
-          "value" : ["standard_metadata", "recirculate_port"]
-        },
-        {
-          "type" : "field",
-          "value" : ["standard_metadata", "packet_length"]
-        },
-        {
-          "type" : "field",
-          "value" : ["standard_metadata", "enq_timestamp"]
-        },
-        {
-          "type" : "field",
-          "value" : ["standard_metadata", "enq_qdepth"]
-        },
-        {
-          "type" : "field",
-          "value" : ["standard_metadata", "deq_timedelta"]
-        },
-        {
-          "type" : "field",
-          "value" : ["standard_metadata", "deq_qdepth"]
-        },
-        {
-          "type" : "field",
-          "value" : ["standard_metadata", "ingress_global_timestamp"]
-        },
-        {
-          "type" : "field",
-          "value" : ["standard_metadata", "egress_global_timestamp"]
-        },
-        {
-          "type" : "field",
-          "value" : ["standard_metadata", "lf_field_list"]
-        },
-        {
-          "type" : "field",
-          "value" : ["standard_metadata", "mcast_grp"]
-        },
-        {
-          "type" : "field",
-          "value" : ["standard_metadata", "resubmit_flag"]
-        },
-        {
-          "type" : "field",
-          "value" : ["standard_metadata", "egress_rid"]
-        },
-        {
-          "type" : "field",
-          "value" : ["standard_metadata", "recirculate_flag"]
-        },
-        {
-          "type" : "field",
-          "value" : ["standard_metadata", "checksum_error"]
-        },
-        {
-          "type" : "field",
-          "value" : ["standard_metadata", "parser_error"]
-        },
-        {
-          "type" : "field",
-          "value" : ["standard_metadata", "priority"]
         }
       ]
     }
@@ -2386,7 +2302,7 @@
             "filename" : "include/control/acl.p4",
             "line" : 46,
             "column" : 8,
-            "source_fragment" : "clone3<standard_metadata_t>(CloneType.I2E, clone_id, standard_metadata)"
+            "source_fragment" : "clone3(CloneType.I2E, clone_id, {standard_metadata.ingress_port})"
           }
         }
       ]

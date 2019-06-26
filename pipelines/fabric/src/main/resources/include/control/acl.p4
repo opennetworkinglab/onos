@@ -43,7 +43,7 @@ control Acl (inout parsed_headers_t hdr,
 
     // Set clone session id for a I2E clone session
     action set_clone_session_id(bit<32> clone_id) {
-        clone3<standard_metadata_t>(CloneType.I2E, clone_id, standard_metadata);
+        clone3(CloneType.I2E, clone_id, {standard_metadata.ingress_port});
         acl_counter.count();
     }
 
