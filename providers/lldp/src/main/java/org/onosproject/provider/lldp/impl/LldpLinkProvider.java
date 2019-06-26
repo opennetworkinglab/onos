@@ -181,7 +181,7 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
     private int maxDiscoveryDelayMs = DEFAULT_DISCOVERY_DELAY;
 
     public static final String PROP_USE_STALE_LINK_AGE = "useStaleLinkAge";
-    public static final boolean DEFAULT_USE_STALE_LINK_AGE = false;
+    public static final boolean DEFAULT_USE_STALE_LINK_AGE = true;
     @Property(name = PROP_USE_STALE_LINK_AGE, boolValue = DEFAULT_USE_STALE_LINK_AGE,
             label = "If false, StaleLinkAge cpability is disabled")
     private boolean useStaleLinkAge = DEFAULT_USE_STALE_LINK_AGE;
