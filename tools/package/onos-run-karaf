@@ -5,6 +5,7 @@
 
 ONOS_TAR=
 JDK_TAR=
+ABSOLUTE_JAVABASE=
 
 [ -f $ONOS_TAR ] || (echo "$ONOS_TAR not found" && exit 1)
 
@@ -28,8 +29,11 @@ case "$OSTYPE" in
   *)        md5cmd='md5sum';;
 esac
 
-# Use provided JDK as JAVA_HOME if given
-if [[ -f ${JDK_TAR} ]]; then
+# Either use the given ABSOLUTE_JAVABASE as JAVA_HOME, or extract the passed
+# JDK_TAR and use that.
+if [[ -d ${ABSOLUTE_JAVABASE} ]]; then
+    export JAVA_HOME=${ABSOLUTE_JAVABASE}
+elif [[ -f ${JDK_TAR} ]]; then
     JDK_DIR=$ONOS_DIR-jdk
     JDK_MD5=$JDK_DIR/CHECKSUM
 

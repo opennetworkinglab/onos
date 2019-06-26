@@ -28,16 +28,16 @@ alias(
 #  produced JDK tar.
 
 genrule(
-    name = "default_jdk_tar",
+    name = "current_jdk_tar",
     srcs = [
         "@bazel_tools//tools/jdk:current_java_runtime",
         ":conf-security",
     ],
-    outs = ["default_jdk.tar.gz"],
-    cmd = "mkdir default_jdk && " +
-          "mv $(JAVABASE)/* default_jdk/ && " +
-          "mv tools/build/jdk/* default_jdk/ && " +
-          "tar -hczf $(location default_jdk.tar.gz) default_jdk",
+    outs = ["current_jdk.tar.gz"],
+    cmd = "mkdir current_jdk && " +
+          "cp -r $(JAVABASE)/* current_jdk/ && " +
+          "cp -r tools/build/jdk/* current_jdk/ && " +
+          "tar -hczf $(location current_jdk.tar.gz) current_jdk",
     output_to_bindir = True,
     toolchains = ["@bazel_tools//tools/jdk:current_java_runtime"],
     visibility = ["//visibility:public"],

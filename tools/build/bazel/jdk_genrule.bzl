@@ -29,7 +29,14 @@ def jdk_genrule(
         **kwargs):
     new_tools = tools + ["@bazel_tools//tools/jdk:current_java_runtime"]
     new_toolchains = toolchains + ["@bazel_tools//tools/jdk:current_java_runtime"]
-    new_cmd = "echo \"export PATH=$$PWD/$(JAVABASE)/bin:$$PATH:\" > jdk_genrule_setup.sh; " + \
+
+    # Add JAVABASE/bin to the PATH env.
+    # Prepend PWD (sandbox path) if JAVABASE is not an absolute path.
+    new_cmd = "echo 'if [[ \"$(JAVABASE)\" = /* ]]; then " + \
+              "JHOME=$(JAVABASE); " + \
+              "else JHOME=$$PWD/$(JAVABASE); " + \
+              "fi' > jdk_genrule_setup.sh; " + \
+              "echo 'export PATH=$$JHOME/bin:$$PATH:' >> jdk_genrule_setup.sh; " + \
               "source jdk_genrule_setup.sh; " + cmd
 
     native.genrule(

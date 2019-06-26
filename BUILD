@@ -118,20 +118,60 @@ genrule(
 )
 
 # Runs ONOS as a single instance from the /tmp directory
-genrule(
+alias(
     name = "onos-local",
+    actual = select({
+        ":run_with_absolute_javabase": ":onos-local_absolute-javabase",
+        "//conditions:default": ":onos-local_current-jdk",
+    }),
+)
+
+config_setting(
+    name = "run_with_absolute_javabase",
+    define_values = {
+        "RUN_WITH_ABSOLUTE_JAVABASE": "true",
+    },
+)
+
+# Run onos-local with JAVA_HOME set to ABSOLUTE_JAVABASE (see .bazelrc)
+genrule(
+    name = "onos-local_absolute-javabase",
+    srcs = [":onos-local-base"],
+    outs = ["onos-runner_absolute-javabase"],
+    cmd = "sed \"s#ABSOLUTE_JAVABASE=#ABSOLUTE_JAVABASE=$(ABSOLUTE_JAVABASE)#\" " +
+          "$(location onos-local-base) > $(location onos-runner_absolute-javabase)",
+    executable = True,
+    output_to_bindir = True,
+    visibility = ["//visibility:private"],
+)
+
+# Run onos-local with the same JDK used for the build, packaged in a tarball.
+genrule(
+    name = "onos-local_current-jdk",
+    srcs = [
+        ":onos-local-base",
+        "//tools/build/jdk:current_jdk_tar",
+    ],
+    outs = ["onos-runner_current-jdk"],
+    cmd = "sed \"s#JDK_TAR=#JDK_TAR=$(location //tools/build/jdk:current_jdk_tar)#\" " +
+          "$(location :onos-local-base) > $(location onos-runner_current-jdk); ",
+    executable = True,
+    output_to_bindir = True,
+    visibility = ["//visibility:private"],
+)
+
+# Create an onos-runner script based on onos-run-karaf
+genrule(
+    name = "onos-local-base",
     srcs = [
         ":onos-package",
-        "//tools/build/jdk:default_jdk_tar",
         "tools/package/onos-run-karaf",
     ] + glob(["tools/package/config/**"]),
     outs = ["onos-runner"],
-    cmd = "sed \"s#ONOS_TAR=#ONOS_TAR=$(location :onos-package)#\" $(location tools/package/onos-run-karaf) > foo; " +
-          "sed \"s#JDK_TAR=#JDK_TAR=$(location //tools/build/jdk:default_jdk_tar)#\" foo > $(location onos-runner); " +
+    cmd = "sed \"s#ONOS_TAR=#ONOS_TAR=$(location :onos-package)#\" " +
+          "$(location tools/package/onos-run-karaf) > $(location onos-runner); " +
           "chmod +x $(location onos-runner)",
-    executable = True,
-    output_to_bindir = True,
-    visibility = ["//visibility:public"],
+    visibility = ["//visibility:private"],
 )
 
 load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
