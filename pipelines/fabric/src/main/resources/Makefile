@@ -1,4 +1,4 @@
-all: fabric fabric-spgw fabric-int fabric-spgw-int fabric-full constants
+all: fabric fabric-spgw fabric-bng fabric-int fabric-spgw-int fabric-full constants
 
 fabric:
 	@./bmv2-compile.sh "fabric" ""
