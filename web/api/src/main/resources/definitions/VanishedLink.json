@@ -1,0 +1,12 @@
+{
+    "type" : "object",
+    "required": [
+        "active"
+    ],
+    "properties": {
+        "active": {
+            "type": "boolean",
+            "example": true
+        }
+    }
+}
