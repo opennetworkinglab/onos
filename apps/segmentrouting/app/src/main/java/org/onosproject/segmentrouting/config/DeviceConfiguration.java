@@ -351,6 +351,24 @@ public class DeviceConfiguration implements DeviceProperties {
         }
     }
 
+    /**
+     * Gets router ip address based on the destination ip address.
+     *
+     * @param destIpAddress the destination ip address
+     * @param routerDeviceId the device id
+     * @return the ip address of the routes
+     */
+    public IpAddress getRouterIpAddress(IpAddress destIpAddress, DeviceId routerDeviceId) {
+        IpAddress routerIpAddress;
+        try {
+            routerIpAddress = destIpAddress.isIp4() ? getRouterIpv4(routerDeviceId) :
+                    getRouterIpv6(routerDeviceId);
+        } catch (DeviceConfigNotFoundException e) {
+            routerIpAddress = null;
+        }
+        return routerIpAddress;
+    }
+
     @Override
     public boolean isEdgeDevice(DeviceId deviceId) throws DeviceConfigNotFoundException {
         SegmentRouterInfo srinfo = deviceConfigMap.get(deviceId);
@@ -619,6 +637,19 @@ public class DeviceConfiguration implements DeviceProperties {
         return srManager.interfaceService.getInterfaces().stream()
                 .filter(intf -> intf.ipAddressesList().stream().anyMatch(intfAddress ->
                             ips.stream().anyMatch(ip -> intfAddress.subnetAddress().contains(ip))))
+                .map(Interface::connectPoint)
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * Returns all the connect points of the segment routers that have the
+     * specified ip address in their subnets.
+     *
+     * @param destIpAddress target ip address
+     * @return connect points of the segment routers
+     */
+    public Set<ConnectPoint> getConnectPointsForASubnetHost(IpAddress destIpAddress) {
+        return srManager.interfaceService.getMatchingInterfaces(destIpAddress).stream()
                 .map(Interface::connectPoint)
                 .collect(Collectors.toSet());
     }

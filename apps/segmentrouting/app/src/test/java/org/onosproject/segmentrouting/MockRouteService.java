@@ -17,6 +17,7 @@
 package org.onosproject.segmentrouting;
 
 import com.google.common.collect.Sets;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onosproject.routeservice.ResolvedRoute;
 import org.onosproject.routeservice.RouteInfo;
@@ -25,6 +26,7 @@ import org.onosproject.routeservice.RouteTableId;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -52,5 +54,11 @@ public class MockRouteService extends RouteServiceAdapter {
     @Override
     public Collection<RouteTableId> getRouteTables() {
         return Sets.newHashSet(new RouteTableId("default"));
+    }
+
+    @Override
+    public Optional<ResolvedRoute> longestPrefixLookup(IpAddress ip) {
+        return this.routeStore.get(ip.toIpPrefix()).stream()
+                .findFirst();
     }
 }
