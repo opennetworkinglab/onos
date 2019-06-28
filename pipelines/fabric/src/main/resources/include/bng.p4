@@ -44,6 +44,7 @@ control bng_ingress_upstream(
     vlan_id_t s_tag = hdr.vlan_tag.vlan_id;
     vlan_id_t c_tag = hdr.inner_vlan_tag.vlan_id;
 
+    _BOOL drop = _FALSE;
     // TABLE: t_line_map
     // Maps double VLAN tags to line ID. Line IDs are used to uniquelly identify
     // a subscriber.
@@ -107,7 +108,7 @@ control bng_ingress_upstream(
         fmeta.skip_forwarding = _TRUE;
         fmeta.skip_next = _TRUE;
         mark_to_drop(smeta);
-        c_dropped.count(fmeta.bng.line_id);
+        drop = _TRUE;
     }
 
     action term_enabled_v4() {
@@ -158,10 +159,16 @@ control bng_ingress_upstream(
 
         if (hdr.ipv4.isValid()) {
             t_pppoe_term_v4.apply();
+            if (drop == _TRUE) {
+                c_dropped.count(fmeta.bng.line_id);
+            }
         }
 #ifdef WITH_IPV6
         else if (hdr.ipv6.isValid()) {
             t_pppoe_term_v6.apply();
+            if (drop == _TRUE) {
+                c_dropped.count(fmeta.bng.line_id);
+             }
         }
 #endif // WITH_IPV6
     }
@@ -180,6 +187,7 @@ control bng_ingress_downstream(
     // Downstream line map tables.
     // Map IP dest address to line ID and next ID. Setting a next ID here
     // allows to skip the fabric.p4 forwarding stage later.
+    _BOOL prio = _FALSE;
 
     @hidden
     action set_line(bit<32> line_id) {
@@ -234,13 +242,11 @@ control bng_ingress_downstream(
     // everything is tagged and metered as best-effort traffic.
 
     action qos_prio() {
-        m_prio.execute_meter((bit<32>)fmeta.bng.line_id,
-                             fmeta.bng.ds_meter_result);
+        prio = _TRUE;
     }
 
     action qos_besteff() {
-        m_besteff.execute_meter((bit<32>)fmeta.bng.line_id,
-                                fmeta.bng.ds_meter_result);
+        // no-op
     }
 
     table t_qos_v4 {
@@ -283,6 +289,13 @@ control bng_ingress_downstream(
                 // destined to subscribers, e.g. to services in the compute
                 // nodes.
                 t_qos_v4.apply();
+                if (prio == _TRUE) {
+                    m_prio.execute_meter((bit<32>)fmeta.bng.line_id,
+                                          fmeta.bng.ds_meter_result);
+                } else {
+                    m_besteff.execute_meter((bit<32>)fmeta.bng.line_id,
+                                            fmeta.bng.ds_meter_result);
+                }
             }
         }
 #ifdef WITH_IPV6
@@ -290,6 +303,13 @@ control bng_ingress_downstream(
         else if (hdr.ipv6.isValid()) {
             if (t_line_map_v6.apply().hit) {
                 t_qos_v6.apply();
+                if (prio == _TRUE) {
+                    m_prio.execute_meter((bit<32>)fmeta.bng.line_id,
+                                          fmeta.bng.ds_meter_result);
+                } else {
+                    m_besteff.execute_meter((bit<32>)fmeta.bng.line_id,
+                                            fmeta.bng.ds_meter_result);
+                }
             }
         }
 #endif // WITH_IPV6

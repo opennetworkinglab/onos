@@ -90,6 +90,7 @@ parser FabricParser (packet_in packet,
     state parse_pppoe {
         packet.extract(hdr.pppoe);
         transition select(hdr.pppoe.protocol) {
+            PPPOE_PROTOCOL_MPLS: parse_mpls;
             PPPOE_PROTOCOL_IP4: parse_ipv4;
 #ifdef WITH_IPV6
             PPPOE_PROTOCOL_IP6: parse_ipv6;

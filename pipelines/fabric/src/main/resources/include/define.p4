@@ -115,6 +115,7 @@ const bit<16> ETHERTYPE_PPPOES = 0x8864;
 
 const bit<16> PPPOE_PROTOCOL_IP4 = 0x0021;
 const bit<16> PPPOE_PROTOCOL_IP6 = 0x0057;
+const bit<16> PPPOE_PROTOCOL_MPLS = 0x0281;
 
 const bit<8> PROTO_ICMP = 1;
 const bit<8> PROTO_TCP = 6;

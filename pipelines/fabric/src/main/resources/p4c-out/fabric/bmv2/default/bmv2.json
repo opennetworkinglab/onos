@@ -769,7 +769,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "include/parser.p4",
-        "line" : 260,
+        "line" : 261,
         "column" : 8,
         "source_fragment" : "FabricDeparser"
       },
