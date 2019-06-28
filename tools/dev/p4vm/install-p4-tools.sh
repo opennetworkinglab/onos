@@ -19,8 +19,8 @@
 set -e
 set -x
 
-BMV2_COMMIT="99d83115d498f0ebcc729dad4fa4c50577eccc81"
-PI_COMMIT="f9a5c6c74f7dcde382e27c63af2fe5dffc755364"
+BMV2_COMMIT="10c2d3434a7212631f11d5d1e3bc802ba6365f6a"
+PI_COMMIT="0bcaeda2269a4f2f0539cf8eac49868e389a8c18"
 P4C_COMMIT="e2934ab32ace8a877bf2b34704950a4da69b6202"
 
 # p4c seems to break when using protobuf versions newer than 3.2.0

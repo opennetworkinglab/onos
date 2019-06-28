@@ -4,7 +4,7 @@ set -eu -o pipefail
 USE_STRATUM=true DEBUG_FLAGS=false FAST_BUILD=true CLEAN_UP=true bash /tmp/install-p4-tools.sh
 
 # install bazel
-BAZEL_VERSION="0.20.0"
+BAZEL_VERSION="0.23.2"
 curl -L -o bazel.sh -s https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/bazel-${BAZEL_VERSION}-installer-linux-x86_64.sh
 chmod +x bazel.sh 
 ./bazel.sh --user
@@ -19,7 +19,7 @@ cd stratum
 export BMV2_INSTALL=/usr/local
 
 # build stratum
-bazel build //stratum/hal/bin/bmv2:stratum_bmv2 --incompatible_remove_native_http_archive=false
+bazel build //stratum/hal/bin/bmv2:stratum_bmv2
 
 # deploy stratum binaries to where mininet will look for them
 mkdir -p /home/sdn/stratum/bazel-bin/stratum/hal/bin/bmv2
