@@ -3,4 +3,4 @@
 # Builds the aggregate ONOS Java API docs.
 # -----------------------------------------------------------------------------
 
-SHLVL=1 bazel build //docs:external //docs:internal
+SHLVL=1 bazel build //docs:external

@@ -33,7 +33,7 @@ onos-validate-change-version
 bazel build onos
 
 # Build ONOS docs
-bazel build //docs:internal //docs:external
+bazel build //docs:external
 
 if [ $dryRun -eq 0 ]; then
     publish_url="oss.sonatype.org"
