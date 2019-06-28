@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-apps-imr</artifactId>
-        <version>1.13.9-SNAPSHOT</version>
+        <version>1.13.9</version>
     </parent>
 
     <artifactId>onos-apps-imr-app</artifactId>
