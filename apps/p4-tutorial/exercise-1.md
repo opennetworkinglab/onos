@@ -366,6 +366,12 @@ how Exercise 1 works with a more complex topology.
 
 4. You can visualize the topology using the ONOS web UI.
 
+    Enter the following command to **activate the web interface**:
+
+        ```
+        onos> app activate org.onosproject.gui
+        ```
+
     Open a browser from within the tutorial VM (e.g. Firefox) to
     <http://127.0.0.1:8181/onos/ui/>. When asked, use the username `onos`
     and password `rocks`. You should see a nice tree topology.
