@@ -15,6 +15,8 @@
   -->
 <scenario name="setup" description="ONOS cluster setup">
     <group name="Setup">
+
+        <step name="Set-Jdk-11" exec="stc-set-openjdk11" />
         <step name="Push-Atomix-Bits" exec="atomix-push-bits-through-proxy" if="${OCT}"/>
         <step name="Push-ONOS-Bits" exec="onos-push-bits-through-proxy" if="${OCT}"/>
 
@@ -64,7 +66,7 @@
                 <group name="Parallel-Install-Atomix">
                     <parallel var="${OC#}">
                         <step name="Parallel-Install-Atomix-${#}" exec="atomix-install ${OC#}"
-                              requires="Generate-Cluster-Key,Push-Atomix-Bits-${#},Push-Atomix-Bits,Cleanup"/>
+                              requires="Generate-Cluster-Key,Push-Atomix-Bits-${#},Push-Atomix-Bits,Cleanup,Set-Jdk-11"/>
                     </parallel>
                 </group>
             </group>
@@ -73,7 +75,7 @@
                 <group name="Parallel-Install-Atomix">
                     <parallel var="${OCC#}">
                         <step name="Parallel-Install-Atomix-${#}" exec="atomix-install ${OCC#}"
-                              requires="Generate-Cluster-Key,Push-Atomix-Bits-${#},Push-Atomix-Bits,Cleanup"/>
+                              requires="Generate-Cluster-Key,Push-Atomix-Bits-${#},Push-Atomix-Bits,Cleanup,Set-Jdk-11"/>
                     </parallel>
                 </group>
             </group>
@@ -85,14 +87,14 @@
                             starts="Sequential-Install-${#}"
                             ends="Sequential-Install-${#-1}">
                     <step name="Sequential-Install-${#}" exec="onos-install ${OC#}"
-                          requires="Generate-Cluster-Key,Push-ONOS-Bits-${#},Push-ONOS-Bits,Cleanup,Install-Atomix"/>
+                          requires="Generate-Cluster-Key,Push-ONOS-Bits-${#},Push-ONOS-Bits,Cleanup,Install-Atomix,Set-Jdk-11"/>
                 </sequential>
             </group>
 
             <group name="Parallel-Install-ONOS" unless="${ONOS_STC_SEQ_START}">
                 <parallel var="${OC#}">
                     <step name="Parallel-Install-${#}" exec="onos-install ${OC#}"
-                          requires="Generate-Cluster-Key,Push-ONOS-Bits-${#},Push-ONOS-Bits,Cleanup,Install-Atomix"/>
+                          requires="Generate-Cluster-Key,Push-ONOS-Bits-${#},Push-ONOS-Bits,Cleanup,Install-Atomix,Set-Jdk-11"/>
                 </parallel>
             </group>
         </group>
