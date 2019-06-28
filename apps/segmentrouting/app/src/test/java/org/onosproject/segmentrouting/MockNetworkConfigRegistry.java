@@ -16,10 +16,12 @@
 
 package org.onosproject.segmentrouting;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.config.NetworkConfigRegistryAdapter;
 
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -28,7 +30,7 @@ import java.util.Set;
 class MockNetworkConfigRegistry extends NetworkConfigRegistryAdapter {
     private Set<Config> configs = Sets.newHashSet();
 
-    public void applyConfig(Config config) {
+    void applyConfig(Config config) {
         configs.add(config);
     }
 
@@ -39,5 +41,17 @@ class MockNetworkConfigRegistry extends NetworkConfigRegistryAdapter {
                 .filter(config -> configClass.equals(config.getClass()))
                 .findFirst().orElse(null);
         return (C) c;
+    }
+
+    @Override
+    public <S, C extends Config<S>> Set<S> getSubjects(Class<S> subject, Class<C> configClass) {
+        ImmutableSet.Builder<S> builder = ImmutableSet.builder();
+        String cName = configClass.getName();
+        configs.forEach(k -> {
+            if (subject.isInstance(k.subject()) && Objects.equals(cName, k.getClass().getName())) {
+                builder.add((S) k.subject());
+            }
+        });
+        return builder.build();
     }
 }
