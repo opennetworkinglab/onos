@@ -17,12 +17,17 @@
 package org.onosproject.segmentrouting;
 
 import com.google.common.collect.ImmutableSet;
+import org.onlab.packet.IpAddress;
+import org.onlab.packet.VlanId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.intf.Interface;
 import org.onosproject.net.intf.InterfaceServiceAdapter;
 
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toSet;
 
 /**
  * Mock Interface Service.
@@ -43,5 +48,38 @@ public class MockInterfaceService extends InterfaceServiceAdapter {
     @Override
     public Set<Interface> getInterfaces() {
         return interfaces;
+    }
+
+    @Override
+    public Interface getMatchingInterface(IpAddress ip) {
+        return getMatchingInterfacesStream(ip).findFirst().orElse(null);
+    }
+
+    @Override
+    public Set<Interface> getMatchingInterfaces(IpAddress ip) {
+        return getMatchingInterfacesStream(ip).collect(toSet());
+    }
+
+    private Stream<Interface> getMatchingInterfacesStream(IpAddress ip) {
+        return interfaces.stream()
+                .filter(intf -> intf.ipAddressesList().stream()
+                        .anyMatch(intfIp -> intfIp.subnetAddress().contains(ip)));
+    }
+
+    @Override
+    public boolean isConfigured(ConnectPoint connectPoint) {
+        Set<Interface> intfs = getInterfacesByPort(connectPoint);
+        if (intfs == null) {
+            return false;
+        }
+        for (Interface intf : intfs) {
+            if (!intf.ipAddressesList().isEmpty() || intf.vlan() != VlanId.NONE
+                    || intf.vlanNative() != VlanId.NONE
+                    || intf.vlanUntagged() != VlanId.NONE
+                    || !intf.vlanTagged().isEmpty()) {
+                return true;
+            }
+        }
+        return false;
     }
 }

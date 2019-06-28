@@ -514,13 +514,13 @@ public class Ethernet extends BasePacket {
      */
     @Override
     public String toString() {
-
         final StringBuilder sb = new StringBuilder("\n");
-
         final IPacket pkt = this.getPayload();
 
         if (pkt instanceof ARP) {
             sb.append("arp");
+        } else if (pkt instanceof MPLS) {
+            sb.append("mpls");
         } else if (pkt instanceof LLDP) {
             sb.append("lldp");
         } else if (pkt instanceof ICMP) {
@@ -530,11 +530,7 @@ public class Ethernet extends BasePacket {
         } else if (pkt instanceof DHCP) {
             sb.append("dhcp");
         } else {
-            /*
-             * When we don't know the protocol, we print using
-             * the well known hex format instead of a decimal
-             * value.
-             */
+            // Just print the ethertype
             sb.append(String.format(HEX_PROTO,
                                     Integer.toHexString(this.getEtherType() & 0xffff)));
         }
@@ -567,6 +563,12 @@ public class Ethernet extends BasePacket {
             sb.append("\nnw_dst: ");
             sb.append(IPv4.fromIPv4Address(IPv4.toIPv4Address(p
                     .getTargetProtocolAddress())));
+        } else if (pkt instanceof MPLS) {
+            final MPLS p = (MPLS) pkt;
+            sb.append("\nmpls: ");
+            sb.append(this.etherType == MPLS_UNICAST ? "unicast" : "multicast");
+            sb.append("\nmpls_label: ");
+            sb.append(p.label);
         } else if (pkt instanceof LLDP) {
             sb.append("lldp packet");
         } else if (pkt instanceof ICMP) {
@@ -593,7 +595,6 @@ public class Ethernet extends BasePacket {
                     sb.append(((TCP) payload).getSourcePort());
                     sb.append("\ntp_dst: ");
                     sb.append(((TCP) payload).getDestinationPort());
-
                 } else if (payload instanceof UDP) {
                     sb.append("\ntp_src: ");
                     sb.append(((UDP) payload).getSourcePort());
@@ -703,7 +704,6 @@ public class Ethernet extends BasePacket {
         } else {
             sb.append("\nunknown packet");
         }
-
         return sb.toString();
     }
 
