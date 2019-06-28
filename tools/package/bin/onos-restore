@@ -5,7 +5,7 @@
 
 ONOS_HOME=${ONOS_HOME:-$(cd $(dirname $0)/.. >/dev/null 2>&1 && pwd)}
 ONOS_DEFAULT_ARCHIVE=$(dirname $ONOS_HOME)/onos-data.tar.gz
-ONOS_KARAF=$ONOS_HOME/apache-karaf-4.2.5
+ONOS_KARAF=$ONOS_HOME/apache-karaf-4.2.6
 
 # Fetch the name of the archive or use a default if none is specified
 archive=${1:-$ONOS_DEFAULT_ARCHIVE}

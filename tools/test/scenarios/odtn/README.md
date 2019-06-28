@@ -14,7 +14,7 @@ export OC3=172.17.0.7
 export OCI=172.17.0.5
 export ONOS_INSTANCES="172.17.0.5 172.17.0.6 172.17.0.7"
 export ONOS_USER=root
-export ONOS_INSTALL_DIR=/root/onos/apache-karaf-4.2.5/data
+export ONOS_INSTALL_DIR=/root/onos/apache-karaf-4.2.6/data
 ```
 
 Besides, the access for each onos container are very easy (`source /tmp/odtn/OCvar` firstly):
