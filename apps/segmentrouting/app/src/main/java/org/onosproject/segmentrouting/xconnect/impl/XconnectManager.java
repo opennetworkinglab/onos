@@ -1011,7 +1011,7 @@ public class XconnectManager implements XconnectService {
             vlanMulticastNextId = flowObjectiveService.allocateNextId();
             addMulticastGroupNextObjectiveId(key, vlanMulticastNextId);
             vlanMulticastNextObjBuilder.addTreatment(
-                    DefaultTrafficTreatment.builder().popVlan().setOutput(pairPort).build()
+                    DefaultTrafficTreatment.builder().setOutput(pairPort).build()
             );
         }
         vlanMulticastNextObjBuilder.withId(vlanMulticastNextId);
