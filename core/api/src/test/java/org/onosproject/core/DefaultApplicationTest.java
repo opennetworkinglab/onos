@@ -49,20 +49,20 @@ public class DefaultApplicationTest {
 
     public static final ApplicationId APP_ID = new DefaultApplicationId(2, APP_NAME);
     private Builder baseBuilder = DefaultApplication.builder()
-                .withAppId(APP_ID)
-                .withVersion(VER)
-                .withTitle(TITLE)
-                .withDescription(DESC)
-                .withOrigin(ORIGIN)
-                .withCategory(CATEGORY)
-                .withUrl(URL)
-                .withReadme(README)
-                .withIcon(ICON)
-                .withRole(ROLE)
-                .withPermissions(PERMS)
-                .withFeaturesRepo(Optional.of(FURL))
-                .withFeatures(FEATURES)
-                .withRequiredApps(APPS);
+            .withAppId(APP_ID)
+            .withVersion(VER)
+            .withTitle(TITLE)
+            .withDescription(DESC)
+            .withOrigin(ORIGIN)
+            .withCategory(CATEGORY)
+            .withUrl(URL)
+            .withReadme(README)
+            .withIcon(ICON)
+            .withRole(ROLE)
+            .withPermissions(PERMS)
+            .withFeaturesRepo(Optional.of(FURL))
+            .withFeatures(FEATURES)
+            .withRequiredApps(APPS);
 
     @Test
     public void basics() {
@@ -77,8 +77,8 @@ public class DefaultApplicationTest {
         assertEquals("incorrect URL", URL, app.url());
         assertEquals("incorrect readme", README, app.readme());
         assertArrayEquals("incorrect icon", ICON, app.icon());
-        assertEquals("incorrect role", ROLE, app.role());
         assertEquals("incorrect permissions", PERMS, app.permissions());
+        assertEquals("incorrect role", ROLE, app.role());
         assertEquals("incorrect features repo", FURL, app.featuresRepo().get());
         assertEquals("incorrect features", FEATURES, app.features());
         assertEquals("incorrect apps", APPS, app.requiredApps());
@@ -88,7 +88,7 @@ public class DefaultApplicationTest {
     @Test
     public void testEquality() {
         Application a1 = baseBuilder.build();
-        Application a2 = DefaultApplication.builder(a1)
+         Application a2 = DefaultApplication.builder(a1)
                 .build();
         Application a3 = DefaultApplication.builder(baseBuilder)
                 .withFeaturesRepo(Optional.empty())
