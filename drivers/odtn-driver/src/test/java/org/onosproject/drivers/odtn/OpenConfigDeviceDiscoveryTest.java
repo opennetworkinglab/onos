@@ -135,8 +135,8 @@ public class OpenConfigDeviceDiscoveryTest {
 
         List<PortDescription> ports = sut.discoverPorts(cfg);
 
-        assertThat(ports, hasSize(1));
-        PortDescription portDescription = ports.get(0);
+        assertThat(ports, hasSize(4));
+        PortDescription portDescription = ports.get(2);
         assertThat(portDescription.portNumber().toLong(), is(42L));
         assertThat(portDescription.portNumber().name(), is("TRANSCEIVER_1_1_4_1"));
 

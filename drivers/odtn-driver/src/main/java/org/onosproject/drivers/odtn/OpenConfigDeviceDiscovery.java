@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import org.apache.commons.configuration.ConfigurationException;
@@ -60,6 +61,8 @@ public class OpenConfigDeviceDiscovery
     implements OdtnDeviceDescriptionDiscovery {
 
     private static final Logger log = getLogger(OpenConfigDeviceDiscovery.class);
+
+    private static final AtomicInteger COUNTER = new AtomicInteger();
 
     @Override
     public DeviceDescription discoverDeviceDetails() {
@@ -165,18 +168,24 @@ public class OpenConfigDeviceDiscovery
             props.put(pName, pValue);
         });
 
+        PortNumber number = null;
+
         if (!props.containsKey(ONOS_PORT_INDEX)) {
             log.info("DEBUG: Component {} does not include onos-index, skipping", name);
             // ODTN: port must have onos-index property
-            return null;
+            number = PortNumber.portNumber(COUNTER.getAndIncrement(), name);
+        } else {
+            number = PortNumber.portNumber(Long.parseLong(props.get(ONOS_PORT_INDEX)), name);
         }
 
         Builder builder = DefaultPortDescription.builder();
-        builder.withPortNumber(PortNumber.portNumber(Long.parseLong(props.get(ONOS_PORT_INDEX)), name));
+        builder.withPortNumber(number);
 
         switch (type) {
-        case "oc-platform-types:PORT":
-        case "oc-opt-types:OPTICAL_CHANNEL":
+          case "oc-platform-types:PORT": case "PORT":
+
+
+          case "oc-opt-types:OPTICAL_CHANNEL": case "OPTICAL CHANNEL":
             // TODO assign appropriate port type & annotations at some point
             // for now we just need a Port with annotations
             builder.type(Type.OCH);
@@ -189,7 +198,7 @@ public class OpenConfigDeviceDiscovery
             props.putIfAbsent(CONNECTION_ID, "the-only-one");
             break;
 
-        case "oc-platform-types:TRANSCEIVER":
+          case "oc-platform-types:TRANSCEIVER": case "TRANSCEIVER":
             // TODO assign appropriate port type & annotations at some point
             // for now we just need a Port with annotations
             builder.type(Type.PACKET);
