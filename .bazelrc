@@ -16,6 +16,8 @@ build --host_javabase=@org_onosproject_onos//tools/build/jdk:default_jdk
 build --java_toolchain=@org_onosproject_onos//tools/build/jdk:default_toolchain
 build --host_java_toolchain=@org_onosproject_onos//tools/build/jdk:default_toolchain
 
+build --host_force_python=PY2
+
 build --nouse_ijars
 build --experimental_strict_action_env
 

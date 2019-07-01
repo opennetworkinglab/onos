@@ -47,7 +47,7 @@
     //utils/osgi:onlab-osgi
     //utils/rest:onlab-rest
     //web/api:onos-rest
-    //lib:com_google_protobuf_protobuf_java
-    //lib:io_grpc_grpc_api_context
-    //lib:io_grpc_grpc_stub
-    //lib:io_grpc_grpc_protobuf
+    //deps:com_google_protobuf_protobuf_java
+    //deps:io_grpc_grpc_api_context
+    //deps:io_grpc_grpc_stub
+    //deps:io_grpc_grpc_protobuf
