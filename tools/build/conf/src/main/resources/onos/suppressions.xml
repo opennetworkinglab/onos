@@ -33,6 +33,7 @@
     <suppress files="org.onosproject.driver.pipeline.ofdpa.Ofdpa2GroupHandler.java" checks="FileLength" />
     <suppress files="org.onosproject.segmentrouting.*" checks="AbbreviationAsWordInName" />
     <suppress files="org.onosproject.segmentrouting.DefaultRoutingHandler.java" checks="FileLength" />
+    <suppress files="org.onosproject.segmentrouting.mcast.McastHandler" checks="FileLength" />
 
     <!-- These files carry AT&T copyrights -->
     <suppress files="org.onlab.packet.EAP" checks="RegexpHeader" />

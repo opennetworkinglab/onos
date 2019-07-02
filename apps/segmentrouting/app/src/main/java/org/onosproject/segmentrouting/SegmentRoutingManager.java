@@ -108,6 +108,7 @@ import org.onosproject.segmentrouting.config.XConnectConfig;
 import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
 import org.onosproject.segmentrouting.grouphandler.DestinationSet;
 import org.onosproject.segmentrouting.grouphandler.NextNeighbors;
+import org.onosproject.segmentrouting.mcast.McastFilteringObjStoreKey;
 import org.onosproject.segmentrouting.mcast.McastHandler;
 import org.onosproject.segmentrouting.mcast.McastRole;
 import org.onosproject.segmentrouting.mcast.McastRoleStoreKey;
@@ -918,6 +919,11 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     @Override
+    public Map<DeviceId, List<McastFilteringObjStoreKey>> getMcastFilters() {
+        return mcastHandler.getMcastFilters();
+    }
+
+    @Override
     public Map<Set<DeviceId>, NodeId> getShouldProgram() {
         return defaultRoutingHandler == null ? ImmutableMap.of() :
                 ImmutableMap.copyOf(defaultRoutingHandler.shouldProgram);
@@ -1320,6 +1326,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                              event.type());
                     processPortUpdatedInternal(((Device) event.subject()),
                                        ((DeviceEvent) event).port());
+                    mcastHandler.processPortUpdate(((Device) event.subject()),
+                                                   ((DeviceEvent) event).port());
                 } else if (event.type() == TopologyEvent.Type.TOPOLOGY_CHANGED) {
                     // Process topology event, needed for all modules relying on
                     // topology service for path computation
