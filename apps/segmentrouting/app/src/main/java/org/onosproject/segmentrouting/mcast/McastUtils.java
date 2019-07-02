@@ -134,10 +134,10 @@ class McastUtils {
      * @param assignedVlan assigned VLAN ID
      * @param mcastIp the group address
      * @param mcastRole the role of the device
+     * @param matchOnMac match or not on macaddress
      */
     void addFilterToDevice(DeviceId deviceId, PortNumber port, VlanId assignedVlan,
-                           IpAddress mcastIp, McastRole mcastRole) {
-
+                           IpAddress mcastIp, McastRole mcastRole, boolean matchOnMac) {
         if (!srManager.deviceConfiguration().isConfigured(deviceId)) {
             log.debug("skip update of fitering objective for unconfigured device: {}", deviceId);
             return;
@@ -147,9 +147,8 @@ class McastUtils {
         if (MacAddress.NONE.equals(routerMac)) {
             return;
         }
-
         FilteringObjective.Builder filtObjBuilder = filterObjBuilder(port, assignedVlan, mcastIp,
-                                                                     routerMac, mcastRole);
+                                                                     routerMac, mcastRole, matchOnMac);
         ObjectiveContext context = new DefaultObjectiveContext(
                 (objective) -> log.debug("Successfully add filter on {}/{}, vlan {}",
                                          deviceId, port.toLong(), assignedVlan),
@@ -170,7 +169,6 @@ class McastUtils {
      */
     void removeFilterToDevice(DeviceId deviceId, PortNumber port, VlanId assignedVlan,
                               IpAddress mcastIp, McastRole mcastRole) {
-
         if (!srManager.deviceConfiguration().isConfigured(deviceId)) {
             log.debug("skip update of fitering objective for unconfigured device: {}", deviceId);
             return;
@@ -180,9 +178,8 @@ class McastUtils {
         if (MacAddress.NONE.equals(routerMac)) {
             return;
         }
-
         FilteringObjective.Builder filtObjBuilder =
-                filterObjBuilder(port, assignedVlan, mcastIp, routerMac, mcastRole);
+                filterObjBuilder(port, assignedVlan, mcastIp, routerMac, mcastRole, false);
         ObjectiveContext context = new DefaultObjectiveContext(
                 (objective) -> log.debug("Successfully removed filter on {}/{}, vlan {}",
                                          deviceId, port.toLong(), assignedVlan),
@@ -367,10 +364,12 @@ class McastUtils {
      * @param routerMac router MAC. This is carried in metadata and used from some switches that
      *                  need to put unicast entry before multicast entry in TMAC table.
      * @param mcastRole the Multicast role
+     * @param matchOnMac match or not on macaddress
      * @return filtering objective builder
      */
     private FilteringObjective.Builder filterObjBuilder(PortNumber ingressPort, VlanId assignedVlan,
-                                                IpAddress mcastIp, MacAddress routerMac, McastRole mcastRole) {
+                                                        IpAddress mcastIp, MacAddress routerMac, McastRole mcastRole,
+                                                        boolean matchOnMac) {
         FilteringObjective.Builder filtBuilder = DefaultFilteringObjective.builder();
         // Let's add the in port matching and the priority
         filtBuilder.withKey(Criteria.matchInPort(ingressPort))
@@ -382,23 +381,27 @@ class McastUtils {
         } else {
             filtBuilder.addCondition(Criteria.matchVlanId(ingressVlan()));
         }
-        // According to the IP type we set the proper match on the mac address
-        if (mcastIp.isIp4()) {
-            filtBuilder.addCondition(Criteria.matchEthDstMasked(MacAddress.IPV4_MULTICAST,
-                                                                MacAddress.IPV4_MULTICAST_MASK));
-        } else {
-            filtBuilder.addCondition(Criteria.matchEthDstMasked(MacAddress.IPV6_MULTICAST,
-                                                                MacAddress.IPV6_MULTICAST_MASK));
+        // Add vlan info to the treatment builder
+        TrafficTreatment.Builder ttb = DefaultTrafficTreatment.builder()
+                .pushVlan().setVlanId(assignedVlan);
+        // Additionally match on mac address and augment the treatment
+        if (matchOnMac) {
+            // According to the IP type we set the proper match on the mac address
+            if (mcastIp.isIp4()) {
+                filtBuilder.addCondition(Criteria.matchEthDstMasked(MacAddress.IPV4_MULTICAST,
+                        MacAddress.IPV4_MULTICAST_MASK));
+            } else {
+                filtBuilder.addCondition(Criteria.matchEthDstMasked(MacAddress.IPV6_MULTICAST,
+                        MacAddress.IPV6_MULTICAST_MASK));
+            }
+            // We set mac address to the treatment
+            if (routerMac != null && !routerMac.equals(MacAddress.NONE)) {
+                ttb.setEthDst(routerMac);
+            }
         }
         // We finally build the meta treatment
-        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
-        tBuilder.pushVlan().setVlanId(assignedVlan);
-
-        if (routerMac != null && !routerMac.equals(MacAddress.NONE)) {
-            tBuilder.setEthDst(routerMac);
-        }
-
-        filtBuilder.withMeta(tBuilder.build());
+        TrafficTreatment tt = ttb.build();
+        filtBuilder.withMeta(tt);
         // Done, we return a permit filtering objective
         return filtBuilder.permit().fromApp(srManager.appId());
     }
