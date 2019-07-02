@@ -140,6 +140,9 @@
         <command>
             <action class="org.onosproject.segmentrouting.cli.BlackHoleCommand"/>
         </command>
+        <command>
+            <action class="org.onosproject.segmentrouting.cli.McastFilterListCommand"/>
+        </command>
     </command-bundle>
 
     <bean id="nullCompleter" class="org.apache.karaf.shell.console.completer.NullCompleter"/>
