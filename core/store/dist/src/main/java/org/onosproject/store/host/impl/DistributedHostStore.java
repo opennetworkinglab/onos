@@ -85,7 +85,7 @@ public class DistributedHostStore
     private ConsistentMap<HostId, DefaultHost> hostsConsistentMap;
     private Map<HostId, DefaultHost> hosts;
     private Map<IpAddress, Set<Host>> hostsByIp;
-    private MapEventListener<HostId, DefaultHost> hostLocationTracker =
+    MapEventListener<HostId, DefaultHost> hostLocationTracker =
             new HostLocationTracker();
 
     private ScheduledExecutorService executor;
@@ -421,6 +421,7 @@ public class DistributedHostStore
     }
 
     private Set<Host> removeHosts(Set<Host> existingHosts, Host host) {
+
         if (existingHosts != null) {
             existingHosts.removeIf(existingHost -> existingHost.id().equals(host.id()));
         }
@@ -432,11 +433,12 @@ public class DistributedHostStore
     }
 
     private void updateHostsByIp(DefaultHost host, DefaultHost prevHost) {
-        Set<IpAddress> oldIps = prevHost != null ? prevHost.ipAddresses() : Collections.emptySet();
-        // Let's add first each new ip
-        Sets.difference(host.ipAddresses(), oldIps).forEach(
+        // Let's update first the current ips
+        host.ipAddresses().forEach(
                 ip -> hostsByIp.compute(ip, (k, v) -> v == null ? addHosts(host) : updateHosts(v, host)));
+
         // Let's remove then each old ip
+        Set<IpAddress> oldIps = prevHost != null ? prevHost.ipAddresses() : Collections.emptySet();
         Sets.difference(oldIps, host.ipAddresses()).forEach(
                 ip -> hostsByIp.computeIfPresent(ip, (k, v) -> removeHosts(v, host)));
     }
