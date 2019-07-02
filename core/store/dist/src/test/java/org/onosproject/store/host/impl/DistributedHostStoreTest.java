@@ -15,27 +15,34 @@
  */
 package org.onosproject.store.host.impl;
 
+import com.google.common.collect.ImmutableSet;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
+import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultHost;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.host.DefaultHostDescription;
 import org.onosproject.net.host.HostDescription;
 import org.onosproject.net.provider.ProviderId;
+import org.onosproject.store.service.MapEvent;
 import org.onosproject.store.service.TestStorageService;
 
 import com.google.common.collect.Sets;
+import org.onosproject.store.service.Versioned;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 
 /**
  * Tests for the ECHostStore.
@@ -54,9 +61,42 @@ public class DistributedHostStoreTest {
     private static final ProviderId PID2 = new ProviderId("of", "foo2");
 
     private static final HostDescription HOST_LEARNT =
-            createHostDesc(HOSTID, Sets.newHashSet(IP1), false);
+            createHostDesc(HOSTID, Sets.newHashSet(IP1), false, Collections.emptySet());
     private static final HostDescription HOST_CONFIGURED =
-            createHostDesc(HOSTID, Sets.newHashSet(IP1), true);
+            createHostDesc(HOSTID, Sets.newHashSet(IP1), true, Collections.emptySet());
+    // Host with locations
+    private static final DeviceId DEV1 = DeviceId.deviceId("of:0000000000000001");
+    private static final PortNumber P1 = PortNumber.portNumber(1);
+    private static final PortNumber P2 = PortNumber.portNumber(2);
+    private static final ConnectPoint CP11 = new ConnectPoint(DEV1, P1);
+    private static final HostLocation HOST_LOC11 = new HostLocation(CP11, 0);
+    private static final ConnectPoint CP12 = new ConnectPoint(DEV1, P2);
+    private static final HostLocation HOST_LOC12 = new HostLocation(CP12, 0);
+    private static final Set<HostLocation> HOST_LOCATIONS = ImmutableSet.of(HOST_LOC11, HOST_LOC12);
+    private static final Set<HostLocation> HOST_LOCATION = ImmutableSet.of(HOST_LOC11);
+    private static final Set<HostLocation> NONE_LOCATION = ImmutableSet.of(HostLocation.NONE);
+    private static final Set<IpAddress> HOST_ADDRESS = ImmutableSet.of(IP1);
+    private static final Set<IpAddress> HOST_ADDRESSES = ImmutableSet.of(IP1, IP2);
+    private static final HostDescription HOST_LEARNT_WITH_LOCATIONS =
+            createHostDesc(HOSTID, HOST_ADDRESS, false, HOST_LOCATIONS);
+    private static final HostDescription HOST_LEARNT_WITH_ADDRESSES =
+            createHostDesc(HOSTID, Sets.newHashSet(IP1, IP2), false, Collections.emptySet());
+    private static final DefaultHost OLD_HOST = new DefaultHost(PID, HOSTID,
+                                                                HOST_LEARNT_WITH_ADDRESSES.hwAddress(),
+                                                                HOST_LEARNT_WITH_ADDRESSES.vlan(),
+                                                                HOST_LEARNT_WITH_ADDRESSES.locations(),
+                                                                HOST_LEARNT_WITH_ADDRESSES.ipAddress(),
+                                                                HOST_LEARNT_WITH_ADDRESSES.configured(),
+                                                                HOST_LEARNT_WITH_ADDRESSES.annotations());
+    private static final DefaultHost NEW_HOST = new DefaultHost(PID, HOSTID,
+                                                                HOST_LEARNT_WITH_ADDRESSES.hwAddress(),
+                                                                HOST_LEARNT_WITH_ADDRESSES.vlan(),
+                                                                HOST_LEARNT_WITH_ADDRESSES.locations(),
+                                                                HOST_ADDRESS,
+                                                                HOST_LEARNT_WITH_ADDRESSES.configured(),
+                                                                HOST_LEARNT_WITH_ADDRESSES.annotations());
+    private static final MapEvent<HostId, DefaultHost> HOST_EVENT =
+            new MapEvent<>("foobar", HOSTID, new Versioned<>(NEW_HOST, 0), new Versioned<>(OLD_HOST, 0));
 
     @Before
     public void setUp() {
@@ -146,16 +186,130 @@ public class DistributedHostStoreTest {
         assertEquals(PID2, hostInStore.providerId());
     }
 
+    @Test
+    public void testRemoteUpdateHostsByIp() {
+        // Add host in the store
+        ecXHostStore.createOrUpdateHost(PID, HOSTID, HOST_LEARNT_WITH_ADDRESSES, false);
+
+        // Expected a learnt host with an IP
+        Host hostInHostsByIp = ecXHostStore.getHosts(IP1).stream()
+                .findFirst().orElse(null);
+        assertNotNull(hostInHostsByIp);
+        assertFalse(hostInHostsByIp.configured());
+        assertEquals(HOSTID, hostInHostsByIp.id());
+        assertEquals(PID, hostInHostsByIp.providerId());
+        assertEquals(NONE_LOCATION, hostInHostsByIp.locations());
+        assertEquals(HOST_ADDRESSES, hostInHostsByIp.ipAddresses());
+
+        // Remove one ip - simulating the update in other instances
+        ecXHostStore.hostLocationTracker.event(HOST_EVENT);
+
+        // Expected null
+        hostInHostsByIp = ecXHostStore.getHosts(IP2).stream()
+                .findFirst().orElse(null);
+        assertNull(hostInHostsByIp);
+
+        // Expected an host with an ip address
+        hostInHostsByIp = ecXHostStore.getHosts(IP1).stream()
+                .findFirst().orElse(null);
+        assertNotNull(hostInHostsByIp);
+        assertFalse(hostInHostsByIp.configured());
+        assertEquals(HOSTID, hostInHostsByIp.id());
+        assertEquals(PID, hostInHostsByIp.providerId());
+        assertEquals(NONE_LOCATION, hostInHostsByIp.locations());
+        assertEquals(HOST_ADDRESS, hostInHostsByIp.ipAddresses());
+
+    }
+
+    @Test
+    public void testLocalUpdateHostsByIp() {
+        // Add host in the store
+        ecXHostStore.createOrUpdateHost(PID, HOSTID, HOST_LEARNT_WITH_ADDRESSES, false);
+
+        // Expected a learnt host with an IP
+        Host hostInHostsByIp = ecXHostStore.getHosts(IP1).stream()
+                .findFirst().orElse(null);
+        assertNotNull(hostInHostsByIp);
+        assertFalse(hostInHostsByIp.configured());
+        assertEquals(HOSTID, hostInHostsByIp.id());
+        assertEquals(PID, hostInHostsByIp.providerId());
+        assertEquals(NONE_LOCATION, hostInHostsByIp.locations());
+        assertEquals(HOST_ADDRESSES, hostInHostsByIp.ipAddresses());
+
+        // Remove one ip
+        ecXHostStore.removeIp(HOSTID, IP2);
+
+        // Expected null
+        hostInHostsByIp = ecXHostStore.getHosts(IP2).stream()
+                .findFirst().orElse(null);
+        assertNull(hostInHostsByIp);
+
+        // Expected an host with an ip address
+        hostInHostsByIp = ecXHostStore.getHosts(IP1).stream()
+                .findFirst().orElse(null);
+        assertNotNull(hostInHostsByIp);
+        assertFalse(hostInHostsByIp.configured());
+        assertEquals(HOSTID, hostInHostsByIp.id());
+        assertEquals(PID, hostInHostsByIp.providerId());
+        assertEquals(NONE_LOCATION, hostInHostsByIp.locations());
+        assertEquals(HOST_ADDRESS, hostInHostsByIp.ipAddresses());
+
+    }
+
+    @Test
+    public void testUpdateLocationInHostsByIp() {
+        // Add host in the store
+        ecXHostStore.createOrUpdateHost(PID, HOSTID, HOST_LEARNT_WITH_LOCATIONS, false);
+        Host hostInHosts = ecXHostStore.getHost(HOSTID);
+
+        // Expected a learnt host with an IP
+        assertFalse(hostInHosts.configured());
+        assertEquals(HOSTID, hostInHosts.id());
+        assertEquals(PID, hostInHosts.providerId());
+        assertEquals(HOST_LOCATIONS, hostInHosts.locations());
+        assertEquals(HOST_ADDRESS, hostInHosts.ipAddresses());
+        Host hostInHostsByIp = ecXHostStore.getHosts(IP1).stream()
+                .findFirst().orElse(null);
+        assertNotNull(hostInHostsByIp);
+        assertFalse(hostInHostsByIp.configured());
+        assertEquals(HOSTID, hostInHostsByIp.id());
+        assertEquals(PID, hostInHostsByIp.providerId());
+        assertEquals(HOST_LOCATIONS, hostInHostsByIp.locations());
+        assertEquals(HOST_ADDRESS, hostInHostsByIp.ipAddresses());
+
+        // Remove one location
+        ecXHostStore.removeLocation(HOSTID, HOST_LOC12);
+
+        // Verify hosts is updated
+        hostInHosts = ecXHostStore.getHost(HOSTID);
+        assertFalse(hostInHosts.configured());
+        assertEquals(HOSTID, hostInHosts.id());
+        assertEquals(PID, hostInHosts.providerId());
+        assertEquals(HOST_LOCATION, hostInHosts.locations());
+        assertEquals(HOST_ADDRESS, hostInHosts.ipAddresses());
+
+        // Verify hostsByIp is updated
+        hostInHostsByIp = ecXHostStore.getHosts(IP1).stream()
+                .findFirst().orElse(null);
+        assertNotNull(hostInHostsByIp);
+        assertFalse(hostInHostsByIp.configured());
+        assertEquals(HOSTID, hostInHostsByIp.id());
+        assertEquals(PID, hostInHostsByIp.providerId());
+        assertEquals(HOST_LOCATION, hostInHostsByIp.locations());
+        assertEquals(HOST_ADDRESS, hostInHostsByIp.ipAddresses());
+    }
+
+
     private static HostDescription createHostDesc(HostId hostId, Set<IpAddress> ips) {
-        return createHostDesc(hostId, ips, false);
+        return createHostDesc(hostId, ips, false, Collections.emptySet());
     }
 
     private static HostDescription createHostDesc(HostId hostId, Set<IpAddress> ips,
-                                                  boolean configured) {
-        return new DefaultHostDescription(hostId.mac(),
-                hostId.vlanId(),
-                HostLocation.NONE,
-                ips,
-                configured);
+                                                  boolean configured, Set<HostLocation> locations) {
+        return locations.isEmpty() ?
+                new DefaultHostDescription(hostId.mac(), hostId.vlanId(), HostLocation.NONE, ips, configured) :
+                new DefaultHostDescription(hostId.mac(), hostId.vlanId(), locations, ips, configured);
+
     }
+
 }
