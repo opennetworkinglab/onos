@@ -105,6 +105,7 @@ CLI_COMMANDS=(
     "sr-mcast-role"
     "sr-pw-list"
     "sr-next-mcast"
+    "sr-filt-mcast"
     "sr-next-dst"
     "sr-next-port"
     "sr-next-vlan"

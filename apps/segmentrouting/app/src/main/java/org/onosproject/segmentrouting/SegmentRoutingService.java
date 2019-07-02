@@ -29,6 +29,7 @@ import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.segmentrouting.grouphandler.NextNeighbors;
+import org.onosproject.segmentrouting.mcast.McastFilteringObjStoreKey;
 import org.onosproject.segmentrouting.mcast.McastRole;
 import org.onosproject.segmentrouting.mcast.McastRoleStoreKey;
 import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelDescription;
@@ -346,6 +347,13 @@ public interface SegmentRoutingService {
     boolean shouldProgram(DeviceId deviceId);
 
     /**
+     * Returns the mcast filtering obj.
+     *
+     * @return the mapping group-node
+     */
+    Map<DeviceId, List<McastFilteringObjStoreKey>> getMcastFilters();
+
+    /**
      * Gets application id.
      *
      * @return application id
@@ -391,4 +399,5 @@ public interface SegmentRoutingService {
     default Optional<PortNumber> getPairLocalPort(DeviceId deviceId) {
         throw new NotImplementedException("getPairLocalPort not implemented");
     }
+
 }
