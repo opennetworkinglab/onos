@@ -51,11 +51,11 @@ onos-upload-artifacts.py publishing-catalog ${publish_url}
 # Note that release of the staging repository is a separate manual step.
 if [ $dryRun -eq 0 ]; then
     pushd tools/package/archetypes/
-    mvn -B -Pstaging clean install && onos-archetypes-test -Pstaging && mvn -Pstaging -Prelease clean deploy
+    mvn -q -B -Pstaging clean install && onos-archetypes-test -Pstaging && mvn -Pstaging -Prelease clean deploy
     popd
 else
     pushd tools/package/archetypes/
-    mvn -B clean install && onos-archetypes-test
+    mvn -q -B clean install && onos-archetypes-test
     popd
 fi
 
