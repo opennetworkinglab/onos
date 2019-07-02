@@ -1,5 +1,6 @@
 # Targets placed in this list will be published as Maven artifacts
     //apps/intentsync:onos-apps-intentsync
+    //apps/mcast/api:onos-apps-mcast-api
     //apps/newoptical:onos-apps-newoptical
     //apps/optical-model:onos-apps-optical-model
     //apps/restconf/api:onos-apps-restconf-api
