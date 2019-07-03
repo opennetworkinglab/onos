@@ -1,0 +1,11 @@
+#!/bin/zsh
+# ONOS developer ZSH profile conveniences
+# Simply include in your own .zshrc
+
+# Root of the ONOS source tree
+export ONOS_ROOT=${ONOS_ROOT:-~/onos}
+
+# Load bash_profile such that tab completion works
+autoload bashcompinit
+bashcompinit
+. ${ONOS_ROOT}/tools/dev/bash_profile
