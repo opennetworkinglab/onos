@@ -24,6 +24,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.lang3.tuple.Pair;
 import org.onosproject.net.DeviceId;
 
 /**
@@ -90,6 +91,18 @@ public interface FlowObjectiveService {
             throw new UnsupportedOperationException("Unsupported objective of type " + objective.getClass());
         }
     }
+
+    /**
+     * Retrieve all nextObjective to group mappings known to this onos instance,
+     * in a format meant for display via REST API, to help with debugging. Applications
+     * are only aware of next-Ids, while the group sub-system is only aware of group-ids.
+     * This method fills in the gap by providing information on the mapping
+     * between next-ids and group-ids done by device-drivers.
+     *
+     * @return a map of key as a pair of next-id and Device id to group-id mapping.
+     * Consumed by the REST API.
+     */
+    Map<Pair<Integer, DeviceId>, List<String>> getNextMappingsChain();
 
     /**
      * Retrieve all nextObjective to group mappings known to this onos instance,

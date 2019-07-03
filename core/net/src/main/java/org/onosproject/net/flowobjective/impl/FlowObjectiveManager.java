@@ -16,9 +16,11 @@
 package org.onosproject.net.flowobjective.impl;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.util.ItemNotFoundException;
@@ -65,6 +67,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -736,6 +739,38 @@ public class FlowObjectiveManager implements FlowObjectiveService {
         }
         return mappings;
     }
+
+    @Override
+    public Map<Pair<Integer, DeviceId>, List<String>> getNextMappingsChain() {
+        Map<Pair<Integer, DeviceId>, List<String>> nextObjGroupMap = new HashMap<>();
+        Map<Integer, NextGroup> allnexts = flowObjectiveStore.getAllGroups();
+
+        // XXX if the NextGroup after de-serialization actually stored info of the deviceId
+        // then info on any nextObj could be retrieved from one controller instance.
+        // Right now the drivers on one instance can only fetch for next-ids that came
+        // to them.
+        // Also, we still need to send the right next-id to the right driver as potentially
+        // there can be different drivers for different devices. But on that account,
+        // no instance should be decoding for another instance's nextIds.
+
+        for (Map.Entry<Integer, NextGroup> e : allnexts.entrySet()) {
+            // get the device this next Objective was sent to
+            DeviceId deviceId = nextToDevice.get(e.getKey());
+                if (deviceId != null) {
+                // this instance of the controller sent the nextObj to a driver
+                Pipeliner pipeliner = getDevicePipeliner(deviceId);
+                List<String> nextMappings = pipeliner.getNextMappings(e.getValue());
+                if (nextMappings != null) {
+                    //mappings.addAll(nextMappings);
+                    nextObjGroupMap.put(Pair.of(e.getKey(), deviceId), nextMappings);
+                }
+            } else {
+               nextObjGroupMap.put(Pair.of(e.getKey(), deviceId), ImmutableList.of("nextId not in this onos instance"));
+            }
+        }
+        return nextObjGroupMap;
+    }
+
 
     @Override
     public List<String> getPendingFlowObjectives() {
