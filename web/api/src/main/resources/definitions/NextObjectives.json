@@ -1,0 +1,25 @@
+{
+  "type": "object",
+  "title": "obj-next-ids",
+  "required": [
+    "obj-next-ids"
+  ],
+  "properties": {
+    "devices": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "title": "nextId",
+        "required": [
+          "groupChain"
+        ],
+        "properties": {
+          "groupChain": {
+            "type": "array",
+            "example": "[0x1234 --> 0x1246 --> port :1, 0x1234 --> 0x12786 --> port :2] "
+          }
+        }
+      }
+    }
+  }
+}

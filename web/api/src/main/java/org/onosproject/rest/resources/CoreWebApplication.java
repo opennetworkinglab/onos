@@ -38,6 +38,7 @@ public class CoreWebApplication extends AbstractWebApplication {
                 HostsWebResource.class,
                 IntentsWebResource.class,
                 FlowsWebResource.class,
+                FlowObjectiveNextListWebResource.class,
                 GroupsWebResource.class,
                 MetersWebResource.class,
                 TopologyWebResource.class,
