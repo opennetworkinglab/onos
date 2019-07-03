@@ -1,6 +1,7 @@
 APPS = [
     "org.onosproject.ovsdb-base",
     "org.onosproject.ovsdbhostprovider",
+    "org.onosproject.tunnel",
 ]
 
 onos_app(
