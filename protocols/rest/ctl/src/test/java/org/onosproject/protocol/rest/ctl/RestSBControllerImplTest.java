@@ -153,7 +153,7 @@ public class RestSBControllerImplTest extends JerseyTest {
 
     @Override
     protected Application configure() {
-        set(TestProperties.CONTAINER_PORT, 8080);
+        set(TestProperties.CONTAINER_PORT, 18080);
         return new ResourceConfig(HelloResource.class);
     }
 
@@ -162,8 +162,8 @@ public class RestSBControllerImplTest extends JerseyTest {
         controller = new RestSBControllerImpl();
         TestUtils.setField(controller, "eventDispatcher", new TestEventDispatcher());
         controller.activate();
-        device1 = new DefaultRestSBDevice(IpAddress.valueOf("127.0.0.1"), 8080, "foo", "bar", "http", null, true);
-        device2 = new DefaultRestSBDevice(IpAddress.valueOf("127.0.0.2"), 8080, "foo1", "bar2", "http", null, true);
+        device1 = new DefaultRestSBDevice(IpAddress.valueOf("127.0.0.1"), 18080, "foo", "bar", "http", null, true);
+        device2 = new DefaultRestSBDevice(IpAddress.valueOf("127.0.0.2"), 18080, "foo1", "bar2", "http", null, true);
         controller.addDevice(device1);
 
     }
