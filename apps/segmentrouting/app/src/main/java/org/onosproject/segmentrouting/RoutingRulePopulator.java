@@ -1727,7 +1727,7 @@ public class RoutingRulePopulator {
                     ));
                 });
         try {
-            fwdBuilder = routingFwdObjBuilder(deviceId, prefix, hostMac, dummyVlan, outPort, false, false);
+            fwdBuilder = routingFwdObjBuilder(deviceId, prefix, hostMac, dummyVlan, outPort, true, false);
         } catch (DeviceConfigNotFoundException e) {
             log.error(e.getMessage() + " Aborting populateDoubleTaggedRoute");
             return;
