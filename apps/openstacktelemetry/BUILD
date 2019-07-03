@@ -17,6 +17,10 @@ BUNDLES = [
     "@simpleclient_servlet//jar",
     # gRPC dependencies (with patched core)
     "//deps:io_grpc_grpc_api_context",
+    "//deps:io_grpc_grpc_core_internal",
+    "//deps:io_grpc_grpc_core_inprocess",
+    "//deps:io_grpc_grpc_core_util",
+    "//deps:io_grpc_grpc_core_perfmark",
     "//deps:io_grpc_grpc_stub",
     "//deps:io_grpc_grpc_netty",
     "//deps:io_grpc_grpc_auth",
