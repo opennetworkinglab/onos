@@ -17,7 +17,10 @@
 package org.onosproject.net.flowobjective;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.onosproject.net.DeviceId;
+import org.apache.commons.lang3.tuple.Pair;
+import java.util.Map;
 
 import java.util.List;
 
@@ -65,4 +68,10 @@ public class FlowObjectiveServiceAdapter implements FlowObjectiveService {
     public List<String> getPendingFlowObjectives() {
         return ImmutableList.of();
     }
+
+    @Override
+    public Map<Pair<Integer, DeviceId>, List<String>> getNextMappingsChain() {
+        return ImmutableMap.of();
+    }
+
 }

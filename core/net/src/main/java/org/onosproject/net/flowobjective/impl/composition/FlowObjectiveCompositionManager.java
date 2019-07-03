@@ -16,6 +16,7 @@
 package org.onosproject.net.flowobjective.impl.composition;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
@@ -30,7 +31,6 @@ import org.onosproject.cluster.ClusterService;
 import org.onosproject.mastership.MastershipEvent;
 import org.onosproject.mastership.MastershipListener;
 import org.onosproject.mastership.MastershipService;
-import org.onosproject.net.DeviceId;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.behaviour.PipelinerContext;
 import org.onosproject.net.device.DeviceEvent;
@@ -58,6 +58,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import org.apache.commons.lang3.tuple.Pair;
+import org.onosproject.net.DeviceId;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newFixedThreadPool;
@@ -429,6 +431,11 @@ public class FlowObjectiveCompositionManager implements FlowObjectiveService {
     public List<String> getNextMappings() {
         // TODO Implementation deferred as this is an experimental component.
         return ImmutableList.of();
+    }
+
+    @Override
+    public Map<Pair<Integer, DeviceId>, List<String>> getNextMappingsChain() {
+        return ImmutableMap.of();
     }
 
     @Override

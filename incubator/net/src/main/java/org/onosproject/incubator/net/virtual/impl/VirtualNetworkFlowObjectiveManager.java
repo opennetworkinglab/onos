@@ -22,6 +22,8 @@ import com.google.common.cache.RemovalCause;
 import com.google.common.cache.RemovalNotification;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableMap;
+import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.osgi.ServiceDirectory;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.incubator.net.virtual.AbstractVnetService;
@@ -169,6 +171,11 @@ public class VirtualNetworkFlowObjectiveManager extends AbstractVnetService
     @Override
     public void initPolicy(String policy) {
 
+    }
+
+    @Override
+    public Map<Pair<Integer, DeviceId>, List<String>> getNextMappingsChain() {
+        return ImmutableMap.of();
     }
 
     @Override
