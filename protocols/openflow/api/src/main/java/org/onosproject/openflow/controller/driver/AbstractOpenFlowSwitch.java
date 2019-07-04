@@ -336,6 +336,7 @@ public abstract class AbstractOpenFlowSwitch extends AbstractHandlerBehaviour
             }
             // perform role transition after clearing messages queue
             this.role = RoleState.MASTER;
+            this.agent.roleChangedToMaster(dpid);
         }
     }
 
