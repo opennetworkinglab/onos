@@ -87,11 +87,16 @@ class TableStatisticsCollector implements SwitchDataCollector {
     }
 
     public synchronized void start() {
-        // Initially start polling quickly. Then drop down to configured value
         log.debug("Starting Table Stats collection thread for {}", sw.getStringId());
         task = new InternalTimerTask();
-        scheduledTask = executorService.scheduleAtFixedRate(task, 1 * MS,
-                                            pollInterval * MS, TimeUnit.MILLISECONDS);
+        if (pollInterval > 0) {
+            // Initially start polling quickly. Then drop down to configured value
+            scheduledTask = executorService.scheduleAtFixedRate(task, 1 * MS,
+                    pollInterval * MS, TimeUnit.MILLISECONDS);
+        } else {
+            // Trigger the poll only once
+            executorService.schedule(task, 0, TimeUnit.MILLISECONDS);
+        }
     }
 
     public synchronized void stop() {

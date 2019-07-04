@@ -949,6 +949,13 @@ public class OpenFlowControllerImpl implements OpenFlowController {
         public void removeClassifierListener(OpenFlowClassifierListener listener) {
             ofClassifierListener.remove(listener);
         }
+
+        @Override
+        public void roleChangedToMaster(Dpid dpid) {
+            for (OpenFlowSwitchListener l : ofSwitchListener) {
+                l.roleChangedToMaster(dpid);
+            }
+        }
     }
 
     /**
