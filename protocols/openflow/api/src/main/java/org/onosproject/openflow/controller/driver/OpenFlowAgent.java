@@ -124,4 +124,11 @@ public interface OpenFlowAgent {
      * @param listener the OpenFlow classifier listener
      */
     void removeClassifierListener(OpenFlowClassifierListener listener);
+
+    /**
+     * Notify that role of the switch changed to Master.
+     *
+     * @param dpid the switch for which the role is changed
+     */
+    default void roleChangedToMaster(Dpid dpid) {}
 }
