@@ -851,6 +851,13 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                 l.receivedRoleReply(dpid, requested, response);
             }
         }
+
+        @Override
+        public void roleChangedToMaster(Dpid dpid) {
+            for (OpenFlowSwitchListener l : ofSwitchListener) {
+                l.roleChangedToMaster(dpid);
+            }
+        }
     }
 
     /**

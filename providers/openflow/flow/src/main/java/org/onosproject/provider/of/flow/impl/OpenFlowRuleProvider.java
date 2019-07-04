@@ -135,6 +135,7 @@ public class OpenFlowRuleProvider extends AbstractProvider
     private static final int MIN_EXPECTED_BYTE_LEN = 56;
     private static final int SKIP_BYTES = 4;
     private static final boolean DEFAULT_ADAPTIVE_FLOW_SAMPLING = false;
+    private static final boolean DEFAULT_POLL_STATS_PERIODICALLY = true;
 
     @Property(name = "flowPollFrequency", intValue = DEFAULT_POLL_FREQUENCY,
             label = "Frequency (in seconds) for polling flow statistics")
@@ -143,6 +144,10 @@ public class OpenFlowRuleProvider extends AbstractProvider
     @Property(name = "adaptiveFlowSampling", boolValue = DEFAULT_ADAPTIVE_FLOW_SAMPLING,
             label = "Adaptive Flow Sampling is on or off")
     private boolean adaptiveFlowSampling = DEFAULT_ADAPTIVE_FLOW_SAMPLING;
+
+    @Property(name = "pollStatsPeriodically", boolValue = DEFAULT_POLL_STATS_PERIODICALLY,
+            label = "Periodic stats collection")
+    private boolean pollStatsPeriodically = true;
 
     private FlowRuleProviderService providerService;
 
@@ -204,7 +209,6 @@ public class OpenFlowRuleProvider extends AbstractProvider
         try {
             String s = get(properties, "flowPollFrequency");
             newFlowPollFrequency = isNullOrEmpty(s) ? flowPollFrequency : Integer.parseInt(s.trim());
-
         } catch (NumberFormatException | ClassCastException e) {
             newFlowPollFrequency = flowPollFrequency;
         }
@@ -213,22 +217,34 @@ public class OpenFlowRuleProvider extends AbstractProvider
             flowPollFrequency = newFlowPollFrequency;
             adjustRate();
         }
-
         log.info("Settings: flowPollFrequency={}", flowPollFrequency);
 
         boolean newAdaptiveFlowSampling;
         String s = get(properties, "adaptiveFlowSampling");
         newAdaptiveFlowSampling = isNullOrEmpty(s) ? adaptiveFlowSampling : Boolean.parseBoolean(s.trim());
-
         if (newAdaptiveFlowSampling != adaptiveFlowSampling) {
             // stop previous collector
             stopCollectors();
             adaptiveFlowSampling = newAdaptiveFlowSampling;
-            // create new collectors
-            createCollectors();
+            if (pollStatsPeriodically) {
+                // create new collectors
+                createCollectors();
+            }
         }
-
         log.info("Settings: adaptiveFlowSampling={}", adaptiveFlowSampling);
+
+        boolean newPollStatsPeriodically;
+        String flag = get(properties, "pollStatsPeriodically");
+        newPollStatsPeriodically = isNullOrEmpty(flag) ? pollStatsPeriodically : Boolean.parseBoolean(flag.trim());
+        if (newPollStatsPeriodically != pollStatsPeriodically) {
+            // stop previous collector
+            stopCollectors();
+            pollStatsPeriodically = newPollStatsPeriodically;
+            if (pollStatsPeriodically) {
+                createCollectors();
+            }
+        }
+        log.info("Settings: pollStatsPeriodically={}", pollStatsPeriodically);
     }
 
     private Cache<Long, InternalCacheEntry> createBatchCache() {
@@ -325,6 +341,11 @@ public class OpenFlowRuleProvider extends AbstractProvider
         }
         if (collector != null) {
             collector.recordEvents(events);
+        }
+
+        if (!pollStatsPeriodically) {
+            log.debug("Triggering Flow/Table Stats, Flow Add/Del/Mod event, switch : {}", dpid.toString());
+            triggerStatsCollection(dpid);
         }
     }
 
@@ -452,12 +473,43 @@ public class OpenFlowRuleProvider extends AbstractProvider
                 flowRuleExtPayLoad.payLoad().length > 0;
     }
 
+    private void triggerStatsCollection(Dpid dpid) {
+        OpenFlowSwitch sw = controller.getSwitch(dpid);
+        if (sw == null) {
+            return;
+        }
+
+        SwitchDataCollector sdc = adaptiveFlowSampling ? afsCollectors.get(dpid) : simpleCollectors.get(dpid);
+        if (sdc == null) {
+            if (adaptiveFlowSampling) {
+                sdc = new NewAdaptiveFlowStatsCollector(driverService, sw, -1);
+                afsCollectors.put(dpid, (NewAdaptiveFlowStatsCollector) sdc);
+            } else {
+                sdc = new FlowStatsCollector(executorService, sw, -1);
+                simpleCollectors.put(dpid, (FlowStatsCollector) sdc);
+            }
+        }
+        sdc.start();
+
+        TableStatisticsCollector tsc = tableStatsCollectors.get(dpid);
+        if (tsc == null) {
+            tsc = new TableStatisticsCollector(executorService, sw, -1);
+            tableStatsCollectors.put(dpid, tsc);
+        }
+        tsc.start();
+    }
+
     private class InternalFlowProvider
             implements OpenFlowSwitchListener, OpenFlowEventListener {
 
         @Override
         public void switchAdded(Dpid dpid) {
-            createCollector(controller.getSwitch(dpid));
+            if (pollStatsPeriodically) {
+                createCollector(controller.getSwitch(dpid));
+            } else {
+                log.debug("Triggering Flow/Table Stats, Switch: {} added, ", dpid.toString());
+                triggerStatsCollection(dpid);
+            }
         }
 
         @Override
@@ -675,6 +727,14 @@ public class OpenFlowRuleProvider extends AbstractProvider
                                       RoleState response) {
             if (response == RoleState.MASTER) {
                 resetEvents(dpid);
+            }
+        }
+
+        @Override
+        public void roleChangedToMaster(Dpid dpid) {
+            if (!pollStatsPeriodically) {
+                log.debug("Triggering Flow/Table Stats, Mastership change: {}, ", dpid.toString());
+                triggerStatsCollection(dpid);
             }
         }
 
