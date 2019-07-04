@@ -55,4 +55,11 @@ public interface OpenFlowSwitchListener {
      * @param response role reply from the switch
      */
     void receivedRoleReply(Dpid dpid, RoleState requested, RoleState response);
+
+    /**
+     * Notify that role of the switch changed to Master.
+     *
+     * @param dpid the switch for which the role is changed
+     */
+    default void roleChangedToMaster(Dpid dpid) {}
 }

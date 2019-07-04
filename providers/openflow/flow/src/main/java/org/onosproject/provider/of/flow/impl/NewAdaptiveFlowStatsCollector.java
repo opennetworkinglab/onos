@@ -112,6 +112,7 @@ public class NewAdaptiveFlowStatsCollector implements SwitchDataCollector {
     private long flowMissingXid = NO_FLOW_MISSING_XID;
 
     private FlowRuleService flowRuleService;
+    private boolean pollPeriodically = true;
 
     /**
      * Creates a new adaptive collector for the given switch and default cal_and_poll frequency.
@@ -128,6 +129,9 @@ public class NewAdaptiveFlowStatsCollector implements SwitchDataCollector {
         flowRuleService = get(FlowRuleService.class);
 
         initMemberVars(pollInterval);
+        if (pollInterval == -1) {
+            pollPeriodically = false;
+        }
     }
 
     /**
@@ -394,27 +398,49 @@ public class NewAdaptiveFlowStatsCollector implements SwitchDataCollector {
 
         isFirstTimeStart = true;
 
-        // Initially start polling quickly. Then drop down to configured value
         calAndShortFlowsTask = new CalAndShortFlowsTask();
-        calAndShortFlowsThread = adaptiveFlowStatsScheduler.scheduleWithFixedDelay(
-                calAndShortFlowsTask,
-                1,
-                calAndPollInterval,
-                TimeUnit.SECONDS);
-
         midFlowsTask = new MidFlowsTask();
-        midFlowsThread = adaptiveFlowStatsScheduler.scheduleWithFixedDelay(
-                midFlowsTask,
-                1,
-                midPollInterval,
-                TimeUnit.SECONDS);
-
         longFlowsTask = new LongFlowsTask();
-        longFlowsThread = adaptiveFlowStatsScheduler.scheduleWithFixedDelay(
-                longFlowsTask,
-                1,
-                longPollInterval,
-                TimeUnit.SECONDS);
+
+        if (pollPeriodically) {
+            // Initially start polling quickly. Then drop down to configured value
+
+            calAndShortFlowsThread = adaptiveFlowStatsScheduler.scheduleWithFixedDelay(
+                    calAndShortFlowsTask,
+                    1,
+                    calAndPollInterval,
+                    TimeUnit.SECONDS);
+
+
+            midFlowsThread = adaptiveFlowStatsScheduler.scheduleWithFixedDelay(
+                    midFlowsTask,
+                    1,
+                    midPollInterval,
+                    TimeUnit.SECONDS);
+
+
+            longFlowsThread = adaptiveFlowStatsScheduler.scheduleWithFixedDelay(
+                    longFlowsTask,
+                    1,
+                    longPollInterval,
+                    TimeUnit.SECONDS);
+        } else {
+            // Trigger the polls only once
+            adaptiveFlowStatsScheduler.schedule(
+                    calAndShortFlowsTask,
+                    0,
+                    TimeUnit.SECONDS);
+
+            adaptiveFlowStatsScheduler.schedule(
+                    midFlowsTask,
+                    0,
+                    TimeUnit.SECONDS);
+
+            adaptiveFlowStatsScheduler.schedule(
+                    longFlowsTask,
+                    0,
+                    TimeUnit.SECONDS);
+        }
 
         log.info("Started");
     }

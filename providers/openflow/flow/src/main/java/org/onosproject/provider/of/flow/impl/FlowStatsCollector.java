@@ -217,15 +217,21 @@ class FlowStatsCollector implements SwitchDataCollector {
     }
 
     public synchronized void start() {
-        // Initially start polling quickly. Then drop down to configured value
         log.debug("Starting Stats collection thread for {}", sw.getStringId());
         loadCounter = new SlidingWindowCounter(HIGH_WINDOW);
-        pauseTask = new PauseTimerTask();
-        scheduledPauseTask = executorService.scheduleAtFixedRate(pauseTask, 1 * MS,
-                                            1 * MS, TimeUnit.MILLISECONDS);
-        pollTask = new PollTimerTask();
-        scheduledPollTask = executorService.scheduleAtFixedRate(pollTask, 1 * MS,
-                                            pollInterval * MS, TimeUnit.MILLISECONDS);
+        if (pollInterval > 0) {
+            pauseTask = new PauseTimerTask();
+            scheduledPauseTask = executorService.scheduleAtFixedRate(pauseTask, 1 * MS,
+                    1 * MS, TimeUnit.MILLISECONDS);
+            pollTask = new PollTimerTask();
+            // Initially start polling quickly. Then drop down to configured value
+            scheduledPollTask = executorService.scheduleAtFixedRate(pollTask, 1 * MS,
+                    pollInterval * MS, TimeUnit.MILLISECONDS);
+        } else {
+            // Trigger the poll only once
+            pollTask = new PollTimerTask();
+            executorService.schedule(pollTask, 0, TimeUnit.MILLISECONDS);
+        }
     }
 
     private synchronized void pause() {
