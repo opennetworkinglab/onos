@@ -174,7 +174,8 @@ t3
 tetopology
 tetunnel
 tl1
-transaction-perf
+# Cannot be deactivated
+# transaction-perf
 tunnel
 virtual
 virtualbng

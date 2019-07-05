@@ -4130,33 +4130,9 @@
         </group>
 
 
-        <group name="App-Activate-All.transaction-perf" requires="App-Activate-All.tl1">
-           <step name="App-Activate-All.Activate-transaction-perf"
-                 exec="onos ${OCI} app activate org.onosproject.transaction-perf" requires="App-Activate-All.tl1"/>
-           <group name="App-Activate-All.App-Check-transaction-perf" requires="App-Activate-All.Activate-transaction-perf">
-              <parallel var="${OC#}">
-                 <step name="App-Activate-All.App-Check-${#}-transaction-perf"
-                       exec="onos-check-apps ${OC#} transaction-perf includes"/>
-                 <step name="App-Activate-All.Check-Logs-${#}-transaction-perf" exec="onos-check-logs ${OC#}"/>
-              </parallel>
-           </group>
-           <step name="App-Activate-All.App-Deactivate-transaction-perf"
-                 exec="onos ${OCI} app deactivate org.onosproject.transaction-perf" requires="App-Activate-All.App-Check-transaction-perf"/>
-           <step name="App-Activate-All.Wait-For-Deactivate-transaction-perf"
-                 exec="onos-check-component-count ${OCI} ${startingcount}" requires="App-Activate-All.App-Deactivate-transaction-perf"/>      
-           <group name="App-Activate-All.App-Check-After-transaction-perf" requires="App-Activate-All.Wait-For-Deactivate-transaction-perf">
-              <parallel var="${OC#}">
-                 <step name="App-Activate-All.Check-Logs-After-${#}-transaction-perf" exec="onos-check-logs ${OC#}"/>
-              </parallel>
-           </group>
-           <step name="App-Activate-All.Minimal-Apps-transaction-perf" requires="App-Activate-All.App-Deactivate-transaction-perf"
-                 exec="onos-set-up-minimal-apps ${OCI}"/>
-        </group>
-
-
-        <group name="App-Activate-All.tunnel" requires="App-Activate-All.transaction-perf">
+        <group name="App-Activate-All.tunnel" requires="App-Activate-All.tl1">
            <step name="App-Activate-All.Activate-tunnel"
-                 exec="onos ${OCI} app activate org.onosproject.tunnel" requires="App-Activate-All.transaction-perf"/>
+                 exec="onos ${OCI} app activate org.onosproject.tunnel" requires="App-Activate-All.tl1"/>
            <group name="App-Activate-All.App-Check-tunnel" requires="App-Activate-All.Activate-tunnel">
               <parallel var="${OC#}">
                  <step name="App-Activate-All.App-Check-${#}-tunnel"
