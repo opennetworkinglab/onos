@@ -46,6 +46,9 @@
         <command>
             <action class="org.onosproject.k8snetworking.cli.K8sIngressListCommand"/>
         </command>
+        <command>
+            <action class="org.onosproject.k8snetworking.cli.K8sNetworkPolicyListCommand"/>
+        </command>
     </command-bundle>
 
 </blueprint>

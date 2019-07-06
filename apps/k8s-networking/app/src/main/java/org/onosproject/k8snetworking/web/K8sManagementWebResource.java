@@ -24,6 +24,7 @@ import org.onosproject.k8snetworking.api.DefaultK8sPort;
 import org.onosproject.k8snetworking.api.K8sEndpointsAdminService;
 import org.onosproject.k8snetworking.api.K8sIngressAdminService;
 import org.onosproject.k8snetworking.api.K8sNetworkAdminService;
+import org.onosproject.k8snetworking.api.K8sNetworkPolicyAdminService;
 import org.onosproject.k8snetworking.api.K8sPodAdminService;
 import org.onosproject.k8snetworking.api.K8sPort;
 import org.onosproject.k8snetworking.api.K8sServiceAdminService;
@@ -81,6 +82,8 @@ public class K8sManagementWebResource extends AbstractWebResource {
                                             get(K8sNetworkAdminService.class);
     private final K8sNodeAdminService nodeAdminService =
                                             get(K8sNodeAdminService.class);
+    private final K8sNetworkPolicyAdminService policyAdminService =
+                                            get(K8sNetworkPolicyAdminService.class);
 
     /**
      * Synchronizes the all states with kubernetes API server.
@@ -135,6 +138,14 @@ public class K8sManagementWebResource extends AbstractWebResource {
                 ingressAdminService.updateIngress(ingress);
             } else {
                 ingressAdminService.createIngress(ingress);
+            }
+        });
+
+        client.network().networkPolicies().inAnyNamespace().list().getItems().forEach(policy -> {
+            if (policyAdminService.networkPolicy(policy.getMetadata().getUid()) != null) {
+                policyAdminService.updateNetworkPolicy(policy);
+            } else {
+                policyAdminService.createNetworkPolicy(policy);
             }
         });
 

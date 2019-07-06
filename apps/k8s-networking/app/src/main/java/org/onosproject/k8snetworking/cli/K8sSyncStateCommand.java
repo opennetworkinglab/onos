@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.extensions.Ingress;
+import io.fabric8.kubernetes.api.model.networking.NetworkPolicy;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.karaf.shell.commands.Command;
 import org.onlab.packet.IpAddress;
@@ -28,6 +29,7 @@ import org.onosproject.k8snetworking.api.DefaultK8sPort;
 import org.onosproject.k8snetworking.api.K8sEndpointsAdminService;
 import org.onosproject.k8snetworking.api.K8sIngressAdminService;
 import org.onosproject.k8snetworking.api.K8sNetworkAdminService;
+import org.onosproject.k8snetworking.api.K8sNetworkPolicyAdminService;
 import org.onosproject.k8snetworking.api.K8sPodAdminService;
 import org.onosproject.k8snetworking.api.K8sPort;
 import org.onosproject.k8snetworking.api.K8sServiceAdminService;
@@ -53,6 +55,7 @@ public class K8sSyncStateCommand extends AbstractShellCommand {
     private static final String SERVICE_FORMAT = "%-50s%-30s%-30s";
     private static final String ENDPOINTS_FORMAT = "%-50s%-50s%-20s";
     private static final String INGRESS_FORMAT = "%-50s%-15s%-30s";
+    private static final String NETWORK_POLICY_FORMAT = "%-50s%-15s%-30s";
 
     private static final String PORT_ID = "portId";
     private static final String DEVICE_ID = "deviceId";
@@ -73,6 +76,8 @@ public class K8sSyncStateCommand extends AbstractShellCommand {
                 get(K8sEndpointsAdminService.class);
         K8sNetworkAdminService networkAdminService =
                 get(K8sNetworkAdminService.class);
+        K8sNetworkPolicyAdminService networkPolicyAdminService =
+                get(K8sNetworkPolicyAdminService.class);
 
         K8sApiConfig config =
                 configService.apiConfigs().stream().findAny().orElse(null);
@@ -135,6 +140,16 @@ public class K8sSyncStateCommand extends AbstractShellCommand {
             printIngresses(ingress);
         });
 
+        print("\nSynchronizing kubernetes network policies");
+        print(NETWORK_POLICY_FORMAT, "Name", "Namespace", "Types");
+        client.network().networkPolicies().inAnyNamespace().list().getItems().forEach(policy -> {
+            if (networkPolicyAdminService.networkPolicy(policy.getMetadata().getUid()) != null) {
+                networkPolicyAdminService.updateNetworkPolicy(policy);
+            } else {
+                networkPolicyAdminService.createNetworkPolicy(policy);
+            }
+            printNetworkPolicy(policy);
+        });
     }
 
     private void printIngresses(Ingress ingress) {
@@ -188,6 +203,14 @@ public class K8sSyncStateCommand extends AbstractShellCommand {
                 pod.getMetadata().getNamespace(),
                 pod.getStatus().getPodIP(),
                 containers.isEmpty() ? "" : containers);
+    }
+
+    private void printNetworkPolicy(NetworkPolicy policy) {
+        print(NETWORK_POLICY_FORMAT,
+                policy.getMetadata().getName(),
+                policy.getMetadata().getNamespace(),
+                policy.getSpec().getPolicyTypes().isEmpty() ?
+                        "" : policy.getSpec().getPolicyTypes());
     }
 
     private void syncPortFromPod(Pod pod, K8sNetworkAdminService adminService) {
