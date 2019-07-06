@@ -13,19 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.k8snetworking.cli;
+package org.onosproject.k8snetworking.web;
 
-import com.google.common.collect.Lists;
-import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.kubernetes.api.model.extensions.Ingress;
-import io.fabric8.kubernetes.api.model.networking.NetworkPolicy;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.apache.karaf.shell.api.action.Command;
-import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
-import org.onosproject.cli.AbstractShellCommand;
+import org.onlab.util.ItemNotFoundException;
 import org.onosproject.k8snetworking.api.DefaultK8sPort;
 import org.onosproject.k8snetworking.api.K8sEndpointsAdminService;
 import org.onosproject.k8snetworking.api.K8sIngressAdminService;
@@ -37,27 +31,34 @@ import org.onosproject.k8snetworking.api.K8sServiceAdminService;
 import org.onosproject.k8snetworking.util.K8sNetworkingUtil;
 import org.onosproject.k8snode.api.K8sApiConfig;
 import org.onosproject.k8snode.api.K8sApiConfigService;
+import org.onosproject.k8snode.api.K8sNode;
+import org.onosproject.k8snode.api.K8sNodeAdminService;
+import org.onosproject.k8snode.api.K8sNodeState;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.rest.AbstractWebResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.List;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.Map;
 
+import static java.lang.Thread.sleep;
 import static org.onosproject.k8snetworking.api.K8sPort.State.INACTIVE;
+import static org.onosproject.k8snode.api.K8sNode.Type.MASTER;
+import static org.onosproject.k8snode.api.K8sNode.Type.MINION;
+import static org.onosproject.k8snode.api.K8sNodeState.COMPLETE;
 
 /**
- * Synchronizes kubernetes states.
+ * REST interface for synchronizing kubernetes network states and rules.
  */
-@Service
-@Command(scope = "onos", name = "k8s-sync-states",
-        description = "Synchronizes all kubernetes states")
-public class K8sSyncStateCommand extends AbstractShellCommand {
-
-    private static final String POD_FORMAT = "%-50s%-15s%-15s%-30s";
-    private static final String SERVICE_FORMAT = "%-50s%-30s%-30s";
-    private static final String ENDPOINTS_FORMAT = "%-50s%-50s%-20s";
-    private static final String INGRESS_FORMAT = "%-50s%-15s%-30s";
-    private static final String NETWORK_POLICY_FORMAT = "%-50s%-15s%-30s";
+@Path("management")
+public class K8sManagementWebResource extends AbstractWebResource {
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final String PORT_ID = "portId";
     private static final String DEVICE_ID = "deviceId";
@@ -66,59 +67,62 @@ public class K8sSyncStateCommand extends AbstractShellCommand {
     private static final String MAC_ADDRESS = "macAddress";
     private static final String NETWORK_ID = "networkId";
 
-    @Override
-    protected void doExecute() {
-        K8sApiConfigService configService = get(K8sApiConfigService.class);
-        K8sPodAdminService podAdminService = get(K8sPodAdminService.class);
-        K8sServiceAdminService serviceAdminService =
-                get(K8sServiceAdminService.class);
-        K8sIngressAdminService ingressAdminService =
-                get(K8sIngressAdminService.class);
-        K8sEndpointsAdminService endpointsAdminService =
-                get(K8sEndpointsAdminService.class);
-        K8sNetworkAdminService networkAdminService =
-                get(K8sNetworkAdminService.class);
-        K8sNetworkPolicyAdminService networkPolicyAdminService =
-                get(K8sNetworkPolicyAdminService.class);
+    private static final long SLEEP_MIDDLE_MS = 3000; // we wait 3s
+    private static final long TIMEOUT_MS = 10000; // we wait 10s
 
+    private final K8sApiConfigService configService = get(K8sApiConfigService.class);
+    private final K8sPodAdminService podAdminService = get(K8sPodAdminService.class);
+    private final K8sServiceAdminService serviceAdminService =
+                                            get(K8sServiceAdminService.class);
+    private final K8sIngressAdminService ingressAdminService =
+                                            get(K8sIngressAdminService.class);
+    private final K8sEndpointsAdminService endpointsAdminService =
+                                            get(K8sEndpointsAdminService.class);
+    private final K8sNetworkAdminService networkAdminService =
+                                            get(K8sNetworkAdminService.class);
+    private final K8sNodeAdminService nodeAdminService =
+                                            get(K8sNodeAdminService.class);
+    private final K8sNetworkPolicyAdminService policyAdminService =
+                                            get(K8sNetworkPolicyAdminService.class);
+
+    /**
+     * Synchronizes the all states with kubernetes API server.
+     *
+     * @return 200 OK with sync result, 404 not found
+     * @throws InterruptedException exception
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("sync/states")
+    public Response syncStates() {
         K8sApiConfig config =
                 configService.apiConfigs().stream().findAny().orElse(null);
         if (config == null) {
-            log.error("Failed to find valid kubernetes API configuration.");
-            return;
+            throw new ItemNotFoundException("Failed to find valid kubernetes API configuration.");
         }
 
         KubernetesClient client = K8sNetworkingUtil.k8sClient(config);
 
         if (client == null) {
-            log.error("Failed to connect to kubernetes API server.");
-            return;
+            throw new ItemNotFoundException("Failed to connect to kubernetes API server.");
         }
 
-        print("Synchronizing kubernetes services");
-        print(SERVICE_FORMAT, "Name", "Cluster IP", "Ports");
         client.services().inAnyNamespace().list().getItems().forEach(svc -> {
             if (serviceAdminService.service(svc.getMetadata().getUid()) != null) {
                 serviceAdminService.updateService(svc);
             } else {
                 serviceAdminService.createService(svc);
             }
-            printService(svc);
         });
 
-        print("\nSynchronizing kubernetes endpoints");
-        print(ENDPOINTS_FORMAT, "Name", "IP Addresses", "Ports");
         client.endpoints().inAnyNamespace().list().getItems().forEach(ep -> {
             if (endpointsAdminService.endpoints(ep.getMetadata().getUid()) != null) {
                 endpointsAdminService.updateEndpoints(ep);
             } else {
                 endpointsAdminService.createEndpoints(ep);
             }
-            printEndpoints(ep);
         });
 
-        print("\nSynchronizing kubernetes pods");
-        print(POD_FORMAT, "Name", "Namespace", "IP", "Containers");
         client.pods().inAnyNamespace().list().getItems().forEach(pod -> {
             if (podAdminService.pod(pod.getMetadata().getUid()) != null) {
                 podAdminService.updatePod(pod);
@@ -127,92 +131,39 @@ public class K8sSyncStateCommand extends AbstractShellCommand {
             }
 
             syncPortFromPod(pod, networkAdminService);
-
-            printPod(pod);
         });
 
-        print("\nSynchronizing kubernetes ingresses");
-        print(INGRESS_FORMAT, "Name", "Namespace", "LB Addresses");
         client.extensions().ingresses().inAnyNamespace().list().getItems().forEach(ingress -> {
             if (ingressAdminService.ingress(ingress.getMetadata().getUid()) != null) {
                 ingressAdminService.updateIngress(ingress);
             } else {
                 ingressAdminService.createIngress(ingress);
             }
-            printIngresses(ingress);
         });
 
-        print("\nSynchronizing kubernetes network policies");
-        print(NETWORK_POLICY_FORMAT, "Name", "Namespace", "Types");
         client.network().networkPolicies().inAnyNamespace().list().getItems().forEach(policy -> {
-            if (networkPolicyAdminService.networkPolicy(policy.getMetadata().getUid()) != null) {
-                networkPolicyAdminService.updateNetworkPolicy(policy);
+            if (policyAdminService.networkPolicy(policy.getMetadata().getUid()) != null) {
+                policyAdminService.updateNetworkPolicy(policy);
             } else {
-                networkPolicyAdminService.createNetworkPolicy(policy);
+                policyAdminService.createNetworkPolicy(policy);
             }
-            printNetworkPolicy(policy);
-        });
-    }
-
-    private void printIngresses(Ingress ingress) {
-
-        List<String> lbIps = Lists.newArrayList();
-
-        ingress.getStatus().getLoadBalancer()
-                .getIngress().forEach(i -> lbIps.add(i.getIp()));
-
-        print(INGRESS_FORMAT,
-                ingress.getMetadata().getName(),
-                ingress.getMetadata().getNamespace(),
-                lbIps.isEmpty() ? "" : lbIps);
-    }
-
-    private void printEndpoints(Endpoints endpoints) {
-        List<String> ips = Lists.newArrayList();
-        List<Integer> ports = Lists.newArrayList();
-
-        endpoints.getSubsets().forEach(e -> {
-            e.getAddresses().forEach(a -> ips.add(a.getIp()));
-            e.getPorts().forEach(p -> ports.add(p.getPort()));
         });
 
-        print(ENDPOINTS_FORMAT,
-                endpoints.getMetadata().getName(),
-                ips.isEmpty() ? "" : ips,
-                ports.isEmpty() ? "" : ports);
+        return ok(mapper().createObjectNode()).build();
     }
 
-    private void printService(io.fabric8.kubernetes.api.model.Service service) {
+    /**
+     * Synchronizes the flow rules.
+     *
+     * @return 200 OK with sync result, 404 not found
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("sync/rules")
+    public Response syncRules() {
 
-        List<Integer> ports = Lists.newArrayList();
-
-        service.getSpec().getPorts().forEach(p -> ports.add(p.getPort()));
-
-        print(SERVICE_FORMAT,
-                service.getMetadata().getName(),
-                service.getSpec().getClusterIP(),
-                ports.isEmpty() ? "" : ports);
-    }
-
-    private void printPod(Pod pod) {
-
-        List<String> containers = Lists.newArrayList();
-
-        pod.getSpec().getContainers().forEach(c -> containers.add(c.getName()));
-
-        print(POD_FORMAT,
-                pod.getMetadata().getName(),
-                pod.getMetadata().getNamespace(),
-                pod.getStatus().getPodIP(),
-                containers.isEmpty() ? "" : containers);
-    }
-
-    private void printNetworkPolicy(NetworkPolicy policy) {
-        print(NETWORK_POLICY_FORMAT,
-                policy.getMetadata().getName(),
-                policy.getMetadata().getNamespace(),
-                policy.getSpec().getPolicyTypes().isEmpty() ?
-                        "" : policy.getSpec().getPolicyTypes());
+        syncRulesBase();
+        return ok(mapper().createObjectNode()).build();
     }
 
     private void syncPortFromPod(Pod pod, K8sNetworkAdminService adminService) {
@@ -244,6 +195,48 @@ public class K8sSyncStateCommand extends AbstractShellCommand {
             } else {
                 adminService.updatePort(newPort);
             }
+        }
+    }
+
+    private void syncRulesBase() {
+        nodeAdminService.completeNodes(MASTER).forEach(this::syncRulesBaseForNode);
+        nodeAdminService.completeNodes(MINION).forEach(this::syncRulesBaseForNode);
+    }
+
+    private void syncRulesBaseForNode(K8sNode k8sNode) {
+        K8sNode updated = k8sNode.updateState(K8sNodeState.INIT);
+        nodeAdminService.updateNode(updated);
+
+        boolean result = true;
+        long timeoutExpiredMs = System.currentTimeMillis() + TIMEOUT_MS;
+
+        while (nodeAdminService.node(k8sNode.hostname()).state() != COMPLETE) {
+
+            long  waitMs = timeoutExpiredMs - System.currentTimeMillis();
+
+            try {
+                sleep(SLEEP_MIDDLE_MS);
+            } catch (InterruptedException e) {
+                log.error("Exception caused during node synchronization...");
+            }
+
+            if (nodeAdminService.node(k8sNode.hostname()).state() == COMPLETE) {
+                break;
+            } else {
+                nodeAdminService.updateNode(updated);
+                log.info("Failed to synchronize flow rules, retrying...");
+            }
+
+            if (waitMs <= 0) {
+                result = false;
+                break;
+            }
+        }
+
+        if (result) {
+            log.info("Successfully synchronize flow rules for node {}!", k8sNode.hostname());
+        } else {
+            log.warn("Failed to synchronize flow rules for node {}.", k8sNode.hostname());
         }
     }
 }
