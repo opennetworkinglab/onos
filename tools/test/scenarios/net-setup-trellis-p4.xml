@@ -43,6 +43,12 @@
             <step name="App-Deactivate-RouteService"
                   exec="onos ${OCI} app deactivate org.onosproject.route-service"
                   requires="Trellis-Net-P4-Setup.Initial-Summary-Check"/>
+            <step name="App-Deactivate-OpenFlow"
+                  exec="onos ${OCI} app deactivate org.onosproject.openflow"
+                  requires="Trellis-Net-P4-Setup.Initial-Summary-Check"/>
+            <step name="App-Deactivate-Gui"
+                  exec="onos ${OCI} app deactivate org.onosproject.gui2"
+                  requires="Trellis-Net-P4-Setup.Initial-Summary-Check"/>
         </group>
 
         <!-- Active required apps -->
