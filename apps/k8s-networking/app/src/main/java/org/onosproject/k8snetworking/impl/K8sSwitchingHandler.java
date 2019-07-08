@@ -56,7 +56,7 @@ import java.util.concurrent.ExecutorService;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.k8snetworking.api.Constants.ACL_EGRESS_TABLE;
+import static org.onosproject.k8snetworking.api.Constants.JUMP_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.ARP_BROADCAST_MODE;
 import static org.onosproject.k8snetworking.api.Constants.ARP_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.FORWARDING_TABLE;
@@ -248,7 +248,7 @@ public class K8sSwitchingHandler {
         if (ethType == Ethernet.TYPE_ARP) {
             tBuilder.transition(ARP_TABLE);
         } else if (ethType == Ethernet.TYPE_IPV4) {
-            tBuilder.transition(ACL_EGRESS_TABLE);
+            tBuilder.transition(JUMP_TABLE);
         }
 
         k8sFlowRuleService.setRule(
@@ -271,7 +271,7 @@ public class K8sSwitchingHandler {
 
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
                 .setTunnelId(Long.valueOf(net.segmentId()))
-                .transition(ACL_EGRESS_TABLE);
+                .transition(JUMP_TABLE);
 
         k8sFlowRuleService.setRule(
                 appId,
@@ -293,7 +293,7 @@ public class K8sSwitchingHandler {
 
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
                 .setTunnelId(Long.valueOf(net.segmentId()))
-                .transition(ACL_EGRESS_TABLE);
+                .transition(JUMP_TABLE);
 
         k8sFlowRuleService.setRule(
                 appId,

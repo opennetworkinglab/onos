@@ -86,10 +86,11 @@ import java.util.stream.Collectors;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.k8snetworking.api.Constants.ACL_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.A_CLASS;
 import static org.onosproject.k8snetworking.api.Constants.B_CLASS;
 import static org.onosproject.k8snetworking.api.Constants.DST;
-import static org.onosproject.k8snetworking.api.Constants.JUMP_TABLE;
+import static org.onosproject.k8snetworking.api.Constants.GROUPING_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.K8S_NETWORKING_APP_ID;
 import static org.onosproject.k8snetworking.api.Constants.NAT_STATEFUL;
 import static org.onosproject.k8snetworking.api.Constants.NAT_STATELESS;
@@ -106,11 +107,11 @@ import static org.onosproject.k8snetworking.api.Constants.SERVICE_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.SHIFTED_IP_CIDR;
 import static org.onosproject.k8snetworking.api.Constants.SHIFTED_IP_PREFIX;
 import static org.onosproject.k8snetworking.api.Constants.SRC;
-import static org.onosproject.k8snetworking.api.Constants.STAT_OUTBOUND_TABLE;
 import static org.onosproject.k8snetworking.impl.OsgiPropertyConstants.SERVICE_CIDR;
 import static org.onosproject.k8snetworking.impl.OsgiPropertyConstants.SERVICE_IP_CIDR_DEFAULT;
 import static org.onosproject.k8snetworking.impl.OsgiPropertyConstants.SERVICE_IP_NAT_MODE;
 import static org.onosproject.k8snetworking.impl.OsgiPropertyConstants.SERVICE_IP_NAT_MODE_DEFAULT;
+import static org.onosproject.k8snetworking.api.Constants.STAT_EGRESS_TABLE;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.getBclassIpPrefixFromCidr;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.nodeIpGatewayIpMap;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.tunnelPortNumByNetId;
@@ -253,9 +254,9 @@ public class K8sServiceHandler {
         k8sNetworkService.networks().forEach(n -> {
             // TODO: need to provide a way to add multiple service IP CIDR ranges
             setUntrack(deviceId, ctUntrack, ctMaskUntrack, n.cidr(), serviceCidr,
-                    JUMP_TABLE, NAT_TABLE, PRIORITY_CT_RULE, install);
+                    GROUPING_TABLE, NAT_TABLE, PRIORITY_CT_RULE, install);
             setUntrack(deviceId, ctUntrack, ctMaskUntrack, n.cidr(), n.cidr(),
-                    JUMP_TABLE, ROUTING_TABLE, PRIORITY_CT_RULE, install);
+                    GROUPING_TABLE, ACL_TABLE, PRIORITY_CT_RULE, install);
         });
 
         // +trk-new CT rules
@@ -285,25 +286,25 @@ public class K8sServiceHandler {
 
         // src: POD -> dst: service (unNAT POD) grouping
         setSrcDstCidrRules(deviceId, fullSrcPodCidr, serviceCidr, B_CLASS, null,
-                SHIFTED_IP_PREFIX, SRC, JUMP_TABLE, SERVICE_TABLE,
+                SHIFTED_IP_PREFIX, SRC, GROUPING_TABLE, SERVICE_TABLE,
                 PRIORITY_CT_RULE, install);
         // src: POD (unNAT service) -> dst: shifted POD grouping
         setSrcDstCidrRules(deviceId, fullSrcPodCidr, SHIFTED_IP_CIDR, B_CLASS, null,
-                srcPodPrefix, DST, JUMP_TABLE, POD_TABLE, PRIORITY_CT_RULE, install);
+                srcPodPrefix, DST, GROUPING_TABLE, POD_TABLE, PRIORITY_CT_RULE, install);
 
         // src: node -> dst: service (unNAT POD) grouping
         setSrcDstCidrRules(deviceId, fullSrcNodeCidr, serviceCidr, A_CLASS,
-                null, null, null, JUMP_TABLE, SERVICE_TABLE,
+                null, null, null, GROUPING_TABLE, SERVICE_TABLE,
                 PRIORITY_CT_RULE, install);
         // src: POD (unNAT service) -> dst: node grouping
         setSrcDstCidrRules(deviceId, fullSrcPodCidr, fullSrcNodeCidr, A_CLASS,
-                null, null, null, JUMP_TABLE, POD_TABLE,
+                null, null, null, GROUPING_TABLE, POD_TABLE,
                 PRIORITY_CT_RULE, install);
 
         k8sNetworkService.networks().forEach(n -> {
             setSrcDstCidrRules(deviceId, fullSrcPodCidr, n.cidr(), B_CLASS,
                     n.segmentId(), null, null, ROUTING_TABLE,
-                    STAT_OUTBOUND_TABLE, PRIORITY_INTER_ROUTING_RULE, install);
+                    STAT_EGRESS_TABLE, PRIORITY_INTER_ROUTING_RULE, install);
         });
 
         // setup load balancing rules using group table
@@ -450,7 +451,7 @@ public class K8sServiceHandler {
         }
 
         ExtensionTreatment resubmitTreatment = buildResubmitExtension(
-                deviceService.getDevice(deviceId), ROUTING_TABLE);
+                deviceService.getDevice(deviceId), ACL_TABLE);
         tBuilder.extension(resubmitTreatment, deviceId);
 
         return buildGroupBucket(tBuilder.build(), SELECT, (short) -1);
@@ -553,7 +554,7 @@ public class K8sServiceHandler {
 
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
                 .setIpSrc(IpAddress.valueOf(serviceIp))
-                .transition(ROUTING_TABLE);
+                .transition(ACL_TABLE);
 
         if (TCP.equals(protocol)) {
             tBuilder.setTcpSrc(TpPort.tpPort(servicePort));
@@ -586,7 +587,7 @@ public class K8sServiceHandler {
                 if (mac != null) {
                     tBuilder.setEthSrc(mac);
                 }
-                tBuilder.transition(STAT_OUTBOUND_TABLE);
+                tBuilder.transition(STAT_EGRESS_TABLE);
             } else {
                 PortNumber portNum = tunnelPortNumByNetId(network.networkId(),
                         k8sNetworkService, n);
@@ -664,7 +665,7 @@ public class K8sServiceHandler {
                                 .natPortMax(TpPort.tpPort(p.getPort()))
                                 .build();
                         ExtensionTreatment resubmitTreatment = buildResubmitExtension(
-                                deviceService.getDevice(deviceId), ROUTING_TABLE);
+                                deviceService.getDevice(deviceId), ACL_TABLE);
                         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                                 .extension(ctNatTreatment, deviceId)
                                 .extension(resubmitTreatment, deviceId)
