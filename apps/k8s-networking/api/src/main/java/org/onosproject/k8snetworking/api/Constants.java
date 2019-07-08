@@ -89,27 +89,26 @@ public final class Constants {
     public static final int PRIORITY_NODE_PORT_INTER_RULE = 40000;
 
     // flow table index
-    public static final int STAT_INBOUND_TABLE = 0;
-    public static final int VTAP_INBOUND_TABLE = 1;
-    public static final int VTAP_INBOUND_MIRROR_TABLE = 2;
+    public static final int STAT_INGRESS_TABLE = 0;
+    public static final int VTAP_INGRESS_TABLE = 1;
+    public static final int VTAP_INGRESS_MIRROR_TABLE = 2;
     public static final int VTAG_TABLE = 30;
     public static final int ARP_TABLE = 35;
-    public static final int ACL_EGRESS_TABLE = 40;
-    public static final int ACL_INGRESS_TABLE = 44;
-    public static final int CT_TABLE = 45;
-    public static final int ACL_RECIRC_TABLE = 43;
-    public static final int JUMP_TABLE = 50;
+    public static final int JUMP_TABLE = 40;
+    public static final int GROUPING_TABLE = 50;
     public static final int NAT_TABLE = 51;
     public static final int SERVICE_TABLE = 52;
     public static final int POD_TABLE = 53;
+    public static final int ACL_TABLE = 55;
+    public static final int ACL_INGRESS_TABLE = 56;
+    public static final int ACL_EGRESS_TABLE = 58;
     public static final int ROUTING_TABLE = 60;
-    public static final int STAT_OUTBOUND_TABLE = 70;
-    public static final int VTAP_OUTBOUND_TABLE = 71;
-    public static final int VTAP_OUTBOUND_MIRROR_TABLE = 72;
+    public static final int STAT_EGRESS_TABLE = 70;
+    public static final int VTAP_EGRESS_TABLE = 71;
+    public static final int VTAP_EGRESS_MIRROR_TABLE = 72;
     public static final int FORWARDING_TABLE = 80;
     public static final int ERROR_TABLE = 100;
 
     public static final int EXT_ENTRY_TABLE = 0;
     public static final int POD_RESOLUTION_TABLE = 11;
-    public static final int INBOUND_TABLE = 10;
 }

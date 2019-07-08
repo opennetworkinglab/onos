@@ -296,6 +296,18 @@ public final class K8sNetworkingUtil {
     }
 
     /**
+     * Returns a shifted IP address.
+     *
+     * @param ipAddress     IP address to be shifted
+     * @param shiftPrefix   A IP prefix used in shifted IP address
+     * @return shifted Ip address
+     */
+    public static String shiftIpDomain(String ipAddress, String shiftPrefix) {
+        String origIpPrefix = ipAddress.split("\\.")[0] + "." + ipAddress.split("\\.")[1];
+        return StringUtils.replace(ipAddress, origIpPrefix, shiftPrefix);
+    }
+
+    /**
      * Returns an unshifted IP address.
      *
      * @param ipAddress     IP address to be unshifted

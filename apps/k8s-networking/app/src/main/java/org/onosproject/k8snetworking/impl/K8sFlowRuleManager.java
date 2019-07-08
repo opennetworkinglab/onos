@@ -57,20 +57,21 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.k8snetworking.api.Constants.ACL_EGRESS_TABLE;
+import static org.onosproject.k8snetworking.api.Constants.ACL_TABLE;
+import static org.onosproject.k8snetworking.api.Constants.JUMP_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.ARP_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.DEFAULT_GATEWAY_MAC;
 import static org.onosproject.k8snetworking.api.Constants.FORWARDING_TABLE;
-import static org.onosproject.k8snetworking.api.Constants.JUMP_TABLE;
+import static org.onosproject.k8snetworking.api.Constants.GROUPING_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.K8S_NETWORKING_APP_ID;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_CIDR_RULE;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_SNAT_RULE;
 import static org.onosproject.k8snetworking.api.Constants.ROUTING_TABLE;
-import static org.onosproject.k8snetworking.api.Constants.STAT_INBOUND_TABLE;
-import static org.onosproject.k8snetworking.api.Constants.STAT_OUTBOUND_TABLE;
+import static org.onosproject.k8snetworking.api.Constants.STAT_INGRESS_TABLE;
+import static org.onosproject.k8snetworking.api.Constants.STAT_EGRESS_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.VTAG_TABLE;
-import static org.onosproject.k8snetworking.api.Constants.VTAP_INBOUND_TABLE;
-import static org.onosproject.k8snetworking.api.Constants.VTAP_OUTBOUND_TABLE;
+import static org.onosproject.k8snetworking.api.Constants.VTAP_INGRESS_TABLE;
+import static org.onosproject.k8snetworking.api.Constants.VTAP_EGRESS_TABLE;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.tunnelPortNumByNetId;
 import static org.onosproject.k8snetworking.util.RulePopulatorUtil.buildExtension;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -225,32 +226,35 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
         DeviceId deviceId = k8sNode.intgBridge();
 
         // for inbound table transition
-        connectTables(deviceId, STAT_INBOUND_TABLE, VTAP_INBOUND_TABLE);
-        connectTables(deviceId, VTAP_INBOUND_TABLE, VTAG_TABLE);
+        connectTables(deviceId, STAT_INGRESS_TABLE, VTAP_INGRESS_TABLE);
+        connectTables(deviceId, VTAP_INGRESS_TABLE, VTAG_TABLE);
 
         // for vTag and ARP table transition
         connectTables(deviceId, VTAG_TABLE, ARP_TABLE);
 
-        connectTables(deviceId, ACL_EGRESS_TABLE, JUMP_TABLE);
+        connectTables(deviceId, JUMP_TABLE, GROUPING_TABLE);
 
         // for ARP and ACL table transition
-        connectTables(deviceId, ARP_TABLE, JUMP_TABLE);
+        connectTables(deviceId, ARP_TABLE, GROUPING_TABLE);
 
-        // for JUMP table transition to routing table
-        connectTables(deviceId, JUMP_TABLE, ROUTING_TABLE);
+        // for grouping table transition to ACL table
+        connectTables(deviceId, GROUPING_TABLE, ACL_TABLE);
 
-        // for JUMP table transition
-        // we need JUMP table for bypassing routing table which contains large
+        // for ACL table transition to routing table
+        connectTables(deviceId, ACL_TABLE, ROUTING_TABLE);
+
+        // for grouping table transition
+        // we need grouping table for bypassing routing table which contains large
         // amount of flow rules which might cause performance degradation during
         // table lookup
         // setupJumpTable(k8sNode);
 
         // for routing and outbound table transition
-        connectTables(deviceId, ROUTING_TABLE, STAT_OUTBOUND_TABLE);
+        connectTables(deviceId, ROUTING_TABLE, STAT_EGRESS_TABLE);
 
         // for outbound table transition
-        connectTables(deviceId, STAT_OUTBOUND_TABLE, VTAP_OUTBOUND_TABLE);
-        connectTables(deviceId, VTAP_OUTBOUND_TABLE, FORWARDING_TABLE);
+        connectTables(deviceId, STAT_EGRESS_TABLE, VTAP_EGRESS_TABLE);
+        connectTables(deviceId, VTAP_EGRESS_TABLE, FORWARDING_TABLE);
     }
 
     private void setupJumpTable(K8sNode k8sNode) {
@@ -269,7 +273,7 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
                 .withPriority(HIGH_PRIORITY)
                 .fromApp(appId)
                 .makePermanent()
-                .forTable(JUMP_TABLE)
+                .forTable(GROUPING_TABLE)
                 .build();
 
         applyRule(flowRule, true);
@@ -277,7 +281,7 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
         selector = DefaultTrafficSelector.builder();
         treatment = DefaultTrafficTreatment.builder();
 
-        treatment.transition(STAT_OUTBOUND_TABLE);
+        treatment.transition(STAT_EGRESS_TABLE);
 
         flowRule = DefaultFlowRule.builder()
                 .forDevice(deviceId)
@@ -286,7 +290,7 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
                 .withPriority(DROP_PRIORITY)
                 .fromApp(appId)
                 .makePermanent()
-                .forTable(JUMP_TABLE)
+                .forTable(GROUPING_TABLE)
                 .build();
 
         applyRule(flowRule, true);
@@ -307,7 +311,7 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
                 if (mac != null) {
                     tBuilder.setEthSrc(mac);
                 }
-                tBuilder.transition(STAT_OUTBOUND_TABLE);
+                tBuilder.transition(STAT_EGRESS_TABLE);
             } else {
                 PortNumber portNum = tunnelPortNumByNetId(k8sNetwork.networkId(),
                         k8sNetworkService, node);
