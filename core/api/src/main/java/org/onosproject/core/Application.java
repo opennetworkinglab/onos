@@ -21,6 +21,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.net.URL;
 
 /**
  * Abstraction of a network control/management application.
@@ -132,4 +133,11 @@ public interface Application {
      * @return list of application names
      */
     List<String> requiredApps();
+
+    /**
+     * Returns binary image URL.
+     *
+     * @return URL of binary image
+     */
+    URL imageUrl();
 }

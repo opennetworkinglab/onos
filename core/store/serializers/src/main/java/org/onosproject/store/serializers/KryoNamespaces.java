@@ -294,6 +294,7 @@ import org.onosproject.upgrade.Upgrade;
 
 import java.lang.invoke.SerializedLambda;
 import java.net.URI;
+import java.net.URL;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -433,6 +434,7 @@ public final class KryoNamespaces {
             .register(MISC)
             .nextId(KryoNamespace.INITIAL_ID + BASIC_MAX_SIZE + MISC_MAX_SIZE)
             .register(
+                    URL.class,
                     Instructions.MeterInstruction.class,
                     Instructions.StatTriggerInstruction.class,
                     StatTriggerFlag.class,

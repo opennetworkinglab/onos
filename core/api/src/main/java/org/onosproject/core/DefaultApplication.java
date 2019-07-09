@@ -26,6 +26,7 @@ import java.util.Set;
 import java.util.Optional;
 import java.util.List;
 import java.util.Objects;
+import java.net.URL;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
@@ -50,7 +51,7 @@ public final class DefaultApplication implements Application {
     private final Optional<URI> featuresRepo;
     private final List<String> features;
     private final List<String> requiredApps;
-
+    private final URL imageUrl;
     /**
      * Default constructor is hidden to prevent calls to new.
      */
@@ -69,6 +70,7 @@ public final class DefaultApplication implements Application {
         featuresRepo = Optional.empty();
         features = ImmutableList.of();
         requiredApps = ImmutableList.of();
+        imageUrl = null;
     }
 
     /**
@@ -88,13 +90,14 @@ public final class DefaultApplication implements Application {
      * @param featuresRepo optional features repo URI
      * @param features     application features
      * @param requiredApps list of required application names
+     * @param imageUrl     url of oar file
      */
-    private DefaultApplication(ApplicationId appId, Version version, String title,
+    public DefaultApplication(ApplicationId appId, Version version, String title,
                               String description, String origin, String category,
                               String url, String readme, byte[] icon,
                               ApplicationRole role, Set<Permission> permissions,
                               Optional<URI> featuresRepo, List<String> features,
-                              List<String> requiredApps) {
+                              List<String> requiredApps, URL imageUrl) {
         this.appId = appId;
         this.version = version;
         this.title = title;
@@ -109,8 +112,8 @@ public final class DefaultApplication implements Application {
         this.featuresRepo = featuresRepo;
         this.features = ImmutableList.copyOf(features);
         this.requiredApps = ImmutableList.copyOf(requiredApps);
+        this.imageUrl = imageUrl;
     }
-
     @Override
     public ApplicationId id() {
         return appId;
@@ -182,6 +185,11 @@ public final class DefaultApplication implements Application {
     }
 
     @Override
+    public URL imageUrl() {
+        return imageUrl;
+    }
+
+    @Override
     public int hashCode() {
         return Objects.hash(appId, version, title, description, origin, category, url,
                             readme, role, permissions, featuresRepo, features, requiredApps);
@@ -230,6 +238,7 @@ public final class DefaultApplication implements Application {
                 .add("featuresRepo", featuresRepo)
                 .add("features", features)
                 .add("requiredApps", requiredApps)
+                .add("imageURL", imageUrl)
                 .toString();
     }
 
@@ -277,7 +286,6 @@ public final class DefaultApplication implements Application {
      * Default application builder.
      */
     public static final class Builder {
-
         private ApplicationId appId;
         private Version version;
         private String title;
@@ -285,13 +293,14 @@ public final class DefaultApplication implements Application {
         private String category;
         private String url;
         private String readme;
-        private byte[] icon;
+        private byte[] icon = new byte[0];
         private String origin;
-        private ApplicationRole role;
-        private Set<Permission> permissions;
-        private Optional<URI> featuresRepo;
-        private List<String> features;
-        private List<String> requiredApps;
+        private ApplicationRole role = ApplicationRole.ADMIN;
+        private Set<Permission> permissions = ImmutableSet.of();
+        private Optional<URI> featuresRepo = Optional.empty();
+        private List<String> features = ImmutableList.of();
+        private List<String> requiredApps = ImmutableList.of();
+        private URL imageUrl;
 
         /**
          * Default constructor for the builder.
@@ -518,6 +527,17 @@ public final class DefaultApplication implements Application {
         }
 
         /**
+         * Adds a Binary Image URL.
+         *
+         * @param imageUrl url of oar file
+         * @return builder
+         */
+        public Builder withImageUrl(URL imageUrl) {
+            this.imageUrl = imageUrl;
+            return this;
+        }
+
+        /**
          * Builds a default application object from the gathered parameters.
          *
          * @return new default application
@@ -542,7 +562,7 @@ public final class DefaultApplication implements Application {
                                           url, readme, icon,
                                           role, permissions,
                                           featuresRepo, features,
-                                          requiredApps);
+                                          requiredApps, imageUrl);
         }
     }
 }

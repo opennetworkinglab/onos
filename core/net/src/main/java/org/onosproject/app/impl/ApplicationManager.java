@@ -15,9 +15,15 @@
  */
 package org.onosproject.app.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.util.concurrent.Uninterruptibles;
 import org.apache.karaf.features.Feature;
@@ -31,6 +37,10 @@ import org.onosproject.app.ApplicationStore;
 import org.onosproject.app.ApplicationStoreDelegate;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.core.DefaultApplication;
+import org.onosproject.core.DefaultApplicationId;
+import org.onosproject.core.Version;
+import org.onosproject.core.VersionService;
 import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.security.Permission;
 import org.onosproject.security.SecurityUtil;
@@ -41,17 +51,19 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.app.ApplicationEvent.Type.APP_ACTIVATED;
-import static org.onosproject.app.ApplicationEvent.Type.APP_DEACTIVATED;
-import static org.onosproject.app.ApplicationEvent.Type.APP_INSTALLED;
-import static org.onosproject.app.ApplicationEvent.Type.APP_UNINSTALLED;
+import static org.onosproject.app.ApplicationEvent.Type.*;
 import static org.onosproject.security.AppGuard.checkPermission;
 import static org.onosproject.security.AppPermission.Type.APP_READ;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -66,9 +78,10 @@ public class ApplicationManager
 
     private final Logger log = getLogger(getClass());
 
+    private static final String APP_REGISTRY_URL = "http://api.onosproject.org:8080/api/applications";
+
     private static final String APP_ID_NULL = "Application ID cannot be null";
     private static final long DEFAULT_OPERATION_TIMEOUT_MILLIS = 2000;
-
     private final ApplicationStoreDelegate delegate = new InternalStoreDelegate();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
@@ -77,12 +90,15 @@ public class ApplicationManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected FeaturesService featuresService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected VersionService versionService;
+
     // Application supplied hooks for pre-activation processing.
     private final Multimap<String, Runnable> deactivateHooks = HashMultimap.create();
     private final Cache<ApplicationId, CountDownLatch> pendingOperations =
             CacheBuilder.newBuilder()
-                        .expireAfterWrite(DEFAULT_OPERATION_TIMEOUT_MILLIS * 2, TimeUnit.MILLISECONDS)
-                        .build();
+                    .expireAfterWrite(DEFAULT_OPERATION_TIMEOUT_MILLIS * 2, TimeUnit.MILLISECONDS)
+                    .build();
 
     @Activate
     public void activate() {
@@ -303,7 +319,8 @@ public class ApplicationManager
     }
 
     // Invokes the specified function, if not null.
-    @java.lang.SuppressWarnings("squid:S1217") // We really do mean to call run()
+    @java.lang.SuppressWarnings("squid:S1217")
+    // We really do mean to call run()
     private void invokeHook(Runnable hook, ApplicationId appId) {
         if (hook != null) {
             try {
@@ -315,4 +332,68 @@ public class ApplicationManager
         }
     }
 
+    @Override
+    public Set<Application> getRegisteredApplications() {
+        ImmutableSet.Builder<Application> builder = ImmutableSet.builder();
+        ObjectMapper mapper = new ObjectMapper();
+
+        // Get input stream from the URL
+        try {
+            URL githubUrl = new URL(APP_REGISTRY_URL + "?onosVersion=" + versionService.version().toString());
+            HttpURLConnection githubHttp = (HttpURLConnection) githubUrl.openConnection();
+            InputStream githubStream = githubHttp.getInputStream();
+
+            // Read input stream into an ArrayNode
+            ArrayNode rootTree = (ArrayNode) mapper.readTree(githubStream);
+
+            // Iterate over the array node for each object add each version as application object to the set
+            rootTree.forEach(n -> {
+                mapObject(builder, (ObjectNode) n);
+            });
+
+            //Iterate through Builder to remove unnecessary apps
+            Set<Application> apps = builder.build();
+
+            return apps;
+        } catch (MalformedURLException e) {
+            throw new IllegalStateException("Bad URL " + APP_REGISTRY_URL, e);
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to fetch URL " + APP_REGISTRY_URL, e);
+        }
+    }
+
+    private void mapObject(ImmutableSet.Builder<Application> apps, ObjectNode node) {
+        String appIDs = node.get("id").asText();
+        ApplicationId appID = new DefaultApplicationId(1, appIDs);
+        String title = node.get("title").asText();
+        String readme = node.get("readme").asText();
+        String category = node.get("category").asText();
+        String url = node.get("url").asText();
+        String origin = node.get("maintainer").asText();
+        JsonNode it = node.get("versions");
+        Iterator iterate = it.iterator();
+        while (iterate.hasNext()) {
+            DefaultApplication.Builder app = new DefaultApplication.Builder();
+            JsonNode jsonNode = (JsonNode) iterate.next();
+            URL imageUrl = null;
+            try {
+                imageUrl = new URL(jsonNode.get("oarURL").asText());
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
+            Version version1 = Version.version(jsonNode.get("onosVersion").asText());
+            app.withImageUrl(imageUrl)
+                    .withAppId(new DefaultApplicationId(1, node.get("id").asText()))
+                    .withVersion(version1)
+                    .withAppId(appID)
+                    .withReadme(readme)
+                    .withDescription(readme)
+                    .withTitle(title)
+                    .withFeatures(ImmutableList.of("none"))
+                    .withCategory(category)
+                    .withUrl(url)
+                    .withOrigin(origin);
+            apps.add(app.build());
+        }
+    }
 }
