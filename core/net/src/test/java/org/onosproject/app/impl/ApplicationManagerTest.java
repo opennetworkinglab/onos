@@ -27,10 +27,8 @@ import org.onosproject.common.app.ApplicationArchive;
 import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
-import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.core.DefaultApplication;
 import org.onosproject.core.DefaultApplicationId;
-import org.onosproject.core.Version;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -51,12 +49,9 @@ import static org.onosproject.net.NetTestTools.injectEventDispatcher;
 public class ApplicationManagerTest {
 
     public static final DefaultApplicationId APP_ID = new DefaultApplicationId(1, APP_NAME);
-    private static final Version CORE_VERSION = Version.version(2, 1, "0", "");
 
     private ApplicationManager mgr = new ApplicationManager();
     private ApplicationListener listener = new TestListener();
-
-
 
     private boolean deactivated = false;
 
@@ -83,22 +78,6 @@ public class ApplicationManagerTest {
         assertEquals("incorrect description", DESC, app.description());
         assertEquals("incorrect features URI", FURL, app.featuresRepo().get());
         assertEquals("incorrect features", FEATURES, app.features());
-    }
-
-    @Test
-    public void testGetRegisteredApps() {
-        mgr.coreService = new TestCoreService();
-        Set<Application> apps = mgr.getRegisteredApplications();
-        System.out.println(apps);
-        assertFalse("SET contains less Apps than it should", apps.size() < 158);
-    }
-
-    private static class TestCoreService extends CoreServiceAdapter {
-
-        @Override
-        public Version version() {
-            return CORE_VERSION;
-        }
     }
 
     @Test
