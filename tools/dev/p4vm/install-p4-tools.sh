@@ -42,6 +42,7 @@ FAST_BUILD=${FAST_BUILD:-false}
 # Remove build artifacts
 CLEAN_UP=${CLEAN_UP:-false}
 BMV2_INSTALL=/usr/local
+PI_INSTALL=/usr/local
 set +x
 
 function do_requirements {
@@ -218,10 +219,10 @@ function do_PI {
 
     ./autogen.sh
     if [[ "${USE_STRATUM}" = false ]] ; then
-        ./configure --with-proto --without-internal-rpc --without-cli
+        ./configure --with-proto --without-internal-rpc --without-cli --prefix=${PI_INSTALL}
     else
         # Configure for Stratum
-        ./configure --without-bmv2 --without-proto --without-fe-cpp --without-cli --without-internal-rpc --prefix=${BMV2_INSTALL}
+        ./configure --without-bmv2 --with-proto --with-fe-cpp --without-cli --without-internal-rpc --prefix=${PI_INSTALL}
     fi
     make -j${NUM_CORES}
     sudo make install
@@ -245,7 +246,7 @@ function do_bmv2 {
     fi
     if [[ "${USE_STRATUM}" = true ]] ; then
         confOpts="--prefix=${BMV2_INSTALL} --without-thrift ${confOpts}"
-        cppFlags="${cppFlags} -isystem${BMV2_INSTALL}/include"
+        cppFlags="${cppFlags} -isystem${BMV2_INSTALL}/include -isystem${PI_INSTALL}/include -L${PI_INSTALL}/lib"
     fi
     confCmd="./configure CPPFLAGS=\"${cppFlags}\" ${confOpts}"
     eval ${confCmd}

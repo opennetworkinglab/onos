@@ -17,9 +17,10 @@ rm -rf *
 tar xf /tmp/stratum-sources.tar
 cd stratum
 export BMV2_INSTALL=/usr/local
+export PI_INSTALL=/usr/local
 
 # build stratum
-bazel build //stratum/hal/bin/bmv2:stratum_bmv2
+bazel build --curses=no --color=no //stratum/hal/bin/bmv2:stratum_bmv2
 
 # deploy stratum binaries to where mininet will look for them
 mkdir -p /home/sdn/stratum/bazel-bin/stratum/hal/bin/bmv2
