@@ -44,6 +44,11 @@ public class WorkflowNetConfigListener implements NetworkConfigListener {
     public static final String EXECUTOR_GROUPNAME = "onos/workflow-netcfg";
     public static final String EXECUTOR_PATTERN = "netcfg-event-handler";
 
+    public static final String WORKPLACE_CREATE = "workplace.create";
+    public static final String WORKPLACE_REMOVE = "workplace.remove";
+    public static final String WORKFLOW_INVOKE = "workflow.invoke";
+    public static final String WORKFLOW_TERMINATE = " workflow.terminate";
+
     private final ConfigFactory<ApplicationId, WorkflowNetConfig> configFactory =
             new ConfigFactory<ApplicationId, WorkflowNetConfig>(
                     SubjectFactories.APP_SUBJECT_FACTORY, WorkflowNetConfig.class, CONFIG_KEY) {
@@ -128,13 +133,13 @@ public class WorkflowNetConfigListener implements NetworkConfigListener {
 
     private static Map<String, RpcCall> rpcMap = new HashMap<>();
     static {
-        rpcMap.put("workplace.create",
+        rpcMap.put(WORKPLACE_CREATE,
                 (service, desc) -> service.createWorkplace(DefaultWorkplaceDescription.valueOf(desc.params())));
-        rpcMap.put("workplace.remove",
+        rpcMap.put(WORKPLACE_REMOVE,
                 (service, desc) -> service.removeWorkplace(DefaultWorkplaceDescription.valueOf(desc.params())));
-        rpcMap.put("workflow.invoke",
+        rpcMap.put(WORKFLOW_INVOKE,
                 (service, desc) -> service.invokeWorkflow(desc.params()));
-        rpcMap.put("workflow.terminate",
+        rpcMap.put(WORKFLOW_TERMINATE,
                 (service, desc) -> service.terminateWorkflow(DefaultWorkflowDescription.valueOf(desc.params())));
     }
 }
