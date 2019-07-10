@@ -17,6 +17,7 @@ package org.onosproject.k8snetworking.cli;
 
 import com.google.common.collect.Lists;
 import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.extensions.Ingress;
 import io.fabric8.kubernetes.api.model.networking.NetworkPolicy;
@@ -29,6 +30,7 @@ import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.k8snetworking.api.DefaultK8sPort;
 import org.onosproject.k8snetworking.api.K8sEndpointsAdminService;
 import org.onosproject.k8snetworking.api.K8sIngressAdminService;
+import org.onosproject.k8snetworking.api.K8sNamespaceAdminService;
 import org.onosproject.k8snetworking.api.K8sNetworkAdminService;
 import org.onosproject.k8snetworking.api.K8sNetworkPolicyAdminService;
 import org.onosproject.k8snetworking.api.K8sPodAdminService;
@@ -58,6 +60,7 @@ public class K8sSyncStateCommand extends AbstractShellCommand {
     private static final String ENDPOINTS_FORMAT = "%-50s%-50s%-20s";
     private static final String INGRESS_FORMAT = "%-50s%-15s%-30s";
     private static final String NETWORK_POLICY_FORMAT = "%-50s%-15s%-30s";
+    private static final String NAMESPACE_FORMAT = "%-50s%-15s%-30s";
 
     private static final String PORT_ID = "portId";
     private static final String DEVICE_ID = "deviceId";
@@ -70,6 +73,8 @@ public class K8sSyncStateCommand extends AbstractShellCommand {
     protected void doExecute() {
         K8sApiConfigService configService = get(K8sApiConfigService.class);
         K8sPodAdminService podAdminService = get(K8sPodAdminService.class);
+        K8sNamespaceAdminService namespaceAdminService =
+                get(K8sNamespaceAdminService.class);
         K8sServiceAdminService serviceAdminService =
                 get(K8sServiceAdminService.class);
         K8sIngressAdminService ingressAdminService =
@@ -94,6 +99,17 @@ public class K8sSyncStateCommand extends AbstractShellCommand {
             log.error("Failed to connect to kubernetes API server.");
             return;
         }
+
+        print("\nSynchronizing kubernetes namespaces");
+        print(NAMESPACE_FORMAT, "Name", "Phase", "Labels");
+        client.namespaces().list().getItems().forEach(ns -> {
+            if (namespaceAdminService.namespace(ns.getMetadata().getUid()) != null) {
+                namespaceAdminService.updateNamespace(ns);
+            } else {
+                namespaceAdminService.createNamespace(ns);
+            }
+            printNamespace(ns);
+        });
 
         print("Synchronizing kubernetes services");
         print(SERVICE_FORMAT, "Name", "Cluster IP", "Ports");
@@ -180,6 +196,16 @@ public class K8sSyncStateCommand extends AbstractShellCommand {
                 endpoints.getMetadata().getName(),
                 ips.isEmpty() ? "" : ips,
                 ports.isEmpty() ? "" : ports);
+    }
+
+    private void printNamespace(Namespace namespace) {
+        print(NAMESPACE_FORMAT,
+                namespace.getMetadata().getName(),
+                namespace.getStatus().getPhase(),
+                namespace.getMetadata() != null &&
+                        namespace.getMetadata().getLabels() != null &&
+                        !namespace.getMetadata().getLabels().isEmpty() ?
+                        namespace.getMetadata().getLabels() : "");
     }
 
     private void printService(io.fabric8.kubernetes.api.model.Service service) {
