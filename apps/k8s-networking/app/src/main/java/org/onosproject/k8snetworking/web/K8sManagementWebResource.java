@@ -23,6 +23,7 @@ import org.onlab.util.ItemNotFoundException;
 import org.onosproject.k8snetworking.api.DefaultK8sPort;
 import org.onosproject.k8snetworking.api.K8sEndpointsAdminService;
 import org.onosproject.k8snetworking.api.K8sIngressAdminService;
+import org.onosproject.k8snetworking.api.K8sNamespaceAdminService;
 import org.onosproject.k8snetworking.api.K8sNetworkAdminService;
 import org.onosproject.k8snetworking.api.K8sNetworkPolicyAdminService;
 import org.onosproject.k8snetworking.api.K8sPodAdminService;
@@ -72,6 +73,8 @@ public class K8sManagementWebResource extends AbstractWebResource {
 
     private final K8sApiConfigService configService = get(K8sApiConfigService.class);
     private final K8sPodAdminService podAdminService = get(K8sPodAdminService.class);
+    private final K8sNamespaceAdminService namespaceAdminService =
+                                            get(K8sNamespaceAdminService.class);
     private final K8sServiceAdminService serviceAdminService =
                                             get(K8sServiceAdminService.class);
     private final K8sIngressAdminService ingressAdminService =
@@ -106,6 +109,14 @@ public class K8sManagementWebResource extends AbstractWebResource {
         if (client == null) {
             throw new ItemNotFoundException("Failed to connect to kubernetes API server.");
         }
+
+        client.namespaces().list().getItems().forEach(ns -> {
+            if (namespaceAdminService.namespace(ns.getMetadata().getUid()) != null) {
+                namespaceAdminService.updateNamespace(ns);
+            } else {
+                namespaceAdminService.createNamespace(ns);
+            }
+        });
 
         client.services().inAnyNamespace().list().getItems().forEach(svc -> {
             if (serviceAdminService.service(svc.getMetadata().getUid()) != null) {

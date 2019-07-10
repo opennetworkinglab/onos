@@ -26,6 +26,9 @@
             <action class="org.onosproject.k8snetworking.cli.K8sEndpointsListCommand"/>
         </command>
         <command>
+            <action class="org.onosproject.k8snetworking.cli.K8sNamespaceListCommand"/>
+        </command>
+        <command>
             <action class="org.onosproject.k8snetworking.cli.K8sPodListCommand"/>
         </command>
         <command>
