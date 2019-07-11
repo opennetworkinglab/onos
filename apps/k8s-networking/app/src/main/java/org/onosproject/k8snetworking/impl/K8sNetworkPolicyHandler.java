@@ -15,7 +15,9 @@
  */
 package org.onosproject.k8snetworking.impl;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.networking.NetworkPolicy;
 import io.fabric8.kubernetes.api.model.networking.NetworkPolicyPort;
@@ -36,6 +38,7 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.k8snetworking.api.K8sFlowRuleService;
+import org.onosproject.k8snetworking.api.K8sNamespaceService;
 import org.onosproject.k8snetworking.api.K8sNetworkPolicyEvent;
 import org.onosproject.k8snetworking.api.K8sNetworkPolicyListener;
 import org.onosproject.k8snetworking.api.K8sNetworkPolicyService;
@@ -56,12 +59,16 @@ import org.slf4j.Logger;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.k8snetworking.api.Constants.ACL_EGRESS_TABLE;
-import static org.onosproject.k8snetworking.api.Constants.ACL_INGRESS_TABLE;
+import static org.onosproject.k8snetworking.api.Constants.ACL_EGRESS_BLACK_TABLE;
+import static org.onosproject.k8snetworking.api.Constants.ACL_EGRESS_WHITE_TABLE;
+import static org.onosproject.k8snetworking.api.Constants.ACL_INGRESS_BLACK_TABLE;
+import static org.onosproject.k8snetworking.api.Constants.ACL_INGRESS_WHITE_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.ACL_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.K8S_NETWORKING_APP_ID;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_CIDR_RULE;
@@ -85,6 +92,7 @@ public class K8sNetworkPolicyHandler {
     private static final String PROTOCOL_UDP = "udp";
 
     private static final int HOST_PREFIX = 32;
+    private static final long DEFAULT_METADATA_MASK = 0xffffffffffffffffL;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -121,6 +129,9 @@ public class K8sNetworkPolicyHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected K8sNetworkPolicyService k8sNetworkPolicyService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected K8sNamespaceService k8sNamespaceService;
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
@@ -159,10 +170,12 @@ public class K8sNetworkPolicyHandler {
                 policy.getSpec().getPodSelector().getMatchLabels();
         Map<String, List<String>> filter = Maps.newConcurrentMap();
 
-        k8sPodService.pods().forEach(p -> {
-            p.getMetadata().getLabels().forEach((k, v) -> {
-                if (labels.get(k) != null && labels.get(k).equals(v)) {
-                    filter.put(p.getStatus().getPodIP(), policy.getSpec().getPolicyTypes());
+        k8sPodService.pods().forEach(pod -> {
+            pod.getMetadata().getLabels().forEach((k, v) -> {
+                if (labels.get(k) != null && labels.get(k).equals(v) &&
+                        policy.getSpec().getPolicyTypes() != null) {
+                    filter.put(pod.getStatus().getPodIP(),
+                            policy.getSpec().getPolicyTypes());
                 }
             });
         });
@@ -173,11 +186,12 @@ public class K8sNetworkPolicyHandler {
     private void setBlockRulesByPod(Pod pod, boolean install) {
         Map<String, List<String>> filter = Maps.newConcurrentMap();
 
-        k8sNetworkPolicyService.networkPolicies().forEach(p -> {
-            Map<String, String> labels = p.getSpec().getPodSelector().getMatchLabels();
+        k8sNetworkPolicyService.networkPolicies().forEach(policy -> {
+            Map<String, String> labels = policy.getSpec().getPodSelector().getMatchLabels();
             pod.getMetadata().getLabels().forEach((k, v) -> {
-                if (labels.get(k) != null && labels.get(k).equals(v)) {
-                    filter.put(pod.getStatus().getPodIP(), p.getSpec().getPolicyTypes());
+                if (labels.get(k) != null && labels.get(k).equals(v) &&
+                        policy.getSpec().getPolicyTypes() != null) {
+                    filter.put(pod.getStatus().getPodIP(), policy.getSpec().getPolicyTypes());
                 }
             });
         });
@@ -193,10 +207,10 @@ public class K8sNetworkPolicyHandler {
                 TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
                 if (d.equalsIgnoreCase(DIRECTION_INGRESS)) {
                     sBuilder.matchIPDst(IpPrefix.valueOf(IpAddress.valueOf(k), HOST_PREFIX));
-                    tBuilder.transition(ACL_INGRESS_TABLE);
+                    tBuilder.transition(ACL_INGRESS_WHITE_TABLE);
                 } else if (d.equalsIgnoreCase(DIRECTION_EGRESS)) {
                     sBuilder.matchIPSrc(IpPrefix.valueOf(IpAddress.valueOf(k), HOST_PREFIX));
-                    tBuilder.transition(ACL_EGRESS_TABLE);
+                    tBuilder.transition(ACL_EGRESS_WHITE_TABLE);
                 }
 
                 k8sNodeService.completeNodes().forEach(n -> {
@@ -215,26 +229,57 @@ public class K8sNetworkPolicyHandler {
     }
 
     private void setAllowRulesByPolicy(NetworkPolicy policy, boolean install) {
-        Map<String, Map<String, List<NetworkPolicyPort>>> white = Maps.newConcurrentMap();
+        Map<String, Map<String, List<NetworkPolicyPort>>>
+                white = Maps.newConcurrentMap();
 
         policy.getSpec().getIngress().forEach(i -> {
             Map<String, List<NetworkPolicyPort>> direction = Maps.newConcurrentMap();
             direction.put(DIRECTION_INGRESS, i.getPorts());
-            i.getFrom().stream()
-                    .filter(p -> p.getIpBlock() != null)
-                    .forEach(p -> {
-                white.compute(p.getIpBlock().getCidr(), (k, v) -> direction);
+            i.getFrom().forEach(p -> {
+                if (p.getIpBlock() != null) {
+                    if (p.getIpBlock().getExcept() != null &&
+                            p.getIpBlock().getExcept().size() > 0) {
+                        Map<String, List<NetworkPolicyPort>>
+                                blkDirection = Maps.newConcurrentMap();
 
-                // TODO: need to handle namespace label later
+                        blkDirection.put(DIRECTION_INGRESS, i.getPorts());
+                        white.compute(p.getIpBlock().getCidr(), (k, v) -> blkDirection);
 
-                Map<String, String> podLabels = p.getPodSelector().getMatchLabels();
-                k8sPodService.pods().forEach(pod -> {
-                    pod.getMetadata().getLabels().forEach((k, v) -> {
-                        if (podLabels.get(k) != null && podLabels.get(k).equals(v)) {
-                            white.compute(shiftIpDomain(pod.getStatus().getPodIP(),
-                                    SHIFTED_IP_PREFIX), (m, n) -> direction);
-                        }
+                        setBlackRules(p.getIpBlock().getCidr(), DIRECTION_INGRESS,
+                                p.getIpBlock().getExcept(), install);
+                    } else {
+                        white.compute(p.getIpBlock().getCidr(), (k, v) -> direction);
+                    }
+                }
+
+                Set<Pod> pods = Sets.newConcurrentHashSet();
+                if (p.getPodSelector() != null) {
+                    Map<String, String> podLabels = p.getPodSelector().getMatchLabels();
+
+                    k8sPodService.pods().forEach(pod -> {
+                        pod.getMetadata().getLabels().forEach((k, v) -> {
+                            if (podLabels.get(k) != null && podLabels.get(k).equals(v)) {
+                                pods.add(pod);
+                            }
+                        });
                     });
+                }
+
+                if (p.getNamespaceSelector() != null) {
+                    if (p.getNamespaceSelector().getMatchLabels() == null ||
+                            p.getNamespaceSelector().getMatchLabels().size() == 0) {
+                        // if none of match labels are specified, it means the
+                        // target PODs are from any namespaces
+                        pods.addAll(k8sPodService.pods());
+                    } else {
+                        pods.addAll(podsFromNamespace(p.getNamespaceSelector().getMatchLabels()));
+                    }
+                }
+
+                pods.forEach(pod -> {
+                    white.compute(shiftIpDomain(pod.getStatus().getPodIP(),
+                            SHIFTED_IP_PREFIX) + "/" + HOST_PREFIX, (m, n) -> direction);
+                    white.compute(pod.getStatus().getPodIP() + "/" + HOST_PREFIX, (m, n) -> direction);
                 });
             });
         });
@@ -242,33 +287,79 @@ public class K8sNetworkPolicyHandler {
         policy.getSpec().getEgress().forEach(e -> {
             Map<String, List<NetworkPolicyPort>> direction = Maps.newConcurrentMap();
             direction.put(DIRECTION_EGRESS, e.getPorts());
-            e.getTo().stream()
-                    .filter(p -> p.getIpBlock() != null)
-                    .forEach(p -> {
-                white.compute(p.getIpBlock().getCidr(), (k, v) -> {
-                    if (v != null) {
-                        v.put(DIRECTION_EGRESS, e.getPorts());
-                        return v;
+            e.getTo().forEach(p -> {
+                if (p.getIpBlock() != null) {
+                    if (p.getIpBlock().getExcept() != null &&
+                            p.getIpBlock().getExcept().size() > 0) {
+
+                        Map<String, List<NetworkPolicyPort>>
+                                blkDirection = Maps.newConcurrentMap();
+                        blkDirection.put(DIRECTION_EGRESS, e.getPorts());
+                        white.compute(p.getIpBlock().getCidr(), (k, v) -> {
+                            if (v != null) {
+                                v.put(DIRECTION_EGRESS, e.getPorts());
+                                return v;
+                            } else {
+                                return blkDirection;
+                            }
+                        });
+
+                        setBlackRules(p.getIpBlock().getCidr(), DIRECTION_EGRESS,
+                                p.getIpBlock().getExcept(), install);
                     } else {
-                        return direction;
+                        white.compute(p.getIpBlock().getCidr(), (k, v) -> {
+                            if (v != null) {
+                                v.put(DIRECTION_EGRESS, e.getPorts());
+                                return v;
+                            } else {
+                                return direction;
+                            }
+                        });
                     }
-                });
+                }
 
-                // TODO: need to handle namespace label later
+                Set<Pod> pods = Sets.newConcurrentHashSet();
 
-                Map<String, String> podLabels = p.getPodSelector().getMatchLabels();
-                k8sPodService.pods().forEach(pod -> {
-                    pod.getMetadata().getLabels().forEach((k, v) -> {
-                        if (podLabels.get(k) != null && podLabels.get(k).equals(v)) {
-                            white.compute(shiftIpDomain(pod.getStatus().getPodIP(),
-                                    SHIFTED_IP_PREFIX), (m, n) -> {
-                                if (n != null) {
-                                    n.put(DIRECTION_EGRESS, e.getPorts());
-                                    return n;
-                                } else {
-                                    return direction;
-                                }
-                            });
+                if (p.getPodSelector() != null) {
+                    Map<String, String> podLabels = p.getPodSelector().getMatchLabels();
+                    k8sPodService.pods().forEach(pod -> {
+                        pod.getMetadata().getLabels().forEach((k, v) -> {
+                            if (podLabels.get(k) != null && podLabels.get(k).equals(v)) {
+                                pods.add(pod);
+                            }
+                        });
+                    });
+                }
+
+                if (p.getNamespaceSelector() != null) {
+                    if (p.getNamespaceSelector().getMatchLabels() == null ||
+                            p.getNamespaceSelector().getMatchLabels().size() == 0) {
+                        // if none of match labels are specified, it means the
+                        // target PODs are from any namespaces
+                        pods.addAll(k8sPodService.pods());
+                    } else {
+                        pods.addAll(podsFromNamespace(p.getNamespaceSelector().getMatchLabels()));
+                    }
+                }
+
+                pods.forEach(pod -> {
+                    white.compute(shiftIpDomain(pod.getStatus().getPodIP(),
+                            SHIFTED_IP_PREFIX) + "/" + HOST_PREFIX, (m, n) -> {
+                        if (n != null) {
+                            n.put(DIRECTION_EGRESS, e.getPorts());
+                            return n;
+                        } else {
+                            return direction;
+                        }
+                    });
+
+                    white.compute(pod.getStatus().getPodIP() + "/" + HOST_PREFIX,
+                            (m, n) -> {
+                        if (n != null) {
+                            n.put(DIRECTION_EGRESS, e.getPorts());
+                            return n;
+                        } else {
+                            return direction;
                         }
                     });
                 });
@@ -276,26 +367,39 @@ public class K8sNetworkPolicyHandler {
         });
 
         setAllowRules(white, install);
+        setBlackToRouteRules(true);
     }
 
     private void setAllowRulesByPod(Pod pod, boolean install) {
-        Map<String, Map<String, List<NetworkPolicyPort>>> white = Maps.newConcurrentMap();
-
+        Map<String, Map<String, List<NetworkPolicyPort>>>
+                white = Maps.newConcurrentMap();
         k8sNetworkPolicyService.networkPolicies().forEach(policy -> {
             policy.getSpec().getIngress().forEach(i -> {
-                Map<String, List<NetworkPolicyPort>> direction = Maps.newConcurrentMap();
+                Map<String, List<NetworkPolicyPort>>
+                        direction = Maps.newConcurrentMap();
                 direction.put(DIRECTION_INGRESS, i.getPorts());
                 i.getFrom().forEach(peer -> {
+                    if (peer.getPodSelector() != null) {
+                        Map<String, String> podLabels = peer.getPodSelector().getMatchLabels();
+                        String podIp = pod.getStatus().getPodIP();
+                        pod.getMetadata().getLabels().forEach((k, v) -> {
+                            if ((podLabels.get(k) != null &&
+                                    podLabels.get(k).equals(v)) &&
+                                    podIp != null) {
+                                white.compute(shiftIpDomain(podIp, SHIFTED_IP_PREFIX) +
+                                        "/" + HOST_PREFIX, (m, n) -> direction);
+                                white.compute(podIp + "/" +
+                                        HOST_PREFIX, (m, n) -> direction);
+                            }
+                        });
 
-                    // TODO: need to handle namespace label later
-
-                    Map<String, String> podLabels = peer.getPodSelector().getMatchLabels();
-                    pod.getMetadata().getLabels().forEach((k, v) -> {
-                        if (podLabels.get(k) != null && podLabels.get(k).equals(v)) {
-                            white.compute(shiftIpDomain(pod.getStatus().getPodIP(),
-                                    SHIFTED_IP_PREFIX), (m, n) -> direction);
+                        if (peer.getNamespaceSelector() != null &&
+                                (podsFromNamespace(peer.getNamespaceSelector().getMatchLabels()).contains(pod) ||
+                                        (peer.getNamespaceSelector().getMatchLabels().size() == 0))) {
+                            white.compute(pod.getStatus().getPodIP() + "/" +
+                                    HOST_PREFIX, (m, n) -> direction);
                         }
-                    });
+                    }
                 });
             });
         });
@@ -304,15 +408,48 @@ public class K8sNetworkPolicyHandler {
             policy.getSpec().getEgress().forEach(e -> {
                 Map<String, List<NetworkPolicyPort>> direction = Maps.newConcurrentMap();
                 direction.put(DIRECTION_EGRESS, e.getPorts());
-                e.getTo().forEach(p -> {
+                e.getTo().forEach(peer -> {
+                    if (peer.getPodSelector() != null) {
+                        Map<String, String> podLabels = peer.getPodSelector().getMatchLabels();
+                        String podIp = pod.getStatus().getPodIP();
+                        pod.getMetadata().getLabels().forEach((k, v) -> {
+                            if (podLabels.get(k) != null && podLabels.get(k).equals(v)) {
+                                white.compute(shiftIpDomain(podIp, SHIFTED_IP_PREFIX) +
+                                        "/" + HOST_PREFIX, (m, n) -> {
+                                    if (n != null) {
+                                        n.put(DIRECTION_EGRESS, e.getPorts());
+                                        return n;
+                                    } else {
+                                        return direction;
+                                    }
+                                });
 
-                    // TODO: need to handle namespace label later
+                                white.compute(podIp + "/" +
+                                        HOST_PREFIX, (m, n) -> {
+                                    if (n != null) {
+                                        n.put(DIRECTION_EGRESS, e.getPorts());
+                                        return n;
+                                    } else {
+                                        return direction;
+                                    }
+                                });
+                            }
+                        });
 
-                    Map<String, String> podLabels = p.getPodSelector().getMatchLabels();
-                    pod.getMetadata().getLabels().forEach((k, v) -> {
-                        if (podLabels.get(k) != null && podLabels.get(k).equals(v)) {
-                            white.compute(shiftIpDomain(pod.getStatus().getPodIP(),
-                                    SHIFTED_IP_PREFIX), (m, n) -> {
+                        if (peer.getNamespaceSelector() != null &&
+                                (podsFromNamespace(peer.getNamespaceSelector().getMatchLabels()).contains(pod) ||
+                                        (peer.getNamespaceSelector().getMatchLabels().size() == 0))) {
+                            white.compute(shiftIpDomain(podIp, SHIFTED_IP_PREFIX) +
+                                    "/" + HOST_PREFIX, (m, n) -> {
+                                if (n != null) {
+                                    n.put(DIRECTION_EGRESS, e.getPorts());
+                                    return n;
+                                } else {
+                                    return direction;
+                                }
+                            });
+
+                            white.compute(podIp + "/" + HOST_PREFIX, (m, n) -> {
                                 if (n != null) {
                                     n.put(DIRECTION_EGRESS, e.getPorts());
                                     return n;
@@ -321,23 +458,45 @@ public class K8sNetworkPolicyHandler {
                                 }
                             });
                         }
-                    });
+                    }
                 });
             });
         });
 
         setAllowRules(white, install);
+        setBlackToRouteRules(true);
     }
 
-    private void setAllowRules(Map<String, Map<String, List<NetworkPolicyPort>>> white, boolean install) {
+    private Set<Pod> podsFromNamespace(Map<String, String> nsLabels) {
+        Set<Pod> pods = Sets.newConcurrentHashSet();
+        k8sNamespaceService.namespaces().forEach(ns -> {
+            if (ns != null && ns.getMetadata() != null &&
+                    ns.getMetadata().getLabels() != null) {
+                ns.getMetadata().getLabels().forEach((k, v) -> {
+                    if (nsLabels.get(k) != null && nsLabels.get(k).equals(v)) {
+                        pods.addAll(k8sPodService.pods().stream()
+                                .filter(pod -> pod.getMetadata().getNamespace()
+                                        .equals(ns.getMetadata().getName()))
+                                .collect(Collectors.toSet()));
+                    }
+                });
+            }
+        });
+
+        return pods;
+    }
+
+    private void setAllowRules(Map<String, Map<String, List<NetworkPolicyPort>>> white,
+                               boolean install) {
         white.forEach((k, v) -> {
             v.forEach((pk, pv) -> {
                 TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
                         .matchEthType(Ethernet.TYPE_IPV4);
                 TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
                 if (pk.equalsIgnoreCase(DIRECTION_INGRESS)) {
-                    sBuilder.matchIPSrc(IpPrefix.valueOf(IpAddress.valueOf(k), HOST_PREFIX));
-                    tBuilder.transition(ROUTING_TABLE);
+                    sBuilder.matchIPSrc(IpPrefix.valueOf(k));
+                    tBuilder.writeMetadata(k.hashCode(), DEFAULT_METADATA_MASK)
+                            .transition(ACL_INGRESS_BLACK_TABLE);
 
                     if (pv.size() == 0) {
                         k8sNodeService.completeNodes().forEach(n -> {
@@ -347,7 +506,7 @@ public class K8sNetworkPolicyHandler {
                                     sBuilder.build(),
                                     tBuilder.build(),
                                     PRIORITY_CIDR_RULE,
-                                    ACL_INGRESS_TABLE,
+                                    ACL_INGRESS_WHITE_TABLE,
                                     install
                             );
                         });
@@ -369,15 +528,16 @@ public class K8sNetworkPolicyHandler {
                                         sBuilder.build(),
                                         tBuilder.build(),
                                         PRIORITY_CIDR_RULE,
-                                        ACL_INGRESS_TABLE,
+                                        ACL_INGRESS_WHITE_TABLE,
                                         install
                                 );
                             });
                         });
                     }
                 } else if (pk.equalsIgnoreCase(DIRECTION_EGRESS)) {
-                    sBuilder.matchIPDst(IpPrefix.valueOf(IpAddress.valueOf(k), HOST_PREFIX));
-                    tBuilder.transition(ROUTING_TABLE);
+                    sBuilder.matchIPDst(IpPrefix.valueOf(k));
+                    tBuilder.writeMetadata(k.hashCode(), DEFAULT_METADATA_MASK)
+                            .transition(ACL_EGRESS_BLACK_TABLE);
 
                     if (pv.size() == 0) {
                         k8sNodeService.completeNodes().forEach(n -> {
@@ -387,7 +547,7 @@ public class K8sNetworkPolicyHandler {
                                     sBuilder.build(),
                                     tBuilder.build(),
                                     PRIORITY_CIDR_RULE,
-                                    ACL_EGRESS_TABLE,
+                                    ACL_EGRESS_WHITE_TABLE,
                                     install
                             );
                         });
@@ -409,7 +569,7 @@ public class K8sNetworkPolicyHandler {
                                         sBuilder.build(),
                                         tBuilder.build(),
                                         PRIORITY_CIDR_RULE,
-                                        ACL_EGRESS_TABLE,
+                                        ACL_EGRESS_WHITE_TABLE,
                                         install
                                 );
                             });
@@ -419,6 +579,55 @@ public class K8sNetworkPolicyHandler {
                 } else {
                     log.error("In correct direction has been specified at network policy.");
                 }
+            });
+        });
+    }
+
+    private void setBlackRules(String whiteIpCidr, String direction,
+                               List<String> except, boolean install) {
+        k8sNodeService.completeNodes().forEach(n -> {
+            except.forEach(blkIp -> {
+                TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
+                        .matchEthType(Ethernet.TYPE_IPV4)
+                        .matchMetadata(whiteIpCidr.hashCode());
+                TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
+                        .drop();
+                int table = 0;
+                if (direction.equalsIgnoreCase(DIRECTION_INGRESS)) {
+                    sBuilder.matchIPSrc(IpPrefix.valueOf(blkIp));
+                    table = ACL_INGRESS_BLACK_TABLE;
+                }
+                if (direction.equalsIgnoreCase(DIRECTION_EGRESS)) {
+                    sBuilder.matchIPDst(IpPrefix.valueOf(blkIp));
+                    table = ACL_EGRESS_BLACK_TABLE;
+                }
+
+                k8sFlowRuleService.setRule(
+                        appId,
+                        n.intgBridge(),
+                        sBuilder.build(),
+                        tBuilder.build(),
+                        PRIORITY_CIDR_RULE,
+                        table,
+                        install
+                );
+            });
+        });
+    }
+
+    private void setBlackToRouteRules(boolean install) {
+
+        k8sNodeService.completeNodes().forEach(n -> {
+            ImmutableSet.of(ACL_INGRESS_BLACK_TABLE, ACL_EGRESS_BLACK_TABLE).forEach(t -> {
+                k8sFlowRuleService.setRule(
+                        appId,
+                        n.intgBridge(),
+                        DefaultTrafficSelector.builder().build(),
+                        DefaultTrafficTreatment.builder().transition(ROUTING_TABLE).build(),
+                        0,
+                        t,
+                        install
+                );
             });
         });
     }
