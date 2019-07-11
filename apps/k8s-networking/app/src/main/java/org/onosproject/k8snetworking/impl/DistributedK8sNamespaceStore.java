@@ -41,6 +41,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
+import java.util.LinkedHashMap;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
@@ -73,6 +74,7 @@ public class DistributedK8sNamespaceStore
             .register(ObjectMeta.class)
             .register(NamespaceSpec.class)
             .register(NamespaceStatus.class)
+            .register(LinkedHashMap.class)
             .build();
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)

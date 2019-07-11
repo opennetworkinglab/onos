@@ -98,8 +98,10 @@ public final class Constants {
     public static final int SERVICE_TABLE = 52;
     public static final int POD_TABLE = 53;
     public static final int ACL_TABLE = 55;
-    public static final int ACL_INGRESS_TABLE = 56;
-    public static final int ACL_EGRESS_TABLE = 58;
+    public static final int ACL_INGRESS_WHITE_TABLE = 56;
+    public static final int ACL_INGRESS_BLACK_TABLE = 57;
+    public static final int ACL_EGRESS_WHITE_TABLE = 58;
+    public static final int ACL_EGRESS_BLACK_TABLE = 59;
     public static final int ROUTING_TABLE = 60;
     public static final int STAT_EGRESS_TABLE = 70;
     public static final int VTAP_EGRESS_TABLE = 71;
