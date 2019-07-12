@@ -367,7 +367,9 @@ nodes {{
             '-cpu_port=%s' % self.cpuPort,
             '-external_hercules_urls=0.0.0.0:%d' % self.grpcPort,
             '-local_hercules_url=localhost:%d' % self.grpcPortInternal,
-            '-max_num_controllers_per_node=10'
+            '-max_num_controllers_per_node=10',
+            '-logtosyslog=false',
+            '-logtostderr=true'
         ]
         return " ".join(args)
 

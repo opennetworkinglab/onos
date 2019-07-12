@@ -77,11 +77,17 @@
             <step name="App-Activate-Mcast"
                   exec="onos ${OCI} app activate org.onosproject.mcast"
                   requires="Trellis-Net-P4-Setup.Deactivate-Apps"/>
+            <step name="App-Activate-LldpProvider"
+                  exec="onos ${OCI} app activate org.onosproject.lldpprovider"
+                  requires="Trellis-Net-P4-Setup.Deactivate-Apps"/>
+            <step name="App-Activate-HostProvider"
+                  exec="onos ${OCI} app activate org.onosproject.hostprovider"
+                  requires="Trellis-Net-P4-Setup.Deactivate-Apps"/>
         </group>
 
         <group name="Trellis-Net-P4-Setup.Verify-Apps" requires="Trellis-Net-P4-Setup.Activate-Apps">
             <parallel var="${OC#}">
-                <step name="Trellis-Net-P4-Setup.Check-Apps-${#}" exec="onos-check-apps ${OC#} drivers.bmv2,pipelines.fabric,generaldeviceprovider includes"
+                <step name="Trellis-Net-P4-Setup.Check-Apps-${#}" exec="onos-check-apps ${OC#} drivers.bmv2,generaldeviceprovider,pipelines.fabric,segmentrouting,fpm,dhcprelay,netcfghostprovider,routeradvertisement,mcast,lldpprovider,hostprovider includes"
                       requires="Trellis-Net-P4-Setup.Activate-Apps"/>
             </parallel>
         </group>
