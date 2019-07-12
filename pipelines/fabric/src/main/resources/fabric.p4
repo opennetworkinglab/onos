@@ -68,9 +68,6 @@ control FabricIngress (inout parsed_headers_t hdr,
         spgw_ingress.apply(hdr.gtpu_ipv4, hdr.gtpu_udp, hdr.gtpu,
                            hdr.ipv4, hdr.udp, fabric_metadata, standard_metadata);
 #endif // WITH_SPGW
-#ifdef WITH_BNG
-        bng_ingress.apply(hdr, fabric_metadata, standard_metadata);
-#endif // WITH_BNG
         if (fabric_metadata.skip_forwarding == _FALSE) {
             forwarding.apply(hdr, fabric_metadata, standard_metadata);
         }
@@ -86,6 +83,10 @@ control FabricIngress (inout parsed_headers_t hdr,
             process_set_source_sink.apply(hdr, fabric_metadata, standard_metadata);
 #endif
         }
+#ifdef WITH_BNG
+        bng_ingress.apply(hdr, fabric_metadata, standard_metadata);
+#endif // WITH_BNG
+
     }
 }
 

@@ -31,6 +31,7 @@ import org.onosproject.net.flow.TableId;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criteria;
+import org.onosproject.net.flow.criteria.PiCriterion;
 import org.onosproject.net.flowobjective.DefaultFilteringObjective;
 import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.ObjectiveError;
@@ -45,6 +46,8 @@ import static org.junit.Assert.assertEquals;
  */
 public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
 
+    public static final byte[] ONE = {1};
+    public static final byte[] ZERO = {0};
     private FilteringObjectiveTranslator translator;
 
     @Before
@@ -66,6 +69,7 @@ public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
         // in port vlan flow rule
         FlowRule inportFlowRuleExpected =
                 buildExpectedVlanInPortRule(PORT_1,
+                                            VlanId.NONE,
                                             VlanId.NONE,
                                             VLAN_100,
                                             FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN);
@@ -128,6 +132,7 @@ public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
         FlowRule inportFlowRuleExpected =
                 buildExpectedVlanInPortRule(PORT_1,
                                             VlanId.NONE,
+                                            VlanId.NONE,
                                             VLAN_100,
                                             FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN);
 
@@ -173,6 +178,7 @@ public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
         FlowRule inportFlowRuleExpected =
                 buildExpectedVlanInPortRule(PORT_1,
                                             VlanId.NONE,
+                                            VlanId.NONE,
                                             VLAN_100,
                                             FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN);
 
@@ -204,6 +210,7 @@ public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
         FlowRule flowRuleExpected =
                 buildExpectedVlanInPortRule(PORT_1,
                                             VlanId.NONE,
+                                            VlanId.NONE,
                                             VLAN_100,
                                             FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN);
 
@@ -234,7 +241,7 @@ public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
 
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder()
                 .matchInPort(PORT_1)
-                .matchPi(VLAN_INVALID);
+                .matchPi(buildPiCriterionVlan(null, null));
         PiAction piAction = PiAction.builder()
                     .withId(FabricConstants.FABRIC_INGRESS_FILTERING_DENY)
                     .build();
@@ -287,6 +294,48 @@ public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
         assertError(ObjectiveError.BADPARAMS, result2);
     }
 
+    /**
+     * Test the mapping between EtherType and conditions.
+     */
+    @Test
+    public void testMappingEthType() {
+        PiCriterion expectedMappingDefault = PiCriterion.builder()
+                .matchExact(FabricConstants.HDR_IS_MPLS, ZERO)
+                .matchExact(FabricConstants.HDR_IS_IPV4, ZERO)
+                .matchExact(FabricConstants.HDR_IS_IPV6, ZERO)
+                .build();
+        PiCriterion expectedMappingIpv6 = PiCriterion.builder()
+                .matchExact(FabricConstants.HDR_IS_MPLS, ZERO)
+                .matchExact(FabricConstants.HDR_IS_IPV4, ZERO)
+                .matchExact(FabricConstants.HDR_IS_IPV6, ONE)
+                .build();
+        PiCriterion expectedMappingIpv4 = PiCriterion.builder()
+                .matchExact(FabricConstants.HDR_IS_MPLS, ZERO)
+                .matchExact(FabricConstants.HDR_IS_IPV4, ONE)
+                .matchExact(FabricConstants.HDR_IS_IPV6, ZERO)
+                .build();
+        PiCriterion expectedMappingMpls = PiCriterion.builder()
+                .matchExact(FabricConstants.HDR_IS_MPLS, ONE)
+                .matchExact(FabricConstants.HDR_IS_IPV4, ZERO)
+                .matchExact(FabricConstants.HDR_IS_IPV6, ZERO)
+                .build();
+
+
+        PiCriterion actualMappingIpv6 = FilteringObjectiveTranslator.mapEthTypeFwdClassifier(Ethernet.TYPE_IPV6);
+        assertEquals(expectedMappingIpv6, actualMappingIpv6);
+
+        PiCriterion actualMappingIpv4 = FilteringObjectiveTranslator.mapEthTypeFwdClassifier(Ethernet.TYPE_IPV4);
+        assertEquals(expectedMappingIpv4, actualMappingIpv4);
+
+        PiCriterion actualMappingMpls = FilteringObjectiveTranslator.mapEthTypeFwdClassifier(Ethernet.MPLS_UNICAST);
+        assertEquals(expectedMappingMpls, actualMappingMpls);
+
+        PiCriterion actualMapping = FilteringObjectiveTranslator.mapEthTypeFwdClassifier(Ethernet.TYPE_ARP);
+        assertEquals(expectedMappingDefault, actualMapping);
+
+
+    }
+
     /* Utilities */
 
     private void assertError(ObjectiveError error, ObjectiveTranslation actualTranslation) {
@@ -314,22 +363,23 @@ public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
         return builder.add();
     }
 
-    private FlowRule buildExpectedVlanInPortRule(PortNumber inPort, VlanId vlanId,
+    private FlowRule buildExpectedVlanInPortRule(PortNumber inPort,
+                                                 VlanId vlanId,
+                                                 VlanId innerVlanId,
                                                  VlanId internalVlan,
                                                  TableId tableId) {
 
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder()
                 .matchInPort(inPort);
         PiAction piAction;
-        if (vlanId == null || vlanId.equals(VlanId.NONE)) {
-            selector.matchPi(VLAN_INVALID);
+        selector.matchPi(buildPiCriterionVlan(vlanId, innerVlanId));
+        if (!vlanValid(vlanId)) {
             piAction = PiAction.builder()
                     .withId(FabricConstants.FABRIC_INGRESS_FILTERING_PERMIT_WITH_INTERNAL_VLAN)
                     .withParameter(new PiActionParam(
                             FabricConstants.VLAN_ID, internalVlan.toShort()))
                     .build();
         } else {
-            selector.matchPi(VLAN_VALID);
             selector.matchVlanId(vlanId);
             piAction = PiAction.builder()
                     .withId(FabricConstants.FABRIC_INGRESS_FILTERING_PERMIT)
@@ -348,6 +398,18 @@ public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
                 .build();
     }
 
+    private boolean vlanValid(VlanId vlanId) {
+        return (vlanId != null && !vlanId.equals(VlanId.NONE));
+    }
+
+    private PiCriterion buildPiCriterionVlan(VlanId vlanId,
+                                             VlanId innerVlanId) {
+        PiCriterion.Builder piCriterionBuilder = PiCriterion.builder()
+                .matchExact(FabricConstants.HDR_VLAN_IS_VALID,
+                            vlanValid(vlanId) ? ONE : ZERO);
+        return piCriterionBuilder.build();
+    }
+
     private FlowRule buildExpectedFwdClassifierRule(PortNumber inPort,
                                                     MacAddress dstMac,
                                                     MacAddress dstMacMask,
@@ -355,7 +417,7 @@ public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
                                                     byte fwdClass) {
         TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder()
                 .matchInPort(inPort)
-                .matchEthType(ethType);
+                .matchPi(FilteringObjectiveTranslator.mapEthTypeFwdClassifier(ethType));
         if (dstMacMask != null) {
             sbuilder.matchEthDstMasked(dstMac, dstMacMask);
         } else {

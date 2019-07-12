@@ -3,35 +3,6 @@ pkg_info {
 }
 tables {
   preamble {
-    id: 33584710
-    name: "FabricIngress.bng_ingress.upstream.t_line_map"
-    alias: "t_line_map"
-  }
-  match_fields {
-    id: 1
-    name: "s_tag"
-    bitwidth: 12
-    match_type: EXACT
-  }
-  match_fields {
-    id: 2
-    name: "c_tag"
-    bitwidth: 12
-    match_type: EXACT
-  }
-  action_refs {
-    id: 16819938
-    annotations: "@defaultonly"
-    scope: DEFAULT_ONLY
-  }
-  action_refs {
-    id: 16829434
-  }
-  const_default_action_id: 16819938
-  size: 8192
-}
-tables {
-  preamble {
     id: 33603300
     name: "FabricIngress.bng_ingress.upstream.t_pppoe_cp"
     alias: "t_pppoe_cp"
@@ -96,13 +67,13 @@ tables {
 }
 tables {
   preamble {
-    id: 33555367
-    name: "FabricIngress.bng_ingress.downstream.t_line_map_v4"
-    alias: "t_line_map_v4"
+    id: 33594775
+    name: "FabricIngress.bng_ingress.downstream.t_line_session_map"
+    alias: "t_line_session_map"
   }
   match_fields {
     id: 1
-    name: "ipv4_dst"
+    name: "line_id"
     bitwidth: 32
     match_type: EXACT
   }
@@ -112,13 +83,13 @@ tables {
     scope: DEFAULT_ONLY
   }
   action_refs {
-    id: 16798636
+    id: 16795395
   }
   action_refs {
-    id: 16842299
+    id: 16822844
   }
   const_default_action_id: 16819938
-  size: 32768
+  size: 8192
 }
 tables {
   preamble {
@@ -161,6 +132,35 @@ tables {
 }
 tables {
   preamble {
+    id: 33592041
+    name: "FabricIngress.bng_ingress.t_line_map"
+    alias: "t_line_map"
+  }
+  match_fields {
+    id: 1
+    name: "s_tag"
+    bitwidth: 12
+    match_type: EXACT
+  }
+  match_fields {
+    id: 2
+    name: "c_tag"
+    bitwidth: 12
+    match_type: EXACT
+  }
+  action_refs {
+    id: 16819938
+    annotations: "@defaultonly"
+    scope: DEFAULT_ONLY
+  }
+  action_refs {
+    id: 16829385
+  }
+  const_default_action_id: 16819938
+  size: 8192
+}
+tables {
+  preamble {
     id: 33611649
     name: "FabricIngress.filtering.ingress_port_vlan"
     alias: "ingress_port_vlan"
@@ -183,6 +183,12 @@ tables {
     bitwidth: 12
     match_type: TERNARY
   }
+  match_fields {
+    id: 4
+    name: "inner_vlan_id"
+    bitwidth: 12
+    match_type: TERNARY
+  }
   action_refs {
     id: 16836487
   }
@@ -194,7 +200,7 @@ tables {
   }
   const_default_action_id: 16836487
   direct_resource_ids: 318815501
-  size: 1024
+  size: 8192
 }
 tables {
   preamble {
@@ -216,8 +222,20 @@ tables {
   }
   match_fields {
     id: 3
-    name: "eth_type"
-    bitwidth: 16
+    name: "is_ipv4"
+    bitwidth: 1
+    match_type: EXACT
+  }
+  match_fields {
+    id: 4
+    name: "is_ipv6"
+    bitwidth: 1
+    match_type: EXACT
+  }
+  match_fields {
+    id: 5
+    name: "is_mpls"
+    bitwidth: 1
     match_type: EXACT
   }
   action_refs {
@@ -421,45 +439,15 @@ tables {
     id: 16790685
   }
   action_refs {
+    id: 16803337
+  }
+  action_refs {
     id: 16819938
     annotations: "@defaultonly"
     scope: DEFAULT_ONLY
   }
   const_default_action_id: 16819938
   direct_resource_ids: 318768144
-  size: 1024
-}
-tables {
-  preamble {
-    id: 33596977
-    name: "FabricIngress.next.xconnect"
-    alias: "xconnect"
-  }
-  match_fields {
-    id: 1
-    name: "ig_port"
-    bitwidth: 9
-    match_type: EXACT
-  }
-  match_fields {
-    id: 2
-    name: "next_id"
-    bitwidth: 32
-    match_type: EXACT
-  }
-  action_refs {
-    id: 16842190
-  }
-  action_refs {
-    id: 16837052
-  }
-  action_refs {
-    id: 16819938
-    annotations: "@defaultonly"
-    scope: DEFAULT_ONLY
-  }
-  const_default_action_id: 16819938
-  direct_resource_ids: 318778156
   size: 1024
 }
 tables {
@@ -519,29 +507,6 @@ tables {
 }
 tables {
   preamble {
-    id: 33576241
-    name: "FabricEgress.bng_egress.downstream.t_session_encap"
-    alias: "t_session_encap"
-  }
-  match_fields {
-    id: 1
-    name: "line_id"
-    bitwidth: 32
-    match_type: EXACT
-  }
-  action_refs {
-    id: 16819938
-    annotations: "@defaultonly"
-    scope: DEFAULT_ONLY
-  }
-  action_refs {
-    id: 16784000
-  }
-  const_default_action_id: 16819938
-  size: 8192
-}
-tables {
-  preamble {
     id: 33599342
     name: "FabricEgress.egress_next.egress_vlan"
     alias: "egress_vlan"
@@ -579,18 +544,6 @@ actions {
 }
 actions {
   preamble {
-    id: 16829434
-    name: "FabricIngress.bng_ingress.upstream.set_line"
-    alias: "set_line"
-  }
-  params {
-    id: 1
-    name: "line_id"
-    bitwidth: 32
-  }
-}
-actions {
-  preamble {
     id: 16830893
     name: "FabricIngress.bng_ingress.upstream.punt_to_cpu"
     alias: "upstream.punt_to_cpu"
@@ -612,31 +565,21 @@ actions {
 }
 actions {
   preamble {
-    id: 16798636
-    name: "FabricIngress.bng_ingress.downstream.set_line_next"
-    alias: "set_line_next"
+    id: 16795395
+    name: "FabricIngress.bng_ingress.downstream.set_session"
+    alias: "set_session"
   }
   params {
     id: 1
-    name: "line_id"
-    bitwidth: 32
-  }
-  params {
-    id: 2
-    name: "next_id"
-    bitwidth: 32
+    name: "pppoe_session_id"
+    bitwidth: 16
   }
 }
 actions {
   preamble {
-    id: 16842299
-    name: "FabricIngress.bng_ingress.downstream.set_line_drop"
-    alias: "set_line_drop"
-  }
-  params {
-    id: 1
-    name: "line_id"
-    bitwidth: 32
+    id: 16822844
+    name: "FabricIngress.bng_ingress.downstream.drop"
+    alias: "downstream.drop"
   }
 }
 actions {
@@ -651,6 +594,18 @@ actions {
     id: 16804676
     name: "FabricIngress.bng_ingress.downstream.qos_besteff"
     alias: "qos_besteff"
+  }
+}
+actions {
+  preamble {
+    id: 16829385
+    name: "FabricIngress.bng_ingress.set_line"
+    alias: "set_line"
+  }
+  params {
+    id: 1
+    name: "line_id"
+    bitwidth: 32
   }
 }
 actions {
@@ -769,7 +724,7 @@ actions {
   preamble {
     id: 16820765
     name: "FabricIngress.acl.drop"
-    alias: "drop"
+    alias: "acl.drop"
   }
 }
 actions {
@@ -793,26 +748,19 @@ actions {
 }
 actions {
   preamble {
-    id: 16842190
-    name: "FabricIngress.next.output_xconnect"
-    alias: "output_xconnect"
+    id: 16803337
+    name: "FabricIngress.next.set_double_vlan"
+    alias: "set_double_vlan"
   }
   params {
     id: 1
-    name: "port_num"
-    bitwidth: 9
-  }
-}
-actions {
-  preamble {
-    id: 16837052
-    name: "FabricIngress.next.set_next_id_xconnect"
-    alias: "set_next_id_xconnect"
+    name: "outer_vlan_id"
+    bitwidth: 12
   }
   params {
-    id: 1
-    name: "next_id"
-    bitwidth: 32
+    id: 2
+    name: "inner_vlan_id"
+    bitwidth: 12
   }
 }
 actions {
@@ -893,16 +841,6 @@ actions {
     id: 16784000
     name: "FabricEgress.bng_egress.downstream.encap_v4"
     alias: "encap_v4"
-  }
-  params {
-    id: 1
-    name: "c_tag"
-    bitwidth: 12
-  }
-  params {
-    id: 2
-    name: "pppoe_session_id"
-    bitwidth: 16
   }
 }
 actions {
@@ -1076,17 +1014,6 @@ direct_counters {
     unit: BOTH
   }
   direct_table_id: 33599709
-}
-direct_counters {
-  preamble {
-    id: 318778156
-    name: "FabricIngress.next.xconnect_counter"
-    alias: "xconnect_counter"
-  }
-  spec {
-    unit: BOTH
-  }
-  direct_table_id: 33596977
 }
 direct_counters {
   preamble {

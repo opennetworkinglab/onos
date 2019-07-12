@@ -49,6 +49,12 @@ tables {
     bitwidth: 12
     match_type: TERNARY
   }
+  match_fields {
+    id: 4
+    name: "inner_vlan_id"
+    bitwidth: 12
+    match_type: TERNARY
+  }
   action_refs {
     id: 16836487
   }
@@ -82,8 +88,20 @@ tables {
   }
   match_fields {
     id: 3
-    name: "eth_type"
-    bitwidth: 16
+    name: "is_ipv4"
+    bitwidth: 1
+    match_type: EXACT
+  }
+  match_fields {
+    id: 4
+    name: "is_ipv6"
+    bitwidth: 1
+    match_type: EXACT
+  }
+  match_fields {
+    id: 5
+    name: "is_mpls"
+    bitwidth: 1
     match_type: EXACT
   }
   action_refs {

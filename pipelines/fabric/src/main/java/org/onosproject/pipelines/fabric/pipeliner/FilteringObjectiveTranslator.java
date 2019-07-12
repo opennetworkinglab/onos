@@ -17,6 +17,7 @@
 package org.onosproject.pipelines.fabric.pipeliner;
 
 import com.google.common.collect.Lists;
+import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -63,12 +64,6 @@ class FilteringObjectiveTranslator
             .withId(FabricConstants.FABRIC_INGRESS_FILTERING_DENY)
             .build();
 
-    private static final PiCriterion VLAN_VALID = PiCriterion.builder()
-            .matchExact(FabricConstants.HDR_VLAN_IS_VALID, ONE)
-            .build();
-    private static final PiCriterion VLAN_INVALID = PiCriterion.builder()
-            .matchExact(FabricConstants.HDR_VLAN_IS_VALID, ZERO)
-            .build();
 
     FilteringObjectiveTranslator(DeviceId deviceId, FabricCapabilities capabilities) {
         super(deviceId, capabilities);
@@ -88,14 +83,17 @@ class FilteringObjectiveTranslator
         }
 
         final PortCriterion inPort = (PortCriterion) obj.key();
-        final VlanIdCriterion vlan = (VlanIdCriterion) criterion(
+
+        final VlanIdCriterion outerVlan = (VlanIdCriterion) criterion(
                 obj.conditions(), Criterion.Type.VLAN_VID);
+        final VlanIdCriterion innerVlan = (VlanIdCriterion) criterion(
+                obj.conditions(), Criterion.Type.INNER_VLAN_VID);
         final EthCriterion ethDst = (EthCriterion) criterion(
                 obj.conditions(), Criterion.Type.ETH_DST);
         final EthCriterion ethDstMasked = (EthCriterion) criterion(
                 obj.conditions(), Criterion.Type.ETH_DST_MASKED);
 
-        ingressPortVlanRule(obj, inPort, vlan, resultBuilder);
+        ingressPortVlanRule(obj, inPort, outerVlan, innerVlan, resultBuilder);
         fwdClassifierRules(obj, inPort, ethDst, ethDstMasked, resultBuilder);
 
         return resultBuilder.build();
@@ -104,18 +102,28 @@ class FilteringObjectiveTranslator
     private void ingressPortVlanRule(
             FilteringObjective obj,
             Criterion inPortCriterion,
-            VlanIdCriterion vlanCriterion,
+            VlanIdCriterion outerVlanCriterion,
+            VlanIdCriterion innerVlanCriterion,
             ObjectiveTranslation.Builder resultBuilder)
             throws FabricPipelinerException {
 
-        final boolean vlanValid = vlanCriterion != null
-                && !vlanCriterion.vlanId().equals(VlanId.NONE);
+        final boolean outerVlanValid = outerVlanCriterion != null
+                && !outerVlanCriterion.vlanId().equals(VlanId.NONE);
+        final boolean innerVlanValid = innerVlanCriterion != null
+                && !innerVlanCriterion.vlanId().equals(VlanId.NONE);
+
+        final PiCriterion piCriterion = PiCriterion.builder()
+                .matchExact(FabricConstants.HDR_VLAN_IS_VALID, outerVlanValid ? ONE : ZERO)
+                .build();
 
         final TrafficSelector.Builder selector = DefaultTrafficSelector.builder()
                 .add(inPortCriterion)
-                .add(vlanValid ? VLAN_VALID : VLAN_INVALID);
-        if (vlanValid) {
-            selector.add(vlanCriterion);
+                .add(piCriterion);
+        if (outerVlanValid) {
+            selector.add(outerVlanCriterion);
+        }
+        if (innerVlanValid) {
+            selector.add(innerVlanCriterion);
         }
 
         final TrafficTreatment treatment;
@@ -127,7 +135,6 @@ class FilteringObjectiveTranslator
             treatment = obj.meta() == null
                     ? DefaultTrafficTreatment.emptyTreatment() : obj.meta();
         }
-
         resultBuilder.addFlowRule(flowRule(
                 obj, FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN,
                 selector.build(), treatment));
@@ -214,7 +221,7 @@ class FilteringObjectiveTranslator
             throws FabricPipelinerException {
         final TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchInPort(inPort)
-                .matchEthType(ethType)
+                .matchPi(mapEthTypeFwdClassifier(ethType))
                 .matchEthDstMasked(dstMac, dstMacMask == null
                         ? MacAddress.EXACT_MASK : dstMacMask)
                 .build();
@@ -233,5 +240,39 @@ class FilteringObjectiveTranslator
                 .piTableAction(action)
                 .build();
 
+    }
+
+    static PiCriterion mapEthTypeFwdClassifier(short ethType) {
+        // Map the Ethernet type to the validity bits of the fabric pipeline
+        switch (EthType.EtherType.lookup(ethType)) {
+            case IPV4: {
+                return PiCriterion.builder()
+                        .matchExact(FabricConstants.HDR_IS_IPV4, ONE)
+                        .matchExact(FabricConstants.HDR_IS_IPV6, ZERO)
+                        .matchExact(FabricConstants.HDR_IS_MPLS, ZERO)
+                        .build();
+            }
+            case IPV6: {
+                return PiCriterion.builder()
+                        .matchExact(FabricConstants.HDR_IS_IPV4, ZERO)
+                        .matchExact(FabricConstants.HDR_IS_IPV6, ONE)
+                        .matchExact(FabricConstants.HDR_IS_MPLS, ZERO)
+                        .build();
+            }
+            case MPLS_UNICAST: {
+                return PiCriterion.builder()
+                        .matchExact(FabricConstants.HDR_IS_IPV4, ZERO)
+                        .matchExact(FabricConstants.HDR_IS_IPV6, ZERO)
+                        .matchExact(FabricConstants.HDR_IS_MPLS, ONE)
+                        .build();
+            }
+            default: {
+                return PiCriterion.builder()
+                        .matchExact(FabricConstants.HDR_IS_IPV4, ZERO)
+                        .matchExact(FabricConstants.HDR_IS_IPV6, ZERO)
+                        .matchExact(FabricConstants.HDR_IS_MPLS, ZERO)
+                        .build();
+            }
+        }
     }
 }

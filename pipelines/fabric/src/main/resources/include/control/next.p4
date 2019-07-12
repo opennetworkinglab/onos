@@ -71,12 +71,23 @@ control Next (inout parsed_headers_t hdr,
         next_vlan_counter.count();
     }
 
+#ifdef WITH_DOUBLE_VLAN_TERMINATION
+    action set_double_vlan(vlan_id_t outer_vlan_id, vlan_id_t inner_vlan_id) {
+        set_vlan(outer_vlan_id);
+        fabric_metadata.push_double_vlan = _TRUE;
+        fabric_metadata.inner_vlan_id = inner_vlan_id;
+    }
+#endif // WITH_DOUBLE_VLAN_TERMINATION
+
     table next_vlan {
         key = {
             fabric_metadata.next_id: exact @name("next_id");
         }
         actions = {
             set_vlan;
+#ifdef WITH_DOUBLE_VLAN_TERMINATION
+            set_double_vlan;
+#endif // WITH_DOUBLE_VLAN_TERMINATION
             @defaultonly nop;
         }
         const default_action = nop();
@@ -93,6 +104,7 @@ control Next (inout parsed_headers_t hdr,
 
     action output_xconnect(port_num_t port_num) {
         output(port_num);
+        fabric_metadata.last_eth_type = ETHERTYPE_VLAN;
         xconnect_counter.count();
     }
 
@@ -251,7 +263,7 @@ control EgressNextControl (inout parsed_headers_t hdr,
     action pop_mpls_if_present() {
         hdr.mpls.setInvalid();
         // Assuming there's an IP header after the MPLS one.
-        fabric_metadata.eth_type = fabric_metadata.ip_eth_type;
+        fabric_metadata.last_eth_type = fabric_metadata.ip_eth_type;
     }
 
     @hidden
@@ -261,7 +273,7 @@ control EgressNextControl (inout parsed_headers_t hdr,
         hdr.mpls.tc = 3w0;
         hdr.mpls.bos = 1w1; // BOS = TRUE
         hdr.mpls.ttl = fabric_metadata.mpls_ttl; // Decrement after push.
-        fabric_metadata.eth_type = ETHERTYPE_MPLS;
+        fabric_metadata.last_eth_type = ETHERTYPE_MPLS;
     }
 
     @hidden
@@ -271,10 +283,24 @@ control EgressNextControl (inout parsed_headers_t hdr,
         hdr.vlan_tag.setValid();
         hdr.vlan_tag.cfi = fabric_metadata.vlan_cfi;
         hdr.vlan_tag.pri = fabric_metadata.vlan_pri;
-        hdr.vlan_tag.eth_type = fabric_metadata.eth_type;
+        hdr.vlan_tag.eth_type = fabric_metadata.last_eth_type;
         hdr.vlan_tag.vlan_id = fabric_metadata.vlan_id;
         hdr.ethernet.eth_type = ETHERTYPE_VLAN;
     }
+
+#ifdef WITH_DOUBLE_VLAN_TERMINATION
+    @hidden
+    action push_inner_vlan() {
+        // Then push inner VLAN TAG, rewriting correclty the outer vlan eth_type
+        // and the ethernet eth_type
+        hdr.inner_vlan_tag.setValid();
+        hdr.inner_vlan_tag.cfi = fabric_metadata.inner_vlan_cfi;
+        hdr.inner_vlan_tag.pri = fabric_metadata.inner_vlan_pri;
+        hdr.inner_vlan_tag.vlan_id = fabric_metadata.inner_vlan_id;
+        hdr.inner_vlan_tag.eth_type = fabric_metadata.last_eth_type;
+        hdr.vlan_tag.eth_type = ETHERTYPE_VLAN;
+    }
+#endif // WITH_DOUBLE_VLAN_TERMINATION
 
     /*
      * Egress VLAN Table.
@@ -283,7 +309,7 @@ control EgressNextControl (inout parsed_headers_t hdr,
     direct_counter(CounterType.packets_and_bytes) egress_vlan_counter;
 
     action pop_vlan() {
-        hdr.ethernet.eth_type = fabric_metadata.eth_type;
+        hdr.ethernet.eth_type = fabric_metadata.last_eth_type;
         hdr.vlan_tag.setInvalid();
         egress_vlan_counter.count();
     }
@@ -314,12 +340,26 @@ control EgressNextControl (inout parsed_headers_t hdr,
             set_mpls();
         }
 
-        if (!egress_vlan.apply().hit) {
-            // Push VLAN tag if not the default one.
-            if (fabric_metadata.vlan_id != DEFAULT_VLAN_ID) {
-                push_vlan();
+#ifdef WITH_DOUBLE_VLAN_TERMINATION
+        if (fabric_metadata.push_double_vlan == _TRUE) {
+            // Double VLAN termination.
+            push_vlan();
+            push_inner_vlan();
+        } else {
+            // If no push double vlan, inner_vlan_tag must be popped
+            hdr.inner_vlan_tag.setInvalid();
+#endif // WITH_DOUBLE_VLAN_TERMINATION
+            // Port-based VLAN tagging (by default all
+            // ports are assumed tagged)
+            if (!egress_vlan.apply().hit) {
+                // Push VLAN tag if not the default one.
+                if (fabric_metadata.vlan_id != DEFAULT_VLAN_ID) {
+                    push_vlan();
+                }
             }
+#ifdef WITH_DOUBLE_VLAN_TERMINATION
         }
+#endif // WITH_DOUBLE_VLAN_TERMINATION
 
         // TTL decrement and check.
         if (hdr.mpls.isValid()) {

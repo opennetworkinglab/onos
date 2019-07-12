@@ -2,8 +2,14 @@
 #define __TABLE_SIZE__
 
 // Default sizes when building for BMv2.
-
-#define PORT_VLAN_TABLE_SIZE 1024
+#define BNG_MAX_SUBSC 8192
+#define BNG_MAX_NET_PER_SUBSC 4
+#define BNG_MAX_SUBSC_NET BNG_MAX_NET_PER_SUBSC * BNG_MAX_SUBSC
+#ifdef WITH_BNG
+    #define PORT_VLAN_TABLE_SIZE BNG_MAX_SUBSC
+#else
+    #define PORT_VLAN_TABLE_SIZE 1024
+#endif // WITH_BNG
 #define FWD_CLASSIFIER_TABLE_SIZE 1024
 #define BRIDGING_TABLE_SIZE 1024
 #define MPLS_TABLE_SIZE 1024

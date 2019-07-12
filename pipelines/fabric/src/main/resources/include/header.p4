@@ -159,17 +159,27 @@ const bng_type_t BNG_TYPE_DOWNSTREAM = 2w0x2;;
 struct bng_meta_t {
     bit<2>  type; // upstream or downstream
     bit<32> line_id; // subscriber line
+    bit<16> pppoe_session_id;
     bit<32> ds_meter_result; // for downstream metering
 }
 #endif // WITH_BNG
 
 //Custom metadata definition
 struct fabric_metadata_t {
-    bit<16>       eth_type;
+    bit<16>       last_eth_type;
+    _BOOL         is_ipv4;
+    _BOOL         is_ipv6;
+    _BOOL         is_mpls;
     bit<16>       ip_eth_type;
     vlan_id_t     vlan_id;
     bit<3>        vlan_pri;
     bit<1>        vlan_cfi;
+#ifdef WITH_DOUBLE_VLAN_TERMINATION
+    _BOOL         push_double_vlan;
+    vlan_id_t     inner_vlan_id;
+    bit<3>        inner_vlan_pri;
+    bit<1>        inner_vlan_cfi;
+#endif // WITH_DOUBLE_VLAN_TERMINATION
     mpls_label_t  mpls_label;
     bit<8>        mpls_ttl;
     _BOOL         skip_forwarding;
@@ -195,9 +205,9 @@ struct fabric_metadata_t {
 struct parsed_headers_t {
     ethernet_t ethernet;
     vlan_tag_t vlan_tag;
-#if defined(WITH_XCONNECT) || defined(WITH_BNG)
+#if defined(WITH_XCONNECT) || defined(WITH_BNG) || defined(WITH_DOUBLE_VLAN_TERMINATION)
     vlan_tag_t inner_vlan_tag;
-#endif // WITH_XCONNECT || WITH_BNG
+#endif // WITH_XCONNECT || WITH_BNG || WITH_DOUBLE_VLAN_TERMINATION
 #ifdef WITH_BNG
     pppoe_t pppoe;
 #endif // WITH_BNG

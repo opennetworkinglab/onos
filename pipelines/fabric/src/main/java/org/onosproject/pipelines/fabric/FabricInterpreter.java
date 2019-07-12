@@ -91,6 +91,7 @@ public class FabricInterpreter extends AbstractFabricHandlerBehavior
                     .put(Criterion.Type.ETH_TYPE, FabricConstants.HDR_ETH_TYPE)
                     .put(Criterion.Type.MPLS_LABEL, FabricConstants.HDR_MPLS_LABEL)
                     .put(Criterion.Type.VLAN_VID, FabricConstants.HDR_VLAN_ID)
+                    .put(Criterion.Type.INNER_VLAN_VID, FabricConstants.HDR_INNER_VLAN_ID)
                     .put(Criterion.Type.IPV4_DST, FabricConstants.HDR_IPV4_DST)
                     .put(Criterion.Type.IPV4_SRC, FabricConstants.HDR_IPV4_SRC)
                     .put(Criterion.Type.IPV6_DST, FabricConstants.HDR_IPV6_DST)

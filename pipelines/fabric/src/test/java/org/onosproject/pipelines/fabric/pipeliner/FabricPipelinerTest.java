@@ -27,9 +27,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.TrafficSelector;
-import org.onosproject.net.flow.criteria.PiCriterion;
 import org.onosproject.pipelines.fabric.FabricCapabilities;
-import org.onosproject.pipelines.fabric.FabricConstants;
 
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
@@ -53,12 +51,6 @@ public class FabricPipelinerTest {
     static final Integer NEXT_ID_1 = 1;
     static final TrafficSelector VLAN_META = DefaultTrafficSelector.builder()
             .matchVlanId(VLAN_100)
-            .build();
-    static final PiCriterion VLAN_VALID = PiCriterion.builder()
-            .matchExact(FabricConstants.HDR_VLAN_IS_VALID, new byte[]{1})
-            .build();
-    static final PiCriterion VLAN_INVALID = PiCriterion.builder()
-            .matchExact(FabricConstants.HDR_VLAN_IS_VALID, new byte[]{0})
             .build();
 
     FabricCapabilities capabilitiesHashed;
