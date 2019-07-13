@@ -251,12 +251,10 @@ public class OvsOfdpaPipeline extends Ofdpa2Pipeline {
                     ethCriterion = (EthCriterion) criterion;
                     break;
                 case VLAN_VID:
-                    if (innervidCriterion == null) {
-                        innervidCriterion = (VlanIdCriterion) criterion;
-                    } else {
-                        outerVidCriterion = innervidCriterion;
-                        innervidCriterion = (VlanIdCriterion) criterion;
-                    }
+                    outerVidCriterion = (VlanIdCriterion) criterion;
+                    break;
+                case INNER_VLAN_VID:
+                    innervidCriterion = (VlanIdCriterion) criterion;
                     break;
                 default:
                     log.warn("Unsupported filter {}", criterion);

@@ -1173,7 +1173,7 @@ public class RoutingRulePopulator {
         fob.withKey(Criteria.matchInPort(portNum))
                 .addCondition(Criteria.matchEthDst(deviceMac))
                 .addCondition(Criteria.matchVlanId(outerVlan))
-                .addCondition(Criteria.matchVlanId(innerVlan))
+                .addCondition(Criteria.matchInnerVlanId(innerVlan))
                 .withPriority(SegmentRoutingService.DEFAULT_PRIORITY);
 
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();

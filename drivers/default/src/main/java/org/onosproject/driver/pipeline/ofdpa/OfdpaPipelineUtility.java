@@ -42,9 +42,7 @@ import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveError;
 
 import static org.onosproject.net.behaviour.Pipeliner.ACCUMULATOR_ENABLED;
-import static org.onosproject.net.flow.criteria.Criterion.Type.ETH_TYPE;
-import static org.onosproject.net.flow.criteria.Criterion.Type.MPLS_BOS;
-import static org.onosproject.net.flow.criteria.Criterion.Type.VLAN_VID;
+import static org.onosproject.net.flow.criteria.Criterion.Type.*;
 import static org.onosproject.net.flow.instructions.Instruction.Type.L2MODIFICATION;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModVlanIdInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction.ModEtherInstruction;
@@ -357,7 +355,8 @@ public final class OfdpaPipelineUtility {
         return fob.meta() != null &&
                 fob.meta().allInstructions().stream().anyMatch(inst -> inst.type() == L2MODIFICATION
                         && ((L2ModificationInstruction) inst).subtype() == L2SubType.VLAN_POP) &&
-                fob.conditions().stream().filter(criterion -> criterion.type() == VLAN_VID).count() == 2;
+                fob.conditions().stream().anyMatch(criterion -> criterion.type() == VLAN_VID) &&
+                fob.conditions().stream().anyMatch(criterion -> criterion.type() == INNER_VLAN_VID);
     }
 
 }
