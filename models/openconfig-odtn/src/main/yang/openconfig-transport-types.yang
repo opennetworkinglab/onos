@@ -50,6 +50,64 @@ module openconfig-transport-types {
     description
       "Type for optical spectrum frequency values";
   }
+typedef modulation-format {
+        type enumeration {
+          enum UNKNOWN {
+            description
+              "quadrature phase-shift keying";
+          }
+          enum BPSK {
+            description
+              "quadrature phase-shift keying";
+          }
+          enum DP_BPSK {
+            description
+              "quadrature phase-shift keying";
+          }
+          enum QPSK {
+            description
+              "quadrature phase-shift keying";
+          }
+          enum DP_QPSK {
+            description
+              "quadrature phase-shift keying";
+          }
+          enum 8QAM {
+            description
+              "quadrature amplitude modulation 8";
+          }
+          enum DP_8QAM {
+            description
+              "quadrature amplitude modulation 8";
+          }
+          enum 16QAM {
+            description
+              "quadrature amplitude modulation 16";
+          }
+          enum DP_16QAM {
+            description
+              "quadrature amplitude modulation 16";
+          }
+          enum 32QAM {
+            description
+              "quadrature amplitude modulation 16";
+          }
+          enum DP_32QAM {
+            description
+              "quadrature amplitude modulation 16";
+          }
+          enum 64QAM {
+            description
+              "quadrature amplitude modulation 16";
+          }
+          enum DP_64QAM {
+            description
+              "quadrature amplitude modulation 16";
+          }
+        }
+        description
+          "Modulation format";
+      }
 
   typedef admin-state-type {
     type enumeration {

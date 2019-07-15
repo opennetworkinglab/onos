@@ -295,6 +295,18 @@ module openconfig-terminal-device {
 
       uses oc-types:avg-min-max-instant-stats-precision2-dB;
     }
+    container osnr {
+          description
+            "Optical signal to noise ratio. Baud rate
+            normalized signal to noise ratio based on
+            error vector magnitude in dB with two decimal
+            precision. Values include the instantaneous, average,
+            minimum, and maximum statistics. If avg/min/max
+            statistics are not supported, the target is expected
+            to just supply the instant value";
+
+          uses oc-types:avg-min-max-instant-stats-precision2-dB;
+        }
   }
 
   grouping terminal-otn-protocol-state {
@@ -854,6 +866,11 @@ module openconfig-terminal-device {
       description
         "Frequency of the optical channel, expressed in MHz";
     }
+    leaf modulation {
+          type oc-opt-types:modulation-format;
+          description
+            "Modulation of the optical channel, expressed in dB";
+     }
 
     leaf target-output-power {
       type decimal64 {
