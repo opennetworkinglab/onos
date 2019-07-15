@@ -20,6 +20,8 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.networking.NetworkPolicy;
+import io.fabric8.kubernetes.api.model.networking.NetworkPolicyEgressRule;
+import io.fabric8.kubernetes.api.model.networking.NetworkPolicyIngressRule;
 import io.fabric8.kubernetes.api.model.networking.NetworkPolicyPort;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -166,37 +168,42 @@ public class K8sNetworkPolicyHandler {
     }
 
     private void setBlockRulesByPolicy(NetworkPolicy policy, boolean install) {
-        Map<String, String> labels =
-                policy.getSpec().getPodSelector().getMatchLabels();
-        Map<String, List<String>> filter = Maps.newConcurrentMap();
+        final Map<String, List<String>> filter = Maps.newConcurrentMap();
 
-        k8sPodService.pods().forEach(pod -> {
-            pod.getMetadata().getLabels().forEach((k, v) -> {
-                if (labels.get(k) != null && labels.get(k).equals(v) &&
-                        policy.getSpec().getPolicyTypes() != null) {
-                    filter.put(pod.getStatus().getPodIP(),
-                            policy.getSpec().getPolicyTypes());
-                }
-            });
-        });
+        k8sPodService.pods().forEach(pod ->
+            filter.putAll(getBlockRuleFilter(pod, policy)));
 
         setBlockRules(filter, install);
     }
 
     private void setBlockRulesByPod(Pod pod, boolean install) {
-        Map<String, List<String>> filter = Maps.newConcurrentMap();
+        final Map<String, List<String>> filter = Maps.newConcurrentMap();
 
-        k8sNetworkPolicyService.networkPolicies().forEach(policy -> {
-            Map<String, String> labels = policy.getSpec().getPodSelector().getMatchLabels();
-            pod.getMetadata().getLabels().forEach((k, v) -> {
-                if (labels.get(k) != null && labels.get(k).equals(v) &&
-                        policy.getSpec().getPolicyTypes() != null) {
-                    filter.put(pod.getStatus().getPodIP(), policy.getSpec().getPolicyTypes());
-                }
-            });
-        });
+        k8sNetworkPolicyService.networkPolicies().forEach(policy ->
+            filter.putAll(getBlockRuleFilter(pod, policy)));
 
         setBlockRules(filter, install);
+    }
+
+    private Map<String, List<String>> getBlockRuleFilter(Pod pod, NetworkPolicy policy) {
+        Map<String, String> labels = policy.getSpec().getPodSelector().getMatchLabels();
+        Map<String, List<String>> filter = Maps.newConcurrentMap();
+        String podIp = pod.getStatus().getPodIP();
+        List<String> policyTypes = policy.getSpec().getPolicyTypes();
+
+        if (podIp != null && policyTypes != null) {
+            if (labels == null) {
+                filter.put(podIp, policyTypes);
+            } else {
+                pod.getMetadata().getLabels().forEach((k, v) -> {
+                    if (labels.get(k) != null && labels.get(k).equals(v)) {
+                        filter.put(podIp, policyTypes);
+                    }
+                });
+            }
+        }
+
+        return filter;
     }
 
     private void setBlockRules(Map<String, List<String>> filter, boolean install) {
@@ -232,6 +239,14 @@ public class K8sNetworkPolicyHandler {
         Map<String, Map<String, List<NetworkPolicyPort>>>
                 white = Maps.newConcurrentMap();
 
+        List<NetworkPolicyIngressRule> ingress = policy.getSpec().getIngress();
+        if (ingress != null && ingress.size() == 1) {
+            NetworkPolicyIngressRule rule = ingress.get(0);
+            if (rule.getFrom().size() == 0 && rule.getPorts().size() == 0) {
+                setAllowAllRule(DIRECTION_INGRESS, install);
+            }
+        }
+
         policy.getSpec().getIngress().forEach(i -> {
             Map<String, List<NetworkPolicyPort>> direction = Maps.newConcurrentMap();
             direction.put(DIRECTION_INGRESS, i.getPorts());
@@ -258,7 +273,8 @@ public class K8sNetworkPolicyHandler {
 
                     k8sPodService.pods().forEach(pod -> {
                         pod.getMetadata().getLabels().forEach((k, v) -> {
-                            if (podLabels.get(k) != null && podLabels.get(k).equals(v)) {
+                            if (podLabels != null && podLabels.get(k) != null &&
+                                    podLabels.get(k).equals(v)) {
                                 pods.add(pod);
                             }
                         });
@@ -283,6 +299,14 @@ public class K8sNetworkPolicyHandler {
                 });
             });
         });
+
+        List<NetworkPolicyEgressRule> egress = policy.getSpec().getEgress();
+        if (egress != null && egress.size() == 1) {
+            NetworkPolicyEgressRule rule = egress.get(0);
+            if (rule.getTo().size() == 0 && rule.getPorts().size() == 0) {
+                setAllowAllRule(DIRECTION_EGRESS, install);
+            }
+        }
 
         policy.getSpec().getEgress().forEach(e -> {
             Map<String, List<NetworkPolicyPort>> direction = Maps.newConcurrentMap();
@@ -324,7 +348,8 @@ public class K8sNetworkPolicyHandler {
                     Map<String, String> podLabels = p.getPodSelector().getMatchLabels();
                     k8sPodService.pods().forEach(pod -> {
                         pod.getMetadata().getLabels().forEach((k, v) -> {
-                            if (podLabels.get(k) != null && podLabels.get(k).equals(v)) {
+                            if (podLabels != null && podLabels.get(k) != null &&
+                                    podLabels.get(k).equals(v)) {
                                 pods.add(pod);
                             }
                         });
@@ -374,6 +399,8 @@ public class K8sNetworkPolicyHandler {
         Map<String, Map<String, List<NetworkPolicyPort>>>
                 white = Maps.newConcurrentMap();
         k8sNetworkPolicyService.networkPolicies().forEach(policy -> {
+            String podIp = pod.getStatus().getPodIP();
+
             policy.getSpec().getIngress().forEach(i -> {
                 Map<String, List<NetworkPolicyPort>>
                         direction = Maps.newConcurrentMap();
@@ -381,11 +408,9 @@ public class K8sNetworkPolicyHandler {
                 i.getFrom().forEach(peer -> {
                     if (peer.getPodSelector() != null) {
                         Map<String, String> podLabels = peer.getPodSelector().getMatchLabels();
-                        String podIp = pod.getStatus().getPodIP();
                         pod.getMetadata().getLabels().forEach((k, v) -> {
-                            if ((podLabels.get(k) != null &&
-                                    podLabels.get(k).equals(v)) &&
-                                    podIp != null) {
+                            if (podLabels != null && podLabels.get(k) != null &&
+                                    podLabels.get(k).equals(v) && podIp != null) {
                                 white.compute(shiftIpDomain(podIp, SHIFTED_IP_PREFIX) +
                                         "/" + HOST_PREFIX, (m, n) -> direction);
                                 white.compute(podIp + "/" +
@@ -394,10 +419,14 @@ public class K8sNetworkPolicyHandler {
                         });
 
                         if (peer.getNamespaceSelector() != null &&
-                                (podsFromNamespace(peer.getNamespaceSelector().getMatchLabels()).contains(pod) ||
-                                        (peer.getNamespaceSelector().getMatchLabels().size() == 0))) {
-                            white.compute(pod.getStatus().getPodIP() + "/" +
-                                    HOST_PREFIX, (m, n) -> direction);
+                                peer.getNamespaceSelector().getMatchLabels() != null) {
+                            Set<Pod> pods = podsFromNamespace(
+                                    peer.getNamespaceSelector().getMatchLabels());
+                            if ((pods != null && pods.contains(pod)) ||
+                                    (peer.getNamespaceSelector().getMatchLabels().size() == 0)) {
+                                white.compute(pod.getStatus().getPodIP() + "/" +
+                                        HOST_PREFIX, (m, n) -> direction);
+                            }
                         }
                     }
                 });
@@ -405,15 +434,17 @@ public class K8sNetworkPolicyHandler {
         });
 
         k8sNetworkPolicyService.networkPolicies().forEach(policy -> {
+            String podIp = pod.getStatus().getPodIP();
+
             policy.getSpec().getEgress().forEach(e -> {
                 Map<String, List<NetworkPolicyPort>> direction = Maps.newConcurrentMap();
                 direction.put(DIRECTION_EGRESS, e.getPorts());
                 e.getTo().forEach(peer -> {
                     if (peer.getPodSelector() != null) {
                         Map<String, String> podLabels = peer.getPodSelector().getMatchLabels();
-                        String podIp = pod.getStatus().getPodIP();
                         pod.getMetadata().getLabels().forEach((k, v) -> {
-                            if (podLabels.get(k) != null && podLabels.get(k).equals(v)) {
+                            if (podLabels != null && podLabels.get(k) != null &&
+                                    podLabels.get(k).equals(v) && podIp != null) {
                                 white.compute(shiftIpDomain(podIp, SHIFTED_IP_PREFIX) +
                                         "/" + HOST_PREFIX, (m, n) -> {
                                     if (n != null) {
@@ -437,26 +468,30 @@ public class K8sNetworkPolicyHandler {
                         });
 
                         if (peer.getNamespaceSelector() != null &&
-                                (podsFromNamespace(peer.getNamespaceSelector().getMatchLabels()).contains(pod) ||
-                                        (peer.getNamespaceSelector().getMatchLabels().size() == 0))) {
-                            white.compute(shiftIpDomain(podIp, SHIFTED_IP_PREFIX) +
-                                    "/" + HOST_PREFIX, (m, n) -> {
-                                if (n != null) {
-                                    n.put(DIRECTION_EGRESS, e.getPorts());
-                                    return n;
-                                } else {
-                                    return direction;
-                                }
-                            });
+                                peer.getNamespaceSelector().getMatchLabels() != null) {
+                            Set<Pod> pods = podsFromNamespace(
+                                    peer.getNamespaceSelector().getMatchLabels());
+                            if ((pods != null && pods.contains(pod)) ||
+                                    (peer.getNamespaceSelector().getMatchLabels().size() == 0)) {
+                                white.compute(shiftIpDomain(podIp, SHIFTED_IP_PREFIX) +
+                                        "/" + HOST_PREFIX, (m, n) -> {
+                                    if (n != null) {
+                                        n.put(DIRECTION_EGRESS, e.getPorts());
+                                        return n;
+                                    } else {
+                                        return direction;
+                                    }
+                                });
 
-                            white.compute(podIp + "/" + HOST_PREFIX, (m, n) -> {
-                                if (n != null) {
-                                    n.put(DIRECTION_EGRESS, e.getPorts());
-                                    return n;
-                                } else {
-                                    return direction;
-                                }
-                            });
+                                white.compute(podIp + "/" + HOST_PREFIX, (m, n) -> {
+                                    if (n != null) {
+                                        n.put(DIRECTION_EGRESS, e.getPorts());
+                                        return n;
+                                    } else {
+                                        return direction;
+                                    }
+                                });
+                            }
                         }
                     }
                 });
@@ -471,7 +506,7 @@ public class K8sNetworkPolicyHandler {
         Set<Pod> pods = Sets.newConcurrentHashSet();
         k8sNamespaceService.namespaces().forEach(ns -> {
             if (ns != null && ns.getMetadata() != null &&
-                    ns.getMetadata().getLabels() != null) {
+                    ns.getMetadata().getLabels() != null && nsLabels != null) {
                 ns.getMetadata().getLabels().forEach((k, v) -> {
                     if (nsLabels.get(k) != null && nsLabels.get(k).equals(v)) {
                         pods.addAll(k8sPodService.pods().stream()
@@ -484,6 +519,33 @@ public class K8sNetworkPolicyHandler {
         });
 
         return pods;
+    }
+
+    private void setAllowAllRule(String direction, boolean install) {
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
+                .transition(ROUTING_TABLE);
+
+        int table = 0;
+
+        if (DIRECTION_INGRESS.equalsIgnoreCase(direction)) {
+            table = ACL_INGRESS_WHITE_TABLE;
+        } else if (DIRECTION_EGRESS.equalsIgnoreCase(direction)) {
+            table = ACL_EGRESS_WHITE_TABLE;
+        }
+
+        int finalTable = table;
+        k8sNodeService.completeNodes().forEach(n -> {
+            k8sFlowRuleService.setRule(
+                    appId,
+                    n.intgBridge(),
+                    sBuilder.build(),
+                    tBuilder.build(),
+                    PRIORITY_CIDR_RULE,
+                    finalTable,
+                    install
+            );
+        });
     }
 
     private void setAllowRules(Map<String, Map<String, List<NetworkPolicyPort>>> white,
@@ -514,11 +576,19 @@ public class K8sNetworkPolicyHandler {
                         pv.forEach(p -> {
                             if (p.getProtocol().equalsIgnoreCase(PROTOCOL_TCP)) {
                                 sBuilder.matchIPProtocol(IPv4.PROTOCOL_TCP);
-                                sBuilder.matchTcpSrc(TpPort.tpPort(p.getPort().getIntVal()));
+
+                                if (p.getPort() != null &&
+                                        p.getPort().getIntVal() != null) {
+                                    sBuilder.matchTcpSrc(TpPort.tpPort(p.getPort().getIntVal()));
+                                }
                             }
                             if (p.getProtocol().equalsIgnoreCase(PROTOCOL_UDP)) {
                                 sBuilder.matchIPProtocol(IPv4.PROTOCOL_UDP);
-                                sBuilder.matchUdpSrc(TpPort.tpPort(p.getPort().getIntVal()));
+
+                                if (p.getPort() != null &&
+                                        p.getPort().getIntVal() != null) {
+                                    sBuilder.matchUdpSrc(TpPort.tpPort(p.getPort().getIntVal()));
+                                }
                             }
 
                             k8sNodeService.completeNodes().forEach(n -> {
@@ -555,11 +625,19 @@ public class K8sNetworkPolicyHandler {
                         pv.forEach(p -> {
                             if (p.getProtocol().equalsIgnoreCase(PROTOCOL_TCP)) {
                                 sBuilder.matchIPProtocol(IPv4.PROTOCOL_TCP);
-                                sBuilder.matchTcpDst(TpPort.tpPort(p.getPort().getIntVal()));
+
+                                if (p.getPort() != null &&
+                                        p.getPort().getIntVal() != null) {
+                                    sBuilder.matchTcpDst(TpPort.tpPort(p.getPort().getIntVal()));
+                                }
                             }
                             if (p.getProtocol().equalsIgnoreCase(PROTOCOL_UDP)) {
                                 sBuilder.matchIPProtocol(IPv4.PROTOCOL_UDP);
-                                sBuilder.matchUdpDst(TpPort.tpPort(p.getPort().getIntVal()));
+
+                                if (p.getPort() != null &&
+                                        p.getPort().getIntVal() != null) {
+                                    sBuilder.matchUdpDst(TpPort.tpPort(p.getPort().getIntVal()));
+                                }
                             }
 
                             k8sNodeService.completeNodes().forEach(n -> {
