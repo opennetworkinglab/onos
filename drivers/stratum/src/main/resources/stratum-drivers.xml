@@ -30,4 +30,10 @@
         <property name="tableReadFromMirror">true</property>
         <property name="actionGroupReadFromMirror">true</property>
     </driver>
+
+    <driver name="stratum-fpm" manufacturer="Open Networking Foundation"
+            hwVersion="FPM" swVersion="Stratum" extends="stratum">
+        <behaviour api="org.onosproject.net.behaviour.PiPipelineProgrammable"
+                   impl="org.onosproject.drivers.stratum.FpmPipelineProgrammable"/>
+    </driver>
 </drivers>

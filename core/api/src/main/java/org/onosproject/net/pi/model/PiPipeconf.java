@@ -115,6 +115,11 @@ public interface PiPipeconf {
         TOFINO_CONTEXT_JSON,
 
         /**
+         * Stratum Fixed Pipeline Model (FPM) pipeline configuration binary.
+         */
+        STRATUM_FPM_BIN,
+
+        /**
          * CPU port file in UTF 8 encoding.
          */
         // TODO: consider a better way to get the CPU port in the interpreter
