@@ -103,6 +103,7 @@ import static org.onosproject.k8snetworking.api.Constants.PRIORITY_INTER_ROUTING
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_NAT_RULE;
 import static org.onosproject.k8snetworking.api.Constants.ROUTING_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.SERVICE_FAKE_MAC_STR;
+import static org.onosproject.k8snetworking.api.Constants.SERVICE_PORT_MAP;
 import static org.onosproject.k8snetworking.api.Constants.SERVICE_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.SHIFTED_IP_CIDR;
 import static org.onosproject.k8snetworking.api.Constants.SHIFTED_IP_PREFIX;
@@ -369,9 +370,13 @@ public class K8sServiceHandler {
         service.getSpec().getPorts().stream()
                 .filter(Objects::nonNull)
                 .filter(sp -> sp.getTargetPort() != null)
-                .filter(sp -> sp.getTargetPort().getIntVal() != null)
+                .filter(sp -> sp.getTargetPort().getIntVal() != null ||
+                        (sp.getTargetPort().getStrVal() != null &&
+                                SERVICE_PORT_MAP.get(sp.getTargetPort().getStrVal()) != null))
                 .forEach(sp -> {
-            int targetPort = sp.getTargetPort().getIntVal();
+            int targetPort = sp.getTargetPort().getIntVal() != null ?
+                    sp.getTargetPort().getIntVal() :
+                    SERVICE_PORT_MAP.get(sp.getTargetPort().getStrVal());
             String targetProtocol = sp.getProtocol();
 
             for (Endpoints endpoints : endpointses) {
@@ -428,26 +433,31 @@ public class K8sServiceHandler {
             spEpasMap.forEach((sp, epas) ->
                 // add flow rules for unshifting IP domain
                 epas.forEach(epa -> {
-                            setUnshiftDomainRules(node.intgBridge(), POD_TABLE,
-                                    PRIORITY_NAT_RULE, serviceIp, sp.getPort(),
-                                    sp.getProtocol(), nodeIpGatewayIpMap.getOrDefault(epa, epa),
-                                    sp.getTargetPort().getIntVal(), install);
-                        }
-                )
+                    int targetPort = sp.getTargetPort().getIntVal() != null ?
+                            sp.getTargetPort().getIntVal() :
+                            SERVICE_PORT_MAP.get(sp.getTargetPort().getStrVal());
+
+                    setUnshiftDomainRules(node.intgBridge(), POD_TABLE,
+                            PRIORITY_NAT_RULE, serviceIp, sp.getPort(),
+                            sp.getProtocol(), nodeIpGatewayIpMap.getOrDefault(epa, epa),
+                            targetPort, install);
+                })
             );
         }
     }
 
-    private GroupBucket buildBuckets(DeviceId deviceId,
-                                           String podIpStr,
-                                           ServicePort sp) {
+    private GroupBucket buildBuckets(DeviceId deviceId, String podIpStr, ServicePort sp) {
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
                 .setIpDst(IpAddress.valueOf(podIpStr));
 
+        int targetPort = sp.getTargetPort().getIntVal() != null ?
+                sp.getTargetPort().getIntVal() :
+                SERVICE_PORT_MAP.get(sp.getTargetPort().getStrVal());
+
         if (TCP.equals(sp.getProtocol())) {
-            tBuilder.setTcpDst(TpPort.tpPort(sp.getTargetPort().getIntVal()));
+            tBuilder.setTcpDst(TpPort.tpPort(targetPort));
         } else if (UDP.equals(sp.getProtocol())) {
-            tBuilder.setUdpDst(TpPort.tpPort(sp.getTargetPort().getIntVal()));
+            tBuilder.setUdpDst(TpPort.tpPort(targetPort));
         }
 
         ExtensionTreatment resubmitTreatment = buildResubmitExtension(
@@ -463,7 +473,9 @@ public class K8sServiceHandler {
         Set<ServicePort> sps = service.getSpec().getPorts().stream()
                 .filter(Objects::nonNull)
                 .filter(sp -> sp.getTargetPort() != null)
-                .filter(sp -> sp.getTargetPort().getIntVal() != null)
+                .filter(sp -> sp.getTargetPort().getIntVal() != null ||
+                        (sp.getTargetPort().getStrVal() != null &&
+                                SERVICE_PORT_MAP.get(sp.getTargetPort().getStrVal()) != null))
                 .collect(Collectors.toSet());
 
         String serviceIp = service.getSpec().getClusterIP();

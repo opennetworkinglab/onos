@@ -15,6 +15,8 @@
  */
 package org.onosproject.k8snetworking.api;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import org.onlab.packet.MacAddress;
 
 /**
@@ -111,4 +113,34 @@ public final class Constants {
 
     public static final int EXT_ENTRY_TABLE = 0;
     public static final int POD_RESOLUTION_TABLE = 11;
+
+    public static final BiMap<String, Integer> SERVICE_PORT_MAP = HashBiMap.create();
+
+    static {
+        SERVICE_PORT_MAP.put("ftp", 21);
+        SERVICE_PORT_MAP.put("ssh", 22);
+        SERVICE_PORT_MAP.put("telnet", 23);
+        SERVICE_PORT_MAP.put("smtp", 25);
+        SERVICE_PORT_MAP.put("time", 37);
+        SERVICE_PORT_MAP.put("login", 49);
+        SERVICE_PORT_MAP.put("dns", 53);
+        SERVICE_PORT_MAP.put("tftp", 69);
+        SERVICE_PORT_MAP.put("finger", 79);
+        SERVICE_PORT_MAP.put("http", 8080);
+        SERVICE_PORT_MAP.put("x400", 103);
+        SERVICE_PORT_MAP.put("pop2", 109);
+        SERVICE_PORT_MAP.put("pop3", 110);
+        SERVICE_PORT_MAP.put("sftp", 115);
+        SERVICE_PORT_MAP.put("nntp", 119);
+        SERVICE_PORT_MAP.put("imap", 143);
+        SERVICE_PORT_MAP.put("bgp", 179);
+        SERVICE_PORT_MAP.put("gacp", 190);
+        SERVICE_PORT_MAP.put("dls", 197);
+        SERVICE_PORT_MAP.put("ldap", 389);
+        SERVICE_PORT_MAP.put("https", 443);
+        SERVICE_PORT_MAP.put("snpp", 444);
+        SERVICE_PORT_MAP.put("dhcp-client", 546);
+        SERVICE_PORT_MAP.put("dhcp-server", 547);
+        SERVICE_PORT_MAP.put("socks", 1080);
+    }
 }
