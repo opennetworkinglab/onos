@@ -21,13 +21,19 @@ import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.app.ApplicationAdminService;
+import org.onosproject.app.ApplicationService;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
+import org.onosproject.core.VersionService;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -43,6 +49,9 @@ public class ApplicationCommand extends AbstractShellCommand {
     static final String ACTIVATE = "activate";
     static final String DEACTIVATE = "deactivate";
     static final String DOWNLOAD = "download";
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected VersionService versionService;
 
     @Argument(index = 0, name = "command",
             description = "Command name (install|activate|deactivate|uninstall|download)",
@@ -64,7 +73,6 @@ public class ApplicationCommand extends AbstractShellCommand {
                     return;
                 }
             }
-
         } else if (command.equals(DOWNLOAD)) {
             for (String name : names) {
                 if (!downloadApp(service, name)) {
@@ -86,7 +94,20 @@ public class ApplicationCommand extends AbstractShellCommand {
             if ("-".equals(url)) {
                 service.install(System.in);
             } else {
-                service.install(new URL(url).openStream());
+                Set<Application> app = get(ApplicationService.class)
+                        .getRegisteredApplications().stream()
+                        .filter(ra -> ra.id().toString().equals(url))
+                        .collect(Collectors.toSet());
+                if (app.isEmpty()) {
+                    service.install(new URL(url).openStream());
+                }
+                Iterator<Application> iterator = app.iterator();
+                while (iterator.hasNext()) {
+                    Application application = iterator.next();
+                    if (application.version().toString().equals(versionService.version().toString())) {
+                        service.install(application.imageUrl().openStream());
+                    }
+                }
             }
         } catch (IOException e) {
             error("Unable to get URL: %s", url);
