@@ -1,7 +1,7 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-GRPC_JAVA_VERSION = "1.21.0"
-GRPC_SHA = "eaad045e911587c03cae27364920bcb0c80fb0a37bac5f54eb94af9fa0391db3"
+GRPC_JAVA_VERSION = "1.22.1"
+GRPC_SHA = "e6915ea60ab8a6e17de86bd94a8db320b0115cc214db19bef8f2ba4af2dab430"
 
 GAPIS_COMMIT = "37cc0e5acae50ee91f00827a7010c3b07dfa5311"
 GAPIS_SHA = "17d023f48ea290f25edaf25a967973b5a42ce6d71b1570862f302d95aa8b9f77"
