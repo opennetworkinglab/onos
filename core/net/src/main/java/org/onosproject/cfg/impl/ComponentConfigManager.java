@@ -111,6 +111,10 @@ public class ComponentConfigManager implements ComponentConfigService {
 
         String componentName = componentClass.getName();
         String resourceName = componentClass.getSimpleName() + RESOURCE_EXT;
+        if (componentClass.getResource(resourceName) == null) {
+            // Try looking in my/package/name/MyClass.cfgdef
+            resourceName = componentClass.getCanonicalName().replace('.', '/') + RESOURCE_EXT;
+        }
         try (InputStream ris = componentClass.getResourceAsStream(resourceName)) {
             checkArgument(ris != null, "Property definitions not found at resource %s",
                           resourceName);

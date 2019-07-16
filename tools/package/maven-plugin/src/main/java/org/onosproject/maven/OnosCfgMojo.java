@@ -73,7 +73,7 @@ public class OnosCfgMojo extends AbstractMojo {
     }
 
 
-    private static class CfgDefGenerator {
+    private class CfgDefGenerator {
 
         private static final String COMPONENT = "org.osgi.service.component.annotations.Component";
         private static final String PROPERTY = "property";
@@ -156,8 +156,9 @@ public class OnosCfgMojo extends AbstractMojo {
                 String desc = description(javaClass, name);
 
                 if (desc != null) {
-                    String line = name + SEP + type + SEP + def + SEP + desc + "\n";
-                    lines.add(line);
+                    String line = name + SEP + type + SEP + def + SEP + desc;
+                    getLog().info("Processing property " + line + " ...");
+                    lines.add(line + "\n");
                 }
             }
         }
