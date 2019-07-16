@@ -127,7 +127,7 @@ class OFChannelHandler extends ChannelInboundHandlerAdapter
 
     private static final String RESET_BY_PEER = "Connection reset by peer";
     private static final String BROKEN_PIPE = "Broken pipe";
-    private static final int NUM_OF_QUEUES = 8;
+    static final int NUM_OF_QUEUES = 8;
 
     private final Controller controller;
     private OpenFlowSwitchDriver sw;
@@ -620,8 +620,13 @@ class OFChannelHandler extends ChannelInboundHandlerAdapter
 
                 h.sw.startDriverHandshake();
                 if (h.sw.isDriverHandshakeComplete()) {
+                    // We are not able to complete the connection for a dpid collision.
+                    // Same device reconnecting or different device configured with
+                    // the same dpid.
                     if (!h.sw.connectSwitch()) {
+                        // Disconnect from the device and return
                         disconnectDuplicate(h);
+                        return;
                     } else {
                         h.initClassifiers();
                     }
@@ -716,11 +721,13 @@ class OFChannelHandler extends ChannelInboundHandlerAdapter
 
             private void moveToActive(OFChannelHandler h) {
                 boolean success = h.sw.connectSwitch();
-                handlePendingPortStatusMessages(h);
-                h.setState(ACTIVE);
+                // Disconnect from the device and return
                 if (!success) {
                     disconnectDuplicate(h);
+                    return;
                 }
+                handlePendingPortStatusMessages(h);
+                h.setState(ACTIVE);
             }
 
         },
@@ -1663,9 +1670,9 @@ class OFChannelHandler extends ChannelInboundHandlerAdapter
     /**
      * Update the channels state. Only called from the state machine.
      * TODO: enforce restricted state transitions
-     * @param state
+     * @param state new state
      */
-    private void setState(ChannelState state) {
+    void setState(ChannelState state) {
         this.state = state;
         this.lastStateChange = System.currentTimeMillis();
     }
