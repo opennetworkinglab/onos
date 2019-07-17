@@ -123,7 +123,7 @@
                     <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.powerRange}}</td>
                     <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.currentPower}}</td>
                     <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.targetPower}}
-                        <form [formGroup]="powerForm" (ngSubmit)="submitPower(devId, port.id)" >
+                        <form [formGroup]="powerForm" (ngSubmit)="submitPower(devId, port.id)" *ngIf="port.type=='OCH'">
                             <input type="text" formControlName="newPower" required>
                             <button type="submit">Submit</button>
                         </form>
