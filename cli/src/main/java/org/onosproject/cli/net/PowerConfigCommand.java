@@ -24,6 +24,7 @@ import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
+import org.onosproject.net.Direction;
 import org.onosproject.net.Port;
 import org.onosproject.net.behaviour.PowerConfig;
 import org.onosproject.net.device.DeviceService;
@@ -52,7 +53,7 @@ public class PowerConfigCommand extends AbstractShellCommand {
 
     @Argument(index = 1, name = "connection point", description = "{DeviceID}/{PortNumber}",
             required = true, multiValued = false)
-    @Completion(ConnectPointCompleter.class)
+    @Completion(OpticalConnectPointCompleter.class)
     private String connectPoint = null;
 
     @Argument(index = 2, name = "value", description = "target-output-power value. Unit: dBm",
@@ -68,18 +69,25 @@ public class PowerConfigCommand extends AbstractShellCommand {
             print("[ERROR] %s does not exist", cp);
             return;
         }
+        if (!port.type().equals(Port.Type.OCH) &&
+                !port.type().equals(Port.Type.OTU) &&
+                !port.type().equals(Port.Type.OMS)) {
+            log.warn("The power of selected port %s isn't editable.", port.number().toString());
+            print("The power of selected port %s isn't editable.", port.number().toString());
+            return;
+        }
         Device device = deviceService.getDevice(cp.deviceId());
         PowerConfig powerConfig = device.as(PowerConfig.class);
         // FIXME the parameter "component" equals NULL now, because there is one-to-one mapping between
         //  <component> and <optical-channel>.
         if (operation.equals("get")) {
-            Optional<Long> val = powerConfig.getTargetPower(cp.port(), null);
+            Optional<Long> val = powerConfig.getTargetPower(cp.port(), Direction.ALL);
             long power = val.isPresent() ? val.get() : Long.MIN_VALUE;
             print("The target-output-power value in port %s on device %s is %d.",
                     cp.port().toString(), cp.deviceId().toString(), power);
         } else if (operation.equals("edit-config")) {
             checkNotNull(value);
-            powerConfig.setTargetPower(cp.port(), null, value);
+            powerConfig.setTargetPower(cp.port(), Direction.ALL, value);
         } else {
             log.warn("Operation {} are not supported now.", operation);
         }
