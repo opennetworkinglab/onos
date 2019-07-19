@@ -54,7 +54,7 @@ public class ApplicationCommand extends AbstractShellCommand {
     protected VersionService versionService;
 
     @Argument(index = 0, name = "command",
-            description = "Command name (install|activate|deactivate|uninstall|download)",
+            description = "Command name (install|activate|deactivate|uninstall|download|installreg)",
             required = true)
     @Completion(ApplicationCommandCompleter.class)
     String command = null;
@@ -90,24 +90,31 @@ public class ApplicationCommand extends AbstractShellCommand {
 
     // Installs the application from input of the specified URL
     private boolean installApp(ApplicationAdminService service, String url) {
+
         try {
             if ("-".equals(url)) {
                 service.install(System.in);
+            } else if (url.contains("oar")) {
+                service.install(new URL(url).openStream());
             } else {
                 Set<Application> app = get(ApplicationService.class)
-                        .getRegisteredApplications().stream()
-                        .filter(ra -> ra.id().toString().equals(url))
-                        .collect(Collectors.toSet());
+                        .getRegisteredApplications();
                 if (app.isEmpty()) {
-                    service.install(new URL(url).openStream());
+                    System.out.println("Could Not Install " + url);
+                    return false;
                 }
                 Iterator<Application> iterator = app.iterator();
+                Application recent = null;
                 while (iterator.hasNext()) {
                     Application application = iterator.next();
-                    if (application.version().toString().equals(versionService.version().toString())) {
-                        service.install(application.imageUrl().openStream());
+                    if (recent == null && application.id().name().equals(url)) {
+                        recent = application;
+                    } else if (application.version().compareTo(recent.version()) > 0 &&
+                            application.id().name().equals(url)) {
+                        recent = application;
                     }
                 }
+                service.install(recent.imageUrl().openStream());
             }
         } catch (IOException e) {
             error("Unable to get URL: %s", url);

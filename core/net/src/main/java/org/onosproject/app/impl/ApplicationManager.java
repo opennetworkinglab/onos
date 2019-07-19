@@ -336,12 +336,13 @@ public class ApplicationManager
     public Set<Application> getRegisteredApplications() {
         ImmutableSet.Builder<Application> builder = ImmutableSet.builder();
         ObjectMapper mapper = new ObjectMapper();
-
+        String vers = versionService.version().toString();
+        vers = vers.substring(0, vers.lastIndexOf(".") + 2);
         // Get input stream from the URL
         try {
-            URL githubUrl = new URL(APP_REGISTRY_URL + "?onosVersion=" + versionService.version().toString());
-            HttpURLConnection githubHttp = (HttpURLConnection) githubUrl.openConnection();
-            InputStream githubStream = githubHttp.getInputStream();
+            URL serverUrl = new URL(APP_REGISTRY_URL + "?onosVersion=" + vers);
+            HttpURLConnection serverHttp = (HttpURLConnection) serverUrl.openConnection();
+            InputStream githubStream = serverHttp.getInputStream();
 
             // Read input stream into an ArrayNode
             ArrayNode rootTree = (ArrayNode) mapper.readTree(githubStream);
@@ -356,9 +357,9 @@ public class ApplicationManager
 
             return apps;
         } catch (MalformedURLException e) {
-            throw new IllegalStateException("Bad URL " + APP_REGISTRY_URL, e);
+            throw new IllegalStateException("Bad URL: " + APP_REGISTRY_URL + "?onosVersion=" + vers, e);
         } catch (IOException e) {
-            throw new IllegalStateException("Unable to fetch URL " + APP_REGISTRY_URL, e);
+            throw new IllegalStateException("Unable to fetch URL: " + APP_REGISTRY_URL + "?onosVersion=" + vers, e);
         }
     }
 
