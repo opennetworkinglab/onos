@@ -96,7 +96,6 @@ import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.onosproject.segmentrouting.config.SegmentRoutingAppConfig;
 import org.onosproject.segmentrouting.config.SegmentRoutingDeviceConfig;
-import org.onosproject.segmentrouting.config.XConnectConfig;
 import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
 import org.onosproject.segmentrouting.grouphandler.DestinationSet;
 import org.onosproject.segmentrouting.grouphandler.NextNeighbors;
@@ -303,7 +302,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private InternalLinkListener linkListener = null;
     private InternalDeviceListener deviceListener = null;
     private AppConfigHandler appCfgHandler = null;
-    public XConnectHandler xConnectHandler = null;
     McastHandler mcastHandler = null;
     HostHandler hostHandler = null;
     private RouteHandler routeHandler = null;
@@ -389,16 +387,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 @Override
                 public SegmentRoutingAppConfig createConfig() {
                     return new SegmentRoutingAppConfig();
-                }
-            };
-
-    private final ConfigFactory<ApplicationId, XConnectConfig> xConnectConfigFactory =
-            new ConfigFactory<ApplicationId, XConnectConfig>(
-                    SubjectFactories.APP_SUBJECT_FACTORY,
-                    XConnectConfig.class, "xconnect") {
-                @Override
-                public XConnectConfig createConfig() {
-                    return new XConnectConfig();
                 }
             };
 
@@ -556,7 +544,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         linkListener = new InternalLinkListener();
         deviceListener = new InternalDeviceListener();
         appCfgHandler = new AppConfigHandler(this);
-        xConnectHandler = new XConnectHandler(this);
         mcastHandler = new McastHandler(this);
         hostHandler = new HostHandler(this);
         linkHandler = new LinkHandler(this);
@@ -568,7 +555,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         cfgService.addListener(cfgListener);
         cfgService.registerConfigFactory(deviceConfigFactory);
         cfgService.registerConfigFactory(appConfigFactory);
-        cfgService.registerConfigFactory(xConnectConfigFactory);
         cfgService.registerConfigFactory(mcastConfigFactory);
         log.info("Configuring network before adding listeners");
 
@@ -644,7 +630,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         cfgService.removeListener(cfgListener);
         cfgService.unregisterConfigFactory(deviceConfigFactory);
         cfgService.unregisterConfigFactory(appConfigFactory);
-        cfgService.unregisterConfigFactory(xConnectConfigFactory);
         cfgService.unregisterConfigFactory(mcastConfigFactory);
         compCfgService.unregisterProperties(getClass(), false);
 
@@ -1548,8 +1533,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     } else if (configClass.equals(SegmentRoutingDeviceConfig.class)) {
                         log.info("Segment Routing Device Config added for {}", event.subject());
                         cfgListener.configureNetwork();
-                    } else if (configClass.equals(XConnectConfig.class)) {
-                        xConnectHandler.processXConnectConfigAdded(netcfgEvent);
                     } else if (configClass.equals(InterfaceConfig.class)) {
                         log.info("Interface Config added for {}", event.subject());
                         cfgListener.configureNetwork();
@@ -1566,8 +1549,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     } else if (configClass.equals(SegmentRoutingDeviceConfig.class)) {
                         log.info("Segment Routing Device Config updated for {}", event.subject());
                         createOrUpdateDeviceConfiguration();
-                    } else if (configClass.equals(XConnectConfig.class)) {
-                        xConnectHandler.processXConnectConfigUpdated(netcfgEvent);
                     } else if (configClass.equals(InterfaceConfig.class)) {
                         log.info("Interface Config updated for {}", event.subject());
                         createOrUpdateDeviceConfiguration();
@@ -1586,8 +1567,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                     } else if (configClass.equals(SegmentRoutingDeviceConfig.class)) {
                         // TODO Handle sr device config removal
                         log.info("SegmentRoutingDeviceConfig removal is not handled in current implementation");
-                    } else if (configClass.equals(XConnectConfig.class)) {
-                        xConnectHandler.processXConnectConfigRemoved(netcfgEvent);
                     } else if (configClass.equals(InterfaceConfig.class)) {
                         // TODO Handle interface removal
                         log.info("InterfaceConfig removal is not handled in current implementation");
@@ -1658,7 +1637,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
         if (mastershipService.isLocalMaster(deviceId)) {
             defaultRoutingHandler.populatePortAddressingRules(deviceId);
-            xConnectHandler.init(deviceId);
             DefaultGroupHandler groupHandler = groupHandlerMap.get(deviceId);
             groupHandler.createGroupsFromVlanConfig();
             routingRulePopulator.populateSubnetBroadcastRule(deviceId);
@@ -1697,7 +1675,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         defaultRoutingHandler
             .populateRoutingRulesForLinkStatusChange(null, null, device.id(), true);
         defaultRoutingHandler.purgeEcmpGraph(device.id());
-        xConnectHandler.removeDevice(device.id());
 
         // Cleanup all internal groupHandler stores for this device. Should be
         // done after all rerouting or rehashing has been completed
@@ -1897,7 +1874,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 return;
             }
             checkState(appCfgHandler != null, "NetworkConfigEventHandler is not initialized");
-            checkState(xConnectHandler != null, "XConnectHandler is not initialized");
             switch (event.type()) {
                 case CONFIG_ADDED:
                 case CONFIG_UPDATED:
@@ -1924,8 +1900,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
             if (!event.configClass().equals(SegmentRoutingDeviceConfig.class) &&
                     !event.configClass().equals(SegmentRoutingAppConfig.class) &&
-                    !event.configClass().equals(InterfaceConfig.class) &&
-                    !event.configClass().equals(XConnectConfig.class)) {
+                    !event.configClass().equals(InterfaceConfig.class)) {
                 log.debug("Ignore event {} due to class mismatch", event);
                 return false;
             }

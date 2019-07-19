@@ -32,9 +32,9 @@ import java.util.Set;
  * Codec for Xconnect.
  */
 public class XconnectCodec extends JsonCodec<XconnectDesc> {
-    private static final String DEVICE_ID = "deviceId";
-    private static final String VLAN_ID = "vlanId";
-    private static final String ENDPOINTS = "endpoints";
+    static final String DEVICE_ID = "deviceId";
+    static final String VLAN_ID = "vlanId";
+    static final String ENDPOINTS = "endpoints";
 
     private static Logger log = LoggerFactory.getLogger(XconnectCodec.class);
 
@@ -42,7 +42,7 @@ public class XconnectCodec extends JsonCodec<XconnectDesc> {
     public ObjectNode encode(XconnectDesc desc, CodecContext context) {
         final ObjectNode result = context.mapper().createObjectNode();
         result.put(DEVICE_ID, desc.key().deviceId().toString());
-        result.put(VLAN_ID, desc.key().vlanId().toString());
+        result.put(VLAN_ID, desc.key().vlanId().toShort());
         final ArrayNode portNode = result.putArray(ENDPOINTS);
         desc.endpoints().forEach(endpoint -> portNode.add(endpoint.toString()));
 
@@ -57,8 +57,7 @@ public class XconnectCodec extends JsonCodec<XconnectDesc> {
         Set<XconnectEndpoint> endpoints = Sets.newHashSet();
         JsonNode endpointNodes = json.get(ENDPOINTS);
         if (endpointNodes != null) {
-            XconnectEndpoint endpoint = XconnectEndpoint.fromString(endpointNodes.asText());
-            endpointNodes.forEach(endpointNode -> endpoints.add(endpoint));
+            endpointNodes.forEach(endpointNode -> endpoints.add(XconnectEndpoint.fromString(endpointNode.asText())));
         }
 
         XconnectKey key = new XconnectKey(deviceId, vlanId);

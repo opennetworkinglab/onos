@@ -61,9 +61,6 @@ public class XconnectDesc {
         if (this == obj) {
             return true;
         }
-        if (!super.equals(obj)) {
-            return false;
-        }
         if (!(obj instanceof XconnectDesc)) {
             return false;
         }

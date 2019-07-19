@@ -62,9 +62,6 @@ public class XconnectKey {
         if (this == obj) {
             return true;
         }
-        if (!super.equals(obj)) {
-            return false;
-        }
         if (!(obj instanceof XconnectKey)) {
             return false;
         }

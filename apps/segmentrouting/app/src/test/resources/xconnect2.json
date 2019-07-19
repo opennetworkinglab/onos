@@ -1,0 +1,5 @@
+{
+  "deviceId": "of:1",
+  "vlanId": 10,
+  "endpoints": ["1", "LB:5"]
+}
