@@ -59,7 +59,7 @@ public class LumentumRoadmLambdaQuery extends AbstractHandlerBehaviour implement
         DeviceService deviceService = this.handler().get(DeviceService.class);
         Port port = deviceService.getPort(data().deviceId(), portNumber);
 
-        if (port.type() == Port.Type.FIBER) {
+        if ((port.type() == Port.Type.FIBER) || (port.type() == Port.Type.OMS)) {
 
             //Complete set of 50GHz OchSignal
             int startMultiplier50 = (int) (START_CENTER_FREQ_50.subtract(Spectrum.CENTER_FREQUENCY).asHz()
