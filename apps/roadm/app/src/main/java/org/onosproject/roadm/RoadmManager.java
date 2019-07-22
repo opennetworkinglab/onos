@@ -311,6 +311,7 @@ public class RoadmManager implements RoadmService {
                 .add(Criteria.matchLambda(ochSignal))
                 .build();
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .add(Instructions.modL0Lambda(ochSignal))
                 .add(Instructions.createOutput(outPort))
                 .build();
 
