@@ -42,6 +42,8 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.Port;
+import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
@@ -67,6 +69,7 @@ import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.segmentrouting.SegmentRoutingService;
+import org.onosproject.segmentrouting.config.SegmentRoutingDeviceConfig;
 import org.onosproject.segmentrouting.storekey.VlanNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.xconnect.api.XconnectCodec;
 import org.onosproject.segmentrouting.xconnect.api.XconnectDesc;
@@ -87,13 +90,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Iterator;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
 import static org.onlab.util.Tools.groupedThreads;
 
 @Service
@@ -135,8 +138,13 @@ public class XconnectManager implements XconnectService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     HostService hostService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    public NetworkConfigRegistry cfgService;
+
     private static final String APP_NAME = "org.onosproject.xconnect";
     private static final String ERROR_NOT_LEADER = "Not leader controller";
+    private static final String ERROR_NOT_EDGE_ROUTER = "Device is not Edge Router";
+    private static final String ERROR_PORT_NOT_RANGE = "Ports for the device are not in the range";
 
     private static Logger log = LoggerFactory.getLogger(XconnectManager.class);
 
@@ -220,6 +228,21 @@ public class XconnectManager implements XconnectService {
     public void addOrUpdateXconnect(DeviceId deviceId, VlanId vlanId, Set<PortNumber> ports) {
         log.info("Adding or updating xconnect. deviceId={}, vlanId={}, ports={}",
                  deviceId, vlanId, ports);
+        SegmentRoutingDeviceConfig config = cfgService.getConfig(deviceId, SegmentRoutingDeviceConfig.class);
+
+        List<PortNumber> devicePorts = deviceService.getPorts(deviceId).stream()
+                .map(Port::number)
+                .collect(Collectors.toList());
+        if (!config.isEdgeRouter()) {
+            throw new IllegalArgumentException(ERROR_NOT_EDGE_ROUTER);
+        } else {
+                Iterator itr = ports.iterator();
+                while (itr.hasNext()) {
+                    if (!devicePorts.contains(itr.next())) {
+                            throw new IllegalArgumentException(ERROR_PORT_NOT_RANGE);
+                        }
+                }
+        }
         final XconnectKey key = new XconnectKey(deviceId, vlanId);
         xconnectStore.put(key, ports);
     }
