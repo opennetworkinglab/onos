@@ -43,6 +43,8 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostLocation;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.Port;
+import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
@@ -71,6 +73,7 @@ import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
 import org.onosproject.net.intf.InterfaceService;
 import org.onosproject.segmentrouting.SegmentRoutingService;
+import org.onosproject.segmentrouting.config.SegmentRoutingDeviceConfig;
 import org.onosproject.segmentrouting.storekey.VlanNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.xconnect.api.XconnectCodec;
 import org.onosproject.segmentrouting.xconnect.api.XconnectDesc;
@@ -99,6 +102,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Iterator;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -152,10 +156,15 @@ public class XconnectManager implements XconnectService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private PortLoadBalancerService portLoadBalancerService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    public NetworkConfigRegistry cfgService;
+
     private static final String APP_NAME = "org.onosproject.xconnect";
     private static final String ERROR_NOT_LEADER = "Not leader controller";
     private static final String ERROR_NEXT_OBJ_BUILDER = "Unable to construct next objective builder";
     private static final String ERROR_NEXT_ID = "Unable to get next id";
+    private static final String ERROR_NOT_EDGE_ROUTER = "Device is not Edge Router";
+    private static final String ERROR_PORT_NOT_RANGE = "Ports for the device are not in the range";
 
     private static Logger log = LoggerFactory.getLogger(XconnectManager.class);
 
@@ -265,6 +274,26 @@ public class XconnectManager implements XconnectService {
     public void addOrUpdateXconnect(DeviceId deviceId, VlanId vlanId, Set<XconnectEndpoint> endpoints) {
         log.info("Adding or updating xconnect. deviceId={}, vlanId={}, endpoints={}",
                  deviceId, vlanId, endpoints);
+        SegmentRoutingDeviceConfig config = cfgService.getConfig(deviceId, SegmentRoutingDeviceConfig.class);
+
+        List<PortNumber> devicePorts = deviceService.getPorts(deviceId).stream()
+                .map(Port::number)
+                .collect(Collectors.toList());
+        if (!config.isEdgeRouter()) {
+            throw new IllegalArgumentException(ERROR_NOT_EDGE_ROUTER);
+        } else {
+                Iterator<XconnectEndpoint> itr = endpoints.iterator();
+                while (itr.hasNext()) {
+                    XconnectEndpoint ep = itr.next();
+                    // Note: we don't validate an endpoint with LOAD_BALANCER type
+                    if (ep.type() != XconnectEndpoint.Type.PORT) {
+                        continue;
+                    }
+                    if (!devicePorts.contains(((XconnectPortEndpoint) ep).port())) {
+                        throw new IllegalArgumentException(ERROR_PORT_NOT_RANGE);
+                    }
+                }
+        }
         final XconnectKey key = new XconnectKey(deviceId, vlanId);
         xconnectStore.put(key, endpoints);
     }
