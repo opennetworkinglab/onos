@@ -58,20 +58,21 @@ import java.util.concurrent.Executors;
 
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.k8snetworking.api.Constants.ACL_TABLE;
-import static org.onosproject.k8snetworking.api.Constants.JUMP_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.ARP_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.DEFAULT_GATEWAY_MAC;
 import static org.onosproject.k8snetworking.api.Constants.FORWARDING_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.GROUPING_TABLE;
+import static org.onosproject.k8snetworking.api.Constants.JUMP_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.K8S_NETWORKING_APP_ID;
+import static org.onosproject.k8snetworking.api.Constants.NAMESPACE_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_CIDR_RULE;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_SNAT_RULE;
 import static org.onosproject.k8snetworking.api.Constants.ROUTING_TABLE;
-import static org.onosproject.k8snetworking.api.Constants.STAT_INGRESS_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.STAT_EGRESS_TABLE;
+import static org.onosproject.k8snetworking.api.Constants.STAT_INGRESS_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.VTAG_TABLE;
-import static org.onosproject.k8snetworking.api.Constants.VTAP_INGRESS_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.VTAP_EGRESS_TABLE;
+import static org.onosproject.k8snetworking.api.Constants.VTAP_INGRESS_TABLE;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.tunnelPortNumByNetId;
 import static org.onosproject.k8snetworking.util.RulePopulatorUtil.buildExtension;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -232,10 +233,14 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
         // for vTag and ARP table transition
         connectTables(deviceId, VTAG_TABLE, ARP_TABLE);
 
-        connectTables(deviceId, JUMP_TABLE, GROUPING_TABLE);
+        // for jump and namespace table transition
+        connectTables(deviceId, JUMP_TABLE, NAMESPACE_TABLE);
 
         // for ARP and ACL table transition
-        connectTables(deviceId, ARP_TABLE, GROUPING_TABLE);
+        connectTables(deviceId, ARP_TABLE, NAMESPACE_TABLE);
+
+        // for namespace table transition to grouping table
+        connectTables(deviceId, NAMESPACE_TABLE, GROUPING_TABLE);
 
         // for grouping table transition to ACL table
         connectTables(deviceId, GROUPING_TABLE, ACL_TABLE);

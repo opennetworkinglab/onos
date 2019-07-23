@@ -56,10 +56,10 @@ import java.util.concurrent.ExecutorService;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.k8snetworking.api.Constants.JUMP_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.ARP_BROADCAST_MODE;
 import static org.onosproject.k8snetworking.api.Constants.ARP_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.FORWARDING_TABLE;
+import static org.onosproject.k8snetworking.api.Constants.JUMP_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.K8S_NETWORKING_APP_ID;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_SWITCHING_RULE;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_TUNNEL_TAG_RULE;
@@ -243,7 +243,6 @@ public class K8sSwitchingHandler {
 
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
                 .setTunnelId(getVni(port));
-
 
         if (ethType == Ethernet.TYPE_ARP) {
             tBuilder.transition(ARP_TABLE);

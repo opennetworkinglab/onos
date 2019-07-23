@@ -21,6 +21,7 @@ import io.fabric8.kubernetes.api.model.EndpointAddress;
 import io.fabric8.kubernetes.api.model.EndpointPort;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServicePort;
 import org.apache.felix.scr.annotations.Activate;
@@ -53,6 +54,7 @@ import org.onosproject.k8snetworking.api.K8sNetwork;
 import org.onosproject.k8snetworking.api.K8sNetworkEvent;
 import org.onosproject.k8snetworking.api.K8sNetworkListener;
 import org.onosproject.k8snetworking.api.K8sNetworkService;
+import org.onosproject.k8snetworking.api.K8sPodService;
 import org.onosproject.k8snetworking.api.K8sServiceEvent;
 import org.onosproject.k8snetworking.api.K8sServiceListener;
 import org.onosproject.k8snetworking.api.K8sServiceService;
@@ -88,6 +90,7 @@ import java.util.stream.Collectors;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.k8snetworking.api.Constants.ACL_TABLE;
+import static org.onosproject.k8snetworking.api.Constants.NAMESPACE_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.A_CLASS;
 import static org.onosproject.k8snetworking.api.Constants.B_CLASS;
 import static org.onosproject.k8snetworking.api.Constants.DEFAULT_SERVICE_IP_CIDR;
@@ -106,7 +109,6 @@ import static org.onosproject.k8snetworking.api.Constants.PRIORITY_INTER_ROUTING
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_NAT_RULE;
 import static org.onosproject.k8snetworking.api.Constants.ROUTING_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.SERVICE_FAKE_MAC_STR;
-import static org.onosproject.k8snetworking.api.Constants.SERVICE_PORT_MAP;
 import static org.onosproject.k8snetworking.api.Constants.SERVICE_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.SHIFTED_IP_CIDR;
 import static org.onosproject.k8snetworking.api.Constants.SHIFTED_IP_PREFIX;
@@ -114,6 +116,8 @@ import static org.onosproject.k8snetworking.api.Constants.SRC;
 import static org.onosproject.k8snetworking.api.Constants.STAT_EGRESS_TABLE;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.getBclassIpPrefixFromCidr;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.nodeIpGatewayIpMap;
+import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.podByIp;
+import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.portNumberByName;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.tunnelPortNumByNetId;
 import static org.onosproject.k8snetworking.util.RulePopulatorUtil.CT_NAT_DST_FLAG;
 import static org.onosproject.k8snetworking.util.RulePopulatorUtil.buildExtension;
@@ -184,6 +188,9 @@ public class K8sServiceHandler {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected K8sServiceService k8sServiceService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected K8sPodService k8sPodService;
+
     @Property(name = SERVICE_CIDR, value = DEFAULT_SERVICE_IP_CIDR,
             label = "Ranges of IP address for service VIP.")
     protected String serviceCidr = DEFAULT_SERVICE_IP_CIDR;
@@ -250,7 +257,7 @@ public class K8sServiceHandler {
             setUntrack(deviceId, ctUntrack, ctMaskUntrack, n.cidr(), serviceCidr,
                     GROUPING_TABLE, NAT_TABLE, PRIORITY_CT_RULE, install);
             setUntrack(deviceId, ctUntrack, ctMaskUntrack, n.cidr(), n.cidr(),
-                    GROUPING_TABLE, ACL_TABLE, PRIORITY_CT_RULE, install);
+                    GROUPING_TABLE, NAMESPACE_TABLE, PRIORITY_CT_RULE, install);
         });
 
         // +trk-new CT rules
@@ -364,28 +371,40 @@ public class K8sServiceHandler {
                 .filter(Objects::nonNull)
                 .filter(sp -> sp.getTargetPort() != null)
                 .filter(sp -> sp.getTargetPort().getIntVal() != null ||
-                        (sp.getTargetPort().getStrVal() != null &&
-                                SERVICE_PORT_MAP.get(sp.getTargetPort().getStrVal()) != null))
+                        sp.getTargetPort().getStrVal() != null)
                 .forEach(sp -> {
-            int targetPort = sp.getTargetPort().getIntVal() != null ?
-                    sp.getTargetPort().getIntVal() :
-                    SERVICE_PORT_MAP.get(sp.getTargetPort().getStrVal());
-            String targetProtocol = sp.getProtocol();
+                    Integer targetPortInt = sp.getTargetPort().getIntVal() != null ?
+                            sp.getTargetPort().getIntVal() : 0;
+                    String targetPortName = sp.getTargetPort().getStrVal() != null ?
+                            sp.getTargetPort().getStrVal() : "";
+                    String targetProtocol = sp.getProtocol();
 
-            for (Endpoints endpoints : endpointses) {
-                for (EndpointSubset endpointSubset : endpoints.getSubsets()) {
-                    for (EndpointPort endpointPort : endpointSubset.getPorts()) {
-                        if (targetProtocol.equals(endpointPort.getProtocol()) &&
-                                targetPort == endpointPort.getPort()) {
-                            Set<String> addresses = endpointSubset.getAddresses()
-                                    .stream().map(EndpointAddress::getIp)
-                                    .collect(Collectors.toSet());
-                            map.put(sp, addresses);
+                    for (Endpoints endpoints : endpointses) {
+                        for (EndpointSubset endpointSubset : endpoints.getSubsets()) {
+
+                            // in case service port name is specified but not port number
+                            // we will lookup the container port number and use it
+                            // as the target port number
+                            if (!targetPortName.equals("") && targetPortInt == 0) {
+                                for (EndpointAddress addr : endpointSubset.getAddresses()) {
+                                    Pod pod = podByIp(k8sPodService, addr.getIp());
+                                    targetPortInt = portNumberByName(pod, targetPortName);
+                                }
+                            }
+
+                            for (EndpointPort endpointPort : endpointSubset.getPorts()) {
+                                if (targetProtocol.equals(endpointPort.getProtocol()) &&
+                                        (targetPortInt.equals(endpointPort.getPort()) ||
+                                                targetPortName.equals(endpointPort.getName()))) {
+                                    Set<String> addresses = endpointSubset.getAddresses()
+                                            .stream().map(EndpointAddress::getIp)
+                                            .collect(Collectors.toSet());
+                                    map.put(sp, addresses);
+                                }
+                            }
                         }
                     }
-                }
-            }
-        });
+                });
 
         return map;
     }
@@ -424,17 +443,24 @@ public class K8sServiceHandler {
             });
 
             spEpasMap.forEach((sp, epas) ->
-                // add flow rules for unshifting IP domain
-                epas.forEach(epa -> {
-                    int targetPort = sp.getTargetPort().getIntVal() != null ?
-                            sp.getTargetPort().getIntVal() :
-                            SERVICE_PORT_MAP.get(sp.getTargetPort().getStrVal());
+                    // add flow rules for unshifting IP domain
+                    epas.forEach(epa -> {
 
-                    setUnshiftDomainRules(node.intgBridge(), POD_TABLE,
-                            PRIORITY_NAT_RULE, serviceIp, sp.getPort(),
-                            sp.getProtocol(), nodeIpGatewayIpMap.getOrDefault(epa, epa),
-                            targetPort, install);
-                })
+                        String podIp = nodeIpGatewayIpMap.getOrDefault(epa, epa);
+
+                        int targetPort;
+                        if (sp.getTargetPort().getIntVal() == null) {
+                            Pod pod = podByIp(k8sPodService, podIp);
+                            targetPort = portNumberByName(pod, sp.getTargetPort().getStrVal());
+                        } else {
+                            targetPort = sp.getTargetPort().getIntVal();
+                        }
+
+                        setUnshiftDomainRules(node.intgBridge(), POD_TABLE,
+                                PRIORITY_NAT_RULE, serviceIp, sp.getPort(),
+                                sp.getProtocol(), podIp,
+                                targetPort, install);
+                    })
             );
         }
     }
@@ -443,9 +469,13 @@ public class K8sServiceHandler {
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
                 .setIpDst(IpAddress.valueOf(podIpStr));
 
-        int targetPort = sp.getTargetPort().getIntVal() != null ?
-                sp.getTargetPort().getIntVal() :
-                SERVICE_PORT_MAP.get(sp.getTargetPort().getStrVal());
+        int targetPort;
+        if (sp.getTargetPort().getIntVal() == null) {
+            Pod pod = podByIp(k8sPodService, podIpStr);
+            targetPort = portNumberByName(pod, sp.getTargetPort().getStrVal());
+        } else {
+            targetPort = sp.getTargetPort().getIntVal();
+        }
 
         if (TCP.equals(sp.getProtocol())) {
             tBuilder.setTcpDst(TpPort.tpPort(targetPort));
@@ -467,8 +497,7 @@ public class K8sServiceHandler {
                 .filter(Objects::nonNull)
                 .filter(sp -> sp.getTargetPort() != null)
                 .filter(sp -> sp.getTargetPort().getIntVal() != null ||
-                        (sp.getTargetPort().getStrVal() != null &&
-                                SERVICE_PORT_MAP.get(sp.getTargetPort().getStrVal()) != null))
+                        sp.getTargetPort().getStrVal() != null)
                 .collect(Collectors.toSet());
 
         String serviceIp = service.getSpec().getClusterIP();

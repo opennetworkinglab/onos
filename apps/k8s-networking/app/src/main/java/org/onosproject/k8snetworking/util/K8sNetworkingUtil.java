@@ -20,6 +20,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
+import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.ContainerPort;
+import io.fabric8.kubernetes.api.model.Namespace;
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -28,8 +32,11 @@ import org.apache.commons.net.util.SubnetUtils;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.TpPort;
 import org.onosproject.cfg.ConfigProperty;
+import org.onosproject.k8snetworking.api.K8sNamespaceService;
 import org.onosproject.k8snetworking.api.K8sNetwork;
 import org.onosproject.k8snetworking.api.K8sNetworkService;
+import org.onosproject.k8snetworking.api.K8sPodService;
+import org.onosproject.k8snetworking.api.K8sServiceService;
 import org.onosproject.k8snode.api.K8sApiConfig;
 import org.onosproject.k8snode.api.K8sApiConfigService;
 import org.onosproject.k8snode.api.K8sNode;
@@ -49,6 +56,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.onosproject.k8snetworking.api.Constants.DEFAULT_NAMESPACE_HASH;
 import static org.onosproject.k8snetworking.api.Constants.PORT_NAME_PREFIX_CONTAINER;
 
 /**
@@ -380,6 +388,106 @@ public final class K8sNetworkingUtil {
         }
 
         return portMaskMap;
+    }
+
+    /**
+     * Returns the namespace hash value by given POD IP.
+     *
+     * @param k8sPodService         kubernetes POD service
+     * @param k8sNamespaceService   kubernetes namespace service
+     * @param podIp                 POD IP address
+     * @return namespace hash value
+     */
+    public static Integer namespaceHashByPodIp(K8sPodService k8sPodService,
+                                               K8sNamespaceService k8sNamespaceService,
+                                               String podIp) {
+        String ns = k8sPodService.pods().stream()
+                .filter(pod -> pod.getStatus().getPodIP() != null)
+                .filter(pod -> pod.getStatus().getPodIP().equals(podIp))
+                .map(pod -> pod.getMetadata().getNamespace())
+                .findAny().orElse(null);
+
+        if (ns != null) {
+            return k8sNamespaceService.namespaces().stream()
+                    .filter(n -> n.getMetadata().getName().equals(ns))
+                    .map(Namespace::hashCode).findAny().orElse(null);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Returns the namespace hash value by given service IP.
+     *
+     * @param k8sServiceService     kubernetes service service
+     * @param k8sNamespaceService   kubernetes namespace service
+     * @param serviceIp             service IP address
+     * @return namespace hash value
+     */
+    public static int namespaceHashByServiceIp(K8sServiceService k8sServiceService,
+                                                   K8sNamespaceService k8sNamespaceService,
+                                                   String serviceIp) {
+        String ns = k8sServiceService.services().stream()
+                .filter(service -> service.getSpec().getClusterIP() != null)
+                .filter(service -> service.getSpec().getClusterIP().equalsIgnoreCase(serviceIp))
+                .map(service -> service.getMetadata().getNamespace())
+                .findAny().orElse(null);
+
+        if (ns != null) {
+            return namespaceHashByNamespace(k8sNamespaceService, ns);
+        } else {
+            return DEFAULT_NAMESPACE_HASH;
+        }
+    }
+
+    /**
+     * Returns the namespace hash value by given namespace name.
+     *
+     * @param k8sNamespaceService   kubernetes namespace service
+     * @param ns                    namespace name
+     * @return namespace hash value
+     */
+    public static int namespaceHashByNamespace(K8sNamespaceService k8sNamespaceService,
+                                               String ns) {
+
+        return k8sNamespaceService.namespaces().stream()
+                .filter(n -> n.getMetadata().getName() != null)
+                .filter(n -> n.getMetadata().getName().equalsIgnoreCase(ns))
+                .map(Namespace::hashCode).findAny().orElse(DEFAULT_NAMESPACE_HASH);
+    }
+
+    /**
+     * Returns POD instance by POD IP address.
+     *
+     * @param podService    kubernetes POD service
+     * @param podIp         POD IP address
+     * @return POD instance
+     */
+    public static Pod podByIp(K8sPodService podService, String podIp) {
+        return podService.pods().stream()
+                .filter(pod -> pod.getStatus().getPodIP() != null)
+                .filter(pod -> pod.getStatus().getPodIP().equals(podIp))
+                .findAny().orElse(null);
+    }
+
+    /**
+     * Returns the container port number by given container port name.
+     *
+     * @param pod           kubernetes POD
+     * @param portName      port name
+     * @return container port number,
+     *         return 0 if there is no port number mapped with the given port name
+     */
+    public static int portNumberByName(Pod pod, String portName) {
+        for (Container container : pod.getSpec().getContainers()) {
+            for (ContainerPort cp : container.getPorts()) {
+                if (cp.getName() != null && cp.getName().equals(portName)) {
+                    return cp.getContainerPort();
+                }
+            }
+        }
+
+        return 0;
     }
 
     private static int binLower(String binStr, int bits) {

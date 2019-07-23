@@ -15,8 +15,6 @@
  */
 package org.onosproject.k8snetworking.api;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import org.onlab.packet.MacAddress;
 
 /**
@@ -63,6 +61,11 @@ public final class Constants {
     public static final String ANNOTATION_CREATE_TIME = "createTime";
     public static final String ANNOTATION_SEGMENT_ID = "segId";
 
+    public static final long DEFAULT_METADATA_MASK = 0xffffffffffffffffL;
+    public static final int DEFAULT_NAMESPACE_HASH = 0xffffffff;
+
+    public static final int DEFAULT_SEGMENT_ID = 100;
+
     // flow priority
     public static final int PRIORITY_SNAT_RULE = 26000;
     public static final int PRIORITY_TUNNEL_TAG_RULE = 30000;
@@ -76,6 +79,7 @@ public final class Constants {
     public static final int PRIORITY_GATEWAY_RULE = 30000;
     public static final int PRIORITY_SWITCHING_RULE = 30000;
     public static final int PRIORITY_CIDR_RULE = 30000;
+    public static final int PRIORITY_NAMESPACE_RULE = 31000;
     public static final int PRIORITY_STATEFUL_SNAT_RULE = 41000;
     public static final int PRIORITY_EXTERNAL_ROUTING_RULE = 25000;
     public static final int PRIORITY_ARP_GATEWAY_RULE = 41000;
@@ -97,6 +101,7 @@ public final class Constants {
     public static final int VTAG_TABLE = 30;
     public static final int ARP_TABLE = 35;
     public static final int JUMP_TABLE = 40;
+    public static final int NAMESPACE_TABLE = 49;
     public static final int GROUPING_TABLE = 50;
     public static final int NAT_TABLE = 51;
     public static final int SERVICE_TABLE = 52;
@@ -115,34 +120,4 @@ public final class Constants {
 
     public static final int EXT_ENTRY_TABLE = 0;
     public static final int POD_RESOLUTION_TABLE = 11;
-
-    public static final BiMap<String, Integer> SERVICE_PORT_MAP = HashBiMap.create();
-
-    static {
-        SERVICE_PORT_MAP.put("ftp", 21);
-        SERVICE_PORT_MAP.put("ssh", 22);
-        SERVICE_PORT_MAP.put("telnet", 23);
-        SERVICE_PORT_MAP.put("smtp", 25);
-        SERVICE_PORT_MAP.put("time", 37);
-        SERVICE_PORT_MAP.put("login", 49);
-        SERVICE_PORT_MAP.put("dns", 53);
-        SERVICE_PORT_MAP.put("tftp", 69);
-        SERVICE_PORT_MAP.put("finger", 79);
-        SERVICE_PORT_MAP.put("http", 8080);
-        SERVICE_PORT_MAP.put("x400", 103);
-        SERVICE_PORT_MAP.put("pop2", 109);
-        SERVICE_PORT_MAP.put("pop3", 110);
-        SERVICE_PORT_MAP.put("sftp", 115);
-        SERVICE_PORT_MAP.put("nntp", 119);
-        SERVICE_PORT_MAP.put("imap", 143);
-        SERVICE_PORT_MAP.put("bgp", 179);
-        SERVICE_PORT_MAP.put("gacp", 190);
-        SERVICE_PORT_MAP.put("dls", 197);
-        SERVICE_PORT_MAP.put("ldap", 389);
-        SERVICE_PORT_MAP.put("https", 443);
-        SERVICE_PORT_MAP.put("snpp", 444);
-        SERVICE_PORT_MAP.put("dhcp-client", 546);
-        SERVICE_PORT_MAP.put("dhcp-server", 547);
-        SERVICE_PORT_MAP.put("socks", 1080);
-    }
 }
