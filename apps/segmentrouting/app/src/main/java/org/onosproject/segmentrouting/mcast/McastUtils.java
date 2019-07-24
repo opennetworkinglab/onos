@@ -123,8 +123,8 @@ class McastUtils {
         try {
             routerMac = srManager.deviceConfiguration().getDeviceMac(deviceId);
         } catch (DeviceConfigNotFoundException dcnfe) {
-            log.warn("Fail to push filtering objective since device is not configured. Abort");
-            return MacAddress.NONE;
+            log.warn("Failed to get device MAC since the device {} is not configured", deviceId);
+            return null;
         }
         return routerMac;
     }
@@ -142,7 +142,8 @@ class McastUtils {
                            IpAddress mcastIp, McastRole mcastRole) {
 
         MacAddress routerMac = getRouterMac(deviceId, port);
-        if (routerMac.equals(MacAddress.NONE)) {
+
+        if (MacAddress.NONE.equals(routerMac)) {
             return;
         }
 
@@ -170,7 +171,8 @@ class McastUtils {
                               IpAddress mcastIp, McastRole mcastRole) {
 
         MacAddress routerMac = getRouterMac(deviceId, port);
-        if (routerMac.equals(MacAddress.NONE)) {
+
+        if (MacAddress.NONE.equals(routerMac)) {
             return;
         }
 
@@ -412,11 +414,14 @@ class McastUtils {
                                                                 MacAddress.IPV6_MULTICAST_MASK));
         }
         // We finally build the meta treatment
-        TrafficTreatment tt = DefaultTrafficTreatment.builder()
-                .pushVlan().setVlanId(assignedVlan)
-                .setEthDst(routerMac)
-                .build();
-        filtBuilder.withMeta(tt);
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+        tBuilder.pushVlan().setVlanId(assignedVlan);
+
+        if (routerMac != null && !routerMac.equals(MacAddress.NONE)) {
+            tBuilder.setEthDst(routerMac);
+        }
+
+        filtBuilder.withMeta(tBuilder.build());
         // Done, we return a permit filtering objective
         return filtBuilder.permit().fromApp(srManager.appId());
     }
