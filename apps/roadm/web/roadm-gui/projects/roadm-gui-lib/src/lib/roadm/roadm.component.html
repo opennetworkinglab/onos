@@ -16,7 +16,7 @@
 <div id="ov-device">
     <onos-loading [theme]="'light'" [running]="loadingIconShown"></onos-loading>
     <div class="tabular-header">
-        <h2>Devices ({{ tableData.length }} total)</h2>
+        <h2>Optical Devices ({{ tableData.length }} total)</h2>
         <div class="ctrl-btns">
             <div class="refresh" (click)="toggleRefresh()">
                 <!-- See icon.theme.css for the defintions of the classes active and refresh-->
@@ -55,33 +55,15 @@
                 <tr>
                     <td colId="available" class="table-icon"></td>
                     <td colId="type" class="table-icon"></td>
-                    <td colId="name" (click)="onSort('name')">Friendly Name
-                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('name')"></onos-icon>
-                    </td>
-                    <td colId="id" (click)="onSort('id')">Device ID
-                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('id')"></onos-icon>
-                    </td>
-                    <td colId="master" [ngClass]="{width: '130px'}" (click)="onSort('master')">Master
-                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('master')"></onos-icon>
-                    </td>
-                    <td colId="ports" [ngClass]="{width: '70px'}" (click)="onSort('ports')">Ports
-                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('ports')"></onos-icon>
-                    </td>
-                    <td colId="vendor" (click)="onSort('vendor')">Vendor
-                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('vendor')"></onos-icon>
-                    </td>
-                    <td colId="hwVersion" (click)="onSort('hwVersion')">H/W Version
-                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('hwVersion')"></onos-icon>
-                    </td>
-                    <td colId="swVersion" (click)="onSort('swVersion')">S/W Version
-                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('swVersion')"></onos-icon>
-                    </td>
-                    <td colId="protocol" [ngClass]="{width: '100px'}" (click)="onSort('protocol')">Protocol
-                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('protocol')"></onos-icon>
-                    </td>
-                    <td colId="type" (click)="onSort('type')">Type
-                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('type')"></onos-icon>
-                    </td>
+                    <td colId="name">Friendly Name</td>
+                    <td colId="id">Device ID</td>
+                    <td colId="master" [ngClass]="{width: '130px'}">Master</td>
+                    <td colId="ports" [ngClass]="{width: '70px'}">Ports</td>
+                    <td colId="vendor">Vendor</td>
+                    <td colId="hwVersion">H/W Version</td>
+                    <td colId="swVersion">S/W Version</td>
+                    <td colId="protocol" [ngClass]="{width: '100px'}">Protocol</td>
+                    <td colId="type">Type</td>
                 </tr>
             </table>
         </div>

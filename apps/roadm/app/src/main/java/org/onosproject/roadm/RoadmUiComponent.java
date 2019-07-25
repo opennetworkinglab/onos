@@ -38,7 +38,7 @@ import java.util.List;
 public class RoadmUiComponent {
 
     private static final String VIEW_ID = "roadm-gui";
-    private static final String VIEW_TEXT = "Roadm UI";
+    private static final String VIEW_TEXT = "Optical UI";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 

@@ -19,6 +19,7 @@ import {
     LogService,
     PrefsService,
     WebSocketService,
+    IconService,
     SortDir, TableBaseImpl, TableResponse
 } from 'gui2-fw-lib';
 import { ActivatedRoute } from '@angular/router';
@@ -88,7 +89,8 @@ export class RoadmPortComponent extends TableBaseImpl implements OnInit, OnDestr
                 protected log: LogService,
                 protected ar: ActivatedRoute,
                 protected wss: WebSocketService,
-                protected prefs: PrefsService
+                protected prefs: PrefsService,
+                protected is: IconService,
     ) {
         super(fs, log, wss, 'roadmPort');
         this.ar.queryParams.subscribe(params => {
@@ -109,6 +111,8 @@ export class RoadmPortComponent extends TableBaseImpl implements OnInit, OnDestr
             secondCol: 'type',
             secondDir: SortDir.asc,
         };
+
+        this.is.loadIconDef('switch');
     }
 
     ngOnInit() {

@@ -15,10 +15,10 @@
 -->
 <!-- Port partial HTML -->
 <div id="ov-roadm-port">
-    <onos-loading [theme]="'light'" [running]="loadingIconShown"></onos-loading>
+    <!--<onos-loading [theme]="'light'" [running]="loadingIconShown"></onos-loading>-->
     <div class="tabular-header">
         <h2>
-            Ports for Roadm Device {{devId}} ({{tableData.length}} Total)
+            Ports for Optical Device {{devId}} ({{tableData.length}} Total)
         </h2>
 
         <div class="ctrl-btns">
@@ -62,45 +62,19 @@
         <div class="table-header">
             <table>
                 <tr>
-                    <td colId="id" (click)="onSort('id')">Port ID
-                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('id')"></onos-icon>
-                    </td>
-                    <td colId="reversePort" (click)="onSort('reversePort')">Reverse Port
-                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('reversePort')"></onos-icon>
-                    </td>
-                    <td colId="name" (click)="onSort('name')">Name
-                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('name')"></onos-icon>
-                    </td>
-                    <td colId="type" (click)="onSort('type')">Type
-                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('type')"></onos-icon>
-                    </td>
-                    <td colId="enabled" (click)="onSort('enabled')">Enabled
-                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('enabled')"></onos-icon>
-                    </td>
-                    <td colId="minFreq" (click)="onSort('minFreq')">Min Freq (GHz)
-                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('minFreq')"></onos-icon>
-                    </td>
-                    <td colId="maxFreq" (click)="onSort('maxFreq')">Max Freq (GHz)
-                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('maxFreq')"></onos-icon>
-                    </td>
-                    <td colId="grid" (click)="onSort('grid')">Grid (GHz)
-                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('grid')"></onos-icon>
-                    </td>
-                    <td colId="powerRange" (click)="onSort('powerRange')">Power Range (dBm)
-                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('powerRange')"></onos-icon>
-                    </td>
-                    <td colId="currentPower" (click)="onSort('currentPower')">Current Power (dBm)
-                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('currentPower')"></onos-icon>
-                    </td>
-                    <td colId="targetPower" (click)="onSort('targetPower')">Target Power (dBm)
-                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('targetPower')"></onos-icon>
-                    </td>
-                    <td colId="hasTargetPower" (click)="onSort('hasTargetPower')">Has Target Power
-                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('hasTargetPower')"></onos-icon>
-                    </td>
-                    <td colId="serviceState" (click)="onSort('serviceState')">Service State
-                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('serviceState')"></onos-icon>
-                    </td>
+                    <td colId="id">Port ID</td>
+                    <td colId="reversePort">Reverse Port</td>
+                    <td colId="name">Name</td>
+                    <td colId="type">Type</td>
+                    <td colId="enabled">Enabled</td>
+                    <td colId="minFreq">Min Freq (GHz)</td>
+                    <td colId="maxFreq">Max Freq (GHz)</td>
+                    <td colId="grid">Grid (GHz)</td>
+                    <td colId="powerRange">Power Range (dBm)</td>
+                    <td colId="currentPower">Current Power (dBm)</td>
+                    <td colId="targetPower">Target Power (dBm)</td>
+                    <td colId="hasTargetPower">Has Target Power</td>
+                    <td colId="serviceState">Service State</td>
                 </tr>
             </table>
         </div>
@@ -117,14 +91,14 @@
                     <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.name}}</td>
                     <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.type}}</td>
                     <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.enabled}}</td>
-                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.minFreq}}</td>
-                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.maxFreq}}</td>
-                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.grid}}</td>
+                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.type=='OCH'?port.minFreq:""}}</td>
+                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.type=='OCH'?port.maxFreq:""}}</td>
+                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.type=='OCH'?port.grid:""}}</td>
                     <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.powerRange}}</td>
                     <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.currentPower}}</td>
-                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.targetPower}}
+                    <td [ngClass]="(isDelta() ? 'delta' : '')">
                         <form [formGroup]="powerForm" (ngSubmit)="submitPower(devId, port.id)" *ngIf="port.type=='OCH'">
-                            <input type="text" formControlName="newPower" required>
+                            <input type="number" step="any" style="width:50px" value="{{port.targetPower}}" formControlName="newPower" required>
                             <button type="submit">Submit</button>
                         </form>
                     </td>
