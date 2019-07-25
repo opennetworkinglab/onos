@@ -6,6 +6,7 @@ COMPILE_DEPS = CORE_DEPS + KRYO + [
     "//pipelines/basic:onos-pipelines-basic",
     "//core/store/serializers:onos-core-serializers",
     "//apps/inbandtelemetry/api:onos-apps-inbandtelemetry-api",
+    "//drivers/p4runtime:onos-drivers-p4runtime",
 ]
 
 osgi_jar_with_tests(
