@@ -35,7 +35,7 @@ import org.onosproject.net.provider.ProviderId;
         description = "Annotates host")
 public class AnnotateHostCommand extends AbstractShellCommand {
 
-    static final ProviderId PID = new ProviderId("cli", "org.onosproject.cli", true);
+    static final ProviderId PID = new ProviderId("cli", "org.onosproject.cli");
 
     @Argument(index = 0, name = "uri", description = "Host ID",
             required = true, multiValued = false)

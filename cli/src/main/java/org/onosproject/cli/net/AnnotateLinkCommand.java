@@ -45,7 +45,7 @@ import org.onosproject.net.provider.ProviderId;
          description = "Annotates network model entities")
 public class AnnotateLinkCommand extends AbstractShellCommand {
 
-    static final ProviderId PID = new ProviderId("cli", "org.onosproject.cli", true);
+    static final ProviderId PID = new ProviderId("cli", "org.onosproject.cli");
 
     @Option(name = "--both",
             description = "Add to both direction")

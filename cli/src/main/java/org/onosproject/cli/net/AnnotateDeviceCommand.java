@@ -35,7 +35,7 @@ import org.onosproject.net.provider.ProviderId;
         description = "Annotates network model entities")
 public class AnnotateDeviceCommand extends AbstractShellCommand {
 
-    static final ProviderId PID = new ProviderId("cli", "org.onosproject.cli", true);
+    static final ProviderId PID = new ProviderId("cli", "org.onosproject.cli");
 
     @Argument(index = 0, name = "uri", description = "Device ID",
             required = true, multiValued = false)
