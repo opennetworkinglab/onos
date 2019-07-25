@@ -17,6 +17,8 @@
 package org.onosproject.pipelines.fabric.impl;
 
 import org.onosproject.inbandtelemetry.api.IntProgrammable;
+
+import org.onosproject.net.behaviour.BngProgrammable;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.pi.model.DefaultPiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconf;
@@ -26,6 +28,7 @@ import org.onosproject.p4runtime.model.P4InfoParser;
 import org.onosproject.p4runtime.model.P4InfoParserException;
 import org.onosproject.pipelines.fabric.FabricPipeconfService;
 import org.onosproject.pipelines.fabric.impl.behaviour.FabricIntProgrammable;
+import org.onosproject.pipelines.fabric.impl.behaviour.bng.FabricBngProgrammable;
 import org.onosproject.pipelines.fabric.impl.behaviour.FabricInterpreter;
 import org.onosproject.pipelines.fabric.impl.behaviour.pipeliner.FabricPipeliner;
 import org.osgi.service.component.annotations.Activate;
@@ -47,6 +50,7 @@ public final class FabricPipeconfManager implements FabricPipeconfService {
 
     private static final String INT_PROFILE_SUFFIX = "-int";
     private static final String FULL_PROFILE_SUFFIX = "-full";
+    private static final String BNG_PROFILE_SUFFIX = "-bng";
 
     private static Logger log = getLogger(FabricPipeconfLoader.class);
 
@@ -90,7 +94,10 @@ public final class FabricPipeconfManager implements FabricPipeconfService {
                 profileName.endsWith(FULL_PROFILE_SUFFIX)) {
             pipeconfBuilder.addBehaviour(IntProgrammable.class, FabricIntProgrammable.class);
         }
-
+        // Add BngProgrammable behavior for BNG-enabled pipelines.
+        if (profileName.endsWith(BNG_PROFILE_SUFFIX)) {
+            pipeconfBuilder.addBehaviour(BngProgrammable.class, FabricBngProgrammable.class);
+        }
         return pipeconfBuilder.build();
     }
 

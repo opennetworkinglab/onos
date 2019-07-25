@@ -38,7 +38,7 @@ public abstract class AbstractP4RuntimeHandlerBehaviour
     PiTranslationService translationService;
 
 
-    AbstractP4RuntimeHandlerBehaviour() {
+    public AbstractP4RuntimeHandlerBehaviour() {
         super(P4RuntimeController.class);
     }
 
