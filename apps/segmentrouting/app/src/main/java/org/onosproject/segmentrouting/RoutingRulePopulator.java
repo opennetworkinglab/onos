@@ -17,6 +17,7 @@ package org.onosproject.segmentrouting;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv6;
@@ -53,7 +54,6 @@ import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.ForwardingObjective.Builder;
 import org.onosproject.net.flowobjective.ForwardingObjective.Flag;
-import org.onosproject.segmentrouting.storekey.DummyVlanIdStoreKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -316,7 +316,7 @@ public class RoutingRulePopulator {
         ForwardingObjective.Builder fwdBuilder;
         try {
             fwdBuilder = routingFwdObjBuilder(deviceId, prefix, hostMac,
-                                              hostVlanId, outPort, directHost, false);
+                                              hostVlanId, outPort, null, null, directHost, false);
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting direct populateRoute");
             return;
@@ -356,7 +356,7 @@ public class RoutingRulePopulator {
         ForwardingObjective.Builder fwdBuilder;
         try {
             fwdBuilder = routingFwdObjBuilder(deviceId, prefix, hostMac,
-                                              hostVlanId, outPort, directHost, true);
+                                              hostVlanId, outPort, null, null, directHost, true);
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting revokeIpRuleForHost.");
             return;
@@ -390,37 +390,66 @@ public class RoutingRulePopulator {
      * @throws DeviceConfigNotFoundException if given device is not configured
      */
 
-    private ForwardingObjective.Builder
-
-
-    routingFwdObjBuilder(
+    private ForwardingObjective.Builder routingFwdObjBuilder(
             DeviceId deviceId, IpPrefix prefix,
             MacAddress hostMac, VlanId hostVlanId, PortNumber outPort,
+            VlanId innerVlan, EthType outerTpid,
             boolean directHost, boolean revoke)
             throws DeviceConfigNotFoundException {
-        MacAddress deviceMac;
-        deviceMac = config.getDeviceMac(deviceId);
-        int nextObjId = -1;
+        int nextObjId;
+        if (directHost) {
+            // if the objective is to revoke an existing rule, and for some reason
+            // the next-objective does not exist, then a new one should not be created
+            ImmutablePair<TrafficTreatment, TrafficSelector> treatmentAndMeta =
+                    getTreatmentAndMeta(deviceId, hostMac, hostVlanId, outPort, innerVlan, outerTpid);
+            if (treatmentAndMeta == null) {
+                // Warning log will come from getTreatmentAndMeta method
+                return null;
+            }
+            nextObjId = srManager.getPortNextObjectiveId(deviceId, outPort,
+                    treatmentAndMeta.getLeft(), treatmentAndMeta.getRight(), !revoke);
+        } else {
+          // if the objective is to revoke an existing rule, and for some reason
+          // the next-objective does not exist, then a new one should not be created
+          nextObjId = srManager.getMacVlanNextObjectiveId(deviceId, hostMac, hostVlanId,
+                                          outPort, !revoke);
+        }
+        if (nextObjId == -1) {
+            // Warning log will come from getMacVlanNextObjective method
+            return null;
+        }
+
+        return DefaultForwardingObjective.builder()
+                .withSelector(buildIpSelectorFromIpPrefix(prefix).build())
+                .nextStep(nextObjId)
+                .fromApp(srManager.appId).makePermanent()
+                .withPriority(getPriorityFromPrefix(prefix))
+                .withFlag(ForwardingObjective.Flag.SPECIFIC);
+    }
+
+    private ImmutablePair<TrafficTreatment, TrafficSelector> getTreatmentAndMeta(
+            DeviceId deviceId, MacAddress hostMac, VlanId hostVlanId, PortNumber outPort,
+            VlanId innerVlan, EthType outerTpid)
+            throws DeviceConfigNotFoundException {
+        MacAddress routerMac;
+        routerMac = config.getDeviceMac(deviceId);
 
         ConnectPoint connectPoint = new ConnectPoint(deviceId, outPort);
         VlanId untaggedVlan = srManager.interfaceService.getUntaggedVlanId(connectPoint);
         Set<VlanId> taggedVlans = srManager.interfaceService.getTaggedVlanId(connectPoint);
         VlanId nativeVlan = srManager.interfaceService.getNativeVlanId(connectPoint);
 
-        // Create route selector
-        TrafficSelector.Builder sbuilder = buildIpSelectorFromIpPrefix(prefix);
-
         // Create route treatment
         TrafficTreatment.Builder tbuilder = DefaultTrafficTreatment.builder();
         tbuilder.deferred()
                 .setEthDst(hostMac)
-                .setEthSrc(deviceMac)
+                .setEthSrc(routerMac)
                 .setOutput(outPort);
 
         // Create route meta
         TrafficSelector.Builder mbuilder = DefaultTrafficSelector.builder();
 
-        // Adjust the meta according to VLAN configuration
+        // Adjust treatment and meta according to VLAN configuration
         if (taggedVlans.contains(hostVlanId)) {
             tbuilder.setVlanId(hostVlanId);
         } else if (hostVlanId.equals(VlanId.NONE)) {
@@ -434,42 +463,21 @@ public class RoutingRulePopulator {
                 return null;
             }
         } else {
-            // Internally-assigned dummy VLAN id will be given as hostVlanId
-            // when destination is double-tagged.
-            VlanId vlanId = srManager.dummyVlanIdStore().get(
-                    new DummyVlanIdStoreKey(connectPoint, prefix.address()));
-            if (vlanId != null && vlanId.equals(hostVlanId)) {
-                tbuilder.setVlanId(hostVlanId);
-                mbuilder.matchVlanId(VlanId.ANY);
-            } else {
-                log.warn("Tagged nexthop {}/{} is not allowed on {} without VLAN listed"
-                                 + " in tagged vlan", hostMac, hostVlanId, connectPoint);
+            // Double tagged hosts
+            if (innerVlan == null || outerTpid == null) {
+                log.warn("Failed to construct NextObj for double tagged hosts {}/{}. {} {}",
+                        hostMac, hostVlanId,
+                        (innerVlan == null) ? "innerVlan = null." : "",
+                        (outerTpid == null) ? "outerTpid = null." : "");
                 return null;
             }
+            tbuilder.setVlanId(innerVlan);
+            tbuilder.pushVlan(outerTpid);
+            tbuilder.setVlanId(hostVlanId);
+            mbuilder.matchVlanId(VlanId.ANY);
         }
 
-        if (directHost) {
-          // if the objective is to revoke an existing rule, and for some reason
-          // the next-objective does not exist, then a new one should not be created
-          nextObjId = srManager.getPortNextObjectiveId(deviceId, outPort,
-                                          tbuilder.build(), mbuilder.build(), !revoke);
-        } else {
-          // if the objective is to revoke an existing rule, and for some reason
-          // the next-objective does not exist, then a new one should not be created
-          nextObjId = srManager.getMacVlanNextObjectiveId(deviceId, hostMac, hostVlanId,
-                                          outPort, !revoke);
-        }
-        if (nextObjId == -1) {
-            // Warning log will come from getMacVlanNextObjective method
-            return null;
-        }
-
-        return DefaultForwardingObjective.builder()
-                .withSelector(sbuilder.build())
-                .nextStep(nextObjId)
-                .fromApp(srManager.appId).makePermanent()
-                .withPriority(getPriorityFromPrefix(prefix))
-                .withFlag(ForwardingObjective.Flag.SPECIFIC);
+        return ImmutablePair.of(tbuilder.build(), mbuilder.build());
     }
 
     /**
@@ -1716,30 +1724,20 @@ public class RoutingRulePopulator {
      * @param deviceId device ID of the device that next hop attaches to
      * @param prefix IP prefix of the route
      * @param hostMac MAC address of the next hop
-     * @param dummyVlan Dummy Vlan ID allocated for this route
      * @param innerVlan inner Vlan ID of the next hop
      * @param outerVlan outer Vlan ID of the next hop
      * @param outerTpid outer TPID of the next hop
      * @param outPort port where the next hop attaches to
      */
-    void populateDoubleTaggedRoute(DeviceId deviceId, IpPrefix prefix, MacAddress hostMac, VlanId dummyVlan,
+    void populateDoubleTaggedRoute(DeviceId deviceId, IpPrefix prefix, MacAddress hostMac,
                                    VlanId innerVlan, VlanId outerVlan, EthType outerTpid, PortNumber outPort) {
         ForwardingObjective.Builder fwdBuilder;
         log.debug("Populate direct routing entry for double-tagged host route {} at {}:{}",
                   prefix, deviceId, outPort);
 
-        ForwardingObjective.Builder egressFwdBuilder = egressFwdObjBuilder(
-                outPort, dummyVlan, innerVlan, outerVlan, outerTpid);
-        DefaultObjectiveContext egressFwdContext = new DefaultObjectiveContext(
-                objective -> log.debug("Egress rule for IP {} is populated", prefix.address()),
-                (objective, error) -> {
-                    log.warn("Failed to populate egress rule for IP {}: {}", prefix.address(), error);
-                    srManager.dummyVlanIdStore().remove(new DummyVlanIdStoreKey(
-                            new ConnectPoint(deviceId, outPort), prefix.address()
-                    ));
-                });
         try {
-            fwdBuilder = routingFwdObjBuilder(deviceId, prefix, hostMac, dummyVlan, outPort, true, false);
+            fwdBuilder = routingFwdObjBuilder(deviceId, prefix, hostMac, outerVlan, outPort, innerVlan, outerTpid,
+                    true, false);
         } catch (DeviceConfigNotFoundException e) {
             log.error(e.getMessage() + " Aborting populateDoubleTaggedRoute");
             return;
@@ -1750,12 +1748,9 @@ public class RoutingRulePopulator {
             return;
         }
 
-        // Egress forwarding objective should be installed after the nextObjective for the output port is installed.
-        // Installation of routingFwdObj will ensure the installation of the nextObjective.
         int nextId = fwdBuilder.add().nextId();
         DefaultObjectiveContext context = new DefaultObjectiveContext(objective -> {
             log.debug("Direct routing rule for double-tagged host route {} populated. nextId={}", prefix, nextId);
-            srManager.flowObjectiveService.forward(deviceId, egressFwdBuilder.add(egressFwdContext));
         }, (objective, error) ->
             log.warn("Failed to populate direct routing rule for double-tagged host route {}: {}", prefix, error)
         );
@@ -1769,34 +1764,60 @@ public class RoutingRulePopulator {
      * @param deviceId device ID of the device that next hop attaches to
      * @param prefix IP prefix of the route
      * @param hostMac MAC address of the next hop
-     * @param hostVlan Vlan ID of the next hop
      * @param innerVlan inner Vlan ID of the next hop
      * @param outerVlan outer Vlan ID of the next hop
      * @param outerTpid outer TPID of the next hop
      * @param outPort port where the next hop attaches to
      */
     void revokeDoubleTaggedRoute(DeviceId deviceId, IpPrefix prefix, MacAddress hostMac,
-                                 VlanId hostVlan, VlanId innerVlan, VlanId outerVlan,
-                                 EthType outerTpid, PortNumber outPort) {
-        revokeRoute(deviceId, prefix, hostMac, hostVlan, outPort, false);
+                                 VlanId innerVlan, VlanId outerVlan, EthType outerTpid, PortNumber outPort) {
+        ForwardingObjective.Builder fwdBuilder;
+        log.debug("Revoking direct routing entry for double-tagged host route {} at {}:{}",
+                prefix, deviceId, outPort);
 
-        DummyVlanIdStoreKey key = new DummyVlanIdStoreKey(
-                new ConnectPoint(deviceId, outPort), prefix.address());
-        VlanId dummyVlanId = srManager.dummyVlanIdStore().get(key);
-        if (dummyVlanId == null) {
-            log.warn("Failed to retrieve dummy VLAN ID for {}/{} and {}",
-                     deviceId, outPort, prefix.address());
+        try {
+            fwdBuilder = routingFwdObjBuilder(deviceId, prefix, hostMac, outerVlan, outPort, innerVlan, outerTpid,
+                    true, true);
+        } catch (DeviceConfigNotFoundException e) {
+            log.error(e.getMessage() + " Aborting revokeDoubleTaggedRoute");
             return;
         }
-        ForwardingObjective.Builder fob = egressFwdObjBuilder(
-                outPort, dummyVlanId, innerVlan, outerVlan, outerTpid);
+        if (fwdBuilder == null) {
+            log.error("Aborting double-tagged host routing table entry due to error for dev:{} route:{}",
+                    deviceId, prefix);
+            return;
+        }
+
+        int nextId = fwdBuilder.remove().nextId();
         DefaultObjectiveContext context = new DefaultObjectiveContext(objective -> {
-            log.debug("Egress rule for IP {} revoked", prefix.address());
-            srManager.dummyVlanIdStore().remove(key);
-        }, (objective, error) -> {
-            log.warn("Failed to revoke egress rule for IP {}: {}", prefix.address(), error);
-        });
-        srManager.flowObjectiveService.forward(deviceId, fob.remove(context));
+            log.debug("Direct routing rule for double-tagged host route {} revoked. nextId={}", prefix, nextId);
+
+            // Try to remove next objective as well
+            ImmutablePair<TrafficTreatment, TrafficSelector> treatmentAndMeta;
+            try {
+                treatmentAndMeta = getTreatmentAndMeta(deviceId, hostMac, outerVlan, outPort, innerVlan, outerTpid);
+            } catch (DeviceConfigNotFoundException e) {
+                log.error(e.getMessage() + " Aborting revokeDoubleTaggedRoute");
+                return;
+            }
+
+            if (treatmentAndMeta == null) {
+                // Warning log will come from getTreatmentAndMeta method
+                return;
+            }
+
+            DefaultGroupHandler groupHandler = srManager.getGroupHandler(deviceId);
+            if (groupHandler == null) {
+                log.warn("Failed to revoke direct routing rule for double-tagged host route {}: " +
+                        "group handler not found for {}", prefix, deviceId);
+                return;
+            }
+            groupHandler.removeGroupFromPort(outPort, treatmentAndMeta.getLeft(), treatmentAndMeta.getRight());
+
+        }, (objective, error) ->
+                log.warn("Failed to revoke direct routing rule for double-tagged host route {}: {}", prefix, error)
+        );
+        srManager.flowObjectiveService.forward(deviceId, fwdBuilder.remove(context));
     }
 
     /**

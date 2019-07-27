@@ -39,7 +39,6 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
-import org.onosproject.segmentrouting.storekey.DummyVlanIdStoreKey;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.Serializer;
 import org.slf4j.Logger;
@@ -1229,17 +1228,10 @@ public class DefaultRoutingHandler {
     void populateDoubleTaggedRoute(DeviceId deviceId, IpPrefix prefix, MacAddress hostMac, VlanId innerVlan,
                                    VlanId outerVlan, EthType outerTpid, PortNumber outPort) {
         if (srManager.mastershipService.isLocalMaster(deviceId)) {
-            VlanId dummyVlan = srManager.allocateDummyVlanId(
-                    new ConnectPoint(deviceId, outPort), prefix.address());
-            if (!dummyVlan.equals(VlanId.NONE)) {
-                srManager.routingRulePopulator.populateDoubleTaggedRoute(
-                        deviceId, prefix, hostMac, dummyVlan, innerVlan, outerVlan, outerTpid, outPort);
-                srManager.routingRulePopulator.processDoubleTaggedFilter(
-                        deviceId, outPort, outerVlan, innerVlan, true);
-            } else {
-                log.error("Failed to allocate dummy VLAN ID for host {} at {}/{}",
-                          prefix.address(), deviceId, outPort);
-            }
+            srManager.routingRulePopulator.populateDoubleTaggedRoute(
+                    deviceId, prefix, hostMac, innerVlan, outerVlan, outerTpid, outPort);
+            srManager.routingRulePopulator.processDoubleTaggedFilter(
+                    deviceId, outPort, outerVlan, innerVlan, true);
         }
     }
 
@@ -1276,17 +1268,9 @@ public class DefaultRoutingHandler {
             }
         }
 
-        VlanId dummyVlan = srManager.dummyVlanIdStore().get(new DummyVlanIdStoreKey(
-                new ConnectPoint(deviceId, outPort), prefix.address()));
-        if (dummyVlan == null) {
-            log.error("Failed to get dummyVlanId for host {} at {}/{}.",
-                      prefix.address(), deviceId, outPort);
-        } else {
-            srManager.routingRulePopulator.revokeDoubleTaggedRoute(
-                    deviceId, prefix, hostMac, dummyVlan, innerVlan, outerVlan, outerTpid, outPort);
-            srManager.routingRulePopulator.processDoubleTaggedFilter(
-                    deviceId, outPort, outerVlan, innerVlan, false);
-        }
+        srManager.routingRulePopulator.revokeDoubleTaggedRoute(deviceId, prefix, hostMac,
+                innerVlan, outerVlan, outerTpid, outPort);
+        srManager.routingRulePopulator.processDoubleTaggedFilter(deviceId, outPort, outerVlan, innerVlan, false);
     }
 
 
