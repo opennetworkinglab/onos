@@ -348,30 +348,7 @@ public class K8sNetworkPolicyHandler {
                 }
 
                 // POD selector
-                Set<Pod> pods = Sets.newConcurrentHashSet();
-                if (peer.getPodSelector() != null) {
-                    Map<String, String> podLabels = peer.getPodSelector().getMatchLabels();
-                    List<LabelSelectorRequirement> matchExps = peer.getPodSelector().getMatchExpressions();
-
-                    if (podLabels == null && matchExps.size() == 0) {
-                        k8sPodService.pods().stream()
-                                .filter(pod -> pod.getMetadata().getNamespace().equals(
-                                        policy.getMetadata().getNamespace()))
-                                .forEach(pods::add);
-                    } else {
-                        k8sPodService.pods().stream()
-                                .filter(pod -> pod.getMetadata().getNamespace().equals(
-                                        policy.getMetadata().getNamespace()))
-                                .forEach(pod -> {
-                                    pod.getMetadata().getLabels().forEach((k, v) -> {
-                                        if (podLabels != null && podLabels.get(k) != null &&
-                                                podLabels.get(k).equals(v)) {
-                                            pods.add(pod);
-                                        }
-                                    });
-                                });
-                    }
-                }
+                Set<Pod> pods = podsFromPolicyPeer(peer, policy.getMetadata().getNamespace());
 
                 pods.forEach(pod -> {
                     white.compute(shiftIpDomain(pod.getStatus().getPodIP(),
@@ -429,33 +406,8 @@ public class K8sNetworkPolicyHandler {
                     }
                 }
 
-                Set<Pod> pods = Sets.newConcurrentHashSet();
-
                 // POD selector
-                if (peer.getPodSelector() != null) {
-                    Map<String, String> podLabels = peer.getPodSelector().getMatchLabels();
-
-                    List<LabelSelectorRequirement> matchExps = peer.getPodSelector().getMatchExpressions();
-
-                    if (podLabels == null && matchExps.size() == 0) {
-                        k8sPodService.pods().stream()
-                                .filter(pod -> pod.getMetadata().getNamespace().equals(
-                                        policy.getMetadata().getNamespace()))
-                                .forEach(pods::add);
-                    } else {
-                        k8sPodService.pods().stream()
-                                .filter(pod -> pod.getMetadata().getNamespace().equals(
-                                        policy.getMetadata().getNamespace()))
-                                .forEach(pod -> {
-                                    pod.getMetadata().getLabels().forEach((k, v) -> {
-                                        if (podLabels != null && podLabels.get(k) != null &&
-                                                podLabels.get(k).equals(v)) {
-                                            pods.add(pod);
-                                        }
-                                    });
-                                });
-                    }
-                }
+                Set<Pod> pods = podsFromPolicyPeer(peer, policy.getMetadata().getNamespace());
 
                 pods.forEach(pod -> {
                     white.compute(shiftIpDomain(pod.getStatus().getPodIP(),
@@ -488,6 +440,34 @@ public class K8sNetworkPolicyHandler {
         setAllowRules(namespaceHashByNamespace(k8sNamespaceService,
                 policy.getMetadata().getNamespace()), white, install);
         setBlackToRouteRules(true);
+    }
+
+    private Set<Pod> podsFromPolicyPeer(NetworkPolicyPeer peer, String namespace) {
+        Set<Pod> pods = Sets.newConcurrentHashSet();
+        if (peer.getPodSelector() != null) {
+            Map<String, String> podLabels = peer.getPodSelector().getMatchLabels();
+            List<LabelSelectorRequirement> matchExps = peer.getPodSelector().getMatchExpressions();
+
+            if (podLabels == null && matchExps.size() == 0) {
+                k8sPodService.pods().stream()
+                        .filter(pod -> pod.getMetadata().getNamespace().equals(
+                                namespace))
+                        .forEach(pods::add);
+            } else {
+                k8sPodService.pods().stream()
+                        .filter(pod -> pod.getMetadata().getNamespace().equals(
+                                namespace))
+                        .forEach(pod -> {
+                            pod.getMetadata().getLabels().forEach((k, v) -> {
+                                if (podLabels != null && podLabels.get(k) != null &&
+                                        podLabels.get(k).equals(v)) {
+                                    pods.add(pod);
+                                }
+                            });
+                        });
+            }
+        }
+        return pods;
     }
 
     private void setAllowRulesByPod(Pod pod, boolean install) {
