@@ -259,12 +259,19 @@ public class K8sNetworkPolicyHandler {
                 if (d.equalsIgnoreCase(DIRECTION_INGRESS)) {
                     sBuilder.matchIPDst(IpPrefix.valueOf(IpAddress.valueOf(k), HOST_PREFIX));
                     tBuilder.transition(ACL_INGRESS_WHITE_TABLE);
+                    setPolicyRulesBase(sBuilder, tBuilder, ACL_TABLE, install);
                 } else if (d.equalsIgnoreCase(DIRECTION_EGRESS)) {
+                    // original IP
                     sBuilder.matchIPSrc(IpPrefix.valueOf(IpAddress.valueOf(k), HOST_PREFIX));
                     tBuilder.transition(ACL_EGRESS_WHITE_TABLE);
-                }
+                    setPolicyRulesBase(sBuilder, tBuilder, ACL_TABLE, install);
 
-                setPolicyRulesBase(sBuilder, tBuilder, ACL_TABLE, install);
+
+                    // shifted IP
+                    sBuilder.matchIPSrc(IpPrefix.valueOf(IpAddress.valueOf(
+                            shiftIpDomain(k, SHIFTED_IP_PREFIX)), HOST_PREFIX));
+                    setPolicyRulesBase(sBuilder, tBuilder, ACL_TABLE, install);
+                }
             });
         });
     }
