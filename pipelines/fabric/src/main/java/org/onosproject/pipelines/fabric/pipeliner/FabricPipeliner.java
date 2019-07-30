@@ -38,6 +38,7 @@ import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.group.GroupDescription;
 import org.onosproject.net.group.GroupService;
 import org.onosproject.pipelines.fabric.AbstractFabricHandlerBehavior;
+import org.onosproject.pipelines.fabric.FabricCapabilities;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.slf4j.Logger;
 
@@ -77,6 +78,23 @@ public class FabricPipeliner extends AbstractFabricHandlerBehavior
     private NextObjectiveTranslator nextTranslator;
 
     private final ExecutorService callbackExecutor = SharedExecutors.getPoolThreadExecutor();
+
+    /**
+     * Creates a new instance of this behavior with the given capabilities.
+     *
+     * @param capabilities capabilities
+     */
+    public FabricPipeliner(FabricCapabilities capabilities) {
+        super(capabilities);
+    }
+
+    /**
+     * Create a new instance of this behaviour. Used by the abstract projectable
+     * model (i.e., {@link org.onosproject.net.Device#as(Class)}.
+     */
+    public FabricPipeliner() {
+        super();
+    }
 
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {

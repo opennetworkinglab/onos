@@ -27,6 +27,7 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.instructions.Instructions;
@@ -116,6 +117,36 @@ public class FabricInterpreter extends AbstractFabricHandlerBehavior
                     .put(FabricConstants.FABRIC_INGRESS_FORWARDING_ROUTING_V4, NOP)
                     .build();
 
+    private FabricTreatmentInterpreter treatmentInterpreter;
+
+    /**
+     * Creates a new instance of this behavior with the given capabilities.
+     *
+     * @param capabilities capabilities
+     */
+    public FabricInterpreter(FabricCapabilities capabilities) {
+        super(capabilities);
+        instantiateTreatmentInterpreter();
+    }
+
+    /**
+     * Create a new instance of this behaviour. Used by the abstract projectable
+     * model (i.e., {@link org.onosproject.net.Device#as(Class)}.
+     */
+    public FabricInterpreter() {
+        super();
+    }
+
+    private void instantiateTreatmentInterpreter() {
+        this.treatmentInterpreter = new FabricTreatmentInterpreter(this.capabilities);
+    }
+
+    @Override
+    public void setHandler(DriverHandler handler) {
+        super.setHandler(handler);
+        instantiateTreatmentInterpreter();
+    }
+
     @Override
     public Optional<PiMatchFieldId> mapCriterionType(Criterion.Type type) {
         return Optional.ofNullable(CRITERION_MAP.get(type));
@@ -132,15 +163,15 @@ public class FabricInterpreter extends AbstractFabricHandlerBehavior
     public PiAction mapTreatment(TrafficTreatment treatment, PiTableId piTableId)
             throws PiInterpreterException {
         if (FILTERING_CTRL_TBLS.contains(piTableId)) {
-            return FabricTreatmentInterpreter.mapFilteringTreatment(treatment, piTableId);
+            return treatmentInterpreter.mapFilteringTreatment(treatment, piTableId);
         } else if (FORWARDING_CTRL_TBLS.contains(piTableId)) {
-            return FabricTreatmentInterpreter.mapForwardingTreatment(treatment, piTableId);
+            return treatmentInterpreter.mapForwardingTreatment(treatment, piTableId);
         } else if (ACL_CTRL_TBLS.contains(piTableId)) {
-            return FabricTreatmentInterpreter.mapAclTreatment(treatment, piTableId);
+            return treatmentInterpreter.mapAclTreatment(treatment, piTableId);
         } else if (NEXT_CTRL_TBLS.contains(piTableId)) {
-            return FabricTreatmentInterpreter.mapNextTreatment(treatment, piTableId);
+            return treatmentInterpreter.mapNextTreatment(treatment, piTableId);
         } else if (E_NEXT_CTRL_TBLS.contains(piTableId)) {
-            return FabricTreatmentInterpreter.mapEgressNextTreatment(treatment, piTableId);
+            return treatmentInterpreter.mapEgressNextTreatment(treatment, piTableId);
         } else {
             throw new PiInterpreterException(format(
                     "Treatment mapping not supported for table '%s'", piTableId));

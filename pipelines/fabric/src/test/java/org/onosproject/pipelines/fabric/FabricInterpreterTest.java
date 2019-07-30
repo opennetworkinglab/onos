@@ -29,6 +29,9 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionParam;
 
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -43,9 +46,15 @@ public class FabricInterpreterTest {
 
     private FabricInterpreter interpreter;
 
+    FabricCapabilities allCapabilities;
+
     @Before
     public void setup() {
-        interpreter = new FabricInterpreter();
+        allCapabilities = createNiceMock(FabricCapabilities.class);
+        expect(allCapabilities.hasHashedTable()).andReturn(true).anyTimes();
+        expect(allCapabilities.supportDoubleVlanTerm()).andReturn(true).anyTimes();
+        replay(allCapabilities);
+        interpreter = new FabricInterpreter(allCapabilities);
     }
 
     /* Filtering control block */

@@ -61,6 +61,7 @@ import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2
 import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.VLAN_POP;
 import static org.onosproject.pipelines.fabric.FabricUtils.criterion;
 import static org.onosproject.pipelines.fabric.FabricUtils.l2Instruction;
+import static org.onosproject.pipelines.fabric.FabricUtils.l2Instructions;
 import static org.onosproject.pipelines.fabric.FabricUtils.outputPort;
 
 /**
@@ -112,35 +113,45 @@ class NextObjectiveTranslator
     private void nextVlan(NextObjective obj,
                           ObjectiveTranslation.Builder resultBuilder)
             throws FabricPipelinerException {
+        // We expect NextObjective treatments to contain one or two VLAN instructions.
+        // If two, this treatment should be mapped to an action for double-vlan push.
+        // In fabric.p4, mapping next IDs to VLAN IDs is done by a direct table (next_vlan),
+        // for this reason, we also make sure that all treatments in the NextObjective
+        // have exactly the same VLAN instructions, as they will be mapped to a single action
 
-        // Set the egress VLAN for this next ID. Expect a VLAN_ID instruction
-        // in the treatment, or use what's in meta.
-        final List<ModVlanIdInstruction> vlanInstructions = defaultNextTreatments(
+        // Try to extract VLAN instructions in the treatment,
+        //  later we check if we support multiple VLAN termination.
+        final List<List<ModVlanIdInstruction>> vlanInstructions = defaultNextTreatments(
                 obj.nextTreatments(), false).stream()
-                .map(t -> (ModVlanIdInstruction) l2Instruction(t.treatment(), VLAN_ID))
-                .filter(Objects::nonNull)
+                .map(defaultNextTreatment ->
+                             l2Instructions(defaultNextTreatment.treatment(), VLAN_ID)
+                                     .stream().map(v -> (ModVlanIdInstruction) v)
+                                     .collect(Collectors.toList()))
+                .filter(l -> !l.isEmpty())
                 .collect(Collectors.toList());
+
         final VlanIdCriterion vlanIdCriterion = obj.meta() == null ? null
                 : (VlanIdCriterion) criterion(obj.meta().criteria(), Criterion.Type.VLAN_VID);
 
-        VlanId vlanId;
+        final List<VlanId> vlanIdList;
         if (vlanInstructions.isEmpty() && vlanIdCriterion == null) {
             // No VLAN_ID to apply.
             return;
-        } else if (!vlanInstructions.isEmpty()) {
+        }
+        if (!vlanInstructions.isEmpty()) {
             // Give priority to what found in the instructions.
-            // Expect the same VLAN ID for all instructions.
-            final Set<VlanId> vlanIds = vlanInstructions.stream()
-                    .map(ModVlanIdInstruction::vlanId)
+            // Expect the same VLAN ID (or two VLAN IDs in the same order) for all instructions.
+            final Set<List<VlanId>> vlanIds = vlanInstructions.stream()
+                    .map(l -> l.stream().map(ModVlanIdInstruction::vlanId).collect(Collectors.toList()))
                     .collect(Collectors.toSet());
             if (obj.nextTreatments().size() != vlanInstructions.size() ||
                     vlanIds.size() != 1) {
                 throw new FabricPipelinerException(
                         "Inconsistent VLAN_ID instructions, cannot process " +
                                 "next_vlan rule. It is required that all " +
-                                "treatments have the same VLAN_ID instruction.");
+                                "treatments have the same VLAN_ID instructions.");
             }
-            vlanId = vlanIds.iterator().next();
+            vlanIdList = vlanIds.iterator().next();
         } else {
             // Use the value in meta.
             // FIXME: there should be no need to generate a next_vlan rule for
@@ -149,13 +160,13 @@ class NextObjectiveTranslator
             //  existing packet fields. But, for some reason, if we remove this
             //  rule, traffic is not forwarded at spines. We might need to look
             //  at the way default VLANs are handled in fabric.p4.
-            vlanId = vlanIdCriterion.vlanId();
+            vlanIdList = List.of(vlanIdCriterion.vlanId());
         }
 
         final TrafficSelector selector = nextIdSelector(obj.id());
-        final TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setVlanId(vlanId)
-                .build();
+        final TrafficTreatment.Builder treatmentBuilder = DefaultTrafficTreatment.builder();
+        vlanIdList.stream().forEach(vlanId -> treatmentBuilder.setVlanId(vlanId));
+        final TrafficTreatment treatment = treatmentBuilder.build();
 
         resultBuilder.addFlowRule(flowRule(
                 obj, FabricConstants.FABRIC_INGRESS_NEXT_NEXT_VLAN,

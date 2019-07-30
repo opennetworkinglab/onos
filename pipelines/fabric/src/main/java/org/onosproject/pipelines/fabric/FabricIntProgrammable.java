@@ -86,6 +86,23 @@ public class FabricIntProgrammable extends AbstractFabricHandlerBehavior
     private DeviceId deviceId;
     private ApplicationId appId;
 
+    /**
+     * Creates a new instance of this behavior with the given capabilities.
+     *
+     * @param capabilities capabilities
+     */
+    protected FabricIntProgrammable(FabricCapabilities capabilities) {
+        super(capabilities);
+    }
+
+    /**
+     * Create a new instance of this behaviour. Used by the abstract projectable
+     * model (i.e., {@link org.onosproject.net.Device#as(Class)}.
+     */
+    public FabricIntProgrammable() {
+        super();
+    }
+
     private boolean setupBehaviour() {
         deviceId = this.data().deviceId();
         flowRuleService = handler().get(FlowRuleService.class);
