@@ -32,6 +32,9 @@ import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionParam;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import static java.lang.String.format;
 import static org.onosproject.net.flow.instructions.Instruction.Type.OUTPUT;
 import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.ETH_DST;
@@ -42,12 +45,14 @@ import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2
 import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.VLAN_POP;
 import static org.onosproject.pipelines.fabric.FabricUtils.instruction;
 import static org.onosproject.pipelines.fabric.FabricUtils.l2Instruction;
+import static org.onosproject.pipelines.fabric.FabricUtils.l2Instructions;
 
 /**
  * Treatment translation logic.
  */
 final class FabricTreatmentInterpreter {
 
+    private final FabricCapabilities capabilities;
     private static final ImmutableMap<PiTableId, PiActionId> NOP_ACTIONS =
             ImmutableMap.<PiTableId, PiActionId>builder()
                     .put(FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN,
@@ -60,8 +65,9 @@ final class FabricTreatmentInterpreter {
                          FabricConstants.FABRIC_EGRESS_EGRESS_NEXT_POP_VLAN)
                     .build();
 
-    private FabricTreatmentInterpreter() {
-        // Hide default constructor
+
+    FabricTreatmentInterpreter(FabricCapabilities capabilities) {
+        this.capabilities = capabilities;
     }
 
     static PiAction mapFilteringTreatment(TrafficTreatment treatment, PiTableId tableId)
@@ -73,7 +79,8 @@ final class FabricTreatmentInterpreter {
             tableException(tableId);
         }
 
-        if (isNoAction(treatment)) {
+        // VLAN_POP action is equivalent to the permit action (VLANs pop is done anyway)
+        if (isNoAction(treatment) || isFilteringPopAction(treatment)) {
             // Permit action if table is ingress_port_vlan;
             return nop(tableId);
         }
@@ -99,7 +106,7 @@ final class FabricTreatmentInterpreter {
         return null;
     }
 
-    static PiAction mapNextTreatment(TrafficTreatment treatment, PiTableId tableId)
+    PiAction mapNextTreatment(TrafficTreatment treatment, PiTableId tableId)
             throws PiInterpreterException {
         if (tableId == FabricConstants.FABRIC_INGRESS_NEXT_NEXT_VLAN) {
             return mapNextVlanTreatment(treatment, tableId);
@@ -114,16 +121,29 @@ final class FabricTreatmentInterpreter {
                 "Treatment mapping not supported for table '%s'", tableId));
     }
 
-    private static PiAction mapNextVlanTreatment(TrafficTreatment treatment, PiTableId tableId)
+    private PiAction mapNextVlanTreatment(TrafficTreatment treatment, PiTableId tableId)
             throws PiInterpreterException {
-        final ModVlanIdInstruction modVlanIdInst = (ModVlanIdInstruction)
-                l2InstructionOrFail(treatment, VLAN_ID, tableId);
-        return PiAction.builder()
-                .withId(FabricConstants.FABRIC_INGRESS_NEXT_SET_VLAN)
-                .withParameter(new PiActionParam(
-                        FabricConstants.VLAN_ID,
-                        modVlanIdInst.vlanId().toShort()))
-                .build();
+        final List<ModVlanIdInstruction> modVlanIdInst = l2InstructionsOrFail(treatment, VLAN_ID, tableId)
+                .stream().map(i -> (ModVlanIdInstruction) i).collect(Collectors.toList());
+        if (modVlanIdInst.size() == 1) {
+            return PiAction.builder().withId(FabricConstants.FABRIC_INGRESS_NEXT_SET_VLAN)
+                    .withParameter(new PiActionParam(
+                            FabricConstants.VLAN_ID,
+                            modVlanIdInst.get(0).vlanId().toShort()))
+                    .build();
+        }
+        if (modVlanIdInst.size() == 2 && capabilities.supportDoubleVlanTerm()) {
+            return PiAction.builder()
+                    .withId(FabricConstants.FABRIC_INGRESS_NEXT_SET_DOUBLE_VLAN)
+                    .withParameter(new PiActionParam(
+                            FabricConstants.INNER_VLAN_ID,
+                            modVlanIdInst.get(0).vlanId().toShort()))
+                    .withParameter(new PiActionParam(
+                            FabricConstants.OUTER_VLAN_ID,
+                            modVlanIdInst.get(1).vlanId().toShort()))
+                    .build();
+        }
+        throw new PiInterpreterException("Too many VLAN instructions");
     }
 
     private static PiAction mapNextHashedOrSimpleTreatment(
@@ -223,12 +243,27 @@ final class FabricTreatmentInterpreter {
                 treatment.allInstructions().isEmpty();
     }
 
+    private static boolean isFilteringPopAction(TrafficTreatment treatment) {
+        return l2Instruction(treatment, VLAN_POP) != null;
+    }
+
     private static Instruction l2InstructionOrFail(
             TrafficTreatment treatment,
             L2ModificationInstruction.L2SubType subType, PiTableId tableId)
             throws PiInterpreterException {
         final Instruction inst = l2Instruction(treatment, subType);
         if (inst == null) {
+            treatmentException(tableId, treatment, format("missing %s instruction", subType));
+        }
+        return inst;
+    }
+
+    private static List<L2ModificationInstruction> l2InstructionsOrFail(
+            TrafficTreatment treatment,
+            L2ModificationInstruction.L2SubType subType, PiTableId tableId)
+            throws PiInterpreterException {
+        final List<L2ModificationInstruction> inst = l2Instructions(treatment, subType);
+        if (inst == null || inst.isEmpty()) {
             treatmentException(tableId, treatment, format("missing %s instruction", subType));
         }
         return inst;

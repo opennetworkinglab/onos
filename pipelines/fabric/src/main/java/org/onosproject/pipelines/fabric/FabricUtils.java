@@ -27,6 +27,8 @@ import org.onosproject.net.flowobjective.DefaultNextTreatment;
 import org.onosproject.net.flowobjective.NextTreatment;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
@@ -75,6 +77,15 @@ public final class FabricUtils {
                 .map(i -> (L2ModificationInstruction) i)
                 .filter(i -> i.subtype().equals(subType))
                 .findFirst().orElse(null);
+    }
+
+    public static List<L2ModificationInstruction> l2Instructions(
+            TrafficTreatment treatment, L2ModificationInstruction.L2SubType subType) {
+        return treatment.allInstructions().stream()
+                .filter(i -> i.type().equals(Instruction.Type.L2MODIFICATION))
+                .map(i -> (L2ModificationInstruction) i)
+                .filter(i -> i.subtype().equals(subType))
+                .collect(Collectors.toList());
     }
 
     public static Instructions.OutputInstruction outputInstruction(TrafficTreatment treatment) {

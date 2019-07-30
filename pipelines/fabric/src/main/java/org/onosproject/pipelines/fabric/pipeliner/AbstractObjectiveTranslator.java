@@ -46,11 +46,12 @@ abstract class AbstractObjectiveTranslator<T extends Objective> {
     protected final FabricCapabilities capabilities;
     protected final DeviceId deviceId;
 
-    private final PiPipelineInterpreter interpreter = new FabricInterpreter();
+    private final PiPipelineInterpreter interpreter;
 
     AbstractObjectiveTranslator(DeviceId deviceId, FabricCapabilities capabilities) {
         this.deviceId = checkNotNull(deviceId);
         this.capabilities = checkNotNull(capabilities);
+        this.interpreter = new FabricInterpreter(capabilities);
     }
 
     public ObjectiveTranslation translate(T obj) {

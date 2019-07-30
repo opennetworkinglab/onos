@@ -207,6 +207,88 @@ public class FabricNextPipelinerTest extends FabricPipelinerTest {
     }
 
     /**
+     * Test Route and Push Next Objective (set mac, set double vlan and output port).
+     */
+    @Test
+    public void testRouteAndPushNextObjective() throws FabricPipelinerException {
+        TrafficTreatment routeAndPushTreatment = DefaultTrafficTreatment.builder()
+                .setEthSrc(ROUTER_MAC)
+                .setEthDst(HOST_MAC)
+                .setOutput(PORT_1)
+                .setVlanId(VLAN_100)
+                .pushVlan()
+                .setVlanId(VLAN_200)
+                .build();
+
+        NextObjective nextObjective = DefaultNextObjective.builder()
+                .withId(NEXT_ID_1)
+                .withPriority(PRIORITY)
+                .addTreatment(routeAndPushTreatment)
+                .withType(NextObjective.Type.SIMPLE)
+                .makePermanent()
+                .fromApp(APP_ID)
+                .add();
+
+        ObjectiveTranslation actualTranslation = translatorSimple.translate(nextObjective);
+
+        PiAction piActionRouting = PiAction.builder()
+                .withId(FabricConstants.FABRIC_INGRESS_NEXT_ROUTING_SIMPLE)
+                .withParameter(new PiActionParam(
+                        FabricConstants.SMAC, ROUTER_MAC.toBytes()))
+                .withParameter(new PiActionParam(
+                        FabricConstants.DMAC, HOST_MAC.toBytes()))
+                .withParameter(new PiActionParam(
+                        FabricConstants.PORT_NUM, PORT_1.toLong()))
+                .build();
+
+        PiAction piActionPush = PiAction.builder()
+                .withId(FabricConstants.FABRIC_INGRESS_NEXT_SET_DOUBLE_VLAN)
+                .withParameter(new PiActionParam(
+                        FabricConstants.INNER_VLAN_ID, VLAN_100.toShort()))
+                .withParameter(new PiActionParam(
+                        FabricConstants.OUTER_VLAN_ID, VLAN_200.toShort()))
+                .build();
+
+
+        TrafficSelector nextIdSelector = DefaultTrafficSelector.builder()
+                .matchPi(PiCriterion.builder()
+                                 .matchExact(FabricConstants.HDR_NEXT_ID, NEXT_ID_1)
+                                 .build())
+                .build();
+        FlowRule expectedFlowRuleRouting = DefaultFlowRule.builder()
+                .forDevice(DEVICE_ID)
+                .fromApp(APP_ID)
+                .makePermanent()
+                // FIXME: currently next objective doesn't support priority, ignore this
+                .withPriority(0)
+                .forTable(FabricConstants.FABRIC_INGRESS_NEXT_SIMPLE)
+                .withSelector(nextIdSelector)
+                .withTreatment(DefaultTrafficTreatment.builder()
+                                       .piTableAction(piActionRouting).build())
+                .build();
+        FlowRule expectedFlowRuleDoublePush = DefaultFlowRule.builder()
+                .withSelector(nextIdSelector)
+                .withTreatment(DefaultTrafficTreatment.builder()
+                                       .piTableAction(piActionPush)
+                                       .build())
+                .forTable(FabricConstants.FABRIC_INGRESS_NEXT_NEXT_VLAN)
+                .makePermanent()
+                // FIXME: currently next objective doesn't support priority, ignore this
+                .withPriority(0)
+                .forDevice(DEVICE_ID)
+                .fromApp(APP_ID)
+                .build();
+
+        ObjectiveTranslation expectedTranslation = ObjectiveTranslation.builder()
+                .addFlowRule(expectedFlowRuleDoublePush)
+                .addFlowRule(expectedFlowRuleRouting)
+                .build();
+
+
+        assertEquals(expectedTranslation, actualTranslation);
+    }
+
+    /**
      * Test program ecmp output group for Hashed table.
      */
     @Test

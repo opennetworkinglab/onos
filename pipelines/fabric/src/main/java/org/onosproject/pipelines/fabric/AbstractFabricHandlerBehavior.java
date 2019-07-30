@@ -30,21 +30,48 @@ import static org.slf4j.LoggerFactory.getLogger;
 /**
  * Abstract implementation of HandlerBehaviour for the fabric pipeconf
  * behaviors.
+ * <p>
+ * All sub-classes must implement a default constructor, used by the abstract
+ * projectable model (i.e., {@link org.onosproject.net.Device#as(Class)}.
  */
-public class AbstractFabricHandlerBehavior extends AbstractHandlerBehaviour {
+public abstract class AbstractFabricHandlerBehavior extends AbstractHandlerBehaviour {
 
     protected final Logger log = getLogger(getClass());
 
     protected FabricCapabilities capabilities;
 
+    /**
+     * Creates a new instance of this behavior with the given capabilities.
+     * Note: this constructor should be invoked only by other classes of this
+     * package that can retrieve capabilities on their own.
+     * <p>
+     * When using the abstract projectable model (i.e., {@link
+     * org.onosproject.net.Device#as(Class)}, capabilities will be set by the
+     * driver manager when calling {@link #setHandler(DriverHandler)})
+     *
+     * @param capabilities capabilities
+     */
+    protected AbstractFabricHandlerBehavior(FabricCapabilities capabilities) {
+        this.capabilities = capabilities;
+    }
+
+    /**
+     * Create a new instance of this behaviour. Used by the abstract projectable
+     * model (i.e., {@link org.onosproject.net.Device#as(Class)}.
+     */
+    public AbstractFabricHandlerBehavior() {
+        // Do nothing
+    }
+
     @Override
     public void setHandler(DriverHandler handler) {
         super.setHandler(handler);
         final PiPipeconfService pipeconfService = handler().get(PiPipeconfService.class);
-        setCapabilities(handler().data().deviceId(), pipeconfService);
+        setCapabilitiesFromHandler(handler().data().deviceId(), pipeconfService);
     }
 
-    private void setCapabilities(DeviceId deviceId, PiPipeconfService pipeconfService) {
+    private void setCapabilitiesFromHandler(
+            DeviceId deviceId, PiPipeconfService pipeconfService) {
         checkNotNull(deviceId);
         checkNotNull(pipeconfService);
         // Get pipeconf capabilities.

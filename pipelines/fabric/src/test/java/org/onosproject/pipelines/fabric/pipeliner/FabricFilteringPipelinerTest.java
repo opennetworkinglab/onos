@@ -265,6 +265,52 @@ public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
     }
 
     /**
+     * Test double VLAN pop filtering objective
+     * Creates one rule for ingress_port_vlan table and 3 rules for
+     * fwd_classifier table (IPv4, IPv6 and MPLS unicast) when
+     * the condition is MAC + VLAN + INNER_VLAN.
+     */
+    @Test
+    public void testPopVlan() throws FabricPipelinerException {
+        FilteringObjective filteringObjective = DefaultFilteringObjective.builder()
+                .withKey(Criteria.matchInPort(PORT_1))
+                .addCondition(Criteria.matchEthDst(ROUTER_MAC))
+                .addCondition(Criteria.matchVlanId(VLAN_100))
+                .addCondition(Criteria.matchInnerVlanId(VLAN_200))
+                .withPriority(PRIORITY)
+                .fromApp(APP_ID)
+                .withMeta(DefaultTrafficTreatment.builder()
+                                  .popVlan()
+                                  .build())
+                .permit()
+                .add();
+        ObjectiveTranslation actualTranslation = translator.translate(filteringObjective);
+
+        // Ingress port vlan rule
+        FlowRule inportFlowRuleExpected = buildExpectedVlanInPortRule(
+                PORT_1, VLAN_100, VLAN_200, VlanId.NONE,
+                FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN);
+        // Forwarding classifier rules (ipv6, ipv4, mpls)
+        FlowRule classifierV4FlowRuleExpected = buildExpectedFwdClassifierRule(
+                PORT_1, ROUTER_MAC, null,  Ethernet.TYPE_IPV4,
+                FilteringObjectiveTranslator.FWD_IPV4_ROUTING);
+        FlowRule classifierV6FlowRuleExpected = buildExpectedFwdClassifierRule(
+                PORT_1, ROUTER_MAC, null,  Ethernet.TYPE_IPV6,
+                FilteringObjectiveTranslator.FWD_IPV6_ROUTING);
+        FlowRule classifierMplsFlowRuleExpected = buildExpectedFwdClassifierRule(
+                PORT_1, ROUTER_MAC, null,  Ethernet.MPLS_UNICAST,
+                FilteringObjectiveTranslator.FWD_MPLS);
+        ObjectiveTranslation expectedTranslation = ObjectiveTranslation.builder()
+                .addFlowRule(inportFlowRuleExpected)
+                .addFlowRule(classifierV4FlowRuleExpected)
+                .addFlowRule(classifierV6FlowRuleExpected)
+                .addFlowRule(classifierMplsFlowRuleExpected)
+                .build();
+
+        assertEquals(expectedTranslation, actualTranslation);
+    }
+
+    /**
      * Incorrect filtering key or filtering conditions test.
      */
     @Test
@@ -381,6 +427,9 @@ public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
                     .build();
         } else {
             selector.matchVlanId(vlanId);
+            if (vlanValid(innerVlanId)) {
+                selector.matchInnerVlanId(innerVlanId);
+            }
             piAction = PiAction.builder()
                     .withId(FabricConstants.FABRIC_INGRESS_FILTERING_PERMIT)
                     .build();

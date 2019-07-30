@@ -76,4 +76,14 @@ public class FabricCapabilities {
             return Optional.empty();
         }
     }
+
+    public boolean supportDoubleVlanTerm() {
+        if (pipeconf.pipelineModel()
+                .table(FabricConstants.FABRIC_INGRESS_NEXT_NEXT_VLAN).isPresent()) {
+            return pipeconf.pipelineModel().table(FabricConstants.FABRIC_INGRESS_NEXT_NEXT_VLAN)
+                    .get().action(FabricConstants.FABRIC_INGRESS_NEXT_SET_DOUBLE_VLAN)
+                    .isPresent();
+        }
+        return false;
+    }
 }

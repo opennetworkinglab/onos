@@ -41,6 +41,7 @@ public class FabricPipelinerTest {
     static final PortNumber PORT_1 = PortNumber.portNumber(1);
     static final PortNumber PORT_2 = PortNumber.portNumber(2);
     static final VlanId VLAN_100 = VlanId.vlanId("100");
+    static final VlanId VLAN_200 = VlanId.vlanId("200");
     static final MacAddress HOST_MAC = MacAddress.valueOf("00:00:00:00:00:01");
     static final MacAddress ROUTER_MAC = MacAddress.valueOf("00:00:00:00:02:01");
     static final IpPrefix IPV4_UNICAST_ADDR = IpPrefix.valueOf("10.0.0.1/32");
@@ -61,6 +62,7 @@ public class FabricPipelinerTest {
         this.capabilitiesSimple = createNiceMock(FabricCapabilities.class);
         expect(capabilitiesHashed.hasHashedTable()).andReturn(true).anyTimes();
         expect(capabilitiesSimple.hasHashedTable()).andReturn(false).anyTimes();
+        expect(capabilitiesSimple.supportDoubleVlanTerm()).andReturn(true).anyTimes();
         replay(capabilitiesHashed);
         replay(capabilitiesSimple);
     }
