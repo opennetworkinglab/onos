@@ -409,6 +409,18 @@
           "transitions" : [
             {
               "type" : "hexstr",
+              "value" : "0x88a8",
+              "mask" : null,
+              "next_state" : "parse_vlan_tag"
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x9100",
+              "mask" : null,
+              "next_state" : "parse_vlan_tag"
+            },
+            {
+              "type" : "hexstr",
               "value" : "0x8100",
               "mask" : null,
               "next_state" : "parse_vlan_tag"
@@ -468,18 +480,6 @@
             {
               "type" : "hexstr",
               "value" : "0x8100",
-              "mask" : null,
-              "next_state" : "parse_inner_vlan_tag"
-            },
-            {
-              "type" : "hexstr",
-              "value" : "0x88a8",
-              "mask" : null,
-              "next_state" : "parse_inner_vlan_tag"
-            },
-            {
-              "type" : "hexstr",
-              "value" : "0x9100",
               "mask" : null,
               "next_state" : "parse_inner_vlan_tag"
             },
@@ -1166,7 +1166,7 @@
       "binding" : "FabricEgress.egress_next.egress_vlan",
       "source_info" : {
         "filename" : "include/control/next.p4",
-        "line" : 309,
+        "line" : 310,
         "column" : 50,
         "source_fragment" : "egress_vlan_counter"
       }
@@ -4041,6 +4041,25 @@
             "column" : 31,
             "source_fragment" : "0x8100; ..."
           }
+        },
+        {
+          "op" : "assign",
+          "parameters" : [
+            {
+              "type" : "field",
+              "value" : ["ethernet", "eth_type"]
+            },
+            {
+              "type" : "hexstr",
+              "value" : "0x88a8"
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/control/../define.p4",
+            "line" : 105,
+            "column" : 31,
+            "source_fragment" : "0x88A8; ..."
+          }
         }
       ]
     },
@@ -4063,7 +4082,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 312,
+            "line" : 313,
             "column" : 8,
             "source_fragment" : "hdr.ethernet.eth_type = fabric_metadata.last_eth_type; ..."
           }
@@ -4078,7 +4097,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 313,
+            "line" : 314,
             "column" : 8,
             "source_fragment" : "hdr.vlan_tag.setInvalid()"
           }
@@ -4168,7 +4187,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 334,
+            "line" : 335,
             "column" : 12,
             "source_fragment" : "mark_to_drop(standard_metadata)"
           }
@@ -4250,7 +4269,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 350,
+            "line" : 351,
             "column" : 12,
             "source_fragment" : "hdr.inner_vlan_tag.setInvalid()"
           }
@@ -4272,7 +4291,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 367,
+            "line" : 368,
             "column" : 35,
             "source_fragment" : "mark_to_drop(standard_metadata)"
           }
@@ -4321,7 +4340,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 366,
+            "line" : 367,
             "column" : 12,
             "source_fragment" : "hdr.mpls.ttl = hdr.mpls.ttl - 1"
           }
@@ -4343,7 +4362,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 371,
+            "line" : 372,
             "column" : 39,
             "source_fragment" : "mark_to_drop(standard_metadata)"
           }
@@ -4392,7 +4411,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 370,
+            "line" : 371,
             "column" : 16,
             "source_fragment" : "hdr.ipv4.ttl = hdr.ipv4.ttl - 1"
           }
@@ -6303,7 +6322,7 @@
           "id" : 37,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 334,
+            "line" : 335,
             "column" : 12,
             "source_fragment" : "mark_to_drop(standard_metadata)"
           },
@@ -6332,7 +6351,7 @@
           "id" : 38,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 338,
+            "line" : 339,
             "column" : 36,
             "source_fragment" : "pop_mpls_if_present()"
           },
@@ -6361,7 +6380,7 @@
           "id" : 39,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 340,
+            "line" : 341,
             "column" : 12,
             "source_fragment" : "set_mpls()"
           },
@@ -6390,7 +6409,7 @@
           "id" : 40,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 346,
+            "line" : 347,
             "column" : 12,
             "source_fragment" : "push_vlan()"
           },
@@ -6419,7 +6438,7 @@
           "id" : 41,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 347,
+            "line" : 348,
             "column" : 12,
             "source_fragment" : "push_inner_vlan()"
           },
@@ -6448,7 +6467,7 @@
           "id" : 42,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 350,
+            "line" : 351,
             "column" : 12,
             "source_fragment" : "hdr.inner_vlan_tag.setInvalid()"
           },
@@ -6477,7 +6496,7 @@
           "id" : 43,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 317,
+            "line" : 318,
             "column" : 10,
             "source_fragment" : "egress_vlan"
           },
@@ -6566,7 +6585,7 @@
           "id" : 46,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 357,
+            "line" : 358,
             "column" : 20,
             "source_fragment" : "push_vlan()"
           },
@@ -6595,7 +6614,7 @@
           "id" : 47,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 366,
+            "line" : 367,
             "column" : 25,
             "source_fragment" : "="
           },
@@ -6624,7 +6643,7 @@
           "id" : 48,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 367,
+            "line" : 368,
             "column" : 35,
             "source_fragment" : "mark_to_drop(standard_metadata)"
           },
@@ -6653,7 +6672,7 @@
           "id" : 49,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 370,
+            "line" : 371,
             "column" : 29,
             "source_fragment" : "="
           },
@@ -6682,7 +6701,7 @@
           "id" : 50,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 371,
+            "line" : 372,
             "column" : 39,
             "source_fragment" : "mark_to_drop(standard_metadata)"
           },
@@ -6802,7 +6821,7 @@
           "id" : 23,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 332,
+            "line" : 333,
             "column" : 12,
             "source_fragment" : "fabric_metadata.is_multicast == true ..."
           },
@@ -6855,7 +6874,7 @@
           "id" : 24,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 337,
+            "line" : 338,
             "column" : 12,
             "source_fragment" : "fabric_metadata.mpls_label == 0"
           },
@@ -6881,7 +6900,7 @@
           "id" : 25,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 338,
+            "line" : 339,
             "column" : 16,
             "source_fragment" : "hdr.mpls.isValid()"
           },
@@ -6904,7 +6923,7 @@
           "id" : 26,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 344,
+            "line" : 345,
             "column" : 12,
             "source_fragment" : "fabric_metadata.push_double_vlan == true"
           },
@@ -6937,7 +6956,7 @@
           "id" : 27,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 354,
+            "line" : 355,
             "column" : 16,
             "source_fragment" : "!egress_vlan.apply().hit"
           },
@@ -6967,7 +6986,7 @@
           "id" : 28,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 356,
+            "line" : 357,
             "column" : 20,
             "source_fragment" : "fabric_metadata.vlan_id != DEFAULT_VLAN_ID"
           },
@@ -6993,7 +7012,7 @@
           "id" : 29,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 365,
+            "line" : 366,
             "column" : 12,
             "source_fragment" : "hdr.mpls.isValid()"
           },
@@ -7016,7 +7035,7 @@
           "id" : 30,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 367,
+            "line" : 368,
             "column" : 16,
             "source_fragment" : "hdr.mpls.ttl == 0"
           },
@@ -7042,7 +7061,7 @@
           "id" : 31,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 369,
+            "line" : 370,
             "column" : 15,
             "source_fragment" : "hdr.ipv4.isValid()"
           },
@@ -7065,7 +7084,7 @@
           "id" : 32,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 371,
+            "line" : 372,
             "column" : 20,
             "source_fragment" : "hdr.ipv4.ttl == 0"
           },

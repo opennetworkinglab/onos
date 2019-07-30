@@ -43,6 +43,8 @@ parser FabricParser (packet_in packet,
         fabric_metadata.last_eth_type = hdr.ethernet.eth_type;
         fabric_metadata.vlan_id = DEFAULT_VLAN_ID;
         transition select(hdr.ethernet.eth_type){
+            ETHERTYPE_QINQ: parse_vlan_tag;
+            ETHERTYPE_QINQ_NON_STD: parse_vlan_tag;
             ETHERTYPE_VLAN: parse_vlan_tag;
             ETHERTYPE_MPLS: parse_mpls;
             ETHERTYPE_IPV4: pre_parse_ipv4;
@@ -63,8 +65,6 @@ parser FabricParser (packet_in packet,
             ETHERTYPE_MPLS: parse_mpls;
 #if defined(WITH_XCONNECT) || defined(WITH_BNG) || defined(WITH_DOUBLE_VLAN_TERMINATION)
             ETHERTYPE_VLAN: parse_inner_vlan_tag;
-            ETHERTYPE_QINQ: parse_inner_vlan_tag;
-            ETHERTYPE_QINQ_NON_STD: parse_inner_vlan_tag;
 #endif // WITH_XCONNECT
             default: accept;
         }

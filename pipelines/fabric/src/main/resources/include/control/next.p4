@@ -299,6 +299,7 @@ control EgressNextControl (inout parsed_headers_t hdr,
         hdr.inner_vlan_tag.vlan_id = fabric_metadata.inner_vlan_id;
         hdr.inner_vlan_tag.eth_type = fabric_metadata.last_eth_type;
         hdr.vlan_tag.eth_type = ETHERTYPE_VLAN;
+        hdr.ethernet.eth_type = ETHERTYPE_QINQ;
     }
 #endif // WITH_DOUBLE_VLAN_TERMINATION
 
