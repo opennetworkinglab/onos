@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.behaviour;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -57,6 +58,19 @@ public interface BridgeConfig extends HandlerBehaviour {
      * @param portName port name
      */
     void addPort(BridgeName bridgeName, String portName);
+
+    /**
+     * Adds ports to a given bridge.
+     *
+     * @param bridgeName bridge name
+     * @param portNames list port name
+     */
+    default void addPorts(BridgeName bridgeName, List<String> portNames) {
+        List<String> portsList = new ArrayList<>();
+        for (String portName : portNames) {
+                portsList.add(portName);
+        }
+    }
 
     /**
      * Removes a port from a given bridge.

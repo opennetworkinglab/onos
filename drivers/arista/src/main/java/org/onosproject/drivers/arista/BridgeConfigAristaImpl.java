@@ -72,6 +72,18 @@ public class BridgeConfigAristaImpl extends AbstractHandlerBehaviour implements 
     }
 
     @Override
+    public void addPorts(BridgeName bridgeName, List<String> portNames) {
+        List<String> cmds = new ArrayList<>();
+        cmds.add(CONFIGURE_TERMINAL);
+        cmds.add(OPENFLOW_CMD);
+        for (String portName : portNames) {
+            cmds.add(String.format(BIND_CMD, portName));
+        }
+
+        AristaUtils.getWithChecking(handler(), cmds);
+    }
+
+    @Override
     public void deletePort(BridgeName bridgeName, String portName) {
         List<String> cmds = new ArrayList<>();
         cmds.add(CONFIGURE_TERMINAL);
