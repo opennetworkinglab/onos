@@ -24,6 +24,8 @@
                    impl="org.onosproject.drivers.arista.BridgeConfigAristaImpl"/>
         <behaviour api="org.onosproject.net.behaviour.LinkDiscovery"
                    impl="org.onosproject.drivers.arista.LinkDiscoveryAristaImpl"/>
+        <behaviour api="org.onosproject.net.device.PortStatisticsDiscovery"
+                   impl="org.onosproject.drivers.arista.PortStatisticsImpl"/>
     </driver>
 </drivers>
 
