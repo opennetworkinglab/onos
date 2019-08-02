@@ -25,6 +25,7 @@ import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
 import org.onlab.packet.ChassisId;
 import org.onosproject.drivers.utilities.XmlConfigParser;
+import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
@@ -262,7 +263,7 @@ public class CassiniTerminalDeviceDiscovery
         if (type.equals(OC_TRANSPORT_TYPES_OPTICAL_CHANNEL)) {
             String portName = component.getString("optical-channel/config/line-port");
             String portIndex = portName.split("-")[1];
-            annotations.putIfAbsent("name", portName);
+            annotations.putIfAbsent(AnnotationKeys.PORT_NAME, portName);
             annotations.putIfAbsent(PORT_TYPE, OdtnPortType.LINE.value());
             annotations.putIfAbsent(ONOS_PORT_INDEX, portIndex);
             annotations.putIfAbsent(CONNECTION_ID, "connection-" + portIndex);

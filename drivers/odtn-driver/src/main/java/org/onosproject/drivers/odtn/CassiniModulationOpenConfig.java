@@ -240,24 +240,38 @@ public class CassiniModulationOpenConfig<T> extends AbstractHandlerBehaviour imp
             String filter = createModulationFilter(cassini, port);
             StringBuilder rpcReq = new StringBuilder();
             rpcReq.append(RPC_TAG_NETCONF_BASE)
-                    .append("<get>")
+                    .append("<get-config>")
+                    .append("<source>")
+                    .append("<" + DatastoreId.RUNNING + "/>")
+                    .append("</source>")
                     .append("<filter type='subtree'>")
                     .append(filter)
                     .append("</filter>")
-                    .append("</get>")
+                    .append("</get-config>")
                     .append(RPC_CLOSE_TAG);
-            log.info("RPC Call for Getting Modulation : \n {}", rpcReq.toString());
             XMLConfiguration xconf = cassini.executeRpc(session, rpcReq.toString());
+            if (xconf == null) {
+                log.error("Error in executingRpc");
+                return Optional.empty();
+            }
             try {
                 HierarchicalConfiguration config =
-                        xconf.configurationAt("components/component/optical-channel/config");
+                        xconf.configurationAt("data/components/component/optical-channel/config");
 
-                String modulationScheme = String.valueOf(config.getString("modulation"));
+                String modulationScheme = String.valueOf(config.getString("modulation-format"));
                 /*Used for Internal Testing */
                 //String modulationScheme="DP16QAM";
-                ModulationScheme modulation = ModulationScheme.valueOf(modulationScheme);
+                ModulationScheme modulation;
+                if (modulationScheme.equalsIgnoreCase("dp-16-qam")) {
+                    modulation = ModulationScheme.DP_16QAM;
+                } else if (modulationScheme.equalsIgnoreCase("dp-8-qam")) {
+                    modulation = ModulationScheme.DP_8QAM;
+                } else {
+                    modulation = ModulationScheme.DP_QPSK;
+                }
                 return Optional.of(modulation);
             } catch (IllegalArgumentException e) {
+                log.error("Error in parsing config", e);
                 return Optional.empty();
             }
         }
@@ -388,9 +402,11 @@ public class CassiniModulationOpenConfig<T> extends AbstractHandlerBehaviour imp
                     .append(RPC_CLOSE_TAG);
             log.info("RPC call for Setting Modulation : {}", rpcReq.toString());
             XMLConfiguration xconf = cassini.executeRpc(session, rpcReq.toString());
-
-            // The successful reply should be "<rpc-reply ...><ok /></rpc-reply>"
-            if (!xconf.getRoot().getChild(0).getName().equals("ok")) {
+            if (xconf == null) {
+                log.error("The <edit-config> operation to set target-modulation of Port({}:{}) is failed.",
+                        port.toString(), component.toString());
+            } else if (!xconf.getRoot().getChild(0).getName().equals("ok")) {
+                // The successful reply should be "<rpc-reply ...><ok /></rpc-reply>"
                 response = false;
                 log.error("The <edit-config> operation to set target-modulation of Port({}:{}) is failed.",
                         port.toString(), component.toString());

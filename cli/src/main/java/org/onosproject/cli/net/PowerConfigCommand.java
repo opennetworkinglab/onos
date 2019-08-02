@@ -82,9 +82,23 @@ public class PowerConfigCommand extends AbstractShellCommand {
         //  <component> and <optical-channel>.
         if (operation.equals("get")) {
             Optional<Long> val = powerConfig.getTargetPower(cp.port(), Direction.ALL);
-            long power = val.isPresent() ? val.get() : Long.MIN_VALUE;
-            print("The target-output-power value in port %s on device %s is %d.",
-                    cp.port().toString(), cp.deviceId().toString(), power);
+            if (val.isPresent()) {
+                long power = val.orElse(Long.MIN_VALUE);
+                print("The target-output-power value in port %s on device %s is %d.",
+                        cp.port().toString(), cp.deviceId().toString(), power);
+            }
+            Optional<Long> currentPower = powerConfig.currentPower(cp.port(), Direction.ALL);
+            if (currentPower.isPresent()) {
+                long currentPowerVal = currentPower.orElse(Long.MIN_VALUE);
+                print("The current-output-power value in port %s on device %s is %d.",
+                        cp.port().toString(), cp.deviceId().toString(), currentPowerVal);
+            }
+            Optional<Long> currentInputPower = powerConfig.currentInputPower(cp.port(), Direction.ALL);
+            if (currentInputPower.isPresent()) {
+                long inputPowerVal = currentInputPower.orElse(Long.MIN_VALUE);
+                print("The current-input-power value in port %s on device %s is %d.",
+                        cp.port().toString(), cp.deviceId().toString(), inputPowerVal);
+            }
         } else if (operation.equals("edit-config")) {
             checkNotNull(value);
             powerConfig.setTargetPower(cp.port(), Direction.ALL, value);

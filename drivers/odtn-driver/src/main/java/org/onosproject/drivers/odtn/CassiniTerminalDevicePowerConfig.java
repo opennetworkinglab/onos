@@ -19,6 +19,7 @@
 package org.onosproject.drivers.odtn;
 
 import com.google.common.collect.Range;
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
@@ -36,6 +37,7 @@ import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
 import org.slf4j.Logger;
 
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -47,7 +49,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Driver Implementation of the PowerConfig for OpenConfig terminal devices.
- *
  */
 public class CassiniTerminalDevicePowerConfig<T>
         extends AbstractHandlerBehaviour implements PowerConfig<T> {
@@ -67,7 +68,6 @@ public class CassiniTerminalDevicePowerConfig<T>
      * Returns the NetconfSession with the device for which the method was called.
      *
      * @param deviceId device indetifier
-     *
      * @return The netconf session or null
      */
     private NetconfSession getNetconfSession(DeviceId deviceId) {
@@ -91,6 +91,7 @@ public class CassiniTerminalDevicePowerConfig<T>
 
     /**
      * Execute RPC request.
+     *
      * @param session Netconf session
      * @param message Netconf message in XML format
      * @return XMLConfiguration object
@@ -114,7 +115,8 @@ public class CassiniTerminalDevicePowerConfig<T>
 
     /**
      * Get the target-output-power value on specific optical-channel.
-     * @param port the port
+     *
+     * @param port      the port
      * @param component the port component. It should be 'oc-name' in the Annotations of Port.
      *                  'oc-name' could be mapped to '/component/name' in openconfig yang.
      * @return target power value
@@ -164,6 +166,7 @@ public class CassiniTerminalDevicePowerConfig<T>
 
     /**
      * Set the ComponentType to invoke proper methods for different template T.
+     *
      * @param component the component.
      */
     void checkState(Object component) {
@@ -195,6 +198,7 @@ public class CassiniTerminalDevicePowerConfig<T>
             public Optional<Long> getTargetPower(PortNumber port, Object component) {
                 return super.getTargetPower(port, component);
             }
+
             @Override
             public void setTargetPower(PortNumber port, Object component, long power) {
                 super.setTargetPower(port, component, power);
@@ -217,12 +221,12 @@ public class CassiniTerminalDevicePowerConfig<T>
         };
 
 
-
         CassiniTerminalDevicePowerConfig cassini;
 
         /**
          * mirror method in the internal class.
-         * @param port port
+         *
+         * @param port      port
          * @param component component
          * @return target power
          */
@@ -232,16 +236,23 @@ public class CassiniTerminalDevicePowerConfig<T>
             String filter = parsePort(cassini, port, null, null);
             StringBuilder rpcReq = new StringBuilder();
             rpcReq.append(RPC_TAG_NETCONF_BASE)
-                    .append("<get>")
+                    .append("<get-config>")
+                    .append("<source>")
+                    .append("<" + DatastoreId.RUNNING + "/>")
+                    .append("</source>")
                     .append("<filter type='subtree'>")
                     .append(filter)
                     .append("</filter>")
-                    .append("</get>")
+                    .append("</get-config>")
                     .append(RPC_CLOSE_TAG);
             XMLConfiguration xconf = cassini.executeRpc(session, rpcReq.toString());
+            if (xconf == null) {
+                log.error("Error in executingRpc");
+                return Optional.empty();
+            }
             try {
                 HierarchicalConfiguration config =
-                        xconf.configurationAt("components/component/optical-channel/state");
+                        xconf.configurationAt("data/components/component/optical-channel/config");
                 long power = Float.valueOf(config.getString("target-output-power")).longValue();
                 return Optional.of(power);
             } catch (IllegalArgumentException e) {
@@ -251,9 +262,10 @@ public class CassiniTerminalDevicePowerConfig<T>
 
         /**
          * mirror method in the internal class.
-         * @param port port
+         *
+         * @param port      port
          * @param component component
-         * @param power target value
+         * @param power     target value
          */
         void setTargetPower(PortNumber port, Object component, long power) {
             NetconfSession session = cassini.getNetconfSession(cassini.did());
@@ -278,22 +290,23 @@ public class CassiniTerminalDevicePowerConfig<T>
             try {
                 session.commit();
             } catch (NetconfException e) {
-                log.error("error committing channel power");
+                log.error("error committing channel power", e);
             }
         }
 
         /**
          * mirror method in the internal class.
-         * @param port port
+         *
+         * @param port      port
          * @param component the component.
          * @return current output power.
          */
         Optional<Long> currentPower(PortNumber port, Object component) {
             XMLConfiguration xconf = getOpticalChannelState(
-                                    cassini, port, "<output-power><instant/></output-power>");
+                    cassini, port, "<output-power><instant/></output-power>");
             try {
                 HierarchicalConfiguration config =
-                        xconf.configurationAt("components/component/optical-channel/state/output-power");
+                        xconf.configurationAt("data/components/component/optical-channel/state/output-power");
                 long currentPower = Float.valueOf(config.getString("instant")).longValue();
                 return Optional.of(currentPower);
             } catch (IllegalArgumentException e) {
@@ -303,7 +316,8 @@ public class CassiniTerminalDevicePowerConfig<T>
 
         /**
          * mirror method in the internal class.
-         * @param port port
+         *
+         * @param port      port
          * @param component the component
          * @return current input power
          */
@@ -312,7 +326,7 @@ public class CassiniTerminalDevicePowerConfig<T>
                     cassini, port, "<input-power><instant/></input-power>");
             try {
                 HierarchicalConfiguration config =
-                        xconf.configurationAt("components/component/optical-channel/state/input-power");
+                        xconf.configurationAt("data/components/component/optical-channel/state/input-power");
                 long currentPower = Float.valueOf(config.getString("instant")).longValue();
                 return Optional.of(currentPower);
             } catch (IllegalArgumentException e) {
@@ -321,9 +335,9 @@ public class CassiniTerminalDevicePowerConfig<T>
         }
 
         Optional<Range<Long>> getTargetPowerRange(PortNumber port, Object component) {
-                long targetMin = -30;
-                long targetMax = 1;
-                return Optional.of(Range.open(targetMin, targetMax));
+            long targetMin = -30;
+            long targetMax = 1;
+            return Optional.of(Range.open(targetMin, targetMax));
         }
 
         Optional<Range<Long>> getInputPowerRange(PortNumber port, Object component) {
@@ -340,13 +354,14 @@ public class CassiniTerminalDevicePowerConfig<T>
 
         /**
          * Get filtered content under <optical-channel><state>.
-         * @param pc power config instance
-         * @param port the port number
+         *
+         * @param pc         power config instance
+         * @param port       the port number
          * @param underState the filter condition
          * @return RPC reply
          */
         private static XMLConfiguration getOpticalChannelState(CassiniTerminalDevicePowerConfig pc,
-                                                 PortNumber port, String underState) {
+                                                               PortNumber port, String underState) {
             NetconfSession session = pc.getNetconfSession(pc.did());
             checkNotNull(session);
             String name = ocName(pc, port);
@@ -358,14 +373,23 @@ public class CassiniTerminalDevicePowerConfig<T>
                     .append(underState)
                     .append("</state></optical-channel></component></components></filter></get>")
                     .append(RPC_CLOSE_TAG);
+            log.info("Getting Optical Channel State {}", rpcReq.toString());
+            StringWriter stringWriter = new StringWriter();
             XMLConfiguration xconf = pc.executeRpc(session, rpcReq.toString());
+            try {
+                xconf.save(stringWriter);
+            } catch (ConfigurationException e) {
+                log.error("XML Config Exception ", e);
+            }
+            log.info("Optical Channel State {}", stringWriter.toString());
             return xconf;
         }
 
 
         /**
          * Extract component name from portNumber's annotations.
-         * @param pc power config instance
+         *
+         * @param pc         power config instance
          * @param portNumber the port number
          * @return the component name
          */
@@ -376,12 +400,12 @@ public class CassiniTerminalDevicePowerConfig<T>
         }
 
 
-
         /**
          * Parse filtering string from port and component.
+         *
          * @param portNumber Port Number
-         * @param component port component (optical-channel)
-         * @param power power value set.
+         * @param component  port component (optical-channel)
+         * @param power      power value set.
          * @return filtering string in xml format
          */
         private static String parsePort(CassiniTerminalDevicePowerConfig pc, PortNumber portNumber,
