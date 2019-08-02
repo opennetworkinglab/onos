@@ -210,11 +210,11 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
 
     private void startConnection() throws NetconfException {
         connectTimeout = deviceInfo.getConnectTimeoutSec().orElse(
-                                NetconfControllerImpl.netconfConnectTimeout);
+                NetconfControllerImpl.netconfConnectTimeout);
         replyTimeout = deviceInfo.getReplyTimeoutSec().orElse(
-                                NetconfControllerImpl.netconfReplyTimeout);
+                NetconfControllerImpl.netconfReplyTimeout);
         idleTimeout = deviceInfo.getIdleTimeoutSec().orElse(
-                                NetconfControllerImpl.netconfIdleTimeout);
+                NetconfControllerImpl.netconfIdleTimeout);
         log.info("Connecting to {} with timeouts C:{}, R:{}, I:{}", deviceInfo,
                 connectTimeout, replyTimeout, idleTimeout);
 
@@ -228,7 +228,7 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
 
     private void startClient() throws IOException {
         log.info("Creating NETCONF session to {}",
-                 deviceInfo.getDeviceId());
+                deviceInfo.getDeviceId());
 
         client = SshClient.setUpDefaultClient();
         if (idleTimeout != NetconfControllerImpl.netconfIdleTimeout) {
@@ -514,13 +514,14 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
         String reply = sendRequest(request, timeout);
         if (!checkReply(reply)) {
             throw new NetconfException("Request not successful with device "
-                                               + deviceInfo + " with reply " + reply);
+                    + deviceInfo + " with reply " + reply);
         }
         return reply;
     }
 
 
     // FIXME rename to align with what it actually do
+
     /**
      * Validate and format netconf message.
      * - NC1.0 if no EOM sequence present on {@code message}, append.
@@ -591,21 +592,21 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
 
         log.debug("Sending {} to {}", rpc, this.deviceInfo.getDeviceId());
         return streamHandler.sendMessage(rpc, msgId)
-                    .handleAsync((reply, t) -> {
-                        if (t != null) {
-                            // secure transport-layer error
-                            // cannot use NetconfException, which is
-                            // checked Exception.
-                            throw new NetconfTransportException(t);
-                        } else {
-                            // FIXME avoid using checkReply, error handling is weird
-                            if (!checkReply(reply)) {
-                                throw new NetconfTransportException("rpc-request not successful with device "
-                                        + deviceInfo + " with reply " + reply);
-                            }
-                            return reply;
+                .handleAsync((reply, t) -> {
+                    if (t != null) {
+                        // secure transport-layer error
+                        // cannot use NetconfException, which is
+                        // checked Exception.
+                        throw new NetconfTransportException(t);
+                    } else {
+                        // FIXME avoid using checkReply, error handling is weird
+                        if (!checkReply(reply)) {
+                            throw new NetconfTransportException("rpc-request not successful with device "
+                                    + deviceInfo + " with reply " + reply);
                         }
-                    }, SharedExecutors.getPoolThreadExecutor());
+                        return reply;
+                    }
+                }, SharedExecutors.getPoolThreadExecutor());
     }
 
     @Override
@@ -653,7 +654,7 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
         request = formatXmlHeader(request);
         request = formatRequestMessageId(request, messageId);
         log.debug("Sending request to NETCONF with timeout {} for {}",
-                  replyTimeout, deviceInfo.name());
+                replyTimeout, deviceInfo.name());
         CompletableFuture<String> futureReply = request(request, messageId);
         String rp;
         try {
@@ -714,6 +715,7 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
 
     /**
      * Ensures xml start directive/declaration appears in the {@code request}.
+     *
      * @param request RPC request message
      * @return XML RPC message
      */

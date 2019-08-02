@@ -35,8 +35,6 @@ import org.onosproject.netconf.NetconfSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -60,10 +58,10 @@ public class CassiniModulationOcNos<T> extends AbstractHandlerBehaviour implemen
 
 
     enum BitRate {
-        GBPS_200(20000000),      // 200 Gbps
-        GBPS_100(10000000),        // 100 Gbps
-        GBPS_40(4000000),          // 40 Gbps
-        GBPS_10(1000000);          // 10 Gbps
+        GBPS_200(200),      // 200 Gbps
+        GBPS_100(100),        // 100 Gbps
+        GBPS_40(40),          // 40 Gbps
+        GBPS_10(10);          // 10 Gbps
 
         private final long value;
 
@@ -227,12 +225,6 @@ public class CassiniModulationOcNos<T> extends AbstractHandlerBehaviour implemen
 
 
         CassiniModulationOcNos cassini;
-
-        List<PortNumber> getPorts(Object component) {
-            // FIXME
-            log.warn("Not Implemented Yet!");
-            return new ArrayList<PortNumber>();
-        }
 
         /*
          * mirror method in the internal class.

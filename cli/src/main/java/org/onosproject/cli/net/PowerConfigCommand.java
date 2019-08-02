@@ -88,8 +88,9 @@ public class PowerConfigCommand extends AbstractShellCommand {
         } else if (operation.equals("edit-config")) {
             checkNotNull(value);
             powerConfig.setTargetPower(cp.port(), Direction.ALL, value);
+            print("Set %s power on port", value, connectPoint);
         } else {
-            log.warn("Operation {} are not supported now.", operation);
+            print("Operation %s are not supported now.", operation);
         }
     }
 }

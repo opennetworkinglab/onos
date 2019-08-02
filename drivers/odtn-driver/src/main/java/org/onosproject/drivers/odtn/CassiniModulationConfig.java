@@ -209,7 +209,7 @@ public class CassiniModulationConfig<T> extends AbstractHandlerBehaviour impleme
             XMLConfiguration xconf = NetconfSessionUtility.executeRpc(session, rpcReq.toString());
             try {
                 HierarchicalConfiguration config =
-                        xconf.configurationAt("data/components/component/optical-channel/config");
+                        xconf.configurationAt("components/component/optical-channel/config");
 
                 String modulationScheme = String.valueOf(config.getString("modulation"));
 

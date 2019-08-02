@@ -18,32 +18,30 @@
 
 package org.onosproject.drivers.odtn;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
 import org.onlab.packet.ChassisId;
 import org.onosproject.drivers.utilities.XmlConfigParser;
+import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.Port.Type;
+import org.onosproject.net.OchSignal;
+import org.onosproject.net.OduSignalType;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DefaultDeviceDescription;
-import org.onosproject.net.device.DefaultPortDescription;
-import org.onosproject.net.device.DefaultPortDescription.Builder;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceDescriptionDiscovery;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
+import org.onosproject.net.optical.device.OchPortHelper;
 import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfDevice;
 import org.onosproject.netconf.NetconfSession;
 import org.onosproject.odtn.behaviour.OdtnDeviceDescriptionDiscovery;
-import org.onosproject.net.OchSignal;
-import org.onosproject.net.optical.device.OchPortHelper;
-import org.onosproject.net.OduSignalType;
-import org.onosproject.net.ChannelSpacing;
 import org.slf4j.Logger;
 
 import java.util.HashMap;
@@ -51,35 +49,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 
 /**
  * Driver Implementation of the DeviceDescrption discovery for OpenConfig
  * terminal devices.
- *
  */
 public class CassiniTerminalDeviceDiscovery
-    extends AbstractHandlerBehaviour
-    implements OdtnDeviceDescriptionDiscovery, DeviceDescriptionDiscovery {
+        extends AbstractHandlerBehaviour
+        implements OdtnDeviceDescriptionDiscovery, DeviceDescriptionDiscovery {
 
     private static final String RPC_TAG_NETCONF_BASE =
-        "<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">";
+            "<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">";
 
     private static final String RPC_CLOSE_TAG = "</rpc>";
 
-    private static final String OC_PLATFORM_TYPES_TRANSCEIVER =
-        "oc-platform-types:TRANSCEIVER";
-
-    private static final String OC_PLATFORM_TYPES_PORT =
-        "oc-platform-types:PORT";
-
     private static final String OC_TRANSPORT_TYPES_OPTICAL_CHANNEL =
-        "oc-opt-types:OPTICAL_CHANNEL";
+            "OPTICAL_CHANNEL";
 
     private static final Logger log = getLogger(CassiniTerminalDeviceDiscovery.class);
 
@@ -88,7 +78,6 @@ public class CassiniTerminalDeviceDiscovery
      * Returns the NetconfSession with the device for which the method was called.
      *
      * @param deviceId device indetifier
-     *
      * @return The netconf session or null
      */
     private NetconfSession getNetconfSession(DeviceId deviceId) {
@@ -130,35 +119,23 @@ public class CassiniTerminalDeviceDiscovery
     }
 
 
-    /**
-     * Builds a request to get Device Components, config and operational data.
-     *
-     * @return A string with the Netconf RPC for a get with subtree rpcing based on
-     *    /components/
-     */
-    private String getTerminalDeviceBuilder() {
-        return filteredGetBuilder("<terminal-device xmlns='http://openconfig.net/yang/terminal-device'/>");
-    }
-
-
     @Override
     public DeviceDescription discoverDeviceDetails() {
         return new DefaultDeviceDescription(handler().data().deviceId().uri(),
-                                            Device.Type.TERMINAL_DEVICE,
-                                            "EDGECORE",
-                                            "Cassini",
-                                            "OcNOS",
-                                            "",
-                                            new ChassisId("1"));
+                Device.Type.TERMINAL_DEVICE,
+                "EDGECORE",
+                "Cassini",
+                "OcNOS",
+                "",
+                new ChassisId("1"));
     }
-
 
 
     /**
      * Returns a list of PortDescriptions for the device.
      *
      * @return a list of descriptions.
-     *
+     * <p>
      * The RPC reply follows the following pattern:
      * //CHECKSTYLE:OFF
      * <pre>{@code
@@ -184,134 +161,124 @@ public class CassiniTerminalDeviceDiscovery
                 log.error("discoverPortDetails called with null session for {}", did());
                 return ImmutableList.of();
             }
+            CompletableFuture<CharSequence> fut1 = session.asyncGet();
+            String rpcReplyTest = fut1.get().toString();
 
-            CompletableFuture<String> fut = session.rpc(getTerminalDeviceBuilder());
-            String rpcReply = fut.get();
-
-            XMLConfiguration xconf = (XMLConfiguration) XmlConfigParser.loadXmlString(rpcReply);
+            XMLConfiguration xconf = (XMLConfiguration) XmlConfigParser.loadXmlString(rpcReplyTest);
             xconf.setExpressionEngine(new XPathExpressionEngine());
 
-            HierarchicalConfiguration logicalChannels = xconf.configurationAt("data/terminal-device/logical-channels");
-            return parseLogicalChannels(logicalChannels);
+            HierarchicalConfiguration logicalChannels = xconf.configurationAt("components");
+            return discoverPorts(logicalChannels);
         } catch (Exception e) {
             log.error("Exception discoverPortDetails() {}", did(), e);
             return ImmutableList.of();
         }
     }
 
-
-
-
     /**
-     * Parses transceiver information from OpenConfig XML configuration.
+     * Parses port information from OpenConfig XML configuration.
      *
-     * @param terminalDevice the XML document with components root.
+     * @param cfg tree where the root node is {@literal <data>}
      * @return List of ports
-     *
-     * //CHECKSTYLE:OFF
-     * <pre>{@code
-     *   <components xmlns="http://openconfig.net/yang/platform">
-     *     <component>....
-     *     </component>
-     *     <component>....
-     *     </component>
-     *   </components>
-     * }</pre>
-     * //CHECKSTYLE:ON
      */
-    protected List<PortDescription> parseLogicalChannels(HierarchicalConfiguration terminalDevice) {
-        return terminalDevice.configurationsAt("channel")
-            .stream()
-            .filter(channel -> !channel.getString("index", "unknown").equals("unknown"))
-            .map(channel -> {
-                try {
-                    // Pass the root document for cross-reference
-                    return parseLogicalChannel(channel);
-                } catch (Exception e) {
-                    return null;
-                }
-                })
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
+    @VisibleForTesting
+    private List<PortDescription> discoverPorts(HierarchicalConfiguration cfg) {
+        // If we want to use XPath
+        cfg.setExpressionEngine(new XPathExpressionEngine());
+        // converting components into PortDescription.
+        List<HierarchicalConfiguration> components = cfg.configurationsAt("component");
+        return components.stream()
+                .map(this::toPortDescriptionInternal)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
+    /**
+     * Converts Component subtree to PortDescription.
+     *
+     * @param component subtree to parse
+     * @return PortDescription or null if component is not an ONOS Port
+     */
+    private PortDescription toPortDescriptionInternal(HierarchicalConfiguration component) {
+        Map<String, String> annotations = new HashMap<>();
+         /*
+        <components xmlns="http://openconfig.net/yang/platform">
+             <component>
+                <name>oc1/0</name>
+                 <config>
+                    <name>oc1/0</name>
+                 </config>
+                 <state>
+                    <name>oc1/0</name>
+                 <type>OPTICAL_CHANNEL</type>
+                <id/>
+                <description/>
+                <mfg-name/>
+                <hardware-version/>
+                <firmware-version/>
+                <software-version/>
+                <serial-no/>
+                <part-no/>
+                <removable>true</removable>
+                <empty>false</empty>
+                <parent/>
+                <temperature>
+                <instant>0.0</instant>
+                <avg>0.0</avg>
+                <min>0.0</min>
+                <max>0.0</max>
+                <interval>0</interval>
+                <min-time>0</min-time>
+                <max-time>0</max-time>
+                <alarm-status>true</alarm-status>
+                <alarm-threshold>0</alarm-threshold>
+                </temperature>
+                <memory>
+                    <available>0</available>
+                    <utilized>0</utilized>
+                </memory>
+                <allocated-power>0</allocated-power>
+                <used-power>0</used-power>
+            </state>
+            <optical-channel xmlns="http://openconfig.net/yang/terminal-device">
+                <config>
+                    <line-port>port-10101</line-port>
+                </config>
+            <state>
+                <output-power/>
+                <input-power/>
+            </state>
+            </optical-channel>
+        </component>
+        */
+        String name = component.getString("name");
+        String type = component.getString("state/type");
+        checkNotNull(name, "name not found");
+        checkNotNull(type, "state/type not found");
+        annotations.put(OdtnDeviceDescriptionDiscovery.OC_NAME, name);
+        annotations.put(OdtnDeviceDescriptionDiscovery.OC_TYPE, type);
 
-     /**
-      * Parses a component XML doc into a PortDescription.
-      *
-      * @param channel subtree to parse. It must be a component ot type PORT.
-      *  case we need to check transceivers or optical channels.
-      *
-      * @return PortDescription or null if component does not have onos-index
-      */
-     private PortDescription parseLogicalChannel(
-             HierarchicalConfiguration channel) {
+        //TODO this currently support only line-side ports through parsing of optical channels.
+        if (type.equals(OC_TRANSPORT_TYPES_OPTICAL_CHANNEL)) {
+            String portName = component.getString("optical-channel/config/line-port");
+            String portIndex = portName.split("-")[1];
+            annotations.putIfAbsent("name", portName);
+            annotations.putIfAbsent(PORT_TYPE, OdtnPortType.LINE.value());
+            annotations.putIfAbsent(ONOS_PORT_INDEX, portIndex);
+            annotations.putIfAbsent(CONNECTION_ID, "connection-" + portIndex);
 
-         HierarchicalConfiguration config = channel.configurationAt("config");
-         String logicalChannelIndex = config.getString("index");
-         String description = config.getString("description");
-         String rateClass = config.getString("rate-class");
-         log.info("Parsing Component {} type {} rate {}", logicalChannelIndex, description, rateClass);
+            OchSignal signalId = OchSignal.newDwdmSlot(ChannelSpacing.CHL_50GHZ, 1);
+            return OchPortHelper.ochPortDescription(
+                    PortNumber.portNumber(Long.parseLong(portIndex)),
+                    true,
+                    OduSignalType.ODU4, // TODO Client signal to be discovered
+                    true,
+                    signalId,
+                    DefaultAnnotations.builder().putAll(annotations).build());
 
-         Map<String, String> annotations = new HashMap<>();
-         annotations.put(OdtnDeviceDescriptionDiscovery.OC_LOGICAL_CHANNEL, logicalChannelIndex);
-         annotations.put(OdtnDeviceDescriptionDiscovery.OC_NAME, description);
-
-         // Store all properties as port properties
-
-         Pattern clientPattern = Pattern.compile("xe(\\d*)/1"); // e.g. xe1/1
-         Pattern linePattern = Pattern.compile("oe(\\d*)/(\\d*)"); // e.g. oe1
-         Matcher clientMatch = clientPattern.matcher(description);
-         Matcher lineMatch = linePattern.matcher(description);
-
-         Pattern portSpeedPattern = Pattern.compile("TRIB_RATE_([0-9.]*)G");
-         Matcher portSpeedMatch = portSpeedPattern.matcher(rateClass);
-
-
-         Builder builder = DefaultPortDescription.builder();
-
-         if (portSpeedMatch.find()) {
-             Long speed = Long.parseLong(portSpeedMatch.group(1));
-             builder.portSpeed(speed * 1000);
-         }
-
-         if (clientMatch.find()) {
-             Long num = Long.parseLong(clientMatch.group(1));
-             Long portNum = 100 + num;
-             String connectionId = "connection:" + num.toString();
-
-             annotations.putIfAbsent(PORT_TYPE, OdtnPortType.CLIENT.value());
-             annotations.putIfAbsent(ONOS_PORT_INDEX, portNum.toString());
-             annotations.putIfAbsent(CONNECTION_ID, connectionId);
-
-             builder.withPortNumber(PortNumber.portNumber(portNum));
-             builder.type(Type.PACKET);
-
-             builder.annotations(DefaultAnnotations.builder().putAll(annotations).build());
-             return builder.build();
-
-         } else if (lineMatch.find()) {
-             Long num = (Long.parseLong(lineMatch.group(1)) - 1) * 2 + Long.parseLong(lineMatch.group(2));
-             Long portNum = 200 + num;
-             String connectionId = "connection:" + num.toString();
-
-             annotations.putIfAbsent(PORT_TYPE, OdtnPortType.LINE.value());
-             annotations.putIfAbsent(ONOS_PORT_INDEX, portNum.toString());
-             annotations.putIfAbsent(CONNECTION_ID, connectionId);
-
-             OchSignal signalId = OchSignal.newDwdmSlot(ChannelSpacing.CHL_50GHZ, 1);
-             return OchPortHelper.ochPortDescription(
-                     PortNumber.portNumber(portNum),
-                     true,
-                     OduSignalType.ODU4, // TODO Client signal to be discovered
-                     true,
-                     signalId,
-                     DefaultAnnotations.builder().putAll(annotations).build());
-
-         } else {
-             log.warn("Unexpected component description: {}", description);
-             return null;
-         }
-
-     }
+        } else {
+            log.debug("Unknown port component type {}", type);
+            return null;
+        }
+    }
 }

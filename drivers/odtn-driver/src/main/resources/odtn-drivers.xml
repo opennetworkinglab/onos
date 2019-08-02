@@ -80,6 +80,22 @@
         <behaviour api="org.onosproject.net.behaviour.ModulationConfig"
                    impl="org.onosproject.drivers.odtn.CassiniModulationOpenConfig"/>
     </driver>
+    <driver name="cassini-ocnos-old" manufacturer="Edgecore" hwVersion="cassini" swVersion="OcNOS">
+        <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
+                   impl="org.onosproject.drivers.odtn.CassiniTerminalDeviceDiscoveryOld"/>
+        <behaviour api="org.onosproject.odtn.behaviour.OdtnDeviceDescriptionDiscovery"
+                   impl="org.onosproject.drivers.odtn.CassiniTerminalDeviceDiscoveryOld"/>
+        <behaviour api="org.onosproject.odtn.behaviour.ConfigurableTransceiver"
+                   impl="org.onosproject.odtn.behaviour.CassiniTransceiver"/>
+        <behaviour api ="org.onosproject.net.optical.OpticalDevice"
+                   impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
+        <behaviour api ="org.onosproject.net.behaviour.LambdaQuery"
+                   impl="org.onosproject.drivers.odtn.openconfig.TerminalDeviceLambdaQuery"/>
+        <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
+                   impl="org.onosproject.drivers.odtn.CassiniFlowRuleProgrammable"/>
+        <behaviour api="org.onosproject.net.behaviour.PowerConfig"
+                   impl="org.onosproject.drivers.odtn.CassiniTerminalDevicePowerConfig"/>
+    </driver>
     <driver name="cassini-ocnos-ipi-model" manufacturer="Edgecore" hwVersion="cassini" swVersion="OcNOS">
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
                    impl="org.onosproject.drivers.odtn.CassiniTerminalDeviceDiscovery"/>
@@ -100,9 +116,9 @@
     </driver>
     <driver name="cassini-openconfig" manufacturer="Edgecore" hwVersion="cassini" swVersion="OcNOS">
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
-                   impl="org.onosproject.drivers.odtn.CassiniTerminalDeviceDiscovery"/>
+                   impl="org.onosproject.drivers.odtn.CassiniTerminalDeviceDiscoveryOld"/>
         <behaviour api="org.onosproject.odtn.behaviour.OdtnDeviceDescriptionDiscovery"
-                   impl="org.onosproject.drivers.odtn.CassiniTerminalDeviceDiscovery"/>
+                   impl="org.onosproject.drivers.odtn.CassiniTerminalDeviceDiscoveryOld"/>
         <behaviour api="org.onosproject.odtn.behaviour.ConfigurableTransceiver"
                    impl="org.onosproject.odtn.behaviour.CassiniTransceiver"/>
         <behaviour api ="org.onosproject.net.optical.OpticalDevice"
@@ -112,11 +128,9 @@
         <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
                    impl="org.onosproject.drivers.odtn.CassiniFlowRuleProgrammable"/>
         <behaviour api="org.onosproject.net.behaviour.PowerConfig"
-                   impl="org.onosproject.drivers.odtn.CassiniTerminalDevicePowerConfig"/>
+                   impl="org.onosproject.drivers.odtn.CassiniTerminalDevicePowerConfigExt"/>
         <behaviour api="org.onosproject.net.behaviour.ModulationConfig"
                    impl="org.onosproject.drivers.odtn.CassiniModulationConfig"/>
->>>>>>> 0a7175b7ad... Adding modulation config with OcNos custom Behaviour and Cli command
->>>>>>> Adding modulation config with OcNos custom Behaviour and Cli command
     </driver>
     <driver name="nokia-1830" manufacturer="nokia" hwVersion="1830" swVersion="R10.1.1">
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-present Open Networking Foundation
+ * Copyright 2019-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.ModulationConfig;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
+import org.onosproject.netconf.DatastoreId;
 import org.onosproject.netconf.NetconfController;
 import org.onosproject.netconf.NetconfDevice;
 import org.onosproject.netconf.NetconfException;
@@ -35,8 +36,6 @@ import org.onosproject.netconf.NetconfSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -60,10 +59,10 @@ public class CassiniModulationOpenConfig<T> extends AbstractHandlerBehaviour imp
 
 
     enum BitRate {
-        GBPS_200(20000000),      // 200 Gbps
-        GBPS_100(10000000),        // 100 Gbps
-        GBPS_40(4000000),          // 40 Gbps
-        GBPS_10(1000000);          // 10 Gbps
+        GBPS_200(200),      // 200 Gbps
+        GBPS_100(100),        // 100 Gbps
+        GBPS_40(40),          // 40 Gbps
+        GBPS_10(10);          // 10 Gbps
 
         private final long value;
 
@@ -229,12 +228,6 @@ public class CassiniModulationOpenConfig<T> extends AbstractHandlerBehaviour imp
 
         CassiniModulationOpenConfig cassini;
 
-        List<PortNumber> getPorts(Object component) {
-            // FIXME
-            log.warn("Not Implemented Yet!");
-            return new ArrayList<PortNumber>();
-        }
-
         /*
          * mirror method in the internal class.
          * @param port port
@@ -257,7 +250,7 @@ public class CassiniModulationOpenConfig<T> extends AbstractHandlerBehaviour imp
             XMLConfiguration xconf = cassini.executeRpc(session, rpcReq.toString());
             try {
                 HierarchicalConfiguration config =
-                        xconf.configurationAt("data/components/component/optical-channel/config");
+                        xconf.configurationAt("components/component/optical-channel/config");
 
                 String modulationScheme = String.valueOf(config.getString("modulation"));
                 /*Used for Internal Testing */
@@ -387,7 +380,7 @@ public class CassiniModulationOpenConfig<T> extends AbstractHandlerBehaviour imp
             StringBuilder rpcReq = new StringBuilder();
             rpcReq.append(RPC_TAG_NETCONF_BASE)
                     .append("<edit-config>")
-                    .append("<target><running/></target>")
+                    .append("<target><" + DatastoreId.CANDIDATE + "/></target>")
                     .append("<config>")
                     .append(editConfig)
                     .append("</config>")
@@ -402,9 +395,13 @@ public class CassiniModulationOpenConfig<T> extends AbstractHandlerBehaviour imp
                 log.error("The <edit-config> operation to set target-modulation of Port({}:{}) is failed.",
                         port.toString(), component.toString());
             }
+            try {
+                session.commit();
+            } catch (NetconfException e) {
+                response = false;
+                log.error("error committing modulation changes");
+            }
             return response;
         }
     }
-
-
 }

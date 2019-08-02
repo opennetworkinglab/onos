@@ -20,8 +20,8 @@ package org.onosproject.drivers.odtn;
 
 import com.google.common.collect.ImmutableList;
 import org.onlab.util.Frequency;
-import org.onosproject.drivers.odtn.impl.FlowRuleParser;
 import org.onosproject.drivers.odtn.impl.DeviceConnectionCache;
+import org.onosproject.drivers.odtn.impl.FlowRuleParser;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
@@ -184,11 +184,14 @@ public class CassiniFlowRuleProgrammable
                         + " </oc-opt-term:optical-channel>"
                         + "</component>"
                         + "</components>");
-
-        boolean ok =
-                session.editConfig(DatastoreId.RUNNING, null, sb.toString());
+        log.info("Optical Channel Frequency {}", sb.toString());
+        boolean ok = session.editConfig(DatastoreId.CANDIDATE, null, sb.toString());
         if (!ok) {
             throw new NetconfException("error writing channel frequency");
+        }
+        ok = session.commit();
+        if (!ok) {
+            throw new NetconfException("error committing channel frequency");
         }
     }
 
@@ -205,7 +208,7 @@ public class CassiniFlowRuleProgrammable
 
     /**
      * Apply the flowrule.
-     *
+     * <p>
      * Note: only bidirectional are supported as of now,
      * given OpenConfig note (below). In consequence, only the
      * TX rules are actually mapped to netconf ops.

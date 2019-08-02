@@ -331,6 +331,16 @@ public abstract class AbstractNetconfSession implements NetconfSession {
     }
 
     @Override
+    public boolean commit() throws NetconfException {
+        String rpc = "<rpc message-id=\"101\" xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\"> <commit/></rpc>";
+        String reply = requestSync(rpc);
+        if (!checkReply(reply)) {
+            throw new NetconfException("Request not successful, with reply " + reply);
+        }
+        return true;
+    }
+
+    @Override
     public boolean close() throws NetconfException {
         StringBuilder rpc = new StringBuilder();
         rpc.append(RPC_OPEN);

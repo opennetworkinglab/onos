@@ -15,7 +15,6 @@
  */
 
 
-
 package org.onosproject.net.optical.cli;
 
 import com.google.common.collect.ImmutableMap;
@@ -24,22 +23,23 @@ import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cli.net.NetconfOperationCompleter;
 import org.onosproject.cli.net.OpticalConnectPointCompleter;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Device;
 import org.onosproject.net.GridType;
 import org.onosproject.net.OchSignal;
-import org.onosproject.net.ChannelSpacing;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.flow.DefaultFlowRule;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.FlowRule;
+import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
-import org.onosproject.net.flow.DefaultFlowRule;
-import org.onosproject.net.flow.DefaultTrafficTreatment;
-import org.onosproject.net.flow.DefaultTrafficSelector;
-import org.onosproject.net.flow.FlowRuleService;
-import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.Device;
 import org.onosproject.net.flow.instructions.Instructions;
 
 import java.util.Map;
@@ -51,7 +51,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Enable the optical channel and tune the wavelength via a flow rule based on a given Signal.
  */
 @Service
-@Command(scope = "onos", name = "port-wavelength",
+@Command(scope = "onos", name = "wavelength-config",
         description = "Enable the optical channel and tune the wavelength via a flow rule ")
 public class PortWaveLengthCommand extends AbstractShellCommand {
 
@@ -72,15 +72,19 @@ public class PortWaveLengthCommand extends AbstractShellCommand {
             .put(CH_50, ChannelSpacing.CHL_50GHZ)
             .put(CH_100, ChannelSpacing.CHL_100GHZ)
             .build();
+    @Argument(index = 0, name = "operation", description = "Netconf Operation including get, edit-config, etc.",
+            required = true, multiValued = false)
+    @Completion(NetconfOperationCompleter.class)
+    private String operation = null;
 
-    @Argument(index = 0, name = "connectPoint",
+    @Argument(index = 1, name = "connectPoint",
             description = "Device/Port Description",
             required = true, multiValued = false)
     @Completion(OpticalConnectPointCompleter.class)
     String connectPointString = "";
 
 
-    @Argument(index = 1, name = "signal",
+    @Argument(index = 2, name = "signal",
             description = "Optical Signal. Format = " + SIGNAL_FORMAT,
             required = true, multiValued = false)
     String signal = "";
@@ -116,38 +120,44 @@ public class PortWaveLengthCommand extends AbstractShellCommand {
 
     @Override
     protected void doExecute() throws Exception {
-        FlowRuleService flowService = get(FlowRuleService.class);
-        DeviceService deviceService = get(DeviceService.class);
-        CoreService coreService = get(CoreService.class);
-        ConnectPoint cp = ConnectPoint.deviceConnectPoint(connectPointString);
+        if (operation.equals("edit-config")) {
+            FlowRuleService flowService = get(FlowRuleService.class);
+            DeviceService deviceService = get(DeviceService.class);
+            CoreService coreService = get(CoreService.class);
+            ConnectPoint cp = ConnectPoint.deviceConnectPoint(connectPointString);
 
-        TrafficSelector.Builder trafficSelectorBuilder = DefaultTrafficSelector.builder();
-        TrafficTreatment.Builder trafficTreatmentBuilder = DefaultTrafficTreatment.builder();
-        FlowRule.Builder flowRuleBuilder = DefaultFlowRule.builder();
+            TrafficSelector.Builder trafficSelectorBuilder = DefaultTrafficSelector.builder();
+            TrafficTreatment.Builder trafficTreatmentBuilder = DefaultTrafficTreatment.builder();
+            FlowRule.Builder flowRuleBuilder = DefaultFlowRule.builder();
 
 
-        // an empty traffic selector
-        TrafficSelector trafficSelector = trafficSelectorBuilder.matchInPort(cp.port()).build();
-        OchSignal ochSignal = createOchSignal();
+            // an empty traffic selector
+            TrafficSelector trafficSelector = trafficSelectorBuilder.matchInPort(cp.port()).build();
+            OchSignal ochSignal = createOchSignal();
 
-        TrafficTreatment trafficTreatment = trafficTreatmentBuilder
-                .add(Instructions.modL0Lambda(ochSignal))
-                .add(Instructions.createOutput(deviceService.getPort(cp).number()))
-                .build();
+            TrafficTreatment trafficTreatment = trafficTreatmentBuilder
+                    .add(Instructions.modL0Lambda(ochSignal))
+                    .add(Instructions.createOutput(deviceService.getPort(cp).number()))
+                    .build();
 
-        Device device = deviceService.getDevice(cp.deviceId());
-        int priority = 100;
-        ApplicationId appId = coreService.registerApplication("org.onosproject.optical-model");
-        log.info(appId.name());
-        FlowRule addFlow = flowRuleBuilder
-                .withPriority(priority)
-                .fromApp(appId)
-                .withTreatment(trafficTreatment)
-                .withSelector(trafficSelector)
-                .forDevice(device.id())
-                .makePermanent()
-                .build();
-        flowService.applyFlowRules(addFlow);
+            Device device = deviceService.getDevice(cp.deviceId());
+            int priority = 100;
+            ApplicationId appId = coreService.registerApplication("org.onosproject.optical-model");
+            log.info(appId.name());
+            FlowRule addFlow = flowRuleBuilder
+                    .withPriority(priority)
+                    .fromApp(appId)
+                    .withTreatment(trafficTreatment)
+                    .withSelector(trafficSelector)
+                    .forDevice(device.id())
+                    .makePermanent()
+                    .build();
+            flowService.applyFlowRules(addFlow);
+            String msg = String.format("Setting wavelength %s", ochSignal.centralFrequency().asGHz());
+            print(msg);
+        } else {
+            print("Operation %s are not supported now.", operation);
+        }
 
     }
 }

@@ -22,6 +22,7 @@ import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cli.net.NetconfOperationCompleter;
 import org.onosproject.cli.net.OpticalConnectPointCompleter;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
@@ -48,8 +49,9 @@ public class OpticalModulationCommand extends AbstractShellCommand {
 
     private static final Logger log = getLogger(OpticalModulationCommand.class);
 
-    @Argument(index = 0, name = "-s", description = "set modulation",
+    @Argument(index = 0, name = "operation", description = "set modulation",
             required = true, multiValued = false)
+    @Completion(NetconfOperationCompleter.class)
     private String operation = null;
 
     @Argument(index = 1, name = "connection point", description = "{DeviceID}/{PortNumber}",
@@ -57,9 +59,9 @@ public class OpticalModulationCommand extends AbstractShellCommand {
     @Completion(OpticalConnectPointCompleter.class)
     private String connectPoint = null;
 
-    @Argument(index = 2, name = "value", description = "bit rate value in bps, e.g. 100FlowRu = 100GBps",
+    @Argument(index = 2, name = "value", description = "example: dp_qpsk, dp_8qam, dp_16qam",
             required = false, multiValued = false)
-    private Long value = null;
+    private String value = null;
 
     @Override
     protected void doExecute() throws Exception {
@@ -78,25 +80,37 @@ public class OpticalModulationCommand extends AbstractShellCommand {
             return;
         }
         Device device = deviceService.getDevice(cp.deviceId());
-        ModulationConfig<Object> modulationConfig = device.as(ModulationConfig.class);
-        // FIXME the parameter "component" equals NULL now, because there is one-to-one mapping between
-        //  <component> and <optical-channel>.
-        if (operation == null) {
-            Direction component = Direction.ALL;
-            Optional<ModulationScheme> scheme = modulationConfig.getModulationScheme(cp.port(), component);
-            if (scheme.isPresent()) {
-                print("The modulation value in port %s on device %s is %s.",
-                        cp.port().toString(), cp.deviceId().toString(), scheme.get().name());
-            } else {
-                print("Can't get modulation for port %s on device %s.",
+        if (device.is(ModulationConfig.class)) {
+            ModulationConfig<Object> modulationConfig = device.as(ModulationConfig.class);
+            // FIXME the parameter "component" equals NULL now, because there is one-to-one mapping between
+            //  <component> and <optical-channel>.
+            if (operation.equals("get")) {
+                Direction component = Direction.ALL;
+                Optional<ModulationScheme> scheme = modulationConfig.getModulationScheme(cp.port(), component);
+                if (scheme.isPresent()) {
+                    print("The modulation value in port %s on device %s is %s.",
+                            cp.port().toString(), cp.deviceId().toString(), scheme.get().name());
+                } else {
+                    print("Can't get modulation for port %s on device %s.",
+                            cp.port().toString(), cp.deviceId().toString());
+                }
+            } else if (operation.equals("edit-config")) {
+                long bitRate = 0;
+                if (value.equalsIgnoreCase(ModulationScheme.DP_QPSK.name())) {
+                    bitRate = 100;
+                } else {
+                    bitRate = 200;
+                }
+                checkNotNull(value);
+                Direction component = Direction.ALL;
+                modulationConfig.setModulationScheme(cp.port(), component, bitRate);
+                print("Set modulation for " + value + " for port %s on device %s.",
                         cp.port().toString(), cp.deviceId().toString());
+            } else {
+                log.warn("Operation {} are not supported now.", operation);
             }
-        } else if (operation.equals("-s")) {
-            checkNotNull(value);
-            Direction component = Direction.ALL;
-            modulationConfig.setModulationScheme(cp.port(), component, value);
         } else {
-            log.warn("Operation {} are not supported now.", operation);
+            print("Device is not capable of handling modulation");
         }
     }
 }

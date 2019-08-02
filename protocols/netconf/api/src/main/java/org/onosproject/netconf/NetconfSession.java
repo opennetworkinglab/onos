@@ -302,6 +302,17 @@ public interface NetconfSession {
     }
 
     /**
+     * Commits the candidate configuration the running configuration.
+     *
+     * @return true if successful.
+     * @throws NetconfException when there is a problem in the communication process on
+     * the underlying connection
+     */
+    default boolean commit() throws NetconfException {
+        return false;
+    }
+
+    /**
      * Closes the Netconf session with the device.
      * the first time it tries gracefully, then kills it forcefully
      *
