@@ -47,6 +47,7 @@ interface RoadmPort {
     powerRange: string;
     currentPower: string;
     targetPower: string;
+    modulation: string;
     hasTargetPower: string;
     serviceState: string;
 }
@@ -78,8 +79,10 @@ export class RoadmPortComponent extends TableBaseImpl implements OnInit, OnDestr
     toggleState: FilterToggleState;
 
     powerForm: FormGroup;
+    modulationForm: FormGroup;
     SET_POWER_REQ = 'roadmSetTargetPowerRequest';
     SET_POWER_RESP = 'roadmSetTargetPowerResponse';
+    SET_MODULATION = 'roadmSetModulationRequest';
 
     restorePrefsConfig; // Function
 
@@ -128,7 +131,10 @@ export class RoadmPortComponent extends TableBaseImpl implements OnInit, OnDestr
         this.powerForm = new FormGroup({
             newPower: new FormControl(''),
         });
-        this.log.debug('Create Form');
+        this.modulationForm = new FormGroup({
+            newModulation: new FormControl(''),
+        });
+        this.log.debug('Create Forms');
     }
 
     ngOnDestroy() {
@@ -202,6 +208,15 @@ export class RoadmPortComponent extends TableBaseImpl implements OnInit, OnDestr
         this.log.debug('Set power of port ', port, 'in device ', devId, 'as value ', this.powerForm.value['newPower'], 'dBm.');
         this.wss.sendEvent(this.SET_POWER_REQ, {
             'targetPower': this.powerForm.value['newPower'],
+            'devId': devId,
+            'id': port,
+        });
+    }
+
+    submitModulation(devId, port) {
+        this.log.debug('Set Modulation of port ', port, 'in device ', devId, 'as value ', this.modulationForm.value['newModulation']);
+        this.wss.sendEvent(this.SET_MODULATION, {
+            'modulation': this.modulationForm.value['newModulation'],
             'devId': devId,
             'id': port,
         });

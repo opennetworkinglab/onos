@@ -18,6 +18,7 @@ package org.onosproject.roadm;
 import com.google.common.collect.Range;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.ModulationScheme;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.protection.ProtectedTransportEndpointState;
@@ -157,6 +158,24 @@ public interface RoadmService {
      * @return the set of supported channels
      */
     Set<OchSignal> queryLambdas(DeviceId deviceId, PortNumber portNumber);
+
+    /**
+     * Set modulation for a port if the port has configurable modulation.
+     *
+     * @param deviceId DeviceId of the device to configure
+     * @param portNumber PortNumber of the port to configure
+     * @param modulation value to set modulation to
+     */
+    void setModulation(DeviceId deviceId, PortNumber portNumber, String modulation);
+
+    /**
+     * Get modulation for a port if the port has configurable modulation.
+     *
+     * @param deviceId DeviceId of the device to configure
+     * @param portNumber PortNumber of the port to configure
+     * @return modulation scheme
+     */
+    ModulationScheme getModulation(DeviceId deviceId, PortNumber portNumber);
 
     /**
      * Creates a new internal connection on a device without attenuation. This does

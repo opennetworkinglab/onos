@@ -205,7 +205,7 @@ public class CassiniModulationConfig<T> extends AbstractHandlerBehaviour impleme
                     .append("</filter>")
                     .append("</get>")
                     .append(RPC_CLOSE_TAG);
-            log.info("RPC Call for Getting Modulation : \n {}", rpcReq.toString());
+            log.debug("RPC Call for Getting Modulation : \n {}", rpcReq.toString());
             XMLConfiguration xconf = NetconfSessionUtility.executeRpc(session, rpcReq.toString());
             try {
                 HierarchicalConfiguration config =
@@ -420,9 +420,11 @@ public class CassiniModulationConfig<T> extends AbstractHandlerBehaviour impleme
                     .append(RPC_CLOSE_TAG);
             log.info("RPC call for Setting Modulation : {}", rpcReq.toString());
             XMLConfiguration xconf = NetconfSessionUtility.executeRpc(session, rpcReq.toString());
-
-            // The successful reply should be "<rpc-reply ...><ok /></rpc-reply>"
-            if (!xconf.getRoot().getChild(0).getName().equals("ok")) {
+            if (xconf == null) {
+                log.error("The <edit-config> operation to set target-modulation of Port({}:{}) is failed.",
+                        port.toString(), component.toString());
+            } else if (!xconf.getRoot().getChild(0).getName().equals("ok")) {
+                    // The successful reply should be "<rpc-reply ...><ok /></rpc-reply>"
                 response = false;
                 log.error("The <edit-config> operation to set target-modulation of Port({}:{}) is failed.",
                         port.toString(), component.toString());

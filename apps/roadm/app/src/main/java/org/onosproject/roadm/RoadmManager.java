@@ -24,11 +24,13 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Direction;
+import org.onosproject.net.ModulationScheme;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.OchSignalType;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.LambdaQuery;
+import org.onosproject.net.behaviour.ModulationConfig;
 import org.onosproject.net.behaviour.PowerConfig;
 import org.onosproject.net.behaviour.protection.ProtectedTransportEndpointState;
 import org.onosproject.net.behaviour.protection.ProtectionConfigBehaviour;
@@ -239,7 +241,7 @@ public class RoadmManager implements RoadmService {
             powerConfig.setTargetPower(portNumber, ochSignal, attenuation);
         } else {
             log.warn("Cannot set attenuation for channel index {} on device {}",
-                     ochSignal.spacingMultiplier(), deviceId);
+                    ochSignal.spacingMultiplier(), deviceId);
         }
     }
 
@@ -299,8 +301,43 @@ public class RoadmManager implements RoadmService {
     }
 
     @Override
+    public ModulationScheme getModulation(DeviceId deviceId, PortNumber portNumber) {
+        checkNotNull(deviceId);
+        checkNotNull(portNumber);
+        Device device = deviceService.getDevice(deviceId);
+        Direction component = Direction.ALL;
+        if (device.is(ModulationConfig.class)) {
+            ModulationConfig<Object> modulationConfig = device.as(ModulationConfig.class);
+            Optional<ModulationScheme> scheme = modulationConfig.getModulationScheme(portNumber, component);
+            if (scheme.isPresent()) {
+                return scheme.get();
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public void setModulation(DeviceId deviceId, PortNumber portNumber, String modulation) {
+        checkNotNull(deviceId);
+        checkNotNull(portNumber);
+        Device device = deviceService.getDevice(deviceId);
+        Direction component = Direction.ALL;
+        if (device.is(ModulationConfig.class)) {
+            ModulationConfig<Object> modulationConfig = device.as(ModulationConfig.class);
+            long bitRate = 0;
+            if (modulation.equals(ModulationScheme.DP_QPSK.name())) {
+                bitRate = 100;
+            } else {
+                bitRate = 200;
+            }
+            modulationConfig.setModulationScheme(portNumber, component, bitRate);
+        }
+
+    }
+
+    @Override
     public FlowId createConnection(DeviceId deviceId, int priority, boolean isPermanent,
-                                 int timeout, PortNumber inPort, PortNumber outPort, OchSignal ochSignal) {
+                                   int timeout, PortNumber inPort, PortNumber outPort, OchSignal ochSignal) {
         checkNotNull(deviceId);
         checkNotNull(inPort);
         checkNotNull(outPort);
@@ -331,15 +368,15 @@ public class RoadmManager implements RoadmService {
         flowRuleService.applyFlowRules(flowRule);
 
         log.info("Created connection from input port {} to output port {}",
-                 inPort.toLong(), outPort.toLong());
+                inPort.toLong(), outPort.toLong());
 
         return flowRule.id();
     }
 
     @Override
     public FlowId createConnection(DeviceId deviceId, int priority, boolean isPermanent,
-                                 int timeout, PortNumber inPort, PortNumber outPort,
-                                 OchSignal ochSignal, long attenuation) {
+                                   int timeout, PortNumber inPort, PortNumber outPort,
+                                   OchSignal ochSignal, long attenuation) {
         checkNotNull(deviceId);
         checkNotNull(inPort);
         checkNotNull(outPort);

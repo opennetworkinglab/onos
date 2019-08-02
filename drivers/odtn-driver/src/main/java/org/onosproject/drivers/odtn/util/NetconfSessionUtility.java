@@ -48,7 +48,7 @@ public final class NetconfSessionUtility {
      */
     public static NetconfSession getNetconfSession(DeviceId deviceId,
                                                    NetconfController controller) {
-        log.info("Inside getNetconfSession () method for device : {}", deviceId);
+        log.debug("Inside getNetconfSession () method for device : {}", deviceId);
         NetconfDevice ncdev = controller.getDevicesMap().get(deviceId);
         if (ncdev == null) {
             log.trace("No netconf device, returning null session");
@@ -77,7 +77,7 @@ public final class NetconfSessionUtility {
         } catch (InterruptedException ie) {
             log.error("Interrupted Exception: {}.", ie);
         } catch (ExecutionException ee) {
-            log.error("Concurrent Exception while executing Netconf operation: {}.", ee);
+            log.error("Concurrent Exception while executing Netconf operation: {}.", ee.getCause());
         }
         return null;
     }

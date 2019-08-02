@@ -25,12 +25,13 @@ import org.onlab.util.Frequency;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.behaviour.protection.ProtectedTransportEndpointState;
-import org.onosproject.net.behaviour.protection.TransportEndpointState;
-import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.ModulationScheme;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.behaviour.protection.ProtectedTransportEndpointState;
+import org.onosproject.net.behaviour.protection.TransportEndpointState;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.intent.OpticalPathIntent;
 import org.onosproject.net.optical.OpticalAnnotations;
 import org.onosproject.ui.RequestHandler;
@@ -64,6 +65,8 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
     private static final String ROADM_PORTS = "roadmPorts";
     private static final String ROADM_SET_TARGET_POWER_REQ = "roadmSetTargetPowerRequest";
     private static final String ROADM_SET_TARGET_POWER_RESP = "roadmSetTargetPowerResponse";
+    private static final String ROADM_SET_MODULATION_REQ = "roadmSetModulationRequest";
+    private static final String ROADM_SET_MODULATION_RESP = "roadmSetModulationResponse";
     private static final String ROADM_SYNC_TARGET_POWER_REQ = "roadmSyncTargetPowerRequest";
     private static final String ROADM_SYNC_TARGET_POWER_RESP = "roadmSyncTargetPowerResp";
     private static final String ROADM_SHOW_ITEMS_REQ = "roadmShowPortItemsRequest";
@@ -82,12 +85,13 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
     private static final String POWER_RANGE = "powerRange";
     private static final String CURRENT_POWER = "currentPower";
     private static final String TARGET_POWER = "targetPower";
+    private static final String MODULATION = "modulation";
     private static final String HAS_TARGET_POWER = "hasTargetPower";
     private static final String SERVICE_STATE = "serviceState";
 
     private static final String[] COLUMN_IDS = {
             ID, REVERSE_PORT, TYPE, NAME, ENABLED, MIN_FREQ, MAX_FREQ, GRID, POWER_RANGE,
-            CURRENT_POWER, SERVICE_STATE, TARGET_POWER, HAS_TARGET_POWER
+            CURRENT_POWER, SERVICE_STATE, TARGET_POWER, MODULATION, HAS_TARGET_POWER
     };
 
     private RoadmService roadmService;
@@ -108,8 +112,9 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
                 new SetTargetPowerRequestHandler(),
                 new CreateShowItemsRequestHandler(),
                 new CreateOpsModeSetRequestHandler(),
-                new SyncTargetPowerRequestHandler()
-                );
+                new SyncTargetPowerRequestHandler(),
+                new SetModulationRequestHandler()
+        );
     }
 
     // Handler for sample table requests
@@ -155,6 +160,7 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
                     .cell(POWER_RANGE, getPowerRange(deviceId, portNum))
                     .cell(CURRENT_POWER, getCurrentPower(deviceId, portNum))
                     .cell(SERVICE_STATE, getPortServiceState(deviceId, portNum))
+                    .cell(MODULATION, getModulation(deviceId, portNum))
                     .cell(TARGET_POWER, getTargetPower(deviceId, portNum))
                     .cell(HAS_TARGET_POWER, roadmService.hasPortTargetPower(deviceId, portNum));
         }
@@ -169,7 +175,7 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
                 for (TransportEndpointState element : state.pathStates()) {
                     if (element.description().output().connectPoint().port().equals(portNumber)) {
                         return RoadmUtil.defaultString(element.attributes()
-                            .get(OpticalAnnotations.INPUT_PORT_STATUS), RoadmUtil.UNKNOWN);
+                                .get(OpticalAnnotations.INPUT_PORT_STATUS), RoadmUtil.UNKNOWN);
                     }
                 }
             }
@@ -177,6 +183,7 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
         }
 
         private Frequency minFreq = null, maxFreq = null, channelSpacing = null;
+
         // Gets min frequency, max frequency, channel spacing
         private void getFrequencyLimit(DeviceId deviceId, PortNumber portNumber) {
             Set<OchSignal> signals = roadmService.queryLambdas(deviceId, portNumber);
@@ -219,6 +226,17 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
             Long targetPower = roadmService.getTargetPortPower(deviceId, portNumber);
             return RoadmUtil.objectToString(targetPower, RoadmUtil.UNKNOWN);
         }
+
+        // Returns modulation as a string, Unknown if modulation is expected but
+        // cannot be found
+        private String getModulation(DeviceId deviceId, PortNumber portNumber) {
+            Port port = deviceService.getPort(deviceId, portNumber);
+            ModulationScheme modulation = null;
+            if (port.type().equals(Port.Type.OCH)) {
+                modulation = roadmService.getModulation(deviceId, portNumber);
+            }
+            return RoadmUtil.objectToString(modulation, RoadmUtil.UNKNOWN);
+        }
     }
 
 
@@ -257,6 +275,7 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
     private final class SyncTargetPowerRequestHandler extends RequestHandler {
 
         private static final String SYNCED_TARGET_POWER = "Synced target power is %s.";
+
         private SyncTargetPowerRequestHandler() {
             super(ROADM_SYNC_TARGET_POWER_REQ);
         }
@@ -272,6 +291,29 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
                     .put(RoadmUtil.VALID, true)
                     .put(RoadmUtil.MESSAGE, String.format(SYNCED_TARGET_POWER, power));
             sendMessage(ROADM_SYNC_TARGET_POWER_RESP, rootNode);
+        }
+    }
+
+    // Handler for setting port modulation
+    private final class SetModulationRequestHandler extends RequestHandler {
+
+        private static final String TARGET_MODULATION_MSG = "Target modulation is %s.";
+
+        private SetModulationRequestHandler() {
+            super(ROADM_SET_MODULATION_REQ);
+        }
+
+        @Override
+        public void process(ObjectNode payload) {
+            DeviceId deviceId = DeviceId.deviceId(string(payload, RoadmUtil.DEV_ID));
+            PortNumber portNumber = PortNumber.portNumber(payload.get(ID).asLong());
+            String modulation = payload.get(MODULATION).asText();
+            roadmService.setModulation(deviceId, portNumber, modulation);
+            ObjectNode rootNode = objectNode();
+            rootNode.put(ID, payload.get(ID).asText());
+            rootNode.put(RoadmUtil.VALID, modulation);
+            rootNode.put(RoadmUtil.MESSAGE, String.format(TARGET_MODULATION_MSG, modulation));
+            sendMessage(ROADM_SET_MODULATION_RESP, rootNode);
         }
     }
 
@@ -322,18 +364,18 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
                 String groupName = states.keySet().size() == 1 ? "" : String.format(OPS_GROUP_FMT, ++groupIndex);
                 // Add AUTOMATIC operation.
                 nodes.add(new ObjectNode(JsonNodeFactory.instance)
-                          .put(OPS_ARRAY_INDEX, ACTIVE_UNKNOWN)
-                          .put(OPS_ARRAY_OPERATION, OPS_OPT_AUTO)
-                          .put(OPS_ARRAY_NAME, String.format("%s%s", groupName, OPS_OPT_AUTO)));
+                        .put(OPS_ARRAY_INDEX, ACTIVE_UNKNOWN)
+                        .put(OPS_ARRAY_OPERATION, OPS_OPT_AUTO)
+                        .put(OPS_ARRAY_NAME, String.format("%s%s", groupName, OPS_OPT_AUTO)));
                 // Add FORCE and MANUAL operations for every path.
                 for (String opt : OPS_NON_AUTO_OPTS) {
                     int pathIndex = 0;
                     for (TransportEndpointState state : states.get(identifier).pathStates()) {
                         nodes.add(new ObjectNode(JsonNodeFactory.instance)
-                                  .put(OPS_ARRAY_INDEX, pathIndex++)
-                                  .put(OPS_ARRAY_OPERATION, opt)
-                                  .put(OPS_ARRAY_NAME,
-                                       String.format("%s%s %s", groupName, opt, state.id().id().toUpperCase())));
+                                .put(OPS_ARRAY_INDEX, pathIndex++)
+                                .put(OPS_ARRAY_OPERATION, opt)
+                                .put(OPS_ARRAY_NAME,
+                                        String.format("%s%s %s", groupName, opt, state.id().id().toUpperCase())));
                     }
                 }
             }
