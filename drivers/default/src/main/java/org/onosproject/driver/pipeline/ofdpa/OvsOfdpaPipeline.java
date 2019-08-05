@@ -140,6 +140,11 @@ public class OvsOfdpaPipeline extends Ofdpa2Pipeline {
     }
 
     @Override
+    protected boolean requireEthType() {
+        return false;
+    }
+
+    @Override
     protected void initDriverId() {
         driverId = coreService.registerApplication(
                 "org.onosproject.driver.OvsOfdpaPipeline");
