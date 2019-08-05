@@ -57,4 +57,9 @@ public class XpliantPipeline extends Ofdpa3Pipeline {
     public boolean requireMplsTtlModification() {
         return false;
     }
+
+    @Override
+    protected boolean requireEthType() {
+        return false;
+    }
 }
