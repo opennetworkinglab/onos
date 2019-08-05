@@ -101,6 +101,7 @@ import java.util.Optional;
 import java.util.Timer;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
@@ -206,6 +207,15 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
      * @return true to use MPLS POP instruction
      */
     public boolean requireMplsPop() {
+        return true;
+    }
+
+    /**
+     * Determines whether this pipeline requires one additional flow matching on ethType 0x86dd in ACL table.
+     *
+     * @return true to create one additional flow matching on ethType 0x86dd in ACL table
+     */
+    protected boolean requireEthType() {
         return true;
     }
 
@@ -1173,6 +1183,8 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     protected Collection<FlowRule> processVersatile(ForwardingObjective fwd) {
         log.debug("Processing versatile forwarding objective:{} in dev:{}",
                  fwd.id(), deviceId);
+        List<FlowRule> flowRules = new ArrayList<>();
+        final AtomicBoolean ethTypeUsed  = new AtomicBoolean(false);
 
         if (fwd.nextId() == null && fwd.treatment() == null) {
             log.error("Forwarding objective {} from {} must contain "
@@ -1181,30 +1193,6 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             return Collections.emptySet();
         }
 
-        TrafficSelector.Builder sbuilder = versatileSelectorBuilder(fwd);
-        TrafficTreatment.Builder ttBuilder = versatileTreatmentBuilder(fwd);
-        if (ttBuilder == null) {
-            return Collections.emptySet();
-        }
-
-        FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
-                .fromApp(fwd.appId())
-                .withPriority(fwd.priority())
-                .forDevice(deviceId)
-                .withSelector(sbuilder.build())
-                .withTreatment(ttBuilder.build())
-                .makePermanent()
-                .forTable(ACL_TABLE);
-        return Collections.singletonList(ruleBuilder.build());
-    }
-
-    /**
-     * Helper function to create traffic selector builder for versatile forwarding objectives.
-     *
-     * @param fwd original forwarding objective
-     * @return selector builder for the flow rule
-     */
-    protected TrafficSelector.Builder versatileSelectorBuilder(ForwardingObjective fwd) {
         TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder();
         fwd.selector().criteria().forEach(criterion -> {
             if (criterion instanceof VlanIdCriterion) {
@@ -1244,11 +1232,45 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 } else {
                     sbuilder.add(criterion);
                 }
+            } else if (criterion instanceof EthTypeCriterion) {
+                sbuilder.add(criterion);
+                ethTypeUsed.set(true);
             } else {
                 sbuilder.add(criterion);
             }
         });
-        return sbuilder;
+
+        TrafficTreatment.Builder ttBuilder = versatileTreatmentBuilder(fwd);
+        if (ttBuilder == null) {
+            return Collections.emptySet();
+        }
+
+        FlowRule.Builder ruleBuilder = DefaultFlowRule.builder()
+                .fromApp(fwd.appId())
+                .withPriority(fwd.priority())
+                .forDevice(deviceId)
+                .withSelector(sbuilder.build())
+                .withTreatment(ttBuilder.build())
+                .makePermanent()
+                .forTable(ACL_TABLE);
+
+        flowRules.add(ruleBuilder.build());
+
+        if (!ethTypeUsed.get() && requireEthType()) {
+            log.debug("{} doesn't match on ethType but requireEthType is true, adding complementary ACL flow.",
+                      sbuilder.toString());
+            sbuilder.matchEthType(Ethernet.TYPE_IPV6);
+            FlowRule.Builder ethTypeRuleBuilder = DefaultFlowRule.builder()
+                    .fromApp(fwd.appId())
+                    .withPriority(fwd.priority())
+                    .forDevice(deviceId)
+                    .withSelector(sbuilder.build())
+                    .withTreatment(ttBuilder.build())
+                    .makePermanent()
+                    .forTable(ACL_TABLE);
+            flowRules.add(ethTypeRuleBuilder.build());
+        }
+        return flowRules;
     }
 
     /**
