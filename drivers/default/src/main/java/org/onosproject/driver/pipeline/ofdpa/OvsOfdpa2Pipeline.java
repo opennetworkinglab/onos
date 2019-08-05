@@ -55,4 +55,9 @@ public class OvsOfdpa2Pipeline extends CpqdOfdpa2Pipeline {
     protected boolean supportsUnicastBlackHole() {
         return true;
     }
+
+    @Override
+    protected boolean requireEthType() {
+        return false;
+    }
 }

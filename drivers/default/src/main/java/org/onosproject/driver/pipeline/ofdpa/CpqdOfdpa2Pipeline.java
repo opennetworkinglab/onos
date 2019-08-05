@@ -138,6 +138,11 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
         return false;
     }
 
+    @Override
+    protected boolean requireEthType() {
+        return false;
+    }
+
     /**
      * Determines whether this pipeline support copy ttl instructions or not.
      *
