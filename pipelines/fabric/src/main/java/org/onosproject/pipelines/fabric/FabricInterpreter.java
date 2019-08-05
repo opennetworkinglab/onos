@@ -98,6 +98,14 @@ public class FabricInterpreter extends AbstractFabricHandlerBehavior
                     .put(Criterion.Type.IP_PROTO, FabricConstants.HDR_IP_PROTO)
                     .put(Criterion.Type.ICMPV6_TYPE, FabricConstants.HDR_ICMP_TYPE)
                     .put(Criterion.Type.ICMPV6_CODE, FabricConstants.HDR_ICMP_CODE)
+                    .put(Criterion.Type.UDP_DST, FabricConstants.HDR_L4_DPORT)
+                    .put(Criterion.Type.UDP_SRC, FabricConstants.HDR_L4_SPORT)
+                    .put(Criterion.Type.UDP_DST_MASKED, FabricConstants.HDR_L4_DPORT)
+                    .put(Criterion.Type.UDP_SRC_MASKED, FabricConstants.HDR_L4_SPORT)
+                    .put(Criterion.Type.TCP_DST, FabricConstants.HDR_L4_DPORT)
+                    .put(Criterion.Type.TCP_SRC, FabricConstants.HDR_L4_SPORT)
+                    .put(Criterion.Type.TCP_DST_MASKED, FabricConstants.HDR_L4_DPORT)
+                    .put(Criterion.Type.TCP_SRC_MASKED, FabricConstants.HDR_L4_SPORT)
                     .build();
 
     private static final PiAction NOP = PiAction.builder()
