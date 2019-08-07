@@ -189,7 +189,7 @@ public class RoadmManager implements RoadmService {
 
 
     @Override
-    public void setTargetPortPower(DeviceId deviceId, PortNumber portNumber, long power) {
+    public void setTargetPortPower(DeviceId deviceId, PortNumber portNumber, double power) {
         checkNotNull(deviceId);
         checkNotNull(portNumber);
         PowerConfig<Object> powerConfig = getPowerConfig(deviceId);
@@ -202,11 +202,11 @@ public class RoadmManager implements RoadmService {
     }
 
     @Override
-    public Long getTargetPortPower(DeviceId deviceId, PortNumber portNumber) {
+    public Double getTargetPortPower(DeviceId deviceId, PortNumber portNumber) {
         checkNotNull(deviceId);
         checkNotNull(portNumber);
         // Request target port power when it doesn't exist. Inactive updating mode.
-        Long power = roadmStore.getTargetPower(deviceId, portNumber);
+        Double power = roadmStore.getTargetPower(deviceId, portNumber);
         if (power == null) {
             return syncTargetPortPower(deviceId, portNumber);
         }
@@ -214,12 +214,12 @@ public class RoadmManager implements RoadmService {
     }
 
     @Override
-    public Long syncTargetPortPower(DeviceId deviceId, PortNumber portNumber) {
+    public Double syncTargetPortPower(DeviceId deviceId, PortNumber portNumber) {
         checkNotNull(deviceId);
         checkNotNull(portNumber);
         PowerConfig<Object> powerConfig = getPowerConfig(deviceId);
         if (powerConfig != null) {
-            Optional<Long> pl = powerConfig.getTargetPower(portNumber, Direction.ALL);
+            Optional<Double> pl = powerConfig.getTargetPower(portNumber, Direction.ALL);
             if (pl.isPresent()) {
                 roadmStore.setTargetPower(deviceId, portNumber, pl.get());
                 return pl.get();
@@ -232,7 +232,7 @@ public class RoadmManager implements RoadmService {
 
     @Override
     public void setAttenuation(DeviceId deviceId, PortNumber portNumber,
-                               OchSignal ochSignal, long attenuation) {
+                               OchSignal ochSignal, double attenuation) {
         checkNotNull(deviceId);
         checkNotNull(portNumber);
         checkNotNull(ochSignal);
@@ -246,13 +246,13 @@ public class RoadmManager implements RoadmService {
     }
 
     @Override
-    public Long getAttenuation(DeviceId deviceId, PortNumber portNumber, OchSignal ochSignal) {
+    public Double getAttenuation(DeviceId deviceId, PortNumber portNumber, OchSignal ochSignal) {
         checkNotNull(deviceId);
         checkNotNull(portNumber);
         checkNotNull(ochSignal);
         PowerConfig<Object> powerConfig = getPowerConfig(deviceId);
         if (powerConfig != null) {
-            Optional<Long> attenuation = powerConfig.getTargetPower(portNumber, ochSignal);
+            Optional<Double> attenuation = powerConfig.getTargetPower(portNumber, ochSignal);
             if (attenuation.isPresent()) {
                 return attenuation.get();
             }
@@ -261,12 +261,12 @@ public class RoadmManager implements RoadmService {
     }
 
     @Override
-    public Long getCurrentPortPower(DeviceId deviceId, PortNumber portNumber) {
+    public Double getCurrentPortPower(DeviceId deviceId, PortNumber portNumber) {
         checkNotNull(deviceId);
         checkNotNull(portNumber);
         PowerConfig<Object> powerConfig = getPowerConfig(deviceId);
         if (powerConfig != null) {
-            Optional<Long> currentPower = powerConfig.currentPower(portNumber, Direction.ALL);
+            Optional<Double> currentPower = powerConfig.currentPower(portNumber, Direction.ALL);
             if (currentPower.isPresent()) {
                 return currentPower.get();
             }
@@ -275,13 +275,13 @@ public class RoadmManager implements RoadmService {
     }
 
     @Override
-    public Long getCurrentChannelPower(DeviceId deviceId, PortNumber portNumber, OchSignal ochSignal) {
+    public Double getCurrentChannelPower(DeviceId deviceId, PortNumber portNumber, OchSignal ochSignal) {
         checkNotNull(deviceId);
         checkNotNull(portNumber);
         checkNotNull(ochSignal);
         PowerConfig<Object> powerConfig = getPowerConfig(deviceId);
         if (powerConfig != null) {
-            Optional<Long> currentPower = powerConfig.currentPower(portNumber, ochSignal);
+            Optional<Double> currentPower = powerConfig.currentPower(portNumber, ochSignal);
             if (currentPower.isPresent()) {
                 return currentPower.get();
             }
@@ -375,8 +375,8 @@ public class RoadmManager implements RoadmService {
 
     @Override
     public FlowId createConnection(DeviceId deviceId, int priority, boolean isPermanent,
-                                   int timeout, PortNumber inPort, PortNumber outPort,
-                                   OchSignal ochSignal, long attenuation) {
+                                 int timeout, PortNumber inPort, PortNumber outPort,
+                                 OchSignal ochSignal, Double attenuation) {
         checkNotNull(deviceId);
         checkNotNull(inPort);
         checkNotNull(outPort);
@@ -404,32 +404,32 @@ public class RoadmManager implements RoadmService {
         checkNotNull(portNumber);
         PowerConfig<Object> powerConfig = getPowerConfig(deviceId);
         if (powerConfig != null) {
-            Optional<Range<Long>> range = powerConfig.getTargetPowerRange(portNumber, Direction.ALL);
+            Optional<Range<Double>> range = powerConfig.getTargetPowerRange(portNumber, Direction.ALL);
             return range.isPresent();
         }
         return false;
     }
 
     @Override
-    public boolean portTargetPowerInRange(DeviceId deviceId, PortNumber portNumber, long power) {
+    public boolean portTargetPowerInRange(DeviceId deviceId, PortNumber portNumber, double power) {
         checkNotNull(deviceId);
         checkNotNull(portNumber);
         PowerConfig<Object> powerConfig = getPowerConfig(deviceId);
         if (powerConfig != null) {
-            Optional<Range<Long>> range = powerConfig.getTargetPowerRange(portNumber, Direction.ALL);
+            Optional<Range<Double>> range = powerConfig.getTargetPowerRange(portNumber, Direction.ALL);
             return range.isPresent() && range.get().contains(power);
         }
         return false;
     }
 
     @Override
-    public boolean attenuationInRange(DeviceId deviceId, PortNumber outPort, long att) {
+    public boolean attenuationInRange(DeviceId deviceId, PortNumber outPort, double att) {
         checkNotNull(deviceId);
         checkNotNull(outPort);
         PowerConfig<Object> powerConfig = getPowerConfig(deviceId);
         if (powerConfig != null) {
             OchSignal stubOch = OchSignal.newDwdmSlot(ChannelSpacing.CHL_50GHZ, 0);
-            Optional<Range<Long>> range = powerConfig.getTargetPowerRange(outPort, stubOch);
+            Optional<Range<Double>> range = powerConfig.getTargetPowerRange(outPort, stubOch);
             return range.isPresent() && range.get().contains(att);
         }
         return false;
@@ -441,7 +441,7 @@ public class RoadmManager implements RoadmService {
         checkNotNull(portNumber);
         PowerConfig<Object> powerConfig = getPowerConfig(deviceId);
         if (powerConfig != null) {
-            Optional<Range<Long>> range = powerConfig.getInputPowerRange(portNumber, Direction.ALL);
+            Optional<Range<Double>> range = powerConfig.getInputPowerRange(portNumber, Direction.ALL);
             return range.isPresent();
         }
         return false;
@@ -486,12 +486,12 @@ public class RoadmManager implements RoadmService {
     }
 
     @Override
-    public Range<Long> targetPortPowerRange(DeviceId deviceId, PortNumber portNumber) {
+    public Range<Double> targetPortPowerRange(DeviceId deviceId, PortNumber portNumber) {
         checkNotNull(deviceId);
         checkNotNull(portNumber);
         PowerConfig<Object> powerConfig = getPowerConfig(deviceId);
         if (powerConfig != null) {
-            Optional<Range<Long>> range = powerConfig.getTargetPowerRange(portNumber, Direction.ALL);
+            Optional<Range<Double>> range = powerConfig.getTargetPowerRange(portNumber, Direction.ALL);
             if (range.isPresent()) {
                 return range.get();
             }
@@ -500,13 +500,13 @@ public class RoadmManager implements RoadmService {
     }
 
     @Override
-    public Range<Long> attenuationRange(DeviceId deviceId, PortNumber portNumber, OchSignal ochSignal) {
+    public Range<Double> attenuationRange(DeviceId deviceId, PortNumber portNumber, OchSignal ochSignal) {
         checkNotNull(deviceId);
         checkNotNull(portNumber);
         checkNotNull(ochSignal);
         PowerConfig<Object> powerConfig = getPowerConfig(deviceId);
         if (powerConfig != null) {
-            Optional<Range<Long>> range = powerConfig.getTargetPowerRange(portNumber, ochSignal);
+            Optional<Range<Double>> range = powerConfig.getTargetPowerRange(portNumber, ochSignal);
             if (range.isPresent()) {
                 return range.get();
             }
@@ -515,12 +515,12 @@ public class RoadmManager implements RoadmService {
     }
 
     @Override
-    public Range<Long> inputPortPowerRange(DeviceId deviceId, PortNumber portNumber) {
+    public Range<Double> inputPortPowerRange(DeviceId deviceId, PortNumber portNumber) {
         checkNotNull(deviceId);
         checkNotNull(portNumber);
         PowerConfig<Object> powerConfig = getPowerConfig(deviceId);
         if (powerConfig != null) {
-            Optional<Range<Long>> range = powerConfig.getInputPowerRange(portNumber, Direction.ALL);
+            Optional<Range<Double>> range = powerConfig.getInputPowerRange(portNumber, Direction.ALL);
             if (range.isPresent()) {
                 return range.get();
             }
@@ -588,13 +588,13 @@ public class RoadmManager implements RoadmService {
             return;
         }
 
-        Optional<Range<Long>> range = powerConfig.getTargetPowerRange(portNumber, Direction.ALL);
+        Optional<Range<Double>> range = powerConfig.getTargetPowerRange(portNumber, Direction.ALL);
         if (!range.isPresent()) {
             log.warn("No target power range found for port {} on device {}", portNumber, deviceId);
             return;
         }
 
-        Long power = roadmStore.getTargetPower(deviceId, portNumber);
+        Double power = roadmStore.getTargetPower(deviceId, portNumber);
         if (power == null) {
             // Set default to middle of the range
             power = (range.get().lowerEndpoint() + range.get().upperEndpoint()) / 2;
@@ -615,9 +615,9 @@ public class RoadmManager implements RoadmService {
 
         List<Port> ports = deviceService.getPorts(deviceId);
         for (Port port : ports) {
-            Optional<Range<Long>> range = powerConfig.getTargetPowerRange(port.number(), Direction.ALL);
+            Optional<Range<Double>> range = powerConfig.getTargetPowerRange(port.number(), Direction.ALL);
             if (range.isPresent()) {
-                Long power = roadmStore.getTargetPower(deviceId, port.number());
+                Double power = roadmStore.getTargetPower(deviceId, port.number());
                 if (power == null) {
                     // Set default to middle of the range
                     power = (range.get().lowerEndpoint() + range.get().upperEndpoint()) / 2;
@@ -633,7 +633,7 @@ public class RoadmManager implements RoadmService {
     // Delay the call to setTargetPower because the flow may not be in the store yet
     // Tested with Lumentum ROADM-20 1 seconds was not enough, increased to 5 seconds
     private void delayedSetAttenuation(DeviceId deviceId, PortNumber outPort,
-                                       OchSignal ochSignal, long attenuation) {
+                                       OchSignal ochSignal, Double attenuation) {
         Runnable setAtt = () -> {
             try {
                 TimeUnit.SECONDS.sleep(5);

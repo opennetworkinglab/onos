@@ -183,14 +183,14 @@ public class RoadmFlowViewMessageHandler extends UiMessageHandler {
         private String getCurrentPower(DeviceId deviceId, ChannelData channelData) {
             if (hasAttenuation(deviceId, channelData)) {
                 // report channel power if channel exists
-                Long currentPower = roadmService.getCurrentChannelPower(deviceId,
+                Double currentPower = roadmService.getCurrentChannelPower(deviceId,
                         channelData.outPort(), channelData.ochSignal());
                 return RoadmUtil.objectToString(currentPower, RoadmUtil.UNKNOWN);
             }
             // otherwise, report port power
             Type devType = deviceService.getDevice(deviceId).type();
             PortNumber port = devType == Type.FIBER_SWITCH ? channelData.inPort() : channelData.outPort();
-            Long currentPower = roadmService.getCurrentPortPower(deviceId, port);
+            Double currentPower = roadmService.getCurrentPortPower(deviceId, port);
             return RoadmUtil.objectToString(currentPower, RoadmUtil.UNKNOWN);
         }
 
@@ -199,7 +199,7 @@ public class RoadmFlowViewMessageHandler extends UiMessageHandler {
             if (signal == null) {
                 return RoadmUtil.NA;
             }
-            Long attenuation = roadmService.getAttenuation(deviceId, channelData.outPort(), signal);
+            Double attenuation = roadmService.getAttenuation(deviceId, channelData.outPort(), signal);
             return RoadmUtil.objectToString(attenuation, RoadmUtil.UNKNOWN);
         }
 
@@ -236,8 +236,8 @@ public class RoadmFlowViewMessageHandler extends UiMessageHandler {
             ChannelData channelData = ChannelData.fromFlow(entry);
             PortNumber port = channelData.outPort();
             OchSignal signal = channelData.ochSignal();
-            Range<Long> range = roadmService.attenuationRange(deviceId, port, signal);
-            Long attenuation = payload.get(ATTENUATION).asLong();
+            Range<Double> range = roadmService.attenuationRange(deviceId, port, signal);
+            Double attenuation = payload.get(ATTENUATION).asDouble();
             boolean validAttenuation = range != null && range.contains(attenuation);
             if (validAttenuation) {
                 roadmService.setAttenuation(deviceId, port, signal, attenuation);
@@ -315,7 +315,7 @@ public class RoadmFlowViewMessageHandler extends UiMessageHandler {
             ChannelSpacing spacing = channelSpacing((int) number(chNode, CHANNEL_SPACING_INDEX));
             int multiplier = (int) number(flowNode, CHANNEL_MULTIPLIER);
             OchSignal och = OchSignal.newDwdmSlot(spacing, multiplier);
-            long att = number(flowNode, ATTENUATION);
+            double att = number(flowNode, ATTENUATION);
 
             boolean showItems = deviceService.getDevice(did).type() != Type.FIBER_SWITCH;
             boolean validInPort = roadmService.validInputPort(did, inPort);
@@ -355,7 +355,7 @@ public class RoadmFlowViewMessageHandler extends UiMessageHandler {
 
                 // Construct error for attenuation
                 if (!validAttenuation) {
-                    Range<Long> range = roadmService.attenuationRange(did, outPort, och);
+                    Range<Double> range = roadmService.attenuationRange(did, outPort, och);
                     if (range != null) {
                         attenuationMessage = String.format(ATTENUATION_ERR_MSG, range.toString());
                     }

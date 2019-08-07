@@ -46,13 +46,13 @@ public class LumentumPowerConfig<T> extends AbstractHandlerBehaviour
 
 
     @Override
-    public Optional<Long> getTargetPower(PortNumber port, T component) {
+    public Optional<Double> getTargetPower(PortNumber port, T component) {
         return Optional.ofNullable(acquireTargetPower(port, component));
     }
 
     //Used by the ROADM app to set the "attenuation" parameter
     @Override
-    public void setTargetPower(PortNumber port, T component, long power) {
+    public void setTargetPower(PortNumber port, T component, double power) {
         if (component instanceof OchSignal) {
             setConnectionTargetPower(port, (OchSignal) component, power);
         } else {
@@ -61,12 +61,12 @@ public class LumentumPowerConfig<T> extends AbstractHandlerBehaviour
     }
 
     @Override
-    public Optional<Long> currentPower(PortNumber port, T component) {
+    public Optional<Double> currentPower(PortNumber port, T component) {
         return Optional.ofNullable(acquireCurrentPower(port, component));
     }
 
     @Override
-    public Optional<Range<Long>> getTargetPowerRange(PortNumber portNumber, T component) {
+    public Optional<Range<Double>> getTargetPowerRange(PortNumber portNumber, T component) {
 
         log.debug("Lumentum getTargetPowerRange {}", portNumber);
         //TODO automatically read if a port is input or output
@@ -87,7 +87,7 @@ public class LumentumPowerConfig<T> extends AbstractHandlerBehaviour
     }
 
     @Override
-    public Optional<Range<Long>> getInputPowerRange(PortNumber portNumber, T component) {
+    public Optional<Range<Double>> getInputPowerRange(PortNumber portNumber, T component) {
 
         log.debug("Lumentum getInputPowerRange {}", portNumber);
         //TODO automatically read if a port is input or output
@@ -110,7 +110,7 @@ public class LumentumPowerConfig<T> extends AbstractHandlerBehaviour
     //TODO implement actual get configuration from the device
     //This is used by ROADM application to retrieve attenuation parameter, with T instanceof OchSignal
     //The ROADM app expresses the attenuation in 0.01 dB units
-    private Long acquireTargetPower(PortNumber port, T component) {
+    private Double acquireTargetPower(PortNumber port, T component) {
         log.debug("Lumentum get port {} target power...", port);
 
         if (component instanceof OchSignal) {
@@ -120,7 +120,7 @@ public class LumentumPowerConfig<T> extends AbstractHandlerBehaviour
 
             if (rules == null) {
                 log.error("Lumentum NETCONF fail to retrieve attenuation signal {} port {}", component, port);
-                return 0L;
+                return 0.0;
             } else {
                 rule = rules.stream()
                         .filter(c -> ((LumentumFlowRule) c).getOutputPort() == port)
@@ -131,20 +131,20 @@ public class LumentumPowerConfig<T> extends AbstractHandlerBehaviour
 
             if (rule == null) {
                 log.error("Lumentum NETCONF fail to retrieve attenuation signal {} port {}", component, port);
-                return 0L;
+                return 0.0;
             } else {
                 log.debug("Lumentum NETCONF on port {} attenuation {}", port,
                         (((LumentumFlowRule) rule).attenuation * 100));
-                return ((long) (((LumentumFlowRule) rule).attenuation * 100));
+                return ((LumentumFlowRule) rule).attenuation * 100;
             }
         }
 
-        return 0L;
+        return 0.0;
     }
 
     //TODO implement actual get configuration from the device
     //This is used by ROADM application to retrieve power parameter, with T instanceof OchSignal
-    private Long acquireCurrentPower(PortNumber port, T component) {
+    private Double acquireCurrentPower(PortNumber port, T component) {
         log.debug("Lumentum get port {} current power...", port);
 
         if (component instanceof OchSignal) {
@@ -154,7 +154,7 @@ public class LumentumPowerConfig<T> extends AbstractHandlerBehaviour
 
             if (rules == null) {
                 log.error("Lumentum NETCONF fail to retrieve power signal {} port {}", component, port);
-                return 0L;
+                return 0.0;
             } else {
                 rule = rules.stream()
                         .filter(c -> ((LumentumFlowRule) c).getInputPort() == port)
@@ -165,38 +165,38 @@ public class LumentumPowerConfig<T> extends AbstractHandlerBehaviour
 
             if (rule == null) {
                 log.error("Lumentum NETCONF fail to retrieve power signal {} port {}", component, port);
-                return 0L;
+                return 0.0;
             } else {
                 log.debug("Lumentum NETCONF on port {} power {}", port, (((LumentumFlowRule) rule).inputPower));
-                return ((long) (((LumentumFlowRule) rule).inputPower * 100));
+                return ((double) (((LumentumFlowRule) rule).inputPower * 100));
             }
         }
 
-        return 0L;
+        return 0.0;
     }
 
     //TODO implement actual get configuration from the device
     //Return PowerRange -60 dBm to 60 dBm
-    private Range<Long> getTxPowerRange(PortNumber port, T component) {
+    private Range<Double> getTxPowerRange(PortNumber port, T component) {
         log.debug("Get port {} tx power range...", port);
-        return Range.closed(-60L, 60L);
+        return Range.closed(-60.0, 60.0);
     }
 
     //TODO implement actual get configuration from the device
     //Return PowerRange -60dBm to 60 dBm
-    private Range<Long> getRxPowerRange(PortNumber port, T component) {
+    private Range<Double> getRxPowerRange(PortNumber port, T component) {
         log.debug("Get port {} rx power range...", port);
-        return Range.closed(-60L, 60L);
+        return Range.closed(-60.0, 60.0);
     }
 
     //TODO implement configuration on the device
     //Nothing to do
-    private void setPortTargetPower(PortNumber port, long power) {
+    private void setPortTargetPower(PortNumber port, double power) {
         log.debug("Set port {} target power {}", port, power);
     }
 
     //Used by the ROADM app to set the "attenuation" parameter
-    private void setConnectionTargetPower(PortNumber port, OchSignal signal, long power) {
+    private void setConnectionTargetPower(PortNumber port, OchSignal signal, double power) {
         log.debug("Set connection target power {} ochsignal {} port {}", power, signal, port);
 
         Set<FlowRule> rules = getConnectionCache().get(did());
@@ -231,7 +231,7 @@ public class LumentumPowerConfig<T> extends AbstractHandlerBehaviour
 
     //Following Lumentum documentation <edit-config> operation to edit connection parameter
     //Currently only edit the "attenuation" parameter
-    private boolean editConnection(int moduleId, int connectionId, long attenuation) {
+    private boolean editConnection(int moduleId, int connectionId, double attenuation) {
 
         double attenuationDouble = ((double) attenuation);
 

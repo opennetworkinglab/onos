@@ -58,7 +58,7 @@ public class PowerConfigCommand extends AbstractShellCommand {
 
     @Argument(index = 2, name = "value", description = "target-output-power value. Unit: dBm",
             required = false, multiValued = false)
-    private Long value = null;
+    private Double value = null;
 
     @Override
     protected void doExecute() throws Exception {
@@ -81,28 +81,28 @@ public class PowerConfigCommand extends AbstractShellCommand {
         // FIXME the parameter "component" equals NULL now, because there is one-to-one mapping between
         //  <component> and <optical-channel>.
         if (operation.equals("get")) {
-            Optional<Long> val = powerConfig.getTargetPower(cp.port(), Direction.ALL);
+            Optional<Double> val = powerConfig.getTargetPower(cp.port(), Direction.ALL);
             if (val.isPresent()) {
-                long power = val.orElse(Long.MIN_VALUE);
-                print("The target-output-power value in port %s on device %s is %d.",
+                double power = val.orElse(Double.MIN_VALUE);
+                print("The target-output-power value in port %s on device %s is %f.",
                         cp.port().toString(), cp.deviceId().toString(), power);
             }
-            Optional<Long> currentPower = powerConfig.currentPower(cp.port(), Direction.ALL);
+            Optional<Double> currentPower = powerConfig.currentPower(cp.port(), Direction.ALL);
             if (currentPower.isPresent()) {
-                long currentPowerVal = currentPower.orElse(Long.MIN_VALUE);
-                print("The current-output-power value in port %s on device %s is %d.",
+                double currentPowerVal = currentPower.orElse(Double.MIN_VALUE);
+                print("The current-output-power value in port %s on device %s is %f.",
                         cp.port().toString(), cp.deviceId().toString(), currentPowerVal);
             }
-            Optional<Long> currentInputPower = powerConfig.currentInputPower(cp.port(), Direction.ALL);
+            Optional<Double> currentInputPower = powerConfig.currentInputPower(cp.port(), Direction.ALL);
             if (currentInputPower.isPresent()) {
-                long inputPowerVal = currentInputPower.orElse(Long.MIN_VALUE);
-                print("The current-input-power value in port %s on device %s is %d.",
+                double inputPowerVal = currentInputPower.orElse(Double.MIN_VALUE);
+                print("The current-input-power value in port %s on device %s is %f.",
                         cp.port().toString(), cp.deviceId().toString(), inputPowerVal);
             }
         } else if (operation.equals("edit-config")) {
             checkNotNull(value);
             powerConfig.setTargetPower(cp.port(), Direction.ALL, value);
-            print("Set %s power on port", value, connectPoint);
+            print("Set %f power on port", value, connectPoint);
         } else {
             print("Operation %s are not supported now.", operation);
         }

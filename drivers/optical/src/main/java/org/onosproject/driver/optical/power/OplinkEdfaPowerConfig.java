@@ -25,40 +25,55 @@ import org.onosproject.net.behaviour.PowerConfig;
 
 /**
  * Port Power (Gain and attenuation) implementation for Oplink EDFA device.
- *
+ * <p>
  * An Oplink EDFA port exposes Direction resources.
  * Set gain(attenuation) at AGC mode or set output level at APC mode.
- *
  */
 
 public class OplinkEdfaPowerConfig extends AbstractHandlerBehaviour
-                                    implements PowerConfig<Object> {
+        implements PowerConfig<Object> {
 
     // oplink power config utility
     private OplinkPowerConfigUtil oplinkUtil = new OplinkPowerConfigUtil(this);
 
     @Override
-    public Optional<Long> getTargetPower(PortNumber port, Object component) {
-        return Optional.ofNullable(oplinkUtil.getTargetPower(port, component));
+    public Optional<Double> getTargetPower(PortNumber port, Object component) {
+        Long power = oplinkUtil.getTargetPower(port, component);
+        if (power == null) {
+            return Optional.empty();
+        }
+        return Optional.of(power.doubleValue());
     }
 
     @Override
-    public Optional<Long> currentPower(PortNumber port, Object component) {
-        return Optional.ofNullable(oplinkUtil.getCurrentPower(port, component));
+    public Optional<Double> currentPower(PortNumber port, Object component) {
+        Long power = oplinkUtil.getCurrentPower(port, component);
+        if (power == null) {
+            return Optional.empty();
+        }
+        return Optional.of(power.doubleValue());
     }
 
     @Override
-    public void setTargetPower(PortNumber port, Object component, long power) {
-        oplinkUtil.setTargetPower(port, component, power);
+    public void setTargetPower(PortNumber port, Object component, double power) {
+        oplinkUtil.setTargetPower(port, component, (long) power);
     }
 
     @Override
-    public Optional<Range<Long>> getTargetPowerRange(PortNumber port, Object component) {
-        return Optional.ofNullable(oplinkUtil.getTargetPowerRange(port, component));
+    public Optional<Range<Double>> getTargetPowerRange(PortNumber port, Object component) {
+        Range<Long> power = oplinkUtil.getTargetPowerRange(port, component);
+        if (power == null) {
+            return Optional.empty();
+        }
+        return Optional.of(Range.closed((double) power.lowerEndpoint(), (double) power.upperEndpoint()));
     }
 
     @Override
-    public Optional<Range<Long>> getInputPowerRange(PortNumber port, Object component) {
-        return Optional.ofNullable(oplinkUtil.getInputPowerRange(port, component));
+    public Optional<Range<Double>> getInputPowerRange(PortNumber port, Object component) {
+        Range<Long> power = oplinkUtil.getInputPowerRange(port, component);
+        if (power == null) {
+            return Optional.empty();
+        }
+        return Optional.of(Range.closed((double) power.lowerEndpoint(), (double) power.upperEndpoint()));
     }
 }

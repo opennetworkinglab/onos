@@ -39,15 +39,15 @@ import java.util.Map;
 public class DistributedRoadmStore implements RoadmStore {
     private static Logger log = LoggerFactory.getLogger(DistributedRoadmStore.class);
 
-    private ConsistentMap<DeviceId, Map<PortNumber, Long>> distPowerMap;
-    private Map<DeviceId, Map<PortNumber, Long>> powerMap;
+    private ConsistentMap<DeviceId, Map<PortNumber, Double>> distPowerMap;
+    private Map<DeviceId, Map<PortNumber, Double>> powerMap;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected StorageService storageService;
 
     @Activate
     public void activate() {
-        distPowerMap = storageService.<DeviceId, Map<PortNumber, Long>>consistentMapBuilder()
+        distPowerMap = storageService.<DeviceId, Map<PortNumber, Double>>consistentMapBuilder()
                 .withName("onos-roadm-distributed-store")
                 .withSerializer(Serializer.using(KryoNamespaces.API))
                 .build();
@@ -77,8 +77,8 @@ public class DistributedRoadmStore implements RoadmStore {
 
 
     @Override
-    public void setTargetPower(DeviceId deviceId, PortNumber portNumber, long targetPower) {
-        Map<PortNumber, Long> portMap = powerMap.get(deviceId);
+    public void setTargetPower(DeviceId deviceId, PortNumber portNumber, double targetPower) {
+        Map<PortNumber, Double> portMap = powerMap.get(deviceId);
         if (portMap != null) {
             portMap.put(portNumber, targetPower);
             powerMap.put(deviceId, portMap);
@@ -88,8 +88,8 @@ public class DistributedRoadmStore implements RoadmStore {
     }
 
     @Override
-    public Long getTargetPower(DeviceId deviceId, PortNumber portNumber) {
-        Map<PortNumber, Long> portMap = powerMap.get(deviceId);
+    public Double getTargetPower(DeviceId deviceId, PortNumber portNumber) {
+        Map<PortNumber, Double> portMap = powerMap.get(deviceId);
         if (portMap != null) {
             return portMap.get(portNumber);
         }

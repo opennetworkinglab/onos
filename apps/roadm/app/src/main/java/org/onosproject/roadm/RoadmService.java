@@ -91,7 +91,7 @@ public interface RoadmService {
      * @param portNumber PortNumber of the port to configure
      * @param power value to set target power to
      */
-    void setTargetPortPower(DeviceId deviceId, PortNumber portNumber, long power);
+    void setTargetPortPower(DeviceId deviceId, PortNumber portNumber, double power);
 
     /**
      * Returns the target power stored in storage for a port if the port has configurable target power.
@@ -100,7 +100,7 @@ public interface RoadmService {
      * @param portNumber PortNumber of the port to configure
      * @return the target power if the port has a target power, null otherwise
      */
-    Long getTargetPortPower(DeviceId deviceId, PortNumber portNumber);
+    Double getTargetPortPower(DeviceId deviceId, PortNumber portNumber);
 
     /**
      * Sync-up the target power for a port if the operator want to check the configuration.
@@ -108,7 +108,7 @@ public interface RoadmService {
      * @param portNumber PortNumber of the port to configure
      * @return the target power if the port has a target power, null otherwise
      */
-    Long syncTargetPortPower(DeviceId deviceId, PortNumber portNumber);
+    Double syncTargetPortPower(DeviceId deviceId, PortNumber portNumber);
 
     /**
      * Sets the attenuation of a connection. This does not check that attenuation
@@ -119,7 +119,7 @@ public interface RoadmService {
      * @param ochSignal channel to set attenuation for
      * @param attenuation attenuation value to set to
      */
-    void setAttenuation(DeviceId deviceId, PortNumber portNumber, OchSignal ochSignal, long attenuation);
+    void setAttenuation(DeviceId deviceId, PortNumber portNumber, OchSignal ochSignal, double attenuation);
 
     /**
      * Returns the attenuation of a connection.
@@ -129,7 +129,7 @@ public interface RoadmService {
      * @param ochSignal channel to search for
      * @return attenuation if found, null otherwise
      */
-    Long getAttenuation(DeviceId deviceId, PortNumber portNumber, OchSignal ochSignal);
+    Double getAttenuation(DeviceId deviceId, PortNumber portNumber, OchSignal ochSignal);
 
     /**
      * Returns the current port power.
@@ -138,7 +138,7 @@ public interface RoadmService {
      * @param portNumber PortNumber of the port
      * @return current power if found, null otherwise
      */
-    Long getCurrentPortPower(DeviceId deviceId, PortNumber portNumber);
+    Double getCurrentPortPower(DeviceId deviceId, PortNumber portNumber);
 
     /**
      * Returns the current channel power.
@@ -148,7 +148,7 @@ public interface RoadmService {
      * @param ochSignal channel to search for
      * @return channel power if found, null otherwise
      */
-    Long getCurrentChannelPower(DeviceId deviceId, PortNumber portNumber, OchSignal ochSignal);
+    Double getCurrentChannelPower(DeviceId deviceId, PortNumber portNumber, OchSignal ochSignal);
 
     /**
      * Returns the channels supported by a port.
@@ -217,7 +217,7 @@ public interface RoadmService {
      */
     FlowId createConnection(DeviceId deviceId, int priority, boolean isPermanent,
                           int timeout, PortNumber inPort, PortNumber outPort,
-                          OchSignal ochSignal, long attenuation);
+                          OchSignal ochSignal, Double attenuation);
 
     /**
      * Removes an internal connection from a device by matching the FlowId and
@@ -250,7 +250,7 @@ public interface RoadmService {
      * @return true if value is within the acceptable target power range, false
      * otherwise
      */
-    boolean portTargetPowerInRange(DeviceId deviceId, PortNumber portNumber, long power);
+    boolean portTargetPowerInRange(DeviceId deviceId, PortNumber portNumber, double power);
 
     /**
      * Returns true if value is within the acceptable attenuation range of a
@@ -264,7 +264,7 @@ public interface RoadmService {
      * @return true if value is within the acceptable attenuation range, false
      * otherwise
      */
-    boolean attenuationInRange(DeviceId deviceId, PortNumber portNumber, long att);
+    boolean attenuationInRange(DeviceId deviceId, PortNumber portNumber, double att);
 
     /**
      * Returns true if the port is an input port.
@@ -324,7 +324,7 @@ public interface RoadmService {
      * @param portNumber PortNumber of the port
      * @return range if found, null otherwise
      */
-    Range<Long> targetPortPowerRange(DeviceId deviceId, PortNumber portNumber);
+    Range<Double> targetPortPowerRange(DeviceId deviceId, PortNumber portNumber);
 
     /**
      * Returns the acceptable attenuation range for a connection.
@@ -334,7 +334,7 @@ public interface RoadmService {
      * @param ochSignal channel to check
      * @return range if found, null otherwise
      */
-    Range<Long> attenuationRange(DeviceId deviceId, PortNumber portNumber, OchSignal ochSignal);
+    Range<Double> attenuationRange(DeviceId deviceId, PortNumber portNumber, OchSignal ochSignal);
 
     /**
      * Returns the expected input power range for an input port.
@@ -343,5 +343,5 @@ public interface RoadmService {
      * @param portNumber PortNumber of an input port
      * @return range if found, null otherwise
      */
-    Range<Long> inputPortPowerRange(DeviceId deviceId, PortNumber portNumber);
+    Range<Double> inputPortPowerRange(DeviceId deviceId, PortNumber portNumber);
 }

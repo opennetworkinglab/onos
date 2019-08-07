@@ -56,7 +56,7 @@ public class CassiniTerminalDevicePowerConfigExt<T>
 
     private static final String RPC_CLOSE_TAG = "</rpc>";
 
-    private static final long NO_POWER = -50;
+    private static final double NO_POWER = -50;
 
     private static final Logger log = getLogger(CassiniTerminalDevicePowerConfigExt.class);
 
@@ -119,37 +119,37 @@ public class CassiniTerminalDevicePowerConfigExt<T>
      * @return target power value
      */
     @Override
-    public Optional<Long> getTargetPower(PortNumber port, T component) {
+    public Optional<Double> getTargetPower(PortNumber port, T component) {
         checkState(component);
         return state.getTargetPower(port, component);
     }
 
     @Override
-    public void setTargetPower(PortNumber port, T component, long power) {
+    public void setTargetPower(PortNumber port, T component, double power) {
         checkState(component);
         state.setTargetPower(port, component, power);
     }
 
     @Override
-    public Optional<Long> currentPower(PortNumber port, T component) {
+    public Optional<Double> currentPower(PortNumber port, T component) {
         checkState(component);
         return state.currentPower(port, component);
     }
 
     @Override
-    public Optional<Long> currentInputPower(PortNumber port, T component) {
+    public Optional<Double> currentInputPower(PortNumber port, T component) {
         checkState(component);
         return state.currentInputPower(port, component);
     }
 
     @Override
-    public Optional<Range<Long>> getTargetPowerRange(PortNumber port, T component) {
+    public Optional<Range<Double>> getTargetPowerRange(PortNumber port, T component) {
         checkState(component);
         return state.getTargetPowerRange(port, component);
     }
 
     @Override
-    public Optional<Range<Long>> getInputPowerRange(PortNumber port, T component) {
+    public Optional<Range<Double>> getInputPowerRange(PortNumber port, T component) {
         checkState(component);
         return state.getInputPowerRange(port, component);
     }
@@ -191,11 +191,11 @@ public class CassiniTerminalDevicePowerConfigExt<T>
          */
         DIRECTION() {
             @Override
-            public Optional<Long> getTargetPower(PortNumber port, Object component) {
+            public Optional<Double> getTargetPower(PortNumber port, Object component) {
                 return super.getTargetPower(port, component);
             }
             @Override
-            public void setTargetPower(PortNumber port, Object component, long power) {
+            public void setTargetPower(PortNumber port, Object component, double power) {
                 super.setTargetPower(port, component, power);
             }
         },
@@ -205,12 +205,12 @@ public class CassiniTerminalDevicePowerConfigExt<T>
          */
         OCHSIGNAL() {
             @Override
-            public Optional<Long> getTargetPower(PortNumber port, Object component) {
+            public Optional<Double> getTargetPower(PortNumber port, Object component) {
                 return super.getTargetPower(port, component);
             }
 
             @Override
-            public void setTargetPower(PortNumber port, Object component, long power) {
+            public void setTargetPower(PortNumber port, Object component, double power) {
                 super.setTargetPower(port, component, power);
             }
         };
@@ -225,7 +225,7 @@ public class CassiniTerminalDevicePowerConfigExt<T>
          * @param component component
          * @return target power
          */
-        Optional<Long> getTargetPower(PortNumber port, Object component) {
+        Optional<Double> getTargetPower(PortNumber port, Object component) {
             NetconfSession session = cassini.getNetconfSession(cassini.did());
             checkNotNull(session);
             String filter = parsePort(cassini, port, null, null);
@@ -241,7 +241,7 @@ public class CassiniTerminalDevicePowerConfigExt<T>
             try {
                 HierarchicalConfiguration config =
                         xconf.configurationAt("data/components/component/optical-channel/config");
-                long power = Float.valueOf(config.getString("target-output-power")).longValue();
+                double power = Float.valueOf(config.getString("target-output-power")).doubleValue();
                 return Optional.of(power);
             } catch (IllegalArgumentException e) {
                 return Optional.empty();
@@ -254,7 +254,7 @@ public class CassiniTerminalDevicePowerConfigExt<T>
          * @param component component
          * @param power target value
          */
-        void setTargetPower(PortNumber port, Object component, long power) {
+        void setTargetPower(PortNumber port, Object component, double power) {
             NetconfSession session = cassini.getNetconfSession(cassini.did());
             checkNotNull(session);
             String editConfig = parsePort(cassini, port, null, power);
@@ -281,13 +281,13 @@ public class CassiniTerminalDevicePowerConfigExt<T>
          * @param component the component.
          * @return current output power.
          */
-        Optional<Long> currentPower(PortNumber port, Object component) {
+        Optional<Double> currentPower(PortNumber port, Object component) {
             XMLConfiguration xconf = getOpticalChannelState(
                                     cassini, port, "<output-power><instant/></output-power>");
             try {
                 HierarchicalConfiguration config =
                         xconf.configurationAt("data/components/component/optical-channel/state/output-power");
-                long currentPower = Float.valueOf(config.getString("instant")).longValue();
+                double currentPower = Float.valueOf(config.getString("instant")).doubleValue();
                 return Optional.of(currentPower);
             } catch (IllegalArgumentException e) {
                 return Optional.empty();
@@ -300,27 +300,27 @@ public class CassiniTerminalDevicePowerConfigExt<T>
          * @param component the component
          * @return current input power
          */
-        Optional<Long> currentInputPower(PortNumber port, Object component) {
+        Optional<Double> currentInputPower(PortNumber port, Object component) {
             XMLConfiguration xconf = getOpticalChannelState(
                     cassini, port, "<input-power><instant/></input-power>");
             try {
                 HierarchicalConfiguration config =
                         xconf.configurationAt("data/components/component/optical-channel/state/input-power");
-                long currentPower = Float.valueOf(config.getString("instant")).longValue();
+                double currentPower = Float.valueOf(config.getString("instant")).doubleValue();
                 return Optional.of(currentPower);
             } catch (IllegalArgumentException e) {
                 return Optional.empty();
             }
         }
 
-        Optional<Range<Long>> getTargetPowerRange(PortNumber port, Object component) {
+        Optional<Range<Double>> getTargetPowerRange(PortNumber port, Object component) {
             XMLConfiguration xconf = getOpticalChannelState(
                     cassini, port, "<target-power-range/>");
             try {
                 HierarchicalConfiguration config =
                         xconf.configurationAt("data/components/component/optical-channel/state/target-power-range");
-                long targetMin = Float.valueOf(config.getString("min")).longValue();
-                long targetMax = Float.valueOf(config.getString("max")).longValue();
+                double targetMin = Float.valueOf(config.getString("min")).doubleValue();
+                double targetMax = Float.valueOf(config.getString("max")).doubleValue();
                 return Optional.of(Range.open(targetMin, targetMax));
             } catch (IllegalArgumentException e) {
                 return Optional.empty();
@@ -328,14 +328,14 @@ public class CassiniTerminalDevicePowerConfigExt<T>
 
         }
 
-        Optional<Range<Long>> getInputPowerRange(PortNumber port, Object component) {
+        Optional<Range<Double>> getInputPowerRange(PortNumber port, Object component) {
             XMLConfiguration xconf = getOpticalChannelState(
                     cassini, port, "<input-power-range/>");
             try {
                 HierarchicalConfiguration config =
                         xconf.configurationAt("data/components/component/optical-channel/state/input-power-range");
-                long inputMin = Float.valueOf(config.getString("min")).longValue();
-                long inputMax = Float.valueOf(config.getString("max")).longValue();
+                double inputMin = Float.valueOf(config.getString("min")).doubleValue();
+                double inputMax = Float.valueOf(config.getString("max")).doubleValue();
                 return Optional.of(Range.open(inputMin, inputMax));
             } catch (IllegalArgumentException e) {
                 return Optional.empty();
@@ -395,7 +395,7 @@ public class CassiniTerminalDevicePowerConfigExt<T>
          * @return filtering string in xml format
          */
         private static String parsePort(CassiniTerminalDevicePowerConfigExt pc, PortNumber portNumber,
-                                        Object component, Long power) {
+                                        Object component, Double power) {
             if (component == null) {
                 String name = ocName(pc, portNumber);
                 StringBuilder sb = new StringBuilder("<components xmlns=\"http://openconfig.net/yang/platform\">");

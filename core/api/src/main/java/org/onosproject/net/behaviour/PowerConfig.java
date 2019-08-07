@@ -43,7 +43,7 @@ public interface PowerConfig<T> extends HandlerBehaviour {
      * @param component the port component
      * @return target power in .01 dBm
      */
-    Optional<Long> getTargetPower(PortNumber port, T component);
+    Optional<Double> getTargetPower(PortNumber port, T component);
 
     /**
      * Set the target power on the component.
@@ -52,7 +52,7 @@ public interface PowerConfig<T> extends HandlerBehaviour {
      * @param component the port component
      * @param power target power in .01 dBm
      */
-    void setTargetPower(PortNumber port, T component, long power);
+    void setTargetPower(PortNumber port, T component, double power);
 
     /**
      * Get the current output power on the component.
@@ -61,7 +61,7 @@ public interface PowerConfig<T> extends HandlerBehaviour {
      * @param component the port component
      * @return power power in .01 dBm
      */
-    Optional<Long> currentPower(PortNumber port, T component);
+    Optional<Double> currentPower(PortNumber port, T component);
 
     /**
      * Get the current input power on the component.
@@ -69,7 +69,7 @@ public interface PowerConfig<T> extends HandlerBehaviour {
      * @param component the port component
      * @return power in .01 dBm
      */
-    default Optional<Long> currentInputPower(PortNumber port, T component)  {
+    default Optional<Double> currentInputPower(PortNumber port, T component)  {
         return Optional.empty();
     }
 
@@ -82,7 +82,7 @@ public interface PowerConfig<T> extends HandlerBehaviour {
      * @return the accepted target power range, null if the component's power is
      * not configurable. For example the port target power can only be set on TX ports.
      */
-    default Optional<Range<Long>> getTargetPowerRange(PortNumber port, T component) {
+    default Optional<Range<Double>> getTargetPowerRange(PortNumber port, T component) {
         return Optional.empty();
     }
 
@@ -96,7 +96,7 @@ public interface PowerConfig<T> extends HandlerBehaviour {
      * a specified input power range. For example input power range only applies
      * to RX ports.
      */
-    default Optional<Range<Long>> getInputPowerRange(PortNumber port, T component) {
+    default Optional<Range<Double>> getInputPowerRange(PortNumber port, T component) {
         return Optional.empty();
     }
 

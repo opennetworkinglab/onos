@@ -25,50 +25,65 @@ import org.onosproject.net.behaviour.PowerConfig;
 
 /**
  * Port Power implementation for Oplink protection switch device.
- *
+ * <p>
  * Intruduction:
- *                                       _____
- *             _____________________    |     | 0  VIRTUAL
- *            |                     |   |  1  |
- *   CLIENT   |                     |---|-----|--- PRIMARY
+ * _____
+ * _____________________    |     | 0  VIRTUAL
+ * |                     |   |  1  |
+ * CLIENT   |                     |---|-----|--- PRIMARY
  * -----------|         OPS         |   |     |                NETWORK
- *      3     |                     |---|-----|--- SECONDARY
- *            |_____________________|   |  2  |
- *                                      |_____|
+ * 3     |                     |---|-----|--- SECONDARY
+ * |_____________________|   |  2  |
+ * |_____|
  * Uses flow to set switch path.
  * network port = 0, client port = 3, AUTO mode.
  * network port = 1 or 2, client port = 3, MANUAL mode.
- *
  */
 
 public class OplinkSwitchPowerConfig extends AbstractHandlerBehaviour
-                                    implements PowerConfig<Object> {
+        implements PowerConfig<Object> {
 
     // oplink power config utility
     private OplinkPowerConfigUtil oplinkUtil = new OplinkPowerConfigUtil(this);
 
     @Override
-    public Optional<Long> getTargetPower(PortNumber port, Object component) {
-        return Optional.ofNullable(null);
+    public Optional<Double> getTargetPower(PortNumber port, Object component) {
+        Long power = oplinkUtil.getTargetPower(port, component);
+        if (power == null) {
+            return Optional.empty();
+        }
+        return Optional.of(power.doubleValue());
     }
 
     @Override
-    public Optional<Long> currentPower(PortNumber port, Object component) {
-        return Optional.ofNullable(oplinkUtil.getCurrentPower(port, component));
+    public Optional<Double> currentPower(PortNumber port, Object component) {
+        Long power = oplinkUtil.getCurrentPower(port, component);
+        if (power == null) {
+            return Optional.empty();
+        }
+        return Optional.of(power.doubleValue());
     }
 
     @Override
-    public void setTargetPower(PortNumber port, Object component, long power) {
-        return;
+    public void setTargetPower(PortNumber port, Object component, double power) {
+        oplinkUtil.setTargetPower(port, component, (long) power);
     }
 
     @Override
-    public Optional<Range<Long>> getTargetPowerRange(PortNumber port, Object component) {
-        return Optional.ofNullable(oplinkUtil.getTargetPowerRange(port, component));
+    public Optional<Range<Double>> getTargetPowerRange(PortNumber port, Object component) {
+        Range<Long> power = oplinkUtil.getTargetPowerRange(port, component);
+        if (power == null) {
+            return Optional.empty();
+        }
+        return Optional.of(Range.closed((double) power.lowerEndpoint(), (double) power.upperEndpoint()));
     }
 
     @Override
-    public Optional<Range<Long>> getInputPowerRange(PortNumber port, Object component) {
-        return Optional.ofNullable(oplinkUtil.getInputPowerRange(port, component));
+    public Optional<Range<Double>> getInputPowerRange(PortNumber port, Object component) {
+        Range<Long> power = oplinkUtil.getInputPowerRange(port, component);
+        if (power == null) {
+            return Optional.empty();
+        }
+        return Optional.of(Range.closed((double) power.lowerEndpoint(), (double) power.upperEndpoint()));
     }
 }

@@ -50,7 +50,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Set target port power or channel attenuation to an optical snmp device.
  */
 public class PolatisPowerConfig<T> extends AbstractHandlerBehaviour
-    implements PowerConfig<T> {
+        implements PowerConfig<T> {
 
     private static final int VOA_STATE_ABSOLUTE = 2;
 
@@ -64,32 +64,48 @@ public class PolatisPowerConfig<T> extends AbstractHandlerBehaviour
     private final Logger log = getLogger(getClass());
 
     @Override
-    public Optional<Long> getTargetPower(PortNumber port, T component) {
-        return Optional.ofNullable(acquireTargetPower(port, component));
+    public Optional<Double> getTargetPower(PortNumber port, T component) {
+        Long power = acquireCurrentPower(port, component);
+        if (power == null) {
+            return Optional.empty();
+        }
+        return Optional.of(power.doubleValue());
     }
 
     @Override
-    public void setTargetPower(PortNumber port, T component, long power) {
+    public void setTargetPower(PortNumber port, T component, double power) {
         if (component instanceof OchSignal) {
             log.warn("Channel power is not applicable.");
             return;
         }
-        setPortTargetPower(port, power);
+        setPortTargetPower(port, (long) power);
     }
 
     @Override
-    public Optional<Long> currentPower(PortNumber port, T component) {
-        return Optional.ofNullable(acquireCurrentPower(port, component));
+    public Optional<Double> currentPower(PortNumber port, T component) {
+        Long power = acquireCurrentPower(port, component);
+        if (power == null) {
+            return Optional.empty();
+        }
+        return Optional.of(power.doubleValue());
     }
 
     @Override
-    public Optional<Range<Long>> getTargetPowerRange(PortNumber port, T component) {
-        return Optional.ofNullable(getTxPowerRange(port, component));
+    public Optional<Range<Double>> getTargetPowerRange(PortNumber port, T component) {
+        Range<Long> power = getTxPowerRange(port, component);
+        if (power == null) {
+            return Optional.empty();
+        }
+        return Optional.of(Range.closed((double) power.lowerEndpoint(), (double) power.upperEndpoint()));
     }
 
     @Override
-    public Optional<Range<Long>> getInputPowerRange(PortNumber port, T component) {
-        return Optional.ofNullable(getRxPowerRange(port, component));
+    public Optional<Range<Double>> getInputPowerRange(PortNumber port, T component) {
+        Range<Long> power = getRxPowerRange(port, component);
+        if (power == null) {
+            return Optional.empty();
+        }
+        return Optional.of(Range.closed((double) power.lowerEndpoint(), (double) power.upperEndpoint()));
     }
 
     @Override
@@ -158,7 +174,7 @@ public class PolatisPowerConfig<T> extends AbstractHandlerBehaviour
         DeviceId deviceId = handler().data().deviceId();
         Long targetPower = 0L;
         try {
-          targetPower = Long.valueOf(get(handler(), VOA_LEVEL_OID + "." + port.toLong()).toInt());
+            targetPower = Long.valueOf(get(handler(), VOA_LEVEL_OID + "." + port.toLong()).toInt());
         } catch (IOException e) {
             log.error("Error reading target power for device {} exception {}", deviceId, e);
         }
@@ -175,7 +191,7 @@ public class PolatisPowerConfig<T> extends AbstractHandlerBehaviour
         DeviceId deviceId = handler().data().deviceId();
         Long power = 0L;
         try {
-          power = Long.valueOf(get(handler(), OPM_POWER_OID + "." + port.toLong()).toInt());
+            power = Long.valueOf(get(handler(), OPM_POWER_OID + "." + port.toLong()).toInt());
         } catch (IOException e) {
             log.error("Error reading current power for device {} exception {}", deviceId, e);
         }

@@ -67,8 +67,8 @@
                     <td colId="name">Name</td>
                     <td colId="type">Type</td>
                     <td colId="enabled">Enabled</td>
-                    <td colId="minFreq">Min Freq (GHz)</td>
-                    <td colId="maxFreq">Max Freq (GHz)</td>
+                    <td colId="minFreq">Min Freq (THz)</td>
+                    <td colId="maxFreq">Max Freq (THz)</td>
                     <td colId="grid">Grid (GHz)</td>
                     <td colId="modulation">Modulation</td>
                     <td colId="powerRange">Power Range (dBm)</td>
@@ -105,10 +105,10 @@
                         </form>
                     </td>
                     <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.powerRange}}</td>
-                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.currentPower}}</td>
+                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.currentPower | number: '1.2-2'}}</td>
                     <td [ngClass]="(isDelta() ? 'delta' : '')">
                         <form [formGroup]="powerForm" (ngSubmit)="submitPower(devId, port.id)" *ngIf="port.type=='OCH'">
-                            <input type="number" step="any" style="width:50px" value="{{port.targetPower}}" formControlName="newPower" required>
+                            <input type="number" step="any" style="width:50px" value="{{port.targetPower | number: '1.2-2'}}" formControlName="newPower" required>
                             <button type="submit">Submit</button>
                         </form>
                     </td>

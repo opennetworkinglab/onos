@@ -204,7 +204,7 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
         // If the port is RX direction then acquire the input power range from driver.
         // Otherwise there will be a TX direction port, thus acquire the target power range.
         private String getPowerRange(DeviceId deviceId, PortNumber portNumber) {
-            Range<Long> range = roadmService.inputPortPowerRange(deviceId, portNumber);
+            Range<Double> range = roadmService.inputPortPowerRange(deviceId, portNumber);
             if (range == null) {
                 range = roadmService.targetPortPowerRange(deviceId, portNumber);
             }
@@ -213,7 +213,7 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
 
         // Returns the current power as a string, Unknown if no value can be found.
         private String getCurrentPower(DeviceId deviceId, PortNumber portNumber) {
-            Long currentPower = roadmService.getCurrentPortPower(deviceId, portNumber);
+            Double currentPower = roadmService.getCurrentPortPower(deviceId, portNumber);
             return RoadmUtil.objectToString(currentPower, RoadmUtil.UNKNOWN);
         }
 
@@ -223,7 +223,7 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
             if (!roadmService.hasPortTargetPower(deviceId, portNumber)) {
                 return RoadmUtil.NA;
             }
-            Long targetPower = roadmService.getTargetPortPower(deviceId, portNumber);
+            Double targetPower = roadmService.getTargetPortPower(deviceId, portNumber);
             return RoadmUtil.objectToString(targetPower, RoadmUtil.UNKNOWN);
         }
 
@@ -253,12 +253,12 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
         public void process(ObjectNode payload) {
             DeviceId deviceId = DeviceId.deviceId(string(payload, RoadmUtil.DEV_ID));
             PortNumber portNumber = PortNumber.portNumber(payload.get(ID).asLong());
-            Range<Long> range = roadmService.targetPortPowerRange(deviceId, portNumber);
+            Range<Double> range = roadmService.targetPortPowerRange(deviceId, portNumber);
             if (range == null) {
                 log.warn("Unable to determine target power range for device {}", deviceId);
                 return;
             }
-            Long targetPower = payload.get(TARGET_POWER).asLong();
+            Double targetPower = payload.get(TARGET_POWER).asDouble();
             boolean validTargetPower = range.contains(targetPower);
             if (validTargetPower) {
                 roadmService.setTargetPortPower(deviceId, portNumber, targetPower);
@@ -284,7 +284,7 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
         public void process(ObjectNode payload) {
             DeviceId deviceId = DeviceId.deviceId(string(payload, RoadmUtil.DEV_ID));
             PortNumber portNumber = PortNumber.portNumber(payload.get(ID).asLong());
-            Long targetPower = roadmService.syncTargetPortPower(deviceId, portNumber);
+            Double targetPower = roadmService.syncTargetPortPower(deviceId, portNumber);
             String power = RoadmUtil.objectToString(targetPower, RoadmUtil.UNKNOWN);
             ObjectNode rootNode = objectNode();
             rootNode.put(ID, payload.get(ID).asText())

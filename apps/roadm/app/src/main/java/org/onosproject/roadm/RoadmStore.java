@@ -52,7 +52,7 @@ public interface RoadmStore {
      * @param portNumber PortNumber of the port
      * @param targetPower target port power to store
      */
-    void setTargetPower(DeviceId deviceId, PortNumber portNumber, long targetPower);
+    void setTargetPower(DeviceId deviceId, PortNumber portNumber, double targetPower);
 
     /**
      * Returns the targetPower for a port on a device. The device needs to be added
@@ -63,7 +63,7 @@ public interface RoadmStore {
      * @param portNumber PortNumber of the port
      * @return target power if target power has already been set, null otherwise
      */
-    Long getTargetPower(DeviceId deviceId, PortNumber portNumber);
+    Double getTargetPower(DeviceId deviceId, PortNumber portNumber);
 
     /**
      * Remove the targetPower for a port on a device. The power value is removed,

@@ -213,12 +213,12 @@ public class PowerConfigWebResource extends AbstractWebResource {
                     componentName = component.toString();
                 }
                 ObjectNode powerConfigNode = mapper.createObjectNode()
-                        .put(CURRENT_POWER, powerConfig.currentPower(port, component).orElse(0L))
-                        .put(TARGET_POWER, powerConfig.getTargetPower(port, component).orElse(0L))
+                        .put(CURRENT_POWER, powerConfig.currentPower(port, component).orElse(0.0))
+                        .put(TARGET_POWER, powerConfig.getTargetPower(port, component).orElse(0.0))
                         .put(INPUT_POWER_RANGE, powerConfig.getInputPowerRange(port,
-                                component).orElse(Range.closed(0L, 0L)).toString())
+                                component).orElse(Range.closed(0.0, 0.0)).toString())
                         .put(TARGET_POWER_RANGE, powerConfig.getTargetPowerRange(port,
-                                component).orElse(Range.closed(0L, 0L)).toString());
+                                component).orElse(Range.closed(0.0, 0.0)).toString());
                 powerConfigComponents.set(componentName, powerConfigNode);
             }
             powerConfigPorts.set(port.toString(), powerConfigComponents);
@@ -268,7 +268,7 @@ public class PowerConfigWebResource extends AbstractWebResource {
                     if (!powerNode.isObject()) {
                         throw new IllegalArgumentException(JSON_INVALID);
                     }
-                    Long targetPower = powerNode.get(TARGET_POWER).asLong();
+                    Double targetPower = powerNode.get(TARGET_POWER).asDouble();
                     if (direction != null) {
                         powerConfig.setTargetPower(portNumber, direction, targetPower);
                     }

@@ -53,12 +53,12 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Set target port power or channel attenuation to an openflow device.
  */
 public class OpenFlowPowerConfig<T> extends AbstractHandlerBehaviour
-    implements PowerConfig<T> {
+        implements PowerConfig<T> {
 
     private static final Logger log = getLogger(OpenFlowPowerConfig.class);
 
     @Override
-    public Optional<Long> getTargetPower(PortNumber port, T component) {
+    public Optional<Double> getTargetPower(PortNumber port, T component) {
         // TODO: OpenFlow does not seem to have the concept of retrieving this
         // information as only the current power is returned in the port stats
         // reply. This can be different from the configured value. Perhaps, the
@@ -68,12 +68,12 @@ public class OpenFlowPowerConfig<T> extends AbstractHandlerBehaviour
     }
 
     @Override
-    public void setTargetPower(PortNumber port, T component, long power) {
+    public void setTargetPower(PortNumber port, T component, double power) {
         setPortTargetPower(port, power);
     }
 
     @Override
-    public Optional<Long> currentPower(PortNumber port, T component) {
+    public Optional<Double> currentPower(PortNumber port, T component) {
         // TODO: Ideally, this needs to read the port stats output for real-time
         // data or as a short-term workaround, it could get the last read value
         // from the port stats polling.
@@ -81,14 +81,14 @@ public class OpenFlowPowerConfig<T> extends AbstractHandlerBehaviour
     }
 
     @Override
-    public Optional<Range<Long>> getTargetPowerRange(PortNumber port, T component) {
+    public Optional<Range<Double>> getTargetPowerRange(PortNumber port, T component) {
         for (OFPortDesc pd : getPortDescs()) {
             if (pd.getPortNo().getPortNumber() == port.toLong()) {
                 for (OFPortDescProp prop : pd.getProperties()) {
                     if (prop instanceof OFPortDescPropOptical) {
                         OFPortDescPropOptical oprop = (OFPortDescPropOptical) prop;
-                        long txMin = oprop.getTxPwrMin();
-                        long txMax = oprop.getTxPwrMax();
+                        double txMin = oprop.getTxPwrMin();
+                        double txMax = oprop.getTxPwrMax();
                         return Optional.of(Range.closed(txMin, txMax));
                     }
                 }
@@ -104,7 +104,7 @@ public class OpenFlowPowerConfig<T> extends AbstractHandlerBehaviour
     }
 
     @Override
-    public Optional<Range<Long>> getInputPowerRange(PortNumber port, T component) {
+    public Optional<Range<Double>> getInputPowerRange(PortNumber port, T component) {
         log.warn("Unsupported as OpenFlow does not seem to have the concept of input (presumably rx) power range.");
         return Optional.empty();
     }
@@ -129,7 +129,7 @@ public class OpenFlowPowerConfig<T> extends AbstractHandlerBehaviour
     }
 
     private OFPortMod.Builder makePortMod(OpenFlowSwitch sw, PortNumber portNumber,
-                                boolean enable) {
+                                          boolean enable) {
         OFPortMod.Builder pmb = sw.factory().buildPortMod();
         OFPort port = OFPort.of((int) portNumber.toLong());
         pmb.setPortNo(port);
@@ -151,7 +151,7 @@ public class OpenFlowPowerConfig<T> extends AbstractHandlerBehaviour
         return pmb;
     }
 
-    private boolean setPortTargetPower(PortNumber port, long power) {
+    private boolean setPortTargetPower(PortNumber port, double power) {
         DeviceId deviceId = handler().data().deviceId();
         final Dpid dpid = dpid(deviceId.uri());
         OpenFlowSwitch sw = handler().get(OpenFlowController.class).getSwitch(dpid);
@@ -167,9 +167,9 @@ public class OpenFlowPowerConfig<T> extends AbstractHandlerBehaviour
             }
         }
         OFPortMod.Builder pmb = makePortMod(sw, port, enable);
-        long configure = OFOpticalPortFeaturesSerializerVer14.TX_PWR_VAL;
+        double configure = OFOpticalPortFeaturesSerializerVer14.TX_PWR_VAL;
         OFPortModPropOptical.Builder property = sw.factory().buildPortModPropOptical();
-        property.setTxPwr(power);
+        property.setTxPwr((long) power);
 
         List<OFPortModProp> properties = new ArrayList<>();
         properties.add(property.build());
