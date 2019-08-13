@@ -45,10 +45,10 @@ export class TableFilterPipe implements PipeTransform {
             if (tableDataFilter.queryBy === '$') {
                 const t1 = Object.values(it);
                 const t2 = Object.values(it).filter(value => {
-                               return (<string>value).toLowerCase().includes(queryStr);
+                               return JSON.stringify(value).toLowerCase().includes(queryStr);
                            });
                 return Object.values(it).filter(value => {
-                    return (<string>value).toLowerCase().includes(queryStr);
+                    return JSON.stringify(value).toLowerCase().includes(queryStr);
                 }).length > 0;
             } else {
                 return it[tableDataFilter.queryBy].toLowerCase().includes(queryStr);

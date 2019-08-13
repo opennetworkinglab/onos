@@ -25,10 +25,12 @@ import org.onlab.util.Frequency;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Direction;
 import org.onosproject.net.ModulationScheme;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.behaviour.PowerConfig;
 import org.onosproject.net.behaviour.protection.ProtectedTransportEndpointState;
 import org.onosproject.net.behaviour.protection.TransportEndpointState;
 import org.onosproject.net.device.DeviceService;
@@ -47,6 +49,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.onosproject.net.Device.Type;
@@ -84,6 +87,7 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
     private static final String GRID = "grid";
     private static final String POWER_RANGE = "powerRange";
     private static final String CURRENT_POWER = "currentPower";
+    private static final String CURRENT_INPUT_POWER = "currentInputPower";
     private static final String TARGET_POWER = "targetPower";
     private static final String MODULATION = "modulation";
     private static final String HAS_TARGET_POWER = "hasTargetPower";
@@ -91,7 +95,7 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
 
     private static final String[] COLUMN_IDS = {
             ID, REVERSE_PORT, TYPE, NAME, ENABLED, MIN_FREQ, MAX_FREQ, GRID, POWER_RANGE,
-            CURRENT_POWER, SERVICE_STATE, TARGET_POWER, MODULATION, HAS_TARGET_POWER
+            CURRENT_POWER, CURRENT_INPUT_POWER, SERVICE_STATE, TARGET_POWER, MODULATION, HAS_TARGET_POWER
     };
 
     private RoadmService roadmService;
@@ -159,6 +163,7 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
                     .cell(GRID, RoadmUtil.asGHz(channelSpacing))
                     .cell(POWER_RANGE, getPowerRange(deviceId, portNum))
                     .cell(CURRENT_POWER, getCurrentPower(deviceId, portNum))
+                    .cell(CURRENT_INPUT_POWER, getCurrentInputPower(deviceId, portNum))
                     .cell(SERVICE_STATE, getPortServiceState(deviceId, portNum))
                     .cell(MODULATION, getModulation(deviceId, portNum))
                     .cell(TARGET_POWER, getTargetPower(deviceId, portNum))
@@ -215,6 +220,17 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
         private String getCurrentPower(DeviceId deviceId, PortNumber portNumber) {
             Double currentPower = roadmService.getCurrentPortPower(deviceId, portNumber);
             return RoadmUtil.objectToString(currentPower, RoadmUtil.UNKNOWN);
+        }
+
+        // Returns the current input power as a string, Unknown if no value can be found.
+        private String getCurrentInputPower(DeviceId deviceId, PortNumber portNumber) {
+            PowerConfig powerConfig = deviceService.getDevice(deviceId).as(PowerConfig.class);
+            Optional<Double> currentInputPower = powerConfig.currentInputPower(portNumber, Direction.ALL);
+            Double inputPowerVal = null;
+            if (currentInputPower.isPresent()) {
+                inputPowerVal = currentInputPower.orElse(Double.MIN_VALUE);
+            }
+            return RoadmUtil.objectToString(inputPowerVal, RoadmUtil.UNKNOWN);
         }
 
         // Returns target power as a string, Unknown if target power is expected but

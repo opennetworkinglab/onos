@@ -62,20 +62,21 @@
         <div class="table-header">
             <table>
                 <tr>
-                    <td colId="id">Port ID</td>
-                    <td colId="reversePort">Reverse Port</td>
-                    <td colId="name">Name</td>
-                    <td colId="type">Type</td>
-                    <td colId="enabled">Enabled</td>
-                    <td colId="minFreq">Min Freq (THz)</td>
-                    <td colId="maxFreq">Max Freq (THz)</td>
-                    <td colId="grid">Grid (GHz)</td>
-                    <td colId="modulation">Modulation</td>
-                    <td colId="powerRange">Power Range (dBm)</td>
-                    <td colId="currentPower">Current Power (dBm)</td>
-                    <td colId="targetPower">Target Power (dBm)</td>
-                    <td colId="hasTargetPower">Has Target Power</td>
-                    <td colId="serviceState">Service State</td>
+                    <td colId="id">PORT ID</td>
+                    <td colId="reversePort">REVERSE PORT</td>
+                    <td colId="name">NAME</td>
+                    <td colId="type">TYPE</td>
+                    <td colId="enabled">ENABLED</td>
+                    <td colId="minFreq">MIN FREQ (THz)</td>
+                    <td colId="maxFreq">MAX FREQ (THz)</td>
+                    <td colId="grid">GRID (GHz)</td>
+                    <td colId="modulation">MODULATION</td>
+                    <td colId="powerRange">POWER RANGE (dBm)</td>
+                    <td colId="currentPower">CURRENT POWER (dBm)</td>
+                    <td colId="currentInputPower">CURRENT INPUT POWER (dBm)</td>
+                    <td colId="targetPower">TARGET POWER (dBm)</td>
+                    <td colId="hasTargetPower">HAS TARGET POWER</td>
+                    <td colId="serviceState">SERVICE STATE</td>
                 </tr>
             </table>
         </div>
@@ -105,10 +106,11 @@
                         </form>
                     </td>
                     <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.powerRange}}</td>
-                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.currentPower | number: '1.2-2'}}</td>
+                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{convertNumber(port.currentPower) | number: '1.2-2'}}</td>
+                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{convertNumber(port.currentInputPower) | number: '1.2-2'}}</td>
                     <td [ngClass]="(isDelta() ? 'delta' : '')">
                         <form [formGroup]="powerForm" (ngSubmit)="submitPower(devId, port.id)" *ngIf="port.type=='OCH'">
-                            <input type="number" step="any" style="width:50px" value="{{port.targetPower | number: '1.2-2'}}" formControlName="newPower" required>
+                            <input type="number" step="any" style="width:50px" value="{{convertNumber(port.targetPower) | number: '1.2-2'}}" formControlName="newPower" required>
                             <button type="submit">Submit</button>
                         </form>
                     </td>

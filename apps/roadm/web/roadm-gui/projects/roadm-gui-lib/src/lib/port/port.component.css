@@ -40,6 +40,11 @@
     text-transform: none;
 }
 
+#ov-roadm-port .table-header td {
+    text-transform: unset;
+    font-variant: none;
+}
+
 /* Editable Target Power field */
 #ov-roadm-port .editable span {
     width: 100%;

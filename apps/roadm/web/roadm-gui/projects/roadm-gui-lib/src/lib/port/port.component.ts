@@ -230,4 +230,8 @@ export class RoadmPortComponent extends TableBaseImpl implements OnInit, OnDestr
             this.log.debug('The power config operation is successful!');
         }
     }
+
+    convertNumber(str: string): number {
+        return Number(str);
+    }
 }
