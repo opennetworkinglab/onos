@@ -15,19 +15,14 @@
  */
 package org.onosproject.k8snetworking.web;
 
-import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.MacAddress;
 import org.onlab.util.ItemNotFoundException;
-import org.onosproject.k8snetworking.api.DefaultK8sPort;
 import org.onosproject.k8snetworking.api.K8sEndpointsAdminService;
 import org.onosproject.k8snetworking.api.K8sIngressAdminService;
 import org.onosproject.k8snetworking.api.K8sNamespaceAdminService;
 import org.onosproject.k8snetworking.api.K8sNetworkAdminService;
 import org.onosproject.k8snetworking.api.K8sNetworkPolicyAdminService;
 import org.onosproject.k8snetworking.api.K8sPodAdminService;
-import org.onosproject.k8snetworking.api.K8sPort;
 import org.onosproject.k8snetworking.api.K8sServiceAdminService;
 import org.onosproject.k8snetworking.util.K8sNetworkingUtil;
 import org.onosproject.k8snode.api.K8sApiConfig;
@@ -35,8 +30,6 @@ import org.onosproject.k8snode.api.K8sApiConfigService;
 import org.onosproject.k8snode.api.K8sNode;
 import org.onosproject.k8snode.api.K8sNodeAdminService;
 import org.onosproject.k8snode.api.K8sNodeState;
-import org.onosproject.net.DeviceId;
-import org.onosproject.net.PortNumber;
 import org.onosproject.rest.AbstractWebResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,10 +39,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.Map;
 
 import static java.lang.Thread.sleep;
-import static org.onosproject.k8snetworking.api.K8sPort.State.INACTIVE;
+import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.syncPortFromPod;
 import static org.onosproject.k8snode.api.K8sNode.Type.MASTER;
 import static org.onosproject.k8snode.api.K8sNode.Type.MINION;
 import static org.onosproject.k8snode.api.K8sNodeState.COMPLETE;
@@ -60,13 +52,6 @@ import static org.onosproject.k8snode.api.K8sNodeState.COMPLETE;
 @Path("management")
 public class K8sManagementWebResource extends AbstractWebResource {
     private final Logger log = LoggerFactory.getLogger(getClass());
-
-    private static final String PORT_ID = "portId";
-    private static final String DEVICE_ID = "deviceId";
-    private static final String PORT_NUMBER = "portNumber";
-    private static final String IP_ADDRESS = "ipAddress";
-    private static final String MAC_ADDRESS = "macAddress";
-    private static final String NETWORK_ID = "networkId";
 
     private static final long SLEEP_MIDDLE_MS = 3000; // we wait 3s
     private static final long TIMEOUT_MS = 10000; // we wait 10s
@@ -175,38 +160,6 @@ public class K8sManagementWebResource extends AbstractWebResource {
 
         syncRulesBase();
         return ok(mapper().createObjectNode()).build();
-    }
-
-    private void syncPortFromPod(Pod pod, K8sNetworkAdminService adminService) {
-        Map<String, String> annotations = pod.getMetadata().getAnnotations();
-        if (annotations != null && !annotations.isEmpty() &&
-                annotations.get(PORT_ID) != null) {
-            String portId = annotations.get(PORT_ID);
-
-            K8sPort oldPort = adminService.port(portId);
-
-            String networkId = annotations.get(NETWORK_ID);
-            DeviceId deviceId = DeviceId.deviceId(annotations.get(DEVICE_ID));
-            PortNumber portNumber = PortNumber.portNumber(annotations.get(PORT_NUMBER));
-            IpAddress ipAddress = IpAddress.valueOf(annotations.get(IP_ADDRESS));
-            MacAddress macAddress = MacAddress.valueOf(annotations.get(MAC_ADDRESS));
-
-            K8sPort newPort = DefaultK8sPort.builder()
-                    .portId(portId)
-                    .networkId(networkId)
-                    .deviceId(deviceId)
-                    .ipAddress(ipAddress)
-                    .macAddress(macAddress)
-                    .portNumber(portNumber)
-                    .state(INACTIVE)
-                    .build();
-
-            if (oldPort == null) {
-                adminService.createPort(newPort);
-            } else {
-                adminService.updatePort(newPort);
-            }
-        }
     }
 
     private void syncRulesBase() {
