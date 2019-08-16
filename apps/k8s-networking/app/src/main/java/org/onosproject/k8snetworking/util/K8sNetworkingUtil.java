@@ -30,17 +30,22 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.util.SubnetUtils;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
 import org.onosproject.cfg.ConfigProperty;
+import org.onosproject.k8snetworking.api.DefaultK8sPort;
 import org.onosproject.k8snetworking.api.K8sNamespaceService;
 import org.onosproject.k8snetworking.api.K8sNetwork;
+import org.onosproject.k8snetworking.api.K8sNetworkAdminService;
 import org.onosproject.k8snetworking.api.K8sNetworkService;
 import org.onosproject.k8snetworking.api.K8sPodService;
+import org.onosproject.k8snetworking.api.K8sPort;
 import org.onosproject.k8snetworking.api.K8sServiceService;
 import org.onosproject.k8snode.api.K8sApiConfig;
 import org.onosproject.k8snode.api.K8sApiConfigService;
 import org.onosproject.k8snode.api.K8sNode;
 import org.onosproject.k8snode.api.K8sNodeService;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.group.DefaultGroupKey;
 import org.onosproject.net.group.GroupKey;
@@ -58,6 +63,7 @@ import java.util.stream.Collectors;
 
 import static org.onosproject.k8snetworking.api.Constants.DEFAULT_NAMESPACE_HASH;
 import static org.onosproject.k8snetworking.api.Constants.PORT_NAME_PREFIX_CONTAINER;
+import static org.onosproject.k8snetworking.api.K8sPort.State.INACTIVE;
 
 /**
  * An utility that used in kubernetes networking app.
@@ -76,6 +82,13 @@ public final class K8sNetworkingUtil {
     private static final int MASK_MAX_IDX = 16;
     private static final int MASK_RADIX = 2;
     private static final int PORT_RADIX = 16;
+
+    private static final String PORT_ID = "portId";
+    private static final String DEVICE_ID = "deviceId";
+    private static final String PORT_NUMBER = "portNumber";
+    private static final String IP_ADDRESS = "ipAddress";
+    private static final String MAC_ADDRESS = "macAddress";
+    private static final String NETWORK_ID = "networkId";
 
     private K8sNetworkingUtil() {
     }
@@ -488,6 +501,44 @@ public final class K8sNetworkingUtil {
         }
 
         return 0;
+    }
+
+    /**
+     * Synchronizes port from kubernetes POD.
+     *
+     * @param pod               kubernetes POD
+     * @param adminService      admin service
+     */
+    public static void syncPortFromPod(Pod pod, K8sNetworkAdminService adminService) {
+        Map<String, String> annotations = pod.getMetadata().getAnnotations();
+        if (annotations != null && !annotations.isEmpty() &&
+                annotations.get(PORT_ID) != null) {
+            String portId = annotations.get(PORT_ID);
+
+            K8sPort oldPort = adminService.port(portId);
+
+            String networkId = annotations.get(NETWORK_ID);
+            DeviceId deviceId = DeviceId.deviceId(annotations.get(DEVICE_ID));
+            PortNumber portNumber = PortNumber.portNumber(annotations.get(PORT_NUMBER));
+            IpAddress ipAddress = IpAddress.valueOf(annotations.get(IP_ADDRESS));
+            MacAddress macAddress = MacAddress.valueOf(annotations.get(MAC_ADDRESS));
+
+            K8sPort newPort = DefaultK8sPort.builder()
+                    .portId(portId)
+                    .networkId(networkId)
+                    .deviceId(deviceId)
+                    .ipAddress(ipAddress)
+                    .macAddress(macAddress)
+                    .portNumber(portNumber)
+                    .state(INACTIVE)
+                    .build();
+
+            if (oldPort == null) {
+                adminService.createPort(newPort);
+            } else {
+                adminService.updatePort(newPort);
+            }
+        }
     }
 
     private static int binLower(String binStr, int bits) {
