@@ -34,7 +34,7 @@ import org.onosproject.net.pi.runtime.PiGroupKey;
 import org.onosproject.net.pi.runtime.PiTableAction;
 import org.onosproject.net.pi.service.PiTranslationException;
 
-import java.nio.ByteBuffer;
+import java.util.Objects;
 import java.util.Set;
 
 import static java.lang.String.format;
@@ -133,11 +133,12 @@ final class PiGroupTranslatorImpl {
             Hack: Statically derive member ID by combining groupId and position
             of the bucket in the list.
              */
-            final ByteBuffer bb = ByteBuffer.allocate(4)
-                    .putShort((short) (group.id().id() & 0xffff))
-                    .putShort(bucketIdx);
-            bb.rewind();
-            final int memberId = bb.getInt();
+            final int memberId = Objects.hash(group.id(), bucketIdx);
+            if (memberId == 0) {
+                throw new PiTranslationException(
+                        "GroupBucket produces PiActionProfileMember " +
+                                "with invalid ID 0");
+            }
             bucketIdx++;
 
             final PiTableAction tableAction = translateTreatment(

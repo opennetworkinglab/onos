@@ -81,7 +81,7 @@ public class PiGroupTranslatorImplTest {
             DEVICE_ID, SELECT, BUCKETS, GROUP_KEY, GROUP_ID.id(), APP_ID);
     private static final Group SELECT_GROUP = new DefaultGroup(GROUP_ID, SELECT_GROUP_DESC);
     private static final int DEFAULT_MEMBER_WEIGHT = 1;
-    private static final int BASE_MEM_ID = 65535;
+    private static final int BASE_MEM_ID = 991;
     private static final int PORT_BITWIDTH = 9;
     private Collection<PiActionProfileMember> expectedMemberInstances;
     private Collection<PiActionProfileGroup.WeightedMember> expectedWeightedMembers;
