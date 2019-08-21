@@ -200,7 +200,7 @@ final class WriteRequestImpl implements P4RuntimeWriteClient.WriteRequest {
                             // it means we have processed the response error
                             // details and a log message will be produced for
                             // each failed entity. No need to log the top level
-                            // SRE.
+                            // SRE. Otherwise, log a generic WRITE error.
                             client.handleRpcError(t, "WRITE");
                         }
                         future.complete(response);

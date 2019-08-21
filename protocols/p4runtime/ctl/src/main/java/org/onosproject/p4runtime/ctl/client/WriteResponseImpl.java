@@ -238,7 +238,7 @@ final class WriteResponseImpl implements P4RuntimeWriteClient.WriteResponse {
                 return setFailAllAndBuild(throwable);
             }
             final StatusRuntimeException sre = (StatusRuntimeException) throwable;
-            if (!sre.getStatus().equals(Status.UNKNOWN)) {
+            if (sre.getStatus().getCode() != Status.Code.UNKNOWN) {
                 // Error trailers expected only if status is UNKNOWN.
                 return setFailAllAndBuild(throwable);
             }
