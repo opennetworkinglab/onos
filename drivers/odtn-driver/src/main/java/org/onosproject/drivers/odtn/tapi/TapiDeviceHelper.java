@@ -38,6 +38,7 @@ public final class TapiDeviceHelper {
     private static final Logger log = getLogger(TapiDeviceHelper.class);
 
     public static final String SERVICE_INTERFACE_POINT = "service-interface-point";
+    public static final String TAPI_COMMON = "tapi-common";
     public static final String CONTEXT = "tapi-common:context";
     public static final String UUID = "uuid";
     public static final String MEDIA_CHANNEL_SERVICE_INTERFACE_POINT_SPEC =

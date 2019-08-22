@@ -16,6 +16,8 @@
   -->
 <drivers>
     <driver name="ols" manufacturer="tapi-swagger" hwVersion="0" swVersion="2.1">
+        <behaviour api ="org.onosproject.net.optical.OpticalDevice"
+                   impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
         <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
                    impl="org.onosproject.drivers.odtn.tapi.TapiDeviceDescriptionDiscovery"/>
         <behaviour api ="org.onosproject.net.behaviour.LambdaQuery"
