@@ -19,6 +19,7 @@ package org.onosproject.pipelines.fabric;
 import org.onosproject.net.pi.model.PiActionId;
 import org.onosproject.net.pi.model.PiActionParamId;
 import org.onosproject.net.pi.model.PiActionProfileId;
+import org.onosproject.net.pi.model.PiMeterId;
 import org.onosproject.net.pi.model.PiPacketMetadataId;
 import org.onosproject.net.pi.model.PiCounterId;
 import org.onosproject.net.pi.model.PiMatchFieldId;
@@ -343,4 +344,9 @@ public final class FabricConstants {
             PiPacketMetadataId.of("ingress_port");
     public static final PiPacketMetadataId EGRESS_PORT =
             PiPacketMetadataId.of("egress_port");
+    // Meter IDs
+    public static final PiMeterId FABRIC_INGRESS_BNG_INGRESS_DOWNSTREAM_M_BESTEFF =
+            PiMeterId.of("FabricIngress.bng_ingress.downstream.m_besteff");
+    public static final PiMeterId FABRIC_INGRESS_BNG_INGRESS_DOWNSTREAM_M_PRIO =
+            PiMeterId.of("FabricIngress.bng_ingress.downstream.m_prio");
 }
