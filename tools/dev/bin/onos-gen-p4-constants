@@ -26,6 +26,7 @@ imports = '''
 import org.onosproject.net.pi.model.PiActionId;
 import org.onosproject.net.pi.model.PiActionParamId;
 import org.onosproject.net.pi.model.PiActionProfileId;
+import org.onosproject.net.pi.model.PiMeterId;
 import org.onosproject.net.pi.model.PiPacketMetadataId;
 import org.onosproject.net.pi.model.PiCounterId;
 import org.onosproject.net.pi.model.PiMatchFieldId;
@@ -73,6 +74,9 @@ PI_ACT_PROF_ID_CST = 'PiActionProfileId.of("%s")'
 PI_PKT_META_ID = 'PiPacketMetadataId'
 PI_PKT_META_ID_CST = 'PiPacketMetadataId.of("%s")'
 
+PI_METER_ID = 'PiMeterId'
+PI_METER_ID_CST = 'PiMeterId.of("%s")'
+
 HF_VAR_PREFIX = 'HDR_'
 
 
@@ -86,6 +90,7 @@ class ConstantClassGenerator(object):
     action_params = set()
     action_profiles = set()
     packet_metadata = set()
+    meters = set()
 
     # https://stackoverflow.com/questions/1175208/elegant-python-function-to-convert-camelcase-to-snake-case
     def convert_camel_to_all_caps(self, name):
@@ -124,6 +129,8 @@ class ConstantClassGenerator(object):
         for cpm in p4info.controller_packet_metadata:
             for mta in cpm.metadata:
                 self.packet_metadata.add(mta.name)
+        for mtr in p4info.meters:
+            self.meters.add(mtr.preamble.name)
 
     def const_line(self, name, type, constructor):
         var_name = self.convert_camel_to_all_caps(name)
@@ -184,7 +191,13 @@ class ConstantClassGenerator(object):
         if len(self.packet_metadata) is not 0:
             lines.append('    // Packet Metadata IDs')
         for pmeta in self.packet_metadata:
-            lines.append(self.const_line(pmeta, PI_PKT_META_ID, PI_PKT_META_ID_CST))
+            if not pmeta.startswith("_"):
+                lines.append(self.const_line(pmeta, PI_PKT_META_ID, PI_PKT_META_ID_CST))
+
+        if len(self.meters) is not 0:
+            lines.append('    // Meter IDs')
+        for mtr in self.meters:
+            lines.append(self.const_line(mtr, PI_METER_ID, PI_METER_ID_CST))
         lines.append(CLASS_CLOSE)
         # end of class
 
