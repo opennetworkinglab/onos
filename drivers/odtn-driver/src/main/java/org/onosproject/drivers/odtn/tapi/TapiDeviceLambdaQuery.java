@@ -39,6 +39,8 @@ import java.util.Set;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.MC_POOL;
 import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.MEDIA_CHANNEL_SERVICE_INTERFACE_POINT_SPEC;
+import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.SERVICE_INTERFACE_POINT;
+import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.TAPI_COMMON;
 import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.UUID;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -84,7 +86,8 @@ public class TapiDeviceLambdaQuery extends AbstractHandlerBehaviour
                     MediaType.APPLICATION_JSON_TYPE);
             log.debug("Service interface point UUID: {}", uuid);
             JsonNode sipAttributes = new ObjectMapper().readTree(inputStream);
-            JsonNode mcPool = sipAttributes.get(MEDIA_CHANNEL_SERVICE_INTERFACE_POINT_SPEC).get(MC_POOL);
+            JsonNode mcPool = sipAttributes.get(TAPI_COMMON + ":" + SERVICE_INTERFACE_POINT).get(0)
+                    .get(MEDIA_CHANNEL_SERVICE_INTERFACE_POINT_SPEC).get(MC_POOL);
 
             //This creates a hashset of OChSignals representing the spectrum availability at the target port.
             return TapiDeviceHelper.getOchSignal(mcPool);

@@ -44,6 +44,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.CONTEXT;
 import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.LAYER_PROTOCOL_NAME;
 import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.MC_POOL;
 import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.MEDIA_CHANNEL_SERVICE_INTERFACE_POINT_SPEC;
@@ -133,7 +134,7 @@ public class TapiDeviceDescriptionDiscovery
          when connectivity services will be sent to OLS Controller.
          */
         DefaultAnnotations.Builder annotations = DefaultAnnotations.builder();
-        Iterator<JsonNode> iter = tapiContext.get(SERVICE_INTERFACE_POINT).iterator();
+        Iterator<JsonNode> iter = tapiContext.get(CONTEXT).get(SERVICE_INTERFACE_POINT).iterator();
         while (iter.hasNext()) {
             JsonNode sipAttributes = iter.next();
             if (checkValidEndpoint(sipAttributes)) {
