@@ -452,8 +452,8 @@ public final class Dhcp6HandlerUtil {
         byte[] clientSoureMacBytes = clientPacket.getSourceMACAddress();
         byte[] inPortStringBytes = inPortString.getBytes();
         byte[] vlanIdBytes = new byte[2];
-        vlanIdBytes[0] = (byte) (clientPacket.getVlanID() & 0xff);
-        vlanIdBytes[1] = (byte) ((clientPacket.getVlanID() >> 8) & 0xff);
+        vlanIdBytes[0] = (byte) ((clientPacket.getVlanID() >> 8) & 0xff);
+        vlanIdBytes[1] = (byte) (clientPacket.getVlanID() & 0xff);
         byte[] interfaceIdBytes = new byte[clientSoureMacBytes.length +
                 inPortStringBytes.length + vlanIdBytes.length];
         log.debug("Length: interfaceIdBytes  {} clientSoureMacBytes {} inPortStringBytes {} vlan {}",
@@ -468,8 +468,8 @@ public final class Dhcp6HandlerUtil {
                 vlanIdBytes.length);
         interfaceId.setData(interfaceIdBytes);
         interfaceId.setLength((short) interfaceIdBytes.length);
-        log.debug("interfaceId write srcMac {} portString {}",
-                HexString.toHexString(clientSoureMacBytes, ":"), inPortString);
+        log.debug("interfaceId write srcMac {} portString {}, vlanId {}",
+                HexString.toHexString(clientSoureMacBytes, ":"), inPortString, vlanIdBytes);
         return interfaceId;
     }
 
