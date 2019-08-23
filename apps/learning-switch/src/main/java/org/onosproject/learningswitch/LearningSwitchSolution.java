@@ -155,7 +155,7 @@ public class LearningSwitchSolution {
              * and do nothing with the packet. actLikeSwitch can only process IPV4 packets.
              */
             Short type = pc.inPacket().parsed().getEtherType();
-            if (type != Ethernet.TYPE_IPV4) {
+            if (type != Ethernet.TYPE_IPV4 && type != Ethernet.TYPE_ARP) {
                 return;
             }
 
