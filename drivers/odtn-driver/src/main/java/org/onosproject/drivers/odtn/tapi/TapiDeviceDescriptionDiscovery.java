@@ -54,6 +54,7 @@ import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.SERVICE_INTERFA
 import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.SUPPORTED_LAYER_PROTOCOL_QUALIFIER;
 import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.UUID;
 import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.getOchSignal;
+import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.removeInitalConnectivityServices;
 import static org.onosproject.net.optical.device.OchPortHelper.ochPortDescription;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -119,9 +120,13 @@ public class TapiDeviceDescriptionDiscovery
                 log.error("Can't discover port details at {}", SIP_REQUEST_DATA_API);
                 return ImmutableList.of();
             }
-            return parseTapiPorts(jsonNode);
+            List<PortDescription> ports = parseTapiPorts(jsonNode);
+            //Removing any initial connectivity services
+            removeInitalConnectivityServices(deviceId, handler());
+            return ports;
         } catch (IOException e) {
             log.error("Exception discoverPortDetails() {}", did(), e);
+            removeInitalConnectivityServices(deviceId, handler());
             return ImmutableList.of();
         }
     }

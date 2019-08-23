@@ -20,7 +20,6 @@ package org.onosproject.drivers.odtn.tapi;
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableList;
 import org.apache.http.HttpStatus;
 import org.onosproject.drivers.odtn.impl.DeviceConnection;
@@ -45,13 +44,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.CONN_REQ_POST_API;
+import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.CONN_REQ_REMOVE_DATA_API;
 import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.END_POINT;
 import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.LAYER_PROTOCOL_NAME;
 import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.LAYER_PROTOCOL_QUALIFIER;
@@ -64,6 +64,8 @@ import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.SERVICE_LAYER;
 import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.SERVICE_TYPE;
 import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.TAPI_CONNECTIVITY_CONNECTIVITY_SERVICE;
 import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.TAPI_PHOTONIC_MEDIA_PHOTONIC_LAYER_QUALIFIER_NMC;
+import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.getConnectionCache;
+import static org.onosproject.drivers.odtn.tapi.TapiDeviceHelper.getUuids;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -75,47 +77,13 @@ public class TapiFlowRuleProgrammable extends AbstractHandlerBehaviour
         implements FlowRuleProgrammable {
 
     private static final Logger log = getLogger(TapiFlowRuleProgrammable.class);
-    private static final String CONN_REQ_POST_API = "/restconf/data/tapi-common:context/" +
-            "tapi-connectivity:connectivity-context/";
-    private static final String CONN_REQ_REMOVE_DATA_API = "/restconf/data/tapi-common:context/" +
-            "tapi-connectivity:connectivity-context/connectivity-service=";
-    private static final String CONN_REQ_GET_API = "/restconf/data/tapi-common:context/" +
-            "tapi-connectivity:connectivity-context/";
 
 
     @Override
     public Collection<FlowEntry> getFlowEntries() {
         DeviceId deviceId = did();
         //TODO this is a blocking call on ADVA OLS, right now using cache.
-//        RestSBController controller = checkNotNull(handler().get(RestSBController.class));
-//        ObjectMapper om = new ObjectMapper();
-//        final ObjectReader reader = om.reader();
-//        InputStream response = controller.get(deviceId, CONN_REQ_GET_API, MediaType.APPLICATION_JSON_TYPE);
-//        JsonNode jsonNode = null;
-//        try {
-//            jsonNode = reader.readTree(response);
-//            if (jsonNode == null) {
-//                log.error("JsonNode is null for response {}", response);
-//                return ImmutableList.of();
-//            }
-//            Set<String> uuids = parseTapiGetConnectivityRequest(jsonNode);
-//            DeviceConnectionCache cache = getConnectionCache();
-//            if (cache.get(deviceId) == null) {
-//                return ImmutableList.of();
-//            }
-//            List<FlowEntry> entries = new ArrayList<>();
-//            uuids.forEach(uuid -> {
-//                FlowRule rule = cache.get(deviceId, uuid);
-//                if (rule != null) {
-//                    entries.add(new DefaultFlowEntry(rule, FlowEntry.FlowEntryState.ADDED, 0, 0, 0));
-//                } else {
-//                    log.info("Non existing rule for uuid {}", uuid);
-//                }
-//            });
-//            return entries;
-//        } catch (IOException e) {
-//            return ImmutableList.of();
-//        }
+        //return getFlowsFromConnectivityServices(deviceId);
         List<FlowEntry> entries = new ArrayList<>();
         Set<FlowRule> rules = getConnectionCache().get(deviceId);
         if (rules != null) {
@@ -135,21 +103,23 @@ public class TapiFlowRuleProgrammable extends AbstractHandlerBehaviour
             String uuid = createUuid();
             ByteArrayOutputStream applyConnectivityRequest = createConnectivityRequest(uuid, flowRule);
             if (applyConnectivityRequest.size() != 0) {
-                CompletableFuture<Integer>  flowInstallation =
+                log.debug("Connectivity request {}", applyConnectivityRequest.toString());
+                CompletableFuture<Integer> flowInstallation =
                         CompletableFuture.supplyAsync(() -> controller.post(deviceId, CONN_REQ_POST_API,
-                        new ByteArrayInputStream(applyConnectivityRequest.toByteArray()),
-                        MediaType.APPLICATION_JSON_TYPE));
+                                new ByteArrayInputStream(applyConnectivityRequest.toByteArray()),
+                                MediaType.APPLICATION_JSON_TYPE));
+                log.debug("Added {} to {}", flowRule, deviceId);
+                getConnectionCache().add(deviceId, uuid, flowRule);
+                added.add(flowRule);
                 flowInstallation.thenApply(result -> {
-                    if (result == HttpStatus.SC_CREATED) {
-                        getConnectionCache().add(deviceId, uuid, flowRule);
-                        added.add(flowRule);
+                    if (result == HttpStatus.SC_CREATED || result == HttpStatus.SC_OK) {
+                        log.info("Added {} to deviceId {}", flowRule, deviceId);
                     } else {
-                       log.error("Can't add flow {}, result {}", flowRule, result);
+                        log.error("Can't add flow {}, result {}", flowRule, result);
+                        getConnectionCache().remove(deviceId, flowRule);
                     }
                     return result;
                 });
-                // TODO retrieve the UUID from the location and store with that identifier
-                // at the moment is implied that the sent one is the same used by the TAPI server.
             }
         });
         //TODO workaround for blocking call on ADVA OLS should return added
@@ -168,11 +138,11 @@ public class TapiFlowRuleProgrammable extends AbstractHandlerBehaviour
                         flowRule.id(), deviceId);
                 return;
             }
-            CompletableFuture<Integer>  flowInstallation =
+            CompletableFuture<Integer> flowRemoval =
                     CompletableFuture.supplyAsync(() -> controller.delete(deviceId,
                             CONN_REQ_REMOVE_DATA_API + conn.getId(),
                             null, MediaType.APPLICATION_JSON_TYPE));
-            flowInstallation.thenApply(result -> {
+            flowRemoval.thenApply(result -> {
                 if (result == HttpStatus.SC_NO_CONTENT) {
                     getConnectionCache().remove(deviceId, flowRule);
                     removed.add(flowRule);
@@ -195,31 +165,28 @@ public class TapiFlowRuleProgrammable extends AbstractHandlerBehaviour
         return handler().data().deviceId();
     }
 
-    private DeviceConnectionCache getConnectionCache() {
-        return DeviceConnectionCache.init();
+    //Currently uused because get is a blocking call on ADVA
+    private Collection<FlowEntry> getFlowsFromConnectivityServices(DeviceId deviceId) {
+        Set<String> uuids = getUuids(deviceId, handler());
+        if (uuids.isEmpty()) {
+            return ImmutableList.of();
+        }
+        DeviceConnectionCache cache = getConnectionCache();
+        if (cache.get(deviceId) == null) {
+            return ImmutableList.of();
+        }
+        List<FlowEntry> entries = new ArrayList<>();
+        uuids.forEach(uuid -> {
+            FlowRule rule = cache.get(deviceId, uuid);
+            if (rule != null) {
+                entries.add(new DefaultFlowEntry(rule, FlowEntry.FlowEntryState.ADDED, 0, 0, 0));
+            } else {
+                log.info("Non existing rule for uuid {}", uuid);
+            }
+        });
+        return entries;
     }
 
-    protected Set<String> parseTapiGetConnectivityRequest(JsonNode tapiConnectivityReply) {
-        /*
-         {
-            "tapi-connectivity:connectivity-service":[
-                {
-                    "uuid":"ffb006d4-349e-4d2f-817e-0906c88458d0",
-                    <other fields>
-                }
-            ]
-          }
-         */
-        Set<String> uuids = new HashSet<>();
-        if (tapiConnectivityReply.has(TAPI_CONNECTIVITY_CONNECTIVITY_SERVICE)) {
-            tapiConnectivityReply.get(TAPI_CONNECTIVITY_CONNECTIVITY_SERVICE).elements()
-                    .forEachRemaining(node -> uuids.add(node.get(TapiDeviceHelper.UUID).asText()));
-        } else {
-            log.warn("Can't retrieve connectivity UUID from {}", tapiConnectivityReply);
-        }
-        //This is only one uuid or empty in case of failures
-        return uuids;
-    }
 
     ByteArrayOutputStream createConnectivityRequest(String uuid, FlowRule rule) {
         /*
@@ -272,8 +239,9 @@ public class TapiFlowRuleProgrammable extends AbstractHandlerBehaviour
             generator.writeStringField(SERVICE_LAYER, PHOTONIC_MEDIA);
             generator.writeStringField(SERVICE_TYPE, POINT_TO_POINT_CONNECTIVITY);
             generator.writeArrayFieldStart(END_POINT);
-            addEndPoint(generator, inputPortUuid);
-            addEndPoint(generator, outputPortUuid);
+            //ADVA OLS requires these to be 1,2 for every connection
+            addEndPoint(generator, inputPortUuid, 1);
+            addEndPoint(generator, outputPortUuid, 2);
             generator.writeEndArray();
             generator.writeEndObject();
             generator.writeEndArray();
@@ -290,6 +258,7 @@ public class TapiFlowRuleProgrammable extends AbstractHandlerBehaviour
         JsonFactory factory = new JsonFactory();
         return factory.createGenerator(stream, JsonEncoding.UTF8);
     }
+
     /*
     {
           "local-id":"1",
@@ -300,9 +269,10 @@ public class TapiFlowRuleProgrammable extends AbstractHandlerBehaviour
          }
      }
      */
-    private void addEndPoint(JsonGenerator generator, String sipUuid) throws IOException {
+    private void addEndPoint(JsonGenerator generator, String sipUuid, int localId) throws IOException {
         generator.writeStartObject();
-        generator.writeStringField(LOCAL_ID, sipUuid);
+        //ADVA OLS requires Local-id to be integer incremental numbers
+        generator.writeStringField(LOCAL_ID, Integer.toString(localId));
         generator.writeStringField(LAYER_PROTOCOL_NAME, PHOTONIC_MEDIA);
         generator.writeStringField(LAYER_PROTOCOL_QUALIFIER,
                 TAPI_PHOTONIC_MEDIA_PHOTONIC_LAYER_QUALIFIER_NMC);

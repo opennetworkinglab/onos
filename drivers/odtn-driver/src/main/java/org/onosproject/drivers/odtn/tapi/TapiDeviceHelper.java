@@ -18,16 +18,30 @@
 package org.onosproject.drivers.odtn.tapi;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.google.common.collect.ImmutableSet;
+import org.apache.http.HttpStatus;
+import org.onosproject.drivers.odtn.impl.DeviceConnectionCache;
 import org.onosproject.net.ChannelSpacing;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.GridType;
 import org.onosproject.net.OchSignal;
+import org.onosproject.net.driver.DriverHandler;
+import org.onosproject.protocol.rest.RestSBController;
 import org.slf4j.Logger;
 
+import javax.ws.rs.core.MediaType;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.IntStream;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -55,6 +69,8 @@ public final class TapiDeviceHelper {
     public static final String LOWER_FREQUENCY = "lower-frequency";
     public static final long BASE_FREQUENCY = 193100000;   //Working in Mhz
     public static final String TAPI_CONNECTIVITY_CONNECTIVITY_SERVICE = "tapi-connectivity:connectivity-service";
+    public static final String TAPI_CONNECTIVITY_CONNECTIVITY_CONTEXT = "tapi-connectivity:connectivity-context";
+    public static final String CONNECTIVITY_SERVICE = "connectivity-service";
     public static final String END_POINT = "end-point";
     public static final String SERVICE_LAYER = "service-layer";
     public static final String SERVICE_TYPE = "service-type";
@@ -67,12 +83,20 @@ public final class TapiDeviceHelper {
     public static final String AVAILABLE_SPECTRUM = "available-spectrum";
     protected static final String SUPPORTABLE_SPECTRUM = "supportable-spectrum";
 
-    private TapiDeviceHelper(){}
+    protected static final String CONN_REQ_POST_API = "/restconf/data/tapi-common:context/" +
+            "tapi-connectivity:connectivity-context/";
+    protected static final String CONN_REQ_REMOVE_DATA_API = "/restconf/data/tapi-common:context/" +
+            "tapi-connectivity:connectivity-context/connectivity-service=";
+    protected static final String CONN_REQ_GET_API = "/restconf/data/tapi-common:context/" +
+            "tapi-connectivity:connectivity-context/";
+
+    private TapiDeviceHelper() {
+    }
 
     /**
      * Returns the slot granularity corresponding to a channelSpacing.
      *
-     * @param chSpacing      OchSingal channel spacing {@link ChannelSpacing}
+     * @param chSpacing OchSingal channel spacing {@link ChannelSpacing}
      * @return OchSignal slot width granularity
      */
     public static int getSlotGranularity(ChannelSpacing chSpacing) {
@@ -113,10 +137,10 @@ public final class TapiDeviceHelper {
     }
 
     /**
-     *  To Mbps conversion from Hz.
+     * To Mbps conversion from Hz.
      *
-     *  @param speed the speed in Hz
-     *  @return the speed in Mbps
+     * @param speed the speed in Hz
+     * @return the speed in Mbps
      */
     public static long toMbpsFromHz(long speed) {
         return speed / 1000000;
@@ -148,22 +172,41 @@ public final class TapiDeviceHelper {
             JsonNode availableSpec = iterAvailable.next();
             availableUpperFrec = availableSpec.get(UPPER_FREQUENCY).asLong();
             availableLowerFrec = availableSpec.get(LOWER_FREQUENCY).asLong();
-            log.info("availableUpperFrec {}, availableLowerFrec {}", availableUpperFrec,
+            log.debug("availableUpperFrec {}, availableLowerFrec {}", availableUpperFrec,
                     availableLowerFrec);
             availableAdjustmentGranularity = availableSpec.get(FREQUENCY_CONSTRAINT)
                     .get(ADJUSTMENT_GRANULARITY).textValue();
             availableGridType = availableSpec.get(FREQUENCY_CONSTRAINT).get(GRID_TYPE).textValue();
-
+            log.debug("adjustment {}, availableLowerFrec {}", availableUpperFrec,
+                    availableLowerFrec);
             int slotGranularity;
             ChannelSpacing chSpacing = getChannelSpacing(availableAdjustmentGranularity);
-            double spacingFrequency = chSpacing.frequency().asGHz();
+            double spacingFrequency = chSpacing.frequency().asMHz();
             int lambdaCount = (int) ((availableUpperFrec - availableLowerFrec) / spacingFrequency);
             GridType gridType = GridType.valueOf(availableGridType);
             if (gridType == GridType.DWDM) {
                 slotGranularity = getSlotGranularity(chSpacing);
                 int finalSlotGranularity = slotGranularity;
-                IntStream.range(0, lambdaCount).forEach(x -> lambdas.add(new OchSignal(GridType.DWDM, chSpacing,
-                        x - (lambdaCount / 2), finalSlotGranularity)));
+                long finalAvailableUpperFrec = availableUpperFrec;
+                long finalAvailableLowerFrec = availableLowerFrec;
+                IntStream.range(0, lambdaCount).forEach(x -> {
+                    int spacingMultiplier = 0;
+                    if (finalAvailableUpperFrec > BASE_FREQUENCY) {
+                        spacingMultiplier = (int) (((finalAvailableUpperFrec -
+                                (chSpacing.frequency().asMHz() * lambdaCount * x) - slotGranularity / 2)
+                                - BASE_FREQUENCY) / (chSpacing.frequency().asMHz()));
+                    } else {
+                        spacingMultiplier = (int) ((BASE_FREQUENCY - (finalAvailableLowerFrec +
+                                (chSpacing.frequency().asMHz() * lambdaCount * x) + slotGranularity / 2))
+                                / (chSpacing.frequency().asMHz()));
+                    }
+                    OchSignal ochSignal = new OchSignal(GridType.DWDM, chSpacing,
+                            spacingMultiplier, finalSlotGranularity);
+                    log.debug("Spacing Freq {}, LambdaCount {}, FinalSlotGran {}, Spacing mult {}, CentralFreq {}",
+                            spacingFrequency, lambdaCount, finalSlotGranularity, spacingMultiplier,
+                            ochSignal.centralFrequency());
+                    lambdas.add(ochSignal);
+                });
             } else if (gridType == GridType.CWDM) {
                 log.warn("GridType CWDM. Not implemented");
             } else if (gridType == GridType.FLEX) {
@@ -173,5 +216,74 @@ public final class TapiDeviceHelper {
             }
         }
         return lambdas;
+    }
+
+    static DeviceConnectionCache getConnectionCache() {
+        return DeviceConnectionCache.init();
+    }
+
+    protected static Set<String> getUuids(DeviceId deviceId, DriverHandler handler) {
+        RestSBController controller = checkNotNull(handler.get(RestSBController.class));
+        ObjectMapper om = new ObjectMapper();
+        final ObjectReader reader = om.reader();
+        InputStream response = controller.get(deviceId, CONN_REQ_GET_API, MediaType.APPLICATION_JSON_TYPE);
+        JsonNode jsonNode;
+        try {
+            jsonNode = reader.readTree(response);
+            if (jsonNode == null) {
+                log.error("JsonNode is null for response {}", response);
+                return ImmutableSet.of();
+            }
+            return parseTapiGetConnectivityRequest(jsonNode);
+        } catch (IOException e) {
+            log.error("Exception while reading response {}", response, e);
+            return ImmutableSet.of();
+        }
+    }
+
+    protected static Set<String> parseTapiGetConnectivityRequest(JsonNode tapiConnectivityReply) {
+        /*
+         {
+            "tapi-connectivity:connectivity-context": {
+                "connectivity-service": [
+                    {
+                        "uuid": "f4088e82-e8bd-4d00-a96c-40d9fcfa1d4d",
+                        ......
+                 ]
+             }
+          }
+         */
+        Set<String> uuids = new HashSet<>();
+        if (tapiConnectivityReply.has(TAPI_CONNECTIVITY_CONNECTIVITY_CONTEXT)
+                && tapiConnectivityReply.get(TAPI_CONNECTIVITY_CONNECTIVITY_CONTEXT).has(CONNECTIVITY_SERVICE)) {
+            tapiConnectivityReply.get(TAPI_CONNECTIVITY_CONNECTIVITY_CONTEXT).get(CONNECTIVITY_SERVICE).elements()
+                    .forEachRemaining(node -> uuids.add(node.get(TapiDeviceHelper.UUID).asText()));
+        } else {
+            log.warn("Can't retrieve connectivity UUID from {}", tapiConnectivityReply);
+        }
+        //This is only one uuid or empty in case of failures
+        return uuids;
+    }
+
+    protected static void removeInitalConnectivityServices(DeviceId deviceId, DriverHandler handler) {
+        RestSBController controller = checkNotNull(handler.get(RestSBController.class));
+        //If no connections are there removing all previous (if any) connections during first installation
+        if (getConnectionCache().size(deviceId) == 0) {
+            Set<String> uuids = getUuids(deviceId, handler);
+            uuids.forEach(uuid -> {
+                CompletableFuture<Integer> flowRemoval =
+                        CompletableFuture.supplyAsync(() -> controller.delete(deviceId,
+                                CONN_REQ_REMOVE_DATA_API + uuid,
+                                null, MediaType.APPLICATION_JSON_TYPE));
+                flowRemoval.thenApply(result -> {
+                    if (result == HttpStatus.SC_NO_CONTENT || result == HttpStatus.SC_OK) {
+                        log.info("Removed connectivity service {} from {}, result {}", uuid, deviceId, result);
+                    } else {
+                        log.error("Can't remove connectivity service {}, result {}", uuid, result);
+                    }
+                    return result;
+                });
+            });
+        }
     }
 }

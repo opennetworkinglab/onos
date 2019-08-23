@@ -306,7 +306,10 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         // Sort available lambdas
         List<OchSignal> lambdaList = new ArrayList<>(lambdas);
         lambdaList.sort(new DefaultOchSignalComparator());
-
+        //Means there is only exactly one set of lambdas available
+        if (lambdaList.size() == count) {
+            return lambdaList;
+        }
         // Look ahead by count and ensure spacing multiplier is as expected (i.e., no gaps)
         for (int i = 0; i < lambdaList.size() - count; i++) {
             if (lambdaList.get(i).spacingMultiplier() + 2 * count ==

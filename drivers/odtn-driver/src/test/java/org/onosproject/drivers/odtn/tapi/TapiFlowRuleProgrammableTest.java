@@ -113,16 +113,16 @@ public class TapiFlowRuleProgrammableTest {
 
     private static final String CONNECTIVITY_REQUEST = "{\"tapi-connectivity:connectivity-service\":" +
             "[{\"uuid\":\"" + CONNECTION_UUID + "\",\"service-layer\":\"PHOTONIC_MEDIA\",\"service-type\"" +
-            ":\"POINT_TO_POINT_CONNECTIVITY\",\"end-point\":[{\"local-id\":\"" + END_POINT_1_UUID + "\"," +
+            ":\"POINT_TO_POINT_CONNECTIVITY\",\"end-point\":[{\"local-id\":\"" + 1 + "\"," +
             "\"layer-protocol-name\":" + "\"PHOTONIC_MEDIA\",\"layer-protocol-qualifier\":" +
             "\"tapi-photonic-media:PHOTONIC_LAYER_QUALIFIER_NMC\"," + "\"service-interface-point\":" +
             "{\"service-interface-point-uuid\":\"" + END_POINT_1_UUID + "\"}}," +
-            "{\"local-id\":\"" + END_POINT_2_UUID + "\",\"layer-protocol-name\":\"PHOTONIC_MEDIA\"," +
+            "{\"local-id\":\"" + 2 + "\",\"layer-protocol-name\":\"PHOTONIC_MEDIA\"," +
             "\"layer-protocol-qualifier\":" + "\"tapi-photonic-media:PHOTONIC_LAYER_QUALIFIER_NMC\"," +
             "\"service-interface-point\":{" + "\"service-interface-point-uuid\":\"" + END_POINT_2_UUID + "\"}}]}]}";
 
-    private static final String GET_CONNECTIVITY_REQUEST_REPLY = "{\"tapi-connectivity:connectivity-service\" : " +
-            "[{\"uuid\" : \"" + CONNECTION_UUID + "\"}]}";
+    private static final String GET_CONNECTIVITY_REQUEST_REPLY = "{\"tapi-connectivity:connectivity-context\": " +
+            "{\"connectivity-service\" : [{\"uuid\" : \"" + CONNECTION_UUID + "\"}]}}}";
 
     private static final Set<String> CONNECTION_UUIDS = ImmutableSet.of(CONNECTION_UUID);
 
@@ -144,10 +144,9 @@ public class TapiFlowRuleProgrammableTest {
 
     @Test
     public void parseConnReply() throws IOException {
-        TapiFlowRuleProgrammable tapiFrp = new TapiFlowRuleProgrammable();
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonReply = mapper.readTree(GET_CONNECTIVITY_REQUEST_REPLY);
-        Set<String> output = tapiFrp.parseTapiGetConnectivityRequest(jsonReply);
+        Set<String> output = TapiDeviceHelper.parseTapiGetConnectivityRequest(jsonReply);
         assertEquals("Wrong Tapi UUIDS", CONNECTION_UUIDS, output);
     }
 
