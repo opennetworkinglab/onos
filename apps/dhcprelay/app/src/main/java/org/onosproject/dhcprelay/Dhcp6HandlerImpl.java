@@ -856,11 +856,23 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
      * @param embeddedDhcp6 the dhcp6 payload within relay
      * @param srcMac client gw/host macAddress
      * @param clientInterface client interface
+     * @param vlanIdInUse vlanid encoded in the interface id Option
      */
     private void addHostOrRoute(boolean directConnFlag, ConnectPoint location, DHCP6 dhcp6Relay,
-                                DHCP6 embeddedDhcp6, MacAddress srcMac, Interface clientInterface) {
+                                DHCP6 embeddedDhcp6, MacAddress srcMac, Interface clientInterface,
+                                VlanId vlanIdInUse) {
         log.debug("addHostOrRoute entered.");
-        VlanId vlanId = clientInterface.vlan();
+        VlanId vlanId;
+        if (clientInterface.vlanTagged().isEmpty()) {
+            vlanId = clientInterface.vlan();
+        } else {
+            // might be multiple vlan in same interface
+            vlanId = vlanIdInUse;
+        }
+        if (vlanId == null) {
+            vlanId = VlanId.NONE;
+        }
+
         Boolean isMsgReply = Dhcp6HandlerUtil.isDhcp6Reply(dhcp6Relay);
         MacAddress leafClientMac;
         Byte leafMsgType;
@@ -1312,7 +1324,7 @@ public class Dhcp6HandlerImpl implements DhcpHandler, HostProvider {
         if (hostOrRouteAllowed) {
             // add host or route
             addHostOrRoute(directConnFlag, clientConnectionPoint, dhcp6Relay, embeddedDhcp6,
-                    clientMac, clientInterface);
+                    clientMac, clientInterface, vlanIdInUse);
         }
 
         udpPacket.setPayload(embeddedDhcp6);
