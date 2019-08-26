@@ -159,7 +159,7 @@ public class K8sIngressWatcher {
 
         @Override
         public void onClose(KubernetesClientException e) {
-            log.info("Ingress watcher OnClose: {}" + e);
+            log.warn("Ingress watcher OnClose", e);
         }
 
         private void processAddition(Ingress ingress) {

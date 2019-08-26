@@ -160,7 +160,7 @@ public class K8sServiceWatcher {
 
         @Override
         public void onClose(KubernetesClientException e) {
-            log.info("Service watcher OnClose: {}" + e);
+            log.warn("Service watcher OnClose", e);
         }
 
         private void processAddition(Service service) {
