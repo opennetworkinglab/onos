@@ -76,6 +76,13 @@ public interface K8sNode {
     DeviceId extBridge();
 
     /**
+     * Returns the device ID of the local bridge at the node.
+     *
+     * @return device id
+     */
+    DeviceId localBridge();
+
+    /**
      * Returns the external interface name.
      *
      * @return external interface name
@@ -97,6 +104,14 @@ public interface K8sNode {
      * @return updated kubernetes node
      */
     K8sNode updateExtBridge(DeviceId deviceId);
+
+    /**
+     * Returns new kubernetes node instance with given local bridge.
+     *
+     * @param deviceId local bridge device ID
+     * @return updated kubernetes node
+     */
+    K8sNode updateLocalBridge(DeviceId deviceId);
 
     /**
      * Returns the management network IP address of the node.
@@ -176,6 +191,20 @@ public interface K8sNode {
      * @return patch port number
      */
     PortNumber intgToExtPatchPortNum();
+
+    /**
+     * Returns the integration to local patch port number.
+     *
+     * @return patch port number
+     */
+    PortNumber intgToLocalPatchPortNum();
+
+    /**
+     * Returns the local to integration patch port number.
+     *
+     * @return patch port number
+     */
+    PortNumber localToIntgPatchPortNumber();
 
     /**
      * Returns the external to integration patch port number.
@@ -265,10 +294,18 @@ public interface K8sNode {
         /**
          * Returns kubernetes node builder with supplied external bridge name.
          *
-         * @param deviceId external bridge deviceID
+         * @param deviceId external bridge device ID
          * @return kubernetes node builder
          */
         Builder extBridge(DeviceId deviceId);
+
+        /**
+         * Returns kubernetes node builder with supplied local bridge name.
+         *
+         * @param deviceId local bridge device ID
+         * @return kubernetes node builder
+         */
+        Builder localBridge(DeviceId deviceId);
 
         /**
          * Returns kubernetes node builder with supplied external interface.

@@ -25,8 +25,11 @@ public final class Constants {
 
     public static final String INTEGRATION_BRIDGE = "kbr-int";
     public static final String EXTERNAL_BRIDGE = "kbr-ex";
+    public static final String LOCAL_BRIDGE = "kbr-local";
     public static final String INTEGRATION_TO_EXTERNAL_BRIDGE = "kbr-int-ex";
     public static final String PHYSICAL_EXTERNAL_BRIDGE = "phy-kbr-ex";
+    public static final String INTEGRATION_TO_LOCAL_BRIDGE = "kbr-int-local";
+    public static final String LOCAL_TO_INTEGRATION_BRIDGE = "kbr-local-int";
     public static final String VXLAN_TUNNEL = "vxlan";
     public static final String GRE_TUNNEL = "gre";
     public static final String GENEVE_TUNNEL = "geneve";
