@@ -32,6 +32,9 @@ import static org.onosproject.k8snode.api.Constants.GENEVE_TUNNEL;
 import static org.onosproject.k8snode.api.Constants.GRE_TUNNEL;
 import static org.onosproject.k8snode.api.Constants.INTEGRATION_BRIDGE;
 import static org.onosproject.k8snode.api.Constants.INTEGRATION_TO_EXTERNAL_BRIDGE;
+import static org.onosproject.k8snode.api.Constants.INTEGRATION_TO_LOCAL_BRIDGE;
+import static org.onosproject.k8snode.api.Constants.LOCAL_BRIDGE;
+import static org.onosproject.k8snode.api.Constants.LOCAL_TO_INTEGRATION_BRIDGE;
 import static org.onosproject.k8snode.api.Constants.PHYSICAL_EXTERNAL_BRIDGE;
 import static org.onosproject.k8snode.api.Constants.VXLAN_TUNNEL;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
@@ -74,6 +77,7 @@ public class K8sNodeCheckCommand extends AbstractShellCommand {
                     intgBridge.annotations());
             printPortState(deviceService, node.intgBridge(), INTEGRATION_BRIDGE);
             printPortState(deviceService, node.intgBridge(), INTEGRATION_TO_EXTERNAL_BRIDGE);
+            printPortState(deviceService, node.intgBridge(), INTEGRATION_TO_LOCAL_BRIDGE);
             if (node.dataIp() != null) {
                 printPortState(deviceService, node.intgBridge(), VXLAN_TUNNEL);
                 printPortState(deviceService, node.intgBridge(), GRE_TUNNEL);
@@ -102,6 +106,19 @@ public class K8sNodeCheckCommand extends AbstractShellCommand {
                     MSG_ERROR,
                     EXTERNAL_BRIDGE,
                     node.extBridge());
+        }
+
+        print("[Local Bridge Status]");
+        Device localBridge = deviceService.getDevice(node.localBridge());
+        if (localBridge != null) {
+            print("%s %s=%s available=%s %s",
+                    deviceService.isAvailable(localBridge.id()) ? MSG_OK : MSG_ERROR,
+                    LOCAL_BRIDGE,
+                    localBridge.id(),
+                    deviceService.isAvailable(localBridge.id()),
+                    localBridge.annotations());
+            printPortState(deviceService, node.localBridge(), LOCAL_BRIDGE);
+            printPortState(deviceService, node.localBridge(), LOCAL_TO_INTEGRATION_BRIDGE);
         }
     }
 
