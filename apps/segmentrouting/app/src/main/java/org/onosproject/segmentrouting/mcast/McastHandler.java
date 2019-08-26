@@ -1157,8 +1157,14 @@ public class McastHandler {
             // First time someone request this mcast group via this device
             portBuilder.add(port);
             // New nextObj
-            newNextObj = mcastUtils.nextObjBuilder(mcastIp, assignedVlan,
-                                        portBuilder.build(), null).add();
+            if (!srManager.deviceConfiguration().isConfigured(deviceId)) {
+                log.debug("Passing 0 as nextId for unconfigured device {}", deviceId);
+                newNextObj = mcastUtils.nextObjBuilder(mcastIp, assignedVlan,
+                                            portBuilder.build(), 0).add();
+            } else {
+                newNextObj = mcastUtils.nextObjBuilder(mcastIp, assignedVlan,
+                                            portBuilder.build(), null).add();
+            }
             // Store the new port
             mcastNextObjStore.put(mcastStoreKey, newNextObj);
         } else {
@@ -1194,8 +1200,12 @@ public class McastHandler {
                 });
         ForwardingObjective fwdObj = mcastUtils.fwdObjBuilder(mcastIp, assignedVlan,
                                                               newNextObj.id()).add(context);
-        srManager.flowObjectiveService.next(deviceId, newNextObj);
-        srManager.flowObjectiveService.forward(deviceId, fwdObj);
+        if (!srManager.deviceConfiguration().isConfigured(deviceId)) {
+            log.debug("skip next and forward flowobjective addition for device: {}", deviceId);
+        } else {
+            srManager.flowObjectiveService.next(deviceId, newNextObj);
+            srManager.flowObjectiveService.forward(deviceId, fwdObj);
+        }
     }
 
     /**
@@ -1260,8 +1270,12 @@ public class McastHandler {
         // Let's modify the next objective removing the bucket
         newNextObj = mcastUtils.nextObjBuilder(mcastIp, assignedVlan,
                                     ImmutableSet.of(port), nextObj.id()).removeFromExisting();
-        srManager.flowObjectiveService.next(deviceId, newNextObj);
-        srManager.flowObjectiveService.forward(deviceId, fwdObj);
+        if (!srManager.deviceConfiguration().isConfigured(deviceId)) {
+            log.debug("skip forward and next flow objectives from adding flows on device: {}", deviceId);
+        } else {
+            srManager.flowObjectiveService.next(deviceId, newNextObj);
+            srManager.flowObjectiveService.forward(deviceId, fwdObj);
+        }
         return existingPorts.isEmpty();
     }
 
@@ -1286,8 +1300,12 @@ public class McastHandler {
                         mcastIp, deviceId, assignedVlan),
                 (objective, error) -> log.warn("Failed to remove {} on {}, vlan {}: {}",
                                 mcastIp, deviceId, assignedVlan, error));
-        ForwardingObjective fwdObj = mcastUtils.fwdObjBuilder(mcastIp, assignedVlan, nextObj.id()).remove(context);
-        srManager.flowObjectiveService.forward(deviceId, fwdObj);
+        if (!srManager.deviceConfiguration().isConfigured(deviceId)) {
+            log.debug("skip flow changes on unconfigured device: {}", deviceId);
+        } else {
+            ForwardingObjective fwdObj = mcastUtils.fwdObjBuilder(mcastIp, assignedVlan, nextObj.id()).remove(context);
+            srManager.flowObjectiveService.forward(deviceId, fwdObj);
+        }
         mcastNextObjStore.remove(mcastStoreKey);
     }
 
@@ -1806,6 +1824,10 @@ public class McastHandler {
                             }
                             Set<DeviceId> devicesToProcess = devicesBuilder.build();
                             devicesToProcess.forEach(deviceId -> {
+                                if (!srManager.deviceConfiguration().isConfigured(deviceId)) {
+                                    log.trace("Skipping Bucket corrector for unconfigured device {}", deviceId);
+                                    return;
+                                }
                                 VlanId assignedVlan = mcastUtils.assignedVlan(deviceId.equals(source.deviceId()) ?
                                                                                       source : null);
                                 McastStoreKey currentKey = new McastStoreKey(mcastIp, deviceId, assignedVlan);
