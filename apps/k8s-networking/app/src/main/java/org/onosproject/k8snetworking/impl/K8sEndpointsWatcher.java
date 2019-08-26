@@ -159,7 +159,7 @@ public class K8sEndpointsWatcher {
 
         @Override
         public void onClose(KubernetesClientException e) {
-            log.info("Endpoints watcher OnClose: {}" + e);
+            log.warn("Endpoints watcher OnClose", e);
         }
 
         private void processAddition(Endpoints endpoints) {

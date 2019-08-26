@@ -160,7 +160,7 @@ public class K8sNamespaceWatcher {
 
         @Override
         public void onClose(KubernetesClientException e) {
-            log.info("Namespace watcher OnClose: {}" + e);
+            log.warn("Namespace watcher OnClose", e);
         }
 
         private void processAddition(Namespace namespace) {

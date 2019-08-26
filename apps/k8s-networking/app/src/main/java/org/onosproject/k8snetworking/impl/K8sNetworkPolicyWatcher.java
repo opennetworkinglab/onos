@@ -161,7 +161,7 @@ public class K8sNetworkPolicyWatcher {
 
         @Override
         public void onClose(KubernetesClientException e) {
-            log.info("Network policy watcher OnClose: {}" + e);
+            log.warn("Network policy watcher OnClose", e);
         }
 
         private void processAddition(NetworkPolicy networkPolicy) {

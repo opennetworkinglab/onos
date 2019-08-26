@@ -170,13 +170,13 @@ public final class K8sNetworkingUtil {
             Object jsonObject = mapper.readValue(jsonString, Object.class);
             return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonObject);
         } catch (JsonParseException e) {
-            log.debug("JsonParseException caused by {}", e);
+            log.debug("JsonParseException", e);
         } catch (JsonMappingException e) {
-            log.debug("JsonMappingException caused by {}", e);
+            log.debug("JsonMappingException", e);
         } catch (JsonProcessingException e) {
-            log.debug("JsonProcessingException caused by {}", e);
+            log.debug("JsonProcessingException", e);
         } catch (IOException e) {
-            log.debug("IOException caused by {}", e);
+            log.debug("IOException", e);
         }
         return null;
     }
