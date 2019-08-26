@@ -141,6 +141,10 @@ class McastUtils {
     void addFilterToDevice(DeviceId deviceId, PortNumber port, VlanId assignedVlan,
                            IpAddress mcastIp, McastRole mcastRole) {
 
+        if (!srManager.deviceConfiguration().isConfigured(deviceId)) {
+            log.debug("skip update of fitering objective for unconfigured device: {}", deviceId);
+            return;
+        }
         MacAddress routerMac = getRouterMac(deviceId, port);
 
         if (MacAddress.NONE.equals(routerMac)) {
@@ -170,6 +174,10 @@ class McastUtils {
     void removeFilterToDevice(DeviceId deviceId, PortNumber port, VlanId assignedVlan,
                               IpAddress mcastIp, McastRole mcastRole) {
 
+        if (!srManager.deviceConfiguration().isConfigured(deviceId)) {
+            log.debug("skip update of fitering objective for unconfigured device: {}", deviceId);
+            return;
+        }
         MacAddress routerMac = getRouterMac(deviceId, port);
 
         if (MacAddress.NONE.equals(routerMac)) {
