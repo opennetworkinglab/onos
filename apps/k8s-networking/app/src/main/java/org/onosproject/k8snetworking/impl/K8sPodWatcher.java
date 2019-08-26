@@ -157,7 +157,7 @@ public class K8sPodWatcher {
 
         @Override
         public void onClose(KubernetesClientException e) {
-            log.info("Pod watcher OnClose: {}" + e);
+            log.warn("Pod watcher OnClose", e);
         }
 
         private void processAddition(Pod pod) {

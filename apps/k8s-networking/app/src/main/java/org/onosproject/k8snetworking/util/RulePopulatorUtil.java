@@ -142,7 +142,7 @@ public final class RulePopulatorUtil {
             extensionSelector.setPropertyValue(CT_STATE, ctState);
             extensionSelector.setPropertyValue(CT_STATE_MASK, ctSateMask);
         } catch (Exception e) {
-            log.error("Failed to set nicira match CT state because of {}", e);
+            log.error("Failed to set nicira match CT state", e);
             return null;
         }
 
@@ -579,7 +579,7 @@ public final class RulePopulatorUtil {
                 }
 
             } catch (Exception e) {
-                log.error("Failed to set NAT due to error : {}", e);
+                log.error("Failed to set NAT due to error", e);
                 return null;
             }
 
@@ -595,7 +595,7 @@ public final class RulePopulatorUtil {
                 ctTreatment.setPropertyValue(CT_TABLE, table > -1 ? table : 0xff);
                 ctTreatment.setPropertyValue(CT_NESTED_ACTIONS, nat);
             } catch (Exception e) {
-                log.error("Failed to set CT due to error : {}", e);
+                log.error("Failed to set CT due to error", e);
                 return null;
             }
 
