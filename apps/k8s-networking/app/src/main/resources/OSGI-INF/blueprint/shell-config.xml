@@ -52,6 +52,14 @@
         <command>
             <action class="org.onosproject.k8snetworking.cli.K8sNetworkPolicyListCommand"/>
         </command>
+        <command>
+            <action class="org.onosproject.k8snetworking.cli.K8sIpAddressListCommand"/>
+            <completers>
+                <ref component-id="networkIdCompleter"/>
+            </completers>
+        </command>
     </command-bundle>
+
+    <bean id="networkIdCompleter" class="org.onosproject.k8snetworking.cli.K8sNetworkIdCompleter"/>
 
 </blueprint>

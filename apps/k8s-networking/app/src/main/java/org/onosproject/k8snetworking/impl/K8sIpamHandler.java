@@ -43,6 +43,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
+import static java.lang.Thread.sleep;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.k8snetworking.api.Constants.K8S_NETWORKING_APP_ID;
@@ -59,6 +60,9 @@ public class K8sIpamHandler {
 
     private static final String IP_ADDRESS = "ipAddress";
     private static final String NETWORK_ID = "networkId";
+
+    private static final int RETRY_NUM = 5;
+    private static final int RETRY_DELAY_MS = 3000;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -195,7 +199,25 @@ public class K8sIpamHandler {
                 return;
             }
 
+            k8sIpamAdminService.availableIps(annotNetwork);
+
+            int cnt = 0;
+            while ((RETRY_NUM - cnt > 0) && !containIp(annotIp, annotNetwork)) {
+                try {
+                    sleep(RETRY_DELAY_MS);
+                } catch (InterruptedException e) {
+                    log.error("Exception caused during checking available IP addresses");
+                }
+
+                cnt++;
+            }
+
             k8sIpamAdminService.reserveIp(annotNetwork, IpAddress.valueOf(podIp));
+        }
+
+        private boolean containIp(String podIp, String networkId) {
+            return k8sIpamAdminService.availableIps(networkId).stream()
+                    .anyMatch(i -> i.toString().equals(podIp));
         }
     }
 }
