@@ -86,6 +86,7 @@ import static org.onosproject.k8snetworking.api.Constants.DEFAULT_NAMESPACE_HASH
 import static org.onosproject.k8snetworking.api.Constants.DEFAULT_SEGMENT_ID;
 import static org.onosproject.k8snetworking.api.Constants.DEFAULT_SERVICE_IP_CIDR;
 import static org.onosproject.k8snetworking.api.Constants.GROUPING_TABLE;
+import static org.onosproject.k8snetworking.api.Constants.HOST_PREFIX;
 import static org.onosproject.k8snetworking.api.Constants.K8S_NETWORKING_APP_ID;
 import static org.onosproject.k8snetworking.api.Constants.NAMESPACE_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_CIDR_RULE;
@@ -113,8 +114,6 @@ public class K8sNetworkPolicyHandler {
     private static final String PROTOCOL_UDP = "udp";
 
     private static final String KUBE_SYSTEM = "kube-system";
-
-    private static final int HOST_PREFIX = 32;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;

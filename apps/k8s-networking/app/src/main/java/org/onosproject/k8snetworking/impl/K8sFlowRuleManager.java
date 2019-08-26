@@ -62,6 +62,7 @@ import static org.onosproject.k8snetworking.api.Constants.ARP_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.DEFAULT_GATEWAY_MAC;
 import static org.onosproject.k8snetworking.api.Constants.FORWARDING_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.GROUPING_TABLE;
+import static org.onosproject.k8snetworking.api.Constants.HOST_PREFIX;
 import static org.onosproject.k8snetworking.api.Constants.JUMP_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.K8S_NETWORKING_APP_ID;
 import static org.onosproject.k8snetworking.api.Constants.NAMESPACE_TABLE;
@@ -345,7 +346,7 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
 
     private void setupHostRoutingRule(K8sNetwork k8sNetwork) {
         setAnyRoutingRule(IpPrefix.valueOf(
-                k8sNetwork.gatewayIp(), 32), null, k8sNetwork);
+                k8sNetwork.gatewayIp(), HOST_PREFIX), null, k8sNetwork);
     }
 
     private class InternalK8sNodeListener implements K8sNodeListener {
@@ -393,8 +394,8 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
                     deviceEventExecutor.execute(() -> processNetworkCreation(event.subject()));
                     break;
                 case K8S_NETWORK_REMOVED:
-                    break;
                 default:
+                    // do nothing
                     break;
             }
         }

@@ -80,11 +80,17 @@ public class K8sNodeManagerTest {
     private static final Device MINION_2_EXT_DEVICE = createDevice(5);
     private static final Device MINION_3_EXT_DEVICE = createDevice(6);
 
+    private static final Device MINION_1_LOCAL_DEVICE = createDevice(7);
+    private static final Device MINION_2_LOCAL_DEVICE = createDevice(8);
+    private static final Device MINION_3_LOCAL_DEVICE = createDevice(9);
+
+
     private static final K8sNode MINION_1 = createNode(
             MINION_1_HOSTNAME,
             MINION,
             MINION_1_INTG_DEVICE,
             MINION_1_EXT_DEVICE,
+            MINION_1_LOCAL_DEVICE,
             IpAddress.valueOf("10.100.0.1"),
             INIT
     );
@@ -93,6 +99,7 @@ public class K8sNodeManagerTest {
             MINION,
             MINION_2_INTG_DEVICE,
             MINION_2_EXT_DEVICE,
+            MINION_2_LOCAL_DEVICE,
             IpAddress.valueOf("10.100.0.2"),
             INIT
     );
@@ -101,6 +108,7 @@ public class K8sNodeManagerTest {
             MINION,
             MINION_3_INTG_DEVICE,
             MINION_3_EXT_DEVICE,
+            MINION_3_LOCAL_DEVICE,
             IpAddress.valueOf("10.100.0.3"),
             COMPLETE
     );
@@ -328,12 +336,14 @@ public class K8sNodeManagerTest {
 
     private static K8sNode createNode(String hostname, K8sNode.Type type,
                                       Device intgBridge, Device extBridge,
-                                      IpAddress ipAddr, K8sNodeState state) {
+                                      Device localBridge, IpAddress ipAddr,
+                                      K8sNodeState state) {
         return DefaultK8sNode.builder()
                 .hostname(hostname)
                 .type(type)
                 .intgBridge(intgBridge.id())
                 .extBridge(extBridge.id())
+                .localBridge(localBridge.id())
                 .managementIp(ipAddr)
                 .dataIp(ipAddr)
                 .state(state)

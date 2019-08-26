@@ -68,6 +68,7 @@ public final class DefaultK8sNodeTest {
             MINION,
             DEVICE_1,
             DEVICE_1,
+            DEVICE_1,
             BRIDGE_INTF_1,
             TEST_IP,
             INIT,
@@ -79,6 +80,7 @@ public final class DefaultK8sNodeTest {
             MINION,
             DEVICE_1,
             DEVICE_1,
+            DEVICE_1,
             BRIDGE_INTF_1,
             TEST_IP,
             INIT,
@@ -88,6 +90,7 @@ public final class DefaultK8sNodeTest {
     private static final K8sNode K8S_NODE_3 = createNode(
             HOSTNAME_2,
             MINION,
+            DEVICE_2,
             DEVICE_2,
             DEVICE_2,
             BRIDGE_INTF_2,
@@ -109,6 +112,7 @@ public final class DefaultK8sNodeTest {
                 .dataIp(DATA_IP)
                 .intgBridge(DEVICE_1.id())
                 .extBridge(DEVICE_1.id())
+                .localBridge(DEVICE_1.id())
                 .extIntf(BRIDGE_INTF_1)
                 .state(COMPLETE)
                 .extBridgeIp(EXT_BRIDGE_IP_1)
@@ -136,6 +140,7 @@ public final class DefaultK8sNodeTest {
         assertSame(refNode.state(), COMPLETE);
         assertEquals(refNode.intgBridge(), DEVICE_1.id());
         assertEquals(refNode.extBridge(), DEVICE_1.id());
+        assertEquals(refNode.localBridge(), DEVICE_1.id());
     }
 
     /**
@@ -168,6 +173,7 @@ public final class DefaultK8sNodeTest {
                 .type(MINION)
                 .intgBridge(DEVICE_1.id())
                 .extBridge(DEVICE_1.id())
+                .localBridge(DEVICE_1.id())
                 .extIntf(BRIDGE_INTF_1)
                 .managementIp(TEST_IP)
                 .dataIp(TEST_IP)
@@ -187,6 +193,7 @@ public final class DefaultK8sNodeTest {
                 .hostname(HOSTNAME_1)
                 .intgBridge(DEVICE_1.id())
                 .extBridge(DEVICE_1.id())
+                .localBridge(DEVICE_1.id())
                 .extIntf(BRIDGE_INTF_1)
                 .managementIp(TEST_IP)
                 .dataIp(TEST_IP)
@@ -208,6 +215,7 @@ public final class DefaultK8sNodeTest {
                 .type(MINION)
                 .intgBridge(DEVICE_1.id())
                 .extBridge(DEVICE_1.id())
+                .localBridge(DEVICE_1.id())
                 .extIntf(BRIDGE_INTF_1)
                 .dataIp(TEST_IP)
                 .state(INIT)
@@ -237,14 +245,16 @@ public final class DefaultK8sNodeTest {
 
     private static K8sNode createNode(String hostname, Type type,
                                       Device intgBridge, Device extBridge,
-                                      String bridgeIntf, IpAddress ipAddr,
-                                      K8sNodeState state, IpAddress extBridgeIp,
-                                      IpAddress extGatewayIp, String podCidr) {
+                                      Device localBridge, String bridgeIntf,
+                                      IpAddress ipAddr, K8sNodeState state,
+                                      IpAddress extBridgeIp, IpAddress extGatewayIp,
+                                      String podCidr) {
         return DefaultK8sNode.builder()
                 .hostname(hostname)
                 .type(type)
                 .intgBridge(intgBridge.id())
                 .extBridge(extBridge.id())
+                .localBridge(localBridge.id())
                 .extIntf(bridgeIntf)
                 .managementIp(ipAddr)
                 .dataIp(ipAddr)

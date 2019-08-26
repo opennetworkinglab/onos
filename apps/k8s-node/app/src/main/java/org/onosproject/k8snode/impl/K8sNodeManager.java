@@ -156,6 +156,7 @@ public class K8sNodeManager
 
         K8sNode intNode;
         K8sNode extNode;
+        K8sNode localNode;
 
         if (node.intgBridge() == null) {
             String deviceIdStr = genDpid(deviceIdCounter.incrementAndGet());
@@ -181,7 +182,19 @@ public class K8sNodeManager
                     NOT_DUPLICATED_MSG, extNode.extBridge());
         }
 
-        nodeStore.createNode(extNode);
+        if (node.localBridge() == null) {
+            String deviceIdStr = genDpid(deviceIdCounter.incrementAndGet());
+            checkNotNull(deviceIdStr, ERR_NULL_DEVICE_ID);
+            localNode = extNode.updateLocalBridge(DeviceId.deviceId(deviceIdStr));
+            checkArgument(!hasLocalBridge(localNode.localBridge(), localNode.hostname()),
+                    NOT_DUPLICATED_MSG, localNode.localBridge());
+        } else {
+            localNode = extNode;
+            checkArgument(!hasLocalBridge(localNode.localBridge(), localNode.hostname()),
+                    NOT_DUPLICATED_MSG, localNode.localBridge());
+        }
+
+        nodeStore.createNode(localNode);
         log.info(String.format(MSG_NODE, extNode.hostname(), MSG_CREATED));
     }
 
@@ -191,6 +204,7 @@ public class K8sNodeManager
 
         K8sNode intNode;
         K8sNode extNode;
+        K8sNode localNode;
 
         K8sNode existingNode = nodeStore.node(node.hostname());
         checkNotNull(existingNode, ERR_NULL_NODE);
@@ -219,7 +233,19 @@ public class K8sNodeManager
                     NOT_DUPLICATED_MSG, extNode.extBridge());
         }
 
-        nodeStore.updateNode(extNode);
+        DeviceId existLocalBridge = nodeStore.node(node.hostname()).localBridge();
+
+        if (extNode.localBridge() == null) {
+            localNode = extNode.updateLocalBridge(existLocalBridge);
+            checkArgument(!hasLocalBridge(localNode.localBridge(), localNode.hostname()),
+                    NOT_DUPLICATED_MSG, localNode.localBridge());
+        } else {
+            localNode = extNode;
+            checkArgument(!hasLocalBridge(localNode.localBridge(), localNode.hostname()),
+                    NOT_DUPLICATED_MSG, localNode.localBridge());
+        }
+
+        nodeStore.updateNode(localNode);
         log.info(String.format(MSG_NODE, extNode.hostname(), MSG_UPDATED));
     }
 
@@ -288,6 +314,15 @@ public class K8sNodeManager
         Optional<K8sNode> existNode = nodeStore.nodes().stream()
                 .filter(n -> !n.hostname().equals(hostname))
                 .filter(n -> deviceId.equals(n.extBridge()))
+                .findFirst();
+
+        return existNode.isPresent();
+    }
+
+    private boolean hasLocalBridge(DeviceId deviceId, String hostname) {
+        Optional<K8sNode> existNode = nodeStore.nodes().stream()
+                .filter(n -> !n.hostname().equals(hostname))
+                .filter(n -> deviceId.equals(n.localBridge()))
                 .findFirst();
 
         return existNode.isPresent();
