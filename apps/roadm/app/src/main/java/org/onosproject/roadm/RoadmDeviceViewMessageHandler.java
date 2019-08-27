@@ -94,6 +94,8 @@ public class RoadmDeviceViewMessageHandler extends UiMessageHandler {
                 Type type = device.type();
                 if (type == Type.ROADM || type == Type.TERMINAL_DEVICE
                         || type == Type.OPTICAL_AMPLIFIER || type == Type.FIBER_SWITCH
+                        || type == Type.ROADM_OTN
+                        || type == Type.OTN
                         || type == Type.OLS) {
                     populateRow(tm.addRow(), device);
                 }
