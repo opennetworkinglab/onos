@@ -370,17 +370,30 @@ public class LinkDiscovery implements TimerTask {
      */
     @Override
     public void run(Timeout t) {
-        if (isStopped()) {
-            return;
-        }
-
-        if (context.mastershipService().isLocalMaster(deviceId)) {
-            log.trace("Sending probes from {}", deviceId);
-            ImmutableMap.copyOf(portMap).forEach(this::sendProbes);
-        }
-
-        if (!isStopped()) {
-            timeout = t.timer().newTimeout(this, context.probeRate(), MILLISECONDS);
+        try {
+            // Check first if it has been stopped
+            if (isStopped()) {
+                return;
+            }
+            // Verify if we are still the master
+            if (context.mastershipService().isLocalMaster(deviceId)) {
+                log.trace("Sending probes from {}", deviceId);
+                ImmutableMap.copyOf(portMap).forEach(this::sendProbes);
+            }
+        } catch (Exception e) {
+            // Catch all exceptions to avoid timer task being cancelled
+            if (!isStopped()) {
+                // Error condition
+                log.error("Exception thrown during link discovery process", e);
+            } else {
+                // Provider is shutting down, the error can be ignored
+                log.trace("Shutting down, ignoring error", e);
+            }
+        } finally {
+            // if it has not been stopped - re-schedule itself
+            if (!isStopped()) {
+                timeout = t.timer().newTimeout(this, context.probeRate(), MILLISECONDS);
+            }
         }
     }
 
