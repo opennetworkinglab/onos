@@ -744,8 +744,19 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
                                                                                 DIRECT));
                             return true;
                         }
-                        log.warn("VanishStaleLinkAge feature is disabled, " +
-                                 "not bringing down link src {} dst {} with expired StaleLinkAge",
+                        // if one of the device is not available - let's prune the link
+                        if (!deviceService.isAvailable(e.getKey().src().deviceId()) ||
+                                !deviceService.isAvailable(e.getKey().dst().deviceId())) {
+                            return true;
+                        }
+                        // if one of the ports is not enable - let's prune the link
+                        Port srcPort = deviceService.getPort(e.getKey().src());
+                        Port dstPort = deviceService.getPort(e.getKey().dst());
+                        if (!srcPort.isEnabled() || !dstPort.isEnabled()) {
+                            return true;
+                        }
+                        log.trace("VanishStaleLinkAge feature is disabled, " +
+                                        "not bringing down link src {} dst {} with expired StaleLinkAge",
                                  e.getKey().src(), e.getKey().dst());
                     }
                     return false;
