@@ -17,6 +17,7 @@
 package org.onosproject.provider.p4runtime.packet.impl;
 
 
+import org.onlab.packet.EthType;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -111,6 +112,12 @@ public class P4RuntimePacketProvider extends AbstractProvider implements PacketP
         }
     }
 
+    private EthType.EtherType getEtherType(ByteBuffer data) {
+        final short shortEthType = data.getShort(12);
+        data.rewind();
+        return EthType.EtherType.lookup(shortEthType);
+    }
+
     /**
      * Internal packet context implementation.
      */
@@ -139,7 +146,6 @@ public class P4RuntimePacketProvider extends AbstractProvider implements PacketP
             }
 
             OutboundPacket outboundPacket = new DefaultOutboundPacket(deviceId, treatment, rawData);
-            log.debug("Processing outbound packet: {}", outboundPacket);
 
             emit(outboundPacket);
         }
@@ -155,7 +161,7 @@ public class P4RuntimePacketProvider extends AbstractProvider implements PacketP
             //Masterhip message is sent to everybody but picked up only by master.
             //FIXME we need the device ID into p4RuntimeEvnetSubject to check for mastsership
             if (!(event.subject() instanceof P4RuntimePacketIn) || event.type() != P4RuntimeEvent.Type.PACKET_IN) {
-                log.debug("Event type {}", event.type());
+                log.debug("Unrecognized event type {}, discarding", event.type());
                 // Not a packet-in event, ignore it.
                 return;
             }
@@ -183,12 +189,17 @@ public class P4RuntimePacketProvider extends AbstractProvider implements PacketP
                 return;
             }
 
+            if (log.isTraceEnabled()) {
+                final EthType.EtherType etherType = getEtherType(inPkt.unparsed());
+                log.trace("Received PACKET-IN <<< device={} ingress_port={} eth_type={}",
+                          inPkt.receivedFrom().deviceId(), inPkt.receivedFrom().port(),
+                          etherType.ethType().toString());
+            }
+
             if (inPkt == null) {
                 log.debug("Received null inbound packet. Ignoring.");
                 return;
             }
-
-            log.debug("Processing inbound packet: {}", inPkt.toString());
 
             OutboundPacket outPkt = new DefaultOutboundPacket(eventSubject.deviceId(), null,
                     operation.data().asReadOnlyBuffer());
