@@ -1,6 +1,7 @@
 BUNDLES = [
     "@jersey_client//jar",
     "@jersey_security//jar",
+    "@jersey_media_sse//jar",
     "@commons_io//jar",
     "@httpclient_osgi//jar",
     "@httpcore_osgi//jar",
