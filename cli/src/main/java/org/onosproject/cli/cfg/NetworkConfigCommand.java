@@ -44,12 +44,12 @@ public class NetworkConfigCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "subjectClassKey", description = "Subject class key",
             required = false, multiValued = false)
-    @Completion(ComponentConfigCommandCompleter.class)
+    @Completion(SubjectClassKeyCompleter.class)
     String subjectClassKey = null;
 
     @Argument(index = 1, name = "subjectKey", description = "Subject key",
             required = false, multiValued = false)
-    @Completion(ComponentNameCompleter.class)
+    @Completion(SubjectKeyCompleter.class)
     String subjectKey = null;
 
     @Argument(index = 2, name = "configKey", description = "Config key",
