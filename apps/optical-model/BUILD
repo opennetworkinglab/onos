@@ -1,4 +1,4 @@
-load("//tools/build/bazel:generate_workspace.bzl", "ONOS_VERSION")
+load("//tools/build/bazel:variables.bzl", "ONOS_VERSION")
 
 COMPILE_DEPS = CORE_DEPS + JACKSON + CLI + [
     "//incubator/api:onos-incubator-api",
