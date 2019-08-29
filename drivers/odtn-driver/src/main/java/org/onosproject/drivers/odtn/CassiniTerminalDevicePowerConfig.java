@@ -94,12 +94,33 @@ public class CassiniTerminalDevicePowerConfig<T>
      * @param message Netconf message in XML format
      * @return XMLConfiguration object
      */
+
     private XMLConfiguration executeRpc(NetconfSession session, String message) {
         try {
+            if (log.isDebugEnabled()) {
+                try {
+                    StringWriter stringWriter = new StringWriter();
+                    XMLConfiguration xconf = (XMLConfiguration) XmlConfigParser.loadXmlString(message);
+                    xconf.setExpressionEngine(new XPathExpressionEngine());
+                    xconf.save(stringWriter);
+                    log.debug("Request {}", stringWriter.toString());
+                } catch (ConfigurationException e) {
+                    log.error("XML Config Exception ", e);
+                }
+            }
             CompletableFuture<String> fut = session.rpc(message);
             String rpcReply = fut.get();
             XMLConfiguration xconf = (XMLConfiguration) XmlConfigParser.loadXmlString(rpcReply);
             xconf.setExpressionEngine(new XPathExpressionEngine());
+            if (log.isDebugEnabled()) {
+                try {
+                    StringWriter stringWriter = new StringWriter();
+                    xconf.save(stringWriter);
+                    log.debug("Response {}", stringWriter.toString());
+                } catch (ConfigurationException e) {
+                    log.error("XML Config Exception ", e);
+                }
+            }
             return xconf;
         } catch (NetconfException ne) {
             log.error("Exception on Netconf protocol: {}.", ne);
@@ -380,15 +401,7 @@ public class CassiniTerminalDevicePowerConfig<T>
                     .append(underState)
                     .append("</state></optical-channel></component></components></filter></get>")
                     .append(RPC_CLOSE_TAG);
-            log.info("Getting Optical Channel State {}", rpcReq.toString());
-            StringWriter stringWriter = new StringWriter();
             XMLConfiguration xconf = pc.executeRpc(session, rpcReq.toString());
-            try {
-                xconf.save(stringWriter);
-            } catch (ConfigurationException e) {
-                log.error("XML Config Exception ", e);
-            }
-            log.info("Optical Channel State {}", stringWriter.toString());
             return xconf;
         }
 

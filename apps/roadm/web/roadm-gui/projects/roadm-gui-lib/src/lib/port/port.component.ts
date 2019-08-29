@@ -44,6 +44,7 @@ interface RoadmPort {
     minFreq: string;
     maxFreq: string;
     grid: string;
+    currFreq: string;
     powerRange: string;
     currentPower: string;
     targetPower: string;

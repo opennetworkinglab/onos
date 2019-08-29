@@ -32,6 +32,7 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.GridType;
 import org.onosproject.net.OchSignal;
+import org.onosproject.net.Port;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -41,8 +42,11 @@ import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.instructions.Instructions;
+import org.onosproject.net.optical.OchPort;
+import org.onosproject.net.optical.device.OchPortHelper;
 
 import java.util.Map;
+import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -63,6 +67,7 @@ public class PortWaveLengthCommand extends AbstractShellCommand {
     private static final String CH_25 = "25";
     private static final String CH_50 = "50";
     private static final String CH_100 = "100";
+    public static final long BASE_FREQUENCY = 193100000;   //Working in Mhz
 
     private static final Map<String, ChannelSpacing> CHANNEL_SPACING_MAP = ImmutableMap
             .<String, ChannelSpacing>builder()
@@ -83,18 +88,18 @@ public class PortWaveLengthCommand extends AbstractShellCommand {
     @Completion(OpticalConnectPointCompleter.class)
     String connectPointString = "";
 
+    @Argument(index = 2, name = "value",
+            description = "Optical Signal or wavelength. Provide wavelenght in MHz, while Och Format = "
+                    + SIGNAL_FORMAT, required = false, multiValued = false)
+    String parameter = "";
 
-    @Argument(index = 2, name = "signal",
-            description = "Optical Signal. Format = " + SIGNAL_FORMAT,
-            required = true, multiValued = false)
-    String signal = "";
 
     private OchSignal createOchSignal() throws IllegalArgumentException {
-        if (signal == null) {
+        if (parameter == null) {
             return null;
         }
         try {
-            String[] splitted = signal.split("/");
+            String[] splitted = parameter.split("/");
             checkArgument(splitted.length == 4,
                     "signal requires 4 parameters: " + SIGNAL_FORMAT);
             int slotGranularity = Integer.parseInt(splitted[0]);
@@ -111,9 +116,51 @@ public class PortWaveLengthCommand extends AbstractShellCommand {
              * are subclasses of RuntimeException.
              */
             String msg = String.format("Invalid signal format: %s, expected format is %s.",
-                    signal, SIGNAL_FORMAT);
+                    parameter, SIGNAL_FORMAT);
             print(msg);
             throw new IllegalArgumentException(msg, e);
+        }
+    }
+
+    private OchSignal createOchSignalFromWavelength(DeviceService deviceService, ConnectPoint cp) {
+        long wavelength = Long.parseLong(parameter);
+        if (wavelength == 0L) {
+            return null;
+        }
+        Port port = deviceService.getPort(cp);
+        Optional<OchPort> ochPortOpt = OchPortHelper.asOchPort(port);
+
+        if (ochPortOpt.isPresent()) {
+            OchPort ochPort = ochPortOpt.get();
+            GridType gridType = ochPort.lambda().gridType();
+            ChannelSpacing channelSpacing = ochPort.lambda().channelSpacing();
+            int slotGranularity = ochPort.lambda().slotGranularity();
+            int multiplier = getMultplier(wavelength, gridType, channelSpacing, slotGranularity);
+            return new OchSignal(gridType, channelSpacing, multiplier, slotGranularity);
+        } else {
+            print("Connect point %s is not OChPort", cp);
+            return null;
+        }
+
+    }
+
+    private int getMultplier(long wavelength, GridType gridType, ChannelSpacing channelSpacing, int slotGranularity) {
+        long baseFreq;
+        switch (gridType) {
+            case DWDM:
+                baseFreq = BASE_FREQUENCY;
+                break;
+            case CWDM:
+            case FLEX:
+            case UNKNOWN:
+            default:
+                baseFreq = 0L;
+                break;
+        }
+        if (wavelength > baseFreq) {
+            return (int) ((wavelength - baseFreq) / (channelSpacing.frequency().asMHz()));
+        } else {
+            return (int) ((baseFreq - wavelength) / (channelSpacing.frequency().asMHz()));
         }
     }
 
@@ -133,8 +180,19 @@ public class PortWaveLengthCommand extends AbstractShellCommand {
 
             // an empty traffic selector
             TrafficSelector trafficSelector = trafficSelectorBuilder.matchInPort(cp.port()).build();
-            OchSignal ochSignal = createOchSignal();
-
+            OchSignal ochSignal;
+            if (parameter.contains("/")) {
+                ochSignal = createOchSignal();
+            } else if (parameter.matches("-?\\d+(\\.\\d+)?")) {
+                ochSignal = createOchSignalFromWavelength(deviceService, cp);
+            } else {
+                print("Signal or wavelength %s are in uncorrect format");
+                return;
+            }
+            if (ochSignal == null) {
+                print("Error in creating OchSignal");
+                return;
+            }
             TrafficTreatment trafficTreatment = trafficTreatmentBuilder
                     .add(Instructions.modL0Lambda(ochSignal))
                     .add(Instructions.createOutput(deviceService.getPort(cp).number()))

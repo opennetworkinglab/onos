@@ -85,6 +85,7 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
     private static final String MIN_FREQ = "minFreq";
     private static final String MAX_FREQ = "maxFreq";
     private static final String GRID = "grid";
+    private static final String CURR_FREQ = "currFreq";
     private static final String POWER_RANGE = "powerRange";
     private static final String CURRENT_POWER = "currentPower";
     private static final String CURRENT_INPUT_POWER = "currentInputPower";
@@ -94,7 +95,7 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
     private static final String SERVICE_STATE = "serviceState";
 
     private static final String[] COLUMN_IDS = {
-            ID, REVERSE_PORT, TYPE, NAME, ENABLED, MIN_FREQ, MAX_FREQ, GRID, POWER_RANGE,
+            ID, REVERSE_PORT, TYPE, NAME, ENABLED, MIN_FREQ, MAX_FREQ, GRID, CURR_FREQ, POWER_RANGE,
             CURRENT_POWER, CURRENT_INPUT_POWER, SERVICE_STATE, TARGET_POWER, MODULATION, HAS_TARGET_POWER
     };
 
@@ -161,6 +162,7 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
                     .cell(MIN_FREQ, RoadmUtil.asTHz(minFreq))
                     .cell(MAX_FREQ, RoadmUtil.asTHz(maxFreq))
                     .cell(GRID, RoadmUtil.asGHz(channelSpacing))
+                    .cell(CURR_FREQ, getWavelength(deviceId, portNum))
                     .cell(POWER_RANGE, getPowerRange(deviceId, portNum))
                     .cell(CURRENT_POWER, getCurrentPower(deviceId, portNum))
                     .cell(CURRENT_INPUT_POWER, getCurrentInputPower(deviceId, portNum))
@@ -187,7 +189,7 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
             return RoadmUtil.UNKNOWN;
         }
 
-        private Frequency minFreq = null, maxFreq = null, channelSpacing = null;
+        private Frequency minFreq = null, maxFreq = null, channelSpacing = null, currFreq = null;
 
         // Gets min frequency, max frequency, channel spacing
         private void getFrequencyLimit(DeviceId deviceId, PortNumber portNumber) {
@@ -252,6 +254,17 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
                 modulation = roadmService.getModulation(deviceId, portNumber);
             }
             return RoadmUtil.objectToString(modulation, RoadmUtil.UNKNOWN);
+        }
+
+        // Returns modulation as a string, Unknown if modulation is expected but
+        // cannot be found
+        private String getWavelength(DeviceId deviceId, PortNumber portNumber) {
+            Frequency currentFrequency = roadmService.getWavelength(deviceId, portNumber);
+            if (currentFrequency == null) {
+                return "0";
+            } else {
+                return String.valueOf(currentFrequency.asTHz());
+            }
         }
     }
 
