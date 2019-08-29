@@ -17,6 +17,17 @@ package org.onosproject.roadm;
 
 import org.onlab.util.Frequency;
 import org.onosproject.net.Annotations;
+import org.onosproject.net.ChannelSpacing;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.GridType;
+import org.onosproject.net.OchSignal;
+import org.onosproject.net.Port;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.optical.OchPort;
+import org.onosproject.net.optical.device.OchPortHelper;
+
+import java.util.Optional;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -36,6 +47,8 @@ public final class RoadmUtil {
     public static final String OPS_OPT_AUTO = "AUTOMATIC";
     public static final String OPS_OPT_FORCE = "FORCE";
     public static final String OPS_OPT_MANUAL = "MANUAL";
+    private static final long BASE_FREQUENCY = 193100000;   //Working in Mhz
+
 
     private RoadmUtil() {
     }
@@ -103,5 +116,46 @@ public final class RoadmUtil {
      */
     public static String getAnnotation(Annotations annotations, String key) {
         return getAnnotation(annotations, key, NA);
+    }
+
+    public static OchSignal createOchSignalFromWavelength(double wavelength, DeviceService deviceService,
+                                                          DeviceId deviceId, PortNumber portNumber) {
+        if (wavelength == 0L) {
+            return null;
+        }
+        Port port = deviceService.getPort(deviceId, portNumber);
+        Optional<OchPort> ochPortOpt = OchPortHelper.asOchPort(port);
+
+        if (ochPortOpt.isPresent()) {
+            OchPort ochPort = ochPortOpt.get();
+            GridType gridType = ochPort.lambda().gridType();
+            ChannelSpacing channelSpacing = ochPort.lambda().channelSpacing();
+            int slotGranularity = ochPort.lambda().slotGranularity();
+            int multiplier = getMultplier(wavelength, gridType, channelSpacing);
+            return new OchSignal(gridType, channelSpacing, multiplier, slotGranularity);
+        } else {
+            return null;
+        }
+
+    }
+
+    private static int getMultplier(double wavelength, GridType gridType, ChannelSpacing channelSpacing) {
+        long baseFreq;
+        switch (gridType) {
+            case DWDM:
+                baseFreq = BASE_FREQUENCY;
+                break;
+            case CWDM:
+            case FLEX:
+            case UNKNOWN:
+            default:
+                baseFreq = 0L;
+                break;
+        }
+        if (wavelength > baseFreq) {
+            return (int) ((wavelength - baseFreq) / (channelSpacing.frequency().asMHz()));
+        } else {
+            return (int) ((baseFreq - wavelength) / (channelSpacing.frequency().asMHz()));
+        }
     }
 }

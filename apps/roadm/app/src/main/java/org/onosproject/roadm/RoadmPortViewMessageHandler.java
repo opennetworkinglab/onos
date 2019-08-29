@@ -70,6 +70,8 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
     private static final String ROADM_SET_TARGET_POWER_RESP = "roadmSetTargetPowerResponse";
     private static final String ROADM_SET_MODULATION_REQ = "roadmSetModulationRequest";
     private static final String ROADM_SET_MODULATION_RESP = "roadmSetModulationResponse";
+    private static final String ROADM_SET_FREQ_REQ = "roadmSetFrequencyRequest";
+    private static final String ROADM_SET_FREQ_RESP = "roadmSetFrequencyResponse";
     private static final String ROADM_SYNC_TARGET_POWER_REQ = "roadmSyncTargetPowerRequest";
     private static final String ROADM_SYNC_TARGET_POWER_RESP = "roadmSyncTargetPowerResp";
     private static final String ROADM_SHOW_ITEMS_REQ = "roadmShowPortItemsRequest";
@@ -118,7 +120,8 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
                 new CreateShowItemsRequestHandler(),
                 new CreateOpsModeSetRequestHandler(),
                 new SyncTargetPowerRequestHandler(),
-                new SetModulationRequestHandler()
+                new SetModulationRequestHandler(),
+                new SetFrequencyRequestHandler()
         );
     }
 
@@ -343,6 +346,34 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
             rootNode.put(RoadmUtil.VALID, modulation);
             rootNode.put(RoadmUtil.MESSAGE, String.format(TARGET_MODULATION_MSG, modulation));
             sendMessage(ROADM_SET_MODULATION_RESP, rootNode);
+        }
+    }
+
+    // Handler for setting port frequency
+    private final class SetFrequencyRequestHandler extends RequestHandler {
+
+        private static final String TARGET_FREQ_MSG = "Target frequency is %s.";
+
+        private SetFrequencyRequestHandler() {
+            super(ROADM_SET_FREQ_REQ);
+        }
+
+        @Override
+        public void process(ObjectNode payload) {
+            DeviceId deviceId = DeviceId.deviceId(string(payload, RoadmUtil.DEV_ID));
+            PortNumber portNumber = PortNumber.portNumber(payload.get(ID).asLong());
+            String frequency = payload.get(CURR_FREQ).asText();
+            double freqThz = Double.parseDouble(frequency);
+            Frequency freq = Frequency.ofTHz(freqThz);
+            OchSignal ochSignal = RoadmUtil.createOchSignalFromWavelength(freq.asMHz(), deviceService,
+                    deviceId, portNumber);
+            roadmService.createConnection(deviceId, 100, true, 0,
+                    portNumber, portNumber, ochSignal);
+            ObjectNode rootNode = objectNode();
+            rootNode.put(ID, payload.get(ID).asText());
+            rootNode.put(RoadmUtil.VALID, frequency);
+            rootNode.put(RoadmUtil.MESSAGE, String.format(TARGET_FREQ_MSG, frequency));
+            sendMessage(ROADM_SET_FREQ_RESP, rootNode);
         }
     }
 

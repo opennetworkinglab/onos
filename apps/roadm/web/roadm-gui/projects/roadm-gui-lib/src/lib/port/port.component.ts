@@ -81,9 +81,11 @@ export class RoadmPortComponent extends TableBaseImpl implements OnInit, OnDestr
 
     powerForm: FormGroup;
     modulationForm: FormGroup;
+    freqForm: FormGroup;
     SET_POWER_REQ = 'roadmSetTargetPowerRequest';
     SET_POWER_RESP = 'roadmSetTargetPowerResponse';
     SET_MODULATION = 'roadmSetModulationRequest';
+    SET_FREQUENCY = 'roadmSetFrequencyRequest';
 
     restorePrefsConfig; // Function
 
@@ -134,6 +136,9 @@ export class RoadmPortComponent extends TableBaseImpl implements OnInit, OnDestr
         });
         this.modulationForm = new FormGroup({
             newModulation: new FormControl(''),
+        });
+        this.freqForm = new FormGroup({
+            newFreq: new FormControl(''),
         });
         this.log.debug('Create Forms');
     }
@@ -218,6 +223,15 @@ export class RoadmPortComponent extends TableBaseImpl implements OnInit, OnDestr
         this.log.debug('Set Modulation of port ', port, 'in device ', devId, 'as value ', this.modulationForm.value['newModulation']);
         this.wss.sendEvent(this.SET_MODULATION, {
             'modulation': this.modulationForm.value['newModulation'],
+            'devId': devId,
+            'id': port,
+        });
+    }
+
+    submitFrequency(devId, port) {
+        this.log.debug('Set Frequency of port ', port, 'in device ', devId, 'as value ', this.freqForm.value['newFreq']);
+        this.wss.sendEvent(this.SET_FREQUENCY, {
+            'currFreq': this.freqForm.value['newFreq'],
             'devId': devId,
             'id': port,
         });

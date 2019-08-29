@@ -67,7 +67,7 @@ public class PortWaveLengthCommand extends AbstractShellCommand {
     private static final String CH_25 = "25";
     private static final String CH_50 = "50";
     private static final String CH_100 = "100";
-    public static final long BASE_FREQUENCY = 193100000;   //Working in Mhz
+    private static final long BASE_FREQUENCY = 193100000;   //Working in Mhz
 
     private static final Map<String, ChannelSpacing> CHANNEL_SPACING_MAP = ImmutableMap
             .<String, ChannelSpacing>builder()
@@ -135,7 +135,7 @@ public class PortWaveLengthCommand extends AbstractShellCommand {
             GridType gridType = ochPort.lambda().gridType();
             ChannelSpacing channelSpacing = ochPort.lambda().channelSpacing();
             int slotGranularity = ochPort.lambda().slotGranularity();
-            int multiplier = getMultplier(wavelength, gridType, channelSpacing, slotGranularity);
+            int multiplier = getMultplier(wavelength, gridType, channelSpacing);
             return new OchSignal(gridType, channelSpacing, multiplier, slotGranularity);
         } else {
             print("Connect point %s is not OChPort", cp);
@@ -144,7 +144,7 @@ public class PortWaveLengthCommand extends AbstractShellCommand {
 
     }
 
-    private int getMultplier(long wavelength, GridType gridType, ChannelSpacing channelSpacing, int slotGranularity) {
+    private int getMultplier(long wavelength, GridType gridType, ChannelSpacing channelSpacing) {
         long baseFreq;
         switch (gridType) {
             case DWDM:
