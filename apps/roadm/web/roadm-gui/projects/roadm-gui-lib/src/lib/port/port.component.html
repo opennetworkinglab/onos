@@ -70,6 +70,7 @@
                     <td colId="minFreq">MIN FREQ (THz)</td>
                     <td colId="maxFreq">MAX FREQ (THz)</td>
                     <td colId="grid">GRID (GHz)</td>
+                    <td colId="currentFreq">CURRENT FREQ (THz)</td>
                     <td colId="modulation">MODULATION</td>
                     <td colId="powerRange">POWER RANGE (dBm)</td>
                     <td colId="currentPower">CURRENT POWER (dBm)</td>
@@ -96,6 +97,7 @@
                     <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.type=='OCH'?port.minFreq:""}}</td>
                     <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.type=='OCH'?port.maxFreq:""}}</td>
                     <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.type=='OCH'?port.grid:""}}</td>
+                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.type=='OCH'?port.currFreq:""}}</td>
                     <td [ngClass]="(isDelta() ? 'delta' : '')">
                         <form [formGroup]="modulationForm" (ngSubmit)="submitModulation(devId, port.id)" *ngIf="port.type=='OCH'">
                             <select [(ngModel)]="port.modulation" formControlName="newModulation">

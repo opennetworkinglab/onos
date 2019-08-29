@@ -17,6 +17,7 @@ package org.onosproject.roadm;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Range;
+import org.onlab.util.Frequency;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ChannelSpacing;
@@ -48,7 +49,9 @@ import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criteria;
+import org.onosproject.net.flow.instructions.Instruction;
 import org.onosproject.net.flow.instructions.Instructions;
+import org.onosproject.net.flow.instructions.L0ModificationInstruction;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -64,6 +67,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.StreamSupport;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.net.optical.OpticalAnnotations.INPUT_PORT_STATUS;
@@ -375,14 +379,47 @@ public class RoadmManager implements RoadmService {
 
     @Override
     public FlowId createConnection(DeviceId deviceId, int priority, boolean isPermanent,
-                                 int timeout, PortNumber inPort, PortNumber outPort,
-                                 OchSignal ochSignal, Double attenuation) {
+                                   int timeout, PortNumber inPort, PortNumber outPort,
+                                   OchSignal ochSignal, Double attenuation) {
         checkNotNull(deviceId);
         checkNotNull(inPort);
         checkNotNull(outPort);
         FlowId flowId = createConnection(deviceId, priority, isPermanent, timeout, inPort, outPort, ochSignal);
         delayedSetAttenuation(deviceId, outPort, ochSignal, attenuation);
         return flowId;
+    }
+
+    @Override
+    public Frequency getWavelength(DeviceId deviceId, PortNumber portNumber) {
+        checkNotNull(deviceId);
+        checkNotNull(portNumber);
+        Optional<FlowEntry> optFlow = StreamSupport
+                .stream(flowRuleService.getFlowEntries(deviceId).spliterator(), false)
+                .filter(flow -> {
+                    return flow.treatment().allInstructions().stream().filter(instr -> {
+                        if (instr.type().equals(Instruction.Type.OUTPUT)) {
+                            return ((Instructions.OutputInstruction) instr).port().equals(portNumber);
+                        } else if (instr.type().equals(Instruction.Type.L0MODIFICATION)) {
+                            return ((L0ModificationInstruction) instr).subtype()
+                                    .equals(L0ModificationInstruction.L0SubType.OCH);
+                        }
+                        return false;
+                    }).count() == 2;
+                }).findFirst();
+        if (optFlow.isPresent()) {
+            Optional<Instruction> instruction = optFlow.get().treatment().allInstructions().stream().filter(instr -> {
+                if (instr.type().equals(Instruction.Type.L0MODIFICATION)) {
+                    return ((L0ModificationInstruction) instr).subtype()
+                            .equals(L0ModificationInstruction.L0SubType.OCH);
+                }
+                return false;
+            }).findAny();
+            if (instruction.isPresent()) {
+                return ((L0ModificationInstruction.ModOchSignalInstruction) instruction.get()).lambda()
+                        .centralFrequency();
+            }
+        }
+        return null;
     }
 
     @Override

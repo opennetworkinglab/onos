@@ -16,6 +16,7 @@
 package org.onosproject.roadm;
 
 import com.google.common.collect.Range;
+import org.onlab.util.Frequency;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.ModulationScheme;
@@ -29,19 +30,19 @@ import java.util.Set;
 
 /**
  * ROADM service interface. Provides an interface for ROADM power configuration.
- *
+ * <p>
  * This application relies on the PowerConfig and LambdaQuery behaviours.
- *
+ * <p>
  * The device's PowerConfig implementation should be parameterized as
  * {@code PowerConfig<Object>} in order to support both Direction and OchSignal.
  * For a reference implementation of PowerConfig, please see
  * OplinkRoadmPowerConfig
- *
+ * <p>
  * In this application, a "connection" refers to the selection of a channel
  * to direct from an input to an output port. Connections are implemented
  * using FlowRules with an input port selector, optical channel selector,
  * and output port treatment (see RoadmManager#createConnection()).
- *
+ * <p>
  * This application currently only supports fixed grid channels.
  */
 public interface RoadmService {
@@ -50,7 +51,7 @@ public interface RoadmService {
      * Attempts to manually switch working path to the one specified by {@code index}.
      *
      * @param deviceId DeviceId of the device to configure
-     * @param index working path index to switch to
+     * @param index    working path index to switch to
      * @deprecated 1.11.0
      */
     @Deprecated
@@ -59,7 +60,7 @@ public interface RoadmService {
     /**
      * Retrieves protection switch specified port's service status.
      *
-     * @param deviceId DeviceId of the device to configure
+     * @param deviceId   DeviceId of the device to configure
      * @param portNumber the port
      * @return port service status
      * @deprecated 1.11.0
@@ -70,15 +71,16 @@ public interface RoadmService {
     /**
      * Attempts to config protection switch by specified {@code operation} and {@code index}.
      *
-     * @param deviceId DeviceId of the device to configure
-     * @param operation switch configuration, automatic, force or manual
+     * @param deviceId   DeviceId of the device to configure
+     * @param operation  switch configuration, automatic, force or manual
      * @param identifier {@link ConnectPoint} for the virtual Port representing protected path endpoint
-     * @param index working path index to switch to
+     * @param index      working path index to switch to
      */
     void configProtectionSwitch(DeviceId deviceId, String operation, ConnectPoint identifier, int index);
 
     /**
      * Retrieves protection switch endpoint states.
+     *
      * @param deviceId DeviceId of the device to configure
      * @return map groups of underlying paths
      */
@@ -87,16 +89,16 @@ public interface RoadmService {
     /**
      * Set target power for a port if the port has configurable target power.
      *
-     * @param deviceId DeviceId of the device to configure
+     * @param deviceId   DeviceId of the device to configure
      * @param portNumber PortNumber of the port to configure
-     * @param power value to set target power to
+     * @param power      value to set target power to
      */
     void setTargetPortPower(DeviceId deviceId, PortNumber portNumber, double power);
 
     /**
      * Returns the target power stored in storage for a port if the port has configurable target power.
      *
-     * @param deviceId DeviceId of the device to configure
+     * @param deviceId   DeviceId of the device to configure
      * @param portNumber PortNumber of the port to configure
      * @return the target power if the port has a target power, null otherwise
      */
@@ -104,7 +106,8 @@ public interface RoadmService {
 
     /**
      * Sync-up the target power for a port if the operator want to check the configuration.
-     * @param deviceId DeviceId of the device to configure
+     *
+     * @param deviceId   DeviceId of the device to configure
      * @param portNumber PortNumber of the port to configure
      * @return the target power if the port has a target power, null otherwise
      */
@@ -114,9 +117,9 @@ public interface RoadmService {
      * Sets the attenuation of a connection. This does not check that attenuation
      * is within the acceptable range.
      *
-     * @param deviceId DeviceId of the device to configure
-     * @param portNumber PortNumber of either the input or output port
-     * @param ochSignal channel to set attenuation for
+     * @param deviceId    DeviceId of the device to configure
+     * @param portNumber  PortNumber of either the input or output port
+     * @param ochSignal   channel to set attenuation for
      * @param attenuation attenuation value to set to
      */
     void setAttenuation(DeviceId deviceId, PortNumber portNumber, OchSignal ochSignal, double attenuation);
@@ -124,9 +127,9 @@ public interface RoadmService {
     /**
      * Returns the attenuation of a connection.
      *
-     * @param deviceId DeviceId of the device
+     * @param deviceId   DeviceId of the device
      * @param portNumber PortNumber of either the input or output port
-     * @param ochSignal channel to search for
+     * @param ochSignal  channel to search for
      * @return attenuation if found, null otherwise
      */
     Double getAttenuation(DeviceId deviceId, PortNumber portNumber, OchSignal ochSignal);
@@ -134,7 +137,7 @@ public interface RoadmService {
     /**
      * Returns the current port power.
      *
-     * @param deviceId DeviceId of the device
+     * @param deviceId   DeviceId of the device
      * @param portNumber PortNumber of the port
      * @return current power if found, null otherwise
      */
@@ -143,9 +146,9 @@ public interface RoadmService {
     /**
      * Returns the current channel power.
      *
-     * @param deviceId DeviceId of the device
+     * @param deviceId   DeviceId of the device
      * @param portNumber PortNumber of either the input or output port of the connection
-     * @param ochSignal channel to search for
+     * @param ochSignal  channel to search for
      * @return channel power if found, null otherwise
      */
     Double getCurrentChannelPower(DeviceId deviceId, PortNumber portNumber, OchSignal ochSignal);
@@ -153,7 +156,7 @@ public interface RoadmService {
     /**
      * Returns the channels supported by a port.
      *
-     * @param deviceId DeviceId of the device
+     * @param deviceId   DeviceId of the device
      * @param portNumber PortNumber of the port
      * @return the set of supported channels
      */
@@ -162,7 +165,7 @@ public interface RoadmService {
     /**
      * Set modulation for a port if the port has configurable modulation.
      *
-     * @param deviceId DeviceId of the device to configure
+     * @param deviceId   DeviceId of the device to configure
      * @param portNumber PortNumber of the port to configure
      * @param modulation value to set modulation to
      */
@@ -171,7 +174,7 @@ public interface RoadmService {
     /**
      * Get modulation for a port if the port has configurable modulation.
      *
-     * @param deviceId DeviceId of the device to configure
+     * @param deviceId   DeviceId of the device to configure
      * @param portNumber PortNumber of the port to configure
      * @return modulation scheme
      */
@@ -181,43 +184,52 @@ public interface RoadmService {
      * Creates a new internal connection on a device without attenuation. This does
      * not check that the connection is actually valid (e.g. an input port to an
      * output port).
-     *
+     * <p>
      * Connections are represented as flows with an input port, output port, and
      * channel.
      *
-     * @param deviceId DeviceId of the device to create this connection for
-     * @param priority priority of the flow
+     * @param deviceId    DeviceId of the device to create this connection for
+     * @param priority    priority of the flow
      * @param isPermanent permanence of the flow
-     * @param timeout timeout in seconds
-     * @param inPort input port
-     * @param outPort output port
-     * @param ochSignal channel to use
+     * @param timeout     timeout in seconds
+     * @param inPort      input port
+     * @param outPort     output port
+     * @param ochSignal   channel to use
      * @return FlowId of the FlowRule representing the connection
      */
     FlowId createConnection(DeviceId deviceId, int priority, boolean isPermanent,
-                          int timeout, PortNumber inPort, PortNumber outPort, OchSignal ochSignal);
+                            int timeout, PortNumber inPort, PortNumber outPort, OchSignal ochSignal);
 
     /**
      * Creates a new internal connection on a device with attenuation. This does
      * not check that the connection is actually valid (e.g. an input port to an
      * output port, attenuation if within the acceptable range).
-     *
+     * <p>
      * Connections are represented as flows with an input port, output port, and
      * channel. Implementation of attenuation is up to the vendor.
      *
-     * @param deviceId DeviceId of the device to create this connection for
-     * @param priority priority of the flow
+     * @param deviceId    DeviceId of the device to create this connection for
+     * @param priority    priority of the flow
      * @param isPermanent permanence of the flow
-     * @param timeout timeout in seconds
-     * @param inPort input port
-     * @param outPort output port
-     * @param ochSignal channel to use
+     * @param timeout     timeout in seconds
+     * @param inPort      input port
+     * @param outPort     output port
+     * @param ochSignal   channel to use
      * @param attenuation attenuation of the connection
      * @return FlowId of the FlowRule representing the connection
      */
     FlowId createConnection(DeviceId deviceId, int priority, boolean isPermanent,
-                          int timeout, PortNumber inPort, PortNumber outPort,
-                          OchSignal ochSignal, Double attenuation);
+                            int timeout, PortNumber inPort, PortNumber outPort,
+                            OchSignal ochSignal, Double attenuation);
+
+    /**
+     * Get wavelength for a port if the port has configurable modulation.
+     *
+     * @param deviceId   DeviceId of the device to configure
+     * @param portNumber PortNumber of the port to configure
+     * @return the frequency
+     */
+    Frequency getWavelength(DeviceId deviceId, PortNumber portNumber);
 
     /**
      * Removes an internal connection from a device by matching the FlowId and
@@ -225,14 +237,14 @@ public interface RoadmService {
      * from any device so FlowId should correspond with a connection flow.
      *
      * @param deviceId DeviceId of the device to remove the connection from
-     * @param flowId FlowId of the flow representing the connection to remove
+     * @param flowId   FlowId of the flow representing the connection to remove
      */
     void removeConnection(DeviceId deviceId, FlowId flowId);
 
     /**
      * Returns true if the target power for this port can be configured.
      *
-     * @param deviceId DeviceId of the device
+     * @param deviceId   DeviceId of the device
      * @param portNumber PortNumber of the port to check
      * @return true if the target power for this port can be configured, false
      * otherwise
@@ -244,9 +256,9 @@ public interface RoadmService {
      * Returns false if the port does not have a configurable target
      * power.
      *
-     * @param deviceId DeviceId of the device to check
+     * @param deviceId   DeviceId of the device to check
      * @param portNumber PortNumber of the port to check
-     * @param power value to check
+     * @param power      value to check
      * @return true if value is within the acceptable target power range, false
      * otherwise
      */
@@ -258,9 +270,9 @@ public interface RoadmService {
      * attenuation. The attenuation range is determined by either the input
      * or output port of the connection.
      *
-     * @param deviceId DeviceId of the device to check
+     * @param deviceId   DeviceId of the device to check
      * @param portNumber PortNumber of either the input or output port of the connection
-     * @param att value to check
+     * @param att        value to check
      * @return true if value is within the acceptable attenuation range, false
      * otherwise
      */
@@ -269,7 +281,7 @@ public interface RoadmService {
     /**
      * Returns true if the port is an input port.
      *
-     * @param deviceId DeviceId of the device to check
+     * @param deviceId   DeviceId of the device to check
      * @param portNumber PortNumber of the port to check
      * @return true if the port is an input port, false otherwise
      */
@@ -278,7 +290,7 @@ public interface RoadmService {
     /**
      * Returns true if the port is an output port.
      *
-     * @param deviceId DeviceId of the device to check
+     * @param deviceId   DeviceId of the device to check
      * @param portNumber PortNumber of the port to check
      * @return true if the port is an output port, false otherwise
      */
@@ -288,9 +300,9 @@ public interface RoadmService {
      * Returns true if the channel is supported by the port. The port can be either
      * an input or output port.
      *
-     * @param deviceId DeviceId of the device to check
+     * @param deviceId   DeviceId of the device to check
      * @param portNumber PortNumber of the port to check
-     * @param ochSignal channel to check
+     * @param ochSignal  channel to check
      * @return true if the channel is supported by the port, false otherwise
      */
     boolean validChannel(DeviceId deviceId, PortNumber portNumber, OchSignal ochSignal);
@@ -299,7 +311,7 @@ public interface RoadmService {
      * Returns true if the channel is not being used by a connection on the
      * device.
      *
-     * @param deviceId DeviceId of the device to check
+     * @param deviceId  DeviceId of the device to check
      * @param ochSignal channel to check
      * @return true if the channel is not in use, false otherwise
      */
@@ -311,8 +323,8 @@ public interface RoadmService {
      * respectively, valid input and output ports.
      *
      * @param deviceId DeviceId of the device to check
-     * @param inPort input port of the connection
-     * @param outPort output port of the connection
+     * @param inPort   input port of the connection
+     * @param outPort  output port of the connection
      * @return true if the connection is valid, false otherwise
      */
     boolean validConnection(DeviceId deviceId, PortNumber inPort, PortNumber outPort);
@@ -320,7 +332,7 @@ public interface RoadmService {
     /**
      * Returns the acceptable target port power range for a port.
      *
-     * @param deviceId DeviceId of the device
+     * @param deviceId   DeviceId of the device
      * @param portNumber PortNumber of the port
      * @return range if found, null otherwise
      */
@@ -329,9 +341,9 @@ public interface RoadmService {
     /**
      * Returns the acceptable attenuation range for a connection.
      *
-     * @param deviceId DeviceId of the device
+     * @param deviceId   DeviceId of the device
      * @param portNumber PortNumber of either the input or output port
-     * @param ochSignal channel to check
+     * @param ochSignal  channel to check
      * @return range if found, null otherwise
      */
     Range<Double> attenuationRange(DeviceId deviceId, PortNumber portNumber, OchSignal ochSignal);
@@ -339,7 +351,7 @@ public interface RoadmService {
     /**
      * Returns the expected input power range for an input port.
      *
-     * @param deviceId DeviceId of the device
+     * @param deviceId   DeviceId of the device
      * @param portNumber PortNumber of an input port
      * @return range if found, null otherwise
      */

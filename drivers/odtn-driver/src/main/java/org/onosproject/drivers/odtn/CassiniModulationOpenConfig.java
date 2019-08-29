@@ -17,6 +17,7 @@
  */
 package org.onosproject.drivers.odtn;
 
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
@@ -36,6 +37,7 @@ import org.onosproject.netconf.NetconfSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.StringWriter;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -84,7 +86,6 @@ public class CassiniModulationOpenConfig<T> extends AbstractHandlerBehaviour imp
 
 
     private NetconfSession getNetconfSession(DeviceId deviceId) {
-        log.info("Inside getNetconfSession () method for device : {}", deviceId);
         NetconfController controller = handler().get(NetconfController.class);
         NetconfDevice ncdev = controller.getDevicesMap().get(deviceId);
         if (ncdev == null) {
@@ -116,10 +117,30 @@ public class CassiniModulationOpenConfig<T> extends AbstractHandlerBehaviour imp
 
     private XMLConfiguration executeRpc(NetconfSession session, String message) {
         try {
+            if (log.isDebugEnabled()) {
+                try {
+                    StringWriter stringWriter = new StringWriter();
+                    XMLConfiguration xconf = (XMLConfiguration) XmlConfigParser.loadXmlString(message);
+                    xconf.setExpressionEngine(new XPathExpressionEngine());
+                    xconf.save(stringWriter);
+                    log.debug("Request {}", stringWriter.toString());
+                } catch (ConfigurationException e) {
+                    log.error("XML Config Exception ", e);
+                }
+            }
             CompletableFuture<String> fut = session.rpc(message);
             String rpcReply = fut.get();
             XMLConfiguration xconf = (XMLConfiguration) XmlConfigParser.loadXmlString(rpcReply);
             xconf.setExpressionEngine(new XPathExpressionEngine());
+            if (log.isDebugEnabled()) {
+                try {
+                    StringWriter stringWriter = new StringWriter();
+                    xconf.save(stringWriter);
+                    log.debug("Response {}", stringWriter.toString());
+                } catch (ConfigurationException e) {
+                    log.error("XML Config Exception ", e);
+                }
+            }
             return xconf;
         } catch (NetconfException ne) {
             log.error("Exception on Netconf protocol: {}.", ne);
@@ -178,7 +199,6 @@ public class CassiniModulationOpenConfig<T> extends AbstractHandlerBehaviour imp
         }
 
         state.cassini = this;
-        log.info("Setting the state with clsName :{} ", clsName);
     }
 
     /*
