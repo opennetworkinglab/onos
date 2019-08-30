@@ -328,7 +328,7 @@ public class RoadmManager implements RoadmService {
         if (device.is(ModulationConfig.class)) {
             ModulationConfig<Object> modulationConfig = device.as(ModulationConfig.class);
             long bitRate = 0;
-            if (modulation.equals(ModulationScheme.DP_QPSK.name())) {
+            if (modulation.equalsIgnoreCase(ModulationScheme.DP_QPSK.name())) {
                 bitRate = 100;
             } else {
                 bitRate = 200;
