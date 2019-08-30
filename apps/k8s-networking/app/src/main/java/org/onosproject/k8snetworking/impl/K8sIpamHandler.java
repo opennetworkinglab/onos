@@ -43,7 +43,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
-import static java.lang.Thread.sleep;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.k8snetworking.api.Constants.K8S_NETWORKING_APP_ID;
@@ -60,9 +59,6 @@ public class K8sIpamHandler {
 
     private static final String IP_ADDRESS = "ipAddress";
     private static final String NETWORK_ID = "networkId";
-
-    private static final int RETRY_NUM = 5;
-    private static final int RETRY_DELAY_MS = 3000;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -142,7 +138,25 @@ public class K8sIpamHandler {
             }
 
             Set<IpAddress> ips = getSubnetIps(event.subject().cidr());
-            k8sIpamAdminService.initializeIpPool(event.subject().networkId(), ips);
+            String networkId = event.subject().networkId();
+            k8sIpamAdminService.initializeIpPool(networkId, ips);
+
+            k8sPodService.pods().stream()
+                    .filter(p -> p.getStatus().getPodIP() != null)
+                    .filter(p -> p.getMetadata().getAnnotations() != null)
+                    .filter(p -> networkId.equals(p.getMetadata()
+                                 .getAnnotations().get(NETWORK_ID)))
+                    .forEach(p -> {
+                        String podIp = p.getStatus().getPodIP();
+
+                        // if the POD with valid IP address has not yet been
+                        // added into IPAM IP pool, we will reserve that IP address
+                        // for the POD
+                        if (!k8sIpamAdminService.allocatedIps(networkId)
+                                .contains(IpAddress.valueOf(podIp))) {
+                            k8sIpamAdminService.reserveIp(networkId, IpAddress.valueOf(podIp));
+                        }
+                    });
         }
 
         private void processNetworkRemoval(K8sNetworkEvent event) {
@@ -201,15 +215,11 @@ public class K8sIpamHandler {
 
             k8sIpamAdminService.availableIps(annotNetwork);
 
-            int cnt = 0;
-            while ((RETRY_NUM - cnt > 0) && !containIp(annotIp, annotNetwork)) {
-                try {
-                    sleep(RETRY_DELAY_MS);
-                } catch (InterruptedException e) {
-                    log.error("Exception caused during checking available IP addresses");
-                }
-
-                cnt++;
+            // if the kubernetes network has been initialized, we may have
+            // empty available IP pool, in this case, we will postpone IP reserve
+            // process until finishing kubernetes network initialization
+            if (!containIp(annotIp, annotNetwork)) {
+                return;
             }
 
             k8sIpamAdminService.reserveIp(annotNetwork, IpAddress.valueOf(podIp));

@@ -90,7 +90,6 @@ import java.util.stream.Collectors;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.k8snetworking.api.Constants.ACL_TABLE;
-import static org.onosproject.k8snetworking.api.Constants.NAMESPACE_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.A_CLASS;
 import static org.onosproject.k8snetworking.api.Constants.B_CLASS;
 import static org.onosproject.k8snetworking.api.Constants.DEFAULT_SERVICE_IP_CIDR;
@@ -98,6 +97,7 @@ import static org.onosproject.k8snetworking.api.Constants.DEFAULT_SERVICE_IP_NAT
 import static org.onosproject.k8snetworking.api.Constants.DST;
 import static org.onosproject.k8snetworking.api.Constants.GROUPING_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.K8S_NETWORKING_APP_ID;
+import static org.onosproject.k8snetworking.api.Constants.NAMESPACE_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.NAT_STATEFUL;
 import static org.onosproject.k8snetworking.api.Constants.NAT_STATELESS;
 import static org.onosproject.k8snetworking.api.Constants.NAT_TABLE;
@@ -392,6 +392,10 @@ public class K8sServiceHandler {
                                 }
                             }
 
+                            if (targetPortInt == 0) {
+                                continue;
+                            }
+
                             for (EndpointPort endpointPort : endpointSubset.getPorts()) {
                                 if (targetProtocol.equals(endpointPort.getProtocol()) &&
                                         (targetPortInt.equals(endpointPort.getPort()) ||
@@ -420,12 +424,17 @@ public class K8sServiceHandler {
                 List<GroupBucket> bkts = Lists.newArrayList();
 
                 for (String ip : epas) {
+                    GroupBucket bkt = buildBuckets(node.intgBridge(),
+                            nodeIpGatewayIpMap.getOrDefault(ip, ip), sp);
+
+                    if (bkt == null) {
+                        continue;
+                    }
+
                     if (install) {
-                        bkts.add(buildBuckets(node.intgBridge(),
-                                nodeIpGatewayIpMap.getOrDefault(ip, ip), sp));
+                        bkts.add(bkt);
                     } else {
-                        bkts.add(buildBuckets(node.intgBridge(),
-                                nodeIpGatewayIpMap.getOrDefault(ip, ip), sp));
+                        bkts.remove(bkt);
                     }
                 }
 
@@ -456,10 +465,12 @@ public class K8sServiceHandler {
                             targetPort = sp.getTargetPort().getIntVal();
                         }
 
-                        setUnshiftDomainRules(node.intgBridge(), POD_TABLE,
-                                PRIORITY_NAT_RULE, serviceIp, sp.getPort(),
-                                sp.getProtocol(), podIp,
-                                targetPort, install);
+                        if (targetPort != 0) {
+                            setUnshiftDomainRules(node.intgBridge(), POD_TABLE,
+                                    PRIORITY_NAT_RULE, serviceIp, sp.getPort(),
+                                    sp.getProtocol(), podIp,
+                                    targetPort, install);
+                        }
                     })
             );
         }
@@ -477,6 +488,10 @@ public class K8sServiceHandler {
             targetPort = sp.getTargetPort().getIntVal();
         }
 
+        if (targetPort == 0) {
+            return null;
+        }
+
         if (TCP.equals(sp.getProtocol())) {
             tBuilder.setTcpDst(TpPort.tpPort(targetPort));
         } else if (UDP.equals(sp.getProtocol())) {
@@ -487,6 +502,7 @@ public class K8sServiceHandler {
                 deviceService.getDevice(deviceId), ACL_TABLE);
         tBuilder.extension(resubmitTreatment, deviceId);
 
+        // TODO: need to adjust group bucket weight by considering POD locality
         return buildGroupBucket(tBuilder.build(), SELECT, (short) -1);
     }
 
