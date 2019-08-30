@@ -492,6 +492,11 @@ public final class K8sNetworkingUtil {
      *         return 0 if there is no port number mapped with the given port name
      */
     public static int portNumberByName(Pod pod, String portName) {
+
+        if (pod == null || pod.getSpec() == null) {
+            return 0;
+        }
+
         for (Container container : pod.getSpec().getContainers()) {
             for (ContainerPort cp : container.getPorts()) {
                 if (cp.getName() != null && cp.getName().equals(portName)) {
