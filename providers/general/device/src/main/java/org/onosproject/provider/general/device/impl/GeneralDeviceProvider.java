@@ -966,7 +966,7 @@ public class GeneralDeviceProvider extends AbstractProvider
 
         @Override
         public boolean isRelevant(DeviceEvent event) {
-            return DeviceEvent.Type.DEVICE_REMOVED == event.type();
+            return DeviceEvent.Type.DEVICE_REMOVED == event.type() && myScheme(event.subject().id());
         }
     }
 }
