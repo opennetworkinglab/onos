@@ -42,15 +42,17 @@ import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.basics.BasicDeviceConfig;
 import org.onosproject.net.device.DefaultDeviceDescription;
+import org.onosproject.net.device.DeviceAdminService;
 import org.onosproject.net.device.DeviceAgentEvent;
 import org.onosproject.net.device.DeviceAgentListener;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceDescriptionDiscovery;
+import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceHandshaker;
+import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceProvider;
 import org.onosproject.net.device.DeviceProviderRegistry;
 import org.onosproject.net.device.DeviceProviderService;
-import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.driver.Behaviour;
 import org.onosproject.net.driver.DefaultDriverData;
@@ -135,7 +137,7 @@ public class GeneralDeviceProvider extends AbstractProvider
     private CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    private DeviceService deviceService;
+    private DeviceAdminService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private DriverService driverService;
@@ -177,6 +179,7 @@ public class GeneralDeviceProvider extends AbstractProvider
     private final InternalPipeconfWatchdogListener pipeconfWatchdogListener = new InternalPipeconfWatchdogListener();
     private final NetworkConfigListener cfgListener = new InternalNetworkConfigListener();
     private final DeviceAgentListener deviceAgentListener = new InternalDeviceAgentListener();
+    private final DeviceListener deviceListener = new InternalDeviceListener();
 
     private ExecutorService mainExecutor;
     private DeviceTaskExecutor<TaskType> taskExecutor;
@@ -201,6 +204,7 @@ public class GeneralDeviceProvider extends AbstractProvider
         componentConfigService.registerProperties(getClass());
         coreService.registerApplication(APP_NAME);
         cfgService.addListener(cfgListener);
+        deviceService.addListener(deviceListener);
         pipeconfWatchdogService.addListener(pipeconfWatchdogListener);
         gnmiDeviceStateSubscriber = new GnmiDeviceStateSubscriber(
                 gnmiController, deviceService, mastershipService, providerService);
@@ -241,6 +245,8 @@ public class GeneralDeviceProvider extends AbstractProvider
 
     @Deactivate
     public void deactivate() {
+        deviceService.removeListener(deviceListener);
+
         // Shutdown stats poller.
         statsPoller.deactivate();
         statsPoller = null;
@@ -949,5 +955,18 @@ public class GeneralDeviceProvider extends AbstractProvider
 
     private boolean isPipelineProgrammable(DeviceId deviceId) {
         return hasBehaviour(deviceId, PiPipelineProgrammable.class);
+    }
+
+    private class InternalDeviceListener implements DeviceListener {
+        @Override
+        public void event(DeviceEvent event) {
+            log.info("Triggering disconnect for device {}", event.subject().id());
+            triggerDisconnect(event.subject().id());
+        }
+
+        @Override
+        public boolean isRelevant(DeviceEvent event) {
+            return DeviceEvent.Type.DEVICE_REMOVED == event.type();
+        }
     }
 }
