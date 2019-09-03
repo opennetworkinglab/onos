@@ -516,7 +516,7 @@ public class SimpleGroupStore
                 }
                 getPendingGroupKeyTable(deviceId).clear();
             } else {
-                if (deviceAuditStatus.get(deviceId)) {
+               if (deviceAuditStatus.getOrDefault(deviceId, false)) {
                     log.debug("deviceInitialAuditCompleted: Clearing AUDIT "
                             + "status for device {}", deviceId);
                     deviceAuditStatus.put(deviceId, false);
