@@ -187,6 +187,7 @@ public final class OpenstackNetworkingUtil {
     private static final int SSH_PORT = 22;
 
     private static final int TAP_PORT_LENGTH = 11;
+    private static final int PORT_NAME_MAX_LENGTH = 15;
 
     /**
      * Prevents object instantiation from external.
@@ -1305,6 +1306,23 @@ public final class OpenstackNetworkingUtil {
         ethernet.setPayload(arp);
 
         return ethernet;
+    }
+
+    /**
+     * Re-structures the OVS port name.
+     * The length of OVS port name should be not large than 15.
+     *
+     * @param portName  original port name
+     * @return re-structured OVS port name
+     */
+    public static String structurePortName(String portName) {
+
+        // The size of OVS port name should not be larger than 15
+        if (portName.length() > PORT_NAME_MAX_LENGTH) {
+            return StringUtils.substring(portName, 0, PORT_NAME_MAX_LENGTH);
+        }
+
+        return portName;
     }
 
     /**
