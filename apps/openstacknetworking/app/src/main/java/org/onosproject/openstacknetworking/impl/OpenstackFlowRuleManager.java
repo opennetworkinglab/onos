@@ -24,6 +24,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
+import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultFlowRule;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -59,6 +60,8 @@ import static org.onosproject.openstacknetworking.api.Constants.DHCP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FLAT_JUMP_UPSTREAM_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.STAT_FLAT_OUTBOUND_TABLE;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.structurePortName;
+import static org.onosproject.openstacknode.api.Constants.INTEGRATION_TO_PHYSICAL_PREFIX;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -255,50 +258,44 @@ public class OpenstackFlowRuleManager implements OpenstackFlowRuleService {
         osNodeService.node(deviceId)
                      .phyIntfs()
                      .forEach(phyInterface ->
-                             setFlatJumpRulesForPhyIntf(deviceId, phyInterface));
+                             setFlatJumpRulesForPatchPort(deviceId, phyInterface));
     }
 
-    private void setFlatJumpRulesForPhyIntf(DeviceId deviceId,
-                                            OpenstackPhyInterface phyInterface) {
-        Optional<Port> phyPort = deviceService.getPorts(deviceId).stream()
-                .filter(port ->
-                        Objects.equals(port.annotations().value(PORT_NAME), phyInterface.intf()))
+    private void setFlatJumpRuleForPatchPort(DeviceId deviceId,
+                                           PortNumber portNumber, short ethType) {
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        selector.matchInPort(portNumber)
+                .matchEthType(ethType);
+
+        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+        treatment.transition(STAT_FLAT_OUTBOUND_TABLE);
+        FlowRule flowRuleForIp = DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .withSelector(selector.build())
+                .withTreatment(treatment.build())
+                .withPriority(PRIORITY_FLAT_JUMP_UPSTREAM_RULE)
+                .fromApp(appId)
+                .makePermanent()
+                .forTable(DHCP_TABLE)
+                .build();
+
+        applyRule(flowRuleForIp, true);
+    }
+
+    private void setFlatJumpRulesForPatchPort(DeviceId deviceId,
+                                              OpenstackPhyInterface phyIntf) {
+        Optional<Port> patchPort = deviceService.getPorts(deviceId).stream()
+                .filter(port -> {
+                    String annotPortName = port.annotations().value(PORT_NAME);
+                    String portName = structurePortName(
+                            INTEGRATION_TO_PHYSICAL_PREFIX + phyIntf.network());
+                    return Objects.equals(annotPortName, portName);
+                })
                 .findAny();
 
-        phyPort.ifPresent(port -> {
-            TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-            selector.matchInPort(port.number())
-                    .matchEthType(Ethernet.TYPE_IPV4);
-
-            TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-            treatment.transition(STAT_FLAT_OUTBOUND_TABLE);
-            FlowRule flowRuleForIp = DefaultFlowRule.builder()
-                    .forDevice(deviceId)
-                    .withSelector(selector.build())
-                    .withTreatment(treatment.build())
-                    .withPriority(PRIORITY_FLAT_JUMP_UPSTREAM_RULE)
-                    .fromApp(appId)
-                    .makePermanent()
-                    .forTable(DHCP_TABLE)
-                    .build();
-
-            applyRule(flowRuleForIp, true);
-
-            selector = DefaultTrafficSelector.builder();
-            selector.matchInPort(port.number())
-                    .matchEthType(Ethernet.TYPE_ARP);
-
-            FlowRule flowRuleForArp = DefaultFlowRule.builder()
-                    .forDevice(deviceId)
-                    .withSelector(selector.build())
-                    .withTreatment(treatment.build())
-                    .withPriority(PRIORITY_FLAT_JUMP_UPSTREAM_RULE)
-                    .fromApp(appId)
-                    .makePermanent()
-                    .forTable(DHCP_TABLE)
-                    .build();
-
-            applyRule(flowRuleForArp, true);
+        patchPort.ifPresent(port -> {
+            setFlatJumpRuleForPatchPort(deviceId, port.number(), Ethernet.TYPE_IPV4);
+            setFlatJumpRuleForPatchPort(deviceId, port.number(), Ethernet.TYPE_ARP);
         });
     }
 

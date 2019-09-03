@@ -30,10 +30,13 @@ import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.behaviour.BridgeConfig;
 import org.onosproject.net.behaviour.BridgeDescription;
+import org.onosproject.net.behaviour.BridgeName;
 import org.onosproject.net.behaviour.ControllerInfo;
 import org.onosproject.net.behaviour.DefaultBridgeDescription;
+import org.onosproject.net.behaviour.DefaultPatchDescription;
 import org.onosproject.net.behaviour.DefaultTunnelDescription;
 import org.onosproject.net.behaviour.InterfaceConfig;
+import org.onosproject.net.behaviour.PatchDescription;
 import org.onosproject.net.behaviour.TunnelDescription;
 import org.onosproject.net.behaviour.TunnelEndPoints;
 import org.onosproject.net.behaviour.TunnelKeys;
@@ -79,11 +82,14 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.packet.TpPort.tpPort;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
+import static org.onosproject.openstacknode.api.Constants.BRIDGE_PREFIX;
 import static org.onosproject.openstacknode.api.Constants.GENEVE;
 import static org.onosproject.openstacknode.api.Constants.GENEVE_TUNNEL;
 import static org.onosproject.openstacknode.api.Constants.GRE;
 import static org.onosproject.openstacknode.api.Constants.GRE_TUNNEL;
 import static org.onosproject.openstacknode.api.Constants.INTEGRATION_BRIDGE;
+import static org.onosproject.openstacknode.api.Constants.INTEGRATION_TO_PHYSICAL_PREFIX;
+import static org.onosproject.openstacknode.api.Constants.PHYSICAL_TO_INTEGRATION_SUFFIX;
 import static org.onosproject.openstacknode.api.Constants.TUNNEL_BRIDGE;
 import static org.onosproject.openstacknode.api.Constants.VXLAN;
 import static org.onosproject.openstacknode.api.Constants.VXLAN_TUNNEL;
@@ -105,6 +111,7 @@ import static org.onosproject.openstacknode.util.OpenstackNodeUtil.getBooleanPro
 import static org.onosproject.openstacknode.util.OpenstackNodeUtil.getConnectedClient;
 import static org.onosproject.openstacknode.util.OpenstackNodeUtil.getOvsdbClient;
 import static org.onosproject.openstacknode.util.OpenstackNodeUtil.isOvsdbConnected;
+import static org.onosproject.openstacknode.util.OpenstackNodeUtil.structurePortName;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -124,6 +131,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
     private static final String NO_OVSDB_CLIENT_MSG = "Failed to get ovsdb client";
     private static final int DEFAULT_OFPORT = 6653;
     private static final int DPID_BEGIN = 3;
+    private static final int NETWORK_BEGIN = 3;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
@@ -207,9 +215,11 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
             ovsdbController.connect(osNode.managementIp(), tpPort(ovsdbPortNum));
             return;
         }
+
         if (!deviceService.isAvailable(osNode.intgBridge())) {
             createBridge(osNode, INTEGRATION_BRIDGE, osNode.intgBridge());
         }
+
         if (hasDpdkTunnelBridge(osNode)) {
             createDpdkTunnelBridge(osNode);
         }
@@ -255,12 +265,11 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                                 osNode, dpdkintf, ovsdbPortNum, ovsdbController, true));
             }
 
-            osNode.phyIntfs().forEach(i -> {
-                if (!isIntfEnabled(osNode, i.intf())) {
-                    addOrRemoveSystemInterface(osNode, INTEGRATION_BRIDGE,
-                            i.intf(), deviceService, true);
-                }
-            });
+            // provision new physical interfaces on the given node
+            // this includes creating physical bridge, attaching physical port
+            // to physical bridge, adding patch ports to both physical bridge and br-int
+
+            provisionPhysicalInterfaces(osNode);
 
             if (osNode.vlanIntf() != null &&
                     !isIntfEnabled(osNode, osNode.vlanIntf())) {
@@ -352,6 +361,149 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
 
         BridgeConfig bridgeConfig = device.as(BridgeConfig.class);
         bridgeConfig.addBridge(builder.build());
+    }
+
+    private void provisionPhysicalInterfaces(OpenstackNode osNode) {
+        osNode.phyIntfs().forEach(pi -> {
+            String bridgeName = BRIDGE_PREFIX + pi.network();
+            String patchPortName =
+                    structurePortName(INTEGRATION_TO_PHYSICAL_PREFIX + pi.network());
+
+            if (!hasPhyBridge(osNode, bridgeName)) {
+                createPhysicalBridge(osNode, pi);
+                createPhysicalPatchPorts(osNode, pi);
+                attachPhysicalPort(osNode, pi);
+            } else {
+                // in case physical bridge exists, but patch port is missing on br-int,
+                // we will add patch port to connect br-int with physical bridge
+                if (!hasPhyPatchPort(osNode, patchPortName)) {
+                    createPhysicalPatchPorts(osNode, pi);
+                }
+            }
+        });
+    }
+
+    private void cleanPhysicalInterfaces(OpenstackNode osNode) {
+        Device device = deviceService.getDevice(osNode.ovsdb());
+
+        BridgeConfig bridgeConfig = device.as(BridgeConfig.class);
+
+        Set<String> bridgeNames = bridgeConfig.getBridges().stream()
+                .map(BridgeDescription::name).collect(Collectors.toSet());
+
+        Set<String> phyNetworkNames = osNode.phyIntfs().stream()
+                .map(pi -> BRIDGE_PREFIX + pi.network()).collect(Collectors.toSet());
+
+        // we remove existing physical bridges and patch ports, if the physical
+        // bridges are not defined in openstack node
+        bridgeNames.forEach(brName -> {
+            if (!phyNetworkNames.contains(brName) && !brName.equals(INTEGRATION_BRIDGE)) {
+                removePhysicalPatchPorts(osNode, brName.substring(NETWORK_BEGIN));
+                removePhysicalBridge(osNode, brName.substring(NETWORK_BEGIN));
+            }
+        });
+    }
+
+    private void unprovisionPhysicalInterfaces(OpenstackNode osNode) {
+        osNode.phyIntfs().forEach(pi -> {
+            detachPhysicalPort(osNode, pi.network(), pi.intf());
+            removePhysicalPatchPorts(osNode, pi.network());
+            removePhysicalBridge(osNode, pi.network());
+        });
+    }
+
+    private void createPhysicalBridge(OpenstackNode osNode,
+                                      OpenstackPhyInterface phyInterface) {
+        Device device = deviceService.getDevice(osNode.ovsdb());
+
+        String bridgeName = BRIDGE_PREFIX + phyInterface.network();
+
+        BridgeDescription.Builder builder = DefaultBridgeDescription.builder()
+                .name(bridgeName);
+
+        BridgeConfig bridgeConfig = device.as(BridgeConfig.class);
+        bridgeConfig.addBridge(builder.build());
+    }
+
+    private void removePhysicalBridge(OpenstackNode osNode, String network) {
+        Device device = deviceService.getDevice(osNode.ovsdb());
+
+        BridgeName bridgeName = BridgeName.bridgeName(BRIDGE_PREFIX + network);
+
+        BridgeConfig bridgeConfig = device.as(BridgeConfig.class);
+        bridgeConfig.deleteBridge(bridgeName);
+    }
+
+    private void createPhysicalPatchPorts(OpenstackNode osNode,
+                                          OpenstackPhyInterface phyInterface) {
+        Device device = deviceService.getDevice(osNode.ovsdb());
+
+        if (device == null || !device.is(InterfaceConfig.class)) {
+            log.error("Failed to create patch interface on {}", osNode.ovsdb());
+            return;
+        }
+
+        String physicalDeviceId = BRIDGE_PREFIX + phyInterface.network();
+
+        String intToPhyPatchPort = structurePortName(
+                INTEGRATION_TO_PHYSICAL_PREFIX + phyInterface.network());
+        String phyToIntPatchPort = structurePortName(
+                phyInterface.network() + PHYSICAL_TO_INTEGRATION_SUFFIX);
+
+        // integration bridge -> physical bridge
+        PatchDescription intToPhyPatchDesc =
+                DefaultPatchDescription.builder()
+                        .deviceId(INTEGRATION_BRIDGE)
+                        .ifaceName(intToPhyPatchPort)
+                        .peer(phyToIntPatchPort)
+                        .build();
+
+        // physical bridge -> integration bridge
+        PatchDescription phyToIntPatchDesc =
+                DefaultPatchDescription.builder()
+                        .deviceId(physicalDeviceId)
+                        .ifaceName(phyToIntPatchPort)
+                        .peer(intToPhyPatchPort)
+                        .build();
+
+        InterfaceConfig ifaceConfig = device.as(InterfaceConfig.class);
+        ifaceConfig.addPatchMode(INTEGRATION_TO_PHYSICAL_PREFIX +
+                phyInterface.network(), intToPhyPatchDesc);
+        ifaceConfig.addPatchMode(phyInterface.network() +
+                PHYSICAL_TO_INTEGRATION_SUFFIX, phyToIntPatchDesc);
+
+        addOrRemoveSystemInterface(osNode, physicalDeviceId,
+                phyInterface.intf(), deviceService, true);
+    }
+
+    private void removePhysicalPatchPorts(OpenstackNode osNode, String network) {
+        Device device = deviceService.getDevice(osNode.ovsdb());
+
+        if (device == null || !device.is(InterfaceConfig.class)) {
+            log.error("Failed to remove patch interface on {}", osNode.ovsdb());
+            return;
+        }
+
+        String intToPhyPatchPort = structurePortName(
+                INTEGRATION_TO_PHYSICAL_PREFIX + network);
+
+        InterfaceConfig ifaceConfig = device.as(InterfaceConfig.class);
+        ifaceConfig.removePatchMode(intToPhyPatchPort);
+    }
+
+    private void attachPhysicalPort(OpenstackNode osNode,
+                                    OpenstackPhyInterface phyInterface) {
+
+        String physicalDeviceId = BRIDGE_PREFIX + phyInterface.network();
+
+        addOrRemoveSystemInterface(osNode, physicalDeviceId,
+                phyInterface.intf(), deviceService, true);
+    }
+
+    private void detachPhysicalPort(OpenstackNode osNode, String network, String portName) {
+        String physicalDeviceId = BRIDGE_PREFIX + network;
+
+        addOrRemoveSystemInterface(osNode, physicalDeviceId, portName, deviceService, false);
     }
 
     /**
@@ -454,6 +606,20 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                                 port.isEnabled());
     }
 
+    private boolean hasPhyBridge(OpenstackNode osNode, String bridgeName) {
+        BridgeConfig bridgeConfig = deviceService.getDevice(osNode.ovsdb()).as(BridgeConfig.class);
+        return bridgeConfig.getBridges().stream().anyMatch(br -> br.name().equals(bridgeName));
+    }
+
+    private boolean hasPhyPatchPort(OpenstackNode osNode, String patchPortName) {
+        List<Port> ports = deviceService.getPorts(osNode.intgBridge());
+        return ports.stream().anyMatch(p -> p.annotations().value(PORT_NAME).equals(patchPortName));
+    }
+
+    private boolean hasPhyIntf(OpenstackNode osNode, String intfName) {
+        BridgeConfig bridgeConfig = deviceService.getDevice(osNode.ovsdb()).as(BridgeConfig.class);
+        return bridgeConfig.getPorts().stream().anyMatch(p -> p.annotations().value(PORT_NAME).equals(intfName));
+    }
 
     private boolean initStateDone(OpenstackNode osNode) {
         if (!isOvsdbConnected(osNode, ovsdbPortNum, ovsdbController, deviceService)) {
@@ -464,6 +630,8 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
         if (hasDpdkTunnelBridge(osNode)) {
             initStateDone = initStateDone && dpdkTunnelBridgeCreated(osNode);
         }
+
+        cleanPhysicalInterfaces(osNode);
 
         return initStateDone;
     }
@@ -495,15 +663,24 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
             return false;
         }
 
-        for (OpenstackPhyInterface intf : osNode.phyIntfs()) {
-            if (intf != null && !isIntfEnabled(osNode, intf.intf())) {
+        for (OpenstackPhyInterface phyIntf : osNode.phyIntfs()) {
+            if (phyIntf == null) {
+                return false;
+            }
+
+            String bridgeName = BRIDGE_PREFIX + phyIntf.network();
+            String patchPortName = structurePortName(
+                    INTEGRATION_TO_PHYSICAL_PREFIX + phyIntf.network());
+
+            if (!(hasPhyBridge(osNode, bridgeName) &&
+                    hasPhyPatchPort(osNode, patchPortName) &&
+                    hasPhyIntf(osNode, phyIntf.intf()))) {
                 return false;
             }
         }
 
         return true;
     }
-
 
     /**
      * Checks whether all requirements for this state are fulfilled or not.
@@ -613,14 +790,6 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
 
             removeInterfaceOnIntegrationBridge(osNode, osNode.vlanIntf(), dpdkIntf);
         }
-    }
-
-    private void removePhysicalInterface(OpenstackNode osNode) {
-        osNode.phyIntfs().forEach(phyIntf -> {
-            Optional<DpdkInterface> dpdkIntf = dpdkInterfaceByIntfName(osNode, phyIntf.intf());
-
-            removeInterfaceOnIntegrationBridge(osNode, phyIntf.intf(), dpdkIntf);
-        });
     }
 
     private Optional<DpdkInterface> dpdkInterfaceByIntfName(OpenstackNode osNode,
@@ -836,7 +1005,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                             Objects.equals(portName, GENEVE_TUNNEL) ||
                             Objects.equals(portName, osNode.vlanIntf()) ||
                             Objects.equals(portName, osNode.uplinkPort()) ||
-                            containsPhyIntf(osNode, portName)) ||
+                            containsPatchPort(osNode, portName)) ||
                     containsDpdkIntfs(osNode, portName)) {
                 log.info("Interface {} added or updated to {}",
                         portName, osNode.intgBridge());
@@ -856,7 +1025,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                             Objects.equals(portName, GENEVE_TUNNEL) ||
                             Objects.equals(portName, osNode.vlanIntf()) ||
                             Objects.equals(portName, osNode.uplinkPort()) ||
-                            containsPhyIntf(osNode, portName)) ||
+                            containsPatchPort(osNode, portName)) ||
                     containsDpdkIntfs(osNode, portName)) {
                 log.warn("Interface {} removed from {}",
                         portName, osNode.intgBridge());
@@ -864,18 +1033,18 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
             }
         }
 
-
         /**
-         * Checks whether the openstack node contains the given physical interface.
+         * Checks whether the openstack node contains the given patch port.
          *
-         * @param osNode openstack node
-         * @param portName physical interface
-         * @return true if openstack node contains the given physical interface,
-         *          false otherwise
+         * @param osNode    openstack node
+         * @param portName  patch port name
+         * @return true if openstack node contains the given patch port,
+         *         false otherwise
          */
-        private boolean containsPhyIntf(OpenstackNode osNode, String portName) {
+        private boolean containsPatchPort(OpenstackNode osNode, String portName) {
             return osNode.phyIntfs().stream()
-                    .anyMatch(phyInterface -> phyInterface.intf().equals(portName));
+                    .anyMatch(pi -> structurePortName(INTEGRATION_TO_PHYSICAL_PREFIX
+                            + pi.network()).equals(portName));
         }
 
         /**
@@ -894,7 +1063,6 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                     .anyMatch(dpdkInterface -> dpdkInterface.intf().equals(portName));
         }
     }
-
 
     /**
      * An internal openstack node listener.
@@ -942,8 +1110,10 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                 return;
             }
 
-            //delete physical interfaces from the node
-            removePhysicalInterface(osNode);
+            // unprovision physical interfaces from the node
+            // this procedure includes detaching physical port from physical bridge,
+            // remove patch ports from br-int, removing physical bridge
+            unprovisionPhysicalInterfaces(osNode);
 
             //delete vlan interface from the node
             removeVlanInterface(osNode);

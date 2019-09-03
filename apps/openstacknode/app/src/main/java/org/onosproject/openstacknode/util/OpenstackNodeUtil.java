@@ -18,6 +18,7 @@ package org.onosproject.openstacknode.util;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.lang3.StringUtils;
 import org.onosproject.net.Device;
 import org.onosproject.net.behaviour.BridgeConfig;
 import org.onosproject.net.behaviour.BridgeName;
@@ -74,6 +75,8 @@ public final class OpenstackNodeUtil {
 
     private static final String DPDK_DEVARGS = "dpdk-devargs";
     private static final String NOT_AVAILABLE = "N/A";
+
+    private static final int PORT_NAME_MAX_LENGTH = 15;
 
     /**
      * Prevents object installation from external.
@@ -294,6 +297,23 @@ public final class OpenstackNodeUtil {
         } else {
             client.dropInterface(dpdkInterface.intf());
         }
+    }
+
+    /**
+     * Re-structures the OVS port name.
+     * The length of OVS port name should be not large than 15.
+     *
+     * @param portName  original port name
+     * @return re-structured OVS port name
+     */
+    public static String structurePortName(String portName) {
+
+        // The size of OVS port name should not be larger than 15
+        if (portName.length() > PORT_NAME_MAX_LENGTH) {
+            return StringUtils.substring(portName, 0, PORT_NAME_MAX_LENGTH);
+        }
+
+        return portName;
     }
 
     /**
