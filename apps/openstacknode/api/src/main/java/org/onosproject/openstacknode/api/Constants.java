@@ -40,6 +40,10 @@ public final class Constants {
     public static final String VLAN_INTF_NAME = "vlanPort";
     public static final String UPLINK_PORT = "uplinkPort";
 
+    public static final String BRIDGE_PREFIX = "br-";
+    public static final String INTEGRATION_TO_PHYSICAL_PREFIX = "int-to-";
+    public static final String PHYSICAL_TO_INTEGRATION_SUFFIX = "-to-int";
+
     public static final String FLAT = "flat";
     public static final String VLAN = "vlan";
     public static final String VXLAN = "vxlan";
