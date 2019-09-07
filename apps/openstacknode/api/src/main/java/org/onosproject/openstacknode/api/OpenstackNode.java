@@ -188,14 +188,6 @@ public interface OpenstackNode {
     Collection<OpenstackPhyInterface> phyIntfs();
 
     /**
-     * Returns the port number of given physical interface.
-     *
-     * @param providerPhysnet provider physical network name
-     * @return port number
-     */
-    PortNumber phyIntfPortNum(String providerPhysnet);
-
-    /**
      * Returns a collection of customized controllers.
      *
      * @return customized controllers
