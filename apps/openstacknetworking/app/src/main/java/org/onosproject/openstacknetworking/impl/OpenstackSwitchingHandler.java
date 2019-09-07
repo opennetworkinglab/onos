@@ -60,6 +60,7 @@ import java.util.concurrent.ExecutorService;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.onosproject.openstacknetworking.api.Constants.ACL_EGRESS_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.ARP_BROADCAST_MODE;
 import static org.onosproject.openstacknetworking.api.Constants.ARP_TABLE;
@@ -77,9 +78,11 @@ import static org.onosproject.openstacknetworking.api.Constants.STAT_FLAT_OUTBOU
 import static org.onosproject.openstacknetworking.api.Constants.VTAG_TABLE;
 import static org.onosproject.openstacknetworking.api.InstancePortEvent.Type.OPENSTACK_INSTANCE_MIGRATION_STARTED;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValue;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.structurePortName;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.swapStaleLocation;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.tunnelPortNumByNetId;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildExtension;
+import static org.onosproject.openstacknode.api.Constants.INTEGRATION_TO_PHYSICAL_PREFIX;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -158,42 +161,37 @@ public class OpenstackSwitchingHandler {
         log.info("Stopped");
     }
 
-    private void setFlatJumpRules(InstancePort port, boolean install) {
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        selector.matchInPort(port.portNumber());
+    private void setJumpRulesForFlat(InstancePort port, boolean install) {
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchInPort(port.portNumber())
+                .build();
 
-        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-        treatment.transition(STAT_FLAT_OUTBOUND_TABLE);
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .transition(STAT_FLAT_OUTBOUND_TABLE)
+                .build();
 
         osFlowRuleService.setRule(
                 appId,
                 port.deviceId(),
-                selector.build(),
-                treatment.build(),
+                selector,
+                treatment,
                 PRIORITY_FLAT_JUMP_UPSTREAM_RULE,
                 DHCP_TABLE,
                 install);
-
-        Network network = osNetworkService.network(port.networkId());
-
-        if (network == null) {
-            log.warn("The network does not exist");
-            return;
-        }
-        PortNumber portNumber = osNodeService.node(port.deviceId())
-                .phyIntfPortNum(network.getProviderPhyNet());
-
-        if (portNumber == null) {
-            log.warn("The port number does not exist");
-            return;
-        }
     }
 
-    private void setDownstreamRulesForFlat(InstancePort instPort, boolean install) {
-        TrafficSelector selector = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPDst(instPort.ipAddress().toIpPrefix())
-                .build();
+    private void setDownstreamRuleForFlat(InstancePort instPort,
+                                          short ethType, boolean install) {
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
+
+        if (ethType == Ethernet.TYPE_IPV4) {
+            sBuilder.matchEthType(Ethernet.TYPE_IPV4)
+                    .matchIPDst(instPort.ipAddress().toIpPrefix());
+        } else if (ethType == Ethernet.TYPE_ARP) {
+            sBuilder.matchEthType(Ethernet.TYPE_ARP)
+                    .matchArpTpa(instPort.ipAddress().getIp4Address());
+        }
+
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .setOutput(instPort.portNumber())
                 .build();
@@ -201,25 +199,16 @@ public class OpenstackSwitchingHandler {
         osFlowRuleService.setRule(
                 appId,
                 instPort.deviceId(),
-                selector,
+                sBuilder.build(),
                 treatment,
                 PRIORITY_FLAT_DOWNSTREAM_RULE,
                 FLAT_TABLE,
                 install);
+    }
 
-        selector = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_ARP)
-                .matchArpTpa(instPort.ipAddress().getIp4Address())
-                .build();
-
-        osFlowRuleService.setRule(
-                appId,
-                instPort.deviceId(),
-                selector,
-                treatment,
-                PRIORITY_FLAT_DOWNSTREAM_RULE,
-                FLAT_TABLE,
-                install);
+    private void setDownstreamRulesForFlat(InstancePort instPort, boolean install) {
+        setDownstreamRuleForFlat(instPort, Ethernet.TYPE_IPV4, install);
+        setDownstreamRuleForFlat(instPort, Ethernet.TYPE_ARP, install);
     }
 
     private void setUpstreamRulesForFlat(InstancePort instPort, boolean install) {
@@ -234,26 +223,27 @@ public class OpenstackSwitchingHandler {
             return;
         }
 
-        PortNumber portNumber = osNodeService.node(instPort.deviceId())
-                .phyIntfPortNum(network.getProviderPhyNet());
+        deviceService.getPorts(instPort.deviceId()).stream()
+                .filter(port -> {
+                    String annotPortName = port.annotations().value(PORT_NAME);
+                    String portName = structurePortName(INTEGRATION_TO_PHYSICAL_PREFIX
+                            + network.getProviderPhyNet());
+                    return Objects.equals(annotPortName, portName);
+                })
+                .findAny().ifPresent(port -> {
+                    TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                            .setOutput(port.number())
+                            .build();
 
-        if (portNumber == null) {
-            log.warn("The port number does not exist");
-            return;
-        }
-
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setOutput(portNumber)
-                .build();
-
-        osFlowRuleService.setRule(
-                appId,
-                instPort.deviceId(),
-                selector,
-                treatment,
-                PRIORITY_FLAT_UPSTREAM_RULE,
-                FLAT_TABLE,
-                install);
+                    osFlowRuleService.setRule(
+                            appId,
+                            instPort.deviceId(),
+                            selector,
+                            treatment,
+                            PRIORITY_FLAT_UPSTREAM_RULE,
+                            FLAT_TABLE,
+                            install);
+        });
     }
 
     /**
@@ -750,7 +740,7 @@ public class OpenstackSwitchingHandler {
         }
 
         private void setNetworkRulesForFlat(InstancePort instPort, boolean install) {
-            setFlatJumpRules(instPort, install);
+            setJumpRulesForFlat(instPort, install);
             setDownstreamRulesForFlat(instPort, install);
             setUpstreamRulesForFlat(instPort, install);
         }
@@ -798,7 +788,7 @@ public class OpenstackSwitchingHandler {
         }
 
         private void removeVportRulesForFlat(InstancePort instPort) {
-            setFlatJumpRules(instPort, false);
+            setJumpRulesForFlat(instPort, false);
             setUpstreamRulesForFlat(instPort, false);
             setDownstreamRulesForFlat(instPort, false);
         }

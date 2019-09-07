@@ -30,15 +30,14 @@ import org.onosproject.openstacknode.api.DpdkConfig.DatapathType;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Objects;
-import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.onosproject.net.AnnotationKeys.PORT_MAC;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.onosproject.openstacknode.api.Constants.GENEVE_TUNNEL;
 import static org.onosproject.openstacknode.api.Constants.GRE_TUNNEL;
-import static org.onosproject.openstacknode.api.Constants.VXLAN_TUNNEL;
 import static org.onosproject.openstacknode.api.Constants.PATCH_INTG_BRIDGE;
+import static org.onosproject.openstacknode.api.Constants.VXLAN_TUNNEL;
 
 /**
  * Representation of a openstack node.
@@ -393,25 +392,6 @@ public class DefaultOpenstackNode implements OpenstackNode {
     @Override
     public NeutronConfig neutronConfig() {
         return neutronConfig;
-    }
-
-    @Override
-    public PortNumber phyIntfPortNum(String providerPhysnet) {
-        Optional<OpenstackPhyInterface> openstackPhyInterface =
-                phyIntfs.stream().filter(p -> p.network().equals(providerPhysnet)).findAny();
-
-        if (openstackPhyInterface.isPresent()) {
-            DeviceService deviceService = DefaultServiceDirectory.getService(DeviceService.class);
-            Port port = deviceService.getPorts(intgBridge).stream()
-                    .filter(p -> p.isEnabled() &&
-                            Objects.equals(p.annotations().value(PORT_NAME), openstackPhyInterface.get().intf()))
-                    .findAny().orElse(null);
-
-            return port != null ? port.number() : null;
-        } else {
-            return null;
-        }
-
     }
 
     /**
