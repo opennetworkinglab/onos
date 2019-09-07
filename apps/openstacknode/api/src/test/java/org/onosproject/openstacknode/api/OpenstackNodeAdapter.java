@@ -134,11 +134,6 @@ public class OpenstackNodeAdapter implements OpenstackNode {
     }
 
     @Override
-    public PortNumber phyIntfPortNum(String providerPhysnet) {
-        return null;
-    }
-
-    @Override
     public Collection<ControllerInfo> controllers() {
         return null;
     }
