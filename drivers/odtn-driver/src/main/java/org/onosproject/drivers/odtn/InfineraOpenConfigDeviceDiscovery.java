@@ -18,15 +18,6 @@ package org.onosproject.drivers.odtn;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.CharSource;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
@@ -49,6 +40,16 @@ import org.onosproject.netconf.NetconfSession;
 import org.onosproject.odtn.behaviour.OdtnDeviceDescriptionDiscovery;
 import org.slf4j.Logger;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -64,8 +65,9 @@ public class InfineraOpenConfigDeviceDiscovery
     @Override
     public DeviceDescription discoverDeviceDetails() {
         return new DefaultDeviceDescription(handler().data().deviceId().uri(),
-                Device.Type.TERMINAL_DEVICE, "Infinera", "XT-3300",
-                "unknown", "unknown", new ChassisId());
+                                            Device.Type.TERMINAL_DEVICE, "Infinera",
+                                            "XT-3300", "unknown",
+                                            "unknown", new ChassisId());
     }
 
     @Override
@@ -132,8 +134,8 @@ public class InfineraOpenConfigDeviceDiscovery
             return toPortDescriptionInternal(component);
         } catch (Exception e) {
             log.error("Unexpected exception parsing component {} on {}",
-                    component.getString("name"),
-                    data().deviceId(), e);
+                      component.getString("name"),
+                      data().deviceId(), e);
             return null;
         }
     }
