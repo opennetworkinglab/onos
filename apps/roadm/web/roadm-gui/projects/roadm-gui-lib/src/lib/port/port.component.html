@@ -73,9 +73,9 @@
                     <td colId="currentFreq">CURRENT FREQ (THz)</td>
                     <td colId="modulation">MODULATION</td>
                     <td colId="powerRange">POWER RANGE (dBm)</td>
-                    <td colId="currentPower">CURRENT POWER (dBm)</td>
+                    <td colId="currentPower">CURRENT OUTPUT POWER (dBm)</td>
                     <td colId="currentInputPower">CURRENT INPUT POWER (dBm)</td>
-                    <td colId="targetPower">TARGET POWER (dBm)</td>
+                    <td colId="targetPower">TARGET OUTPUT POWER (dBm)</td>
                     <td colId="hasTargetPower">HAS TARGET POWER</td>
                     <td colId="serviceState">SERVICE STATE</td>
                 </tr>
@@ -94,9 +94,9 @@
                     <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.name}}</td>
                     <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.type}}</td>
                     <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.enabled}}</td>
-                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.type=='OCH'?port.minFreq:""}}</td>
-                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.type=='OCH'?port.maxFreq:""}}</td>
-                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.type=='OCH'?port.grid:""}}</td>
+                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.type=='OCH' || port.type=='OMS'?port.minFreq:""}}</td>
+                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.type=='OCH' || port.type=='OMS'?port.maxFreq:""}}</td>
+                    <td [ngClass]="(isDelta() ? 'delta' : '')">{{port.type=='OCH' || port.type=='OMS'?port.grid:""}}</td>
                     <td [ngClass]="(isDelta() ? 'delta' : '')">
                         <form [formGroup]="freqForm" (ngSubmit)="submitFrequency(devId, port.id)" *ngIf="port.type=='OCH'">
                             <input type="text" style="width:50px" value="{{port.type=='OCH'?port.currFreq:''}}" formControlName="newFreq" required>
@@ -116,7 +116,7 @@
                     <td [ngClass]="(isDelta() ? 'delta' : '')">{{convertNumber(port.currentPower) | number: '1.2-2'}}</td>
                     <td [ngClass]="(isDelta() ? 'delta' : '')">{{convertNumber(port.currentInputPower) | number: '1.2-2'}}</td>
                     <td [ngClass]="(isDelta() ? 'delta' : '')">
-                        <form [formGroup]="powerForm" (ngSubmit)="submitPower(devId, port.id)" *ngIf="port.type=='OCH'">
+                        <form [formGroup]="powerForm" (ngSubmit)="submitPower(devId, port.id)" *ngIf="port.type=='OCH' || port.type=='OMS'">
                             <input type="number" step="any" style="width:50px" value="{{convertNumber(port.targetPower) | number: '1.2-2'}}" formControlName="newPower" required>
                             <button type="submit">Submit</button>
                         </form>

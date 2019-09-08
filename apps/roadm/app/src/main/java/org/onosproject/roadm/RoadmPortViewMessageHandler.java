@@ -256,7 +256,7 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
             if (port.type().equals(Port.Type.OCH)) {
                 modulation = roadmService.getModulation(deviceId, portNumber);
             }
-            return RoadmUtil.objectToString(modulation, RoadmUtil.UNKNOWN);
+            return RoadmUtil.objectToString(modulation, RoadmUtil.UNKNOWN).toLowerCase();
         }
 
         // Returns modulation as a string, Unknown if modulation is expected but

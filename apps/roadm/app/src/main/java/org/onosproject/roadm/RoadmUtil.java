@@ -131,7 +131,7 @@ public final class RoadmUtil {
             GridType gridType = ochPort.lambda().gridType();
             ChannelSpacing channelSpacing = ochPort.lambda().channelSpacing();
             int slotGranularity = ochPort.lambda().slotGranularity();
-            int multiplier = getMultplier(wavelength, gridType, channelSpacing);
+            int multiplier = getMultiplier(wavelength, gridType, channelSpacing);
             return new OchSignal(gridType, channelSpacing, multiplier, slotGranularity);
         } else {
             return null;
@@ -139,7 +139,7 @@ public final class RoadmUtil {
 
     }
 
-    private static int getMultplier(double wavelength, GridType gridType, ChannelSpacing channelSpacing) {
+    private static int getMultiplier(double wavelength, GridType gridType, ChannelSpacing channelSpacing) {
         long baseFreq;
         switch (gridType) {
             case DWDM:
@@ -152,10 +152,6 @@ public final class RoadmUtil {
                 baseFreq = 0L;
                 break;
         }
-        if (wavelength > baseFreq) {
-            return (int) ((wavelength - baseFreq) / (channelSpacing.frequency().asMHz()));
-        } else {
-            return (int) ((baseFreq - wavelength) / (channelSpacing.frequency().asMHz()));
-        }
+        return (int) ((wavelength - baseFreq) / (channelSpacing.frequency().asMHz()));
     }
 }
