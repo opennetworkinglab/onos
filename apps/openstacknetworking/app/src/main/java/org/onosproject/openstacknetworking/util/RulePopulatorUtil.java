@@ -25,11 +25,15 @@ import org.onosproject.net.behaviour.ExtensionTreatmentResolver;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
+import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.ExtensionSelector;
 import org.onosproject.net.flow.criteria.ExtensionSelectorType;
 import org.onosproject.net.flow.instructions.ExtensionPropertyException;
 import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
+import org.onosproject.net.group.DefaultGroupBucket;
+import org.onosproject.net.group.GroupBucket;
+import org.onosproject.net.group.GroupDescription;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -222,6 +226,32 @@ public final class RulePopulatorUtil {
             log.error("Failed to set nicira load extension treatment for {}",
                     device.id());
             return null;
+        }
+    }
+
+    /**
+     * Returns the group bucket with given traffic treatment and group type.
+     *
+     * @param treatment     traffic treatment
+     * @param type          group type
+     * @param weight        weight (only for select type)
+     * @return group bucket
+     */
+    public static GroupBucket buildGroupBucket(TrafficTreatment treatment,
+                                               GroupDescription.Type type, short weight) {
+        switch (type) {
+            case ALL:
+                return DefaultGroupBucket.createAllGroupBucket(treatment);
+            case SELECT:
+                if (weight == -1) {
+                    return DefaultGroupBucket.createSelectGroupBucket(treatment);
+                } else {
+                    return DefaultGroupBucket.createSelectGroupBucket(treatment, weight);
+                }
+            case INDIRECT:
+                return DefaultGroupBucket.createIndirectGroupBucket(treatment);
+            default:
+                return null;
         }
     }
 
