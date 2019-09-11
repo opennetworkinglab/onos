@@ -244,6 +244,7 @@ public class CfmMepManager
         //Iterate through all other devices and remove as a Remote Mep
         int mepsOnMdCount = 0;
         int mepsOnMaCount = 0;
+        List<DeviceId> alreadyHandledDevices = new ArrayList<>();
         for (Mep mep : mepStore.getAllMeps()) {
             if (mep.deviceId().equals(mepDeviceId) && mdName.equals(mep.mdId())) {
                 mepsOnMdCount++;
@@ -251,7 +252,6 @@ public class CfmMepManager
                     mepsOnMaCount++;
                 }
             }
-            List<DeviceId> alreadyHandledDevices = new ArrayList<>();
             if (mep.deviceId().equals(mepDeviceId) || !mep.mdId().equals(mdName) ||
                     !mep.maId().equals(maName) ||
                     alreadyHandledDevices.contains(mep.deviceId())) {
