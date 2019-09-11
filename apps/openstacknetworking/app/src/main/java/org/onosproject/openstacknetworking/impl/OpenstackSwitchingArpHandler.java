@@ -15,6 +15,7 @@
  */
 package org.onosproject.openstacknetworking.impl;
 
+import com.google.common.collect.Lists;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -37,6 +38,7 @@ import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.core.GroupId;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
 import org.onosproject.net.PortNumber;
@@ -45,6 +47,7 @@ import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.group.GroupBucket;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
@@ -54,6 +57,7 @@ import org.onosproject.openstacknetworking.api.InstancePortEvent;
 import org.onosproject.openstacknetworking.api.InstancePortListener;
 import org.onosproject.openstacknetworking.api.InstancePortService;
 import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
+import org.onosproject.openstacknetworking.api.OpenstackGroupRuleService;
 import org.onosproject.openstacknetworking.api.OpenstackNetwork.Type;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkListener;
@@ -72,6 +76,7 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.util.Dictionary;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -80,6 +85,7 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.net.group.GroupDescription.Type.ALL;
 import static org.onosproject.openstacknetworking.api.Constants.ARP_BROADCAST_MODE;
 import static org.onosproject.openstacknetworking.api.Constants.ARP_PROXY_MODE;
 import static org.onosproject.openstacknetworking.api.Constants.ARP_TABLE;
@@ -87,8 +93,8 @@ import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_ARP_MODE
 import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_MAC_STR;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_CONTROL_RULE;
-import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_FLOOD_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_GATEWAY_RULE;
+import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_GROUP_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_REPLY_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_REQUEST_RULE;
 import static org.onosproject.openstacknetworking.api.InstancePort.State.ACTIVE;
@@ -101,6 +107,7 @@ import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.g
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.swapStaleLocation;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.tunnelPortNumByNetId;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildExtension;
+import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildGroupBucket;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildMoveArpShaToThaExtension;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildMoveArpSpaToTpaExtension;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildMoveEthSrcToDstExtension;
@@ -125,6 +132,9 @@ public class OpenstackSwitchingArpHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected OpenstackFlowRuleService osFlowRuleService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected OpenstackGroupRuleService osGroupRuleService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService configService;
@@ -415,9 +425,11 @@ public class OpenstackSwitchingArpHandler {
             case GRE:
             case GENEVE:
                 setRemoteArpRequestRuleForTunnel(port, install);
+                setLocalArpRequestRuleForVnet(port, install);
                 break;
             case VLAN:
                 setArpRequestRuleForVlan(port, install);
+                setLocalArpRequestRuleForVnet(port, install);
                 break;
             default:
                 break;
@@ -452,7 +464,7 @@ public class OpenstackSwitchingArpHandler {
     }
 
     /**
-     * Installs flow rules to match ARP request packets only for VxLAN.
+     * Installs flow rules at remote node to match ARP request packets for Tunnel.
      *
      * @param port      instance port
      * @param install   installation flag
@@ -471,6 +483,22 @@ public class OpenstackSwitchingArpHandler {
                 .build();
 
         setRemoteArpTreatmentForTunnel(selector, port, localNode, install);
+    }
+
+    /**
+     * Installs flow rules at local node to matchA RP request packets for Tunnel.
+     *
+     * @param port      instance port
+     * @param install   installation flag
+     */
+    private void setLocalArpRequestRuleForVnet(InstancePort port, boolean install) {
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
+                .setOutput(port.portNumber());
+
+        List<GroupBucket> bkts = Lists.newArrayList();
+        bkts.add(buildGroupBucket(tBuilder.build(), ALL, (short) -1));
+        osGroupRuleService.setBuckets(appId, port.deviceId(),
+                port.networkId().hashCode(), bkts, install);
     }
 
     /**
@@ -759,6 +787,43 @@ public class OpenstackSwitchingArpHandler {
         }
     }
 
+    // a helper method
+    private void setBaseVnetArpRuleForBroadcastMode(OpenstackNode osNode,
+                                                    String segId, String netId,
+                                                    boolean isTunnel,
+                                                    boolean install) {
+
+        // add group rule
+        int groupId = netId.hashCode();
+        osGroupRuleService.setRule(appId, osNode.intgBridge(), groupId,
+                ALL, Lists.newArrayList(), install);
+
+        // add flow rule
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
+                .matchEthType(EthType.EtherType.ARP.ethType().toShort())
+                .matchArpOp(ARP.OP_REQUEST);
+
+        if (isTunnel) {
+            sBuilder.matchTunnelId(Long.parseLong(segId));
+        } else {
+            sBuilder.matchVlanId(VlanId.vlanId(segId));
+        }
+
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .group(GroupId.valueOf(netId.hashCode()))
+                .build();
+
+        osFlowRuleService.setRule(
+                appId,
+                osNode.intgBridge(),
+                sBuilder.build(),
+                treatment,
+                PRIORITY_ARP_GROUP_RULE,
+                ARP_TABLE,
+                install
+        );
+    }
+
     /**
      * Extracts properties from the component configuration context.
      *
@@ -791,35 +856,6 @@ public class OpenstackSwitchingArpHandler {
 
             eventExecutor.execute(() -> processPacketIn(context, ethPacket));
         }
-    }
-
-    private void setBaseVnetArpRuleForBroadcastMode(OpenstackNode osNode,
-                                                    String segId,
-                                                    boolean isTunnel,
-                                                    boolean install) {
-        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
-                .matchEthType(EthType.EtherType.ARP.ethType().toShort())
-                .matchArpOp(ARP.OP_REQUEST);
-
-        if (isTunnel) {
-            sBuilder.matchTunnelId(Long.valueOf(segId));
-        } else {
-            sBuilder.matchVlanId(VlanId.vlanId(segId));
-        }
-
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setOutput(PortNumber.FLOOD)
-                .build();
-
-        osFlowRuleService.setRule(
-                appId,
-                osNode.intgBridge(),
-                sBuilder.build(),
-                treatment,
-                PRIORITY_ARP_FLOOD_RULE,
-                ARP_TABLE,
-                install
-        );
     }
 
     /**
@@ -913,14 +949,18 @@ public class OpenstackSwitchingArpHandler {
                     && netType != NetworkType.VLAN) {
                 String segId = osNetworkService.segmentId(netId);
                 osNodeService.completeNodes(COMPUTE)
-                        .forEach(node -> setBaseVnetArpRuleForBroadcastMode(
-                                node, segId, true, install));
+                        .forEach(node -> {
+                            setBaseVnetArpRuleForBroadcastMode(node, segId,
+                                    netId, true, install);
+                        });
             }
             if (netType == NetworkType.VLAN) {
                 String segId = osNetworkService.segmentId(netId);
                 osNodeService.completeNodes(COMPUTE)
-                        .forEach(node -> setBaseVnetArpRuleForBroadcastMode(
-                                node, segId, false, install));
+                        .forEach(node -> {
+                            setBaseVnetArpRuleForBroadcastMode(
+                                    node, segId, netId, false, install);
+                        });
             }
         }
     }
@@ -1040,18 +1080,16 @@ public class OpenstackSwitchingArpHandler {
                                     osNetworkService.networkType(nid) == GENEVE)
                     .forEach(nid -> {
                         String segId = osNetworkService.segmentId(nid);
-                        setBaseVnetArpRuleForBroadcastMode(osNode, segId, true, install);
+                        setBaseVnetArpRuleForBroadcastMode(osNode, segId, nid, true, install);
                     });
 
             netIds.stream()
                     .filter(nid -> osNetworkService.networkType(nid) == VLAN)
                     .forEach(nid -> {
                         String segId = osNetworkService.segmentId(nid);
-                        setBaseVnetArpRuleForBroadcastMode(osNode, segId, false, install);
+                        setBaseVnetArpRuleForBroadcastMode(osNode, segId, nid, false, install);
                     });
         }
-
-
 
         private void setAllArpRules(OpenstackNode osNode, boolean install) {
             if (ARP_BROADCAST_MODE.equals(getArpMode())) {
@@ -1062,6 +1100,8 @@ public class OpenstackSwitchingArpHandler {
                             setArpRequestRule(p, install);
                             setArpReplyRule(p, install);
                 });
+            } else {
+                // we do nothing for proxy mode
             }
         }
     }

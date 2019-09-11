@@ -56,6 +56,8 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
+import org.onosproject.net.group.DefaultGroupKey;
+import org.onosproject.net.group.GroupKey;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.openstacknetworking.api.Constants.VnicType;
@@ -1323,6 +1325,16 @@ public final class OpenstackNetworkingUtil {
         }
 
         return portName;
+    }
+
+    /**
+     * Obtains flow group key from the given id.
+     *
+     * @param groupId flow group identifier
+     * @return flow group key
+     */
+    public static GroupKey getGroupKey(int groupId) {
+        return new DefaultGroupKey((Integer.toString(groupId)).getBytes());
     }
 
     /**
