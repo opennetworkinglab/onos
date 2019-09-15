@@ -42,6 +42,7 @@ import java.io.InputStream;
 import static javax.ws.rs.core.Response.created;
 import static javax.ws.rs.core.Response.noContent;
 import static javax.ws.rs.core.Response.status;
+import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_ACTIVE_IP_ADDRESS;
 import static org.onosproject.openstacknetworking.api.Constants.REST_UTF8;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.jsonToModelEntity;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.syncDelete;
@@ -82,7 +83,8 @@ public class OpenstackFloatingIpWebResource extends AbstractWebResource {
 
         String inputStr = IOUtils.toString(input, REST_UTF8);
 
-        if (!haService.isActive()) {
+        if (!haService.isActive()
+                && !DEFAULT_ACTIVE_IP_ADDRESS.equals(haService.getActiveIp())) {
             return syncPost(haService, FLOATING_IPS, inputStr);
         }
 
@@ -117,7 +119,8 @@ public class OpenstackFloatingIpWebResource extends AbstractWebResource {
 
         String inputStr = IOUtils.toString(input, REST_UTF8);
 
-        if (!haService.isActive()) {
+        if (!haService.isActive()
+                && !DEFAULT_ACTIVE_IP_ADDRESS.equals(haService.getActiveIp())) {
             return syncPut(haService, FLOATING_IPS, id, inputStr);
         }
 
@@ -141,7 +144,8 @@ public class OpenstackFloatingIpWebResource extends AbstractWebResource {
     public Response deleteFloatingIp(@PathParam("id") String id) {
         log.trace(String.format(MESSAGE, "DELETE " + id));
 
-        if (!haService.isActive()) {
+        if (!haService.isActive()
+                && !DEFAULT_ACTIVE_IP_ADDRESS.equals(haService.getActiveIp())) {
             return syncDelete(haService, FLOATING_IPS, id);
         }
 

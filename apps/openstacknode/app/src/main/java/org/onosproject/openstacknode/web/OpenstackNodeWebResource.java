@@ -259,6 +259,8 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
         osNodeService.nodes().stream()
                 .filter(n -> n.state() != COMPLETE)
                 .forEach(n -> {
+                    log.info("Node {} isn't COMPLETE state so performs initialization again.",
+                            n.hostname());
                     OpenstackNode updated = n.updateState(NodeState.INIT);
                     osNodeAdminService.updateNode(updated);
                 });
