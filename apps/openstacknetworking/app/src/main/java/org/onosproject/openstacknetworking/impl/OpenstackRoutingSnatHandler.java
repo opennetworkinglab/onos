@@ -1488,7 +1488,7 @@ public class OpenstackRoutingSnatHandler {
 
                 setStatefulDownstreamRules(osRouter, true);
             });
-            log.info("Reconfigure routers for {}", osNode.hostname());
+            log.debug("Reconfigure routers for {}", osNode.hostname());
         }
     }
 
