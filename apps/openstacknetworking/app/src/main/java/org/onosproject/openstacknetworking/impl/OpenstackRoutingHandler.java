@@ -755,7 +755,7 @@ public class OpenstackRoutingHandler {
                     routerIfaceAdded(osRouter, iface);
                 });
             });
-            log.info("Reconfigure routers for {}", osNode.hostname());
+            log.debug("Reconfigure routers for {}", osNode.hostname());
         }
     }
 }

@@ -27,6 +27,8 @@ import org.onosproject.openstacknetworking.api.Constants;
 import org.onosproject.openstacknetworking.api.OpenstackHaService;
 import org.slf4j.Logger;
 
+import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_ACTIVE_IP_ADDRESS;
+import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_HA_STATUS;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -38,9 +40,6 @@ public class OpenstackHaManager implements OpenstackHaService {
 
     protected final Logger log = getLogger(getClass());
 
-    private static final boolean DEFAULT_ACTIVE_STATUS = true;
-    private static final IpAddress DEFAULT_ACTIVE_IP_ADDRESS = IpAddress.valueOf("127.0.0.1");
-
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
 
@@ -50,7 +49,7 @@ public class OpenstackHaManager implements OpenstackHaService {
     @Activate
     protected void activate() {
         coreService.registerApplication(Constants.OPENSTACK_NETWORKING_APP_ID);
-        activeFlag = DEFAULT_ACTIVE_STATUS;
+        activeFlag = DEFAULT_HA_STATUS;
         activeIpAddress = DEFAULT_ACTIVE_IP_ADDRESS;
         log.info("Started");
     }

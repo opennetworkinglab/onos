@@ -16,6 +16,7 @@
 package org.onosproject.openstacknetworking.api;
 
 import com.google.common.collect.ImmutableMap;
+import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 
 import java.nio.charset.StandardCharsets;
@@ -144,4 +145,7 @@ public final class Constants {
         //Additional pci vendor information will be added
         return ImmutableMap.of(CAVIUM_PCI_VENDOR_INFO, PORT_NAME_PREFIX_CAVIUM);
     }
+
+    public static final boolean DEFAULT_HA_STATUS = false;
+    public static final IpAddress DEFAULT_ACTIVE_IP_ADDRESS = IpAddress.valueOf("127.0.0.1");
 }
