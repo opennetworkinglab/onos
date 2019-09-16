@@ -942,6 +942,11 @@ public class OpenstackSwitchingArpHandler {
         }
 
         private void setVnetArpRule(Network network, boolean install) {
+
+            if (ARP_PROXY_MODE.equals(getArpMode())) {
+                return;
+            }
+
             String netId = network.getId();
             NetworkType netType = network.getNetworkType();
 
