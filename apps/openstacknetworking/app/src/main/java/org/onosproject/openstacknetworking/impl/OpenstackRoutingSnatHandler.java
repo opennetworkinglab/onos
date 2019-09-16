@@ -1451,8 +1451,14 @@ public class OpenstackRoutingSnatHandler {
             }
 
             if (getStatefulSnatFlag() && osNode.type() == GATEWAY) {
-                instancePortService.instancePorts().forEach(instPort ->
-                        setGatewayToInstanceDownstreamRule(osNode, instPort, true));
+                instancePortService.instancePorts().forEach(instPort -> {
+                    Type netType = osNetworkAdminService.networkType(instPort.networkId());
+
+                    if (netType == FLAT) {
+                        return;
+                    }
+                    setGatewayToInstanceDownstreamRule(osNode, instPort, true);
+                });
             }
         }
 
@@ -1462,8 +1468,15 @@ public class OpenstackRoutingSnatHandler {
             }
 
             if (getStatefulSnatFlag() && osNode.type() == GATEWAY) {
-                instancePortService.instancePorts().forEach(instPort ->
-                        setGatewayToInstanceDownstreamRule(osNode, instPort, false));
+                instancePortService.instancePorts().forEach(instPort -> {
+                    Type netType = osNetworkAdminService.networkType(instPort.networkId());
+
+                    if (netType == FLAT) {
+                        return;
+                    }
+
+                    setGatewayToInstanceDownstreamRule(osNode, instPort, false);
+                });
             }
         }
 
