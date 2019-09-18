@@ -29,6 +29,7 @@ import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.openstack4j.api.OSClient;
 
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
+import static org.onosproject.openstacknode.api.Constants.GENEVE_TUNNEL;
 import static org.onosproject.openstacknode.api.Constants.GRE_TUNNEL;
 import static org.onosproject.openstacknode.api.Constants.INTEGRATION_BRIDGE;
 import static org.onosproject.openstacknode.api.Constants.INTEGRATION_TO_PHYSICAL_PREFIX;
@@ -99,6 +100,7 @@ public class OpenstackNodeCheckCommand extends AbstractShellCommand {
                 if (osNode.dataIp() != null) {
                     printPortState(deviceService, osNode.intgBridge(), VXLAN_TUNNEL);
                     printPortState(deviceService, osNode.intgBridge(), GRE_TUNNEL);
+                    printPortState(deviceService, osNode.intgBridge(), GENEVE_TUNNEL);
                 }
                 if (osNode.vlanIntf() != null) {
                     printPortState(deviceService, osNode.intgBridge(), osNode.vlanIntf());
