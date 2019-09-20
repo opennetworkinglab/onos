@@ -43,6 +43,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
@@ -172,6 +173,9 @@ public class OpenstackSecurityGroupHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DriverService driverService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected LeadershipService leadershipService;
@@ -376,6 +380,11 @@ public class OpenstackSecurityGroupHandler {
                         Ip4Address.valueOf(instPort.ipAddress().toInetAddress()),
                                     remoteIp, instPort.networkId());
         if (selectors == null || selectors.isEmpty()) {
+            return;
+        }
+
+        // if the device is not available we do not perform any action
+        if (instPort.deviceId() == null || !deviceService.isAvailable(instPort.deviceId())) {
             return;
         }
 
