@@ -94,7 +94,7 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createNodes(InputStream input) {
-        log.trace(String.format(MESSAGE_NODE, CREATE));
+        log.info(String.format(MESSAGE_NODE, CREATE));
 
         readNodeConfiguration(input).forEach(osNode -> {
             OpenstackNode existing = osNodeService.node(osNode.hostname());
@@ -122,7 +122,7 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateNodes(InputStream input) {
-        log.trace(String.format(MESSAGE_NODE, UPDATE));
+        log.info(String.format(MESSAGE_NODE, UPDATE));
 
         Set<OpenstackNode> nodes = readNodeConfiguration(input);
         for (OpenstackNode osNode: nodes) {
@@ -151,7 +151,7 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{hostname}")
     public Response deleteNodes(@PathParam("hostname") String hostname) {
-        log.trace(String.format(MESSAGE_NODE, DELETE));
+        log.info(String.format(MESSAGE_NODE, DELETE));
 
         OpenstackNode existing =
                 osNodeService.node(nullIsIllegal(hostname, HOST_NAME + ERROR_MESSAGE));
@@ -213,7 +213,7 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("init/node/{hostname}")
     public Response initNode(@PathParam("hostname") String hostname) {
-        log.trace(String.format(MESSAGE_NODE, QUERY));
+        log.info(String.format(MESSAGE_NODE, INIT));
 
         OpenstackNode osNode = osNodeService.node(hostname);
         if (osNode == null) {
@@ -234,7 +234,7 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("init/all")
     public Response initAllNodes() {
-        log.trace(String.format(MESSAGE_NODE, QUERY));
+        log.info(String.format(MESSAGE_NODE, INIT));
 
         osNodeService.nodes()
                 .forEach(n -> {
@@ -254,7 +254,7 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("init/incomplete")
     public Response initIncompleteNodes() {
-        log.trace(String.format(MESSAGE_NODE, QUERY));
+        log.info(String.format(MESSAGE_NODE, INIT));
 
         osNodeService.nodes().stream()
                 .filter(n -> n.state() != COMPLETE)
