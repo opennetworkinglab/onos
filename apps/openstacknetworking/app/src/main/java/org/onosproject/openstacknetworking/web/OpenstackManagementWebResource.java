@@ -95,6 +95,9 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
 
     private static final String SECURITY_GROUP_FLAG_REQUIRED = "Security Group flag is not specified";
 
+    private static final String AUTH_INFO_NOT_FOUND = "Auth info is not found";
+    private static final String AUTH_INFO_NOT_CORRECT = "Auth info is not correct";
+
     private static final String HTTP_HEADER_ACCEPT = "accept";
     private static final String HTTP_HEADER_VALUE_JSON = "application/json";
 
@@ -133,13 +136,15 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
 
         Optional<OpenstackNode> node = osNodeAdminService.nodes(CONTROLLER).stream().findFirst();
         if (!node.isPresent()) {
-            throw new ItemNotFoundException("Auth info is not found");
+            log.error(AUTH_INFO_NOT_FOUND);
+            throw new ItemNotFoundException(AUTH_INFO_NOT_FOUND);
         }
 
         OSClient osClient = OpenstackNetworkingUtil.getConnectedClient(node.get());
 
         if (osClient == null) {
-            throw new ItemNotFoundException("Auth info is not correct");
+            log.error(AUTH_INFO_NOT_CORRECT);
+            throw new ItemNotFoundException(AUTH_INFO_NOT_CORRECT);
         }
 
         try {
@@ -408,6 +413,8 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateActiveStatus(@PathParam("flag") String flag) {
 
+        log.info("Update active status to {}", flag);
+
         if (FLAG_TRUE.equalsIgnoreCase(flag)) {
             osHaService.setActive(true);
         }
@@ -443,6 +450,8 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateActiveIp(@PathParam("ip") String ip) {
+
+        log.info("Update active IP address to {}", ip);
 
         osHaService.setActiveIp(IpAddress.valueOf(ip));
 
