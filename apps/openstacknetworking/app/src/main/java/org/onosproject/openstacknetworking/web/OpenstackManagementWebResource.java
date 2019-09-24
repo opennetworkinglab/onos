@@ -52,7 +52,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.net.ConnectException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -87,9 +86,7 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
     private static final String USE_STATEFUL_SNAT_NAME = "useStatefulSnat";
 
     private static final long SLEEP_MIDDLE_MS = 3000; // we wait 3s
-    private static final long SLEEP_SHORT_MS = 1000; // we wait 1s
     private static final long TIMEOUT_MS = 10000; // we wait 10s
-    private static final int RETRY_COUNT = 10;
 
     private static final String DEVICE_OWNER_IFACE = "network:router_interface";
 
@@ -139,188 +136,93 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
             throw new ItemNotFoundException("Auth info is not found");
         }
 
-        OSClient osClient;
-
-        int cnt = RETRY_COUNT;
-        while (true) {
-            osClient = OpenstackNetworkingUtil.getConnectedClient(node.get());
-            if (osClient != null || cnt < 1) {
-                break;
-            }
-            sleep(SLEEP_MIDDLE_MS);
-            cnt--;
-        }
+        OSClient osClient = OpenstackNetworkingUtil.getConnectedClient(node.get());
 
         if (osClient == null) {
             throw new ItemNotFoundException("Auth info is not correct");
         }
 
-        boolean sgProcessed = false;
-        int sgCnt = RETRY_COUNT;
-        while (!sgProcessed) {
-
-            if (sgCnt < 1) {
-                break;
-            }
-
-            sgCnt--;
-
-            try {
-                osClient.headers(headerMap).networking().securitygroup().list().forEach(osSg -> {
-                    if (osSgAdminService.securityGroup(osSg.getId()) != null) {
-                        osSgAdminService.updateSecurityGroup(osSg);
-                    } else {
-                        osSgAdminService.createSecurityGroup(osSg);
-                    }
-                });
-                sgProcessed = true;
-            } catch (Exception e) {
-                if (e instanceof ConnectException) {
-                    sgProcessed = false;
+        try {
+            osClient.headers(headerMap).networking().securitygroup().list().forEach(osSg -> {
+                if (osSgAdminService.securityGroup(osSg.getId()) != null) {
+                    osSgAdminService.updateSecurityGroup(osSg);
+                } else {
+                    osSgAdminService.createSecurityGroup(osSg);
                 }
-                log.warn("Failed to retrieve security group due to {}", e.getMessage());
-                sleep(SLEEP_SHORT_MS);
-            }
+            });
+        } catch (Exception e) {
+            log.warn("Failed to retrieve security group due to {}", e.getMessage());
+            return Response.serverError().build();
         }
 
-        boolean netProcessed = false;
-        int netCnt = RETRY_COUNT;
-        while (!netProcessed) {
-
-            if (netCnt < 1) {
-                break;
-            }
-            netCnt--;
-
-            try {
-                osClient.headers(headerMap).networking().network().list().forEach(osNet -> {
-                    if (osNetAdminService.network(osNet.getId()) != null) {
-                        osNetAdminService.updateNetwork(osNet);
-                    } else {
-                        osNetAdminService.createNetwork(osNet);
-                    }
-                });
-                netProcessed = true;
-            } catch (Exception e) {
-                if (e instanceof ConnectException) {
-                    netProcessed = false;
+        try {
+            osClient.headers(headerMap).networking().network().list().forEach(osNet -> {
+                if (osNetAdminService.network(osNet.getId()) != null) {
+                    osNetAdminService.updateNetwork(osNet);
+                } else {
+                    osNetAdminService.createNetwork(osNet);
                 }
-                log.warn("Failed to retrieve network due to {}", e.getMessage());
-                sleep(SLEEP_SHORT_MS);
-            }
+            });
+        } catch (Exception e) {
+            log.warn("Failed to retrieve network due to {}", e.getMessage());
+            return Response.serverError().build();
         }
 
-        boolean subnetProcessed = false;
-        int subnetCnt = RETRY_COUNT;
-        while (!subnetProcessed) {
-
-            if (subnetCnt < 1) {
-                break;
-            }
-            subnetCnt--;
-
-            try {
-                osClient.headers(headerMap).networking().subnet().list().forEach(osSubnet -> {
-                    if (osNetAdminService.subnet(osSubnet.getId()) != null) {
-                        osNetAdminService.updateSubnet(osSubnet);
-                    } else {
-                        osNetAdminService.createSubnet(osSubnet);
-                    }
-                });
-                subnetProcessed = true;
-            } catch (Exception e) {
-                if (e instanceof ConnectException) {
-                    subnetProcessed = false;
+        try {
+            osClient.headers(headerMap).networking().subnet().list().forEach(osSubnet -> {
+                if (osNetAdminService.subnet(osSubnet.getId()) != null) {
+                    osNetAdminService.updateSubnet(osSubnet);
+                } else {
+                    osNetAdminService.createSubnet(osSubnet);
                 }
-                log.warn("Failed to retrieve subnet due to {}", e.getMessage());
-                sleep(SLEEP_SHORT_MS);
-            }
+            });
+        } catch (Exception e) {
+            log.warn("Failed to retrieve subnet due to {}", e.getMessage());
+            return Response.serverError().build();
         }
 
-        boolean portProcessed = false;
-        int portCnt = RETRY_COUNT;
-        while (!portProcessed) {
-
-            if (portCnt < 1) {
-                break;
-            }
-            portCnt--;
-
-            try {
-                osClient.headers(headerMap).networking().port().list().forEach(osPort -> {
-                    if (osNetAdminService.port(osPort.getId()) != null) {
-                        osNetAdminService.updatePort(osPort);
-                    } else {
-                        osNetAdminService.createPort(osPort);
-                    }
-                });
-                portProcessed = true;
-            } catch (Exception e) {
-                if (e instanceof ConnectException) {
-                    portProcessed = false;
+        try {
+            osClient.headers(headerMap).networking().port().list().forEach(osPort -> {
+                if (osNetAdminService.port(osPort.getId()) != null) {
+                    osNetAdminService.updatePort(osPort);
+                } else {
+                    osNetAdminService.createPort(osPort);
                 }
-                log.warn("Failed to retrieve port due to {}", e.getMessage());
-                sleep(SLEEP_SHORT_MS);
-            }
+            });
+        } catch (Exception e) {
+            log.warn("Failed to retrieve port due to {}", e.getMessage());
+            return Response.serverError().build();
         }
 
-        boolean routerProcessed = false;
-        int routerCnt = RETRY_COUNT;
-        while (!routerProcessed) {
-
-            if (routerCnt < 1) {
-                break;
-            }
-            routerCnt--;
-
-            try {
-                osClient.headers(headerMap).networking().router().list().forEach(osRouter -> {
-                    if (osRouterAdminService.router(osRouter.getId()) != null) {
-                        osRouterAdminService.updateRouter(osRouter);
-                    } else {
-                        osRouterAdminService.createRouter(osRouter);
-                    }
-
-                    osNetAdminService.ports().stream()
-                            .filter(osPort -> Objects.equals(osPort.getDeviceId(), osRouter.getId()) &&
-                                    Objects.equals(osPort.getDeviceOwner(), DEVICE_OWNER_IFACE))
-                            .forEach(osPort -> addRouterIface(osPort, osRouterAdminService));
-                });
-                routerProcessed = true;
-            } catch (Exception e) {
-                if (e instanceof ConnectException) {
-                    routerProcessed = false;
+        try {
+            osClient.headers(headerMap).networking().router().list().forEach(osRouter -> {
+                if (osRouterAdminService.router(osRouter.getId()) != null) {
+                    osRouterAdminService.updateRouter(osRouter);
+                } else {
+                    osRouterAdminService.createRouter(osRouter);
                 }
-                log.warn("Failed to retrieve router due to {}", e.getMessage());
-                sleep(SLEEP_SHORT_MS);
-            }
+
+                osNetAdminService.ports().stream()
+                        .filter(osPort -> Objects.equals(osPort.getDeviceId(), osRouter.getId()) &&
+                                Objects.equals(osPort.getDeviceOwner(), DEVICE_OWNER_IFACE))
+                        .forEach(osPort -> addRouterIface(osPort, osRouterAdminService));
+            });
+        } catch (Exception e) {
+            log.warn("Failed to retrieve router due to {}", e.getMessage());
+            return Response.serverError().build();
         }
 
-        boolean fipProcessed = false;
-        int fipCnt = RETRY_COUNT;
-        while (!fipProcessed) {
-
-            if (fipCnt < 1) {
-                break;
-            }
-            fipCnt--;
-
-            try {
-                osClient.headers(headerMap).networking().floatingip().list().forEach(osFloating -> {
-                    if (osRouterAdminService.floatingIp(osFloating.getId()) != null) {
-                        osRouterAdminService.updateFloatingIp(osFloating);
-                    } else {
-                        osRouterAdminService.createFloatingIp(osFloating);
-                    }
-                });
-                fipProcessed = true;
-            } catch (Exception e) {
-                if (e instanceof ConnectException) {
-                    fipProcessed = false;
+        try {
+            osClient.headers(headerMap).networking().floatingip().list().forEach(osFloating -> {
+                if (osRouterAdminService.floatingIp(osFloating.getId()) != null) {
+                    osRouterAdminService.updateFloatingIp(osFloating);
+                } else {
+                    osRouterAdminService.createFloatingIp(osFloating);
                 }
-                log.warn("Failed to retrieve floating IP due to {}", e.getMessage());
-                sleep(SLEEP_SHORT_MS);
-            }
+            });
+        } catch (Exception e) {
+            log.warn("Failed to retrieve floating IP due to {}", e.getMessage());
+            return Response.serverError().build();
         }
 
         return ok(mapper().createObjectNode()).build();
