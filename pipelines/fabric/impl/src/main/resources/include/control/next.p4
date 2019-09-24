@@ -104,7 +104,6 @@ control Next (inout parsed_headers_t hdr,
 
     action output_xconnect(port_num_t port_num) {
         output(port_num);
-        fabric_metadata.last_eth_type = ETHERTYPE_VLAN;
         xconnect_counter.count();
     }
 
@@ -174,6 +173,9 @@ control Next (inout parsed_headers_t hdr,
      * Execute an action profile selector based on next id.
      */
     @max_group_size(HASHED_SELECTOR_MAX_GROUP_SIZE)
+    #ifdef _CUSTOM_HASHED_SELECTOR_ANNOTATION
+        _CUSTOM_HASHED_SELECTOR_ANNOTATION
+    #endif
     action_selector(HashAlgorithm.crc16, HASHED_ACT_PROFILE_SIZE, 32w16) hashed_selector;
     direct_counter(CounterType.packets_and_bytes) hashed_counter;
 
@@ -263,7 +265,7 @@ control EgressNextControl (inout parsed_headers_t hdr,
     action pop_mpls_if_present() {
         hdr.mpls.setInvalid();
         // Assuming there's an IP header after the MPLS one.
-        fabric_metadata.last_eth_type = fabric_metadata.ip_eth_type;
+        hdr.eth_type.value = fabric_metadata.ip_eth_type;
     }
 
     @hidden
@@ -273,7 +275,7 @@ control EgressNextControl (inout parsed_headers_t hdr,
         hdr.mpls.tc = 3w0;
         hdr.mpls.bos = 1w1; // BOS = TRUE
         hdr.mpls.ttl = fabric_metadata.mpls_ttl; // Decrement after push.
-        fabric_metadata.last_eth_type = ETHERTYPE_MPLS;
+        hdr.eth_type.value = ETHERTYPE_MPLS;
     }
 
     @hidden
@@ -283,23 +285,20 @@ control EgressNextControl (inout parsed_headers_t hdr,
         hdr.vlan_tag.setValid();
         hdr.vlan_tag.cfi = fabric_metadata.vlan_cfi;
         hdr.vlan_tag.pri = fabric_metadata.vlan_pri;
-        hdr.vlan_tag.eth_type = fabric_metadata.last_eth_type;
+        hdr.vlan_tag.eth_type = ETHERTYPE_VLAN;
         hdr.vlan_tag.vlan_id = fabric_metadata.vlan_id;
-        hdr.ethernet.eth_type = ETHERTYPE_VLAN;
     }
 
 #ifdef WITH_DOUBLE_VLAN_TERMINATION
     @hidden
     action push_inner_vlan() {
-        // Then push inner VLAN TAG, rewriting correclty the outer vlan eth_type
-        // and the ethernet eth_type
+        // Push inner VLAN TAG, rewriting correclty the outer vlan eth_type
         hdr.inner_vlan_tag.setValid();
         hdr.inner_vlan_tag.cfi = fabric_metadata.inner_vlan_cfi;
         hdr.inner_vlan_tag.pri = fabric_metadata.inner_vlan_pri;
         hdr.inner_vlan_tag.vlan_id = fabric_metadata.inner_vlan_id;
-        hdr.inner_vlan_tag.eth_type = fabric_metadata.last_eth_type;
+        hdr.inner_vlan_tag.eth_type = ETHERTYPE_VLAN;
         hdr.vlan_tag.eth_type = ETHERTYPE_VLAN;
-        hdr.ethernet.eth_type = ETHERTYPE_QINQ;
     }
 #endif // WITH_DOUBLE_VLAN_TERMINATION
 
@@ -310,7 +309,6 @@ control EgressNextControl (inout parsed_headers_t hdr,
     direct_counter(CounterType.packets_and_bytes) egress_vlan_counter;
 
     action pop_vlan() {
-        hdr.ethernet.eth_type = fabric_metadata.last_eth_type;
         hdr.vlan_tag.setInvalid();
         egress_vlan_counter.count();
     }

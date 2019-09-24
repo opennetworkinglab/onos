@@ -36,14 +36,19 @@ header packet_out_header_t {
 header ethernet_t {
     mac_addr_t dst_addr;
     mac_addr_t src_addr;
-    bit<16> eth_type;
+}
+
+// NOTE: splitting the eth_type from the ethernet header helps to match on
+//  the actual eth_type without checking validity bit of the VLAN tags.
+header eth_type_t {
+    bit<16> value;
 }
 
 header vlan_tag_t {
+    bit<16> eth_type;
     bit<3> pri;
     bit<1> cfi;
     vlan_id_t vlan_id;
-    bit<16> eth_type;
 }
 
 header mpls_t {
@@ -166,10 +171,6 @@ struct bng_meta_t {
 
 //Custom metadata definition
 struct fabric_metadata_t {
-    bit<16>       last_eth_type;
-    _BOOL         is_ipv4;
-    _BOOL         is_ipv6;
-    _BOOL         is_mpls;
     bit<16>       ip_eth_type;
     vlan_id_t     vlan_id;
     bit<3>        vlan_pri;
@@ -205,9 +206,10 @@ struct fabric_metadata_t {
 struct parsed_headers_t {
     ethernet_t ethernet;
     vlan_tag_t vlan_tag;
-#if defined(WITH_XCONNECT) || defined(WITH_BNG) || defined(WITH_DOUBLE_VLAN_TERMINATION)
+#if defined(WITH_XCONNECT) || defined(WITH_DOUBLE_VLAN_TERMINATION)
     vlan_tag_t inner_vlan_tag;
-#endif // WITH_XCONNECT || WITH_BNG || WITH_DOUBLE_VLAN_TERMINATION
+#endif // WITH_XCONNECT || WITH_DOUBLE_VLAN_TERMINATION
+    eth_type_t eth_type;
 #ifdef WITH_BNG
     pppoe_t pppoe;
 #endif // WITH_BNG
@@ -231,6 +233,7 @@ struct parsed_headers_t {
 #ifdef WITH_INT_SINK
     // INT Report encap
     ethernet_t report_ethernet;
+    eth_type_t report_eth_type;
     ipv4_t report_ipv4;
     udp_t report_udp;
     // INT Report header (support only fixed)

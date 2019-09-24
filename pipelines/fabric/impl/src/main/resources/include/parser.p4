@@ -40,45 +40,40 @@ parser FabricParser (packet_in packet,
 
     state parse_ethernet {
         packet.extract(hdr.ethernet);
-        fabric_metadata.last_eth_type = hdr.ethernet.eth_type;
         fabric_metadata.vlan_id = DEFAULT_VLAN_ID;
-        transition select(hdr.ethernet.eth_type){
+        transition select(packet.lookahead<bit<16>>()){
             ETHERTYPE_QINQ: parse_vlan_tag;
             ETHERTYPE_QINQ_NON_STD: parse_vlan_tag;
             ETHERTYPE_VLAN: parse_vlan_tag;
-            ETHERTYPE_MPLS: parse_mpls;
-            ETHERTYPE_IPV4: pre_parse_ipv4;
-#ifdef WITH_IPV6
-            ETHERTYPE_IPV6: pre_parse_ipv6;
-#endif // WITH_IPV6
-            default: accept;
+            default: parse_eth_type;
         }
     }
 
     state parse_vlan_tag {
         packet.extract(hdr.vlan_tag);
-        transition select(hdr.vlan_tag.eth_type){
-            ETHERTYPE_IPV4: pre_parse_ipv4;
-#ifdef WITH_IPV6
-            ETHERTYPE_IPV6: pre_parse_ipv6;
-#endif // WITH_IPV6
-            ETHERTYPE_MPLS: parse_mpls;
-#if defined(WITH_XCONNECT) || defined(WITH_BNG) || defined(WITH_DOUBLE_VLAN_TERMINATION)
+        transition select(packet.lookahead<bit<16>>()){
+#if defined(WITH_XCONNECT) || defined(WITH_DOUBLE_VLAN_TERMINATION)
             ETHERTYPE_VLAN: parse_inner_vlan_tag;
-#endif // WITH_XCONNECT
-            default: accept;
+#endif // WITH_XCONNECT || WITH_DOUBLE_VLAN_TERMINATION
+            default: parse_eth_type;
         }
     }
 
-#if defined(WITH_XCONNECT) || defined(WITH_BNG) || defined(WITH_DOUBLE_VLAN_TERMINATION)
+#if defined(WITH_XCONNECT) || defined(WITH_DOUBLE_VLAN_TERMINATION)
     state parse_inner_vlan_tag {
         packet.extract(hdr.inner_vlan_tag);
-        transition select(hdr.inner_vlan_tag.eth_type){
-            ETHERTYPE_IPV4: pre_parse_ipv4;
-#ifdef WITH_IPV6
-            ETHERTYPE_IPV6: pre_parse_ipv6;
-#endif // WITH_IPV6
+        transition parse_eth_type;
+    }
+#endif // WITH_XCONNECT || WITH_DOUBLE_VLAN_TERMINATION
+
+    state parse_eth_type {
+        packet.extract(hdr.eth_type);
+        transition select(hdr.eth_type.value) {
             ETHERTYPE_MPLS: parse_mpls;
+            ETHERTYPE_IPV4: parse_ipv4;
+#ifdef WITH_IPV6
+            ETHERTYPE_IPV6: parse_ipv6;
+#endif // WITH_IPV6
 #ifdef WITH_BNG
             ETHERTYPE_PPPOED: parse_pppoe;
             ETHERTYPE_PPPOES: parse_pppoe;
@@ -86,16 +81,15 @@ parser FabricParser (packet_in packet,
             default: accept;
         }
     }
-#endif // WITH_XCONNECT || WITH_BNG || WITH_DOUBLE_VLAN_TERMINATION
 
 #ifdef WITH_BNG
     state parse_pppoe {
         packet.extract(hdr.pppoe);
         transition select(hdr.pppoe.protocol) {
             PPPOE_PROTOCOL_MPLS: parse_mpls;
-            PPPOE_PROTOCOL_IP4: pre_parse_ipv4;
+            PPPOE_PROTOCOL_IP4: parse_ipv4;
 #ifdef WITH_IPV6
-            PPPOE_PROTOCOL_IP6: pre_parse_ipv6;
+            PPPOE_PROTOCOL_IP6: parse_ipv6;
 #endif // WITH_IPV6
             default: accept;
         }
@@ -104,7 +98,6 @@ parser FabricParser (packet_in packet,
 
     state parse_mpls {
         packet.extract(hdr.mpls);
-        fabric_metadata.is_mpls = _TRUE;
         fabric_metadata.mpls_label = hdr.mpls.label;
         fabric_metadata.mpls_ttl = hdr.mpls.ttl;
         // There is only one MPLS label for this fabric.
@@ -122,11 +115,6 @@ parser FabricParser (packet_in packet,
         }
     }
 
-    // Intermediate state to set is_ipv4
-    state pre_parse_ipv4 {
-        fabric_metadata.is_ipv4 = _TRUE;
-        transition parse_ipv4;
-    }
     state parse_ipv4 {
         packet.extract(hdr.ipv4);
         fabric_metadata.ip_proto = hdr.ipv4.protocol;
@@ -142,11 +130,6 @@ parser FabricParser (packet_in packet,
     }
 
 #ifdef WITH_IPV6
-    // Intermediate state to set is_ipv6
-    state pre_parse_ipv6 {
-        fabric_metadata.is_ipv6 = _TRUE;
-        transition parse_ipv6;
-    }
     state parse_ipv6 {
         packet.extract(hdr.ipv6);
         fabric_metadata.ip_proto = hdr.ipv6.next_hdr;
@@ -279,15 +262,17 @@ control FabricDeparser(packet_out packet,in parsed_headers_t hdr) {
         packet.emit(hdr.packet_in);
 #ifdef WITH_INT_SINK
         packet.emit(hdr.report_ethernet);
+        packet.emit(hdr.report_eth_type);
         packet.emit(hdr.report_ipv4);
         packet.emit(hdr.report_udp);
         packet.emit(hdr.report_fixed_header);
 #endif // WITH_INT_SINK
         packet.emit(hdr.ethernet);
         packet.emit(hdr.vlan_tag);
-#if defined(WITH_XCONNECT) || defined(WITH_BNG) || defined(WITH_DOUBLE_VLAN_TERMINATION)
+#if defined(WITH_XCONNECT) || defined(WITH_DOUBLE_VLAN_TERMINATION)
         packet.emit(hdr.inner_vlan_tag);
-#endif // WITH_XCONNECT || WITH_BNG || WITH_DOUBLE_VLAN_TERMINATION
+#endif // WITH_XCONNECT || WITH_DOUBLE_VLAN_TERMINATION
+        packet.emit(hdr.eth_type);
 #ifdef WITH_BNG
         packet.emit(hdr.pppoe);
 #endif // WITH_BNG

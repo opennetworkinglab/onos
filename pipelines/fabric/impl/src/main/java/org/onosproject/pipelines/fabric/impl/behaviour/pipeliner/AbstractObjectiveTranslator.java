@@ -70,12 +70,18 @@ abstract class AbstractObjectiveTranslator<T extends Objective> {
     public FlowRule flowRule(T obj, PiTableId tableId, TrafficSelector selector,
                              TrafficTreatment treatment)
             throws FabricPipelinerException {
+        return flowRule(obj, tableId, selector, treatment, obj.priority());
+    }
+
+    public FlowRule flowRule(T obj, PiTableId tableId, TrafficSelector selector,
+                             TrafficTreatment treatment, Integer priority)
+            throws FabricPipelinerException {
         return DefaultFlowRule.builder()
                 .withSelector(selector)
                 .withTreatment(mapTreatmentToPiIfNeeded(treatment, tableId))
                 .forTable(tableId)
                 .makePermanent()
-                .withPriority(obj.priority())
+                .withPriority(priority)
                 .forDevice(deviceId)
                 .fromApp(obj.appId())
                 .build();

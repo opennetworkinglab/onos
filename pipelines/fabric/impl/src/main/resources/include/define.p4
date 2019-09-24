@@ -23,6 +23,10 @@
 #define WITH_INT
 #endif
 
+#if defined(WITH_BNG)
+#define WITH_DOUBLE_VLAN_TERMINATION
+#endif
+
 #ifndef WITHOUT_XCONNECT
 #define WITH_XCONNECT
 #endif
