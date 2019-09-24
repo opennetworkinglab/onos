@@ -361,7 +361,6 @@ public class OpenstackSwitchingIcmpHandler {
             OpenstackNode osNode = event.subject();
             switch (event.type()) {
                 case OPENSTACK_NODE_COMPLETE:
-                case OPENSTACK_NODE_INCOMPLETE:
                 case OPENSTACK_NODE_UPDATED:
                 case OPENSTACK_NODE_REMOVED:
                     eventExecutor.execute(() -> {
@@ -371,6 +370,7 @@ public class OpenstackSwitchingIcmpHandler {
                         reconfigureRouters(osNode);
                     });
                     break;
+                case OPENSTACK_NODE_INCOMPLETE:
                 default:
                     break;
             }

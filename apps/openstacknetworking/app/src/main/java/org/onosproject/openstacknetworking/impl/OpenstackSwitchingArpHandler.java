@@ -993,8 +993,6 @@ public class OpenstackSwitchingArpHandler {
                     eventExecutor.execute(() -> processNodeCompletion(osNode));
                     break;
                 case OPENSTACK_NODE_INCOMPLETE:
-                    eventExecutor.execute(() -> processNodeIncompletion(osNode));
-                    break;
                 default:
                     break;
             }

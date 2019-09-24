@@ -206,8 +206,6 @@ public class OpenstackRoutingSnatIcmpHandler {
                     eventExecutor.execute(() -> processNodeCompletion(osNode));
                     break;
                 case OPENSTACK_NODE_INCOMPLETE:
-                    eventExecutor.execute(() -> processNodeInCompletion(osNode));
-                    break;
                 default:
                     break;
             }

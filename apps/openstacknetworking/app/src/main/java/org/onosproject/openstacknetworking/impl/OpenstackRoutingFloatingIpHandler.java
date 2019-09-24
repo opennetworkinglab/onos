@@ -712,8 +712,6 @@ public class OpenstackRoutingFloatingIpHandler {
                     eventExecutor.execute(() -> processNodeCompletion(event));
                     break;
                 case OPENSTACK_NODE_INCOMPLETE:
-                    eventExecutor.execute(() -> processNodeIncompletion(event));
-                    break;
                 default:
                     // do nothing
                     break;

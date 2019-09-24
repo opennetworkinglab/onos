@@ -869,12 +869,10 @@ public class OpenstackRoutingArpHandler {
                 case OPENSTACK_NODE_COMPLETE:
                     eventExecutor.execute(() -> processNodeCompletion(event, osNode));
                     break;
-                case OPENSTACK_NODE_INCOMPLETE:
-                    eventExecutor.execute(() -> processNodeIncompletion(event, osNode));
-                    break;
                 case OPENSTACK_NODE_REMOVED:
                     eventExecutor.execute(() -> processNodeRemoval(event));
                     break;
+                case OPENSTACK_NODE_INCOMPLETE:
                 default:
                     break;
             }
