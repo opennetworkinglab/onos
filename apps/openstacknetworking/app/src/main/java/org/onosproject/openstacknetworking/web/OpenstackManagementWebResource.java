@@ -141,58 +141,88 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
             throw new ItemNotFoundException("Auth info is not correct");
         }
 
-        osClient.headers(headerMap).networking().securitygroup().list().forEach(osSg -> {
-            if (osSgAdminService.securityGroup(osSg.getId()) != null) {
-                osSgAdminService.updateSecurityGroup(osSg);
-            } else {
-                osSgAdminService.createSecurityGroup(osSg);
-            }
-        });
+        try {
+            osClient.headers(headerMap).networking().securitygroup().list().forEach(osSg -> {
+                if (osSgAdminService.securityGroup(osSg.getId()) != null) {
+                    osSgAdminService.updateSecurityGroup(osSg);
+                } else {
+                    osSgAdminService.createSecurityGroup(osSg);
+                }
+            });
+        } catch (Exception e) {
+            log.warn("Failed to retrieve security group due to {}", e.getMessage());
+            return Response.serverError().build();
+        }
 
-        osClient.headers(headerMap).networking().network().list().forEach(osNet -> {
-            if (osNetAdminService.network(osNet.getId()) != null) {
-                osNetAdminService.updateNetwork(osNet);
-            } else {
-                osNetAdminService.createNetwork(osNet);
-            }
-        });
+        try {
+            osClient.headers(headerMap).networking().network().list().forEach(osNet -> {
+                if (osNetAdminService.network(osNet.getId()) != null) {
+                    osNetAdminService.updateNetwork(osNet);
+                } else {
+                    osNetAdminService.createNetwork(osNet);
+                }
+            });
+        } catch (Exception e) {
+            log.warn("Failed to retrieve network due to {}", e.getMessage());
+            return Response.serverError().build();
+        }
 
-        osClient.headers(headerMap).networking().subnet().list().forEach(osSubnet -> {
-            if (osNetAdminService.subnet(osSubnet.getId()) != null) {
-                osNetAdminService.updateSubnet(osSubnet);
-            } else {
-                osNetAdminService.createSubnet(osSubnet);
-            }
-        });
+        try {
+            osClient.headers(headerMap).networking().subnet().list().forEach(osSubnet -> {
+                if (osNetAdminService.subnet(osSubnet.getId()) != null) {
+                    osNetAdminService.updateSubnet(osSubnet);
+                } else {
+                    osNetAdminService.createSubnet(osSubnet);
+                }
+            });
+        } catch (Exception e) {
+            log.warn("Failed to retrieve subnet due to {}", e.getMessage());
+            return Response.serverError().build();
+        }
 
-        osClient.headers(headerMap).networking().port().list().forEach(osPort -> {
-            if (osNetAdminService.port(osPort.getId()) != null) {
-                osNetAdminService.updatePort(osPort);
-            } else {
-                osNetAdminService.createPort(osPort);
-            }
-        });
+        try {
+            osClient.headers(headerMap).networking().port().list().forEach(osPort -> {
+                if (osNetAdminService.port(osPort.getId()) != null) {
+                    osNetAdminService.updatePort(osPort);
+                } else {
+                    osNetAdminService.createPort(osPort);
+                }
+            });
+        } catch (Exception e) {
+            log.warn("Failed to retrieve port due to {}", e.getMessage());
+            return Response.serverError().build();
+        }
 
-        osClient.headers(headerMap).networking().router().list().forEach(osRouter -> {
-            if (osRouterAdminService.router(osRouter.getId()) != null) {
-                osRouterAdminService.updateRouter(osRouter);
-            } else {
-                osRouterAdminService.createRouter(osRouter);
-            }
+        try {
+            osClient.headers(headerMap).networking().router().list().forEach(osRouter -> {
+                if (osRouterAdminService.router(osRouter.getId()) != null) {
+                    osRouterAdminService.updateRouter(osRouter);
+                } else {
+                    osRouterAdminService.createRouter(osRouter);
+                }
 
-            osNetAdminService.ports().stream()
-                    .filter(osPort -> Objects.equals(osPort.getDeviceId(), osRouter.getId()) &&
-                            Objects.equals(osPort.getDeviceOwner(), DEVICE_OWNER_IFACE))
-                    .forEach(osPort -> addRouterIface(osPort, osRouterAdminService));
-        });
+                osNetAdminService.ports().stream()
+                        .filter(osPort -> Objects.equals(osPort.getDeviceId(), osRouter.getId()) &&
+                                Objects.equals(osPort.getDeviceOwner(), DEVICE_OWNER_IFACE))
+                        .forEach(osPort -> addRouterIface(osPort, osRouterAdminService));
+            });
+        } catch (Exception e) {
+            log.warn("Failed to retrieve router due to {}", e.getMessage());
+            return Response.serverError().build();
+        }
 
-        osClient.headers(headerMap).networking().floatingip().list().forEach(osFloating -> {
-            if (osRouterAdminService.floatingIp(osFloating.getId()) != null) {
-                osRouterAdminService.updateFloatingIp(osFloating);
-            } else {
-                osRouterAdminService.createFloatingIp(osFloating);
-            }
-        });
+        try {
+            osClient.headers(headerMap).networking().floatingip().list().forEach(osFloating -> {
+                if (osRouterAdminService.floatingIp(osFloating.getId()) != null) {
+                    osRouterAdminService.updateFloatingIp(osFloating);
+                } else {
+                    osRouterAdminService.createFloatingIp(osFloating);
+                }
+            });
+        } catch (Exception e) {
+            log.warn("Failed to retrieve floating IP due to {}", e.getMessage());
+            return Response.serverError().build();
+        }
 
         return ok(mapper().createObjectNode()).build();
     }
