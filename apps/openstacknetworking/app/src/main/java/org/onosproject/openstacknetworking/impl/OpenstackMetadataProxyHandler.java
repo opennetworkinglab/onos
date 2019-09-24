@@ -655,12 +655,10 @@ public class OpenstackMetadataProxyHandler {
                 case OPENSTACK_NODE_COMPLETE:
                     eventExecutor.execute(() -> processNodeCompletion(osNode));
                     break;
-                case OPENSTACK_NODE_INCOMPLETE:
-                    eventExecutor.execute(() -> processNodeIncompletion(osNode));
-                    break;
                 case OPENSTACK_NODE_CREATED:
                 case OPENSTACK_NODE_UPDATED:
                 case OPENSTACK_NODE_REMOVED:
+                case OPENSTACK_NODE_INCOMPLETE:
                 default:
                     break;
             }
