@@ -16,6 +16,7 @@
 
 package org.onosproject.pipelines.fabric.impl.behaviour.pipeliner;
 
+import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.Ethernet;
@@ -39,6 +40,9 @@ import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionParam;
 import org.onosproject.pipelines.fabric.impl.behaviour.FabricConstants;
 
+import java.util.Collection;
+import java.util.List;
+
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -48,6 +52,7 @@ public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
 
     public static final byte[] ONE = {1};
     public static final byte[] ZERO = {0};
+    public static final short EXACT_MATCH_ETH_TYPE = (short) 0xFFFF;
     private FilteringObjectiveTranslator translator;
 
     @Before
@@ -65,45 +70,51 @@ public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
     public void testRouterMacAndVlanFilter() throws FabricPipelinerException {
         FilteringObjective filteringObjective = buildFilteringObjective(ROUTER_MAC);
         ObjectiveTranslation actualTranslation = translator.translate(filteringObjective);
-
+        Collection<FlowRule> expectedFlowRules = Lists.newArrayList();
         // in port vlan flow rule
-        FlowRule inportFlowRuleExpected = buildExpectedVlanInPortRule(
+        expectedFlowRules.add(buildExpectedVlanInPortRule(
                 PORT_1,
                 VlanId.NONE,
                 VlanId.NONE,
                 VLAN_100,
-                FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN);
+                FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN));
 
         // forwarding classifier ipv4
-        FlowRule classifierV4FlowRuleExpected = buildExpectedFwdClassifierRule(
+        expectedFlowRules.addAll(buildExpectedFwdClassifierRule(
                 PORT_1,
                 ROUTER_MAC,
                 null,
                 Ethernet.TYPE_IPV4,
-                FilteringObjectiveTranslator.FWD_IPV4_ROUTING);
+                FilteringObjectiveTranslator.FWD_IPV4_ROUTING));
 
         // forwarding classifier ipv6
-        FlowRule classifierV6FlowRuleExpected = buildExpectedFwdClassifierRule(
+        expectedFlowRules.addAll(buildExpectedFwdClassifierRule(
                 PORT_1,
                 ROUTER_MAC,
                 null,
                 Ethernet.TYPE_IPV6,
-                FilteringObjectiveTranslator.FWD_IPV6_ROUTING);
+                FilteringObjectiveTranslator.FWD_IPV6_ROUTING));
 
         // forwarding classifier mpls
-        FlowRule classifierMplsFlowRuleExpected = buildExpectedFwdClassifierRule(
+        expectedFlowRules.addAll(buildExpectedFwdClassifierRule(
                 PORT_1,
                 ROUTER_MAC,
                 null,
                 Ethernet.MPLS_UNICAST,
-                FilteringObjectiveTranslator.FWD_MPLS);
+                FilteringObjectiveTranslator.FWD_MPLS));
 
-        ObjectiveTranslation expectedTranslation = ObjectiveTranslation.builder()
-                .addFlowRule(inportFlowRuleExpected)
-                .addFlowRule(classifierV4FlowRuleExpected)
-                .addFlowRule(classifierV6FlowRuleExpected)
-                .addFlowRule(classifierMplsFlowRuleExpected)
-                .build();
+//        ObjectiveTranslation.Builder expectedTranslationBuilder = ObjectiveTranslation.builder()
+//                .addFlowRule(inportFlowRuleExpected);
+//        for (FlowRule flowRule : classifierV4FlowRuleExpected) {
+//            expectedTranslationBuilder.addFlowRule(flowRule);
+//        }
+//        for (FlowRule flowRule : classifierV6FlowRuleExpected) {
+//            expectedTranslationBuilder.addFlowRule(flowRule);
+//        }
+//        for (FlowRule flowRule : classifierMplsFlowRuleExpected) {
+//            expectedTranslationBuilder.addFlowRule(flowRule);
+//        }
+        ObjectiveTranslation expectedTranslation = buildExpectedTranslation(expectedFlowRules);
 
         assertEquals(expectedTranslation, actualTranslation);
     }
@@ -130,27 +141,24 @@ public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
                 .makePermanent()
                 .add();
         ObjectiveTranslation actualTranslation = translator.translate(filteringObjective);
-
+        List<FlowRule> expectedFlowRules = Lists.newArrayList();
         // in port vlan flow rule
-        FlowRule inportFlowRuleExpected = buildExpectedVlanInPortRule(
+        expectedFlowRules.add(buildExpectedVlanInPortRule(
                 PORT_1,
                 VlanId.NONE,
                 VlanId.NONE,
                 VLAN_100,
-                FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN);
+                FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN));
 
         // forwarding classifier
-        FlowRule classifierFlowRuleExpected = buildExpectedFwdClassifierRule(
+        expectedFlowRules.addAll(buildExpectedFwdClassifierRule(
                 PORT_1,
                 MacAddress.IPV4_MULTICAST,
                 MacAddress.IPV4_MULTICAST_MASK,
                 Ethernet.TYPE_IPV4,
-                FilteringObjectiveTranslator.FWD_IPV4_ROUTING);
+                FilteringObjectiveTranslator.FWD_IPV4_ROUTING));
 
-        ObjectiveTranslation expectedTranslation = ObjectiveTranslation.builder()
-                .addFlowRule(inportFlowRuleExpected)
-                .addFlowRule(classifierFlowRuleExpected)
-                .build();
+        ObjectiveTranslation expectedTranslation = buildExpectedTranslation(expectedFlowRules);
 
         assertEquals(expectedTranslation, actualTranslation);
     }
@@ -177,26 +185,23 @@ public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
                 .makePermanent()
                 .add();
         ObjectiveTranslation actualTranslation = translator.translate(filteringObjective);
-
+        Collection<FlowRule> flowRules = Lists.newArrayList();
         // in port vlan flow rule
-        FlowRule inportFlowRuleExpected = buildExpectedVlanInPortRule(
+        flowRules.add(buildExpectedVlanInPortRule(
                 PORT_1,
                 VlanId.NONE,
                 VlanId.NONE,
                 VLAN_100,
-                FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN);
+                FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN));
 
-        FlowRule classifierFlowRuleExpected = buildExpectedFwdClassifierRule(
+        flowRules.addAll(buildExpectedFwdClassifierRule(
                 PORT_1,
                 MacAddress.IPV6_MULTICAST,
                 MacAddress.IPV6_MULTICAST_MASK,
                 Ethernet.TYPE_IPV6,
-                FilteringObjectiveTranslator.FWD_IPV6_ROUTING);
+                FilteringObjectiveTranslator.FWD_IPV6_ROUTING));
 
-        ObjectiveTranslation expectedTranslation = ObjectiveTranslation.builder()
-                .addFlowRule(inportFlowRuleExpected)
-                .addFlowRule(classifierFlowRuleExpected)
-                .build();
+        ObjectiveTranslation expectedTranslation = buildExpectedTranslation(flowRules);
 
         assertEquals(expectedTranslation, actualTranslation);
     }
@@ -289,27 +294,22 @@ public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
                 .permit()
                 .add();
         ObjectiveTranslation actualTranslation = translator.translate(filteringObjective);
-
+        Collection<FlowRule> expectedFlowRules = Lists.newArrayList();
         // Ingress port vlan rule
-        FlowRule inportFlowRuleExpected = buildExpectedVlanInPortRule(
+        expectedFlowRules.add(buildExpectedVlanInPortRule(
                 PORT_1, VLAN_100, VLAN_200, VlanId.NONE,
-                FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN);
+                FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN));
         // Forwarding classifier rules (ipv6, ipv4, mpls)
-        FlowRule classifierV4FlowRuleExpected = buildExpectedFwdClassifierRule(
+        expectedFlowRules.addAll(buildExpectedFwdClassifierRule(
                 PORT_1, ROUTER_MAC, null, Ethernet.TYPE_IPV4,
-                FilteringObjectiveTranslator.FWD_IPV4_ROUTING);
-        FlowRule classifierV6FlowRuleExpected = buildExpectedFwdClassifierRule(
+                FilteringObjectiveTranslator.FWD_IPV4_ROUTING));
+        expectedFlowRules.addAll(buildExpectedFwdClassifierRule(
                 PORT_1, ROUTER_MAC, null, Ethernet.TYPE_IPV6,
-                FilteringObjectiveTranslator.FWD_IPV6_ROUTING);
-        FlowRule classifierMplsFlowRuleExpected = buildExpectedFwdClassifierRule(
+                FilteringObjectiveTranslator.FWD_IPV6_ROUTING));
+        expectedFlowRules.addAll(buildExpectedFwdClassifierRule(
                 PORT_1, ROUTER_MAC, null, Ethernet.MPLS_UNICAST,
-                FilteringObjectiveTranslator.FWD_MPLS);
-        ObjectiveTranslation expectedTranslation = ObjectiveTranslation.builder()
-                .addFlowRule(inportFlowRuleExpected)
-                .addFlowRule(classifierV4FlowRuleExpected)
-                .addFlowRule(classifierV6FlowRuleExpected)
-                .addFlowRule(classifierMplsFlowRuleExpected)
-                .build();
+                FilteringObjectiveTranslator.FWD_MPLS));
+        ObjectiveTranslation expectedTranslation = buildExpectedTranslation(expectedFlowRules);
 
         assertEquals(expectedTranslation, actualTranslation);
     }
@@ -342,48 +342,6 @@ public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
 
         ObjectiveTranslation result2 = translator.translate(filteringObjective);
         assertError(ObjectiveError.BADPARAMS, result2);
-    }
-
-    /**
-     * Test the mapping between EtherType and conditions.
-     */
-    @Test
-    public void testMappingEthType() {
-        PiCriterion expectedMappingDefault = PiCriterion.builder()
-                .matchExact(FabricConstants.HDR_IS_MPLS, ZERO)
-                .matchExact(FabricConstants.HDR_IS_IPV4, ZERO)
-                .matchExact(FabricConstants.HDR_IS_IPV6, ZERO)
-                .build();
-        PiCriterion expectedMappingIpv6 = PiCriterion.builder()
-                .matchExact(FabricConstants.HDR_IS_MPLS, ZERO)
-                .matchExact(FabricConstants.HDR_IS_IPV4, ZERO)
-                .matchExact(FabricConstants.HDR_IS_IPV6, ONE)
-                .build();
-        PiCriterion expectedMappingIpv4 = PiCriterion.builder()
-                .matchExact(FabricConstants.HDR_IS_MPLS, ZERO)
-                .matchExact(FabricConstants.HDR_IS_IPV4, ONE)
-                .matchExact(FabricConstants.HDR_IS_IPV6, ZERO)
-                .build();
-        PiCriterion expectedMappingMpls = PiCriterion.builder()
-                .matchExact(FabricConstants.HDR_IS_MPLS, ONE)
-                .matchExact(FabricConstants.HDR_IS_IPV4, ZERO)
-                .matchExact(FabricConstants.HDR_IS_IPV6, ZERO)
-                .build();
-
-
-        PiCriterion actualMappingIpv6 = FilteringObjectiveTranslator.mapEthTypeFwdClassifier(Ethernet.TYPE_IPV6);
-        assertEquals(expectedMappingIpv6, actualMappingIpv6);
-
-        PiCriterion actualMappingIpv4 = FilteringObjectiveTranslator.mapEthTypeFwdClassifier(Ethernet.TYPE_IPV4);
-        assertEquals(expectedMappingIpv4, actualMappingIpv4);
-
-        PiCriterion actualMappingMpls = FilteringObjectiveTranslator.mapEthTypeFwdClassifier(Ethernet.MPLS_UNICAST);
-        assertEquals(expectedMappingMpls, actualMappingMpls);
-
-        PiCriterion actualMapping = FilteringObjectiveTranslator.mapEthTypeFwdClassifier(Ethernet.TYPE_ARP);
-        assertEquals(expectedMappingDefault, actualMapping);
-
-
     }
 
     /* Utilities */
@@ -463,21 +421,11 @@ public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
         return piCriterionBuilder.build();
     }
 
-    private FlowRule buildExpectedFwdClassifierRule(PortNumber inPort,
-                                                    MacAddress dstMac,
-                                                    MacAddress dstMacMask,
-                                                    short ethType,
-                                                    byte fwdClass) {
-        TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder()
-                .matchInPort(inPort)
-                .matchPi(FilteringObjectiveTranslator.mapEthTypeFwdClassifier(ethType));
-        if (dstMacMask != null) {
-            sbuilder.matchEthDstMasked(dstMac, dstMacMask);
-        } else {
-            sbuilder.matchEthDstMasked(dstMac, MacAddress.EXACT_MASK);
-        }
-        TrafficSelector selector = sbuilder.build();
-
+    private Collection<FlowRule> buildExpectedFwdClassifierRule(PortNumber inPort,
+                                                                MacAddress dstMac,
+                                                                MacAddress dstMacMask,
+                                                                short ethType,
+                                                                byte fwdClass) {
         PiActionParam classParam = new PiActionParam(FabricConstants.FWD_TYPE,
                                                      ImmutableByteSequence.copyFrom(fwdClass));
         PiAction fwdClassifierAction = PiAction.builder()
@@ -488,14 +436,76 @@ public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
                 .piTableAction(fwdClassifierAction)
                 .build();
 
-        return DefaultFlowRule.builder()
-                .withPriority(PRIORITY)
-                .withSelector(selector)
-                .withTreatment(treatment)
-                .fromApp(APP_ID)
-                .forDevice(DEVICE_ID)
-                .makePermanent()
-                .forTable(FabricConstants.FABRIC_INGRESS_FILTERING_FWD_CLASSIFIER)
+        TrafficSelector.Builder sbuilder = DefaultTrafficSelector.builder()
+                .matchInPort(inPort);
+        if (dstMacMask != null) {
+            sbuilder.matchEthDstMasked(dstMac, dstMacMask);
+        } else {
+            sbuilder.matchEthDstMasked(dstMac, MacAddress.EXACT_MASK);
+        }
+        // Special case for MPLS UNICAST forwarding, need to build 2 rules for MPLS+IPv4 and MPLS+IPv6
+        if (ethType == Ethernet.MPLS_UNICAST) {
+            return buildExpectedFwdClassifierRulesMpls(fwdClassifierAction, treatment, sbuilder);
+        }
+        sbuilder.matchPi(PiCriterion.builder()
+                                 .matchExact(FabricConstants.HDR_IP_ETH_TYPE, ethType)
+                                 .build());
+        TrafficSelector selector = sbuilder.build();
+        return List.of(DefaultFlowRule.builder()
+                               .withPriority(PRIORITY)
+                               .withSelector(selector)
+                               .withTreatment(treatment)
+                               .fromApp(APP_ID)
+                               .forDevice(DEVICE_ID)
+                               .makePermanent()
+                               .forTable(FabricConstants.FABRIC_INGRESS_FILTERING_FWD_CLASSIFIER)
+                               .build());
+    }
+
+    private Collection<FlowRule> buildExpectedFwdClassifierRulesMpls(PiAction fwdClassifierAction,
+                                                                     TrafficTreatment treatment,
+                                                                     TrafficSelector.Builder selectorBuilder) {
+
+        Collection<FlowRule> flowRules = Lists.newArrayList();
+        TrafficSelector selectorIpv4 = selectorBuilder
+                .add(PiCriterion.builder()
+                             .matchTernary(FabricConstants.HDR_ETH_TYPE, Ethernet.MPLS_UNICAST, EXACT_MATCH_ETH_TYPE)
+                             .matchExact(FabricConstants.HDR_IP_ETH_TYPE, Ethernet.TYPE_IPV4)
+                             .build())
                 .build();
+        TrafficSelector selectorIpv6 = selectorBuilder
+                .add(PiCriterion.builder()
+                             .matchTernary(FabricConstants.HDR_ETH_TYPE, Ethernet.MPLS_UNICAST, EXACT_MATCH_ETH_TYPE)
+                             .matchExact(FabricConstants.HDR_IP_ETH_TYPE, Ethernet.TYPE_IPV6)
+                             .build())
+                .build();
+        flowRules.add(DefaultFlowRule.builder()
+                              .withPriority(PRIORITY + 1)
+                              .withSelector(selectorIpv4)
+                              .withTreatment(treatment)
+                              .fromApp(APP_ID)
+                              .forDevice(DEVICE_ID)
+                              .makePermanent()
+                              .forTable(FabricConstants.FABRIC_INGRESS_FILTERING_FWD_CLASSIFIER)
+                              .build());
+        flowRules.add(DefaultFlowRule.builder()
+                              .withPriority(PRIORITY + 1)
+                              .withSelector(selectorIpv6)
+                              .withTreatment(treatment)
+                              .fromApp(APP_ID)
+                              .forDevice(DEVICE_ID)
+                              .makePermanent()
+                              .forTable(FabricConstants.FABRIC_INGRESS_FILTERING_FWD_CLASSIFIER)
+                              .build());
+        return flowRules;
+    }
+
+    private ObjectiveTranslation buildExpectedTranslation(Collection<FlowRule> flowRules)
+            throws FabricPipelinerException {
+        ObjectiveTranslation.Builder expectedTranslationBuilder = ObjectiveTranslation.builder();
+        for (FlowRule flowRule : flowRules) {
+            expectedTranslationBuilder.addFlowRule(flowRule);
+        }
+        return expectedTranslationBuilder.build();
     }
 }

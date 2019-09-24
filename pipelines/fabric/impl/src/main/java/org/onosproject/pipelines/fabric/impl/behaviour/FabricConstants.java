@@ -19,10 +19,10 @@ package org.onosproject.pipelines.fabric.impl.behaviour;
 import org.onosproject.net.pi.model.PiActionId;
 import org.onosproject.net.pi.model.PiActionParamId;
 import org.onosproject.net.pi.model.PiActionProfileId;
-import org.onosproject.net.pi.model.PiCounterId;
-import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiMeterId;
 import org.onosproject.net.pi.model.PiPacketMetadataId;
+import org.onosproject.net.pi.model.PiCounterId;
+import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiTableId;
 /**
  * Constants for fabric pipeline.
@@ -38,8 +38,6 @@ public final class FabricConstants {
             PiMatchFieldId.of("ig_port");
     public static final PiMatchFieldId HDR_VLAN_IS_VALID =
             PiMatchFieldId.of("vlan_is_valid");
-    public static final PiMatchFieldId HDR_EG_PORT =
-            PiMatchFieldId.of("eg_port");
     public static final PiMatchFieldId HDR_IPV6_SRC_NET_ID =
             PiMatchFieldId.of("ipv6_src_net_id");
     public static final PiMatchFieldId HDR_C_TAG = PiMatchFieldId.of("c_tag");
@@ -47,8 +45,6 @@ public final class FabricConstants {
             PiMatchFieldId.of("ipv4_src");
     public static final PiMatchFieldId HDR_IPV6_DST =
             PiMatchFieldId.of("ipv6_dst");
-    public static final PiMatchFieldId HDR_IS_MPLS =
-            PiMatchFieldId.of("is_mpls");
     public static final PiMatchFieldId HDR_L4_DPORT =
             PiMatchFieldId.of("l4_dport");
     public static final PiMatchFieldId HDR_PPPOE_CODE =
@@ -72,6 +68,8 @@ public final class FabricConstants {
             PiMatchFieldId.of("eth_type");
     public static final PiMatchFieldId HDR_NEXT_ID =
             PiMatchFieldId.of("next_id");
+    public static final PiMatchFieldId HDR_IP_ETH_TYPE =
+            PiMatchFieldId.of("ip_eth_type");
     public static final PiMatchFieldId HDR_L4_SPORT =
             PiMatchFieldId.of("l4_sport");
     public static final PiMatchFieldId HDR_ICMP_CODE =
@@ -88,10 +86,8 @@ public final class FabricConstants {
             PiMatchFieldId.of("line_id");
     public static final PiMatchFieldId HDR_IPV4_DSCP =
             PiMatchFieldId.of("ipv4_dscp");
-    public static final PiMatchFieldId HDR_IS_IPV4 =
-            PiMatchFieldId.of("is_ipv4");
-    public static final PiMatchFieldId HDR_IS_IPV6 =
-            PiMatchFieldId.of("is_ipv6");
+    public static final PiMatchFieldId HDR_EG_PORT =
+            PiMatchFieldId.of("eg_port");
     public static final PiMatchFieldId HDR_GTP_IPV4_DST =
             PiMatchFieldId.of("gtp_ipv4_dst");
     public static final PiMatchFieldId HDR_INT_IS_VALID =
@@ -181,8 +177,8 @@ public final class FabricConstants {
             PiCounterId.of("FabricIngress.filtering.fwd_classifier_counter");
     public static final PiCounterId FABRIC_INGRESS_FORWARDING_BRIDGING_COUNTER =
             PiCounterId.of("FabricIngress.forwarding.bridging_counter");
-    public static final PiCounterId FABRIC_INGRESS_FORWARDING_ROUTING_V4_COUNTER =
-            PiCounterId.of("FabricIngress.forwarding.routing_v4_counter");
+    public static final PiCounterId FABRIC_INGRESS_NEXT_HASHED_COUNTER =
+            PiCounterId.of("FabricIngress.next.hashed_counter");
     public static final PiCounterId FABRIC_INGRESS_PROCESS_SET_SOURCE_SINK_COUNTER_SET_SOURCE =
             PiCounterId.of("FabricIngress.process_set_source_sink.counter_set_source");
     public static final PiCounterId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_SOURCE_COUNTER_INT_SOURCE =
@@ -205,8 +201,6 @@ public final class FabricConstants {
             PiCounterId.of("FabricIngress.filtering.ingress_port_vlan_counter");
     public static final PiCounterId FABRIC_INGRESS_FORWARDING_MPLS_COUNTER =
             PiCounterId.of("FabricIngress.forwarding.mpls_counter");
-    public static final PiCounterId FABRIC_INGRESS_NEXT_HASHED_COUNTER =
-            PiCounterId.of("FabricIngress.next.hashed_counter");
     // Action IDs
     public static final PiActionId FABRIC_INGRESS_NEXT_SET_NEXT_ID_XCONNECT =
             PiActionId.of("FabricIngress.next.set_next_id_xconnect");

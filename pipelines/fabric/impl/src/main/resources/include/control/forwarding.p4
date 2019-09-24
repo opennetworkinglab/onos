@@ -84,15 +84,22 @@ control Forwarding (inout parsed_headers_t hdr,
     /*
      * IPv4 Routing Table.
      */
+#ifdef WTIH_DEBUG
     direct_counter(CounterType.packets_and_bytes) routing_v4_counter;
+#endif // WITH_DEBUG
 
     action set_next_id_routing_v4(next_id_t next_id) {
         set_next_id(next_id);
+#ifdef WTIH_DEBUG
         routing_v4_counter.count();
+#endif // WITH_DEBUG
     }
 
     action nop_routing_v4() {
+        // no-op
+#ifdef WTIH_DEBUG
         routing_v4_counter.count();
+#endif // WITH_DEBUG
     }
 
     #ifdef _ROUTING_V4_TABLE_ANNOT
@@ -108,7 +115,9 @@ control Forwarding (inout parsed_headers_t hdr,
             @defaultonly nop;
         }
         const default_action = nop();
+#ifdef WTIH_DEBUG
         counters = routing_v4_counter;
+#endif // WITH_DEBUG
         size = ROUTING_V4_TABLE_SIZE;
     }
 

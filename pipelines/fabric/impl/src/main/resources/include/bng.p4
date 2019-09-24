@@ -64,8 +64,7 @@ control bng_ingress_upstream(
 
     @hidden
     action term_enabled(bit<16> eth_type) {
-        hdr.inner_vlan_tag.eth_type = eth_type;
-        fmeta.last_eth_type = eth_type;
+        hdr.eth_type.value = eth_type;
         hdr.pppoe.setInvalid();
         c_terminated.count(fmeta.bng.line_id);
     }
@@ -266,8 +265,8 @@ control bng_egress_downstream(
 
     @hidden
     action encap() {
-        // Here we add PPPoE and modify the inner_vlan_tag Ethernet Type.
-        hdr.inner_vlan_tag.eth_type = ETHERTYPE_PPPOES;
+        // Here we add PPPoE and modify the Ethernet Type.
+        hdr.eth_type.value = ETHERTYPE_PPPOES;
         hdr.pppoe.setValid();
         hdr.pppoe.version = 4w1;
         hdr.pppoe.type_id = 4w1;
@@ -327,11 +326,11 @@ control bng_ingress(
                 c_tag : exact @name("c_tag");
             }
              actions = {
-                @defaultonly nop;
                 set_line;
             }
             size = BNG_MAX_SUBSC;
-            const default_action = nop;
+            // By default set the line ID to 0
+            const default_action = set_line(0);
         }
 
         apply {

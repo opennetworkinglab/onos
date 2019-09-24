@@ -7,7 +7,7 @@ fabric-spgw:
 	@./bmv2-compile.sh "fabric-spgw" "-DWITH_SPGW"
 
 fabric-bng:
-	@./bmv2-compile.sh "fabric-bng" "-DWITH_BNG -DWITH_DOUBLE_VLAN_TERMINATION -DWITHOUT_XCONNECT"
+	@./bmv2-compile.sh "fabric-bng" "-DWITH_BNG -DWITHOUT_XCONNECT"
 
 fabric-int:
 	@./bmv2-compile.sh "fabric-int" "-DWITH_INT_SOURCE -DWITH_INT_TRANSIT"
@@ -18,7 +18,7 @@ fabric-spgw-int:
 fabric-full:
 	@./bmv2-compile.sh "fabric-full" " -DWITH_MULTICAST -DWITH_IPV6 \
 		-DWITH_SIMPLE_NEXT -DWITH_HASHED_NEXT -DWITH_BNG -DWITH_SPGW \
-		-DWITH_INT_SOURCE -DWITH_INT_TRANSIT -DWITH_INT_SINK -DWITH_DOUBLE_VLAN_TERMINATION"
+		-DWITH_INT_SOURCE -DWITH_INT_TRANSIT -DWITH_INT_SINK"
 
 constants:
 	docker run -v $(ONOS_ROOT):/onos -w /onos/tools/dev/bin \
