@@ -406,6 +406,7 @@ public class FpmManager implements FpmInfoService {
         }
 
         if (clearRoutes) {
+            log.debug("Clearing routes for the peer");
             peers.keySet().forEach(this::clearRoutes);
         }
     }
@@ -610,7 +611,7 @@ public class FpmManager implements FpmInfoService {
 
             // Encode message in a channel buffer and transmit.
             ch.write(fpmMessage.encode());
-
+            log.debug("Fpm Message for updated route {}", fpmMessage.toString());
         } catch (RuntimeException e) {
             log.info("Route not sent over fpm connection.");
         }
@@ -686,6 +687,7 @@ public class FpmManager implements FpmInfoService {
 
         @Override
         public boolean peerConnected(FpmPeer peer) {
+            log.info("FPM connection to {} was connected", peer);
             if (peers.keySet().contains(peer)) {
                 return false;
             }
@@ -813,7 +815,7 @@ public class FpmManager implements FpmInfoService {
                                     .filter(i -> i.connectedTo().equals(event.subject().id()))
                                     .findAny()
                                     .ifPresent(value::remove);
-
+                                log.info("Connection {} removed for disabled peer {}", value, key);
                                 if (value.isEmpty()) {
                                     peers.remove(key);
                                 }
