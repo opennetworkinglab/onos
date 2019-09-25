@@ -32,7 +32,7 @@ import org.onosproject.net.pi.model.PiCounterId;
 import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiTableId;'''
 
-PKG_FMT = 'package org.onosproject.pipelines.%s;'
+PKG_FMT = 'package org.onosproject.pipelines.%s.impl.behaviour;'
 
 CLASS_OPEN = 'public final class %s {'
 CLASS_CLOSE = '}'
