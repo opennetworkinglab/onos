@@ -17,6 +17,7 @@
     //drivers/utilities:onos-drivers-utilities
     //drivers/default:onos-drivers-default
     //drivers/netconf:onos-drivers-netconf
+    //pipelines/fabric/api:onos-pipelines-fabric-api
     //protocols/bgp/api:onos-protocols-bgp-api
     //protocols/bgp/bgpio:onos-protocols-bgp-bgpio
     //protocols/grpc/api:onos-protocols-grpc-api
