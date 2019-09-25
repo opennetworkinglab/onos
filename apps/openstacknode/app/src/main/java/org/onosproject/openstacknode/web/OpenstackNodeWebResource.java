@@ -254,7 +254,7 @@ public class OpenstackNodeWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("init/incomplete")
     public Response initIncompleteNodes() {
-        log.info(String.format(MESSAGE_NODE, INIT));
+        log.debug(String.format(MESSAGE_NODE, INIT));
 
         osNodeService.nodes().stream()
                 .filter(n -> n.state() != COMPLETE)
