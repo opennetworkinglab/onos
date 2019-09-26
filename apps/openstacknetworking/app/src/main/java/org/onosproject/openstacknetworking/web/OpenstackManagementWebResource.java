@@ -105,6 +105,8 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
     private static final String FLAG_TRUE = "true";
     private static final String FLAG_FALSE = "false";
 
+    private static final String ACTIVE_IP = "activeIp";
+
     private final ObjectNode root = mapper().createObjectNode();
     private final ArrayNode floatingipsNode = root.putArray(FLOATINGIPS);
 
@@ -436,6 +438,19 @@ public class OpenstackManagementWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getActiveStatus() {
         return ok(mapper().createObjectNode().put(IS_ACTIVE, osHaService.isActive())).build();
+    }
+
+    /**
+     * Obtains the active node's IP address.
+     *
+     * @return 200 OK with active node's IP address.
+     */
+    @GET
+    @Path("active/ip")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getActiveIp() {
+        return ok(mapper().createObjectNode()
+                .put(ACTIVE_IP, osHaService.getActiveIp().toString())).build();
     }
 
     /**
