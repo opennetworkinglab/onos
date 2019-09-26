@@ -136,7 +136,7 @@ public class OvsdbQosConfig extends AbstractHandlerBehaviour implements QosConfi
     // is used in the core. So DeviceId need be changed to OvsdbNodeId.
     private OvsdbNodeId changeDeviceIdToNodeId(DeviceId deviceId) {
         String[] splits = deviceId.toString().split(":");
-        if (splits.length < 1) {
+        if (splits.length < 2) {
             return null;
         }
         IpAddress ipAddress = IpAddress.valueOf(splits[1]);
