@@ -124,4 +124,23 @@ public class PartitionManager extends AbstractListenerManager<PartitionEvent, Pa
                     .collect(Collectors.toList())))
             .collect(Collectors.toList());
     }
+
+    @Override
+    public void snapshot() {
+        checkPermission(PARTITION_READ);
+        if (partitionGroup != null) {
+            partitionGroup.snapshot().join();
+        }
+    }
+
+    @Override
+    public void snapshot(PartitionId partitionId) {
+        checkPermission(PARTITION_READ);
+        io.atomix.primitive.partition.PartitionId atomixPartitionId =
+                io.atomix.primitive.partition.PartitionId.from(partitionGroup.name(), partitionId.id());
+        if (partitionGroup != null &&
+                partitionGroup.getPartition(atomixPartitionId) != null) {
+            partitionGroup.snapshot(atomixPartitionId).join();
+        }
+    }
 }

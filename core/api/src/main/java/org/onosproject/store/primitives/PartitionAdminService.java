@@ -17,6 +17,7 @@ package org.onosproject.store.primitives;
 
 import java.util.List;
 
+import org.onosproject.cluster.PartitionId;
 import org.onosproject.store.service.PartitionClientInfo;
 import org.onosproject.store.service.PartitionInfo;
 
@@ -36,4 +37,16 @@ public interface PartitionAdminService {
      * @return list of {@code PartitionClientInfo}
      */
     List<PartitionClientInfo> partitionClientInfo();
+
+    /**
+     * Takes a snapshot of all partitions.
+     */
+    void snapshot();
+
+    /**
+     * Takes a snapshot of the given partition.
+     *
+     * @param partitionId the partition to snapshot
+     */
+    void snapshot(PartitionId partitionId);
 }
