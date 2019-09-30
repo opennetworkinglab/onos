@@ -183,6 +183,19 @@ public class StoragePartitionServer implements Managed<StoragePartitionServer> {
         }).thenApply(v -> null);
     }
 
+    /**
+     * Takes a snapshot of the server.
+     *
+     * @return a future to be completed once the snapshot has been taken
+     */
+    public CompletableFuture<Void> snapshot() {
+        RaftServer server = this.server;
+        if (server != null) {
+            return server.snapshot();
+        }
+        return CompletableFuture.completedFuture(null);
+    }
+
     @Override
     public CompletableFuture<Void> close() {
         return server.shutdown();

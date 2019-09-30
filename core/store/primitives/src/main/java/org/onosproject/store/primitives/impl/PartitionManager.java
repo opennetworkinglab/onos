@@ -223,6 +223,22 @@ public class PartitionManager extends AbstractListenerManager<PartitionEvent, Pa
                          .collect(Collectors.toList());
     }
 
+    @Override
+    public void snapshot() {
+        List<CompletableFuture<Void>> futures = activePartitions.values().stream()
+            .map(partition -> partition.snapshot())
+            .collect(Collectors.toList());
+        Tools.allOf(futures).join();
+    }
+
+    @Override
+    public void snapshot(PartitionId partitionId) {
+        StoragePartition partition = activePartitions.get(partitionId);
+        if (partition != null) {
+            partition.snapshot().join();
+        }
+    }
+
     /**
      * Returns a list of nodes sorted by time ordered oldest to newest.
      *

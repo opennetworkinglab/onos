@@ -99,6 +99,19 @@ public abstract class StoragePartition implements Managed<StoragePartition> {
         return client;
     }
 
+    /**
+     * Takes a snapshot of the partition.
+     *
+     * @return a future to be completed once the snapshot has been taken
+     */
+    public CompletableFuture<Void> snapshot() {
+        StoragePartitionServer server = this.server;
+        if (server != null) {
+            return server.snapshot();
+        }
+        return CompletableFuture.completedFuture(null);
+    }
+
     @Override
     public CompletableFuture<Void> open() {
         if (partition.getMembers().contains(localNodeId)) {

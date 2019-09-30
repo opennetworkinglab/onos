@@ -485,6 +485,9 @@
             <action class="org.onosproject.cli.net.PartitionsListCommand"/>
         </command>
         <command>
+            <action class="org.onosproject.cli.net.PartitionsSnapshotCommand"/>
+        </command>
+        <command>
             <action class="org.onosproject.cli.net.MapsListCommand"/>
         </command>
         <command>
