@@ -36,7 +36,7 @@ public class Bridge extends AbstractOvsdbTableService {
      */
     public enum BridgeColumn {
         NAME("name"), DATAPATHTYPE("datapath_type"), DATAPATHID("datapath_id"),
-        STPENABLE("stpenable"), PORTS("ports"), MIRRORS("mirrors"),
+        STPENABLE("stp_enable"), PORTS("ports"), MIRRORS("mirrors"),
         NETFLOW("netflow"), SFLOW("sflow"), IPFIX("ipfix"),
         CONTROLLER("controller"), PROTOCOLS("protocols"),
         FAILMODE("fail_mode"), STATUS("status"), OTHERCONFIG("other_config"),
