@@ -21,13 +21,13 @@ import com.google.common.collect.Lists;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
+import org.openstack4j.model.network.Network;
 import org.openstack4j.model.network.Subnet;
 import org.openstack4j.openstack.networking.domain.NeutronSubnet;
 
 import java.util.Comparator;
 import java.util.List;
 
-import static org.onosproject.cli.AbstractShellCommand.get;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.modelEntityToJson;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.prettyJson;
 
@@ -53,13 +53,15 @@ public class OpenstackSubnetListCommand extends AbstractShellCommand {
                                                 "NetworkName", "HostRoutes");
 
             for (Subnet subnet: subnets) {
+                Network osNet = service.network(subnet.getNetworkId());
+                String netName = osNet == null ? "N/A" : osNet.getName();
                 print(FORMAT,
                         subnet.getId(),
                         subnet.getName(),
                         subnet.getCidr(),
                         subnet.getGateway(),
                         subnet.getNetworkId(),
-                        service.network(subnet.getNetworkId()).getName(),
+                        netName,
                         subnet.getHostRoutes());
             }
         }

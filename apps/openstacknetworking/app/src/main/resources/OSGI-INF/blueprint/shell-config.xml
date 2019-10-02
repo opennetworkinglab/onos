@@ -37,6 +37,9 @@
             <action class="org.onosproject.openstacknetworking.cli.OpenstackSyncStateCommand"/>
         </command>
         <command>
+            <action class="org.onosproject.openstacknetworking.cli.OpenstackDiffStateCommand"/>
+        </command>
+        <command>
             <action class="org.onosproject.openstacknetworking.cli.OpenstackSecurityGroupListCommand"/>
         </command>
         <command>

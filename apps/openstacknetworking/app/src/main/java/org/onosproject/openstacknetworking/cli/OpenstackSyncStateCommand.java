@@ -15,7 +15,6 @@
  */
 package org.onosproject.openstacknetworking.cli;
 
-import com.google.common.base.Strings;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkAdminService;
@@ -25,21 +24,25 @@ import org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
 import org.openstack4j.api.OSClient;
-import org.openstack4j.model.network.IP;
-import org.openstack4j.model.network.NetFloatingIP;
-import org.openstack4j.model.network.Network;
-import org.openstack4j.model.network.Port;
-import org.openstack4j.model.network.Router;
-import org.openstack4j.model.network.Subnet;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
+import static org.onosproject.openstacknetworking.api.Constants.FLOATING_IP_FORMAT;
+import static org.onosproject.openstacknetworking.api.Constants.NETWORK_FORMAT;
+import static org.onosproject.openstacknetworking.api.Constants.PORT_FORMAT;
+import static org.onosproject.openstacknetworking.api.Constants.ROUTER_FORMAT;
+import static org.onosproject.openstacknetworking.api.Constants.SECURITY_GROUP_FORMAT;
+import static org.onosproject.openstacknetworking.api.Constants.SUBNET_FORMAT;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.addRouterIface;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.printFloatingIp;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.printNetwork;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.printPort;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.printRouter;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.printSecurityGroup;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.printSubnet;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.CONTROLLER;
 
 /**
@@ -48,13 +51,6 @@ import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.CONTROLLE
 @Command(scope = "onos", name = "openstack-sync-states",
         description = "Synchronizes all OpenStack network states")
 public class OpenstackSyncStateCommand extends AbstractShellCommand {
-
-    private static final String SECURITY_GROUP_FORMAT = "%-40s%-20s";
-    private static final String NETWORK_FORMAT = "%-40s%-20s%-20s%-8s";
-    private static final String SUBNET_FORMAT = "%-40s%-20s%-20s";
-    private static final String PORT_FORMAT = "%-40s%-20s%-20s%-8s";
-    private static final String ROUTER_FORMAT = "%-40s%-20s%-20s%-8s";
-    private static final String FLOATING_IP_FORMAT = "%-40s%-20s%-20s";
 
     private static final String DEVICE_OWNER_GW = "network:router_gateway";
     private static final String DEVICE_OWNER_IFACE = "network:router_interface";
@@ -96,7 +92,7 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
             } else {
                 osSgAdminService.createSecurityGroup(osSg);
             }
-            print(SECURITY_GROUP_FORMAT, osSg.getId(), osSg.getName());
+            printSecurityGroup(osSg);
         });
 
 
@@ -162,66 +158,5 @@ public class OpenstackSyncStateCommand extends AbstractShellCommand {
             }
             printFloatingIp(osFloating);
         });
-    }
-
-    private void printNetwork(Network osNet) {
-        final String strNet = String.format(NETWORK_FORMAT,
-                osNet.getId(),
-                osNet.getName(),
-                osNet.getProviderSegID(),
-                osNet.getSubnets());
-        print(strNet);
-    }
-
-    private void printSubnet(Subnet osSubnet, OpenstackNetworkAdminService osNetService) {
-        final String strSubnet = String.format(SUBNET_FORMAT,
-                osSubnet.getId(),
-                osNetService.network(osSubnet.getNetworkId()).getName(),
-                osSubnet.getCidr());
-        print(strSubnet);
-    }
-
-    private void printPort(Port osPort, OpenstackNetworkAdminService osNetService) {
-        List<String> fixedIps = osPort.getFixedIps().stream()
-                .map(IP::getIpAddress)
-                .collect(Collectors.toList());
-        final String strPort = String.format(PORT_FORMAT,
-                osPort.getId(),
-                osNetService.network(osPort.getNetworkId()).getName(),
-                osPort.getMacAddress(),
-                fixedIps.isEmpty() ? "" : fixedIps);
-        print(strPort);
-    }
-
-    private void printRouter(Router osRouter, OpenstackNetworkAdminService osNetService) {
-        List<String> externals = osNetService.ports().stream()
-                .filter(osPort -> Objects.equals(osPort.getDeviceId(), osRouter.getId()) &&
-                        Objects.equals(osPort.getDeviceOwner(), DEVICE_OWNER_GW))
-                .flatMap(osPort -> osPort.getFixedIps().stream())
-                .map(IP::getIpAddress)
-                .collect(Collectors.toList());
-
-        List<String> internals = osNetService.ports().stream()
-                .filter(osPort -> Objects.equals(osPort.getDeviceId(), osRouter.getId()) &&
-                        Objects.equals(osPort.getDeviceOwner(), DEVICE_OWNER_IFACE))
-                .flatMap(osPort -> osPort.getFixedIps().stream())
-                .map(IP::getIpAddress)
-                .collect(Collectors.toList());
-
-        final String strRouter = String.format(ROUTER_FORMAT,
-                osRouter.getId(),
-                osRouter.getName(),
-                externals.isEmpty() ? "" : externals,
-                internals.isEmpty() ? "" : internals);
-        print(strRouter);
-    }
-
-    private void printFloatingIp(NetFloatingIP floatingIp) {
-        final String strFloating = String.format(FLOATING_IP_FORMAT,
-                floatingIp.getId(),
-                floatingIp.getFloatingIpAddress(),
-                Strings.isNullOrEmpty(floatingIp.getFixedIpAddress()) ?
-                        "" : floatingIp.getFixedIpAddress());
-        print(strFloating);
     }
 }

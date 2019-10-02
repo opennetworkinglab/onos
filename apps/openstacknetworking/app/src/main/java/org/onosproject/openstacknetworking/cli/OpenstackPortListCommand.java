@@ -32,7 +32,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.onosproject.cli.AbstractShellCommand.get;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.modelEntityToJson;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.prettyJson;
 
@@ -69,8 +68,9 @@ public class OpenstackPortListCommand extends AbstractShellCommand {
                         .map(IP::getIpAddress)
                         .collect(Collectors.toList());
                 Network osNet = service.network(port.getNetworkId());
+                String netName = osNet == null ? "N/A" : osNet.getName();
                 print(FORMAT, port.getId(),
-                        osNet.getName(),
+                        netName,
                         port.getMacAddress(),
                         fixedIps.isEmpty() ? "" : fixedIps);
             }
