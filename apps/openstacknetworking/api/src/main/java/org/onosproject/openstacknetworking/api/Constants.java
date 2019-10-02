@@ -147,4 +147,12 @@ public final class Constants {
 
     public static final boolean DEFAULT_HA_STATUS = false;
     public static final IpAddress DEFAULT_ACTIVE_IP_ADDRESS = IpAddress.valueOf("127.0.0.1");
+
+    public static final String SECURITY_GROUP_FORMAT = "%-40s%-20s";
+    public static final String NETWORK_FORMAT = "%-40s%-20s%-20s%-8s";
+    public static final String SUBNET_FORMAT = "%-40s%-20s%-20s";
+    public static final String ROUTER_INTF_FORMAT = "%-40s%-20s%-20s";
+    public static final String PORT_FORMAT = "%-40s%-20s%-20s%-8s";
+    public static final String ROUTER_FORMAT = "%-40s%-20s%-20s%-8s";
+    public static final String FLOATING_IP_FORMAT = "%-40s%-20s%-20s";
 }
