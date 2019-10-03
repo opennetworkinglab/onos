@@ -936,7 +936,7 @@
       "source_info" : {
         "filename" : "include/bng.p4",
         "line" : 36,
-        "column" : 39,
+        "column" : 37,
         "source_fragment" : "c_terminated"
       },
       "size" : 8192,
@@ -948,7 +948,7 @@
       "source_info" : {
         "filename" : "include/bng.p4",
         "line" : 37,
-        "column" : 39,
+        "column" : 37,
         "source_fragment" : "c_dropped"
       },
       "size" : 8192,
@@ -972,7 +972,7 @@
       "source_info" : {
         "filename" : "include/bng.p4",
         "line" : 149,
-        "column" : 49,
+        "column" : 37,
         "source_fragment" : "c_line_rx"
       },
       "size" : 8192,
@@ -1104,7 +1104,7 @@
       "source_info" : {
         "filename" : "include/bng.p4",
         "line" : 264,
-        "column" : 49,
+        "column" : 37,
         "source_fragment" : "c_line_tx"
       },
       "size" : 8192,

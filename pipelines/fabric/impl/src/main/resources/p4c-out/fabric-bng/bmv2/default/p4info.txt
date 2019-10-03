@@ -855,7 +855,7 @@ counters {
     alias: "c_terminated"
   }
   spec {
-    unit: PACKETS
+    unit: BYTES
   }
   size: 8192
 }
@@ -866,7 +866,7 @@ counters {
     alias: "c_dropped"
   }
   spec {
-    unit: PACKETS
+    unit: BYTES
   }
   size: 8192
 }
@@ -888,7 +888,7 @@ counters {
     alias: "c_line_rx"
   }
   spec {
-    unit: BOTH
+    unit: BYTES
   }
   size: 8192
 }
@@ -921,7 +921,7 @@ counters {
     alias: "c_line_tx"
   }
   spec {
-    unit: BOTH
+    unit: BYTES
   }
   size: 8192
 }
