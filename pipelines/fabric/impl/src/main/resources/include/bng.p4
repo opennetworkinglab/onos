@@ -33,8 +33,8 @@ control bng_ingress_upstream(
         inout fabric_metadata_t fmeta,
         inout standard_metadata_t smeta) {
 
-    counter(BNG_MAX_SUBSC, CounterType.packets) c_terminated;
-    counter(BNG_MAX_SUBSC, CounterType.packets) c_dropped;
+    counter(BNG_MAX_SUBSC, CounterType.bytes) c_terminated;
+    counter(BNG_MAX_SUBSC, CounterType.bytes) c_dropped;
     counter(BNG_MAX_SUBSC, CounterType.packets) c_control;
 
     // TABLE: t_pppoe_cp
@@ -146,7 +146,7 @@ control bng_ingress_downstream(
         inout fabric_metadata_t fmeta,
         inout standard_metadata_t smeta) {
 
-    counter(BNG_MAX_SUBSC, CounterType.packets_and_bytes) c_line_rx;
+    counter(BNG_MAX_SUBSC, CounterType.bytes) c_line_rx;
 
     meter(BNG_MAX_SUBSC, MeterType.bytes) m_besteff;
     meter(BNG_MAX_SUBSC, MeterType.bytes) m_prio;
@@ -261,7 +261,7 @@ control bng_egress_downstream(
         inout fabric_metadata_t fmeta,
         inout standard_metadata_t smeta) {
 
-    counter(BNG_MAX_SUBSC, CounterType.packets_and_bytes) c_line_tx;
+    counter(BNG_MAX_SUBSC, CounterType.bytes) c_line_tx;
 
     @hidden
     action encap() {
