@@ -1694,9 +1694,9 @@ public class RoutingRulePopulator {
         return enabledPorts.stream().noneMatch(cp ->
             // Given vlanId is included in the vlan-tagged configuration
             srManager.interfaceService.getTaggedVlanId(cp).contains(vlanId) ||
-            // Given vlanId is INTERNAL_VLAN and the interface is not configured
+            // Given vlanId is INTERNAL_VLAN or PSEUDOWIRE_VLAN and the interface is not configured
             (srManager.interfaceService.getTaggedVlanId(cp).isEmpty() && srManager.getInternalVlanId(cp) == null &&
-                    vlanId.equals(srManager.getDefaultInternalVlan())) ||
+                (vlanId.equals(srManager.getDefaultInternalVlan()) || vlanId.equals(srManager.getPwTransportVlan()))) ||
             // interface is configured and either vlan-untagged or vlan-native matches given vlanId
             (srManager.getInternalVlanId(cp) != null && srManager.getInternalVlanId(cp).equals(vlanId))
         );
