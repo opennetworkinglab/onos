@@ -566,13 +566,13 @@
     }
   ],
   "errors" : [
-    ["NoError", 0],
-    ["PacketTooShort", 1],
-    ["NoMatch", 2],
-    ["StackOutOfBounds", 3],
-    ["HeaderTooShort", 4],
-    ["ParserTimeout", 5],
-    ["ParserInvalidArgument", 6]
+    ["NoError", 1],
+    ["PacketTooShort", 2],
+    ["NoMatch", 3],
+    ["StackOutOfBounds", 4],
+    ["HeaderTooShort", 5],
+    ["ParserTimeout", 6],
+    ["ParserInvalidArgument", 7]
   ],
   "enums" : [],
   "parsers" : [
