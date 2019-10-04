@@ -481,7 +481,7 @@ public class OpenstackSwitchingArpHandler {
                 .matchEthType(EthType.EtherType.ARP.ethType().toShort())
                 .matchArpOp(ARP.OP_REQUEST)
                 .matchArpTpa(port.ipAddress().getIp4Address())
-                .matchTunnelId(Long.valueOf(segId))
+                .matchTunnelId(Long.parseLong(segId))
                 .build();
 
         setRemoteArpTreatmentForTunnel(selector, port, localNode, install);
@@ -954,7 +954,7 @@ public class OpenstackSwitchingArpHandler {
 
             if (netType != NetworkType.LOCAL && netType != NetworkType.FLAT
                     && netType != NetworkType.VLAN) {
-                String segId = osNetworkService.segmentId(netId);
+                String segId = network.getProviderSegID();
                 osNodeService.completeNodes(COMPUTE)
                         .forEach(node -> {
                             setBaseVnetArpRuleForBroadcastMode(node, segId,
@@ -962,7 +962,7 @@ public class OpenstackSwitchingArpHandler {
                         });
             }
             if (netType == NetworkType.VLAN) {
-                String segId = osNetworkService.segmentId(netId);
+                String segId = network.getProviderSegID();
                 osNodeService.completeNodes(COMPUTE)
                         .forEach(node -> {
                             setBaseVnetArpRuleForBroadcastMode(
