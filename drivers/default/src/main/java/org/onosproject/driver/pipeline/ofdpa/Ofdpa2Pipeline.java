@@ -105,10 +105,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
-import static org.onlab.packet.MacAddress.BROADCAST;
-import static org.onlab.packet.MacAddress.IPV4_MULTICAST;
-import static org.onlab.packet.MacAddress.IPV6_MULTICAST;
-import static org.onlab.packet.MacAddress.NONE;
+import static org.onlab.packet.MacAddress.*;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.driver.extensions.Ofdpa3CopyField.OXM_ID_PACKET_REG_1;
 import static org.onosproject.driver.extensions.Ofdpa3CopyField.OXM_ID_VLAN_VID;
@@ -545,17 +542,29 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 ops.newStage();
 
                 for (FlowRule flowRule : flowRules) {
-                    log.trace("{} flow rules in TMAC table: {} for dev: {}",
-                            (install) ? "adding" : "removing", flowRules, deviceId);
+                    log.trace("{} flow rule in TMAC table: {} for dev: {}",
+                            (install) ? "adding" : "removing", flowRule, deviceId);
                     if (install) {
                         ops = ops.add(flowRule);
                     } else {
                         // NOTE: Only remove TMAC flow when there is no more enabled port within the
                         // same VLAN on this device if TMAC doesn't support matching on in_port.
-                        if (matchInPortTmacTable() || (filt.meta() != null && filt.meta().clearedDeferred())) {
+                        if (filt.meta() != null && filt.meta().clearedDeferred()) {
+                            // TMac mcast does not match on the input port - we have to remove it
+                            // only if this is the last port
+                            FlowRule rule = buildTmacRuleForMcastFromUnicast(flowRule, applicationId);
+                            // IPv6 or IPv4 tmac rule
+                            if (rule != null) {
+                                // Add first the mcast rule and then open a new stage for the unicast
+                                ops = ops.remove(rule);
+                                ops.newStage();
+                            }
+                            ops = ops.remove(flowRule);
+                        } else if (matchInPortTmacTable()) {
                             ops = ops.remove(flowRule);
                         } else {
-                            log.debug("Abort TMAC flow removal on {}. Some other ports still share this TMAC flow");
+                            log.debug("Abort TMAC flow removal on {}. " +
+                                              "Some other ports still share this TMAC flow", deviceId);
                         }
                     }
                 }
@@ -974,6 +983,48 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 .makePermanent()
                 .forTable(TMAC_TABLE).build();
         return ImmutableList.of(builder.add(rule).build());
+    }
+
+    private FlowRule buildTmacRuleForMcastFromUnicast(FlowRule tmacRuleForUnicast, ApplicationId applicationId) {
+        final TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        final TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
+        FlowRule rule;
+        // Build the selector
+        for (Criterion criterion : tmacRuleForUnicast.selector().criteria()) {
+            if (criterion instanceof VlanIdCriterion) {
+                if (requireVlanExtensions()) {
+                    OfdpaMatchVlanVid ofdpaMatchVlanVid = new OfdpaMatchVlanVid(((VlanIdCriterion) criterion).vlanId());
+                    selector.extension(ofdpaMatchVlanVid, deviceId);
+                } else {
+                    selector.add(criterion);
+                }
+            } else if (criterion instanceof EthTypeCriterion) {
+                selector.add(criterion);
+                if (Objects.equals(((EthTypeCriterion) criterion).ethType(),
+                                   EtherType.IPV4.ethType())) {
+                    selector.matchEthDstMasked(IPV4_MULTICAST, IPV4_MULTICAST_MASK);
+                } else if (Objects.equals(((EthTypeCriterion) criterion).ethType(),
+                                          EtherType.IPV6.ethType())) {
+                    selector.matchEthDstMasked(IPV6_MULTICAST, IPV6_MULTICAST_MASK);
+                } else {
+                    // We don't need for mpls rules
+                    return null;
+                }
+            }
+        }
+        // Build the treatment
+        treatment.transition(MULTICAST_ROUTING_TABLE);
+        // Build the flowrule
+        rule = DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .withSelector(selector.build())
+                .withTreatment(treatment.build())
+                .withPriority(DEFAULT_PRIORITY)
+                .fromApp(applicationId)
+                .makePermanent()
+                .forTable(TMAC_TABLE).build();
+        log.info("Building flowRule {}", rule);
+        return rule;
     }
 
     List<List<FlowRule>> processMcastEthDstFilter(EthCriterion ethCriterion,
