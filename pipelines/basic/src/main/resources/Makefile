@@ -1,19 +1,16 @@
 all: basic int constants
 
 basic: basic.p4
-	p4c-bm2-ss --arch v1model -o p4c-out/bmv2/basic.json \
-		--p4runtime-files p4c-out/bmv2/basic_p4info.txt \
-		basic.p4
+	@./bmv2-compile.sh "basic" ""
 
 int: int.p4
-	p4c-bm2-ss --arch v1model -o p4c-out/bmv2/int.json "-DTARGET_BMV2" \
-		--p4runtime-files p4c-out/bmv2/int_p4info.txt \
-		int.p4
+	@./bmv2-compile.sh "int" "-DTARGET_BMV2"
 
 constants:
-	onos-gen-p4-constants \
-		-o $(ONOS_ROOT)/pipelines/basic/src/main/java/org/onosproject/pipelines/basic/BasicConstants.java \
-		basic p4c-out/bmv2/basic_p4info.txt
+	docker run -v $(ONOS_ROOT):/onos -w /onos/tools/dev/bin \
+		--entrypoint ./onos-gen-p4-constants opennetworking/p4mn:stable \
+		-o /onos/pipelines/basic/src/main/java/org/onosproject/pipelines/basic/BasicConstants.java \
+		basic /onos/pipelines/basic/src/main/resources/p4c-out/bmv2/basic_p4info.txt
 
 clean:
 	rm -rf p4c-out/bmv2/*

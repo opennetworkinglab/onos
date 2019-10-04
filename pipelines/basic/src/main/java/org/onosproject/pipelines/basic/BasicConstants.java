@@ -19,6 +19,7 @@ package org.onosproject.pipelines.basic;
 import org.onosproject.net.pi.model.PiActionId;
 import org.onosproject.net.pi.model.PiActionParamId;
 import org.onosproject.net.pi.model.PiActionProfileId;
+import org.onosproject.net.pi.model.PiMeterId;
 import org.onosproject.net.pi.model.PiPacketMetadataId;
 import org.onosproject.net.pi.model.PiCounterId;
 import org.onosproject.net.pi.model.PiMatchFieldId;
@@ -92,10 +93,13 @@ public final class BasicConstants {
     public static final PiActionProfileId INGRESS_WCMP_CONTROL_WCMP_SELECTOR =
             PiActionProfileId.of("ingress.wcmp_control.wcmp_selector");
     // Packet Metadata IDs
-    public static final PiPacketMetadataId PADDING =
-            PiPacketMetadataId.of("_padding");
     public static final PiPacketMetadataId INGRESS_PORT =
             PiPacketMetadataId.of("ingress_port");
     public static final PiPacketMetadataId EGRESS_PORT =
             PiPacketMetadataId.of("egress_port");
+    // Meter IDs
+    public static final PiMeterId INGRESS_PORT_METERS_INGRESS_INGRESS_PORT_METER =
+            PiMeterId.of("ingress.port_meters_ingress.ingress_port_meter");
+    public static final PiMeterId EGRESS_PORT_METERS_EGRESS_EGRESS_PORT_METER =
+            PiMeterId.of("egress.port_meters_egress.egress_port_meter");
 }
