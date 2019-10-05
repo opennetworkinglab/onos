@@ -143,6 +143,7 @@ public class NetconfTranslatorImpl implements NetconfTranslator {
         /*FIXME "running" will be replaced with an enum once netconf supports multiple datastores.*/
         String reply = session.getConfig(RUNNING);
         Matcher protocolStripper = GET_CONFIG_CORE_MESSAGE_PATTERN.matcher(reply);
+        protocolStripper.find();
         reply = protocolStripper.group(GET_CONFIG_CORE_MESSAGE_GROUP);
         return yangRuntimeService.decode(
                 new DefaultCompositeStream(
@@ -212,6 +213,7 @@ public class NetconfTranslatorImpl implements NetconfTranslator {
         /*TODO the first parameter will come into use if get is required to support filters.*/
         String reply = session.get(null, null);
         Matcher protocolStripper = GET_CORE_MESSAGE_PATTERN.matcher(reply);
+        protocolStripper.find();
         reply = protocolStripper.group(GET_CORE_MESSAGE_GROUP);
         return yangRuntimeService.decode(
                 new DefaultCompositeStream(
