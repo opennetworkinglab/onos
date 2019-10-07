@@ -79,6 +79,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.onosproject.net.DeviceId.deviceId;
 import static org.onosproject.openflow.controller.Dpid.uri;
@@ -115,7 +116,7 @@ public class OpenFlowMeterProvider extends AbstractProvider implements MeterProv
 
 
     private InternalMeterListener listener = new InternalMeterListener();
-    private Map<Dpid, MeterStatsCollector> collectors = Maps.newHashMap();
+    private Map<Dpid, MeterStatsCollector> collectors = new ConcurrentHashMap<>();
 
     private static final Set<Device.Type> NO_METER_SUPPORT =
             ImmutableSet.copyOf(EnumSet.of(Device.Type.ROADM,
