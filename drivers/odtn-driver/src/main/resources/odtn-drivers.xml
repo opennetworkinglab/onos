@@ -178,5 +178,19 @@
             http://openconfig.net/yang/types/yang?module=openconfig-yang-types&amp;revision=2017-07-30|
             urn:ietf:params:xml:ns:yang:ietf-yang-types?module=ietf-yang-types&amp;revision=2013-07-15</property>
     </driver>
+    <driver name="adva" manufacturer="ADVA" hwVersion="Tx" swVersion="3.1">
+    <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
+               impl="org.onosproject.drivers.odtn.AdvaTerminalDeviceDiscovery"/>
+    <behaviour api ="org.onosproject.net.optical.OpticalDevice"
+               impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
+    <behaviour api ="org.onosproject.net.behaviour.LambdaQuery"
+               impl="org.onosproject.drivers.odtn.openconfig.TerminalDeviceLambdaQuery"/>
+    <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
+	       impl="org.onosproject.drivers.odtn.AdvaFlowRuleProgrammable"/>
+    <behaviour api="org.onosproject.net.behaviour.PowerConfig"
+	       impl="org.onosproject.drivers.odtn.AdvaTerminalDevicePowerConfig"/>
+    <behaviour api="org.onosproject.net.behaviour.ModulationConfig"
+               impl="org.onosproject.drivers.odtn.CassiniModulationOpenConfig"/>
+    </driver>
 </drivers>
 
