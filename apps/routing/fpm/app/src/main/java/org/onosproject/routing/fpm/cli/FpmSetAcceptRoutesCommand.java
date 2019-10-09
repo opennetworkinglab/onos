@@ -40,7 +40,7 @@ public class FpmSetAcceptRoutesCommand extends AbstractShellCommand {
             required = true)
     String peerPort = null;
 
-    @Argument(index = 1, name = "acceptRoutes", description = "Flag to accept or discard routes",
+    @Argument(index = 2, name = "acceptRoutes", description = "Flag to accept or discard routes",
             required = true)
     String acceptRoutesString = null;
 
