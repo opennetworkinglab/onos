@@ -102,7 +102,11 @@ public class NeighborForExtendedIs {
         this.setMetric(channelBuffer.readUnsignedMedium());
         int nTlvPresent = channelBuffer.readByte();
         if (nTlvPresent > 0) {
-            while (channelBuffer.readableBytes() > IsisUtil.TWO_BYTES) {
+            /* ntlvPresent=0 infers that all Sub TLVs,
+               for a particular neighbor,
+               have been parsed and the loop has to be terminated
+             */
+            while (channelBuffer.readableBytes() > IsisUtil.TWO_BYTES && nTlvPresent > 0) {
                 TlvHeader tlvHeader = new TlvHeader();
                 tlvHeader.setTlvType(channelBuffer.readByte());
                 tlvHeader.setTlvLength(channelBuffer.readByte());
@@ -115,10 +119,18 @@ public class NeighborForExtendedIs {
                         if (subTlv != null) {
                             this.addSubTlv(subTlv);
                         }
+                        /*As one Sub TLV is parsed, its length is
+                        subtracted from total length to be read
+                         */
+                        nTlvPresent = nTlvPresent - (tlvLength + IsisUtil.TWO_BYTES);
                     }
                 } else {
                     if (channelBuffer.readableBytes() >= tlvLength) {
                         channelBuffer.readBytes(tlvLength);
+                        /*As one Sub TLV is parsed, its length is
+                        subtracted from total length to be read
+                         */
+                        nTlvPresent = nTlvPresent - (tlvLength + IsisUtil.TWO_BYTES);
                     }
                 }
             }
