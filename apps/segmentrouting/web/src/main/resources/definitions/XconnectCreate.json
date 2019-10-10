@@ -4,7 +4,7 @@
   "required": [
     "deviceId",
     "vlanId",
-    "ports"
+    "endpoints"
   ],
   "properties": {
     "deviceId": {
@@ -17,7 +17,7 @@
       "example": "94",
       "description": "VLAN ID"
     },
-    "ports": {
+    "endpoints": {
       "type": "array",
       "items": {
         "type": "int8",
