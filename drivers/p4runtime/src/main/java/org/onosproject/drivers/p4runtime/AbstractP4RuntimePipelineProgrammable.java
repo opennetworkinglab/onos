@@ -16,14 +16,20 @@
 
 package org.onosproject.drivers.p4runtime;
 
+import org.onosproject.drivers.p4runtime.mirror.P4RuntimeDefaultEntryMirror;
 import org.onosproject.net.behaviour.PiPipelineProgrammable;
+import org.onosproject.net.pi.model.PiPipelineModel;
 import org.onosproject.net.pi.model.PiPipeconf;
+import org.onosproject.net.pi.runtime.PiTableEntry;
+import org.onosproject.p4runtime.api.P4RuntimeReadClient;
 import org.slf4j.Logger;
 
 import java.nio.ByteBuffer;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import static org.onosproject.drivers.p4runtime.P4RuntimeDriverProperties.SUPPORT_DEFAULT_TABLE_ENTRY;
+import static org.onosproject.drivers.p4runtime.P4RuntimeDriverProperties.DEFAULT_SUPPORT_DEFAULT_TABLE_ENTRY;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -55,8 +61,9 @@ public abstract class AbstractP4RuntimePipelineProgrammable
             // Hopefully the child class logged the problem.
             return completedFuture(false);
         }
-
-        return client.setPipelineConfig(p4DeviceId, pipeconf, deviceDataBuffer);
+        CompletableFuture<Boolean> pipeconfSet = client.setPipelineConfig(
+                p4DeviceId, pipeconf, deviceDataBuffer);
+        return getDefaultEntries(pipeconfSet, pipeconf);
     }
 
     @Override
@@ -70,4 +77,47 @@ public abstract class AbstractP4RuntimePipelineProgrammable
 
     @Override
     public abstract Optional<PiPipeconf> getDefaultPipeconf();
+
+    /**
+     * Once the pipeconf is set successfully, we should store all the default entries
+     * before notify other service to prevent overwriting the default entries.
+     * Default entries may be used in P4RuntimeFlowRuleProgrammable.
+     * <p>
+     * This method returns a completable future with the result of the pipeconf set
+     * operation (which might not be true).
+     *
+     * @param pipeconfSet completable future for setting pipeconf
+     * @param pipeconf pipeconf
+     * @return completable future eventually true if the pipeconf set successfully
+     */
+    private CompletableFuture<Boolean> getDefaultEntries(CompletableFuture<Boolean> pipeconfSet, PiPipeconf pipeconf) {
+        if (!driverBoolProperty(
+                SUPPORT_DEFAULT_TABLE_ENTRY,
+                DEFAULT_SUPPORT_DEFAULT_TABLE_ENTRY)) {
+            return pipeconfSet;
+        }
+        return pipeconfSet.thenApply(setSuccess -> {
+            if (!setSuccess) {
+                return setSuccess;
+            }
+            final P4RuntimeDefaultEntryMirror mirror = handler()
+                    .get(P4RuntimeDefaultEntryMirror.class);
+
+            final PiPipelineModel pipelineModel = pipeconf.pipelineModel();
+            final P4RuntimeReadClient.ReadRequest request = client.read(
+                    p4DeviceId, pipeconf);
+            // Read default entries from all non-constant tables.
+            // Ignore constant default entries.
+            pipelineModel.tables().stream()
+                    .filter(t -> !t.isConstantTable())
+                    .forEach(t -> {
+                        if (!t.constDefaultAction().isPresent()) {
+                            request.defaultTableEntry(t.id());
+                        }
+                    });
+            final P4RuntimeReadClient.ReadResponse response = request.submitSync();
+            mirror.sync(deviceId, response.all(PiTableEntry.class));
+            return true;
+        });
+    }
 }

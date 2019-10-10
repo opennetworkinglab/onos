@@ -114,7 +114,7 @@ control Forwarding (inout parsed_headers_t hdr,
             nop_routing_v4;
             @defaultonly nop;
         }
-        const default_action = nop();
+        default_action = nop();
 #ifdef WTIH_DEBUG
         counters = routing_v4_counter;
 #endif // WITH_DEBUG
