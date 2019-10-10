@@ -19,9 +19,7 @@ package org.onosproject.pipelines.fabric.impl.behaviour.pipeliner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.DeviceId;
@@ -71,8 +69,6 @@ class ForwardingObjectiveTranslator
 
     //FIXME: Max number supported by PI
     static final int CLONE_TO_CPU_ID = 511;
-    private static final List<String> DEFAULT_ROUTE_PREFIXES = Lists.newArrayList(
-            "0.0.0.0/1", "128.0.0.0/1");
 
     private static final Set<Criterion.Type> ACL_CRITERIA = ImmutableSet.of(
             Criterion.Type.IN_PORT,
@@ -233,14 +229,12 @@ class ForwardingObjectiveTranslator
     private void defaultIpv4Route(ForwardingObjective obj,
                                   ObjectiveTranslation.Builder resultBuilder)
             throws FabricPipelinerException {
-
-        // Hack to work around the inability to program default rules.
-        for (String prefix : DEFAULT_ROUTE_PREFIXES) {
-            final TrafficSelector selector = DefaultTrafficSelector.builder()
-                    .matchIPDst(IpPrefix.valueOf(prefix)).build();
-            resultBuilder.addFlowRule(flowRule(
-                    obj, FabricConstants.FABRIC_INGRESS_FORWARDING_ROUTING_V4, selector));
-        }
+        ForwardingObjective defaultObj = obj.copy()
+                .withPriority(0)
+                .add();
+        final TrafficSelector selector = DefaultTrafficSelector.emptySelector();
+        resultBuilder.addFlowRule(flowRule(
+                defaultObj, FabricConstants.FABRIC_INGRESS_FORWARDING_ROUTING_V4, selector));
     }
 
     private void mplsRule(ForwardingObjective obj, Set<Criterion> criteriaWithMeta,

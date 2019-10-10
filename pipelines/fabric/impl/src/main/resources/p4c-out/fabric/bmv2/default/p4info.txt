@@ -158,7 +158,6 @@ tables {
     annotations: "@defaultonly"
     scope: DEFAULT_ONLY
   }
-  const_default_action_id: 16819938
   size: 1024
 }
 tables {
