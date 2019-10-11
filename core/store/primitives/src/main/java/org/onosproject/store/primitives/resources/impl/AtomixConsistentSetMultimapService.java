@@ -49,6 +49,7 @@ import com.google.common.collect.Sets;
 import io.atomix.protocols.raft.service.AbstractRaftService;
 import io.atomix.protocols.raft.service.Commit;
 import io.atomix.protocols.raft.service.RaftServiceExecutor;
+import io.atomix.protocols.raft.service.impl.DefaultCommit;
 import io.atomix.protocols.raft.session.RaftSession;
 import io.atomix.protocols.raft.storage.snapshot.SnapshotReader;
 import io.atomix.protocols.raft.storage.snapshot.SnapshotWriter;
@@ -93,6 +94,10 @@ import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSe
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.Replace;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.SIZE;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.VALUES;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.MULTI_PUT_ALL;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.MultiPutAll;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.MULTI_REMOVE_ALL;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.MultiRemoveAll;
 
 /**
  * State Machine for {@link AtomixConsistentSetMultimap} resource.
@@ -169,9 +174,11 @@ public class AtomixConsistentSetMultimapService extends AbstractRaftService {
         executor.register(VALUES, this::values, serializer::encode);
         executor.register(ENTRIES, this::entries, serializer::encode);
         executor.register(GET, serializer::decode, this::get, serializer::encode);
+        executor.register(MULTI_REMOVE_ALL, serializer::decode, this::multiRemoveAll, serializer::encode);
         executor.register(REMOVE_ALL, serializer::decode, this::removeAll, serializer::encode);
         executor.register(REMOVE, serializer::decode, this::multiRemove, serializer::encode);
         executor.register(REMOVE_AND_GET, serializer::decode, this::removeAndGet, serializer::encode);
+        executor.register(MULTI_PUT_ALL, serializer::decode, this::multiPutAll, serializer::encode);
         executor.register(PUT, serializer::decode, this::put, serializer::encode);
         executor.register(PUT_AND_GET, serializer::decode, this::putAndGet, serializer::encode);
         executor.register(REPLACE, serializer::decode, this::replace, serializer::encode);
@@ -395,6 +402,32 @@ public class AtomixConsistentSetMultimapService extends AbstractRaftService {
     }
 
     /**
+     * Handles a MultiRemoveAll commit, returns true if any change results from this
+     * commit.
+     * @param commit a MultiRemoveAll commit
+     * @return true if this commit results in a change, else false
+     */
+    protected boolean multiRemoveAll(Commit<? extends MultiRemoveAll> commit) {
+        Map<String, Collection<? extends byte[]>> mapping = commit.value().mapping();
+        // There are no updates
+        if (mapping.isEmpty()) {
+            return false;
+        }
+        // Decompose the commit in several updates
+        boolean operationResult = false;
+        for (Map.Entry<String, Collection<? extends byte[]>> entry : mapping.entrySet()) {
+            MultiRemove update = new MultiRemove(entry.getKey(), entry.getValue(), commit.value().versionMatch());
+            Commit<? extends MultiRemove> commitUpdate = new DefaultCommit<>(commit.index(), commit.operation(),
+                                                                     update, commit.session(),
+                                                                     commit.wallClockTime().unixTimestamp());
+            if (multiRemove(commitUpdate)) {
+                operationResult = true;
+            }
+        }
+        return operationResult;
+    }
+
+    /**
      * Handles a removeAndGet commit.
      *
      * @param commit multiRemove commit
@@ -453,6 +486,32 @@ public class AtomixConsistentSetMultimapService extends AbstractRaftService {
         }
 
         return false;
+    }
+
+    /**
+     * Handles a MultiPutAll commit, returns true if any change results from this
+     * commit.
+     * @param commit a MultiPutAll commit
+     * @return true if this commit results in a change, else false
+     */
+    protected boolean multiPutAll(Commit<? extends MultiPutAll> commit) {
+        Map<String, Collection<? extends byte[]>> mapping = commit.value().mapping();
+        // There are no updates
+        if (mapping.isEmpty()) {
+            return false;
+        }
+        // Decompose the commit in several updates
+        boolean operationResult = false;
+        for (Map.Entry<String, Collection<? extends byte[]>> entry : mapping.entrySet()) {
+            Put update = new Put(entry.getKey(), entry.getValue(), commit.value().versionMatch());
+            Commit<? extends Put> commitUpdate = new DefaultCommit<>(commit.index(), commit.operation(),
+                                                                     update, commit.session(),
+                                                                     commit.wallClockTime().unixTimestamp());
+            if (put(commitUpdate)) {
+                operationResult = true;
+            }
+        }
+        return operationResult;
     }
 
     /**

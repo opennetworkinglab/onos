@@ -126,8 +126,28 @@ public class PartitionedAsyncConsistentMultimap<K, V> implements AsyncConsistent
     }
 
     @Override
+    public CompletableFuture<Boolean> removeAll(Map<K, Collection<? extends V>> mapping) {
+        Map<PartitionId, Map<K, Collection<? extends V>>> subMappings = buildSubMappings(mapping);
+        // Semantic is that any change in the partitions should return true
+        return Tools.allOf(subMappings.entrySet().stream()
+                                   .map(entry -> partitions.get(entry.getKey()).removeAll(entry.getValue()))
+                                   .collect(Collectors.toList()),
+                           Boolean::logicalOr, false);
+    }
+
+    @Override
     public CompletableFuture<Boolean> putAll(K key, Collection<? extends V> values) {
         return getMultimap(key).putAll(key, values);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> putAll(Map<K, Collection<? extends V>> mapping) {
+        Map<PartitionId, Map<K, Collection<? extends V>>> subMappings = buildSubMappings(mapping);
+        // Semantic is that any change in the partitions should return true
+        return Tools.allOf(subMappings.entrySet().stream()
+                            .map(entry -> partitions.get(entry.getKey()).putAll(entry.getValue()))
+                            .collect(Collectors.toList()),
+                    Boolean::logicalOr, false);
     }
 
     @Override
@@ -235,6 +255,26 @@ public class PartitionedAsyncConsistentMultimap<K, V> implements AsyncConsistent
      */
     private Collection<AsyncConsistentMultimap<K, V>> getMultimaps() {
         return partitions.values();
+    }
+
+    /**
+     * Build sub-mappings for each partition.
+     *
+     * @param mapping initial mapping key-value
+     * @return sub-mappings partition-values
+     */
+    private Map<PartitionId, Map<K, Collection<? extends V>>> buildSubMappings(
+            Map<K, Collection<? extends V>> mapping) {
+        Map<PartitionId, Map<K, Collection<? extends V>>> subMappings = Maps.newHashMap();
+        // Build first a mapping with the partitions
+        mapping.forEach((key, values) -> subMappings.compute(keyHasher.hash(key), (k, v) -> {
+            if (v == null) {
+                v = Maps.newHashMap();
+            }
+            v.put(key, values);
+            return v;
+        }));
+        return subMappings;
     }
 
     private class PartitionedMultimapIterator<K, V> implements AsyncIterator<Map.Entry<K, V>> {

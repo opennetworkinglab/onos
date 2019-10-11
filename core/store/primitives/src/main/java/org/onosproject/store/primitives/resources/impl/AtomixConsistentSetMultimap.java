@@ -75,6 +75,10 @@ import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSe
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.Replace;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.SIZE;
 import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.VALUES;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.MULTI_PUT_ALL;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.MultiPutAll;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.MULTI_REMOVE_ALL;
+import static org.onosproject.store.primitives.resources.impl.AtomixConsistentSetMultimapOperations.MultiRemoveAll;
 
 
 /**
@@ -171,7 +175,7 @@ public class AtomixConsistentSetMultimap
         return proxy.invoke(
             REMOVE,
             SERIALIZER::encode,
-            new MultiRemove(key, (Collection<byte[]>) values, null),
+            new MultiRemove(key, values, null),
             SERIALIZER::decode);
     }
 
@@ -181,9 +185,20 @@ public class AtomixConsistentSetMultimap
     }
 
     @Override
+    public CompletableFuture<Boolean> removeAll(Map<String, Collection<? extends byte[]>> mapping) {
+        return proxy.invoke(MULTI_REMOVE_ALL, SERIALIZER::encode,
+                            new MultiRemoveAll(mapping, null), SERIALIZER::decode);
+    }
+
+    @Override
     public CompletableFuture<Boolean> putAll(
         String key, Collection<? extends byte[]> values) {
         return proxy.invoke(PUT, SERIALIZER::encode, new Put(key, values, null), SERIALIZER::decode);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> putAll(Map<String, Collection<? extends byte[]>> mapping) {
+        return proxy.invoke(MULTI_PUT_ALL, SERIALIZER::encode, new MultiPutAll(mapping, null), SERIALIZER::decode);
     }
 
     @Override
