@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 /**
  * Implementation to test ConsistentMultimap. Very limited.
@@ -103,8 +104,39 @@ public class TestConsistentMultimap<K, V> implements ConsistentMultimap<K, V> {
     }
 
     @Override
+    public boolean removeAll(Map<K, Collection<? extends V>> mapping) {
+        // Semantic is that any change in the map should return true
+        boolean result = false;
+        for (Map.Entry<K, Collection<? extends V>> entry : mapping.entrySet()) {
+            Collection<? extends Versioned<V>> versionedValues = entry.getValue().stream()
+                    .map(this::version)
+                    .collect(Collectors.toList());
+            for (Versioned<V> value : versionedValues) {
+                if (innermap.remove(entry.getKey(), value)) {
+                    result = true;
+                }
+            }
+        }
+        return result;
+    }
+
+    @Override
     public boolean putAll(K key, Collection<? extends V> values) {
         return false;
+    }
+
+    @Override
+    public boolean putAll(Map<K, Collection<? extends V>> mapping) {
+        // Semantic is that any change in the map should return true
+        boolean result = false;
+        for (Map.Entry<K, Collection<? extends V>> entry : mapping.entrySet()) {
+            Collection<? extends Versioned<V>> versionedValues = entry.getValue().stream()
+                    .map(this::version).collect(Collectors.toList());
+            if (innermap.putAll(entry.getKey(), versionedValues)) {
+                result = true;
+            }
+        }
+        return result;
     }
 
     @Override
