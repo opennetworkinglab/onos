@@ -653,19 +653,20 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
         // FIXME potentially re-writing chunked encoded String?
         request = formatXmlHeader(request);
         request = formatRequestMessageId(request, messageId);
+        int useTimeout = timeout > 0 ? timeout : replyTimeout;
         log.debug("Sending request to NETCONF with timeout {} for {}",
-                replyTimeout, deviceInfo.name());
+                  useTimeout, deviceInfo.name());
         CompletableFuture<String> futureReply = request(request, messageId);
         String rp;
         try {
-            rp = futureReply.get(replyTimeout, TimeUnit.SECONDS);
+            rp = futureReply.get(useTimeout, TimeUnit.SECONDS);
             replies.remove(messageId); // Why here???
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new NetconfException("Interrupted waiting for reply for request" + request, e);
         } catch (TimeoutException e) {
             throw new NetconfException("Timed out waiting for reply for request " +
-                    request + " after " + replyTimeout + " sec.", e);
+                    request + " after " + useTimeout + " sec.", e);
         } catch (ExecutionException e) {
             log.warn("Closing session {} for {} due to unexpected Error", sessionID, deviceInfo, e);
             stopClient();
