@@ -151,9 +151,21 @@ public class CachingAsyncConsistentMultimap<K, V> extends DelegatingAsyncConsist
     }
 
     @Override
+    public CompletableFuture<Boolean> removeAll(Map<K, Collection<? extends V>> mapping) {
+        return super.removeAll(mapping)
+                .whenComplete((r, e) -> mapping.keySet().forEach(cache::invalidate));
+    }
+
+    @Override
     public CompletableFuture<Boolean> putAll(K key, Collection<? extends V> values) {
         return super.putAll(key, values)
             .whenComplete((r, e) -> cache.invalidate(key));
+    }
+
+    @Override
+    public CompletableFuture<Boolean> putAll(Map<K, Collection<? extends V>> mapping) {
+        return super.putAll(mapping)
+            .whenComplete((r, e) -> mapping.keySet().forEach(cache::invalidate));
     }
 
     @Override

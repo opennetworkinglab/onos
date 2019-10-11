@@ -105,9 +105,21 @@ public class DelegatingAsyncConsistentMultimap<K, V>
     }
 
     @Override
+    public CompletableFuture<Boolean> removeAll(
+            Map<K, Collection<? extends V>> mapping) {
+        return delegateMap.removeAll(mapping);
+    }
+
+    @Override
     public CompletableFuture<Boolean> putAll(
             K key, Collection<? extends V> values) {
         return delegateMap.putAll(key, values);
+    }
+
+    @Override
+    public CompletableFuture<Boolean> putAll(
+            Map<K, Collection<? extends V>> mapping) {
+        return delegateMap.putAll(mapping);
     }
 
     @Override

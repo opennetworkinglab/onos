@@ -47,10 +47,12 @@ public enum AtomixConsistentSetMultimapOperations implements OperationId {
     VALUES(OperationType.QUERY),
     ENTRIES(OperationType.QUERY),
     PUT(OperationType.COMMAND),
+    MULTI_PUT_ALL(OperationType.COMMAND),
     PUT_AND_GET(OperationType.COMMAND),
     REMOVE(OperationType.COMMAND),
     REMOVE_AND_GET(OperationType.COMMAND),
     REMOVE_ALL(OperationType.COMMAND),
+    MULTI_REMOVE_ALL(OperationType.COMMAND),
     REPLACE(OperationType.COMMAND),
     CLEAR(OperationType.COMMAND),
     ADD_LISTENER(OperationType.COMMAND),
@@ -83,6 +85,8 @@ public enum AtomixConsistentSetMultimapOperations implements OperationId {
             .register(ContainsValue.class)
             .register(Get.class)
             .register(MultiRemove.class)
+            .register(MultiRemoveAll.class)
+            .register(MultiPutAll.class)
             .register(Put.class)
             .register(RemoveAll.class)
             .register(Replace.class)
@@ -261,13 +265,13 @@ public enum AtomixConsistentSetMultimapOperations implements OperationId {
     @SuppressWarnings("serial")
     public static class MultiRemove extends MultimapOperation {
         private String key;
-        private Collection<byte[]> values;
+        private Collection<? extends byte[]> values;
         private Match<Long> versionMatch;
 
         public MultiRemove() {
         }
 
-        public MultiRemove(String key, Collection<byte[]> valueMatches,
+        public MultiRemove(String key, Collection<? extends byte[]> valueMatches,
                            Match<Long> versionMatch) {
             this.key = checkNotNull(key);
             this.values = valueMatches;
@@ -278,7 +282,7 @@ public enum AtomixConsistentSetMultimapOperations implements OperationId {
             return this.key;
         }
 
-        public Collection<byte[]> values() {
+        public Collection<? extends byte[]> values() {
             return values;
         }
 
@@ -297,10 +301,43 @@ public enum AtomixConsistentSetMultimapOperations implements OperationId {
     }
 
     /**
+     * Command to back the multi-key removeAll method.
+     */
+    @SuppressWarnings("serial")
+    public static class MultiRemoveAll extends MultimapOperation {
+        private Map<String, Collection<? extends byte[]>> mapping;
+        private Match<Long> versionMatch;
+
+        public MultiRemoveAll() {
+        }
+
+        public MultiRemoveAll(Map<String, Collection<? extends byte[]>> mapping, Match<Long> versionMatch) {
+            this.mapping = checkNotNull(mapping);
+            this.versionMatch = versionMatch;
+        }
+
+        public Map<String, Collection<? extends byte[]>> mapping() {
+            return mapping;
+        }
+
+        public Match<Long> versionMatch() {
+            return versionMatch;
+        }
+
+        @Override
+        public String toString() {
+            return MoreObjects.toStringHelper(getClass())
+                    .add("mapping", mapping)
+                    .add("versionMatch", versionMatch)
+                    .toString();
+        }
+    }
+
+    /**
      * Command to back the put and putAll methods.
      */
     @SuppressWarnings("serial")
-    public static class  Put extends MultimapOperation {
+    public static class Put extends MultimapOperation {
         private String key;
         private Collection<? extends byte[]> values;
         private Match<Long> versionMatch;
@@ -331,6 +368,39 @@ public enum AtomixConsistentSetMultimapOperations implements OperationId {
             return MoreObjects.toStringHelper(getClass())
                     .add("key", key)
                     .add("values", values)
+                    .add("versionMatch", versionMatch)
+                    .toString();
+        }
+    }
+
+    /**
+     * Command to back the multi-key putAll method.
+     */
+    @SuppressWarnings("serial")
+    public static class MultiPutAll extends MultimapOperation {
+        private Map<String, Collection<? extends byte[]>> mapping;
+        private Match<Long> versionMatch;
+
+        public MultiPutAll() {
+        }
+
+        public MultiPutAll(Map<String, Collection<? extends byte[]>> mapping, Match<Long> versionMatch) {
+            this.mapping = checkNotNull(mapping);
+            this.versionMatch = versionMatch;
+        }
+
+        public Map<String, Collection<? extends byte[]>> mapping() {
+            return mapping;
+        }
+
+        public Match<Long> versionMatch() {
+            return versionMatch;
+        }
+
+        @Override
+        public String toString() {
+            return MoreObjects.toStringHelper(getClass())
+                    .add("mapping", mapping)
                     .add("versionMatch", versionMatch)
                     .toString();
         }

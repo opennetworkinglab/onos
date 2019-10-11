@@ -196,10 +196,40 @@ public class TranscodingAsyncConsistentMultimap<K1, V1, K2, V2>
 
     @Override
     public CompletableFuture<Boolean>
+    removeAll(Map<K1, Collection<? extends V1>> mapping) {
+        try {
+            // Transform the mapping to the new output
+            Map<K2, Collection<? extends V2>> transformedMapping = Maps.newHashMap();
+            mapping.forEach((key, value) -> transformedMapping.put(keyEncoder.apply(key),
+                                                                   valueCollectionEncode.apply(value)));
+            // Then apply the operation
+            return backingMap.removeAll(transformedMapping);
+        } catch (Exception e) {
+            return Tools.exceptionalFuture(e);
+        }
+    }
+
+    @Override
+    public CompletableFuture<Boolean>
     putAll(K1 key, Collection<? extends V1> values) {
         try {
             return backingMap.putAll(keyEncoder.apply(key),
                                      valueCollectionEncode.apply(values));
+        } catch (Exception e) {
+            return Tools.exceptionalFuture(e);
+        }
+    }
+
+    @Override
+    public CompletableFuture<Boolean>
+    putAll(Map<K1, Collection<? extends V1>> mapping) {
+        try {
+            // Transform the mapping to the new output
+            Map<K2, Collection<? extends V2>> transformedMapping = Maps.newHashMap();
+            mapping.forEach((key, value) -> transformedMapping.put(keyEncoder.apply(key),
+                                                                   valueCollectionEncode.apply(value)));
+            // Then apply the operation
+            return backingMap.putAll(transformedMapping);
         } catch (Exception e) {
             return Tools.exceptionalFuture(e);
         }

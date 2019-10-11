@@ -29,11 +29,13 @@ import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.TreeMultiset;
 import io.atomix.protocols.raft.proxy.RaftProxy;
 import io.atomix.protocols.raft.service.RaftService;
 import org.apache.commons.collections.keyvalue.DefaultMapEntry;
+import org.junit.Assert;
 import org.junit.Test;
 import org.onlab.util.Tools;
 import org.onosproject.store.service.AsyncIterator;
@@ -337,6 +339,83 @@ public class AtomixConsistentSetMultimapTest extends AtomixTestBase<AtomixConsis
                     .join();
         });
 
+        // Done let's destroy the map
+        map.destroy().join();
+    }
+
+    /**
+     * Contains tests for put, putAll, remove, removeAll and replace.
+     * @throws Exception
+     */
+    @Test
+    public void multiPutAllAndMultiRemoveAllTest() throws Exception {
+        // Init phase
+        AtomixConsistentSetMultimap map = createResource("testMultiOp");
+        allKeys.forEach(key -> {
+            allValues.forEach(value -> {
+                map.put(key, value).join();
+                map.put(key, value).join();
+            });
+        });
+
+        // Test multi put
+        Map<String, Collection<? extends byte[]>> mapping = Maps.newHashMap();
+        // First build the mappings having each key a different mapping
+        allKeys.forEach(key -> {
+            switch (key) {
+                case keyOne:
+                    mapping.put(key, Lists.newArrayList(allValues.subList(0, 1)));
+                    break;
+                case keyTwo:
+                    mapping.put(key, Lists.newArrayList(allValues.subList(0, 2)));
+                    break;
+                case keyThree:
+                    mapping.put(key, Lists.newArrayList(allValues.subList(0, 3)));
+                    break;
+                default:
+                    mapping.put(key, Lists.newArrayList(allValues.subList(0, 4)));
+                    break;
+            }
+        });
+        map.size().thenAccept(result -> assertEquals(16, (int) result)).join();
+        // Keys are already present operation has to fail
+        map.putAll(mapping).thenAccept(Assert::assertFalse).join();
+        // clean up the map
+        allKeys.forEach(key -> {
+            map.removeAll(key).join();
+            map.removeAll(key).join();
+        });
+        // verify map is empty
+        map.size().thenAccept(result -> assertEquals(0, (int) result)).join();
+        // put all again but now operation is successful
+        map.putAll(mapping).thenAccept(Assert::assertTrue).join();
+        // verify mapping is ok
+        allKeys.forEach(key -> map.get(key).thenAccept(result -> {
+            switch (key) {
+                case keyOne:
+                    assertTrue(byteArrayCollectionIsEqual(allValues.subList(0, 1), result.value()));
+                    break;
+                case keyTwo:
+                    assertTrue(byteArrayCollectionIsEqual(allValues.subList(0, 2), result.value()));
+                    break;
+                case keyThree:
+                    assertTrue(byteArrayCollectionIsEqual(allValues.subList(0, 3), result.value()));
+                    break;
+                default:
+                    assertTrue(byteArrayCollectionIsEqual(allValues.subList(0, 4), result.value()));
+                    break;
+            }
+        }).join());
+        // We have added keyOne -> {valueOne}, keyTwo -> {valueOne, valueTwo} and so on
+        map.size().thenAccept(result -> assertEquals(10, (int) result)).join();
+        // removeAll but now operation is successful
+        map.removeAll(mapping).thenAccept(Assert::assertTrue).join();
+        // removeAll but now operation is failure
+        map.removeAll(mapping).thenAccept(Assert::assertFalse).join();
+        // No more elements
+        map.size().thenAccept(result -> assertEquals(0, (int) result)).join();
+
+        // Done let's destroy the map
         map.destroy().join();
     }
 
