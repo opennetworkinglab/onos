@@ -15,9 +15,7 @@ ENV BUILD_DEPS \
     bzip2 \
     build-essential \
     curl \
-    unzip \
-    iproute2
-
+    unzip
 RUN apt-get update && apt-get install -y ${BUILD_DEPS}
 
 # Install Bazel
@@ -66,13 +64,6 @@ LABEL org.label-schema.name="ONOS" \
 # Install ONOS in /root/onos
 COPY --from=builder /output/ /root/onos/
 WORKDIR /root/onos
-
-# Add ip command
-COPY --from=builder /bin/ip /bin/
-COPY --from=builder /lib/x86_64-linux-gnu/libmnl.so* /lib/x86_64-linux-gnu/
-COPY --from=builder /usr/lib/x86_64-linux-gnu/libelf.so* /lib/x86_64-linux-gnu/
-COPY --from=builder /sbin/ip /sbin/
-RUN ldconfig
 
 # Set JAVA_HOME (by default not exported by zulu images)
 ARG JDK_VER
