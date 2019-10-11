@@ -15,18 +15,6 @@ export JAVA_OPTS=${JAVA_OPTS:--XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Dkaraf.log.
 set -e  # exit on error
 set -u  # exit on undefined variable
 
-#
-# Hack: Making docker.host.internal resolvable in Docker for Linux
-# TODO(bocon): this can be removed when this issue is resolved: https://github.com/docker/for-linux/issues/264
-#              iproute2 can also be removed from the Dockerfile as a build dep
-#
-# Only run this if we are running in a Docker container
-if awk -F/ '$2 == "docker"' /proc/self/cgroup &>/dev/null; then
-  # Add host.docker.internal to /etc/hosts if it does not resolve
-  getent hosts host.docker.internal > /dev/null || \
-  ip -4 route list match 0/0 | awk '{print $3"\thost.docker.internal"}' >> /etc/hosts
-fi
-
 # If ONOS_HOME is set, respect its value.
 # If ONOS_HOME is not set (e.g. in the init or service environment),
 # set it based on this script's path.
