@@ -22,6 +22,6 @@ def check_bazel_version():
         return
 
     versions = native.bazel_version.split(".")
-    if not int(versions[1]) >= 27:
-        fail("\nBazel version %s is not supported; please use 0.27.* official release!\n\n" %
+    if not int(versions[0]) >= 1:
+        fail("\nBazel version %s is not supported; please use 1.0.* official release!\n\n" %
              native.bazel_version)

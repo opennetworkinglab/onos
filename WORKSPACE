@@ -117,9 +117,10 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 # See https://github.com/bazelbuild/rules_go for the up to date setup instructions.
 http_archive(
     name = "io_bazel_rules_go",
-    sha256 = "f04d2373bcaf8aa09bccb08a98a57e721306c8f6043a2a0ee610fd6853dcde3d",
+    sha256 = "9fb16af4d4836c8222142e54c9efa0bb5fc562ffc893ce2abeac3e25daead144",
     urls = [
-        "https://github.com/bazelbuild/rules_go/releases/download/0.18.6/rules_go-0.18.6.tar.gz",
+        "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/rules_go/releases/download/0.19.0/rules_go-0.19.0.tar.gz",
+        "https://github.com/bazelbuild/rules_go/releases/download/0.19.0/rules_go-0.19.0.tar.gz",
     ],
 )
 
@@ -130,12 +131,30 @@ go_rules_dependencies()
 go_register_toolchains()
 
 http_archive(
-    name = "com_github_bazelbuild_buildtools",
-    sha256 = "e0b5b400cfef17d65886365dc7289cb4ef8dfe07066165607413a271a32aa2a4",
-    strip_prefix = "buildtools-db073457c5a56d810e46efc18bb93a4fd7aa7b5e",
-    url = "https://github.com/bazelbuild/buildtools/archive/db073457c5a56d810e46efc18bb93a4fd7aa7b5e.zip",
+    name = "bazel_gazelle",
+    sha256 = "be9296bfd64882e3c08e3283c58fcb461fa6dd3c171764fcc4cf322f60615a9b",
+    urls = [
+        "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/bazel-gazelle/releases/download/0.18.1/bazel-gazelle-0.18.1.tar.gz",
+        "https://github.com/bazelbuild/bazel-gazelle/releases/download/0.18.1/bazel-gazelle-0.18.1.tar.gz",
+    ],
 )
 
-load("@com_github_bazelbuild_buildtools//buildifier:deps.bzl", "buildifier_dependencies")
+load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
 
-buildifier_dependencies()
+gazelle_dependencies()
+
+http_archive(
+    name = "com_google_protobuf",
+    strip_prefix = "protobuf-master",
+    urls = ["https://github.com/protocolbuffers/protobuf/archive/master.zip"],
+)
+
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+
+protobuf_deps()
+
+http_archive(
+    name = "com_github_bazelbuild_buildtools",
+    strip_prefix = "buildtools-master",
+    url = "https://github.com/bazelbuild/buildtools/archive/master.zip",
+)
