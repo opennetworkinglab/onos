@@ -1633,7 +1633,7 @@ class OFChannelHandler extends ChannelInboundHandlerAdapter
                         processMessages(tc);
                     }
                 } catch (InterruptedException e) {
-                    log.error("executor thread InterruptedException: {}", e);
+                    log.warn("Dispatcher interrupted");
                     Thread.currentThread().interrupt();
                     // interrupted. gracefully shutting down
                     return;
