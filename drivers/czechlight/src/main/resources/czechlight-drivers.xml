@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<drivers>
+    <driver name="czechlight-roadm" manufacturer="CzechLight" hwVersion="sdn-roadm-line" swVersion="0">
+        <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
+                   impl="org.onosproject.drivers.czechlight.CzechLightDiscovery"/>
+        <behaviour api="org.onosproject.net.behaviour.LambdaQuery"
+                   impl="org.onosproject.drivers.czechlight.CzechLightLambdaQuery"/>
+        <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
+                   impl="org.onosproject.drivers.czechlight.CzechLightFlowRuleProgrammable"/>
+        <behaviour api="org.onosproject.net.optical.OpticalDevice"
+                   impl="org.onosproject.net.optical.DefaultOpticalDevice"/>
+        <behaviour api="org.onosproject.net.behaviour.PowerConfig"
+                   impl="org.onosproject.drivers.czechlight.CzechLightPowerConfig"/>
+    </driver>
+</drivers>
