@@ -160,6 +160,7 @@ DRIVER_MAP = {
     "//drivers/cisco/netconf:onos-drivers-cisco-netconf-oar": [],
     "//drivers/cisco/rest:onos-drivers-cisco-rest-oar": [],
     "//drivers/corsa:onos-drivers-corsa-oar": [],
+    "//drivers/czechlight:onos-drivers-czechlight-oar": [],
     "//drivers/flowspec:onos-drivers-flowspec-oar": [],
     "//drivers/fujitsu:onos-drivers-fujitsu-oar": [],
     "//drivers/gnmi:onos-drivers-gnmi-oar": ["stratum"],
