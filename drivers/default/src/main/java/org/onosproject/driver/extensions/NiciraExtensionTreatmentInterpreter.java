@@ -351,6 +351,7 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
             ctAction.setRecircTable(niciraCt.niciraCtRecircTable());
             ctAction.setAlg(niciraCt.niciraCtAlg());
 
+            List<OFAction> actions = Lists.newArrayList();
             for (ExtensionTreatment nestedTreatment : niciraCt.niciraCtNestActions()) {
                 if (nestedTreatment instanceof NiciraNat) {
                     NiciraNat niciraNat = (NiciraNat) nestedTreatment;
@@ -396,11 +397,19 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
                     action.setPad(padList);
 
                     //nat action must be nested in ct action
-                    List<OFAction> actions = Lists.newArrayList();
                     actions.add(action.build());
-                    ctAction.setActions(actions);
+                } else if (nestedTreatment instanceof NiciraLoad) {
+                    NiciraLoad niciraLoad = (NiciraLoad) nestedTreatment;
+                    OFActionNiciraLoad.Builder action = factory.actions().buildNiciraLoad();
+
+                    action.setDst(niciraLoad.dst());
+                    action.setOfsNbits(niciraLoad.ofsNbits());
+                    action.setValue(U64.of(niciraLoad.value()));
+
+                    actions.add(action.build());
                 }
             }
+            ctAction.setActions(actions);
             return ctAction.build();
         }
         if (type.equals(ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_CT_CLEAR.type())) {
@@ -522,11 +531,20 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
                     case SUB_TYPE_CT:
                         OFActionNiciraCt ctAction = (OFActionNiciraCt) nicira;
                         List<OFAction> actions = ctAction.getActions();
+
+                        List<ExtensionTreatment> extensionActions = new ArrayList<>();
+
                         for (OFAction act : actions) {
                             OFActionExperimenter ctExperimenter = (OFActionExperimenter) act;
                             if (Long.valueOf(ctExperimenter.getExperimenter()).intValue() == TYPE_NICIRA) {
                                 OFActionNicira actionNicira = (OFActionNicira) ctExperimenter;
                                 switch (actionNicira.getSubtype()) {
+                                    case SUB_TYPE_LOAD:
+                                        OFActionNiciraLoad loadAction = (OFActionNiciraLoad) actionNicira;
+                                        extensionActions.add(new NiciraLoad(loadAction.getOfsNbits(),
+                                                                            loadAction.getDst(),
+                                                                            loadAction.getValue().getValue()));
+                                        break;
                                     case SUB_TYPE_NAT:
                                         OFActionNiciraNat natAction = (OFActionNiciraNat) actionNicira;
                                         int portMin = 0;
@@ -566,18 +584,12 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
                                         if ((natAction.getRangePresent() & NAT_RANGE_PROTO_MAX) != 0) {
                                             portMax = arrays[index].getInt() & 0x0000ffff;
                                         }
-                                        List<ExtensionTreatment> treatments = new ArrayList<>();
                                         NiciraNat natTreatment = new NiciraNat(natAction.getFlags(),
                                                 natAction.getRangePresent(),
                                                 portMin, portMax,
                                                 ipAddressMin, ipAddressMax);
-                                        treatments.add(natTreatment);
-                                        return new NiciraCt(ctAction.getFlags(),
-                                                ctAction.getZoneSrc(),
-                                                ctAction.getZone(),
-                                                ctAction.getRecircTable(),
-                                                ctAction.getAlg(),
-                                                treatments);
+                                        extensionActions.add(natTreatment);
+                                        break;
                                     default:
                                         throw new UnsupportedOperationException("Driver does not support nested" +
                                                 " in ct action extension subtype " + actionNicira.getSubtype());
@@ -589,7 +601,7 @@ public class NiciraExtensionTreatmentInterpreter extends AbstractHandlerBehaviou
                                 ctAction.getZone(),
                                 ctAction.getRecircTable(),
                                 ctAction.getAlg(),
-                                new ArrayList<>());
+                                extensionActions);
                     case SUB_TYPE_CT_CLEAR:
                         return new NiciraCtClear();
                     case SUB_TYPE_LOAD:
