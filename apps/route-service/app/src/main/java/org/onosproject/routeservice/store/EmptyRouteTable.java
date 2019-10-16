@@ -52,7 +52,17 @@ public final class EmptyRouteTable implements RouteTable {
     }
 
     @Override
+    public void update(Collection<Route> routes) {
+
+    }
+
+    @Override
     public void remove(Route route) {
+
+    }
+
+    @Override
+    public void remove(Collection<Route> routes) {
 
     }
 
@@ -78,6 +88,11 @@ public final class EmptyRouteTable implements RouteTable {
 
     @Override
     public Collection<Route> getRoutesForNextHop(IpAddress nextHop) {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public Collection<RouteSet> getRoutesForNextHops(Collection<IpAddress> nextHops) {
         return Collections.emptyList();
     }
 
