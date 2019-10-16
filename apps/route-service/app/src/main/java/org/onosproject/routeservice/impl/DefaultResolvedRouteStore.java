@@ -17,7 +17,6 @@
 package org.onosproject.routeservice.impl;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import com.googlecode.concurrenttrees.common.KeyValuePair;
 import com.googlecode.concurrenttrees.radix.node.concrete.DefaultByteArrayNodeFactory;
 import com.googlecode.concurrenttrees.radixinverted.ConcurrentInvertedRadixTree;
@@ -121,7 +120,7 @@ public class DefaultResolvedRouteStore implements ResolvedRouteStore {
             routeTable = new ConcurrentInvertedRadixTree<>(
                     new DefaultByteArrayNodeFactory());
 
-            alternativeRoutes = Maps.newHashMap();
+            alternativeRoutes = new ConcurrentHashMap<>();
         }
 
         /**
@@ -133,7 +132,6 @@ public class DefaultResolvedRouteStore implements ResolvedRouteStore {
         public RouteEvent update(ResolvedRoute route, Set<ResolvedRoute> alternatives) {
             Set<ResolvedRoute> immutableAlternatives = checkAlternatives(route, alternatives);
 
-            synchronized (this) {
                 ResolvedRoute oldRoute = routeTable.put(createBinaryString(route.prefix()), route);
                 Set<ResolvedRoute> oldRoutes = alternativeRoutes.put(route.prefix(), immutableAlternatives);
 
@@ -153,7 +151,6 @@ public class DefaultResolvedRouteStore implements ResolvedRouteStore {
                 }
 
                 return null;
-            }
         }
 
         /**
@@ -181,18 +178,16 @@ public class DefaultResolvedRouteStore implements ResolvedRouteStore {
          * @param prefix prefix to remove
          */
         public RouteEvent remove(IpPrefix prefix) {
-            synchronized (this) {
-                String key = createBinaryString(prefix);
+            String key = createBinaryString(prefix);
 
-                ResolvedRoute route = routeTable.getValueForExactKey(key);
-                Set<ResolvedRoute> alternatives = alternativeRoutes.remove(prefix);
+            ResolvedRoute route = routeTable.getValueForExactKey(key);
+            Set<ResolvedRoute> alternatives = alternativeRoutes.remove(prefix);
 
-                if (route != null) {
-                    routeTable.remove(key);
-                    return new RouteEvent(RouteEvent.Type.ROUTE_REMOVED, route, alternatives);
-                }
-                return null;
+            if (route != null) {
+                routeTable.remove(key);
+                return new RouteEvent(RouteEvent.Type.ROUTE_REMOVED, route, alternatives);
             }
+            return null;
         }
 
         /**

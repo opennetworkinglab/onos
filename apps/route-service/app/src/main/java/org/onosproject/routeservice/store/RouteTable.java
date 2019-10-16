@@ -37,11 +37,25 @@ public interface RouteTable {
     void update(Route route);
 
     /**
+     * Adds the routes to the route table.
+     *
+     * @param routes routes
+     */
+    void update(Collection<Route> routes);
+
+    /**
      * Removes a route from the route table.
      *
      * @param route route
      */
     void remove(Route route);
+
+    /**
+     * Removes the routes from the route table.
+     *
+     * @param routes routes
+     */
+    void remove(Collection<Route> routes);
 
     /**
      * Replaces a route in the route table.
@@ -79,6 +93,14 @@ public interface RouteTable {
      * @return collection of routes
      */
     Collection<Route> getRoutesForNextHop(IpAddress nextHop);
+
+    /**
+     * Returns all routes that have the given next hops.
+     *
+     * @param nextHops next hops IP addresses
+     * @return collection of routes sets
+     */
+    Collection<RouteSet> getRoutesForNextHops(Collection<IpAddress> nextHops);
 
     /**
      * Releases route table resources held locally.
