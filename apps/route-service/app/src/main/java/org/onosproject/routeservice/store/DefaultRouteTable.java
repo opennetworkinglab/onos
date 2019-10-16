@@ -18,6 +18,7 @@ package org.onosproject.routeservice.store;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -133,6 +134,14 @@ public class DefaultRouteTable implements RouteTable {
     }
 
     @Override
+    public void update(Collection<Route> routesAdded) {
+        Map<String, Collection<? extends RawRoute>> computedRoutes = new HashMap<>();
+        computeRoutesToAdd(routesAdded).forEach((prefix, routes) -> computedRoutes.computeIfAbsent(
+                prefix, k -> Sets.newHashSet(routes)));
+        routes.putAll(computedRoutes);
+    }
+
+    @Override
     public void remove(Route route) {
         getRoutes(route.prefix())
             .routes()
@@ -142,6 +151,14 @@ public class DefaultRouteTable implements RouteTable {
             .ifPresent(matchRoute -> {
                 routes.remove(matchRoute.prefix().toString(), new RawRoute(matchRoute));
             });
+    }
+
+    @Override
+    public void remove(Collection<Route> routesRemoved) {
+        Map<String, Collection<? extends RawRoute>> computedRoutes = new HashMap<>();
+        computeRoutesToRemove(routesRemoved).forEach((prefix, routes) -> computedRoutes.computeIfAbsent(
+                prefix, k -> Sets.newHashSet(routes)));
+        routes.removeAll(computedRoutes);
     }
 
     @Override
@@ -178,6 +195,53 @@ public class DefaultRouteTable implements RouteTable {
             .filter(r -> IpAddress.valueOf(r.nextHop()).equals(nextHop))
             .map(RawRoute::route)
             .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Collection<RouteSet> getRoutesForNextHops(Collection<IpAddress> nextHops) {
+        // First create a reduced snapshot of the store iterating one time the map
+        Map<String, Collection<? extends RawRoute>> filteredRouteStore = new HashMap<>();
+        routes.values().stream()
+                .filter(r -> nextHops.contains(IpAddress.valueOf(r.nextHop())))
+                .forEach(r -> filteredRouteStore.computeIfAbsent(r.prefix, k -> {
+                    // We need to get all the routes because the resolve logic
+                    // will use the alternatives as well
+                    Versioned<Collection<? extends RawRoute>> routeSet = routes.get(k);
+                    if (routeSet != null) {
+                        return routeSet.value();
+                    }
+                    return null;
+                }));
+        // Return the collection of the routeSet we have to resolve
+        return filteredRouteStore.entrySet().stream()
+                .map(entry -> new RouteSet(id, IpPrefix.valueOf(entry.getKey()),
+                                           entry.getValue().stream().map(RawRoute::route).collect(Collectors.toSet())))
+                .collect(Collectors.toSet());
+    }
+
+    private Map<String, Collection<RawRoute>> computeRoutesToAdd(Collection<Route> routesAdded) {
+        Map<String, Collection<RawRoute>> computedRoutes = new HashMap<>();
+        routesAdded.forEach(route -> {
+            Collection<RawRoute> tempRoutes = computedRoutes.computeIfAbsent(
+                    route.prefix().toString(), k -> Sets.newHashSet());
+            tempRoutes.add(new RawRoute(route));
+        });
+        return computedRoutes;
+    }
+
+    private Map<String, Collection<RawRoute>> computeRoutesToRemove(Collection<Route> routesRemoved) {
+        Map<String, Collection<RawRoute>> computedRoutes = new HashMap<>();
+        routesRemoved.forEach(route -> getRoutes(route.prefix())
+                .routes()
+                .stream()
+                .filter(r -> r.equals(route))
+                .findAny()
+                .ifPresent(matchRoute -> {
+                    Collection<RawRoute> tempRoutes = computedRoutes.computeIfAbsent(
+                            matchRoute.prefix().toString(), k -> Sets.newHashSet());
+                    tempRoutes.add(new RawRoute(matchRoute));
+                }));
+        return computedRoutes;
     }
 
     private class RouteTableListener

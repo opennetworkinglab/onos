@@ -19,7 +19,7 @@ package org.onosproject.routeservice.impl;
 import java.util.Collection;
 import java.util.Collections;
 
-import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.Ip4Address;
@@ -30,6 +30,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onlab.util.PredictableExecutor;
 import org.onosproject.routeservice.ResolvedRoute;
 import org.onosproject.routeservice.Route;
 import org.onosproject.routeservice.RouteEvent;
@@ -65,6 +66,7 @@ import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
+import static org.onlab.util.Tools.groupedThreads;
 
 /**
  * Unit tests for the route manager.
@@ -104,7 +106,6 @@ public class RouteManagerTest {
 
         routeManager = new TestRouteManager();
         routeManager.hostService = hostService;
-        routeManager.hostEventExecutor = MoreExecutors.directExecutor();
 
         routeManager.clusterService = createNiceMock(ClusterService.class);
         replay(routeManager.clusterService);
@@ -130,6 +131,11 @@ public class RouteManagerTest {
         routeManager.routeStore = routeStore;
         routeManager.activate();
 
+        routeManager.hostEventExecutors = new PredictableExecutor(
+                0, groupedThreads("onos/route-manager-test", "event-host-%d"), true);
+        routeManager.routeResolver.routeResolvers = new PredictableExecutor(
+                0, groupedThreads("onos/route-resolver-test", "route-resolver-%d"), true);
+
         routeManager.addListener(routeListener);
     }
 
@@ -142,16 +148,16 @@ public class RouteManagerTest {
         hostService.addListener(anyObject(HostListener.class));
         expectLastCall().andDelegateTo(new TestHostService()).anyTimes();
 
-        Host host1 = createHost(MAC1, V4_NEXT_HOP1);
+        Host host1 = createHost(MAC1, Collections.singletonList(V4_NEXT_HOP1));
         expectHost(host1);
 
-        Host host2 = createHost(MAC2, V4_NEXT_HOP2);
+        Host host2 = createHost(MAC2, Collections.singletonList(V4_NEXT_HOP2));
         expectHost(host2);
 
-        Host host3 = createHost(MAC3, V6_NEXT_HOP1);
+        Host host3 = createHost(MAC3, Collections.singletonList(V6_NEXT_HOP1));
         expectHost(host3);
 
-        Host host4 = createHost(MAC4, V6_NEXT_HOP2);
+        Host host4 = createHost(MAC4, Collections.singletonList(V6_NEXT_HOP2));
         expectHost(host4);
 
         replay(hostService);
@@ -176,13 +182,13 @@ public class RouteManagerTest {
      * Creates a host with the given parameters.
      *
      * @param macAddress MAC address
-     * @param ipAddress IP address
+     * @param ipAddresses IP addresses
      * @return new host
      */
-    private Host createHost(MacAddress macAddress, IpAddress ipAddress) {
+    private Host createHost(MacAddress macAddress, Collection<IpAddress> ipAddresses) {
         return new DefaultHost(ProviderId.NONE, HostId.NONE, macAddress,
                 VlanId.NONE, new HostLocation(CP1, 1),
-                Sets.newHashSet(ipAddress));
+                Sets.newHashSet(ipAddresses));
     }
 
     /**
@@ -343,12 +349,19 @@ public class RouteManagerTest {
     @Test
     public void testAsyncRouteAdd() {
         Route route = new Route(Route.Source.STATIC, V4_PREFIX1, V4_NEXT_HOP1);
+        // 2nd route for the same nexthop
+        Route route2 = new Route(Route.Source.STATIC, V4_PREFIX2, V4_NEXT_HOP2);
+        // 3rd route with no valid nexthop
+        Route route3 = new Route(Route.Source.STATIC, V6_PREFIX1, V6_NEXT_HOP1);
+
 
         // Host service will reply with no hosts when asked
         reset(hostService);
         expect(hostService.getHostsByIp(anyObject(IpAddress.class))).andReturn(
                 Collections.emptySet()).anyTimes();
         hostService.startMonitoringIp(V4_NEXT_HOP1);
+        hostService.startMonitoringIp(V4_NEXT_HOP2);
+        hostService.startMonitoringIp(V6_NEXT_HOP1);
         expectLastCall().anyTimes();
         replay(hostService);
 
@@ -356,7 +369,7 @@ public class RouteManagerTest {
         // the host is not known
         replay(routeListener);
 
-        routeManager.update(Collections.singleton(route));
+        routeManager.update(Lists.newArrayList(route, route2, route3));
 
         verify(routeListener);
 
@@ -365,15 +378,21 @@ public class RouteManagerTest {
         ResolvedRoute resolvedRoute = new ResolvedRoute(route, MAC1, CP1);
         routeListener.event(event(RouteEvent.Type.ROUTE_ADDED, resolvedRoute, null,
                 Sets.newHashSet(resolvedRoute), null));
+        ResolvedRoute resolvedRoute2 = new ResolvedRoute(route2, MAC1, CP1);
+        routeListener.event(event(RouteEvent.Type.ROUTE_ADDED, resolvedRoute2, null,
+                                  Sets.newHashSet(resolvedRoute2), null));
         replay(routeListener);
 
-        Host host = createHost(MAC1, V4_NEXT_HOP1);
+        Host host = createHost(MAC1, Lists.newArrayList(V4_NEXT_HOP1, V4_NEXT_HOP2));
 
         // Set up the host service with a host
         reset(hostService);
         expect(hostService.getHostsByIp(V4_NEXT_HOP1)).andReturn(
                 Collections.singleton(host)).anyTimes();
         hostService.startMonitoringIp(V4_NEXT_HOP1);
+        expect(hostService.getHostsByIp(V4_NEXT_HOP2)).andReturn(
+                Collections.singleton(host)).anyTimes();
+        hostService.startMonitoringIp(V4_NEXT_HOP2);
         expectLastCall().anyTimes();
         replay(hostService);
 
