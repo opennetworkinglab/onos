@@ -38,11 +38,25 @@ public interface RouteStore extends Store<InternalRouteEvent, RouteStoreDelegate
     void updateRoute(Route route);
 
     /**
+     * Adds or updates the given routes in the store.
+     *
+     * @param routes routes to add or update
+     */
+    void updateRoutes(Collection<Route> routes);
+
+    /**
      * Removes the given route from the store.
      *
      * @param route route to remove
      */
     void removeRoute(Route route);
+
+    /**
+     * Removes the given routes from the store.
+     *
+     * @param routes routes to remove
+     */
+    void removeRoutes(Collection<Route> routes);
 
     /**
      * Replaces the all the routes for a prefix
@@ -77,6 +91,14 @@ public interface RouteStore extends Store<InternalRouteEvent, RouteStoreDelegate
      */
     // TODO think about including route table info
     Collection<Route> getRoutesForNextHop(IpAddress ip);
+
+    /**
+     * Returns all routes that point to any of the given next hops IP addresses.
+     *
+     * @param nextHops next hops IP addresses
+     * @return collection of routes sets
+     */
+    Collection<RouteSet> getRoutesForNextHops(Collection<IpAddress> nextHops);
 
     /**
      * Returns the set of routes in the default route table for the given prefix.

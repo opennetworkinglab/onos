@@ -17,6 +17,7 @@
 package org.onosproject.routeservice.store;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.util.KryoNamespace;
@@ -37,11 +38,13 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import static org.onlab.util.Tools.groupedThreads;
 
@@ -116,8 +119,24 @@ public class DistributedRouteStore extends AbstractStore<InternalRouteEvent, Rou
     }
 
     @Override
+    public void updateRoutes(Collection<Route> routes) {
+        Map<RouteTableId, Set<Route>> computedTables = computeRouteTablesFromRoutes(routes);
+        computedTables.forEach(
+                ((routeTableId, routesToAdd) -> getDefaultRouteTable(routeTableId).update(routesToAdd))
+        );
+    }
+
+    @Override
     public void removeRoute(Route route) {
         getDefaultRouteTable(route).remove(route);
+    }
+
+    @Override
+    public void removeRoutes(Collection<Route> routes) {
+        Map<RouteTableId, Set<Route>> computedTables = computeRouteTablesFromRoutes(routes);
+        computedTables.forEach(
+                ((routeTableId, routesToRemove) -> getDefaultRouteTable(routeTableId).remove(routesToRemove))
+        );
     }
 
     @Override
@@ -146,6 +165,15 @@ public class DistributedRouteStore extends AbstractStore<InternalRouteEvent, Rou
     }
 
     @Override
+    public Collection<RouteSet> getRoutesForNextHops(Collection<IpAddress> nextHops) {
+        Map<RouteTableId, Set<IpAddress>> computedTables = computeRouteTablesFromIps(nextHops);
+        return computedTables.entrySet().stream()
+                .map(entry -> getDefaultRouteTable(entry.getKey()).getRoutesForNextHops(entry.getValue()))
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public RouteSet getRoutes(IpPrefix prefix) {
         return getDefaultRouteTable(prefix.address()).getRoutes(prefix);
     }
@@ -168,6 +196,30 @@ public class DistributedRouteStore extends AbstractStore<InternalRouteEvent, Rou
     private RouteTable getDefaultRouteTable(IpAddress ip) {
         RouteTableId routeTableId = (ip.isIp4()) ? IPV4 : IPV6;
         return routeTables.getOrDefault(routeTableId, EmptyRouteTable.instance());
+    }
+
+    private RouteTable getDefaultRouteTable(RouteTableId routeTableId) {
+        return routeTables.getOrDefault(routeTableId, EmptyRouteTable.instance());
+    }
+
+    private Map<RouteTableId, Set<Route>> computeRouteTablesFromRoutes(Collection<Route> routes) {
+        Map<RouteTableId, Set<Route>> computedTables = new HashMap<>();
+        routes.forEach(route -> {
+            RouteTableId routeTableId = (route.prefix().address().isIp4()) ? IPV4 : IPV6;
+            Set<Route> tempRoutes = computedTables.computeIfAbsent(routeTableId, k -> Sets.newHashSet());
+            tempRoutes.add(route);
+        });
+        return computedTables;
+    }
+
+    private Map<RouteTableId, Set<IpAddress>> computeRouteTablesFromIps(Collection<IpAddress> ipAddresses) {
+        Map<RouteTableId, Set<IpAddress>> computedTables = new HashMap<>();
+        ipAddresses.forEach(ipAddress -> {
+            RouteTableId routeTableId = (ipAddress.isIp4()) ? IPV4 : IPV6;
+            Set<IpAddress> tempIpAddresses = computedTables.computeIfAbsent(routeTableId, k -> Sets.newHashSet());
+            tempIpAddresses.add(ipAddress);
+        });
+        return computedTables;
     }
 
     private class InternalRouteStoreDelegate implements RouteStoreDelegate {
