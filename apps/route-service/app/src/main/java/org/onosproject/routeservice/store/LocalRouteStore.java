@@ -16,6 +16,7 @@
 
 package org.onosproject.routeservice.store;
 
+import com.google.common.collect.Sets;
 import com.googlecode.concurrenttrees.common.KeyValuePair;
 import com.googlecode.concurrenttrees.radix.node.concrete.DefaultByteArrayNodeFactory;
 import com.googlecode.concurrenttrees.radixinverted.ConcurrentInvertedRadixTree;
@@ -35,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -82,8 +84,24 @@ public class LocalRouteStore extends AbstractStore<InternalRouteEvent, RouteStor
     }
 
     @Override
+    public void updateRoutes(Collection<Route> routes) {
+        Map<RouteTableId, Set<Route>> computedTables = computeRouteTablesFromRoutes(routes);
+        computedTables.forEach(
+                ((routeTableId, routesToAdd) -> getDefaultRouteTable(routeTableId).update(routesToAdd))
+        );
+    }
+
+    @Override
     public void removeRoute(Route route) {
         getDefaultRouteTable(route).remove(route);
+    }
+
+    @Override
+    public void removeRoutes(Collection<Route> routes) {
+        Map<RouteTableId, Set<Route>> computedTables = computeRouteTablesFromRoutes(routes);
+        computedTables.forEach(
+                ((routeTableId, routesToRemove) -> getDefaultRouteTable(routeTableId).remove(routesToRemove))
+        );
     }
 
     @Override
@@ -111,6 +129,15 @@ public class LocalRouteStore extends AbstractStore<InternalRouteEvent, RouteStor
     }
 
     @Override
+    public Collection<RouteSet> getRoutesForNextHops(Collection<IpAddress> nextHops) {
+        Map<RouteTableId, Set<IpAddress>> computedTables = computeRouteTablesFromIps(nextHops);
+        return computedTables.entrySet().stream()
+                .map(entry -> getDefaultRouteTable(entry.getKey()).getRoutesForNextHops(entry.getValue()))
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public RouteSet getRoutes(IpPrefix prefix) {
         return getDefaultRouteTable(prefix.address()).getRoutes(prefix);
     }
@@ -122,6 +149,30 @@ public class LocalRouteStore extends AbstractStore<InternalRouteEvent, RouteStor
     private RouteTable getDefaultRouteTable(IpAddress ip) {
         RouteTableId routeTableId = (ip.isIp4()) ? IPV4 : IPV6;
         return routeTables.get(routeTableId);
+    }
+
+    private RouteTable getDefaultRouteTable(RouteTableId routeTableId) {
+        return routeTables.get(routeTableId);
+    }
+
+    private Map<RouteTableId, Set<Route>> computeRouteTablesFromRoutes(Collection<Route> routes) {
+        Map<RouteTableId, Set<Route>> computedTables = new HashMap<>();
+        routes.forEach(route -> {
+            RouteTableId routeTableId = (route.prefix().address().isIp4()) ? IPV4 : IPV6;
+            Set<Route> tempRoutes = computedTables.computeIfAbsent(routeTableId, k -> Sets.newHashSet());
+            tempRoutes.add(route);
+        });
+        return computedTables;
+    }
+
+    private Map<RouteTableId, Set<IpAddress>> computeRouteTablesFromIps(Collection<IpAddress> ipAddresses) {
+        Map<RouteTableId, Set<IpAddress>> computedTables = new HashMap<>();
+        ipAddresses.forEach(ipAddress -> {
+            RouteTableId routeTableId = (ipAddress.isIp4()) ? IPV4 : IPV6;
+            Set<IpAddress> tempIpAddresses = computedTables.computeIfAbsent(routeTableId, k -> Sets.newHashSet());
+            tempIpAddresses.add(ipAddress);
+        });
+        return computedTables;
     }
 
     /**
@@ -163,6 +214,17 @@ public class LocalRouteStore extends AbstractStore<InternalRouteEvent, RouteStor
         }
 
         /**
+         * Adds or updates the routes in the route table.
+         *
+         * @param routes routes to update
+         */
+        public void update(Collection<Route> routes) {
+            synchronized (this) {
+                routes.forEach(this::update);
+            }
+        }
+
+        /**
          * Removes the route from the route table.
          *
          * @param route route to remove
@@ -176,6 +238,17 @@ public class LocalRouteStore extends AbstractStore<InternalRouteEvent, RouteStor
                     notifyDelegate(new InternalRouteEvent(
                             InternalRouteEvent.Type.ROUTE_REMOVED, emptyRouteSet(route.prefix())));
                 }
+            }
+        }
+
+        /**
+         * Adds or updates the routes in the route table.
+         *
+         * @param routes routes to update
+         */
+        public void remove(Collection<Route> routes) {
+            synchronized (this) {
+                routes.forEach(this::remove);
             }
         }
 
@@ -196,6 +269,28 @@ public class LocalRouteStore extends AbstractStore<InternalRouteEvent, RouteStor
             return routes.values()
                     .stream()
                     .filter(route -> route.nextHop().equals(ip))
+                    .collect(Collectors.toSet());
+        }
+
+        /**
+         * Returns the routes pointing to the next hops.
+         *
+         * @param ips next hops IP addresses
+         * @return routes for the next hop
+         */
+        public Collection<RouteSet> getRoutesForNextHops(Collection<IpAddress> ips) {
+            // First create a reduced snapshot of the store iterating one time the map
+            Map<IpPrefix, Set<Route>> filteredRouteStore = new HashMap<>();
+            routes.values().stream()
+                    .filter(r -> ips.contains(r.nextHop()))
+                    .forEach(r -> {
+                        Collection<Route> tempRoutes = filteredRouteStore.computeIfAbsent(
+                                r.prefix(), k -> Sets.newHashSet());
+                        tempRoutes.add(r);
+                    });
+            // Return the collection of the routeSet we have to resolve
+            return filteredRouteStore.entrySet().stream()
+                    .map(entry -> new RouteSet(id, entry.getKey(), entry.getValue()))
                     .collect(Collectors.toSet());
         }
 

@@ -31,7 +31,17 @@ public class RouteStoreAdapter implements RouteStore {
     }
 
     @Override
+    public void updateRoutes(Collection<Route> routes) {
+
+    }
+
+    @Override
     public void removeRoute(Route route) {
+
+    }
+
+    @Override
+    public void removeRoutes(Collection<Route> routes) {
 
     }
 
@@ -52,6 +62,11 @@ public class RouteStoreAdapter implements RouteStore {
 
     @Override
     public Collection<Route> getRoutesForNextHop(IpAddress ip) {
+        return null;
+    }
+
+    @Override
+    public Collection<RouteSet> getRoutesForNextHops(Collection<IpAddress> nextHops) {
         return null;
     }
 

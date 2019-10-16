@@ -141,8 +141,18 @@ public class RouteStoreImpl extends AbstractStore<InternalRouteEvent, RouteStore
     }
 
     @Override
+    public void updateRoutes(Collection<Route> routes) {
+        currentRouteStore.updateRoutes(routes);
+    }
+
+    @Override
     public void removeRoute(Route route) {
         currentRouteStore.removeRoute(route);
+    }
+
+    @Override
+    public void removeRoutes(Collection<Route> routes) {
+        currentRouteStore.removeRoutes(routes);
     }
 
     @Override
@@ -163,6 +173,11 @@ public class RouteStoreImpl extends AbstractStore<InternalRouteEvent, RouteStore
     @Override
     public Collection<Route> getRoutesForNextHop(IpAddress ip) {
         return currentRouteStore.getRoutesForNextHop(ip);
+    }
+
+    @Override
+    public Collection<RouteSet> getRoutesForNextHops(Collection<IpAddress> ips) {
+        return currentRouteStore.getRoutesForNextHops(ips);
     }
 
     @Override
