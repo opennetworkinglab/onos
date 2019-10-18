@@ -1148,7 +1148,7 @@ public class OvsOfdpaPipeline extends Ofdpa2Pipeline {
         initTableMiss(MPLS_TABLE_1, ACL_TABLE, null);
         initTableMiss(BRIDGING_TABLE, ACL_TABLE, null);
         initTableMiss(ACL_TABLE, -1, null);
-        linkDiscoveryPuntTableRules();
+        initPuntTable();
 
         initPopVlanPuntGroup();
     }
@@ -1203,10 +1203,11 @@ public class OvsOfdpaPipeline extends Ofdpa2Pipeline {
      * that forward traffic to controller.
      *
      */
-    private void linkDiscoveryPuntTableRules() {
+    private void initPuntTable() {
         FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
         TrafficTreatment treatment =  DefaultTrafficTreatment.builder().punt().build();
 
+        // Add punt rule for LLDP and BDDP
         TrafficSelector.Builder lldpSelector = DefaultTrafficSelector.builder();
         lldpSelector.matchEthType(EthType.EtherType.LLDP.ethType().toShort());
         FlowRule lldpRule = DefaultFlowRule.builder()
@@ -1231,14 +1232,26 @@ public class OvsOfdpaPipeline extends Ofdpa2Pipeline {
                 .forTable(PUNT_TABLE).build();
         ops.add(bbdpRule);
 
+        // Add table miss flow rule
+        TrafficSelector.Builder defaultSelector = DefaultTrafficSelector.builder();
+        FlowRule defaultRule = DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .withSelector(defaultSelector.build())
+                .withTreatment(treatment)
+                .withPriority(LOWEST_PRIORITY)
+                .fromApp(driverId)
+                .makePermanent()
+                .forTable(PUNT_TABLE).build();
+        ops.add(defaultRule);
+
         flowRuleService.apply(ops.build(new FlowRuleOperationsContext() {
             @Override
             public void onSuccess(FlowRuleOperations ops) {
-                log.info("Added lldp/bbdp rules for table {} on {}", PUNT_TABLE, deviceId);
+                log.info("Initialized table {} on {}", PUNT_TABLE, deviceId);
             }
             @Override
             public void onError(FlowRuleOperations ops) {
-                log.warn("Failed to initialize lldp/bbdp rules for table {} on {}", PUNT_TABLE, deviceId);
+                log.warn("Failed to initialize table {} on {}", PUNT_TABLE, deviceId);
             }
         }));
     }
