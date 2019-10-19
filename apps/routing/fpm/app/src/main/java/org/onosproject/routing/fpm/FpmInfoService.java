@@ -16,7 +16,9 @@
 
 package org.onosproject.routing.fpm;
 
+import java.util.Collection;
 import java.util.Map;
+
 
 /**
  * Provides information about the FPM route receiver module.
@@ -41,4 +43,12 @@ public interface FpmInfoService {
      * Pushes all local FPM routes to route store.
      */
     void pushFpmRoutes();
+
+    /**
+     * Updates the acceptRoute flag to either accept or discard routes for input peers address.
+     *
+     * @param peers peers for which flag is updated
+     */
+    void updateAcceptRouteFlag(Collection<FpmPeerAcceptRoutes> peers);
+
 }

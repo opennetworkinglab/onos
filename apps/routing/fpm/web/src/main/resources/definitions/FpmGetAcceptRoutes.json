@@ -1,0 +1,22 @@
+{
+  "type": "object",
+  "required": [
+    "peerAddress",
+    "peerPort",
+    "acceptRoutes"
+  ],
+  "properties": {
+    "peerAddress": {
+      "type": "String",
+      "example": "10.0.0.1"
+    },
+    "peerPort": {
+      "type": "Integer",
+      "example": "56789"
+    },
+    "acceptRoutes": {
+      "type": "boolean",
+      "example": "true"
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "type": "object",
+  "title": "peers",
+  "required": [
+    "peers"
+  ],
+  "properties": {
+    "peers": {
+      "type": "array",
+      "xml": {
+        "name": "peers",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "title": "peer",
+        "required": [
+          "peerAddress",
+          "port",
+          "acceptRoutes"
+        ],
+        "properties": {
+          "peerAddress": {
+            "type": "string",
+            "example": "10.255.0.0"
+          },
+          "peerPort": {
+            "type": "int",
+            "example": "23456"
+          },
+          "acceptRoutes": {
+            "type": "boolean",
+            "example": "true"
+          }
+        }
+      }
+    }
+  }
+}
+

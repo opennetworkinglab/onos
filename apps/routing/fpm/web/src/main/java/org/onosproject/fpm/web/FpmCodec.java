@@ -22,6 +22,7 @@ import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.routing.fpm.FpmPeerInfo;
 
+
 /**
  * Codec of FpmPeerInfo class.
  */
@@ -33,6 +34,7 @@ public final class FpmCodec extends JsonCodec<FpmPeerInfo> {
     private static final String CONNECTED_TO = "connectedTo";
     private static final String CONNECTION_TIME = "connectionTime";
     private static final String LOCAL_ROUTES = "localRoutes";
+    private static final String ACCEPT_ROUTES = "acceptRoutes";
 
 
     @Override
@@ -47,6 +49,7 @@ public final class FpmCodec extends JsonCodec<FpmPeerInfo> {
             fpmNode.put(CONNECTED_TO, connection.connectedTo().toString());
             fpmNode.put(CONNECTION_TIME, Tools.timeAgo(connection.connectTime()));
             fpmNode.put(LOCAL_ROUTES, fpmPeerInfo.routes());
+            fpmNode.put(ACCEPT_ROUTES, connection.isAcceptRoutes());
             connectionArray.add(fpmNode);
         });
 
