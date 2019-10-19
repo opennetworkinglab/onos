@@ -26,6 +26,7 @@ public class FpmConnectionInfo {
     private final NodeId connectedTo;
     private final long connectTime;
     private final FpmPeer peer;
+    private final boolean acceptRoutes;
 
     /**
      * Creates a new connection info.
@@ -34,11 +35,29 @@ public class FpmConnectionInfo {
      * @param peer FPM peer
      * @param connectTime time the connection was made
      */
+    @Deprecated
     public FpmConnectionInfo(NodeId connectedTo, FpmPeer peer, long connectTime) {
         this.connectedTo = connectedTo;
         this.peer = peer;
         this.connectTime = connectTime;
+        this.acceptRoutes = true;
     }
+
+    /**
+     * Creates a new connection info.
+     *
+     * @param connectedTo ONOS node the FPM peer is connected to
+     * @param peer FPM peer
+     * @param connectTime time the connection was made
+     * @param acceptRoutes flag to accept or discard routes
+     */
+    FpmConnectionInfo(NodeId connectedTo, FpmPeer peer, long connectTime, boolean acceptRoutes) {
+        this.connectedTo = connectedTo;
+        this.peer = peer;
+        this.connectTime = connectTime;
+        this.acceptRoutes = acceptRoutes;
+    }
+
 
     /**
      * Returns the node the FPM peers is connected to.
@@ -65,5 +84,14 @@ public class FpmConnectionInfo {
      */
     public long connectTime() {
         return connectTime;
+    }
+
+    /**
+     * Returns the acceptRoutes flag status of the peer.
+     *
+     * @return acceptRoutes flag
+     */
+    public boolean isAcceptRoutes() {
+        return acceptRoutes;
     }
 }

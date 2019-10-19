@@ -1,0 +1,37 @@
+{
+  "type": "object",
+  "required": [
+    "peerAddress",
+    "peerPort",
+    "connectedTo",
+    "connectionTime",
+    "localRoutes",
+    "acceptRoutes"
+  ],
+  "properties": {
+    "peerAddress": {
+      "type": "string",
+      "example": "10.255.0.0"
+    },
+    "peerPort": {
+      "type": "int",
+      "example": "34455"
+    },
+    "connectedTo": {
+      "type": "string",
+      "example": "10.2.2.5"
+    },
+    "connectionTime": {
+      "type": "string",
+      "example": "3m ago"
+    },
+    "localRoutes": {
+      "type": "int",
+      "example": "2"
+    },
+    "acceptRoutes": {
+      "type": "boolean",
+      "example": "true"
+    }
+  }
+}
