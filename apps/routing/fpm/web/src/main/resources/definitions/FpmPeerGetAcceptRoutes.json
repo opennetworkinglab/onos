@@ -1,0 +1,12 @@
+{
+  "type": "object",
+  "required": [
+    "acceptRoutes"
+  ],
+  "properties": {
+    "acceptRoutes": {
+      "type": "boolean",
+      "example": "true"
+    }
+  }
+}

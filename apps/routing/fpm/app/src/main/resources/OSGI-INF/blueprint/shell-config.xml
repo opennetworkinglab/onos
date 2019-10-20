@@ -22,5 +22,11 @@
     <command>
       <action class="org.onosproject.routing.fpm.cli.FpmPushRoutesCommand"/>
     </command>
+    <command>
+      <action class="org.onosproject.routing.fpm.cli.FpmSetAcceptRoutesCommand"/>
+    </command>
+    <command>
+      <action class="org.onosproject.routing.fpm.cli.FpmAcceptRoutesInfoCommand"/>
+    </command>
   </command-bundle>
 </blueprint>
