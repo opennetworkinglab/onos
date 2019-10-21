@@ -145,7 +145,7 @@ public class AddOpticalIntentCommand extends ConnectivityIntentCommand {
         ConnectPoint egress = createConnectPoint(egressString);
 
         Intent intent = createOpticalIntent(ingress, egress, deviceService,
-                key(), appId(), bidirectional, createOchSignal());
+                key(), appId(), bidirectional, createOchSignal(), null);
 
         service.submit(intent);
         print("Optical intent submitted:\n%s", intent.toString());

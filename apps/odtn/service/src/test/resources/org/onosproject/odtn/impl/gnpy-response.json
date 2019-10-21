@@ -1,0 +1,1900 @@
+{
+  "result": {
+    "response": [
+      {
+        "response-id": "first",
+        "path-properties": {
+          "path-metric": [
+            {
+              "metric-type": "SNR-bandwidth",
+              "accumulative-value": 16.92
+            },
+            {
+              "metric-type": "SNR-0.1nm",
+              "accumulative-value": 21.0
+            },
+            {
+              "metric-type": "OSNR-bandwidth",
+              "accumulative-value": 16.92
+            },
+            {
+              "metric-type": "OSNR-0.1nm",
+              "accumulative-value": 21.0
+            },
+            {
+              "metric-type": "reference_power",
+              "accumulative-value": 0.001
+            },
+            {
+              "metric-type": "path_bandwidth",
+              "accumulative-value": 100000000000.0
+            }
+          ],
+          "z-a-path-metric": [
+            {
+              "metric-type": "SNR-bandwidth",
+              "accumulative-value": 16.92
+            },
+            {
+              "metric-type": "SNR-0.1nm",
+              "accumulative-value": 21.0
+            },
+            {
+              "metric-type": "OSNR-bandwidth",
+              "accumulative-value": 16.92
+            },
+            {
+              "metric-type": "OSNR-0.1nm",
+              "accumulative-value": 21.0
+            },
+            {
+              "metric-type": "reference_power",
+              "accumulative-value": 0.001
+            },
+            {
+              "metric-type": "path_bandwidth",
+              "accumulative-value": 100000000000.0
+            }
+          ],
+          "path-route-objects": [
+            {
+              "path-route-object": {
+                "index": 0,
+                "num-unnum-hop": {
+                  "node-id": "netconf:10.0.254.93:830",
+                  "link-tp-id": "netconf:10.0.254.93:830",
+                  "gnpy-node-type": "transceiver"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 1,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 2,
+                "transponder": {
+                  "transponder-type": "Cassini",
+                  "transponder-mode": "dp-qpsk"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 3,
+                "num-unnum-hop": {
+                  "node-id": "netconf:10.0.254.107:830",
+                  "link-tp-id": "netconf:10.0.254.107:830",
+                  "gnpy-node-type": "ROADM"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 4,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 5,
+                "target-channel-power": {
+                  "value": -12
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 6,
+                "num-unnum-hop": {
+                  "node-id": "splice-(roadm-Amsterdam-AD)-(patch-(roadm-Amsterdam-AD)-(roadm-Amsterdam-L2))",
+                  "link-tp-id": "splice-(roadm-Amsterdam-AD)-(patch-(roadm-Amsterdam-AD)-(roadm-Amsterdam-L2))"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 7,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 8,
+                "num-unnum-hop": {
+                  "node-id": "patch-(roadm-Amsterdam-AD)-(roadm-Amsterdam-L2)",
+                  "link-tp-id": "patch-(roadm-Amsterdam-AD)-(roadm-Amsterdam-L2)"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 9,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 10,
+                "num-unnum-hop": {
+                  "node-id": "splice-(patch-(roadm-Amsterdam-AD)-(roadm-Amsterdam-L2))-(roadm-Amsterdam-L2)",
+                  "link-tp-id": "splice-(patch-(roadm-Amsterdam-AD)-(roadm-Amsterdam-L2))-(roadm-Amsterdam-L2)"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 11,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 12,
+                "num-unnum-hop": {
+                  "node-id": "netconf:10.0.254.235:830",
+                  "link-tp-id": "netconf:10.0.254.235:830",
+                  "gnpy-node-type": "ROADM"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 13,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 14,
+                "target-channel-power": {
+                  "value": -23
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 15,
+                "num-unnum-hop": {
+                  "node-id": "roadm-Amsterdam-L2-booster",
+                  "link-tp-id": "roadm-Amsterdam-L2-booster",
+                  "gnpy-node-type": "EDFA"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 16,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 17,
+                "target-channel-power": {
+                  "value": -1
+                },
+                "output-voa": {
+                  "value": 12.0
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 18,
+                "num-unnum-hop": {
+                  "node-id": "fiber-Amsterdam-Cologne",
+                  "link-tp-id": "fiber-Amsterdam-Cologne"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 19,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 20,
+                "num-unnum-hop": {
+                  "node-id": "roadm-Cologne-L1-preamp",
+                  "link-tp-id": "roadm-Cologne-L1-preamp",
+                  "gnpy-node-type": "EDFA"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 21,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 22,
+                "target-channel-power": {
+                  "value": 1.0
+                },
+                "output-voa": {
+                  "value": 0.0
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 23,
+                "num-unnum-hop": {
+                  "node-id": "netconf:10.0.254.99:830",
+                  "link-tp-id": "netconf:10.0.254.99:830",
+                  "gnpy-node-type": "ROADM"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 24,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 25,
+                "target-channel-power": {
+                  "value": -12
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 26,
+                "num-unnum-hop": {
+                  "node-id": "splice-(roadm-Cologne-L1)-(patch-(roadm-Cologne-L1)-(roadm-Cologne-L2))",
+                  "link-tp-id": "splice-(roadm-Cologne-L1)-(patch-(roadm-Cologne-L1)-(roadm-Cologne-L2))"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 27,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 28,
+                "num-unnum-hop": {
+                  "node-id": "patch-(roadm-Cologne-L1)-(roadm-Cologne-L2)",
+                  "link-tp-id": "patch-(roadm-Cologne-L1)-(roadm-Cologne-L2)"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 29,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 30,
+                "num-unnum-hop": {
+                  "node-id": "splice-(patch-(roadm-Cologne-L1)-(roadm-Cologne-L2))-(roadm-Cologne-L2)",
+                  "link-tp-id": "splice-(patch-(roadm-Cologne-L1)-(roadm-Cologne-L2))-(roadm-Cologne-L2)"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 31,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 32,
+                "num-unnum-hop": {
+                  "node-id": "netconf:10.0.254.104:830",
+                  "link-tp-id": "netconf:10.0.254.104:830",
+                  "gnpy-node-type": "ROADM"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 33,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 34,
+                "target-channel-power": {
+                  "value": -23
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 35,
+                "num-unnum-hop": {
+                  "node-id": "roadm-Cologne-L2-booster",
+                  "link-tp-id": "roadm-Cologne-L2-booster",
+                  "gnpy-node-type": "EDFA"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 36,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 37,
+                "target-channel-power": {
+                  "value": -1
+                },
+                "output-voa": {
+                  "value": 12.0
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 38,
+                "num-unnum-hop": {
+                  "node-id": "fiber-Cologne-Bremen",
+                  "link-tp-id": "fiber-Cologne-Bremen"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 39,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 40,
+                "num-unnum-hop": {
+                  "node-id": "roadm-Bremen-L1-preamp",
+                  "link-tp-id": "roadm-Bremen-L1-preamp",
+                  "gnpy-node-type": "EDFA"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 41,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 42,
+                "target-channel-power": {
+                  "value": 1.0
+                },
+                "output-voa": {
+                  "value": 0.0
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 43,
+                "num-unnum-hop": {
+                  "node-id": "netconf:10.0.254.100:830",
+                  "link-tp-id": "netconf:10.0.254.100:830",
+                  "gnpy-node-type": "ROADM"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 44,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 45,
+                "target-channel-power": {
+                  "value": -12
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 46,
+                "num-unnum-hop": {
+                  "node-id": "splice-(roadm-Bremen-L1)-(patch-(roadm-Bremen-L1)-(roadm-Bremen-AD))",
+                  "link-tp-id": "splice-(roadm-Bremen-L1)-(patch-(roadm-Bremen-L1)-(roadm-Bremen-AD))"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 47,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 48,
+                "num-unnum-hop": {
+                  "node-id": "patch-(roadm-Bremen-L1)-(roadm-Bremen-AD)",
+                  "link-tp-id": "patch-(roadm-Bremen-L1)-(roadm-Bremen-AD)"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 49,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 50,
+                "num-unnum-hop": {
+                  "node-id": "splice-(patch-(roadm-Bremen-L1)-(roadm-Bremen-AD))-(roadm-Bremen-AD)",
+                  "link-tp-id": "splice-(patch-(roadm-Bremen-L1)-(roadm-Bremen-AD))-(roadm-Bremen-AD)"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 51,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 52,
+                "num-unnum-hop": {
+                  "node-id": "netconf:10.0.254.225:830",
+                  "link-tp-id": "netconf:10.0.254.225:830",
+                  "gnpy-node-type": "ROADM"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 53,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 54,
+                "target-channel-power": {
+                  "value": -25
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 55,
+                "num-unnum-hop": {
+                  "node-id": "netconf:10.0.254.94:830",
+                  "link-tp-id": "netconf:10.0.254.94:830",
+                  "gnpy-node-type": "transceiver"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 56,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 57,
+                "transponder": {
+                  "transponder-type": "Cassini",
+                  "transponder-mode": "dp-qpsk"
+                }
+              }
+            }
+          ],
+          "reversed-path-route-objects": [
+            {
+              "path-route-object": {
+                "index": 0,
+                "num-unnum-hop": {
+                  "node-id": "netconf:10.0.254.94:830",
+                  "link-tp-id": "netconf:10.0.254.94:830",
+                  "gnpy-node-type": "transceiver"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 1,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 2,
+                "transponder": {
+                  "transponder-type": "Cassini",
+                  "transponder-mode": "dp-qpsk"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 3,
+                "num-unnum-hop": {
+                  "node-id": "netconf:10.0.254.225:830",
+                  "link-tp-id": "netconf:10.0.254.225:830",
+                  "gnpy-node-type": "ROADM"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 4,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 5,
+                "target-channel-power": {
+                  "value": -12
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 6,
+                "num-unnum-hop": {
+                  "node-id": "splice-(roadm-Bremen-AD)-(patch-(roadm-Bremen-AD)-(roadm-Bremen-L1))",
+                  "link-tp-id": "splice-(roadm-Bremen-AD)-(patch-(roadm-Bremen-AD)-(roadm-Bremen-L1))"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 7,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 8,
+                "num-unnum-hop": {
+                  "node-id": "patch-(roadm-Bremen-AD)-(roadm-Bremen-L1)",
+                  "link-tp-id": "patch-(roadm-Bremen-AD)-(roadm-Bremen-L1)"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 9,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 10,
+                "num-unnum-hop": {
+                  "node-id": "splice-(patch-(roadm-Bremen-AD)-(roadm-Bremen-L1))-(roadm-Bremen-L1)",
+                  "link-tp-id": "splice-(patch-(roadm-Bremen-AD)-(roadm-Bremen-L1))-(roadm-Bremen-L1)"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 11,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 12,
+                "num-unnum-hop": {
+                  "node-id": "netconf:10.0.254.100:830",
+                  "link-tp-id": "netconf:10.0.254.100:830",
+                  "gnpy-node-type": "ROADM"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 13,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 14,
+                "target-channel-power": {
+                  "value": -23
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 15,
+                "num-unnum-hop": {
+                  "node-id": "roadm-Bremen-L1-booster",
+                  "link-tp-id": "roadm-Bremen-L1-booster",
+                  "gnpy-node-type": "EDFA"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 16,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 17,
+                "target-channel-power": {
+                  "value": -1
+                },
+                "output-voa": {
+                  "value": 12.0
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 18,
+                "num-unnum-hop": {
+                  "node-id": "fiber-Bremen-Cologne",
+                  "link-tp-id": "fiber-Bremen-Cologne"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 19,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 20,
+                "num-unnum-hop": {
+                  "node-id": "roadm-Cologne-L2-preamp",
+                  "link-tp-id": "roadm-Cologne-L2-preamp",
+                  "gnpy-node-type": "EDFA"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 21,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 22,
+                "target-channel-power": {
+                  "value": 1.0
+                },
+                "output-voa": {
+                  "value": 0.0
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 23,
+                "num-unnum-hop": {
+                  "node-id": "netconf:10.0.254.104:830",
+                  "link-tp-id": "netconf:10.0.254.104:830",
+                  "gnpy-node-type": "ROADM"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 24,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 25,
+                "target-channel-power": {
+                  "value": -12
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 26,
+                "num-unnum-hop": {
+                  "node-id": "splice-(roadm-Cologne-L2)-(patch-(roadm-Cologne-L2)-(roadm-Cologne-L1))",
+                  "link-tp-id": "splice-(roadm-Cologne-L2)-(patch-(roadm-Cologne-L2)-(roadm-Cologne-L1))"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 27,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 28,
+                "num-unnum-hop": {
+                  "node-id": "patch-(roadm-Cologne-L2)-(roadm-Cologne-L1)",
+                  "link-tp-id": "patch-(roadm-Cologne-L2)-(roadm-Cologne-L1)"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 29,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 30,
+                "num-unnum-hop": {
+                  "node-id": "splice-(patch-(roadm-Cologne-L2)-(roadm-Cologne-L1))-(roadm-Cologne-L1)",
+                  "link-tp-id": "splice-(patch-(roadm-Cologne-L2)-(roadm-Cologne-L1))-(roadm-Cologne-L1)"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 31,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 32,
+                "num-unnum-hop": {
+                  "node-id": "netconf:10.0.254.99:830",
+                  "link-tp-id": "netconf:10.0.254.99:830",
+                  "gnpy-node-type": "ROADM"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 33,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 34,
+                "target-channel-power": {
+                  "value": -23
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 35,
+                "num-unnum-hop": {
+                  "node-id": "roadm-Cologne-L1-booster",
+                  "link-tp-id": "roadm-Cologne-L1-booster",
+                  "gnpy-node-type": "EDFA"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 36,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 37,
+                "target-channel-power": {
+                  "value": -1
+                },
+                "output-voa": {
+                  "value": 12.0
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 38,
+                "num-unnum-hop": {
+                  "node-id": "fiber-Cologne-Amsterdam",
+                  "link-tp-id": "fiber-Cologne-Amsterdam"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 39,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 40,
+                "num-unnum-hop": {
+                  "node-id": "roadm-Amsterdam-L2-preamp",
+                  "link-tp-id": "roadm-Amsterdam-L2-preamp",
+                  "gnpy-node-type": "EDFA"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 41,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 42,
+                "target-channel-power": {
+                  "value": 1.0
+                },
+                "output-voa": {
+                  "value": 0.0
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 43,
+                "num-unnum-hop": {
+                  "node-id": "netconf:10.0.254.235:830",
+                  "link-tp-id": "netconf:10.0.254.235:830",
+                  "gnpy-node-type": "ROADM"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 44,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 45,
+                "target-channel-power": {
+                  "value": -12
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 46,
+                "num-unnum-hop": {
+                  "node-id": "splice-(roadm-Amsterdam-L2)-(patch-(roadm-Amsterdam-L2)-(roadm-Amsterdam-AD))",
+                  "link-tp-id": "splice-(roadm-Amsterdam-L2)-(patch-(roadm-Amsterdam-L2)-(roadm-Amsterdam-AD))"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 47,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 48,
+                "num-unnum-hop": {
+                  "node-id": "patch-(roadm-Amsterdam-L2)-(roadm-Amsterdam-AD)",
+                  "link-tp-id": "patch-(roadm-Amsterdam-L2)-(roadm-Amsterdam-AD)"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 49,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 50,
+                "num-unnum-hop": {
+                  "node-id": "splice-(patch-(roadm-Amsterdam-L2)-(roadm-Amsterdam-AD))-(roadm-Amsterdam-AD)",
+                  "link-tp-id": "splice-(patch-(roadm-Amsterdam-L2)-(roadm-Amsterdam-AD))-(roadm-Amsterdam-AD)"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 51,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 52,
+                "num-unnum-hop": {
+                  "node-id": "netconf:10.0.254.107:830",
+                  "link-tp-id": "netconf:10.0.254.107:830",
+                  "gnpy-node-type": "ROADM"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 53,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 54,
+                "target-channel-power": {
+                  "value": -25
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 55,
+                "num-unnum-hop": {
+                  "node-id": "netconf:10.0.254.93:830",
+                  "link-tp-id": "netconf:10.0.254.93:830",
+                  "gnpy-node-type": "transceiver"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 56,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 57,
+                "transponder": {
+                  "transponder-type": "Cassini",
+                  "transponder-mode": "dp-qpsk"
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "response-id": "second",
+        "path-properties": {
+          "path-metric": [
+            {
+              "metric-type": "SNR-bandwidth",
+              "accumulative-value": 19.38
+            },
+            {
+              "metric-type": "SNR-0.1nm",
+              "accumulative-value": 23.46
+            },
+            {
+              "metric-type": "OSNR-bandwidth",
+              "accumulative-value": 19.38
+            },
+            {
+              "metric-type": "OSNR-0.1nm",
+              "accumulative-value": 23.47
+            },
+            {
+              "metric-type": "reference_power",
+              "accumulative-value": 0.001
+            },
+            {
+              "metric-type": "path_bandwidth",
+              "accumulative-value": 100000000000.0
+            }
+          ],
+          "z-a-path-metric": [
+            {
+              "metric-type": "SNR-bandwidth",
+              "accumulative-value": 19.38
+            },
+            {
+              "metric-type": "SNR-0.1nm",
+              "accumulative-value": 23.46
+            },
+            {
+              "metric-type": "OSNR-bandwidth",
+              "accumulative-value": 19.38
+            },
+            {
+              "metric-type": "OSNR-0.1nm",
+              "accumulative-value": 23.47
+            },
+            {
+              "metric-type": "reference_power",
+              "accumulative-value": 0.001
+            },
+            {
+              "metric-type": "path_bandwidth",
+              "accumulative-value": 100000000000.0
+            }
+          ],
+          "path-route-objects": [
+            {
+              "path-route-object": {
+                "index": 0,
+                "num-unnum-hop": {
+                  "node-id": "netconf:10.0.254.93:830",
+                  "link-tp-id": "netconf:10.0.254.93:830",
+                  "gnpy-node-type": "transceiver"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 1,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 2,
+                "transponder": {
+                  "transponder-type": "Cassini",
+                  "transponder-mode": "dp-qpsk"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 3,
+                "num-unnum-hop": {
+                  "node-id": "netconf:10.0.254.107:830",
+                  "link-tp-id": "netconf:10.0.254.107:830",
+                  "gnpy-node-type": "ROADM"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 4,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 5,
+                "target-channel-power": {
+                  "value": -12
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 6,
+                "num-unnum-hop": {
+                  "node-id": "splice-(roadm-Amsterdam-AD)-(patch-(roadm-Amsterdam-AD)-(roadm-Amsterdam-L1))",
+                  "link-tp-id": "splice-(roadm-Amsterdam-AD)-(patch-(roadm-Amsterdam-AD)-(roadm-Amsterdam-L1))"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 7,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 8,
+                "num-unnum-hop": {
+                  "node-id": "patch-(roadm-Amsterdam-AD)-(roadm-Amsterdam-L1)",
+                  "link-tp-id": "patch-(roadm-Amsterdam-AD)-(roadm-Amsterdam-L1)"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 9,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 10,
+                "num-unnum-hop": {
+                  "node-id": "splice-(patch-(roadm-Amsterdam-AD)-(roadm-Amsterdam-L1))-(roadm-Amsterdam-L1)",
+                  "link-tp-id": "splice-(patch-(roadm-Amsterdam-AD)-(roadm-Amsterdam-L1))-(roadm-Amsterdam-L1)"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 11,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 12,
+                "num-unnum-hop": {
+                  "node-id": "netconf:10.0.254.101:830",
+                  "link-tp-id": "netconf:10.0.254.101:830",
+                  "gnpy-node-type": "ROADM"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 13,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 14,
+                "target-channel-power": {
+                  "value": -23
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 15,
+                "num-unnum-hop": {
+                  "node-id": "roadm-Amsterdam-L1-booster",
+                  "link-tp-id": "roadm-Amsterdam-L1-booster",
+                  "gnpy-node-type": "EDFA"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 16,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 17,
+                "target-channel-power": {
+                  "value": -1
+                },
+                "output-voa": {
+                  "value": 12.0
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 18,
+                "num-unnum-hop": {
+                  "node-id": "fiber-Amsterdam-Bremen",
+                  "link-tp-id": "fiber-Amsterdam-Bremen"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 19,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 20,
+                "num-unnum-hop": {
+                  "node-id": "roadm-Bremen-L2-preamp",
+                  "link-tp-id": "roadm-Bremen-L2-preamp",
+                  "gnpy-node-type": "EDFA"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 21,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 22,
+                "target-channel-power": {
+                  "value": 1.0
+                },
+                "output-voa": {
+                  "value": 0.0
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 23,
+                "num-unnum-hop": {
+                  "node-id": "netconf:10.0.254.102:830",
+                  "link-tp-id": "netconf:10.0.254.102:830",
+                  "gnpy-node-type": "ROADM"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 24,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 25,
+                "target-channel-power": {
+                  "value": -12
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 26,
+                "num-unnum-hop": {
+                  "node-id": "splice-(roadm-Bremen-L2)-(patch-(roadm-Bremen-L2)-(roadm-Bremen-AD))",
+                  "link-tp-id": "splice-(roadm-Bremen-L2)-(patch-(roadm-Bremen-L2)-(roadm-Bremen-AD))"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 27,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 28,
+                "num-unnum-hop": {
+                  "node-id": "patch-(roadm-Bremen-L2)-(roadm-Bremen-AD)",
+                  "link-tp-id": "patch-(roadm-Bremen-L2)-(roadm-Bremen-AD)"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 29,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 30,
+                "num-unnum-hop": {
+                  "node-id": "splice-(patch-(roadm-Bremen-L2)-(roadm-Bremen-AD))-(roadm-Bremen-AD)",
+                  "link-tp-id": "splice-(patch-(roadm-Bremen-L2)-(roadm-Bremen-AD))-(roadm-Bremen-AD)"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 31,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 32,
+                "num-unnum-hop": {
+                  "node-id": "netconf:10.0.254.225:830",
+                  "link-tp-id": "netconf:10.0.254.225:830",
+                  "gnpy-node-type": "ROADM"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 33,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 34,
+                "target-channel-power": {
+                  "value": -25
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 35,
+                "num-unnum-hop": {
+                  "node-id": "netconf:10.0.254.94:830",
+                  "link-tp-id": "netconf:10.0.254.94:830",
+                  "gnpy-node-type": "transceiver"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 36,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 37,
+                "transponder": {
+                  "transponder-type": "Cassini",
+                  "transponder-mode": "dp-qpsk"
+                }
+              }
+            }
+          ],
+          "reversed-path-route-objects": [
+            {
+              "path-route-object": {
+                "index": 0,
+                "num-unnum-hop": {
+                  "node-id": "netconf:10.0.254.94:830",
+                  "link-tp-id": "netconf:10.0.254.94:830",
+                  "gnpy-node-type": "transceiver"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 1,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 2,
+                "transponder": {
+                  "transponder-type": "Cassini",
+                  "transponder-mode": "dp-qpsk"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 3,
+                "num-unnum-hop": {
+                  "node-id": "netconf:10.0.254.225:830",
+                  "link-tp-id": "netconf:10.0.254.225:830",
+                  "gnpy-node-type": "ROADM"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 4,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 5,
+                "target-channel-power": {
+                  "value": -12
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 6,
+                "num-unnum-hop": {
+                  "node-id": "splice-(roadm-Bremen-AD)-(patch-(roadm-Bremen-AD)-(roadm-Bremen-L2))",
+                  "link-tp-id": "splice-(roadm-Bremen-AD)-(patch-(roadm-Bremen-AD)-(roadm-Bremen-L2))"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 7,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 8,
+                "num-unnum-hop": {
+                  "node-id": "patch-(roadm-Bremen-AD)-(roadm-Bremen-L2)",
+                  "link-tp-id": "patch-(roadm-Bremen-AD)-(roadm-Bremen-L2)"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 9,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 10,
+                "num-unnum-hop": {
+                  "node-id": "splice-(patch-(roadm-Bremen-AD)-(roadm-Bremen-L2))-(roadm-Bremen-L2)",
+                  "link-tp-id": "splice-(patch-(roadm-Bremen-AD)-(roadm-Bremen-L2))-(roadm-Bremen-L2)"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 11,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 12,
+                "num-unnum-hop": {
+                  "node-id": "netconf:10.0.254.102:830",
+                  "link-tp-id": "netconf:10.0.254.102:830",
+                  "gnpy-node-type": "ROADM"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 13,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 14,
+                "target-channel-power": {
+                  "value": -23
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 15,
+                "num-unnum-hop": {
+                  "node-id": "roadm-Bremen-L2-booster",
+                  "link-tp-id": "roadm-Bremen-L2-booster",
+                  "gnpy-node-type": "EDFA"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 16,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 17,
+                "target-channel-power": {
+                  "value": -1
+                },
+                "output-voa": {
+                  "value": 12.0
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 18,
+                "num-unnum-hop": {
+                  "node-id": "fiber-Bremen-Amsterdam",
+                  "link-tp-id": "fiber-Bremen-Amsterdam"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 19,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 20,
+                "num-unnum-hop": {
+                  "node-id": "roadm-Amsterdam-L1-preamp",
+                  "link-tp-id": "roadm-Amsterdam-L1-preamp",
+                  "gnpy-node-type": "EDFA"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 21,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 22,
+                "target-channel-power": {
+                  "value": 1.0
+                },
+                "output-voa": {
+                  "value": 0.0
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 23,
+                "num-unnum-hop": {
+                  "node-id": "netconf:10.0.254.101:830",
+                  "link-tp-id": "netconf:10.0.254.101:830",
+                  "gnpy-node-type": "ROADM"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 24,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 25,
+                "target-channel-power": {
+                  "value": -12
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 26,
+                "num-unnum-hop": {
+                  "node-id": "splice-(roadm-Amsterdam-L1)-(patch-(roadm-Amsterdam-L1)-(roadm-Amsterdam-AD))",
+                  "link-tp-id": "splice-(roadm-Amsterdam-L1)-(patch-(roadm-Amsterdam-L1)-(roadm-Amsterdam-AD))"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 27,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 28,
+                "num-unnum-hop": {
+                  "node-id": "patch-(roadm-Amsterdam-L1)-(roadm-Amsterdam-AD)",
+                  "link-tp-id": "patch-(roadm-Amsterdam-L1)-(roadm-Amsterdam-AD)"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 29,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 30,
+                "num-unnum-hop": {
+                  "node-id": "splice-(patch-(roadm-Amsterdam-L1)-(roadm-Amsterdam-AD))-(roadm-Amsterdam-AD)",
+                  "link-tp-id": "splice-(patch-(roadm-Amsterdam-L1)-(roadm-Amsterdam-AD))-(roadm-Amsterdam-AD)"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 31,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 32,
+                "num-unnum-hop": {
+                  "node-id": "netconf:10.0.254.107:830",
+                  "link-tp-id": "netconf:10.0.254.107:830",
+                  "gnpy-node-type": "ROADM"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 33,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 34,
+                "target-channel-power": {
+                  "value": -25
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 35,
+                "num-unnum-hop": {
+                  "node-id": "netconf:10.0.254.93:830",
+                  "link-tp-id": "netconf:10.0.254.93:830",
+                  "gnpy-node-type": "transceiver"
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 36,
+                "label-hop": {
+                  "N": -284,
+                  "M": 4
+                }
+              }
+            },
+            {
+              "path-route-object": {
+                "index": 37,
+                "transponder": {
+                  "transponder-type": "Cassini",
+                  "transponder-mode": "dp-qpsk"
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

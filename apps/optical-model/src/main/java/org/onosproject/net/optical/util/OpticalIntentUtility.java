@@ -61,12 +61,13 @@ public final class OpticalIntentUtility {
      * @param bidirectional if this argument is true, the optical link created
      * will be bidirectional, otherwise the link will be unidirectional.
      * @param signal optical signal
+     * @param suggestedPath suggested path
      *
      * @return created intent
      */
     public static Intent createOpticalIntent(ConnectPoint ingress, ConnectPoint
             egress, DeviceService deviceService, Key key, ApplicationId appId, boolean
-            bidirectional, OchSignal signal) {
+            bidirectional, OchSignal signal, Path suggestedPath) {
 
         Intent intent = null;
 
@@ -125,6 +126,7 @@ public final class OpticalIntentUtility {
                     .signalType(signalType)
                     .bidirectional(bidirectional)
                     .ochSignal(signal)
+                    .suggestedPath(suggestedPath)
                     .build();
         } else {
             log.debug("Unable to create optical intent between connect points {} and {}", ingress, egress);
