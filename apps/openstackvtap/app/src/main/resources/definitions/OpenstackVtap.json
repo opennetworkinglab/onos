@@ -1,0 +1,45 @@
+{
+  "type": "object",
+  "required": [
+    "type",
+    "criterion"
+  ],
+  "properties": {
+    "type": {
+      "type": "string",
+      "example": "all"
+    },
+    "criterion": {
+      "type": "object",
+      "required": [
+        "srcIp",
+        "dstIp",
+        "ipProto",
+        "srcPort",
+        "dstPort"
+      ],
+      "properties": {
+        "srcIp": {
+          "type": "string",
+          "example": "10.20.1.1"
+        },
+        "dstIp": {
+          "type": "String",
+          "example": "10.20.1.2"
+        },
+        "ipProto": {
+          "type": "string",
+          "example": "tcp"
+        },
+        "srcPort": {
+          "type": "integer",
+          "example": 8080
+        },
+        "dstPort": {
+          "type": "integer",
+          "example": 9090
+        }
+      }
+    }
+  }
+}

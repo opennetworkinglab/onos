@@ -18,6 +18,7 @@ package org.onosproject.openstackvtap.util;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.TpPort;
 import org.onosproject.net.Host;
 import org.onosproject.net.behaviour.TunnelDescription;
 import org.onosproject.net.group.DefaultGroupKey;
@@ -25,7 +26,9 @@ import org.onosproject.net.group.GroupKey;
 import org.onosproject.openstackvtap.api.OpenstackVtap;
 import org.onosproject.openstackvtap.api.OpenstackVtapCriterion;
 import org.onosproject.openstackvtap.api.OpenstackVtapNetwork;
+import org.onosproject.openstackvtap.impl.DefaultOpenstackVtapCriterion;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
@@ -37,6 +40,8 @@ import static org.onosproject.openstacknetworking.api.Constants.ANNOTATION_PORT_
  * An utilities that used in openstack vtap app.
  */
 public final class OpenstackVtapUtil {
+
+    private static final Logger log = LoggerFactory.getLogger(OpenstackVtapUtil.class);
 
     private static final String VTAP_TUNNEL_GRE = "vtap_gre";
     private static final String VTAP_TUNNEL_VXLAN = "vtap_vxlan";
@@ -66,6 +71,27 @@ public final class OpenstackVtapUtil {
                 return 0;
             default:
                 throw new IllegalArgumentException("Invalid vtap protocol string");
+        }
+    }
+
+    /**
+     * Obtains IP protocol string from the given type.
+     *
+     * @param type protocol type
+     * @return IP protocol string
+     */
+    public static String getProtocolStringFromType(byte type) {
+        switch (type) {
+            case IPv4.PROTOCOL_TCP:
+                return "tcp";
+            case IPv4.PROTOCOL_UDP:
+                return "udp";
+            case IPv4.PROTOCOL_ICMP:
+                return "icmp";
+            case 0:
+                return "any";
+            default:
+                throw new IllegalArgumentException("Invalid vtap protocol type");
         }
     }
 
@@ -176,6 +202,38 @@ public final class OpenstackVtapUtil {
      */
     public static TunnelDescription.Type getTunnelType(OpenstackVtapNetwork.Mode mode) {
         return TunnelDescription.Type.valueOf(mode.toString());
+    }
+
+    /**
+     * Makes Openstack vTap criterion from the given src, dst IP and port.
+     *
+     * @param srcIp     source IP address
+     * @param dstIp     destination IP address
+     * @param ipProto   IP protocol
+     * @param srcPort   source port
+     * @param dstPort   destination port
+     * @return openstack vTap criterion
+     */
+    public static OpenstackVtapCriterion makeVtapCriterion(String srcIp,
+                                                           String dstIp,
+                                                           String ipProto,
+                                                           int srcPort,
+                                                           int dstPort) {
+        OpenstackVtapCriterion.Builder cBuilder = DefaultOpenstackVtapCriterion.builder();
+
+        try {
+            cBuilder.srcIpPrefix(IpPrefix.valueOf(srcIp));
+            cBuilder.dstIpPrefix(IpPrefix.valueOf(dstIp));
+        } catch (Exception e) {
+            log.error("The given IP addresses are invalid");
+         }
+
+        cBuilder.ipProtocol(getProtocolTypeFromString(ipProto.toLowerCase()));
+
+        cBuilder.srcTpPort(TpPort.tpPort(srcPort));
+        cBuilder.dstTpPort(TpPort.tpPort(dstPort));
+
+        return cBuilder.build();
     }
 
     /**

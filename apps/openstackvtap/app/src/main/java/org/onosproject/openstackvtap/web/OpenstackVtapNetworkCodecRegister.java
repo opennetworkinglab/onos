@@ -19,7 +19,9 @@ package org.onosproject.openstackvtap.web;
 
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.codec.CodecService;
+import org.onosproject.openstackvtap.api.OpenstackVtapCriterion;
 import org.onosproject.openstackvtap.api.OpenstackVtapNetwork;
+import org.onosproject.openstackvtap.codec.OpenstackVtapCriterionCodec;
 import org.onosproject.openstackvtap.codec.OpenstackVtapNetworkCodec;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -44,6 +46,7 @@ public class OpenstackVtapNetworkCodecRegister {
     @Activate
     protected void activate() {
         codecService.registerCodec(OpenstackVtapNetwork.class, new OpenstackVtapNetworkCodec());
+        codecService.registerCodec(OpenstackVtapCriterion.class, new OpenstackVtapCriterionCodec());
 
         log.info("Started");
     }
@@ -51,6 +54,7 @@ public class OpenstackVtapNetworkCodecRegister {
     @Deactivate
     protected void deactivate() {
         codecService.unregisterCodec(OpenstackVtapNetwork.class);
+        codecService.unregisterCodec(OpenstackVtapCriterion.class);
 
         log.info("Stopped");
     }

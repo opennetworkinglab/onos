@@ -1,0 +1,7 @@
+{
+  "srcIp": "10.10.10.10",
+  "dstIp": "20.20.20.20",
+  "ipProto": "tcp",
+  "srcPort": 8080,
+  "dstPort": 9090
+}
