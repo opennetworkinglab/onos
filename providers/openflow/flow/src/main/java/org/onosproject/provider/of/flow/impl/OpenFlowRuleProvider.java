@@ -378,6 +378,8 @@ public class OpenFlowRuleProvider extends AbstractProvider
             return;
         }
         pendingBatches.put(batch.id(), new InternalCacheEntry(batch));
+        // Build a batch of flow mods - to reduce the number i/o asked to the SO
+        Set<OFFlowMod> mods = Sets.newHashSet();
         OFFlowMod mod;
         for (FlowRuleBatchEntry fbe : batch.getOperations()) {
             FlowModBuilder builder =
@@ -398,13 +400,17 @@ public class OpenFlowRuleProvider extends AbstractProvider
                             fbe.operator(), fbe);
                     continue;
             }
-            sw.sendMsg(mod);
+            mods.add(mod);
         }
+        // Build a list to mantain the order
+        List<OFMessage> modsTosend = Lists.newArrayList(mods);
         OFBarrierRequest.Builder builder = sw.factory().buildBarrierRequest()
                 .setXid(batch.id());
-        sw.sendMsg(builder.build());
-
-        recordEvents(dpid, batch.getOperations().size());
+        // Adds finally the barrier request
+        modsTosend.add(builder.build());
+        sw.sendMsg(modsTosend);
+        // Take into account also the barrier request
+        recordEvents(dpid, (batch.getOperations().size() + 1));
     }
 
     private class InternalFlowProvider
