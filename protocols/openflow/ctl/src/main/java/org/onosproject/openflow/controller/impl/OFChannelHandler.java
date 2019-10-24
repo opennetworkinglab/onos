@@ -1439,7 +1439,7 @@ class OFChannelHandler extends ChannelInboundHandlerAdapter
         if (factory != null) {
             OFMessage m = factory.buildEchoRequest().build();
             log.debug("Sending Echo Request on idle channel: {}", ctx.channel());
-            ctx.write(Collections.singletonList(m), ctx.voidPromise());
+            ctx.writeAndFlush(Collections.singletonList(m), ctx.voidPromise());
             // XXX S some problems here -- echo request has no transaction id, and
             // echo reply is not correlated to the echo request.
         }
@@ -1450,12 +1450,13 @@ class OFChannelHandler extends ChannelInboundHandlerAdapter
     public void userEventTriggered(ChannelHandlerContext ctx,
                                    Object evt)
             throws Exception {
-
+        // If the connection is READER/WRITER idle try to send an echo request
         if (evt instanceof IdleStateEvent) {
+            log.info("Channel {} is {}", ctx.channel(), ((IdleStateEvent) evt).state());
             channelIdle(ctx, (IdleStateEvent) evt);
+        } else {
+            super.userEventTriggered(ctx, evt);
         }
-
-        super.userEventTriggered(ctx, evt);
     }
 
     // SimpleChannelInboundHandler without dependency to TypeParameterMatcher
