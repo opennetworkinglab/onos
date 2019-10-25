@@ -67,7 +67,7 @@ filegroup(
 """
     Run ng build to create Topo GUI 2 library in production mode
     The output file gui2-topo-lib-ver.tgz is in the form that can be uploaded directly to https://www.npmjs.com/
-    See bazel-genfiles/web/gui2-topo-lib/gui2-topo-lib.log for details of the Angular CLI output
+    See bazel-out/k8-fastbuild/bin/web/gui2-topo-lib/gui2-topo-lib.log for details of the Angular CLI output
 """
 
 genrule(
@@ -108,7 +108,7 @@ genrule(
           " if [ $$? -eq 0 ]; then echo 'Successfully ran build';" +
           " else " +
           "   echo 'Error running \'ng build gui2-topo-lib\' on \'//web/gui2-topo-lib:gui2-topo-lib-build\'. \\\n" +
-          "     See bazel-genfiles/web/gui2-topo-lib/gui2-topo-lib.log for more details' >&2;" +
+          "     See bazel-out/k8-fastbuild/bin/web/gui2-topo-lib/gui2-topo-lib.log for more details' >&2;" +
           #"   tail -n 100 ../../$(location onos-gui2-ng-test.log) >&2;" +
           "   exit 1;" +
           " fi;" +
@@ -122,8 +122,8 @@ genrule(
 
 """
     Run 'ng test' to run Angular test and 'ng lint' for checkstyle
-    See bazel-genfiles/web/gui2-topo-lib/gui2-topo-lib-lint.log or
-    bazel-genfiles/web/gui2-topo-lib/gui2-topo-lib-test.log for details of the Angular CLI output
+    See bazel-out/k8-fastbuild/bin/web/gui2-topo-lib/gui2-topo-lib-lint.log or
+    bazel-out/k8-fastbuild/bin/web/gui2-topo-lib/gui2-topo-lib-test.log for details of the Angular CLI output
 """
 
 genrule(
@@ -169,7 +169,8 @@ genrule(
           " if [ $$? -eq 0 ]; then echo 'Successfully ran lint';" +
           " else " +
           "   echo 'Error running \'ng lint\' on \'//web/gui2-topo-lib:_gui2-topo-lib-test-genrule\'. \\\n" +
-          "     See bazel-genfiles/web/gui2-topo-lib/gui2-topo-lib-lint.log for more details' >&2;" +
+          "     See bazel-out/k8-fastbuild/bin/web/gui2-topo-lib/gui2-topo-lib-lint.log for more details' >&2;" +
+          "   cat ../../$(location gui2-topo-lib-lint.log) >&2 ||" +
           "   exit 1;" +
           " fi;" +
           " if [ -f /usr/bin/chromium-browser ]; then " +  # Add to this for Mac and Chrome
@@ -189,7 +190,7 @@ genrule(
           " if [ $$? -eq 0 ]; then echo 'Successfully ran tests';" +
           " else " +
           "   echo 'Error running \'ng test gui2-topo-lib\' on \'//web/gui2-topo-lib:_gui2-topo-lib-test-genrule\'. \\\n" +
-          "     See bazel-genfiles/web/gui2-topo-lib/gui2-topo-lib-test.log for more details' >&2;" +
+          "     See bazel-out/k8-fastbuild/bin/web/gui2-topo-lib/gui2-topo-lib-test.log for more details' >&2;" +
           "   exit 1;" +
           " fi;",
     message = "Angular Topo GUI2 Lib lint and test",

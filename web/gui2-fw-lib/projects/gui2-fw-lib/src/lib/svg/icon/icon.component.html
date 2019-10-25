@@ -17,7 +17,7 @@
 <svg class="embeddedIcon" [attr.width]="iconSize" [attr.height]="iconSize" viewBox="0 0 50 50" (mouseover)="toolTipDisp = toolTip" (mouseout)="toolTipDisp = undefined">
     <g class="icon" [ngClass]="classes">
         <rect width="50" height="50" rx="5"></rect>
-        <use width="50" height="50" class="glyph" [attr.href]="iconTag()"></use>
+        <use width="50" height="50" class="glyph" [attr.href]="'#'+iconId"></use>
     </g>
 </svg>
 <!-- I'm fixing class as light as view encapsulation changes how the hirerarchy of css is handled -->

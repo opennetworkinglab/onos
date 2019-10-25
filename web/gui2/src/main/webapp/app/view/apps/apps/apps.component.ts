@@ -341,4 +341,13 @@ export class AppsComponent extends TableBaseImpl implements OnInit, OnDestroy {
             active: undefined
         };
     }
+
+    getStateAsClass(value: string) {
+        if (value === 'ACTIVE') {
+            return 'active';
+        } else if (value === 'INSTALLED') {
+            return 'inactive';
+        }
+        return '';
+    }
 }
