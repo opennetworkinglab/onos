@@ -115,7 +115,7 @@
                     (click)="selectCallback($event, app)"
                     [ngClass]="{selected: app.id === selId, 'data-change': isChanged(app.id)}">
                     <td class="table-icon">
-                        <onos-icon iconId="{{app._iconid_state}}"></onos-icon>
+                        <onos-icon [classes]="getStateAsClass(app.state)" [iconId]="app._iconid_state"></onos-icon>
                     </td>
                     <td class="table-icon">
                         <!-- The path below gets the app icon from the old GUI path -->

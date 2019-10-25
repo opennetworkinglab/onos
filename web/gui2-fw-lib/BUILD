@@ -166,7 +166,7 @@ genrule(
 
 """
     Install npm packages listed in package.json in web/gui2
-    See bazel-genfiles/web/gui2/onos-gui2-npm-install.log for details of the 'npm install'
+    See bazel-out/k8-fastbuild/bin/web/gui2/onos-gui2-npm-install.log for details of the 'npm install'
 """
 
 genrule(
@@ -200,7 +200,7 @@ genrule(
 
 """
     Run ng build to create outputs in production mode
-    See bazel-genfiles/web/gui2/onos-gui2-ng-build-prod.log for details of the Angular CLI output
+    See bazel-out/k8-fastbuild/bin/web/gui2/onos-gui2-ng-build-prod.log for details of the Angular CLI output
 """
 
 genrule(
@@ -235,7 +235,7 @@ genrule(
           " if [ $$? -eq 0 ]; then echo 'Successfully built GUI FW library';" +
           " else " +
           "   echo 'Error running \'ng build gui2-fw-lib\' on \'//web/gui2-fw-lib:onos-gui2-fw-ng-build\'. \\\n" +
-          "   See bazel-genfiles/web/gui2-fw-lib/gui2-fw-ng-build-prod.log for more details' >&2;" +
+          "   See bazel-out/k8-fastbuild/bin/web/gui2-fw-lib/gui2-fw-ng-build-prod.log for more details' >&2;" +
           "   exit 1;" +
           " fi;" +
           # see https://github.com/angular/angular-cli/issues/11071 - Angular CLI does not yet copy across assets
@@ -252,8 +252,8 @@ genrule(
 
 """
     Run 'ng test' to run Angular test and 'ng lint' for checkstyle
-    See bazel-genfiles/web/gui2/onos-gui2-fw-ng-lint.log or
-    bazel-genfiles/web/gui2/onos-gui2-fw-ng-test.log for details of the Angular CLI output
+    See bazel-out/k8-fastbuild/bin/web/gui2/onos-gui2-fw-ng-lint.log or
+    bazel-out/k8-fastbuild/bin/web/gui2/onos-gui2-fw-ng-test.log for details of the Angular CLI output
 """
 
 genrule(
@@ -296,7 +296,8 @@ genrule(
           " if [ $$? -eq 0 ]; then echo 'Successfully ran lint';" +
           " else " +
           "   echo 'Error running \'ng lint\' on \'//web/gui2-fw-lib:_onos-gui2-fw-ng-test\'. \\\n" +
-          "     See bazel-genfiles/web/gui2-fw-lib/onos-gui2-fw-ng-lint.log for more details' >&2;" +
+          "     See bazel-out/k8-fastbuild/bin/web/gui2-fw-lib/onos-gui2-fw-ng-lint.log for more details' >&2;" +
+          "   cat ../../$(location onos-gui2-fw-ng-lint.log) >&2 ||" +
           "   exit 1;" +
           " fi;" +
           " if [ -f /usr/bin/chromium-browser ]; then " +  # Add to this for Mac and Chrome
@@ -316,7 +317,7 @@ genrule(
           " if [ $$? -eq 0 ]; then echo 'Successfully ran tests';" +
           " else " +
           "   echo 'Error running \'ng test\' on \'//web/gui2-fw-lib:onos-gui2-fw-ng-test\'. \\\n" +
-          "     See bazel-genfiles/web/gui2-fw-lib/onos-gui2-fw-ng-test.log for more details' >&2;" +
+          "     See bazel-out/k8-fastbuild/bin/web/gui2-fw-lib/onos-gui2-fw-ng-test.log for more details' >&2;" +
           #"   tail -n 100 ../../$(location onos-gui2-fw-ng-test.log) >&2;" +
           "   exit 1;" +
           " fi;",

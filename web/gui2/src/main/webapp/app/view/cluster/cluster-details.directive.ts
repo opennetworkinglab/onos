@@ -238,7 +238,9 @@ export class ClusterDetailsDirective extends DetailsPanelBaseImpl implements OnI
     }
 
     addCloseBtn(div) {
-        this.is.loadEmbeddedIcon(div, 'close', 20);
+        // This whole cluster app needs to be changed over to the Angular 7 style
+        // It is the only one remaining that uses the d3 structure
+        // this.is.loadEmbeddedIcon(div, 'close', 20);
         div.on('click', this.closePanel);
     }
 
@@ -253,7 +255,9 @@ export class ClusterDetailsDirective extends DetailsPanelBaseImpl implements OnI
     populateTop(details) {
         const propLabels = this.getLionProps();
 
-        this.is.loadEmbeddedIcon(iconDiv, 'node', 40);
+        // This whole cluster app needs to be changed over to the Angular 7 style
+        // It is the only one remaining that uses the d3 structure
+        // this.is.loadEmbeddedIcon(iconDiv, 'node', 40);
         top.select('h2').text(details.id);
 
         const tbody = topTable.append('tbody');

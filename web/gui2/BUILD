@@ -103,7 +103,7 @@ filegroup(
 
 """
     Run ng build to create outputs in production mode
-    See bazel-genfiles/web/gui2/onos-gui2-ng-build-prod.log for details of the Angular CLI output
+    See bazel-out/k8-fastbuild/bin/web/gui2/onos-gui2-ng-build-prod.log for details of the Angular CLI output
 
     To avoid the overhead of having several "npm install" invocations, we just do
     it once in the //web/gui2-fw-lib which is really the core for the whole Angular 7
@@ -167,7 +167,7 @@ genrule(
           " if [ $$? -eq 0 ]; then echo 'Successfully ran build';" +
           " else " +
           "   echo 'Error running \'ng build\' on \'//web/gui2:_onos-gui2-ng-build\'. \\\n" +
-          "     See bazel-genfiles/web/gui2/onos-gui2-ng-build-prod.log for more details' >&2;" +
+          "     See bazel-out/k8-fastbuild/bin/web/gui2/onos-gui2-ng-build-prod.log for more details' >&2;" +
           #"   tail -n 100 ../../$(location onos-gui2-ng-test.log) >&2;" +
           "   exit 1;" +
           " fi;" +
@@ -179,8 +179,8 @@ genrule(
 
 """
     Run 'ng test' to run Angular test and 'ng lint' for checkstyle
-    See bazel-genfiles/web/gui2/onos-gui2-ng-lint.log or
-    bazel-genfiles/web/gui2/onos-gui2-ng-test.log for details of the Angular CLI output
+    See bazel-out/k8-fastbuild/bin/web/gui2/onos-gui2-ng-lint.log or
+    bazel-out/k8-fastbuild/bin/web/gui2/onos-gui2-ng-test.log for details of the Angular CLI output
 """
 
 genrule(
@@ -228,7 +228,8 @@ genrule(
           " if [ $$? -eq 0 ]; then echo 'Successfully ran lint';" +
           " else " +
           "   echo 'Error running \'ng lint\' on \'//web/gui2:onos-gui2-ng-test\'. \\\n" +
-          "     See bazel-genfiles/web/gui2/onos-gui2-ng-lint.log for more details' >&2;" +
+          "     See bazel-out/k8-fastbuild/bin/web/gui2/onos-gui2-ng-lint.log for details' >&2;" +
+          "   cat ../../$(location onos-gui2-ng-lint.log) >&2 ||" +
           "   exit 1;" +
           " fi;" +
           " if [ -f /usr/bin/chromium-browser ]; then " +  # Add to this for Mac and Chrome
@@ -248,7 +249,7 @@ genrule(
           " if [ $$? -eq 0 ]; then echo 'Successfully ran tests';" +
           " else " +
           "   echo 'Error running \'ng test\' on \'//web/gui2:onos-gui2-ng-test\'. \\\n" +
-          "     See bazel-genfiles/web/gui2/onos-gui2-ng-test.log for more details' >&2;" +
+          "     See bazel-out/k8-fastbuild/bin/web/gui2/onos-gui2-ng-test.log for more details' >&2;" +
           #"   tail -n 100 ../../$(location onos-gui2-ng-test.log) >&2;" +
           "   exit 1;" +
           " fi;",
