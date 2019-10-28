@@ -337,7 +337,7 @@ public class DistributedClusterStore
         @Override
         public void accept(Endpoint sender, byte[] message) {
             HeartbeatMessage hb = SERIALIZER.decode(message);
-            if (clusterMetadataService.getClusterMetadata().getNodes().contains(hb.source())) {
+            if (allNodes.containsKey(hb.source.id())) {
                 // Avoid reporting heartbeats that have been enqueued by setting a minimum interval.
                 long heartbeatTime = System.currentTimeMillis();
                 Long lastHeartbeatTime = failureDetector.getLastHeartbeatTime(hb.source().id());
