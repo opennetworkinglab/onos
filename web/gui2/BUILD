@@ -116,9 +116,7 @@ genrule(
     name = "_onos-gui2-ng-build",
     srcs = [
         "@nodejs//:bin/npm",
-        "@nodejs//:bin/node",
         "@nodejs//:bin/nodejs/bin/node",
-        "@nodejs//:bin/nodejs/bin/npm",
         "//web/gui2-fw-lib:onos-gui2-fw-npm-install",
         "//web/gui2-fw-lib:onos-gui2-fw-ng-build",
         "//web/gui2-fw-lib:gui2_fw_lib_ext_css",
@@ -135,7 +133,7 @@ genrule(
     cmd = "ROOT=`pwd` &&" +
           " export HOME=. &&" +
           " export XDG_CONFIG_HOME=$(@D)/config &&" +
-          " NODE=$(location @nodejs//:bin/node) &&" +
+          " NODE=$(location @nodejs//:bin/nodejs/bin/node) &&" +
           " INSTALL_FILES=($(locations //web/gui2-fw-lib:onos-gui2-fw-npm-install)) &&" +  # An array of filenames - sorted by time created
           " FWLIB_FILES=($(locations //web/gui2-fw-lib:onos-gui2-fw-ng-build)) &&" +  # An array of filenames - sorted by time created
           " mkdir -p web/gui2 && cd web/gui2 &&" +
@@ -160,7 +158,7 @@ genrule(
           " chmod +x $$ROOT/web/gui2/node_modules/@angular/cli/bin/ng &&" +
           " export PATH=$$ROOT/$$(dirname $${NODE}):$$ROOT/web/gui2/node_modules/@angular/cli/bin:$$PATH &&" +
           " node -v > ../../$(location onos-gui2-ng-build-prod.log) &&" +
-          " npm -v >> ../../$(location onos-gui2-ng-build-prod.log) &&" +
+          " $$ROOT/$(location @nodejs//:bin/npm) version >> ../../$(location onos-gui2-ng-build-prod.log) &&" +
           " ng version >> ../../$(location onos-gui2-ng-build-prod.log) &&" +
           " ng build --extract-css --prod --preserve-symlinks" +
           "   --base-href /onos/ui/ --deploy-url /onos/ui/ >> $$ROOT/$(location onos-gui2-ng-build-prod.log) 2>&1 ||" +
@@ -174,7 +172,7 @@ genrule(
           " cp -r node_modules/gui2-fw-lib/assets src/main/webapp/dist &&" +
           " cd src/main/webapp/dist &&" +
           " jar Mcf $$ROOT/$(location onos-gui2-ng-build.jar) .",
-    message = "Angular CLI 7 build",
+    message = "Angular CLI 8 build",
 )
 
 """
@@ -187,9 +185,7 @@ genrule(
     name = "_onos-gui2-ng-test-genrule",
     srcs = [
         "@nodejs//:bin/npm",
-        "@nodejs//:bin/node",
         "@nodejs//:bin/nodejs/bin/node",
-        "@nodejs//:bin/nodejs/bin/npm",
         "//web/gui2-fw-lib:onos-gui2-fw-npm-install",
         "//web/gui2-fw-lib:onos-gui2-fw-ng-build",
         "//web/gui2-fw-lib:gui2_fw_lib_ext_css",
@@ -205,7 +201,7 @@ genrule(
     cmd = " ROOT=`pwd` &&" +
           " export HOME=. &&" +
           " export XDG_CONFIG_HOME=$(@D)/config &&" +
-          " NODE=$(location @nodejs//:bin/node) &&" +
+          " NODE=$(location @nodejs//:bin/nodejs/bin/node) &&" +
           " INSTALL_FILES=($(locations //web/gui2-fw-lib:onos-gui2-fw-npm-install)) &&" +  # An array of filenames - sorted by time created
           " FWLIB_FILES=($(locations //web/gui2-fw-lib:onos-gui2-fw-ng-build)) &&" +  # An array of filenames - sorted by time created
           " mkdir -p web/gui2 &&" +
@@ -222,7 +218,7 @@ genrule(
           " chmod +x $$ROOT/web/gui2/node_modules/@angular/cli/bin/ng &&" +
           " export PATH=$$ROOT/$$(dirname $${NODE}):$$ROOT/web/gui2/node_modules/@angular/cli/bin:$$PATH &&" +
           " node -v > ../../$(location onos-gui2-ng-ver.log) &&" +
-          " npm -v >> ../../$(location onos-gui2-ng-ver.log) &&" +
+          " $$ROOT/$(location @nodejs//:bin/npm) -v >> ../../$(location onos-gui2-ng-ver.log) &&" +
           " ng version >> ../../$(location onos-gui2-ng-ver.log);" +
           " ng lint > ../../$(location onos-gui2-ng-lint.log) 2>&1 ||" +
           " if [ $$? -eq 0 ]; then echo 'Successfully ran lint';" +
@@ -253,7 +249,7 @@ genrule(
           #"   tail -n 100 ../../$(location onos-gui2-ng-test.log) >&2;" +
           "   exit 1;" +
           " fi;",
-    message = "Angular CLI 7 lint and test",
+    message = "Angular CLI 8 lint and test",
 )
 
 """

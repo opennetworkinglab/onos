@@ -97,12 +97,14 @@ genrule(
     name = "_onos-gui-npm-install",
     srcs = [
         "@nodejs//:bin/npm",
-        "@nodejs//:bin/node",
         "@nodejs//:bin/nodejs/bin/node",
-        "@nodejs//:bin/nodejs/bin/npm",
+        "@gui1_npm//:node_modules",
         "//tools/gui:tools-gui-gulp",
     ],
-    outs = ["onos-gui-npm-install.jar"],
+    outs = [
+        "onos-gui-npm-install.jar",
+        "onos-gui1-npm-install.log",
+    ],
     cmd = " ROOT=`pwd` &&" +
           " export HOME=. &&" +
           " export XDG_CONFIG_HOME=$(@D)/config &&" +  # npm config cache to the sandbos
@@ -112,10 +114,11 @@ genrule(
           " mkdir -p tools/gui &&" +
           " cd tools/gui &&" +
           " jar xf ../../$(location //tools/gui:tools-gui-gulp) &&" +
-          " $$NPM $$NPM_ARGS install  --no-cache --loglevel=error >npm-install.out 2>&1 &&" +
+          " $$NPM $$NPM_ARGS install  --no-cache --loglevel=error > $$ROOT/$(location onos-gui1-npm-install.log) 2>&1 &&" +
           " find . -name package.json | while read pjson; do egrep -v '/execroot/' $$pjson > ptmp; mv ptmp $$pjson; done &&" +
           " find package.json gulpfile.babel.js node_modules gulp-tasks -type f -exec touch -t 201806280000 {} \; &&" +
-          " jar Mcf $$ROOT/$@ package.json gulpfile.babel.js node_modules gulp-tasks",
+          " jar Mcf $$ROOT/$(location onos-gui-npm-install.jar) package.json gulpfile.babel.js node_modules gulp-tasks &&" +
+          " touch $$ROOT/$(location onos-gui1-npm-install.log)",  # to get the log always as the 2nd file
 )
 
 """
@@ -125,28 +128,32 @@ genrule(
 genrule(
     name = "_onos-gui-npm-build",
     srcs = [
+        "@nodejs//:npm",
         "@nodejs//:bin/npm",
-        "@nodejs//:bin/node",
         "@nodejs//:bin/nodejs/bin/node",
-        "@nodejs//:bin/nodejs/bin/npm",
         ":_onos-gui-npm-install",
         ":_web_app_all",
     ],
-    outs = ["onos-gui-npm-build.jar"],
-    cmd = "(ROOT=`pwd` &&" +
+    outs = [
+        "onos-gui-npm-build.jar",
+        "onos-gui1-npm-build.log",
+    ],
+    cmd = "ROOT=`pwd` &&" +
           " export HOME=. &&" +
           " export XDG_CONFIG_HOME=$(@D)/config &&" +
           " export BABEL_DISABLE_CACHE=1 &&" +
+          " INSTALL_FILES=($(locations :_onos-gui-npm-install)) &&" +  # An array of filenames - sorted by time created
           ' if [[ ! -z $${HTTP_PROXY-} ]]; then NPM_ARGS="--proxy $$HTTP_PROXY --without-ssl --insecure"; else NPM_ARGS=""; fi &&' +
           " NPM=$(location @nodejs//:bin/npm) &&" +
           " (mkdir -p web/gui && cd web/gui && jar xf ../../$(location :_web_app_all)) &&" +
           " mkdir -p tools/gui && cd tools/gui &&" +
-          " jar xf $$ROOT/$(location :_onos-gui-npm-install) &&" +
+          " jar xf $$ROOT/$${INSTALL_FILES[0]} &&" +
           " chmod a+x ./node_modules/gulp/bin/gulp.js &&" +
-          " $$ROOT/$$NPM $$NPM_ARGS run build --no-cache --loglevel=error >npm-build.out &&" +
+          " $$ROOT/$$NPM $$NPM_ARGS run build --no-cache --loglevel=error > $$ROOT/$(location onos-gui1-npm-build.log) &&" +
           " cd ../../web/gui/src/main/webapp &&" +
           " find dist vendor data README.md _doc _dev app/fw app/*.css app/*.js app/*.txt -type f -exec touch -t 201806280000 {} \; &&" +
-          " jar Mcf $$ROOT/$@ dist vendor data README.md _doc _dev app/fw app/*.css app/*.js app/*.txt)",
+          " jar Mcf $$ROOT/$(location onos-gui-npm-build.jar) dist vendor data README.md _doc _dev app/fw app/*.css app/*.js app/*.txt &&" +
+          " touch $$ROOT/$(location onos-gui1-npm-build.log)",  # to get the log always as the 2nd file
 )
 
 """
@@ -254,9 +261,10 @@ genrule(
     ],
     outs = ["onos-gui.jar"],
     cmd = " ROOT=`pwd` &&" +
+          " BUILD_FILES=($(locations :_onos-gui-npm-build)) &&" +  # An array of filenames - sorted by time created
           " mkdir -p gui/WEB-INF/classes &&" +
           " cd gui &&" +
-          " jar xf $$ROOT/$(location :_onos-gui-npm-build) &&" +
+          " jar xf $$ROOT/$${BUILD_FILES[0]} &&" +
           " (cd WEB-INF/classes && mkdir -p app/view && cd app/view && jar xf $$ROOT/$(location :_app_view_tar)) &&" +
           " for i in $(locations :_root_level_files); do cp $$ROOT/$$i .; done &&" +
           " for i in $(locations :_web_inf_classes_files); do cp $$ROOT/$$i ./WEB-INF/classes/; done &&" +

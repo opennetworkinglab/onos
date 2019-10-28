@@ -14,9 +14,8 @@
 ~ limitations under the License.
 -->
 <svg:desc xmlns:svg="http://www.w3.org/2000/svg">Map of {{map.id}} in SVG format</svg:desc>
-<svg:path id="bgmap" class="topo-map"
-        *ngFor="let f of geodata?.features"
-        xmlns:svg="http://www.w3.org/2000/svg"
-        [attr.d]="pathGenerator(f)">
-    <svg:title>{{ f.id }} {{f.properties?.name}}</svg:title>
+<svg:path xmlns:svg="http://www.w3.org/2000/svg" id="bgmap" class="topo-map" *ngFor="let f of geodata?.features"  [attr.d]="pathGenerator(f)">
+<!-- Something about 'title' disagrees with Angular 8   <svg:title>{{ f.id }} {{f.properties?.name}}</svg:title>-->
+    <svg:desc>{{ f.id }} {{f.properties?.name}}</svg:desc>
 </svg:path>
+

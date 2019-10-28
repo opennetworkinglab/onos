@@ -74,9 +74,7 @@ genrule(
     name = "fm-gui2-lib-build",
     srcs = [
         "@nodejs//:bin/npm",
-        "@nodejs//:bin/node",
         "@nodejs//:bin/nodejs/bin/node",
-        "@nodejs//:bin/nodejs/bin/npm",
         "//web/gui2-fw-lib:onos-gui2-fw-npm-install",
         "//web/gui2-fw-lib:onos-gui2-fw-ng-build",
         "//web/gui2-fw-lib:gui2_fw_lib_ext_css",
@@ -91,7 +89,7 @@ genrule(
     cmd = "ROOT=`pwd` &&" +
           " export HOME=. &&" +
           " export XDG_CONFIG_HOME=$(@D)/config &&" +
-          " NODE=$(location @nodejs//:bin/node) &&" +
+          " NODE=$(location @nodejs//:bin/nodejs/bin/node) &&" +
           " INSTALL_FILES=($(locations //web/gui2-fw-lib:onos-gui2-fw-npm-install)) &&" +  # An array of filenames - sorted by time created
           " FWLIB_FILES=($(locations //web/gui2-fw-lib:onos-gui2-fw-ng-build)) &&" +  # An array of filenames - sorted by time created
           " mkdir -p apps/faultmanagement/fm-gui2-lib &&" +
@@ -113,7 +111,7 @@ genrule(
           "   exit 1;" +
           " fi;" +
           " cd dist/fm-gui2-lib && " +
-          " npm pack >> $$ROOT/$(location fm-gui2-lib.log) 2>&1 &&" +
+          " $$ROOT/$(location @nodejs//:bin/npm) pack >> $$ROOT/$(location fm-gui2-lib.log) 2>&1 &&" +
           " mv fm-gui2-lib-*.tgz $$ROOT/$(location fm-gui2-lib-ver.tgz) &&" +
           " touch $$ROOT/$(location fm-gui2-lib.log)",  # to get the log always as the 2nd file,
     message = "Angular FM GUI2 build",
@@ -130,9 +128,7 @@ genrule(
     name = "_fm-gui2-lib-test-genrule",
     srcs = [
         "@nodejs//:bin/npm",
-        "@nodejs//:bin/node",
         "@nodejs//:bin/nodejs/bin/node",
-        "@nodejs//:bin/nodejs/bin/npm",
         "//web/gui2-fw-lib:onos-gui2-fw-npm-install",
         "//web/gui2-fw-lib:onos-gui2-fw-ng-build",
         "//web/gui2-fw-lib:gui2_fw_lib_ext_css",
@@ -148,7 +144,7 @@ genrule(
     cmd = " ROOT=`pwd` &&" +
           " export HOME=. &&" +
           " export XDG_CONFIG_HOME=$(@D)/config &&" +
-          " NODE=$(location @nodejs//:bin/node) &&" +
+          " NODE=$(location @nodejs//:bin/nodejs/bin/node) &&" +
           " INSTALL_FILES=($(locations //web/gui2-fw-lib:onos-gui2-fw-npm-install)) &&" +  # An array of filenames - sorted by time created
           " FWLIB_FILES=($(locations //web/gui2-fw-lib:onos-gui2-fw-ng-build)) &&" +  # An array of filenames - sorted by time created
           " mkdir -p apps/faultmanagement/fm-gui2-lib &&" +
@@ -163,7 +159,7 @@ genrule(
           " chmod +x $$ROOT/apps/faultmanagement/fm-gui2-lib/node_modules/@angular/cli/bin/ng &&" +
           " export PATH=$$ROOT/$$(dirname $${NODE}):node_modules/@angular/cli/bin:$$PATH &&" +
           " node -v > ../../../$(location fm-gui2-lib-ver.log) &&" +
-          " npm -v >> ../../../$(location fm-gui2-lib-ver.log) &&" +
+          " $$ROOT/$(location @nodejs//:bin/npm) -v >> ../../../$(location fm-gui2-lib-ver.log) &&" +
           " ng -v >> ../../../$(location fm-gui2-lib-ver.log) &&" +
           " ng lint fm-gui2-lib > ../../../$(location fm-gui2-lib-lint.log);" +
           " if [ -f /usr/bin/chromium-browser ]; then " +  # Add to this for Mac and Chrome

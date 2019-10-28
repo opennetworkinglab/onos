@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import {
-    AfterContentInit,
     Component, HostListener, Inject, Input,
     OnDestroy,
     OnInit, SimpleChange,
@@ -147,11 +146,11 @@ export interface Topo2Prefs {
 export class TopologyComponent implements OnInit, OnDestroy {
     @Input() bannerHeight: number = 48;
     // These are references to the components inserted in the template
-    @ViewChild(InstanceComponent) instance: InstanceComponent;
-    @ViewChild(DetailsComponent) details: DetailsComponent;
-    @ViewChild(BackgroundSvgComponent) background: BackgroundSvgComponent;
-    @ViewChild(ForceSvgComponent) force: ForceSvgComponent;
-    @ViewChild(ZoomableDirective) zoomDirective: ZoomableDirective;
+    @ViewChild(InstanceComponent, {static: true}) instance: InstanceComponent;
+    @ViewChild(DetailsComponent, {static: true}) details: DetailsComponent;
+    @ViewChild(BackgroundSvgComponent, {static: true}) background: BackgroundSvgComponent;
+    @ViewChild(ForceSvgComponent, {static: true}) force: ForceSvgComponent;
+    @ViewChild(ZoomableDirective, {static: true}) zoomDirective: ZoomableDirective;
 
     flashMsg: string = '';
     // These are used as defaults if nothing is set on the server
@@ -203,6 +202,8 @@ export class TopologyComponent implements OnInit, OnDestroy {
         } else {
             this.doLion();
         }
+
+        this.log.warn('Constructor', this.zoomDirective);
 
         this.is.loadIconDef('active');
         this.is.loadIconDef('bgpSpeaker');
@@ -290,11 +291,20 @@ export class TopologyComponent implements OnInit, OnDestroy {
      */
     ngOnInit() {
         this.bindCommands();
+
         // The components from the template are handed over to TopologyService here
         // so that WebSocket responses can be passed back in to them
         // The handling of the WebSocket call is delegated out to the Topology
         // Service just to compartmentalize things a bit
         this.ts.init(this.instance, this.background, this.force);
+
+        // Scale the window initially - then after resize
+        const zoomMapExtents = ZoomUtils.zoomToWindowSize(
+            this.bannerHeight, this.window.innerWidth, this.window.innerHeight);
+        this.zoomDirective.changeZoomLevel(zoomMapExtents, true);
+        this.log.debug('TopologyComponent initialized',
+            this.bannerHeight, this.window.innerWidth, this.window.innerHeight,
+            zoomMapExtents);
 
         // For the 2.1 release to not listen to updates of prefs as they are
         // only the echo of what we have sent down and the event mechanism
@@ -304,14 +314,6 @@ export class TopologyComponent implements OnInit, OnDestroy {
         this.prefsState = this.ps.getPrefs(TOPO2_PREFS, this.prefsState);
         this.mapIdState = this.ps.getPrefs(TOPO_MAPID_PREFS, this.mapIdState);
         this.trs.init(this.force);
-
-        // Scale the window initially - then after resize
-        const zoomMapExtents = ZoomUtils.zoomToWindowSize(
-            this.bannerHeight, this.window.innerWidth, this.window.innerHeight);
-        this.zoomDirective.changeZoomLevel(zoomMapExtents, true);
-        this.log.debug('TopologyComponent initialized',
-            this.bannerHeight, this.window.innerWidth, this.window.innerHeight,
-            zoomMapExtents);
     }
 
     /**

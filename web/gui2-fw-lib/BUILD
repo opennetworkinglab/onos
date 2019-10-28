@@ -173,9 +173,9 @@ genrule(
     name = "onos-gui2-fw-npm-install",
     srcs = [
         "@nodejs//:bin/npm",
-        "@nodejs//:bin/node",
         "@nodejs//:bin/nodejs/bin/node",
-        "@nodejs//:bin/nodejs/bin/npm",
+        "@gui2_npm//:node_modules/@angular/cli/bin/ng",
+        "@gui2_npm//:node_modules",
         ":_root_level_files",
     ],
     outs = [
@@ -189,9 +189,11 @@ genrule(
           ' if [[ ! -z $${HTTP_PROXY-} ]]; then NPM_ARGS="--proxy $$HTTP_PROXY --without-ssl --insecure"; else NPM_ARGS=""; fi &&' +
           " NPM=$(location @nodejs//:bin/npm) &&" +
           " export PATH=$$ROOT/$$(dirname $${NPM}):$$PATH &&" +
-          " npm -v > $$ROOT/$(location onos-gui2-npm-install.log) 2>&1 &&" +
-          " cd web/gui2-fw-lib && " +
-          " npm $$NPM_ARGS install --no-cache >> $$ROOT/$(location onos-gui2-npm-install.log) 2>&1 &&" +
+          " $$NPM version > $$ROOT/$(location onos-gui2-npm-install.log) 2>&1 &&" +
+          " NM=external/gui2_npm/node_modules &&" +
+          " echo $$NM > $$ROOT/$(location onos-gui2-npm-install.log) 2>&1 &&" +
+          #          " ../../$(location @nodejs//:npm) $$NPM_ARGS install --no-cache >> $$ROOT/$(location onos-gui2-npm-install.log) 2>&1 &&" +
+          " cd external/gui2_npm &&" +
           " jar Mcf $$ROOT/$(location onos-gui2-npm-install.jar) node_modules &&" +
           " touch $$ROOT/$(location onos-gui2-npm-install.log)",  # to get the log always as the 2nd file
     message = "NodeJS npm install",
@@ -206,11 +208,11 @@ genrule(
 genrule(
     name = "onos-gui2-fw-ng-build",
     srcs = [
-        "@nodejs//:bin/npm",
-        "@nodejs//:bin/node",
         "@nodejs//:bin/nodejs/bin/node",
-        "@nodejs//:bin/nodejs/bin/npm",
+        "@nodejs//:bin/npm",
         ":onos-gui2-fw-npm-install",
+        "@gui2_npm//:node_modules/@angular/cli/bin/ng",
+        "@gui2_npm//:node_modules",
         "//web/gui:onos-gui-data-for-gui2",
         ":_root_level_files",
         ":_gui2_fw_lib_src",
@@ -222,14 +224,15 @@ genrule(
     cmd = "ROOT=`pwd` &&" +
           " export HOME=. &&" +
           " export XDG_CONFIG_HOME=$(@D)/config &&" +
-          " NODE=$(location @nodejs//:bin/node) &&" +
+          " NODE=$(location @nodejs//:bin/nodejs/bin/node) &&" +
+          #          " NG=$(location @gui2_npm//:node_modules/@angular/cli/bin/ng) &&" +
           " INSTALL_FILES=($(locations :onos-gui2-fw-npm-install)) &&" +  # An array of filenames - sorted by time created
           " cd web/gui2-fw-lib &&" +
           " jar xf $$ROOT/$${INSTALL_FILES[0]} &&" +
           " chmod +x $$ROOT/web/gui2-fw-lib/node_modules/@angular/cli/bin/ng &&" +
           " export PATH=$$ROOT/$$(dirname $${NODE}):$$ROOT/web/gui2-fw-lib/node_modules/@angular/cli/bin:$$PATH &&" +
           " node -v > ../../$(location gui2-fw-ng-build-prod.log) &&" +
-          " npm -v >> ../../$(location gui2-fw-ng-build-prod.log) &&" +
+          " $$ROOT/$(location @nodejs//:bin/npm) version >> ../../$(location gui2-fw-ng-build-prod.log) &&" +
           " ng version >> ../../$(location gui2-fw-ng-build-prod.log);" +
           " ng build --prod gui2-fw-lib >> $$ROOT/$(location gui2-fw-ng-build-prod.log) 2>&1 ||" +
           " if [ $$? -eq 0 ]; then echo 'Successfully built GUI FW library';" +
@@ -243,7 +246,7 @@ genrule(
           " mkdir -p dist/gui2-fw-lib/assets &&" +
           " mv web/gui/src/main/webapp/data/img/loading dist/gui2-fw-lib/assets &&" +
           " cp README.md LICENSE dist/gui2-fw-lib &&" +
-          " npm pack ./dist/gui2-fw-lib  >> $$ROOT/$(location gui2-fw-ng-build-prod.log) 2>&1 &&" +
+          " $$ROOT/$(location @nodejs//:bin/npm) pack ./dist/gui2-fw-lib >> $$ROOT/$(location gui2-fw-ng-build-prod.log) 2>&1 &&" +
           " mv gui2-fw-lib-*.tgz $$ROOT/$(location gui2-fw-lib-ver.tgz) &&" +
           " touch $$ROOT/$(location gui2-fw-ng-build-prod.log)",  # to get the log always as the 2nd file
     message = "GUI FW Lib build",
@@ -260,9 +263,7 @@ genrule(
     name = "_onos-gui2-fw-ng-test",
     srcs = [
         "@nodejs//:bin/npm",
-        "@nodejs//:bin/node",
         "@nodejs//:bin/nodejs/bin/node",
-        "@nodejs//:bin/nodejs/bin/npm",
         ":onos-gui2-fw-npm-install",
         "//web/gui:onos-gui-data-for-gui2",
         ":_root_level_files",
@@ -278,7 +279,7 @@ genrule(
     cmd = " ROOT=`pwd` &&" +
           " export HOME=. &&" +
           " export XDG_CONFIG_HOME=$(@D)/config &&" +
-          " NODE=$(location @nodejs//:bin/node) &&" +
+          " NODE=$(location @nodejs//:bin/nodejs/bin/node) &&" +
           " INSTALL_FILES=($(locations :onos-gui2-fw-npm-install)) &&" +  # An array of filenames - sorted by time created
           " mkdir -p web/gui2-fw-lib &&" +
           " cd web/gui2-fw-lib &&" +
@@ -290,7 +291,7 @@ genrule(
           " chmod +x $$ROOT/web/gui2-fw-lib/node_modules/@angular/cli/bin/ng &&" +
           " export PATH=$$ROOT/$$(dirname $${NODE}):$$ROOT/web/gui2-fw-lib/node_modules/@angular/cli/bin:$$PATH &&" +
           " node -v > ../../$(location onos-gui2-fw-ng-ver.log) &&" +
-          " npm -v >> ../../$(location onos-gui2-fw-ng-ver.log) &&" +
+          " $$ROOT/$(location @nodejs//:bin/npm) -v >> ../../$(location onos-gui2-fw-ng-ver.log) &&" +
           " ng version >> ../../$(location onos-gui2-fw-ng-ver.log);" +
           " ng lint gui2-fw-lib > ../../$(location onos-gui2-fw-ng-lint.log) 2>&1 ||" +
           " if [ $$? -eq 0 ]; then echo 'Successfully ran lint';" +

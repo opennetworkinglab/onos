@@ -26,7 +26,7 @@ bucklets/plugins/
 lib/yang
 /tools/gui/bin
 /tools/gui/node_modules
-/tools/gui/package-lock.json
+/tools/gui/false
 
 web/gui/src/main/webapp/tests/node_modules
 web/gui/src/test/_karma/node_modules

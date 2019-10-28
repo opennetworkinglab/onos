@@ -74,9 +74,7 @@ genrule(
     name = "gui2-topo-lib-build",
     srcs = [
         "@nodejs//:bin/npm",
-        "@nodejs//:bin/node",
         "@nodejs//:bin/nodejs/bin/node",
-        "@nodejs//:bin/nodejs/bin/npm",
         "//web/gui2-fw-lib:onos-gui2-fw-npm-install",
         "//web/gui2-fw-lib:onos-gui2-fw-ng-build",
         "//web/gui2-fw-lib:gui2_fw_lib_ext_css",
@@ -91,7 +89,7 @@ genrule(
     cmd = "ROOT=`pwd` &&" +
           " export HOME=. &&" +
           " export XDG_CONFIG_HOME=$(@D)/config &&" +
-          " NODE=$(location @nodejs//:bin/node) &&" +
+          " NODE=$(location @nodejs//:bin/nodejs/bin/node) &&" +
           " INSTALL_FILES=($(locations //web/gui2-fw-lib:onos-gui2-fw-npm-install)) &&" +  # An array of filenames - sorted by time created
           " TOPOLIB_FILES=($(locations //web/gui2-fw-lib:onos-gui2-fw-ng-build)) &&" +  # An array of filenames - sorted by time created
           " mkdir -p web/gui2-topo-lib &&" +
@@ -113,7 +111,7 @@ genrule(
           "   exit 1;" +
           " fi;" +
           " cp README.md LICENSE dist/gui2-topo-lib && " +
-          " npm pack ./dist/gui2-topo-lib >> $$ROOT/$(location gui2-topo-lib.log) 2>&1 &&" +
+          " $$ROOT/$(location @nodejs//:bin/npm) pack ./dist/gui2-topo-lib >> $$ROOT/$(location gui2-topo-lib.log) 2>&1 &&" +
           " mv gui2-topo-lib-*.tgz $$ROOT/$(location gui2-topo-lib-ver.tgz) &&" +
           " touch $$ROOT/$(location gui2-topo-lib.log)",  # to get the log always as the 2nd file,
     message = "Angular Topo GUI2 build",
@@ -130,9 +128,7 @@ genrule(
     name = "_gui2-topo-lib-test-genrule",
     srcs = [
         "@nodejs//:bin/npm",
-        "@nodejs//:bin/node",
         "@nodejs//:bin/nodejs/bin/node",
-        "@nodejs//:bin/nodejs/bin/npm",
         "//web/gui2-fw-lib:onos-gui2-fw-npm-install",
         "//web/gui2-fw-lib:onos-gui2-fw-ng-build",
         "//web/gui2-fw-lib:gui2_fw_lib_ext_css",
@@ -148,7 +144,7 @@ genrule(
     cmd = " ROOT=`pwd` &&" +
           " export HOME=. &&" +
           " export XDG_CONFIG_HOME=$(@D)/config &&" +
-          " NODE=$(location @nodejs//:bin/node) &&" +
+          " NODE=$(location @nodejs//:bin/nodejs/bin/node) &&" +
           " INSTALL_FILES=($(locations //web/gui2-fw-lib:onos-gui2-fw-npm-install)) &&" +  # An array of filenames - sorted by time created
           " FWLIB_FILES=($(locations //web/gui2-fw-lib:onos-gui2-fw-ng-build)) &&" +  # An array of filenames - sorted by time created
           " mkdir -p web/gui2-topo-lib &&" +
@@ -163,7 +159,7 @@ genrule(
           " chmod +x $$ROOT/web/gui2-topo-lib/node_modules/@angular/cli/bin/ng &&" +
           " export PATH=$$ROOT/$$(dirname $${NODE}):node_modules/@angular/cli/bin:$$PATH &&" +
           " node -v > ../../$(location gui2-topo-lib-ver.log) &&" +
-          " npm -v >> ../../$(location gui2-topo-lib-ver.log) &&" +
+          " $$ROOT/$(location @nodejs//:bin/npm) -v >> ../../$(location gui2-topo-lib-ver.log) &&" +
           " ng version >> ../../$(location gui2-topo-lib-ver.log) &&" +
           " ng lint gui2-topo-lib > ../../$(location gui2-topo-lib-lint.log)  2>&1 ||" +
           " if [ $$? -eq 0 ]; then echo 'Successfully ran lint';" +

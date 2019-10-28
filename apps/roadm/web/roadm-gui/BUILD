@@ -74,9 +74,7 @@ genrule(
     name = "roadm-gui-lib-build",
     srcs = [
         "@nodejs//:bin/npm",
-        "@nodejs//:bin/node",
         "@nodejs//:bin/nodejs/bin/node",
-        "@nodejs//:bin/nodejs/bin/npm",
         "//web/gui2-fw-lib:onos-gui2-fw-npm-install",
         "//web/gui2-fw-lib:onos-gui2-fw-ng-build",
         "//web/gui2-fw-lib:gui2_fw_lib_ext_css",
@@ -91,7 +89,7 @@ genrule(
     cmd = "ROOT=`pwd` &&" +
           " export HOME=. &&" +
           " export XDG_CONFIG_HOME=$(@D)/config &&" +
-          " NODE=$(location @nodejs//:bin/node) &&" +
+          " NODE=$(location @nodejs//:bin/nodejs/bin/node) &&" +
           " INSTALL_FILES=($(locations //web/gui2-fw-lib:onos-gui2-fw-npm-install)) &&" +  # An array of filenames - sorted by time created
           " FWLIB_FILES=($(locations //web/gui2-fw-lib:onos-gui2-fw-ng-build)) &&" +  # An array of filenames - sorted by time created
           " mkdir -p apps/roadm/web/roadm-gui &&" +
@@ -113,7 +111,7 @@ genrule(
           "   exit 1;" +
           " fi;" +
           " cp README.md LICENSE dist/roadm-gui-lib && " +
-          " npm pack ./dist/roadm-gui-lib >> $$ROOT/$(location roadm-gui-lib.log) 2>&1 &&" +
+          " $$ROOT/$(location @nodejs//:bin/npm) pack ./dist/roadm-gui-lib >> $$ROOT/$(location roadm-gui-lib.log) 2>&1 &&" +
           " mv roadm-gui-lib-*.tgz $$ROOT/$(location roadm-gui-lib-ver.tgz) &&" +
           " touch $$ROOT/$(location roadm-gui-lib.log)",  # to get the log always as the 2nd file,
     message = "Angular roadm Lib build",
@@ -130,9 +128,7 @@ genrule(
     name = "_roadm-gui-lib-test-genrule",
     srcs = [
         "@nodejs//:bin/npm",
-        "@nodejs//:bin/node",
         "@nodejs//:bin/nodejs/bin/node",
-        "@nodejs//:bin/nodejs/bin/npm",
         "//web/gui2-fw-lib:onos-gui2-fw-npm-install",
         "//web/gui2-fw-lib:onos-gui2-fw-ng-build",
         "//web/gui2-fw-lib:gui2_fw_lib_ext_css",
@@ -148,7 +144,7 @@ genrule(
     cmd = " ROOT=`pwd` &&" +
           " export HOME=. &&" +
           " export XDG_CONFIG_HOME=$(@D)/config &&" +
-          " NODE=$(location @nodejs//:bin/node) &&" +
+          " NODE=$(location @nodejs//:bin/nodejs/bin/node) &&" +
           " INSTALL_FILES=($(locations //web/gui2-fw-lib:onos-gui2-fw-npm-install)) &&" +  # An array of filenames - sorted by time created
           " FWLIB_FILES=($(locations //web/gui2-fw-lib:onos-gui2-fw-ng-build)) &&" +  # An array of filenames - sorted by time created
           " mkdir -p apps/roadm/web/roadm-gui &&" +
@@ -163,7 +159,7 @@ genrule(
           " chmod +x $$ROOT/apps/roadm/web/roadm-gui/node_modules/@angular/cli/bin/ng &&" +
           " export PATH=$$ROOT/$$(dirname $${NODE}):node_modules/@angular/cli/bin:$$PATH &&" +
           " node -v > ../../../../$(location roadm-gui-lib-ver.log) &&" +
-          " npm -v >> ../../../../$(location roadm-gui-lib-ver.log) &&" +
+          " $$ROOT/$(location @nodejs//:bin/npm) -v >> ../../../../$(location roadm-gui-lib-ver.log) &&" +
           " ng version >> ../../../../$(location roadm-gui-lib-ver.log) &&" +
           " ng lint roadm-gui-lib > ../../../../$(location roadm-gui-lib-lint.log)  2>&1 ||" +
           " if [ $$? -eq 0 ]; then echo 'Successfully ran lint';" +

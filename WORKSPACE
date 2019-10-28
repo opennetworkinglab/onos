@@ -1,4 +1,10 @@
-workspace(name = "org_onosproject_onos")
+workspace(
+    name = "org_onosproject_onos",
+    managed_directories = {
+        "@gui1_npm": ["tools/gui/node_modules"],
+        "@gui2_npm": ["web/gui2-fw-lib/node_modules"],
+    },
+)
 
 load("//tools/build/bazel:bazel_version.bzl", "check_bazel_version")
 
@@ -95,23 +101,48 @@ load("//tools/build/bazel:gnoi_workspace.bzl", "generate_gnoi")
 
 generate_gnoi()
 
-load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-git_repository(
+http_archive(
     name = "build_bazel_rules_nodejs",
-    commit = "70406e05de721520ca568a17186de73e972d7651",
-    remote = "https://github.com/bazelbuild/rules_nodejs.git",
-    shallow_since = "1551145517 -0800",
+    sha256 = "26c39450ce2d825abee5583a43733863098ed29d3cbaebf084ebaca59a21a1c8",
+    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/0.39.0/rules_nodejs-0.39.0.tar.gz"],
 )
 
-load("@build_bazel_rules_nodejs//:defs.bzl", "node_repositories")
+load("@build_bazel_rules_nodejs//:index.bzl", "node_repositories", "npm_install")
 
 node_repositories(
-    node_version = "8.11.1",
-    package_json = ["//tools/gui:package.json"],
+    node_repositories = {
+        "10.16.0-darwin_amd64": ("node-v10.16.0-darwin-x64.tar.gz", "node-v10.16.0-darwin-x64", "6c009df1b724026d84ae9a838c5b382662e30f6c5563a0995532f2bece39fa9c"),
+        "10.16.0-linux_amd64": ("node-v10.16.0-linux-x64.tar.xz", "node-v10.16.0-linux-x64", "1827f5b99084740234de0c506f4dd2202a696ed60f76059696747c34339b9d48"),
+        "10.16.0-windows_amd64": ("node-v10.16.0-win-x64.zip", "node-v10.16.0-win-x64", "aa22cb357f0fb54ccbc06b19b60e37eefea5d7dd9940912675d3ed988bf9a059"),
+    },
+    node_version = "10.16.0",
+    package_json = ["//web/gui2-fw-lib:package.json"],
 )
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+# The npm_install rule runs yarn anytime the package.json or package-lock.json file changes.
+# It also extracts any Bazel rules distributed in an npm package.
+load("@build_bazel_rules_nodejs//:index.bzl", "npm_install")
+
+npm_install(
+    # Name this npm so that Bazel Label references look like @npm//package
+    name = "gui1_npm",
+    package_json = "//tools/gui:package.json",
+    package_lock_json = "//tools/gui:package-lock.json",
+)
+
+npm_install(
+    # Name this npm so that Bazel Label references look like @npm//package
+    name = "gui2_npm",
+    package_json = "//web/gui2-fw-lib:package.json",
+    package_lock_json = "//web/gui2-fw-lib:package-lock.json",
+)
+
+# Install any Bazel rules which were extracted earlier by the npm_install rule.
+load("@gui2_npm//:install_bazel_dependencies.bzl", "install_bazel_dependencies")
+
+install_bazel_dependencies()
 
 # buildifier is written in Go and hence needs rules_go to be built.
 # See https://github.com/bazelbuild/rules_go for the up to date setup instructions.

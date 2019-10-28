@@ -149,6 +149,7 @@ class MockPrefsService {
 /**
  * ONOS GUI -- Topology View -- Unit Tests
  */
+// Skipping temporarily
 describe('TopologyComponent', () => {
     let fs: FnService;
     let ar: MockActivatedRoute;
