@@ -127,6 +127,11 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
 
     private ApplicationId appId;
 
+    //Priority value of created OpticalConnectivity intent rules.
+    //The OpticalCircuitIntent is created with DEFAULT_INTENT_PRIORITY = 100 (see Intent.java)
+    //The two values have to be different to avoid rules overwriting.
+    private static final int OPTICAL_CONNECTIVITY_INTENT_PRIORITY = 200;
+
     @Modified
     public void modified(ComponentContext context) {
         if (context == null) {
@@ -253,6 +258,7 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
                     // but `key` field cannot be used for the purpose.
                     .src(srcCP)
                     .dst(dstCP)
+                    .priority(OPTICAL_CONNECTIVITY_INTENT_PRIORITY)
                     .signalType(ochPorts.getLeft().signalType())
                     .bidirectional(intent.isBidirectional())
                     .resourceGroup(intent.resourceGroup())
@@ -320,12 +326,14 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
         // Create optical circuit intent
         List<FlowRule> rules = new LinkedList<>();
         // at the source: ODUCLT port mapping to OCH port
+        log.debug("OpticalCircuitIntent creating FlowRules");
         rules.add(connectPorts(higherIntent.getSrc(), lowerIntent.getSrc(), higherIntent.priority(), slots));
         // at the destination: OCH port mapping to ODUCLT port
         rules.add(connectPorts(lowerIntent.getDst(), higherIntent.getDst(), higherIntent.priority(), slots));
 
         // Create flow rules for reverse path
         if (higherIntent.isBidirectional()) {
+            log.debug("OpticalCircuitIntent creating FlowRules for reverse path");
            // at the destination: OCH port mapping to ODUCLT port
             rules.add(connectPorts(lowerIntent.getSrc(), higherIntent.getSrc(), higherIntent.priority(), slots));
             // at the source: ODUCLT port mapping to OCH port

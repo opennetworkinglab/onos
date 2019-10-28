@@ -20,11 +20,11 @@
       "properties": {
         "device": {
           "type": "string",
-          "example": "netconf:10.255.255.14:2022"
+          "example": "netconf:10.10.255.14:2022"
         },
         "port": {
           "type": "string",
-          "example": "101"
+          "example": "10102"
         }
       }
     },
@@ -38,15 +38,15 @@
       "properties": {
         "device": {
           "type": "string",
-          "example": "netconf:10.255.255.17:2022"
+          "example": "netconf:10.10.255.15:2022"
         },
         "port": {
           "type": "string",
-          "example": "201"
+          "example": "10102"
         }
       }
     },
-    "bidirection": {
+    "bidirectional": {
       "type": "boolean",
       "example": false
     },
@@ -115,11 +115,11 @@
             "properties" : {
               "src": {
                 "type": "string",
-                "example": "netconf:10.255.255.14:2022/101"
+                "example": "netconf:10.10.255.14:2022/10102"
               },
               "dst": {
                 "type": "string",
-                "example": "netconf:10.255.255.9:2022/201"
+                "example": "netconf:10.10.255.15:2022/10102"
               }
             }
           }

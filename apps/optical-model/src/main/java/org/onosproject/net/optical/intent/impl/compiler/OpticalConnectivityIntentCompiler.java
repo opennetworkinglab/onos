@@ -182,6 +182,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
         return OpticalPathIntent.builder()
                 .appId(parentIntent.appId())
                 .key(parentIntent.key())
+                .priority(parentIntent.priority())
                 .src(parentIntent.getSrc())
                 .dst(parentIntent.getDst())
                 .path(path)

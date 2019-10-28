@@ -41,6 +41,7 @@ import org.onosproject.net.intent.FlowRuleIntent;
 import org.onosproject.net.intent.IntentState;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.OpticalConnectivityIntent;
+import org.onosproject.net.intent.OpticalCircuitIntent;
 import org.onosproject.net.link.LinkService;
 import org.onosproject.net.optical.json.OchSignalCodec;
 import org.onosproject.net.provider.ProviderId;
@@ -90,6 +91,7 @@ public class OpticalIntentsWebResource extends AbstractWebResource {
     private static final String MISSING_MEMBER_MESSAGE = " member is required";
     private static final String E_APP_ID_NOT_FOUND = "Application ID is not found";
     private static final ProviderId PROVIDER_ID = new ProviderId("netconf", "optical-rest");
+    private static final int NUM_CRITERIA_OPTICAL_CONNECTIVIY_RULE = 3;
 
     @Context
     private UriInfo uriInfo;
@@ -157,7 +159,8 @@ public class OpticalIntentsWebResource extends AbstractWebResource {
 
                 objectNode.put("intent id", opticalConnectivityIntent.id().toString());
                 objectNode.put("app id", opticalConnectivityIntent.appId().name());
-                objectNode.put("state", intentService.getIntentState(opticalConnectivityIntent.key()).toString());
+                objectNode.put("state",
+                        intentService.getIntentState(opticalConnectivityIntent.key()).toString());
                 objectNode.put("src", opticalConnectivityIntent.getSrc().toString());
                 objectNode.put("dst", opticalConnectivityIntent.getDst().toString());
                 objectNode.put("srcName", srcDeviceName);
@@ -174,10 +177,12 @@ public class OpticalIntentsWebResource extends AbstractWebResource {
                             .findFirst()
                             .orElse(null);
 
-                    //Retrieve used ochSignal from the Selector of one of the installed FlowRule
+                    //FlowRules computed by the OpticalConnectivityIntentCompiler includes 3 criteria, one of those
+                    //is the OchSignal, thus retrieve used ochSignal from the selector of one of the installed rules
                     //TODO store utilized ochSignal in the intent resources
                     if (installableIntent != null) {
                         OchSignal signal = installableIntent.flowRules().stream()
+                                .filter(r -> r.selector().criteria().size() == NUM_CRITERIA_OPTICAL_CONNECTIVIY_RULE)
                                 .map(r -> ((OchSignalCriterion)
                                         r.selector().getCriterion(Criterion.Type.OCH_SIGID)).lambda())
                                 .findFirst()
@@ -239,7 +244,7 @@ public class OpticalIntentsWebResource extends AbstractWebResource {
         }
         nullIsNotFound(intent, "Intent Id is not found");
 
-        if (intent instanceof OpticalConnectivityIntent) {
+        if ((intent instanceof OpticalConnectivityIntent) || (intent instanceof OpticalCircuitIntent)) {
             intentService.withdraw(intent);
         } else {
             throw new IllegalArgumentException("Specified intent is not of type OpticalConnectivityIntent");
@@ -306,8 +311,6 @@ public class OpticalIntentsWebResource extends AbstractWebResource {
 
                     Link link = linkService.getLink(srcConnectPoint, dstConnectPoint);
                     if (link == null) {
-                        log.warn("Not existing link in the suggested path src {} dst {}",
-                                 srcConnectPoint, dstConnectPoint);
                         throw new IllegalArgumentException("Not existing link in the suggested path");
                     }
 
