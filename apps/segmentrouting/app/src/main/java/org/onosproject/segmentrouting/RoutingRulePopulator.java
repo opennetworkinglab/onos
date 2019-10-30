@@ -1147,7 +1147,13 @@ public class RoutingRulePopulator {
      */
     void processDoubleTaggedFilter(DeviceId deviceId, PortNumber portNum, VlanId outerVlan,
                                    VlanId innerVlan, boolean install) {
-        FilteringObjective.Builder fob = buildDoubleTaggedFilteringObj(deviceId, portNum, outerVlan, innerVlan, false);
+        // We should trigger the removal of double tagged rules only when removing
+        // the filtering objective and no other hosts are connected to the same device port.
+        boolean cleanupDoubleTaggedRules = srManager.hostService
+                .getConnectedHosts(new ConnectPoint(deviceId, portNum)).size() == 0 && !install;
+        FilteringObjective.Builder fob = buildDoubleTaggedFilteringObj(deviceId, portNum,
+                                                                       outerVlan, innerVlan,
+                                                                       cleanupDoubleTaggedRules);
         if (fob == null) {
             // error encountered during build
             return;
