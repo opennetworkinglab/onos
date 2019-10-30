@@ -32,17 +32,23 @@ import org.onosproject.net.flow.criteria.EthCriterion;
 import org.onosproject.net.flow.criteria.PiCriterion;
 import org.onosproject.net.flow.criteria.PortCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
+import org.onosproject.net.flow.instructions.Instructions;
+import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flowobjective.FilteringObjective;
+import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionParam;
 import org.onosproject.pipelines.fabric.impl.behaviour.FabricCapabilities;
 import org.onosproject.pipelines.fabric.impl.behaviour.FabricConstants;
+import org.onosproject.pipelines.fabric.impl.behaviour.FabricUtils;
 
 import java.util.Collection;
 import java.util.List;
 
 import static java.lang.String.format;
+import static org.onosproject.net.flow.criteria.Criterion.Type.INNER_VLAN_VID;
+import static org.onosproject.net.flow.criteria.Criterion.Type.VLAN_VID;
 import static org.onosproject.pipelines.fabric.impl.behaviour.FabricUtils.criterion;
 
 /**
@@ -95,9 +101,51 @@ class FilteringObjectiveTranslator
                 obj.conditions(), Criterion.Type.ETH_DST_MASKED);
 
         ingressPortVlanRule(obj, inPort, outerVlan, innerVlan, resultBuilder);
-        fwdClassifierRules(obj, inPort, ethDst, ethDstMasked, resultBuilder);
-
+        if (shouldAddFwdClassifierRule(obj)) {
+            fwdClassifierRules(obj, inPort, ethDst, ethDstMasked, resultBuilder);
+        } else {
+            log.debug("Skipping fwd classifier rules for device {}.", deviceId);
+        }
         return resultBuilder.build();
+    }
+
+    private boolean shouldAddFwdClassifierRule(FilteringObjective obj) {
+        // NOTE: in fabric pipeline the forwarding classifier acts similarly
+        // to the TMAC table of OFDPA that matches on input port.
+
+        // Forwarding classifier rules should be added to translation when:
+        // - the operation is ADD OR
+        // - it doesn't refer to double tagged traffic OR
+        // - it refers to double tagged traffic
+        //     and SR is triggering the removal of forwarding classifier rules.
+        return obj.op() == Objective.Operation.ADD ||
+                !isDoubleTagged(obj) ||
+                (isDoubleTagged(obj) && isLastDoubleTaggedForPort(obj));
+    }
+
+    /**
+     * Check if the given filtering objective is the last filtering objective
+     * for a double-tagged host for a specific port.
+     * <p>
+     * {@see org.onosproject.segmentrouting.RoutingRulePopulator#buildDoubleTaggedFilteringObj()}
+     * {@see org.onosproject.segmentrouting.RoutingRulePopulator#processDoubleTaggedFilter()}
+     *
+     * @param obj Filtering objective to check.
+     * @return True if SR is signaling to remove the forwarding classifier rule,
+     * false otherwise.
+     */
+    private boolean isLastDoubleTaggedForPort(FilteringObjective obj) {
+        Instructions.MetadataInstruction meta = obj.meta().writeMetadata();
+        // SR is setting this metadata when a double tagged filtering objective
+        // is removed and no other hosts is sharing the same input port.
+        return (meta != null && (meta.metadata() & meta.metadataMask()) == 1);
+    }
+
+    private boolean isDoubleTagged(FilteringObjective obj) {
+        return obj.meta() != null &&
+                FabricUtils.l2Instruction(obj.meta(), L2ModificationInstruction.L2SubType.VLAN_POP) != null &&
+                FabricUtils.criterion(obj.conditions(), VLAN_VID) != null &&
+                FabricUtils.criterion(obj.conditions(), INNER_VLAN_VID) != null;
     }
 
     private void ingressPortVlanRule(
