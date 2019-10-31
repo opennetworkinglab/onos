@@ -58,6 +58,7 @@ import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWOR
 import static org.onosproject.openstacknetworking.api.Constants.UNSUPPORTED_VENDOR;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getIntfNameFromPciAddress;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.hasIntfAleadyInDevice;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.isSmartNicCapable;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.CONTROLLER;
 
@@ -148,6 +149,10 @@ public class OpenStackSwitchingDirectPortProvider {
                 return;
             }
 
+            if (!isSmartNicCapable(event.port())) {
+                return;
+            }
+
             if (event.port().getState() == State.DOWN) {
                 removePort(event.port());
             } else {
@@ -157,6 +162,10 @@ public class OpenStackSwitchingDirectPortProvider {
 
         private void processPortRemoval(OpenstackNetworkEvent event) {
             if (!isRelevantHelper()) {
+                return;
+            }
+
+            if (!isSmartNicCapable(event.port())) {
                 return;
             }
 
@@ -307,6 +316,7 @@ public class OpenStackSwitchingDirectPortProvider {
                     .filter(port -> port.getvNicType().equals(DIRECT))
                     .filter(port -> !port.getVifType().equals(UNBOUND))
                     .filter(port -> port.getHostId().equals(node.hostname()))
+                    .filter(OpenstackNetworkingUtil::isSmartNicCapable)
                     .collect(Collectors.toList());
 
             ports.forEach(port -> addIntfToDevice(node, port));
@@ -318,7 +328,7 @@ public class OpenStackSwitchingDirectPortProvider {
                 log.error("Failed to retrieve interface name from a port {}", port.getId());
             } else if (intfName.equals(UNSUPPORTED_VENDOR)) {
                 log.warn("Failed to retrieve interface name from a port {} " +
-                                "because of unsupported ovs-based sr-iov");
+                                "because of unsupported ovs-based sr-iov", port.getId());
                 return;
             }
 
