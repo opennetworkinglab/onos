@@ -137,6 +137,7 @@ import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.onlab.packet.Ip4Address.valueOf;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_MAC_STR;
+import static org.onosproject.openstacknetworking.api.Constants.DIRECT;
 import static org.onosproject.openstacknetworking.api.Constants.FLOATING_IP_FORMAT;
 import static org.onosproject.openstacknetworking.api.Constants.NETWORK_FORMAT;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_REST_PATH;
@@ -400,6 +401,24 @@ public final class OpenstackNetworkingUtil {
             }
         }
         return null;
+    }
+
+    /**
+     * Checks whether the given openstack port is smart NIC capable.
+     *
+     * @param port openstack port
+     * @return true if the given port is smart NIC capable, false otherwise
+     */
+    public static boolean isSmartNicCapable(Port port) {
+        if (port.getProfile() != null && port.getvNicType().equals(DIRECT)) {
+            String vendorInfo = String.valueOf(port.getProfile().get(PCI_VENDOR_INFO));
+            if (portNamePrefixMap().containsKey(vendorInfo)) {
+                log.debug("Port {} is a Smart NIC capable port.", port.getId());
+                return true;
+            }
+            return false;
+        }
+        return false;
     }
 
     /**
