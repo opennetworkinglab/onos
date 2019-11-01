@@ -162,10 +162,12 @@ const bng_type_t BNG_TYPE_UPSTREAM = 2w0x1;
 const bng_type_t BNG_TYPE_DOWNSTREAM = 2w0x2;;
 
 struct bng_meta_t {
-    bit<2>  type; // upstream or downstream
-    bit<32> line_id; // subscriber line
-    bit<16> pppoe_session_id;
-    bit<32> ds_meter_result; // for downstream metering
+    bit<2>    type; // upstream or downstream
+    bit<32>   line_id; // subscriber line
+    bit<16>   pppoe_session_id;
+    bit<32>   ds_meter_result; // for downstream metering
+    vlan_id_t s_tag;
+    vlan_id_t c_tag;
 }
 #endif // WITH_BNG
 

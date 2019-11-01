@@ -310,9 +310,6 @@ control bng_ingress(
         bng_ingress_upstream() upstream;
         bng_ingress_downstream() downstream;
 
-        vlan_id_t s_tag = 0;
-        vlan_id_t c_tag = 0;
-
         // TABLE: t_line_map
         // Map s_tag and c_tag to a line ID to uniquely identify a subscriber
 
@@ -322,8 +319,8 @@ control bng_ingress(
 
         table t_line_map {
             key = {
-                s_tag : exact @name("s_tag");
-                c_tag : exact @name("c_tag");
+                fmeta.bng.s_tag : exact @name("s_tag");
+                fmeta.bng.c_tag : exact @name("c_tag");
             }
              actions = {
                 set_line;
@@ -334,17 +331,7 @@ control bng_ingress(
         }
 
         apply {
-            if(hdr.pppoe.isValid()) {
-                s_tag = hdr.vlan_tag.vlan_id;
-                c_tag = hdr.inner_vlan_tag.vlan_id;
-            } else {
-                // We expect the packet to be downstream,
-                // the tags are set by the next stage in the metadata.
-                s_tag = fmeta.vlan_id;
-                c_tag = fmeta.inner_vlan_id;
-            }
-
-            // First map the double VLAN tags to a line ID
+             // First map the double VLAN tags to a line ID
             // If table miss line ID will be 0.
             t_line_map.apply();
 

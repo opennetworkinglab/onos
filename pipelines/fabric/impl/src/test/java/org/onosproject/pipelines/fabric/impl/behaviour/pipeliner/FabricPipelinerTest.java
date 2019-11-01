@@ -61,6 +61,7 @@ public class FabricPipelinerTest {
         this.capabilitiesHashed = createNiceMock(FabricCapabilities.class);
         this.capabilitiesSimple = createNiceMock(FabricCapabilities.class);
         expect(capabilitiesHashed.hasHashedTable()).andReturn(true).anyTimes();
+        expect(capabilitiesHashed.supportDoubleVlanTerm()).andReturn(true).anyTimes();
         expect(capabilitiesSimple.hasHashedTable()).andReturn(false).anyTimes();
         expect(capabilitiesSimple.supportDoubleVlanTerm()).andReturn(true).anyTimes();
         replay(capabilitiesHashed);

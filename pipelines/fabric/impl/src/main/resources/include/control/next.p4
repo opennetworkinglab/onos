@@ -76,6 +76,10 @@ control Next (inout parsed_headers_t hdr,
         set_vlan(outer_vlan_id);
         fabric_metadata.push_double_vlan = _TRUE;
         fabric_metadata.inner_vlan_id = inner_vlan_id;
+#ifdef WITH_BNG
+        fabric_metadata.bng.s_tag = outer_vlan_id;
+        fabric_metadata.bng.c_tag = inner_vlan_id;
+#endif // WITH_BNG
     }
 #endif // WITH_DOUBLE_VLAN_TERMINATION
 

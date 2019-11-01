@@ -51,6 +51,9 @@ parser FabricParser (packet_in packet,
 
     state parse_vlan_tag {
         packet.extract(hdr.vlan_tag);
+#ifdef WITH_BNG
+        fabric_metadata.bng.s_tag = hdr.vlan_tag.vlan_id;
+#endif // WITH_BNG
         transition select(packet.lookahead<bit<16>>()){
 #if defined(WITH_XCONNECT) || defined(WITH_DOUBLE_VLAN_TERMINATION)
             ETHERTYPE_VLAN: parse_inner_vlan_tag;
@@ -62,6 +65,9 @@ parser FabricParser (packet_in packet,
 #if defined(WITH_XCONNECT) || defined(WITH_DOUBLE_VLAN_TERMINATION)
     state parse_inner_vlan_tag {
         packet.extract(hdr.inner_vlan_tag);
+#ifdef WITH_BNG
+        fabric_metadata.bng.c_tag = hdr.inner_vlan_tag.vlan_id;
+#endif // WITH_BNG
         transition parse_eth_type;
     }
 #endif // WITH_XCONNECT || WITH_DOUBLE_VLAN_TERMINATION
