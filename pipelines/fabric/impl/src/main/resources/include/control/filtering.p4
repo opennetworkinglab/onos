@@ -48,14 +48,16 @@ control Filtering (inout parsed_headers_t hdr,
         permit();
     }
 
-    // FIXME: remove the use of ternary match on valid inner VLAN.
+    // FIXME: remove the use of ternary match on inner VLAN.
     // Use multi-table approach to remove ternary matching
     table ingress_port_vlan {
         key = {
             standard_metadata.ingress_port : exact @name("ig_port");
             hdr.vlan_tag.isValid()         : exact @name("vlan_is_valid");
             hdr.vlan_tag.vlan_id           : ternary @name("vlan_id");
+#ifdef WITH_DOUBLE_VLAN_TERMINATION
             hdr.inner_vlan_tag.vlan_id     : ternary @name("inner_vlan_id");
+#endif // WITH_DOUBLE_VLAN_TERMINATION
         }
         actions = {
             deny();

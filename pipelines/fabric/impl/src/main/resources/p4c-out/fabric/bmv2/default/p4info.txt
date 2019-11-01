@@ -25,12 +25,6 @@ tables {
     bitwidth: 12
     match_type: TERNARY
   }
-  match_fields {
-    id: 4
-    name: "inner_vlan_id"
-    bitwidth: 12
-    match_type: TERNARY
-  }
   action_refs {
     id: 16836487
   }

@@ -161,6 +161,12 @@ class FilteringObjectiveTranslator
         final boolean innerVlanValid = innerVlanCriterion != null
                 && !innerVlanCriterion.vlanId().equals(VlanId.NONE);
 
+        if (innerVlanValid && !capabilities.supportDoubleVlanTerm()) {
+            throw new FabricPipelinerException(
+                    "Found 2 VLAN IDs, but the pipeline does not support double VLAN termination",
+                    ObjectiveError.UNSUPPORTED);
+        }
+
         final PiCriterion piCriterion = PiCriterion.builder()
                 .matchExact(FabricConstants.HDR_VLAN_IS_VALID, outerVlanValid ? ONE : ZERO)
                 .build();
