@@ -595,8 +595,7 @@ public class BgpTopologyProvider extends AbstractProvider implements DeviceProvi
 
     @Override
     public boolean isReachable(DeviceId deviceId) {
-        // TODO Auto-generated method stub
-        return true;
+        return deviceService.isAvailable(deviceId);
     }
 
     @Override
