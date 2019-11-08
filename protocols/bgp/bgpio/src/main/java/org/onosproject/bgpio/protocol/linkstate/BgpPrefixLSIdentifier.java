@@ -148,7 +148,7 @@ public class BgpPrefixLSIdentifier implements Comparable<Object> {
                 isIpReachInfo = true;
                 break;
             case BgpAttrNodeMultiTopologyId.ATTRNODE_MULTITOPOLOGY:
-                tlv = BgpAttrNodeMultiTopologyId.read(tempCb);
+                tlv = BgpAttrNodeMultiTopologyId.read(tempCb, length);
                 count = count + 1;
                 if (count > 1) {
                     //length + 4 implies data contains type, length and value

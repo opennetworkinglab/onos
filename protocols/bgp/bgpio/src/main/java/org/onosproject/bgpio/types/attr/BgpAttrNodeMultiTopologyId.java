@@ -66,23 +66,24 @@ public class BgpAttrNodeMultiTopologyId implements BgpValueType {
      * Reads the Multi-topology ID of Node attribute.
      *
      * @param cb ChannelBuffer
+     * @param len Length of the TLV
      * @return Constructor of BgpAttrNodeMultiTopologyId
      * @throws BgpParseException while parsing BgpAttrNodeMultiTopologyId
      */
-    public static BgpAttrNodeMultiTopologyId read(ChannelBuffer cb)
+    public static BgpAttrNodeMultiTopologyId read(ChannelBuffer cb, int len)
             throws BgpParseException {
         ArrayList<Short> multiTopologyId = new ArrayList<Short>();
         short tempMultiTopologyId;
-        short lsAttrLength = cb.readShort();
-        int len = lsAttrLength / 2; // Length is 2*n and n is the number of MT-IDs
+        //short lsAttrLength = cb.readShort();
+        int numOfMtid = len / 2; // Length is 2*n and n is the number of MT-IDs
 
-        if (cb.readableBytes() < lsAttrLength) {
+        if (cb.readableBytes() < len) {
             Validation.validateLen(BgpErrorType.UPDATE_MESSAGE_ERROR,
                                    BgpErrorType.ATTRIBUTE_LENGTH_ERROR,
-                                   lsAttrLength);
+                                   len);
         }
 
-        for (int i = 0; i < len; i++) {
+        for (int i = 0; i < numOfMtid; i++) {
             tempMultiTopologyId = cb.readShort();
             multiTopologyId.add(new Short(tempMultiTopologyId));
         }

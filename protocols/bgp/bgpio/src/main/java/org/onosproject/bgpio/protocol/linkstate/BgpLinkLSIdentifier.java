@@ -165,7 +165,7 @@ public class BgpLinkLSIdentifier implements Comparable<Object> {
                 tlv = IPv6AddressTlv.read(tempCb, IPV6_NEIGHBOR_ADDRESS_TYPE);
                 break;
             case BgpAttrNodeMultiTopologyId.ATTRNODE_MULTITOPOLOGY:
-                tlv = BgpAttrNodeMultiTopologyId.read(tempCb);
+                tlv = BgpAttrNodeMultiTopologyId.read(tempCb, length);
                 count++;
                 log.debug("MultiTopologyId TLV cannot repeat more than once");
                 if (count > 1) {

@@ -168,7 +168,8 @@ public class LinkStateAttributes implements BgpValueType {
 
             /********* 7 NODE ATTRIBUTES ********/
             case ATTR_NODE_MT_TOPOLOGY_ID: /* 263 Multi-Topology Identifier*/
-                bgpLSAttrib = BgpAttrNodeMultiTopologyId.read(tempCb);
+                int tlvLength = tempCb.readShort();
+                bgpLSAttrib = BgpAttrNodeMultiTopologyId.read(tempCb, tlvLength);
                 break;
 
             case ATTR_NODE_FLAG_BITS: /*Node flag bit TLV*/
