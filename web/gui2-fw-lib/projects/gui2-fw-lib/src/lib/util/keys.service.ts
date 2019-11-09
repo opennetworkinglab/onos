@@ -204,7 +204,7 @@ export class KeysService {
         // d3.events can set the keyCode, but unit tests based on KeyboardEvent
         // cannot set keyCode since the attribute has been deprecated
         const code = event.keyCode ? event.keyCode : event.code;
-        let key = this.whatKey(Number.parseInt(code));
+        let key = this.whatKey(Number.parseInt(code, 10));
         this.log.debug('Key detected', event, key, event.code, event.keyCode);
         const textBlockable = !this.textFieldDoesNotBlock[key];
         const modifiers = [];

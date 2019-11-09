@@ -29,6 +29,8 @@ build --incompatible_new_actions_api=false
 build --incompatible_generated_protos_in_virtual_imports=false
 build --incompatible_depset_union=false
 
+common --experimental_allow_incremental_repository_updates
+
 test --test_summary=terse
 test --test_output=errors
 test --test_verbose_timeout_warnings

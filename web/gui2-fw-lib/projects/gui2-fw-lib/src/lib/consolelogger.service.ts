@@ -32,6 +32,7 @@ export class ConsoleLoggerService implements Logger {
 
   get debug() {
     if (isDebugMode) {
+      // tslint:disable-next-line:no-console
       return console.debug.bind(console);
     } else {
       return noop;
@@ -40,6 +41,7 @@ export class ConsoleLoggerService implements Logger {
 
   get info() {
     if (isDebugMode) {
+      // tslint:disable-next-line:no-console
       return console.info.bind(console);
     } else {
       return noop;

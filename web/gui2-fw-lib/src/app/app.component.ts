@@ -15,7 +15,7 @@
  */
 
 import {Component} from '@angular/core';
-import {FnService, KeysService, LogService, LionService, WebSocketService, WsOptions} from 'gui2-fw-lib';
+import {FnService, KeysService, LogService, LionService, WebSocketService, WsOptions} from '../../projects/gui2-fw-lib/src/public_api';
 
 @Component({
   selector: 'app-root',

@@ -1,21 +1,36 @@
 {
-  "name": "gui2-fw-lib",
-  "version": "2.1.1",
-  "author": {
-    "name": "Sean Condon",
-    "email": "sean@opennetworking.org"
-  },
-  "description": "ONOS Project GUI Framework Library built on Angular7+",
-  "keywords": "ONOS SDN Controller ONF Open Networking Foundation",
-  "homepage": "https://onosproject.org/",
-  "bugs": "support@opennetworking.org",
-  "license": "Apache-2.0",
-  "repository": {
-    "type" : "git",
-    "url" : "https://github.com/opennetworkinglab/onos.git"
-  },
-  "peerDependencies": {
-    "@angular/common": "^7.0.0 || ^6.0.0-rc.0 || ^6.0.0",
-    "@angular/core": "^7.0.0 || ^6.0.0-rc.0 || ^6.0.0"
-  }
+    "name": "gui2-fw-lib",
+    "version": "2.3.2",
+    "author": {
+        "name": "Sean Condon",
+        "email": "sean@opennetworking.org"
+    },
+    "description": "ONOS Project GUI Framework Library built on Angular9+",
+    "keywords": "ONOS SDN Controller ONF Open Networking Foundation",
+    "homepage": "https://onosproject.org/",
+    "bugs": {
+        "url" : "https://jira.onosproject.org/projects/ONOS/issues",
+        "email": "support@opennetworking.org"
+    },
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/opennetworkinglab/onos.git"
+    },
+    "peerDependencies": {
+        "@angular/animations": "^8.2.13",
+        "@angular/common": "^8.2.13",
+        "@angular/compiler": "^8.2.13",
+        "@angular/core": "^8.2.13",
+        "@angular/forms": "^8.2.13",
+        "@angular/http": "^7.0.2",
+        "@angular/platform-browser": "^8.2.13",
+        "@angular/platform-browser-dynamic": "^8.2.13",
+        "@angular/router": "^8.2.13",
+        "core-js": "^2.5.4",
+        "d3": "^5.9.2",
+        "rxjs": "^6.4.0",
+        "topojson-client": "^3.0.0",
+        "zone.js": "^0.9.1"
+    }
 }

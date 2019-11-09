@@ -178,12 +178,25 @@ load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
 
 buildifier(
     name = "buildifier_check",
-    exclude_patterns = ["./tools/build/bazel/generate_workspace.bzl"],
+    exclude_patterns = [
+        "./tools/build/bazel/generate_workspace.bzl",
+        "./web/gui2-fw-lib/node_modules/@angular/bazel/src/esm5.bzl",
+    ],
     mode = "check",
 )
 
 buildifier(
     name = "buildifier_fix",
-    exclude_patterns = ["./tools/build/bazel/generate_workspace.bzl"],
+    exclude_patterns = [
+        "./tools/build/bazel/generate_workspace.bzl",
+        "./web/gui2-fw-lib/node_modules/@angular/bazel/src/esm5.bzl",
+    ],
     mode = "fix",
 )
+
+# This export allows targets in other packages to reference files that live
+# in this package.
+# TODO Try to move this in to /web/gui2-fw-lib when possible
+exports_files([
+    "tsconfig.json",
+])

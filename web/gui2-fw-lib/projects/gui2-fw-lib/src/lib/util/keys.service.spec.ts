@@ -128,7 +128,7 @@ describe('KeysService', () => {
 
         if (ev.code !== code.toString()) {
             console.warn('keyCode mismatch ' + ev.code +
-                '(' + ev.which + ') -> ' + code);
+                '(' + ev.toString() + ') -> ' + code);
         }
         element.dispatchEvent(ev);
     }

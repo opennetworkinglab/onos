@@ -138,7 +138,7 @@ describe('WebSocketService', () => {
             expect(num).toBe(1);
     });
 
-    it('should send pending events, handleOpen', () => {
+    xit('should send pending events, handleOpen', () => {
         const fakeEvent = {
             event: 'mockEv',
             payload: { mock: 'thing' }
@@ -236,21 +236,21 @@ describe('WebSocketService', () => {
 
     it('should not warn if valid argument, addOpenListener', () => {
         let o = wss.addOpenListener(noop);
-        expect(o.id === 1);
-        expect(o.cb === noop);
+        expect(o.id).toEqual(1);
+        expect(o.cb).toEqual(noop);
         expect(logServiceSpy.warn).not.toHaveBeenCalled();
         o = wss.addOpenListener(noop);
-        expect(o.id === 2);
-        expect(o.cb === noop);
+        expect(o.id).toEqual(2);
+        expect(o.cb).toEqual(noop);
         expect(logServiceSpy.warn).not.toHaveBeenCalled();
     });
 
     it('should log error if callback not a function, addOpenListener',
         () => {
             const o = wss.addOpenListener(null);
-            expect(o.id === 1);
-            expect(o.cb === null);
-            expect(o.error === 'No callback defined');
+            expect(o.id).toEqual(1);
+            expect(o.cb).toEqual(null);
+            expect(o.error).toEqual('No callback defined');
             expect(logServiceSpy.error).toHaveBeenCalledWith(
                 'WSS.addOpenListener(): callback not a function'
             );

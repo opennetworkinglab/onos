@@ -2,13 +2,35 @@ workspace(
     name = "org_onosproject_onos",
     managed_directories = {
         "@gui1_npm": ["tools/gui/node_modules"],
-        "@gui2_npm": ["web/gui2-fw-lib/node_modules"],
+        "@npm": ["web/gui2-fw-lib/node_modules"],
     },
 )
 
 load("//tools/build/bazel:bazel_version.bzl", "check_bazel_version")
 
 check_bazel_version()
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+# It is necessary to explicitly load this version of bazel-skylib for the
+# GUI build with native bazel e.g. ts_web_test_suite or ts_library. If not specified
+# here an older version is pulled in by something else. It may be possible to update
+# this once other tools are updated
+BAZEL_SKYLIB_VERSION = "1.0.2"
+
+BAZEL_SKYLIB_SHA256 = "97e70364e9249702246c0e9444bccdc4b847bed1eb03c5a3ece4f83dfe6abc44"
+
+http_archive(
+    name = "bazel_skylib",
+    sha256 = BAZEL_SKYLIB_SHA256,
+    urls = [
+        "https://github.com/bazelbuild/bazel-skylib/releases/download/%s/bazel-skylib-%s.tar.gz" % (BAZEL_SKYLIB_VERSION, BAZEL_SKYLIB_VERSION),
+    ],
+)
+
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+
+bazel_skylib_workspace()
 
 load("//tools/build/bazel:local_jar.bzl", "local_atomix", "local_jar", "local_yang_tools")
 
@@ -101,16 +123,35 @@ load("//tools/build/bazel:gnoi_workspace.bzl", "generate_gnoi")
 
 generate_gnoi()
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+# For GUI2 build
+RULES_NODEJS_VERSION = "0.37.0"
+
+RULES_NODEJS_SHA256 = "0d9660cf0894f1fe1e9840818553e0080fbce0851169812d77a70bdb9981c946"
 
 http_archive(
     name = "build_bazel_rules_nodejs",
-    sha256 = "26c39450ce2d825abee5583a43733863098ed29d3cbaebf084ebaca59a21a1c8",
-    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/0.39.0/rules_nodejs-0.39.0.tar.gz"],
+    sha256 = RULES_NODEJS_SHA256,
+    urls = [
+        "https://github.com/bazelbuild/rules_nodejs/releases/download/%s/rules_nodejs-%s.tar.gz" % (RULES_NODEJS_VERSION, RULES_NODEJS_VERSION),
+    ],
 )
 
-load("@build_bazel_rules_nodejs//:index.bzl", "node_repositories", "npm_install")
+# Rules for compiling sass
+RULES_SASS_VERSION = "86ca977cf2a8ed481859f83a286e164d07335116"
 
+RULES_SASS_SHA256 = "4f05239080175a3f4efa8982d2b7775892d656bb47e8cf56914d5f9441fb5ea6"
+
+http_archive(
+    name = "io_bazel_rules_sass",
+    sha256 = RULES_SASS_SHA256,
+    strip_prefix = "rules_sass-%s" % RULES_SASS_VERSION,
+    url = "https://github.com/bazelbuild/rules_sass/archive/%s.zip" % RULES_SASS_VERSION,
+)
+
+load("@build_bazel_rules_nodejs//:defs.bzl", "node_repositories", "npm_install", "yarn_install")
+
+# Setup the Node repositories. We need a NodeJS version that is more recent than v10.15.0
+# because "selenium-webdriver" which is required for "ng e2e" cannot be installed.
 node_repositories(
     node_repositories = {
         "10.16.0-darwin_amd64": ("node-v10.16.0-darwin-x64.tar.gz", "node-v10.16.0-darwin-x64", "6c009df1b724026d84ae9a838c5b382662e30f6c5563a0995532f2bece39fa9c"),
@@ -118,12 +159,14 @@ node_repositories(
         "10.16.0-windows_amd64": ("node-v10.16.0-win-x64.zip", "node-v10.16.0-win-x64", "aa22cb357f0fb54ccbc06b19b60e37eefea5d7dd9940912675d3ed988bf9a059"),
     },
     node_version = "10.16.0",
-    package_json = ["//web/gui2-fw-lib:package.json"],
 )
 
-# The npm_install rule runs yarn anytime the package.json or package-lock.json file changes.
-# It also extracts any Bazel rules distributed in an npm package.
-load("@build_bazel_rules_nodejs//:index.bzl", "npm_install")
+# TODO give this a name like `gui2_npm` once the @bazel/karma tools can tolerate a name other than `npm`
+yarn_install(
+    name = "npm",
+    package_json = "//web/gui2-fw-lib:package.json",
+    yarn_lock = "//web/gui2-fw-lib:yarn.lock",
+)
 
 npm_install(
     # Name this npm so that Bazel Label references look like @npm//package
@@ -132,26 +175,40 @@ npm_install(
     package_lock_json = "//tools/gui:package-lock.json",
 )
 
-npm_install(
-    # Name this npm so that Bazel Label references look like @npm//package
-    name = "gui2_npm",
-    package_json = "//web/gui2-fw-lib:package.json",
-    package_lock_json = "//web/gui2-fw-lib:package-lock.json",
-)
-
 # Install any Bazel rules which were extracted earlier by the npm_install rule.
-load("@gui2_npm//:install_bazel_dependencies.bzl", "install_bazel_dependencies")
+# Versions are set in web/gui2-fw-lib/package.json
+load("@npm//:install_bazel_dependencies.bzl", "install_bazel_dependencies")
 
 install_bazel_dependencies()
 
+RULES_WEBTESTING_VERSION = "0.3.1"
+
+RULES_WEBTESTING_SHA256 = "f89ca8e91ac53b3c61da356c685bf03e927f23b97b086cc593db8edc088c143f"
+
+http_archive(
+    name = "io_bazel_rules_webtesting",
+    sha256 = RULES_WEBTESTING_SHA256,
+    urls = [
+        "https://github.com/bazelbuild/rules_webtesting/releases/download/%s/rules_webtesting.tar.gz" % RULES_WEBTESTING_VERSION,
+    ],
+)
+
+load("//tools/build/bazel:angular_workspace.bzl", "load_angular")
+
+load_angular()
+
 # buildifier is written in Go and hence needs rules_go to be built.
 # See https://github.com/bazelbuild/rules_go for the up to date setup instructions.
+RULES_GO_VERSION = "v0.19.8"
+
+RULES_GO_SHA256 = "9976c2572587aa71f81b502cc870ef8058f6de37f5fcfaade6a5996934b4a324"
+
 http_archive(
     name = "io_bazel_rules_go",
-    sha256 = "9fb16af4d4836c8222142e54c9efa0bb5fc562ffc893ce2abeac3e25daead144",
+    sha256 = RULES_GO_SHA256,
     urls = [
-        "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/rules_go/releases/download/0.19.0/rules_go-0.19.0.tar.gz",
-        "https://github.com/bazelbuild/rules_go/releases/download/0.19.0/rules_go-0.19.0.tar.gz",
+        "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/rules_go/releases/download/%s/rules_go-%s.tar.gz" % (RULES_GO_VERSION, RULES_GO_VERSION),
+        "https://github.com/bazelbuild/rules_go/releases/download/%s/rules_go-%s.tar.gz" % (RULES_GO_VERSION, RULES_GO_VERSION),
     ],
 )
 
@@ -161,12 +218,16 @@ go_rules_dependencies()
 
 go_register_toolchains()
 
+GAZELLE_VERSION = "0.18.1"
+
+GAZELLE_SHA256 = "be9296bfd64882e3c08e3283c58fcb461fa6dd3c171764fcc4cf322f60615a9b"
+
 http_archive(
     name = "bazel_gazelle",
-    sha256 = "be9296bfd64882e3c08e3283c58fcb461fa6dd3c171764fcc4cf322f60615a9b",
+    sha256 = GAZELLE_SHA256,
     urls = [
-        "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/bazel-gazelle/releases/download/0.18.1/bazel-gazelle-0.18.1.tar.gz",
-        "https://github.com/bazelbuild/bazel-gazelle/releases/download/0.18.1/bazel-gazelle-0.18.1.tar.gz",
+        "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/bazel-gazelle/releases/download/%s/bazel-gazelle-%s.tar.gz" % (GAZELLE_VERSION, GAZELLE_VERSION),
+        "https://github.com/bazelbuild/bazel-gazelle/releases/download/%s/bazel-gazelle-%s.tar.gz" % (GAZELLE_VERSION, GAZELLE_VERSION),
     ],
 )
 
@@ -174,9 +235,13 @@ load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
 
 gazelle_dependencies()
 
+BUILDTOOLS_VERSION = "0.29.0"
+
+BUILDTOOLS_SHA256 = "05eb52437fb250c7591dd6cbcfd1f9b5b61d85d6b20f04b041e0830dd1ab39b3"
+
 http_archive(
     name = "com_github_bazelbuild_buildtools",
-    sha256 = "05eb52437fb250c7591dd6cbcfd1f9b5b61d85d6b20f04b041e0830dd1ab39b3",
-    strip_prefix = "buildtools-0.29.0",
-    url = "https://github.com/bazelbuild/buildtools/archive/0.29.0.zip",
+    sha256 = BUILDTOOLS_SHA256,
+    strip_prefix = "buildtools-" + BUILDTOOLS_VERSION,
+    url = "https://github.com/bazelbuild/buildtools/archive/%s.zip" % BUILDTOOLS_VERSION,
 )

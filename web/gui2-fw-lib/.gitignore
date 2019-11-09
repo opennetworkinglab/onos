@@ -40,3 +40,6 @@ testem.log
 Thumbs.db
 
 projects/gui2-fw-lib/src/assets
+
+.pki/
+.cache/

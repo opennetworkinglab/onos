@@ -18,7 +18,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AppComponent } from './app.component';
-import { Gui2FwLibModule, ConsoleLoggerService, LogService } from 'gui2-fw-lib';
+import { Gui2FwLibModule, ConsoleLoggerService, LogService } from '../../projects/gui2-fw-lib/src/public_api';
 import {HttpClientModule} from '@angular/common/http';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 

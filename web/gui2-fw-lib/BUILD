@@ -65,9 +65,9 @@ filegroup(
         [
             ":angular.json",
             ":package.json",
-            ":package-lock.json",
             ":tsconfig.json",
             ":tslint.json",
+            ":yarn.lock",
         ],
 )
 
@@ -174,8 +174,8 @@ genrule(
     srcs = [
         "@nodejs//:bin/npm",
         "@nodejs//:bin/nodejs/bin/node",
-        "@gui2_npm//:node_modules/@angular/cli/bin/ng",
-        "@gui2_npm//:node_modules",
+        "@npm//:node_modules/@angular/cli/bin/ng",
+        "@npm//:node_modules",
         ":_root_level_files",
     ],
     outs = [
@@ -190,10 +190,10 @@ genrule(
           " NPM=$(location @nodejs//:bin/npm) &&" +
           " export PATH=$$ROOT/$$(dirname $${NPM}):$$PATH &&" +
           " $$NPM version > $$ROOT/$(location onos-gui2-npm-install.log) 2>&1 &&" +
-          " NM=external/gui2_npm/node_modules &&" +
+          " NM=external/npm/node_modules &&" +
           " echo $$NM > $$ROOT/$(location onos-gui2-npm-install.log) 2>&1 &&" +
           #          " ../../$(location @nodejs//:npm) $$NPM_ARGS install --no-cache >> $$ROOT/$(location onos-gui2-npm-install.log) 2>&1 &&" +
-          " cd external/gui2_npm &&" +
+          " cd external/npm &&" +
           " jar Mcf $$ROOT/$(location onos-gui2-npm-install.jar) node_modules &&" +
           " touch $$ROOT/$(location onos-gui2-npm-install.log)",  # to get the log always as the 2nd file
     message = "NodeJS npm install",
@@ -211,8 +211,8 @@ genrule(
         "@nodejs//:bin/nodejs/bin/node",
         "@nodejs//:bin/npm",
         ":onos-gui2-fw-npm-install",
-        "@gui2_npm//:node_modules/@angular/cli/bin/ng",
-        "@gui2_npm//:node_modules",
+        "@npm//:node_modules/@angular/cli/bin/ng",
+        "@npm//:node_modules",
         "//web/gui:onos-gui-data-for-gui2",
         ":_root_level_files",
         ":_gui2_fw_lib_src",
@@ -225,7 +225,7 @@ genrule(
           " export HOME=. &&" +
           " export XDG_CONFIG_HOME=$(@D)/config &&" +
           " NODE=$(location @nodejs//:bin/nodejs/bin/node) &&" +
-          #          " NG=$(location @gui2_npm//:node_modules/@angular/cli/bin/ng) &&" +
+          #          " NG=$(location @npm//:node_modules/@angular/cli/bin/ng) &&" +
           " INSTALL_FILES=($(locations :onos-gui2-fw-npm-install)) &&" +  # An array of filenames - sorted by time created
           " cd web/gui2-fw-lib &&" +
           " jar xf $$ROOT/$${INSTALL_FILES[0]} &&" +
@@ -317,9 +317,9 @@ genrule(
           "     --watch=false > ../../$(location onos-gui2-fw-ng-test.log) 2>&1 ||" +
           " if [ $$? -eq 0 ]; then echo 'Successfully ran tests';" +
           " else " +
-          "   echo 'Error running \'ng test\' on \'//web/gui2-fw-lib:onos-gui2-fw-ng-test\'. \\\n" +
+          "   echo 'Error running \'ng test\' on \'//web/gui2-fw-lib:_onos-gui2-fw-ng-test\'. \\\n" +
           "     See bazel-out/k8-fastbuild/bin/web/gui2-fw-lib/onos-gui2-fw-ng-test.log for more details' >&2;" +
-          #"   tail -n 100 ../../$(location onos-gui2-fw-ng-test.log) >&2;" +
+          "     cat ../../$(location onos-gui2-fw-ng-test.log) >&2;" +
           "   exit 1;" +
           " fi;",
     message = "GUI FW lib lint and test",
@@ -342,3 +342,9 @@ sh_test(
         "@bazel_tools//tools/bash/runfiles",
     ],
 )
+
+# This export allows targets in other packages to reference files that live
+# in this package.
+exports_files([
+    "tsconfig.json",
+])
