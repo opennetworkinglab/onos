@@ -62,6 +62,9 @@ public class BgpConfig implements BgpCfg {
     private boolean rpdCapability;
     private boolean evpnCapability;
 
+    //Set default connection type as IPv4
+    private ConnectionType connectionType = ConnectionType.IPV4;
+
     /*
      * Constructor to initialize the values.
      */
@@ -150,6 +153,16 @@ public class BgpConfig implements BgpCfg {
     @Override
     public void setEvpnCapability(boolean evpnCapability) {
         this.evpnCapability = evpnCapability;
+    }
+
+    @Override
+    public ConnectionType connectionType() {
+        return this.connectionType;
+    }
+
+    @Override
+    public void setConnectionType(ConnectionType connectionType) {
+        this.connectionType = connectionType;
     }
 
     @Override

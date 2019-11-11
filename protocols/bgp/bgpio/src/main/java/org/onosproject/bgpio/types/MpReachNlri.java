@@ -18,7 +18,7 @@ package org.onosproject.bgpio.types;
 
 import com.google.common.base.MoreObjects;
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.onlab.packet.Ip4Address;
+import org.onlab.packet.IpAddress;
 import org.onosproject.bgpio.exceptions.BgpParseException;
 import org.onosproject.bgpio.protocol.BgpEvpnNlri;
 import org.onosproject.bgpio.protocol.BgpLSNlri;
@@ -38,6 +38,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 
+
+
 /*
  * Provides Implementation of MpReach Nlri BGP Path Attribute.
  */
@@ -52,9 +54,10 @@ public class MpReachNlri implements BgpValueType {
     private final int length;
     private final short afi;
     private final byte safi;
-    private final Ip4Address ipNextHop;
+    private final IpAddress ipNextHop;
     private BgpFlowSpecNlri bgpFlowSpecNlri;
     private List<BgpEvpnNlri> evpnNlri;
+    public static final int ONE_BYTE_LENGTH = 8;
 
     /**
      * Constructor to initialize parameters.
@@ -65,7 +68,7 @@ public class MpReachNlri implements BgpValueType {
      * @param ipNextHop nexthop IpAddress
      * @param length of MpReachNlri
      */
-    public MpReachNlri(List<BgpLSNlri> mpReachNlri, short afi, byte safi, Ip4Address ipNextHop, int length) {
+    public MpReachNlri(List<BgpLSNlri> mpReachNlri, short afi, byte safi, IpAddress ipNextHop, int length) {
         this.mpReachNlri = mpReachNlri;
         this.isMpReachNlri = true;
         this.ipNextHop = ipNextHop;
@@ -99,7 +102,7 @@ public class MpReachNlri implements BgpValueType {
      * @param safi      safi
      * @param ipNextHop IP Nexthop
      */
-    public MpReachNlri(List<BgpEvpnNlri> evpnNlri, short afi, byte safi, Ip4Address ipNextHop) {
+    public MpReachNlri(List<BgpEvpnNlri> evpnNlri, short afi, byte safi, IpAddress ipNextHop) {
         this.mpReachNlri = null;
         this.length = 42;
         this.ipNextHop = ipNextHop;
@@ -226,7 +229,7 @@ public class MpReachNlri implements BgpValueType {
         ChannelBuffer tempCb = cb.readBytes(parseFlags.getLength());
         short afi = 0;
         byte safi = 0;
-        Ip4Address ipNextHop = null;
+        IpAddress ipNextHop = null;
         while (tempCb.readableBytes() > 0) {
             afi = tempCb.readShort();
             safi = tempCb.readByte();
@@ -239,7 +242,7 @@ public class MpReachNlri implements BgpValueType {
                 if (ipAddress.isMulticastAddress()) {
                     throw new BgpParseException("Multicast not supported");
                 }
-                ipNextHop = Ip4Address.valueOf(ipAddress);
+                ipNextHop = IpAddress.valueOf(ipAddress);
                 byte reserved = tempCb.readByte();
 
                 while (tempCb.readableBytes() > 0) {
@@ -258,6 +261,9 @@ public class MpReachNlri implements BgpValueType {
                         bgpLSNlri = BgpLinkLsNlriVer4.read(tempBuf, afi, safi);
                         break;
                     case BgpPrefixIPv4LSNlriVer4.PREFIX_IPV4_NLRITYPE:
+                    case BgpPrefixIPv4LSNlriVer4.PREFIX_IPV6_NLRITYPE:
+                        //RFC 7752 : Structure of IPv4 and IPv6 is same
+
                         bgpLSNlri = BgpPrefixIPv4LSNlriVer4.read(tempBuf, afi, safi);
                         break;
                     default:
@@ -279,7 +285,7 @@ public class MpReachNlri implements BgpValueType {
                         if (ipAddress.isMulticastAddress()) {
                             throw new BgpParseException("Multicast not supported");
                         }
-                        ipNextHop = Ip4Address.valueOf(ipAddress);
+                        ipNextHop = IpAddress.valueOf(ipAddress);
                     }
 
                     byte reserved = tempCb.readByte();
@@ -360,12 +366,11 @@ public class MpReachNlri implements BgpValueType {
                 List<BgpEvpnNlri> eVpnComponents = null;
 
                 byte nextHopLen = tempCb.readByte();
-                InetAddress ipAddress = Validation.toInetAddress(nextHopLen,
-                                                                 tempCb);
+                InetAddress ipAddress = Validation.toInetAddress(nextHopLen, tempCb);
                 if (ipAddress.isMulticastAddress()) {
                     throw new BgpParseException("Multicast not supported");
                 }
-                ipNextHop = Ip4Address.valueOf(ipAddress);
+                ipNextHop = IpAddress.valueOf(ipAddress);
                 byte reserved = tempCb.readByte();
                 while (tempCb.readableBytes() > 0) {
                     BgpEvpnNlri eVpnComponent = BgpEvpnNlriImpl.read(tempCb);
@@ -377,6 +382,27 @@ public class MpReachNlri implements BgpValueType {
                 return new MpReachNlri(eVpnComponents, afi, safi, ipNextHop);
 
 
+            } else if ((afi == Constants.AFI_IPV4_UNICAST && safi == Constants.SAFI_UNICAST)
+                    || (afi == Constants.AFI_IPV6_UNICAST && safi == Constants.SAFI_UNICAST)) {
+                byte nextHopLen = tempCb.readByte();
+                InetAddress ipAddress = Validation.toInetAddress(nextHopLen, tempCb);
+                if (ipAddress.isMulticastAddress()) {
+                    throw new BgpParseException("Multicast not supported");
+                }
+                ipNextHop = IpAddress.valueOf(ipAddress);
+                byte snpa = tempCb.readByte();
+
+                //Right now, we do not know where to use these bytes so we skip them
+                //If we do not skip, there are errors in reading subsequent TLVs
+
+                //TODO : Use this info, if required
+                if (tempCb.readableBytes() > 0) {
+                    int mpReachNlriPrefixLength = tempCb.readByte() / ONE_BYTE_LENGTH; //Convert bits to bytes
+
+                    tempCb.skipBytes(mpReachNlriPrefixLength);
+                }
+
+                return new MpReachNlri(mpReachNlri, afi, safi, ipNextHop, parseFlags.getLength());
             } else {
                 throw new BgpParseException("Not Supporting afi " + afi + "safi " + safi);
             }
@@ -403,7 +429,7 @@ public class MpReachNlri implements BgpValueType {
      *
      * @return Nexthop IpAddress
      */
-    public Ip4Address nexthop4() {
+    public IpAddress nexthop() {
         return this.ipNextHop;
     }
 
@@ -473,9 +499,15 @@ public class MpReachNlri implements BgpValueType {
             cb.writeShort(0);
             cb.writeShort(afi);
             cb.writeByte(safi);
-            // ip address length
-            cb.writeByte(0x04);
-            cb.writeInt(ipNextHop.toInt());
+            // ip address length and then octets
+            byte[] ipnextHopOctets = ipNextHop.toOctets();
+            byte ipAddrLen = (byte) (ipnextHopOctets.length);
+            cb.writeByte(ipAddrLen);
+
+            for (int temp = 0; temp < ipAddrLen; temp++) {
+                cb.writeByte(ipnextHopOctets[temp]);
+            }
+
             //sub network points of attachment
             cb.writeByte(0);
 

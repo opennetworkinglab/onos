@@ -41,6 +41,9 @@ public class Validation {
     public static final byte THIRD_BIT = 0x20;
     public static final byte FOURTH_BIT = (byte) 0x10;
     public static final byte IPV4_SIZE = 4;
+    public static final byte IPV6_SIZE = 16;
+    public static final int INET4_LENGTH = 32;
+
     private boolean firstBit;
     private boolean secondBit;
     private boolean thirdBit;
@@ -227,10 +230,20 @@ public class Validation {
      * @return object of IpPrefix
      */
     public static IpPrefix bytesToPrefix(byte[] value, int length) {
-        if (value.length != IPV4_SIZE) {
-            value = Arrays.copyOf(value, IPV4_SIZE);
+        if (length <= INET4_LENGTH) {
+            //Treat like IPv4 address
+            if (value.length != IPV4_SIZE) {
+                value = Arrays.copyOf(value, IPV4_SIZE);
+            }
+            IpPrefix ipPrefix = IpPrefix.valueOf(IpAddress.Version.INET, value, length);
+            return ipPrefix;
+        } else {
+            //Treat this like IPv6 address
+            if (value.length != IPV6_SIZE) {
+                value = Arrays.copyOf(value, IPV6_SIZE);
+            }
+            IpPrefix ipPrefix = IpPrefix.valueOf(IpAddress.Version.INET6, value, length);
+            return ipPrefix;
         }
-        IpPrefix ipPrefix = IpPrefix.valueOf(IpAddress.Version.INET, value, length);
-        return ipPrefix;
     }
 }

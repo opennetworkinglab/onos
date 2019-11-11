@@ -152,6 +152,8 @@ public class BgpCfgProvider extends AbstractProvider {
                 bgpConfig.connectPeer(nodes.get(i).hostname());
             }
         }
+
+        bgpConfig.setConnectionType(getBgpConnectionTypeFromConfig(config));
     }
 
     /**
@@ -259,6 +261,30 @@ public class BgpCfgProvider extends AbstractProvider {
             }
         }
 
+        bgpConfig.setConnectionType(getBgpConnectionTypeFromConfig(config));
+    }
+
+    /**
+    * Function to get Bgp Connection type from config.
+    * @param config The BgpAppConfig from which connection type is to be fetched
+    * @return Bgp connection type
+    */
+    private BgpCfg.ConnectionType getBgpConnectionTypeFromConfig(BgpAppConfig config) {
+        //config cannot be null here, because of the function call sequence
+
+        //But, let's put a sanity check for connectionType
+        if (null == config.connectionType()) {
+            //IPv4 is the default connection type
+            return BgpCfg.ConnectionType.IPV4;
+        }
+
+        if (config.connectionType().equals(BgpAppConfig.CONNECTION_TYPE_IPV4)) {
+            return BgpCfg.ConnectionType.IPV6;
+        } else if (config.connectionType().equals(BgpAppConfig.CONNECTION_TYPE_IPV4_AND_IPV6)) {
+            return BgpCfg.ConnectionType.IPV4_IPV6;
+        } else {
+            return BgpCfg.ConnectionType.IPV4;
+        }
     }
 
     /**

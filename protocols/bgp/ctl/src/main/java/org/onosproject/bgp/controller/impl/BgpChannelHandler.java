@@ -672,8 +672,12 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
     private void sendHandshakeOpenMessage() throws IOException, BgpParseException {
         int bgpId;
         BgpCfg.FlowSpec flowSpec = bgpconfig.flowSpecCapability();
+        BgpCfg.ConnectionType connectionType = bgpconfig.connectionType();
         boolean flowSpecStatus = false;
         boolean vpnFlowSpecStatus = false;
+
+        boolean ipv4ConnectionTypeStatus = true;
+        boolean ipv6ConnectionTypeStatus = false;
 
         bgpId = Ip4Address.valueOf(bgpconfig.getRouterId()).toInt();
 
@@ -688,6 +692,17 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
             vpnFlowSpecStatus = true;
         }
 
+        if (connectionType == BgpCfg.ConnectionType.IPV6) {
+            ipv4ConnectionTypeStatus = false;
+            ipv6ConnectionTypeStatus = true;
+        } else if (connectionType == BgpCfg.ConnectionType.IPV4_IPV6) {
+            ipv4ConnectionTypeStatus = true;
+            ipv6ConnectionTypeStatus = true;
+        } else {
+            ipv4ConnectionTypeStatus = true;
+            ipv6ConnectionTypeStatus = false;
+        }
+
         BgpMessage msg = factory4.openMessageBuilder().setAsNumber((short) bgpconfig.getAsNumber())
                 .setHoldTime(bgpconfig.getHoldTime()).setBgpId(bgpId)
                 .setLsCapabilityTlv(bgpconfig.getLsCapability())
@@ -695,7 +710,10 @@ class BgpChannelHandler extends IdleStateAwareChannelHandler {
                 .setFlowSpecCapabilityTlv(flowSpecStatus)
                 .setVpnFlowSpecCapabilityTlv(vpnFlowSpecStatus)
                 .setEvpnCapabilityTlv(evpnCapability)
-                .setFlowSpecRpdCapabilityTlv(bgpconfig.flowSpecRpdCapability()).build();
+                .setFlowSpecRpdCapabilityTlv(bgpconfig.flowSpecRpdCapability())
+                .setIpV4UnicastCapabilityTlvSet(ipv4ConnectionTypeStatus)
+                .setIpV6UnicastCapabilityTlvSet(ipv6ConnectionTypeStatus)
+                .build();
         log.debug("Sending open message to {}", channel.getRemoteAddress());
         channel.write(Collections.singletonList(msg));
 

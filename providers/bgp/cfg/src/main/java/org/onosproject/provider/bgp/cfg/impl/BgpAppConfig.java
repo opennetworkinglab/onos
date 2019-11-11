@@ -62,6 +62,11 @@ public class BgpAppConfig extends Config<ApplicationId> {
     public static final String PEER_CONNECT_PASSIVE = "passive";
     public static final String PEER_CONNECT_ACTIVE = "active";
 
+    public static final String CONNECTION_TYPE = "connectionType";
+    public static final String CONNECTION_TYPE_IPV4 = "IPV4";
+    public static final String CONNECTION_TYPE_IPV6 = "IPV6";
+    public static final String CONNECTION_TYPE_IPV4_AND_IPV6 = "IPV4_IPV6";
+
     static final int MAX_SHORT_AS_NUMBER = 65535;
     static final long MAX_LONG_AS_NUMBER = 4294967295L;
 
@@ -80,13 +85,13 @@ public class BgpAppConfig extends Config<ApplicationId> {
 
         fields = hasOnlyFields(ROUTER_ID, LOCAL_AS, MAX_SESSION, LS_CAPABILITY,
                                HOLD_TIME, LARGE_AS_CAPABILITY, FLOW_SPEC_CAPABILITY,
-                               FLOW_SPEC_RPD_CAPABILITY, BGP_PEER, EVPN_CAPABILITY) &&
+                               FLOW_SPEC_RPD_CAPABILITY, BGP_PEER, EVPN_CAPABILITY, CONNECTION_TYPE) &&
                 isIpAddress(ROUTER_ID, MANDATORY) && isNumber(LOCAL_AS, MANDATORY) &&
                 isNumber(MAX_SESSION, OPTIONAL, MIN_SESSION_NUMBER, MAX_SESSION_NUMBER)
                 && isNumber(HOLD_TIME, OPTIONAL, MIN_HOLDTIME, MAX_HOLDTIME) &&
                 isBoolean(LS_CAPABILITY, OPTIONAL) && isBoolean(LARGE_AS_CAPABILITY, OPTIONAL) &&
                 isString(FLOW_SPEC_CAPABILITY, OPTIONAL) && isBoolean(FLOW_SPEC_RPD_CAPABILITY, OPTIONAL)
-                && isBoolean(EVPN_CAPABILITY, OPTIONAL);
+                && isBoolean(EVPN_CAPABILITY, OPTIONAL) && isString(CONNECTION_TYPE, OPTIONAL);
 
         if (!fields) {
             return fields;
@@ -168,6 +173,33 @@ public class BgpAppConfig extends Config<ApplicationId> {
     }
 
     /**
+     * Returns BGP connection type from the configuration.
+     *
+     * @return BGP connection type
+     */
+    public String connectionType() {
+        return get(CONNECTION_TYPE, null);
+    }
+
+    /**
+     * Validates the BGP connection type.
+     *
+     * @return true if valid else false
+     */
+    public boolean validateConnectionType() {
+        if (connectionType() != null) {
+            String connectionType = connectionType();
+            if (!connectionType.equals(CONNECTION_TYPE_IPV4) && !connectionType.equals(CONNECTION_TYPE_IPV6)
+                    && !connectionType.equals(CONNECTION_TYPE_IPV4_AND_IPV6)) {
+                log.error("Connection Type is invalid");
+                return false;
+            }
+        }
+        log.debug("Connection Type is valid");
+        return true;
+    }
+
+    /**
      * Validates the flow specification capability.
      *
      * @return true if valid else false
@@ -232,6 +264,10 @@ public class BgpAppConfig extends Config<ApplicationId> {
         }
 
         if (!validateHoldTime()) {
+            return false;
+        }
+
+        if (!validateConnectionType()) {
             return false;
         }
         return true;

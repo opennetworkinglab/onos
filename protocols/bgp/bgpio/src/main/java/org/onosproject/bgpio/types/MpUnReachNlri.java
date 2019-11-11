@@ -219,6 +219,9 @@ public class MpUnReachNlri implements BgpValueType {
                         bgpLSNlri = BgpLinkLsNlriVer4.read(tempBuf, afi, safi);
                         break;
                     case BgpPrefixIPv4LSNlriVer4.PREFIX_IPV4_NLRITYPE:
+                    case BgpPrefixIPv4LSNlriVer4.PREFIX_IPV6_NLRITYPE:
+                        //RFC 7752 : Structure of IPv4 and IPv6 is same
+
                         bgpLSNlri = BgpPrefixIPv4LSNlriVer4.read(tempBuf, afi,
                                                                  safi);
                         break;
@@ -317,6 +320,18 @@ public class MpUnReachNlri implements BgpValueType {
                 }
 
                 return new MpUnReachNlri(eVpnComponents, afi, safi);
+            } else if ((afi == Constants.AFI_IPV4_UNICAST && safi == Constants.SAFI_UNICAST)
+                    || (afi == Constants.AFI_IPV6_UNICAST && safi == Constants.SAFI_UNICAST)) {
+                //Right now, we do not know where to use these bytes so we skip them
+                //If we do not skip, there are errors in reading subsequent TLVs
+
+                //TODO : Use this info, if required
+                int remainingLen = parseFlags.getLength() - 3; //Short for AFI, byte for SAFI
+
+                if (remainingLen > 0) {
+                    tempCb.skipBytes(remainingLen);
+                }
+
             } else {
                 //TODO: check with the values got from capability
                 throw new BgpParseException("Not Supporting afi " + afi + "safi " + safi);

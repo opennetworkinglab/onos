@@ -158,6 +158,24 @@ public interface BgpOpenMsg extends BgpMessage {
          */
         Builder setEvpnCapabilityTlv(boolean isEvpnCapabilitySet);
 
+        /**
+         * Sets if the BGP connection uses IPv4 Unicast connections.
+         *
+         * @param ipV4UnicastCapabilityTlvSet boolean value to know if IPv4 is used
+         *
+         * @return Builder by setting capabilities
+         */
+        Builder setIpV4UnicastCapabilityTlvSet(boolean ipV4UnicastCapabilityTlvSet);
+
+        /**
+         * Sets if the BGP connection uses IPv6 Unicast connections.
+         *
+         * @param ipV6UnicastCapabilityTlvSet boolean value to know if IPv6 is used
+         *
+         * @return Builder by setting capabilities
+         */
+        Builder setIpV6UnicastCapabilityTlvSet(boolean ipV6UnicastCapabilityTlvSet);
+
         @Override
         Builder setHeader(BgpHeader bgpMsgHeader);
     }

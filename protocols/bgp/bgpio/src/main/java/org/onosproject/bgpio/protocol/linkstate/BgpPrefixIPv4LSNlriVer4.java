@@ -56,6 +56,7 @@ public class BgpPrefixIPv4LSNlriVer4 implements BgpPrefixLSNlri {
     private static final Logger log = LoggerFactory.getLogger(BgpPrefixIPv4LSNlriVer4.class);
 
     public static final int PREFIX_IPV4_NLRITYPE = 3;
+    public static final int PREFIX_IPV6_NLRITYPE = 4;
     public static final int IDENTIFIER_LENGTH = 16;
     private long identifier;
     private byte protocolId;

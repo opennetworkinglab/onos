@@ -242,12 +242,12 @@ public class BgpRouteProvider extends AbstractProvider {
             List<BgpEvpnNlri> evpnReachNlri = new LinkedList<>();
             List<BgpEvpnNlri> evpnUnreachNlri = new LinkedList<>();
 
-            Ip4Address ipNextHop = null;
+            IpAddress ipNextHop = null;
             while (iterator.hasNext()) {
                 BgpValueType attr = iterator.next();
                 if (attr instanceof MpReachNlri) {
                     MpReachNlri mpReachNlri = (MpReachNlri) attr;
-                    ipNextHop = mpReachNlri.nexthop4();
+                    ipNextHop = mpReachNlri.nexthop();
                     if (mpReachNlri
                             .getNlriDetailsType() == BgpNlriType.EVPN) {
                         evpnReachNlri.addAll(mpReachNlri.bgpEvpnNlri());

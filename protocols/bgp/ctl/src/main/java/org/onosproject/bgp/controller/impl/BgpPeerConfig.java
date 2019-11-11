@@ -15,7 +15,7 @@
  */
 package org.onosproject.bgp.controller.impl;
 
-import org.onlab.packet.Ip4Address;
+import org.onlab.packet.IpAddress;
 import org.onosproject.bgp.controller.BgpConnectPeer;
 import org.onosproject.bgp.controller.BgpPeerCfg;
 
@@ -26,7 +26,7 @@ public class BgpPeerConfig  implements BgpPeerCfg {
     private int asNumber;
     private short holdTime;
     private boolean isIBgp;
-    private Ip4Address peerId = null;
+    private IpAddress peerId = null;
     private State state;
     private boolean selfInitiated;
     private BgpConnectPeer connectPeer;
@@ -80,12 +80,12 @@ public class BgpPeerConfig  implements BgpPeerCfg {
 
     @Override
     public void setPeerRouterId(String peerId) {
-        this.peerId = Ip4Address.valueOf(peerId);
+        this.peerId = IpAddress.valueOf(peerId);
     }
 
     @Override
     public void setPeerRouterId(String peerId, int asNumber) {
-        this.peerId = Ip4Address.valueOf(peerId);
+        this.peerId = IpAddress.valueOf(peerId);
         this.asNumber = asNumber;
     }
 

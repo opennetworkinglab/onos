@@ -89,6 +89,8 @@ public class LinkStateAttributes implements BgpValueType {
     public static final short ATTR_PREFIX_OSPF_FWD_ADDR = 1156;
     public static final short ATTR_PREFIX_OPAQUE_ATTR = 1157;
 
+    public static final short ATTR_PREFIX_FLAGS = 1170;
+    public static final short ATTR_EXTENDED_ADMINISTRATIVE_GROUP = 1173;
     public static final byte LINKSTATE_ATTRIB_TYPE = 29;
     public static final byte TYPE_AND_LEN = 4;
     private boolean isLinkStateAttribute = false;
@@ -279,9 +281,21 @@ public class LinkStateAttributes implements BgpValueType {
                 bgpLSAttrib = BgpPrefixAttrOpaqueData.read(tempCb);
                 break;
 
+            case ATTR_PREFIX_FLAGS:
+            case ATTR_EXTENDED_ADMINISTRATIVE_GROUP:
+                //We are not using these bytes, but simply skipping them.
+                //If we don't skip but simply ignore these, the while loop
+                //reads wrong bytes and throws BgpParseException
+
+                //TODO : Use these bytes if required
+                int prefixFlagsLength = tempCb.readShort();
+                if (tempCb.readableBytes() > 0) {
+                    tempCb.skipBytes(prefixFlagsLength);
+                }
+                break;
+
             default:
-                throw new BgpParseException(
-                                            "The Bgp-LS Attribute is not supported : "
+                throw new BgpParseException("The Bgp-LS Attribute is not supported : "
                                                     + tlvCodePoint);
             }
 

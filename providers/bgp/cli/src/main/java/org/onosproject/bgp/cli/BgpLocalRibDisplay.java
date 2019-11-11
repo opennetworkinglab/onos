@@ -314,7 +314,7 @@ public class BgpLocalRibDisplay extends AbstractShellCommand {
                         "RouterID = %s,IsoNodeID = %s,NextHop = %s", pathAttrNlriDetailsLocalRib.localRibAsNum(),
                 pathAttrNlriDetailsLocalRib.localRibIdentifier(), pathAttrNlriDetailsLocalRib.localRibIpAddress(),
                 protocolType.toString(), origin.origin(), localPref.localPref(), bgpAttrRouterIdV4.attrRouterId(),
-                Arrays.toString(isIsNonPseudonode.getIsoNodeId()), mpReachNlri.nexthop4());
+                Arrays.toString(isIsNonPseudonode.getIsoNodeId()), mpReachNlri.nexthop());
     }
 
     private void displayLink() {
@@ -399,7 +399,7 @@ public class BgpLocalRibDisplay extends AbstractShellCommand {
                 bgpLinkAttrUnRsrvdLinkBandwidth.getLinkAttrUnRsrvdLinkBandwidth().toString(),
                 bgpLinkAttrTeDefaultMetric.attrLinkDefTeMetric(), bgpLinkAttrIgpMetric.attrLinkIgpMetric(),
                 Arrays.toString(isIsNonPseudonode.getIsoNodeId()), autonomousSystemTlv.getAsNum(),
-                iPv4AddressTlv.address(), mpReachNlri.nexthop4().toString(),
+                iPv4AddressTlv.address(), mpReachNlri.nexthop().toString(),
                 pathAttrNlriDetailsLocalRib.localRibIpAddress(), origin.origin(), localPref.localPref(),
                 bgpAttrRouterIdV4.attrRouterId());
 

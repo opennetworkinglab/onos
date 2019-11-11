@@ -319,6 +319,7 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
         private boolean isBgpIdSet = false;
         private int bgpId;
         private boolean isIpV4UnicastCapabilityTlvSet = true;
+        private boolean isIpV6UnicastCapabilityTlvSet = false;
         private boolean isLargeAsCapabilityTlvSet = false;
         private boolean isLsCapabilityTlvSet = false;
         private boolean isFlowSpecCapabilityTlvSet = false;
@@ -344,7 +345,14 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
             if (this.isIpV4UnicastCapabilityTlvSet) {
                 BgpValueType tlv;
                 tlv = new MultiProtocolExtnCapabilityTlv((short) Constants.AFI_IPV4_UNICAST, RES,
-                                                         (byte) Constants.SAFI_IPV4_UNICAST);
+                                                         (byte) Constants.SAFI_UNICAST);
+                this.capabilityTlv.add(tlv);
+            }
+
+            if (this.isIpV6UnicastCapabilityTlvSet) {
+                BgpValueType tlv;
+                tlv = new MultiProtocolExtnCapabilityTlv((short) Constants.AFI_IPV6_UNICAST, RES,
+                                                         (byte) Constants.SAFI_UNICAST);
                 this.capabilityTlv.add(tlv);
             }
 
@@ -458,6 +466,18 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
         @Override
         public Builder setEvpnCapabilityTlv(boolean isEvpnCapabilitySet) {
             this.isEvpnCapabilityTlvSet = isEvpnCapabilitySet;
+            return this;
+        }
+
+        @Override
+        public Builder setIpV4UnicastCapabilityTlvSet(boolean isIpV4UnicastCapabilityTlvSet) {
+            this.isIpV4UnicastCapabilityTlvSet = isIpV4UnicastCapabilityTlvSet;
+            return this;
+        }
+
+        @Override
+        public Builder setIpV6UnicastCapabilityTlvSet(boolean isIpV6UnicastCapabilityTlvSet) {
+            this.isIpV6UnicastCapabilityTlvSet = isIpV6UnicastCapabilityTlvSet;
             return this;
         }
     }

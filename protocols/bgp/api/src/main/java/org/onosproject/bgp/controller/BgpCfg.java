@@ -67,6 +67,23 @@ public interface BgpCfg {
         NONE
     }
 
+    enum ConnectionType {
+        /**
+         * Signifies that BGP connects to peer over IPv4 only.
+         */
+        IPV4,
+
+        /**
+         * Signifies that BGP connects to peer over IPv6 only.
+         */
+        IPV6,
+
+        /**
+         * Signifies that BGP connects to peer over IPv4 and IPv6 both.
+         */
+        IPV4_IPV6
+    }
+
     /**
      * Returns the status of the configuration based on this state certain operations like connection is handled.
      *
@@ -358,5 +375,19 @@ public interface BgpCfg {
      * @return evpn capability
      */
     boolean getEvpnCapability();
+
+    /**
+     * Gets the BGP connection type.
+     *
+     * @return BGP connection type.
+     */
+    ConnectionType connectionType();
+
+    /**
+     * Sets the BGP connection type.
+     *
+     * @param connectionType BGP connection type
+     */
+    void setConnectionType(ConnectionType connectionType);
 
 }
