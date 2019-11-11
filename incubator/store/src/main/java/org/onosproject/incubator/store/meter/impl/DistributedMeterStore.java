@@ -283,7 +283,10 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
         MeterKey key = MeterKey.key(meter.deviceId(), meter.id());
         meters.computeIfPresent(key, (k, v) -> {
             DefaultMeter m = (DefaultMeter) v.meter();
-            m.setState(meter.state());
+            MeterState meterState = m.state();
+            if (meterState == MeterState.PENDING_ADD) {
+                m.setState(meter.state());
+            }
             m.setProcessedPackets(meter.packetsSeen());
             m.setProcessedBytes(meter.bytesSeen());
             m.setLife(meter.life());
@@ -330,11 +333,12 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
         // Remove the future
         futures.remove(key);
         // Remove the meter
-        meters.remove(key);
-        // Free the id
-        freeMeterId(m.deviceId(), m.id());
-        // Finally notify the delegate
-        notifyDelegate(new MeterEvent(MeterEvent.Type.METER_REMOVED, m));
+        if (Versioned.valueOrNull(meters.remove(key)) != null) {
+            // Free the id
+            freeMeterId(m.deviceId(), m.id());
+            // Finally notify the delegate
+            notifyDelegate(new MeterEvent(MeterEvent.Type.METER_REMOVED, m));
+        }
     }
 
     @Override
