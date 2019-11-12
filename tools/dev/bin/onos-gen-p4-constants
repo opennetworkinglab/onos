@@ -32,7 +32,8 @@ import org.onosproject.net.pi.model.PiCounterId;
 import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.model.PiTableId;'''
 
-PKG_FMT = 'package org.onosproject.pipelines.%s.impl.behaviour;'
+PKG_FMT = 'package %s;'
+DEFAULT_PKG_PATH = 'org.onosproject.pipelines.%s'
 
 CLASS_OPEN = 'public final class %s {'
 CLASS_CLOSE = '}'
@@ -98,10 +99,10 @@ class ConstantClassGenerator(object):
         s1 = re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).upper()
         return s1.replace('.', '_')
 
-    def __init__(self, base_name):
+    def __init__(self, base_name, pkg_path):
 
         self.class_name = base_name.title() + 'Constants'
-        self.package_name = PKG_FMT % (base_name, )
+        self.package_name = PKG_FMT % (pkg_path, )
         self.java_doc = JAVA_DOC_FMT % (base_name, )
 
     def parse(self, p4info):
@@ -203,32 +204,45 @@ class ConstantClassGenerator(object):
 
         return '\n'.join(lines)
 
-
+def gen_pkg_path(output, base_name):
+    if output is not None:
+        i = output.find('java/')
+        if i != -1:
+            pkg_path = output[i+5:]
+            last_slash = pkg_path.rfind('/')
+            pkg_path = pkg_path[:last_slash].replace('/','.')
+            return pkg_path
+    return DEFAULT_PKG_PATH % (base_name, )
 def main():
     parser = argparse.ArgumentParser(prog='onos-gen-p4-constants',
                                      description='ONOS P4Info to Java constant generator.')
     parser.add_argument('name', help='Name of the constant, will be used as class name')
     parser.add_argument('p4info', help='P4Info file')
     parser.add_argument('-o', '--output', help='output path', default='-')
+    parser.add_argument('--with-package-path', help='Specify the java package path', dest='pkg_path')
     args = parser.parse_args()
 
     base_name = args.name
     file_name = args.p4info
+    output = args.output
+    pkg_path = args.pkg_path
+    if pkg_path is None:
+        pkg_path = gen_pkg_path(output, base_name)
     p4info = p4info_pb2.P4Info()
     with open(file_name, 'r') as intput_file:
         s = intput_file.read()
         tf.Merge(s, p4info)
 
-    gen = ConstantClassGenerator(base_name)
+    gen = ConstantClassGenerator(base_name, pkg_path)
     gen.parse(p4info)
 
     java_code = gen.generate_java()
 
-    if args.output == '-':
+    if output == '-':
         # std output
         print java_code
     else:
-        with open(args.output, 'w') as output_file:
+        with open(output, 'w') as output_file:
             output_file.write(java_code)
 
 
