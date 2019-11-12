@@ -44,6 +44,7 @@
     //protocols/restconf/client/api:onos-protocols-restconf-client-api
     //protocols/snmp/api:onos-protocols-snmp-api
     //tools/build/conf:onos-build-conf
+    //tools/package/dependencies:onos-dependencies
     //utils/junit:onlab-junit
     //utils/misc:onlab-misc
     //utils/osgi:onlab-osgi

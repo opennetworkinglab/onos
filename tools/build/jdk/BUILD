@@ -3,12 +3,13 @@
 # :default_jdk are expected to be passed as arguments when invoking bazel build
 # (see onos/.bazelrc)
 
+load("//tools/build/bazel:variables.bzl", "DEFAULT_JAVA_VERSION")
 load("@bazel_tools//tools/jdk:default_java_toolchain.bzl", "default_java_toolchain")
 
 default_java_toolchain(
     name = "default_toolchain",
-    source_version = "11",
-    target_version = "11",
+    source_version = DEFAULT_JAVA_VERSION,
+    target_version = DEFAULT_JAVA_VERSION,
     visibility = ["//visibility:public"],
 )
 

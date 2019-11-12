@@ -1,3 +1,5 @@
+load("//tools/build/bazel:pom_file.bzl", "pom_file")
+
 checkstyle_source = "src/main/resources/onos/checkstyle.xml"
 
 suppression_source = "src/main/resources/onos/suppressions.xml"
@@ -25,5 +27,11 @@ filegroup(
 java_library(
     name = "onos-build-conf",
     resources = glob(["src/main/resources/onos/**"]),
+    visibility = ["//visibility:public"],
+)
+
+pom_file(
+    name = "onos-build-conf-pom",
+    artifact = "onos-build-conf",
     visibility = ["//visibility:public"],
 )

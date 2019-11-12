@@ -15,63 +15,59 @@
   ~ limitations under the License.
   -->
 <ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    name="ONOS Rules"
-    xmlns="http://pmd.sf.net/ruleset/1.0.0"
-    xsi:noNamespaceSchemaLocation="http://pmd.sf.net/ruleset_xml_schema.xsd"
-    xsi:schemaLocation="http://pmd.sf.net/ruleset/1.0.0 http://pmd.sf.net/ruleset_xml_schema.xsd" >
+         name="ONOS Rules"
+         xmlns="http://pmd.sf.net/ruleset/1.0.0"
+         xsi:noNamespaceSchemaLocation="http://pmd.sf.net/ruleset_xml_schema.xsd"
+         xsi:schemaLocation="http://pmd.sf.net/ruleset/1.0.0 http://pmd.sf.net/ruleset_xml_schema.xsd">
 
     <description>ONOS PMD rules</description>
 
-    <rule ref="rulesets/java/unnecessary.xml" >
-        <exclude name="UselessParentheses" />
+
+    <rule ref="category/java/errorprone.xml">
+        <exclude name="EmptyCatchBlock"/>
     </rule>
-    <rule ref="rulesets/java/basic.xml">
-      <exclude name="EmptyCatchBlock"/>
+    <rule ref="category/java/errorprone.xml/EmptyCatchBlock">
+        <properties>
+            <property name="allowCommentedBlocks" value="true"/>
+        </properties>
     </rule>
-    <rule ref="rulesets/java/basic.xml/EmptyCatchBlock">
-      <properties>
-	<property name="allowCommentedBlocks" value="true"/>
-      </properties>
-    </rule>
-    <rule ref="rulesets/java/unusedcode.xml">
-      <!-- Explicit public keyword in interface methods is acceptable -->
-      <exclude name="UnusedModifier" />
-    </rule>
-    <rule ref="rulesets/java/imports.xml"/>
+    <rule ref="category/java/bestpractices.xml"/>
     <rule ref="rulesets/java/optimizations.xml">
-      <exclude name="LocalVariableCouldBeFinal" />
-      <exclude name="MethodArgumentCouldBeFinal" />
-      <exclude name="AvoidInstantiatingObjectsInLoops" />
+        <exclude name="AvoidInstantiatingObjectsInLoops"/>
     </rule>
 
     <rule ref="rulesets/java/strings.xml">
-      <exclude name="AvoidDuplicateLiterals" />
+        <exclude name="AvoidDuplicateLiterals"/>
     </rule>
     <rule ref="rulesets/java/braces.xml"/>
-    <rule ref="rulesets/java/naming.xml">
-      <exclude name="AvoidInstantiatingObjectsInLoops" />
-      <exclude name="ShortClassName" />
-      <exclude name="ShortMethodName" />
-      <exclude name="ShortVariable" />
-      <exclude name="LongVariable" />
+    <rule ref="category/java/codestyle.xml">
+        <!-- Explicit public keyword in interface methods is acceptable -->
+        <exclude name="UnnecessaryModifier"/>
+        <exclude name="UselessParentheses"/>
+        <exclude name="ShortClassName"/>
+        <exclude name="ShortMethodName"/>
+        <exclude name="ShortVariable"/>
+        <exclude name="LongVariable"/>
+        <exclude name="MethodArgumentCouldBeFinal"/>
+        <exclude name="LocalVariableCouldBeFinal"/>
     </rule>
-    <rule ref="rulesets/java/naming.xml/VariableNamingConventions">
-      <properties>
-	<!--  ONOS allows the name "log" for static final Loggers -->
-	<property name="violationSuppressRegex" value=".*'log'.*"/>
-      </properties>
+    <rule ref="category/java/codestyle.xml/VariableNamingConventions">
+        <properties>
+            <!--  ONOS allows the name "log" for static final Loggers -->
+            <property name="violationSuppressRegex" value=".*'log'.*"/>
+        </properties>
     </rule>
 
     <rule ref="rulesets/java/clone.xml"/>
     <rule ref="rulesets/java/strictexception.xml"/>
     <rule ref="rulesets/java/design.xml">
-      <exclude name="GodClass" />
+        <exclude name="GodClass"/>
     </rule>
     <rule ref="rulesets/java/coupling.xml">
-      <exclude name="LawOfDemeter" />
-      <exclude name="ExcessiveImports" />
-      <!-- Suppress Removed misconfigured rule warning -->
-      <exclude name="LoosePackageCoupling" />
+        <exclude name="LawOfDemeter"/>
+        <exclude name="ExcessiveImports"/>
+        <!-- Suppress Removed misconfigured rule warning -->
+        <exclude name="LoosePackageCoupling"/>
     </rule>
 </ruleset>
 

@@ -26,6 +26,13 @@ py_binary(
     visibility = ["//visibility:public"],
 )
 
+py_binary(
+    name = "dependencies_pom_generator",
+    srcs = ["dependencies_pom_generator.py"],
+    main = "dependencies_pom_generator.py",
+    visibility = ["//visibility:public"],
+)
+
 java_binary(
     name = "onos_yang_compiler",
     main_class = "org.onosproject.yang.compiler.main.YangCompilerMain",

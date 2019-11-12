@@ -115,18 +115,20 @@
         <property name="message" value="javafx classes are not supported by all JDKs."/>
     </module>
 
+    <!-- Don't allow usage of RuntimeException -->
+    <module name="RegexpSingleline">
+        <property name="format" value="throw[ ]*new[ ]*RuntimeException"/>
+        <property name="minimum" value="0"/>
+        <property name="maximum" value="0"/>
+        <property name="message" value="Don't throw generic exception types"/>
+    </module>
+
     <!-- Checks for Headers                                -->
     <!-- See http://checkstyle.sf.net/config_header.html   -->
     <!-- <module name="Header"> -->
     <!--   <property name="headerFile" value="${checkstyle.header.file}"/> -->
     <!--   <property name="fileExtensions" value="java"/> -->
     <!-- </module> -->
-
-    <module name="RegexpHeader">
-        <!-- The following line is different for maven due to how the maven checkstyle plugin works -->
-        <property name="headerFile" value="${checkstyle.header.file}"/>
-        <property name="fileExtensions" value="java"/>
-    </module>
 
     <module name="SuppressWarningsFilter" />
 
@@ -164,13 +166,13 @@
             <property name="suppressLoadErrors" value="true"/>
         </module>
         <module name="JavadocType">
-            <property name="severity" value="warning"/>
+            <property name="severity" value="ignore"/>
         </module>
         <module name="JavadocVariable">
             <!-- Suppress check for private member Javadocs.
              Possibly revist fixing these. -->
             <property name="scope" value="public"/>
-            <property name="severity" value="warning"/>
+            <property name="severity" value="ignore"/>
         </module>
         <module name="JavadocStyle"/>
         <!-- @author tag should not be used -->
@@ -309,7 +311,7 @@
         <module name="InterfaceIsType"/>
 
         <module name="VisibilityModifier">
-            <property name="severity" value="warning"/>
+            <property name="severity" value="ignore"/>
         </module>
 
 
