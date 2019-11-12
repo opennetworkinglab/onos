@@ -1,0 +1,386 @@
+<!--
+ ~ Copyright 2019-present Open Networking Foundation
+ ~
+ ~ Licensed under the Apache License, Version 2.0 (the "License");
+ ~ you may not use this file except in compliance with the License.
+ ~ You may obtain a copy of the License at
+ ~
+ ~     http://www.apache.org/licenses/LICENSE-2.0
+ ~
+ ~ Unless required by applicable law or agreed to in writing, software
+ ~ distributed under the License is distributed on an "AS IS" BASIS,
+ ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ ~ See the License for the specific language governing permissions and
+ ~ limitations under the License.
+ -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.onosproject</groupId>
+        <artifactId>onos-base</artifactId>
+        <version>1</version>
+    </parent>
+
+    <artifactId><!-- ONOS_ARTIFACT_BASE -->dependencies</artifactId>
+    <groupId><!-- ONOS_GROUP_ID --></groupId>
+    <packaging>pom</packaging>
+    <version><!-- ONOS_VERSION --></version>
+    <name>${project.artifactId}</name>
+    <description>ONOS shared dependencies for third-party apps</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <karaf.version>4.2.6</karaf.version>
+        <maven.version.min>3.3.9</maven.version.min>
+        <java.version.min><!-- JAVA_VERSION --></java.version.min>
+        <onos.version><!-- ONOS_VERSION --></onos.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- DEPS_MGMT -->
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <!-- DEPS -->
+    </dependencies>
+
+    <build>
+
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.8.0</version>
+                    <configuration>
+                        <release>11</release>
+                    </configuration>
+                    <inherited>true</inherited>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>3.0.0-M2</version>
+                    <executions>
+                        <execution>
+                            <id>enforce-maven</id>
+                            <goals>
+                                <goal>enforce</goal>
+                            </goals>
+                            <configuration>
+                                <rules>
+                                    <requireMavenVersion>
+
+                                        <version>[${maven.version.min},)</version>
+                                    </requireMavenVersion>
+                                </rules>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>enforce-java</id>
+                            <goals>
+                                <goal>enforce</goal>
+                            </goals>
+                            <configuration>
+                                <rules>
+                                    <requireJavaVersion>
+                                        <version>[${java.version.min},)</version>
+                                    </requireJavaVersion>
+                                </rules>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-clean-plugin</artifactId>
+                    <version>3.1.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>3.0.0-M1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-install-plugin</artifactId>
+                    <version>3.0.0-M1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-site-plugin</artifactId>
+                    <version>3.8.2</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-project-info-reports-plugin</artifactId>
+                    <version>3.0.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.0.0-M3</version>
+                    <configuration>
+                        <redirectTestOutputToFile>
+                            true
+                        </redirectTestOutputToFile>
+                        <printSummary>
+                            true
+                        </printSummary>
+                        <excludedGroups>
+                            org.onlab.junit.IntegrationTest
+                        </excludedGroups>
+                        <rerunFailingTestsCount>
+                            1
+                        </rerunFailingTestsCount>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>3.1.1</version>
+                    <configuration>
+                        <tags>
+                            <tag>
+                                <name>onos.rsModel</name>
+                                <placement>m</placement>
+                                <head>Json model for REST api:</head>
+                            </tag>
+                        </tags>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.2.0</version>
+                    <configuration>
+                        <skipIfEmpty>true</skipIfEmpty>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>default</id>
+                            <goals>
+                                <goal>test-jar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-checkstyle-plugin</artifactId>
+                    <version>3.0.0</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.onosproject</groupId>
+                            <artifactId>onos-build-conf</artifactId>
+                            <version>${onos.version}</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>com.puppycrawl.tools</groupId>
+                            <artifactId>checkstyle</artifactId>
+                            <version>8.10</version>
+                        </dependency>
+                    </dependencies>
+                    <configuration>
+                        <configLocation>
+                            onos/checkstyle-mvn.xml
+                        </configLocation>
+                        <suppressionsLocation>
+                            onos/suppressions.xml
+                        </suppressionsLocation>
+                        <headerLocation>
+                            onos/onos-java.header
+                        </headerLocation>
+                        <failsOnError>false</failsOnError>
+                        <logViolationsToConsole>true</logViolationsToConsole>
+                        <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                        <includeResources>false</includeResources>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>validate-checkstyle</id>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-pmd-plugin</artifactId>
+                    <version>3.12.0</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.onosproject</groupId>
+                            <artifactId>onos-build-conf</artifactId>
+                            <version>${onos.version}</version>
+                        </dependency>
+                    </dependencies>
+                    <executions>
+                        <execution>
+                            <id>validate-pmd</id>
+                            <phase>verify</phase>
+                            <goals>
+                                <!-- Uncomment this goal to make the build fail on pmd errors -->
+                                <!-- <goal>check</goal> -->
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <rulesets>
+                            <ruleset>onos/pmd.xml</ruleset>
+                        </rulesets>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>0.8.5</version>
+                    <executions>
+                        <execution>
+                            <id>default-prepare-agent</id>
+                            <goals>
+                                <goal>prepare-agent</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>default-report</id>
+                            <phase>prepare-package</phase>
+                            <goals>
+                                <goal>report</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>3.1.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.felix</groupId>
+                    <artifactId>maven-bundle-plugin</artifactId>
+                    <version>4.1.0</version>
+                    <extensions>true</extensions>
+                    <configuration>
+                        <instructions>
+                            <Bundle-SymbolicName>
+                                ${project.groupId}.${project.artifactId}
+                            </Bundle-SymbolicName>
+                            <_dsannotations-options>inherit</_dsannotations-options>
+                        </instructions>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>3.1.0</version>
+                    <executions>
+                        <execution>
+                            <id>attach-sources</id>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>3.1.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>com.github.spotbugs</groupId>
+                    <artifactId>spotbugs-maven-plugin</artifactId>
+                    <version>3.1.12</version>
+                    <configuration>
+                        <effort>Max</effort>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.onosproject</groupId>
+                    <artifactId>onos-maven-plugin</artifactId>
+                    <!-- This version needs to be updated manually when changes
+                    are made to onos-maven-plugin -->
+                    <version>2.2</version>
+                    <executions>
+                        <execution>
+                            <id>cfg</id>
+                            <phase>generate-resources</phase>
+                            <goals>
+                                <goal>cfg</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>swagger</id>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>swagger</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>app</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>app</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.karaf.tooling</groupId>
+                    <artifactId>karaf-maven-plugin</artifactId>
+                    <version>${karaf.version}</version>
+                    <extensions>true</extensions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-pmd-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </reporting>
+
+</project>

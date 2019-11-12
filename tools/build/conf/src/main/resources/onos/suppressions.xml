@@ -61,4 +61,6 @@
 
     <!-- Suppressions for yangutils generated code -->
     <suppress files="org.onosproject.yang.gen.v1.*" checks="Javadoc.*" />
+
+    <suppress files="ApiDocRegistrator.java" checks="JavadocPackage" />
 </suppressions>

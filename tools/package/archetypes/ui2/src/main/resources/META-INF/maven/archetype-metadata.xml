@@ -61,4 +61,9 @@
             <include>ng-test.sh</include>
         </fileSet>
     </fileSets>
+    <requiredProperties>
+        <requiredProperty key="onosVersion">
+            <defaultValue>2.2.1-SNAPSHOT</defaultValue>
+        </requiredProperty>
+    </requiredProperties>
 </archetype-descriptor>
