@@ -498,7 +498,7 @@ public class ReactiveForwarding {
                 return;
             }
 
-            HostId id = HostId.hostId(ethPkt.getDestinationMAC());
+            HostId id = HostId.hostId(ethPkt.getDestinationMAC(), VlanId.vlanId(ethPkt.getVlanID()));
 
             // Do not process LLDP MAC address in any way.
             if (id.mac().isLldp()) {
