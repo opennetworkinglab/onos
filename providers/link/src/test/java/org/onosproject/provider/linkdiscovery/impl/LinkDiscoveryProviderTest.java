@@ -77,6 +77,7 @@ public class LinkDiscoveryProviderTest {
                     Hashtable<String, Integer> props = new Hashtable<>();
                     props.put("linkPollFrequencySeconds", 2);
                     props.put("linkPollDelaySeconds", 1);
+                    props.put("linkDiscoveryTimeoutSeconds", 1);
                     return props;
                 }
             };
@@ -160,6 +161,8 @@ public class LinkDiscoveryProviderTest {
                      provider.linkPollFrequencySeconds);
         assertEquals("Incorrect polling delay , should be default", 20,
                      provider.linkPollDelaySeconds);
+        assertEquals("Incorrect polling discovery delay , should be default", 300,
+                     provider.linkDiscoveryTimeoutSeconds);
     }
 
     @Test
@@ -169,6 +172,8 @@ public class LinkDiscoveryProviderTest {
                      provider.linkPollFrequencySeconds);
         assertEquals("Incorrect polling delay , should be default", 1,
                      provider.linkPollDelaySeconds);
+        assertEquals("Incorrect polling discovery delay , should be default", 1,
+                     provider.linkDiscoveryTimeoutSeconds);
 
     }
 
@@ -220,6 +225,11 @@ public class LinkDiscoveryProviderTest {
         @Override
         public Iterable<Device> getAvailableDevices() {
             return ImmutableSet.of(device1);
+        }
+
+        @Override
+        public Device getDevice(DeviceId deviceId) {
+            return device1;
         }
 
         @Override

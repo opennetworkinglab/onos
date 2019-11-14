@@ -29,4 +29,7 @@ public final class OsgiPropertyConstants {
     public static final String POLL_FREQUENCY_SECONDS = "linkPollFrequencySeconds";
     public static final int POLL_FREQUENCY_SECONDS_DEFAULT = 10;
 
+    public static final String LINK_DISCOVERY_TIMEOUT_SECONDS = "linkDiscoveryTimeoutSeconds";
+    public static final int POLL_DISCOVERY_TIMEOUT_DEFAULT = 300;
+
 }
