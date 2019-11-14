@@ -17,6 +17,7 @@ package org.onosproject.rest.resources;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Lists;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -38,6 +39,7 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onlab.util.Tools.nullIsNotFound;
@@ -103,6 +105,26 @@ public class DevicesWebResource extends AbstractWebResource {
         ObjectNode result = codec(Device.class).encode(device, this);
         get(DeviceAdminService.class).removeDevice(deviceId(id));
         return ok(result).build();
+    }
+
+    /**
+      * Gets ports of all infrastructure devices.
+      * Returns port details of all infrastructure devices.
+      *
+      * @onos.rsModel DevicesGetPorts
+      * @return 200 OK with a collection of ports for all devices
+      */
+    @GET
+    @Path("ports")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getDevicesPorts() {
+        DeviceService service = get(DeviceService.class);
+        List<Port> result = Lists.newArrayList();
+        service.getDevices().forEach(device -> {
+                Optional<List<Port>> list = Optional.ofNullable(service.getPorts(device.id()));
+                list.ifPresent(ports -> result.addAll(ports));
+        });
+        return ok(encodeArray(Port.class, "ports", result)).build();
     }
 
     /**

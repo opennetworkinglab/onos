@@ -1,0 +1,64 @@
+{
+  "type": "object",
+  "title": "device",
+  "required": [
+    "ports"
+  ],
+  "properties": {
+    "ports": {
+      "type": "array",
+      "xml": {
+        "name": "ports",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "title": "port",
+        "required": [
+          "element",
+          "port",
+          "isEnabled",
+          "type",
+          "portSpeed",
+          "annotations"
+        ],
+        "properties": {
+          "element": {
+            "type": "string",
+            "example": "of:0000000000000001"
+          },
+          "port": {
+            "type": "string",
+            "example": "2"
+          },
+          "isEnabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "type": {
+            "type": "string",
+            "example": "copper"
+          },
+          "portSpeed": {
+            "type": "integer",
+            "format": "int64",
+            "example": 0
+          },
+          "annotations": {
+            "type": "object",
+            "title": "annotations",
+            "required": [
+              "portName"
+            ],
+            "properties": {
+              "portName": {
+                "type": "string",
+                "example": "s1"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
