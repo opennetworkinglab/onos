@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-base</artifactId>
-        <version>1</version>
+        <version>2</version>
     </parent>
 
     <artifactId><!-- ONOS_ARTIFACT_BASE -->dependencies</artifactId>
@@ -37,6 +37,7 @@
         <maven.version.min>3.3.9</maven.version.min>
         <java.version.min><!-- JAVA_VERSION --></java.version.min>
         <onos.version><!-- ONOS_VERSION --></onos.version>
+        <errorprone.version>2.3.3</errorprone.version>
     </properties>
 
     <dependencyManagement>
@@ -58,9 +59,21 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.8.0</version>
                     <configuration>
-                        <release>11</release>
+                        <release>${java.version.min}</release>
+                        <encoding>${project.build.sourceEncoding}</encoding>
+                        <compilerArgs>
+                            <arg>-XDcompilePolicy=simple</arg>
+                            <arg>-Xplugin:ErrorProne</arg>
+                            <arg>-Xlint:unchecked</arg>
+                        </compilerArgs>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>com.google.errorprone</groupId>
+                                <artifactId>error_prone_core</artifactId>
+                                <version>${errorprone.version}</version>
+                            </path>
+                        </annotationProcessorPaths>
                     </configuration>
-                    <inherited>true</inherited>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -75,7 +88,6 @@
                             <configuration>
                                 <rules>
                                     <requireMavenVersion>
-
                                         <version>[${maven.version.min},)</version>
                                     </requireMavenVersion>
                                 </rules>
@@ -143,16 +155,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>3.1.1</version>
-                    <configuration>
-                        <tags>
-                            <tag>
-                                <name>onos.rsModel</name>
-                                <placement>m</placement>
-                                <head>Json model for REST api:</head>
-                            </tag>
-                        </tags>
-                    </configuration>
+                    <version>${maven.javadoc.plugin.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -161,14 +164,6 @@
                     <configuration>
                         <skipIfEmpty>true</skipIfEmpty>
                     </configuration>
-                    <executions>
-                        <execution>
-                            <id>default</id>
-                            <goals>
-                                <goal>test-jar</goal>
-                            </goals>
-                        </execution>
-                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -201,15 +196,6 @@
                         <includeTestSourceDirectory>true</includeTestSourceDirectory>
                         <includeResources>false</includeResources>
                     </configuration>
-                    <executions>
-                        <execution>
-                            <id>validate-checkstyle</id>
-                            <phase>verify</phase>
-                            <goals>
-                                <goal>check</goal>
-                            </goals>
-                        </execution>
-                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -222,16 +208,6 @@
                             <version>${onos.version}</version>
                         </dependency>
                     </dependencies>
-                    <executions>
-                        <execution>
-                            <id>validate-pmd</id>
-                            <phase>verify</phase>
-                            <goals>
-                                <!-- Uncomment this goal to make the build fail on pmd errors -->
-                                <!-- <goal>check</goal> -->
-                            </goals>
-                        </execution>
-                    </executions>
                     <configuration>
                         <rulesets>
                             <ruleset>onos/pmd.xml</ruleset>
@@ -280,15 +256,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-source-plugin</artifactId>
-                    <version>3.1.0</version>
-                    <executions>
-                        <execution>
-                            <id>attach-sources</id>
-                            <goals>
-                                <goal>jar</goal>
-                            </goals>
-                        </execution>
-                    </executions>
+                    <version>${maven.source.plugin.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -299,9 +267,6 @@
                     <groupId>com.github.spotbugs</groupId>
                     <artifactId>spotbugs-maven-plugin</artifactId>
                     <version>3.1.12</version>
-                    <configuration>
-                        <effort>Max</effort>
-                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.onosproject</groupId>
@@ -358,6 +323,28 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>default</id>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <!-- Verify checkstyle as part of the build -->
+                <executions>
+                    <execution>
+                        <id>validate-checkstyle</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
@@ -379,8 +366,53 @@
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
+                <configuration>
+                    <effort>Max</effort>
+                    <xmlOutput>true</xmlOutput>
+                    <xmlOutputDirectory>target/site</xmlOutputDirectory>
+                </configuration>
             </plugin>
         </plugins>
     </reporting>
+
+    <profiles>
+        <profile>
+            <id>ci-verify</id>
+            <!--
+            To be used in CI jobs to perform extra validations, usually
+            skipped in local builds and required for release.
+            -->
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>verify-attach-sources</id>
+                                <phase>test</phase>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>verify-attach-javadocs</id>
+                                <phase>test</phase>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>
