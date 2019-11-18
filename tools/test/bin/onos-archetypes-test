@@ -21,15 +21,17 @@ set -e
 export AROOT=${ONOS_STAGE_ROOT:-/tmp}/foo
 export ARCHETYPE_OPTS="-DarchetypeGroupId=org.onosproject -DarchetypeVersion=2.3.0-SNAPSHOT"
 
+rm -fr $AROOT 2>/dev/null
 mkdir -p $AROOT
+
 # FIXME: for an in api bundle cli rest ui uitab uitopo ui2; do
 for an in api bundle cli rest ui uitab uitopo; do
     cd $AROOT
-    rm -fr $AROOT/foo-$an
+    [ $an = api ] && name=foo-api || name=foo-app
     mvn -q -B archetype:generate "$@" $ARCHETYPE_OPTS \
         -DarchetypeArtifactId=onos-$an-archetype \
-        -DgroupId=org.foo -DartifactId=foo-$an -Dversion=1.0 \
-        -Dpackage=org.foo.$an -DinteractiveMode=false
-    cd $AROOT/foo-$an
+        -DgroupId=org.foo -DartifactId=$name -Dversion=1.0 \
+        -Dpackage=org.foo.test -DinteractiveMode=false
+    cd $AROOT/$name
     mvn "$@" -q -B clean install
 done

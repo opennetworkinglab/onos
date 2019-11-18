@@ -84,6 +84,16 @@
                 <groupId>org.onosproject</groupId>
                 <artifactId>onos-maven-plugin</artifactId>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <!-- Uncomment to disable checkstyle validation
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+                -->
+            </plugin>
         </plugins>
     </build>
 

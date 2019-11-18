@@ -1,5 +1,8 @@
+#set( $symbol_pound = '#' )
+#set( $symbol_dollar = '$' )
+#set( $symbol_escape = '\' )
 /*
- * Copyright 2014-present Open Networking Foundation
+ * Copyright ${year}-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +18,6 @@
  */
 
 /**
- * ONOS application archetype.
+ * The ${artifactId} application.
  */
 package ${package};
