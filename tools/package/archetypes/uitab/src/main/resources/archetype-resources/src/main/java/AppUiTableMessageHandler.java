@@ -1,6 +1,6 @@
-#set( $symbol_pound = '#' )
-#set( $symbol_dollar = '$' )
-#set( $symbol_escape = '\' )
+#set($symbol_pound='#')
+#set($symbol_dollar='$')
+#set($symbol_escape='\' )
 /*
  * Copyright ${year}-present Open Networking Foundation
  *
@@ -27,7 +27,6 @@ import org.onosproject.ui.table.TableRequestHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.Override;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -53,7 +52,7 @@ public class AppUiTableMessageHandler extends UiMessageHandler {
     private static final String COMMENT = "comment";
     private static final String RESULT = "result";
 
-    private static final String[] COLUMN_IDS = { ID, LABEL, CODE };
+    private static final String[] COLUMN_IDS = {ID, LABEL, CODE};
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -100,7 +99,7 @@ public class AppUiTableMessageHandler extends UiMessageHandler {
 
             // fake data for demonstration purposes...
             List<Item> items = getItems();
-            for (Item item: items) {
+            for (Item item : items) {
                 populateRow(tm.addRow(), item);
             }
         }
@@ -190,8 +189,16 @@ public class AppUiTableMessageHandler extends UiMessageHandler {
             this.code = code;
         }
 
-        String id() { return id; }
-        String label() { return label; }
-        int code() { return code; }
+        String id() {
+            return id;
+        }
+
+        String label() {
+            return label;
+        }
+
+        int code() {
+            return code;
+        }
     }
 }

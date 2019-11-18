@@ -21,11 +21,7 @@ package ${package};
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cfg.ComponentConfigAdapter;
-import org.onosproject.cfg.ConfigProperty;
-
-import java.util.Set;
 
 /**
  * Set of tests of the ONOS application component.

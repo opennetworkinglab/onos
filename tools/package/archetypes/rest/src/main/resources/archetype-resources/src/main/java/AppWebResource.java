@@ -25,8 +25,6 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 
-import static org.onlab.util.Tools.nullIsNotFound;
-
 /**
  * Sample web resource.
  */

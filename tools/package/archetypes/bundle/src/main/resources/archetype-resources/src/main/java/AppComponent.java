@@ -18,7 +18,6 @@
  */
 package ${package};
 
-import com.google.common.collect.ImmutableSet;
 import org.onosproject.cfg.ComponentConfigService;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;

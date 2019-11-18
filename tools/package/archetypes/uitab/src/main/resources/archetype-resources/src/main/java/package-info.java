@@ -1,3 +1,6 @@
+#set( $symbol_pound = '#' )
+#set( $symbol_dollar = '$' )
+#set( $symbol_escape = '\' )
 /*
  * Copyright ${year}-present Open Networking Foundation
  *
@@ -13,23 +16,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ${package};
-
-import org.apache.karaf.shell.api.action.Command;
-import org.apache.karaf.shell.api.action.lifecycle.Service;
-import org.onosproject.cli.AbstractShellCommand;
 
 /**
- * Sample Apache Karaf CLI command.
+ * The ${artifactId} application.
  */
-@Service
-@Command(scope = "onos", name = "sample",
-         description = "Sample Apache Karaf CLI command")
-public class AppCommand extends AbstractShellCommand {
-
-    @Override
-    protected void doExecute() {
-        print("Hello %s", "World");
-    }
-
-}
+package ${package};
