@@ -1,6 +1,6 @@
-#set( $symbol_pound = '#' )
-#set( $symbol_dollar = '$' )
-#set( $symbol_escape = '\' )
+#set($symbol_pound='#')
+#set($symbol_dollar='$')
+#set($symbol_escape='\' )
 /*
  * Copyright ${year}-present Open Networking Foundation
  *
@@ -99,7 +99,7 @@ public class AppUiTableMessageHandler extends UiMessageHandler {
 
             // fake data for demonstration purposes...
             List<Item> items = getItems();
-            for (Item item: items) {
+            for (Item item : items) {
                 populateRow(tm.addRow(), item);
             }
         }
