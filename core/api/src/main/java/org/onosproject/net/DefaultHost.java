@@ -37,6 +37,7 @@ public class DefaultHost extends AbstractElement implements Host {
     private final MacAddress mac;
     private final VlanId vlan;
     private final Set<HostLocation> locations;
+    private final Set<HostLocation> auxLocations;
     private final Set<IpAddress> ips;
     private final VlanId innerVlan;
     private final EthType tpid;
@@ -116,15 +117,7 @@ public class DefaultHost extends AbstractElement implements Host {
     public DefaultHost(ProviderId providerId, HostId id, MacAddress mac, VlanId vlan,
                        Set<HostLocation> locations, Set<IpAddress> ips, VlanId innerVlan,
                        EthType tpid, boolean configured, Annotations... annotations) {
-        super(providerId, id, annotations);
-        this.mac = mac;
-        this.vlan = vlan;
-        this.locations = new HashSet<>(locations);
-        this.ips = new HashSet<>(ips);
-        this.configured = configured;
-        this.innerVlan = innerVlan;
-        this.tpid = tpid;
-        this.suspended = false;
+        this(providerId, id, mac, vlan, locations, ips, innerVlan, tpid, configured, false, annotations);
     }
 
     /**
@@ -145,10 +138,34 @@ public class DefaultHost extends AbstractElement implements Host {
     public DefaultHost(ProviderId providerId, HostId id, MacAddress mac,
                        VlanId vlan, Set<HostLocation> locations, Set<IpAddress> ips, VlanId innerVlan,
                        EthType tpid, boolean configured, boolean suspended, Annotations... annotations) {
+        this(providerId, id, mac, vlan, locations, null, ips, innerVlan, tpid, configured, suspended, annotations);
+    }
+
+    /**
+     * Creates an end-station host using the supplied information.
+     *
+     * @param providerId    provider identity
+     * @param id            host identifier
+     * @param mac           host MAC address
+     * @param vlan          host VLAN identifier
+     * @param locations     set of host locations
+     * @param auxLocations  set of auxiliary locations, or null if unspecified
+     * @param ips           host IP addresses
+     * @param configured    true if configured via NetworkConfiguration
+     * @param innerVlan     host inner VLAN identifier
+     * @param tpid          outer TPID of a host
+     * @param suspended     true if the host is suspended due to policy violation.
+     * @param annotations   optional key/value annotations
+     */
+    public DefaultHost(ProviderId providerId, HostId id, MacAddress mac,
+                       VlanId vlan, Set<HostLocation> locations, Set<HostLocation> auxLocations,
+                       Set<IpAddress> ips, VlanId innerVlan,
+                       EthType tpid, boolean configured, boolean suspended, Annotations... annotations) {
         super(providerId, id, annotations);
         this.mac = mac;
         this.vlan = vlan;
         this.locations = new HashSet<>(locations);
+        this.auxLocations = (auxLocations != null) ? new HashSet<>(auxLocations) : null;
         this.ips = new HashSet<>(ips);
         this.configured = configured;
         this.innerVlan = innerVlan;
@@ -188,6 +205,11 @@ public class DefaultHost extends AbstractElement implements Host {
     }
 
     @Override
+    public Set<HostLocation> auxLocations() {
+        return auxLocations;
+    }
+
+    @Override
     public VlanId vlan() {
         return vlan;
     }
@@ -215,7 +237,7 @@ public class DefaultHost extends AbstractElement implements Host {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, mac, vlan, locations, suspended);
+        return Objects.hash(id, mac, vlan, locations, auxLocations, ips, innerVlan, tpid, suspended);
     }
 
     @Override
@@ -229,6 +251,7 @@ public class DefaultHost extends AbstractElement implements Host {
                     Objects.equals(this.mac, other.mac) &&
                     Objects.equals(this.vlan, other.vlan) &&
                     Objects.equals(this.locations, other.locations) &&
+                    Objects.equals(this.auxLocations, other.auxLocations) &&
                     Objects.equals(this.ipAddresses(), other.ipAddresses()) &&
                     Objects.equals(this.innerVlan, other.innerVlan) &&
                     Objects.equals(this.tpid, other.tpid) &&
@@ -245,6 +268,7 @@ public class DefaultHost extends AbstractElement implements Host {
                 .add("mac", mac())
                 .add("vlan", vlan())
                 .add("locations", locations())
+                .add("auxLocations", auxLocations())
                 .add("ipAddresses", ipAddresses())
                 .add("annotations", annotations())
                 .add("configured", configured())
