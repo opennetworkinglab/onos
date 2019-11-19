@@ -65,11 +65,18 @@ public interface Host extends Element {
     HostLocation location();
 
     /**
-     * Returns all host locations where the host attaches to the network edge.
+     * Returns host locations where the host attaches to the network edge.
      *
-     * @return all host locations
+     * @return host locations
      */
     Set<HostLocation> locations();
+
+    /**
+     * Returns host auxiliary locations, which could be useful for app operations in addition to the attach points.
+     *
+     * @return auxiliary locations, or null if unspecified
+     */
+    Set<HostLocation> auxLocations();
 
     /**
      * Returns true if configured by NetworkConfiguration.
@@ -105,6 +112,5 @@ public interface Host extends Element {
      * @return state true if suspended else false.
      */
     boolean suspended();
-
 
 }
