@@ -114,7 +114,7 @@ public class P4RuntimeFlowRuleProgrammable
         }
 
         if (driverBoolProperty(READ_FROM_MIRROR,
-                DEFAULT_READ_FROM_MIRROR)) {
+                               DEFAULT_READ_FROM_MIRROR)) {
             return getFlowEntriesFromMirror();
         }
 
@@ -145,10 +145,9 @@ public class P4RuntimeFlowRuleProgrammable
                     entry, handle, counterCellMap.get(handle));
             if (flowEntry == null) {
                 // Entry is on device but unknown to translation service or
-                // device mirror. Inconsistent. Mark for removal.
-                // TODO: make this behaviour configurable
-                // In some cases it's fine for the device to have rules
-                // that were not installed by us, e.g. original default entry.
+                // device mirror. Inconsistent. Mark for removal if this is not
+                // an original default entry (i.e, the same defined in the P4
+                // program via default_action, which cannot be removed.)
                 if (!isOriginalDefaultEntry(entry)) {
                     inconsistentEntries.add(entry);
                 }
@@ -189,7 +188,7 @@ public class P4RuntimeFlowRuleProgrammable
                     request.tableEntries(t.id());
                     if (driverBoolProperty(SUPPORT_DEFAULT_TABLE_ENTRY,
                                            DEFAULT_SUPPORT_DEFAULT_TABLE_ENTRY) &&
-                            !t.constDefaultAction().isPresent()) {
+                            t.constDefaultAction().isEmpty()) {
                         request.defaultTableEntry(t.id());
                     }
                 });
@@ -225,7 +224,7 @@ public class P4RuntimeFlowRuleProgrammable
 
         // A default entry might not be present in the translation store if it
         // was not inserted by an app. No need to log.
-        if (!translatedEntity.isPresent()) {
+        if (translatedEntity.isEmpty()) {
             if (!isOriginalDefaultEntry(entry)) {
                 log.warn("Table entry handle not found in translation store: {}", handle);
             }
