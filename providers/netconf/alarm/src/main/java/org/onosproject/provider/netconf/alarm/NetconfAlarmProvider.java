@@ -33,10 +33,7 @@ import org.onosproject.alarm.DeviceAlarmConfig;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.driver.DefaultDriverData;
-import org.onosproject.net.driver.DefaultDriverHandler;
 import org.onosproject.net.driver.Driver;
-import org.onosproject.net.driver.DriverData;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
@@ -155,8 +152,6 @@ public class NetconfAlarmProvider extends AbstractProvider implements AlarmProvi
                 Device device = deviceService.getDevice(deviceId);
                 if (deviceDriver != null && device.is(DeviceAlarmConfig.class)) {
                     DeviceAlarmConfig alarmTranslator = device.as(DeviceAlarmConfig.class);
-                    DriverData driverData = new DefaultDriverData(deviceDriver, deviceId);
-                    alarmTranslator.setHandler(new DefaultDriverHandler(driverData));
                     Set<Alarm> alarms = alarmTranslator.translateAlarms(ImmutableList.of(event));
                     triggerProbe(deviceId, alarms);
                 } else {
