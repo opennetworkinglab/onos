@@ -194,6 +194,7 @@ import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.constraint.BooleanConstraint;
 import org.onosproject.net.intent.constraint.DomainConstraint;
 import org.onosproject.net.intent.constraint.EncapsulationConstraint;
+import org.onosproject.net.intent.constraint.FiveTuplePathSelectionConstraint;
 import org.onosproject.net.intent.constraint.HashedPathSelectionConstraint;
 import org.onosproject.net.intent.constraint.LatencyConstraint;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
@@ -608,6 +609,7 @@ public final class KryoNamespaces {
                     EncapsulationConstraint.class,
                     EncapsulationType.class,
                     HashedPathSelectionConstraint.class,
+                    FiveTuplePathSelectionConstraint.class,
                     NonDisruptiveConstraint.class,
                     // Flow Objectives
                     DefaultForwardingObjective.class,

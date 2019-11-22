@@ -41,6 +41,7 @@ import org.onosproject.net.intent.Key;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.constraint.DomainConstraint;
 import org.onosproject.net.intent.constraint.EncapsulationConstraint;
+import org.onosproject.net.intent.constraint.FiveTuplePathSelectionConstraint;
 import org.onosproject.net.intent.constraint.HashedPathSelectionConstraint;
 import org.onosproject.net.intent.constraint.LatencyConstraint;
 import org.onosproject.net.intent.constraint.PartialFailureConstraint;
@@ -194,6 +195,10 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
     @Option(name = "--hashed", description = "Hashed path selection",
             required = false, multiValued = false)
     private boolean hashedPathSelection = false;
+
+    @Option(name = "--fiveTuple", description = "Five tuple based path selection",
+            required = false, multiValued = false)
+    private boolean fiveTuplePathSelection = false;
 
     @Option(name = "--domains", description = "Allow domain delegation",
             required = false, multiValued = false)
@@ -421,6 +426,11 @@ public abstract class ConnectivityIntentCommand extends AbstractShellCommand {
         // Check for hashed path selection
         if (hashedPathSelection) {
             constraints.add(new HashedPathSelectionConstraint());
+        }
+
+        // Check for five tuple path selection
+        if (fiveTuplePathSelection) {
+            constraints.add(new FiveTuplePathSelectionConstraint());
         }
 
         // Check for domain processing
