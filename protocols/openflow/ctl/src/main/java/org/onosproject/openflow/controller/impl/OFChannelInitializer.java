@@ -79,7 +79,7 @@ public class OFChannelInitializer
 
         pipeline.addLast("consolidateflush", new FlushConsolidationHandler(
                            FlushConsolidationHandler.DEFAULT_EXPLICIT_FLUSH_AFTER_FLUSHES, true));
-        pipeline.addLast("idle", new IdleStateHandler(20, 25, 0));
+        pipeline.addLast("idle", new IdleStateHandler(5, 25, 0));
         pipeline.addLast("timeout", new ReadTimeoutHandler(30));
 
         // XXX S ONOS: was 15 increased it to fix Issue #296
