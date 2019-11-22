@@ -76,7 +76,7 @@ public class OFChannelInitializer
         pipeline.addLast("ofmessageencoder", OFMessageEncoder.getInstance());
         pipeline.addLast("ofmessagedecoder", OFMessageDecoder.getInstance());
 
-        pipeline.addLast("idle", new IdleStateHandler(20, 25, 0));
+        pipeline.addLast("idle", new IdleStateHandler(5, 25, 0));
         pipeline.addLast("timeout", new ReadTimeoutHandler(30));
 
         // XXX S ONOS: was 15 increased it to fix Issue #296
