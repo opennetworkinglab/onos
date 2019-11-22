@@ -4,7 +4,7 @@ set -xe
 
 VM_TYPE=${1:-dev}
 
-BAZEL_VER="0.27.0"
+BAZEL_VER="1.0.0"
 CORRETTO_URL="https://d3pxv6yz143wms.cloudfront.net/8.212.04.2/java-1.8.0-amazon-corretto-jdk_8.212.04-2_amd64.deb"
 
 # Disable automatic updates

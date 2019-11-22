@@ -1,5 +1,5 @@
 ARG JDK_VER=11
-ARG BAZEL_VER=0.27.0
+ARG BAZEL_VER=1.0.0
 ARG JOBS=2
 
 # First stage is the build environment.
