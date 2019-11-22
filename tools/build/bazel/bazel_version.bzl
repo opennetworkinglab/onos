@@ -16,12 +16,12 @@
 
 def check_bazel_version():
     if "bazel_version" not in dir(native):
-        fail("\nBazel version is too old; please use 0.27.* official release!\n\n")
+        fail("\nBazel version is too old; please use 1.* official release!\n\n")
     elif not native.bazel_version:
-        print("\nBazel is not a release version; please use 0.27.* official release!\n\n")
+        print("\nBazel is not a release version; please use 1.* official release!\n\n")
         return
 
     versions = native.bazel_version.split(".")
     if not int(versions[0]) >= 1:
-        fail("\nBazel version %s is not supported; please use 1.0.* official release!\n\n" %
+        fail("\nBazel version %s is not supported; please use 1.* official release!\n\n" %
              native.bazel_version)

@@ -46,7 +46,7 @@ ONOS is built with [Bazel](https://bazel.build/), an open-source build tool
 developed by Google. We suggest downloading and installing Bazel using the
 [official instructions](https://docs.bazel.build/versions/master/install.html).
 
-The minimum required Bazel version is 0.27.0
+The minimum required Bazel version is 1.0.0
 
 1. Clone the code from the ONOS Gerrit repository
 ```bash
