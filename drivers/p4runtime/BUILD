@@ -1,7 +1,7 @@
 COMPILE_DEPS = CORE_DEPS + KRYO + [
     "//core/store/serializers:onos-core-serializers",
     "//protocols/p4runtime/api:onos-protocols-p4runtime-api",
-    "@io_grpc_grpc_java//core",
+    "//deps:io_grpc_grpc_api_context",
 ]
 
 BUNDLES = [

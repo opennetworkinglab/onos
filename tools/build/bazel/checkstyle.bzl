@@ -27,8 +27,11 @@ def _checkstyle_impl(ctx):
         need_colon = True
         classpath += file.path
 
+    java_runtime = ctx.attr._jdk[java_common.JavaRuntimeInfo]
+    java_exe_path = java_runtime.java_executable_runfiles_path
+
     cmd = " ".join(
-        ["java -cp %s com.puppycrawl.tools.checkstyle.Main" % classpath] +
+        ["%s -cp %s com.puppycrawl.tools.checkstyle.Main" % (java_exe_path, classpath)] +
         ["-c %s" % ctx.attr._config.files.to_list()[0].path] +
         [src_file.path for src_file in ctx.files.srcs],
     )
@@ -44,7 +47,10 @@ def _checkstyle_impl(ctx):
               ctx.attr._suppressions.files.to_list() +
               ctx.attr._java_header.files.to_list())
 
-    runfiles = ctx.runfiles(files = inputs)
+    runfiles = ctx.runfiles(
+        files = inputs,
+        transitive_files = java_runtime.files,
+    )
     return [DefaultInfo(runfiles = runfiles)]
 
 """
@@ -66,6 +72,10 @@ _execute_checkstyle_test = rule(
         "_config": attr.label(default = Label("//tools/build/conf:checkstyle_xml")),
         "_suppressions": attr.label(default = Label("//tools/build/conf:suppressions_xml")),
         "_java_header": attr.label(default = Label("//tools/build/conf:onos_java_header")),
+        "_jdk": attr.label(
+            default = Label("@bazel_tools//tools/jdk:current_java_runtime"),
+            providers = [java_common.JavaRuntimeInfo],
+        ),
     },
     implementation = _checkstyle_impl,
 )

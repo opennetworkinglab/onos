@@ -1,7 +1,7 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-load("//tools/build/bazel:variables.bzl", "PROTOBUF_VERSION")
 
-SHA = "9510dd2afc29e7245e9e884336f848c8a6600a14ae726adb6befdb4f786f0be2"
+PROTOBUF_VERSION = "3.10.0"
+SHA = "33cba8b89be6c81b1461f1c438424f7a1aa4e31998dbe9ed6f8319583daac8c7"
 
 def generate_protobuf():
     http_archive(

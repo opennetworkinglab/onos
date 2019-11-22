@@ -1,8 +1,8 @@
 COMPILE_DEPS = CORE_DEPS + KRYO + [
-    "@com_google_protobuf//:protobuf_java",
-    "@io_grpc_grpc_java//core",
-    "@io_grpc_grpc_java//netty",
-    "@io_grpc_grpc_java//stub",
+    "//deps:com_google_protobuf_protobuf_java",
+    "//deps:io_grpc_grpc_api_context",
+    "//deps:io_grpc_grpc_netty",
+    "//deps:io_grpc_grpc_stub",
     "//core/store/serializers:onos-core-serializers",
     "//protocols/gnmi/stub:onos-protocols-gnmi-stub",
     "//protocols/gnmi/api:onos-protocols-gnmi-api",

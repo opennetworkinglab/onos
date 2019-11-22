@@ -4,7 +4,7 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + CLI + [
     "@kafka_clients//jar",
     "@javax_ws_rs_api//jar",
     "//utils/rest:onlab-rest",
-    "@com_google_protobuf//:protobuf_java",
+    "//deps:com_google_protobuf_protobuf_java",
     "//incubator/protobuf/models:onos-incubator-protobuf-models",
     "//incubator/protobuf/models/proto:onos-incubator-protobuf-models-proto",
 ]

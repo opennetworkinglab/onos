@@ -49,7 +49,7 @@ def write(name, msg):
         with open(name, "w") as file:
             file.write(msg)
     else:
-        print msg
+        print(msg)
 
 
 def write_pom(output, coords, deps):
@@ -70,7 +70,7 @@ if __name__ == '__main__':
     import sys
 
     if len(sys.argv) < 3:
-        print 'usage: pom_generator pom.xml maven_coords dep_coords1 dep_coords2 ...'
+        print('usage: pom_generator pom.xml maven_coords dep_coords1 dep_coords2 ...')
         sys.exit(1)
 
     output = sys.argv[1]

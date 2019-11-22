@@ -1,5 +1,5 @@
 COMPILE_DEPS = CORE_DEPS + KRYO + JACKSON + [
-    "@io_grpc_grpc_java//core",
+    "//deps:io_grpc_grpc_api_context",
     "//drivers/p4runtime:onos-drivers-p4runtime",
     "//drivers/gnmi:onos-drivers-gnmi",
     "//pipelines/basic:onos-pipelines-basic",

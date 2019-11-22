@@ -26,13 +26,21 @@ load("//tools/build/bazel:protobuf_workspace.bzl", "generate_protobuf")
 
 generate_protobuf()
 
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+
+protobuf_deps()
+
 load("//tools/build/bazel:grpc_workspace.bzl", "generate_grpc")
 
 generate_grpc()
 
 load("@io_grpc_grpc_java//:repositories.bzl", "grpc_java_repositories")
 
+# We omit as many dependencies as we can and instead import the same via
+# deps.json, so they get wrapped properly for Karaf runtime.
 grpc_java_repositories(
+    omit_bazel_skylib = False,
+    omit_com_google_android_annotations = False,
     omit_com_google_api_grpc_google_common_protos = True,
     omit_com_google_auth_google_auth_library_credentials = True,
     omit_com_google_auth_google_auth_library_oauth2_http = True,
@@ -40,14 +48,14 @@ grpc_java_repositories(
     omit_com_google_code_gson = True,
     omit_com_google_errorprone_error_prone_annotations = True,
     omit_com_google_guava = True,
+    omit_com_google_guava_failureaccess = False,
     omit_com_google_j2objc_j2objc_annotations = True,
     omit_com_google_protobuf = True,
     omit_com_google_protobuf_javalite = True,
-    omit_com_google_protobuf_nano_protobuf_javanano = True,
-    omit_com_google_re2j = True,
     omit_com_google_truth_truth = True,
     omit_com_squareup_okhttp = True,
     omit_com_squareup_okio = True,
+    omit_io_grpc_grpc_proto = True,
     omit_io_netty_buffer = True,
     omit_io_netty_codec = True,
     omit_io_netty_codec_http = True,
@@ -61,8 +69,10 @@ grpc_java_repositories(
     omit_io_netty_transport = True,
     omit_io_opencensus_api = True,
     omit_io_opencensus_grpc_metrics = True,
-    omit_javax_annotation = False,
+    omit_io_perfmark = True,
+    omit_javax_annotation = True,
     omit_junit_junit = True,
+    omit_net_zlib = True,
     omit_org_apache_commons_lang3 = True,
 )
 
@@ -95,20 +105,35 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 # See https://github.com/bazelbuild/rules_go for the up to date setup instructions.
 http_archive(
     name = "io_bazel_rules_go",
-    url = "https://github.com/bazelbuild/rules_go/releases/download/0.16.3/rules_go-0.16.3.tar.gz",
+    sha256 = "9fb16af4d4836c8222142e54c9efa0bb5fc562ffc893ce2abeac3e25daead144",
+    urls = [
+        "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/rules_go/releases/download/0.19.0/rules_go-0.19.0.tar.gz",
+        "https://github.com/bazelbuild/rules_go/releases/download/0.19.0/rules_go-0.19.0.tar.gz",
+    ],
 )
 
-http_archive(
-    name = "com_github_bazelbuild_buildtools",
-    strip_prefix = "buildtools-db073457c5a56d810e46efc18bb93a4fd7aa7b5e",
-    url = "https://github.com/bazelbuild/buildtools/archive/db073457c5a56d810e46efc18bb93a4fd7aa7b5e.zip",
-)
-
-load("@io_bazel_rules_go//go:def.bzl", "go_register_toolchains", "go_rules_dependencies")
-load("@com_github_bazelbuild_buildtools//buildifier:deps.bzl", "buildifier_dependencies")
+load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
 
 go_rules_dependencies()
 
 go_register_toolchains()
 
-buildifier_dependencies()
+http_archive(
+    name = "bazel_gazelle",
+    sha256 = "be9296bfd64882e3c08e3283c58fcb461fa6dd3c171764fcc4cf322f60615a9b",
+    urls = [
+        "https://storage.googleapis.com/bazel-mirror/github.com/bazelbuild/bazel-gazelle/releases/download/0.18.1/bazel-gazelle-0.18.1.tar.gz",
+        "https://github.com/bazelbuild/bazel-gazelle/releases/download/0.18.1/bazel-gazelle-0.18.1.tar.gz",
+    ],
+)
+
+load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
+
+gazelle_dependencies()
+
+http_archive(
+    name = "com_github_bazelbuild_buildtools",
+    sha256 = "05eb52437fb250c7591dd6cbcfd1f9b5b61d85d6b20f04b041e0830dd1ab39b3",
+    strip_prefix = "buildtools-0.29.0",
+    url = "https://github.com/bazelbuild/buildtools/archive/0.29.0.zip",
+)

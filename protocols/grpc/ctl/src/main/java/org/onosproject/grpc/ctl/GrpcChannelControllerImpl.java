@@ -18,10 +18,14 @@ package org.onosproject.grpc.ctl;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Striped;
+import io.grpc.LoadBalancerRegistry;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.NameResolverRegistry;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import io.grpc.internal.DnsNameResolverProvider;
+import io.grpc.internal.PickFirstLoadBalancerProvider;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -58,6 +62,11 @@ import static java.lang.String.format;
 @Service
 public class GrpcChannelControllerImpl implements GrpcChannelController {
 
+    private static final PickFirstLoadBalancerProvider PICK_FIRST_LOAD_BALANCER_PROVIDER =
+            new PickFirstLoadBalancerProvider();
+    private static final DnsNameResolverProvider DNS_NAME_RESOLVER_PROVIDER =
+            new DnsNameResolverProvider();
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ComponentConfigService componentConfigService;
 
@@ -80,6 +89,10 @@ public class GrpcChannelControllerImpl implements GrpcChannelController {
         componentConfigService.registerProperties(getClass());
         channels = new ConcurrentHashMap<>();
         interceptors = new ConcurrentHashMap<>();
+        LoadBalancerRegistry.getDefaultRegistry()
+                .register(PICK_FIRST_LOAD_BALANCER_PROVIDER);
+        NameResolverRegistry.getDefaultRegistry()
+                .register(DNS_NAME_RESOLVER_PROVIDER);
         log.info("Started");
     }
 
@@ -98,6 +111,10 @@ public class GrpcChannelControllerImpl implements GrpcChannelController {
 
     @Deactivate
     public void deactivate() {
+        LoadBalancerRegistry.getDefaultRegistry()
+                .deregister(PICK_FIRST_LOAD_BALANCER_PROVIDER);
+        NameResolverRegistry.getDefaultRegistry()
+                .register(DNS_NAME_RESOLVER_PROVIDER);
         componentConfigService.unregisterProperties(getClass(), false);
         channels.values().forEach(ManagedChannel::shutdownNow);
         channels.clear();
@@ -128,7 +145,11 @@ public class GrpcChannelControllerImpl implements GrpcChannelController {
                 interceptor = new GrpcLoggingInterceptor(channelId, enableMessageLog);
                 channelBuilder.intercept(interceptor);
             }
-            ManagedChannel channel = channelBuilder.build();
+            ManagedChannel channel = channelBuilder
+                    .nameResolverFactory(DNS_NAME_RESOLVER_PROVIDER)
+                    .defaultLoadBalancingPolicy(
+                            PICK_FIRST_LOAD_BALANCER_PROVIDER.getPolicyName())
+                    .build();
             // Forced connection API is still experimental. Use workaround...
             // channel.getState(true);
             try {

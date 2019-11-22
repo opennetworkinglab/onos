@@ -4,16 +4,16 @@ COMPILE_DEPS = CORE_DEPS + KRYO + JACKSON + [
     "//pipelines/basic:onos-pipelines-basic",
     "//protocols/p4runtime/api:onos-protocols-p4runtime-api",
     "//protocols/p4runtime/model:onos-protocols-p4runtime-model",
-    "@io_grpc_grpc_java//core",
-    "@io_grpc_grpc_java//netty",
+    "//deps:io_grpc_grpc_api_context",
+    "//deps:io_grpc_grpc_netty",
     "@minimal_json//jar",
     # "//protocols/bmv2/thrift-api:onos-protocols-bmv2-thrift-api",
-    #"//lib:libthrift",
+    #"//deps:libthrift",
 ]
 
 BUNDLES = [
     ":onos-drivers-bmv2",
-    # "//lib:libthrift",
+    # "//deps:libthrift",
     # "//protocols/bmv2/thrift-api:onos-protocols-bmv2-thrift-api",
 ]
 

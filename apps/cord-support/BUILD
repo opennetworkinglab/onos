@@ -3,7 +3,7 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + REST + [
 ]
 
 TEST_DEPS = TEST_REST + [
-    "//lib:jersey-server",
+    "//deps:jersey-server",
 ]
 
 osgi_jar_with_tests(

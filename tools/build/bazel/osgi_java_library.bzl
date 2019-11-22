@@ -392,7 +392,7 @@ def osgi_jar_with_tests(
     if import_packages == None:
         import_packages = "*"
     tests_name = name + "-tests"
-    tests_jar_deps = list(depset(deps + test_deps)) + [name]
+    tests_jar_deps = depset(deps + test_deps).to_list() + [name]
     all_test_deps = tests_jar_deps + [tests_name]
     web_xml = _webapp()
 
@@ -629,34 +629,41 @@ def osgi_proto_jar(
         version = ONOS_VERSION):
     if name == None:
         name = _auto_name()
+    proto_name = name + "-java-proto"
     native.java_proto_library(
-        name = name + "-java-proto",
+        name = proto_name,
         deps = proto_libs,
     )
     java_sources_alt(
-        name = name + "-proto-srcjar",
-        srcs = [":%s-java-proto" % name],
+        name = proto_name + "-srcjar",
+        srcs = [":" + proto_name],
     )
     osgi_srcs = [
-        ":%s-proto-srcjar" % name,
+        proto_name + "-srcjar",
     ]
     base_deps = [
-        "@com_google_protobuf//:protobuf_java",
+        "//deps:com_google_protobuf_protobuf_java",
     ]
     if grpc_proto_lib != None:
+        grpc_name = name + "-java-grpc"
         java_grpc_library(
-            name = name + "-java-grpc",
+            name = grpc_name,
             srcs = [grpc_proto_lib],
-            deps = [":%s-java-proto" % name],
+            deps = [":" + proto_name],
+        )
+        java_sources_alt(
+            name = grpc_name + "-srcjar",
+            srcs = [":lib%s-src.jar" % grpc_name],
         )
         osgi_srcs.append(
-            ":%s-java-grpc__do_not_reference__srcjar" % name,
+            ":" + grpc_name + "-srcjar",
         )
         base_deps.extend([
             "@com_google_guava_guava//jar",
-            "@io_grpc_grpc_java//core",
-            "@io_grpc_grpc_java//stub",
-            "@io_grpc_grpc_java//protobuf",
+            "//deps:io_grpc_grpc_api_context",
+            "//deps:io_grpc_grpc_stub",
+            "//deps:io_grpc_grpc_protobuf",
+            "@javax_annotation_javax_annotation_api//jar",
         ])
     osgi_jar(
         name = name,
