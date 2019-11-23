@@ -75,7 +75,7 @@ public class OnosCfgMojo extends AbstractMojo {
 
     private class CfgDefGenerator {
 
-        private static final String COMPONENT = "org.osgi.service.component.annotations.Component";
+        private static final String COMPONENT = "Component";
         private static final String PROPERTY = "property";
         private static final String SEP = "|";
         private static final String UTF_8 = "UTF-8";
@@ -125,7 +125,7 @@ public class OnosCfgMojo extends AbstractMojo {
 
         private void processClass(JavaClass javaClass) throws IOException {
             Optional<JavaAnnotation> annotation = javaClass.getAnnotations().stream()
-                    .filter(ja -> ja.getType().getName().equals(COMPONENT))
+                    .filter(ja -> ja.getType().getName().endsWith(COMPONENT))
                     .findFirst();
             if (annotation.isPresent()) {
                 AnnotationValue property = annotation.get().getProperty(PROPERTY);

@@ -273,7 +273,7 @@
                     <artifactId>onos-maven-plugin</artifactId>
                     <!-- This version needs to be updated manually when changes
                     are made to onos-maven-plugin -->
-                    <version>2.2</version>
+                    <version>2.2.1</version>
                     <executions>
                         <execution>
                             <id>cfg</id>
