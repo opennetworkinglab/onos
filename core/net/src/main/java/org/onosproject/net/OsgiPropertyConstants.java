@@ -38,6 +38,9 @@ public final class OsgiPropertyConstants {
     public static final String ALLOW_EXTRANEOUS_RULES = "allowExtraneousRules";
     public static final boolean ALLOW_EXTRANEOUS_RULES_DEFAULT = false;
 
+    public static final String IMPORT_EXTRANEOUS_RULES = "importExtraneousRules";
+    public static final boolean IMPORT_EXTRANEOUS_RULES_DEFAULT = false;
+
     public static final String PURGE_ON_DISCONNECTION = "purgeOnDisconnection";
     public static final boolean PURGE_ON_DISCONNECTION_DEFAULT = false;
 
