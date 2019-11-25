@@ -24,6 +24,7 @@ import com.google.common.collect.Sets;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.packet.EthType;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
@@ -997,5 +998,17 @@ public class HostHandlerTest {
         hostHandler.processHostMovedEvent(new HostEvent(HostEvent.Type.HOST_MOVED, host2, host1));
 
         verify(hostHandler.srManager.probingService);
+    }
+
+    @Test
+    public void testEffectiveLocations() {
+        Host regularHost = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_TAGGED,
+                Sets.newHashSet(HOST_LOC11, HOST_LOC12), Sets.newHashSet(HOST_IP11), false);
+        Host auxHost = new DefaultHost(PROVIDER_ID, HOST_ID_UNTAGGED, HOST_MAC, HOST_VLAN_TAGGED,
+                Sets.newHashSet(HOST_LOC11, HOST_LOC12), Sets.newHashSet(HOST_LOC21, HOST_LOC22),
+                Sets.newHashSet(HOST_IP11), VlanId.NONE, EthType.EtherType.UNKNOWN.ethType(), false, false);
+
+        assertEquals(Sets.newHashSet(HOST_LOC11, HOST_LOC12), hostHandler.effectiveLocations(regularHost));
+        assertEquals(Sets.newHashSet(HOST_LOC21, HOST_LOC22), hostHandler.effectiveLocations(auxHost));
     }
 }

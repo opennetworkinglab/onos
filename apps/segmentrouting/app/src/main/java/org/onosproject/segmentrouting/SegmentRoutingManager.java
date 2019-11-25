@@ -1455,6 +1455,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 } else if (event.type() == HostEvent.Type.HOST_MOVED) {
                     hostHandler.processHostMovedEvent((HostEvent) event);
                     routeHandler.processHostMovedEvent((HostEvent) event);
+                } else if (event.type() == HostEvent.Type.HOST_AUX_MOVED) {
+                    hostHandler.processHostMovedEvent((HostEvent) event);
+                    // TODO RouteHandler also needs to process this event in order to
+                    //      support nexthops that has auxLocations
                 } else if (event.type() == HostEvent.Type.HOST_REMOVED) {
                     hostHandler.processHostRemovedEvent((HostEvent) event);
                 } else if (event.type() == HostEvent.Type.HOST_UPDATED) {
