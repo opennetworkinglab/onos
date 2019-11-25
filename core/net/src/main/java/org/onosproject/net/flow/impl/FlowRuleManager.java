@@ -82,6 +82,8 @@ import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.net.OsgiPropertyConstants.ALLOW_EXTRANEOUS_RULES;
 import static org.onosproject.net.OsgiPropertyConstants.ALLOW_EXTRANEOUS_RULES_DEFAULT;
+import static org.onosproject.net.OsgiPropertyConstants.IMPORT_EXTRANEOUS_RULES;
+import static org.onosproject.net.OsgiPropertyConstants.IMPORT_EXTRANEOUS_RULES_DEFAULT;
 import static org.onosproject.net.OsgiPropertyConstants.POLL_FREQUENCY;
 import static org.onosproject.net.OsgiPropertyConstants.POLL_FREQUENCY_DEFAULT;
 import static org.onosproject.net.OsgiPropertyConstants.PURGE_ON_DISCONNECTION;
@@ -97,20 +99,21 @@ import static org.slf4j.LoggerFactory.getLogger;
  * Provides implementation of the flow NB &amp; SB APIs.
  */
 @Component(
-    immediate = true,
-    service = {
-        FlowRuleService.class,
-        FlowRuleProviderRegistry.class
-    },
-    property = {
-        ALLOW_EXTRANEOUS_RULES + ":Boolean=" + ALLOW_EXTRANEOUS_RULES_DEFAULT,
-        PURGE_ON_DISCONNECTION + ":Boolean=" + PURGE_ON_DISCONNECTION_DEFAULT,
-        POLL_FREQUENCY + ":Integer=" + POLL_FREQUENCY_DEFAULT
-    }
+        immediate = true,
+        service = {
+                FlowRuleService.class,
+                FlowRuleProviderRegistry.class
+        },
+        property = {
+                ALLOW_EXTRANEOUS_RULES + ":Boolean=" + ALLOW_EXTRANEOUS_RULES_DEFAULT,
+                IMPORT_EXTRANEOUS_RULES + ":Boolean=" + IMPORT_EXTRANEOUS_RULES_DEFAULT,
+                PURGE_ON_DISCONNECTION + ":Boolean=" + PURGE_ON_DISCONNECTION_DEFAULT,
+                POLL_FREQUENCY + ":Integer=" + POLL_FREQUENCY_DEFAULT
+        }
 )
 public class FlowRuleManager
         extends AbstractListenerProviderRegistry<FlowRuleEvent, FlowRuleListener,
-                                                 FlowRuleProvider, FlowRuleProviderService>
+        FlowRuleProvider, FlowRuleProviderService>
         implements FlowRuleService, FlowRuleProviderRegistry {
 
     private final Logger log = getLogger(getClass());
@@ -120,6 +123,9 @@ public class FlowRuleManager
 
     /** Allow flow rules in switch not installed by ONOS. */
     private boolean allowExtraneousRules = ALLOW_EXTRANEOUS_RULES_DEFAULT;
+
+    /** Allow to import flow rules in switch not installed by ONOS. */
+    private boolean importExtraneousRules = IMPORT_EXTRANEOUS_RULES_DEFAULT;
 
     /** Purge entries associated with a device when the device goes offline. */
     private boolean purgeOnDisconnection = PURGE_ON_DISCONNECTION_DEFAULT;
@@ -189,7 +195,7 @@ public class FlowRuleManager
             readComponentConfiguration(context);
         }
         driverProvider.init(new InternalFlowRuleProviderService(driverProvider),
-                             deviceService, mastershipService, fallbackFlowPollFrequency);
+                            deviceService, mastershipService, fallbackFlowPollFrequency);
     }
 
     @Override
@@ -209,21 +215,31 @@ public class FlowRuleManager
         flag = Tools.isPropertyEnabled(properties, ALLOW_EXTRANEOUS_RULES);
         if (flag == null) {
             log.info("AllowExtraneousRules is not configured, " +
-                    "using current value of {}", allowExtraneousRules);
+                             "using current value of {}", allowExtraneousRules);
         } else {
             allowExtraneousRules = flag;
             log.info("Configured. AllowExtraneousRules is {}",
-                    allowExtraneousRules ? "enabled" : "disabled");
+                     allowExtraneousRules ? "enabled" : "disabled");
+        }
+
+        flag = Tools.isPropertyEnabled(properties, IMPORT_EXTRANEOUS_RULES);
+        if (flag == null) {
+            log.info("ImportExtraneousRules is not configured, " +
+                             "using current value of {}", importExtraneousRules);
+        } else {
+            importExtraneousRules = flag;
+            log.info("Configured. importExtraneousRules is {}",
+                     importExtraneousRules ? "enabled" : "disabled");
         }
 
         flag = Tools.isPropertyEnabled(properties, PURGE_ON_DISCONNECTION);
         if (flag == null) {
             log.info("PurgeOnDisconnection is not configured, " +
-                    "using current value of {}", purgeOnDisconnection);
+                             "using current value of {}", purgeOnDisconnection);
         } else {
             purgeOnDisconnection = flag;
             log.info("Configured. PurgeOnDisconnection is {}",
-                    purgeOnDisconnection ? "enabled" : "disabled");
+                     purgeOnDisconnection ? "enabled" : "disabled");
         }
 
         String s = get(properties, POLL_FREQUENCY);
@@ -374,9 +390,9 @@ public class FlowRuleManager
         // if device supports FlowRuleProgrammable,
         // use FlowRuleProgrammable via FlowRuleDriverProvider
         return Optional.ofNullable(deviceService.getDevice(deviceId))
-                        .filter(dev -> dev.is(FlowRuleProgrammable.class))
-                        .<FlowRuleProvider>map(x -> driverProvider)
-                        .orElseGet(() -> super.getProvider(deviceId));
+                .filter(dev -> dev.is(FlowRuleProgrammable.class))
+                .<FlowRuleProvider>map(x -> driverProvider)
+                .orElseGet(() -> super.getProvider(deviceId));
     }
 
     private class InternalFlowRuleProviderService
@@ -567,6 +583,8 @@ public class FlowRuleManager
                         // the device has a rule the store does not have
                         if (!allowExtraneousRules) {
                             extraneousFlow(rule);
+                        } else if (importExtraneousRules) { // Stores the rule, if so is indicated
+                            store.addOrUpdateFlowRule(rule);
                         }
                     }
                 } catch (Exception e) {
@@ -599,7 +617,7 @@ public class FlowRuleManager
 
         @Override
         public void pushTableStatistics(DeviceId deviceId,
-                                          List<TableStatisticsEntry> tableStats) {
+                                        List<TableStatisticsEntry> tableStats) {
             store.updateTableStatistics(deviceId, tableStats);
         }
     }
@@ -614,54 +632,54 @@ public class FlowRuleManager
         public void notify(FlowRuleBatchEvent event) {
             final FlowRuleBatchRequest request = event.subject();
             switch (event.type()) {
-            case BATCH_OPERATION_REQUESTED:
-                // Request has been forwarded to MASTER Node, and was
-                request.ops().forEach(
-                        op -> {
-                            switch (op.operator()) {
-                                case ADD:
-                                    post(new FlowRuleEvent(RULE_ADD_REQUESTED, op.target()));
-                                    break;
-                                case REMOVE:
-                                    post(new FlowRuleEvent(RULE_REMOVE_REQUESTED, op.target()));
-                                    break;
-                                case MODIFY:
-                                    //TODO: do something here when the time comes.
-                                    break;
-                                default:
-                                    log.warn("Unknown flow operation operator: {}", op.operator());
+                case BATCH_OPERATION_REQUESTED:
+                    // Request has been forwarded to MASTER Node, and was
+                    request.ops().forEach(
+                            op -> {
+                                switch (op.operator()) {
+                                    case ADD:
+                                        post(new FlowRuleEvent(RULE_ADD_REQUESTED, op.target()));
+                                        break;
+                                    case REMOVE:
+                                        post(new FlowRuleEvent(RULE_REMOVE_REQUESTED, op.target()));
+                                        break;
+                                    case MODIFY:
+                                        //TODO: do something here when the time comes.
+                                        break;
+                                    default:
+                                        log.warn("Unknown flow operation operator: {}", op.operator());
+                                }
                             }
-                        }
-                );
+                    );
 
-                DeviceId deviceId = event.deviceId();
-                FlowRuleBatchOperation batchOperation = request.asBatchOperation(deviceId);
-                // getProvider is customized to favor driverProvider
-                FlowRuleProvider flowRuleProvider = getProvider(deviceId);
-                if (flowRuleProvider != null) {
-                    log.trace("Sending {} flow rules to {}", batchOperation.size(), deviceId);
-                    flowRuleProvider.executeBatch(batchOperation);
-                }
-
-                break;
-
-            case BATCH_OPERATION_COMPLETED:
-                // Operation completed, let's retrieve the processor and trigger the callback
-                FlowOperationsProcessor fops = pendingFlowOperations.remove(
-                        event.subject().batchId());
-                if (fops != null) {
-                    if (event.result().isSuccess()) {
-                        fops.satisfy(event.deviceId());
-                    } else {
-                        fops.fail(event.deviceId(), event.result().failedItems());
+                    DeviceId deviceId = event.deviceId();
+                    FlowRuleBatchOperation batchOperation = request.asBatchOperation(deviceId);
+                    // getProvider is customized to favor driverProvider
+                    FlowRuleProvider flowRuleProvider = getProvider(deviceId);
+                    if (flowRuleProvider != null) {
+                        log.trace("Sending {} flow rules to {}", batchOperation.size(), deviceId);
+                        flowRuleProvider.executeBatch(batchOperation);
                     }
-                } else {
-                    log.warn("Unable to find flow operations processor for batch: {}", event.subject().batchId());
-                }
-                break;
 
-            default:
-                break;
+                    break;
+
+                case BATCH_OPERATION_COMPLETED:
+                    // Operation completed, let's retrieve the processor and trigger the callback
+                    FlowOperationsProcessor fops = pendingFlowOperations.remove(
+                            event.subject().batchId());
+                    if (fops != null) {
+                        if (event.result().isSuccess()) {
+                            fops.satisfy(event.deviceId());
+                        } else {
+                            fops.fail(event.deviceId(), event.result().failedItems());
+                        }
+                    } else {
+                        log.warn("Unable to find flow operations processor for batch: {}", event.subject().batchId());
+                    }
+                    break;
+
+                default:
+                    break;
             }
         }
     }
@@ -707,14 +725,14 @@ public class FlowRuleManager
 
             for (FlowRuleOperation op : ops) {
                 perDeviceBatches.put(op.rule().deviceId(),
-                        new FlowRuleBatchEntry(mapOperationType(op.type()), op.rule()));
+                                     new FlowRuleBatchEntry(mapOperationType(op.type()), op.rule()));
             }
             pendingDevices.addAll(perDeviceBatches.keySet());
 
             for (DeviceId deviceId : perDeviceBatches.keySet()) {
                 long id = idGenerator.getNewId();
                 final FlowRuleBatchOperation b = new FlowRuleBatchOperation(perDeviceBatches.get(deviceId),
-                                               deviceId, id);
+                                                                            deviceId, id);
                 pendingFlowOperations.put(id, this);
                 deviceInstallers.execute(() -> store.storeBatch(b));
             }
