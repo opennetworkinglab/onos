@@ -1322,6 +1322,14 @@ public class SegmentRoutingManager implements SegmentRoutingService {
      */
     public void updateMacVlanTreatment(DeviceId deviceId, MacAddress hostMac,
                              VlanId hostVlanId, PortNumber port, int nextId) {
+        // Check if we are the king of this device
+        // just one instance should perform this update
+        if (!defaultRoutingHandler.shouldProgram(deviceId)) {
+            log.debug("This instance is not handling the routing towards the "
+                              + "device {}", deviceId);
+            return;
+        }
+        // Get the handler and perform the update
         DefaultGroupHandler ghdlr = groupHandlerMap.get(deviceId);
         if (ghdlr != null) {
             ghdlr.updateL3UcastGroupBucket(hostMac, hostVlanId, port, nextId);
