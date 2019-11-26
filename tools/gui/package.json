@@ -39,7 +39,7 @@
     "karma-ng-html2js-preprocessor": "^1.0.0",
     "karma-phantomjs-launcher": "^1.0.4",
     "phantomjs": "^2.1.7",
-    "@bazel/hide-bazel-files": "latest"
+    "@bazel/hide-bazel-files": "0.40.0"
   },
   "babel": {
     "presets": [
