@@ -112,8 +112,7 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
             lstFlowRules.add(buildTPppoeTermV4FlowRule(attachmentInfo));
         }
         lstFlowRules.add(buildTLineSessionMapFlowRule(attachmentInfo));
-        // Clean-up attachment related counters
-        this.resetCounters(attachmentInfo);
+
         lstFlowRules.forEach(flowRule -> flowRuleService.applyFlowRules(flowRule));
     }
 

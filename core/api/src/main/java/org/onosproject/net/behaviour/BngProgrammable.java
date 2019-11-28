@@ -54,13 +54,15 @@ public interface BngProgrammable extends HandlerBehaviour {
      *              BngProgrammable.
      * @throws BngProgrammableException while writing on BNG device.
      */
-    void cleanUp(ApplicationId appId) throws BngProgrammableException;
+    void cleanUp(ApplicationId appId)
+            throws BngProgrammableException;
 
     /**
      * Set up the necessary state to enable termination of the attachment
-     * traffic. Make also sure that the state of the given attachment is cleaned
-     * up. If the attachment is active, packets will be forwarded/terminated
-     * after calling this method, if not they will be dropped.
+     * traffic. If the attachment is active, packets will be
+     * forwarded/terminated after calling this method, if not they will be
+     * dropped. State, if already present in the data plane, will not be cleaned
+     * (e.g., counters).
      *
      * @param attachmentInfo Attachment information to configure the line
      *                       termination.
@@ -77,8 +79,10 @@ public interface BngProgrammable extends HandlerBehaviour {
      *
      * @param attachmentInfo Attachment information to remove the line
      *                       termination.
+     * @throws BngProgrammableException while writing on BNG device.
      */
-    void removeAttachment(Attachment attachmentInfo);
+    void removeAttachment(Attachment attachmentInfo)
+            throws BngProgrammableException;
 
     /**
      * Read all counters for a given attachment and returns a map with keys
