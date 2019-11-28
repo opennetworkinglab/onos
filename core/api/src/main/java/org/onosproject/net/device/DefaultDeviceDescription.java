@@ -110,6 +110,10 @@ public class DefaultDeviceDescription extends AbstractDescription
         this.hwVersion = hwVersion;
         this.swVersion = swVersion;
         this.serialNumber = serialNumber;
+        //Avoid propagation of null chassisID and substitute it with UNKNOWN
+        if (chassis == null) {
+            chassis = new ChassisId();
+        }
         this.chassisId = chassis;
         this.defaultAvailable = defaultAvailable;
     }
