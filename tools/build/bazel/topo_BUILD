@@ -1,0 +1,21 @@
+# Prefix string to remove from proto import statements
+IMPORT_PREFIX = "github.com/onosproject/onos-topo/api/"
+
+proto_library(
+    name = "topo_device_proto",
+    srcs = [":topo_device_proto_sed"],
+    deps = [
+        "@com_google_protobuf//:descriptor_proto",
+        "@com_google_protobuf//:duration_proto",
+        "@com_google_protobuf//:any_proto",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+genrule(
+    name = "topo_device_proto_sed",
+    srcs = [":device/device.proto"],
+    outs = ["new/device/device.proto"],
+    cmd = "sed -e 's:import \"gogoproto.*;::g;s: ..gogoproto\..*:;:g;s:import \"%s:import \":g;s:^syntax = \"proto3\";:&\\\n  option java_package = \"org.onosproject.uonos\";:g' $(location :device/device.proto) >> \"$@\""
+        % IMPORT_PREFIX,
+)

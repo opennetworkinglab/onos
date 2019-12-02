@@ -128,6 +128,10 @@ RULES_NODEJS_VERSION = "0.37.0"
 
 RULES_NODEJS_SHA256 = "0d9660cf0894f1fe1e9840818553e0080fbce0851169812d77a70bdb9981c946"
 
+load("//tools/build/bazel:topo_workspace.bzl", "generate_topo_device")
+
+generate_topo_device()
+
 http_archive(
     name = "build_bazel_rules_nodejs",
     sha256 = RULES_NODEJS_SHA256,
