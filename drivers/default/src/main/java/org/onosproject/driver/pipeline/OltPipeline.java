@@ -27,6 +27,7 @@ import org.onlab.osgi.ServiceDirectory;
 import org.onlab.packet.EthType;
 import org.onlab.packet.IPv4;
 import org.onlab.packet.IPv6;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
@@ -78,14 +79,14 @@ import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.util.Arrays;
-import java.util.Objects;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -364,13 +365,15 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         TrafficTreatment treatment =
                 buildTreatment(Instructions.createGroup(group.id()));
 
+        TrafficSelector.Builder selectorBuilder = buildIpv4SelectorForMulticast(fwd);
+
         FlowRule rule = DefaultFlowRule.builder()
                 .fromApp(fwd.appId())
                 .forDevice(deviceId)
                 .forTable(0)
                 .makePermanent()
                 .withPriority(fwd.priority())
-                .withSelector(fwd.selector())
+                .withSelector(selectorBuilder.build())
                 .withTreatment(treatment)
                 .build();
 
@@ -392,6 +395,39 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
         applyFlowRules(builder, fwd);
 
+    }
+
+    private TrafficSelector.Builder buildIpv4SelectorForMulticast(ForwardingObjective fwd) {
+        TrafficSelector.Builder builderToUpdate = DefaultTrafficSelector.builder();
+
+        Optional<Criterion> vlanIdCriterion = readFromSelector(fwd.meta(), Criterion.Type.VLAN_VID);
+        if (vlanIdCriterion.isPresent()) {
+            VlanId assignedVlan = ((VlanIdCriterion) vlanIdCriterion.get()).vlanId();
+            builderToUpdate.matchVlanId(assignedVlan);
+        }
+
+        Optional<Criterion> ethTypeCriterion = readFromSelector(fwd.selector(), Criterion.Type.ETH_TYPE);
+        if (ethTypeCriterion.isPresent()) {
+            EthType ethType = ((EthTypeCriterion) ethTypeCriterion.get()).ethType();
+            builderToUpdate.matchEthType(ethType.toShort());
+        }
+
+        Optional<Criterion> ipv4DstCriterion = readFromSelector(fwd.selector(), Criterion.Type.IPV4_DST);
+        if (ipv4DstCriterion.isPresent()) {
+            IpPrefix ipv4Dst = ((IPCriterion) ipv4DstCriterion.get()).ip();
+            builderToUpdate.matchIPDst(ipv4Dst);
+        }
+
+        return builderToUpdate;
+    }
+
+    static Optional<Criterion> readFromSelector(TrafficSelector selector, Criterion.Type type) {
+        if (selector == null) {
+            return Optional.empty();
+        }
+        Criterion criterion = selector.getCriterion(type);
+        return (criterion == null)
+                ? Optional.empty() : Optional.of(criterion);
     }
 
     private boolean checkForMulticast(ForwardingObjective fwd) {
@@ -452,8 +488,10 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         TrafficSelector selector = fwd.selector();
 
         Criterion outerVlan = selector.getCriterion(Criterion.Type.VLAN_VID);
+        Criterion outerPbit = selector.getCriterion(Criterion.Type.VLAN_PCP);
         Criterion innerVlanCriterion = selector.getCriterion(Criterion.Type.INNER_VLAN_VID);
         Criterion inport = selector.getCriterion(Criterion.Type.IN_PORT);
+        Criterion dstMac = selector.getCriterion(Criterion.Type.ETH_DST);
 
         if (outerVlan == null || innerVlanCriterion == null || inport == null) {
             log.error("Forwarding objective is underspecified: {}", fwd);
@@ -470,7 +508,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         // Maybe - find a better way to solve the above problem
         Criterion metadata = Criteria.matchMetadata(innerVlan.toShort());
 
-        TrafficSelector outerSelector = buildSelector(inport, metadata, outerVlan);
+        TrafficSelector outerSelector = buildSelector(inport, metadata, outerVlan, outerPbit, dstMac);
 
         if (innerVlan.toShort() == VlanId.ANY_VALUE) {
             installDownstreamRulesForAnyVlan(fwd, output, outerSelector, buildSelector(inport,
@@ -499,8 +537,28 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
             innerTreatment = (buildTreatment(popAndRewrite.getLeft(), fetchMeter(fwd),
                     writeMetadataIncludingOnlyTp(fwd), output));
         } else {
-            innerTreatment = (buildTreatment(popAndRewrite.getLeft(), popAndRewrite.getRight(),
+            innerTreatment = (buildTreatment(popAndRewrite.getRight(),
                     fetchMeter(fwd), writeMetadataIncludingOnlyTp(fwd), output));
+        }
+
+        List<Instruction> setVlanPcps = findL2Instructions(L2ModificationInstruction.L2SubType.VLAN_PCP,
+                fwd.treatment().allInstructions());
+
+        Instruction innerPbitSet = null;
+
+        if (setVlanPcps != null && !setVlanPcps.isEmpty()) {
+            innerPbitSet = setVlanPcps.get(0);
+        }
+
+        VlanId remarkInnerVlan = null;
+        Optional<Criterion> vlanIdCriterion = readFromSelector(innerSelector, Criterion.Type.VLAN_VID);
+        if (vlanIdCriterion.isPresent()) {
+            remarkInnerVlan = ((VlanIdCriterion) vlanIdCriterion.get()).vlanId();
+        }
+
+        Instruction modVlanId = null;
+        if (innerPbitSet != null) {
+            modVlanId = Instructions.modVlanId(remarkInnerVlan);
         }
 
         //match: in port (nni), s-tag
@@ -511,8 +569,8 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 .makePermanent()
                 .withPriority(fwd.priority())
                 .withSelector(outerSelector)
-                .withTreatment(buildTreatment(popAndRewrite.getLeft(), fetchMeter(fwd), fetchWriteMetadata(fwd),
-                        Instructions.transition(QQ_TABLE)));
+                .withTreatment(buildTreatment(popAndRewrite.getLeft(), modVlanId,
+                        innerPbitSet, fetchMeter(fwd), fetchWriteMetadata(fwd), Instructions.transition(QQ_TABLE)));
 
         //match: in port (nni), c-tag
         //action: immediate: write metadata and pop, meter, output
@@ -588,13 +646,25 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                                               Pair<Instruction, Instruction> innerPair,
                                               Pair<Instruction, Instruction> outerPair, Boolean noneValueVlanStatus) {
 
+        List<Instruction> setVlanPcps = findL2Instructions(L2ModificationInstruction.L2SubType.VLAN_PCP,
+                fwd.treatment().allInstructions());
+
+        Instruction innerPbitSet = null;
+        Instruction outerPbitSet = null;
+
+        if (setVlanPcps != null && !setVlanPcps.isEmpty()) {
+            innerPbitSet = setVlanPcps.get(0);
+            outerPbitSet = setVlanPcps.get(1);
+        }
+
         TrafficTreatment innerTreatment;
         if (noneValueVlanStatus) {
             innerTreatment = buildTreatment(innerPair.getLeft(), innerPair.getRight(), fetchMeter(fwd),
-                    fetchWriteMetadata(fwd), Instructions.transition(QQ_TABLE));
+                    fetchWriteMetadata(fwd), innerPbitSet,
+                    Instructions.transition(QQ_TABLE));
         } else {
             innerTreatment = buildTreatment(innerPair.getRight(), fetchMeter(fwd), fetchWriteMetadata(fwd),
-                    Instructions.transition(QQ_TABLE));
+                    innerPbitSet, Instructions.transition(QQ_TABLE));
         }
 
         //match: in port, vlanId (0 or None)
@@ -623,9 +693,17 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 .forTable(QQ_TABLE)
                 .makePermanent()
                 .withPriority(fwd.priority())
-                .withSelector(buildSelector(inPort, Criteria.matchVlanId(cVlanId)))
                 .withTreatment(buildTreatment(outerPair.getLeft(), outerPair.getRight(),
-                        fetchMeter(fwd), writeMetadataIncludingOnlyTp(fwd), output));
+                        fetchMeter(fwd), writeMetadataIncludingOnlyTp(fwd),
+                        outerPbitSet, output));
+
+        if (innerPbitSet != null) {
+            byte innerPbit = ((L2ModificationInstruction.ModVlanPcpInstruction)
+                    innerPbitSet).vlanPcp();
+            outer.withSelector(buildSelector(inPort, Criteria.matchVlanId(cVlanId), Criteria.matchVlanPcp(innerPbit)));
+        } else {
+            outer.withSelector(buildSelector(inPort, Criteria.matchVlanId(cVlanId)));
+        }
 
         applyRules(fwd, inner, outer);
     }
@@ -761,21 +839,21 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
     private List<Pair<Instruction, Instruction>> findVlanOps(List<Instruction> instructions,
                                                              L2ModificationInstruction.L2SubType type) {
 
-        List<Instruction> vlanPushs = findL2Instructions(
+        List<Instruction> vlanOperations = findL2Instructions(
                 type,
                 instructions);
         List<Instruction> vlanSets = findL2Instructions(
                 L2ModificationInstruction.L2SubType.VLAN_ID,
                 instructions);
 
-        if (vlanPushs.size() != vlanSets.size()) {
+        if (vlanOperations.size() != vlanSets.size()) {
             return ImmutableList.of();
         }
 
         List<Pair<Instruction, Instruction>> pairs = Lists.newArrayList();
 
-        for (int i = 0; i < vlanPushs.size(); i++) {
-            pairs.add(new ImmutablePair<>(vlanPushs.get(i), vlanSets.get(i)));
+        for (int i = 0; i < vlanOperations.size(); i++) {
+            pairs.add(new ImmutablePair<>(vlanOperations.get(i), vlanSets.get(i)));
         }
         return pairs;
     }
@@ -810,7 +888,12 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         Instruction meter = filter.meta().metered();
         Instruction writeMetadata = filter.meta().writeMetadata();
 
-        TrafficSelector selector = buildSelector(filter.key(), ethType, ipProto);
+        // cTag
+        VlanIdCriterion vlanId = (VlanIdCriterion) filterForCriterion(filter.conditions(),
+                Criterion.Type.VLAN_VID);
+        Criterion cTagPriority = filterForCriterion(filter.conditions(), Criterion.Type.VLAN_PCP);
+
+        TrafficSelector selector = buildSelector(filter.key(), ethType, ipProto, vlanId, cTagPriority);
         TrafficTreatment treatment = buildTreatment(output, meter, writeMetadata);
         buildAndApplyRule(filter, selector, treatment);
     }
@@ -824,7 +907,10 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         Instruction meter = filter.meta().metered();
         Instruction writeMetadata = filter.meta().writeMetadata();
 
-        TrafficSelector selector = buildSelector(filter.key(), ethType, ipProto, udpSrcPort, udpDstPort);
+        VlanIdCriterion vlanId = (VlanIdCriterion)
+                filterForCriterion(filter.conditions(), Criterion.Type.VLAN_VID);
+
+        TrafficSelector selector = buildSelector(filter.key(), ethType, ipProto, udpSrcPort, udpDstPort, vlanId);
         TrafficTreatment treatment = buildTreatment(output, meter, writeMetadata);
         buildAndApplyRule(filter, selector, treatment);
     }
