@@ -86,7 +86,7 @@ line {
 }
 
 .link.animated {
-    stroke-dasharray: 8 5;
+    stroke-dasharray: 8;
     animation: ants 5s infinite linear;
     /* below line could be added via Javascript, based on path, if we cared
      * enough about the direction of ant-flow

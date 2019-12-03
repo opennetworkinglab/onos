@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import {
+    AfterViewInit,
     Component, HostListener, Inject, Input,
     OnDestroy,
     OnInit, SimpleChange,
@@ -37,7 +38,7 @@ import {InstanceComponent} from '../panel/instance/instance.component';
 import {DetailsComponent} from '../panel/details/details.component';
 import {BackgroundSvgComponent} from '../layer/backgroundsvg/backgroundsvg.component';
 import {ForceSvgComponent} from '../layer/forcesvg/forcesvg.component';
-import {TopologyService} from '../topology.service';
+import {Intent, TopologyService} from '../topology.service';
 import {
     GridDisplayToggle,
     HostLabelToggle,
@@ -69,6 +70,7 @@ import {ZoomableDirective} from '../layer/zoomable.directive';
 import {MapObject} from '../layer/maputils';
 import {LayoutService, LayoutType} from '../layout.service';
 import {SelectedEvent} from '../layer/forcesvg/visuals/nodevisual';
+import {ActivatedRoute} from '@angular/router';
 
 const TOPO2_PREFS = 'topo2_prefs';
 const TOPO_MAPID_PREFS = 'topo_mapid';
@@ -143,7 +145,7 @@ export interface Topo2Prefs {
   templateUrl: './topology.component.html',
   styleUrls: ['./topology.component.css']
 })
-export class TopologyComponent implements OnInit, OnDestroy {
+export class TopologyComponent implements OnInit, OnDestroy, AfterViewInit {
     @Input() bannerHeight: number = 48;
     // These are references to the components inserted in the template
     @ViewChild(InstanceComponent, {static: true}) instance: InstanceComponent;
@@ -194,6 +196,7 @@ export class TopologyComponent implements OnInit, OnDestroy {
         protected is: IconService,
         private lion: LionService,
         private layout: LayoutService,
+        protected ar: ActivatedRoute,
         @Inject('Window') public window: any,
     ) {
         if (this.lion.ubercache.length === 0) {
@@ -243,7 +246,6 @@ export class TopologyComponent implements OnInit, OnDestroy {
         this.is.loadIconDef('roadm_otn');
         this.is.loadIconDef('triangleUp');
         this.is.loadIconDef('uiAttached');
-        this.log.debug('Topology component constructed');
     }
 
     /**
@@ -298,14 +300,6 @@ export class TopologyComponent implements OnInit, OnDestroy {
         // Service just to compartmentalize things a bit
         this.ts.init(this.instance, this.background, this.force);
 
-        // Scale the window initially - then after resize
-        const zoomMapExtents = ZoomUtils.zoomToWindowSize(
-            this.bannerHeight, this.window.innerWidth, this.window.innerHeight);
-        this.zoomDirective.changeZoomLevel(zoomMapExtents, true);
-        this.log.debug('TopologyComponent initialized',
-            this.bannerHeight, this.window.innerWidth, this.window.innerHeight,
-            zoomMapExtents);
-
         // For the 2.1 release to not listen to updates of prefs as they are
         // only the echo of what we have sent down and the event mechanism
         // does not discern between users. Can get confused if multiple windows open
@@ -314,6 +308,37 @@ export class TopologyComponent implements OnInit, OnDestroy {
         this.prefsState = this.ps.getPrefs(TOPO2_PREFS, this.prefsState);
         this.mapIdState = this.ps.getPrefs(TOPO_MAPID_PREFS, this.mapIdState);
         this.trs.init(this.force);
+
+        // Scale the window initially - then after resize
+        const zoomMapExtents = ZoomUtils.zoomToWindowSize(
+            this.bannerHeight, this.window.innerWidth, this.window.innerHeight);
+        this.zoomDirective.changeZoomLevel(zoomMapExtents, true);
+
+        // TODO find out why the following is never printed
+        this.log.debug('TopologyComponent initialized,',
+            this.bannerHeight, this.window.innerWidth, this.window.innerHeight,
+            zoomMapExtents);
+    }
+
+    ngAfterViewInit(): void {
+        this.ar.queryParams.subscribe(params => {
+            const intentId = params['intentId'];
+            const intentType = params['intentType'];
+            const appId = params['appId'];
+            const appName = params['appName'];
+
+            if (intentId && intentType && appId) {
+                const selectedIntent = <Intent>{
+                    key: intentId,
+                    type: intentType,
+                    appId: appId,
+                    appName: appName,
+                };
+                this.ts.setSelectedIntent(selectedIntent);
+
+                this.log.warn('TopologyComponent init with Intent: ', selectedIntent, params);
+            }
+        });
     }
 
     /**
@@ -744,6 +769,8 @@ export class TopologyComponent implements OnInit, OnDestroy {
                 }
             );
         }
+        this.ts.cancelHighlights();
+        this.force.cancelAllLinkHighlightsNow();
     }
 
     /**

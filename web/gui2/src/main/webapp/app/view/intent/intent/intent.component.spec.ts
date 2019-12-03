@@ -14,7 +14,7 @@
 * limitations under the License.
 */
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, Params } from '@angular/router';
+import {ActivatedRoute, Params} from '@angular/router';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 import { DebugElement } from '@angular/core';
@@ -34,6 +34,7 @@ import { of } from 'rxjs';
 import { } from 'jasmine';
 
 import { IntentComponent } from './intent.component';
+import {RouterTestingModule} from '@angular/router/testing';
 
 class MockActivatedRoute extends ActivatedRoute {
     constructor(params: Params) {
@@ -84,7 +85,7 @@ describe('IntentComponent', () => {
         };
         fs = new FnService(ar, logSpy, windowMock);
         TestBed.configureTestingModule({
-            imports: [BrowserAnimationsModule, FormsModule],
+            imports: [BrowserAnimationsModule, FormsModule, RouterTestingModule],
             declarations: [
                 IntentComponent,
                 IconComponent,

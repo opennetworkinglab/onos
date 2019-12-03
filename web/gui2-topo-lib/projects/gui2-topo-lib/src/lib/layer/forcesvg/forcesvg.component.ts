@@ -532,6 +532,7 @@ export class ForceSvgComponent implements OnInit, OnChanges {
     /**
      * When traffic monitoring is turned on (A key) highlights will be sent back
      * from the WebSocket through the Traffic Service
+     * Also handles Intent highlights in case one is selected
      * @param devices - an array of device highlights
      * @param hosts - an array of host highlights
      * @param links - an array of link highlights
@@ -566,19 +567,28 @@ export class ForceSvgComponent implements OnInit, OnChanges {
         }
         if (links.length > 0) {
             this.log.debug(links.length, 'Links highlighted');
-            links.forEach((lh) => {
-                const linkComponent: LinkSvgComponent =
-                    this.links.find((l) => l.link.id === Link.linkIdFromShowHighlights(lh.id) );
-                if (linkComponent) { // A link might not be present if hosts viewing is switched off
-                    if (fadeMs > 0) {
-                        lh.fadems = fadeMs;
-                    }
-                    linkComponent.ngOnChanges(
-                        {'linkHighlight': new SimpleChange(<LinkHighlight>{}, lh, true)}
-                    );
+            links.forEach((lh: LinkHighlight) => {
+                if (fadeMs > 0) {
+                    lh.fadems = fadeMs;
                 }
+                // Don't user .filter() above as it will create a copy of the component which will be discarded
+                this.links.forEach((l) => {
+                    if (l.link.id === Link.linkIdFromShowHighlights(lh.id)) {
+                        l.linkHighlight = lh;
+                        l.ngOnChanges(
+                            <SimpleChanges>{'linkHighlight': new SimpleChange(<LinkHighlight>{}, lh, true)}
+                        );
+                    }
+                });
             });
         }
+    }
+
+    cancelAllLinkHighlightsNow() {
+        this.links.forEach((link: LinkSvgComponent) => {
+            link.linkHighlight = <LinkHighlight>{};
+            this.ngOnChanges(<SimpleChanges>{'linkHighlight': new SimpleChange(<LinkHighlight>{}, <LinkHighlight>{}, false)});
+        });
     }
 
     /**
@@ -665,6 +675,5 @@ export class ForceSvgComponent implements OnInit, OnChanges {
         this.graph.reinitSimulation();
         return numbernodes;
     }
-
 }
 

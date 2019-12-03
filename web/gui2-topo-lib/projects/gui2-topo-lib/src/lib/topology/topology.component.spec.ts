@@ -27,7 +27,7 @@ import {
 import { SummaryComponent } from '../panel/summary/summary.component';
 import { ToolbarComponent } from '../panel/toolbar/toolbar.component';
 import { DetailsComponent } from '../panel/details/details.component';
-import { TopologyService } from '../topology.service';
+import {Intent, TopologyService} from '../topology.service';
 
 import {
     FlashComponent,
@@ -86,6 +86,9 @@ class MockTopologyService {
         ];
     }
     destroy() {}
+    setSelectedIntent(selectedIntent: Intent): void {}
+    selectRelatedIntent(ids: string[]): void {}
+    cancelHighlights(): void {}
 }
 
 class MockIconService {

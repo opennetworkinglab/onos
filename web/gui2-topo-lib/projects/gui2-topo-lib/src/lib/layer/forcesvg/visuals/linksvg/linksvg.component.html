@@ -37,11 +37,12 @@
 <svg:line xmlns:svg="http://www.w3.org/2000/svg"
         [attr.x1]="link.source?.x" [attr.y1]="link.source?.y"
         [attr.x2]="link.target?.x" [attr.y2]="link.target?.y"
-        [ngClass]="['link', selected?'selected':'', enhanced?'enhanced':'', highlighted]"
+        [ngClass]="['link', selected?'selected':'', enhanced?'enhanced':'', highlightAsString()]"
         [ngStyle]="{'stroke-width': (enhanced ? 4 : 2) * scale + 'px'}"
         (click)="toggleSelected(link, $event)"
-        (mouseover)="enhance()"
-        [attr.filter]="highlighted?'url(#glow)':'none'">
+        (mouseover)="enhance()">
+<!--        [attr.filter]="highlighted?'url(#glow)':'none'">-->
+    <svg:desc>{{link.id}} {{linkHighlight?.css}} {{isHighlighted}}</svg:desc>
 </svg:line>
 <svg:g xmlns:svg="http://www.w3.org/2000/svg"
        [ngClass]="['linkLabel']"
@@ -58,7 +59,7 @@
               [@linkLabelVisible]="isHighlighted"
               [attr.x]="link.source?.x + (link.target?.x - link.source?.x)/2"
               [attr.y]="link.source?.y + (link.target?.y - link.source?.y)/2"
-    >{{ label }}</svg:text>
+    >{{ linkHighlight?.label }}</svg:text>
 </svg:g>
 <!-- Template explanation: Creates an SVG Group if
     line 1) 'enhanced' is active and port text exists

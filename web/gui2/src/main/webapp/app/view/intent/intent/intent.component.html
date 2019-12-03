@@ -40,9 +40,8 @@
                 </div>
             </span>
             <div class="separator"></div>
-            <!-- TO-DO showIntent() need to correct once topology page is available-->
-            <div (click)="showIntent()">
-                <onos-icon classes="{active: canShowIntent()}" iconId="topo" iconSize="42" toolTip="{{ topoTip }}"></onos-icon>
+            <div routerLink="/topo2" [queryParams]="{ intentId: selId, appId: intentData.appId, appName: intentData.appName, intentType: intentData.type }" routerLinkActive="active">
+                <onos-icon classes="{{!!selId ? 'active-rect' :undefined}}" iconId="topo" iconSize="42" toolTip="{{ topoTip }}"></onos-icon>
             </div>
             <div (click)="!!selId && intentState() === 'Withdrawn' ? confirmAction(IntentActionEnum.RESUBMIT):''">
                 <onos-icon classes="{{!!selId && intentState()  === 'Withdrawn' ? 'active-rect' :undefined}}" iconId="play" iconSize="42"

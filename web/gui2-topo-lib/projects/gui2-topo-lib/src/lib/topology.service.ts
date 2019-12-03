@@ -27,6 +27,21 @@ import {
 } from './layer/forcesvg/models';
 
 /**
+ * Model of the Intent to be displayed
+ */
+export interface Intent {
+    appId: string;
+    appName: string;
+    key: string;
+    type: string;
+}
+
+export interface RelatedIntent {
+    ids: string[];
+    hover: string;
+}
+
+/**
  * ONOS GUI -- Topology Service Module.
  */
 @Injectable()
@@ -87,7 +102,8 @@ export class TopologyService {
                 }
             ],
             ['showHighlights', (event) => {
-                force.handleHighlights(event.devices, event.hosts, event.links);
+                this.log.debug('Handling showHighlights', event);
+                force.handleHighlights(event.devices, event.hosts, event.links, 5000);
             }]
             // topo2Highlights is handled by TrafficService
         ]));
@@ -96,6 +112,7 @@ export class TopologyService {
         this.handlers.push('topo2CurrentRegion');
         this.handlers.push('topo2PeerRegions');
         this.handlers.push('topo2UiModelEvent');
+        this.handlers.push('showHighlights');
         // this.handlers.push('topo2Highlights');
 
         // in case we fail over to a new server,
@@ -123,5 +140,31 @@ export class TopologyService {
         this.log.debug('topo2Event: WSopen - cluster node:', host, 'URL:', url);
         // tell the server we are ready to receive topo events
         this.wss.sendEvent('topo2Start', {});
+    }
+
+    /*
+     * Result will be handled by showHighlights handler (set up in topology service)
+     * which will call handleHighlights() in Force Component
+     */
+    setSelectedIntent(selectedIntent: Intent): void {
+        this.log.debug('Selected intent changed to', selectedIntent);
+        this.wss.sendEvent('selectIntent', selectedIntent);
+    }
+
+    selectRelatedIntent(ids: string[]): void {
+        this.log.debug('Select next intent');
+        this.wss.sendEvent('requestNextRelatedIntent', <RelatedIntent>{
+            ids: ids,
+            hover: undefined,
+        });
+    }
+
+    /*
+     * Tell the backend to stop sending highlights - any present will fade after 5 seconds
+     * There is also a cancel traffic for Topo 2 in Traffic Service
+     */
+    cancelHighlights(): void {
+        this.wss.sendEvent('cancelTraffic', {});
+        this.log.debug('Highlights canceled');
     }
 }

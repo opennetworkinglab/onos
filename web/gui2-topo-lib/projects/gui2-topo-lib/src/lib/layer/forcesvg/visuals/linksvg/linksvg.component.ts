@@ -28,6 +28,10 @@ interface Point {
     y: number;
 }
 
+/*
+ * LinkSvgComponent gets its data from 2 sources - the force SVG regionData (which
+ * gives the Link below), and other state data here.
+ */
 @Component({
     selector: '[onos-linksvg]',
     templateUrl: './linksvg.component.html',
@@ -47,9 +51,8 @@ interface Point {
 })
 export class LinkSvgComponent extends NodeVisual implements OnChanges {
     @Input() link: Link;
-    @Input() highlighted: string = '';
+    @Input() linkHighlight: LinkHighlight;
     @Input() highlightsEnabled: boolean = true;
-    @Input() label: string;
     @Input() scale = 1.0;
     isHighlighted: boolean = false;
     @Output() selectedEvent = new EventEmitter<SelectedEvent>();
@@ -70,21 +73,26 @@ export class LinkSvgComponent extends NodeVisual implements OnChanges {
         if (changes['linkHighlight']) {
             const hl: LinkHighlight = changes['linkHighlight'].currentValue;
             clearTimeout(this.lastTimer);
-            this.highlighted = hl.css;
-            this.label = hl.label;
             this.isHighlighted = true;
-            this.log.debug('Link hightlighted', this.link.id, this.highlighted);
+            this.log.debug('Link highlighted', this.link.id);
+
             if (hl.fadems > 0) {
                 this.lastTimer = setTimeout(() => {
                     this.isHighlighted = false;
-                    this.highlighted = '';
+                    this.linkHighlight = <LinkHighlight>{};
                     this.ref.markForCheck();
-                }, hl.fadems); // Disappear slightly before next one comes in
+                }, this.linkHighlight.fadems); // Disappear slightly before next one comes in
             }
-
         }
 
         this.ref.markForCheck();
+    }
+
+    highlightAsString(): string {
+        if (this.linkHighlight && this.linkHighlight.css) {
+            return this.linkHighlight.css;
+        }
+        return '';
     }
 
     enhance() {

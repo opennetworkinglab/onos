@@ -129,6 +129,7 @@ export class IntentComponent extends TableBaseImpl implements OnInit, OnDestroy 
         this.intentData.appId = splittedRowAppId[0].trim();
         this.intentData.appName = splittedRowAppId[1].trim();
         this.intentData.key = this.selId;
+        this.intentData.type = selRow.type;
     }
 
     briefToggle() {
@@ -150,20 +151,6 @@ export class IntentComponent extends TableBaseImpl implements OnInit, OnDestroy 
 
         }
         return this.withdrwanIntent;
-    }
-
-    /**
-     * TO-DO intent view related function need to implement once
-     * topology page will be available
-    */
-    showIntent() {
-    }
-
-    /**
-     * TO-DO intent view related function need to implement once
-     * topology page will be available
-    */
-    canShowIntent() {
     }
 
     /**

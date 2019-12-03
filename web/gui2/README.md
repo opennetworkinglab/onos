@@ -1,31 +1,32 @@
-# ONOS GUI 2.1.0
+# ONOS GUI 2.3.0
 
-This project is based on __[Angular 7](https://angular.io/docs)__ 
+This project is based on __[Angular 9](https://angular.io/docs)__ 
 and __[ES6](http://www.ecma-international.org/ecma-262/6.0/index.html)__ (aka __ES2015__), 
 as an alternative to the 1.0.0 GUI which was based 
 off __[AngularJS 1.3.5](https://angularjs.org/)__
 
 Building, testing and running lint are all handled by Bazel. See web/gui2/BUILD file.
 
-To use this new GUI you simply have to start the GUI in a running ONOS at the __onos>__ cli:
+To use this new GUI you simply have to ensure it is running on ONOS at the __onos>__ cli:
 ```
 app activate gui2
 ```
 and the gui will be accessible at [http://localhost:8181/onos/ui](http://localhost:8181/onos/ui)
 
-Gui2 can also be loaded every time ONOS starts by adding it to ONOS_APPS
+Gui2 is loaded by default as ONOS starts since it is added to ONOS_APPS
 ```
 export ONOS_APPS=${ONOS_APPS:-drivers,openflow,gui2}
 ```
 
-The original legacy GUI is also loadable as an app, and is available at the same web resource onos/ui
+The original legacy GUI is also loadable as an app, and is available at the same
+web resource onos/ui on port 8181
 The legacy GUI should be disabled if GUI2 is active and vice versa
 ```
 app deactivate gui
 ```
 
-As usual with ONOS if you want to run it in a different language set the __ONOS_LOCALE__ environment variable
-to the locale you want before starting onos. e.g.
+As usual with ONOS if you want to run it in a different language set the
+__ONOS_LOCALE__ environment variable to the locale you want before starting onos. e.g.
 ```
 ONOS_LOCALE=fr_FR SHLVL=1 bazel run onos-local -- clean debug
 ```
@@ -58,14 +59,15 @@ also used.
 # Issues
 Issues found on the GUI2 should be added to the existing list on the
 [ONOS GUI Jira Kanban board](https://jira.onosproject.org/secure/RapidBoard.jspa?rapidView=31)
-(requires Jira login)
+(requires Jira login). Assigning the Epic Link `GUI` will ensure the issue appears
+ on this board
 
 # Development
 There are 2 ways to go about development - 
 1. rebuild the code and rerun through Bazel (much like can be done with any ordinary ONOS app)
 (recommended for most people) 
  OR
-2. use Angular 7 CLI (__ng__ command) to rebuild on the fly (faster for
+2. use Angular 9 CLI (__ng__ command) to rebuild on the fly (faster for
 development). Be aware that if you are just changing the topology view it does not
 require all of the steps that __gui2__ does - see its own [README](../gui2-topo-lib/README.md)
 for more details
@@ -79,7 +81,7 @@ bazel build //web/gui2:onos-web-gui2-oar && onos-app localhost reinstall! bazel-
 For 2) it's well worth becoming familiar with Angular CLI.
 > (this has the advantage of debug symbols and the code not is uglified and minimized)
 
-The project is created with [Angular CLI](https://github.com/angular/angular-cli) v7
+The project is created with [Angular CLI](https://github.com/angular/angular-cli) v9
 to simplify development of the browser side code. It is complicated to set up, 
 but is worth the effort if you have more than a few days worth of development to do.
 Since data is retrieved through WebSockets there is a requirement to run ONOS
@@ -89,84 +91,123 @@ in the background.
 >they are already installed, it's best to use the versions of these that's used 
 >by Bazel in ONOS.
 
-Add the following 2 entries to the __start__ of 
-your PATH environment variable. 
+## Yarn and Angular CLI
+Bazel installs all of the NPM modules with `Yarn` listed in
 ```
-~/.cache/bazel/_bazel_scondon/8beba376f58d295cf3282443fe02c21a/external/nodejs/bin/nodejs/bin
+web/gui-fw-lib/package.json
 ```
-> (where ~/.cache/bazel/_bazel_scondon/8beba376f58d295cf3282443fe02c21a should be
-> replaced by an equivalent folder on your system)
-```text
-~/onos/web/gui2-fw-lib/node_modules/@angular/cli/bin/
+through a declaration made in the ONOS `WORKSPACE` file.
+
+To check the Yarn installation you can run
+```bash
+bazel run @nodejs//:bin/yarn versions
 ```
 
-The first time you run this you will have to go to the framework folder and run "npm install"
-```text
-cd ~/onos/web/gui2-fw-lib && \
-npm install
+NPM is also available (but this is mainly used for GUI 1)
+```bash
+bazel run @nodejs//:bin/npm version
 ```
 
-This will install all the vendor Javascript implementations that are listed in package.json
-(including 'ng' - the Angular CLI command) in to ~/onos/web/gui2-fw-lib/node_modules
 
-After this you should be able to cd in to ~/onos/web/gui2-fw-lib and run 'ng version' and see:
+The Angular CLI (ng) is available inside Bazel as
+```bash
+bazel run @npm//:node_modules/@angular/cli/bin/ng version
 ```
-Angular CLI: 7.0.4
-Node: 8.11.1
+
+When run inside an Angular Project (from `~/onos/web/gui2-fw-lib`) we get:
+```bash
+Angular CLI: 8.3.19
+Node: 10.16.0
 OS: linux x64
-Angular: 7.0.2
+Angular: 8.2.14
+... animations, bazel, common, compiler, compiler-cli, core
+... forms, language-service, platform-browser
+... platform-browser-dynamic, router
+
+Package                            Version
+------------------------------------------------------------
+@angular-devkit/architect          0.803.19
+@angular-devkit/build-angular      0.803.19
+@angular-devkit/build-ng-packagr   0.803.19
+@angular-devkit/build-optimizer    0.803.19
+@angular-devkit/build-webpack      0.803.19
+@angular-devkit/core               8.3.19
+@angular-devkit/schematics         8.3.19
+@angular/cli                       8.3.19
+@angular/http                      7.2.15
+@bazel/hide-bazel-files            0.40.0
+@bazel/karma                       0.34.0
+@bazel/protractor                  0.34.0
+@bazel/typescript                  0.34.0
+@ngtools/webpack                   8.3.19
+@schematics/angular                8.3.19
+@schematics/update                 0.803.19
+ng-packagr                         5.7.1
+rxjs                               6.5.3
+typescript                         3.5.3
+webpack                            4.39.2
 ```
 
 ## GUI FW Lib
-The GUI2 __framework__ is in __~/onos/web/gui2-fw-lib__ and the GUI __application__ is in __~/onos/web/gui2__ (and depends on the framework).
+The GUI2 __framework__ (in `~/onos/web/gui2-fw-lib`) is at the heart of the GUI2
+implementation and contains core items like icon libraries, base classes etc.
+The main GUI __application__ is in `~/onos/web/gui2` (and depends on this framework).
 
-The GUI2 framework is a library inside its own mini application (unrelated to the
-main GUI application) - every thing of importance is in projects/gui2-fw-lib. The
-own application is just a wrapper around the framework library - it has to be
+The GUI2 framework is built as a library inside its own mini application (unrelated
+to the main GUI application) - every thing of importance is in `projects/gui2-fw-lib`.
+The mini application is just a wrapper around the framework library - it has to be
 there for Angular CLI to work and can be useful for testing parts of the framework
-in isolation. 
+in isolation.
+
+When the library is packaged up in
+[Angular Package Format](https://docs.google.com/document/d/1CZC2rcpxffTDfRDs6p1cfbmKNLA6x5O-NtkJglDaBVs/preview)
+and can be manually uploaded to [https://www.npmjs.com/package/gui2-fw-lib](https://www.npmjs.com/package/gui2-fw-lib)
+to be used in other projects (e.g. [onos-gui](https://github.com/onosproject/onos-gui)
 
 For build method 2) above if you make any changes here or are using it for the
-first time it will need to be built. From ~/onos/web/gui2 run:
+first time it will need to be built. From `~/onos/web/gui2` run:
 ```bash
 pushd ~/onos/web/gui2-fw-lib && \
-ng build gui2-fw-lib && \
+bazel run @npm//:node_modules/@angular/cli/bin/ng build gui2-fw-lib && \
 cd dist/gui2-fw-lib && \
-npm pack && \
+bazel run @nodejs//:bin/npm pack && \
 popd && \
-npm install gui2-fw-lib
+bazel run @nodejs//:bin/npm install gui2-fw-lib
 ```
 
-This packages the Framework up in to __~/onos/web/gui2-fw-lib/dist/gui2-fw-lib/gui2-fw-lib-2.1.0.tgz__
+This packages the Framework up in to `~/onos/web/gui2-fw-lib/dist/gui2-fw-lib/gui2-fw-lib-2.3.2.tgz`
 
 ## GUI2 Topo library
-The GUI2 __Topology__ is in __~/onos/web/gui2-topo-lib__ and the GUI __application__
-includes this Topology application through the __onos-routing-module__. The 
+The GUI2 __Topology__ is in `~/onos/web/gui2-topo-lib` and the GUI __application__
+includes this Topology application through the `onos-routing.module`. The 
 Topology app has its own README file.
 
 For build method 2) above if you make any changes here or are using it for the
 first time it will need to be built. From ~/onos/web/gui2 run:
 ```text
 pushd ~/onos/web/gui2-topo-lib && \
-ng build gui2-topo-lib && \
+bazel run @npm//:node_modules/@angular/cli/bin/ng build gui2-topo-lib && \
 cd dist/gui2-topo-lib && \
-npm pack && \
+bazel run @nodejs//:bin/npm pack && \
 popd && \
-npm install gui2-topo-lib
+bazel run @nodejs//:bin/npm install gui2-topo-lib
 ```
-This packages the Topo View up in to __onos/web/gui2-topo-lib/dist/gui2-topo-lib/gui2-topo-lib-2.1.0.tgz__
+This packages the Topo View up in to `onos/web/gui2-topo-lib/dist/gui2-topo-lib/gui2-topo-lib-2.1.0.tgz`.
+
+It is manually uploaded to [https://www.npmjs.com/package/gui2-topo-lib](https://www.npmjs.com/package/gui2-topo-lib)
 
 ## GUI2 Application
-The application contains the ONOS index.html and all of the tabular views and the
-topology view. It references the gui2-fw-lib and gui2-topo-lib as just other
-dependencies. 
+The application is the visible front end and contains the ONOS `index.html` and
+all of the tabular views and the topology view. It references the `gui2-fw-lib`
+and `gui2-topo-lib` as just other dependencies. 
 
 For build method 2) above to use this application in Angular CLI for development
 on your system, you need to: 
-1. Change directory in to onos/web/gui2 - this is where you will run the `ng` command from.
-2. Run `npm install` once from this folder to add dependencies
-3. Then run 'ng version' from onos/web/gui2 and an additional version should be
-shown __Angular: 7.0.2__
+1. Change directory in to onos/web/gui2 - this is where you will run the
+`bazel run @npm//:node_modules/@angular/cli/bin/ng` command from.
+2. Run `bazel run @nodejs//:bin/npm install` once from this folder to add dependencies
+3. Then run `bazel run @npm//:node_modules/@angular/cli/bin/ng version` from
+`onos/web/gui2` and the project version should be shown __Angular: 8.2.14__
 4. Temporarily make a change to disable authentication in UIWebSocket.java
 5. Temporarily make a change to disable external routes in onos-routing.module.ts
 6. Create symbolic links for some CSS files
@@ -175,13 +216,13 @@ shown __Angular: 7.0.2__
 > Remember this is only for build method 2) above
 
 Before the server can be run a couple of small adjustments need to be temporarily made
-1. The file __~/onos/web/gui/src/main/java/org/onosproject/ui/impl/UiWebSocket.java__ 
+1. The file `~/onos/web/gui/src/main/java/org/onosproject/ui/impl/UiWebSocket.java` 
 needs to be adjusted to remove authentication
-2. The file __~/onos/web/gui2/src/main/webapp/app/onos-routing.module.ts__ needs 
-to be adjusted to remove references to routes in external applications 
+2. The file `~/onos/web/gui2/src/main/webapp/app/onos-routing.module.ts` needs 
+to be adjusted to remove references to routes in external applications
 
 These changes are given in Appendix A at the end of this document - these changes
-should not be checked in though - as they are not required (and will break) the
+should **not** be checked in though - as they are not required (and will break) the
 GUI2 embedded in ONOS.
 
 ### Create symbolic links for CSS files
@@ -199,56 +240,61 @@ ln -s ~/onos/web/gui2-fw-lib/projects/gui2-fw-lib/src/lib/widget/table.theme.css
 
 After this it will be possible to build/test/lint/run the application inside the Angular CLI without errors.
 ```text
-ng build --prod && \
-ng lint && \
-ng test --watch=false
+bazel run @npm//:node_modules/@angular/cli/bin/ng build -- --prod;
+bazel run @npm//:node_modules/@angular/cli/bin/ng lint;
+bazel run @npm//:node_modules/@angular/cli/bin/ng test -- --watch=false --browsers=ChromeHeadless;
 ```
 
 ## Development server
 Finally the application can be run, and will be available at http://localhost:4200
 ```text
-ng serve --aot
+bazel run @npm//:node_modules/@angular/cli/bin/ng serve -- --aot
 ``` 
 
-Run `ng serve --aot` for a dev server (because we are using ES6, we [must use AOT](https://github.com/angular/angular-cli/wiki/build)). 
-Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+Run `bazel run @npm//:node_modules/@angular/cli/bin/ng serve --aot` for a dev server
+(because we are using ES6, we [must use AOT](https://github.com/angular/angular-cli/wiki/build)). 
+Navigate to `http://localhost:4200/`. The app will automatically reload if you change
+any of the source files.
 
 Press Ctrl-Shift-I in Chrome and Firefox to bring up the developer tools and the browser console.
 
-There are certain extra debugging can be turned on by adding the parameter 'debug' 
-For example to turn extra logging for WebSockets add on __?debug=txrx__
+There are certain extra debugging supports which can be turned on by adding the
+parameter 'debug'. For example to turn extra logging for WebSockets add on __?debug=txrx__
 
-On the Apps view - icons will appear to be missing - this is because they use a relative path to
-source the image, and this path is not available in this 'ng serve' mode. The icons work fine in the
-mode where it's run inside ONOS. 
+On the Apps view - icons will appear to be missing - this is because they use a
+relative path to source the image, and this path is not available in this
+`ng serve` mode. The icons work fine in the mode where it's run inside ONOS. 
 
 ### Navigating
 In this development mode navigation is not available, and to to jump to other view, 
 replace the 'device' at the end of the URL with the route you want to follow
-e.g. 'app' for the Applications view or 'topo' for the Topology view
+e.g. `app` for the Applications view or `topo` for the Topology view
 
 ## Code scaffolding
-Change directory in to '~onos/web/gui2/src/main/webapp/app/view'
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+Change directory in to `~onos/web/gui2/src/main/webapp/app/view`
+Run `bazel run @npm//:node_modules/@angular/cli/bin/ng generate component component-name` to generate a new component.
+You can also use `bazel run @npm//:node_modules/@angular/cli/bin/ng generate directive|pipe|service|class|guard|interface|enum|module`.
 
 ## Build
-The build is handled through the web/gui2/BUILD file. This downloads Node, NPM and Angular CLI
-It runs ```ng build --prod --extract-css``` and copies everything over in to WEB-INF/classes/dist
-
-To run it manually in Angular CLI run `ng build` (and add on --prod --extract-css --watch as necessary to alter its behaviour)
+The build is handled through the `web/gui2/BUILD` file. 
+It runs `bazel run @npm//:node_modules/@angular/cli/bin/ng build --prod --extract-css`
+and copies everything over in to WEB-INF/classes/dist
 
 ## Running unit tests
-This is automatically done when using "bazel test " - see the web/gui2/BUILD file for more details.
+This is automatically done when using `bazel test //web/gui2:onos-gui2-ng-tests`
+ - see the `web/gui2/BUILD` file for more details.
 
-To run it manually in Angular CLI run `ng test --watch` to execute the unit tests
+To run it manually in Angular CLI run
+`bazel run @npm//:node_modules/@angular/cli/bin/ng test --watch` to execute the unit tests
 via [Karma](https://karma-runner.github.io). Running it directly like this will
 test with both Firefox and Chrome. To use only one use the __--browsers__ argument
 
 ## Running checkstyle (lint)
-This is automatically done when using "bazel test" - see the web/gui2/BUILD file
-for more details.
+This is automatically done when using `bazel test //web/gui2:onos-gui2-ng-tests`
+- see the web/gui2/BUILD file for more details.
 
-To run it manually in Angular CLI run `ng lint` to run codelyzer on your code,
+To run it manually in Angular CLI run
+`bazel run @npm//:node_modules/@angular/cli/bin/ng lint` to run codelyzer on your code,
 according to the rules in __tslint.json__
 
 ## Running end-to-end tests
