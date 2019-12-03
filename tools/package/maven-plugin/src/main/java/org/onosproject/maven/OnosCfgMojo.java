@@ -156,7 +156,8 @@ public class OnosCfgMojo extends AbstractMojo {
                 String desc = description(javaClass, name);
 
                 if (desc != null) {
-                    String line = name + SEP + type + SEP + def + SEP + desc;
+                    String cleanedDesc = desc.trim().replace("\n", " ").replace("  ", " ");
+                    String line = name + SEP + type + SEP + def + SEP + cleanedDesc;
                     getLog().info("Processing property " + line + " ...");
                     lines.add(line + "\n");
                 }
