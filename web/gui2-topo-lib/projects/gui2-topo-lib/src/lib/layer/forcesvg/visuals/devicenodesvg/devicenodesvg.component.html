@@ -69,10 +69,14 @@
     -->
     <svg:rect x="-16" y="-16" width="32" height="32" [ngStyle]="{'fill': panelColor}">
     </svg:rect>
+    <!-- Create an L shaped bracket on bottom left of icon if it has either grid or geo location-->
     <svg:path *ngIf="device.location && device.location.locType != 'none'"
-              d="M-15 12 v3 h3" style="stroke: white; stroke-width: 1; fill: none"></svg:path>
+              d="M-15 12 v3 h3" class="bracket">
+    </svg:path>
+    <!-- Create an L shaped bracket on top right of icon if it has been pinned or has fixed location-->
     <svg:path *ngIf="device.fx != null"
-              d="M15 -12 v-3 h-3" style="stroke: white; stroke-width: 1; fill: none"></svg:path>
+              d="M15 -12 v-3 h-3" class="bracket">
+    </svg:path>
     <!-- Template explanation: Creates an SVG Text element and in
         line 1) make it left aligned and slightly down and to the right of the last rect
         line 2) set its text length to be the calculated value - see that function
@@ -92,4 +96,5 @@
     </svg:text>
     <svg:use [attr.xlink:href]="'#' + deviceIcon()" width="36" height="36" x="-18" y="-18">
     </svg:use>
+    <svg:g *ngIf="badge" onos-badgesvg [badge]="badge"></svg:g>
 </svg:g>

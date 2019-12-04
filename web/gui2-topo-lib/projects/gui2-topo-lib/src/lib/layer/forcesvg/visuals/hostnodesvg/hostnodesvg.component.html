@@ -67,4 +67,5 @@
         *ngIf="labelToggle != 0"
         dy="30" text-anchor="middle"
         >{{hostName()}}</svg:text>
+    <svg:g *ngIf="badge" onos-badgesvg [badge]="badge"></svg:g>
 </svg:g>

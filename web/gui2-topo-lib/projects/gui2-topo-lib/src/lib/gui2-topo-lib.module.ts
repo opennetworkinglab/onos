@@ -38,6 +38,7 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import { GridsvgComponent } from './layer/gridsvg/gridsvg.component';
 import {TrafficService} from './traffic.service';
 import {LayoutService} from './layout.service';
+import { BadgeSvgComponent } from './layer/forcesvg/visuals/badgesvg/badgesvg.component';
 
 /**
  * ONOS GUI -- Topology View Module
@@ -73,6 +74,7 @@ import {LayoutService} from './layout.service';
         TopologyComponent,
         ZoomableDirective,
         DraggableDirective,
+        BadgeSvgComponent,
     ],
     providers: [
         TopologyService,
@@ -97,6 +99,7 @@ import {LayoutService} from './layout.service';
         TopologyComponent,
         ZoomableDirective,
         DraggableDirective,
+        BadgeSvgComponent
     ]
 })
 export class Gui2TopoLibModule { }

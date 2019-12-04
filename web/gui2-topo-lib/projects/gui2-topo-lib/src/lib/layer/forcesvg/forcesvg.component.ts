@@ -20,7 +20,7 @@ import {
     EventEmitter,
     HostListener,
     Input,
-    OnChanges,
+    OnChanges, OnDestroy,
     OnInit,
     Output,
     QueryList,
@@ -28,12 +28,13 @@ import {
     SimpleChanges,
     ViewChildren
 } from '@angular/core';
-import {LocMeta, LogService, MetaUi, SvgUtilService, WebSocketService, ZoomUtils} from 'gui2-fw-lib';
+import {LocMeta, LogService, MetaUi, WebSocketService, ZoomUtils} from 'gui2-fw-lib';
 import {
-    Device,
+    Badge,
+    Device, DeviceHighlight,
     DeviceProps,
     ForceDirectedGraph,
-    Host,
+    Host, HostHighlight,
     HostLabelToggle,
     LabelToggle,
     LayerType,
@@ -83,10 +84,11 @@ interface ChangeSummary {
     styleUrls: ['./forcesvg.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ForceSvgComponent implements OnInit, OnChanges {
+export class ForceSvgComponent implements OnInit, OnDestroy, OnChanges {
     @Input() deviceLabelToggle: LabelToggle.Enum = LabelToggle.Enum.NONE;
     @Input() hostLabelToggle: HostLabelToggle.Enum = HostLabelToggle.Enum.NONE;
     @Input() showHosts: boolean = false;
+    @Input() showAlarms: boolean = false;
     @Input() highlightPorts: boolean = true;
     @Input() onosInstMastership: string = '';
     @Input() visibleLayer: LayerType = LayerType.LAYER_DEFAULT;
@@ -97,6 +99,7 @@ export class ForceSvgComponent implements OnInit, OnChanges {
     @Output() selectedNodeEvent = new EventEmitter<UiElement[]>();
     public graph: ForceDirectedGraph;
     private selectedNodes: UiElement[] = [];
+    viewInitialized: boolean = false;
 
     // References to the children of this component - these are created in the
     // template view with the *ngFor and we get them by a query here
@@ -255,7 +258,30 @@ export class ForceSvgComponent implements OnInit, OnChanges {
             }
             this.log.debug('ForceSvgComponent input changed',
                 this.graph.nodes.length, 'nodes,', this.graph.links.length, 'links');
+            if (!this.viewInitialized) {
+                this.viewInitialized = true;
+                if (this.showAlarms) {
+                    this.wss.sendEvent('alarmTopovDisplayStart', {});
+                }
+            }
         }
+
+        if (changes['showAlarms'] && this.viewInitialized) {
+            if (this.showAlarms) {
+                this.wss.sendEvent('alarmTopovDisplayStart', {});
+            } else {
+                this.wss.sendEvent('alarmTopovDisplayStop', {});
+                this.cancelAllDeviceHighlightsNow();
+            }
+        }
+    }
+
+    ngOnDestroy(): void {
+        if (this.showAlarms) {
+            this.wss.sendEvent('alarmTopovDisplayStop', {});
+            this.cancelAllDeviceHighlightsNow();
+        }
+        this.viewInitialized = false;
     }
 
     /**
@@ -537,32 +563,30 @@ export class ForceSvgComponent implements OnInit, OnChanges {
      * @param hosts - an array of host highlights
      * @param links - an array of link highlights
      */
-    handleHighlights(devices: Device[], hosts: Host[], links: LinkHighlight[], fadeMs: number = 0): void {
+    handleHighlights(devices: DeviceHighlight[], hosts: HostHighlight[], links: LinkHighlight[], fadeMs: number = 0): void {
 
         if (devices.length > 0) {
             this.log.debug(devices.length, 'Devices highlighted');
-            devices.forEach((dh) => {
-                const deviceComponent: DeviceNodeSvgComponent = this.devices.find((d) => d.device.id === dh.id );
-                if (deviceComponent) {
-                    deviceComponent.ngOnChanges(
-                        {'deviceHighlight': new SimpleChange(<Device>{}, dh, true)}
-                    );
-                    this.log.debug('Highlighting device', deviceComponent.device.id);
-                } else {
-                    this.log.warn('Device component not found', dh.id);
-                }
+            devices.forEach((dh: DeviceHighlight) => {
+                this.devices.forEach((d: DeviceNodeSvgComponent) => {
+                    if (d.device.id === dh.id) {
+                        d.badge = dh.badge;
+                        this.ref.markForCheck(); // Forces ngOnChange in the DeviceSvgComponent
+                        this.log.debug('Highlighting device', dh.id);
+                    }
+                });
             });
         }
         if (hosts.length > 0) {
             this.log.debug(hosts.length, 'Hosts highlighted');
-            hosts.forEach((hh) => {
-                const hostComponent: HostNodeSvgComponent = this.hosts.find((h) => h.host.id === hh.id );
-                if (hostComponent) {
-                    hostComponent.ngOnChanges(
-                        {'hostHighlight': new SimpleChange(<Host>{}, hh, true)}
-                    );
-                    this.log.debug('Highlighting host', hostComponent.host.id);
-                }
+            hosts.forEach((hh: HostHighlight) => {
+                this.hosts.forEach((h) => {
+                    if (h.host.id === hh.id) {
+                        h.badge = hh.badge;
+                        this.ref.markForCheck(); // Forces ngOnChange in the HostSvgComponent
+                        this.log.debug('Highlighting host', hh.id);
+                    }
+                });
             });
         }
         if (links.length > 0) {
@@ -575,19 +599,31 @@ export class ForceSvgComponent implements OnInit, OnChanges {
                 this.links.forEach((l) => {
                     if (l.link.id === Link.linkIdFromShowHighlights(lh.id)) {
                         l.linkHighlight = lh;
-                        l.ngOnChanges(
-                            <SimpleChanges>{'linkHighlight': new SimpleChange(<LinkHighlight>{}, lh, true)}
-                        );
+                        this.ref.markForCheck(); // Forces ngOnChange in the LinkSvgComponent
                     }
                 });
             });
         }
     }
 
+    cancelAllHostHighlightsNow() {
+        this.hosts.forEach((host: HostNodeSvgComponent) => {
+            host.badge = undefined;
+            this.ref.markForCheck(); // Forces ngOnChange in the HostSvgComponent
+        });
+    }
+
+    cancelAllDeviceHighlightsNow() {
+        this.devices.forEach((device: DeviceNodeSvgComponent) => {
+            device.badge = undefined;
+            this.ref.markForCheck(); // Forces ngOnChange in the DeviceSvgComponent
+        });
+    }
+
     cancelAllLinkHighlightsNow() {
         this.links.forEach((link: LinkSvgComponent) => {
             link.linkHighlight = <LinkHighlight>{};
-            this.ngOnChanges(<SimpleChanges>{'linkHighlight': new SimpleChange(<LinkHighlight>{}, <LinkHighlight>{}, false)});
+            this.ref.markForCheck(); // Forces ngOnChange in the LinkSvgComponent
         });
     }
 

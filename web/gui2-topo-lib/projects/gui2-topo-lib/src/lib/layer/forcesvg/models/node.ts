@@ -202,6 +202,13 @@ export class Node implements UiElement, d3.SimulationNodeDatum {
     }
 }
 
+export interface Badge {
+    status: string;
+    isGlyph: boolean;
+    txt: string;
+    msg: string;
+}
+
 /**
  * model of the topo2CurrentRegion device from Region below
  */
@@ -217,6 +224,16 @@ export class Device extends Node {
     constructor(id: string) {
         super(id);
     }
+}
+
+export interface DeviceHighlight {
+    id: string;
+    badge: Badge;
+}
+
+export interface HostHighlight {
+    id: string;
+    badge: Badge;
 }
 
 /**

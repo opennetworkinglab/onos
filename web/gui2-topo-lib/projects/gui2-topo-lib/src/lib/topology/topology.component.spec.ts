@@ -51,6 +51,7 @@ import {DeviceNodeSvgComponent} from '../layer/forcesvg/visuals/devicenodesvg/de
 import {SubRegionNodeSvgComponent} from '../layer/forcesvg/visuals/subregionnodesvg/subregionnodesvg.component';
 import {HostNodeSvgComponent} from '../layer/forcesvg/visuals/hostnodesvg/hostnodesvg.component';
 import {LayoutService} from '../layout.service';
+import {BadgeSvgComponent} from '../layer/forcesvg/visuals/badgesvg/badgesvg.component';
 
 
 class MockActivatedRoute extends ActivatedRoute {
@@ -215,7 +216,8 @@ describe('TopologyComponent', () => {
                 MapSelectorComponent,
                 BackgroundSvgComponent,
                 MapSvgComponent,
-                GridsvgComponent
+                GridsvgComponent,
+                BadgeSvgComponent
             ],
             providers: [
                 { provide: FnService, useValue: fs },

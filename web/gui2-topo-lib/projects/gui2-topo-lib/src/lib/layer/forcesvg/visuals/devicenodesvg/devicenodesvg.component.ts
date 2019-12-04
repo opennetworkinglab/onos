@@ -22,11 +22,14 @@ import {
     OnChanges, OnInit, Output,
     SimpleChanges,
 } from '@angular/core';
-import {Device, LabelToggle, UiElement} from '../../models';
-import {IconService, LocMeta, LogService, MetaUi, SvgUtilService, ZoomUtils} from 'gui2-fw-lib';
+import {
+    Badge,
+    Device,
+    LabelToggle,
+} from '../../models';
+import {IconService, LogService, SvgUtilService} from 'gui2-fw-lib';
 import {NodeVisual, SelectedEvent} from '../nodevisual';
 import {animate, state, style, transition, trigger} from '@angular/animations';
-import {LocationType} from '../../../backgroundsvg/backgroundsvg.component';
 import {TopologyService} from '../../../../topology.service';
 
 /**
@@ -71,6 +74,7 @@ export class DeviceNodeSvgComponent extends NodeVisual implements OnInit, OnChan
     @Input() labelToggle: LabelToggle.Enum = LabelToggle.Enum.NONE;
     @Input() colorMuted: boolean = false;
     @Input() colorTheme: string = 'light';
+    @Input() badge: Badge;
     @Output() selectedEvent = new EventEmitter<SelectedEvent>();
     textWidth: number = 36;
     panelColor: string = '#9ebedf';
@@ -110,7 +114,10 @@ export class DeviceNodeSvgComponent extends NodeVisual implements OnInit, OnChan
             this.colorMuted = changes['colorMuted'].currentValue;
             this.panelColor = this.panelColour();
         }
-        this.ref.markForCheck();
+
+        if (changes['badge']) {
+            this.badge = changes['badge'].currentValue;
+        }
     }
 
     /**

@@ -15,43 +15,29 @@
  */
 
 
-/*
- ONOS GUI -- Topology View (forces device visual) -- CSS file
- */
-g.node.device rect {
-    fill: #f0f0f070;
-}
-g.node.device text {
-    fill: #bbb;
-}
-g.node.device use {
-    fill: #777;
+.status.e {
+    fill: #c72930;
 }
 
-
-g.node.device.online rect {
-    fill: #fafafad0;
-}
-g.node.device.online text {
-    fill: #3c3a3a;
-}
-g.node.device.online use {
-    /* NOTE: this gets overridden programatically */
-    fill: #ffffff;
+.text.e {
+    fill: white;
+    font-weight: bold;
 }
 
-g.node.selected .node-container {
-    stroke-width: 2.0;
-    stroke: #009fdb;
+.status.w {
+    fill: #db7773;
 }
 
-g.node.hovered .node-container {
-    stroke-width: 2.0;
-    stroke: #454545;
+.text.w {
+    fill: white;
+    font-weight: bold;
 }
 
-path.bracket {
-    stroke: white;
-    stroke-width: 1;
-    fill: none
+.status.i {
+    fill: #007dc4;
 }
+
+.text.i {
+    fill: white;
+}
+

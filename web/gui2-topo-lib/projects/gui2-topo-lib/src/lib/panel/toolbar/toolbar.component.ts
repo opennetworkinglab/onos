@@ -40,7 +40,7 @@ export const ALL_TRAFFIC = 'all-traffic';
 export const QUICKHELP_BTN = 'quickhelp-btn';
 export const LAYOUT_DEFAULT_BTN = 'layout-default-btn';
 export const LAYOUT_ACCESS_BTN = 'layout-access-btn';
-
+export const ALARMS_TOGGLE = 'alarms-tog';
 
 /*
  ONOS GUI -- Topology Toolbar Module.
@@ -81,6 +81,7 @@ export class ToolbarComponent extends PanelBaseImpl {
     @Input() detailsVisible: boolean = true;
     @Input() backgroundVisible: boolean = false;
     @Input() portsVisible: boolean = true;
+    @Input() alarmsVisible: boolean = true;
 
     @Output() buttonEvent = new EventEmitter<string>();
 
@@ -133,6 +134,9 @@ export class ToolbarComponent extends PanelBaseImpl {
                 break;
             case BKGRND_TOGGLE:
                 this.backgroundVisible = !this.backgroundVisible;
+                break;
+            case ALARMS_TOGGLE:
+                this.alarmsVisible = !this.alarmsVisible;
                 break;
             default:
         }

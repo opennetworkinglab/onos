@@ -81,5 +81,8 @@
         <div class="button" id="toolbar-topo2-toolbar-topo2-layout-access" (click)="buttonClicked('layout-access-btn')">
             <onos-icon iconSize="25" iconId="m_disjointPaths" toolTip="Access layout - separate service leafs" classes="button"></onos-icon>
         </div>
+        <div class="button" id="toolbar-topo2-toolbar-topo2-alarms-tog" (click)="buttonClicked('alarms-tog')">
+            <onos-icon iconSize="25" iconId="clock" toolTip="Toggle Alarms display" classes="button" [classes]="['toggleButton', alarmsVisible?'selected':'']"></onos-icon>
+        </div>
     </div>
 </div>

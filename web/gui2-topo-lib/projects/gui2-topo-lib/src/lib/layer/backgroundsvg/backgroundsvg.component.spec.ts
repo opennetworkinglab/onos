@@ -28,6 +28,7 @@ import {DeviceNodeSvgComponent} from '../forcesvg/visuals/devicenodesvg/deviceno
 import {SubRegionNodeSvgComponent} from '../forcesvg/visuals/subregionnodesvg/subregionnodesvg.component';
 import {LinkSvgComponent} from '../forcesvg/visuals/linksvg/linksvg.component';
 import {HostNodeSvgComponent} from '../forcesvg/visuals/hostnodesvg/hostnodesvg.component';
+import {BadgeSvgComponent} from '../forcesvg/visuals/badgesvg/badgesvg.component';
 
 
 describe('BackgroundSvgComponent', () => {
@@ -60,7 +61,8 @@ describe('BackgroundSvgComponent', () => {
                 HostNodeSvgComponent,
                 SubRegionNodeSvgComponent,
                 LinkSvgComponent,
-                DraggableDirective
+                DraggableDirective,
+                BadgeSvgComponent
             ],
             providers: [
                 { provide: LogService, useValue: logSpy },

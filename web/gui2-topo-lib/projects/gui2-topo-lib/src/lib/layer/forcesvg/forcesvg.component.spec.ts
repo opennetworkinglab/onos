@@ -33,6 +33,7 @@ import {LinkSvgComponent} from './visuals/linksvg/linksvg.component';
 import {Device, Host, Link, LinkType, Region} from './models';
 import {ChangeDetectorRef, SimpleChange} from '@angular/core';
 import {TopologyService} from '../../topology.service';
+import {BadgeSvgComponent} from './visuals/badgesvg/badgesvg.component';
 
 class MockActivatedRoute extends ActivatedRoute {
     constructor(params: Params) {
@@ -137,7 +138,8 @@ describe('ForceSvgComponent', () => {
                 HostNodeSvgComponent,
                 SubRegionNodeSvgComponent,
                 LinkSvgComponent,
-                DraggableDirective
+                DraggableDirective,
+                BadgeSvgComponent
             ],
             providers: [
                 { provide: LogService, useValue: logSpy },

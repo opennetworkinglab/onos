@@ -23,6 +23,7 @@ import {ChangeDetectorRef} from '@angular/core';
 import {Device} from '../../models';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {TopologyService} from '../../../../topology.service';
+import {BadgeSvgComponent} from '../badgesvg/badgesvg.component';
 
 class MockActivatedRoute extends ActivatedRoute {
     constructor(params: Params) {
@@ -100,7 +101,7 @@ describe('DeviceNodeSvgComponent', () => {
 
         TestBed.configureTestingModule({
             imports: [ BrowserAnimationsModule ],
-            declarations: [ DeviceNodeSvgComponent ],
+            declarations: [ DeviceNodeSvgComponent, BadgeSvgComponent ],
             providers: [
                 { provide: LogService, useValue: logSpy },
                 { provide: ActivatedRoute, useValue: ar },

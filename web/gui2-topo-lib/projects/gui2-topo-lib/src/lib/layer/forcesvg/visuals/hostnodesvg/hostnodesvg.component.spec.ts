@@ -22,6 +22,7 @@ import {LogService} from 'gui2-fw-lib';
 import {Host} from '../../models';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {ChangeDetectorRef} from '@angular/core';
+import {BadgeSvgComponent} from '../badgesvg/badgesvg.component';
 
 class MockActivatedRoute extends ActivatedRoute {
   constructor(params: Params) {
@@ -45,7 +46,7 @@ describe('HostNodeSvgComponent', () => {
 
         TestBed.configureTestingModule({
             imports: [ BrowserAnimationsModule ],
-            declarations: [ HostNodeSvgComponent ],
+            declarations: [ HostNodeSvgComponent, BadgeSvgComponent ],
             providers: [
               { provide: LogService, useValue: logSpy },
               { provide: ActivatedRoute, useValue: ar },

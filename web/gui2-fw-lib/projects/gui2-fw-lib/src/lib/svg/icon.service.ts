@@ -151,6 +151,8 @@ export const glyphMapping = new Map<string, string>([
     ['nav_intents', 'relatedIntents'],
     ['nav_tunnels', 'ports'], // TODO: use tunnel glyph, when available
     ['nav_yang', 'yang'],
+    ['clock', 'clock'],
+    ['clocks', 'clocks'],
 ]);
 
 /**

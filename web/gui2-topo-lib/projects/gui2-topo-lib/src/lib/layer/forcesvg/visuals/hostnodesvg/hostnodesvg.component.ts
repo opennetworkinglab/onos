@@ -21,7 +21,7 @@ import {
     Output,
     SimpleChanges
 } from '@angular/core';
-import {Host, HostLabelToggle, Node} from '../../models';
+import {Badge, Host, HostLabelToggle, Node} from '../../models';
 import {LogService} from 'gui2-fw-lib';
 import {NodeVisual, SelectedEvent} from '../nodevisual';
 
@@ -40,6 +40,7 @@ export class HostNodeSvgComponent extends NodeVisual implements OnChanges {
     @Input() host: Host;
     @Input() scale: number = 1.0;
     @Input() labelToggle: HostLabelToggle.Enum = HostLabelToggle.Enum.IP;
+    @Input() badge: Badge;
     @Output() selectedEvent = new EventEmitter<SelectedEvent>();
 
     constructor(
@@ -49,9 +50,15 @@ export class HostNodeSvgComponent extends NodeVisual implements OnChanges {
     }
 
     ngOnChanges(changes: SimpleChanges) {
-        if (!this.host.x) {
-            this.host.x = 0;
-            this.host.y = 0;
+        if (changes['host']) {
+            if (!this.host.x) {
+                this.host.x = 0;
+                this.host.y = 0;
+            }
+        }
+
+        if (changes['badge']) {
+            this.badge = changes['badge'].currentValue;
         }
     }
 

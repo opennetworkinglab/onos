@@ -63,7 +63,8 @@ import {
     PORTS_TOGGLE,
     QUICKHELP_BTN,
     RESETZOOM_BTN,
-    SUMMARY_TOGGLE
+    SUMMARY_TOGGLE,
+    ALARMS_TOGGLE
 } from '../panel/toolbar/toolbar.component';
 import {TrafficService, TrafficType} from '../traffic.service';
 import {ZoomableDirective} from '../layer/zoomable.directive';
@@ -88,6 +89,7 @@ const PREF_SUMMARY = 'summary';
 const PREF_TOOLBAR = 'toolbar';
 const PREF_PINNED = 'pinned';
 const PREF_TRAFFIC = 'traffic';
+const PREF_ALARMS = 'alarms';
 
 const BACKGROUND_ELEMENTS = [
     'svg topo2',
@@ -114,6 +116,7 @@ export interface Topo2Prefs {
     grid: number;
     pinned: number;
     traffic: number;
+    alarms: number;
 }
 
 /**
@@ -171,7 +174,8 @@ export class TopologyComponent implements OnInit, OnDestroy, AfterViewInit {
         toolbar: 0,
         grid: 0,
         pinned: 0,
-        traffic: 2 // default to PORTSTATSPKTSEC, as it will iterate over to 0 on init
+        traffic: 2, // default to PORTSTATSPKTSEC, as it will iterate over to 0 on init
+        alarms: 1,
     };
 
     mapIdState: MapObject = <MapObject>{
@@ -436,6 +440,9 @@ export class TopologyComponent implements OnInit, OnDestroy, AfterViewInit {
             case LAYOUT_ACCESS_BTN:
                 this.layout.changeLayout(LayoutType.LAYOUT_ACCESS);
                 break;
+            case ALARMS_TOGGLE:
+                this.toggleAlarms();
+                break;
             default:
                 this.log.warn('Unhandled Toolbar action', name);
         }
@@ -657,6 +664,14 @@ export class TopologyComponent implements OnInit, OnDestroy, AfterViewInit {
             ' ' + this.lionFn('fl_offline_devices');
         this.updatePrefsState(PREF_OFFDEV, on ? 1 : 0);
         this.log.debug('toggling offline devices', this.prefsState.offdev);
+    }
+
+
+    protected toggleAlarms() {
+        const on: boolean = !Boolean(this.prefsState.alarms);
+        this.flashMsg = this.lionFn(on ? 'show' : 'hide') + ' Alarms';
+        this.updatePrefsState(PREF_ALARMS, on ? 1 : 0);
+        this.log.debug('Alarms toggled', on);
     }
 
     protected resetZoom() {
