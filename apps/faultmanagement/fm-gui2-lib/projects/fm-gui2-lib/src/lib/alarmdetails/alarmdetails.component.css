@@ -65,3 +65,32 @@
     text-align: right;
     padding-right: 6px;
 }
+
+
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}
+
+td.severity.CRITICAL {
+  background-color: #c72930;
+  color: white;
+  font-weight: bold;
+  animation: blinker 1s linear infinite;
+}
+
+td.severity.MAJOR {
+  background-color: #db7773;
+  color: white;
+  font-weight: bold;
+}
+
+td.severity.MINOR {
+  background-color: #007dc4;
+  color: white;
+}
+
+td.severity.WARNING {
+  background-color: #87d6f9;
+}

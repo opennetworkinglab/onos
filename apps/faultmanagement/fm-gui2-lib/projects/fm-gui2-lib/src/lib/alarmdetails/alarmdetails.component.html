@@ -56,7 +56,7 @@
               </tr>
               <tr>
                 <td class="label" width="110">Severity :</td>
-                <td class="value" width="80">{{detailsData.alarmSeverity}}</td>
+                <td width="80" [ngClass]="[detailsData.alarmSeverity ? detailsData.alarmSeverity:'', 'severity', 'value']">{{detailsData.alarmSeverity}}</td>
               </tr>
               <hr>
               <tr>

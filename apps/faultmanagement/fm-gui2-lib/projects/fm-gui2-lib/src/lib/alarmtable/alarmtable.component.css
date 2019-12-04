@@ -15,7 +15,63 @@
  */
 
 /* css for alarm table view */
+#ov-alarm-table .tabular-header {
+  text-align: left;
+}
 
 #ov-alarm-table h2 {
     display: inline-block;
+}
+
+#ov-alarm-table div.summary-list .table-header td {
+  font-weight: bold;
+  font-variant: small-caps;
+  text-transform: uppercase;
+  font-size: 10pt;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  background-color: #e5e5e6;
+  color: #3c3a3a;
+}
+
+#ov-alarm-table div.summary-list .table-body {
+  overflow:scroll;
+}
+
+#ov-alarm-table, div.ctrl-btns {
+}
+
+#ov-alarm-table th, td {
+  text-align: left;
+  padding:  8px;
+}
+
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}
+
+td.severity.CRITICAL {
+  background-color: #c72930;
+  color: white;
+  font-weight: bold;
+  animation: blinker 1s linear infinite;
+}
+
+td.severity.MAJOR {
+  background-color: #db7773;
+  color: white;
+  font-weight: bold;
+}
+
+td.severity.MINOR {
+  background-color: #007dc4;
+  color: white;
+}
+
+td.severity.WARNING {
+  background-color: #87d6f9;
 }
