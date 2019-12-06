@@ -97,6 +97,9 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
 
     @Override
     public void cleanUp(ApplicationId appId) throws BngProgrammableException {
+        if (!setupBehaviour("cleanUp()")) {
+            return;
+        }
         flowRuleService.removeFlowRulesById(appId);
         this.resetControlTrafficCounter();
     }
@@ -104,6 +107,9 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
     @Override
     public void setupAttachment(Attachment attachmentInfo) throws BngProgrammableException {
         checkArgument(attachmentInfo.type() == Attachment.AttachmentType.PPPoE);
+        if (!setupBehaviour("setupAttachment()")) {
+            return;
+        }
         List<FlowRule> lstFlowRules = Lists.newArrayList();
         lstFlowRules.add(buildTLineMapFlowRule(attachmentInfo));
         // If the line is not active do not generate the rule for the table
@@ -119,6 +125,9 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
     @Override
     public void removeAttachment(Attachment attachmentInfo) {
         checkArgument(attachmentInfo.type() == Attachment.AttachmentType.PPPoE);
+        if (!setupBehaviour("removeAttachment()")) {
+            return;
+        }
         List<FlowRule> lstFlowRules = Lists.newArrayList();
         lstFlowRules.add(buildTLineMapFlowRule(attachmentInfo));
         lstFlowRules.add(buildTPppoeTermV4FlowRule(attachmentInfo));
@@ -130,6 +139,9 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
     @Override
     public Map<BngCounterType, PiCounterCellData> readCounters(Attachment attachmentInfo)
             throws BngProgrammableException {
+        if (!setupBehaviour("readCounters()")) {
+            return Maps.newHashMap();
+        }
         checkArgument(attachmentInfo.type() == Attachment.AttachmentType.PPPoE);
         return readCounters(attachmentInfo.attachmentId().id(), Set.of(BngCounterType.values()));
     }
@@ -137,6 +149,9 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
     @Override
     public PiCounterCellData readCounter(Attachment attachmentInfo, BngCounterType counter)
             throws BngProgrammableException {
+        if (!setupBehaviour("readCounter()")) {
+            return null;
+        }
         checkArgument(attachmentInfo.type() == Attachment.AttachmentType.PPPoE);
         return readCounters(attachmentInfo.attachmentId().id(), Set.of(counter))
                 .getOrDefault(counter, null);
@@ -145,6 +160,9 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
     @Override
     public void resetCounters(Attachment attachmentInfo)
             throws BngProgrammableException {
+        if (!setupBehaviour("resetCounters()")) {
+            return;
+        }
         checkArgument(attachmentInfo.type() == Attachment.AttachmentType.PPPoE);
         resetCounters(attachmentInfo.attachmentId().id(), Set.of(BngCounterType.values()));
     }
@@ -152,6 +170,9 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
     @Override
     public PiCounterCellData readControlTrafficCounter()
             throws BngProgrammableException {
+        if (!setupBehaviour("readControlTrafficCounter()")) {
+            return null;
+        }
         return readCounters(DEFAULT_CONTROL_INDEX, Set.of(BngCounterType.CONTROL_PLANE))
                 .get(BngCounterType.CONTROL_PLANE);
     }
@@ -159,11 +180,17 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
     @Override
     public void resetCounter(Attachment attachmentInfo, BngCounterType counter)
             throws BngProgrammableException {
+        if (!setupBehaviour("resetCounter()")) {
+            return;
+        }
         resetCounters(attachmentInfo.attachmentId().id(), Set.of(counter));
     }
 
     @Override
     public void resetControlTrafficCounter() throws BngProgrammableException {
+        if (!setupBehaviour("resetControlTrafficCounter()")) {
+            return;
+        }
         resetCounters(DEFAULT_CONTROL_INDEX, Set.of((BngCounterType.CONTROL_PLANE)));
     }
 
