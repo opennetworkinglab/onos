@@ -1013,7 +1013,7 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
                 .fromApp(applicationId)
                 .makePermanent()
                 .forTable(TMAC_TABLE).build();
-        log.info("Building flowRule {}", rule);
+        log.debug("Building TMac Mcast flowRule {}", rule);
         return rule;
     }
 
