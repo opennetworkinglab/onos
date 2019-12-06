@@ -49,8 +49,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
         implements BngProgrammable {
 
@@ -106,10 +104,10 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
 
     @Override
     public void setupAttachment(Attachment attachmentInfo) throws BngProgrammableException {
-        checkArgument(attachmentInfo.type() == Attachment.AttachmentType.PPPoE);
         if (!setupBehaviour("setupAttachment()")) {
             return;
         }
+        checkAttachment(attachmentInfo);
         List<FlowRule> lstFlowRules = Lists.newArrayList();
         lstFlowRules.add(buildTLineMapFlowRule(attachmentInfo));
         // If the line is not active do not generate the rule for the table
@@ -123,11 +121,11 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
     }
 
     @Override
-    public void removeAttachment(Attachment attachmentInfo) {
-        checkArgument(attachmentInfo.type() == Attachment.AttachmentType.PPPoE);
+    public void removeAttachment(Attachment attachmentInfo) throws BngProgrammableException {
         if (!setupBehaviour("removeAttachment()")) {
             return;
         }
+        checkAttachment(attachmentInfo);
         List<FlowRule> lstFlowRules = Lists.newArrayList();
         lstFlowRules.add(buildTLineMapFlowRule(attachmentInfo));
         lstFlowRules.add(buildTPppoeTermV4FlowRule(attachmentInfo));
@@ -142,7 +140,7 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
         if (!setupBehaviour("readCounters()")) {
             return Maps.newHashMap();
         }
-        checkArgument(attachmentInfo.type() == Attachment.AttachmentType.PPPoE);
+        checkAttachment(attachmentInfo);
         return readCounters(attachmentInfo.attachmentId().id(), Set.of(BngCounterType.values()));
     }
 
@@ -152,7 +150,7 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
         if (!setupBehaviour("readCounter()")) {
             return null;
         }
-        checkArgument(attachmentInfo.type() == Attachment.AttachmentType.PPPoE);
+        checkAttachment(attachmentInfo);
         return readCounters(attachmentInfo.attachmentId().id(), Set.of(counter))
                 .getOrDefault(counter, null);
     }
@@ -163,7 +161,7 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
         if (!setupBehaviour("resetCounters()")) {
             return;
         }
-        checkArgument(attachmentInfo.type() == Attachment.AttachmentType.PPPoE);
+        checkAttachment(attachmentInfo);
         resetCounters(attachmentInfo.attachmentId().id(), Set.of(BngCounterType.values()));
     }
 
@@ -183,6 +181,7 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
         if (!setupBehaviour("resetCounter()")) {
             return;
         }
+        checkAttachment(attachmentInfo);
         resetCounters(attachmentInfo.attachmentId().id(), Set.of(counter));
     }
 
@@ -204,7 +203,6 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
     private Map<BngCounterType, PiCounterCellData> readCounters(
             long index,
             Set<BngCounterType> counters) throws BngProgrammableException {
-        checkIndex(index);
         Map<BngCounterType, PiCounterCellData> readValues = Maps.newHashMap();
         Set<PiCounterCellId> counterCellIds = counters.stream()
                 .filter(c -> !UNSUPPORTED_COUNTER.contains(c))
@@ -241,7 +239,6 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
      * @param counters The set of counters to reset.
      */
     private void resetCounters(long index, Set<BngCounterType> counters) throws BngProgrammableException {
-        checkIndex(index);
         Set<PiCounterCellId> counterCellIds = counters.stream()
                 .filter(c -> !UNSUPPORTED_COUNTER.contains(c))
                 .map(c -> PiCounterCellId.ofIndirect(COUNTER_MAP.get(c), index))
@@ -266,17 +263,20 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
     }
 
     /**
-     * Check if the index is in the range of max number of supported
-     * attachments.
+     * Preliminary check on the submitted attachment.
      *
-     * @param index
-     * @throws BngProgrammableException
+     * @param attachmentInfo
+     * @throws BngProgrammableException If the attachment is not supported.
      */
-    private void checkIndex(long index) throws BngProgrammableException {
-        if (index > MAX_SUPPORTED_ATTACHMENTS) {
-            throw new BngProgrammableException("Counter index too big. Value:" +
-                                                       index + ", MAX:" +
-                                                       MAX_SUPPORTED_ATTACHMENTS);
+    private void checkAttachment(Attachment attachmentInfo) throws BngProgrammableException {
+        if (attachmentInfo.type() != Attachment.AttachmentType.PPPoE) {
+            throw new BngProgrammableException(
+                    "Attachment {} is not a PPPoE Attachment");
+        }
+        if (attachmentInfo.attachmentId().id() >= MAX_SUPPORTED_ATTACHMENTS) {
+            throw new BngProgrammableException(
+                    "Attachment ID too big. Value:" + attachmentInfo.attachmentId().id().toString() +
+                            ", MAX:" + MAX_SUPPORTED_ATTACHMENTS);
         }
     }
 
