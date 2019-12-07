@@ -155,7 +155,8 @@ public class DistributedHostStore
                 !Objects.equals(existingHost.vlan(), hostDescription.vlan()) ||
                 !Objects.equals(existingHost.innerVlan(), hostDescription.innerVlan()) ||
                 !Objects.equals(existingHost.tpid(), hostDescription.tpid()) ||
-                !Objects.equals(existingHost.locations(), hostDescription.locations())) {
+                !Objects.equals(existingHost.locations(), hostDescription.locations()) ||
+                !Objects.equals(existingHost.auxLocations(), hostDescription.auxLocations())) {
             return true;
         }
 
@@ -211,10 +212,12 @@ public class DistributedHostStore
                             hostDescription.hwAddress(),
                             hostDescription.vlan(),
                             hostDescription.locations(),
+                            hostDescription.auxLocations(),
                             addresses,
                             hostDescription.innerVlan(),
                             hostDescription.tpid(),
                             hostDescription.configured(),
+                            false,
                             annotations);
                 });
         return null;
@@ -247,6 +250,7 @@ public class DistributedHostStore
                             existingHost.mac(),
                             existingHost.vlan(),
                             existingHost.locations(),
+                            existingHost.auxLocations(),
                             ImmutableSet.copyOf(addresses),
                             existingHost.innerVlan(),
                             existingHost.tpid(),
@@ -280,7 +284,7 @@ public class DistributedHostStore
 
                 return new DefaultHost(existingHost.providerId(),
                         hostId, existingHost.mac(), existingHost.vlan(),
-                        newLocations, existingHost.ipAddresses(),
+                        newLocations, existingHost.auxLocations(), existingHost.ipAddresses(),
                         existingHost.innerVlan(), existingHost.tpid(),
                         existingHost.configured(), existingHost.suspended(), existingHost.annotations());
             }
@@ -305,7 +309,7 @@ public class DistributedHostStore
                 return locations.isEmpty() ? null :
                         new DefaultHost(existingHost.providerId(),
                                 hostId, existingHost.mac(), existingHost.vlan(),
-                                locations, existingHost.ipAddresses(),
+                                locations, existingHost.auxLocations(), existingHost.ipAddresses(),
                                 existingHost.innerVlan(), existingHost.tpid(),
                                 existingHost.configured(), existingHost.suspended(), existingHost.annotations());
             }
@@ -373,6 +377,7 @@ public class DistributedHostStore
                             existingHost.mac(),
                             existingHost.vlan(),
                             existingHost.locations(),
+                            existingHost.auxLocations(),
                             existingHost.ipAddresses(),
                             existingHost.innerVlan(),
                             existingHost.tpid(),
@@ -396,6 +401,7 @@ public class DistributedHostStore
                             existingHost.mac(),
                             existingHost.vlan(),
                             existingHost.locations(),
+                            existingHost.auxLocations(),
                             existingHost.ipAddresses(),
                             existingHost.innerVlan(),
                             existingHost.tpid(),
@@ -474,6 +480,8 @@ public class DistributedHostStore
                         notifyDelegate(new HostEvent(HOST_UNSUSPENDED, host, prevHost));
                     } else if (!Objects.equals(prevHost.locations(), host.locations())) {
                         notifyDelegate(new HostEvent(HOST_MOVED, host, prevHost));
+                    } else if (!Objects.equals(prevHost.auxLocations(), host.auxLocations())) {
+                        notifyDelegate(new HostEvent(HOST_AUX_MOVED, host, prevHost));
                     } else if (!Objects.equals(prevHost, host)) {
                         notifyDelegate(new HostEvent(HOST_UPDATED, host, prevHost));
                     }

@@ -76,6 +76,13 @@ public interface HostDescription extends Description {
     Set<HostLocation> locations();
 
     /**
+     * Returns host auxiliary locations, which could be useful for app operations in addition to the attach points.
+     *
+     * @return auxiliary locations, or null if unspecified
+     */
+    Set<HostLocation> auxLocations();
+
+    /**
      * Returns the IP address associated with this host's MAC.
      *
      * @return host IP address
