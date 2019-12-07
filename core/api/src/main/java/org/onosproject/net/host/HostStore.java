@@ -127,7 +127,7 @@ public interface HostStore extends Store<HostEvent, HostStoreDelegate> {
     Set<Host> getHosts(IpAddress ip);
 
     /**
-     * Returns the set of hosts whose location falls on the given connection point.
+     * Returns the set of hosts that attach to the specified connection point.
      *
      * @param connectPoint connection point
      * @return set of hosts
@@ -135,7 +135,7 @@ public interface HostStore extends Store<HostEvent, HostStoreDelegate> {
     Set<Host> getConnectedHosts(ConnectPoint connectPoint);
 
     /**
-     * Returns the set of hosts whose location falls on the given device.
+     * Returns the set of hosts that attach to the specified device.
      *
      * @param deviceId infrastructure device identifier
      * @return set of hosts
