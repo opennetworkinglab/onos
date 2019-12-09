@@ -51,9 +51,11 @@ export * from './lib/layer/confirm/confirm.component';
 export * from './lib/layer/quickhelp/quickhelp.component';
 export * from './lib/layer/loading/loading.component';
 export * from './lib/svg/icon/icon.component';
+export * from './lib/util/name-input/name-input.component';
 
 export * from './lib/widget/tableresize.directive';
 export * from './lib/detectbrowser.directive';
+export * from './lib/svg/zoomable.directive';
 
 export * from './lib/widget/tablefilter.pipe';
 

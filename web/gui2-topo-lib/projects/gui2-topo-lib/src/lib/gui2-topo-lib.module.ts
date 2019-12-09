@@ -28,7 +28,6 @@ import { ForceSvgComponent } from './layer/forcesvg/forcesvg.component';
 import { MapSvgComponent } from './layer/mapsvg/mapsvg.component';
 import { TopologyService } from './topology.service';
 import { DraggableDirective } from './layer/forcesvg/draggable/draggable.directive';
-import { ZoomableDirective } from './layer/zoomable.directive';
 import { MapSelectorComponent } from './panel/mapselector/mapselector.component';
 import { DeviceNodeSvgComponent} from './layer/forcesvg/visuals/devicenodesvg/devicenodesvg.component';
 import { HostNodeSvgComponent } from './layer/forcesvg/visuals/hostnodesvg/hostnodesvg.component';
@@ -72,7 +71,6 @@ import { BadgeSvgComponent } from './layer/forcesvg/visuals/badgesvg/badgesvg.co
         SummaryComponent,
         ToolbarComponent,
         TopologyComponent,
-        ZoomableDirective,
         DraggableDirective,
         BadgeSvgComponent,
     ],
@@ -97,7 +95,6 @@ import { BadgeSvgComponent } from './layer/forcesvg/visuals/badgesvg/badgesvg.co
         SummaryComponent,
         ToolbarComponent,
         TopologyComponent,
-        ZoomableDirective,
         DraggableDirective,
         BadgeSvgComponent
     ]

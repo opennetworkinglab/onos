@@ -13,46 +13,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { DetectBrowserDirective } from './detectbrowser.directive';
-import { IconComponent } from './svg/icon/icon.component';
-import { VeilComponent } from './layer/veil/veil.component';
-import { FlashComponent } from './layer/flash/flash.component';
-import { ConfirmComponent } from './layer/confirm/confirm.component';
-import { MastComponent } from './mast/mast/mast.component';
-import { TableFilterPipe } from './widget/tablefilter.pipe';
-import { TableResizeDirective } from './widget/tableresize.directive';
-import { QuickhelpComponent } from './layer/quickhelp/quickhelp.component';
-import { LoadingComponent } from './layer/loading/loading.component';
+import {NgModule} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {DetectBrowserDirective} from './detectbrowser.directive';
+import {IconComponent} from './svg/icon/icon.component';
+import {VeilComponent} from './layer/veil/veil.component';
+import {FlashComponent} from './layer/flash/flash.component';
+import {ConfirmComponent} from './layer/confirm/confirm.component';
+import {MastComponent} from './mast/mast/mast.component';
+import {TableFilterPipe} from './widget/tablefilter.pipe';
+import {TableResizeDirective} from './widget/tableresize.directive';
+import {QuickhelpComponent} from './layer/quickhelp/quickhelp.component';
+import {LoadingComponent} from './layer/loading/loading.component';
+import {ZoomableDirective} from './svg/zoomable.directive';
+import {NameInputComponent} from './util/name-input/name-input.component';
 
 @NgModule({
-  imports: [
-    CommonModule
-  ],
-  declarations: [
-    DetectBrowserDirective,
-    TableResizeDirective,
-    IconComponent,
-    VeilComponent,
-    FlashComponent,
-    ConfirmComponent,
-    QuickhelpComponent,
-    MastComponent,
-    TableFilterPipe,
-    LoadingComponent
-  ],
-  exports: [
-    DetectBrowserDirective,
-    TableResizeDirective,
-    IconComponent,
-    VeilComponent,
-    FlashComponent,
-    ConfirmComponent,
-    QuickhelpComponent,
-    MastComponent,
-    TableFilterPipe,
-    LoadingComponent
-  ]
+    imports: [
+        CommonModule
+    ],
+    declarations: [
+        DetectBrowserDirective,
+        TableResizeDirective,
+        IconComponent,
+        VeilComponent,
+        FlashComponent,
+        ConfirmComponent,
+        QuickhelpComponent,
+        MastComponent,
+        TableFilterPipe,
+        LoadingComponent,
+        ZoomableDirective,
+        NameInputComponent
+    ],
+    exports: [
+        DetectBrowserDirective,
+        TableResizeDirective,
+        IconComponent,
+        VeilComponent,
+        FlashComponent,
+        ConfirmComponent,
+        QuickhelpComponent,
+        MastComponent,
+        TableFilterPipe,
+        LoadingComponent,
+        ZoomableDirective,
+        NameInputComponent
+    ]
 })
-export class Gui2FwLibModule { }
+export class Gui2FwLibModule {
+}

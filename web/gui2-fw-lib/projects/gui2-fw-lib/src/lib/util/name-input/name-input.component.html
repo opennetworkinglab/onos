@@ -1,0 +1,22 @@
+<!--
+~ Copyright 2019-present Open Networking Foundation
+~
+~ Licensed under the Apache License, Version 2.0 (the "License");
+~ you may not use this file except in compliance with the License.
+~ You may obtain a copy of the License at
+~
+~     http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS,
+~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~ See the License for the specific language governing permissions and
+~ limitations under the License.
+-->
+<div id="name-input-dialog" class="floatpanel dialog" [@niDlgState]="title!==''">
+    <h3>{{ title }}</h3><br>
+    <input #newName type="text" pattern="[a-zA-Z0-9\-:_]{3}" [placeholder]="placeholder" name="nameinput" [minLength]="minLen" [maxLength]="maxLen" width="40" required>
+    <p *ngIf="warning" class="warning strong">{{ warning }}</p>
+    <div tabindex="10" class="dialog-button" (click)="choice(true, newName.value)">OK</div>
+    <div tabindex="11" class="dialog-button" (click)="choice(false, '')">Cancel</div>
+</div>

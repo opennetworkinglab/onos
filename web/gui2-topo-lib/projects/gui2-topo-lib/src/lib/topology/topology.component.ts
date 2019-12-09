@@ -67,7 +67,7 @@ import {
     ALARMS_TOGGLE
 } from '../panel/toolbar/toolbar.component';
 import {TrafficService, TrafficType} from '../traffic.service';
-import {ZoomableDirective} from '../layer/zoomable.directive';
+import {ZoomableDirective} from 'gui2-fw-lib';
 import {MapObject} from '../layer/maputils';
 import {LayoutService, LayoutType} from '../layout.service';
 import {SelectedEvent} from '../layer/forcesvg/visuals/nodevisual';

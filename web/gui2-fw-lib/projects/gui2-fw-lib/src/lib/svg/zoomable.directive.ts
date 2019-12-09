@@ -21,8 +21,10 @@ import {
     OnInit,
     SimpleChanges
 } from '@angular/core';
-import {LogService, PrefsService, TopoZoomPrefs} from 'gui2-fw-lib';
 import * as d3 from 'd3';
+import {TopoZoomPrefs} from './zoomutils';
+import {LogService} from '../log.service';
+import {PrefsService} from '../util/prefs.service';
 
 const TOPO_ZOOM_PREFS = 'topo_zoom';
 

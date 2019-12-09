@@ -1,6 +1,6 @@
 {
   "name": "gui2-topo-lib",
-  "version": "2.1.1",
+  "version": "2.3.3",
   "author": {
     "name": "Sean Condon",
     "email": "sean@opennetworking.org"
@@ -17,6 +17,6 @@
   "peerDependencies": {
     "@angular/common": "^7.0.0",
     "@angular/core": "^7.0.0",
-    "gui2-fw-lib": "^2.1.1"
+    "gui2-fw-lib": "^2.3.3"
   }
 }

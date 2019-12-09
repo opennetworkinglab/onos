@@ -23,7 +23,6 @@ export * from './lib/topology.service';
 export * from './lib/traffic.service';
 export * from './lib/topology-routing.module';
 
-export * from './lib/layer/zoomable.directive';
 export * from './lib/layer/viewcontroller';
 export * from './lib/layer/maputils';
 

@@ -15,10 +15,12 @@
  */
 import { ZoomableDirective } from './zoomable.directive';
 import {inject, TestBed} from '@angular/core/testing';
-import {LogService, ConsoleLoggerService, FnService} from 'gui2-fw-lib';
 import {ElementRef} from '@angular/core';
 import {ActivatedRoute, Params} from '@angular/router';
 import {of} from 'rxjs';
+import {FnService} from '../util/fn.service';
+import {LogService} from '../log.service';
+import {ConsoleLoggerService} from '../consolelogger.service';
 
 class MockActivatedRoute extends ActivatedRoute {
     constructor(params: Params) {

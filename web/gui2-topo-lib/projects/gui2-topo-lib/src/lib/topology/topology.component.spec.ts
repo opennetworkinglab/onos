@@ -36,7 +36,7 @@ import {
     LogService,
     IconService, IconComponent, PrefsService, KeysService, LionService
 } from 'gui2-fw-lib';
-import {ZoomableDirective} from '../layer/zoomable.directive';
+import {ZoomableDirective} from 'gui2-fw-lib';
 import {RouterTestingModule} from '@angular/router/testing';
 import {TrafficService} from '../traffic.service';
 import {ForceSvgComponent} from '../layer/forcesvg/forcesvg.component';
@@ -203,7 +203,6 @@ describe('TopologyComponent', () => {
                 ToolbarComponent,
                 DetailsComponent,
                 FlashComponent,
-                ZoomableDirective,
                 IconComponent,
                 QuickhelpComponent,
                 ForceSvgComponent,
