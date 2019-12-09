@@ -253,6 +253,7 @@ APP_MAP = {
     "//apps/network-troubleshoot:onos-apps-network-troubleshoot-oar": [],
     "//apps/newoptical:onos-apps-newoptical-oar": [],
     "//apps/nodemetrics:onos-apps-nodemetrics-oar": [],
+    "//apps/node-diagnosis:onos-apps-node-diagnosis-oar": [],
     "//apps/odtn/api:onos-apps-odtn-api-oar": [],
     "//apps/odtn/service:onos-apps-odtn-service-oar": [],
     "//apps/ofagent:onos-apps-ofagent-oar": [],
