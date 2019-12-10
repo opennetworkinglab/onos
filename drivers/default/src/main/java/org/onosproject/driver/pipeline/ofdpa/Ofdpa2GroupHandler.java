@@ -1885,6 +1885,7 @@ public class Ofdpa2GroupHandler {
             if (topGroup == null) {
                 log.warn("topGroup {} not found in GroupStore device:{}, nextId:{}",
                          topGroupKey, deviceId, nextObjective.id());
+                fail(nextObjective, ObjectiveError.GROUPMISSING);
                 return;
             }
             int actualGroupSize = topGroup.buckets().buckets().size();
