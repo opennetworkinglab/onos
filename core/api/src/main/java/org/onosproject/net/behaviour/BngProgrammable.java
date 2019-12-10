@@ -19,7 +19,6 @@ package org.onosproject.net.behaviour;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
-import org.onlab.util.Identifier;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.driver.HandlerBehaviour;
 import org.onosproject.net.pi.runtime.PiCounterCellData;
@@ -194,43 +193,38 @@ public interface BngProgrammable extends HandlerBehaviour {
      * identifies a L2/L2.5 tunnel line between the RG and the BNG.
      */
     interface Attachment {
-        /**
-         * Get the identifier of the attachment.
-         *
-         * @return The identifier of the attachment.
-         */
-        AttachmentId attachmentId();
 
         /**
-         * Get the application ID that generated the attachment.
+         * Returns the application that is responsible for managing the
+         * attachment.
          *
          * @return The application ID.
          */
         ApplicationId appId();
 
         /**
-         * Get the VLAN S-tag of the attachment.
+         * Returns the VLAN S-tag of the attachment.
          *
          * @return The VLAN S-tag of the attachment.
          */
         VlanId sTag();
 
         /**
-         * Get the VLAN C-tag of the attachment.
+         * Returns the VLAN C-tag of the attachment.
          *
          * @return The VLAN C-tag of the attachment.
          */
         VlanId cTag();
 
         /**
-         * Get the MAC address of the attachment.
+         * Returns the MAC address of the attachment.
          *
          * @return The MAC address of the attachment.
          */
         MacAddress macAddress();
 
         /**
-         * Get the IP address of the attachment.
+         * Returns the IP address of the attachment.
          *
          * @return The IP address of the attachment.
          */
@@ -244,45 +238,34 @@ public interface BngProgrammable extends HandlerBehaviour {
         boolean lineActive();
 
         /**
-         * Get the type of attachment.
+         * Returns the type of attachment.
          *
          * @return type of attachment
          */
         AttachmentType type();
 
         /**
-         * Get the PPPoE session ID of the attachment. This method is meaningful
-         * only if the attachment type is PPPoE.
+         * Returns the PPPoE session ID of the attachment. This method is
+         * meaningful only if the attachment type is PPPoE.
          *
          * @return The PPPoE session ID.
          */
         short pppoeSessionId();
 
+        /**
+         * Types of attachment.
+         */
         enum AttachmentType {
             /**
-             * Implemented as PPPoE attachment.
+             * PPPoE attachment.
              */
             PPPoE,
 
             /**
-             * Implemented as IPoE attachment.
+             * IPoE attachment.
              */
             // TODO: unsupported.
             IPoE
-        }
-    }
-
-    /**
-     * The identifier of the attachment.
-     */
-    class AttachmentId extends Identifier<Long> {
-        /**
-         * Identifies the attachment at network level.
-         *
-         * @param id long value
-         */
-        public AttachmentId(long id) {
-            super(id);
         }
     }
 

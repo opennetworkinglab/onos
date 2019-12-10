@@ -72,7 +72,7 @@ public class FabricCapabilities {
             }
         } catch (IOException e) {
             log.error("Unable to read CPU port file of {}: {}",
-                      pipeconf.id(), e.getMessage());
+                    pipeconf.id(), e.getMessage());
             return Optional.empty();
         }
     }
@@ -85,5 +85,32 @@ public class FabricCapabilities {
                     .isPresent();
         }
         return false;
+    }
+
+    /**
+     * Returns true if the pipeconf supports BNG user plane capabilities, false
+     * otherwise.
+     *
+     * @return boolean
+     */
+    public boolean supportBng() {
+        return pipeconf.pipelineModel()
+                .counter(FabricConstants.FABRIC_INGRESS_BNG_INGRESS_DOWNSTREAM_C_LINE_RX)
+                .isPresent();
+    }
+
+    /**
+     * Returns the maximum number of BNG lines supported, or 0 if this pipeconf
+     * does not support BNG capabilities.
+     *
+     * @return maximum number of lines supported
+     */
+    public long bngMaxLineCount() {
+        if (!supportBng()) {
+            return 0;
+        }
+        return pipeconf.pipelineModel()
+                .counter(FabricConstants.FABRIC_INGRESS_BNG_INGRESS_DOWNSTREAM_C_LINE_RX)
+                .orElseThrow().size();
     }
 }
