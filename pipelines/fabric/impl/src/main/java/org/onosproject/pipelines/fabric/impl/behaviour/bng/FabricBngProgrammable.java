@@ -18,8 +18,10 @@ package org.onosproject.pipelines.fabric.impl.behaviour.bng;
 
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.drivers.p4runtime.AbstractP4RuntimeHandlerBehaviour;
 import org.onosproject.net.behaviour.BngProgrammable;
@@ -34,21 +36,30 @@ import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.PiCriterion;
 import org.onosproject.net.pi.model.PiCounterId;
+import org.onosproject.net.pi.model.PiMatchType;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionParam;
 import org.onosproject.net.pi.runtime.PiCounterCell;
 import org.onosproject.net.pi.runtime.PiCounterCellData;
 import org.onosproject.net.pi.runtime.PiCounterCellHandle;
 import org.onosproject.net.pi.runtime.PiCounterCellId;
+import org.onosproject.net.pi.runtime.PiExactFieldMatch;
 import org.onosproject.p4runtime.api.P4RuntimeWriteClient;
+import org.onosproject.pipelines.fabric.impl.behaviour.FabricCapabilities;
 import org.onosproject.pipelines.fabric.impl.behaviour.FabricConstants;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
+/**
+ * Implementation of BngProgrammable for fabric.p4.
+ */
 public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
         implements BngProgrammable {
 
@@ -56,9 +67,6 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
     private static final int DEFAULT_PRIORITY = 10;
     // The index at which control plane packets are counted before the attachment is created.
     private static final int DEFAULT_CONTROL_INDEX = 0;
-    // FIXME: retrieve this value from the table size in the PipelineModel
-    // Max number of supported attachments, useful to make sure to not read/write non-existing counters.
-    private static final int MAX_SUPPORTED_ATTACHMENTS = 1000;
 
     private static final ImmutableBiMap<BngCounterType, PiCounterId> COUNTER_MAP =
             ImmutableBiMap.<BngCounterType, PiCounterId>builder()
@@ -74,6 +82,8 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
             ImmutableSet.of(BngCounterType.UPSTREAM_RX, BngCounterType.DOWNSTREAM_DROPPED);
 
     private FlowRuleService flowRuleService;
+    private FabricBngProgrammableService bngProgService;
+    private FabricCapabilities capabilities;
 
     @Override
     protected boolean setupBehaviour(String opName) {
@@ -81,6 +91,16 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
             return false;
         }
         flowRuleService = handler().get(FlowRuleService.class);
+        bngProgService = handler().get(FabricBngProgrammableService.class);
+        capabilities = new FabricCapabilities(pipeconf);
+
+        if (!capabilities.supportBng()) {
+            log.warn("Pipeconf {} on {} does not support BNG capabilities, " +
+                            "cannot perform {}",
+                    pipeconf.id(), deviceId, opName);
+            return false;
+        }
+
         return true;
     }
 
@@ -94,75 +114,84 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
     }
 
     @Override
-    public void cleanUp(ApplicationId appId) throws BngProgrammableException {
+    public void cleanUp(ApplicationId appId) {
         if (!setupBehaviour("cleanUp()")) {
             return;
         }
-        flowRuleService.removeFlowRulesById(appId);
+        // Remove flow rules.
+        var flowEntries = flowRuleService.getFlowEntriesById(appId);
+        flowRuleService.removeFlowRules(
+                Iterables.toArray(flowEntries, FlowRule.class));
+        // Release line IDs found in removed flow rules.
+        getLineIdsFromFlowRules(flowEntries)
+                .forEach(this::releaseLineId);
+        // Reset counters.
         this.resetControlTrafficCounter();
     }
 
     @Override
-    public void setupAttachment(Attachment attachmentInfo) throws BngProgrammableException {
+    public void setupAttachment(Attachment attachment) throws BngProgrammableException {
         if (!setupBehaviour("setupAttachment()")) {
             return;
         }
-        checkAttachment(attachmentInfo);
+        checkAttachment(attachment);
         List<FlowRule> lstFlowRules = Lists.newArrayList();
-        lstFlowRules.add(buildTLineMapFlowRule(attachmentInfo));
+        lstFlowRules.add(buildTLineMapFlowRule(attachment));
         // If the line is not active do not generate the rule for the table
         // t_pppoe_term_v4 since term_disabled is @defaultonly action
-        if (attachmentInfo.lineActive()) {
-            lstFlowRules.add(buildTPppoeTermV4FlowRule(attachmentInfo));
+        if (attachment.lineActive()) {
+            lstFlowRules.add(buildTPppoeTermV4FlowRule(attachment));
         }
-        lstFlowRules.add(buildTLineSessionMapFlowRule(attachmentInfo));
+        lstFlowRules.add(buildTLineSessionMapFlowRule(attachment));
 
         lstFlowRules.forEach(flowRule -> flowRuleService.applyFlowRules(flowRule));
     }
 
     @Override
-    public void removeAttachment(Attachment attachmentInfo) throws BngProgrammableException {
+    public void removeAttachment(Attachment attachment) throws BngProgrammableException {
         if (!setupBehaviour("removeAttachment()")) {
             return;
         }
-        checkAttachment(attachmentInfo);
+        checkAttachment(attachment);
         List<FlowRule> lstFlowRules = Lists.newArrayList();
-        lstFlowRules.add(buildTLineMapFlowRule(attachmentInfo));
-        lstFlowRules.add(buildTPppoeTermV4FlowRule(attachmentInfo));
-        lstFlowRules.add(buildTLineSessionMapFlowRule(attachmentInfo));
+        lstFlowRules.add(buildTLineMapFlowRule(attachment));
+        lstFlowRules.add(buildTPppoeTermV4FlowRule(attachment));
+        lstFlowRules.add(buildTLineSessionMapFlowRule(attachment));
 
         lstFlowRules.forEach(flowRule -> flowRuleService.removeFlowRules(flowRule));
+
+        releaseLineId(attachment);
     }
 
     @Override
-    public Map<BngCounterType, PiCounterCellData> readCounters(Attachment attachmentInfo)
+    public Map<BngCounterType, PiCounterCellData> readCounters(Attachment attachment)
             throws BngProgrammableException {
         if (!setupBehaviour("readCounters()")) {
             return Maps.newHashMap();
         }
-        checkAttachment(attachmentInfo);
-        return readCounters(attachmentInfo.attachmentId().id(), Set.of(BngCounterType.values()));
+        checkAttachment(attachment);
+        return readCounters(lineId(attachment), Set.of(BngCounterType.values()));
     }
 
     @Override
-    public PiCounterCellData readCounter(Attachment attachmentInfo, BngCounterType counter)
+    public PiCounterCellData readCounter(Attachment attachment, BngCounterType counter)
             throws BngProgrammableException {
         if (!setupBehaviour("readCounter()")) {
             return null;
         }
-        checkAttachment(attachmentInfo);
-        return readCounters(attachmentInfo.attachmentId().id(), Set.of(counter))
+        checkAttachment(attachment);
+        return readCounters(lineId(attachment), Set.of(counter))
                 .getOrDefault(counter, null);
     }
 
     @Override
-    public void resetCounters(Attachment attachmentInfo)
+    public void resetCounters(Attachment attachment)
             throws BngProgrammableException {
         if (!setupBehaviour("resetCounters()")) {
             return;
         }
-        checkAttachment(attachmentInfo);
-        resetCounters(attachmentInfo.attachmentId().id(), Set.of(BngCounterType.values()));
+        checkAttachment(attachment);
+        resetCounters(lineId(attachment), Set.of(BngCounterType.values()));
     }
 
     @Override
@@ -176,17 +205,17 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
     }
 
     @Override
-    public void resetCounter(Attachment attachmentInfo, BngCounterType counter)
+    public void resetCounter(Attachment attachment, BngCounterType counter)
             throws BngProgrammableException {
         if (!setupBehaviour("resetCounter()")) {
             return;
         }
-        checkAttachment(attachmentInfo);
-        resetCounters(attachmentInfo.attachmentId().id(), Set.of(counter));
+        checkAttachment(attachment);
+        resetCounters(lineId(attachment), Set.of(counter));
     }
 
     @Override
-    public void resetControlTrafficCounter() throws BngProgrammableException {
+    public void resetControlTrafficCounter() {
         if (!setupBehaviour("resetControlTrafficCounter()")) {
             return;
         }
@@ -198,7 +227,6 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
      *
      * @param index    The index of the counter.
      * @param counters The set of counters to read.
-     * @throws BngProgrammableException
      */
     private Map<BngCounterType, PiCounterCellData> readCounters(
             long index,
@@ -226,8 +254,8 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
             }
             readValues.putAll(counterEntryResponse.stream().collect(
                     Collectors.toMap(counterCell -> COUNTER_MAP.inverse()
-                                             .get(counterCell.cellId().counterId()),
-                                     PiCounterCell::data)));
+                                    .get(counterCell.cellId().counterId()),
+                            PiCounterCell::data)));
         }
         return readValues;
     }
@@ -238,7 +266,7 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
      * @param index    The index of the counter.
      * @param counters The set of counters to reset.
      */
-    private void resetCounters(long index, Set<BngCounterType> counters) throws BngProgrammableException {
+    private void resetCounters(long index, Set<BngCounterType> counters) {
         Set<PiCounterCellId> counterCellIds = counters.stream()
                 .filter(c -> !UNSUPPORTED_COUNTER.contains(c))
                 .map(c -> PiCounterCellId.ofIndirect(COUNTER_MAP.get(c), index))
@@ -259,24 +287,16 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
                 .all();
         counterEntryResponse.stream().filter(counterEntryResp -> !counterEntryResp.isSuccess())
                 .forEach(counterEntryResp -> log.warn("A counter was not reset correctly: {}",
-                                                      counterEntryResp.explanation()));
+                        counterEntryResp.explanation()));
     }
 
     /**
      * Preliminary check on the submitted attachment.
-     *
-     * @param attachmentInfo
-     * @throws BngProgrammableException If the attachment is not supported.
      */
-    private void checkAttachment(Attachment attachmentInfo) throws BngProgrammableException {
-        if (attachmentInfo.type() != Attachment.AttachmentType.PPPoE) {
+    private void checkAttachment(Attachment attachment) throws BngProgrammableException {
+        if (attachment.type() != Attachment.AttachmentType.PPPoE) {
             throw new BngProgrammableException(
                     "Attachment {} is not a PPPoE Attachment");
-        }
-        if (attachmentInfo.attachmentId().id() >= MAX_SUPPORTED_ATTACHMENTS) {
-            throw new BngProgrammableException(
-                    "Attachment ID too big. Value:" + attachmentInfo.attachmentId().id().toString() +
-                            ", MAX:" + MAX_SUPPORTED_ATTACHMENTS);
         }
     }
 
@@ -295,18 +315,16 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
     /**
      * Build the Flow Rule for the table t_pppoe_term_v4 of the ingress
      * upstream.
-     *
-     * @param attachment
-     * @return
      */
-    private FlowRule buildTPppoeTermV4FlowRule(Attachment attachment) {
+    private FlowRule buildTPppoeTermV4FlowRule(Attachment attachment)
+            throws BngProgrammableException {
         PiCriterion criterion = PiCriterion.builder()
                 .matchExact(FabricConstants.HDR_LINE_ID,
-                            attachment.attachmentId().id())
+                        lineId(attachment))
                 .matchExact(FabricConstants.HDR_IPV4_SRC,
-                            attachment.ipAddress().toOctets())
+                        attachment.ipAddress().toOctets())
                 .matchExact(FabricConstants.HDR_PPPOE_SESSION_ID,
-                            attachment.pppoeSessionId())
+                        attachment.pppoeSessionId())
                 // TODO: match on MAC SRC address (antispoofing)
 //                    .matchExact(FabricConstants.HDR_ETH_SRC,
 //                                attachment.macAddress.toBytes())
@@ -316,29 +334,27 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
                 .build();
         PiAction action = PiAction.builder()
                 .withId(attachment.lineActive() ?
-                                FabricConstants.FABRIC_INGRESS_BNG_INGRESS_UPSTREAM_TERM_ENABLED_V4 :
-                                FabricConstants.FABRIC_INGRESS_BNG_INGRESS_UPSTREAM_TERM_DISABLED)
+                        FabricConstants.FABRIC_INGRESS_BNG_INGRESS_UPSTREAM_TERM_ENABLED_V4 :
+                        FabricConstants.FABRIC_INGRESS_BNG_INGRESS_UPSTREAM_TERM_DISABLED)
                 .build();
         TrafficTreatment instTreatment = DefaultTrafficTreatment.builder()
                 .piTableAction(action)
                 .build();
         return buildFlowRule(trafficSelector,
-                             instTreatment,
-                             FabricConstants.FABRIC_INGRESS_BNG_INGRESS_UPSTREAM_T_PPPOE_TERM_V4,
-                             attachment.appId());
+                instTreatment,
+                FabricConstants.FABRIC_INGRESS_BNG_INGRESS_UPSTREAM_T_PPPOE_TERM_V4,
+                attachment.appId());
     }
 
     /**
      * Build the Flow Rule for the table t_line_session_map of the ingress
      * downstream.
-     *
-     * @param attachment
-     * @return
      */
-    private FlowRule buildTLineSessionMapFlowRule(Attachment attachment) {
+    private FlowRule buildTLineSessionMapFlowRule(Attachment attachment)
+            throws BngProgrammableException {
         PiCriterion criterion = PiCriterion.builder()
                 .matchExact(FabricConstants.HDR_LINE_ID,
-                            attachment.attachmentId().id())
+                        lineId(attachment))
                 .build();
         TrafficSelector trafficSelector = DefaultTrafficSelector.builder()
                 .matchPi(criterion)
@@ -348,7 +364,7 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
             action = PiAction.builder()
                     .withId(FabricConstants.FABRIC_INGRESS_BNG_INGRESS_DOWNSTREAM_SET_SESSION)
                     .withParameter(new PiActionParam(FabricConstants.PPPOE_SESSION_ID,
-                                                     attachment.pppoeSessionId()))
+                            attachment.pppoeSessionId()))
                     .build();
         } else {
             action = PiAction.builder()
@@ -359,24 +375,22 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
                 .piTableAction(action)
                 .build();
         return buildFlowRule(trafficSelector,
-                             instTreatment,
-                             FabricConstants.FABRIC_INGRESS_BNG_INGRESS_DOWNSTREAM_T_LINE_SESSION_MAP,
-                             attachment.appId());
+                instTreatment,
+                FabricConstants.FABRIC_INGRESS_BNG_INGRESS_DOWNSTREAM_T_LINE_SESSION_MAP,
+                attachment.appId());
     }
 
     /**
      * Build the flow rule for the table t_line_map of the BNG-U (common to both
      * upstream and downstream).
-     *
-     * @param attachment
-     * @return
      */
-    private FlowRule buildTLineMapFlowRule(Attachment attachment) {
+    private FlowRule buildTLineMapFlowRule(Attachment attachment)
+            throws BngProgrammableException {
         PiCriterion criterion = PiCriterion.builder()
                 .matchExact(FabricConstants.HDR_S_TAG,
-                            attachment.sTag().toShort())
+                        attachment.sTag().toShort())
                 .matchExact(FabricConstants.HDR_C_TAG,
-                            attachment.cTag().toShort())
+                        attachment.cTag().toShort())
                 .build();
         TrafficSelector trafficSelector = DefaultTrafficSelector.builder()
                 .matchPi(criterion)
@@ -384,22 +398,19 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
         PiAction action = PiAction.builder()
                 .withId(FabricConstants.FABRIC_INGRESS_BNG_INGRESS_SET_LINE)
                 .withParameter(new PiActionParam(FabricConstants.LINE_ID,
-                                                 attachment.attachmentId().id()))
+                        lineId(attachment)))
                 .build();
         TrafficTreatment instTreatment = DefaultTrafficTreatment.builder()
                 .piTableAction(action)
                 .build();
         return buildFlowRule(trafficSelector,
-                             instTreatment,
-                             FabricConstants.FABRIC_INGRESS_BNG_INGRESS_T_LINE_MAP,
-                             attachment.appId());
+                instTreatment,
+                FabricConstants.FABRIC_INGRESS_BNG_INGRESS_T_LINE_MAP,
+                attachment.appId());
     }
 
     /**
      * Build the flow rule for the table t_pppoe_cp of the ingress upstream.
-     *
-     * @param criterion Criterion to build the flow rule.
-     * @return The built flow rule.
      */
     private FlowRule buildTPppoeCpFlowRule(PiCriterion criterion, ApplicationId appId) {
         TrafficSelector trafficSelector = DefaultTrafficSelector.builder()
@@ -407,14 +418,14 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
                 .build();
         TrafficTreatment instTreatment = DefaultTrafficTreatment.builder()
                 .piTableAction(PiAction.builder()
-                                       .withId(FabricConstants.FABRIC_INGRESS_BNG_INGRESS_UPSTREAM_PUNT_TO_CPU)
-                                       .build()
+                        .withId(FabricConstants.FABRIC_INGRESS_BNG_INGRESS_UPSTREAM_PUNT_TO_CPU)
+                        .build()
                 )
                 .build();
         return buildFlowRule(trafficSelector,
-                             instTreatment,
-                             FabricConstants.FABRIC_INGRESS_BNG_INGRESS_UPSTREAM_T_PPPOE_CP,
-                             appId);
+                instTreatment,
+                FabricConstants.FABRIC_INGRESS_BNG_INGRESS_UPSTREAM_T_PPPOE_CP,
+                appId);
     }
 
     private FlowRule buildFlowRule(TrafficSelector trafficSelector,
@@ -430,5 +441,44 @@ public class FabricBngProgrammable extends AbstractP4RuntimeHandlerBehaviour
                 .fromApp(appId)
                 .makePermanent()
                 .build();
+    }
+
+    private long lineId(Attachment attachment) throws BngProgrammableException {
+        try {
+            return bngProgService.getLineIdAllocator(deviceId, capabilities.bngMaxLineCount()).allocate(attachment);
+        } catch (FabricBngLineIdAllocator.IdExhaustedException e) {
+            throw new BngProgrammableException("Line IDs exhausted, unable to allocate a new one");
+        }
+    }
+
+    private void releaseLineId(Attachment attachment) {
+        bngProgService.getLineIdAllocator(deviceId, capabilities.bngMaxLineCount()).release(attachment);
+    }
+
+    private void releaseLineId(long id) {
+        bngProgService.getLineIdAllocator(deviceId, capabilities.bngMaxLineCount()).release(id);
+    }
+
+    private Set<Long> getLineIdsFromFlowRules(Iterable<? extends FlowRule> rules) {
+        // Extract the line ID found in the flow rule selector.
+        return StreamSupport.stream(rules.spliterator(), true)
+                .map(f -> (PiCriterion) f.selector().getCriterion(Criterion.Type.PROTOCOL_INDEPENDENT))
+                .filter(Objects::nonNull)
+                .map(c -> c.fieldMatch(FabricConstants.HDR_LINE_ID))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .filter(m -> m.type() == PiMatchType.EXACT)
+                .map(m -> ((PiExactFieldMatch) m).value())
+                .map(b -> {
+                    try {
+                        return b.fit(Long.BYTES * 8);
+                    } catch (ImmutableByteSequence.ByteSequenceTrimException e) {
+                        log.error("Invalid line ID found in flow rule: {} is bigger than a long! BUG?", b);
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .map(b -> b.asReadOnlyBuffer().getLong())
+                .collect(Collectors.toSet());
     }
 }
