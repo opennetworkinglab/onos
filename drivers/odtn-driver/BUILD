@@ -9,6 +9,8 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + [
     "//apps/odtn/api:onos-apps-odtn-api",
     "//apps/optical-model:onos-apps-optical-model",
     "//drivers/optical:onos-drivers-optical",
+    "//apps/faultmanagement/fmcli:onos-apps-faultmanagement-fmcli",  # Enabling Alarm stuff
+    "//apps/faultmanagement/fmmgr:onos-apps-faultmanagement-fmmgr-native",
 ]
 
 TEST_DEPS = TEST_ADAPTERS + [

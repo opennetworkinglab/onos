@@ -23,6 +23,7 @@ import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.configuration.tree.xpath.XPathExpressionEngine;
 import org.onlab.packet.ChassisId;
 import org.onosproject.drivers.utilities.XmlConfigParser;
+import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -118,6 +119,13 @@ public class NokiaOpenConfigDeviceDiscovery
                 return ImmutableList.of();
             }
             cfg.load(CharSource.wrap(data).openStream());
+            try {
+                ns.startSubscription();
+                log.info("Started subscription");
+            } catch (NetconfException e) {
+                log.error("NETCONF exception caught on {} when the subscription started \n {}",
+                          data().deviceId(), e);
+            }
             return discoverPorts(cfg);
         } catch (Exception e) {
             log.error("Error discovering port details on {}", data().deviceId(), e);
@@ -171,12 +179,14 @@ public class NokiaOpenConfigDeviceDiscovery
             String[] textStr = subComponentName.split("-");
             String portComponentType = textStr[0];
             String portComponentIndex = textStr[textStr.length - 1];
+            String portNumber = component.getString("name");
 
              if (portComponentType.equals(OPTICAL_CHANNEL)) {
 
                  annotations.putIfAbsent(PORT_TYPE, OdtnPortType.LINE.value());
                  annotations.putIfAbsent(ONOS_PORT_INDEX, portComponentIndex.toString());
                  annotations.putIfAbsent(CONNECTION_ID, "connection" + portComponentIndex.toString());
+                 annotations.putIfAbsent(AnnotationKeys.PORT_NAME, portNumber);
 
                  OchSignal signalId = OchSignal.newDwdmSlot(ChannelSpacing.CHL_50GHZ, 1);
                  return OchPortHelper.ochPortDescription(
@@ -193,6 +203,7 @@ public class NokiaOpenConfigDeviceDiscovery
                  annotations.putIfAbsent(PORT_TYPE, OdtnPortType.CLIENT.value());
                  annotations.putIfAbsent(ONOS_PORT_INDEX, portComponentIndex.toString());
                  annotations.putIfAbsent(CONNECTION_ID, "connection" + portComponentIndex.toString());
+                 annotations.putIfAbsent(AnnotationKeys.PORT_NAME, portNumber);
 
                  builder.withPortNumber(PortNumber.portNumber(Long.parseLong(portComponentIndex), subComponentName));
                  builder.type(Type.PACKET);
@@ -305,9 +316,9 @@ public class NokiaOpenConfigDeviceDiscovery
     private String buildLoginRpc(String userName, String passwd) {
         StringBuilder rpc = new StringBuilder(RPC_TAG_NETCONF_BASE);
         rpc.append("<login xmlns=\"http://nokia.com/yang/nokia-security\">");
-        rpc.append("<user>");
+        rpc.append("<username>");
         rpc.append(userName);
-        rpc.append("</user>");
+        rpc.append("</username>");
         rpc.append("<password>");
         rpc.append(passwd);
         rpc.append("</password>");
