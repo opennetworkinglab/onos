@@ -28,6 +28,7 @@ import org.onosproject.net.Direction;
 import org.onosproject.net.ModulationScheme;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.Port;
+import org.onosproject.net.OchSignalType;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.LambdaQuery;
 import org.onosproject.net.behaviour.ModulationConfig;
@@ -345,9 +346,14 @@ public class RoadmManager implements RoadmService {
         checkNotNull(inPort);
         checkNotNull(outPort);
 
+        //Creation of selector.
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .add(Criteria.matchInPort(inPort))
+                .add(Criteria.matchOchSignalType(OchSignalType.FIXED_GRID))
+                .add(Criteria.matchLambda(ochSignal))
                 .build();
+
+        //Creation of treatment
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .add(Instructions.modL0Lambda(ochSignal))
                 .add(Instructions.createOutput(outPort))
