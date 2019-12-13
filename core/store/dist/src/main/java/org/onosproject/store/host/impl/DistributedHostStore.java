@@ -251,7 +251,10 @@ public class DistributedHostStore
                             existingHost.vlan(),
                             existingHost.locations(),
                             ImmutableSet.copyOf(addresses),
+                            existingHost.innerVlan(),
+                            existingHost.tpid(),
                             existingHost.configured(),
+                            existingHost.suspended(),
                             existingHost.annotations());
                 } else {
                     return existingHost;
@@ -279,9 +282,10 @@ public class DistributedHostStore
                         .forEach(newLocations::add);
 
                 return new DefaultHost(existingHost.providerId(),
-                                hostId, existingHost.mac(), existingHost.vlan(),
-                                newLocations, existingHost.ipAddresses(),
-                                existingHost.configured(), existingHost.annotations());
+                        hostId, existingHost.mac(), existingHost.vlan(),
+                        newLocations, existingHost.ipAddresses(),
+                        existingHost.innerVlan(), existingHost.tpid(),
+                        existingHost.configured(), existingHost.suspended(), existingHost.annotations());
             }
             return null;
         });
@@ -305,7 +309,8 @@ public class DistributedHostStore
                         new DefaultHost(existingHost.providerId(),
                                 hostId, existingHost.mac(), existingHost.vlan(),
                                 locations, existingHost.ipAddresses(),
-                                existingHost.configured(), existingHost.annotations());
+                                existingHost.innerVlan(), existingHost.tpid(),
+                                existingHost.configured(), existingHost.suspended(), existingHost.annotations());
             }
             return null;
         });
