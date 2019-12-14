@@ -1049,7 +1049,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "include/parser.p4",
-        "line" : 265,
+        "line" : 269,
         "column" : 8,
         "source_fragment" : "FabricDeparser"
       },
@@ -5205,13 +5205,13 @@
             },
             {
               "match_type" : "ternary",
-              "name" : "eth_src",
+              "name" : "eth_dst",
               "target" : ["ethernet", "dst_addr"],
               "mask" : null
             },
             {
               "match_type" : "ternary",
-              "name" : "eth_dst",
+              "name" : "eth_src",
               "target" : ["ethernet", "src_addr"],
               "mask" : null
             },

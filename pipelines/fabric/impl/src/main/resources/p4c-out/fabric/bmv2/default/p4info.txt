@@ -186,13 +186,13 @@ tables {
   }
   match_fields {
     id: 5
-    name: "eth_src"
+    name: "eth_dst"
     bitwidth: 48
     match_type: TERNARY
   }
   match_fields {
     id: 6
-    name: "eth_dst"
+    name: "eth_src"
     bitwidth: 48
     match_type: TERNARY
   }
