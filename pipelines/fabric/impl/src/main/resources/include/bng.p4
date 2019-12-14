@@ -42,6 +42,9 @@ control bng_ingress_upstream(
 
     action punt_to_cpu() {
         smeta.egress_spec = CPU_PORT;
+        // Clean the multicast group, otherwise multicast decision
+        //  will override the punting to CPU action
+        smeta.mcast_grp = 0;
         c_control.count(fmeta.bng.line_id);
     }
 
