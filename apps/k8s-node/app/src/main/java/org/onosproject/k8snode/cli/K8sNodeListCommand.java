@@ -17,7 +17,9 @@ package org.onosproject.k8snode.cli;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
@@ -27,6 +29,7 @@ import org.onosproject.k8snode.api.K8sNodeService;
 import java.util.Comparator;
 import java.util.List;
 
+import static org.onosproject.k8snode.util.K8sNodeUtil.genFormatString;
 import static org.onosproject.k8snode.util.K8sNodeUtil.prettyJson;
 
 /**
@@ -37,7 +40,12 @@ import static org.onosproject.k8snode.util.K8sNodeUtil.prettyJson;
         description = "Lists all nodes registered in kubernetes node service")
 public class K8sNodeListCommand extends AbstractShellCommand {
 
-    private static final String FORMAT = "%-28s%-15s%-24s%-20s%-15s";
+    private static final int HOSTNAME_LENGTH = 35;
+    private static final int TYPE_LENGTH = 15;
+    private static final int MANAGEMENT_IP_LENGTH = 25;
+    private static final int DATA_IP_LENGTH = 25;
+    private static final int STATUS = 15;
+    private static final int MARGIN_LENGTH = 2;
 
     @Override
     protected void doExecute() {
@@ -45,16 +53,23 @@ public class K8sNodeListCommand extends AbstractShellCommand {
         List<K8sNode> nodes = Lists.newArrayList(nodeService.nodes());
         nodes.sort(Comparator.comparing(K8sNode::hostname));
 
+        String format = genFormatString(ImmutableList.of(HOSTNAME_LENGTH,
+                TYPE_LENGTH, MANAGEMENT_IP_LENGTH, DATA_IP_LENGTH, STATUS));
+
         if (outputJson()) {
             print("%s", json(nodes));
         } else {
-            print(FORMAT, "Hostname", "Type", "Management IP", "Data IP", "State");
+            print(format, "Hostname", "Type", "Management IP", "Data IP", "State");
             for (K8sNode node : nodes) {
-                print(FORMAT,
-                        node.hostname(),
+                print(format,
+                        StringUtils.substring(node.hostname(), 0,
+                                HOSTNAME_LENGTH - MARGIN_LENGTH),
                         node.type(),
-                        node.managementIp(),
-                        node.dataIp() != null ? node.dataIp() : "",
+                        StringUtils.substring(node.managementIp().toString(), 0,
+                                MANAGEMENT_IP_LENGTH - MARGIN_LENGTH),
+                        node.dataIp() != null ? StringUtils.substring(
+                                node.dataIp().toString(), 0,
+                                DATA_IP_LENGTH - MARGIN_LENGTH) : "",
                         node.state());
             }
             print("Total %s nodes", nodeService.nodes().size());
