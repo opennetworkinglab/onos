@@ -17,7 +17,9 @@ package org.onosproject.k8snetworking.cli;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.k8snetworking.api.K8sNetwork;
@@ -26,6 +28,13 @@ import org.onosproject.k8snetworking.api.K8sNetworkService;
 import java.util.Comparator;
 import java.util.List;
 
+import static org.onosproject.k8snetworking.api.Constants.CLI_ID_LENGTH;
+import static org.onosproject.k8snetworking.api.Constants.CLI_IP_ADDRESS_LENGTH;
+import static org.onosproject.k8snetworking.api.Constants.CLI_MARGIN_LENGTH;
+import static org.onosproject.k8snetworking.api.Constants.CLI_NAME_LENGTH;
+import static org.onosproject.k8snetworking.api.Constants.CLI_SEG_ID_LENGTH;
+import static org.onosproject.k8snetworking.api.Constants.CLI_TYPE_LENGTH;
+import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.genFormatString;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.prettyJson;
 
 /**
@@ -35,22 +44,26 @@ import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.prettyJson;
         description = "Lists all kubernetes networks")
 public class K8sNetworkListCommand extends AbstractShellCommand {
 
-    private static final String FORMAT = "%-40s%-20s%-20s%-20s%-16s";
-
     @Override
     protected void execute() {
         K8sNetworkService service = get(K8sNetworkService.class);
         List<K8sNetwork> networks = Lists.newArrayList(service.networks());
         networks.sort(Comparator.comparing(K8sNetwork::name));
 
+        String format = genFormatString(ImmutableList.of(CLI_ID_LENGTH, CLI_NAME_LENGTH,
+                CLI_TYPE_LENGTH, CLI_SEG_ID_LENGTH, CLI_IP_ADDRESS_LENGTH));
+
         if (outputJson()) {
             print("%s", json(networks));
         } else {
-            print(FORMAT, "ID", "Name", "Type", "SegId", "Gateway");
+            print(format, "ID", "Name", "Type", "SegId", "Gateway");
 
             for (K8sNetwork net: networks) {
-                print(FORMAT, net.networkId(),
-                        net.name(),
+                print(format,
+                        StringUtils.substring(net.networkId(),
+                                0, CLI_ID_LENGTH - CLI_MARGIN_LENGTH),
+                        StringUtils.substring(net.name(),
+                                0, CLI_NAME_LENGTH - CLI_MARGIN_LENGTH),
                         net.type().toString(),
                         net.segmentId(),
                         net.gatewayIp() == null ? "" : net.gatewayIp().toString());

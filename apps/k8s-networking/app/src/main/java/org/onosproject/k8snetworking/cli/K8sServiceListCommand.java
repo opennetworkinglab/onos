@@ -18,8 +18,10 @@ package org.onosproject.k8snetworking.cli;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import io.fabric8.kubernetes.client.utils.Serialization;
+import org.apache.commons.lang.StringUtils;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.k8snetworking.api.K8sServiceService;
@@ -28,6 +30,11 @@ import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
 
+import static org.onosproject.k8snetworking.api.Constants.CLI_IP_ADDRESS_LENGTH;
+import static org.onosproject.k8snetworking.api.Constants.CLI_MARGIN_LENGTH;
+import static org.onosproject.k8snetworking.api.Constants.CLI_NAME_LENGTH;
+import static org.onosproject.k8snetworking.api.Constants.CLI_PORTS_LENGTH;
+import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.genFormatString;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.prettyJson;
 
 /**
@@ -37,7 +44,6 @@ import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.prettyJson;
         description = "Lists all kubernetes services")
 public class K8sServiceListCommand extends AbstractShellCommand {
 
-    private static final String FORMAT = "%-50s%-30s%-30s";
     private static final String PORT_PROTOCOL_SEPARATOR = "/";
 
     @Override
@@ -47,10 +53,13 @@ public class K8sServiceListCommand extends AbstractShellCommand {
                 Lists.newArrayList(service.services());
         services.sort(Comparator.comparing(s -> s.getMetadata().getName()));
 
+        String format = genFormatString(ImmutableList.of(CLI_NAME_LENGTH,
+                CLI_IP_ADDRESS_LENGTH, CLI_PORTS_LENGTH));
+
         if (outputJson()) {
             print("%s", json(services));
         } else {
-            print(FORMAT, "Name", "Cluster IP", "Ports");
+            print(format, "Name", "Cluster IP", "Ports");
 
             for (io.fabric8.kubernetes.api.model.Service svc : services) {
 
@@ -60,9 +69,11 @@ public class K8sServiceListCommand extends AbstractShellCommand {
                         portWithProtocol.add(p.getPort() +
                                 PORT_PROTOCOL_SEPARATOR + p.getProtocol()));
 
-                print(FORMAT,
-                        svc.getMetadata().getName(),
-                        svc.getSpec().getClusterIP(),
+                print(format,
+                        StringUtils.substring(svc.getMetadata().getName(),
+                                0, CLI_NAME_LENGTH - CLI_MARGIN_LENGTH),
+                        StringUtils.substring(svc.getSpec().getClusterIP(),
+                                0, CLI_IP_ADDRESS_LENGTH - CLI_MARGIN_LENGTH),
                         portWithProtocol.isEmpty() ? "" : portWithProtocol);
             }
         }

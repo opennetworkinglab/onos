@@ -123,4 +123,21 @@ public final class Constants {
     public static final int POD_RESOLUTION_TABLE = 11;
 
     public static final int LOCAL_ENTRY_TABLE = 0;
+
+    // CLI item length
+    public static final int CLI_ID_LENGTH = 30;
+    public static final int CLI_NAME_LENGTH = 30;
+    public static final int CLI_IP_ADDRESSES_LENGTH = 50;
+    public static final int CLI_IP_ADDRESS_LENGTH = 25;
+    public static final int CLI_MAC_ADDRESS_LENGTH = 25;
+    public static final int CLI_PORTS_LENGTH = 20;
+    public static final int CLI_NAMESPACE_LENGTH = 15;
+    public static final int CLI_PHASE_LENGTH = 15;
+    public static final int CLI_TYPE_LENGTH = 15;
+    public static final int CLI_TYPES_LENGTH = 30;
+    public static final int CLI_SEG_ID_LENGTH = 10;
+    public static final int CLI_LABELS_LENGTH = 30;
+    public static final int CLI_CONTAINERS_LENGTH = 30;
+
+    public static final int CLI_MARGIN_LENGTH = 2;
 }

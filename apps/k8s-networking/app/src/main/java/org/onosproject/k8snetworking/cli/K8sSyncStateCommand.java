@@ -15,6 +15,7 @@
  */
 package org.onosproject.k8snetworking.cli;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.Namespace;
@@ -22,6 +23,7 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.extensions.Ingress;
 import io.fabric8.kubernetes.api.model.networking.NetworkPolicy;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.apache.commons.lang.StringUtils;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.k8snetworking.api.K8sEndpointsAdminService;
@@ -37,6 +39,17 @@ import org.onosproject.k8snode.api.K8sApiConfigService;
 
 import java.util.List;
 
+import static org.onosproject.k8snetworking.api.Constants.CLI_CONTAINERS_LENGTH;
+import static org.onosproject.k8snetworking.api.Constants.CLI_IP_ADDRESSES_LENGTH;
+import static org.onosproject.k8snetworking.api.Constants.CLI_IP_ADDRESS_LENGTH;
+import static org.onosproject.k8snetworking.api.Constants.CLI_LABELS_LENGTH;
+import static org.onosproject.k8snetworking.api.Constants.CLI_MARGIN_LENGTH;
+import static org.onosproject.k8snetworking.api.Constants.CLI_NAMESPACE_LENGTH;
+import static org.onosproject.k8snetworking.api.Constants.CLI_NAME_LENGTH;
+import static org.onosproject.k8snetworking.api.Constants.CLI_PHASE_LENGTH;
+import static org.onosproject.k8snetworking.api.Constants.CLI_PORTS_LENGTH;
+import static org.onosproject.k8snetworking.api.Constants.CLI_TYPES_LENGTH;
+import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.genFormatString;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.syncPortFromPod;
 
 /**
@@ -46,15 +59,23 @@ import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.syncPortFromP
         description = "Synchronizes all kubernetes states")
 public class K8sSyncStateCommand extends AbstractShellCommand {
 
-    private static final String POD_FORMAT = "%-50s%-15s%-15s%-30s";
-    private static final String SERVICE_FORMAT = "%-50s%-30s%-30s";
-    private static final String ENDPOINTS_FORMAT = "%-50s%-50s%-20s";
-    private static final String INGRESS_FORMAT = "%-50s%-15s%-30s";
-    private static final String NETWORK_POLICY_FORMAT = "%-50s%-15s%-30s";
-    private static final String NAMESPACE_FORMAT = "%-50s%-15s%-30s";
+    private static final String POD_FORMAT = genFormatString(ImmutableList.of(
+            CLI_NAME_LENGTH, CLI_NAMESPACE_LENGTH, CLI_IP_ADDRESS_LENGTH,
+            CLI_CONTAINERS_LENGTH));
+    private static final String SERVICE_FORMAT = genFormatString(ImmutableList.of(
+            CLI_NAME_LENGTH, CLI_IP_ADDRESS_LENGTH, CLI_PORTS_LENGTH));
+    private static final String ENDPOINTS_FORMAT = genFormatString(ImmutableList.of(
+            CLI_NAME_LENGTH, CLI_IP_ADDRESSES_LENGTH, CLI_PORTS_LENGTH));
+    private static final String INGRESS_FORMAT = genFormatString(ImmutableList.of(
+            CLI_NAME_LENGTH, CLI_NAMESPACE_LENGTH, CLI_IP_ADDRESS_LENGTH));
+    private static final String NETWORK_POLICY_FORMAT = genFormatString(ImmutableList.of(
+            CLI_NAME_LENGTH, CLI_NAMESPACE_LENGTH, CLI_TYPES_LENGTH));
+    private static final String NAMESPACE_FORMAT = genFormatString(ImmutableList.of(
+            CLI_NAME_LENGTH, CLI_PHASE_LENGTH, CLI_LABELS_LENGTH));
 
     @Override
     protected void execute() {
+
         K8sApiConfigService configService = get(K8sApiConfigService.class);
         K8sPodAdminService podAdminService = get(K8sPodAdminService.class);
         K8sNamespaceAdminService namespaceAdminService =
@@ -162,8 +183,10 @@ public class K8sSyncStateCommand extends AbstractShellCommand {
                 .getIngress().forEach(i -> lbIps.add(i.getIp()));
 
         print(INGRESS_FORMAT,
-                ingress.getMetadata().getName(),
-                ingress.getMetadata().getNamespace(),
+                StringUtils.substring(ingress.getMetadata().getName(),
+                        0, CLI_NAME_LENGTH - CLI_MARGIN_LENGTH),
+                StringUtils.substring(ingress.getMetadata().getNamespace(),
+                        0, CLI_NAMESPACE_LENGTH - CLI_MARGIN_LENGTH),
                 lbIps.isEmpty() ? "" : lbIps);
     }
 
@@ -177,19 +200,24 @@ public class K8sSyncStateCommand extends AbstractShellCommand {
         });
 
         print(ENDPOINTS_FORMAT,
-                endpoints.getMetadata().getName(),
-                ips.isEmpty() ? "" : ips,
+                StringUtils.substring(endpoints.getMetadata().getName(),
+                        0, CLI_NAME_LENGTH - CLI_MARGIN_LENGTH),
+                ips.isEmpty() ? "" : StringUtils.substring(ips.toString(),
+                        0, CLI_IP_ADDRESSES_LENGTH - CLI_MARGIN_LENGTH),
                 ports.isEmpty() ? "" : ports);
     }
 
     private void printNamespace(Namespace namespace) {
         print(NAMESPACE_FORMAT,
-                namespace.getMetadata().getName(),
+                StringUtils.substring(namespace.getMetadata().getName(),
+                        0, CLI_NAME_LENGTH - CLI_MARGIN_LENGTH),
                 namespace.getStatus().getPhase(),
                 namespace.getMetadata() != null &&
                         namespace.getMetadata().getLabels() != null &&
                         !namespace.getMetadata().getLabels().isEmpty() ?
-                        namespace.getMetadata().getLabels() : "");
+                        StringUtils.substring(namespace.getMetadata()
+                                        .getLabels().toString(), 0,
+                                CLI_LABELS_LENGTH - CLI_MARGIN_LENGTH) : "");
     }
 
     private void printService(io.fabric8.kubernetes.api.model.Service service) {
@@ -199,8 +227,10 @@ public class K8sSyncStateCommand extends AbstractShellCommand {
         service.getSpec().getPorts().forEach(p -> ports.add(p.getPort()));
 
         print(SERVICE_FORMAT,
-                service.getMetadata().getName(),
-                service.getSpec().getClusterIP(),
+                StringUtils.substring(service.getMetadata().getName(),
+                        0, CLI_NAME_LENGTH - CLI_MARGIN_LENGTH),
+                StringUtils.substring(service.getSpec().getClusterIP(),
+                        0, CLI_IP_ADDRESS_LENGTH - CLI_MARGIN_LENGTH),
                 ports.isEmpty() ? "" : ports);
     }
 
@@ -211,16 +241,21 @@ public class K8sSyncStateCommand extends AbstractShellCommand {
         pod.getSpec().getContainers().forEach(c -> containers.add(c.getName()));
 
         print(POD_FORMAT,
-                pod.getMetadata().getName(),
-                pod.getMetadata().getNamespace(),
-                pod.getStatus().getPodIP(),
+                StringUtils.substring(pod.getMetadata().getName(),
+                        0, CLI_NAME_LENGTH - CLI_MARGIN_LENGTH),
+                StringUtils.substring(pod.getMetadata().getNamespace(),
+                        0, CLI_NAMESPACE_LENGTH - CLI_MARGIN_LENGTH),
+                StringUtils.substring(pod.getStatus().getPodIP(),
+                        0, CLI_IP_ADDRESS_LENGTH - CLI_MARGIN_LENGTH),
                 containers.isEmpty() ? "" : containers);
     }
 
     private void printNetworkPolicy(NetworkPolicy policy) {
         print(NETWORK_POLICY_FORMAT,
-                policy.getMetadata().getName(),
-                policy.getMetadata().getNamespace(),
+                StringUtils.substring(policy.getMetadata().getName(),
+                        0, CLI_NAME_LENGTH - CLI_MARGIN_LENGTH),
+                StringUtils.substring(policy.getMetadata().getNamespace(),
+                        0, CLI_NAMESPACE_LENGTH - CLI_MARGIN_LENGTH),
                 policy.getSpec().getPolicyTypes().isEmpty() ?
                         "" : policy.getSpec().getPolicyTypes());
     }

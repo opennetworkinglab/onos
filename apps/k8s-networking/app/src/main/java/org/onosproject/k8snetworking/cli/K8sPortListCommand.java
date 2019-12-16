@@ -18,7 +18,9 @@ package org.onosproject.k8snetworking.cli;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
@@ -29,6 +31,12 @@ import org.onosproject.k8snetworking.api.K8sPort;
 import java.util.Comparator;
 import java.util.List;
 
+import static org.onosproject.k8snetworking.api.Constants.CLI_ID_LENGTH;
+import static org.onosproject.k8snetworking.api.Constants.CLI_IP_ADDRESSES_LENGTH;
+import static org.onosproject.k8snetworking.api.Constants.CLI_MAC_ADDRESS_LENGTH;
+import static org.onosproject.k8snetworking.api.Constants.CLI_MARGIN_LENGTH;
+import static org.onosproject.k8snetworking.api.Constants.CLI_NAME_LENGTH;
+import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.genFormatString;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.prettyJson;
 
 /**
@@ -37,8 +45,6 @@ import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.prettyJson;
 @Command(scope = "onos", name = "k8s-ports",
         description = "Lists all kubernetes ports")
 public class K8sPortListCommand extends AbstractShellCommand {
-
-    private static final String FORMAT = "%-40s%-20s%-20s%-8s";
 
     @Argument(name = "networkId", description = "Network ID")
     private String networkId = null;
@@ -50,6 +56,9 @@ public class K8sPortListCommand extends AbstractShellCommand {
         List<K8sPort> ports = Lists.newArrayList(service.ports());
         ports.sort(Comparator.comparing(K8sPort::networkId));
 
+        String format = genFormatString(ImmutableList.of(CLI_ID_LENGTH,
+                CLI_NAME_LENGTH, CLI_MAC_ADDRESS_LENGTH, CLI_IP_ADDRESSES_LENGTH));
+
         if (!Strings.isNullOrEmpty(networkId)) {
             ports.removeIf(port -> !port.networkId().equals(networkId));
         }
@@ -57,13 +66,17 @@ public class K8sPortListCommand extends AbstractShellCommand {
         if (outputJson()) {
             print("%s", json(ports));
         } else {
-            print(FORMAT, "ID", "Network", "MAC Address", "Fixed IPs");
+            print(format, "ID", "Network", "MAC Address", "Fixed IPs");
             for (K8sPort port: ports) {
                 K8sNetwork k8sNet = service.network(port.networkId());
-                print(FORMAT, port.portId(),
-                        k8sNet == null ? "" : k8sNet.name(),
-                        port.macAddress(),
-                        port.ipAddress() == null ? "" : port.ipAddress().toString());
+                print(format,
+                        StringUtils.substring(port.portId(),
+                                0, CLI_ID_LENGTH - CLI_MARGIN_LENGTH),
+                        k8sNet == null ? "" : StringUtils.substring(k8sNet.name(),
+                                0, CLI_NAME_LENGTH - CLI_MARGIN_LENGTH),
+                        StringUtils.substring(port.macAddress().toString(),
+                                0, CLI_MAC_ADDRESS_LENGTH - CLI_MARGIN_LENGTH),
+                        port.ipAddress() == null ? "" : port.ipAddress());
             }
         }
     }
