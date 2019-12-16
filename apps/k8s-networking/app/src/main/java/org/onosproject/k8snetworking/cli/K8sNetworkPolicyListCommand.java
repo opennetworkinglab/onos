@@ -18,9 +18,11 @@ package org.onosproject.k8snetworking.cli;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import io.fabric8.kubernetes.api.model.networking.NetworkPolicy;
 import io.fabric8.kubernetes.client.utils.Serialization;
+import org.apache.commons.lang.StringUtils;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
@@ -30,6 +32,11 @@ import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
 
+import static org.onosproject.k8snetworking.api.Constants.CLI_MARGIN_LENGTH;
+import static org.onosproject.k8snetworking.api.Constants.CLI_NAMESPACE_LENGTH;
+import static org.onosproject.k8snetworking.api.Constants.CLI_NAME_LENGTH;
+import static org.onosproject.k8snetworking.api.Constants.CLI_TYPES_LENGTH;
+import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.genFormatString;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.prettyJson;
 
 /**
@@ -40,24 +47,27 @@ import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.prettyJson;
         description = "Lists all kubernetes network policies")
 public class K8sNetworkPolicyListCommand extends AbstractShellCommand {
 
-    private static final String FORMAT = "%-50s%-15s%-30s";
-
     @Override
     protected void doExecute() {
         K8sNetworkPolicyService service = get(K8sNetworkPolicyService.class);
         List<NetworkPolicy> policies = Lists.newArrayList(service.networkPolicies());
         policies.sort(Comparator.comparing(p -> p.getMetadata().getName()));
 
+        String format = genFormatString(ImmutableList.of(CLI_NAME_LENGTH,
+                CLI_NAMESPACE_LENGTH, CLI_TYPES_LENGTH));
+
         if (outputJson()) {
             print("%s", json(policies));
         } else {
-            print(FORMAT, "Name", "Namespace", "Types");
+            print(format, "Name", "Namespace", "Types");
 
             for (NetworkPolicy policy : policies) {
 
-                print(FORMAT,
-                        policy.getMetadata().getName(),
-                        policy.getMetadata().getNamespace(),
+                print(format,
+                        StringUtils.substring(policy.getMetadata().getName(),
+                                0, CLI_NAME_LENGTH - CLI_MARGIN_LENGTH),
+                        StringUtils.substring(policy.getMetadata().getNamespace(),
+                                0, CLI_NAMESPACE_LENGTH - CLI_MARGIN_LENGTH),
                         policy.getSpec().getPolicyTypes().isEmpty() ?
                                 "" : policy.getSpec().getPolicyTypes());
             }

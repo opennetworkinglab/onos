@@ -55,6 +55,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -544,6 +545,22 @@ public final class K8sNetworkingUtil {
                 adminService.updatePort(newPort);
             }
         }
+    }
+
+    /**
+     * Generates string format based on the given string length list.
+     *
+     * @param stringLengths a list of string lengths
+     * @return string format (e.g., %-28s%-15s%-24s%-20s%-15s)
+     */
+    public static String genFormatString(List<Integer> stringLengths) {
+        StringBuilder fsb = new StringBuilder();
+        stringLengths.forEach(length -> {
+            fsb.append("%-");
+            fsb.append(length);
+            fsb.append("s");
+        });
+        return fsb.toString();
     }
 
     private static int binLower(String binStr, int bits) {

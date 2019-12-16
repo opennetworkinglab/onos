@@ -18,9 +18,11 @@ package org.onosproject.k8snetworking.cli;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import io.fabric8.kubernetes.api.model.extensions.Ingress;
 import io.fabric8.kubernetes.client.utils.Serialization;
+import org.apache.commons.lang.StringUtils;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
@@ -30,6 +32,11 @@ import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
 
+import static org.onosproject.k8snetworking.api.Constants.CLI_IP_ADDRESS_LENGTH;
+import static org.onosproject.k8snetworking.api.Constants.CLI_MARGIN_LENGTH;
+import static org.onosproject.k8snetworking.api.Constants.CLI_NAMESPACE_LENGTH;
+import static org.onosproject.k8snetworking.api.Constants.CLI_NAME_LENGTH;
+import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.genFormatString;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.prettyJson;
 
 /**
@@ -40,18 +47,19 @@ import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.prettyJson;
         description = "Lists all kubernetes ingresses")
 public class K8sIngressListCommand extends AbstractShellCommand {
 
-    private static final String FORMAT = "%-50s%-15s%-30s";
-
     @Override
     protected void doExecute() {
         K8sIngressService service = get(K8sIngressService.class);
         List<Ingress> ingresses = Lists.newArrayList(service.ingresses());
         ingresses.sort(Comparator.comparing(p -> p.getMetadata().getName()));
 
+        String format = genFormatString(ImmutableList.of(CLI_NAME_LENGTH,
+                CLI_NAMESPACE_LENGTH, CLI_IP_ADDRESS_LENGTH));
+
         if (outputJson()) {
             print("%s", json(ingresses));
         } else {
-            print(FORMAT, "Name", "Namespace", "LB Addresses");
+            print(format, "Name", "Namespace", "LB Addresses");
 
             for (Ingress ingress : ingresses) {
 
@@ -60,9 +68,11 @@ public class K8sIngressListCommand extends AbstractShellCommand {
                 ingress.getStatus().getLoadBalancer()
                         .getIngress().forEach(i -> lbIps.add(i.getIp()));
 
-                print(FORMAT,
-                        ingress.getMetadata().getName(),
-                        ingress.getMetadata().getNamespace(),
+                print(format,
+                        StringUtils.substring(ingress.getMetadata().getName(),
+                                0, CLI_NAME_LENGTH - CLI_MARGIN_LENGTH),
+                        StringUtils.substring(ingress.getMetadata().getNamespace(),
+                                0, CLI_NAMESPACE_LENGTH - CLI_MARGIN_LENGTH),
                         lbIps.isEmpty() ? "" : lbIps);
             }
         }

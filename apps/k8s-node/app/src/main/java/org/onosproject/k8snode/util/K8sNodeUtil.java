@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Dictionary;
+import java.util.List;
 
 import static org.onlab.util.Tools.get;
 
@@ -211,6 +212,22 @@ public final class K8sNodeUtil {
         }
 
         return OF_PREFIX + zeroPadding.toString() + hexStr;
+    }
+
+    /**
+     * Generates string format based on the given string length list.
+     *
+     * @param stringLengths a list of string lengths
+     * @return string format (e.g., %-28s%-15s%-24s%-20s%-15s)
+     */
+    public static String genFormatString(List<Integer> stringLengths) {
+        StringBuilder fsb = new StringBuilder();
+        stringLengths.forEach(length -> {
+            fsb.append("%-");
+            fsb.append(length);
+            fsb.append("s");
+        });
+        return fsb.toString();
     }
 
     /**
