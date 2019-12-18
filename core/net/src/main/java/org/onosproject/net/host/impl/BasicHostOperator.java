@@ -61,6 +61,14 @@ public final class BasicHostOperator extends BasicElementOperator {
                     .collect(Collectors.toSet());
         }
 
+        Set<HostLocation> auxLocations = descr.auxLocations();
+        Set<HostLocation> cfgAuxLocations = cfg.auxLocations();
+        if (cfgAuxLocations != null) {
+            auxLocations = cfgAuxLocations.stream()
+                    .map(hostLocation -> new HostLocation(hostLocation, System.currentTimeMillis()))
+                    .collect(Collectors.toSet());
+        }
+
         Set<IpAddress> ipAddresses = descr.ipAddress();
         Set<IpAddress> cfgIpAddresses = cfg.ipAddresses();
         if (cfgIpAddresses != null) {
@@ -69,7 +77,7 @@ public final class BasicHostOperator extends BasicElementOperator {
 
         SparseAnnotations sa = combine(cfg, descr.annotations());
         return new DefaultHostDescription(descr.hwAddress(), descr.vlan(),
-                                          locations, ipAddresses, descr.innerVlan(),
+                                          locations, auxLocations, ipAddresses, descr.innerVlan(),
                                           descr.tpid(), descr.configured(), sa);
     }
 

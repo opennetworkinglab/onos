@@ -126,18 +126,19 @@ public class NetworkConfigHostProvider extends AbstractProvider implements HostP
      *
      * @param mac       MAC address of the host
      * @param vlan      VLAN ID of the host
-     * @param locations Location of the host
+     * @param locations Locations of the host
+     * @param auxLocations auxiliary locations of the host
      * @param ips       Set of IP addresses of the host
      * @param innerVlan host inner VLAN identifier
      * @param outerTpid outer TPID of a host
      */
-    protected void addHost(MacAddress mac, VlanId vlan, Set<HostLocation> locations, Set<IpAddress> ips,
-                           VlanId innerVlan, EthType outerTpid) {
+    protected void addHost(MacAddress mac, VlanId vlan, Set<HostLocation> locations, Set<HostLocation> auxLocations,
+                           Set<IpAddress> ips, VlanId innerVlan, EthType outerTpid) {
         HostId hid = HostId.hostId(mac, vlan);
         HostDescription desc = (ips != null) ?
-                new DefaultHostDescription(mac, vlan, locations, ips,
+                new DefaultHostDescription(mac, vlan, locations, auxLocations, ips,
                                            innerVlan, outerTpid, true) :
-                new DefaultHostDescription(mac, vlan, locations, Collections.emptySet(),
+                new DefaultHostDescription(mac, vlan, locations, auxLocations, Collections.emptySet(),
                                            innerVlan, outerTpid, true);
         providerService.hostDetected(hid, desc, true);
     }
@@ -163,15 +164,16 @@ public class NetworkConfigHostProvider extends AbstractProvider implements HostP
      *
      * @param mac       MAC address of the host
      * @param vlan      VLAN ID of the host
-     * @param locations Location of the host
+     * @param locations Locations of the host
+     * @param auxLocations auxiliary locations of the host
      * @param ips       Set of IP addresses of the host
      * @param innerVlan host inner VLAN identifier
      * @param outerTpid outer TPID of a host
      */
-    protected void updateHost(MacAddress mac, VlanId vlan, Set<HostLocation> locations, Set<IpAddress> ips,
-                              VlanId innerVlan, EthType outerTpid) {
+    protected void updateHost(MacAddress mac, VlanId vlan, Set<HostLocation> locations, Set<HostLocation> auxLocations,
+                              Set<IpAddress> ips, VlanId innerVlan, EthType outerTpid) {
         HostId hid = HostId.hostId(mac, vlan);
-        HostDescription desc = new DefaultHostDescription(mac, vlan, locations, ips,
+        HostDescription desc = new DefaultHostDescription(mac, vlan, locations, auxLocations, ips,
                                                           innerVlan, outerTpid, true);
         providerService.hostDetected(hid, desc, true);
     }
@@ -199,9 +201,18 @@ public class NetworkConfigHostProvider extends AbstractProvider implements HostP
                 Set<HostLocation> locations = locs.stream()
                         .map(hostLocation -> new HostLocation(hostLocation, System.currentTimeMillis()))
                         .collect(Collectors.toSet());
+
+                // auxLocations allows to be null
+                Set<HostLocation> auxLocations = hostConfig.auxLocations();
+                if (auxLocations != null) {
+                    auxLocations = auxLocations.stream()
+                            .map(auxLocation -> new HostLocation(auxLocation, System.currentTimeMillis()))
+                            .collect(Collectors.toSet());
+                }
+
                 VlanId innerVlan = hostConfig.innerVlan();
                 EthType outerTpid = hostConfig.outerTpid();
-                addHost(mac, vlan, locations, ipAddresses, innerVlan, outerTpid);
+                addHost(mac, vlan, locations, auxLocations, ipAddresses, innerVlan, outerTpid);
             } else {
                 log.warn("Host {} configuration {} is missing locations", hostId, hostConfig);
             }
@@ -224,6 +235,7 @@ public class NetworkConfigHostProvider extends AbstractProvider implements HostP
             BasicHostConfig hostConfig = networkConfigRegistry.getConfig(hostId, BasicHostConfig.class);
             Set<IpAddress> ipAddresses = null;
             Set<HostLocation> locations = null;
+            Set<HostLocation> auxLocations = null;
             VlanId innerVlan = VlanId.NONE;
             EthType outerTpid = EthType.EtherType.UNKNOWN.ethType();
 
@@ -238,16 +250,25 @@ public class NetworkConfigHostProvider extends AbstractProvider implements HostP
                 locations = locations.stream()
                         .map(hostLocation -> new HostLocation(hostLocation, System.currentTimeMillis()))
                         .collect(Collectors.toSet());
+
+                // auxLocations allows to be null
+                auxLocations = hostConfig.auxLocations();
+                if (auxLocations != null) {
+                    auxLocations = auxLocations.stream()
+                            .map(auxLocation -> new HostLocation(auxLocation, System.currentTimeMillis()))
+                            .collect(Collectors.toSet());
+                }
+
                 innerVlan = hostConfig.innerVlan();
                 outerTpid = hostConfig.outerTpid();
             }
 
             switch (event.type()) {
                 case CONFIG_ADDED:
-                    addHost(mac, vlan, locations, ipAddresses, innerVlan, outerTpid);
+                    addHost(mac, vlan, locations, auxLocations, ipAddresses, innerVlan, outerTpid);
                     break;
                 case CONFIG_UPDATED:
-                    updateHost(mac, vlan, locations, ipAddresses, innerVlan, outerTpid);
+                    updateHost(mac, vlan, locations, auxLocations, ipAddresses, innerVlan, outerTpid);
                     break;
                 case CONFIG_REMOVED:
                     removeHost(mac, vlan);

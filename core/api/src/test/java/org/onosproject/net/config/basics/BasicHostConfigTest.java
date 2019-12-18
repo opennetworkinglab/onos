@@ -55,6 +55,11 @@ public class BasicHostConfigTest {
         HostLocation loc2 = new HostLocation(
                 NetTestTools.connectPoint("d2", 2), System.currentTimeMillis());
         Set<HostLocation> locs = ImmutableSet.of(loc1, loc2);
+        HostLocation loc3 = new HostLocation(
+                NetTestTools.connectPoint("d3", 1), System.currentTimeMillis());
+        HostLocation loc4 = new HostLocation(
+                NetTestTools.connectPoint("d4", 2), System.currentTimeMillis());
+        Set<HostLocation> auxLocations = ImmutableSet.of(loc3, loc4);
         VlanId vlanId = VlanId.vlanId((short) 10);
         EthType ethType = EthType.EtherType.lookup((short) 0x88a8).ethType();
 
@@ -62,6 +67,7 @@ public class BasicHostConfigTest {
 
         config.setIps(ips)
               .setLocations(locs)
+              .setAuxLocations(auxLocations)
               .setInnerVlan(vlanId)
               .setOuterTpid(ethType);
 
@@ -71,6 +77,8 @@ public class BasicHostConfigTest {
         assertThat(config.ipAddresses(), hasItems(ip1, ip2, ip3));
         assertThat(config.locations(), hasSize(2));
         assertThat(config.locations(), hasItems(loc1, loc2));
+        assertThat(config.auxLocations(), hasSize(2));
+        assertThat(config.auxLocations(), hasItems(loc3, loc4));
         assertThat(config.innerVlan(), is(vlanId));
         assertThat(config.outerTpid(), is(ethType));
     }
