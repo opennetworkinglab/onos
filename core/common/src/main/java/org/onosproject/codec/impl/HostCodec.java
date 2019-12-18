@@ -56,6 +56,14 @@ public final class HostCodec extends AnnotatedCodec<Host> {
         }
         result.set("locations", jsonLocations);
 
+        if (host.auxLocations() != null) {
+            final ArrayNode jsonAuxLocations = result.putArray("auxLocations");
+            for (final HostLocation auxLocation : host.auxLocations()) {
+                jsonAuxLocations.add(locationCodec.encode(auxLocation, context));
+            }
+            result.set("auxLocations", jsonAuxLocations);
+        }
+
         return annotate(result, host, context);
     }
 

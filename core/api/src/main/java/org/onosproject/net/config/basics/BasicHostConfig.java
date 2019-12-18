@@ -36,6 +36,7 @@ public final class BasicHostConfig extends BasicElementConfig<HostId> {
 
     private static final String IPS = "ips";
     private static final String LOCATIONS = "locations";
+    private static final String AUX_LOCATIONS = "auxLocations";
     private static final String INNER_VLAN = "innerVlan";
     private static final String OUTER_TPID = "outerTpid";
     private static final String DASH = "-";
@@ -56,8 +57,9 @@ public final class BasicHostConfig extends BasicElementConfig<HostId> {
                               EthType.EtherType.VLAN.ethType().toShort());
         this.locations();
         this.ipAddresses();
+        this.auxLocations();
         return hasOnlyFields(ALLOWED, NAME, LOC_TYPE, LATITUDE, LONGITUDE, ROLES,
-                             GRID_X, GRID_Y, UI_TYPE, RACK_ADDRESS, OWNER, IPS, LOCATIONS,
+                             GRID_X, GRID_Y, UI_TYPE, RACK_ADDRESS, OWNER, IPS, LOCATIONS, AUX_LOCATIONS,
                              INNER_VLAN, OUTER_TPID);
     }
 
@@ -102,6 +104,29 @@ public final class BasicHostConfig extends BasicElementConfig<HostId> {
     }
 
     /**
+     * Returns the auxLocations of the host.
+     *
+     * @return auxLocations of the host or null if none specified
+     * @throws IllegalArgumentException if auxLocations are set but empty or not
+     *                                  specified with correct format
+     */
+    public Set<HostLocation> auxLocations() {
+        if (!object.has(AUX_LOCATIONS)) {
+            return null; //no auxLocations are specified
+        }
+
+        ImmutableSet.Builder<HostLocation> auxLocationsSetBuilder = ImmutableSet.<HostLocation>builder();
+
+        ArrayNode auxLocationNodes = (ArrayNode) object.path(AUX_LOCATIONS);
+        auxLocationNodes.forEach(n -> {
+            ConnectPoint cp = ConnectPoint.deviceConnectPoint((n.asText()));
+            auxLocationsSetBuilder.add(new HostLocation(cp, 0));
+        });
+
+        return auxLocationsSetBuilder.build();
+    }
+
+    /**
      * Sets the location of the host.
      *
      * @param locations location of the host or null to unset
@@ -110,6 +135,17 @@ public final class BasicHostConfig extends BasicElementConfig<HostId> {
     public BasicHostConfig setLocations(Set<HostLocation> locations) {
         return (BasicHostConfig) setOrClear(LOCATIONS, locations);
     }
+
+    /**
+     * Sets the auxLocations of the host.
+     *
+     * @param auxLocations auxLocations of the host or null to unset
+     * @return the config of the host
+     */
+    public BasicHostConfig setAuxLocations(Set<HostLocation> auxLocations) {
+        return (BasicHostConfig) setOrClear(AUX_LOCATIONS, auxLocations);
+    }
+
 
     /**
      * Returns IP addresses of the host.
