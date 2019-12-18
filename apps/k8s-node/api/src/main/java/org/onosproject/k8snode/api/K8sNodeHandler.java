@@ -30,7 +30,7 @@ public interface K8sNodeHandler {
 
     /**
      * Processes the given node for device created state.
-     * It creates required ports on the bridges based on the node type
+     * It creates required ports on the bridges based on the node type.
      *
      * @param k8sNode kubernetes node
      */
@@ -50,4 +50,20 @@ public interface K8sNodeHandler {
      * @param k8sNode kubernetes node
      */
     void processIncompleteState(K8sNode k8sNode);
+
+    /**
+     * Processes the given node for pre-on-board state.
+     * It creates required bridges on OVS by referring to node type.
+     * It creates required ports on the bridges based on the node type.
+     *
+     * @param k8sNode kubernetes node
+     */
+    void processPreOnBoardState(K8sNode k8sNode);
+
+    /**
+     * Processes the given node for on boarded state.
+     *
+     * @param k8sNode kubernetes node
+     */
+    void processOnBoardedState(K8sNode k8sNode);
 }
