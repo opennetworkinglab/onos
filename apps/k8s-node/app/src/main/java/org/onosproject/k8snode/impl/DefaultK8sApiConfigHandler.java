@@ -47,7 +47,7 @@ import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.k8snode.api.K8sNode.Type.MASTER;
 import static org.onosproject.k8snode.api.K8sNode.Type.MINION;
 import static org.onosproject.k8snode.api.K8sNodeService.APP_ID;
-import static org.onosproject.k8snode.api.K8sNodeState.INIT;
+import static org.onosproject.k8snode.api.K8sNodeState.PRE_ON_BOARD;
 import static org.onosproject.k8snode.util.K8sNodeUtil.k8sClient;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -172,7 +172,7 @@ public class DefaultK8sApiConfigHandler {
                 .dataIp(dataIp)
                 .extIntf(extIntf)
                 .type(nodeType)
-                .state(INIT)
+                .state(PRE_ON_BOARD)
                 .extBridgeIp(IpAddress.valueOf(extBridgeIpStr))
                 .extGatewayIp(IpAddress.valueOf(extGatewayIpStr))
                 .podCidr(node.getSpec().getPodCIDR())

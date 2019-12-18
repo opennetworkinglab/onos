@@ -243,6 +243,17 @@ public class DefaultK8sNodeHandler implements K8sNodeHandler {
         // do something if needed
     }
 
+    @Override
+    public void processPreOnBoardState(K8sNode k8sNode) {
+        processInitState(k8sNode);
+        processDeviceCreatedState(k8sNode);
+    }
+
+    @Override
+    public void processOnBoardedState(K8sNode k8sNode) {
+        // do something if needed
+    }
+
     /**
      * Extracts properties from the component configuration context.
      *
@@ -454,38 +465,49 @@ public class DefaultK8sNodeHandler implements K8sNodeHandler {
     private boolean isCurrentStateDone(K8sNode k8sNode) {
         switch (k8sNode.state()) {
             case INIT:
-                if (!isOvsdbConnected(k8sNode, ovsdbPort,
-                        ovsdbController, deviceService)) {
-                    return false;
-                }
-
-                return k8sNode.intgBridge() != null && k8sNode.extBridge() != null &&
-                        deviceService.isAvailable(k8sNode.intgBridge()) &&
-                        deviceService.isAvailable(k8sNode.extBridge()) &&
-                        deviceService.isAvailable(k8sNode.localBridge());
+                return isInitStateDone(k8sNode);
             case DEVICE_CREATED:
-                if (k8sNode.dataIp() != null &&
-                        !isIntfEnabled(k8sNode, VXLAN_TUNNEL)) {
-                    return false;
-                }
-                if (k8sNode.dataIp() != null &&
-                        !isIntfEnabled(k8sNode, GRE_TUNNEL)) {
-                    return false;
-                }
-                if (k8sNode.dataIp() != null &&
-                        !isIntfEnabled(k8sNode, GENEVE_TUNNEL)) {
-                    return false;
-                }
-
-                return true;
+                return isDeviceCreatedStateDone(k8sNode);
+            case PRE_ON_BOARD:
+                return isInitStateDone(k8sNode) && isDeviceCreatedStateDone(k8sNode);
             case COMPLETE:
             case INCOMPLETE:
+            case ON_BOARDED:
                 // always return false
                 // run init CLI to re-trigger node bootstrap
                 return false;
             default:
                 return true;
         }
+    }
+
+    private boolean isInitStateDone(K8sNode k8sNode) {
+        if (!isOvsdbConnected(k8sNode, ovsdbPort,
+                ovsdbController, deviceService)) {
+            return false;
+        }
+
+        return k8sNode.intgBridge() != null && k8sNode.extBridge() != null &&
+                deviceService.isAvailable(k8sNode.intgBridge()) &&
+                deviceService.isAvailable(k8sNode.extBridge()) &&
+                deviceService.isAvailable(k8sNode.localBridge());
+    }
+
+    private boolean isDeviceCreatedStateDone(K8sNode k8sNode) {
+        if (k8sNode.dataIp() != null &&
+                !isIntfEnabled(k8sNode, VXLAN_TUNNEL)) {
+            return false;
+        }
+        if (k8sNode.dataIp() != null &&
+                !isIntfEnabled(k8sNode, GRE_TUNNEL)) {
+            return false;
+        }
+        if (k8sNode.dataIp() != null &&
+                !isIntfEnabled(k8sNode, GENEVE_TUNNEL)) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

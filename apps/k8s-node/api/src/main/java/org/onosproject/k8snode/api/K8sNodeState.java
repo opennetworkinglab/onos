@@ -21,6 +21,34 @@ package org.onosproject.k8snode.api;
 public enum K8sNodeState {
 
     /**
+     * Indicates the node is in pre-on-board.
+     */
+    PRE_ON_BOARD {
+        @Override
+        public void process(K8sNodeHandler handler, K8sNode node) {
+            handler.processPreOnBoardState(node);
+        }
+
+        @Override
+        public K8sNodeState nextState() {
+            return ON_BOARDED;
+        }
+    },
+    /**
+     * Indicates the node is on-boarded.
+     */
+    ON_BOARDED {
+        @Override
+        public void process(K8sNodeHandler handler, K8sNode node) {
+            handler.processOnBoardedState(node);
+        }
+
+        @Override
+        public K8sNodeState nextState() {
+            return ON_BOARDED;
+        }
+    },
+    /**
      * Indicates the node is newly added.
      */
     INIT {
