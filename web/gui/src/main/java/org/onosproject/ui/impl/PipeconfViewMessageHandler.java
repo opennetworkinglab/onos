@@ -17,17 +17,25 @@
 package org.onosproject.ui.impl;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.flow.FlowRuleService;
+import org.onosproject.net.flow.TableStatisticsEntry;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.model.PiPipeconfId;
 import org.onosproject.net.pi.model.PiPipelineModel;
 import org.onosproject.net.pi.service.PiPipeconfService;
 import org.onosproject.ui.RequestHandler;
 import org.onosproject.ui.UiMessageHandler;
+import org.onosproject.ui.table.TableModel;
+import org.onosproject.ui.table.TableRequestHandler;
+
+import org.onosproject.ui.table.cell.DefaultCellFormatter;
+import org.onosproject.ui.table.cell.NumberFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,9 +52,25 @@ public class PipeconfViewMessageHandler extends UiMessageHandler {
     private static final String PIPELINE_MODEL = "pipelineModel";
     private static final String NO_PIPECONF_RESP = "noPipeconfResp";
 
+    private static final String TABLESTAT_DATA_REQ = "tableStatDataRequest";
+    private static final String TABLESTAT_DATA_RESP = "tableStatDataResponse";
+    private static final String TABLESTATS = "tableStats";
+    private static final String TABLE_NAME = "table";
+    private static final String ACTIVE = "active";
+    private static final String LOOKEDUP = "lookedup";
+    private static final String HASLOOKEDUP = "haslookedup";
+    private static final String MATCHED = "matched";
+    private static final String HASMAXSIZE = "hasmaxsize";
+    private static final String MAXSIZE = "maxsize";
+
+    private static final String[] COL_IDS = {
+            TABLE_NAME, ACTIVE, HASLOOKEDUP, LOOKEDUP, MATCHED, HASMAXSIZE, MAXSIZE
+    };
+
+
     @Override
     protected Collection<RequestHandler> createRequestHandlers() {
-        return ImmutableSet.of(new PipeconfRequestHandler());
+        return ImmutableSet.of(new PipeconfRequestHandler(), new TableStatsHandler());
     }
 
     private class PipeconfRequestHandler extends RequestHandler {
@@ -100,6 +124,66 @@ public class PipeconfViewMessageHandler extends UiMessageHandler {
             responseData.set(PIPELINE_MODEL, pipelineModelData);
 
             sendMessage(PIPECONF_RESP, responseData);
+        }
+    }
+
+    private class TableStatsHandler extends TableRequestHandler {
+
+        TableStatsHandler() {
+            super(TABLESTAT_DATA_REQ, TABLESTAT_DATA_RESP, TABLESTATS);
+        }
+
+        @Override
+        protected String noRowsMessage(ObjectNode payload) {
+            return NO_PIPECONF_RESP;
+        }
+
+        @Override
+        protected String defaultColumnId() {
+            return TABLE_NAME;
+        }
+
+        @Override
+        protected String[] getColumnIds() {
+            return COL_IDS;
+        }
+
+        @Override
+        protected TableModel createTableModel() {
+            TableModel tm = super.createTableModel();
+            tm.setFormatter(TABLE_NAME, DefaultCellFormatter.INSTANCE);
+            tm.setFormatter(ACTIVE, NumberFormatter.INTEGER);
+            tm.setFormatter(HASLOOKEDUP, DefaultCellFormatter.INSTANCE);
+            tm.setFormatter(LOOKEDUP, NumberFormatter.INTEGER);
+            tm.setFormatter(MATCHED, NumberFormatter.INTEGER);
+            tm.setFormatter(HASMAXSIZE, DefaultCellFormatter.INSTANCE);
+            tm.setFormatter(MAXSIZE, NumberFormatter.INTEGER);
+            return tm;
+        }
+
+        @Override
+        protected void populateTable(TableModel tm, ObjectNode payload) {
+            String uri = string(payload, "devId");
+            if (!Strings.isNullOrEmpty(uri)) {
+                DeviceId deviceId = DeviceId.deviceId(uri);
+                DeviceService ds = get(DeviceService.class);
+                FlowRuleService flowService = get(FlowRuleService.class);
+
+                Iterable<TableStatisticsEntry> stats = flowService.getFlowTableStatistics(deviceId);
+                for (TableStatisticsEntry stat : stats) {
+                    populateRow(tm.addRow(), stat);
+                }
+            }
+        }
+
+        private void populateRow(TableModel.Row row, TableStatisticsEntry tableStat) {
+            row.cell(TABLE_NAME, tableStat.table())
+                .cell(ACTIVE, tableStat.activeFlowEntries())
+                .cell(HASLOOKEDUP, tableStat.hasPacketsLookedup())
+                .cell(LOOKEDUP, tableStat.packetsLookedup())
+                .cell(MATCHED, tableStat.packetsMatched())
+                .cell(HASMAXSIZE, tableStat.hasMaxSize())
+                .cell(MAXSIZE, tableStat.maxSize());
         }
     }
 }

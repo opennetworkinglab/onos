@@ -1,0 +1,132 @@
+<!--
+~ Copyright 2019-present Open Networking Foundation
+~
+~ Licensed under the Apache License, Version 2.0 (the "License");
+~ you may not use this file except in compliance with the License.
+~ You may obtain a copy of the License at
+~
+~     http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS,
+~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~ See the License for the specific language governing permissions and
+~ limitations under the License.
+-->
+
+<div id="ov-pipeconf">
+    <div class="tabular-header">
+        <h2>Pipeconf for Device {{devId || "(No device selected)"}}</h2>
+
+        <div class="ctrl-btns">
+            <div class="refresh" (click)="toggleRefresh()">
+                <!-- See icon.theme.css for the defintions of the classes active and refresh-->
+                <onos-icon classes="{{ autoRefresh?'active refresh':'refresh' }}" iconId="refresh" iconSize="42" toolTip="{{ autoRefreshTip }}"></onos-icon>
+            </div>
+            <div class="separator"></div>
+            <div (click)="navto('/device')">
+                <onos-icon classes="active-rect" iconId="deviceTable" iconSize="42"></onos-icon>
+            </div>
+            <div (click)="navto('/flow')">
+                <onos-icon classes="active-rect" iconId="flowTable" iconSize="42" toolTip="{{ flowTip }}"></onos-icon>
+            </div>
+            <div (click)="navto('/port')">
+                <onos-icon classes="active-rect" iconId="portTable" iconSize="42" toolTip="{{ portTip }}"></onos-icon>
+            </div>
+            <div (click)="navto('/group')">
+                <onos-icon classes="active-rect" iconId="groupTable" iconSize="42" toolTip="{{ groupTip }}"></onos-icon>
+            </div>
+            <div (click)="navto('/meter')">
+                <onos-icon classes="active-rect" iconId="meterTable" iconSize="42" toolTip="{{ meterTip }}"></onos-icon>
+            </div>
+            <div>
+                <onos-icon classes="current-view" iconId="pipeconfTable" iconSize="42" toolTip="{{ pipeconfTip }}"></onos-icon>
+            </div>
+        </div>
+    </div>
+    <div id="pipeconf-info" auto-height>
+        <div id="pipeconf-basic">
+            <table class="pipeconf-table">
+                <thead>
+                    <th class="text-center" style="width: 160px">Name</th>
+                    <th>Info</th>
+                </thead>
+                <tr *ngIf="pipeconfData === undefined; else pipeconfDataShow">
+                    <td colspan="2" class="no-data">
+                        No PiPipeconf for this device
+                    </td>
+                </tr>
+                <ng-template #pipeconfDataShow>
+                    <tr>
+                        <td class="text-center">ID</td>
+                        <td>{{pipeconfData.pipeconf.id}}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-center">Behaviors</td>
+                        <td>{{pipeconfData.pipeconf.behaviors.join(", ")}}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-center">Extensions</td>
+                        <td>{{pipeconfData.pipeconf.extensions.join(", ")}}</td>
+                    </tr>
+                </ng-template>
+            </table>
+        </div>
+        <h2>Pipeline Model</h2>
+        <div id="pipeconf-tables">
+            <table class="pipeconf-table">
+                <thead>
+                    <th class="text-center">Table</th>
+                    <th class="text-center">Entries used</th>
+                    <th class="text-center">Max entries</th>
+                    <th class="text-center">LookedUp</th>
+                    <th class="text-center">Matched</th>
+                    <th class="text-center">Has Counters</th>
+                    <th class="text-center">Support Aging</th>
+                    <th class="text-left">Match fields</th>
+                    <th class="text-left">Actions</th>
+                </thead>
+                <tr *ngFor="let table of tableData"
+                    (click)="selectCallback($event, table)"
+                    [ngClass]="{selected: table.table === selId, 'data-change': isChanged(table.table)}"
+                    class="clickable">
+                    <td class="text-center">{{table.table}}</td>
+                    <td class="text-center">{{table.active}}</td>
+                    <td class="text-center">{{table.maxsize}}</td>
+                    <td *ngIf="table.haslookedup === 'true'; else hasLookedupNa" class="text-center">{{table.lookedup}}</td>
+                    <ng-template #hasLookedupNa>
+                        <td class="text-center">N/A</td>
+                    </ng-template>
+                    <td class="text-center">{{table.matched}}</td>
+                    <td class="text-center">
+                        <onos-icon
+                                [iconId]="pipeconfModelTable(table.table)?.hasCounters?'active':'inactive'"
+                                [classes]="pipeconfModelTable(table.table)?.hasCounters?'active':'active-rect'"
+                                [iconSize]="20">
+                        </onos-icon>
+                    </td>
+                    <td class="text-center">
+                        <onos-icon
+                                [iconId]="pipeconfModelTable(table.table)?.supportAging?'active':'inactive'"
+                                [classes]="pipeconfModelTable(table.table)?.supportAging?'active':'active-rect'"
+                                [iconSize]="20">
+                        </onos-icon>
+                    </td>
+                    <td *ngIf="pipeconfModelTable(table.table)?.matchFields.length > 0; else noMatchFields">
+                        <p *ngFor="let mf of pipeconfModelTable(table.table)?.matchFields">{{mf.field}}</p>
+                    </td>
+                    <ng-template #noMatchFields>
+                        <td>No match fields</td>
+                    </ng-template>
+                    <td *ngIf="pipeconfModelTable(table.table)?.actions.length !== 0; else noActions">
+                        <p *ngFor="let act of pipeconfModelTable(table.table)?.actions">{{act}}</p>
+                    </td>
+                    <ng-template #noActions>
+                        <td>No table actions</td>
+                    </ng-template>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <onos-pipeconfdetails id="{{selId}}" [actions]="pipeconfData?.pipelineModel.actions" [pipeconfTable]="selectedTable" (closeEvent)="deselectRow($event)"></onos-pipeconfdetails>
+</div>

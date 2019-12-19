@@ -61,6 +61,14 @@
                         classes="button icon selected">
                 </onos-icon>
             </div>
+            <div *ngIf="showDetails?.buttons?.includes('showDeviceView')" class="actionBtn">
+                <onos-icon id="topo2-p-detail-core-pipeconf"
+                           (click)="navto('pipeconf')"
+                           [iconSize]="25"
+                           [iconId]="'pipeconfTable'"
+                           classes="button icon selected">
+                </onos-icon>
+            </div>
         </div>
     </div>
 </div>
