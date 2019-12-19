@@ -31,6 +31,8 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.core.IdGenerator;
@@ -72,6 +74,7 @@ import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -133,6 +136,8 @@ public class FlowRuleManager
 
     private final Map<Long, FlowOperationsProcessor> pendingFlowOperations = new ConcurrentHashMap<>();
 
+    private NodeId local;
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected FlowRuleStore store;
 
@@ -151,6 +156,9 @@ public class FlowRuleManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected DriverService driverService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected ClusterService clusterService;
+
     @Activate
     public void activate(ComponentContext context) {
         store.setDelegate(delegate);
@@ -159,6 +167,7 @@ public class FlowRuleManager
         cfgService.registerProperties(getClass());
         modified(context);
         idGenerator = coreService.getIdGenerator(FLOW_OP_TOPIC);
+        local = clusterService.getLocalNode().id();
         log.info("Started");
     }
 
@@ -474,7 +483,7 @@ public class FlowRuleManager
             log.debug("Flow {} is on switch but not in store.", flowRule);
         }
 
-        private void flowAdded(FlowEntry flowEntry) {
+        private boolean flowAdded(FlowEntry flowEntry) {
             checkNotNull(flowEntry, FLOW_RULE_NULL);
             checkValidity();
 
@@ -482,6 +491,7 @@ public class FlowRuleManager
                 FlowRuleEvent event = store.addOrUpdateFlowRule(flowEntry);
                 if (event == null) {
                     log.debug("No flow store event generated.");
+                    return false;
                 } else {
                     log.trace("Flow {} {}", flowEntry, event.type());
                     post(event);
@@ -490,6 +500,7 @@ public class FlowRuleManager
                 log.debug("Removing flow rules....");
                 removeFlowRules(flowEntry);
             }
+            return true;
         }
 
         private boolean checkRuleLiveness(FlowEntry swRule, FlowEntry storedRule) {
@@ -547,15 +558,32 @@ public class FlowRuleManager
                                              boolean useMissingFlow) {
             Map<FlowEntry, FlowEntry> storedRules = Maps.newHashMap();
             store.getFlowEntries(deviceId).forEach(f -> storedRules.put(f, f));
+            NodeId master;
+            boolean done;
 
+            // Processing flow rules
             for (FlowEntry rule : flowEntries) {
                 try {
                     FlowEntry storedRule = storedRules.remove(rule);
                     if (storedRule != null) {
                         if (storedRule.exactMatch(rule)) {
                             // we both have the rule, let's update some info then.
-                            flowAdded(rule);
+                            done = flowAdded(rule);
+                            if (!done) {
+                                // Mastership change can occur during this iteration
+                                master = mastershipService.getMasterFor(deviceId);
+                                if (!Objects.equals(local, master)) {
+                                    log.warn("Tried to update the flow stats while the node was not the master");
+                                    return;
+                                }
+                            }
                         } else {
+                            // Mastership change can occur during this iteration
+                            master = mastershipService.getMasterFor(deviceId);
+                            if (!Objects.equals(local, master)) {
+                                log.warn("Tried to update the flows while the node was not the master");
+                                return;
+                            }
                             // the two rules are not an exact match - remove the
                             // switch's rule and install our rule
                             extraneousFlow(rule);
@@ -564,6 +592,12 @@ public class FlowRuleManager
                     } else {
                         // the device has a rule the store does not have
                         if (!allowExtraneousRules) {
+                            // Mastership change can occur during this iteration
+                            master = mastershipService.getMasterFor(deviceId);
+                            if (!Objects.equals(local, master)) {
+                                log.warn("Tried to remove flows while the node was not the master");
+                                return;
+                            }
                             extraneousFlow(rule);
                         }
                     }
@@ -576,6 +610,12 @@ public class FlowRuleManager
             // DO NOT reinstall
             if (useMissingFlow) {
                 for (FlowEntry rule : storedRules.keySet()) {
+                    // Mastership change can occur during this iteration
+                    master = mastershipService.getMasterFor(deviceId);
+                    if (!Objects.equals(local, master)) {
+                        log.warn("Tried to install missing rules while the node was not the master");
+                        return;
+                    }
                     try {
                         // there are rules in the store that aren't on the switch
                         log.debug("Adding the rule that is present in store but not on switch : {}", rule);

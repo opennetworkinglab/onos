@@ -684,9 +684,9 @@ public class OpenFlowRuleProvider extends AbstractProvider
             NewAdaptiveFlowStatsCollector afsc = afsCollectors.get(dpid);
 
             if (adaptiveFlowSampling && afsc != null)  {
-                List<FlowEntry> flowEntries = replies.getEntries().stream()
+                Set<FlowEntry> flowEntries = replies.getEntries().stream()
                         .map(entry -> new FlowEntryBuilder(did, entry, handler).withSetAfsc(afsc).build())
-                        .collect(Collectors.toList());
+                        .collect(Collectors.toSet());
 
                 // Check that OFFlowStatsReply Xid is same with the one of OFFlowStatsRequest?
                 if (afsc.getFlowMissingXid() != NewAdaptiveFlowStatsCollector.NO_FLOW_MISSING_XID) {
@@ -705,9 +705,9 @@ public class OpenFlowRuleProvider extends AbstractProvider
                     providerService.pushFlowMetricsWithoutFlowMissing(did, flowEntries);
                 }
             } else {
-                List<FlowEntry> flowEntries = replies.getEntries().stream()
+                Set<FlowEntry> flowEntries = replies.getEntries().stream()
                         .map(entry -> new FlowEntryBuilder(did, entry, handler).build())
-                        .collect(Collectors.toList());
+                        .collect(Collectors.toSet());
 
                 // call existing entire flow stats update with flowMissing synchronization
                 providerService.pushFlowMetrics(did, flowEntries);
@@ -720,6 +720,7 @@ public class OpenFlowRuleProvider extends AbstractProvider
             List<TableStatisticsEntry> tableStatsEntries = replies.getEntries().stream()
                     .map(entry -> buildTableStatistics(did, entry))
                     .filter(Objects::nonNull)
+                    .distinct()
                     .collect(Collectors.toList());
             providerService.pushTableStatistics(did, tableStatsEntries);
         }
@@ -729,9 +730,9 @@ public class OpenFlowRuleProvider extends AbstractProvider
             DeviceId did = DeviceId.deviceId(Dpid.uri(dpid));
             NewAdaptiveFlowStatsCollector afsc = afsCollectors.get(dpid);
             if (adaptiveFlowSampling && afsc != null)  {
-                List<FlowEntry> flowEntries = replies.getEntries().stream()
+                Set<FlowEntry> flowEntries = replies.getEntries().stream()
                         .map(entry -> new FlowEntryBuilder(did, entry, driverService).withSetAfsc(afsc).build())
-                        .collect(Collectors.toList());
+                        .collect(Collectors.toSet());
 
                 // Check that OFFlowStatsReply Xid is same with the one of OFFlowStatsRequest?
                 if (afsc.getFlowMissingXid() != NewAdaptiveFlowStatsCollector.NO_FLOW_MISSING_XID) {
@@ -750,9 +751,9 @@ public class OpenFlowRuleProvider extends AbstractProvider
                     providerService.pushFlowMetricsWithoutFlowMissing(did, flowEntries);
                 }
             } else {
-                List<FlowEntry> flowEntries = replies.getEntries().stream()
+                Set<FlowEntry> flowEntries = replies.getEntries().stream()
                         .map(entry -> new FlowEntryBuilder(did, entry, driverService).build())
-                        .collect(Collectors.toList());
+                        .collect(Collectors.toSet());
                 // call existing entire flow stats update with flowMissing synchronization
                 providerService.pushFlowMetrics(did, flowEntries);
             }

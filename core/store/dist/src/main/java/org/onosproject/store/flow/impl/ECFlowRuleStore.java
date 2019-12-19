@@ -72,6 +72,7 @@ import org.onosproject.net.flow.FlowRuleStore;
 import org.onosproject.net.flow.FlowRuleStoreDelegate;
 import org.onosproject.net.flow.StoredFlowEntry;
 import org.onosproject.net.flow.TableStatisticsEntry;
+import org.onosproject.net.flow.FlowRuleStoreException;
 import org.onosproject.net.flow.oldbatch.FlowRuleBatchEntry;
 import org.onosproject.net.flow.oldbatch.FlowRuleBatchEntry.FlowRuleOperation;
 import org.onosproject.net.flow.oldbatch.FlowRuleBatchEvent;
@@ -689,6 +690,7 @@ public class ECFlowRuleStore
                 clusterService,
                 clusterCommunicator,
                 new InternalLifecycleManager(id),
+                deviceService,
                 backupScheduler,
                 new OrderedExecutor(backupExecutor),
                 backupPeriod,
@@ -726,6 +728,7 @@ public class ECFlowRuleStore
                 clusterService,
                 clusterCommunicator,
                 new InternalLifecycleManager(deviceId),
+                deviceService,
                 backupScheduler,
                 new OrderedExecutor(backupExecutor),
                 backupPeriod,
@@ -778,9 +781,11 @@ public class ECFlowRuleStore
                 return getFlowTable(deviceId).getFlowEntries()
                     .get(GET_FLOW_ENTRIES_TIMEOUT, TimeUnit.SECONDS);
             } catch (ExecutionException e) {
-                throw new IllegalStateException(e.getCause());
-            } catch (TimeoutException | InterruptedException e) {
-                throw new IllegalStateException(e);
+                throw new FlowRuleStoreException(e.getCause());
+            } catch (TimeoutException e) {
+                throw new FlowRuleStoreException.Timeout();
+            } catch (InterruptedException e) {
+                throw new FlowRuleStoreException.Interrupted();
             }
         }
 
