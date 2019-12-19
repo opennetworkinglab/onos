@@ -50,7 +50,6 @@ export class IconComponent implements OnChanges {
         private log: LogService
     ) {
         // Note: iconId is not available until initialization
-        this.log.debug('IconComponent constructed');
     }
 
     /**

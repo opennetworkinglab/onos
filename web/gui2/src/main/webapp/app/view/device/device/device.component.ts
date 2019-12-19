@@ -110,7 +110,7 @@ export class DeviceComponent extends TableBaseImpl implements OnInit, OnDestroy 
     }
 
     navto(path) {
-        this.log.debug('navigate');
+        this.log.debug('navigate to', path);
         if (this.selId) {
             this.router.navigate([path], { queryParams: { devId: this.selId } });
         }

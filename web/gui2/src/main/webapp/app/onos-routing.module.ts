@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
-import { Routes, RouterModule } from '@angular/router';
-import { Gui2TopoLibModule } from 'gui2-topo-lib';
-import { FmGui2LibModule } from 'fm-gui2-lib';
-import { RoadmGuiLibModule } from 'roadm-gui-lib';
+import {NgModule} from '@angular/core';
+import {Routes, RouterModule} from '@angular/router';
+import {Gui2TopoLibModule} from 'gui2-topo-lib';
+import {FmGui2LibModule} from 'fm-gui2-lib';
+import {RoadmGuiLibModule} from 'roadm-gui-lib';
 
 /**
  * The set of Routes in the application - can be chosen from nav menu or
@@ -80,6 +80,10 @@ const onosRoutes: Routes = [
         path: 'meter',
         loadChildren: 'app/view/meter/meter.module#MeterModule'
     },
+    {
+        path: 'pipeconf',
+        loadChildren: 'app/view/pipeconf/pipeconf.module#PipeconfModule'
+    },
     /*  Comment out below section for running locally with 'ng serve' when developing */
     {
         path: 'topo2',
@@ -108,9 +112,10 @@ const onosRoutes: Routes = [
  */
 @NgModule({
     imports: [
-        RouterModule.forRoot(onosRoutes, { useHash : true })
+        RouterModule.forRoot(onosRoutes, {useHash: true})
     ],
     exports: [RouterModule],
     providers: []
 })
-export class OnosRoutingModule { }
+export class OnosRoutingModule {
+}

@@ -1,0 +1,90 @@
+<!--
+~ Copyright 2019-present Open Networking Foundation
+~
+~ Licensed under the Apache License, Version 2.0 (the "License");
+~ you may not use this file except in compliance with the License.
+~ You may obtain a copy of the License at
+~
+~     http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS,
+~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~ See the License for the specific language governing permissions and
+~ limitations under the License.
+-->
+
+<div id="pipeconf-details-panel" class="floatpanel"
+     [@pipeconfDetailsState]="id!=='' && !closed">
+    <div class="container">
+        <div class="top">
+            <div class="close-btn">
+                <onos-icon class="close-btn" classes="active-close"
+                           iconId="close" iconSize="20"
+                           (click)="close()"></onos-icon>
+            </div>
+            <h2>{{id}}</h2>
+            <div class="top-content">
+                <div class="top-tables">
+                    <div class="left">
+                        <table>
+                            <tbody>
+                            <tr>
+                                <td class="label" width="110">Name :</td>
+                                <td class="value"
+                                    width="80">{{pipeconfTable?.name}}</td>
+                                <td class="label" width="110">Support Aging :
+                                </td>
+                                <td class="value"
+                                    width="80">{{pipeconfTable?.supportAging}}</td>
+                            </tr>
+                            <tr>
+                                <td class="label" width="110">Has counters :
+                                </td>
+                                <td class="value"
+                                    width="80">{{pipeconfTable?.hasCounters}}</td>
+                                <td class="label" width="110">Max entries :</td>
+                                <td class="value"
+                                    width="80">{{pipeconfTable?.maxSize}}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <hr>
+        </div>
+        <div class="bottom">
+            <h2 class="match-title">Match fields</h2>
+            <table>
+                <thead>
+                <th>Field</th>
+                <th>Match type</th>
+                <th>Bit width</th>
+                </thead>
+                <tbody>
+                <tr *ngFor="let mf of pipeconfTable?.matchFields">
+                    <td>{{mf.field}}</td>
+                    <td>{{mf.matchType}}</td>
+                    <td>{{mf.bitWidth}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="bottom">
+            <h2 class="action-title">Actions</h2>
+            <table>
+                <thead>
+                <th>Action</th>
+                <th>Parameter</th>
+                </thead>
+                <tbody>
+                <tr *ngFor="let actionKey of pipeconfTable?.actions">
+                    <td>{{actionKey}}</td>
+                    <td><p *ngFor="let param of actionDetails(actionKey).params">{{param.name}}:{{param.bitWidth}}</p></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
