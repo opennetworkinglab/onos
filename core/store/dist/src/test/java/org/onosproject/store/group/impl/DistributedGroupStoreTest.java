@@ -22,7 +22,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
+import org.onlab.packet.Ip4Address;
 import org.onosproject.cfg.ComponentConfigAdapter;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.ControllerNode;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.GroupId;
 import org.onosproject.mastership.MastershipServiceAdapter;
@@ -54,6 +57,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import static org.easymock.EasyMock.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
@@ -125,7 +129,7 @@ public class DistributedGroupStoreTest {
 
         @Override
         public NodeId getMasterFor(DeviceId deviceId) {
-            return new NodeId("foo");
+            return new NodeId(NODE_ID);
         }
     }
 
@@ -141,6 +145,32 @@ public class DistributedGroupStoreTest {
         }
     }
 
+    private static class MockControllerNode implements ControllerNode {
+        final NodeId id;
+
+        public MockControllerNode(NodeId id) {
+            this.id = id;
+        }
+
+        @Override
+        public NodeId id() {
+            return this.id;
+        }
+
+        @Override
+        public Ip4Address ip() {
+            return Ip4Address.valueOf("127.0.0.1");
+        }
+
+        @Override
+        public int tcpPort() {
+            return 0;
+        }
+    }
+
+    private static final String NODE_ID = "foo";
+
+
     @Before
     public void setUp() throws Exception {
         groupStoreImpl = new DistributedGroupStore();
@@ -148,6 +178,15 @@ public class DistributedGroupStoreTest {
         groupStoreImpl.clusterCommunicator = new ClusterCommunicationServiceAdapter();
         groupStoreImpl.mastershipService = new MasterOfAll();
         groupStoreImpl.cfgService = new ComponentConfigAdapter();
+
+        ClusterService mockClusterService = createMock(ClusterService.class);
+        NodeId nodeId = new NodeId(NODE_ID);
+        MockControllerNode mockControllerNode = new MockControllerNode(nodeId);
+        expect(mockClusterService.getLocalNode())
+                .andReturn(mockControllerNode).anyTimes();
+        replay(mockClusterService);
+
+        groupStoreImpl.clusterService = mockClusterService;
         groupStoreImpl.activate(null);
         groupStore = groupStoreImpl;
         auditPendingReqQueue =

@@ -686,11 +686,22 @@ public class OpenFlowControllerImpl implements OpenFlowController {
                 }
                 log.info("Transitioned switch {} to MASTER", dpid);
                 activeMasterSwitches.put(dpid, sw);
+                // purge pending stats
+                log.info("Purged pending stats {}", dpid);
+                purgeStatsSwitch(dpid);
             } finally {
                 switchLock.unlock();
             }
         }
 
+        private void purgeStatsSwitch(Dpid dpid) {
+            fullFlowStats.removeAll(dpid);
+            fullFlowLightweightStats.removeAll(dpid);
+            fullTableStats.removeAll(dpid);
+            fullGroupStats.removeAll(dpid);
+            fullGroupDescStats.removeAll(dpid);
+            fullQueueStats.removeAll(dpid);
+        }
 
         @Override
         public void transitionToEqualSwitch(Dpid dpid) {

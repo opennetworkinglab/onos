@@ -25,7 +25,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.junit.TestTools;
+import org.onlab.packet.Ip4Address;
 import org.onosproject.cfg.ComponentConfigAdapter;
+import org.onosproject.cluster.ClusterService;
+import org.onosproject.cluster.ControllerNode;
+import org.onosproject.cluster.NodeId;
 import org.onosproject.common.event.impl.TestEventDispatcher;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreServiceAdapter;
@@ -84,6 +88,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 import static org.onosproject.net.NetTestTools.injectEventDispatcher;
 import static org.onosproject.net.flow.FlowRuleEvent.Type.*;
@@ -119,6 +124,7 @@ public class FlowRuleManagerTest {
     private ApplicationId appId;
 
     private TestDriverManager driverService;
+    private static final String NODE_ID = "1";
 
     @Before
     public void setUp() {
@@ -131,6 +137,15 @@ public class FlowRuleManagerTest {
         mgr.operationsService = MoreExecutors.newDirectExecutorService();
         mgr.deviceInstallers = MoreExecutors.newDirectExecutorService();
         mgr.cfgService = new ComponentConfigAdapter();
+
+        ClusterService mockClusterService = createMock(ClusterService.class);
+        NodeId nodeId = new NodeId(NODE_ID);
+        MockControllerNode mockControllerNode = new MockControllerNode(nodeId);
+        expect(mockClusterService.getLocalNode())
+                .andReturn(mockControllerNode).anyTimes();
+        replay(mockClusterService);
+        mgr.clusterService = mockClusterService;
+
         service = mgr;
         registry = mgr;
 
@@ -706,6 +721,11 @@ public class FlowRuleManagerTest {
         public MastershipRole getLocalRole(DeviceId deviceId) {
             return MastershipRole.MASTER;
         }
+
+        @Override
+        public NodeId getMasterFor(DeviceId deviceId) {
+            return new NodeId(NODE_ID);
+        }
     }
 
     private class TestDriverManager extends DriverManager {
@@ -737,6 +757,29 @@ public class FlowRuleManagerTest {
         public Collection<FlowRule> removeFlowRules(Collection<FlowRule> rules) {
             flowRules.addAll(rules);
             return rules;
+        }
+    }
+
+    private static class MockControllerNode implements ControllerNode {
+        final NodeId id;
+
+        public MockControllerNode(NodeId id) {
+            this.id = id;
+        }
+
+        @Override
+        public NodeId id() {
+            return this.id;
+        }
+
+        @Override
+        public Ip4Address ip() {
+            return Ip4Address.valueOf("127.0.0.1");
+        }
+
+        @Override
+        public int tcpPort() {
+            return 0;
         }
     }
 }
