@@ -339,8 +339,8 @@ public class LinkHandler {
      * @param added true if link was added, false if link was removed
      */
     private void updateHostPorts(Link link, boolean added) {
+        DeviceConfiguration devConfig = srManager.deviceConfiguration;
         if (added) {
-            DeviceConfiguration devConfig = srManager.deviceConfiguration;
             try {
                 if (!devConfig.isEdgeDevice(link.src().deviceId())
                         || devConfig.isEdgeDevice(link.dst().deviceId())) {
@@ -360,11 +360,18 @@ public class LinkHandler {
                         .changePortState(link.src().deviceId(), pnum, true));
             }
         } else {
+            // If the device does not have a pair device - skip
+            DeviceId dev = link.src().deviceId();
+            if (getPairDeviceIdOrNull(dev) == null) {
+                log.info("Device {} does not have pair device " +
+                                 "not disabling access port", dev);
+                return;
+            }
+            // Verify if last uplink
             if (!lastUplink(link)) {
                 return;
             }
             // find dual homed hosts on this dev to disable
-            DeviceId dev = link.src().deviceId();
             Set<PortNumber> dp = srManager.hostHandler
                     .getDualHomedHostPorts(dev);
             log.warn("Link src {} --> dst {} removed was the last uplink, "
@@ -659,6 +666,13 @@ public class LinkHandler {
      * @param loc the host location
      */
     void checkUplinksForHost(HostLocation loc) {
+        // If the device does not have a pair device - return
+        if (getPairDeviceIdOrNull(loc.deviceId()) == null) {
+            log.info("Device {} does not have pair device " +
+                             "not disabling access port", loc.deviceId());
+            return;
+        }
+        // Verify link validity
         try {
             for (Link l : srManager.linkService.getDeviceLinks(loc.deviceId())) {
                 if (srManager.deviceConfiguration.isEdgeDevice(l.dst().deviceId())
@@ -683,6 +697,16 @@ public class LinkHandler {
             p.add(loc.port());
         }
         downedPortStore.put(loc.deviceId(), p);
+    }
+
+    private DeviceId getPairDeviceIdOrNull(DeviceId deviceId) {
+        DeviceId pairDev;
+        try {
+            pairDev = srManager.deviceConfiguration.getPairDeviceId(deviceId);
+        } catch (DeviceConfigNotFoundException e) {
+            pairDev = null;
+        }
+        return pairDev;
     }
 
     ImmutableMap<Link, Boolean> getSeenLinks() {
