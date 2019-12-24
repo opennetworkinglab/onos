@@ -38,12 +38,12 @@ import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 
 /**
- * Class for Open-flow overlay configuration workflow.
+ * Class for Open-flow overlay configuration workflow registration.
  */
 @Component(immediate = true)
-public class OfOverlayWorkflow {
+public class OfOverlayWorkflowRegister {
 
-    private static final Logger log = LoggerFactory.getLogger(OfOverlayWorkflow.class);
+    private static final Logger log = LoggerFactory.getLogger(OfOverlayWorkflowRegister.class);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected WorkflowStore workflowStore;
