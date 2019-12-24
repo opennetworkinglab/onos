@@ -264,10 +264,17 @@ public class DistributedK8sNetworkStore
                     break;
                 case REMOVE:
                     log.debug("Kubernetes port removed");
-                    notifyDelegate(new K8sNetworkEvent(
-                            K8S_PORT_REMOVED,
-                            network(event.oldValue().value().networkId()),
-                            event.oldValue().value()));
+
+                    // if the event object has invalid port value, we do not
+                    // propagate K8S_PORT_REMOVED event.
+                    if (event.oldValue() != null &&
+                            event.oldValue().value() != null) {
+                        notifyDelegate(new K8sNetworkEvent(
+                                K8S_PORT_REMOVED,
+                                network(event.oldValue().value().networkId()),
+                                event.oldValue().value()));
+                    }
+
                     break;
                 default:
                     // do nothing
