@@ -180,7 +180,9 @@ buildifier(
     name = "buildifier_check",
     exclude_patterns = [
         "./tools/build/bazel/generate_workspace.bzl",
-        "./web/gui2-fw-lib/node_modules/@angular/bazel/src/esm5.bzl",
+        "./web/gui2/node_modules/@angular/bazel/src/esm5.bzl",
+        "./web/gui2/node_modules/@bazel/typescript/internal/common/tsconfig.bzl",
+        "./web/gui2/node_modules/@bazel/typescript/internal/common/compilation.bzl",
     ],
     mode = "check",
 )
@@ -189,7 +191,9 @@ buildifier(
     name = "buildifier_fix",
     exclude_patterns = [
         "./tools/build/bazel/generate_workspace.bzl",
-        "./web/gui2-fw-lib/node_modules/@angular/bazel/src/esm5.bzl",
+        "./web/gui2/node_modules/@angular/bazel/src/esm5.bzl",
+        "./web/gui2/node_modules/@bazel/typescript/internal/common/tsconfig.bzl",
+        "./web/gui2/node_modules/@bazel/typescript/internal/common/compilation.bzl",
     ],
     mode = "fix",
 )

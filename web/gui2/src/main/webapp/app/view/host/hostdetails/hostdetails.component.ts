@@ -21,7 +21,7 @@ import {
     LogService,
     DetailsPanelBaseImpl,
     WebSocketService
-} from 'gui2-fw-lib';
+} from '../../../../../../../../gui2-fw-lib/public_api';
 
 /**
  * The details view when a host row is clicked from the Host view
@@ -39,7 +39,7 @@ import {
     selector: 'onos-hostdetails',
     templateUrl: './hostdetails.component.html',
     styleUrls: ['./hostdetails.component.css',
-        '../../../fw/widget/panel.css', '../../../fw/widget/panel-theme.css'
+        '../../../../../../../../gui2-fw-lib/lib/widget/panel.css', '../../../../../../../../gui2-fw-lib/lib/widget/panel-theme.css'
     ],
     animations: [
         trigger('hostDetailsState', [

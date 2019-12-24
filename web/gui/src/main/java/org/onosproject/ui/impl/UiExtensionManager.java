@@ -273,6 +273,7 @@ public class UiExtensionManager
                 .topo2OverlayFactory(topo2OverlayFactory)
                 .topoMapFactory(topoMapFactory)
                 .resourcePath(CORE)
+                .ui2()
                 .build();
     }
 

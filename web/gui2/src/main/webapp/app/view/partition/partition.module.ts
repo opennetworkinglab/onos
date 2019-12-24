@@ -15,16 +15,17 @@
  */
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Gui2FwLibModule } from 'gui2-fw-lib';
+import {Gui2FwLibModule} from '../../../../../../../gui2-fw-lib/public_api';
 
-import { PartitionRoutingModule } from './partition-routing.module';
 import { PartitionComponent } from './partition/partition.component';
+import {RouterModule} from '@angular/router';
 
 @NgModule({
     imports: [
         CommonModule,
         Gui2FwLibModule,
-        PartitionRoutingModule
+        RouterModule,
+        RouterModule.forChild([{path: '', component: PartitionComponent}]),
     ],
     declarations: [PartitionComponent]
 })

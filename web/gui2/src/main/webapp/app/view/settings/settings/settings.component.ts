@@ -19,7 +19,7 @@ import {
     LogService,
     WebSocketService,
     SortDir, TableBaseImpl, TableResponse
-} from 'gui2-fw-lib';
+} from '../../../../../../../../gui2-fw-lib/public_api';
 
 /**
  * Model of the data returned through the Web Socket about settings.
@@ -47,7 +47,7 @@ export interface Settings {
 @Component({
     selector: 'onos-settings',
     templateUrl: './settings.component.html',
-    styleUrls: ['./settings.component.css', '../../../fw/widget/table.css', '../../../fw/widget/table.theme.css']
+    styleUrls: ['./settings.component.css', '../../../../../../../../gui2-fw-lib/lib/widget/table.css', '../../../../../../../../gui2-fw-lib/lib/widget/table.theme.css']
 })
 
 export class SettingsComponent extends TableBaseImpl implements OnInit, OnDestroy {

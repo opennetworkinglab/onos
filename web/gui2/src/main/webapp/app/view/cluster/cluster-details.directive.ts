@@ -23,7 +23,7 @@ import {
     LionService,
     PanelService,
     WebSocketService
-} from 'gui2-fw-lib';
+} from '../../../../../../../gui2-fw-lib/public_api';
 import * as d3 from 'd3';
 import {HostListener} from '@angular/core';
 

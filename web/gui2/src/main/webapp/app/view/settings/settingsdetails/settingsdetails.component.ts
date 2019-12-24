@@ -19,7 +19,7 @@ import {
     LogService,
     DetailsPanelBaseImpl,
     WebSocketService
-} from 'gui2-fw-lib';
+} from '../../../../../../../../gui2-fw-lib/public_api';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { Settings } from '../settings/settings.component';
 
@@ -38,7 +38,7 @@ import { Settings } from '../settings/settings.component';
 @Component({
     selector: 'onos-settingsdetails',
     templateUrl: './settingsdetails.component.html',
-    styleUrls: ['./settingsdetails.component.css', '../../../fw/widget/panel.css', '../../../fw/widget/panel-theme.css'],
+    styleUrls: ['./settingsdetails.component.css', '../../../../../../../../gui2-fw-lib/lib/widget/panel.css', '../../../../../../../../gui2-fw-lib/lib/widget/panel-theme.css'],
     animations: [
         trigger('settingsDetailsState', [
             state('true', style({

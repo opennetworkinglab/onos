@@ -19,7 +19,7 @@ import {
     LogService,
     WebSocketService,
     SortDir, TableBaseImpl
-} from 'gui2-fw-lib';
+} from '../../../../../../../../gui2-fw-lib/public_api';
 import { ActivatedRoute } from '@angular/router';
 
 /**
@@ -28,7 +28,7 @@ import { ActivatedRoute } from '@angular/router';
 @Component({
     selector: 'onos-partition',
     templateUrl: './partition.component.html',
-    styleUrls: ['./partition.component.css', '../../../fw/widget/table.css', '../../../fw/widget/table.theme.css']
+    styleUrls: ['./partition.component.css', '../../../../../../../../gui2-fw-lib/lib/widget/table.css', '../../../../../../../../gui2-fw-lib/lib/widget/table.theme.css']
 })
 export class PartitionComponent extends TableBaseImpl implements OnInit, OnDestroy {
 

@@ -15,16 +15,17 @@
  */
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Gui2FwLibModule } from 'gui2-fw-lib';
+import { Gui2FwLibModule } from '../../../../../../../gui2-fw-lib/public_api';
 import { ClusterComponent } from './cluster/cluster.component';
-import { ClusterRoutingModule } from './cluster-routing.module';
 import { ClusterDetailsDirective } from './cluster-details.directive';
+import {RouterModule} from '@angular/router';
 
 @NgModule({
     imports: [
         CommonModule,
         Gui2FwLibModule,
-        ClusterRoutingModule
+        RouterModule,
+        RouterModule.forChild([{path: '', component: ClusterComponent}]),
     ],
     declarations: [ClusterComponent, ClusterDetailsDirective]
 })

@@ -16,16 +16,17 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PortComponent } from './port/port.component';
-import { Gui2FwLibModule } from 'gui2-fw-lib';
+import { Gui2FwLibModule } from '../../../../../../../gui2-fw-lib/public_api';
 import { FormsModule } from '@angular/forms';
-import { PortRoutingModule } from './port-routing.module';
 import { PortDetailsComponent } from './portdetails/portdetails.component';
+import {RouterModule} from '@angular/router';
 
 @NgModule({
     imports: [
         CommonModule,
         Gui2FwLibModule,
-        PortRoutingModule,
+        RouterModule,
+        RouterModule.forChild([{path: '', component: PortComponent}]),
         FormsModule
     ],
     declarations: [PortComponent, PortDetailsComponent]

@@ -14,90 +14,104 @@
  * limitations under the License.
  */
 import {NgModule} from '@angular/core';
-import {Routes, RouterModule} from '@angular/router';
-import {Gui2TopoLibModule} from 'gui2-topo-lib';
-import {FmGui2LibModule} from 'fm-gui2-lib';
-import {RoadmGuiLibModule} from 'roadm-gui-lib';
+import {Route, RouterModule} from '@angular/router';
 
 /**
  * The set of Routes in the application - can be chosen from nav menu or
  * elsewhere like tabular icon for flows etc
  */
-const onosRoutes: Routes = [
-    {
+const onosRoutes: Route[] = [
+    <Route>{
         path: 'app',
-        loadChildren: 'app/view/apps/apps.module#AppsModule'
+        pathMatch: 'full',
+        loadChildren: () => import('./view/apps/apps.module').then(m => m.AppsModule)
     },
-    {
+    <Route>{
         path: 'processor',
-        loadChildren: 'app/view/processor/processor.module#ProcessorModule'
+        pathMatch: 'full',
+        loadChildren: () => import('./view/processor/processor.module').then(m => m.ProcessorModule)
     },
-    {
+    <Route>{
         path: 'settings',
-        loadChildren: 'app/view/settings/settings.module#SettingsModule'
+        pathMatch: 'full',
+        loadChildren: () => import('./view/settings/settings.module').then(m => m.SettingsModule)
     },
-    {
+    <Route>{
         path: 'partition',
-        loadChildren: 'app/view/partition/partition.module#PartitionModule'
+        pathMatch: 'full',
+        loadChildren: () => import('./view/partition/partition.module').then(m => m.PartitionModule)
     },
-    {
+    <Route>{
         path: 'cluster',
-        loadChildren: 'app/view/cluster/cluster.module#ClusterModule'
+        pathMatch: 'full',
+        loadChildren: () => import('./view/cluster/cluster.module').then(m => m.ClusterModule)
     },
-    {
+    <Route>{
         path: 'device',
-        loadChildren: 'app/view/device/device.module#DeviceModule'
+        pathMatch: 'full',
+        loadChildren: () => import('./view/device/device.module').then(m => m.DeviceModule)
     },
-    {
+    <Route>{
         path: 'link',
-        loadChildren: 'app/view/link/link.module#LinkModule'
+        pathMatch: 'full',
+        loadChildren: () => import('./view/link/link.module').then(m => m.LinkModule)
     },
-    {
+    <Route>{
         path: 'host',
-        loadChildren: 'app/view/host/host.module#HostModule'
+        pathMatch: 'full',
+        loadChildren: () => import('./view/host/host.module').then(m => m.HostModule)
     },
-    {
+    <Route>{
         path: 'intent',
-        loadChildren: 'app/view/intent/intent.module#IntentModule'
+        pathMatch: 'full',
+        loadChildren: () => import('./view/intent/intent.module').then(m => m.IntentModule)
     },
-    {
+    <Route>{
         path: 'tunnel',
-        loadChildren: 'app/view/tunnel/tunnel.module#TunnelModule'
+        pathMatch: 'full',
+        loadChildren: () => import('./view/tunnel/tunnel.module').then(m => m.TunnelModule)
     },
-    {
+    <Route>{
         path: 'flow',
-        loadChildren: 'app/view/flow/flow.module#FlowModule'
+        pathMatch: 'full',
+        loadChildren: () => import('./view/flow/flow.module').then(m => m.FlowModule)
     },
-    {
+    <Route>{
         path: 'port',
-        loadChildren: 'app/view/port/port.module#PortModule'
+        pathMatch: 'full',
+        loadChildren: () => import('./view/port/port.module').then(m => m.PortModule)
     },
-    {
+    <Route>{
         path: 'group',
-        loadChildren: 'app/view/group/group.module#GroupModule'
+        pathMatch: 'full',
+        loadChildren: () => import('./view/group/group.module').then(m => m.GroupModule)
     },
-    {
+    <Route>{
         path: 'meter',
-        loadChildren: 'app/view/meter/meter.module#MeterModule'
+        pathMatch: 'full',
+        loadChildren: () => import('./view/meter/meter.module').then(m => m.MeterModule)
     },
-    {
+    <Route>{
         path: 'pipeconf',
-        loadChildren: 'app/view/pipeconf/pipeconf.module#PipeconfModule'
+        pathMatch: 'full',
+        loadChildren: () => import('./view/pipeconf/pipeconf.module').then(m => m.PipeconfModule)
     },
-    /*  Comment out below section for running locally with 'ng serve' when developing */
-    {
+    <Route>{
         path: 'topo2',
-        loadChildren: 'gui2-topo-lib#Gui2TopoLibModule'
+        pathMatch: 'full',
+        loadChildren: () => import('../../../../../gui2-topo-lib/lib/gui2-topo-lib.module').then(m => m.Gui2TopoLibModule)
     },
-    {
+    <Route>{
         path: 'alarmTable',
-        loadChildren: 'fm-gui2-lib#FmGui2LibModule'
+        pathMatch: 'full',
+        loadChildren: () => import('../../../../../../apps/faultmanagement/fm-gui2-lib/lib/fm-gui2-lib.module').then(m => m.FmGui2LibModule)
     },
-    {
+    <Route>{
         path: 'roadm-gui',
-        loadChildren: 'roadm-gui-lib#RoadmGuiLibModule'
+        pathMatch: 'full',
+        loadChildren: () => import('../../../../../../apps/roadm/web/roadm-gui/lib/roadm-gui-lib.module').then(m => m.RoadmGuiLibModule)
     },
-    {
+    <Route>{
         path: '',
         redirectTo: 'topo2', // Default to Topology view
         pathMatch: 'full'

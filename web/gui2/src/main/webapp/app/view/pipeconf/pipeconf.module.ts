@@ -18,14 +18,15 @@ import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {PipeconfComponent} from './pipeconf/pipeconf.component';
 import {PipeconfDetailsComponent} from './pipeconfdetails/pipeconfdetails.component';
-import {Gui2FwLibModule} from 'gui2-fw-lib';
+import { Gui2FwLibModule } from '../../../../../../../gui2-fw-lib/public_api';
 import {FormsModule} from '@angular/forms';
-import {PipeconfRoutingModule} from './pipeconf-routing.module';
+import {RouterModule} from '@angular/router';
 
 @NgModule({
     imports: [
         CommonModule,
-        PipeconfRoutingModule,
+        RouterModule,
+        RouterModule.forChild([{path: '', component: PipeconfComponent}]),
         Gui2FwLibModule,
         FormsModule
     ],

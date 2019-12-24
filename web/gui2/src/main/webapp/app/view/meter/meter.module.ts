@@ -13,22 +13,22 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Gui2FwLibModule } from 'gui2-fw-lib';
-
-import { MeterRoutingModule } from './meter-routing.module';
-import { MeterComponent } from './meter/meter.component';
-
-import { FormsModule } from '@angular/forms';
+import {NgModule} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {Gui2FwLibModule} from '../../../../../../../gui2-fw-lib/public_api';
+import {MeterComponent} from './meter/meter.component';
+import {FormsModule} from '@angular/forms';
+import {RouterModule} from '@angular/router';
 
 @NgModule({
-  imports: [
-    CommonModule,
-    Gui2FwLibModule,
-    MeterRoutingModule,
-    FormsModule
-  ],
-  declarations: [MeterComponent]
+    imports: [
+        CommonModule,
+        Gui2FwLibModule,
+        RouterModule,
+        RouterModule.forChild([{path: '', component: MeterComponent}]),
+        FormsModule
+    ],
+    declarations: [MeterComponent]
 })
-export class MeterModule { }
+export class MeterModule {
+}

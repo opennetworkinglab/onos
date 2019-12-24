@@ -19,7 +19,7 @@ import {
     LogService,
     WebSocketService,
     TableBaseImpl
-} from 'gui2-fw-lib';
+} from '../../../../../../../../gui2-fw-lib/public_api';
 import { ActivatedRoute } from '@angular/router';
 
 /**
@@ -28,7 +28,7 @@ import { ActivatedRoute } from '@angular/router';
 @Component({
     selector: 'onos-processor',
     templateUrl: './processor.component.html',
-    styleUrls: ['./processor.component.css', '../../../fw/widget/table.css', '../../../fw/widget/table.theme.css']
+    styleUrls: ['./processor.component.css', '../../../../../../../../gui2-fw-lib/lib/widget/table.css', '../../../../../../../../gui2-fw-lib/lib/widget/table.theme.css']
 })
 export class ProcessorComponent extends TableBaseImpl implements OnInit, OnDestroy {
 

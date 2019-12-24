@@ -26,7 +26,7 @@ import {
     FnService,
     IconService,
     LogService, WebSocketService
-} from 'gui2-fw-lib';
+} from '../../../../../../../../gui2-fw-lib/public_api';
 import {PipeconfAction, PipeconfTable} from '../pipeconf/pipeconf.component';
 import {animate, state, style, transition, trigger} from '@angular/animations';
 
@@ -37,7 +37,7 @@ import {animate, state, style, transition, trigger} from '@angular/animations';
     selector: 'onos-pipeconfdetails',
     templateUrl: './pipeconfdetails.component.html',
     styleUrls: ['./pipeconfdetails.component.css',
-        '../../../fw/widget/panel.css', '../../../fw/widget/panel-theme.css'],
+        '../../../../../../../../gui2-fw-lib/lib/widget/panel.css', '../../../../../../../../gui2-fw-lib/lib/widget/panel-theme.css'],
     animations: [
         trigger('pipeconfDetailsState', [
             state('true', style({

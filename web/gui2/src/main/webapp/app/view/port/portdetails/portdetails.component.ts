@@ -21,7 +21,7 @@ import {
     LogService,
     DetailsPanelBaseImpl,
     WebSocketService
-} from 'gui2-fw-lib';
+} from '../../../../../../../../gui2-fw-lib/public_api';
 
 /**
  * The details view when a port row is clicked from the Port view
@@ -38,7 +38,7 @@ import {
 @Component({
     selector: 'onos-portdetails',
     templateUrl: './portdetails.component.html',
-    styleUrls: ['./portdetails.component.css', '../../../fw/widget/panel.css', '../../../fw/widget/panel-theme.css'],
+    styleUrls: ['./portdetails.component.css', '../../../../../../../../gui2-fw-lib/lib/widget/panel.css', '../../../../../../../../gui2-fw-lib/lib/widget/panel-theme.css'],
     animations: [
         trigger('portDetailsState', [
             state('true', style({

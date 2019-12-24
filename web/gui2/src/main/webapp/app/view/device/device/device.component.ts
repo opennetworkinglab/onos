@@ -20,7 +20,7 @@ import {
     LogService,
     WebSocketService,
     SortDir, TableBaseImpl, TableResponse
-} from 'gui2-fw-lib';
+} from '../../../../../../../../gui2-fw-lib/public_api';
 
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -57,7 +57,7 @@ interface Device {
 @Component({
     selector: 'onos-device',
     templateUrl: './device.component.html',
-    styleUrls: ['./device.component.css', './device.theme.css', '../../../fw/widget/table.css', '../../../fw/widget/table.theme.css']
+    styleUrls: ['./device.component.css', './device.theme.css', '../../../../../../../../gui2-fw-lib/lib/widget/table.css', '../../../../../../../../gui2-fw-lib/lib/widget/table.theme.css']
 })
 export class DeviceComponent extends TableBaseImpl implements OnInit, OnDestroy {
 

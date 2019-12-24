@@ -1,0 +1,185 @@
+"""
+ Copyright 2020-present Open Networking Foundation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+"""
+
+load("@npm_angular_bazel//:index.bzl", "ng_module")
+load("@npm_bazel_typescript//:index.bzl", "ts_library")
+
+package(default_visibility = ["//:__subpackages__"])
+
+exports_files(["lib/widget/panel.css"])
+
+# We don't import from these, but the generated ngfactory code will
+NG_FACTORY_ADDED_IMPORTS = [
+    "@npm//@angular/animations",
+    "@npm//@angular/forms",
+]
+
+ng_module(
+    name = "gui2-fw-lib",
+    srcs = glob(
+        include = [
+            "**/*.ts",
+            "public_api.ts",
+        ],
+        exclude = [
+            "**/*.spec.ts",
+            "test.ts",
+        ],
+    ),
+    assets = glob([
+        "src/lib/**/*.css",
+        "src/lib/**/*.html",
+    ]),
+    bundle_dts = True,
+    entry_point = ":src/public_api.ts",
+    #    tsconfig = "tsconfig.json",
+    generate_ve_shims = True,
+    module_name = "gui2-fw-lib",
+    deps = [
+        "@npm//@angular/animations",
+        "@npm//@angular/common",
+        "@npm//@angular/platform-browser",
+        "@npm//@angular/router",
+        "@npm//d3",
+        "@npm//rxjs",
+    ],
+)
+
+#filegroup(
+#    name = "rxjs_umd_modules",
+#    srcs = [
+#        # do not sort
+#        "@npm//:node_modules/rxjs/bundles/rxjs.umd.js",
+#        ":rxjs_shims.js",
+#    ],
+#)
+#
+#ts_library(
+#    name = "test_lib",
+#    testonly = 1,
+#    srcs = glob(["**/*.spec.ts"]),
+#    deps = [
+#        ":gui2-fw-lib",
+#        "@npm//@angular/common",
+#        "@npm//@angular/core",
+#        "@npm//@angular/platform-browser",
+#        "@npm//@angular/router",
+#        "@npm//@types",
+#        "@npm//rxjs",
+#    ],
+#)
+#
+#ts_library(
+#    name = "initialize_testbed",
+#    testonly = 1,
+#    srcs = [
+#        "initialize_testbed.ts",
+#    ],
+#    deps = [
+#        "@npm//@angular/core",
+#        "@npm//@angular/platform-browser-dynamic",
+#        "@npm//@types",
+#    ],
+#)
+#
+#ng_package(
+#    name = "gui2-fw-lib-pkg",
+#    srcs = [
+#        "package.json",
+#    ],
+#    data = glob(
+#        include = [
+#            "src/assets/**",
+#        ],
+#        exclude = [
+#            "**/*.spec.ts",
+#        ],
+#    ),
+#    entry_point = ":src/public-api.ts",  # In reality this is ignored and index.ts is used
+#    #    include_devmode_srcs = False,
+#    readme_md = "README.md",
+#    deps = [
+#        ":gui2-fw-lib",
+#        "@npm//@angular/animations",
+#        "@npm//@angular/common",
+#        "@npm//@angular/core",
+#        "@npm//@angular/platform-browser-dynamic",
+#        "@npm//@angular/router",
+#        "@npm//@types",
+#        "@npm//d3",
+#        "@npm//rxjs",
+#    ],
+#)
+#
+#genrule(
+#    name = "onos-gui2-fw-ng-build",
+#    srcs = [
+#        ":gui2-fw-lib-pkg",
+#    ],
+#    outs = [
+#        "gui2-fw-ng-build-prod.log",
+#        "gui2-fw-lib-ver.tgz",
+#    ],
+#    cmd = "ROOT=`pwd` &&" +
+#          " mkdir -p package &&" +
+#          " cp -r bazel-out/k8-fastbuild/bin/web/gui2-fw-lib/projects/gui2-fw-lib/gui2-fw-lib-pkg/* package &&" +
+#          " tar -czhf $$ROOT/$(location gui2-fw-lib-ver.tgz) package &&" +
+#          " touch $$ROOT/$(location gui2-fw-ng-build-prod.log)",  # to get the log always as the 2nd file
+#    message = "GUI FW Lib build",
+#    visibility = ["//visibility:public"],
+#)
+#
+#ts_web_test_suite(
+#    name = "gui2-fw-lib-test",
+#    srcs = [
+#        "@npm//:node_modules/tslib/tslib.js",
+#    ],
+#    # do not sort
+#    bootstrap = [
+#        "@npm//:node_modules/zone.js/dist/zone-testing-bundle.js",
+#        "@npm//:node_modules/reflect-metadata/Reflect.js",
+#    ],
+#    browsers = [
+#        "@io_bazel_rules_webtesting//browsers:chromium-local",
+#    ],
+#    runtime_deps = [
+#        ":initialize_testbed",
+#    ],
+#    deps = [
+#        ":rxjs_umd_modules",
+#        ":test_lib",
+#        "@npm//karma-jasmine",
+#    ],
+#)
+#
+#jdk_genrule(
+#    name = "gui2_fw_lib_ext_css",
+#    srcs = glob(
+#        [
+#            "src/lib/widget/panel.css",
+#            "src/lib/widget/panel-theme.css",
+#            "src/lib/widget/table.css",
+#            "src/lib/widget/table.theme.css",
+#            "src/lib/widget/table.theme.css",
+#            "src/lib/layer/loading.service.css",
+#        ],
+#    ),
+#    outs = ["gui2_fw_lib_css.jar"],
+#    cmd = " ROOT=`pwd` &&" +
+#          " cd web/gui2-fw-lib/projects/gui2-fw-lib/src/lib &&" +
+#          " jar Mcf $$ROOT/$@ .",
+#    visibility = ["//visibility:public"],
+#)

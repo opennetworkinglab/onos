@@ -13,21 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {NgModule} from '@angular/core';
+import {CommonModule} from '@angular/common';
 
-import { TunnelRoutingModule } from './tunnel-routing.module';
-import { TunnelComponent } from './tunnel/tunnel.component';
-import { Gui2FwLibModule } from 'gui2-fw-lib';
+import {TunnelComponent} from './tunnel/tunnel.component';
+import { Gui2FwLibModule } from '../../../../../../../gui2-fw-lib/public_api';
+import {RouterModule} from '@angular/router';
 
 @NgModule({
-  imports: [
-    CommonModule,
-    TunnelRoutingModule,
-    Gui2FwLibModule
-  ],
-  declarations: [
-    TunnelComponent
-  ]
+    imports: [
+        CommonModule,
+        RouterModule,
+        RouterModule.forChild([{path: '', component: TunnelComponent}]),
+        Gui2FwLibModule
+    ],
+    declarations: [
+        TunnelComponent
+    ]
 })
-export class TunnelModule { }
+export class TunnelModule {
+}

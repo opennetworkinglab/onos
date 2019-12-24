@@ -16,9 +16,8 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-import { IntentRoutingModule } from './intent-routing.module';
 import { IntentComponent } from './intent/intent.component';
-import { Gui2FwLibModule } from 'gui2-fw-lib';
+import { Gui2FwLibModule } from '../../../../../../../gui2-fw-lib/public_api';
 import { RouterModule } from '@angular/router';
 
 @NgModule({
@@ -26,7 +25,7 @@ import { RouterModule } from '@angular/router';
         CommonModule,
         Gui2FwLibModule,
         RouterModule,
-        IntentRoutingModule,
+        RouterModule.forChild([{path: '', component: IntentComponent}]),
     ],
     declarations: [IntentComponent],
     exports: [IntentComponent]

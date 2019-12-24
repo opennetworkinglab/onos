@@ -20,7 +20,7 @@ import {
     LogService, SortDir,
     TableBaseImpl,
     WebSocketService
-} from 'gui2-fw-lib';
+} from '../../../../../../../../gui2-fw-lib/public_api';
 import {ActivatedRoute, Router} from '@angular/router';
 
 const pipeconfReq = 'pipeconfRequest';
@@ -88,7 +88,7 @@ export interface TableStats {
 @Component({
     selector: 'onos-pipeconf',
     templateUrl: './pipeconf.component.html',
-    styleUrls: ['./pipeconf.component.css', '../../../fw/widget/table.css', '../../../fw/widget/table.theme.css']
+    styleUrls: ['./pipeconf.component.css', '../../../../../../../../gui2-fw-lib/lib/widget/table.css', '../../../../../../../../gui2-fw-lib/lib/widget/table.theme.css']
 })
 export class PipeconfComponent extends TableBaseImpl implements OnInit, OnDestroy {
     devId: string;
@@ -142,7 +142,7 @@ export class PipeconfComponent extends TableBaseImpl implements OnInit, OnDestro
             }]
         ]));
 
-        const p = Object.assign({}, this.sortParams, this.payloadParams);
+        const p = (<any>Object).assign({}, this.sortParams, this.payloadParams);
 
         // Allow it to sit in pending events
         if (this.wss.isConnected()) {

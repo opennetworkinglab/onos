@@ -49,7 +49,7 @@ When a change is made to the library code, it has to be built again
 
 This requires the following manual steps
 * Make directory `fw/widget` in `~/onos/web/gui2-topo-lib/projects/gui2-topo-lib`
-* Copy  ~/onos/web/gui2-fw-lib/projects/gui2-fw-lib/src/lib/widget/panel*.css in to this
+* Copy  ~/onos/web/gui2-fw-lib/lib/widget/panel*.css in to this
 * Copy directory `~/onos/web/gui/src/main/webapp/data` in
     to `~/onos/web/gui2-topo-lib/projects/gui2-topo-tester/src/data`
 * Change (temporarily) web/gui/src/main/java/org/onosproject/ui/impl/UiWebSocket.java

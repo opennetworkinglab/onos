@@ -5,7 +5,11 @@ and __[ES6](http://www.ecma-international.org/ecma-262/6.0/index.html)__ (aka __
 as an alternative to the 1.0.0 GUI which was based 
 off __[AngularJS 1.3.5](https://angularjs.org/)__
 
-Building, testing and running lint are all handled by Bazel. See web/gui2/BUILD file.
+Building, testing and running lint are all handled by Bazel. See 
+
+* web/gui2/BUILD
+* web/gui2/src/main/webapp/BUILD.bazel
+* web/gui2/src/main/webapp/app/BUILD.bazel
 
 To use this new GUI you simply have to ensure it is running on ONOS at the __onos>__ cli:
 ```
@@ -52,7 +56,7 @@ and are displayed smoothly by HTML5 compatible browsers. Occasionally the d3
 libraries (such as d3-force) are used to help position graphics, but an over
 dependence on d3 is mainly avoided.
 
-The main framework used is Angular 7, with a strong emphasis on making resuable
+The main framework used is Angular 9, with a strong emphasis on making resuable
 components, directives, services and classes. Angular Routing and animation are
 also used.
 
@@ -63,293 +67,219 @@ Issues found on the GUI2 should be added to the existing list on the
  on this board
 
 # Development
-There are 2 ways to go about development - 
-1. rebuild the code and rerun through Bazel (much like can be done with any ordinary ONOS app)
-(recommended for most people) 
- OR
-2. use Angular 9 CLI (__ng__ command) to rebuild on the fly (faster for
-development). Be aware that if you are just changing the topology view it does not
-require all of the steps that __gui2__ does - see its own [README](../gui2-topo-lib/README.md)
-for more details
+Development requires a TypeScript capable IDE (Intellij WebStorm or Idea Ultimate Edition)
 
-For 1) if you change the code you can redeploy the application without restarting
-ONOS with (requires you to be in ~/onos directory):
+Generally the simplest option for development is to rebuild and redeploy on the
+command line with:
 ```
 bazel build //web/gui2:onos-web-gui2-oar && onos-app localhost reinstall! bazel-bin/web/gui2/onos-web-gui2-oar.oar
 ```
 
-For 2) it's well worth becoming familiar with Angular CLI.
-> (this has the advantage of debug symbols and the code not is uglified and minimized)
+> In future support for **devmode** target will be added in conjunction with IBazel.
 
-The project is created with [Angular CLI](https://github.com/angular/angular-cli) v9
-to simplify development of the browser side code. It is complicated to set up, 
-but is worth the effort if you have more than a few days worth of development to do.
-Since data is retrieved through WebSockets there is a requirement to run ONOS
-in the background.
-
->There is no need to install node, npm or ng again on your system, and indeed if
->they are already installed, it's best to use the versions of these that's used 
+>There is no need to install node, npm or yarn on your system, and indeed if
+>they are already installed, it's best to use the versions used
 >by Bazel in ONOS.
 
-## Yarn and Angular CLI
-Bazel installs all of the NPM modules with `Yarn` listed in
-```
-web/gui-fw-lib/package.json
-```
-through a declaration made in the ONOS `WORKSPACE` file.
+All building of GUI artefacts is now done through native Bazel rules from
+[https://github.com/bazelbuild/rules_nodejs](https://github.com/bazelbuild/rules_nodejs)
+
+The build sequence is 
+* ng_module (compile TypeScript and pull in html and css files for components)
+* rollup_bundle (transpose all dependent ng_modules in to Javascript, splitting based on routing modules)
+* terser_minified (minifies the output from rollup)
+* pkg_web (gather together all assets and the minified bundle in to a single folder - prodapp)
+* genrule - onos-web-gui2 (gather the prodapp with the Java files and web.xml to create an Karaf web application) 
+
+## Yarn and NPM
+In WORKSPACE targets are defined to install specific versions of Javascript packages
+* ```@gui1_npm``` - this uses NPM  to install all the NPM packages in ```//tools/gui:package.json```
+* ```@npm``` - this uses Yarn to install all the NPM packages listed in ```//web/gui2:package.json```
+
+> It is not possible to rename this `@npm` to `@gui2_npm` at this time because many
+> of the Javascript bazel rules depend on this naming convention. 
 
 To check the Yarn installation you can run
 ```bash
-bazel run @nodejs//:bin/yarn versions
+bazel run @nodejs//:yarn -- versions
 ```
 
-NPM is also available (but this is mainly used for GUI 1)
+NPM is also available (but this is mainly used for GUI 1) (and will be phased out eventually).
 ```bash
-bazel run @nodejs//:bin/npm version
+bazel run @nodejs//:npm version
 ```
 
+## The Angular CLI
+> The project no longer fully supports Angular CLI (with the **ng** command). Some
+> standalone commands can be run like **version**, **help**, **generate**, **config**,
+> but actions like **build**, **test**, **serve**, **lint**, **run**
+> are just a wrapper for bazel commands, and should be run directly in Bazel as described
+> elsewhere.
 
-The Angular CLI (ng) is available inside Bazel as
+The Angular CLI (ng) is available inside Bazel as (from `~/onos/web/gui2`):
 ```bash
 bazel run @npm//:node_modules/@angular/cli/bin/ng version
 ```
 
-When run inside an Angular Project (from `~/onos/web/gui2-fw-lib`) we get:
+> To give an argument to a sub command of bazel like this it must be prefixed with an extra `--`
+> `bazel run @npm//:node_modules/@angular/cli/bin/ng config -- version`
+
+When run inside an Angular Project (from `~/onos/web/gui2`) we get:
 ```bash
-Angular CLI: 8.3.19
+Angular CLI: 9.0.0-rc.7
 Node: 10.16.0
 OS: linux x64
-Angular: 8.2.14
-... animations, bazel, common, compiler, compiler-cli, core
-... forms, language-service, platform-browser
-... platform-browser-dynamic, router
 
-Package                            Version
-------------------------------------------------------------
-@angular-devkit/architect          0.803.19
-@angular-devkit/build-angular      0.803.19
-@angular-devkit/build-ng-packagr   0.803.19
-@angular-devkit/build-optimizer    0.803.19
-@angular-devkit/build-webpack      0.803.19
-@angular-devkit/core               8.3.19
-@angular-devkit/schematics         8.3.19
-@angular/cli                       8.3.19
-@angular/http                      7.2.15
-@bazel/hide-bazel-files            0.40.0
-@bazel/karma                       0.34.0
-@bazel/protractor                  0.34.0
-@bazel/typescript                  0.34.0
-@ngtools/webpack                   8.3.19
-@schematics/angular                8.3.19
-@schematics/update                 0.803.19
-ng-packagr                         5.7.1
-rxjs                               6.5.3
-typescript                         3.5.3
-webpack                            4.39.2
+Angular: 9.0.0-rc.7
+... animations, bazel, cli, common, compiler, compiler-cli, core
+... forms, platform-browser, platform-browser-dynamic, router
+Ivy Workspace: <error>
+
+Package                      Version
+------------------------------------------------------
+@angular-devkit/architect    0.900.0-rc.7
+@angular-devkit/core         9.0.0-rc.7
+@angular-devkit/schematics   9.0.0-rc.7
+@bazel/hide-bazel-files      1.0.0
+@bazel/karma                 1.0.0
+@bazel/protractor            1.0.0
+@bazel/rollup                1.0.0
+@bazel/terser                1.0.0
+@bazel/typescript            1.0.0
+@schematics/angular          9.0.0-rc.7
+@schematics/update           0.900.0-rc.7
+rxjs                         6.5.4
+typescript                   3.6.4
 ```
+
+## Creating a new GUI module and component
+The Angular CLI (**ng generate**) command for generating new modules and components
+can still be used. For example to create a new module inside an project
+(from ```web/gui2/src/main/webapp/app/view```) do:
+```bash
+bazel run @npm//:node_modules/@angular/cli/bin/ng generate module mynewmodule
+```
+
+Components can then be added to this module:
+```bash
+cd mynewmodule
+bazel run @npm//:node_modules/@angular/cli/bin/ng generate component comp1
+```
+
+This module should then be given it's own ```BUILD.Bazel``` file to compile this
+```ng_module```, with at least the following:
+```bazel
+package(default_visibility = ["//:__subpackages__"])
+
+load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
+load("@npm_angular_bazel//:index.bzl", "ng_module")
+
+sass_binary(
+    name = "mynewmodule-styles",
+    src = ":comp1/comp1.component.scss",
+)
+
+ng_module(
+    name = "mynewmodule",
+    srcs = [
+        "comp1/comp1.component.ts",
+        "mynewmodule.module.ts",
+    ],
+    assets = [
+        ":mynewmodule-styles",
+        ":comp1/comp1.component.html",
+    ],
+    module_name = "mynewmodule",
+    deps = [
+        "//web/gui2-fw-lib",
+        "@npm//@angular/core",
+        "@npm//@angular/platform-browser-dynamic",
+        "@npm//@angular/router",
+        "@npm//rxjs",
+    ],
+)
+```
+
+This can be built directly with
+```bash
+bazel build //web/gui2/src/main/webapp/app/view/mynewmodule:mynewmodule
+```
+To add it to the overall ONOS GUI it can be added to the list of dependencies of
+the ```app``` target in ```web/gui2/src/main/webapp/app/BUILD.bazel``` as:
+```bazel
+"//web/gui2/src/main/webapp/app/view/mynewmodule:mynewmodule",
+```
+
+For regular embedded use, this component can be referenced from another component
+by its selector (defined in
+`web/gui2/src/main/webapp/app/view/mynewmodule/comp1/comp1.component.ts`)
+```html
+<onos-comp1></onos-comp1>
+```
+**OR**
+
+this component can be used as a Routable module and accessed from the top level
+of onos GUI, as described in the next section.
+
+### Adding the new component as a routable module
+To make the module routable, add it to the top level onos router in 
+```web/gui2/src/main/webapp/app/onos-routing.module.ts```. 
+
+Add it to the ```onosRoutes``` set as:
+```typescript
+<Route>{
+    path: 'mynewmodule',
+    pathMatch: 'full',
+    loadChildren: () => import('./view/mynewmodule/mynewmodule.module').then(m => m.MynewmoduleModule),
+},
+```
+and then update the modules own routing table in
+`web/gui2/src/main/webapp/app/view/mynewmodule/mynewmodule.module.ts` with a subroute:
+```typescript
+...
+import {RouterModule} from '@angular/router';
+
+@NgModule({
+    imports: [
+        CommonModule
+        RouterModule.forChild([{path: '', component: Comp1Component}]),
+    ],
+    declarations: [Comp1Component]
+})
+...
+``` 
+
+This can then be accessed at
+[http://localhost:8181/onos/ui/#/mynewmodule]
+
+and should display **comp1 works!** from `comp1.component.html`
 
 ## GUI FW Lib
 The GUI2 __framework__ (in `~/onos/web/gui2-fw-lib`) is at the heart of the GUI2
 implementation and contains core items like icon libraries, base classes etc.
 The main GUI __application__ is in `~/onos/web/gui2` (and depends on this framework).
 
-The GUI2 framework is built as a library inside its own mini application (unrelated
-to the main GUI application) - every thing of importance is in `projects/gui2-fw-lib`.
-The mini application is just a wrapper around the framework library - it has to be
-there for Angular CLI to work and can be useful for testing parts of the framework
-in isolation.
-
 When the library is packaged up in
 [Angular Package Format](https://docs.google.com/document/d/1CZC2rcpxffTDfRDs6p1cfbmKNLA6x5O-NtkJglDaBVs/preview)
 and can be manually uploaded to [https://www.npmjs.com/package/gui2-fw-lib](https://www.npmjs.com/package/gui2-fw-lib)
 to be used in other projects (e.g. [onos-gui](https://github.com/onosproject/onos-gui)
-
-For build method 2) above if you make any changes here or are using it for the
-first time it will need to be built. From `~/onos/web/gui2` run:
-```bash
-pushd ~/onos/web/gui2-fw-lib && \
-bazel run @npm//:node_modules/@angular/cli/bin/ng build gui2-fw-lib && \
-cd dist/gui2-fw-lib && \
-bazel run @nodejs//:bin/npm pack && \
-popd && \
-bazel run @nodejs//:bin/npm install gui2-fw-lib
-```
-
-This packages the Framework up in to `~/onos/web/gui2-fw-lib/dist/gui2-fw-lib/gui2-fw-lib-2.3.2.tgz`
 
 ## GUI2 Topo library
 The GUI2 __Topology__ is in `~/onos/web/gui2-topo-lib` and the GUI __application__
 includes this Topology application through the `onos-routing.module`. The 
 Topology app has its own README file.
 
-For build method 2) above if you make any changes here or are using it for the
-first time it will need to be built. From ~/onos/web/gui2 run:
-```text
-pushd ~/onos/web/gui2-topo-lib && \
-bazel run @npm//:node_modules/@angular/cli/bin/ng build gui2-topo-lib && \
-cd dist/gui2-topo-lib && \
-bazel run @nodejs//:bin/npm pack && \
-popd && \
-bazel run @nodejs//:bin/npm install gui2-topo-lib
-```
-This packages the Topo View up in to `onos/web/gui2-topo-lib/dist/gui2-topo-lib/gui2-topo-lib-2.1.0.tgz`.
-
-It is manually uploaded to [https://www.npmjs.com/package/gui2-topo-lib](https://www.npmjs.com/package/gui2-topo-lib)
-
 ## GUI2 Application
 The application is the visible front end and contains the ONOS `index.html` and
 all of the tabular views and the topology view. It references the `gui2-fw-lib`
 and `gui2-topo-lib` as just other dependencies. 
 
-For build method 2) above to use this application in Angular CLI for development
-on your system, you need to: 
-1. Change directory in to onos/web/gui2 - this is where you will run the
-`bazel run @npm//:node_modules/@angular/cli/bin/ng` command from.
-2. Run `bazel run @nodejs//:bin/npm install` once from this folder to add dependencies
-3. Then run `bazel run @npm//:node_modules/@angular/cli/bin/ng version` from
-`onos/web/gui2` and the project version should be shown __Angular: 8.2.14__
-4. Temporarily make a change to disable authentication in UIWebSocket.java
-5. Temporarily make a change to disable external routes in onos-routing.module.ts
-6. Create symbolic links for some CSS files
-
-### Disable authentication and external routes
-> Remember this is only for build method 2) above
-
-Before the server can be run a couple of small adjustments need to be temporarily made
-1. The file `~/onos/web/gui/src/main/java/org/onosproject/ui/impl/UiWebSocket.java` 
-needs to be adjusted to remove authentication
-2. The file `~/onos/web/gui2/src/main/webapp/app/onos-routing.module.ts` needs 
-to be adjusted to remove references to routes in external applications
-
-These changes are given in Appendix A at the end of this document - these changes
-should **not** be checked in though - as they are not required (and will break) the
-GUI2 embedded in ONOS.
-
-### Create symbolic links for CSS files
-Also some files need to be symbolically linked - these should no be checked in
-```text
-cd ~/onos/web/gui2/src/main/webapp/app && \
-mkdir -p fw/widget && mkdir -p fw/layer && \
-cd fw/layer && ln -s ~/onos/web/gui2-fw-lib/projects/gui2-fw-lib/src/lib/layer/loading.service.css && \
-cd ../widget && \
-ln -s ~/onos/web/gui2-fw-lib/projects/gui2-fw-lib/src/lib/widget/panel.css && \
-ln -s ~/onos/web/gui2-fw-lib/projects/gui2-fw-lib/src/lib/widget/panel-theme.css && \
-ln -s ~/onos/web/gui2-fw-lib/projects/gui2-fw-lib/src/lib/widget/table.css && \
-ln -s ~/onos/web/gui2-fw-lib/projects/gui2-fw-lib/src/lib/widget/table.theme.css
-```
-
-After this it will be possible to build/test/lint/run the application inside the Angular CLI without errors.
-```text
-bazel run @npm//:node_modules/@angular/cli/bin/ng build -- --prod;
-bazel run @npm//:node_modules/@angular/cli/bin/ng lint;
-bazel run @npm//:node_modules/@angular/cli/bin/ng test -- --watch=false --browsers=ChromeHeadless;
-```
-
-## Development server
-Finally the application can be run, and will be available at http://localhost:4200
-```text
-bazel run @npm//:node_modules/@angular/cli/bin/ng serve -- --aot
-``` 
-
-Run `bazel run @npm//:node_modules/@angular/cli/bin/ng serve --aot` for a dev server
-(because we are using ES6, we [must use AOT](https://github.com/angular/angular-cli/wiki/build)). 
-Navigate to `http://localhost:4200/`. The app will automatically reload if you change
-any of the source files.
-
-Press Ctrl-Shift-I in Chrome and Firefox to bring up the developer tools and the browser console.
-
-There are certain extra debugging supports which can be turned on by adding the
-parameter 'debug'. For example to turn extra logging for WebSockets add on __?debug=txrx__
-
-On the Apps view - icons will appear to be missing - this is because they use a
-relative path to source the image, and this path is not available in this
-`ng serve` mode. The icons work fine in the mode where it's run inside ONOS. 
-
-### Navigating
-In this development mode navigation is not available, and to to jump to other view, 
-replace the 'device' at the end of the URL with the route you want to follow
-e.g. `app` for the Applications view or `topo` for the Topology view
-
-## Code scaffolding
-Change directory in to `~onos/web/gui2/src/main/webapp/app/view`
-Run `bazel run @npm//:node_modules/@angular/cli/bin/ng generate component component-name` to generate a new component.
-You can also use `bazel run @npm//:node_modules/@angular/cli/bin/ng generate directive|pipe|service|class|guard|interface|enum|module`.
-
-## Build
-The build is handled through the `web/gui2/BUILD` file. 
-It runs `bazel run @npm//:node_modules/@angular/cli/bin/ng build --prod --extract-css`
-and copies everything over in to WEB-INF/classes/dist
-
 ## Running unit tests
 This is automatically done when using `bazel test //web/gui2:onos-gui2-ng-tests`
- - see the `web/gui2/BUILD` file for more details.
-
-To run it manually in Angular CLI run
-`bazel run @npm//:node_modules/@angular/cli/bin/ng test --watch` to execute the unit tests
-via [Karma](https://karma-runner.github.io). Running it directly like this will
-test with both Firefox and Chrome. To use only one use the __--browsers__ argument
 
 ## Running checkstyle (lint)
 This is automatically done when using `bazel test //web/gui2:onos-gui2-ng-tests`
-- see the web/gui2/BUILD file for more details.
-
-To run it manually in Angular CLI run
-`bazel run @npm//:node_modules/@angular/cli/bin/ng lint` to run codelyzer on your code,
-according to the rules in __tslint.json__
-
-## Running end-to-end tests
-To run it manually in Angular CLI run `ng e2e` to execute the end-to-end tests
-via [Protractor](http://www.protractortest.org/).
 
 ## Generating documentation
 To run it manually in Angular CLI run `npm run compodoc` to generate documentation
 via [Compodoc](https://github.com/compodoc/compodoc)
-
-## Further help
-To get more help on the Angular CLI use `ng help` or go check out the
-[Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
-
-
-# Appendix A - changes needed to run GUI2 application locally
-```text
-diff --git a/web/gui/src/main/java/org/onosproject/ui/impl/UiWebSocket.java b/web/gui/src/main/java/org/onosproject/ui/impl/UiWebSocket.java
-index e53a00756b..63e538a4db 100644
---- a/web/gui/src/main/java/org/onosproject/ui/impl/UiWebSocket.java
-+++ b/web/gui/src/main/java/org/onosproject/ui/impl/UiWebSocket.java
-@@ -251,9 +251,7 @@ public class UiWebSocket
-             ObjectNode message = (ObjectNode) mapper.reader().readTree(data);
-             String type = message.path(EVENT).asText(UNKNOWN);
- 
--            if (sessionToken == null) {
--                authenticate(type, message);
--            } else {
-+
-                 UiMessageHandler handler = handlers.get(type);
-                 if (handler != null) {
-                     log.debug("RX message: {}", message);
-@@ -261,7 +259,6 @@ public class UiWebSocket
-                 } else {
-                     log.warn("No GUI message handler for type {}", type);
-                 }
--            }
- 
-         } catch (Exception e) {
-             log.warn("Unable to parse GUI message {} due to {}", data, e);
-diff --git a/web/gui2/src/main/webapp/app/onos-routing.module.ts b/web/gui2/src/main/webapp/app/onos-routing.module.ts
-index 60ec9d7da6..3abb62376a 100644
---- a/web/gui2/src/main/webapp/app/onos-routing.module.ts
-+++ b/web/gui2/src/main/webapp/app/onos-routing.module.ts
-@@ -83,10 +83,10 @@ const onosRoutes: Routes = [
-         loadChildren: 'app/view/topology/topology.module#TopologyModule'
-     },
- /*  Comment out below section for running locally with 'ng serve' when developing */
--    {
-+/*    {
-         path: 'alarmTable',
-         loadChildren: 'fm-gui2-lib#FmGui2LibModule'
--    },
-+    },*/
-     {
-         path: '',
-         redirectTo: 'device', // Default to devices view - change to topo in future
-```

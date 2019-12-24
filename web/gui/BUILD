@@ -48,6 +48,8 @@ TEST_DEPS = TEST + [
     "//drivers/default:onos-drivers-default",
 ]
 
+exports_files(["src/main/webapp/data"])
+
 """
     Files that get put at the top level of the tar ball
 """
@@ -96,8 +98,7 @@ filegroup(
 genrule(
     name = "_onos-gui-npm-install",
     srcs = [
-        "@nodejs//:bin/npm",
-        "@nodejs//:bin/nodejs/bin/node",
+        "@nodejs//:npm",
         "@gui1_npm//:node_modules",
         "//tools/gui:tools-gui-gulp",
     ],
@@ -110,7 +111,7 @@ genrule(
           " export XDG_CONFIG_HOME=$(@D)/config &&" +  # npm config cache to the sandbos
           " export BABEL_DISABLE_CACHE=1 &&" +  # turn off babel cache
           ' if [[ ! -z $${HTTP_PROXY-} ]]; then NPM_ARGS="--proxy $$HTTP_PROXY --without-ssl --insecure"; else NPM_ARGS=""; fi &&' +
-          " NPM=$$ROOT/$(location @nodejs//:bin/npm) &&" +
+          " NPM=$$ROOT/$(location @nodejs//:npm) &&" +
           " mkdir -p tools/gui &&" +
           " cd tools/gui &&" +
           " jar xf ../../$(location //tools/gui:tools-gui-gulp) &&" +
@@ -129,8 +130,6 @@ genrule(
     name = "_onos-gui-npm-build",
     srcs = [
         "@nodejs//:npm",
-        "@nodejs//:bin/npm",
-        "@nodejs//:bin/nodejs/bin/node",
         ":_onos-gui-npm-install",
         ":_web_app_all",
     ],
@@ -144,7 +143,7 @@ genrule(
           " export BABEL_DISABLE_CACHE=1 &&" +
           " INSTALL_FILES=($(locations :_onos-gui-npm-install)) &&" +  # An array of filenames - sorted by time created
           ' if [[ ! -z $${HTTP_PROXY-} ]]; then NPM_ARGS="--proxy $$HTTP_PROXY --without-ssl --insecure"; else NPM_ARGS=""; fi &&' +
-          " NPM=$(location @nodejs//:bin/npm) &&" +
+          " NPM=$(location @nodejs//:npm) &&" +
           " (mkdir -p web/gui && cd web/gui && jar xf ../../$(location :_web_app_all)) &&" +
           " mkdir -p tools/gui && cd tools/gui &&" +
           " jar xf $$ROOT/$${INSTALL_FILES[0]} &&" +
@@ -231,16 +230,6 @@ genrule(
         "src/main/resources/core/**/*",
     ]),
     outs = ["onos-gui-lion-for-gui2.srcjar"],
-    cmd = "jar cf $@ $(SRCS)",
-    visibility = ["//visibility:public"],
-)
-
-genrule(
-    name = "onos-gui-data-for-gui2",
-    srcs = glob([
-        "src/main/webapp/data/**/*",
-    ]),
-    outs = ["onos-gui-data-for-gui2.srcjar"],
     cmd = "jar cf $@ $(SRCS)",
     visibility = ["//visibility:public"],
 )

@@ -21,31 +21,36 @@ import { NgModule } from '@angular/core';
 import { OnosRoutingModule } from './onos-routing.module';
 import { NavComponent } from './nav/nav.component';
 import { OnosComponent } from './onos.component';
-import { Gui2FwLibModule, ConsoleLoggerService, LogService } from 'gui2-fw-lib';
+import {
+    Gui2FwLibModule,
+    ConsoleLoggerService,
+    LogService
+} from '../../../../../gui2-fw-lib/public_api';
 import { OnosService } from './onos.service';
 
 /**
  * ONOS GUI -- Main Application Module
  */
 @NgModule({
-  declarations: [
-    NavComponent,
-    OnosComponent
-  ],
-  imports: [
-    BrowserModule,
-    BrowserAnimationsModule,
-    HttpClientModule,
-    Gui2FwLibModule,
-    OnosRoutingModule
-  ],
-  providers: [
-    OnosService,
-    { provide: LogService, useClass: ConsoleLoggerService },
-    { provide: 'Window', useValue: window }
-  ],
-  bootstrap: [
-    OnosComponent,
-  ]
+    declarations: [
+        NavComponent,
+        OnosComponent
+    ],
+    imports: [
+        BrowserModule,
+        BrowserAnimationsModule,
+        HttpClientModule,
+        Gui2FwLibModule,
+        OnosRoutingModule
+    ],
+    providers: [
+        OnosService,
+        {provide: LogService, useClass: ConsoleLoggerService},
+        {provide: 'Window', useValue: window}
+    ],
+    bootstrap: [
+        OnosComponent,
+    ]
 })
-export class OnosModule { }
+export class OnosModule {
+}

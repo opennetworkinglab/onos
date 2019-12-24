@@ -21,7 +21,7 @@ import {
     LogService,
     DetailsPanelBaseImpl,
     WebSocketService
-} from 'gui2-fw-lib';
+} from '../../../../../../../../gui2-fw-lib/public_api';
 
 import { App, APPURLPREFIX, ICONURLSUFFIX } from '../apps/apps.component';
 
@@ -42,7 +42,7 @@ import { App, APPURLPREFIX, ICONURLSUFFIX } from '../apps/apps.component';
   templateUrl: './appsdetails.component.html',
   styleUrls: [
     './appsdetails.component.css',
-    '../../../fw/widget/panel.css', '../../../fw/widget/panel-theme.css'
+    '../../../../../../../../gui2-fw-lib/lib/widget/panel.css', '../../../../../../../../gui2-fw-lib/lib/widget/panel-theme.css'
   ],
   animations: [
     trigger('appDetailsState', [

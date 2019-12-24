@@ -1,28 +1,22 @@
-// TODO Move this out of the root directory if possible -
 {
-
-  "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": "./web/gui2-fw-lib/",
-    "outDir": "./web/gui2-fw-lib/dist/out-tsc",
-    "sourceMap": true,
-    "declaration": false,
-    "downlevelIteration": true,
-    "experimentalDecorators": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "importHelpers": true,
-    "target": "es2015",
-    "typeRoots": [
-      "node_modules/@types"
-    ],
+    // Allow uses of these JS APIs
     "lib": [
-      "es2018",
-      "dom"
-    ]
-  },
-  "angularCompilerOptions": {
-    "fullTemplateTypeCheck": true,
-    "strictInjectionParameters": true
+      "dom",
+      "es5",
+      "es2015.collection",
+      "es2015.iterable",
+      "es2015.promise",
+      "es2017",
+      "es2017.object"
+    ],
+    // Permit decorator syntax
+    "experimentalDecorators": true,
+    // Don't scan the node_modules/@types folder for ambient types.
+    // This would force us to have all the types in the dependencies of
+    // each library.
+    // Instead we'll be explicit about declaring ambient type dependencies
+    // using the ///<reference types=""/> syntax.
+    "types": []
   }
 }

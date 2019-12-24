@@ -19,7 +19,7 @@ import {
     LogService,
     WebSocketService,
     SortDir, TableBaseImpl, TableResponse
-} from 'gui2-fw-lib';
+} from '../../../../../../../../gui2-fw-lib/public_api';
 
 /**
  * Model of the response from WebSocket
@@ -46,7 +46,7 @@ interface Link {
 @Component({
     selector: 'onos-link',
     templateUrl: './link.component.html',
-    styleUrls: ['./link.component.css', '../../../fw/widget/table.css', '../../../fw/widget/table.theme.css']
+    styleUrls: ['./link.component.css', '../../../../../../../../gui2-fw-lib/lib/widget/table.css', '../../../../../../../../gui2-fw-lib/lib/widget/table.theme.css']
 })
 export class LinkComponent extends TableBaseImpl implements OnInit, OnDestroy {
 

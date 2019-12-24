@@ -20,7 +20,7 @@ import {
     WebSocketService,
     LionService,
     SortDir, TableBaseImpl, TableResponse
-} from 'gui2-fw-lib';
+} from '../../../../../../../../gui2-fw-lib/public_api';
 
 /**
  * Model of the response from WebSocket
@@ -49,7 +49,9 @@ interface Cluster {
 @Component({
   selector: 'onos-cluster',
   templateUrl: './cluster.component.html',
-  styleUrls: ['./cluster.component.css', './cluster.theme.css', '../../../fw/widget/table.css', '../../../fw/widget/table.theme.css']
+  styleUrls: ['./cluster.component.css', './cluster.theme.css',
+      '../../../../../../../../gui2-fw-lib/lib/widget/table.css',
+      '../../../../../../../../gui2-fw-lib/lib/widget/table.theme.css']
 })
 
 export class ClusterComponent extends TableBaseImpl implements OnInit, OnDestroy {

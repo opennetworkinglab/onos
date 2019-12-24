@@ -20,7 +20,7 @@ import {
     LogService,
     DetailsPanelBaseImpl,
     WebSocketService
-} from 'gui2-fw-lib';
+} from '../../../../../../../../../gui2-fw-lib/public_api';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 
 /**
@@ -40,7 +40,7 @@ import { trigger, state, style, transition, animate } from '@angular/animations'
     templateUrl: './flowdetails.component.html',
     styleUrls: [
         './flowdetails.component.css',
-        '../../../../fw/widget/panel.css', '../../../../fw/widget/panel-theme.css'
+        '../../../../../../../../../gui2-fw-lib/lib/widget/panel.css', '../../../../../../../../../gui2-fw-lib/lib/widget/panel-theme.css'
     ],
     animations: [
         trigger('flowDetailsState', [

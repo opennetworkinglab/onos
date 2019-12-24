@@ -21,7 +21,7 @@ import {
     WebSocketService,
     LionService,
     SortDir, TableBaseImpl, TableResponse
-} from 'gui2-fw-lib';
+} from '../../../../../../../../gui2-fw-lib/public_api';
 import { ActivatedRoute } from '@angular/router';
 
 /**
@@ -51,7 +51,7 @@ interface Flow {
 @Component({
     selector: 'onos-flow',
     templateUrl: './flow.component.html',
-    styleUrls: ['./flow.component.css', './flow.theme.css', '../../../fw/widget/table.css', '../../../fw/widget/table.theme.css']
+    styleUrls: ['./flow.component.css', './flow.theme.css', '../../../../../../../../gui2-fw-lib/lib/widget/table.css', '../../../../../../../../gui2-fw-lib/lib/widget/table.theme.css']
 })
 export class FlowComponent extends TableBaseImpl implements OnInit, OnDestroy {
 

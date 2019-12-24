@@ -3,126 +3,22 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "onos": {
+    "gui2": {
       "root": "",
       "sourceRoot": "src/main/webapp",
       "projectType": "application",
-      "architect": {
-        "build": {
-          "builder": "@angular-devkit/build-angular:browser",
-          "options": {
-            "outputPath": "src/main/webapp/dist",
-            "index": "src/main/webapp/index.html",
-            "main": "src/main/webapp/onos.ts",
-            "tsConfig": "src/main/webapp/tsconfig.app.json",
-            "polyfills": "src/main/webapp/polyfills.ts",
-            "assets": [
-              "src/main/webapp/data"
-            ],
-            "styles": ["src/main/webapp/onos.global.css"],
-            "scripts": []
-          },
-          "configurations": {
-            "production": {
-              "optimization": true,
-              "outputHashing": "all",
-              "sourceMap": false,
-              "extractCss": true,
-              "namedChunks": false,
-              "aot": true,
-              "extractLicenses": true,
-              "vendorChunk": false,
-              "buildOptimizer": true,
-              "fileReplacements": [
-                {
-                  "replace": "src/main/webapp/environments/environment.ts",
-                  "with": "src/main/webapp/environments/environment.prod.ts"
-                }
-              ]
-            }
-          }
-        },
-        "serve": {
-          "builder": "@angular-devkit/build-angular:dev-server",
-          "options": {
-            "browserTarget": "onos:build"
-          },
-          "configurations": {
-            "production": {
-              "browserTarget": "onos:build:production"
-            }
-          }
-        },
-        "extract-i18n": {
-          "builder": "@angular-devkit/build-angular:extract-i18n",
-          "options": {
-            "browserTarget": "onos:build"
-          }
-        },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "main": "src/main/webapp/app/test.ts",
-            "karmaConfig": "./karma.conf.js",
-            "polyfills": "src/main/webapp/polyfills.ts",
-            "tsConfig": "src/main/webapp/tsconfig.spec.json",
-            "scripts": [],
-            "styles": [
-              "src/main/webapp/app/onos.theme.css"
-            ],
-            "assets": [
-              "src/main/webapp/data"
-            ]
-          }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": [
-              "src/main/webapp/tsconfig.app.json",
-              "src/main/webapp/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
-          }
+      "prefix": "onos",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
         }
-      }
-    },
-    "onos-e2e": {
-      "root": "",
-      "sourceRoot": "",
-      "projectType": "application",
+      },
       "architect": {
-        "e2e": {
-          "builder": "@angular-devkit/build-angular:protractor",
-          "options": {
-            "protractorConfig": "./protractor.conf.js",
-            "devServerTarget": "onos:serve"
-          }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": [
-              "e2e/tsconfig.e2e.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
-          }
-        }
       }
     }
   },
-  "defaultProject": "onos",
-  "schematics": {
-    "@schematics/angular:component": {
-      "prefix": "onos",
-      "styleext": "css"
-    },
-    "@schematics/angular:directive": {
-      "prefix": "onos"
-    }
+  "defaultProject": "ngbazel",
+  "cli": {
+    "analytics": "11fb2174-8daf-47e0-8d5b-8eee8719059a"
   }
 }

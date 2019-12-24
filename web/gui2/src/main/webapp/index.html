@@ -23,41 +23,18 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="onos.global.css">
 
-    <base href="/">
+    <base href="/onos/ui/">
     <title>ONOS</title>
 
     <!-- {INJECTED-USER-START} -->
     <!-- {INJECTED-USER-END} -->
 
-    <!-- ONOS UI Framework included here -->
-    <!--<script src="onos.js"></script>-->
-    <!--<script src="dist/onos.js"></script>-->
-
-    <!-- Framework and library stylesheets included here -->
-    <!--<link rel="stylesheet" href="dist/onos.css">-->
-
-    <!-- Contributed javascript injected here -->
-    <!-- {INJECTED-JAVASCRIPT-START} -->
-    <!-- {INJECTED-JAVASCRIPT-END} -->
-
-    <!-- Contributed stylesheets injected here -->
-    <!-- {INJECTED-STYLESHEETS-START} -->
-    <!-- {INJECTED-STYLESHEETS-END} -->
-
 </head>
 <body class="light">
     <onos-root></onos-root>
-
-<!--<script>-->
-    <!--&lt;!&ndash; Inject user agent info into html element to allow CSS sensitivity. &ndash;&gt;-->
-    <!--(function () {-->
-        <!--var t = ('ontouchstart' in window) || ('onmsgesturechange' in window);-->
-        <!--d3.select(document.documentElement)-->
-            <!--.attr('data-useragent', navigator.userAgent)-->
-            <!--.attr('data-platform', navigator.platform)-->
-            <!--.classed('touch', t);-->
-    <!--}());-->
-<!--</script>-->
+    <script type="module" src="bundle-es2015.min/index.js"></script>
+    <script src="npm/node_modules/zone.js/dist/zone.min.js"></script>
 </body>
 </html>

@@ -1,0 +1,33 @@
+load("@npm_angular_bazel//:index.bzl", "ng_module")
+
+package(default_visibility = ["//:__subpackages__"])
+
+# We don't import from these, but the generated ngfactory code will
+NG_FACTORY_ADDED_IMPORTS = [
+    "@npm//@angular/animations",
+    "@npm//@angular/forms",
+]
+
+ng_module(
+    name = "gui2-topo-lib",
+    srcs = glob(
+        include = ["**/*.ts"],
+        exclude = [
+            "**/*.spec.ts",
+            "test.ts",
+        ],
+    ),
+    assets = glob([
+        "**/*.css",
+        "**/*.html",
+    ]),
+    deps = NG_FACTORY_ADDED_IMPORTS + [
+        "//web/gui2-fw-lib",
+        "@npm//@angular/core",
+        "@npm//@angular/router",
+        "@npm//@angular/platform-browser",
+        "@npm//rxjs",
+        "@npm//@types",
+        "@npm//topojson-client",
+    ],
+)

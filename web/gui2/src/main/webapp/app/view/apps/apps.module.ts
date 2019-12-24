@@ -16,10 +16,10 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AppsRoutingModule } from './apps-routing.module';
+import { RouterModule } from '@angular/router';
 import { AppsComponent } from './apps/apps.component';
 import { AppsDetailsComponent } from './appsdetails/appsdetails.component';
-import { Gui2FwLibModule } from 'gui2-fw-lib';
+import { Gui2FwLibModule } from '../../../../../../../gui2-fw-lib/public_api';
 
 /**
  * ONOS GUI -- Apps View Module
@@ -31,8 +31,9 @@ import { Gui2FwLibModule } from 'gui2-fw-lib';
 @NgModule({
     imports: [
         CommonModule,
-        AppsRoutingModule,
         Gui2FwLibModule,
+        RouterModule,
+        RouterModule.forChild([{path: '', component: AppsComponent}]),
         FormsModule
     ],
     declarations: [

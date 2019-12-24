@@ -13,20 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { LinkComponent } from './link/link.component';
-import { Gui2FwLibModule } from 'gui2-fw-lib';
-import { LinkRoutingModule } from './link-routing.module';
+import {NgModule} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {LinkComponent} from './link/link.component';
+import {Gui2FwLibModule} from '../../../../../../../gui2-fw-lib/public_api';
+import {RouterModule} from '@angular/router';
 
 @NgModule({
-  imports: [
-    CommonModule,
-    LinkRoutingModule,
-    Gui2FwLibModule
-  ],
-  declarations: [
-    LinkComponent
-  ]
+    imports: [
+        CommonModule,
+        RouterModule,
+        RouterModule.forChild([{path: '', component: LinkComponent}]),
+        Gui2FwLibModule
+    ],
+    declarations: [
+        LinkComponent
+    ]
 })
-export class LinkModule { }
+export class LinkModule {
+}

@@ -48,7 +48,7 @@
         <div class="table-body">
             <table>
                 <tr *ngIf="tableData.length === 0" class="no-data">
-                    <td colspan="5">{{ annots.noRowMsg }}</td>
+                    <td colspan="5">{{ annots.noRowsMsg }}</td>
                 </tr>
                 <tr *ngFor="let setting of tableData" (click)="selectCallback($event, setting)" [ngClass]="{selected: setting.id === selId, 'data-change': isChanged(setting.id)}">
                     <td [ngStyle]="{width: '260px'}">{{setting.component}}</td>

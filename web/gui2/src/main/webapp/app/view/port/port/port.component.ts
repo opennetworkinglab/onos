@@ -20,7 +20,7 @@ import {
     PrefsService,
     WebSocketService,
     SortDir, TableBaseImpl, TableResponse
-} from 'gui2-fw-lib';
+} from '../../../../../../../../gui2-fw-lib/public_api';
 import { ActivatedRoute } from '@angular/router';
 
 /**
@@ -61,7 +61,7 @@ const defaultPortPrefsState = {
 @Component({
     selector: 'onos-port',
     templateUrl: './port.component.html',
-    styleUrls: ['./port.component.css', '../../../fw/widget/table.css', '../../../fw/widget/table.theme.css']
+    styleUrls: ['./port.component.css', '../../../../../../../../gui2-fw-lib/lib/widget/table.css', '../../../../../../../../gui2-fw-lib/lib/widget/table.theme.css']
 })
 export class PortComponent extends TableBaseImpl implements OnInit, OnDestroy {
     devId: string;

@@ -24,7 +24,7 @@ import {
     TableBaseImpl, TableResponse, SortDir,
     UrlFnService,
     WebSocketService
-} from 'gui2-fw-lib';
+} from '../../../../../../../../gui2-fw-lib/public_api';
 
 const INSTALLED = 'INSTALLED';
 const ACTIVE = 'ACTIVE';
@@ -104,7 +104,7 @@ interface CtrlBtnState {
   templateUrl: './apps.component.html',
   styleUrls: [
     './apps.component.css', './apps.theme.css',
-    '../../../fw/widget/table.css', '../../../fw/widget/table.theme.css'
+    '../../../../../../../../gui2-fw-lib/lib/widget/table.css', '../../../../../../../../gui2-fw-lib/lib/widget/table.theme.css'
     ]
 })
 export class AppsComponent extends TableBaseImpl implements OnInit, OnDestroy {

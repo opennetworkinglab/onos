@@ -1,0 +1,129 @@
+"""
+ Copyright 2020-present Open Networking Foundation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+"""
+
+package(default_visibility = ["//:__subpackages__"])
+
+load("@build_bazel_rules_nodejs//:index.bzl", "pkg_web")
+load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
+load("@npm//history-server:index.bzl", "history_server")
+load("@npm_angular_bazel//:index.bzl", "ng_module")
+load("@npm_bazel_rollup//:index.bzl", "rollup_bundle")
+load("@npm_bazel_terser//:index.bzl", "terser_minified")
+load("@npm_bazel_typescript//:index.bzl", "ts_config", "ts_devserver", "ts_library")
+
+#load("@npm_bazel_karma//:index.bzl", "ts_web_test_suite")
+
+exports_files(["WEB-INF/web.xml"])
+
+# We don't import from these, but the generated ngfactory code will
+NG_FACTORY_ADDED_IMPORTS = [
+    "@npm//@angular/animations",
+    "@npm//@angular/forms",
+]
+
+ng_module(
+    name = "gui2",
+    srcs = [
+        "environments/environment.prod.ts",
+        "onos.prod.ts",
+    ],
+    tsconfig = "//:tsconfig.json",
+    deps = NG_FACTORY_ADDED_IMPORTS + [
+        "//web/gui2/src/main/webapp/app:app",
+        "@npm//@angular/core",
+        "@npm//@angular/platform-browser",
+        "@npm//@angular/router",
+    ],
+)
+
+rollup_bundle(
+    name = "bundle-es2015",
+    config_file = "rollup.config.js",
+    entry_points = {
+        ":onos.prod.ts": "index",
+    },
+    output_dir = True,
+    deps = [
+        "//web/gui2/src/main/webapp:gui2",
+        "@npm//rollup-plugin-commonjs",
+        "@npm//rollup-plugin-node-resolve",
+    ],
+)
+
+terser_minified(
+    name = "bundle-es2015.min",
+    src = ":bundle-es2015",
+)
+
+# Files that we serve in both development and production
+_ASSETS = [
+    # This label references an output of the "styles" sass_binary above.
+    ":onos.global.css",
+    "//web/gui:src/main/webapp/data",
+    "fonts/open-sans-v15-latin-300.woff",
+    "fonts/open-sans-v15-latin-300.woff2",
+    "fonts/open-sans-v15-latin-600.woff",
+    "fonts/open-sans-v15-latin-600.woff2",
+    "fonts/open-sans-v15-latin-700.woff",
+    "fonts/open-sans-v15-latin-700.woff2",
+    "error.html",
+    "login.html",
+    "nav.html",
+    "not-ready.html",
+    # We load zone.js outside the bundle. That's because it's a "pollyfill"
+    # which speculates that such features might be available in a browser.
+    # Also it's tricky to configure dead code elimination to understand that
+    # zone.js is used, given that we don't have any import statement that
+    # imports from it.
+    "@npm//:node_modules/zone.js/dist/zone.min.js",
+]
+
+pkg_web(
+    name = "prodapp",
+    srcs = _ASSETS + [
+        ":bundle-es2015.min",
+        # Include polyfills that will be requested by old browsers
+        #        "@npm//:node_modules/systemjs/dist/system.js",
+        #        "@npm//:node_modules/core-js/client/core.min.js",
+        "index.html",
+    ],
+    # In production mode we serve some polyfills with script tags that have hard-coded paths in the index.html
+    # so we must serve them at that path, by stripping a prefix
+    additional_root_paths = [
+        "web/gui/src/main/webapp",
+    ],
+)
+
+history_server(
+    name = "prodserver",
+    data = [":prodapp"],
+    # '-a src/prodapp' will ask history-server to scan for all apps under the
+    # given folder this will result in the following auto-configuration:
+    #   /example => src/prodapp/example
+    #   /        => src/prodapp
+    templated_args = [
+        "-a",
+        "web/gui2/src/main/webapp/prodapp",
+    ],
+)
+
+genrule(
+    name = "d3-copy",
+    srcs = ["@npm//:node_modules/d3/dist/d3.js"],
+    outs = ["d3.js"],
+    cmd = "cp $< $@",
+    output_to_bindir = 1,
+)

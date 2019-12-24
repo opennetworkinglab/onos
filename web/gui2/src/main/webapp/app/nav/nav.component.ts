@@ -20,7 +20,7 @@ import {
     LionService,
     LogService,
     NavService
-} from 'gui2-fw-lib';
+} from '../../../../../../gui2-fw-lib/public_api';
 
 /**
  * ONOS GUI -- Navigation Module

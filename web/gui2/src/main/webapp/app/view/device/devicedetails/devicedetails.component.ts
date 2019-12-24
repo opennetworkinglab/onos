@@ -21,7 +21,7 @@ import {
     LogService,
     DetailsPanelBaseImpl,
     WebSocketService
-} from 'gui2-fw-lib';
+} from '../../../../../../../../gui2-fw-lib/public_api';
 
 /**
  * The details view when a device row is clicked from the Device view
@@ -39,7 +39,7 @@ import {
     selector: 'onos-devicedetails',
     templateUrl: './devicedetails.component.html',
     styleUrls: ['./devicedetails.component.css',
-        '../../../fw/widget/panel.css', '../../../fw/widget/panel-theme.css'
+        '../../../../../../../../gui2-fw-lib/lib/widget/panel.css', '../../../../../../../../gui2-fw-lib/lib/widget/panel-theme.css'
     ],
     animations: [
         trigger('deviceDetailsState', [

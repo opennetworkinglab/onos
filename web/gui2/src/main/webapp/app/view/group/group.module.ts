@@ -13,24 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-
-import { GroupRoutingModule } from './group-routing.module';
-import { GroupComponent } from './group/group.component';
-import { Gui2FwLibModule } from 'gui2-fw-lib';
-import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import {NgModule} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {GroupComponent} from './group/group.component';
+import { Gui2FwLibModule } from '../../../../../../../gui2-fw-lib/public_api';
+import {FormsModule} from '@angular/forms';
+import {RouterModule} from '@angular/router';
 
 @NgModule({
-  imports: [
-    CommonModule,
-    GroupRoutingModule,
-    Gui2FwLibModule,
-    FormsModule,
-    RouterModule
-  ],
-  declarations: [GroupComponent],
-  exports: [GroupComponent]
+    imports: [
+        CommonModule,
+        RouterModule,
+        RouterModule.forChild([{path: '', component: GroupComponent}]),
+        Gui2FwLibModule,
+        FormsModule,
+        RouterModule
+    ],
+    declarations: [GroupComponent],
+    exports: [GroupComponent]
 })
-export class GroupModule { }
+export class GroupModule {
+}

@@ -19,7 +19,7 @@ import {
     LogService,
     WebSocketService,
     SortDir, TableBaseImpl, TableResponse
-} from 'gui2-fw-lib';
+} from '../../../../../../../../gui2-fw-lib/public_api';
 import { ActivatedRoute } from '@angular/router';
 
 /**
@@ -47,7 +47,7 @@ interface Group {
 @Component({
     selector: 'onos-group',
     templateUrl: './group.component.html',
-    styleUrls: ['./group.component.css', './group.theme.css', '../../../fw/widget/table.css', '../../../fw/widget/table.theme.css']
+    styleUrls: ['./group.component.css', './group.theme.css', '../../../../../../../../gui2-fw-lib/lib/widget/table.css', '../../../../../../../../gui2-fw-lib/lib/widget/table.theme.css']
 })
 export class GroupComponent extends TableBaseImpl implements OnInit, OnDestroy {
     id: string;

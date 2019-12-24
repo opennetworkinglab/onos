@@ -19,7 +19,7 @@ import {
     LogService,
     WebSocketService,
     SortDir, TableBaseImpl, TableResponse
-} from 'gui2-fw-lib';
+} from '../../../../../../../../gui2-fw-lib/public_api';
 
 /**
  * Model of the response from WebSocket
@@ -48,7 +48,7 @@ interface Tunnel {
 @Component({
     selector: 'onos-tunnel',
     templateUrl: './tunnel.component.html',
-    styleUrls: ['./tunnel.component.css', '../../../fw/widget/table.css', '../../../fw/widget/table.theme.css']
+    styleUrls: ['./tunnel.component.css', '../../../../../../../../gui2-fw-lib/lib/widget/table.css', '../../../../../../../../gui2-fw-lib/lib/widget/table.theme.css']
 })
 export class TunnelComponent extends TableBaseImpl implements OnInit, OnDestroy {
 
