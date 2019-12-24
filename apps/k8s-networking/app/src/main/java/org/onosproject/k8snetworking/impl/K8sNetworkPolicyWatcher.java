@@ -172,7 +172,10 @@ public class K8sNetworkPolicyWatcher {
             log.trace("Process network policy {} creating event from API server.",
                     networkPolicy.getMetadata().getName());
 
-            k8sNetworkPolicyAdminService.createNetworkPolicy(networkPolicy);
+            if (k8sNetworkPolicyAdminService.networkPolicy(
+                    networkPolicy.getMetadata().getUid()) == null) {
+                k8sNetworkPolicyAdminService.createNetworkPolicy(networkPolicy);
+            }
         }
 
         private void processModification(NetworkPolicy networkPolicy) {
