@@ -54,6 +54,7 @@ public final class Constants {
     public static final String B_CLASS = "b";
 
     public static final String DEFAULT_SERVICE_IP_CIDR = "10.96.0.0/12";
+    public static final String DEFAULT_SERVICE_IP_NONE = "none";
 
     public static final String PORT_NAME_PREFIX_CONTAINER = "veth";
 
