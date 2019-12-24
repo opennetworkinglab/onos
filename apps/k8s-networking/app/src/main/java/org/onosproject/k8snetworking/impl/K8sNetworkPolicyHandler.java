@@ -84,6 +84,7 @@ import static org.onosproject.k8snetworking.api.Constants.ACL_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.DEFAULT_METADATA_MASK;
 import static org.onosproject.k8snetworking.api.Constants.DEFAULT_NAMESPACE_HASH;
 import static org.onosproject.k8snetworking.api.Constants.DEFAULT_SEGMENT_ID;
+import static org.onosproject.k8snetworking.api.Constants.DEFAULT_SERVICE_IP_NONE;
 import static org.onosproject.k8snetworking.api.Constants.GROUPING_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.K8S_NETWORKING_APP_ID;
 import static org.onosproject.k8snetworking.api.Constants.NAMESPACE_TABLE;
@@ -809,6 +810,12 @@ public class K8sNetworkPolicyHandler {
         String clusterIp = service.getSpec().getClusterIP();
 
         if (clusterIp == null) {
+            return;
+        }
+
+        // one the creating of new service, the cluster IP will be configured as None
+        // in this case, we will NOT install any namespace related rules
+        if (DEFAULT_SERVICE_IP_NONE.equalsIgnoreCase(clusterIp)) {
             return;
         }
 
