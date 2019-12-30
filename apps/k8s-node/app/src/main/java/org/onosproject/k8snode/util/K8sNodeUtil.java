@@ -248,10 +248,13 @@ public final class K8sNodeUtil {
 
         if (config.scheme() == K8sApiConfig.Scheme.HTTPS) {
             configBuilder.withTrustCerts(true)
-                    .withOauthToken(config.token())
                     .withCaCertData(config.caCertData())
                     .withClientCertData(config.clientCertData())
                     .withClientKeyData(config.clientKeyData());
+
+            if (StringUtils.isNotEmpty(config.token())) {
+                configBuilder.withOauthToken(config.token());
+            }
         }
 
         return new DefaultKubernetesClient(configBuilder.build());

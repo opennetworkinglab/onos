@@ -172,7 +172,6 @@ public final class DefaultK8sApiConfig implements K8sApiConfig {
             checkArgument(state != null, NOT_NULL_MSG, "state");
 
             if (scheme == HTTPS) {
-                checkArgument(token != null, NOT_NULL_MSG, "token");
                 checkArgument(caCertData != null, NOT_NULL_MSG, "caCertData");
                 checkArgument(clientCertData != null, NOT_NULL_MSG, "clientCertData");
                 checkArgument(clientKeyData != null, NOT_NULL_MSG, "clientKeyData");

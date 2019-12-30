@@ -17,6 +17,7 @@ package org.onosproject.k8snode.codec;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.lang.StringUtils;
 import org.onlab.packet.IpAddress;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
@@ -53,10 +54,14 @@ public final class K8sApiConfigCodec extends JsonCodec<K8sApiConfig> {
                 .put(STATE, entity.state().name());
 
         if (entity.scheme() == HTTPS) {
-            node.put(TOKEN, entity.token())
-                .put(CA_CERT_DATA, entity.caCertData())
+            node.put(CA_CERT_DATA, entity.caCertData())
                 .put(CLIENT_CERT_DATA, entity.clientCertData())
                 .put(CLIENT_KEY_DATA, entity.clientKeyData());
+
+            if (entity.token() != null) {
+                node.put(TOKEN, entity.token());
+            }
+
         } else {
             if (entity.token() != null) {
                 node.put(TOKEN, entity.token());
@@ -107,14 +112,16 @@ public final class K8sApiConfigCodec extends JsonCodec<K8sApiConfig> {
         String clientKeyData = "";
 
         if (scheme == HTTPS) {
-            token = nullIsIllegal(tokenJson.asText(),
-                    TOKEN + MISSING_MESSAGE);
             caCertData = nullIsIllegal(caCertDataJson.asText(),
                     CA_CERT_DATA + MISSING_MESSAGE);
             clientCertData = nullIsIllegal(clientCertDataJson.asText(),
                     CLIENT_CERT_DATA + MISSING_MESSAGE);
             clientKeyData = nullIsIllegal(clientKeyDataJson.asText(),
                     CLIENT_KEY_DATA + MISSING_MESSAGE);
+
+            if (tokenJson != null) {
+                token = tokenJson.asText();
+            }
 
         } else {
             if (tokenJson != null) {
@@ -134,10 +141,22 @@ public final class K8sApiConfigCodec extends JsonCodec<K8sApiConfig> {
             }
         }
 
-        return builder.token(token)
-                .caCertData(caCertData)
-                .clientCertData(clientCertData)
-                .clientKeyData(clientKeyData)
-                .build();
+        if (StringUtils.isNotEmpty(token)) {
+            builder.token(token);
+        }
+
+        if (StringUtils.isNotEmpty(caCertData)) {
+            builder.caCertData(caCertData);
+        }
+
+        if (StringUtils.isNotEmpty(clientCertData)) {
+            builder.clientCertData(clientCertData);
+        }
+
+        if (StringUtils.isNotEmpty(clientKeyData)) {
+            builder.clientKeyData(clientKeyData);
+        }
+
+        return builder.build();
     }
 }
