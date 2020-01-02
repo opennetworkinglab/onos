@@ -262,7 +262,11 @@ public class K8sNodeWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("update/postonboard/{hostname}")
     public Response postOnBoardNode(@PathParam("hostname") String hostname) {
-        nodeAdminService.node(hostname).updateState(POST_ON_BOARD);
+        K8sNode node = nodeAdminService.node(hostname);
+        if (node != null && node.state() != POST_ON_BOARD) {
+            K8sNode updated = node.updateState(POST_ON_BOARD);
+            nodeAdminService.updateNode(updated);
+        }
         return Response.ok().build();
     }
 
