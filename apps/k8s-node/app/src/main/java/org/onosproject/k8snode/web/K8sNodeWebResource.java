@@ -258,6 +258,7 @@ public class K8sNodeWebResource extends AbstractWebResource {
      * if the JSON is malformed, and 304 NOT_MODIFIED without the updated config
      */
     @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("update/postonboard/{hostname}")
     public Response postOnBoardNode(@PathParam("hostname") String hostname) {
