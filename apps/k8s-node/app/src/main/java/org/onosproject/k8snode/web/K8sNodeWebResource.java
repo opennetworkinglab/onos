@@ -48,6 +48,7 @@ import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static javax.ws.rs.core.Response.created;
 import static org.onlab.util.Tools.nullIsIllegal;
 import static org.onlab.util.Tools.readTreeFromStream;
+import static org.onosproject.k8snode.api.K8sNodeState.POST_ON_BOARD;
 import static org.onosproject.k8snode.util.K8sNodeUtil.endpoint;
 
 /**
@@ -70,6 +71,7 @@ public class K8sNodeWebResource extends AbstractWebResource {
     private static final String INIT = "INIT";
     private static final String NOT_EXIST = "Not exist";
     private static final String STATE = "State";
+    private static final String RESULT = "Result";
 
     private static final String HOST_NAME = "hostname";
     private static final String ENDPOINT = "endpoint";
@@ -246,6 +248,39 @@ public class K8sNodeWebResource extends AbstractWebResource {
                 });
 
         return ok(mapper().createObjectNode()).build();
+    }
+
+    /**
+     * Updates a kubernetes nodes' state as post-on-board.
+     *
+     * @param hostname kubernetes node name
+     * @return 200 OK with the updated kubernetes node's config, 400 BAD_REQUEST
+     * if the JSON is malformed, and 304 NOT_MODIFIED without the updated config
+     */
+    @PUT
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("update/postonboard/{hostname}")
+    public Response postOnBoardNode(@PathParam("hostname") String hostname) {
+        nodeAdminService.node(hostname).updateState(POST_ON_BOARD);
+        return Response.ok().build();
+    }
+
+    /**
+     * Indicates whether all kubernetes nodes are in post-on-board state.
+     *
+     * @return 200 OK with True, or 200 OK with False
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("get/postonboard/all")
+    public Response postOnBoardNodes() {
+        long numOfAllNodes = nodeAdminService.nodes().size();
+        long numOfReadyNodes = nodeAdminService.nodes().stream()
+                .filter(n -> n.state() == POST_ON_BOARD)
+                .count();
+        boolean result = numOfAllNodes == numOfReadyNodes;
+
+        return ok(mapper().createObjectNode().put(RESULT, result)).build();
     }
 
     private Set<K8sNode> readNodeConfiguration(InputStream input) {

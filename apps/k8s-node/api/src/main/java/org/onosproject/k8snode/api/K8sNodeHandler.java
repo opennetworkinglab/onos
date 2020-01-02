@@ -66,4 +66,13 @@ public interface K8sNodeHandler {
      * @param k8sNode kubernetes node
      */
     void processOnBoardedState(K8sNode k8sNode);
+
+    /**
+     * Processes the give node for post-on-board state.
+     * As long as external interface is configured,
+     * it will mark the node state as post-on-board.
+     *
+     * @param k8sNode kubernetes node
+     */
+    void processPostOnBoardState(K8sNode k8sNode);
 }
