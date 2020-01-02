@@ -255,6 +255,11 @@ public class DefaultK8sNodeHandler implements K8sNodeHandler {
         // do something if needed
     }
 
+    @Override
+    public void processPostOnBoardState(K8sNode k8sNode) {
+        // do something if needed
+    }
+
     /**
      * Extracts properties from the component configuration context.
      *

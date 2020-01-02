@@ -49,6 +49,20 @@ public enum K8sNodeState {
         }
     },
     /**
+     * Indicates the node is post-on-board.
+     */
+    POST_ON_BOARD {
+        @Override
+        public void process(K8sNodeHandler handler, K8sNode node) {
+            handler.processPostOnBoardState(node);
+        }
+
+        @Override
+        public K8sNodeState nextState() {
+            return POST_ON_BOARD;
+        }
+    },
+    /**
      * Indicates the node is newly added.
      */
     INIT {
