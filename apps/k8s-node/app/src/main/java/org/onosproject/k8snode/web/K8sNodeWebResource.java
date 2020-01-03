@@ -283,7 +283,12 @@ public class K8sNodeWebResource extends AbstractWebResource {
         long numOfReadyNodes = nodeAdminService.nodes().stream()
                 .filter(n -> n.state() == POST_ON_BOARD)
                 .count();
-        boolean result = numOfAllNodes == numOfReadyNodes;
+        boolean result;
+        if (numOfAllNodes == 0) {
+            result = false;
+        } else {
+            result = numOfAllNodes == numOfReadyNodes;
+        }
 
         return ok(mapper().createObjectNode().put(RESULT, result)).build();
     }
