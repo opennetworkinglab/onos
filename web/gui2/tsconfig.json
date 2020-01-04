@@ -10,13 +10,14 @@
       "es2017",
       "es2017.object"
     ],
-    // Permit decorator syntax
-    "experimentalDecorators": true,
     // Don't scan the node_modules/@types folder for ambient types.
     // This would force us to have all the types in the dependencies of
     // each library.
     // Instead we'll be explicit about declaring ambient type dependencies
     // using the ///<reference types=""/> syntax.
-    "types": []
+    "types": [],
+    "paths": {
+      "org_onosproject_onos/web/gui2-fw-lib": ["web/gui2-fw-lib"]
+    }
   }
 }

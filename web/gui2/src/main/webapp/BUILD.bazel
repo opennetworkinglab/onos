@@ -19,6 +19,7 @@ package(default_visibility = ["//:__subpackages__"])
 load("@build_bazel_rules_nodejs//:index.bzl", "pkg_web")
 load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
 load("@npm//history-server:index.bzl", "history_server")
+load("@npm//html-insert-assets:index.bzl", "html_insert_assets")
 load("@npm_angular_bazel//:index.bzl", "ng_module")
 load("@npm_bazel_rollup//:index.bzl", "rollup_bundle")
 load("@npm_bazel_terser//:index.bzl", "terser_minified")
@@ -26,7 +27,9 @@ load("@npm_bazel_typescript//:index.bzl", "ts_config", "ts_devserver", "ts_libra
 
 #load("@npm_bazel_karma//:index.bzl", "ts_web_test_suite")
 
-exports_files(["WEB-INF/web.xml"])
+exports_files([
+    "WEB-INF/web.xml",
+])
 
 # We don't import from these, but the generated ngfactory code will
 NG_FACTORY_ADDED_IMPORTS = [
@@ -38,9 +41,10 @@ ng_module(
     name = "gui2",
     srcs = [
         "environments/environment.prod.ts",
+        "onos.dev.ts",
         "onos.prod.ts",
     ],
-    tsconfig = "//:tsconfig.json",
+    tsconfig = "//web/gui2:tsconfig.json",
     deps = NG_FACTORY_ADDED_IMPORTS + [
         "//web/gui2/src/main/webapp/app:app",
         "@npm//@angular/core",
@@ -98,7 +102,7 @@ pkg_web(
         # Include polyfills that will be requested by old browsers
         #        "@npm//:node_modules/systemjs/dist/system.js",
         #        "@npm//:node_modules/core-js/client/core.min.js",
-        "index.html",
+        ":index.html",
     ],
     # In production mode we serve some polyfills with script tags that have hard-coded paths in the index.html
     # so we must serve them at that path, by stripping a prefix
@@ -120,10 +124,38 @@ history_server(
     ],
 )
 
+filegroup(
+    name = "rxjs_umd_modules",
+    srcs = [
+        ":rxjs_shims.js",
+        "@npm//:node_modules/rxjs/bundles/rxjs.umd.js",
+    ],
+)
+
+# Convert d3 to an AMD module so it can be loaded in the RequireJS test environment.
 genrule(
-    name = "d3-copy",
-    srcs = ["@npm//:node_modules/d3/dist/d3.js"],
-    outs = ["d3.js"],
-    cmd = "cp $< $@",
-    output_to_bindir = 1,
+    name = "d3_requirejs",
+    srcs = [
+        "@npm//:node_modules/d3/dist/d3.js",
+    ],
+    outs = [
+        "d3.js",
+    ],
+    cmd = """echo "define('d3', function(require, exports, module) {" > $@ \
+             && cat $< >> $@ \
+             && echo '});' >> $@""",
+)
+
+ts_library(
+    name = "initialize_testbed",
+    testonly = 1,
+    srcs = [
+        "initialize_testbed.ts",
+    ],
+    tsconfig = "//web/gui2:tsconfig.json",
+    deps = [
+        "@npm//@angular/core",
+        "@npm//@angular/platform-browser-dynamic",
+        "@npm//@types",
+    ],
 )

@@ -19,7 +19,7 @@ import {
     LogService,
     WebSocketService,
     SortDir, TableBaseImpl, TableResponse
-} from '../../../../../../../../gui2-fw-lib/public_api';
+} from 'gui2-fw-lib/public_api';
 
 /**
  * Model of the response from WebSocket

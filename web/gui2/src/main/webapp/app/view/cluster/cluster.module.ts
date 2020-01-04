@@ -15,7 +15,7 @@
  */
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Gui2FwLibModule } from '../../../../../../../gui2-fw-lib/public_api';
+import { Gui2FwLibModule } from 'gui2-fw-lib/public_api';
 import { ClusterComponent } from './cluster/cluster.component';
 import { ClusterDetailsDirective } from './cluster-details.directive';
 import {RouterModule} from '@angular/router';
@@ -24,7 +24,6 @@ import {RouterModule} from '@angular/router';
     imports: [
         CommonModule,
         Gui2FwLibModule,
-        RouterModule,
         RouterModule.forChild([{path: '', component: ClusterComponent}]),
     ],
     declarations: [ClusterComponent, ClusterDetailsDirective]

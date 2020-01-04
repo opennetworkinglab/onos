@@ -18,7 +18,7 @@ import {
     LogService,
     FnService,
     PanelBaseImpl, LionService
-} from '../../../../gui2-fw-lib/public_api';
+} from 'gui2-fw-lib/public_api';
 
 import {animate, state, style, transition, trigger} from '@angular/animations';
 

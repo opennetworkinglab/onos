@@ -21,7 +21,7 @@ import {
     WebSocketService,
     IconService,
     SortDir, TableBaseImpl, TableResponse
-} from '../../../../../../web/gui2-fw-lib/public_api';
+} from 'gui2-fw-lib/public_api';
 import { ActivatedRoute } from '@angular/router';
 import {FormGroup, FormControl} from '@angular/forms';
 

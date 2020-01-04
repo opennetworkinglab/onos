@@ -21,7 +21,7 @@ import { TopologyService } from './topology.service';
 import {
     LogService,
     FnService
-} from '../../gui2-fw-lib/public_api';
+} from 'gui2-fw-lib/public_api';
 
 class MockActivatedRoute extends ActivatedRoute {
     constructor(params: Params) {

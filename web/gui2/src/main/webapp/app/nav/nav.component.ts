@@ -19,8 +19,8 @@ import { trigger, state, style, animate, transition } from '@angular/animations'
 import {
     LionService,
     LogService,
-    NavService
-} from '../../../../../../gui2-fw-lib/public_api';
+    NavService,
+} from 'gui2-fw-lib/public_api';
 
 /**
  * ONOS GUI -- Navigation Module

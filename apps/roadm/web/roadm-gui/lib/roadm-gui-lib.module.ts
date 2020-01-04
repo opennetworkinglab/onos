@@ -17,7 +17,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {RouterModule} from '@angular/router';
-import { Gui2FwLibModule } from '../../../../../web/gui2-fw-lib/public_api';
+import { Gui2FwLibModule } from 'gui2-fw-lib/public_api';
 import { RoadmDeviceComponent } from './roadm/roadm.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RoadmPortComponent } from './port/port.component';

@@ -16,7 +16,7 @@
 import * as d3 from 'd3';
 import {LocationType} from '../../backgroundsvg/backgroundsvg.component';
 import {LayerType, Location, NodeType, RegionProps} from './regions';
-import {LocMeta, MetaUi, ZoomUtils} from '../../../../../gui2-fw-lib/public_api';
+import {LocMeta, MetaUi, ZoomUtils} from 'gui2-fw-lib/public_api';
 
 export interface UiElement {
     index?: number;

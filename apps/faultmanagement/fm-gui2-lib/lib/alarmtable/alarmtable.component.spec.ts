@@ -25,7 +25,7 @@ import {
     IconComponent,
     LogService,
     TableFilterPipe, LoadingComponent,
-} from '../../../../../web/gui2-fw-lib/public_api';
+} from 'gui2-fw-lib/public_api';
 
 import { of } from 'rxjs';
 import { } from 'jasmine';

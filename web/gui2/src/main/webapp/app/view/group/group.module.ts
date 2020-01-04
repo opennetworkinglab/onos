@@ -16,14 +16,13 @@
 import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {GroupComponent} from './group/group.component';
-import { Gui2FwLibModule } from '../../../../../../../gui2-fw-lib/public_api';
+import { Gui2FwLibModule } from 'gui2-fw-lib/public_api';
 import {FormsModule} from '@angular/forms';
 import {RouterModule} from '@angular/router';
 
 @NgModule({
     imports: [
         CommonModule,
-        RouterModule,
         RouterModule.forChild([{path: '', component: GroupComponent}]),
         Gui2FwLibModule,
         FormsModule,

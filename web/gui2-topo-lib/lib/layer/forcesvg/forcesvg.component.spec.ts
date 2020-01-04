@@ -22,7 +22,7 @@ import {
     LogService, SvgUtilService,
     UrlFnService,
     WebSocketService
-} from '../../../gui2-fw-lib/public_api';
+} from 'gui2-fw-lib/public_api';
 import {DraggableDirective} from './draggable/draggable.directive';
 import {ActivatedRoute, Params} from '@angular/router';
 import {of} from 'rxjs';

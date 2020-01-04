@@ -27,7 +27,7 @@ import {
     LogService,
     PrefsService,
     SvgUtilService, LionService, ZoomUtils, TopoZoomPrefs
-} from '../../../../gui2-fw-lib/public_api';
+} from 'gui2-fw-lib/public_api';
 
 /**
  * ONOS GUI -- Topology No Connected Devices View.

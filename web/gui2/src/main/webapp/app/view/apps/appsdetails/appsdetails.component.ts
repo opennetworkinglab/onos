@@ -21,7 +21,7 @@ import {
     LogService,
     DetailsPanelBaseImpl,
     WebSocketService
-} from '../../../../../../../../gui2-fw-lib/public_api';
+} from 'gui2-fw-lib/public_api';
 
 import { App, APPURLPREFIX, ICONURLSUFFIX } from '../apps/apps.component';
 

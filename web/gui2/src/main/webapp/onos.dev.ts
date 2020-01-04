@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-present Open Networking Foundation
+ * Copyright 2020-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
 
-import { IntentComponent } from './intent/intent.component';
-import { Gui2FwLibModule } from 'gui2-fw-lib/public_api';
-import { RouterModule } from '@angular/router';
+/**
+ * Used to launch the application under Bazel development mode.
+ */
+import {platformBrowser} from '@angular/platform-browser';
+import {OnosModule} from './app/onos.module';
 
-@NgModule({
-    imports: [
-        CommonModule,
-        Gui2FwLibModule,
-        RouterModule.forChild([{path: '', component: IntentComponent}]),
-    ],
-    declarations: [IntentComponent],
-    exports: [IntentComponent]
-})
-export class IntentModule { }
+platformBrowser().bootstrapModule(OnosModule);

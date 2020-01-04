@@ -19,7 +19,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { AppsComponent } from './apps/apps.component';
 import { AppsDetailsComponent } from './appsdetails/appsdetails.component';
-import { Gui2FwLibModule } from '../../../../../../../gui2-fw-lib/public_api';
+import { Gui2FwLibModule } from 'gui2-fw-lib/public_api';
 
 /**
  * ONOS GUI -- Apps View Module
@@ -32,7 +32,6 @@ import { Gui2FwLibModule } from '../../../../../../../gui2-fw-lib/public_api';
     imports: [
         CommonModule,
         Gui2FwLibModule,
-        RouterModule,
         RouterModule.forChild([{path: '', component: AppsComponent}]),
         FormsModule
     ],

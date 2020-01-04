@@ -10,7 +10,7 @@ import {
     LionService,
     LogService,
     WebSocketService
-} from '../../../../gui2-fw-lib/public_api';
+} from 'gui2-fw-lib/public_api';
 import {FormControl, FormGroup} from '@angular/forms';
 import { MapObject } from '../../layer/maputils';
 

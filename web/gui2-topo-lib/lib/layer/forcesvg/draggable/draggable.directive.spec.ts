@@ -16,7 +16,7 @@
 import { DraggableDirective } from './draggable.directive';
 import {inject, TestBed} from '@angular/core/testing';
 import {ElementRef} from '@angular/core';
-import {LogService} from '../../../../../gui2-fw-lib/public_api';
+import {LogService} from 'gui2-fw-lib/public_api';
 
 export class MockElementRef extends ElementRef {
     nativeElement = {};

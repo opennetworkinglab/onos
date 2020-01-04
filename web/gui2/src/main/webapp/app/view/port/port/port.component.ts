@@ -20,7 +20,7 @@ import {
     PrefsService,
     WebSocketService,
     SortDir, TableBaseImpl, TableResponse
-} from '../../../../../../../../gui2-fw-lib/public_api';
+} from 'gui2-fw-lib/public_api';
 import { ActivatedRoute } from '@angular/router';
 
 /**

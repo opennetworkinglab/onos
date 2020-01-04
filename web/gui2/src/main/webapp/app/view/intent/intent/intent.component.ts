@@ -19,7 +19,7 @@ import {
     LogService,
     WebSocketService,
     SortDir, TableBaseImpl, TableResponse
-} from '../../../../../../../../gui2-fw-lib/public_api';
+} from 'gui2-fw-lib/public_api';
 
 const RESUBMITINTENT = 'resubmitIntent';
 const REMOVEINTENT = 'removeIntent';

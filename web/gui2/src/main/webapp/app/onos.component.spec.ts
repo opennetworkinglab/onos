@@ -40,7 +40,7 @@ import {
     ThemeService,
     WebSocketService,
     WsOptions
-} from 'gui2-fw-lib';
+} from 'gui2-fw-lib/public_api';
 
 class MockActivatedRoute extends ActivatedRoute {
     constructor(params: Params) {

@@ -139,55 +139,55 @@ export class FnService {
      * properties to get these - and even then we have to filter
      * out the constructor and any member variables
      */
-    // areFunctions(api: Object, fnNames: string[]): boolean {
-    //     const fnLookup: Map<string, boolean> = new Map();
-    //     let extraFound: boolean = false;
-    //
-    //     if (!this.isA(fnNames)) {
-    //         return false;
-    //     }
-    //
-    //     const n: number = fnNames.length;
-    //     let i: number;
-    //     let name: string;
-    //
-    //     for (i = 0; i < n; i++) {
-    //         name = fnNames[i];
-    //         if (!this.isF(api[name])) {
-    //             return false;
-    //         }
-    //         fnLookup.set(name, true);
-    //     }
-    //
-    //     // check for properties on the API that are not listed in the array,
-    //     const keys = Object.getOwnPropertyNames(api);
-    //     if (keys.length === 0) {
-    //         return true;
-    //     }
-    //     // If the api is a class it will have a name,
-    //     //  else it will just be called 'Object'
-    //     const apiObjectName: string = api.constructor.name;
-    //     if (apiObjectName === 'Object') {
-    //         Object.keys(api).forEach((key) => {
-    //             if (!fnLookup.get(key)) {
-    //                 extraFound = true;
-    //             }
-    //         });
-    //     } else { // It is a class, so its functions will be in the child (prototype)
-    //         const pObj: Object = Object.getPrototypeOf(api);
-    //         for ( const key in Object.getOwnPropertyDescriptors(pObj) ) {
-    //             if (key === 'constructor') { // Filter out constructor
-    //                 continue;
-    //             }
-    //             const value = Object.getOwnPropertyDescriptor(pObj, key);
-    //             // Only compare functions. Look for any not given in the map
-    //             if (this.isF(value.value) && !fnLookup.get(key)) {
-    //                 extraFound = true;
-    //             }
-    //         }
-    //     }
-    //     return !extraFound;
-    // }
+    areFunctions(api: Object, fnNames: string[]): boolean {
+        const fnLookup: Map<string, boolean> = new Map();
+        let extraFound: boolean = false;
+
+        if (!this.isA(fnNames)) {
+            return false;
+        }
+
+        const n: number = fnNames.length;
+        let i: number;
+        let name: string;
+
+        for (i = 0; i < n; i++) {
+            name = fnNames[i];
+            if (!this.isF(api[name])) {
+                return false;
+            }
+            fnLookup.set(name, true);
+        }
+
+        // check for properties on the API that are not listed in the array,
+        const keys = Object.getOwnPropertyNames(api);
+        if (keys.length === 0) {
+            return true;
+        }
+        // If the api is a class it will have a name,
+        //  else it will just be called 'Object'
+        const apiObjectName: string = api.constructor.name;
+        if (apiObjectName === 'Object') {
+            Object.keys(api).forEach((key) => {
+                if (!fnLookup.get(key)) {
+                    extraFound = true;
+                }
+            });
+        } else { // It is a class, so its functions will be in the child (prototype)
+            const pObj: Object = Object.getPrototypeOf(api);
+            for ( const key in Object.getOwnPropertyDescriptors(pObj) ) {
+                if (key === 'constructor') { // Filter out constructor
+                    continue;
+                }
+                const value = Object.getOwnPropertyDescriptor(pObj, key);
+                // Only compare functions. Look for any not given in the map
+                if (this.isF(value.value) && !fnLookup.get(key)) {
+                    extraFound = true;
+                }
+            }
+        }
+        return !extraFound;
+    }
 
     /**
      * Returns true if all names in the array are defined as functions

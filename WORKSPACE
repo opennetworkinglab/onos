@@ -124,9 +124,9 @@ load("//tools/build/bazel:gnoi_workspace.bzl", "generate_gnoi")
 generate_gnoi()
 
 # For GUI2 build
-RULES_NODEJS_VERSION = "1.0.0"
+RULES_NODEJS_VERSION = "1.0.1"
 
-RULES_NODEJS_SHA256 = "3887b948779431ac443e6a64f31b9e1e17b8d386a31eebc50ec1d9b0a6cabd2b"
+RULES_NODEJS_SHA256 = "e1a0d6eb40ec89f61a13a028e7113aa3630247253bcb1406281b627e44395145"
 
 load("//tools/build/bazel:topo_workspace.bzl", "generate_topo_device")
 

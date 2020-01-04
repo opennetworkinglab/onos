@@ -35,7 +35,7 @@ import {
     FnService,
     LogService,
     IconService, IconComponent, PrefsService, KeysService, LionService, ZoomableDirective
-} from '../../../gui2-fw-lib/public_api';
+} from 'gui2-fw-lib/public_api';
 import {RouterTestingModule} from '@angular/router/testing';
 import {TrafficService} from '../traffic.service';
 import {ForceSvgComponent} from '../layer/forcesvg/forcesvg.component';

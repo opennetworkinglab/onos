@@ -28,7 +28,7 @@ import {
     FnService,
     WebSocketService,
     GlyphService
-} from '../../../../gui2-fw-lib/public_api';
+} from 'gui2-fw-lib/public_api';
 
 export interface SummaryResponse {
     title: string;

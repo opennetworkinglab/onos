@@ -25,7 +25,7 @@ import {
     Gui2FwLibModule,
     ConsoleLoggerService,
     LogService
-} from '../../../../../gui2-fw-lib/public_api';
+} from 'gui2-fw-lib/public_api';
 import { OnosService } from './onos.service';
 
 /**

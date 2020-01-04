@@ -22,7 +22,7 @@ import {
     SimpleChanges
 } from '@angular/core';
 import {Badge, Host, HostLabelToggle, Node} from '../../models';
-import {LogService} from '../../../../../../gui2-fw-lib/public_api';
+import {LogService} from 'gui2-fw-lib/public_api';
 import {NodeVisual, SelectedEvent} from '../nodevisual';
 
 /**

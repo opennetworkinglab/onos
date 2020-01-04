@@ -20,7 +20,7 @@ import {
     LogService,
     DetailsPanelBaseImpl,
     WebSocketService
-} from '../../../../../../../../../gui2-fw-lib/public_api';
+} from 'gui2-fw-lib/public_api';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 
 /**

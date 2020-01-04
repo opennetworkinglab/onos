@@ -23,7 +23,7 @@ import {
     LogService,
     WebSocketService,
     IconComponent
-} from '../../../../../web/gui2-fw-lib/public_api';
+} from 'gui2-fw-lib/public_api';
 
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { DebugElement } from '@angular/core';

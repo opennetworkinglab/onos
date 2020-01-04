@@ -26,7 +26,7 @@ import {
     FnService,
     IconService,
     LogService, WebSocketService
-} from '../../../../../../../../gui2-fw-lib/public_api';
+} from 'gui2-fw-lib/public_api';
 import {PipeconfAction, PipeconfTable} from '../pipeconf/pipeconf.component';
 import {animate, state, style, transition, trigger} from '@angular/animations';
 

@@ -1,4 +1,6 @@
 load("@npm_angular_bazel//:index.bzl", "ng_module")
+load("@npm_bazel_typescript//:index.bzl", "ts_library")
+load("@npm_bazel_karma//:index.bzl", "karma_web_test_suite")
 
 package(default_visibility = ["//:__subpackages__"])
 
@@ -14,13 +16,13 @@ ng_module(
         include = ["**/*.ts"],
         exclude = [
             "**/*.spec.ts",
-            "test.ts",
         ],
     ),
     assets = glob([
         "**/*.css",
         "**/*.html",
     ]),
+    tsconfig = "//web/gui2:tsconfig.json",
     deps = NG_FACTORY_ADDED_IMPORTS + [
         "//web/gui2-fw-lib",
         "@npm//@angular/core",
@@ -29,5 +31,146 @@ ng_module(
         "@npm//rxjs",
         "@npm//@types",
         "@npm//topojson-client",
+    ],
+)
+
+ts_library(
+    name = "test_lib",
+    testonly = 1,
+    srcs = glob(
+        include = ["**/*.spec.ts"],
+        # TODO re-enable this test
+        exclude = [
+            "lib/layer/backgroundsvg/backgroundsvg.component.spec.ts",
+            "lib/layer/forcesvg/forcesvg.component.spec.ts",
+        ],
+    ),
+    tsconfig = "//web/gui2:tsconfig-test",
+    deps = [
+        ":gui2-topo-lib",
+        "//web/gui2-fw-lib",
+        "@npm//@angular/common",
+        "@npm//@angular/core",
+        "@npm//@angular/forms",
+        "@npm//@angular/http",
+        "@npm//@angular/platform-browser",
+        "@npm//@angular/router",
+        "@npm//@types/jasmine",
+        "@npm//rxjs",
+    ],
+)
+
+# Convert topojson-client to an AMD module so it can be loaded in the RequireJS test environment.
+genrule(
+    name = "topojson-client_requirejs",
+    srcs = [
+        "@npm//:node_modules/topojson-client/dist/topojson-client.js",
+    ],
+    outs = [
+        "topojson-client.js",
+    ],
+    cmd = """echo "define('topojson-client', function(require, exports, module) {" > $@ \
+             && cat $< >> $@ \
+             && echo '});' >> $@""",
+)
+
+# Convert d3-force to an AMD module so it can be loaded in the RequireJS test environment.
+genrule(
+    name = "d3-force_requirejs",
+    srcs = [
+        "@npm//:node_modules/d3-force/dist/d3-force.js",
+    ],
+    outs = [
+        "d3-force.js",
+    ],
+    cmd = """echo "define('d3-force', function(require, exports, module) {" > $@ \
+             && cat $< >> $@ \
+             && echo '});' >> $@""",
+)
+
+# Convert d3-quadtree to an AMD module so it can be loaded in the RequireJS test environment.
+genrule(
+    name = "d3-quadtree_requirejs",
+    srcs = [
+        "@npm//:node_modules/d3-quadtree/dist/d3-quadtree.js",
+    ],
+    outs = [
+        "d3-quadtree.js",
+    ],
+    cmd = """echo "define('d3-quadtree', function(require, exports, module) {" > $@ \
+             && cat $< >> $@ \
+             && echo '});' >> $@""",
+)
+
+# Convert d3-collection to an AMD module so it can be loaded in the RequireJS test environment.
+genrule(
+    name = "d3-collection_requirejs",
+    srcs = [
+        "@npm//:node_modules/d3-collection/dist/d3-collection.js",
+    ],
+    outs = [
+        "d3-collection.js",
+    ],
+    cmd = """echo "define('d3-collection', function(require, exports, module) {" > $@ \
+             && cat $< >> $@ \
+             && echo '});' >> $@""",
+)
+
+# Convert d3-dispatch to an AMD module so it can be loaded in the RequireJS test environment.
+genrule(
+    name = "d3-dispatch_requirejs",
+    srcs = [
+        "@npm//:node_modules/d3-dispatch/dist/d3-dispatch.js",
+    ],
+    outs = [
+        "d3-dispatch.js",
+    ],
+    cmd = """echo "define('d3-dispatch', function(require, exports, module) {" > $@ \
+             && cat $< >> $@ \
+             && echo '});' >> $@""",
+)
+
+# Convert d3-timer to an AMD module so it can be loaded in the RequireJS test environment.
+genrule(
+    name = "d3-timer_requirejs",
+    srcs = [
+        "@npm//:node_modules/d3-timer/dist/d3-timer.js",
+    ],
+    outs = [
+        "d3-timer.js",
+    ],
+    cmd = """echo "define('d3-timer', function(require, exports, module) {" > $@ \
+             && cat $< >> $@ \
+             && echo '});' >> $@""",
+)
+
+karma_web_test_suite(
+    name = "test",
+    srcs = [
+    ],
+    # do not sort
+    bootstrap = [
+        "@npm//:node_modules/zone.js/dist/zone-testing-bundle.js",
+        "@npm//:node_modules/reflect-metadata/Reflect.js",
+    ],
+    browsers = [
+        #        "@io_bazel_rules_webtesting//browsers:chromium-local",
+        "@io_bazel_rules_webtesting//browsers:firefox-local",
+    ],
+    tags = ["native"],
+    runtime_deps = [
+        "//web/gui2/src/main/webapp:initialize_testbed",
+    ],
+    deps = [
+        ":d3-collection_requirejs",
+        ":d3-dispatch_requirejs",
+        ":d3-force_requirejs",
+        ":d3-quadtree_requirejs",
+        ":d3-timer_requirejs",
+        ":test_lib",
+        ":topojson-client_requirejs",
+        "//web/gui:src/main/webapp/data",
+        "//web/gui2/src/main/webapp:d3_requirejs",
+        "//web/gui2/src/main/webapp:rxjs_umd_modules",
     ],
 )

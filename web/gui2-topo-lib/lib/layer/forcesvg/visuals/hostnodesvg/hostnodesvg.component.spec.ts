@@ -18,7 +18,7 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { HostNodeSvgComponent } from './hostnodesvg.component';
 import {ActivatedRoute, Params} from '@angular/router';
 import {of} from 'rxjs';
-import {LogService} from '../../../../../../gui2-fw-lib/public_api';
+import {LogService} from 'gui2-fw-lib/public_api';
 import {Host} from '../../models';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {ChangeDetectorRef} from '@angular/core';

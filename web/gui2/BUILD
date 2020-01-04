@@ -19,6 +19,7 @@
 """
 
 load("//tools/build/bazel:jdk_genrule.bzl", genrule = "jdk_genrule")
+load("@npm_bazel_typescript//:index.bzl", "ts_config")
 
 COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + CLI + [
     "@javax_ws_rs_api//jar",
@@ -37,6 +38,20 @@ TEST_DEPS = TEST + [
     "//core/api:onos-api-tests",
     "//drivers/default:onos-drivers-default",
 ]
+
+# This export allows targets in other packages to reference files that live
+# in this package.
+# TODO Try to move this in to /web/gui2-fw-lib when possible
+exports_files([
+    "tsconfig.json",
+])
+
+ts_config(
+    name = "tsconfig-test",
+    src = "tsconfig-test.json",
+    visibility = ["//visibility:public"],
+    deps = [":tsconfig.json"],
+)
 
 """
     Builds the java jar for the java code provided by the GUI2

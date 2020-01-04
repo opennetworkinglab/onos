@@ -22,7 +22,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import {
     FnService,
     LogService
-} from '../../../../gui2-fw-lib/public_api';
+} from 'gui2-fw-lib/public_api';
 
 class MockActivatedRoute extends ActivatedRoute {
     constructor(params: Params) {

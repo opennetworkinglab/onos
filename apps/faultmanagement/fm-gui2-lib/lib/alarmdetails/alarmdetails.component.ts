@@ -21,7 +21,7 @@ import {
     LogService,
     DetailsPanelBaseImpl,
     WebSocketService,
-} from '../../../../../web/gui2-fw-lib/public_api';
+} from 'gui2-fw-lib/public_api';
 
 /**
  * ONOS GUI -- Alarm Details Component extends TableBaseImpl

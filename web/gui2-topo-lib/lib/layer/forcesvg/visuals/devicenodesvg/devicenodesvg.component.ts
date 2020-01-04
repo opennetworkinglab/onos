@@ -27,7 +27,7 @@ import {
     Device,
     LabelToggle,
 } from '../../models';
-import {IconService, LogService, SvgUtilService} from '../../../../../../gui2-fw-lib/public_api';
+import {IconService, LogService, SvgUtilService} from 'gui2-fw-lib/public_api';
 import {NodeVisual, SelectedEvent} from '../nodevisual';
 import {animate, state, style, transition, trigger} from '@angular/animations';
 import {TopologyService} from '../../../../topology.service';

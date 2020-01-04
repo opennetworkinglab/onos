@@ -29,7 +29,10 @@ build --incompatible_new_actions_api=false
 build --incompatible_generated_protos_in_virtual_imports=false
 build --incompatible_depset_union=false
 
+# For bazelbuild/rules_nodejs
+common --experimental_allow_incremental_repository_updates
 build --define=angular_ivy_enabled=True
+build --action_env=CHROME_BIN=/usr/bin/chromium-browser
 
 test --test_summary=terse
 test --test_output=errors

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import {Inject, Injectable} from '@angular/core';
-import { LogService } from '../../../../../gui2-fw-lib/public_api';
+import { LogService } from 'gui2-fw-lib/public_api';
 
 /**
  * A structure of View elements for the OnosService

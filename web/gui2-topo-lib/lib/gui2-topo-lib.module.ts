@@ -22,7 +22,7 @@ import { InstanceComponent } from './panel/instance/instance.component';
 import { SummaryComponent } from './panel/summary/summary.component';
 import { ToolbarComponent } from './panel/toolbar/toolbar.component';
 import { DetailsComponent } from './panel/details/details.component';
-import { Gui2FwLibModule } from '../../gui2-fw-lib/public_api';
+import { Gui2FwLibModule } from 'gui2-fw-lib/public_api';
 import { BackgroundSvgComponent } from './layer/backgroundsvg/backgroundsvg.component';
 import { ForceSvgComponent } from './layer/forcesvg/forcesvg.component';
 import { MapSvgComponent } from './layer/mapsvg/mapsvg.component';

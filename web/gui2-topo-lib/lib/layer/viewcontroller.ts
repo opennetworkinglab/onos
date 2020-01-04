@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FnService, LogService, PrefsService } from '../../../gui2-fw-lib/public_api';
+import { FnService, LogService, PrefsService } from 'gui2-fw-lib/public_api';
 
 export interface ViewControllerPrefs {
     visible: string;

@@ -16,7 +16,7 @@
 import {Injectable, SimpleChange} from '@angular/core';
 import {
     LogService, WebSocketService,
-} from '../../gui2-fw-lib/public_api';
+} from 'gui2-fw-lib/public_api';
 import {Instance, InstanceComponent} from './panel/instance/instance.component';
 import { BackgroundSvgComponent } from './layer/backgroundsvg/backgroundsvg.component';
 import { ForceSvgComponent } from './layer/forcesvg/forcesvg.component';

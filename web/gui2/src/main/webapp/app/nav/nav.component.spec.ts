@@ -28,7 +28,7 @@ import {
     IconService,
     LionService,
     LogService,
-    NavService } from 'gui2-fw-lib';
+    NavService } from 'gui2-fw-lib/public_api';
 import { NavComponent } from './nav.component';
 
 class MockActivatedRoute extends ActivatedRoute {

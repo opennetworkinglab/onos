@@ -32,6 +32,7 @@ ng_module(
         "**/*.css",
         "**/*.html",
     ]),
+    tsconfig = "//web/gui2:tsconfig.json",
     deps = [
         "//web/gui2-fw-lib",
         "@npm//@angular/animations",

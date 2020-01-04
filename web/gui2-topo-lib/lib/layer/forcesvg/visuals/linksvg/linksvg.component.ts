@@ -19,7 +19,7 @@ import {
     Input, OnChanges, Output, SimpleChanges,
 } from '@angular/core';
 import {Link, LinkHighlight, UiElement} from '../../models';
-import {LogService} from '../../../../../../gui2-fw-lib/public_api';
+import {LogService} from 'gui2-fw-lib/public_api';
 import {NodeVisual, SelectedEvent} from '../nodevisual';
 import {animate, state, style, transition, trigger} from '@angular/animations';
 

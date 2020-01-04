@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import {LogService, WebSocketService} from '../../gui2-fw-lib/public_api';
+import {LogService, WebSocketService} from 'gui2-fw-lib/public_api';
 import {ForceSvgComponent} from './layer/forcesvg/forcesvg.component';
 
 export namespace TrafficType {

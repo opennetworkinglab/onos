@@ -15,7 +15,7 @@
  */
 import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {MapObject} from '../maputils';
-import {MapBounds, TopoZoomPrefs, LogService, ZoomUtils} from '../../../../gui2-fw-lib/public_api';
+import {MapBounds, TopoZoomPrefs, LogService, ZoomUtils} from 'gui2-fw-lib/public_api';
 
 /**
  * model of the topo2CurrentLayout attrs from BgZoom below

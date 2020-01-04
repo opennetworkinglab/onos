@@ -15,9 +15,9 @@
  */
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Routes, RouterModule } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { DeviceComponent } from './device/device.component';
-import { Gui2FwLibModule } from '../../../../../../../gui2-fw-lib/public_api';
+import { Gui2FwLibModule } from 'gui2-fw-lib/public_api';
 import { FormsModule } from '@angular/forms';
 import { DeviceDetailsComponent } from './devicedetails/devicedetails.component';
 
@@ -27,7 +27,6 @@ import { DeviceDetailsComponent } from './devicedetails/devicedetails.component'
 @NgModule({
     imports: [
         CommonModule,
-        RouterModule,
         RouterModule.forChild([{path: '', component: DeviceComponent}]),
         Gui2FwLibModule,
         FormsModule

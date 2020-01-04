@@ -33,6 +33,7 @@ ng_module(
         "**/*.html",
     ]),
     module_name = "gui2-view-flow",
+    tsconfig = "//web/gui2:tsconfig.json",
     deps = [
         "//web/gui2-fw-lib",
         "@npm//@angular/animations",
