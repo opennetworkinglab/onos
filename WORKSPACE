@@ -172,6 +172,7 @@ node_repositories(
 yarn_install(
     name = "npm",
     package_json = "//web/gui2:package.json",
+    use_global_yarn_cache = False,
     yarn_lock = "//web/gui2:yarn.lock",
 )
 
