@@ -1,5 +1,5 @@
 /*
- * Copyright ${year}-present Open Networking Foundation
+ * Copyright 2014-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package ${package};
-
-import org.apache.karaf.shell.api.action.Command;
-import org.apache.karaf.shell.api.action.lifecycle.Service;
-import org.onosproject.cli.AbstractShellCommand;
 
 /**
- * Sample Apache Karaf CLI command.
+ * Administrative console command-line extensions.
  */
-@Service
-@Command(scope = "onos", name = "sample",
-         description = "Sample Apache Karaf CLI command")
-public class AppCommand extends AbstractShellCommand {
-
-    @Override
-    protected void doExecute() {
-        print("Hello %s", "World");
-    }
-
-}
+package ${package};
