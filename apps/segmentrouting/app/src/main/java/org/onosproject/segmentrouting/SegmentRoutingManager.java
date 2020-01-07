@@ -1653,6 +1653,7 @@ public class SegmentRoutingManager implements SegmentRoutingService {
 
         if (mastershipService.isLocalMaster(deviceId)) {
             defaultRoutingHandler.populatePortAddressingRules(deviceId);
+            defaultRoutingHandler.purgeSeenBeforeRoutes(deviceId);
             xConnectHandler.init(deviceId);
             DefaultGroupHandler groupHandler = groupHandlerMap.get(deviceId);
             groupHandler.createGroupsFromVlanConfig();
