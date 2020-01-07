@@ -43,6 +43,7 @@ import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
 import org.onosproject.segmentrouting.storekey.DummyVlanIdStoreKey;
 import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.ConsistentMultimap;
 import org.onosproject.store.service.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,6 +56,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -111,6 +113,10 @@ public class DefaultRoutingHandler {
     Map<Set<DeviceId>, NodeId> shouldProgram;
     Map<DeviceId, Boolean> shouldProgramCache;
 
+    // Distributed routes store to keep track of the routes already seen
+    // destination device is the key and target sw is the value
+    ConsistentMultimap<DeviceId, DeviceId> seenBeforeRoutes;
+
     // Local store to keep track of all devices that this instance was responsible
     // for programming in the last run. Helps to determine if mastership changed
     // during a run - only relevant for programming as a result of topo change.
@@ -141,6 +147,11 @@ public class DefaultRoutingHandler {
                 .withSerializer(Serializer.using(KryoNamespaces.API))
                 .withRelaxedReadConsistency()
                 .build().asJavaMap();
+        this.seenBeforeRoutes = srManager.storageService.<DeviceId, DeviceId>consistentMultimapBuilder()
+                .withName("programmed-routes")
+                .withSerializer(Serializer.using(KryoNamespaces.API))
+                .withRelaxedReadConsistency()
+                .build();
         this.shouldProgramCache = Maps.newConcurrentMap();
         update(srManager);
         this.routePopulators = new PredictableExecutor(DEFAULT_THREADS,
@@ -279,6 +290,7 @@ public class DefaultRoutingHandler {
                 }
             }
 
+            log.debug("seenBeforeRoutes size {}", seenBeforeRoutes.size());
             if (!redoRouting(routeChanges, edgePairs, null)) {
                 log.debug("populateAllRoutingRules: populationStatus is ABORTED");
                 populationStatus = Status.ABORTED;
@@ -340,6 +352,7 @@ public class DefaultRoutingHandler {
                     log.trace("  Current/Existing SPG: {}", entry.getValue());
                 }
             });
+            log.debug("seenBeforeRoutes size {}", seenBeforeRoutes.size());
             Set<EdgePair> edgePairs = new HashSet<>();
             Set<ArrayList<DeviceId>> routeChanges = new HashSet<>();
             boolean handleRouting = false;
@@ -492,6 +505,7 @@ public class DefaultRoutingHandler {
             Set<ArrayList<DeviceId>> routeChanges;
             log.debug("populateRoutingRulesForLinkStatusChange: "
                     + "populationStatus is STARTED");
+            log.debug("seenBeforeRoutes size {}", seenBeforeRoutes.size());
             populationStatus = Status.STARTED;
             rulePopulator.resetCounter(); //XXX maybe useful to have a rehash ctr
             boolean hashGroupsChanged = false;
@@ -620,17 +634,29 @@ public class DefaultRoutingHandler {
             return false;
         }
 
+        // Temporary stores the changed routes
+        Set<ArrayList<DeviceId>> tempRoutes = ImmutableSet.copyOf(changedRoutes);
         // now process changedRoutes according to edgePairs
         if (!redoRoutingEdgePairs(edgePairs, subnets, changedRoutes)) {
             return false; //abort routing and fail fast
         }
+        // Calculate the programmed routes pointing to the pairs
+        Set<ArrayList<DeviceId>> programmedPairRoutes = Sets.difference(tempRoutes, changedRoutes);
+        log.debug("Evaluating programmed pair routes");
+        storeSeenBeforeRoutes(programmedPairRoutes);
 
+        // Temporary stores the left routes
+        tempRoutes = ImmutableSet.copyOf(changedRoutes);
         // whatever is left in changedRoutes is now processed for individual dsts.
         Set<DeviceId> updatedDevices = Sets.newHashSet();
         if (!redoRoutingIndividualDests(subnets, changedRoutes,
                                         updatedDevices)) {
             return false; //abort routing and fail fast
         }
+        // Calculate the individual programmed routes
+        Set<ArrayList<DeviceId>> programmedIndividualRoutes = Sets.difference(tempRoutes, changedRoutes);
+        log.debug("Evaluating individual programmed routes");
+        storeSeenBeforeRoutes(programmedIndividualRoutes);
 
         // update ecmpSPG for all edge-pairs
         for (EdgePair ep : edgePairs) {
@@ -648,6 +674,31 @@ public class DefaultRoutingHandler {
                 log.debug("Updating ECMPspg for remaining dev:{}", devId);
             });
         return true;
+    }
+
+    /**
+     * Stores the routes seen before. Routes are two-elements arrays.
+     * @param seenRoutes seen before routes
+     */
+    private void storeSeenBeforeRoutes(Set<ArrayList<DeviceId>> seenRoutes) {
+        Set<DeviceId> nextHops;
+        for (ArrayList<DeviceId> route : seenRoutes) {
+            log.debug("Route {} -> {} has been programmed", route.get(0), route.get(1));
+            nextHops = getNextHops(route.get(0), route.get(1));
+            // No valid next hops - cannot be considered a programmed route
+            if (nextHops.isEmpty()) {
+                log.debug("Could not find next hop from target:{} --> dst {} "
+                                  + "skipping this route", route.get(0), route.get(1));
+                continue;
+            }
+            // Already present - do not add again
+            if (seenBeforeRoutes.containsEntry(route.get(1), route.get(0))) {
+                log.debug("Route from target:{} --> dst {} " +
+                                  "already present, skipping this route", route.get(0), route.get(1));
+                continue;
+            }
+            seenBeforeRoutes.put(route.get(1), route.get(0));
+        }
     }
 
     /**
@@ -703,7 +754,7 @@ public class DefaultRoutingHandler {
             // so now for this edgepair we have a per target set of routechanges
             // process target->edgePair route
             List<Future<Boolean>> futures = Lists.newArrayList();
-            for (Map.Entry<DeviceId, Set<ArrayList<DeviceId>>> entry :
+            for (Entry<DeviceId, Set<ArrayList<DeviceId>>> entry :
                             targetRoutes.entrySet()) {
                 log.debug("* redoRoutingDstPair Target:{} -> edge-pair {}",
                           entry.getKey(), ep);
@@ -870,6 +921,7 @@ public class DefaultRoutingHandler {
                 log.debug("* redoRoutingIndiDst Target: {} -> dst: {}",
                           route.get(0), route.get(1));
                 futures.add(routePopulators.submit(new RedoRoutingIndividualDest(subnets, route)));
+                changedRoutes.remove(route);
             }
             // check the execution of each job
             if (!checkJobs(futures)) {
@@ -1093,6 +1145,7 @@ public class DefaultRoutingHandler {
                 updatedDevices.add(targetSw);
                 updatedDevices.add(dstSw);
                 continue;
+
             }
             //linkfailed - update both sides
             if (success) {
@@ -1183,6 +1236,11 @@ public class DefaultRoutingHandler {
             return false;
         }
         DeviceId destSw = route.get(1);
+        if (!seenBeforeRoutes.containsEntry(destSw, targetSw)) {
+            log.warn("Cannot fixHashGroupsForRoute {} -> {} has not been programmed before",
+                     targetSw, destSw);
+            return false;
+        }
         log.debug("* processing fixHashGroupsForRoute: Target {} -> Dest {}",
                   targetSw, destSw);
         // figure out the new next hops at the targetSw towards the destSw
@@ -1333,6 +1391,18 @@ public class DefaultRoutingHandler {
             srManager.routingRulePopulator.updateFwdObj(deviceId, portNumber, prefix, hostMac,
                     vlanId, popVlan, install);
         }
+    }
+
+    /**
+     * Purges seen before routes for a given device.
+     * @param deviceId the device id
+     */
+    void purgeSeenBeforeRoutes(DeviceId deviceId) {
+        log.debug("Purging seen before routes having as target {}", deviceId);
+        Set<Entry<DeviceId, DeviceId>> routesToPurge = seenBeforeRoutes.stream()
+                .filter(entry -> entry.getValue().equals(deviceId))
+                .collect(Collectors.toSet());
+        routesToPurge.forEach(entry -> seenBeforeRoutes.remove(entry.getKey(), entry.getValue()));
     }
 
     /**
@@ -1523,6 +1593,7 @@ public class DefaultRoutingHandler {
                     for (Device dev : srManager.deviceService.getDevices()) {
                         if (shouldProgram(dev.id())) {
                             srManager.purgeHashedNextObjectiveStore(dev.id());
+                            seenBeforeRoutes.removeAll(dev.id());
                         }
                     }
                     // give small delay to ensure entire store is purged
