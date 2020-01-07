@@ -40,7 +40,6 @@ import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
 import org.slf4j.Logger;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -134,8 +133,6 @@ public class DeviceDescriptionDiscoveryCiscoImpl extends AbstractHandlerBehaviou
             log.error("Failed to map Json", e);
         } catch (JsonProcessingException e) {
             log.error("Failed to processing Json", e);
-        } catch (IOException e) {
-            log.error("Failed to retrieve Device Information", e);
         }
         DefaultAnnotations.Builder annotations = DefaultAnnotations.builder();
 

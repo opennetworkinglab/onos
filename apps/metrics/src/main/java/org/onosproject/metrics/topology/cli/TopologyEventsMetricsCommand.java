@@ -15,7 +15,6 @@
  */
 package org.onosproject.metrics.topology.cli;
 
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import com.codahale.metrics.Gauge;
@@ -113,8 +112,6 @@ public class TopologyEventsMetricsCommand extends AbstractShellCommand {
             JsonNode jsonNode = mapper.readTree(objectJson);
             return jsonNode;
         } catch (JsonProcessingException e) {
-            log.error("Error writing value as JSON string", e);
-        } catch (IOException e) {
             log.error("Error writing value as JSON string", e);
         }
         return null;

@@ -681,8 +681,6 @@ public final class OpenstackNetworkingUtil {
             log.debug("JsonMappingException caused by {}", e);
         } catch (JsonProcessingException e) {
             log.debug("JsonProcessingException caused by {}", e);
-        } catch (IOException e) {
-            log.debug("IOException caused by {}", e);
         }
         return null;
     }
