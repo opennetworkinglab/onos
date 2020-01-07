@@ -55,6 +55,7 @@ import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.onosproject.segmentrouting.config.SegmentRoutingDeviceConfig;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.TestConsistentMap;
+import org.onosproject.store.service.TestConsistentMultimap;
 
 import java.util.Map;
 import java.util.Set;
@@ -233,6 +234,8 @@ public class HostHandlerTest {
         SegmentRoutingManager srManager = new MockSegmentRoutingManager(NEXT_TABLE);
         srManager.storageService = createMock(StorageService.class);
         expect(srManager.storageService.consistentMapBuilder()).andReturn(new TestConsistentMap.Builder<>()).anyTimes();
+        expect(srManager.storageService.consistentMultimapBuilder()).andReturn(
+                new TestConsistentMultimap.Builder<>()).anyTimes();
         replay(srManager.storageService);
         srManager.cfgService = new NetworkConfigRegistryAdapter();
         srManager.deviceConfiguration = new DeviceConfiguration(srManager);
