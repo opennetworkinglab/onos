@@ -2307,10 +2307,37 @@ public class SegmentRoutingManager implements SegmentRoutingService {
                 .map(InterfaceIpAddress::subnetAddress)
                 .collect(Collectors.toSet());
 
-        defaultRoutingHandler.revokeSubnet(
-                ipPrefixSet.stream()
-                        .filter(ipPrefix -> !deviceIpPrefixSet.contains(ipPrefix))
-                        .collect(Collectors.toSet()));
+        Set<IpPrefix> subnetsToBeRevoked = ipPrefixSet.stream()
+                .filter(ipPrefix -> !deviceIpPrefixSet.contains(ipPrefix))
+                .collect(Collectors.toSet());
+
+        // Check if any of the subnets to be revoked is configured in the pairDevice.
+        // If any, repopulate the subnet with pairDevice connectPoint instead of revoking.
+        Optional<DeviceId> pairDevice = getPairDeviceId(cp.deviceId());
+        if (pairDevice.isPresent()) {
+            Set<IpPrefix> pairDeviceIpPrefix = getDeviceSubnetMap().get(pairDevice.get());
+
+            Set<IpPrefix> subnetsExistingInPairDevice = subnetsToBeRevoked.stream()
+                    .filter(ipPrefix -> pairDeviceIpPrefix.contains(ipPrefix))
+                    .collect(Collectors.toSet());
+
+            // Update the subnets existing in pair device with pair device connect point.
+            if (!subnetsExistingInPairDevice.isEmpty()) {
+                // PortNumber of connect point is not relevant in populate subnet and hence providing as ANY.
+                ConnectPoint pairDeviceCp = new ConnectPoint(pairDevice.get(), PortNumber.ANY);
+                log.debug("Updating the subnets: {} with pairDevice connectPoint as it exists in the Pair device: {}",
+                        subnetsExistingInPairDevice, pairDeviceCp);
+                defaultRoutingHandler.populateSubnet(Collections.singleton(pairDeviceCp), subnetsExistingInPairDevice);
+            }
+
+            // Remove only the subnets that are not configured in the pairDevice.
+            subnetsToBeRevoked = Sets.difference(subnetsToBeRevoked, subnetsExistingInPairDevice);
+        }
+
+        if (!subnetsToBeRevoked.isEmpty()) {
+            log.debug("Removing subnets for connectPoint: {}, subnets: {}", cp, subnetsToBeRevoked);
+            defaultRoutingHandler.revokeSubnet(subnetsToBeRevoked);
+        }
 
         // 2. Interface IP punts
         // Remove IP punts for old Intf address
@@ -2344,12 +2371,56 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         Set<IpPrefix> deviceIpPrefixSet = deviceIntfIpAddrs.stream()
                 .map(InterfaceIpAddress::subnetAddress)
                 .collect(Collectors.toSet());
+        Set<IpPrefix> subnetsToBePopulated = ipPrefixSet.stream()
+                .filter(ipPrefix -> !deviceIpPrefixSet.contains(ipPrefix))
+                .collect(Collectors.toSet());
 
-        defaultRoutingHandler.populateSubnet(
-                Collections.singleton(cp),
-                ipPrefixSet.stream()
-                        .filter(ipPrefix -> !deviceIpPrefixSet.contains(ipPrefix))
-                        .collect(Collectors.toSet()));
+        if (!subnetsToBePopulated.isEmpty()) {
+            log.debug("Adding subnets for connectPoint: {}, subnets: {}", cp, subnetsToBePopulated);
+
+            // check if pair-device has the same subnet configured?
+            Optional<DeviceId> pairDevice = getPairDeviceId(cp.deviceId());
+            if (pairDevice.isPresent()) {
+                Set<IpPrefix> pairDeviceIpPrefix = getDeviceSubnetMap().get(pairDevice.get());
+
+                Set<IpPrefix>  subnetsToBePopulatedAsDualHomed = subnetsToBePopulated.stream()
+                        .filter(ipPrefix -> pairDeviceIpPrefix.contains(ipPrefix))
+                        .collect(Collectors.toSet());
+                Set<IpPrefix> subnetsToBePopulatedAsSingleHomed = Sets.difference(subnetsToBePopulated,
+                        subnetsToBePopulatedAsDualHomed);
+
+                if (!subnetsToBePopulatedAsSingleHomed.isEmpty()) {
+                    defaultRoutingHandler.populateSubnet(
+                            Collections.singleton(cp),
+                            subnetsToBePopulatedAsSingleHomed);
+                }
+
+                if (!subnetsToBePopulatedAsDualHomed.isEmpty()) {
+                    Set<ConnectPoint> cpts = new HashSet<>();
+                    cpts.add(cp);
+                    // As Subnets is DualHomed adding the pairDevice also as ConnectPoint.
+                    // PortNumber of connect point is not relevant in populate subnet and hence providing as ANY.
+                    ConnectPoint pairCp = new ConnectPoint(pairDevice.get(), PortNumber.ANY);
+                    cpts.add(pairCp);
+
+                    log.debug("Adding DualHomed subnets for connectPoint: {} and its pair device: {}, subnets: {}",
+                            cp, pairCp, subnetsToBePopulatedAsDualHomed);
+
+                    // populating the subnets as DualHomed
+                    defaultRoutingHandler.populateSubnet(
+                            cpts,
+                            subnetsToBePopulated);
+
+                    // revoking the subnets populated in the device as it is now Dualhomed.
+                    defaultRoutingHandler.revokeSubnet(Collections.singleton(cp.deviceId()),
+                            subnetsToBePopulatedAsDualHomed);
+                }
+            } else {
+                defaultRoutingHandler.populateSubnet(
+                        Collections.singleton(cp),
+                        subnetsToBePopulated);
+            }
+        }
 
         // 2. Interface IP punts
         // Add IP punts for new Intf address

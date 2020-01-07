@@ -1304,6 +1304,26 @@ public class DefaultRoutingHandler {
         return checkJobs(futures);
     }
 
+    /**
+     * Revoke rules of given subnets in the given switches.
+     *
+     * @param targetSwitches switched from which subnets to be removed
+     * @param subnets subnet bring removed
+     * @return true if succeed
+     */
+    protected boolean revokeSubnet(Set<DeviceId> targetSwitches, Set<IpPrefix> subnets) {
+        List<Future<Boolean>> futures = Lists.newArrayList();
+        for (DeviceId targetSw : targetSwitches) {
+            if (shouldProgram(targetSw)) {
+                futures.add(routePopulators.submit(new RevokeSubnet(targetSw, subnets)));
+            } else {
+                futures.add(CompletableFuture.completedFuture(true));
+            }
+        }
+        // check the execution of each job
+        return checkJobs(futures);
+    }
+
     private final class RevokeSubnet implements PickyCallable<Boolean> {
         private DeviceId targetSw;
         private Set<IpPrefix> subnets;
