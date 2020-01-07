@@ -14,21 +14,8 @@
 """
     Rules to build the ONOS GUI 2
     The GUI2 Angular 7 elements are built here with Angular CLI 'ng'
-    Some work is being done in the Bazel community to integrate Bazel and
-    Angular 7, (Angular Buildtools Convergence -
-    https://docs.google.com/document/d/1OlyiUnoTirUj4gecGxJeZBcjHcFr36RvLsvpBl2mxA8/preview)
-    but it is in the very early stages (Aug'18) and not yet fit
-    for production and at present it works as a replacement for Angular CLI
-    (which is not desirable).
-    There are plans to extend Bazel it to work with Angular CLI, and if works
-    well this Bazel file may be rearchiteced in future.
-    Bazel and npm are incompatibe in how they deal with files. npm likes to
-    follow links to get back to the original canonical path names, and bazel
-    uses links extensively when populating the sandbox. To get around these
-    problems, the rules that follow use filegroups to specify the files as
-    dependencies and then use a genrule to convert the files into a tar ball.
-    Once the tar ball is unrolled into the sandbox, the links are broken, but
-    the build is still hermetic since those files are referred to as dependencies in the genrule.
+    This uses Angular Buildtools Convergence - https://bazel.angular.io/
+    in place of previous bash scripts that wrapped Angular CLI
 """
 
 load("//tools/build/bazel:jdk_genrule.bzl", genrule = "jdk_genrule")
