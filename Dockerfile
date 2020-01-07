@@ -1,6 +1,7 @@
 ARG JDK_VER=11
 ARG BAZEL_VER=1.0.0
 ARG JOBS=2
+ARG PROFILE=default
 
 # First stage is the build environment.
 # zulu-openjdk images are based on Ubuntu.
@@ -38,12 +39,14 @@ WORKDIR ${ONOS_ROOT}
 # version.
 ARG JOBS
 ARG JDK_VER
+ARG PROFILE
 RUN bazel build onos \
     --jobs ${JOBS} \
     --verbose_failures \
     --javabase=@bazel_tools//tools/jdk:absolute_javabase \
     --host_javabase=@bazel_tools//tools/jdk:absolute_javabase \
-    --define=ABSOLUTE_JAVABASE=/usr/lib/jvm/zulu-${JDK_VER}-amd64
+    --define=ABSOLUTE_JAVABASE=/usr/lib/jvm/zulu-${JDK_VER}-amd64 \
+    --define profile=${PROFILE}
 
 # We extract the tar in the build environment to avoid having to put the tar in
 # the runtime stage. This saves a lot of space.
