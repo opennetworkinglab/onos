@@ -32,7 +32,9 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.ModulationConfig;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
+import org.onosproject.netconf.DatastoreId;
 import org.onosproject.netconf.NetconfController;
+import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,28 +47,28 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /*
  * Driver Implementation of the ModulationConfig for OpenConfig terminal devices.
  */
-public class CassiniModulationConfig<T> extends AbstractHandlerBehaviour implements ModulationConfig<T> {
+public class TerminalDeviceModulationConfig<T> extends AbstractHandlerBehaviour implements ModulationConfig<T> {
 
 
-    private static final String RPC_TAG_NETCONF_BASE =
+    public static final String RPC_TAG_NETCONF_BASE =
             "<rpc xmlns=\"urn:ietf:params:xml:ns:netconf:base:1.0\">";
 
-    private static final String RPC_CLOSE_TAG = "</rpc>";
+    public static final String RPC_CLOSE_TAG = "</rpc>";
 
-    private static final Logger log = LoggerFactory.getLogger(CassiniModulationConfig.class);
+    public static Logger log = LoggerFactory.getLogger(TerminalDeviceModulationConfig.class);
 
-    private ComponentType state = ComponentType.DIRECTION;
+    public TerminalDeviceModulationConfig.ComponentType state = ComponentType.DIRECTION;
 
     private static final double OSNR_THRESHOLD_VALUE = 13.0;
 
 
-    enum BitRate {
+    public enum BitRate {
         GBPS_200(200),      // 200 Gbps
         GBPS_100(100),        // 100 Gbps
         GBPS_40(40),          // 40 Gbps
         GBPS_10(10);          // 10 Gbps
 
-        private final long value;
+        final long value;
 
         public long getValue() {
             return value;
@@ -77,7 +79,7 @@ public class CassiniModulationConfig<T> extends AbstractHandlerBehaviour impleme
         }
     }
 
-    private NetconfController getController() {
+    public NetconfController getController() {
         return handler().get(NetconfController.class);
     }
 
@@ -89,10 +91,142 @@ public class CassiniModulationConfig<T> extends AbstractHandlerBehaviour impleme
      */
 
 
-    private DeviceId getDeviceId() {
+    public DeviceId getDeviceId() {
         return handler().data().deviceId();
     }
 
+    /**
+     * Construct a rpc target power message.
+     *
+     * @param filter to build rpc
+     * @return RPC payload
+     */
+    public StringBuilder getModulationSchemeRequestRpc(String filter) {
+        StringBuilder rpc = new StringBuilder();
+        rpc.append("<get>")
+                .append("<filter>")
+                .append(filter)
+                .append("</filter>")
+                .append("</get>");
+        return rpc;
+    }
+
+    /**
+     * Construct a rpc target power message.
+     *
+     * @return RPC payload
+     */
+    public DatastoreId getDataStoreId() {
+        return DatastoreId.RUNNING;
+    }
+
+    /**
+     * Construct a rpc target power message.
+     *
+     * @param name for optical channel name
+     * @return RPC payload
+     */
+    public StringBuilder createModulationFilterRequestRpc(String name) {
+        StringBuilder rpc = new StringBuilder();
+        rpc.append("<name>").append(name).append("</name>");
+        rpc.append("<optical-channel xmlns=\"http://openconfig.net/yang/terminal-device\">");
+        rpc.append("<config><modulation/></config>");
+        rpc.append("</optical-channel>");
+        return rpc;
+    }
+
+    /*
+     *
+     * Parse filtering string from port and component.
+     * @param portNumber Port Number
+     * @param component port component (optical-channel)
+     * @param bitRate bitRate in bps
+     * @return filtering string in xml format
+
+     */
+    public String modulationEditConfigRequestRpc(TerminalDeviceModulationConfig modulationConfig, PortNumber portNumber,
+                                                 Object component, long bitRate, String modulation) {
+        if (component != null) {
+            String portName = state.ocName(modulationConfig, portNumber);
+            //String channelSpacing = channelSpacing(modulationConfig,portNumber);
+            //ChannelSpacing cs= ChannelSpacing.valueOf(channelSpacing);
+            //double csValue= cs.frequency().asGHz();
+
+            StringBuilder sb = new StringBuilder("<components xmlns=\"http://openconfig.net/yang/platform\">");
+            sb.append("<component>").append("<name>").append(portName).append("</name>");
+            if (modulation != null) {
+                // This is an edit-config operation.
+                sb.append("<optical-channel xmlns=\"http://openconfig.net/yang/terminal-device\">")
+                        .append("<config>")
+                        .append("<modulation>")
+                        .append(modulation)
+                        .append("</modulation>")
+                        .append("</config>")
+                        .append("</optical-channel>");
+            }
+            sb.append("</component>").append("</components>");
+            return sb.toString();
+        } else {
+            log.error("Cannot process the component {}.", component.getClass());
+            return null;
+        }
+    }
+
+    public void setModulationSchemeProcessor(PortNumber port, Object component, long bitRate) {
+        ModulationScheme modulation = null;
+        String editConfig = null;
+        double osnr = 0.0;
+        boolean rpcResponse = false;
+        boolean receiver = false;
+
+        // TODO OSNR is valid only for receiver so need to modify
+            /*if(component.toString().equals(Direction.INGRESS.toString())){
+                receiver=true;
+            }*/
+
+        //check if bitrate is less than equal to 100 Gig
+        if (bitRate <= BitRate.GBPS_100.value) {
+            modulation = ModulationScheme.DP_QPSK;
+            editConfig = state.modulationEditConfig(state.cassini, port, component, bitRate, modulation.name());
+            //setting the modulation by calling rpc
+            rpcResponse = state.setModulationRpc(port, component, editConfig);
+            if (rpcResponse) {
+                // TODO OSNR is valid only for receiver so need to modify
+                osnr = state.fetchDeviceSnr(state.cassini, port);
+                if (osnr <= OSNR_THRESHOLD_VALUE) {
+                    log.error("Channel not possible for this OSNR Value : {}", osnr);
+                }
+            }
+        } else { // check if bitrate is greater than 100 Gig
+            modulation = ModulationScheme.DP_16QAM;
+            editConfig = state.modulationEditConfig(state.cassini, port, component, bitRate, modulation.name());
+            //setting the modulation by calling rpc
+            rpcResponse = state.setModulationRpc(port, component, editConfig);
+            if (rpcResponse) {
+                //TODO OSNR is valid only for receiver so need to modify
+                osnr =  state.fetchDeviceSnr(state.cassini, port);
+                if (osnr <= OSNR_THRESHOLD_VALUE) {
+                    modulation = ModulationScheme.DP_8QAM;
+                    editConfig =  state.modulationEditConfig(state.cassini, port, component, bitRate,
+                                                             modulation.name());
+                    //setting the modulation by calling rpc
+                    rpcResponse = state.setModulationRpc(port, component, editConfig);
+                    if (rpcResponse) {
+                        // TODO OSNR is valid only for receiver so need to modify
+                        osnr = state.fetchDeviceSnr(state.cassini, port);
+                        if (osnr <= OSNR_THRESHOLD_VALUE) {
+                            log.warn("Channel not possible for this OSNR Value : {}." +
+                                             " Please reduce the channel bitrate.", osnr);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public ModulationScheme modulationSchemeType(String modulationScheme) {
+        return ModulationScheme.valueOf(modulationScheme);
+    }
 
     /**
      * Get the target Modulation Scheme on the component.
@@ -129,9 +263,9 @@ public class CassiniModulationConfig<T> extends AbstractHandlerBehaviour impleme
         String clsName = component.getClass().getName();
 
         if (component instanceof Direction) {
-            state = CassiniModulationConfig.ComponentType.DIRECTION;
+            state = TerminalDeviceModulationConfig.ComponentType.DIRECTION;
         } else if (component instanceof OchSignal) {
-            state = CassiniModulationConfig.ComponentType.OCHSIGNAL;
+            state = TerminalDeviceModulationConfig.ComponentType.OCHSIGNAL;
         } else {
             log.error("Cannot parse the component type {}.", clsName);
         }
@@ -146,7 +280,7 @@ public class CassiniModulationConfig<T> extends AbstractHandlerBehaviour impleme
      */
 
 
-    enum ComponentType {
+    public enum ComponentType {
 
         /*
          *
@@ -184,7 +318,7 @@ public class CassiniModulationConfig<T> extends AbstractHandlerBehaviour impleme
         };
 
 
-        CassiniModulationConfig cassini;
+        TerminalDeviceModulationConfig cassini;
 
         /*
          * mirror method in the internal class.
@@ -199,21 +333,21 @@ public class CassiniModulationConfig<T> extends AbstractHandlerBehaviour impleme
             String filter = createModulationFilter(cassini, port);
             StringBuilder rpcReq = new StringBuilder();
             rpcReq.append(RPC_TAG_NETCONF_BASE)
-                    .append("<get>")
-                    .append("<filter>")
-                    .append(filter)
-                    .append("</filter>")
-                    .append("</get>")
+                    .append(cassini.getModulationSchemeRequestRpc(filter))
                     .append(RPC_CLOSE_TAG);
             log.debug("RPC Call for Getting Modulation : \n {}", rpcReq.toString());
             XMLConfiguration xconf = NetconfSessionUtility.executeRpc(session, rpcReq.toString());
+            if (xconf == null) {
+                log.error("Error in executingRpc");
+                return Optional.empty();
+            }
             try {
                 HierarchicalConfiguration config =
                         xconf.configurationAt("components/component/optical-channel/config");
 
                 String modulationScheme = String.valueOf(config.getString("modulation"));
 
-                return Optional.of(ModulationScheme.valueOf(modulationScheme));
+                return Optional.of(cassini.modulationSchemeType(modulationScheme));
             } catch (IllegalArgumentException e) {
                 return Optional.empty();
             }
@@ -226,57 +360,7 @@ public class CassiniModulationConfig<T> extends AbstractHandlerBehaviour impleme
          * @param power target value
          */
         void setModulationScheme(PortNumber port, Object component, long bitRate) {
-
-            ModulationScheme modulation = null;
-            String editConfig = null;
-            double osnr = 0.0;
-            boolean rpcResponse = false;
-            boolean receiver = false;
-
-            // TODO OSNR is valid only for receiver so need to modify
-            /*if(component.toString().equals(Direction.INGRESS.toString())){
-                receiver=true;
-            }*/
-
-            //check if bitrate is less than equal to 100 Gig
-            if (bitRate <= BitRate.GBPS_100.value) {
-                modulation = ModulationScheme.DP_QPSK;
-                editConfig = modulationEditConfig(cassini, port, component, bitRate, modulation.name());
-                //setting the modulation by calling rpc
-                rpcResponse = setModulationRpc(port, component, editConfig);
-                if (rpcResponse) {
-                    // TODO OSNR is valid only for receiver so need to modify
-                    osnr = fetchDeviceSnr(cassini, port);
-                    if (osnr <= OSNR_THRESHOLD_VALUE) {
-                        log.error("Channel not possible for this OSNR Value : {}", osnr);
-                    }
-                }
-            } else { // check if bitrate is greater than 100 Gig
-                modulation = ModulationScheme.DP_16QAM;
-                editConfig = modulationEditConfig(cassini, port, component, bitRate, modulation.name());
-                //setting the modulation by calling rpc
-                rpcResponse = setModulationRpc(port, component, editConfig);
-                if (rpcResponse) {
-                    //TODO OSNR is valid only for receiver so need to modify
-                    osnr = fetchDeviceSnr(cassini, port);
-                    if (osnr <= OSNR_THRESHOLD_VALUE) {
-                        modulation = ModulationScheme.DP_8QAM;
-                        editConfig = modulationEditConfig(cassini, port, component, bitRate, modulation.name());
-                        //setting the modulation by calling rpc
-                        rpcResponse = setModulationRpc(port, component, editConfig);
-                        if (rpcResponse) {
-                            // TODO OSNR is valid only for receiver so need to modify
-                            osnr = fetchDeviceSnr(cassini, port);
-                            if (osnr <= OSNR_THRESHOLD_VALUE) {
-                                log.warn("Channel not possible for this OSNR Value : {}." +
-                                        " Please reduce the channel bitrate.", osnr);
-                            }
-                        }
-                    }
-                }
-            }
-
-
+            cassini.setModulationSchemeProcessor(port, component, bitRate);
         }
 
 
@@ -289,7 +373,7 @@ public class CassiniModulationConfig<T> extends AbstractHandlerBehaviour impleme
          */
 
         //RPC call for OSNR still not finalised, need to update Rpc once validated
-        private static XMLConfiguration getTerminalDeviceSnr(CassiniModulationConfig config, PortNumber port) {
+        public static XMLConfiguration getTerminalDeviceSnr(TerminalDeviceModulationConfig config, PortNumber port) {
             NetconfSession session = NetconfSessionUtility
                     .getNetconfSession(config.getDeviceId(), config.getController());
             checkNotNull(session);
@@ -305,13 +389,12 @@ public class CassiniModulationConfig<T> extends AbstractHandlerBehaviour impleme
             return xconf;
         }
 
-        private static String createModulationFilter(CassiniModulationConfig modulationConfig, PortNumber portNumber) {
+        public static String createModulationFilter(TerminalDeviceModulationConfig modulationConfig,
+                                                        PortNumber portNumber) {
             String name = ocName(modulationConfig, portNumber);
             StringBuilder sb = new StringBuilder("<components xmlns=\"http://openconfig.net/yang/platform\">");
-            sb.append("<component>").append("<name>").append(name).append("</name>");
-            sb.append("<optical-channel xmlns=\"http://openconfig.net/yang/terminal-device\">");
-            sb.append("<config><modulation/></config>");
-            sb.append("</optical-channel>");
+            sb.append("<component>")
+                    .append(modulationConfig.createModulationFilterRequestRpc(name));
             sb.append("</component>").append("</components>");
             return sb.toString();
         }
@@ -325,13 +408,13 @@ public class CassiniModulationConfig<T> extends AbstractHandlerBehaviour impleme
          */
 
 
-        private static String ocName(CassiniModulationConfig pc, PortNumber portNumber) {
+        public static String ocName(TerminalDeviceModulationConfig pc, PortNumber portNumber) {
             DeviceService deviceService = DefaultServiceDirectory.getService(DeviceService.class);
             DeviceId deviceId = pc.handler().data().deviceId();
             return deviceService.getPort(deviceId, portNumber).annotations().value("oc-name");
         }
 
-        private static String channelSpacing(CassiniModulationConfig modulationConfig, PortNumber portNumber) {
+        private static String channelSpacing(TerminalDeviceModulationConfig modulationConfig, PortNumber portNumber) {
             DeviceService deviceService = DefaultServiceDirectory.getService(DeviceService.class);
             DeviceId deviceId = modulationConfig.handler().data().deviceId();
             String lambda = deviceService.getPort(deviceId, portNumber).annotations().value("lambda");
@@ -351,7 +434,7 @@ public class CassiniModulationConfig<T> extends AbstractHandlerBehaviour impleme
 
         }
 
-        private double fetchDeviceSnr(CassiniModulationConfig modulationConfig, PortNumber portNumber) {
+        private double fetchDeviceSnr(TerminalDeviceModulationConfig modulationConfig, PortNumber portNumber) {
             double osnr = 0.0;
             XMLConfiguration xconf = getTerminalDeviceSnr(cassini, portNumber);
             if (xconf == null) {
@@ -376,35 +459,12 @@ public class CassiniModulationConfig<T> extends AbstractHandlerBehaviour impleme
 
          */
 
-        private String modulationEditConfig(CassiniModulationConfig modulationConfig, PortNumber portNumber,
-                                            Object component, long bitRate, String modulation) {
-            if (component != null) {
-                String portName = ocName(modulationConfig, portNumber);
-                //String channelSpacing = channelSpacing(modulationConfig,portNumber);
-                //ChannelSpacing cs= ChannelSpacing.valueOf(channelSpacing);
-                //double csValue= cs.frequency().asGHz();
-
-                StringBuilder sb = new StringBuilder("<components xmlns=\"http://openconfig.net/yang/platform\">");
-                sb.append("<component>").append("<name>").append(portName).append("</name>");
-                if (modulation != null) {
-                    // This is an edit-config operation.
-                    sb.append("<optical-channel xmlns=\"http://openconfig.net/yang/terminal-device\">")
-                            .append("<config>")
-                            .append("<modulation>")
-                            .append(modulation)
-                            .append("</modulation>")
-                            .append("</config>")
-                            .append("</optical-channel>");
-                }
-                sb.append("</component>").append("</components>");
-                return sb.toString();
-            } else {
-                log.error("Cannot process the component {}.", component.getClass());
-                return null;
-            }
+        public String modulationEditConfig(TerminalDeviceModulationConfig modulationConfig, PortNumber portNumber,
+                                           Object component, long bitRate, String modulation) {
+            return cassini.modulationEditConfigRequestRpc(modulationConfig, portNumber, component, bitRate, modulation);
         }
 
-        private boolean setModulationRpc(PortNumber port, Object component, String editConfig) {
+        public boolean setModulationRpc(PortNumber port, Object component, String editConfig) {
             NetconfSession session = NetconfSessionUtility
                     .getNetconfSession(cassini.getDeviceId(), cassini.getController());
             checkNotNull(session);
@@ -412,7 +472,7 @@ public class CassiniModulationConfig<T> extends AbstractHandlerBehaviour impleme
             StringBuilder rpcReq = new StringBuilder();
             rpcReq.append(RPC_TAG_NETCONF_BASE)
                     .append("<edit-config>")
-                    .append("<target><running/></target>")
+                    .append("<target><" + cassini.getDataStoreId() + "/></target>")
                     .append("<config>")
                     .append(editConfig)
                     .append("</config>")
@@ -428,6 +488,12 @@ public class CassiniModulationConfig<T> extends AbstractHandlerBehaviour impleme
                 response = false;
                 log.error("The <edit-config> operation to set target-modulation of Port({}:{}) is failed.",
                         port.toString(), component.toString());
+            }
+            try {
+                session.commit();
+            } catch (NetconfException e) {
+                response = false;
+                log.error("error committing modulation changes");
             }
             return response;
         }
