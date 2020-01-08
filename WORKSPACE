@@ -171,6 +171,7 @@ node_repositories(
 # TODO give this a name like `gui2_npm` once the @bazel/karma tools can tolerate a name other than `npm`
 yarn_install(
     name = "npm",
+    args = ["--frozen-lockfile"],
     package_json = "//web/gui2:package.json",
     use_global_yarn_cache = False,
     yarn_lock = "//web/gui2:yarn.lock",
