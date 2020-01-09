@@ -96,13 +96,16 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.Timer;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static org.onlab.util.Tools.get;
+import static org.onlab.util.Tools.groupedThreads;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -146,8 +149,8 @@ public class OpenFlowRuleProvider extends AbstractProvider
 
     private Cache<Long, InternalCacheEntry> pendingBatches;
 
-    private final Timer timer = new Timer("onos-openflow-collector");
-
+    private ScheduledExecutorService executorService = newScheduledThreadPool(1,
+                                   groupedThreads("onos/of", "collector-%d", log));
 
     // Old simple collector set
     private final Map<Dpid, FlowStatsCollector> simpleCollectors = Maps.newConcurrentMap();
@@ -169,6 +172,8 @@ public class OpenFlowRuleProvider extends AbstractProvider
         providerService = providerRegistry.register(this);
         controller.addListener(listener);
         controller.addEventListener(listener);
+        // Evicts the tasks if cancelled
+        ((ScheduledThreadPoolExecutor) executorService).setRemoveOnCancelPolicy(true);
 
         modified(context);
 
@@ -186,6 +191,7 @@ public class OpenFlowRuleProvider extends AbstractProvider
         stopCollectors();
         providerRegistry.unregister(this);
         providerService = null;
+        executorService.shutdown();
 
         log.info("Stopped");
     }
@@ -251,13 +257,13 @@ public class OpenFlowRuleProvider extends AbstractProvider
                 stopCollectorIfNeeded(afsCollectors.put(new Dpid(sw.getId()), fsc));
                 fsc.start();
             } else {
-                FlowStatsCollector fsc = new FlowStatsCollector(timer, sw, flowPollFrequency);
+                FlowStatsCollector fsc = new FlowStatsCollector(executorService, sw, flowPollFrequency);
                 stopCollectorIfNeeded(simpleCollectors.put(new Dpid(sw.getId()), fsc));
                 fsc.start();
             }
         }
         if (sw.features().getCapabilities().contains(OFCapabilities.TABLE_STATS)) {
-            TableStatisticsCollector tsc = new TableStatisticsCollector(timer, sw, flowPollFrequency);
+            TableStatisticsCollector tsc = new TableStatisticsCollector(executorService, sw, flowPollFrequency);
             stopCollectorIfNeeded(tableStatsCollectors.put(new Dpid(sw.getId()), tsc));
             tsc.start();
         }
