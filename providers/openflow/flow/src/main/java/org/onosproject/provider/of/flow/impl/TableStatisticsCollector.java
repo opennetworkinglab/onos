@@ -15,14 +15,15 @@
  */
 package org.onosproject.provider.of.flow.impl;
 
-import org.onlab.util.SharedExecutors;
 import org.onosproject.openflow.controller.OpenFlowSwitch;
 import org.onosproject.openflow.controller.RoleState;
 import org.projectfloodlight.openflow.protocol.OFTableStatsRequest;
 import org.slf4j.Logger;
 
-import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -33,23 +34,24 @@ class TableStatisticsCollector implements SwitchDataCollector {
 
     private final Logger log = getLogger(getClass());
 
-    public static final long SECONDS = 1000L;
+    public static final int MS = 1000;
 
     private final OpenFlowSwitch sw;
-    private Timer timer;
+    private ScheduledExecutorService executorService;
     private TimerTask task;
+    private ScheduledFuture<?> scheduledTask;
 
     private int pollInterval;
 
     /**
      * Creates a new table statistics collector for the given switch and poll frequency.
      *
-     * @param timer        timer to use for scheduling
-     * @param sw           switch to pull
+     * @param executorService executor used for scheduling
+     * @param sw switch to pull
      * @param pollInterval poll frequency in seconds
      */
-    TableStatisticsCollector(Timer timer, OpenFlowSwitch sw, int pollInterval) {
-        this.timer = timer;
+    TableStatisticsCollector(ScheduledExecutorService executorService, OpenFlowSwitch sw, int pollInterval) {
+        this.executorService = executorService;
         this.sw = sw;
         this.pollInterval = pollInterval;
     }
@@ -61,9 +63,15 @@ class TableStatisticsCollector implements SwitchDataCollector {
      */
     synchronized void adjustPollInterval(int pollInterval) {
         this.pollInterval = pollInterval;
-        task.cancel();
+        if (task != null) {
+            task.cancel();
+        }
         task = new InternalTimerTask();
-        timer.scheduleAtFixedRate(task, pollInterval * SECONDS, pollInterval * 1000L);
+        if (scheduledTask != null) {
+            scheduledTask.cancel(false);
+        }
+        scheduledTask = executorService.scheduleAtFixedRate(task, pollInterval * MS,
+                                            pollInterval * MS, TimeUnit.MILLISECONDS);
     }
 
     private class InternalTimerTask extends TimerTask {
@@ -82,14 +90,20 @@ class TableStatisticsCollector implements SwitchDataCollector {
         // Initially start polling quickly. Then drop down to configured value
         log.debug("Starting Table Stats collection thread for {}", sw.getStringId());
         task = new InternalTimerTask();
-        SharedExecutors.getTimer().scheduleAtFixedRate(task, 1 * SECONDS,
-                                                       pollInterval * SECONDS);
+        scheduledTask = executorService.scheduleAtFixedRate(task, 1 * MS,
+                                            pollInterval * MS, TimeUnit.MILLISECONDS);
     }
 
     public synchronized void stop() {
         log.debug("Stopping Table Stats collection thread for {}", sw.getStringId());
-        task.cancel();
+        if (task != null) {
+            task.cancel();
+        }
         task = null;
+        if (scheduledTask != null) {
+            scheduledTask.cancel(false);
+        }
+        scheduledTask = null;
     }
 
 }
