@@ -49,6 +49,8 @@ public final class PortNumber {
     static final long LOCAL_NUMBER = -2L;
     static final long ANY_NUMBER = -1L;
 
+    public static final long NO_DISPLAY_NUMBER = -1L;
+
     /**
      * Logical PortNumbers.
      */
@@ -251,7 +253,11 @@ public final class PortNumber {
             return decodeLogicalPort();
         } else if (hasName()) {
             // named port
-            return String.format("[%s](%d)", name, number);
+            if (number == NO_DISPLAY_NUMBER) {
+                return String.format("[%s]", name);
+            } else {
+                return String.format("[%s](%d)", name, number);
+            }
         } else {
             // unsigned decimal string
             return name;
