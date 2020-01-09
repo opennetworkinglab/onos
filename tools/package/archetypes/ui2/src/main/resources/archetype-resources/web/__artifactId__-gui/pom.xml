@@ -27,7 +27,7 @@
   </parent>
 
   <artifactId>${artifactId}-gui</artifactId>
-  <packaging>pom</packaging>
+  <packaging>jar</packaging>
 
   <build>
     <plugins>
@@ -48,8 +48,8 @@
             </goals>
             <configuration>
               <!-- See https://nodejs.org/en/download/ for latest node and npm (lts) versions -->
-              <nodeVersion>v8.11.1</nodeVersion>
-              <npmVersion>5.6.0</npmVersion>
+              <nodeVersion>v10.16.0</nodeVersion>
+              <npmVersion>6.9.0</npmVersion>
             </configuration>
           </execution>
 
@@ -70,7 +70,7 @@
               <goal>npm</goal>
             </goals>
             <configuration>
-              <arguments>run build ${artifactId}-gui-lib</arguments>
+              <arguments>run build --prod</arguments>
             </configuration>
           </execution>
 
@@ -94,15 +94,6 @@
 <!--            </configuration>-->
 <!--          </execution>-->
 
-          <execution>
-            <id>npm pack</id>
-            <goals>
-              <goal>npm</goal>
-            </goals>
-            <configuration>
-              <arguments>pack ./dist/${artifactId}-gui-lib</arguments>
-            </configuration>
-          </execution>
         </executions>
       </plugin>
 

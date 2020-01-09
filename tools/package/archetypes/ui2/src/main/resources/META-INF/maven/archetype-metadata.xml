@@ -40,13 +40,29 @@
                 <include>**/*.ts</include>
                 <include>**/*.css</include>
                 <include>**/*.json</include>
-                <include>__artifactId__-gui/projects/__artifactId__-gui-lib/karma.conf.js</include>
+                <include>**/BUILD</include>
+                <include>**/BUILD.bazel</include>
+                <include>__artifactId__-gui/karma.conf.js</include>
                 <include>__artifactId__-gui/LICENSE</include>
+                <include>__artifactId__-gui/src/favicon.ico</include>
+                <include>__artifactId__-gui/src/rollup.config.js</include>
+                <include>__artifactId__-gui/src/rxjs_shims.js</include>
+                <include>__artifactId__-gui/src/main/resources/dummy.txt</include>
+                <include>__artifactId__-gui/WORKSPACE</include>
                 <include>__artifactId__-gui/*.md</include>
+                <include>__artifactId__-gui/browserslist</include>
+                <include>__artifactId__-gui/patches/*</include>
                 <include>__artifactId__-gui/pom.xml</include>
-                <include>__artifactId__-gui/BUILD.rename</include>
-                <!--                Needs to be renamed-->
-                <include>__artifactId__-gui/gitignore</include>
+                <include>__artifactId__-gui/.bazelignore</include>
+                <include>__artifactId__-gui/.gitignore</include>
+                <include>__artifactId__-gui/.editorconfig</include>
+                <include>__artifactId__-gui/.bazelrc</include>
+            </includes>
+        </fileSet>
+        <fileSet filtered="false" packaged="false" encoding="UTF-8">
+            <directory>web</directory>
+            <includes>
+                <include>__artifactId__-gui/hiddenfiles/.bazelignore</include>
             </includes>
         </fileSet>
         <fileSet filtered="true" packaged="false" encoding="UTF-8">
@@ -55,10 +71,6 @@
                 <include>README.md</include>
                 <include>BUILD.rename</include>
             </includes>
-        </fileSet>
-        <fileSet filtered="false" packaged="false" encoding="UTF-8">
-            <directory>web/__artifactId__-gui</directory>
-            <include>ng-test.sh</include>
         </fileSet>
     </fileSets>
     <requiredProperties>

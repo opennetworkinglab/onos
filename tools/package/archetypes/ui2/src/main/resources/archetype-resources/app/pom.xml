@@ -56,6 +56,14 @@
             <scope>provided</scope>
         </dependency>
 
+<!--        Add a cross dependency on the gui app, as we want to copy the outputs below-->
+        <dependency>
+            <groupId>${groupId}</groupId>
+            <artifactId>${artifactId}-gui</artifactId>
+            <version>${version}</version>
+            <scope>compile</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.onosproject</groupId>
             <artifactId>onos-api</artifactId>
@@ -70,6 +78,29 @@
             <plugin>
                 <groupId>org.onosproject</groupId>
                 <artifactId>onos-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <!-- here the phase you need -->
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>src/main/resources</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>../web/${artifactId}-gui/dist/${artifactId}-gui</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
