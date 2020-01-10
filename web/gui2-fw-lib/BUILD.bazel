@@ -94,10 +94,10 @@ karma_web_test_suite(
         "@npm//:node_modules/zone.js/dist/zone-testing-bundle.js",
         "@npm//:node_modules/reflect-metadata/Reflect.js",
     ],
-    browsers = [
-        #        "@io_bazel_rules_webtesting//browsers:chromium-local",
-        "@io_bazel_rules_webtesting//browsers:firefox-local",
-    ],
+    #    browsers = [
+    #        "@io_bazel_rules_webtesting//browsers:chromium-local",
+    #        "@io_bazel_rules_webtesting//browsers:firefox-local",
+    #    ],
     tags = ["native"],
     runtime_deps = [
         "//web/gui2/src/main/webapp:initialize_testbed",
