@@ -19,6 +19,7 @@ package org.onosproject.net.device;
 import org.onosproject.net.driver.HandlerBehaviour;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Handler behaviour capable of creating device and port descriptions.
@@ -52,4 +53,12 @@ public interface DeviceDescriptionDiscovery extends HandlerBehaviour {
      */
     List<PortDescription> discoverPortDetails();
 
+    /**
+     * Invoke given lamda function when port descriptions are discovered.
+     *
+     * @param consumer consumer to process port description
+     */
+    default void discoverPortDetails(Consumer<PortDescription> consumer) {
+        throw new UnsupportedOperationException("Need to be implemented by subclass");
+    }
 }
