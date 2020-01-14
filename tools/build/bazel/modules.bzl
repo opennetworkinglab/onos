@@ -170,7 +170,6 @@ DRIVER_MAP = {
     "//drivers/lisp:onos-drivers-lisp-oar": [],
     "//drivers/lumentum:onos-drivers-lumentum-oar": [],
     "//drivers/mellanox:onos-drivers-mellanox-oar": ["stratum"],
-    "//drivers/microsemi/ea1000:onos-drivers-microsemi-ea1000-oar": [],
     "//drivers/netconf:onos-drivers-netconf-oar": [],
     "//drivers/odtn-driver:onos-drivers-odtn-driver-oar": [],
     "//drivers/oplink:onos-drivers-oplink-oar": [],
@@ -341,7 +340,6 @@ MODELS_MAP = {
     "//models/openroadm:onos-models-openroadm-oar": [],
     "//models/tapi:onos-models-tapi-oar": [],
     "//models/l3vpn:onos-models-l3vpn-oar": [],
-    "//models/microsemi:onos-models-microsemi-oar": [],
     "//models/polatis:onos-models-polatis-oar": [],
     "//models/ciena/waveserverai:onos-models-ciena-waveserverai-oar": [],
 }
