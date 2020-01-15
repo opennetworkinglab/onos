@@ -52,6 +52,14 @@
           }
         }
       }
+    },
+    "innerVlan": {
+      "type": "string",
+      "example": "-1"
+    },
+    "outerTpid": {
+      "type": "string",
+      "example": "unknown"
     }
   }
 }
