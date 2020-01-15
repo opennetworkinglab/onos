@@ -74,7 +74,7 @@ load("@io_grpc_grpc_java//:repositories.bzl", "grpc_java_repositories")
 # deps.json, so they get wrapped properly for Karaf runtime.
 grpc_java_repositories(
     omit_bazel_skylib = False,
-    omit_com_google_android_annotations = False,
+    omit_com_google_android_annotations = True,
     omit_com_google_api_grpc_google_common_protos = True,
     omit_com_google_auth_google_auth_library_credentials = True,
     omit_com_google_auth_google_auth_library_oauth2_http = True,
@@ -82,7 +82,7 @@ grpc_java_repositories(
     omit_com_google_code_gson = True,
     omit_com_google_errorprone_error_prone_annotations = True,
     omit_com_google_guava = True,
-    omit_com_google_guava_failureaccess = False,
+    omit_com_google_guava_failureaccess = True,
     omit_com_google_j2objc_j2objc_annotations = True,
     omit_com_google_protobuf = True,
     omit_com_google_protobuf_javalite = True,
