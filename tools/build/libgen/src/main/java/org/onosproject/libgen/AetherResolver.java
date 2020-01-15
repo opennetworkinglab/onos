@@ -55,7 +55,7 @@ import static org.eclipse.aether.repository.RepositoryPolicy.UPDATE_POLICY_ALWAY
  * Resolver capable of resolving Maven coordinates to a Maven artifact.
  */
 public class AetherResolver {
-    private static final String CENTRAL_URL = "http://repo1.maven.org/maven2/";
+    private static final String CENTRAL_URL = "https://repo1.maven.org/maven2/";
 
     private static RepositorySystem system;
     private static RepositorySystemSession session;

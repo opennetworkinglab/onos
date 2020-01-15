@@ -5,7 +5,7 @@
 
 set -e
 
-BUCK_URL="http://repo1.maven.org/maven2/org/onosproject/onos-buck/v2018.02.09.01/buck-v2018.02.09.01.zip"
+BUCK_URL="https://repo1.maven.org/maven2/org/onosproject/onos-buck/v2018.02.09.01/buck-v2018.02.09.01.zip"
 BUCK_SHA="45d8bd28f441991257babf89f7a317edb3a2b536"
 
 # onos-yang-tools buck plugin version
