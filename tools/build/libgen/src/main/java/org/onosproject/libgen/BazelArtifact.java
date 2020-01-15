@@ -184,7 +184,7 @@ public abstract class BazelArtifact {
 
         @Override
         String httpUrl() {
-            return "http://repo1.maven.org/maven2/" +
+            return "https://repo1.maven.org/maven2/" +
                     artifact.getGroupId().replace(".", "/") +
                     "/" + artifact.getArtifactId() +
                     "/" + artifact.getVersion() +
