@@ -47,6 +47,16 @@
           }
         }
       }
+    },
+    "innerVlan": {
+      "required": false,
+      "type": "string",
+      "example": "10"
+    },
+    "outerTpid": {
+      "required": false,
+      "type": "string",
+      "example": "0x88a8"
     }
   }
 }
