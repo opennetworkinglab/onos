@@ -65,6 +65,36 @@
                 }
               }
             }
+          },
+          "auxLocations": {
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "title": "location",
+              "required": [
+                "elementId",
+                "port"
+              ],
+              "properties": {
+                "elementId": {
+                  "type": "string",
+                  "example": "of:0000000000000003"
+                },
+                "port": {
+                  "type": "string",
+                  "example": "4"
+                }
+              }
+            }
+          },
+          "innerVlan": {
+            "type": "string",
+            "example": "-1"
+          },
+          "outerTpid": {
+            "type": "string",
+            "example": "unknown"
           }
         }
       }

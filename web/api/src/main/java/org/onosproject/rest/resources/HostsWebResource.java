@@ -18,6 +18,7 @@ package org.onosproject.rest.resources;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onlab.packet.EthType;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
@@ -69,7 +70,8 @@ public class HostsWebResource extends AbstractWebResource {
     @Context
     private UriInfo uriInfo;
     private static final String HOST_NOT_FOUND = "Host is not found";
-    private static final String[] REMOVAL_KEYS = {"mac", "vlan", "locations", "ipAddresses"};
+    private static final String[] REMOVAL_KEYS = {"mac", "vlan", "locations", "ipAddresses",
+            "auxLocations", "innerVlan", "outerTpid"};
 
     /**
      * Get all end-station hosts.
@@ -222,10 +224,10 @@ public class HostsWebResource extends AbstractWebResource {
             MacAddress mac = MacAddress.valueOf(node.get("mac").asText());
             VlanId vlanId = VlanId.vlanId((short) node.get("vlan").asInt(VlanId.UNTAGGED));
 
+            // Parse locations
             if (null == node.get("locations")) {
                 throw new IllegalArgumentException("location isn't specified");
             }
-
             Iterator<JsonNode> locationNodes = node.get("locations").elements();
             Set<HostLocation> locations = new HashSet<>();
             while (locationNodes.hasNext()) {
@@ -236,22 +238,49 @@ public class HostsWebResource extends AbstractWebResource {
                 locations.add(hostLocation);
             }
 
+            // Parse ipAddresses
             if (null == node.get("ipAddresses")) {
                 throw new IllegalArgumentException("ipAddress isn't specified");
             }
-
             Iterator<JsonNode> ipNodes = node.get("ipAddresses").elements();
             Set<IpAddress> ips = new HashSet<>();
             while (ipNodes.hasNext()) {
                 ips.add(IpAddress.valueOf(ipNodes.next().asText()));
             }
 
+            // Parse auxLocations
+            Set<HostLocation> auxLocations;
+            JsonNode auxLocationsNode = node.get("auxLocations");
+            if (null == auxLocationsNode) {
+                auxLocations = null;
+            } else {
+                Iterator<JsonNode> auxLocationNodes = auxLocationsNode.elements();
+                auxLocations = new HashSet<>();
+                while (auxLocationNodes.hasNext()) {
+                    JsonNode auxLocationNode = auxLocationNodes.next();
+                    String deviceAndPort = auxLocationNode.get("elementId").asText() + "/" +
+                            auxLocationNode.get("port").asText();
+                    HostLocation auxLocation = new HostLocation(ConnectPoint.deviceConnectPoint(deviceAndPort), 0);
+                    auxLocations.add(auxLocation);
+                }
+            }
+
+            // Parse innerVlan
+            JsonNode innerVlanNode = node.get("innerVlan");
+            VlanId innerVlan = (null == innerVlanNode) ? VlanId.NONE : VlanId.vlanId(innerVlanNode.asText());
+
+            // Parse outerTpid
+            JsonNode outerTpidNode = node.get("outerTpid");
+            EthType outerTpid = (null == outerTpidNode) ? EthType.EtherType.UNKNOWN.ethType() :
+                    EthType.EtherType.lookup((short) (Integer.decode(outerTpidNode.asText()) & 0xFFFF)).ethType();
+
             // try to remove elements from json node after reading them
             SparseAnnotations annotations = annotations(removeElements(node, REMOVAL_KEYS));
             // Update host inventory
 
             HostId hostId = HostId.hostId(mac, vlanId);
-            DefaultHostDescription desc = new DefaultHostDescription(mac, vlanId, locations, ips, true, annotations);
+            DefaultHostDescription desc = new DefaultHostDescription(mac, vlanId, locations, auxLocations,
+                    ips, innerVlan, outerTpid, true, annotations);
             hostProviderService.hostDetected(hostId, desc, false);
             return hostId;
         }
