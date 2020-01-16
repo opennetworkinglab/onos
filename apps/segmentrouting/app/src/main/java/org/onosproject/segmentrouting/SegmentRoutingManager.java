@@ -26,8 +26,8 @@ import org.onlab.packet.IPv4;
 import org.onlab.packet.IPv6;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
-import org.onlab.packet.VlanId;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
@@ -112,9 +112,9 @@ import org.onosproject.segmentrouting.pwaas.L2TunnelDescription;
 import org.onosproject.segmentrouting.pwaas.L2TunnelHandler;
 import org.onosproject.segmentrouting.pwaas.L2TunnelPolicy;
 import org.onosproject.segmentrouting.storekey.DestinationSetNextObjectiveStoreKey;
+import org.onosproject.segmentrouting.storekey.MacVlanNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.PortNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.VlanNextObjectiveStoreKey;
-import org.onosproject.segmentrouting.storekey.MacVlanNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.XConnectStoreKey;
 import org.onosproject.segmentrouting.xconnect.api.XconnectService;
 import org.onosproject.store.serializers.KryoNamespaces;
@@ -257,10 +257,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     public LeadershipService leadershipService;
 
     @Reference(cardinality = ReferenceCardinality.OPTIONAL,
-            bind = "bindXconnectService",
-            unbind = "unbindXconnectService",
             policy = ReferencePolicy.DYNAMIC)
-    public XconnectService xconnectService;
+    public volatile XconnectService xconnectService;
 
     /** Enable active probing to discover dual-homed hosts. */
     boolean activeProbing = ACTIVE_PROBING_DEFAULT;
@@ -405,24 +403,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     private static final int DEFAULT_POOL_SIZE = 32;
 
     Instant lastEdgePortEvent = Instant.EPOCH;
-
-    protected void bindXconnectService(XconnectService xconnectService) {
-        if (this.xconnectService == null) {
-            log.info("Binding XconnectService");
-            this.xconnectService = xconnectService;
-        } else {
-            log.warn("Trying to bind XconnectService but it is already bound");
-        }
-    }
-
-    protected void unbindXconnectService(XconnectService xconnectService) {
-        if (this.xconnectService == xconnectService) {
-            log.info("Unbinding XconnectService");
-            this.xconnectService = null;
-        } else {
-            log.warn("Trying to unbind XconnectService but it is already unbound");
-        }
-    }
 
     @Activate
     protected void activate(ComponentContext context) {
