@@ -21,7 +21,7 @@
     <parent>
         <artifactId>onos-drivers-cisco</artifactId>
         <groupId>org.onosproject</groupId>
-        <version>1.13.10-rc2</version>
+        <version>1.13.10-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
