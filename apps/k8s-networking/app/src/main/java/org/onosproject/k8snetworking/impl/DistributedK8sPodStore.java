@@ -54,6 +54,7 @@ import io.fabric8.kubernetes.api.model.PodAffinity;
 import io.fabric8.kubernetes.api.model.PodAffinityTerm;
 import io.fabric8.kubernetes.api.model.PodAntiAffinity;
 import io.fabric8.kubernetes.api.model.PodCondition;
+import io.fabric8.kubernetes.api.model.PodIP;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodStatus;
@@ -148,6 +149,7 @@ public class DistributedK8sPodStore
             .register(PodSpec.class)
             .register(PodStatus.class)
             .register(PodCondition.class)
+            .register(PodIP.class)
             .register(Container.class)
             .register(EnvVar.class)
             .register(EnvVarSource.class)
