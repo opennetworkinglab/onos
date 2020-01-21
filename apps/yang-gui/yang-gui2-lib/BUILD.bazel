@@ -1,0 +1,71 @@
+"""
+ Copyright 2020-present Open Networking Foundation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+"""
+
+package(default_visibility = ["//:__subpackages__"])
+
+load("@npm_angular_bazel//:index.bzl", "ng_module")
+load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
+
+sass_binary(
+    name = "yangtable-styles",
+    src = ":lib/yangtable/yangtable.component.scss",
+)
+
+sass_binary(
+    name = "yangtable-theme",
+    src = ":lib/yangtable/yangtable.theme.scss",
+)
+
+sass_binary(
+    name = "yangdetails-styles",
+    src = ":lib/yangdetails/yangdetails.component.scss",
+)
+
+sass_binary(
+    name = "yangdetails-theme",
+    src = ":lib/yangdetails/yangdetails.theme.scss",
+)
+
+ng_module(
+    name = "yang-gui2-lib",
+    srcs = glob(
+        include = [
+            "**/*.ts",
+        ],
+        exclude = [
+            "**/*.spec.ts",
+        ],
+    ),
+    assets = [
+        ":yangtable-styles",
+        ":yangdetails-styles",
+        ":yangtable-theme",
+        ":yangdetails-theme",
+    ] + glob([
+        "**/*.html",
+    ]),
+    tsconfig = "//web/gui2:tsconfig.json",
+    deps = [
+        "//web/gui2-fw-lib",
+        "@npm//@angular/animations",
+        "@npm//@angular/core",
+        "@npm//@angular/forms",
+        "@npm//@angular/platform-browser-dynamic",
+        "@npm//@angular/router",
+        "@npm//@types",
+        "@npm//rxjs",
+    ],
+)

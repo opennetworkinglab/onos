@@ -64,6 +64,7 @@ ng_module(
         "//web/gui2-topo-lib:gui2-topo-lib",
         "//apps/faultmanagement/fm-gui2-lib:fm-gui2-lib",
         "//apps/roadm/web/roadm-gui:roadm-gui",
+        "//apps/yang-gui/yang-gui2-lib:yang-gui2-lib",
         "@npm//@angular/core",
         "@npm//@angular/router",
         "@npm//@angular/platform-browser",

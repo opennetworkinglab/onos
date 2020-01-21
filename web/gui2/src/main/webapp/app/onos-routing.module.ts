@@ -112,6 +112,11 @@ const onosRoutes: Route[] = [
         loadChildren: () => import('../../../../../../apps/roadm/web/roadm-gui/lib/roadm-gui-lib.module').then(m => m.RoadmGuiLibModule)
     },
     <Route>{
+        path: 'yangModel',
+        pathMatch: 'full',
+        loadChildren: () => import('../../../../../../apps/yang-gui/yang-gui2-lib/lib/yang-gui2-lib.module').then(m => m.YangGui2LibModule)
+    },
+    <Route>{
         path: '',
         redirectTo: 'topo2', // Default to Topology view
         pathMatch: 'full'

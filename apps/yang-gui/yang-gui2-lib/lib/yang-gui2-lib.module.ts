@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-present Open Networking Foundation
+ * Copyright 2020-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {RouterModule} from '@angular/router';
 import {
-  Gui2FwLibModule,
+    Gui2FwLibModule,
 } from 'gui2-fw-lib/public_api';
-import {AlarmTableComponent} from './alarmtable/alarmtable.component';
-import {AlarmDetailsComponent} from './alarmdetails/alarmdetails.component';
+import {YangTableComponent} from "./yangtable/yangtable.component";
+import {YangDetailsComponent} from "./yangdetails/yangdetails.component";
 
 @NgModule({
-  imports: [
-    CommonModule,
-    FormsModule,
-    RouterModule.forChild([{path: '', component: AlarmTableComponent}]),
-    Gui2FwLibModule
-  ],
-  declarations: [AlarmTableComponent, AlarmDetailsComponent],
-  exports: [AlarmTableComponent, AlarmDetailsComponent],
+    imports: [
+        CommonModule,
+        FormsModule,
+        RouterModule.forChild([{path: '', component: YangTableComponent}]),
+        Gui2FwLibModule
+    ],
+    declarations: [YangTableComponent, YangDetailsComponent],
+    exports: [YangTableComponent, YangDetailsComponent],
 })
-export class FmGui2LibModule {
+export class YangGui2LibModule {
 }
