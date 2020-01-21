@@ -195,6 +195,7 @@
                         <logViolationsToConsole>true</logViolationsToConsole>
                         <includeTestSourceDirectory>true</includeTestSourceDirectory>
                         <includeResources>false</includeResources>
+                        <excludes>**/generated-sources/**/*</excludes>
                     </configuration>
                 </plugin>
                 <plugin>
