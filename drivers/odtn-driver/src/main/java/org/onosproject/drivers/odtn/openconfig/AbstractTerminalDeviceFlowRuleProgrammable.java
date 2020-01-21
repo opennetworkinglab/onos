@@ -257,7 +257,7 @@ public abstract class AbstractTerminalDeviceFlowRuleProgrammable
         filt.append("  <name/>");
         filt.append("  <state/>");
         filt.append("  <oc-opt-term:optical-channel xmlns:oc-opt-term"
-                + " = 'http://openconfig.net/yang/terminal-device'>");
+                            + " = 'http://openconfig.net/yang/terminal-device'>");
         filt.append("    <oc-opt-term:config>");
         filt.append("     <oc-opt-term:line-port/>");
         filt.append("    </oc-opt-term:config>");
@@ -278,7 +278,7 @@ public abstract class AbstractTerminalDeviceFlowRuleProgrammable
      * @return the channel component name or null
      */
     protected String getOpticalChannel(NetconfSession session,
-                                     PortNumber portNumber) {
+                                       PortNumber portNumber) {
         try {
             checkNotNull(session);
             checkNotNull(portNumber);
@@ -324,14 +324,14 @@ public abstract class AbstractTerminalDeviceFlowRuleProgrammable
      * @param portNumber ONOS port number of the Line port ().
      * @return the channel component name or null
      */
-    private String getOpticalChannel(PortNumber portNumber) {
+    protected String getOpticalChannel(PortNumber portNumber) {
         Port clientPort = handler().get(DeviceService.class).getPort(did(), portNumber);
         return clientPort.annotations().value(OC_NAME);
     }
 
 
     public abstract void setOpticalChannelFrequency(NetconfSession session,
-                                            String optChannel, Frequency freq)
+                                                    String optChannel, Frequency freq)
             throws NetconfException;
 
 
@@ -361,7 +361,7 @@ public abstract class AbstractTerminalDeviceFlowRuleProgrammable
         if (!frp.isReceiver()) {
             String optChannel = getOpticalChannel(frp.getPortNumber());
             setOpticalChannelFrequency(session, optChannel,
-                    frp.getCentralFrequency());
+                                       frp.getCentralFrequency());
             return optChannel + ":" + frp.getCentralFrequency().asGHz();
         }
         return String.valueOf(frp.getCentralFrequency().asGHz());

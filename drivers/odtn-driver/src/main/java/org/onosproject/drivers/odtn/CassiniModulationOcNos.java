@@ -44,18 +44,35 @@ public class CassiniModulationOcNos<T> extends TerminalDeviceModulationConfig<T>
         return rpc;
     }
 
+    /**
+     * Construct a rpc target power message.
+     *
+     * @param filter to build rpc
+     * @return RPC payload
+     */
+    @Override
+    public StringBuilder getModulationSchemeRequestRpc(String filter) {
+        StringBuilder rpc = new StringBuilder();
+        rpc.append("<get>")
+                .append("<filter>")
+                .append(filter)
+                .append("</filter>")
+                .append("</get>");
+        return rpc;
+    }
+
     @Override
     public void setModulationSchemeProcessor(PortNumber port, Object component, long bitRate) {
         String modulation = null;
         String editConfig = null;
         if (bitRate <= TerminalDeviceModulationConfig.BitRate.GBPS_100.value) {
             modulation = "dp_qpsk";
-            editConfig = state.modulationEditConfig(state.cassini, port, component, bitRate, modulation);
+            editConfig = state.modulationEditConfig(state.terminalDevice, port, component, bitRate, modulation);
             //setting the modulation by calling rpc
             state.setModulationRpc(port, component, editConfig);
         } else { // check if bitrate is greater than 100 Gig
             modulation = "dp_16qam";
-            editConfig = state.modulationEditConfig(state.cassini, port, component, bitRate, modulation);
+            editConfig = state.modulationEditConfig(state.terminalDevice, port, component, bitRate, modulation);
             //setting the modulation by calling rpc
             state.setModulationRpc(port, component, editConfig);
         }
@@ -109,7 +126,7 @@ public class CassiniModulationOcNos<T> extends TerminalDeviceModulationConfig<T>
                 log.info("The component content is {}.", component.toString());
         }
 
-        state.cassini = this;
+        state.terminalDevice = this;
         log.info("Setting the state with clsName :{} ", clsName);
     }
 

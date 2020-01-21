@@ -33,26 +33,6 @@ public class CassiniModulationOpenConfig<T> extends TerminalDeviceModulationConf
     /**
      * Construct a rpc target power message.
      *
-     * @param filter to build rpc
-     * @return RPC payload
-     */
-    @Override
-    public StringBuilder getModulationSchemeRequestRpc(String filter) {
-        StringBuilder rpc = new StringBuilder();
-        rpc.append("<get-config>")
-                .append("<source>")
-                .append("<" + DatastoreId.RUNNING + "/>")
-                .append("</source>")
-                .append("<filter type='subtree'>")
-                .append(filter)
-                .append("</filter>")
-                .append("</get-config>");
-        return rpc;
-    }
-
-    /**
-     * Construct a rpc target power message.
-     *
      * @return RPC payload
      */
     @Override
@@ -116,12 +96,12 @@ public class CassiniModulationOpenConfig<T> extends TerminalDeviceModulationConf
         String editConfig = null;
         if (bitRate <= BitRate.GBPS_100.value) {
             modulation = "dp_qpsk";
-            editConfig = state.modulationEditConfig(state.cassini, port, component, bitRate, modulation);
+            editConfig = state.modulationEditConfig(state.terminalDevice, port, component, bitRate, modulation);
             //setting the modulation by calling rpc
             state.setModulationRpc(port, component, editConfig);
         } else { // check if bitrate is greater than 100 Gig
             modulation = "dp_16qam";
-            editConfig = state.modulationEditConfig(state.cassini, port, component, bitRate, modulation);
+            editConfig = state.modulationEditConfig(state.terminalDevice, port, component, bitRate, modulation);
             //setting the modulation by calling rpc
             state.setModulationRpc(port, component, editConfig);
         }
@@ -162,6 +142,6 @@ public class CassiniModulationOpenConfig<T> extends TerminalDeviceModulationConf
                 log.info("The component content is {}.", component.toString());
         }
 
-        state.cassini = this;
+        state.terminalDevice = this;
     }
 }
