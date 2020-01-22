@@ -15,8 +15,8 @@
 -->
 
 <!-- YANG Model partial HTML -->
-<div id="ov-yang-model">
-<!--     yangfiledrop on-file-drop="yangDropped()">-->
+<div id="ov-yang-model" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
+    <onos-flash id="appMsgFlash" message="{{ alertMsg }}" dwell="5000" warning="true" (closed)="alertMsg = ''"></onos-flash>
     <onos-loading [theme]="'light'" [running]="loadingIconShown"></onos-loading>
     <div class="tabular-header">
         <h2>YANG Models ({{tableData.length}} total)</h2>
@@ -27,16 +27,28 @@
                        [toolTip]="autoRefreshTip"></onos-icon>
             </div>
             <div class="separator"></div>
-
-<!--            <form id="inputYangFileForm">-->
-<!--                <input id="uploadYangFile"-->
-<!--                       type="file" size="50" accept=".zip, *.jar, *.yang"-->
-<!--                       yang-file-model="yangFile">-->
-<!--            </form>-->
             <div class="active"  (click)="triggerForm()">
-                <onos-icon classes="{{ 'active-rect upload' }}" [iconSize]="36"
-                           [iconId]="'nav_yang'" [toolTip]="'Upload a YANG file (.yang)'"></onos-icon>
+                <onos-icon [classes]="'details-icon upload'" [iconSize]="36"
+                           [iconId]="'nav_yang'" [toolTip]="'Upload a YANG file (.zip,.jar,.yang)'"></onos-icon>
             </div>
+            <form #inputYangFileForm="ngForm">
+                <input id="uploadYangFile" hidden
+                       type="file" size="50" accept=".zip,.jar,.yang"
+                       name="yangFile" (change)="fileEvent($event)">
+            </form>
+        </div>
+
+        <div class="search">
+            <input id="searchinput" [(ngModel)]="tableDataFilter.queryStr" type="search" #search placeholder="Search"/>
+            <!--(keyup)="onSearch(search.value)" (search)="onSearch(search.value)"/>-->
+            <select [(ngModel)]="tableDataFilter.queryBy">
+                <!--(change)="onSearchBy($event)" (change)="search.value = ''">-->
+                <option value="" disabled>Search By</option>
+                <option value="$">All Fields</option>
+                <option value="id">ModelId</option>
+                <option value="module">Module</option>
+                <option value="revision">Revision</option>
+            </select>
         </div>
     </div>
 
@@ -44,9 +56,15 @@
         <div class="table-header">
             <table>
                 <tr>
-                    <td colId="modelId">Model ID</td>
-                    <td colId="id">Module</td>
-                    <td colId="revision">Revision</td>
+                    <th colId="modelId" [ngStyle]="{width: '32px'}" class="table-icon" (click)="onSort('modelId')">Model ID
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('modelId')"></onos-icon>
+                    </th>
+                    <th colId="id" [ngStyle]="{width: '32px'}" class="table-icon" (click)="onSort('id')">Module
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('id')"></onos-icon>
+                    </th>
+                    <th colId="revision" [ngStyle]="{width: '32px'}" class="table-icon" (click)="onSort('revision')">Revision
+                        <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('revision')"></onos-icon>
+                    </th>
                 </tr>
             </table>
         </div>
