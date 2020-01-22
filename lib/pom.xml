@@ -919,6 +919,7 @@
                     <logViolationsToConsole>true</logViolationsToConsole>
                     <includeTestSourceDirectory>true</includeTestSourceDirectory>
                     <includeResources>false</includeResources>
+                    <sourceDirectories>${project.build.sourceDirectory}</sourceDirectories>
                 </configuration>
                 <executions>
                     <execution>
