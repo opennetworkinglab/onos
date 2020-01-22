@@ -13,7 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
+import {
+    Component,
+    OnInit,
+    AfterViewInit,
+    OnDestroy,
+    Inject
+} from '@angular/core';
 import { Observable, Subscription, fromEvent } from 'rxjs';
 import * as d3 from 'd3';
 import {
@@ -84,7 +90,8 @@ export class OnosComponent implements OnInit, AfterViewInit, OnDestroy {
         private ks: KeysService,
         public wss: WebSocketService,
         private log: LogService,
-        public onos: OnosService
+        public onos: OnosService,
+        @Inject('Window') private window: any
     ) {
 
 // This is not like onos.js of AngularJS 1.x In this new structure modules are
@@ -97,7 +104,7 @@ export class OnosComponent implements OnInit, AfterViewInit, OnDestroy {
         log.warn('OnosComponent: testing logger.warn()');
         log.error('OnosComponent: testing logger.error()');
 
-        this.wss.createWebSocket(<WsOptions>{ wsport: 8181});
+        this.wss.createWebSocket(<WsOptions>{ wsport: this.window.location.port});
 
         log.debug('OnosComponent constructed');
     }
