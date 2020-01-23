@@ -71,7 +71,7 @@ PROTOCOL_MAP = {
     "//protocols/ovsdb/api:onos-protocols-ovsdb-api": [],
     "//protocols/ovsdb/ctl:onos-protocols-ovsdb-ctl": [],
     "//protocols/p4runtime/api:onos-protocols-p4runtime-api": ["stratum"],
-    "//protocols/p4runtime/model:onos-protocols-p4runtime-model": ["statum"],
+    "//protocols/p4runtime/model:onos-protocols-p4runtime-model": ["stratum"],
     "//protocols/pcep/pcepio:onos-protocols-pcep-pcepio": [],
     "//protocols/pcep/server/api:onos-protocols-pcep-server-api": [],
     "//protocols/pcep/server/ctl:onos-protocols-pcep-server-ctl": [],
