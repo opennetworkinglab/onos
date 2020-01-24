@@ -43,10 +43,7 @@ ng_module(
         "src/lib/**/*.css",
         "src/lib/**/*.html",
     ]),
-    bundle_dts = True,
     entry_point = ":src/public_api.ts",
-    #    tsconfig = "tsconfig.json",
-    generate_ve_shims = True,
     module_name = "gui2-fw-lib",
     tsconfig = "//web/gui2:tsconfig.json",
     deps = [
