@@ -84,6 +84,11 @@ public class GroupsListCommand extends AbstractShellCommand {
     @Completion(GroupTypeCompleter.class)
     private String type = null;
 
+    @Option(name = "-u", aliases = "--unreferenced",
+            description = "Print unreferenced groups only",
+            required = false, multiValued = false)
+    private boolean unreferencedOnly = false;
+
 
     private JsonNode json(Map<Device, List<Group>> sortedGroups) {
         ArrayNode result = mapper().createArrayNode();
@@ -101,6 +106,12 @@ public class GroupsListCommand extends AbstractShellCommand {
         GroupService groupService = get(GroupService.class);
         SortedMap<Device, List<Group>> sortedGroups =
                 getSortedGroups(deviceService, groupService);
+
+        if (referencedOnly && unreferencedOnly) {
+            print("Options -r and -u cannot be used at the same time");
+            return;
+        }
+
         if (outputJson()) {
             print("%s", json(sortedGroups));
         } else {
@@ -136,6 +147,9 @@ public class GroupsListCommand extends AbstractShellCommand {
             if (type != null && !"any".equals(type)) {
                 groupStream = groupStream.filter(g ->
                         g.type().equals(GroupDescription.Type.valueOf(type.toUpperCase())));
+            }
+            if (unreferencedOnly) {
+                groupStream = groupStream.filter(g -> g.referenceCount() == 0);
             }
             sortedGroups.put(d, groupStream.sorted(Comparators.GROUP_COMPARATOR).collect(Collectors.toList()));
         }
