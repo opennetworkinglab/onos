@@ -296,18 +296,6 @@ public interface SegmentRoutingService {
     ImmutableMap<DeviceId, Set<PortNumber>> getDownedPortState();
 
     /**
-     * Returns the associated roles to the mcast groups or to the single
-     * group if mcastIp is present.
-     *
-     * @param mcastIp the group ip
-     * @return the mapping mcastIp-device to mcast role
-     *
-     * @deprecated in 1.12 ("Magpie") release.
-     */
-    @Deprecated
-    Map<McastStoreKey, McastRole> getMcastRoles(IpAddress mcastIp);
-
-    /**
      * Returns the associated roles to the mcast groups.
      *
      * @param mcastIp the group ip
@@ -316,17 +304,6 @@ public interface SegmentRoutingService {
      */
     Map<McastRoleStoreKey, McastRole> getMcastRoles(IpAddress mcastIp,
                                                     ConnectPoint sourcecp);
-
-    /**
-     * Returns the associated paths to the mcast group.
-     *
-     * @param mcastIp the group ip
-     * @return the mapping egress point to mcast path
-     *
-     * @deprecated in 1.12 ("Magpie") release.
-     */
-    @Deprecated
-    Map<ConnectPoint, List<ConnectPoint>> getMcastPaths(IpAddress mcastIp);
 
     /**
      * Returns the associated trees to the mcast group.

@@ -1904,6 +1904,8 @@ public class Ofdpa2GroupHandler {
             removeBucket(chainsToRemove, nextObjective);
         }
 
+        log.trace("Checking mismatch with GroupStore device:{} nextId:{}",
+                  deviceId, nextObjective.id());
         if (bucketsToCreate.isEmpty() && indicesToRemove.isEmpty()) {
             // flowObjective store record is in-sync with nextObjective passed-in
             // Nevertheless groupStore may not be in sync due to bug in the store
@@ -2011,7 +2013,7 @@ public class Ofdpa2GroupHandler {
                 }
             }
         }
-
+        log.trace("Verify done for device:{} nextId:{}", deviceId, nextObjective.id());
         pass(nextObjective);
     }
 

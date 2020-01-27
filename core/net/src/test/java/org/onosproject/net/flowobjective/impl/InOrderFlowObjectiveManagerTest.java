@@ -191,7 +191,7 @@ public class InOrderFlowObjectiveManagerTest {
         mgr = new InOrderFlowObjectiveManager();
         mgr.objTimeoutMs = objTimeoutMs;
         mgr.pipeliners.put(DEV1, pipeliner);
-        mgr.executorService = newFixedThreadPool(4, groupedThreads("foo", "bar"));
+        mgr.installerExecutor = newFixedThreadPool(4, groupedThreads("foo", "bar"));
         mgr.cfgService = createMock(ComponentConfigService.class);
         mgr.deviceService = createMock(DeviceService.class);
         mgr.driverService = createMock(DriverService.class);
