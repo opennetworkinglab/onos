@@ -250,24 +250,6 @@ class McastUtils {
     }
 
     /**
-     * Gets source connect point of given multicast group.
-     *
-     * @param mcastIp multicast IP
-     * @return source connect point or null if not found
-     *
-     * @deprecated in 1.12 ("Magpie") release.
-     */
-    @Deprecated
-    ConnectPoint getSource(IpAddress mcastIp) {
-        McastRoute mcastRoute = srManager.multicastRouteService.getRoutes().stream()
-                .filter(mcastRouteInternal -> mcastRouteInternal.group().equals(mcastIp))
-                .findFirst().orElse(null);
-        return mcastRoute == null ? null : srManager.multicastRouteService.sources(mcastRoute)
-                .stream()
-                .findFirst().orElse(null);
-    }
-
-    /**
      * Gets sources connect points of given multicast group.
      *
      * @param mcastIp multicast IP
