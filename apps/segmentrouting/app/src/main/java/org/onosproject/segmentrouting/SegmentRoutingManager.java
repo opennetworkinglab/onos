@@ -1054,18 +1054,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     @Override
-    public Map<McastStoreKey, McastRole> getMcastRoles(IpAddress mcastIp) {
-        return mcastHandler.getMcastRoles(mcastIp);
-    }
-
-    @Override
     public Map<McastRoleStoreKey, McastRole> getMcastRoles(IpAddress mcastIp, ConnectPoint sourcecp) {
         return mcastHandler.getMcastRoles(mcastIp, sourcecp);
-    }
-
-    @Override
-    public Map<ConnectPoint, List<ConnectPoint>> getMcastPaths(IpAddress mcastIp) {
-        return mcastHandler.getMcastPaths(mcastIp);
     }
 
     @Override
