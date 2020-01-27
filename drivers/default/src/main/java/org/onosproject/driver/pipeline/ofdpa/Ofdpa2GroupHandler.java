@@ -2102,9 +2102,8 @@ public class Ofdpa2GroupHandler {
                     "nextId:{}, nextObjective-size:{} next-size:{} .. correcting",
                     deviceId, nextObjective.id(), nextObjective.next().size(),
                     allActiveKeys.size());
-            List<Integer> otherIndices =
-                    indicesToRemoveFromNextGroup(allActiveKeys, nextObjective,
-                                                 groupService, deviceId);
+            List<Integer> otherIndices = indicesToRemoveFromNextGroup(allActiveKeys, nextObjective,
+                    groupService, deviceId);
             // Filter out the indices not present
             otherIndices = otherIndices.stream()
                     .filter(index -> !indicesToRemove.contains(index))
@@ -2142,11 +2141,12 @@ public class Ofdpa2GroupHandler {
             log.info("removing {} buckets as part of nextId: {} verification",
                      indicesToRemove.size(), nextObjective.id());
             List<Deque<GroupKey>> chainsToRemove = Lists.newArrayList();
-            indicesToRemove.forEach(index -> chainsToRemove
-                                                 .add(allActiveKeys.get(index)));
+            indicesToRemove.forEach(index -> chainsToRemove.add(allActiveKeys.get(index)));
             removeBucket(chainsToRemove, nextObjective);
         }
 
+        log.trace("Checking mismatch with GroupStore device:{} nextId:{}",
+                  deviceId, nextObjective.id());
         if (bucketsToCreate.isEmpty() && indicesToRemove.isEmpty()) {
             // flowObjective store record is in-sync with nextObjective passed-in
             // Nevertheless groupStore may not be in sync due to bug in the store
@@ -2181,8 +2181,7 @@ public class Ofdpa2GroupHandler {
                         if (validChain.size() < 2) {
                             continue;
                         }
-                        GroupKey pointedGroupKey = validChain.stream()
-                                                       .collect(Collectors.toList()).get(1);
+                        GroupKey pointedGroupKey = validChain.stream().collect(Collectors.toList()).get(1);
                         Group pointedGroup = groupService.getGroup(deviceId, pointedGroupKey);
                         if (pointedGroup != null && gidToCheck.equals(pointedGroup.id())) {
                             matches = true;
@@ -2200,9 +2199,8 @@ public class Ofdpa2GroupHandler {
                             + "buckets to remove");
                 } else {
                     GroupBuckets removeBuckets = new GroupBuckets(bucketsToRemove);
-                    groupService.removeBucketsFromGroup(deviceId, topGroupKey,
-                                                        removeBuckets, topGroupKey,
-                                                        nextObjective.appId());
+                    groupService.removeBucketsFromGroup(deviceId, topGroupKey, removeBuckets, topGroupKey,
+                            nextObjective.appId());
                 }
             } else if (actualGroupSize < objGroupSize) {
                 // Group in the device has less chains
@@ -2213,8 +2211,7 @@ public class Ofdpa2GroupHandler {
                     if (validChain.size() < 2) {
                         continue;
                     }
-                    GroupKey pointedGroupKey = validChain.stream()
-                                                   .collect(Collectors.toList()).get(1);
+                    GroupKey pointedGroupKey = validChain.stream().collect(Collectors.toList()).get(1);
                     Group pointedGroup = groupService.getGroup(deviceId, pointedGroupKey);
                     if (pointedGroup == null) {
                         // group should exist, otherwise cannot be added as bucket
@@ -2254,7 +2251,7 @@ public class Ofdpa2GroupHandler {
                 }
             }
         }
-
+        log.trace("Verify done for device:{} nextId:{}", deviceId, nextObjective.id());
         pass(nextObjective);
     }
 
