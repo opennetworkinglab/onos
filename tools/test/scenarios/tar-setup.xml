@@ -14,50 +14,30 @@
   ~ limitations under the License.
   -->
 <scenario name="tar-setup" description="ONOS cluster setup via onos.tar.gz">
-    <group name="Setup-Instances">
-        <step name="Push-Bits" exec="onos-push-bits-through-proxy" if="${OCT}"/>
+    <group name="TAR-Setup">
+        <step name="Push-Bits-Via-Proxy" exec="onos-push-bits-through-proxy" if="${OCT}"/>
+        <step name="Push-Bits" exec="onos-push-bits ${OC1}" unless="${OCT}"/>
 
-        <parallel var="${OC#}">
-            <step name="Push-Bits-${#}" exec="onos-push-bits ${OC#}" unless="${OCT}"/>
-            <step name="Uninstall-${#}" exec="onos-uninstall ${OC#}"/>
-            <step name="Kill-${#}" env="~" exec="onos-kill ${OC#}" requires="Uninstall-${#}"/>
+        <step name="Uninstall" exec="onos-uninstall ${OC1}"/>
+        <step name="Kill" env="~" exec="onos-kill ${OC1}"
+              requires="Uninstall"/>
+        <step name="Untar-And-Run" exec="onos-untar-and-run ${OC1}"
+              requires="Kill,Push-Bits-Via-Proxy,Push-Bits"/>
 
-            <step name="Untar-And-Run-${#}" exec="onos-untar-and-run ${OC#}"
-                  requires="Kill-${#},Push-Bits-${#},Push-Bits"/>
+        <step name="Secure-SSH"
+              exec="onos-secure-ssh -u ${ONOS_WEB_USER} -p ${ONOS_WEB_PASS} ${OC1}"
+              requires="Untar-And-Run"/>
 
-            <step name="Secure-SSH-${#}"
-                  exec="onos-secure-ssh -u ${ONOS_WEB_USER} -p ${ONOS_WEB_PASS} ${OC#}"
-                  requires="Untar-And-Run-${#}"/>
+        <step name="Wait-for-Start" exec="onos-wait-for-start ${OC1}"
+              requires="~Secure-SSH"/>
 
-            <step name="Wait-for-Start-${#}" exec="onos-wait-for-start ${OC#}"
-                  requires="~Secure-SSH-${#}"/>
-
-            <step name="Check-Logs-${#}" exec="onos-check-logs ${OC#}"
-                  requires="~Wait-for-Start-${#}"/>
-            <step name="Check-Components-${#}" exec="onos-check-components ${OC#}"
-                  requires="~Wait-for-Start-${#}"/>
-            <step name="Check-Apps-${#}" exec="onos-check-apps ${OC#} drivers includes"
-                  requires="~Wait-for-Start-${#}"/>
-            <step name="Check-Nodes-${#}" exec="onos-check-nodes ${OC#} ${OC#}"
-                  requires="~Wait-for-Start-${#}"/>
-        </parallel>
+        <step name="Check-Logs" exec="onos-check-logs ${OC1}"
+              requires="~Wait-for-Start"/>
+        <step name="Check-Components" exec="onos-check-components ${OC1}"
+              requires="~Wait-for-Start"/>
+        <step name="Check-Apps" exec="onos-check-apps ${OC1} drivers includes"
+              requires="~Wait-for-Start"/>
+        <step name="Check-Nodes" exec="onos-check-nodes ${OC1} ${OC1}"
+              requires="~Wait-for-Start"/>
     </group>
-
-    <group name="Setup-Cluster" requires="Setup-Instances" unless="${NO_CLUSTER}">
-        <step name="Form-Cluster" exec="onos-form-cluster -u ${ONOS_WEB_USER} -p ${ONOS_WEB_PASS} cell"/>
-        <parallel var="${OC#}">
-            <step name="Wait-for-Start-Again-${#}" exec="onos-wait-for-start ${OC#}"
-                  requires="Form-Cluster"/>
-
-            <step name="Check-Logs-Again-${#}" exec="onos-check-logs ${OC#}"
-                  requires="~Wait-for-Start-Again-${#}"/>
-            <step name="Check-Components-Again-${#}" exec="onos-check-components ${OC#}"
-                  requires="~Wait-for-Start-Again-${#}"/>
-            <step name="Check-Apps-Again-${#}" exec="onos-check-apps ${OC#} drivers includes"
-                  requires="~Wait-for-Start-Again-${#}"/>
-            <step name="Check-Nodes-Again-${#}" exec="onos-check-nodes ${OC#}"
-                  requires="~Wait-for-Start-Again-${#}"/>
-        </parallel>
-    </group>
-
 </scenario>
