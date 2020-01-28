@@ -758,6 +758,7 @@ public final class KryoNamespaces {
                     L3ModificationInstruction.ModArpEthInstruction.class,
                     L3ModificationInstruction.ModArpOpInstruction.class,
                     L3ModificationInstruction.ModArpIPInstruction.class)
+            .register(Instructions.MetadataInstruction.class)
             .build("API");
 
     /**
