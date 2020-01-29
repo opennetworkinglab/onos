@@ -233,7 +233,7 @@ public class NetworkConfigLinksProviderTest {
         provider.deviceService = new TestDeviceManager();
         provider.masterService = new TestMastershipService();
         provider.packetService = new TestPacketService();
-        provider.metadataService = new ClusterMetadataServiceAdapter();
+        provider.clusterMetadataService = new ClusterMetadataServiceAdapter();
         provider.netCfgService = configRegistry;
 
         provider.activate();

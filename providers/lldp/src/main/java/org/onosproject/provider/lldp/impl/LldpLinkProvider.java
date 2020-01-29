@@ -26,6 +26,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -36,6 +37,9 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.onlab.packet.Ethernet;
 import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.cluster.ClusterMetadata;
+import org.onosproject.cluster.ClusterMetadataEvent;
+import org.onosproject.cluster.ClusterMetadataEventListener;
 import org.onosproject.cluster.ClusterMetadataService;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.core.ApplicationId;
@@ -192,6 +196,9 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
     // destination connection point is mastered by this controller instance.
     private final Map<LinkKey, Long> linkTimes = Maps.newConcurrentMap();
 
+    // Cache for clustermetadata
+    private AtomicReference<ClusterMetadata> clusterMetadata = new AtomicReference<>();
+
     private ApplicationId appId;
 
     static final SuppressionRules DEFAULT_RULES
@@ -232,6 +239,7 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
     );
 
     private final InternalConfigListener cfgListener = new InternalConfigListener();
+    private final ClusterMetadataEventListener metadataListener = new InternalClusterMetadataListener();
 
     /**
      * Creates an OpenFlow link provider.
@@ -247,7 +255,7 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
             return defMac;
         }
 
-        String srcMac = ProbedLinkProvider.fingerprintMac(clusterMetadataService.getClusterMetadata());
+        String srcMac = ProbedLinkProvider.fingerprintMac(clusterMetadata.get());
         if (srcMac.equals(defMac)) {
             log.warn("Couldn't generate fingerprint. Using default value {}", defMac);
             return defMac;
@@ -272,6 +280,10 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
             cfg = this.setDefaultSuppressionConfig();
         }
         cfgListener.reconfigureSuppressionRules(cfg);
+        if (clusterMetadataService != null) {
+            clusterMetadataService.addListener(metadataListener);
+            clusterMetadata.set(clusterMetadataService.getClusterMetadata());
+        }
 
         modified(context);
         log.info("Started");
@@ -288,6 +300,9 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
     @Deactivate
     public void deactivate() {
         shuttingDown = true;
+        if (clusterMetadataService != null) {
+            clusterMetadataService.removeListener(metadataListener);
+        }
         cfgRegistry.removeListener(cfgListener);
         factories.forEach(cfgRegistry::unregisterConfigFactory);
 
@@ -886,6 +901,13 @@ public class LldpLinkProvider extends AbstractProvider implements ProbedLinkProv
                     log.trace("Network config reconfigured");
                 }
             });
+        }
+    }
+
+    private class InternalClusterMetadataListener implements ClusterMetadataEventListener {
+        @Override
+        public void event(ClusterMetadataEvent event) {
+            clusterMetadata.set(event.subject());
         }
     }
 }
