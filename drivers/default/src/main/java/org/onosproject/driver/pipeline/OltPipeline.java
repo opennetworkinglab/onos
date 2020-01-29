@@ -256,7 +256,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
     @Override
     public void forward(ForwardingObjective fwd) {
-
+        log.debug("Installing forwarding objective {}", fwd);
         if (checkForMulticast(fwd)) {
             processMulticastRule(fwd);
             return;
@@ -502,18 +502,17 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         VlanId innerVlan = ((VlanIdCriterion) innerVlanCriterion).vlanId();
         Criterion innerVid = Criteria.matchVlanId(innerVlan);
 
-        // Required to differentiate the same match flows
-        // Please note that S tag and S p bit values will be same for the same service - so conflict flows!
-        // Metadata match criteria solves the conflict issue - but not used by the voltha
-        // Maybe - find a better way to solve the above problem
-        Criterion metadata = Criteria.matchMetadata(innerVlan.toShort());
-
-        TrafficSelector outerSelector = buildSelector(inport, metadata, outerVlan, outerPbit, dstMac);
-
         if (innerVlan.toShort() == VlanId.ANY_VALUE) {
+            TrafficSelector outerSelector = buildSelector(inport, outerVlan, outerPbit, dstMac);
             installDownstreamRulesForAnyVlan(fwd, output, outerSelector, buildSelector(inport,
                     Criteria.matchVlanId(VlanId.ANY)));
         } else {
+            // Required to differentiate the same match flows
+            // Please note that S tag and S p bit values will be same for the same service - so conflict flows!
+            // Metadata match criteria solves the conflict issue - but not used by the voltha
+            // Maybe - find a better way to solve the above problem
+            Criterion metadata = Criteria.matchMetadata(innerVlan.toShort());
+            TrafficSelector outerSelector = buildSelector(inport, metadata, outerVlan, outerPbit, dstMac);
             installDownstreamRulesForVlans(fwd, output, outerSelector, buildSelector(inport, innerVid));
         }
     }
@@ -629,7 +628,6 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
             return;
         }
 
-        Pair<Instruction, Instruction> innerPair = vlanOps.remove(0);
         Pair<Instruction, Instruction> outerPair = vlanOps.remove(0);
 
         boolean noneValueVlanStatus = checkNoneVlanCriteria(fwd);
@@ -638,6 +636,8 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         if (anyValueVlanStatus) {
             installUpstreamRulesForAnyVlan(fwd, output, outerPair);
         } else {
+            Pair<Instruction, Instruction> innerPair = outerPair;
+            outerPair = vlanOps.remove(0);
             installUpstreamRulesForVlans(fwd, output, innerPair, outerPair, noneValueVlanStatus);
         }
     }
@@ -724,24 +724,6 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 .withTreatment(buildTreatment(Instructions.transition(QQ_TABLE), fetchMeter(fwd),
                         fetchWriteMetadata(fwd)));
 
-
-        TrafficSelector defaultSelector = DefaultTrafficSelector.builder()
-                .matchInPort(((PortCriterion) fwd.selector().getCriterion(Criterion.Type.IN_PORT)).port())
-                .build();
-
-        //drop the packets that don't have vlan
-        //match: in port
-        //action: no action
-        FlowRule.Builder defaultInner = DefaultFlowRule.builder()
-                .fromApp(fwd.appId())
-                .forDevice(deviceId)
-                .makePermanent()
-                .withPriority(NO_ACTION_PRIORITY)
-                .withSelector(defaultSelector)
-                .withTreatment(DefaultTrafficTreatment.emptyTreatment());
-
-        Instruction qinqInstruction = Instructions.pushVlan(EthType.EtherType.QINQ.ethType());
-
         //match: in port and any-vlan (coming from OLT app.)
         //action: immediate: push:QinQ, vlanId (s-tag), write metadata, meter and output
         FlowRule.Builder outer = DefaultFlowRule.builder()
@@ -751,10 +733,10 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 .makePermanent()
                 .withPriority(fwd.priority())
                 .withSelector(fwd.selector())
-                .withTreatment(buildTreatment(qinqInstruction, outerPair.getRight(),
+                .withTreatment(buildTreatment(outerPair.getLeft(), outerPair.getRight(),
                         fetchMeter(fwd), writeMetadataIncludingOnlyTp(fwd), output));
 
-        applyRules(fwd, inner, defaultInner, outer);
+        applyRules(fwd, inner, outer);
     }
 
     private boolean checkNoneVlanCriteria(ForwardingObjective fwd) {
@@ -774,7 +756,8 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 .findAny().orElse(null);
 
         if (anyValueVlanCriterion == null) {
-            log.debug("Any value vlan match criteria is not found");
+            log.debug("Any value vlan match criteria is not found, criteria {}",
+                      fwd.selector().criteria());
             return false;
         }
 
