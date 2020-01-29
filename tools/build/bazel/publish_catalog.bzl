@@ -33,7 +33,7 @@ def _impl(target, ctx):
             packaging = classifier
             classifier = None
 
-    for f in target.files:
+    for f in target.files.to_list():
         print("%s\t%s" % (f.path, _remote(group_id, artifact_id, version, packaging, classifier)))
     return []
 
