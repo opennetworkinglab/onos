@@ -17,6 +17,9 @@ package org.onosproject.provider.netcfglinks;
 
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.ONOSLLDP;
+import org.onosproject.cluster.ClusterMetadata;
+import org.onosproject.cluster.ClusterMetadataEvent;
+import org.onosproject.cluster.ClusterMetadataEventListener;
 import org.onosproject.cluster.ClusterMetadataService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -64,6 +67,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.onlab.packet.Ethernet.TYPE_BSN;
 import static org.onlab.packet.Ethernet.TYPE_LLDP;
@@ -106,7 +110,7 @@ public class NetworkConfigLinksProvider
     protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    protected ClusterMetadataService metadataService;
+    protected ClusterMetadataService clusterMetadataService;
 
     /** LLDP and BDDP probe rate specified in millis. */
     private int probeRate = PROBE_RATE_DEFAULT;
@@ -132,12 +136,15 @@ public class NetworkConfigLinksProvider
 
     protected Set<LinkKey> configuredLinks = new HashSet<>();
 
+    // Cache for clustermetadata
+    private AtomicReference<ClusterMetadata> clusterMetadata = new AtomicReference<>();
+
     public NetworkConfigLinksProvider() {
         super(new ProviderId("lldp", PROVIDER_NAME));
     }
 
     private String buildSrcMac() {
-        String srcMac = ProbedLinkProvider.fingerprintMac(metadataService.getClusterMetadata());
+        String srcMac = ProbedLinkProvider.fingerprintMac(clusterMetadata.get());
         String defMac = ProbedLinkProvider.defaultMac();
         if (srcMac.equals(defMac)) {
             log.warn("Couldn't generate fingerprint. Using default value {}", defMac);
@@ -152,6 +159,8 @@ public class NetworkConfigLinksProvider
                 .forEach(linkKey -> configuredLinks.add(linkKey));
     }
 
+    private final ClusterMetadataEventListener metadataListener = new InternalClusterMetadataListener();
+
     @Activate
     protected void activate() {
         log.info("Activated");
@@ -160,6 +169,8 @@ public class NetworkConfigLinksProvider
         providerService = providerRegistry.register(this);
         deviceService.addListener(deviceListener);
         netCfgService.addListener(cfgListener);
+        clusterMetadataService.addListener(metadataListener);
+        clusterMetadata.set(clusterMetadataService.getClusterMetadata());
         requestIntercepts();
         loadDevices();
         createLinks();
@@ -171,6 +182,7 @@ public class NetworkConfigLinksProvider
         providerRegistry.unregister(this);
         deviceService.removeListener(deviceListener);
         netCfgService.removeListener(cfgListener);
+        clusterMetadataService.removeListener(metadataListener);
         packetService.removeProcessor(packetProcessor);
         disable();
         log.info("Deactivated");
@@ -279,7 +291,8 @@ public class NetworkConfigLinksProvider
 
         @Override
         public String lldpSecret() {
-            return metadataService.getClusterMetadata().getClusterSecret();
+            return clusterMetadata.get() != null ?
+                    clusterMetadata.get().getClusterSecret() : null;
         }
 
         @Override
@@ -530,6 +543,13 @@ public class NetworkConfigLinksProvider
                 }
                 log.info("Link reconfigured");
             }
+        }
+    }
+
+    private class InternalClusterMetadataListener implements ClusterMetadataEventListener {
+        @Override
+        public void event(ClusterMetadataEvent event) {
+            clusterMetadata.set(event.subject());
         }
     }
 
