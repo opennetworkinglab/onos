@@ -91,6 +91,7 @@ import static org.onosproject.openstacknetworking.api.Constants.DHCP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_DHCP_RULE;
 import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.DHCP_SERVER_MAC;
 import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.DHCP_SERVER_MAC_DEFAULT;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getBroadcastAddr;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -389,8 +390,7 @@ public class OpenstackSwitchingDhcpHandler {
             options.add(doSubnetMask(subnetPrefixLen));
 
             // broadcast address
-            // do not specify broadcast address, let host use default value
-            // options.add(doBroadcastAddr(yourIp, subnetPrefixLen));
+            options.add(doBroadcastAddr(yourIp, subnetPrefixLen));
 
             // domain server
             options.add(doDomainServer(osSubnet));
@@ -452,11 +452,13 @@ public class OpenstackSwitchingDhcpHandler {
         }
 
         private DhcpOption doBroadcastAddr(Ip4Address yourIp, int subnetPrefixLen) {
-            Ip4Address broadcast = Ip4Address.makeMaskedAddress(yourIp, subnetPrefixLen);
+            String broadcast = getBroadcastAddr(yourIp.toString(), subnetPrefixLen);
+
             DhcpOption option = new DhcpOption();
             option.setCode(OptionCode_BroadcastAddress.getValue());
             option.setLength(DHCP_OPTION_DATA_LENGTH);
-            option.setData(broadcast.toOctets());
+            option.setData(IpAddress.valueOf(broadcast).toOctets());
+
             return option;
         }
 

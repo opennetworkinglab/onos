@@ -16,6 +16,7 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + CLI + REST + [
     "@jersey_client//jar",
     "@httpclient_osgi//jar",
     "@httpcore_osgi//jar",
+    "@commons_net//jar",
     "@commons_codec//jar",
     "@openstack4j_core//jar",
     "@openstack4j_http_connector//jar",
