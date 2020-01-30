@@ -386,7 +386,8 @@ public class OpenstackSwitchingDhcpHandler {
             options.add(doSubnetMask(subnetPrefixLen));
 
             // broadcast address
-            options.add(doBroadcastAddr(yourIp, subnetPrefixLen));
+            // do not specify broadcast address, let host use default value
+            // options.add(doBroadcastAddr(yourIp, subnetPrefixLen));
 
             // domain server
             options.add(doDomainServer(osSubnet));
