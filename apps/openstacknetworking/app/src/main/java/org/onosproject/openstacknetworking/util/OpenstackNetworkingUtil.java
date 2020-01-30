@@ -26,6 +26,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.net.util.SubnetUtils;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -1481,6 +1482,19 @@ public final class OpenstackNetworkingUtil {
      */
     public static GroupKey getGroupKey(int groupId) {
         return new DefaultGroupKey((Integer.toString(groupId)).getBytes());
+    }
+
+    /**
+     * Calculate the broadcast address from given IP address and subnet prefix length.
+     *
+     * @param ipAddr        IP address
+     * @param prefixLength  subnet prefix length
+     * @return broadcast address
+     */
+    public static String getBroadcastAddr(String ipAddr, int prefixLength) {
+        String subnet = ipAddr + "/" + prefixLength;
+        SubnetUtils utils = new SubnetUtils(subnet);
+        return utils.getInfo().getBroadcastAddress();
     }
 
     /**
