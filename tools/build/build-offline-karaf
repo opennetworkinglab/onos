@@ -1,5 +1,5 @@
 #!/bin/bash
- 
+
 KARAF_RELEASE_VERSION="4.2.6"
 KARAF_BASE_PACKAGE_VERSION="4.2.6"
 KARAF_TARFILE_NAME="apache-karaf-${KARAF_RELEASE_VERSION}.tar"
@@ -7,7 +7,7 @@ ADDED_BOOT_FEATURES="kar/${KARAF_RELEASE_VERSION},webconsole/${KARAF_RELEASE_VER
 
 # fetch the standard karaf bits
 rm -f /tmp/${KARAF_TARFILE_NAME}
-curl -o /tmp/${KARAF_TARFILE_NAME}.gz http://repo1.maven.org/maven2/org/onosproject/apache-karaf-offline/${KARAF_BASE_PACKAGE_VERSION}/apache-karaf-${KARAF_BASE_PACKAGE_VERSION}.tar.gz
+curl -o /tmp/${KARAF_TARFILE_NAME}.gz https://repo1.maven.org/maven2/org/onosproject/apache-karaf-offline/${KARAF_BASE_PACKAGE_VERSION}/apache-karaf-${KARAF_BASE_PACKAGE_VERSION}.tar.gz
 
 # get a small cell
 source ${ONOS_ROOT}/tools/dev/bash_profile
