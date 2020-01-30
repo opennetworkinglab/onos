@@ -125,6 +125,7 @@
     "commons-lang3": "mvn:org.apache.commons:commons-lang3:3.6",
     "commons-logging": "mvn:commons-logging:commons-logging:1.2",
     "commons-math3": "mvn:org.apache.commons:commons-math3:3.6.1",
+    "commons-net": "mvn:commons-net:commons-net:jar:3.5",
     "commons-pool": "mvn:commons-pool:commons-pool:1.6",
     "commons-text": "mvn:org.apache.commons:commons-text:1.2",
     "commons-beanutils": "mvn:commons-beanutils:commons-beanutils:1.9.2",
