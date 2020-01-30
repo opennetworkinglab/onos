@@ -81,6 +81,7 @@ import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.a
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.associatedFloatingIp;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.checkActivationFlag;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.checkArpMode;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getBroadcastAddr;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getConnectedClient;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getGwByComputeDevId;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getGwByInstancePort;
@@ -497,6 +498,29 @@ public final class OpenstackNetworkingUtilTest {
     public void testCheckActivationFlagWithException() {
         checkActivationFlag("test");
         checkActivationFlag(null);
+    }
+
+    /**
+     * Tests the getBroadcastAddr method.
+     */
+    @Test
+    public void testGetBroadcastAddr() {
+        String ipAddr = "192.168.10.35";
+        int prefix1 = 24;
+        String broadcast1 = getBroadcastAddr(ipAddr, prefix1);
+        assertEquals(broadcast1, "192.168.10.255");
+
+        int prefix2 = 28;
+        String broadcast2 = getBroadcastAddr(ipAddr, prefix2);
+        assertEquals(broadcast2, "192.168.10.47");
+
+        int prefix3 = 32;
+        String broadcast3 = getBroadcastAddr(ipAddr, prefix3);
+        assertEquals(broadcast3, "192.168.10.35");
+
+        int prefix4 = 16;
+        String broadcast4 = getBroadcastAddr(ipAddr, prefix4);
+        assertEquals(broadcast4, "192.168.255.255");
     }
 
     private DeviceId genDeviceId(int index) {
