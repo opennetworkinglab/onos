@@ -1339,28 +1339,28 @@ remote_jar (
 
 remote_jar (
   name = 'openstack4j-core',
-  out = 'openstack4j-core-3.1.0.jar',
-  url = 'mvn:org.pacesys:openstack4j-core:jar:3.1.0',
-  sha1 = '634c2ad6728bb6e4cd91c950dd654aacb6f107a6',
-  maven_coords = 'org.pacesys:openstack4j-core:3.1.0',
+  out = 'openstack4j-core-3.2.0.jar',
+  url = 'mvn:org.pacesys:openstack4j-core:jar:3.2.0',
+  sha1 = '7bcd19461a51b9d9c98fa3b1d3bbc2c4d240aa10',
+  maven_coords = 'org.pacesys:openstack4j-core:3.2.0',
   visibility = [ 'PUBLIC' ],
 )
 
 remote_jar (
   name = 'openstack4j-http-connector',
-  out = 'openstack4j-http-connector-3.1.0.jar',
-  url = 'mvn:org.pacesys.openstack4j.connectors:openstack4j-http-connector:jar:3.1.0',
-  sha1 = '5bbd558313f13daac819bbbe56ae8432e64409d9',
-  maven_coords = 'org.pacesys.openstack4j.connectors:openstack4j-http-connector:3.1.0',
+  out = 'openstack4j-http-connector-3.2.0.jar',
+  url = 'mvn:org.pacesys.openstack4j.connectors:openstack4j-http-connector:jar:3.2.0',
+  sha1 = '1720046848847fd7085f1fc9c3b843461b971e7b',
+  maven_coords = 'org.pacesys.openstack4j.connectors:openstack4j-http-connector:3.2.0',
   visibility = [ 'PUBLIC' ],
 )
 
 remote_jar (
   name = 'openstack4j-httpclient',
-  out = 'openstack4j-httpclient-3.1.0.jar',
-  url = 'mvn:org.pacesys.openstack4j.connectors:openstack4j-httpclient:jar:3.1.0',
-  sha1 = 'acb413e27cc43f4bbcee99300befffcf667de579',
-  maven_coords = 'org.pacesys.openstack4j.connectors:openstack4j-httpclient:3.1.0',
+  out = 'openstack4j-httpclient-3.2.0.jar',
+  url = 'mvn:org.pacesys.openstack4j.connectors:openstack4j-httpclient:jar:3.2.0',
+  sha1 = 'bcfc74aaaaf0f947bd73e25480979ded0e389642',
+  maven_coords = 'org.pacesys.openstack4j.connectors:openstack4j-httpclient:3.2.0',
   visibility = [ 'PUBLIC' ],
 )
 
@@ -1402,10 +1402,10 @@ remote_jar (
 
 remote_jar (
   name = 'snakeyaml',
-  out = 'snakeyaml-1.15.jar',
-  url = 'mvn:org.yaml:snakeyaml:jar:1.15',
-  sha1 = '3b132bea69e8ee099f416044970997bde80f4ea6',
-  maven_coords = 'org.yaml:snakeyaml:1.15',
+  out = 'snakeyaml-1.18.jar',
+  url = 'mvn:org.yaml:snakeyaml:jar:1.18',
+  sha1 = 'e4a441249ade301985cb8d009d4e4a72b85bf68e',
+  maven_coords = 'org.yaml:snakeyaml:1.18',
   visibility = [ 'PUBLIC' ],
 )
 
