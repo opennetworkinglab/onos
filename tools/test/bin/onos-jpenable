@@ -8,7 +8,7 @@
 export JPROFILER_ROOT=${JPROFILER_ROOT:-/opt/jprofiler9}
 
 ssh $ONOS_USER@${1:-$OCI} "
-    pid=\$(ps -ef | grep karaf.jar | grep -v grep | cut -c10-15 | tr -d ' ')
+    pid=\$(ps -ef | grep org.apache.karaf.main.Main | grep -v grep | cut -c10-15 | tr -d ' ')
     if [ -n \"\$pid\" ]; then
         echo \"Enabling profiling for ONOS process \$pid on \$(hostname)...\"
         $JPROFILER_ROOT/bin/jpenable --gui --pid=\$pid --port=8849
