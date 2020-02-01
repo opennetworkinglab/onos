@@ -113,6 +113,8 @@ else
             /at org\.apache\.sshd\.server\.SshServer\.start/ { exclusion = 1; }
             /at org\.apache\.felix\.scr\.impl\.ComponentRegistry\.getComponentHolders/ { exclusion = 1; }
             /at org\.apache\.felix\.framework\.Felix/ { exclusion = 1; }
+            /at org\.apache\.karaf\.util\.tracker\.BaseActivator\.getTrackedService/ { exclusion = 1; }
+
 
         END { exit fail; }
         ' > $aux
