@@ -113,8 +113,6 @@ public class McastHandler {
                 HostId sink = notification.getKey().sinkHost();
                 McastEvent mcastEvent = notification.getValue();
                 RemovalCause cause = notification.getCause();
-                log.debug("mcastEventCache removal event. group={}, sink={}, mcastEvent={}, cause={}",
-                          mcastIp, sink, mcastEvent, cause);
                 // If it expires or it has been replaced, we deque the event - no when evicted
                 switch (notification.getCause()) {
                     case REPLACED:
@@ -317,7 +315,8 @@ public class McastHandler {
                         log.debug("Skip {} for source {} nothing to do", mcastRoute.group(), source);
                         return;
                     }
-                    Map<ConnectPoint, List<Path>> mcasTree = computeSinkMcastTree(source.deviceId(), sinks);
+                    Map<ConnectPoint, List<Path>> mcasTree = computeSinkMcastTree(mcastRoute.group(),
+                                                                                  source.deviceId(), sinks);
                     mcasTree.forEach((sink, paths) -> processSinkAddedInternal(source, sink,
                                                                                mcastRoute.group(), paths));
                 });
@@ -346,7 +345,6 @@ public class McastHandler {
      * @param event McastEvent with SOURCE_ADDED type
      */
     public void processMcastEvent(McastEvent event) {
-        log.info("process {}", event);
         // If it is a route added, we do not enqueue
         if (event.type() == ROUTE_ADDED) {
             processRouteAddedInternal(event.subject().route().group());
@@ -367,14 +365,15 @@ public class McastHandler {
         lastMcastChange = Instant.now();
         mcastLock();
         try {
-            log.debug("Processing sources added {} for group {}", sources, mcastIp);
+            log.info("Processing sources added {} for group {}", sources, mcastIp);
             if (!mcastUtils.isLeader(mcastIp)) {
                 log.debug("Skip {} due to lack of leadership", mcastIp);
                 return;
             }
             sources.forEach(source -> {
                 Set<ConnectPoint> sinksToBeAdded = processSinksToBeAdded(source, mcastIp, sinks);
-                Map<ConnectPoint, List<Path>> mcasTree = computeSinkMcastTree(source.deviceId(), sinksToBeAdded);
+                Map<ConnectPoint, List<Path>> mcasTree = computeSinkMcastTree(mcastIp, source.deviceId(),
+                                                                              sinksToBeAdded);
                 mcasTree.forEach((sink, paths) -> processSinkAddedInternal(source, sink, mcastIp, paths));
             });
         } finally {
@@ -397,12 +396,13 @@ public class McastHandler {
         lastMcastChange = Instant.now();
         mcastLock();
         try {
-            log.debug("Processing sources removed {} for group {}", sourcesToBeRemoved, mcastIp);
+            log.info("Processing sources removed {} for group {}", sourcesToBeRemoved, mcastIp);
             if (!mcastUtils.isLeader(mcastIp)) {
                 log.debug("Skip {} due to lack of leadership", mcastIp);
                 return;
             }
             if (remainingSources.isEmpty()) {
+                log.debug("There are no more sources for {}", mcastIp);
                 processRouteRemovedInternal(sourcesToBeRemoved, mcastIp);
                 return;
             }
@@ -516,7 +516,7 @@ public class McastHandler {
         lastMcastChange = Instant.now();
         mcastLock();
         try {
-            log.debug("Processing route added for group {}", mcastIp);
+            log.info("Processing route added for Multicast group {}", mcastIp);
             // Just elect a new leader
             mcastUtils.isLeader(mcastIp);
         } finally {
@@ -533,7 +533,7 @@ public class McastHandler {
         lastMcastChange = Instant.now();
         mcastLock();
         try {
-            log.debug("Processing route removed for group {}", mcastIp);
+            log.info("Processing route removed for group {}", mcastIp);
             if (!mcastUtils.isLeader(mcastIp)) {
                 log.debug("Skip {} due to lack of leadership", mcastIp);
                 mcastUtils.withdrawLeader(mcastIp);
@@ -584,12 +584,12 @@ public class McastHandler {
         lastMcastChange = Instant.now();
         mcastLock();
         try {
+            log.info("Processing sinks removed for group {} and for sources {}",
+                      mcastIp, sources);
             if (!mcastUtils.isLeader(mcastIp)) {
                 log.debug("Skip {} due to lack of leadership", mcastIp);
                 return;
             }
-            log.debug("Processing sinks removed for group {} and for sources {}",
-                      mcastIp, sources);
             Map<ConnectPoint, Map<ConnectPoint, Optional<Path>>> treesToBeRemoved = Maps.newHashMap();
             Map<ConnectPoint, Set<ConnectPoint>> treesToBeAdded = Maps.newHashMap();
             sources.forEach(source -> {
@@ -630,7 +630,7 @@ public class McastHandler {
         lastMcastChange = Instant.now();
         mcastLock();
         try {
-            log.debug("Processing sink removed {} for group {} and for source {}", sink, mcastIp, source);
+            log.info("Processing sink removed {} for group {} and for source {}", sink, mcastIp, source);
             boolean isLast;
             // When source and sink are on the same device
             if (source.deviceId().equals(sink.deviceId())) {
@@ -684,11 +684,11 @@ public class McastHandler {
         lastMcastChange = Instant.now();
         mcastLock();
         try {
+            log.info("Processing sinks added for group {} and for sources {}", mcastIp, sources);
             if (!mcastUtils.isLeader(mcastIp)) {
                 log.debug("Skip {} due to lack of leadership", mcastIp);
                 return;
             }
-            log.debug("Processing sinks added for group {} and for sources {}", mcastIp, sources);
             sources.forEach(source -> {
                 Set<ConnectPoint> sinksToBeAdded = processSinksToBeAdded(source, mcastIp, newSinks);
                 sinksToBeAdded = Sets.difference(sinksToBeAdded, allPrevSinks);
@@ -711,7 +711,7 @@ public class McastHandler {
         lastMcastChange = Instant.now();
         mcastLock();
         try {
-            log.debug("Processing sink added {} for group {} and for source {}", sink, mcastIp, source);
+            log.info("Processing sink added {} for group {} and for source {}", sink, mcastIp, source);
             // Process the ingress device
             mcastUtils.addFilterToDevice(source.deviceId(), source.port(),
                                          mcastUtils.assignedVlan(source), mcastIp, INGRESS);
@@ -759,16 +759,18 @@ public class McastHandler {
     /**
      * Processes the LINK_DOWN event.
      *
-     * @param affectedLink Link that is going down
+     * @param linkDown Link that is going down
      */
-    public void processLinkDown(Link affectedLink) {
+    public void processLinkDown(Link linkDown) {
         lastMcastChange = Instant.now();
         mcastLock();
         try {
             // Get groups affected by the link down event
-            getAffectedGroups(affectedLink).forEach(mcastIp -> {
-                log.debug("Processing link down {} for group {}", affectedLink, mcastIp);
-                recoverFailure(mcastIp, affectedLink);
+            Set<IpAddress> affectedGroups = getAffectedGroups(linkDown);
+            log.info("Processing link down {} for groups {}", linkDown, affectedGroups);
+            affectedGroups.forEach(mcastIp -> {
+                log.debug("Processing link down {} for group {}", linkDown, mcastIp);
+                recoverFailure(mcastIp, linkDown);
             });
         } finally {
             mcastUnlock();
@@ -785,7 +787,9 @@ public class McastHandler {
         mcastLock();
         try {
             // Get the mcast groups affected by the device going down
-            getAffectedGroups(deviceDown).forEach(mcastIp -> {
+            Set<IpAddress> affectedGroups = getAffectedGroups(deviceDown);
+            log.info("Processing device down {} for groups {}", deviceDown, affectedGroups);
+            affectedGroups.forEach(mcastIp -> {
                 log.debug("Processing device down {} for group {}", deviceDown, mcastIp);
                 recoverFailure(mcastIp, deviceDown);
             });
@@ -817,7 +821,7 @@ public class McastHandler {
         // If sinks are in the same leaf, we have just ingress and source
         Set<DeviceId> ingressDevices = getDevice(mcastIp, INGRESS);
         if (ingressDevices.isEmpty()) {
-            log.warn("Missing ingress devices for group {}", ingressDevices, mcastIp);
+            log.warn("Missing ingress devices for group {}", mcastIp);
             return;
         }
         // For each tree, delete ingress-transit part
@@ -846,7 +850,7 @@ public class McastHandler {
                 return;
             }
             Set<DeviceId> egressDevices = getDevice(mcastIp, EGRESS, source);
-            Map<DeviceId, List<Path>> mcastTree = computeMcastTree(ingressDevice, egressDevices);
+            Map<DeviceId, List<Path>> mcastTree = computeMcastTree(mcastIp, ingressDevice, egressDevices);
             // We have to verify, if there are egresses without paths
             mcastTree.forEach((egressDevice, paths) -> {
                 Optional<Path> mcastPath = getPath(ingressDevice, egressDevice,
@@ -924,7 +928,7 @@ public class McastHandler {
         Set<DeviceId> copyNewEgressDevices = ImmutableSet.copyOf(newEgressDevices);
         newEgressDevices = newEgressDevices.stream()
                 .filter(deviceId -> !deviceId.equals(ingressDevice)).collect(Collectors.toSet());
-        Map<DeviceId, List<Path>> mcastTree = computeMcastTree(ingressDevice, newEgressDevices);
+        Map<DeviceId, List<Path>> mcastTree = computeMcastTree(mcastIp, ingressDevice, newEgressDevices);
         // if the source was originally in the new locations, add new sinks
         if (copyNewEgressDevices.contains(ingressDevice)) {
             sinksToBeAdded.stream()
@@ -963,6 +967,8 @@ public class McastHandler {
                                                       Map<HostId, Set<ConnectPoint>> newSinks,
                                                       ConnectPoint source) {
         final Set<ConnectPoint> sinksToBeProcessed = Sets.newHashSet();
+        log.debug("Processing sinks to be removed for Multicast group {}, source {}",
+                  mcastIp, source);
         prevsinks.forEach(((hostId, connectPoints) -> {
             // We have to check with the existing flows
             ConnectPoint sinkToBeProcessed = connectPoints.stream()
@@ -994,6 +1000,8 @@ public class McastHandler {
                                                         Map<HostId, Set<ConnectPoint>> prevSinks,
                                                         ConnectPoint source) {
         final Set<ConnectPoint> sinksToBeProcessed = Sets.newHashSet();
+        log.debug("Processing sinks to be recovered for Multicast group {}, source {}",
+                  mcastIp, source);
         newSinks.forEach((hostId, connectPoints) -> {
             // If it has more than 1 locations
             if (connectPoints.size() > 1 || connectPoints.size() == 0) {
@@ -1027,6 +1035,8 @@ public class McastHandler {
     private Set<ConnectPoint> processSinksToBeAdded(ConnectPoint source, IpAddress mcastIp,
                                                     Map<HostId, Set<ConnectPoint>> sinks) {
         final Set<ConnectPoint> sinksToBeProcessed = Sets.newHashSet();
+        log.debug("Processing sinks to be added for Multicast group {}, source {}",
+                  mcastIp, source);
         sinks.forEach(((hostId, connectPoints) -> {
             // If it has more than 2 locations
             if (connectPoints.size() > 2 || connectPoints.size() == 0) {
@@ -1171,7 +1181,7 @@ public class McastHandler {
             // Stop if the port is already in the nextobj
             Set<PortNumber> existingPorts = mcastUtils.getPorts(nextObj.next());
             if (existingPorts.contains(port)) {
-                log.info("NextObj for {}/{} already exists. Abort", deviceId, port);
+                log.debug("Port {}/{} already exists for {}. Abort", deviceId, port, mcastIp);
                 return;
             }
             // Let's add the port and reuse the previous one
@@ -1226,7 +1236,7 @@ public class McastHandler {
         // This port does not serve this multicast group
         if (!existingPorts.contains(port)) {
             if (!existingPorts.isEmpty()) {
-                log.warn("{} is not serving {} on port {}. Abort.", deviceId, mcastIp, port);
+                log.debug("{} is not serving {} on port {}. Abort.", deviceId, mcastIp, port);
                 return false;
             }
             return true;
@@ -1281,7 +1291,7 @@ public class McastHandler {
         McastStoreKey mcastStoreKey = new McastStoreKey(mcastIp, deviceId, assignedVlan);
         // This device is not serving this multicast group
         if (!mcastNextObjStore.containsKey(mcastStoreKey)) {
-            log.warn("{} is not serving {}. Abort.", deviceId, mcastIp);
+            log.debug("{} is not serving {}. Abort.", deviceId, mcastIp);
             return;
         }
         NextObjective nextObj = mcastNextObjStore.get(mcastStoreKey).value();
@@ -1392,16 +1402,18 @@ public class McastHandler {
     /**
      * Build Mcast tree having as root the given source and as leaves the given egress points.
      *
+     * @param mcastIp multicast group
      * @param source source of the tree
      * @param sinks leaves of the tree
      * @return the computed Mcast tree
      */
-    private Map<ConnectPoint, List<Path>> computeSinkMcastTree(DeviceId source,
+    private Map<ConnectPoint, List<Path>> computeSinkMcastTree(IpAddress mcastIp,
+                                                               DeviceId source,
                                                                Set<ConnectPoint> sinks) {
         // Get the egress devices, remove source from the egress if present
         Set<DeviceId> egresses = sinks.stream().map(ConnectPoint::deviceId)
                 .filter(deviceId -> !deviceId.equals(source)).collect(Collectors.toSet());
-        Map<DeviceId, List<Path>> mcastTree = computeMcastTree(source, egresses);
+        Map<DeviceId, List<Path>> mcastTree = computeMcastTree(mcastIp, source, egresses);
         final Map<ConnectPoint, List<Path>> finalTree = Maps.newHashMap();
         // We need to put back the source if it was originally present
         sinks.forEach(sink -> {
@@ -1414,12 +1426,16 @@ public class McastHandler {
     /**
      * Build Mcast tree having as root the given source and as leaves the given egress.
      *
+     * @param mcastIp multicast group
      * @param source source of the tree
      * @param egresses leaves of the tree
      * @return the computed Mcast tree
      */
-    private Map<DeviceId, List<Path>> computeMcastTree(DeviceId source,
+    private Map<DeviceId, List<Path>> computeMcastTree(IpAddress mcastIp,
+                                                       DeviceId source,
                                                        Set<DeviceId> egresses) {
+        log.debug("Computing tree for Multicast group {}, source {} and leafs {}",
+                  mcastIp, source, egresses);
         // Pre-compute all the paths
         Map<DeviceId, List<Path>> availablePaths = Maps.newHashMap();
         egresses.forEach(egress -> availablePaths.put(egress, getPaths(source, egress,
@@ -1444,7 +1460,7 @@ public class McastHandler {
         final Topology currentTopology = topologyService.currentTopology();
         final LinkWeigher linkWeigher = new SRLinkWeigher(srManager, src, linksToEnforce);
         List<Path> allPaths = Lists.newArrayList(topologyService.getPaths(currentTopology, src, dst, linkWeigher));
-        log.debug("{} path(s) found from {} to {}", allPaths.size(), src, dst);
+        log.trace("{} path(s) found from {} to {}", allPaths.size(), src, dst);
         return allPaths;
     }
 
@@ -1510,7 +1526,7 @@ public class McastHandler {
             }
         }
         if (eligiblePaths.isEmpty()) {
-            log.debug("No eligiblePath(s) found from {} to {}", src, dst);
+            log.trace("No eligiblePath(s) found from {} to {}", src, dst);
             Collections.shuffle(allPaths);
             return allPaths.stream().findFirst();
         }
@@ -1518,7 +1534,7 @@ public class McastHandler {
         Integer bestIndex = eligiblePaths.keySet().stream()
                 .sorted(Comparator.reverseOrder()).findFirst().orElse(null);
         List<Path> bestPaths = eligiblePaths.get(bestIndex);
-        log.debug("{} eligiblePath(s) found from {} to {}",
+        log.trace("{} eligiblePath(s) found from {} to {}",
                   bestPaths.size(), src, dst);
         Collections.shuffle(bestPaths);
         return bestPaths.stream().findFirst();

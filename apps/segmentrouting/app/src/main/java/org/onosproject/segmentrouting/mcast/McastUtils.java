@@ -41,7 +41,6 @@ import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.criteria.Criteria;
-import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.flow.instructions.Instructions;
 import org.onosproject.net.flowobjective.DefaultFilteringObjective;
 import org.onosproject.net.flowobjective.DefaultForwardingObjective;
@@ -63,7 +62,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.onosproject.net.flow.criteria.Criterion.Type.VLAN_VID;
 import static org.onosproject.segmentrouting.SegmentRoutingManager.INTERNAL_VLAN;
 
 /**
@@ -184,16 +182,6 @@ class McastUtils {
                         log.warn("Failed to remove filter on {}/{}, vlan {}: {}",
                                  deviceId, port.toLong(), assignedVlan, error));
         srManager.flowObjectiveService.filter(deviceId, filtObjBuilder.remove(context));
-    }
-
-    /**
-     * Gets assigned VLAN according to the value in the meta.
-     *
-     * @param nextObjective nextObjective to analyze
-     * @return assigned VLAN ID
-     */
-    VlanId assignedVlanFromNext(NextObjective nextObjective) {
-        return ((VlanIdCriterion) nextObjective.meta().getCriterion(VLAN_VID)).vlanId();
     }
 
     /**
@@ -489,6 +477,8 @@ class McastUtils {
                                  Map<ConnectPoint, List<ConnectPoint>> mcastPaths,
                                  List<ConnectPoint> currentPath, IpAddress mcastIp,
                                  ConnectPoint source) {
+        log.debug("Building Multicast paths recursively for {} - next device to visit is {}",
+                  mcastIp, toVisit);
         // If we have visited the node to visit there is a loop
         if (visited.contains(toVisit)) {
             return;
