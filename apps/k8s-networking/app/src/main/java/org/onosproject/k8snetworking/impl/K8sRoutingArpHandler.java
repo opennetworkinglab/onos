@@ -124,7 +124,7 @@ public class K8sRoutingArpHandler {
             IpAddress spa = Ip4Address.valueOf(arp.getSenderProtocolAddress());
             MacAddress sha = MacAddress.valueOf(arp.getSenderHardwareAddress());
 
-            log.info("ARP reply from external gateway ip: {}, mac: {}", spa, sha);
+            log.info("ARP reply from ip: {}, mac: {}", spa, sha);
 
             Set<IpAddress> gatewayIps = k8sNodeService.completeNodes().stream()
                     .map(K8sNode::extGatewayIp).collect(Collectors.toSet());
@@ -132,6 +132,8 @@ public class K8sRoutingArpHandler {
             if (!gatewayIps.contains(spa)) {
                 return;
             }
+
+            log.info("ARP reply from external gateway ip: {}, mac: {}", spa, sha);
 
             k8sNodeService.completeNodes().stream()
                     .filter(n -> n.extGatewayMac() == null)

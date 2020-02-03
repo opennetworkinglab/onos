@@ -287,8 +287,9 @@ public class K8sRoutingSnatHandler {
                     .extension(buildMoveEthSrcToDstExtension(device), device.id())
                     .extension(buildMoveArpShaToThaExtension(device), device.id())
                     .extension(buildMoveArpSpaToTpaExtension(device), device.id())
-                    .setArpSpa(Ip4Address.valueOf(k8sNode.extBridgeIp().toString()))
+                    .setEthSrc(k8sNode.extBridgeMac())
                     .setArpSha(k8sNode.extBridgeMac())
+                    .setArpSpa(Ip4Address.valueOf(k8sNode.extBridgeIp().toString()))
                     .setOutput(PortNumber.IN_PORT)
                     .build();
 
