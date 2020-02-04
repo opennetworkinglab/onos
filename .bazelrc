@@ -3,10 +3,7 @@ build --host_force_python=PY2
 build --nouse_ijars
 build --experimental_strict_action_env
 
-# io_bazel_rules_go needs this
-build --incompatible_disable_deprecated_attr_params=false
 # intellij-bazel plugin needs this
-build --incompatible_depset_is_not_iterable=false
 build --incompatible_new_actions_api=false
 build --incompatible_generated_protos_in_virtual_imports=false
 build --incompatible_depset_union=false
