@@ -10,7 +10,8 @@ KARAF_TAR=$2
 ONOS_VERSION=$3
 BRANDING=$4
 KARAF_PATCHES=$5
-SANDBOX=${6:-.}
+LOG4J2_EXTRA=$6
+SANDBOX=${7:-.}
 
 KARAF_VERSION="4.2.8"
 ONOS_SECURITY_MODE="false"
@@ -55,8 +56,16 @@ cp -r $SANDBOX/runtime/bin/* $PREFIX/bin/
 cp -r $SANDBOX/init $PREFIX
 cp -r $SANDBOX/etc/* $PREFIX/$KARAF_DIR/etc/
 
+ONOS_VERSION_POINT=$(echo ${ONOS_VERSION} | sed -E 's/-/./')
+
 # Fix the onos version string in the features config
 sed -i".VERBACK" -E "s/.ONOS_VERSION/${ONOS_VERSION}/" $PREFIX/$KARAF_DIR/etc/org.apache.karaf.features.cfg
+# Fix onos version in startup properties
+sed -i".VERBACK" "s/.ONOS_VERSION/${ONOS_VERSION_POINT}/" $PREFIX/$KARAF_DIR/etc/startup.properties
+
+# Add log4j2-extra Bundle
+mkdir -p $PREFIX/$KARAF_DIR/system/org/onosproject/onos-log4j2-extra/$ONOS_VERSION_POINT/
+cp $LOG4J2_EXTRA $PREFIX/$KARAF_DIR/system/org/onosproject/onos-log4j2-extra/$ONOS_VERSION_POINT/onos-log4j2-extra-$ONOS_VERSION_POINT.jar
 
 if [ "$ONOS_SECURITY_MODE" = true ]
 then

@@ -86,9 +86,11 @@ public class OSGiWrapper {
     private String bundleClasspath;
     private String karafCommands;
 
+    private String fragmentHost;
+
     // FIXME should consider using Commons CLI, etc.
     public static void main(String[] args) {
-        if (args.length < 14) {
+        if (args.length < 17) {
             System.err.println("Not enough args");
             System.exit(1);
         }
@@ -109,7 +111,8 @@ public class OSGiWrapper {
         String destdir = args[13];
         String bundleClasspath = args[14];
         String karafCommands = args[15];
-        String desc = Joiner.on(' ').join(Arrays.copyOfRange(args, 12, args.length));
+        String fragmentHost = args[16];
+        String desc = Joiner.on(' ').join(Arrays.copyOfRange(args, 17, args.length));
 
         OSGiWrapper wrapper = new OSGiWrapper(jar, output, cp,
                 name, group,
@@ -122,7 +125,8 @@ public class OSGiWrapper {
                 desc,
                 destdir,
                 bundleClasspath,
-                karafCommands);
+                karafCommands,
+                fragmentHost);
         wrapper.log(wrapper + "\n");
         if (!wrapper.execute()) {
             System.err.printf("Error generating %s\n", name);
@@ -147,7 +151,8 @@ public class OSGiWrapper {
                        String bundleDescription,
                        String destdir,
                        String bundleClasspath,
-                       String karafCommands) {
+                       String karafCommands,
+                       String fragmentHost) {
         this.inputJar = inputJar;
         this.classpath = Lists.newArrayList(classpath.split(":"));
         if (!this.classpath.contains(inputJar)) {
@@ -179,6 +184,8 @@ public class OSGiWrapper {
 
         this.bundleClasspath = bundleClasspath;
         this.karafCommands = karafCommands;
+
+        this.fragmentHost = fragmentHost;
     }
 
     private void setProperties(Analyzer analyzer) {
@@ -214,6 +221,8 @@ public class OSGiWrapper {
                     ",org.glassfish.jersey.servlet,org.jvnet.mimepull\n");
         }
         analyzer.setProperty("Karaf-Commands", karafCommands);
+
+        analyzer.setProperty(Analyzer.FRAGMENT_HOST, fragmentHost);
     }
 
     public boolean execute() {

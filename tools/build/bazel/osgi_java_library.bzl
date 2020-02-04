@@ -85,6 +85,7 @@ def _bnd_impl(ctx):
     web_xml = ctx.attr.web_xml
     dynamicimportPackages = ""
     karaf_commands = ctx.attr.karaf_commands
+    fragment_host = ctx.attr.fragment_host
     cp = ""
 
     inputDependencies = [input_file]
@@ -122,6 +123,7 @@ def _bnd_impl(ctx):
         "classes",
         bundle_classpath,
         karaf_commands,
+        fragment_host,
     ]
 
     ctx.actions.run(
@@ -155,6 +157,7 @@ _bnd = rule(
         "web_xml": attr.label_list(allow_files = True),
         "include_resources": attr.string(),
         "karaf_commands": attr.string(),
+        "fragment_host": attr.string(),
         "_bnd_exe": attr.label(
             executable = True,
             cfg = "host",
@@ -366,7 +369,8 @@ def wrapped_osgi_jar(
         group = "org.onosproject",
         import_packages = "*",
         visibility = ["//visibility:private"],
-        generate_pom = False):
+        generate_pom = False,
+        fragment_host = ""):
     _bnd(
         name = name,
         source = jar,
@@ -376,6 +380,7 @@ def wrapped_osgi_jar(
         visibility = visibility,
         import_packages = import_packages,
         web_xml = None,
+        fragment_host = fragment_host,
     )
 
     if generate_pom:

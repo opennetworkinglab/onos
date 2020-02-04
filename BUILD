@@ -16,12 +16,15 @@ KARAF = "@apache_karaf//:apache_karaf"
 
 BRANDING = "//tools/package/branding:onos-tools-package-branding"
 
+LOG4J_EXTRA = "//tools/package/log4j2-extra:onos-log4j2-extra"
+
 # Generates auxiliary karaf.zip file; branded and augmented with ONOS runtime tools
 genrule(
     name = "onos-karaf",
     srcs = [
         KARAF,
         BRANDING,
+        LOG4J_EXTRA,
     ] + glob([
         "tools/package/bin/*",
         "tools/package/etc/*",
@@ -29,8 +32,8 @@ genrule(
         "tools/package/runtime/bin/*",
     ]),
     outs = ["karaf.zip"],
-    cmd = "$(location tools/package/onos-prep-karaf) $(location karaf.zip) $(location %s) %s $(location %s) '' tools/package" %
-          (KARAF, ONOS_VERSION, BRANDING),
+    cmd = "$(location tools/package/onos-prep-karaf) $(location karaf.zip) $(location %s) %s $(location %s) '' $(location %s) tools/package" %
+          (KARAF, ONOS_VERSION, BRANDING, LOG4J_EXTRA),
     tools = ["tools/package/onos-prep-karaf"],
 )
 

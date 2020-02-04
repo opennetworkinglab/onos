@@ -28,6 +28,7 @@ DEPS = [
     "@org_apache_karaf_shell_console//jar",
     "@org_osgi_cmpn//jar",
     "@jersey_container_servlet//jar",
+    "@kafka_clients//jar",
 ]
 
 # Listed in the <dependencies> section with scope 'provided'
