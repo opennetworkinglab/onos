@@ -55,11 +55,11 @@ import static org.apache.kafka.clients.producer.ProducerConfig.BOOTSTRAP_SERVERS
 import static org.apache.kafka.clients.producer.ProducerConfig.BUFFER_MEMORY_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.LINGER_MS_CONFIG;
-import static org.apache.kafka.clients.producer.ProducerConfig.METADATA_FETCH_TIMEOUT_CONFIG;
+import static org.apache.kafka.clients.producer.ProducerConfig.MAX_BLOCK_MS_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.RECONNECT_BACKOFF_MS_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.RETRIES_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.RETRY_BACKOFF_MS_CONFIG;
-import static org.apache.kafka.clients.producer.ProducerConfig.TIMEOUT_CONFIG;
+import static org.apache.kafka.clients.producer.ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG;
 import static org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG;
 import static org.onosproject.openstacktelemetry.api.Constants.KAFKA_SCHEME;
 import static org.onosproject.openstacktelemetry.api.config.TelemetryConfig.ConfigType.KAFKA;
@@ -206,8 +206,8 @@ public class KafkaTelemetryManager extends AbstractWebResource
             prop.put(BUFFER_MEMORY_CONFIG, kafkaConfig.memoryBuffer());
             prop.put(KEY_SERIALIZER_CLASS_CONFIG, kafkaConfig.keySerializer());
             prop.put(VALUE_SERIALIZER_CLASS_CONFIG, kafkaConfig.valueSerializer());
-            prop.put(METADATA_FETCH_TIMEOUT_CONFIG, METADATA_FETCH_TIMEOUT_VAL);
-            prop.put(TIMEOUT_CONFIG, TIMEOUT_VAL);
+            prop.put(MAX_BLOCK_MS_CONFIG, METADATA_FETCH_TIMEOUT_VAL);
+            prop.put(REQUEST_TIMEOUT_MS_CONFIG, TIMEOUT_VAL);
             prop.put(RETRY_BACKOFF_MS_CONFIG, RETRY_BACKOFF_MS_VAL);
             prop.put(RECONNECT_BACKOFF_MS_CONFIG, RECONNECT_BACKOFF_MS_VAL);
 
