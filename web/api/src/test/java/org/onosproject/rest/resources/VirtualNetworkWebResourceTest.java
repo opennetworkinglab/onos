@@ -60,6 +60,7 @@ import org.onosproject.net.NetTestTools;
 import org.onosproject.net.PortNumber;
 
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
@@ -490,6 +491,8 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
             fail("POST of null virtual network did not throw an exception");
         } catch (BadRequestException ex) {
             assertThat(ex.getMessage(), containsString("HTTP 400 Bad Request"));
+        } catch (InternalServerErrorException ex) {
+            assertThat(ex.getMessage(), containsString("HTTP 500 Internal Server Error"));
         }
 
         verify(mockVnetAdminService);
@@ -663,6 +666,8 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
             fail("POST of null virtual device did not throw an exception");
         } catch (BadRequestException ex) {
             assertThat(ex.getMessage(), containsString("HTTP 400 Bad Request"));
+        } catch (InternalServerErrorException ex) {
+            assertThat(ex.getMessage(), containsString("HTTP 500 Internal Server Error"));
         }
 
         verify(mockVnetAdminService);
@@ -827,6 +832,8 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
             fail("POST of null virtual port did not throw an exception");
         } catch (BadRequestException ex) {
             assertThat(ex.getMessage(), containsString("HTTP 400 Bad Request"));
+        } catch (InternalServerErrorException ex) {
+            assertThat(ex.getMessage(), containsString("HTTP 500 Internal Server Error"));
         }
 
         verify(mockVnetAdminService);
@@ -1034,6 +1041,8 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
             fail("POST of null virtual link did not throw an exception");
         } catch (BadRequestException ex) {
             assertThat(ex.getMessage(), containsString("HTTP 400 Bad Request"));
+        } catch (InternalServerErrorException ex) {
+            assertThat(ex.getMessage(), containsString("HTTP 500 Internal Server Error"));
         }
 
         verify(mockVnetAdminService);
@@ -1237,6 +1246,8 @@ public class VirtualNetworkWebResourceTest extends ResourceTest {
             fail("POST of null virtual host did not throw an exception");
         } catch (BadRequestException ex) {
             assertThat(ex.getMessage(), containsString("HTTP 400 Bad Request"));
+        } catch (InternalServerErrorException ex) {
+            assertThat(ex.getMessage(), containsString("HTTP 500 Internal Server Error"));
         }
 
         verify(mockVnetAdminService);

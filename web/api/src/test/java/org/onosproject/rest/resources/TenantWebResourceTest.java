@@ -34,6 +34,7 @@ import org.onosproject.incubator.net.virtual.TenantId;
 import org.onosproject.incubator.net.virtual.VirtualNetworkAdminService;
 
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
@@ -276,6 +277,8 @@ public class TenantWebResourceTest extends ResourceTest {
             fail("POST of null tenant id did not throw an exception");
         } catch (BadRequestException ex) {
             assertThat(ex.getMessage(), containsString("HTTP 400 Bad Request"));
+        } catch (InternalServerErrorException ex) {
+            assertThat(ex.getMessage(), containsString("HTTP 500 Internal Server Error"));
         }
 
         verify(mockVnetAdminService);

@@ -34,6 +34,7 @@ import org.onosproject.net.key.DeviceKeyId;
 import org.onosproject.net.key.DeviceKeyService;
 
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
@@ -393,6 +394,8 @@ public class DeviceKeyWebResourceTest extends ResourceTest {
             fail("POST of null device key did not throw an exception");
         } catch (BadRequestException ex) {
             assertThat(ex.getMessage(), containsString("HTTP 400 Bad Request"));
+        } catch (InternalServerErrorException ex) {
+            assertThat(ex.getMessage(), containsString("HTTP 500 Internal Server Error"));
         }
 
         verify(mockDeviceKeyAdminService);
