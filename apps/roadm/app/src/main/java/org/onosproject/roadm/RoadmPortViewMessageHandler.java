@@ -30,6 +30,7 @@ import org.onosproject.net.ModulationScheme;
 import org.onosproject.net.OchSignal;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.behaviour.BitErrorRateState;
 import org.onosproject.net.behaviour.PowerConfig;
 import org.onosproject.net.behaviour.protection.ProtectedTransportEndpointState;
 import org.onosproject.net.behaviour.protection.TransportEndpointState;
@@ -94,11 +95,15 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
     private static final String TARGET_POWER = "targetPower";
     private static final String MODULATION = "modulation";
     private static final String HAS_TARGET_POWER = "hasTargetPower";
+    private static final String PRE_FEC_BER = "preFecBitErrorRate";
+    private static final String POST_FEC_BER = "postFecBitErrorRate";
     private static final String SERVICE_STATE = "serviceState";
+
 
     private static final String[] COLUMN_IDS = {
             ID, REVERSE_PORT, TYPE, NAME, ENABLED, MIN_FREQ, MAX_FREQ, GRID, CURR_FREQ, POWER_RANGE,
-            CURRENT_POWER, CURRENT_INPUT_POWER, SERVICE_STATE, TARGET_POWER, MODULATION, HAS_TARGET_POWER
+            CURRENT_POWER, CURRENT_INPUT_POWER, SERVICE_STATE, TARGET_POWER, MODULATION, HAS_TARGET_POWER,
+            PRE_FEC_BER, POST_FEC_BER
     };
 
     private RoadmService roadmService;
@@ -172,7 +177,9 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
                     .cell(SERVICE_STATE, getPortServiceState(deviceId, portNum))
                     .cell(MODULATION, getModulation(deviceId, portNum))
                     .cell(TARGET_POWER, getTargetPower(deviceId, portNum))
-                    .cell(HAS_TARGET_POWER, roadmService.hasPortTargetPower(deviceId, portNum));
+                    .cell(HAS_TARGET_POWER, roadmService.hasPortTargetPower(deviceId, portNum))
+                    .cell(PRE_FEC_BER, getPreFecBer(deviceId, portNum))
+                    .cell(POST_FEC_BER, getPostFecBer(deviceId, portNum));
         }
 
         private String getPortServiceState(DeviceId deviceId, PortNumber portNumber) {
@@ -236,6 +243,28 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
                 inputPowerVal = currentInputPower.orElse(Double.MIN_VALUE);
             }
             return RoadmUtil.objectToString(inputPowerVal, RoadmUtil.UNKNOWN);
+        }
+
+        // Returns the current input power as a string, Unknown if no value can be found.
+        private String getPreFecBer(DeviceId deviceId, PortNumber portNumber) {
+            BitErrorRateState bitErrorRateState = deviceService.getDevice(deviceId).as(BitErrorRateState.class);
+            Optional<Double> preFecBer = bitErrorRateState.getPreFecBer(deviceId, portNumber);
+            Double preFecBerVal = null;
+            if (preFecBer.isPresent()) {
+                preFecBerVal = preFecBer.orElse(Double.MIN_VALUE);
+            }
+            return RoadmUtil.objectToString(preFecBerVal, RoadmUtil.UNKNOWN);
+        }
+
+        // Returns the current input power as a string, Unknown if no value can be found.
+        private String getPostFecBer(DeviceId deviceId, PortNumber portNumber) {
+            BitErrorRateState bitErrorRateState = deviceService.getDevice(deviceId).as(BitErrorRateState.class);
+            Optional<Double> postFecBer = bitErrorRateState.getPostFecBer(deviceId, portNumber);
+            Double postFecBerVal = null;
+            if (postFecBer.isPresent()) {
+                postFecBerVal = postFecBer.orElse(Double.MIN_VALUE);
+            }
+            return RoadmUtil.objectToString(postFecBerVal, RoadmUtil.UNKNOWN);
         }
 
         // Returns target power as a string, Unknown if target power is expected but
