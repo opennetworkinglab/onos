@@ -522,10 +522,10 @@ remote_jar (
 
 remote_jar (
   name = 'okio',
-  out = 'okio-1.11.0.jar',
-  url = 'mvn:com.squareup.okio:okio:jar:1.11.0',
-  sha1 = '840897fcd7223a8143f1d9b6f69714e7be34fd50',
-  maven_coords = 'com.squareup.okio:okio:jar:NON-OSGI:1.11.0',
+  out = 'okio-1.14.0.jar',
+  url = 'mvn:com.squareup.okio:okio:jar:1.14.0',
+  sha1 = '102d7be47241d781ef95f1581d414b0943053130',
+  maven_coords = 'com.squareup.okio:okio:jar:NON-OSGI:1.14.0',
   visibility = [ 'PUBLIC' ],
 )
 
