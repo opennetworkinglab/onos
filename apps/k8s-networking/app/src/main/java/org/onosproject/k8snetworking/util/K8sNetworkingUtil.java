@@ -52,7 +52,6 @@ import org.onosproject.net.group.GroupKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -176,8 +175,6 @@ public final class K8sNetworkingUtil {
             log.debug("JsonMappingException", e);
         } catch (JsonProcessingException e) {
             log.debug("JsonProcessingException", e);
-        } catch (IOException e) {
-            log.debug("IOException", e);
         }
         return null;
     }
