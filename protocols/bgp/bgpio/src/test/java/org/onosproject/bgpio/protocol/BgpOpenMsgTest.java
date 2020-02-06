@@ -24,6 +24,10 @@ import org.onosproject.bgpio.types.BgpHeader;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.core.Is.is;
+import org.onosproject.bgpio.types.BgpValueType;
+import org.onosproject.bgpio.types.MultiProtocolExtnCapabilityTlv;
+import java.util.List;
+import java.util.ListIterator;
 
 /**
  * Test cases for BGP Open Message.
@@ -371,4 +375,66 @@ public class BgpOpenMsgTest {
 
         assertThat(message, instanceOf(BgpOpenMsg.class));
     }
+
+
+    /**
+     * This test case checks the changes made in.
+     * BgpOpenMsg
+     * BgpOpenMsgVer4
+     * BgpChannelHandler
+     * as bug fix for bug 8036
+     */
+    @Test
+    public void openMessageTest11() throws BgpParseException {
+
+        /*
+            Open message received after implementing the changes for the fix. Here we are considering connection type
+            as IPV4_IPV6.
+        */
+        byte[] openMsg = new byte[] {
+                (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+                (byte) 0x00, (byte) 0x3d, (byte) 0x01, (byte) 0x04, (byte) 0x00, (byte) 0x64, (byte) 0x00, (byte) 0xb4,
+                (byte) 0xc0, (byte) 0xa8, (byte) 0x07, (byte) 0x93, (byte) 0x20, (byte) 0x02, (byte) 0x1e,
+                //------------ IPV4 Multiprotocol Extensions Capability -----------------------------------------------
+                (byte) 0x01, (byte) 0x04, (byte) 0x00, (byte) 0x01, (byte) 0x00, (byte) 0x01,
+                //-----------------------------------------------------------------------------------------------------
+                //------------ IPV6 Multiprotocol Extensions Capability -----------------------------------------------
+                (byte) 0x01, (byte) 0x04, (byte) 0x00, (byte) 0x02, (byte) 0x00, (byte) 0x01,
+                //-----------------------------------------------------------------------------------------------------
+                (byte) 0x41, (byte) 0x04, (byte) 0x00, (byte) 0x00, (byte) 0x00,
+                (byte) 0x64, (byte) 0x01, (byte) 0x04, (byte) 0x40, (byte) 0x04, (byte) 0x00, (byte) 0x47, (byte) 0x01,
+                (byte) 0x04, (byte) 0x00, (byte) 0x01, (byte) 0x00, (byte) 0x85,
+        };
+
+        ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();
+        buffer.writeBytes(openMsg);
+
+        BgpMessageReader<BgpMessage> reader = BgpFactories.getGenericReader();
+        BgpMessage message;
+        BgpHeader bgpHeader = new BgpHeader();
+        message = reader.readFrom(buffer, bgpHeader);
+        assertThat(message, instanceOf(BgpOpenMsg.class));
+        BgpOpenMsg receivedMsg = (BgpOpenMsg) message;
+        List<BgpValueType> capabilityTlvList = receivedMsg.getCapabilityTlv();
+        ListIterator<BgpValueType> capabilityTlvListIterator = capabilityTlvList.listIterator();
+        boolean isIPv4UnicastCapabilityPresent = false;
+        boolean isIPv6UnicastCapabilityPresent = false;
+        while (capabilityTlvListIterator.hasNext()) {
+            BgpValueType bgpLSAttrib = capabilityTlvListIterator.next();
+            if (bgpLSAttrib instanceof MultiProtocolExtnCapabilityTlv) {
+                MultiProtocolExtnCapabilityTlv mltiPrtclExtnCapabilityTlv =
+                        ((MultiProtocolExtnCapabilityTlv) bgpLSAttrib);
+                if (mltiPrtclExtnCapabilityTlv.getAfi() == 1 && mltiPrtclExtnCapabilityTlv.getSafi() == 1) {
+                    isIPv4UnicastCapabilityPresent = true;
+                } else if (((MultiProtocolExtnCapabilityTlv) bgpLSAttrib).getAfi() == 2  &&
+                        mltiPrtclExtnCapabilityTlv.getSafi() == 1) {
+                    isIPv6UnicastCapabilityPresent = true;
+                }
+            }
+        }
+        assertThat(isIPv4UnicastCapabilityPresent, is(true));
+        assertThat(isIPv6UnicastCapabilityPresent, is(true));
+    }
+
 }
