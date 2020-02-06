@@ -13,6 +13,7 @@
 
 package org.onosproject.bgp.controller.impl;
 
+import com.google.common.collect.Maps;
 import com.google.common.base.MoreObjects;
 import org.onosproject.bgp.controller.BgpController;
 import org.onosproject.bgp.controller.BgpId;
@@ -37,7 +38,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -49,16 +49,16 @@ public class BgpLocalRibImpl implements BgpLocalRib {
     private static final Logger log = LoggerFactory.getLogger(BgpLocalRibImpl.class);
     private BgpController bgpController;
 
-    private Map<BgpNodeLSIdentifier, PathAttrNlriDetailsLocalRib> nodeTree = new TreeMap<>();
-    private Map<BgpLinkLSIdentifier, PathAttrNlriDetailsLocalRib> linkTree = new TreeMap<>();
-    private Map<BgpPrefixLSIdentifier, PathAttrNlriDetailsLocalRib> prefixTree = new TreeMap<>();
+    private final Map<BgpNodeLSIdentifier, PathAttrNlriDetailsLocalRib> nodeTree = Maps.newConcurrentMap();
+    private final Map<BgpLinkLSIdentifier, PathAttrNlriDetailsLocalRib> linkTree = Maps.newConcurrentMap();
+    private final Map<BgpPrefixLSIdentifier, PathAttrNlriDetailsLocalRib> prefixTree = Maps.newConcurrentMap();
 
-    private Map<RouteDistinguisher, Map<BgpNodeLSIdentifier, PathAttrNlriDetailsLocalRib>> vpnNodeTree
-                                                                                                   = new TreeMap<>();
-    private Map<RouteDistinguisher, Map<BgpLinkLSIdentifier, PathAttrNlriDetailsLocalRib>> vpnLinkTree
-                                                                                                   = new TreeMap<>();
-    private Map<RouteDistinguisher, Map<BgpPrefixLSIdentifier, PathAttrNlriDetailsLocalRib>> vpnPrefixTree
-                                                                                                   = new TreeMap<>();
+    private final Map<RouteDistinguisher, Map<BgpNodeLSIdentifier, PathAttrNlriDetailsLocalRib>> vpnNodeTree
+                                                                                 = Maps.newConcurrentMap();
+    private final Map<RouteDistinguisher, Map<BgpLinkLSIdentifier, PathAttrNlriDetailsLocalRib>> vpnLinkTree
+                                                                                 = Maps.newConcurrentMap();
+    private final Map<RouteDistinguisher, Map<BgpPrefixLSIdentifier, PathAttrNlriDetailsLocalRib>> vpnPrefixTree
+                                                                                 = Maps.newConcurrentMap();
 
     public BgpLocalRibImpl(BgpController bgpController) {
         this.bgpController = bgpController;
@@ -270,13 +270,12 @@ public class BgpLocalRibImpl implements BgpLocalRib {
         boolean containsKey;
 
         BgpNodeLSIdentifier nodeLsIdentifier = ((BgpNodeLSNlriVer4) nlri).getLocalNodeDescriptors();
-
+        /* Here, we are checking if the given node is contained in the AdjacencyRib of any peer
+           or not. If none of the peer's AdjacencyRib has it, node can be marked for deletion.
+         */
+        boolean shouldDeleteNode = false;
         if (nodeTree.containsKey(nodeLsIdentifier)) {
-            for (BgpNodeListener l : bgpController.listener()) {
-                l.deleteNode((BgpNodeLSNlriVer4) nlri);
-            }
-            log.debug("Local RIB delete node: {}", nodeLsIdentifier.toString());
-            nodeTree.remove(nodeLsIdentifier);
+            shouldDeleteNode = true;
         }
 
         for (BgpId bgpId : bgpController.connectedPeers().keySet()) {
@@ -306,21 +305,19 @@ public class BgpLocalRibImpl implements BgpLocalRib {
                     nodeTree.replace(nodeLsIdentifier, detailsLocRib);
                     log.debug("Local RIB node updated: {}", detailsLocRib.toString());
                 }
-            } else {
-                if (!isVpnRib) {
-                    if (peer.adjacencyRib().nodeTree().containsKey(nodeLsIdentifier)) {
-                        add(peer.sessionInfo(), nlri, peer.adjacencyRib().nodeTree().get(nodeLsIdentifier));
-                    }
-                } else {
-                    if (peer.vpnAdjacencyRib().nodeTree().containsKey(nodeLsIdentifier)) {
-                        add(peer.sessionInfo(), nlri, peer.vpnAdjacencyRib().nodeTree().get(nodeLsIdentifier));
-                    }
-                }
+                shouldDeleteNode = false;
             }
+        }
+        if (shouldDeleteNode) {
+            log.debug("Local RIB delete node: {}", nodeLsIdentifier.toString());
+            for (BgpNodeListener l : bgpController.listener()) {
+                l.deleteNode((BgpNodeLSNlriVer4) nlri);
+            }
+            nodeTree.remove(nodeLsIdentifier);
         }
     }
 
-     /**
+    /**
      * Selection process for local RIB link.
      *
      * @param nlri NLRI to update
@@ -334,13 +331,12 @@ public class BgpLocalRibImpl implements BgpLocalRib {
         boolean containsKey;
 
         BgpLinkLSIdentifier linkLsIdentifier = ((BgpLinkLsNlriVer4) nlri).getLinkIdentifier();
-
+        /* Here, we are checking if the given link is contained in the AdjacencyRib of any peer
+           or not. If none of the peer's AdjacencyRib has it, link can be marked for deletion.
+         */
+        boolean shouldDeleteLink = false;
         if (linkTree.containsKey(linkLsIdentifier)) {
-            log.debug("Local RIB remove link: {}", linkLsIdentifier.toString());
-            for (BgpLinkListener l : bgpController.linkListener()) {
-                l.deleteLink((BgpLinkLsNlriVer4) nlri);
-            }
-            linkTree.remove(linkLsIdentifier);
+            shouldDeleteLink = true;
         }
 
         for (BgpId bgpId : bgpController.connectedPeers().keySet()) {
@@ -373,21 +369,21 @@ public class BgpLocalRibImpl implements BgpLocalRib {
                     linkTree.replace(linkLsIdentifier, detailsLocRib);
                     log.debug("Local RIB link updated: {}", detailsLocRib.toString());
                 }
-            } else {
-                if (!isVpnRib) {
-                    if (peer.adjacencyRib().linkTree().containsKey(linkLsIdentifier)) {
-                        add(peer.sessionInfo(), nlri, peer.adjacencyRib().linkTree().get(linkLsIdentifier));
-                    }
-                } else {
-                    if (peer.vpnAdjacencyRib().linkTree().containsKey(linkLsIdentifier)) {
-                        add(peer.sessionInfo(), nlri, peer.vpnAdjacencyRib().linkTree().get(linkLsIdentifier));
-                    }
-                }
+                shouldDeleteLink = false;
             }
+        }
+
+        if (shouldDeleteLink) {
+            log.debug("Local RIB remove link: {}", linkLsIdentifier.toString());
+            for (BgpLinkListener l : bgpController.linkListener()) {
+                l.deleteLink((BgpLinkLsNlriVer4) nlri);
+            }
+            linkTree.remove(linkLsIdentifier);
+
         }
     }
 
-     /**
+    /**
      * Selection process for local RIB prefix.
      *
      * @param nlri NLRI to update
@@ -401,12 +397,12 @@ public class BgpLocalRibImpl implements BgpLocalRib {
         boolean containsKey;
 
         BgpPrefixLSIdentifier prefixIdentifier = ((BgpPrefixIPv4LSNlriVer4) nlri).getPrefixIdentifier();
+        /* Here, we are checking if the given prefix is contained in the AdjacencyRib of any peer
+           or not. If none of the peer's AdjacencyRib has it, prefix can be marked for deletion.
+         */
+        boolean shouldDeletePrefix = false;
         if (prefixTree.containsKey(prefixIdentifier)) {
-            log.debug("Local RIB remove prefix: {}", prefixIdentifier.toString());
-            for (BgpPrefixListener l : bgpController.prefixListener()) {
-                l.deletePrefix((BgpPrefixIPv4LSNlriVer4) nlri);
-            }
-            prefixTree.remove(prefixIdentifier);
+            shouldDeletePrefix = true;
         }
 
         for (BgpId bgpId : bgpController.connectedPeers().keySet()) {
@@ -438,16 +434,14 @@ public class BgpLocalRibImpl implements BgpLocalRib {
                     prefixTree.replace(prefixIdentifier, detailsLocRib);
                     log.debug("Local RIB prefix updated: {}", detailsLocRib.toString());
                 }
-            } else {
-                    if (!isVpnRib) {
-                        if (peer.adjacencyRib().prefixTree().containsKey(prefixIdentifier)) {
-                            add(peer.sessionInfo(), nlri, peer.adjacencyRib().prefixTree().get(prefixIdentifier));
-                    } else {
-                        if (peer.vpnAdjacencyRib().prefixTree().containsKey(prefixIdentifier)) {
-                            add(peer.sessionInfo(), nlri, peer.vpnAdjacencyRib().prefixTree().get(prefixIdentifier));
-                        }
-                    }
+                shouldDeletePrefix = false;
+            }
+            if (shouldDeletePrefix) {
+                log.debug("Local RIB remove prefix: {}", prefixIdentifier.toString());
+                for (BgpPrefixListener l : bgpController.prefixListener()) {
+                    l.deletePrefix((BgpPrefixIPv4LSNlriVer4) nlri);
                 }
+                prefixTree.remove(prefixIdentifier);
             }
         }
     }
