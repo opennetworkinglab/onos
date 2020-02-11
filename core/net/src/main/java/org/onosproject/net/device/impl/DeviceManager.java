@@ -392,24 +392,6 @@ public class DeviceManager
         }
     }
 
-    @Override
-    public void removeDevicePorts(DeviceId deviceId) {
-        checkNotNull(deviceId, DEVICE_ID_NULL);
-        if (isAvailable(deviceId)) {
-            log.debug("Cannot remove ports of device {} while it is available.", deviceId);
-            return;
-        }
-
-        List<PortDescription> portDescriptions = ImmutableList.of();
-        List<DeviceEvent> events = store.updatePorts(getProvider(deviceId).id(),
-                                                     deviceId, portDescriptions);
-        if (events != null) {
-            for (DeviceEvent event : events) {
-                post(event);
-            }
-        }
-    }
-
     private void handlePortRequest(InternalPortUpDownEvent event) {
         DeviceId deviceId = event.deviceId();
         checkNotNull(deviceId, DEVICE_ID_NULL);
