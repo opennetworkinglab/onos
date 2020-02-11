@@ -246,7 +246,31 @@ public class DeviceManagerTest {
         assertNotNull("device should be found", service.getDevice(DID2));
         assertEquals("incorrect device count", 1, service.getDeviceCount());
         assertEquals("incorrect available device count", 1, service.getAvailableDeviceCount());
+    }
 
+    @Test
+    public void removeDevicePorts() {
+        connectDevice(DID1, SW1);
+        List<PortDescription> pds = new ArrayList<>();
+        pds.add(DefaultPortDescription.builder().withPortNumber(P1).isEnabled(true).build());
+        pds.add(DefaultPortDescription.builder().withPortNumber(P2).isEnabled(true).build());
+        pds.add(DefaultPortDescription.builder().withPortNumber(P3).isEnabled(true).build());
+        providerService.updatePorts(DID1, pds);
+        validateEvents(DEVICE_ADDED, PORT_ADDED, PORT_ADDED, PORT_ADDED);
+
+        // Try removing ports while device is available/connected; it should be a no-op.
+        admin.removeDevicePorts(DID1);
+        assertEquals("wrong port count", 3, service.getPorts(DID1).size());
+
+        // Disconnect device
+        providerService.deviceDisconnected(DID1);
+        assertFalse("device should not be available", service.isAvailable(DID1));
+        validateEvents(DEVICE_AVAILABILITY_CHANGED);
+
+        // Now remove ports for real
+        admin.removeDevicePorts(DID1);
+        validateEvents(PORT_REMOVED, PORT_REMOVED, PORT_REMOVED);
+        assertEquals("wrong port count", 0, service.getPorts(DID1).size());
     }
 
     protected void validateEvents(Enum... types) {

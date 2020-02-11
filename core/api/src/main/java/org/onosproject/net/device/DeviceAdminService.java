@@ -40,4 +40,13 @@ public interface DeviceAdminService extends DeviceService {
      * @param enable true if port is to be enabled, false to disable
      */
     void changePortState(DeviceId deviceId, PortNumber portNumber, boolean enable);
+
+    /**
+     * Removes the ports of a device with the specified identifier. The device
+     * must be presently unavailable, i.e. offline.
+     *
+     * @param deviceId device identifier
+     */
+    default void removeDevicePorts(DeviceId deviceId) {
+    }
 }
