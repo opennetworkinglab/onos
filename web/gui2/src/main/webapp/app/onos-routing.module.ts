@@ -108,7 +108,7 @@ const onosRoutes: Route[] = [
     },
     <Route>{
         path: 'roadm-gui',
-        pathMatch: 'full',
+        pathMatch: 'prefix',
         loadChildren: () => import('../../../../../../apps/roadm/web/roadm-gui/lib/roadm-gui-lib.module').then(m => m.RoadmGuiLibModule)
     },
     <Route>{
