@@ -502,10 +502,14 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         VlanId innerVlan = ((VlanIdCriterion) innerVlanCriterion).vlanId();
         Criterion innerVid = Criteria.matchVlanId(innerVlan);
 
+        // In the case where the C-tag is the same for all the subscribers,
+        // we add a metadata with the outport in the selector to make the flow unique
+        Criterion innerSelectorMeta = Criteria.matchMetadata(output.port().toLong());
+
         if (innerVlan.toShort() == VlanId.ANY_VALUE) {
             TrafficSelector outerSelector = buildSelector(inport, outerVlan, outerPbit, dstMac);
             installDownstreamRulesForAnyVlan(fwd, output, outerSelector, buildSelector(inport,
-                    Criteria.matchVlanId(VlanId.ANY)));
+                    Criteria.matchVlanId(VlanId.ANY), innerSelectorMeta));
         } else {
             // Required to differentiate the same match flows
             // Please note that S tag and S p bit values will be same for the same service - so conflict flows!
@@ -513,7 +517,8 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
             // Maybe - find a better way to solve the above problem
             Criterion metadata = Criteria.matchMetadata(innerVlan.toShort());
             TrafficSelector outerSelector = buildSelector(inport, metadata, outerVlan, outerPbit, dstMac);
-            installDownstreamRulesForVlans(fwd, output, outerSelector, buildSelector(inport, innerVid));
+            installDownstreamRulesForVlans(fwd, output, outerSelector, buildSelector(inport, innerVid,
+                    innerSelectorMeta));
         }
     }
 
