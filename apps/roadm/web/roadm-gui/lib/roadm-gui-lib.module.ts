@@ -29,7 +29,9 @@ import { RoadmPortComponent } from './port/port.component';
     ],
     imports: [
         RouterModule,
-        RouterModule.forChild([{path: 'roadm-port-gui', component: RoadmPortComponent}]),
+        RouterModule.forChild([
+            {path: '', component: RoadmDeviceComponent},
+            {path: 'roadm-port-gui', component: RoadmPortComponent}]),
         Gui2FwLibModule,
         CommonModule,
         FormsModule,
