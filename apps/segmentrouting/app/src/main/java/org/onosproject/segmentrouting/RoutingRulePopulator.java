@@ -67,6 +67,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
@@ -133,18 +134,27 @@ public class RoutingRulePopulator {
      * @param port port
      * @param mac mac address
      * @param vlanId VLAN ID
+     * @return future that carries the flow objective if succeeded, null if otherwise
      */
-    void populateBridging(DeviceId deviceId, PortNumber port, MacAddress mac, VlanId vlanId) {
+    CompletableFuture<Objective> populateBridging(DeviceId deviceId, PortNumber port, MacAddress mac, VlanId vlanId) {
         ForwardingObjective.Builder fob = bridgingFwdObjBuilder(deviceId, mac, vlanId, port, false);
         if (fob == null) {
             log.warn("Fail to build fwd obj for host {}/{}. Abort.", mac, vlanId);
-            return;
+            return CompletableFuture.completedFuture(null);
         }
 
+        CompletableFuture<Objective> future = new CompletableFuture<>();
         ObjectiveContext context = new DefaultObjectiveContext(
-                (objective) -> log.debug("Brigding rule for {}/{} populated", mac, vlanId),
-                (objective, error) -> log.warn("Failed to populate bridging rule for {}/{}: {}", mac, vlanId, error));
+                (objective) -> {
+                    log.debug("Brigding rule for {}/{} populated", mac, vlanId);
+                    future.complete(objective);
+                },
+                (objective, error) -> {
+                    log.warn("Failed to populate bridging rule for {}/{}: {}", mac, vlanId, error);
+                    future.complete(null);
+                });
         srManager.flowObjectiveService.forward(deviceId, fob.add(context));
+        return future;
     }
 
     /**
@@ -155,18 +165,27 @@ public class RoutingRulePopulator {
      * @param port port
      * @param mac mac address
      * @param vlanId VLAN ID
+     * @return future that carries the flow objective if succeeded, null if otherwise
      */
-    void revokeBridging(DeviceId deviceId, PortNumber port, MacAddress mac, VlanId vlanId) {
+    CompletableFuture<Objective> revokeBridging(DeviceId deviceId, PortNumber port, MacAddress mac, VlanId vlanId) {
         ForwardingObjective.Builder fob = bridgingFwdObjBuilder(deviceId, mac, vlanId, port, true);
         if (fob == null) {
             log.warn("Fail to build fwd obj for host {}/{}. Abort.", mac, vlanId);
-            return;
+            return CompletableFuture.completedFuture(null);
         }
 
+        CompletableFuture<Objective> future = new CompletableFuture<>();
         ObjectiveContext context = new DefaultObjectiveContext(
-                (objective) -> log.debug("Brigding rule for {}/{} revoked", mac, vlanId),
-                (objective, error) -> log.warn("Failed to revoke bridging rule for {}/{}: {}", mac, vlanId, error));
+                (objective) -> {
+                    log.debug("Brigding rule for {}/{} revoked", mac, vlanId);
+                    future.complete(objective);
+                },
+                (objective, error) -> {
+                    log.warn("Failed to revoke bridging rule for {}/{}: {}", mac, vlanId, error);
+                    future.complete(null);
+                });
         srManager.flowObjectiveService.forward(deviceId, fob.remove(context));
+        return future;
     }
 
     /**
@@ -309,8 +328,9 @@ public class RoutingRulePopulator {
      * @param hostVlanId Vlan ID of the nexthop
      * @param outPort port where the next hop attaches to
      * @param directHost host is of type direct or indirect
+     * @return future that carries the flow objective if succeeded, null if otherwise
      */
-    void populateRoute(DeviceId deviceId, IpPrefix prefix,
+    CompletableFuture<Objective> populateRoute(DeviceId deviceId, IpPrefix prefix,
                               MacAddress hostMac, VlanId hostVlanId, PortNumber outPort, boolean directHost) {
         log.debug("Populate direct routing entry for route {} at {}:{}",
                 prefix, deviceId, outPort);
@@ -320,23 +340,28 @@ public class RoutingRulePopulator {
                                               hostVlanId, outPort, null, null, directHost, false);
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting direct populateRoute");
-            return;
+            return CompletableFuture.completedFuture(null);
         }
         if (fwdBuilder == null) {
             log.warn("Aborting host routing table entry due "
                     + "to error for dev:{} route:{}", deviceId, prefix);
-            return;
+            return CompletableFuture.completedFuture(null);
         }
 
         int nextId = fwdBuilder.add().nextId();
+        CompletableFuture<Objective> future = new CompletableFuture<>();
         ObjectiveContext context = new DefaultObjectiveContext(
-                (objective) -> log.debug("Direct routing rule for route {} populated. nextId={}",
-                                         prefix, nextId),
-                (objective, error) ->
-                        log.warn("Failed to populate direct routing rule for route {}: {}",
-                                 prefix, error));
+                (objective) -> {
+                    log.debug("Direct routing rule for route {} populated. nextId={}", prefix, nextId);
+                    future.complete(objective);
+                },
+                (objective, error) -> {
+                    log.warn("Failed to populate direct routing rule for route {}: {}", prefix, error);
+                    future.complete(null);
+                });
         srManager.flowObjectiveService.forward(deviceId, fwdBuilder.add(context));
         rulePopulationCounter.incrementAndGet();
+        return future;
     }
 
     /**
@@ -349,8 +374,9 @@ public class RoutingRulePopulator {
      * @param hostVlanId Vlan ID of the nexthop
      * @param outPort port that next hop attaches to
      * @param directHost host is of type direct or indirect
+     * @return future that carries the flow objective if succeeded, null if otherwise
      */
-    void revokeRoute(DeviceId deviceId, IpPrefix prefix,
+    CompletableFuture<Objective> revokeRoute(DeviceId deviceId, IpPrefix prefix,
             MacAddress hostMac, VlanId hostVlanId, PortNumber outPort, boolean directHost) {
         log.debug("Revoke IP table entry for route {} at {}:{}",
                 prefix, deviceId, outPort);
@@ -360,18 +386,26 @@ public class RoutingRulePopulator {
                                               hostVlanId, outPort, null, null, directHost, true);
         } catch (DeviceConfigNotFoundException e) {
             log.warn(e.getMessage() + " Aborting revokeIpRuleForHost.");
-            return;
+            return CompletableFuture.completedFuture(null);
         }
         if (fwdBuilder == null) {
             log.warn("Aborting host routing table entries due "
                     + "to error for dev:{} route:{}", deviceId, prefix);
-            return;
+            return CompletableFuture.completedFuture(null);
         }
+
+        CompletableFuture<Objective> future = new CompletableFuture<>();
         ObjectiveContext context = new DefaultObjectiveContext(
-                (objective) -> log.debug("IP rule for route {} revoked", prefix),
-                (objective, error) ->
-                        log.warn("Failed to revoke IP rule for route {}: {}", prefix, error));
+                (objective) -> {
+                    log.debug("IP rule for route {} revoked", prefix);
+                    future.complete(objective);
+                },
+                (objective, error) -> {
+                    log.warn("Failed to revoke IP rule for route {}: {}", prefix, error);
+                    future.complete(null);
+                });
         srManager.flowObjectiveService.forward(deviceId, fwdBuilder.remove(context));
+        return future;
     }
 
     /**

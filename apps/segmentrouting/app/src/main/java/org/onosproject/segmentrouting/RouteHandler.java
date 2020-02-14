@@ -51,25 +51,30 @@ public class RouteHandler {
     }
 
     protected void init(DeviceId deviceId) {
-        Optional<DeviceId> pairDeviceId = srManager.getPairDeviceId(deviceId);
-
         srManager.routeService.getRouteTables().stream()
                 .map(srManager.routeService::getRoutes)
                 .flatMap(Collection::stream)
                 .map(RouteInfo::allRoutes)
-                .filter(allRoutes -> allRoutes.stream().allMatch(resolvedRoute ->
-                        srManager.nextHopLocations(resolvedRoute).stream().allMatch(cp ->
-                            deviceId.equals(cp.deviceId()) ||
-                                    (pairDeviceId.isPresent() && pairDeviceId.get().equals(cp.deviceId()))
-                        )))
-                .forEach(this::processRouteAddedInternal);
+                .filter(allRoutes -> allRoutes.stream().anyMatch(resolvedRoute ->
+                        srManager.nextHopLocations(resolvedRoute).stream()
+                                .anyMatch(cp -> deviceId.equals(cp.deviceId()))))
+                .forEach(rr -> processRouteAddedInternal(rr, true));
     }
 
     void processRouteAdded(RouteEvent event) {
-        processRouteAddedInternal(event.alternatives());
+        processRouteAddedInternal(event.alternatives(), false);
     }
 
-    private void processRouteAddedInternal(Collection<ResolvedRoute> routes) {
+    /**
+     * Internal logic that handles route addition.
+     *
+     * @param routes collection of routes to be processed
+     * @param populateRouteOnly true if we only want to populateRoute but not populateSubnet.
+     *                          Set it to true when initializing a device coming up.
+     *                          populateSubnet will be done when link comes up later so it is redundant.
+     *                          populateRoute still needs to be done for statically configured next hop hosts.
+     */
+    private void processRouteAddedInternal(Collection<ResolvedRoute> routes, boolean populateRouteOnly) {
         if (!isReady()) {
             log.info("System is not ready. Skip adding route for {}", routes);
             return;
@@ -82,6 +87,11 @@ public class RouteHandler {
             return;
         }
 
+        ResolvedRoute rr = routes.stream().findFirst().orElse(null);
+        if (rr == null) {
+            log.warn("No resolved route found. Abort processRouteAddedInternal");
+        }
+
         Set<ConnectPoint> allLocations = Sets.newHashSet();
         Set<IpPrefix> allPrefixes = Sets.newHashSet();
         routes.forEach(route -> {
@@ -90,6 +100,7 @@ public class RouteHandler {
         });
         log.debug("RouteAdded. populateSubnet {}, {}", allLocations, allPrefixes);
         srManager.defaultRoutingHandler.populateSubnet(allLocations, allPrefixes);
+
 
         routes.forEach(route -> {
             IpPrefix prefix = route.prefix();
