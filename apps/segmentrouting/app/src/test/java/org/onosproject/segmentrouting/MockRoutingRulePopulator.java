@@ -21,8 +21,10 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.flowobjective.Objective;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Mock Routing Rule Populator.
@@ -37,18 +39,20 @@ public class MockRoutingRulePopulator extends RoutingRulePopulator {
     }
 
     @Override
-    public void populateRoute(DeviceId deviceId, IpPrefix prefix,
-                              MacAddress hostMac, VlanId hostVlanId, PortNumber outPort, boolean directHost) {
+    public CompletableFuture<Objective> populateRoute(DeviceId deviceId, IpPrefix prefix, MacAddress hostMac,
+                                                      VlanId hostVlanId, PortNumber outPort, boolean directHost) {
         MockRoutingTableKey rtKey = new MockRoutingTableKey(deviceId, prefix);
         MockRoutingTableValue rtValue = new MockRoutingTableValue(outPort, hostMac, hostVlanId);
         routingTable.put(rtKey, rtValue);
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override
-    public void revokeRoute(DeviceId deviceId, IpPrefix prefix,
+    public CompletableFuture<Objective> revokeRoute(DeviceId deviceId, IpPrefix prefix,
                             MacAddress hostMac, VlanId hostVlanId, PortNumber outPort, boolean directHost) {
         MockRoutingTableKey rtKey = new MockRoutingTableKey(deviceId, prefix);
         MockRoutingTableValue rtValue = new MockRoutingTableValue(outPort, hostMac, hostVlanId);
         routingTable.remove(rtKey, rtValue);
+        return CompletableFuture.completedFuture(null);
     }
 }

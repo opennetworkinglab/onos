@@ -59,6 +59,7 @@ import org.onosproject.store.service.TestConsistentMultimap;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
@@ -569,10 +570,12 @@ public class HostHandlerTest {
 
         // Host moved from [1A/1, 1B/1] to [1A/2, 1B/1]
         // We should expect only one bridging flow and one routing flow programmed on 1A
-        mockDefaultRoutingHandler.populateBridging(DEV3, P2, HOST_MAC, HOST_VLAN_UNTAGGED);
-        expectLastCall().times(1);
-        mockDefaultRoutingHandler.populateRoute(DEV3, HOST_IP11.toIpPrefix(), HOST_MAC, HOST_VLAN_UNTAGGED, P2, true);
-        expectLastCall().times(1);
+
+        expect(mockDefaultRoutingHandler.populateBridging(DEV3, P2, HOST_MAC, HOST_VLAN_UNTAGGED))
+                .andReturn(CompletableFuture.completedFuture(null)).once();
+        expect(mockDefaultRoutingHandler.populateRoute(DEV3, HOST_IP11.toIpPrefix(),
+                HOST_MAC, HOST_VLAN_UNTAGGED, P2, true))
+                .andReturn(CompletableFuture.completedFuture(null)).once();
         replay(mockDefaultRoutingHandler);
 
         hostHandler.processHostMovedEvent(new HostEvent(HostEvent.Type.HOST_MOVED, host2, host1));
