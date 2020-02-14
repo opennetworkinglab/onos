@@ -39,6 +39,7 @@ import org.onosproject.net.config.NetworkConfigRegistryAdapter;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostService;
+import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.intf.Interface;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.routeservice.ResolvedRoute;
@@ -46,6 +47,7 @@ import org.onosproject.routeservice.Route;
 import org.onosproject.routeservice.RouteEvent;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.onosproject.segmentrouting.config.SegmentRoutingDeviceConfig;
+import org.onosproject.segmentrouting.phasedrecovery.api.PhasedRecoveryService;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.TestConsistentMap;
 import org.onosproject.store.service.TestConsistentMultimap;
@@ -82,15 +84,17 @@ public class RouteHandlerTest {
     private static final IpPrefix P1 = IpPrefix.valueOf("10.0.0.0/24");
 
     // Single homed router 1
-    private static final IpAddress N1 = IpAddress.valueOf("10.0.1.254");
+    private static final IpAddress N1 = IpAddress.valueOf("10.0.1.1");
     private static final MacAddress M1 = MacAddress.valueOf("00:00:00:00:00:01");
     private static final VlanId V1 = VlanId.vlanId((short) 1);
     private static final ConnectPoint CP1 = ConnectPoint.deviceConnectPoint("of:0000000000000001/1");
     private static final Route R1 = new Route(Route.Source.STATIC, P1, N1);
     private static final ResolvedRoute RR1 = new ResolvedRoute(R1, M1, V1);
+    private static final Route DHCP_R1 = new Route(Route.Source.DHCP, P1, N1);
+    private static final ResolvedRoute DHCP_RR1 = new ResolvedRoute(DHCP_R1, M1, V1);
 
     // Single homed router 2
-    private static final IpAddress N2 = IpAddress.valueOf("10.0.2.254");
+    private static final IpAddress N2 = IpAddress.valueOf("10.0.2.1");
     private static final MacAddress M2 = MacAddress.valueOf("00:00:00:00:00:02");
     private static final VlanId V2 = VlanId.vlanId((short) 2);
     private static final ConnectPoint CP2 = ConnectPoint.deviceConnectPoint("of:0000000000000002/2");
@@ -98,14 +102,16 @@ public class RouteHandlerTest {
     private static final ResolvedRoute RR2 = new ResolvedRoute(R2, M2, V2);
 
     // Dual homed router 1
-    private static final IpAddress N3 = IpAddress.valueOf("10.0.3.254");
+    private static final IpAddress N3 = IpAddress.valueOf("10.0.3.1");
     private static final MacAddress M3 = MacAddress.valueOf("00:00:00:00:00:03");
     private static final VlanId V3 = VlanId.vlanId((short) 3);
     private static final Route R3 = new Route(Route.Source.STATIC, P1, N3);
     private static final ResolvedRoute RR3 = new ResolvedRoute(R3, M3, V3);
+    private static final Route DHCP_R3 = new Route(Route.Source.DHCP, P1, N3);
+    private static final ResolvedRoute DHCP_RR3 = new ResolvedRoute(DHCP_R3, M3, V3);
 
     // Single homed router 3
-    private static final IpAddress N4 = IpAddress.valueOf("10.0.4.254");
+    private static final IpAddress N4 = IpAddress.valueOf("10.0.4.1");
     private static final MacAddress M4 = MacAddress.valueOf("00:00:00:00:00:04");
     private static final VlanId V4 = VlanId.vlanId((short) 4);
     private static final ConnectPoint CP4 = ConnectPoint.deviceConnectPoint("of:0000000000000004/4");
@@ -134,7 +140,15 @@ public class RouteHandlerTest {
     // A set of devices of which we have mastership
     private static final Set<DeviceId> LOCAL_DEVICES = Sets.newHashSet(CP1.deviceId(), CP2.deviceId());
     // A set of interfaces
-    private static final Set<Interface> INTERFACES = Sets.newHashSet();
+    private static final InterfaceIpAddress IF_IP1 =
+            new InterfaceIpAddress(IpAddress.valueOf("10.0.1.254"), IpPrefix.valueOf("10.0.1.254/24"));
+    private static final InterfaceIpAddress IF_IP3 =
+            new InterfaceIpAddress(IpAddress.valueOf("10.0.3.254"), IpPrefix.valueOf("10.0.3.254/24"));
+    private static final Interface IF_CP1 = new Interface("if-cp1", CP1, Lists.newArrayList(IF_IP1, IF_IP3),
+            null, null, null, null, null);
+    private static final Interface IF_CP2 = new Interface("if-cp2", CP2, Lists.newArrayList(IF_IP1, IF_IP3),
+            null, null, null, null, null);
+    private static final Set<Interface> INTERFACES = Sets.newHashSet(IF_CP1, IF_CP2);
 
     @Before
     public void setUp() {
@@ -173,6 +187,9 @@ public class RouteHandlerTest {
         srManager.hostService = hostService;
         srManager.cfgService = mockNetworkConfigRegistry;
         srManager.routeService = new MockRouteService(ROUTE_STORE);
+        srManager.phasedRecoveryService = createMock(PhasedRecoveryService.class);
+        expect(srManager.phasedRecoveryService.isEnabled()).andReturn(true).anyTimes();
+        replay(srManager.phasedRecoveryService);
 
         routeHandler = new RouteHandler(srManager);
 
@@ -194,7 +211,6 @@ public class RouteHandlerTest {
         assertEquals(CP1.port(), rtv1.portNumber);
 
         assertEquals(1, SUBNET_TABLE.size());
-        assertTrue(SUBNET_TABLE.get(CP1).contains(P1));
     }
 
     @Test
@@ -214,8 +230,46 @@ public class RouteHandlerTest {
         assertEquals(CP2.port(), rtv2.portNumber);
 
         assertEquals(2, SUBNET_TABLE.size());
-        assertTrue(SUBNET_TABLE.get(CP1).contains(P1));
-        assertTrue(SUBNET_TABLE.get(CP2).contains(P1));
+    }
+
+    // Only one of two dual-homed next hops present.
+    // Expect one routing table to be programmed with direct flow.
+    // The other is not programmed, not even for subnet
+    @Test
+    public void initDhcpRouteSingleDualHomeNextHop() {
+        ROUTE_STORE.put(P1, Sets.newHashSet(DHCP_RR1));
+
+        routeHandler.init(CP1.deviceId());
+
+        assertEquals(1, ROUTING_TABLE.size());
+        MockRoutingTableValue rtv1 = ROUTING_TABLE.get(new MockRoutingTableKey(CP1.deviceId(), P1));
+        assertEquals(M1, rtv1.macAddress);
+        assertEquals(V1, rtv1.vlanId);
+        assertEquals(CP1.port(), rtv1.portNumber);
+
+        assertEquals(1, SUBNET_TABLE.size());
+    }
+
+    // Both dual-homed next hops present.
+    // Expect both routing table to be programmed with direct flow
+    @Test
+    public void initDhcpRouteBothDualHomeNextHop() {
+        ROUTE_STORE.put(P1, Sets.newHashSet(DHCP_RR3));
+
+        routeHandler.init(CP1.deviceId());
+
+        assertEquals(2, ROUTING_TABLE.size());
+        MockRoutingTableValue rtv1 = ROUTING_TABLE.get(new MockRoutingTableKey(CP1.deviceId(), P1));
+        assertEquals(M3, rtv1.macAddress);
+        assertEquals(V3, rtv1.vlanId);
+        assertEquals(CP1.port(), rtv1.portNumber);
+
+        MockRoutingTableValue rtv2 = ROUTING_TABLE.get(new MockRoutingTableKey(CP2.deviceId(), P1));
+        assertEquals(M3, rtv2.macAddress);
+        assertEquals(V3, rtv2.vlanId);
+        assertEquals(CP2.port(), rtv2.portNumber);
+
+        assertEquals(2, SUBNET_TABLE.size());
     }
 
     @Test

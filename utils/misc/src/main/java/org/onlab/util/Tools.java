@@ -49,7 +49,9 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -79,6 +81,9 @@ public abstract class Tools {
     private static Random random = new SecureRandom();
 
     private static final String INPUT_JSON_CANNOT_BE_NULL = "Input JSON cannot be null";
+
+    private static ScheduledExecutorService timer = Executors.newScheduledThreadPool(
+            Runtime.getRuntime().availableProcessors(), groupedThreads("onos/tool", "timer"));
 
     /**
      * Returns a thread factory that produces threads named according to the
@@ -696,6 +701,19 @@ public abstract class Tools {
         CompletableFuture<T> future = new CompletableFuture<>();
         future.completeExceptionally(t);
         return future;
+    }
+
+    /**
+     * Returns a future that completes normally after given time period.
+     *
+     * @param timeout amount of time to wait before completing the future
+     * @param unit Time unit
+     * @return a future that completes after given time period
+     */
+    public static CompletableFuture<Void> completeAfter(long timeout, TimeUnit unit) {
+        CompletableFuture<Void> result = new CompletableFuture<>();
+        timer.schedule(() -> result.complete(null), timeout, unit);
+        return result;
     }
 
     /**

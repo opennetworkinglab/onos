@@ -31,6 +31,7 @@ import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.flowobjective.FlowObjectiveServiceAdapter;
 import org.onosproject.net.flowobjective.ForwardingObjective;
 import org.onosproject.net.flowobjective.Objective;
+import org.onosproject.net.flowobjective.ObjectiveError;
 
 import java.util.Map;
 
@@ -72,9 +73,13 @@ public class MockFlowObjectiveService extends FlowObjectiveServiceAdapter {
 
         if (op.equals(Objective.Operation.ADD)) {
             bridgingTable.put(btKey, btValue);
+            forwardingObjective.context().ifPresent(context -> context.onSuccess(forwardingObjective));
         } else if (op.equals(Objective.Operation.REMOVE)) {
             bridgingTable.remove(btKey, btValue);
+            forwardingObjective.context().ifPresent(context -> context.onSuccess(forwardingObjective));
         } else {
+            forwardingObjective.context().ifPresent(context ->
+                    context.onError(forwardingObjective, ObjectiveError.UNKNOWN));
             throw new IllegalArgumentException();
         }
     }

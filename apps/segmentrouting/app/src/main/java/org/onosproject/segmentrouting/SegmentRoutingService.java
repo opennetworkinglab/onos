@@ -15,7 +15,6 @@
  */
 package org.onosproject.segmentrouting;
 
-import com.google.common.annotations.Beta;
 import com.google.common.collect.Multimap;
 import org.apache.commons.lang3.NotImplementedException;
 import org.onlab.packet.IpAddress;
@@ -354,6 +353,29 @@ public interface SegmentRoutingService {
     Map<DeviceId, List<McastFilteringObjStoreKey>> getMcastFilters();
 
     /**
+     * Determines if routing in the network has been stable in the last
+     * STABILITY_THRESHOLD seconds, by comparing the current time to the last
+     * routing change timestamp.
+     *
+     * @return true if stable
+     */
+    boolean isRoutingStable();
+
+    /**
+     * Invoke hostHandler.init() for given device.
+     *
+     * @param deviceId device ID
+     */
+    void initHost(DeviceId deviceId);
+
+    /**
+     * Invoke routeHandler.init() for given device.
+     *
+     * @param deviceId device ID
+     */
+    void initRoute(DeviceId deviceId);
+
+    /**
      * Gets application id.
      *
      * @return application id
@@ -371,11 +393,9 @@ public interface SegmentRoutingService {
      * @param connectPoint connect point
      * @return internal VLAN or null if both vlan-untagged and vlan-native are undefined
      */
-    @Beta
     default VlanId getInternalVlanId(ConnectPoint connectPoint) {
         throw new NotImplementedException("getInternalVlanId not implemented");
     }
-
 
     /**
      * Returns optional pair device ID of given device.
@@ -383,11 +403,9 @@ public interface SegmentRoutingService {
      * @param deviceId device ID
      * @return optional pair device ID. Might be empty if pair device is not configured
      */
-    @Beta
     default Optional<DeviceId> getPairDeviceId(DeviceId deviceId) {
         throw new NotImplementedException("getPairDeviceId not implemented");
     }
-
 
     /**
      * Returns optional pair device local port of given device.
@@ -395,9 +413,27 @@ public interface SegmentRoutingService {
      * @param deviceId device ID
      * @return optional pair device ID. Might be empty if pair device is not configured
      */
-    @Beta
     default Optional<PortNumber> getPairLocalPort(DeviceId deviceId) {
         throw new NotImplementedException("getPairLocalPort not implemented");
     }
 
+    /**
+     * Returns a set of infrastructure ports on the given device.
+     *
+     * @param deviceId device ID
+     * @return a set of ports that does not have interface configuration
+     */
+    default Set<PortNumber> getInfraPorts(DeviceId deviceId) {
+        throw new NotImplementedException("getInfraPorts not implemented");
+    }
+
+    /**
+     * Returns a set of edge ports on the given device.
+     *
+     * @param deviceId device ID
+     * @return a set of ports that has interface configuration
+     */
+    default Set<PortNumber> getEdgePorts(DeviceId deviceId) {
+        throw new NotImplementedException("getEdgePorts not implemented");
+    }
 }
