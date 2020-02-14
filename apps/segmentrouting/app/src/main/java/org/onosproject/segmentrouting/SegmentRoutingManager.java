@@ -113,19 +113,18 @@ import org.onosproject.segmentrouting.mcast.McastFilteringObjStoreKey;
 import org.onosproject.segmentrouting.mcast.McastHandler;
 import org.onosproject.segmentrouting.mcast.McastRole;
 import org.onosproject.segmentrouting.mcast.McastRoleStoreKey;
+import org.onosproject.segmentrouting.mcast.McastStoreKey;
+import org.onosproject.segmentrouting.phasedrecovery.api.PhasedRecoveryService;
 import org.onosproject.segmentrouting.pwaas.DefaultL2Tunnel;
 import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelDescription;
 import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelHandler;
 import org.onosproject.segmentrouting.pwaas.DefaultL2TunnelPolicy;
-
 import org.onosproject.segmentrouting.pwaas.L2Tunnel;
 import org.onosproject.segmentrouting.pwaas.L2TunnelHandler;
 import org.onosproject.segmentrouting.pwaas.L2TunnelPolicy;
 import org.onosproject.segmentrouting.pwaas.L2TunnelDescription;
-
 import org.onosproject.segmentrouting.storekey.DestinationSetNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.DummyVlanIdStoreKey;
-import org.onosproject.segmentrouting.mcast.McastStoreKey;
 import org.onosproject.segmentrouting.storekey.PortNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.VlanNextObjectiveStoreKey;
 import org.onosproject.segmentrouting.storekey.MacVlanNextObjectiveStoreKey;
@@ -241,6 +240,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             unbind = "unbindXconnectService",
             policy = ReferencePolicy.DYNAMIC)
     public XconnectService xconnectService;
+
+    @Reference(cardinality = ReferenceCardinality.OPTIONAL_UNARY,
+            policy = ReferencePolicy.DYNAMIC)
+    volatile PhasedRecoveryService phasedRecoveryService;
 
     @Property(name = "activeProbing", boolValue = true,
             label = "Enable active probing to discover dual-homed hosts.")
@@ -1093,6 +1096,21 @@ public class SegmentRoutingManager implements SegmentRoutingService {
     }
 
     @Override
+    public boolean isRoutingStable() {
+        return defaultRoutingHandler.isRoutingStable();
+    }
+
+    @Override
+    public void initHost(DeviceId deviceId) {
+        hostEventExecutor.execute(() -> hostHandler.init(deviceId));
+    }
+
+    @Override
+    public void initRoute(DeviceId deviceId) {
+        routeEventExecutor.execute(() -> routeHandler.init(deviceId));
+    }
+
+    @Override
     public ApplicationId appId() {
         return appId;
     }
@@ -1198,6 +1216,25 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         SegmentRoutingDeviceConfig deviceConfig =
                 cfgService.getConfig(deviceId, SegmentRoutingDeviceConfig.class);
         return Optional.ofNullable(deviceConfig).map(SegmentRoutingDeviceConfig::pairLocalPort);
+    }
+
+    @Override
+    public Set<PortNumber> getInfraPorts(DeviceId deviceId) {
+        return deviceService.getPorts(deviceId).stream()
+                .map(port -> new ConnectPoint(port.element().id(), port.number()))
+                .filter(cp -> interfaceService.getInterfacesByPort(cp).isEmpty())
+                .map(ConnectPoint::port)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Set<PortNumber> getEdgePorts(DeviceId deviceId) {
+        return deviceService.getPorts(deviceId).stream()
+                .map(port -> new ConnectPoint(port.element().id(), port.number()))
+                .filter(cp -> !interfaceService.getInterfacesByPort(cp).isEmpty() &&
+                        !cp.port().equals(getPairLocalPort(deviceId).orElse(null)))
+                .map(ConnectPoint::port)
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -1656,11 +1693,10 @@ public class SegmentRoutingManager implements SegmentRoutingService {
             DefaultGroupHandler groupHandler = groupHandlerMap.get(deviceId);
             groupHandler.createGroupsFromVlanConfig();
             routingRulePopulator.populateSubnetBroadcastRule(deviceId);
+            phasedRecoveryService.init(deviceId);
         }
 
         appCfgHandler.init(deviceId);
-        hostEventExecutor.execute(() -> hostHandler.init(deviceId));
-        routeEventExecutor.execute(() -> routeHandler.init(deviceId));
     }
 
     private void processDeviceRemoved(Device device) {
@@ -1697,6 +1733,8 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         // done after all rerouting or rehashing has been completed
         groupHandlerMap.entrySet()
             .forEach(entry -> entry.getValue().cleanUpForNeighborDown(device.id()));
+
+        phasedRecoveryService.reset(device.id());
     }
 
     /**

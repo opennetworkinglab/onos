@@ -38,6 +38,7 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.segmentrouting.config.DeviceConfigNotFoundException;
 import org.onosproject.segmentrouting.config.DeviceConfiguration;
 import org.onosproject.segmentrouting.grouphandler.DefaultGroupHandler;
@@ -204,7 +205,7 @@ public class DefaultRoutingHandler {
 
     /**
     * Determines if routing in the network has been stable in the last
-    * STABLITY_THRESHOLD seconds, by comparing the current time to the last
+    * STABILITY_THRESHOLD seconds, by comparing the current time to the last
     * routing change timestamp.
     *
     * @return true if stable
@@ -1360,12 +1361,15 @@ public class DefaultRoutingHandler {
      * @param hostVlanId Vlan ID of the nexthop
      * @param outPort port where the next hop attaches to
      * @param directHost host is of type direct or indirect
+     * @return future that includes the flow objective if succeeded, null if otherwise
      */
-    void populateRoute(DeviceId deviceId, IpPrefix prefix,
-                       MacAddress hostMac, VlanId hostVlanId, PortNumber outPort, boolean directHost) {
+    CompletableFuture<Objective> populateRoute(DeviceId deviceId, IpPrefix prefix, MacAddress hostMac,
+                                               VlanId hostVlanId, PortNumber outPort, boolean directHost) {
         if (shouldProgram(deviceId)) {
-            srManager.routingRulePopulator.populateRoute(deviceId, prefix, hostMac, hostVlanId, outPort, directHost);
+            return srManager.routingRulePopulator.populateRoute(deviceId, prefix,
+                    hostMac, hostVlanId, outPort, directHost);
         }
+        return CompletableFuture.completedFuture(null);
     }
 
     /**
@@ -1378,24 +1382,29 @@ public class DefaultRoutingHandler {
      * @param hostVlanId Vlan ID of the nexthop
      * @param outPort port that next hop attaches to
      * @param directHost host is of type direct or indirect
+     * @return future that carries the flow objective if succeeded, null if otherwise
      */
-    void revokeRoute(DeviceId deviceId, IpPrefix prefix,
+    CompletableFuture<Objective> revokeRoute(DeviceId deviceId, IpPrefix prefix,
                      MacAddress hostMac, VlanId hostVlanId, PortNumber outPort, boolean directHost) {
         if (shouldProgram(deviceId)) {
-            srManager.routingRulePopulator.revokeRoute(deviceId, prefix, hostMac, hostVlanId, outPort, directHost);
+            return srManager.routingRulePopulator.revokeRoute(deviceId, prefix, hostMac, hostVlanId,
+                    outPort, directHost);
         }
+        return CompletableFuture.completedFuture(null);
     }
 
-    void populateBridging(DeviceId deviceId, PortNumber port, MacAddress mac, VlanId vlanId) {
+    CompletableFuture<Objective> populateBridging(DeviceId deviceId, PortNumber port, MacAddress mac, VlanId vlanId) {
         if (shouldProgram(deviceId)) {
-            srManager.routingRulePopulator.populateBridging(deviceId, port, mac, vlanId);
+            return srManager.routingRulePopulator.populateBridging(deviceId, port, mac, vlanId);
         }
+        return CompletableFuture.completedFuture(null);
     }
 
-    void revokeBridging(DeviceId deviceId, PortNumber port, MacAddress mac, VlanId vlanId) {
+    CompletableFuture<Objective> revokeBridging(DeviceId deviceId, PortNumber port, MacAddress mac, VlanId vlanId) {
         if (shouldProgram(deviceId)) {
-            srManager.routingRulePopulator.revokeBridging(deviceId, port, mac, vlanId);
+            return srManager.routingRulePopulator.revokeBridging(deviceId, port, mac, vlanId);
         }
+        return CompletableFuture.completedFuture(null);
     }
 
     void updateBridging(DeviceId deviceId, PortNumber portNum, MacAddress hostMac,

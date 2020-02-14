@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
@@ -136,6 +137,35 @@ public class PredictableExecutor
         execute(command, hintFunction.apply(command));
     }
 
+    /**
+     * Submits a value-returning task for execution and returns a
+     * Future representing the pending results of the task. The
+     * Future's {@code get} method will return the task's result upon
+     * successful completion.
+     *
+     * @param command the {@link Runnable} task
+     * @param hint value to pick thread to run on.
+     * @return completable future representing the pending results
+     */
+    public CompletableFuture<Void> submit(Runnable command, int hint) {
+        int index = Math.abs(hint) % backends.size();
+        return CompletableFuture.runAsync(command, backends.get(index));
+    }
+
+    /**
+     * Submits a value-returning task for execution and returns a
+     * Future representing the pending results of the task. The
+     * Future's {@code get} method will return the task's result upon
+     * successful completion.
+     *
+     * @param command the {@link Runnable} task
+     * @param hintFunction Function to compute hint value
+     * @return completable future representing the pending results
+     */
+    public CompletableFuture<Void> submit(Runnable command, Function<Runnable, Integer> hintFunction) {
+        int hint = hintFunction.apply(command);
+        return submit(command, hint);
+    }
 
     private static int hint(Runnable command) {
         if (command instanceof PickyTask) {
