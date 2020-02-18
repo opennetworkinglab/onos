@@ -40,6 +40,7 @@ public final class InstructionCodec extends JsonCodec<Instruction> {
     static final String MPLS_LABEL = "label";
     static final String MPLS_BOS = "bos";
     static final String IP = "ip";
+    static final String IP_DSCP = "ipDscp";
     static final String FLOW_LABEL = "flowLabel";
     static final String LAMBDA = "lambda";
     static final String GRID_TYPE = "gridType";

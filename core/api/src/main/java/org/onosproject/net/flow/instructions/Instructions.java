@@ -487,11 +487,11 @@ public final class Instructions {
     /**
      * Creates an IP DSCP modification.
      *
-     * @param dscpValue the DSCP value to modify to
+     * @param ipDscp the DSCP value to modify to
      * @return a L3 modification
      */
-    public static Instruction modIpDscp(byte dscpValue) {
-        return new L3ModificationInstruction.ModDscpInstruction(L3SubType.IP_DSCP, dscpValue);
+    public static Instruction modIpDscp(byte ipDscp) {
+        return new L3ModificationInstruction.ModDscpInstruction(L3SubType.IP_DSCP, ipDscp);
     }
 
     /**

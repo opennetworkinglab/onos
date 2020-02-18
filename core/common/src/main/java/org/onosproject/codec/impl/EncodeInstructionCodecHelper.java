@@ -207,6 +207,12 @@ public final class EncodeInstructionCodecHelper {
                         (L3ModificationInstruction.ModIPv6FlowLabelInstruction) l3Instruction;
                 result.put(InstructionCodec.FLOW_LABEL, modFlowLabelInstruction.flowLabel());
                 break;
+            case IP_DSCP:
+                final L3ModificationInstruction.ModDscpInstruction
+                        modDscpInstruction =
+                        (L3ModificationInstruction.ModDscpInstruction) l3Instruction;
+                result.put(InstructionCodec.IP_DSCP, modDscpInstruction.dscp());
+                break;
             case TTL_IN:
             case TTL_OUT:
             case DEC_TTL:

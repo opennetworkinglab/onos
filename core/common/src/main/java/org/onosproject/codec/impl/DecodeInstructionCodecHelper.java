@@ -178,6 +178,13 @@ public final class DecodeInstructionCodecHelper {
             return Instructions.copyTtlOut();
         } else  if (subType.equals(L3ModificationInstruction.L3SubType.DEC_TTL.name())) {
             return Instructions.decNwTtl();
+        } else  if (subType.equals(L3ModificationInstruction.L3SubType.IP_DSCP.name())) {
+            int ipDscp = nullIsIllegal(json.get(InstructionCodec.IP_DSCP),
+                InstructionCodec.IP_DSCP + InstructionCodec.MISSING_MEMBER_MESSAGE).asInt();
+            if ((ipDscp < Byte.MIN_VALUE) || (ipDscp > Byte.MAX_VALUE)) {
+                throw new IllegalArgumentException("Value " + ipDscp + " must be single byte");
+            }
+            return Instructions.modIpDscp((byte) ipDscp);
         }
         throw new IllegalArgumentException("L3 Instruction subtype "
                 + subType + " is not supported");
