@@ -111,7 +111,7 @@ public interface ClusterCommunicationService {
             Function<M, byte[]> encoder,
             Function<byte[], R> decoder,
             NodeId toNodeId) {
-        return sendAndReceive(message, subject, encoder, decoder, toNodeId, Duration.ZERO);
+        return sendAndReceive(message, subject, encoder, decoder, toNodeId, null);
     }
 
     /**

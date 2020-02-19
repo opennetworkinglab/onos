@@ -46,7 +46,7 @@ public interface MessagingService {
      * @return a response future
      */
     default CompletableFuture<byte[]> sendAndReceive(Endpoint ep, String type, byte[] payload) {
-        return sendAndReceive(ep, type, payload, Duration.ZERO, MoreExecutors.directExecutor());
+        return sendAndReceive(ep, type, payload, null, MoreExecutors.directExecutor());
     }
 
     /**
@@ -58,7 +58,7 @@ public interface MessagingService {
      * @return a response future
      */
     default CompletableFuture<byte[]> sendAndReceive(Endpoint ep, String type, byte[] payload, Executor executor) {
-        return sendAndReceive(ep, type, payload, Duration.ZERO, executor);
+        return sendAndReceive(ep, type, payload, null, executor);
     }
 
     /**
