@@ -175,7 +175,7 @@ public class TroubleshootPingAllCommand extends AbstractShellCommand {
                         .getCriterion(type)).ip().address();
             } else {
                 ipAddress = host.ipAddresses().stream().filter(IpAddress::isIp4)
-                        .findAny().orElseGet(null);
+                        .findAny().orElse(null);
             }
         } else {
             Criterion.Type type = src ? Criterion.Type.IPV6_SRC : Criterion.Type.IPV6_DST;
@@ -184,7 +184,7 @@ public class TroubleshootPingAllCommand extends AbstractShellCommand {
                         .getCriterion(type)).ip().address();
             } else {
                 ipAddress = host.ipAddresses().stream().filter(IpAddress::isIp6)
-                        .findAny().orElseGet(null);
+                        .findAny().orElse(null);
             }
         }
         return ipAddress;
