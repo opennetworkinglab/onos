@@ -54,7 +54,7 @@ public class CzechLightPowerConfig<T> extends AbstractHandlerBehaviour
             case LINE_DEGREE:
             case ADD_DROP_FLEX:
                 if (!(component instanceof OchSignal)) {
-                    log.error("Cannot set target power or anything but a Media Channel");
+                    log.error("Cannot set target power on anything but a Media Channel");
                     return;
                 }
                 HierarchicalConfiguration xml;
@@ -75,7 +75,8 @@ public class CzechLightPowerConfig<T> extends AbstractHandlerBehaviour
                     return;
                 }
                 final String element = port.toLong() == CzechLightDiscovery.PORT_COMMON ? "add" : "drop";
-                log.debug("{}: {} power for {} to {}", data().deviceId(), channel.getKey(), power);
+                log.debug("{}: setting power for MC {} to {}",
+                        data().deviceId(), channel.getKey().toUpperCase(), power);
                 var sb = new StringBuilder();
                 sb.append(CzechLightDiscovery.XML_MC_OPEN);
                 sb.append("<channel>");
