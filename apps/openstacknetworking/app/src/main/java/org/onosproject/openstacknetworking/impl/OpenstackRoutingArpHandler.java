@@ -96,9 +96,9 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_CON
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_GATEWAY_RULE;
 import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_PRE_REMOVE;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.associatedFloatingIp;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.externalGatewayIp;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.externalPeerRouterForNetwork;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.floatingIpByInstancePort;
-import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getExternalIp;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getGwByComputeDevId;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getGwByInstancePort;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValue;
@@ -535,7 +535,7 @@ public class OpenstackRoutingArpHandler {
 
     private void setFakeGatewayArpRuleByRouter(Router router, boolean install) {
         if (ARP_BROADCAST_MODE.equals(getArpMode())) {
-            IpAddress externalIp = getExternalIp(router, osNetworkService);
+            IpAddress externalIp = externalGatewayIp(router, osNetworkService);
 
             if (externalIp == null) {
                 log.debug("External IP is not found");

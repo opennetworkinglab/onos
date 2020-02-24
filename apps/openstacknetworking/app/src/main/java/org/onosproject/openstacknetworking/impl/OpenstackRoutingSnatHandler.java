@@ -114,10 +114,10 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_STATEFU
 import static org.onosproject.openstacknetworking.api.Constants.ROUTING_TABLE;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.FLAT;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.VLAN;
-import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.externalIpFromSubnet;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.externalGatewayIpSnatEnabled;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.externalPeerRouterFromSubnet;
-import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getExternalIp;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValueAsBoolean;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getRouterFromSubnet;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.tunnelPortNumByNetType;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.CT_NAT_SRC_FLAG;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildExtension;
@@ -291,7 +291,17 @@ public class OpenstackRoutingSnatHandler {
 
         IpAddress srcIp = IpAddress.valueOf(iPacket.getSourceAddress());
         Subnet srcSubnet = getSourceSubnet(srcInstPort, srcIp);
-        IpAddress externalGatewayIp = externalIpFromSubnet(srcSubnet, osRouterService, osNetworkAdminService);
+
+        Router osRouter = getRouterFromSubnet(srcSubnet, osRouterService);
+
+        if (osRouter == null || osRouter.getExternalGatewayInfo() == null) {
+            // this router does not have external connectivity
+            log.warn("No router is associated with the given subnet {}", srcSubnet);
+            return;
+        }
+
+        IpAddress externalGatewayIp =
+                externalGatewayIpSnatEnabled(osRouter, osNetworkAdminService);
 
         if (externalGatewayIp == null) {
             return;
@@ -796,35 +806,37 @@ public class OpenstackRoutingSnatHandler {
         Type netType = osNetworkAdminService.networkType(osSubnet.getNetworkId());
 
         if (netType == FLAT) {
+            log.warn("FLAT typed network does not need SNAT rules");
             return;
         }
 
         Optional<Router> osRouter = osRouterService.routers().stream()
-                .filter(router -> osRouterService.routerInterfaces(routerIface.getId()) != null)
+                .filter(router -> routerIface.getId().equals(router.getId()))
                 .findAny();
 
         if (!osRouter.isPresent()) {
-            log.error("Cannot find a router for router interface {} ", routerIface);
+            log.warn("Cannot find a router attached with the given router interface {} ", routerIface);
             return;
         }
 
-        IpAddress natAddress = getExternalIp(osRouter.get(), osNetworkAdminService);
+        IpAddress natAddress = externalGatewayIpSnatEnabled(osRouter.get(), osNetworkAdminService);
         if (natAddress == null) {
+            log.warn("NAT address is not found");
             return;
         }
 
         IpAddress extRouterAddress = getGatewayIpAddress(osRouter.get());
         if (extRouterAddress == null) {
+            log.warn("External router address is not found");
             return;
         }
 
         ExternalPeerRouter externalPeerRouter =
                 osNetworkAdminService.externalPeerRouter(extRouterAddress);
         if (externalPeerRouter == null) {
+            log.warn("External peer router not found");
             return;
         }
-
-        String netId = osNetworkAdminService.subnet(routerIface.getSubnetId()).getNetworkId();
 
         Map<OpenstackNode, PortRange> gwPortRangeMap = getAssignedPortsForGateway(
                 ImmutableList.copyOf(osNodeService.nodes(GATEWAY)));
@@ -857,7 +869,7 @@ public class OpenstackRoutingSnatHandler {
             return;
         }
 
-        IpAddress natAddress = getExternalIp(osRouter, osNetworkAdminService);
+        IpAddress natAddress = externalGatewayIpSnatEnabled(osRouter, osNetworkAdminService);
         if (natAddress == null) {
             return;
         }
