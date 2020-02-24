@@ -870,7 +870,7 @@ public class OpenstackSwitchingArpHandler {
             Network network = event.subject();
 
             if (network == null) {
-                log.warn("Network is not specified.");
+                log.debug("Network is not specified.");
                 return false;
             } else {
                 return network.getProviderSegID() != null;
@@ -895,9 +895,10 @@ public class OpenstackSwitchingArpHandler {
                 case OPENSTACK_NETWORK_UPDATED:
                     eventExecutor.execute(() -> processNetworkCreation(event));
                     break;
-                case OPENSTACK_NETWORK_REMOVED:
+                case OPENSTACK_NETWORK_PRE_REMOVED:
                     eventExecutor.execute(() -> processNetworkRemoval(event));
                     break;
+                case OPENSTACK_NETWORK_REMOVED:
                 case OPENSTACK_PORT_CREATED:
                 case OPENSTACK_PORT_UPDATED:
                 case OPENSTACK_PORT_REMOVED:
