@@ -1167,64 +1167,27 @@ public final class OpenstackNetworkingUtil {
     }
 
     /**
-     * Returns the external ip address with specified router information.
-     *
-     * @param srcSubnet source subnet
-     * @param osRouterService openstack router service
-     * @param osNetworkService openstack network service
-     * @return external ip address
-     */
-    public static IpAddress externalIpFromSubnet(Subnet srcSubnet,
-                                                 OpenstackRouterService
-                                                         osRouterService,
-                                                 OpenstackNetworkService
-                                                         osNetworkService) {
-
-        Router osRouter = getRouterFromSubnet(srcSubnet, osRouterService);
-
-        if (osRouter.getExternalGatewayInfo() == null) {
-            // this router does not have external connectivity
-            log.trace("router({}) has no external gateway",
-                    osRouter.getName());
-            return null;
-        }
-
-        return getExternalIp(osRouter, osNetworkService);
-    }
-
-    /**
-     * Returns the external ip address with specified router information.
+     * Returns the external gateway IP address with specified router information.
      *
      * @param router openstack router
      * @param osNetworkService openstack network service
-     * @return external ip address
+     * @return external IP address
      */
-    public static IpAddress getExternalIp(Router router,
-                                          OpenstackNetworkService osNetworkService) {
-        if (router == null) {
-            return null;
-        }
+    public static IpAddress externalGatewayIp(Router router,
+                                              OpenstackNetworkService osNetworkService) {
+        return externalGatewayIpBase(router, false, osNetworkService);
+    }
 
-        ExternalGateway externalGateway = router.getExternalGatewayInfo();
-        if (externalGateway == null || !externalGateway.isEnableSnat()) {
-            log.trace("Failed to get externalIp for router {} because " +
-                            "externalGateway is null or SNAT is disabled",
-                    router.getId());
-            return null;
-        }
-
-        // TODO fix openstack4j for ExternalGateway provides external fixed IP list
-        Port exGatewayPort = osNetworkService.ports(externalGateway.getNetworkId())
-                .stream()
-                .filter(port -> Objects.equals(port.getDeviceId(), router.getId()))
-                .findAny().orElse(null);
-
-        if (exGatewayPort == null) {
-            return null;
-        }
-
-        return IpAddress.valueOf(exGatewayPort.getFixedIps().stream()
-                .findAny().get().getIpAddress());
+    /**
+     * Returns the external gateway IP address (SNAT enabled) with specified router information.
+     *
+     * @param router openstack router
+     * @param osNetworkService openstack network service
+     * @return external IP address
+     */
+    public static IpAddress externalGatewayIpSnatEnabled(Router router,
+                                                         OpenstackNetworkService osNetworkService) {
+        return externalGatewayIpBase(router, true, osNetworkService);
     }
 
     /**
@@ -1407,8 +1370,15 @@ public final class OpenstackNetworkingUtil {
         return null;
     }
 
-    private static Router getRouterFromSubnet(Subnet subnet,
-                                              OpenstackRouterService osRouterService) {
+    /**
+     * Return the router associated with the given subnet.
+     *
+     * @param subnet openstack subnet
+     * @param osRouterService openstack router service
+     * @return router
+     */
+    public static Router getRouterFromSubnet(Subnet subnet,
+                                             OpenstackRouterService osRouterService) {
         RouterInterface osRouterIface = osRouterService.routerInterfaces().stream()
                 .filter(i -> Objects.equals(i.getSubnetId(), subnet.getId()))
                 .findAny().orElse(null);
@@ -1609,6 +1579,49 @@ public final class OpenstackNetworkingUtil {
             intIndex++;
         }
         return gw;
+    }
+
+    /**
+     * Returns the external gateway IP address with specified router information.
+     *
+     * @param router openstack router
+     * @param snatOnly true for only query SNAT enabled case, false otherwise
+     * @param osNetworkService openstack network service
+     * @return external IP address
+     */
+    private static IpAddress externalGatewayIpBase(Router router, boolean snatOnly,
+                                                   OpenstackNetworkService osNetworkService) {
+        if (router == null) {
+            return null;
+        }
+
+        ExternalGateway externalGateway = router.getExternalGatewayInfo();
+        if (externalGateway == null) {
+            log.info("Failed to get external IP for router {} because no " +
+                            "external gateway is associated with the router",
+                    router.getId());
+            return null;
+        }
+
+        if (snatOnly) {
+            if (!externalGateway.isEnableSnat()) {
+                log.warn("The given router {} SNAT is configured as false", router.getId());
+                return null;
+            }
+        }
+
+        // TODO fix openstack4j for ExternalGateway provides external fixed IP list
+        Port exGatewayPort = osNetworkService.ports(externalGateway.getNetworkId())
+                .stream()
+                .filter(port -> Objects.equals(port.getDeviceId(), router.getId()))
+                .findAny().orElse(null);
+
+        if (exGatewayPort == null) {
+            return null;
+        }
+
+        return IpAddress.valueOf(exGatewayPort.getFixedIps().stream()
+                .findAny().get().getIpAddress());
     }
 
     private static void print(String format, Object... args) {
