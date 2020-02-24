@@ -46,6 +46,11 @@ public class OpenstackNetworkEvent
         OPENSTACK_NETWORK_UPDATED,
 
         /**
+         * Signifies that the OpenStack network is pre-removed.
+         */
+        OPENSTACK_NETWORK_PRE_REMOVED,
+
+        /**
          * Signifies that the OpenStack network is removed.
          */
         OPENSTACK_NETWORK_REMOVED,

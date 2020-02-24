@@ -822,7 +822,7 @@ public class OpenstackSwitchingHandler {
                 case OPENSTACK_NETWORK_UPDATED:
                     eventExecutor.execute(() -> processNetworkAddition(event));
                     break;
-                case OPENSTACK_NETWORK_REMOVED:
+                case OPENSTACK_NETWORK_PRE_REMOVED:
                     eventExecutor.execute(() -> processNetworkRemoval(event));
                     break;
                 case OPENSTACK_PORT_CREATED:

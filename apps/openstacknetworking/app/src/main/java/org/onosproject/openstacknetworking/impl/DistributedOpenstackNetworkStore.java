@@ -74,6 +74,7 @@ import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type
 import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.EXTERNAL_PEER_ROUTER_REMOVED;
 import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.EXTERNAL_PEER_ROUTER_UPDATED;
 import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_NETWORK_CREATED;
+import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_NETWORK_PRE_REMOVED;
 import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_NETWORK_REMOVED;
 import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_NETWORK_UPDATED;
 import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_CREATED;
@@ -373,6 +374,20 @@ public class DistributedOpenstackNetworkStore
             notifyDelegate(new OpenstackNetworkEvent(
                     OPENSTACK_NETWORK_UPDATED,
                     event.newValue().value()));
+
+            Network oldValue = event.oldValue().value();
+            Network newValue = event.newValue().value();
+
+            // FIXME: before the network get removed eventually, neutron always
+            // issue network update event with removed (empty) segmentation ID
+            // this might be a bug of openstack or openstack4j, need to revisit later
+            if (oldValue.getProviderSegID() != null &&
+                    newValue.getProviderSegID() == null) {
+                log.debug("OpenStack network pre-removed");
+                notifyDelegate(new OpenstackNetworkEvent(
+                        OPENSTACK_NETWORK_PRE_REMOVED,
+                        event.oldValue().value()));
+            }
         }
 
         private void processNetworkMapInsertion(MapEvent<String, Network> event) {
