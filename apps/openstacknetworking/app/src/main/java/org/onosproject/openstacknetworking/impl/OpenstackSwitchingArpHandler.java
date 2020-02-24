@@ -795,12 +795,26 @@ public class OpenstackSwitchingArpHandler {
                                                     boolean isTunnel,
                                                     boolean install) {
 
-        // add group rule
+        if (install) {
+            processGroupTableRules(osNode, netId, true);
+            processFlowTableRules(osNode, segId, netId, isTunnel, true);
+        } else {
+            processFlowTableRules(osNode, segId, netId, isTunnel, false);
+            processGroupTableRules(osNode, netId, false);
+        }
+    }
+
+    private void processGroupTableRules(OpenstackNode osNode,
+                                        String netId, boolean install) {
         int groupId = netId.hashCode();
         osGroupRuleService.setRule(appId, osNode.intgBridge(), groupId,
                 ALL, Lists.newArrayList(), install);
+    }
 
-        // add flow rule
+    private void processFlowTableRules(OpenstackNode osNode,
+                                        String segId, String netId,
+                                        boolean isTunnel,
+                                        boolean install) {
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
                 .matchEthType(EthType.EtherType.ARP.ethType().toShort())
                 .matchArpOp(ARP.OP_REQUEST);
