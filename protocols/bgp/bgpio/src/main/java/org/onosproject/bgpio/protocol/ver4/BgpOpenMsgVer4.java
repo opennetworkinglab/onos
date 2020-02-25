@@ -224,7 +224,10 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
 
                     // Parse capabilities only if optional parameter type is 2
                     if ((optParaType == OPT_PARA_TYPE_CAPABILITY) && (capParaLen != 0)) {
-                        capabilityTlv = parseCapabilityTlv(capaCb);
+                        //Observed that some routers send a list of capabilities, while others send a list
+                        //of optional parameters. This takes care of both
+                        LinkedList<BgpValueType> currentCapabilityTlv = parseCapabilityTlv(capaCb);
+                        capabilityTlv.addAll(currentCapabilityTlv);
                     } else {
                         throw new BgpParseException(BgpErrorType.OPEN_MESSAGE_ERROR,
                                 BgpErrorType.UNSUPPORTED_OPTIONAL_PARAMETER, null);
