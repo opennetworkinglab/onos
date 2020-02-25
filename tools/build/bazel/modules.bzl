@@ -116,7 +116,7 @@ PROVIDER_MAP = {
 }
 
 PROVIDER_APP_MAP = {
-    "//providers/general:onos-providers-general-oar": ["minimal", "seba", "stratum"],
+    "//providers/general:onos-providers-general-oar": ["minimal", "stratum"],
     "//providers/bgp:onos-providers-bgp-oar": [],
     "//providers/bgpcep:onos-providers-bgpcep-oar": [],
     "//providers/host:onos-providers-host-oar": ["seba", "stratum"],
@@ -274,7 +274,7 @@ APP_MAP = {
     "//apps/pathpainter:onos-apps-pathpainter-oar": [],
     "//apps/pcep-api:onos-apps-pcep-api-oar": [],
     "//apps/pim:onos-apps-pim-oar": [],
-    "//apps/portloadbalancer:onos-apps-portloadbalancer-oar": [],
+    "//apps/portloadbalancer:onos-apps-portloadbalancer-oar": ["seba"],
     "//apps/powermanagement:onos-apps-powermanagement-oar": [],
     "//apps/proxyarp:onos-apps-proxyarp-oar": [],
     "//apps/rabbitmq:onos-apps-rabbitmq-oar": [],
