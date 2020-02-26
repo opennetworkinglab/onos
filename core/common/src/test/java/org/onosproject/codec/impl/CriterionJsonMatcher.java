@@ -137,6 +137,14 @@ public final class CriterionJsonMatcher extends
             description.appendText("mac was " + jsonMac);
             return false;
         }
+        if (criterion.type() == Criterion.Type.ETH_DST_MASKED) {
+            final String macMask = criterion.mask().toString();
+            final String jsonMacMask = jsonCriterion.get("macMask").textValue();
+            if (!macMask.equals(jsonMacMask)) {
+                description.appendText("macMask was " + jsonMacMask);
+                return false;
+            }
+        }
         return true;
     }
 
@@ -657,6 +665,7 @@ public final class CriterionJsonMatcher extends
                 return matchCriterion((MetadataCriterion) criterion);
 
             case ETH_DST:
+            case ETH_DST_MASKED:
             case ETH_SRC:
                 return matchCriterion((EthCriterion) criterion);
 
