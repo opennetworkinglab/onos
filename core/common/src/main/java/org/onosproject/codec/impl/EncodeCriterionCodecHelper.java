@@ -81,6 +81,7 @@ public final class EncodeCriterionCodecHelper {
         formatMap.put(Criterion.Type.IN_PHY_PORT, new FormatInPort());
         formatMap.put(Criterion.Type.METADATA, new FormatMetadata());
         formatMap.put(Criterion.Type.ETH_DST, new FormatEth());
+        formatMap.put(Criterion.Type.ETH_DST_MASKED, new FormatEthMasked());
         formatMap.put(Criterion.Type.ETH_SRC, new FormatEth());
         formatMap.put(Criterion.Type.ETH_TYPE, new FormatEthType());
         formatMap.put(Criterion.Type.VLAN_VID, new FormatVlanVid());
@@ -131,7 +132,6 @@ public final class EncodeCriterionCodecHelper {
         formatMap.put(Criterion.Type.ACTSET_OUTPUT, new FormatUnknown());
         formatMap.put(Criterion.Type.PACKET_TYPE, new FormatUnknown());
         formatMap.put(Criterion.Type.EXTENSION, new FormatUnknown());
-        formatMap.put(Criterion.Type.ETH_DST_MASKED, new FormatUnknown());
         formatMap.put(Criterion.Type.ETH_SRC_MASKED, new FormatUnknown());
         formatMap.put(Criterion.Type.TCP_SRC_MASKED, new FormatUnknown());
         formatMap.put(Criterion.Type.TCP_DST_MASKED, new FormatUnknown());
@@ -176,6 +176,17 @@ public final class EncodeCriterionCodecHelper {
         public ObjectNode encodeCriterion(ObjectNode root, Criterion criterion) {
             final EthCriterion ethCriterion = (EthCriterion) criterion;
             return root.put(CriterionCodec.MAC, ethCriterion.mac().toString());
+        }
+    }
+
+    private static class FormatEthMasked implements CriterionTypeFormatter {
+        @Override
+        public ObjectNode encodeCriterion(ObjectNode root, Criterion criterion) {
+            final EthCriterion ethCriterion = (EthCriterion) criterion;
+            root.put(CriterionCodec.MAC, ethCriterion.mac().toString());
+            root.put(CriterionCodec.MAC_MASK, ethCriterion.mask().toString());
+
+            return root;
         }
     }
 

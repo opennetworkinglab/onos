@@ -34,6 +34,7 @@ public final class CriterionCodec extends JsonCodec<Criterion> {
     protected static final String TYPE = "type";
     protected static final String ETH_TYPE = "ethType";
     protected static final String MAC = "mac";
+    protected static final String MAC_MASK = "macMask";
     protected static final String PORT = "port";
     protected static final String METADATA = "metadata";
 
