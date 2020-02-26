@@ -71,6 +71,7 @@ public final class DecodeCriterionCodecHelper {
         decoderMap.put(Criterion.Type.IN_PHY_PORT.name(), new InPhyPortDecoder());
         decoderMap.put(Criterion.Type.METADATA.name(), new MetadataDecoder());
         decoderMap.put(Criterion.Type.ETH_DST.name(), new EthDstDecoder());
+        decoderMap.put(Criterion.Type.ETH_DST_MASKED.name(), new EthDstMaskedDecoder());
         decoderMap.put(Criterion.Type.ETH_SRC.name(), new EthSrcDecoder());
         decoderMap.put(Criterion.Type.ETH_TYPE.name(), new EthTypeDecoder());
         decoderMap.put(Criterion.Type.VLAN_VID.name(), new VlanVidDecoder());
@@ -138,7 +139,16 @@ public final class DecodeCriterionCodecHelper {
             return Criteria.matchEthDst(mac);
         }
     }
-
+    private class EthDstMaskedDecoder implements CriterionDecoder {
+        @Override
+        public Criterion decodeCriterion(ObjectNode json) {
+            MacAddress mac = MacAddress.valueOf(nullIsIllegal(json.get(CriterionCodec.MAC),
+                                                              CriterionCodec.MAC + MISSING_MEMBER_MESSAGE).asText());
+            MacAddress macMask = MacAddress.valueOf(nullIsIllegal(json.get(CriterionCodec.MAC_MASK),
+                                                              CriterionCodec.MAC + MISSING_MEMBER_MESSAGE).asText());
+            return Criteria.matchEthDstMasked(mac, macMask);
+        }
+    }
     private class EthSrcDecoder implements CriterionDecoder {
         @Override
         public Criterion decodeCriterion(ObjectNode json) {

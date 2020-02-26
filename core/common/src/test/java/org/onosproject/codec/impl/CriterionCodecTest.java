@@ -70,6 +70,8 @@ public class CriterionCodecTest {
     final IpPrefix ipPrefix4 = IpPrefix.valueOf("10.1.1.0/24");
     final IpPrefix ipPrefix6 = IpPrefix.valueOf("fe80::/64");
     final MacAddress mac1 = MacAddress.valueOf("00:00:11:00:00:01");
+    final MacAddress mcastMac = MacAddress.valueOf("01:00:5E:00:00:01");
+    final MacAddress mcastMacMask = MacAddress.valueOf("FF:FF:FF:80:00:00");
     final TpPort tpPort = TpPort.tpPort(40000);
     final int tributaryPortNumber = 11;
     final int tributarySlotLen = 80;
@@ -141,6 +143,16 @@ public class CriterionCodecTest {
     @Test
     public void matchEthDstTest() {
         Criterion criterion = Criteria.matchEthDst(mac1);
+        ObjectNode result = criterionCodec.encode(criterion, context);
+        assertThat(result, matchesCriterion(criterion));
+    }
+
+    /**
+     * Tests masked ethernet destination criterion (Criterion.Type.ETH_DST_MASKED).
+     */
+    @Test
+    public void matchEthDstMaskTest() {
+        Criterion criterion = Criteria.matchEthDstMasked(mcastMac, mcastMacMask);
         ObjectNode result = criterionCodec.encode(criterion, context);
         assertThat(result, matchesCriterion(criterion));
     }
