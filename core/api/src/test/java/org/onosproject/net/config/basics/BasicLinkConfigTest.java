@@ -36,6 +36,11 @@ import static org.hamcrest.Matchers.is;
 public class BasicLinkConfigTest {
     private static final long BANDWIDTH = 11;
     private static final double METRIC = 3.0;
+    private static final double JITTER = 3.0;
+    private static final double DELAY = 3.0;
+    private static final double LOSS = 3.0;
+    private static final double AVAILABILITY = 3.0;
+    private static final double FLAPPING = 3.0;
     private static final Duration LATENCY =  Duration.ofNanos(5555);
 
     /**
@@ -54,6 +59,11 @@ public class BasicLinkConfigTest {
 
 
         config.bandwidth(BANDWIDTH)
+                .jitter(JITTER)
+                .delay(DELAY)
+                .loss(LOSS)
+                .availability(AVAILABILITY)
+                .flapping(FLAPPING)
                 .isDurable(FALSE)
                 .metric(METRIC)
                 .type(Link.Type.DIRECT)
@@ -61,6 +71,11 @@ public class BasicLinkConfigTest {
                 .isBidirectional(FALSE);
 
         assertThat(config.bandwidth(), is(BANDWIDTH));
+        assertThat(config.jitter(), is(JITTER));
+        assertThat(config.delay(), is(DELAY));
+        assertThat(config.loss(), is(LOSS));
+        assertThat(config.availability(), is(AVAILABILITY));
+        assertThat(config.flapping(), is(FLAPPING));
         assertThat(config.isDurable(), is(FALSE));
         assertThat(config.metric(), is(METRIC));
         assertThat(config.type(), is(Link.Type.DIRECT));

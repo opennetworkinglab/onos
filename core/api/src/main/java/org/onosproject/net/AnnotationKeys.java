@@ -9,6 +9,7 @@
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
+ *
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
@@ -209,6 +210,36 @@ public final class AnnotationKeys {
      * Annotation key for the protocol layer.
      */
     public static final String LAYER = "layer";
+
+    /**
+     * Annotation key for jitter.
+     * The value of this key is expected to be jitter in seconds
+     */
+    public static final String JITTER = "jitter";
+
+    /**
+     * Annotation key for delay.
+     * The value of this key is expected to be delay in seconds
+     */
+    public static final String DELAY = "delay";
+
+    /**
+     * Annotation key for loss.
+     * The value of this key is expected to be loss in percentage.
+     */
+    public static final String LOSS = "loss";
+
+    /**
+     * Annotation key for availability.
+     * The value of this key is expected to be availability as a percentage
+     */
+    public static final String AVAILABILITY = "availability";
+
+    /**
+     * Annotation key for flapping.
+     * The value of this key is expected to be a subjective percentage for flapping
+     */
+    public static final String FLAPPING = "flapping";
 
     /**
      * Returns the value annotated object for the specified annotation key.

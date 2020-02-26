@@ -38,6 +38,11 @@ import org.slf4j.Logger;
 public final class BasicLinkOperator implements ConfigOperator {
 
     private static final long DEF_BANDWIDTH = -1L;
+    private static final double DEF_JITTER = -1.0;
+    private static final double DEF_DELAY = -1.0;
+    private static final double DEF_LOSS = -1.0;
+    private static final double DEF_AVAILABILITY = -1.0;
+    private static final double DEF_FLAPPING = -1.0;
     private static final double DEF_METRIC = -1;
     private static final Duration DEF_DURATION = Duration.ofNanos(-1L);
     private static final Logger log = getLogger(BasicLinkOperator.class);
@@ -92,6 +97,21 @@ public final class BasicLinkOperator implements ConfigOperator {
         }
         if (cfg.isDurable() != null) {
             b.set(AnnotationKeys.DURABLE, String.valueOf(cfg.isDurable()));
+        }
+        if (cfg.jitter() != DEF_JITTER) {
+            b.set(AnnotationKeys.JITTER, String.valueOf(cfg.jitter()));
+        }
+        if (cfg.delay() != DEF_DELAY) {
+            b.set(AnnotationKeys.DELAY, String.valueOf(cfg.delay()));
+        }
+        if (cfg.loss() != DEF_LOSS) {
+            b.set(AnnotationKeys.LOSS, String.valueOf(cfg.loss()));
+        }
+        if (cfg.availability() != DEF_AVAILABILITY) {
+            b.set(AnnotationKeys.AVAILABILITY, String.valueOf(cfg.availability()));
+        }
+        if (cfg.flapping() != DEF_FLAPPING) {
+            b.set(AnnotationKeys.FLAPPING, String.valueOf(cfg.flapping()));
         }
         return b.build();
     }
