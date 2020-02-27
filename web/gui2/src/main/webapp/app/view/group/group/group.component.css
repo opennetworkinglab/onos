@@ -19,6 +19,7 @@
 
 #ov-group h2 {
     display: inline-block;
+    margin-left: 10px;
 }
 
 #ov-group div.ctrl-btns {

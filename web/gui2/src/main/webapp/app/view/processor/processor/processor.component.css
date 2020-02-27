@@ -17,12 +17,13 @@
 /*
  ONOS GUI -- Processor View (layout) -- CSS file
  */
- #ov-processor .tabular-header {
+#ov-processor .tabular-header {
     text-align: left;
 }
 
 #ov-processor h2 {
     display: inline-block;
+    margin-left: 10px;
 }
 
 #ov-processor div.summary-list .table-header td {

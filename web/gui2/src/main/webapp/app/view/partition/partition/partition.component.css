@@ -23,6 +23,7 @@
 
 #ov-partition h2 {
     display: inline-block;
+    margin-left: 10px;
 }
 
 #ov-partition div.summary-list .table-header td {

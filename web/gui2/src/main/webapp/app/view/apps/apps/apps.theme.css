@@ -44,6 +44,7 @@ div.dropping {
 }
 #ov-app h2 {
     display: inline-block;
+    margin-left: 10px;
 }
 
 #ov-app, div.ctrl-btns {

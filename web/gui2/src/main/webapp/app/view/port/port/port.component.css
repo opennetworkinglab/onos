@@ -23,6 +23,7 @@
 
 #ov-port h2 {
     display: inline-block;
+    margin-left: 10px;
 }
 
 #ov-port div.ctrl-btns {
