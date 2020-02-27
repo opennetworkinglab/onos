@@ -16,6 +16,7 @@
 package org.onosproject.openstacknetworking.cli;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.apache.karaf.shell.api.action.Argument;
 import org.apache.karaf.shell.api.action.Command;
@@ -31,8 +32,10 @@ import org.onosproject.openstacknetworking.api.InstancePort;
 import org.onosproject.openstacknetworking.api.InstancePortService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.openstack4j.model.network.Port;
+
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -65,7 +68,7 @@ public class OpenstackVmStatsCommand extends AbstractShellCommand {
     private static final String NO_INSTANCE_PORTS =
             "There's no instance port associated to given VM Device ID";
     private static final String FORMAT =
-            "   port=%s, pktRx=%s, pktTx=%s, bytesRx=%s, bytesTx=%s, pktRxDrp=%s, pktTxDrp=%s, Dur=%s%s";
+            "   ip address=%s, port=%s, pktRx=%s, pktTx=%s, bytesRx=%s, bytesTx=%s, pktRxDrp=%s, pktTxDrp=%s, Dur=%s%s";
 
     @Override
     protected void doExecute() {
@@ -93,17 +96,23 @@ public class OpenstackVmStatsCommand extends AbstractShellCommand {
         Set<PortNumber> portNumbers =
                 instancePorts.stream().map(InstancePort::portNumber).collect(Collectors.toSet());
 
+        Map<PortNumber, String> ipAddressMap = Maps.newHashMap();
+
+        instancePorts.forEach(instancePort -> {
+
+            ipAddressMap.put(instancePort.portNumber(), instancePort.ipAddress().toString());
+        });
+
         instancePorts.stream().findAny().ifPresent(instancePort -> {
             DeviceId deviceId = instancePort.deviceId();
-
             if (delta) {
-                printPortStatsDelta(vmDeviceId, deviceService.getPortDeltaStatistics(deviceId), portNumbers);
+                printPortStatsDelta(vmDeviceId, ipAddressMap, deviceService.getPortDeltaStatistics(deviceId));
                 if (table) {
                     printPortStatsDeltaTable(
-                            vmDeviceId, deviceService.getPortDeltaStatistics(deviceId), portNumbers);
+                            vmDeviceId, ipAddressMap, deviceService.getPortDeltaStatistics(deviceId));
                 }
             } else {
-                printPortStats(vmDeviceId, deviceService.getPortStatistics(deviceId), portNumbers);
+                printPortStats(vmDeviceId, ipAddressMap, deviceService.getPortStatistics(deviceId));
             }
         });
     }
@@ -118,20 +127,22 @@ public class OpenstackVmStatsCommand extends AbstractShellCommand {
     }
 
     private void printPortStatsDelta(String vmDeviceId,
-                                     Iterable<PortStatistics> portStats,
-                                     Set<PortNumber> portNumbers) {
-        final String formatDelta = "   port=%s, pktRx=%s, pktTx=%s, bytesRx=%s, bytesTx=%s,"
+                                     Map<PortNumber, String> ipAddressMap,
+                                     Iterable<PortStatistics> portStats) {
+        final String formatDelta = "   ip address=%s, port=%s, pktRx=%s, pktTx=%s, bytesRx=%s, bytesTx=%s,"
                 + " rateRx=%s, rateTx=%s, pktRxDrp=%s, pktTxDrp=%s, interval=%s";
 
         print("VM Device ID: %s", vmDeviceId);
 
         for (PortStatistics stat : sortByPort(portStats)) {
-            if (portNumbers.contains(stat.portNumber())) {
+            if (ipAddressMap.containsKey(stat.portNumber())) {
                 float duration = ((float) stat.durationSec()) +
                         (((float) stat.durationNano()) / TimeUnit.SECONDS.toNanos(1));
                 float rateRx = stat.bytesReceived() * 8 / duration;
                 float rateTx = stat.bytesSent() * 8 / duration;
-                print(formatDelta, stat.portNumber(),
+                print(formatDelta,
+                        ipAddressMap.get(stat.portNumber()),
+                        stat.portNumber(),
                         stat.packetsReceived(),
                         stat.packetsSent(),
                         stat.bytesReceived(),
@@ -146,25 +157,32 @@ public class OpenstackVmStatsCommand extends AbstractShellCommand {
     }
 
     private void printPortStatsDeltaTable(String vmDeviceId,
-                                     Iterable<PortStatistics> portStats,
-                                     Set<PortNumber> portNumbers) {
+                                          Map<PortNumber, String> ipAddressMap,
+                                          Iterable<PortStatistics> portStats) {
 
-        final String formatDeltaTable = "|%5s | %7s | %7s |  %7s | %7s | %7s | %7s |  %7s | %7s |%9s |";
-        print("+---------------------------------------------------------------------------------------------------+");
-        print("| VM Device ID = %-86s |", vmDeviceId);
-        print("|---------------------------------------------------------------------------------------------------|");
-        print("|      | Receive                                | Transmit                               | Time [s] |");
-        print("| Port | Packets |  Bytes  | Rate bps |   Drop  | Packets |  Bytes  | Rate bps |   Drop  | Interval |");
-        print("|---------------------------------------------------------------------------------------------------|");
+        final String formatDeltaTable = "|%15s  |%5s | %7s | %7s |  %7s | %7s | %7s | %7s |  %7s | %7s |%9s |";
+        print("+----------------------------------------------------------------------" +
+                "-----------------------------------------------+");
+        print("| VM Device ID = %-100s |", vmDeviceId);
+        print("|----------------------------------------------------------------------" +
+                "-----------------------------------------------|");
+        print("|                 |      | Receive                                | Transmit    " +
+                "                           | Time [s] |");
+        print("| ip              | Port | Packets |  Bytes  | Rate bps |   Drop  | Packets |  " +
+                "Bytes  | Rate bps |   Drop  | Interval |");
+        print("|----------------------------------------------------------------------" +
+                "-----------------------------------------------|");
 
         for (PortStatistics stat : sortByPort(portStats)) {
 
-            if (portNumbers.contains(stat.portNumber())) {
+            if (ipAddressMap.containsKey(stat.portNumber())) {
                 float duration = ((float) stat.durationSec()) +
                         (((float) stat.durationNano()) / TimeUnit.SECONDS.toNanos(1));
                 float rateRx = duration > 0 ? stat.bytesReceived() * 8 / duration : 0;
                 float rateTx = duration > 0 ? stat.bytesSent() * 8 / duration : 0;
-                print(formatDeltaTable, stat.portNumber(),
+                print(formatDeltaTable,
+                        ipAddressMap.get(stat.portNumber()),
+                        stat.portNumber(),
                         humanReadable(stat.packetsReceived()),
                         humanReadable(stat.bytesReceived()),
                         humanReadableBps(rateRx),
@@ -176,17 +194,20 @@ public class OpenstackVmStatsCommand extends AbstractShellCommand {
                         String.format("%.3f", duration));
             }
         }
-        print("+---------------------------------------------------------------------------------------------------+");
+        print("|----------------------------------------------------------------------" +
+                "-----------------------------------------------|");
 
     }
+
     private void printPortStats(String vmDeviceId,
-                                Iterable<PortStatistics> portStats,
-                                Set<PortNumber> portNumbers) {
+                                Map<PortNumber, String> ipAddressMap,
+                                Iterable<PortStatistics> portStats) {
         print("VM Device ID: %s", vmDeviceId);
 
         for (PortStatistics stat : sortByPort(portStats)) {
-            if (portNumbers.contains(stat.portNumber())) {
-                print(FORMAT, stat.portNumber(), stat.packetsReceived(), stat.packetsSent(), stat.bytesReceived(),
+            if (ipAddressMap.containsKey(stat.portNumber())) {
+                print(FORMAT, ipAddressMap.get(stat.portNumber()),
+                        stat.portNumber(), stat.packetsReceived(), stat.packetsSent(), stat.bytesReceived(),
                         stat.bytesSent(), stat.packetsRxDropped(), stat.packetsTxDropped(), stat.durationSec(),
                         annotations(stat.annotations()));
             }
