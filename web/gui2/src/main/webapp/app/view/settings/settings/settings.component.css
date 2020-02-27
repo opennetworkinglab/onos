@@ -19,11 +19,12 @@
  */
  #ov-settings .tabular-header {
      text-align: left;
- }
+}
 
  #ov-settings h2 {
      display: inline-block;
- }
+     margin-left: 10px;
+}
 
  #ov-settings div.summary-list .table-header td {
     font-weight: bold;

@@ -23,8 +23,8 @@
             original target object
     -->
     <svg:filter id="drop-shadow" x="-25%" y="-25%" width="200%" height="200%">
-        <svg:feGaussianBlur in="SourceAlpha" stdDeviation="4" result="blur" />
-        <svg:feOffset in="blur" dx="4" dy="4" result="offsetBlur"/>
+        <svg:feGaussianBlur in="SourceAlpha" stdDeviation="0" result="blur" />
+        <svg:feOffset in="blur" dx="0" dy="0" result="offsetBlur"/>
         <svg:feMerge >
             <svg:feMergeNode in="offsetBlur" />
             <svg:feMergeNode in="SourceGraphic" />
@@ -87,10 +87,10 @@
             in gently
         line 5) The text will be one of 3 values - blank, the id or the name
     -->
+    <!--            [attr.textLength]= "labelTextLen()"-->
+    <!--            lengthAdjust= "spacing"-->
     <svg:text
             text-anchor="start" y="0.3em" x="22"
-            [attr.textLength]= "labelTextLen()"
-            lengthAdjust= "spacing"
             [@deviceLabelToggleTxt]="labelToggle">
         {{ labelToggle == 0 ? '': labelToggle == 1 ? device.id:device.props.name }}
     </svg:text>

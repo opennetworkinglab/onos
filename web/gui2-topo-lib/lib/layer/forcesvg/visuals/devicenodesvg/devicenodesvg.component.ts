@@ -139,10 +139,10 @@ export class DeviceNodeSvgComponent extends NodeVisual implements OnInit, OnChan
      */
     labelTextLen() {
         if (this.labelToggle === 1) {
-            return this.device.id.length * 8;
+            return this.device.id.length * 12;
         } else if (this.labelToggle === 2 && this.device &&
             this.device.props.name && this.device.props.name.trim().length > 0) {
-            return this.device.props.name.length * 8;
+            return this.device.props.name.length * 12;
         } else {
             return 0;
         }

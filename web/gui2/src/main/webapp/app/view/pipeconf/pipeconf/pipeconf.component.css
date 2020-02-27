@@ -16,6 +16,11 @@
 
 
 /* Base */
+#ov-pipeconf h2 {
+    display: inline-block;
+    margin-left: 10px;
+}
+
 #pipeconf-info h2 {
     display: inline-block;
     margin: 10px 0 10px 0;
@@ -135,10 +140,6 @@
 }
 
 /* Widgets */
-#ov-pipeconf h2 {
-    display: inline-block;
-}
-
 .collapse-btn {
     cursor: pointer;
     display: inline-block;

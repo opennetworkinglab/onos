@@ -20,6 +20,7 @@
 
 #ov-meter h2 {
     display: inline-block;
+    margin-left: 10px;
 }
 
 #ov-meter div.ctrl-btns {

@@ -49,6 +49,7 @@
 }
 #ov-device h2 {
     display: inline-block;
+    margin-left: 10px;
 }
 
 #ov-device, div.ctrl-btns {
