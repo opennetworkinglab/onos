@@ -311,8 +311,8 @@
     "snakeyaml": "mvn:org.yaml:snakeyaml:1.25",
 
     // Kubernetes related jars
-    "k8s-client": "mvn:io.fabric8:kubernetes-client:4.3.0",
-    "k8s-model": "mvn:io.fabric8:kubernetes-model:4.3.0",
+    "k8s-client": "mvn:io.fabric8:kubernetes-client:4.7.1",
+    "k8s-model": "mvn:io.fabric8:kubernetes-model:4.7.1",
     "zjsonpatch": "mvn:io.fabric8:zjsonpatch:0.3.0",
     "generex": "mvn:com.github.mifmif:generex:1.0.2",
     "automaton": "mvn:dk.brics.automaton:automaton:1.11-8",
