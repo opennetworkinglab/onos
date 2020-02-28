@@ -58,6 +58,14 @@ public class TroubleshootSimpleTraceCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         TroubleshootService service = get(TroubleshootService.class);
+        if (service.checkNibsUnavailable()) {
+            print(TroubleshootLoadFileCommand.ERROR_NULL);
+            return;
+        }
+        if (srcHost.equals(dstHost)) {
+            print("Source and destination are same. Use different hosts");
+            return;
+        }
 
         EtherType type = EtherType.valueOf(ethType.toUpperCase());
 

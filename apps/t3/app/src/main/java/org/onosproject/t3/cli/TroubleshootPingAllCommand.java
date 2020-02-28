@@ -60,6 +60,10 @@ public class TroubleshootPingAllCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         TroubleshootService service = get(TroubleshootService.class);
+        if (service.checkNibsUnavailable()) {
+            print(TroubleshootLoadFileCommand.ERROR_NULL);
+            return;
+        }
 
         EtherType type = EtherType.valueOf(ethType.toUpperCase());
 

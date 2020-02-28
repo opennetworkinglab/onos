@@ -104,6 +104,11 @@ public class TroubleshootTraceCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         TroubleshootService service = get(TroubleshootService.class);
+        if (service.checkNibsUnavailable()) {
+            print(TroubleshootLoadFileCommand.ERROR_NULL);
+            return;
+        }
+
         String[] cpInfo = srcPort.split("/");
         Preconditions.checkArgument(cpInfo.length == 2, "wrong format of source port");
         ConnectPoint cp;

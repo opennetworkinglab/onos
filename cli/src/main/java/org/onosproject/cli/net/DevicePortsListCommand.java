@@ -109,6 +109,7 @@ public class DevicePortsListCommand extends DevicesListCommand {
         for (Port port : service.getPorts(device.id())) {
             if (isIncluded(port)) {
                 ports.add(mapper.createObjectNode()
+                                  .put("element", device.id().toString())
                                   .put("port", port.number().toString())
                                   .put("isEnabled", port.isEnabled())
                                   .put("type", port.type().toString().toLowerCase())

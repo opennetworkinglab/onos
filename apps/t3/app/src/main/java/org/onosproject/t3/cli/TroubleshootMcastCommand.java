@@ -60,6 +60,11 @@ public class TroubleshootMcastCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         TroubleshootService service = get(TroubleshootService.class);
+        if (service.checkNibsUnavailable()) {
+            print(TroubleshootLoadFileCommand.ERROR_NULL);
+            return;
+        }
+
         print("Tracing all Multicast routes in the System");
 
         //Create the generator for the list of traces.

@@ -20,7 +20,7 @@
 # Tool to collect cluster-wide diagnostics into a single tar stream.
 # -----------------------------------------------------------------------------
 function usage() {
-    echo "usage: $(basename $0) [-x] [-n name] [-P port] [-u user] [-p password] [ip1 ip2...]"
+    echo "usage: $(basename $0) [-x] [-j] [-n name] [-P port] [-u user] [-p password] [ip1 ip2...]"
     echo ""
     echo "Environment Variables:"
     echo "    ONOS_INSTANCES    IPs or hostnames of ONOS cluster machines"
@@ -40,6 +40,11 @@ function usage() {
     echo "    # REST API user name is 'onos' and password is 'rules'."
     echo "    # The cluster node IPs will be drawn from ONOS_INSTANCES variable."
     echo "    > $(basename $0) -x -n prague -u onos -p rules"
+    echo ""
+    echo "    # Collect diagnostics for the cluster and store them in JSON files."
+    echo "    # JSON_CLI_COMMANDS below lists JSON-supported diagnostics commands."
+    echo "    # Collection archive will be named /tmp/onos-diags.tar.gz"
+    echo "    > $(basename $0) -j"
     echo ""
     echo "    # Collect compressed diagnostics for a cluster."
     echo "    # REST API user name is 'onos' and password is 'rules'."
@@ -75,14 +80,15 @@ CLI_COMMANDS=(
     "hosts"
     "interfaces"
 
-    "ports -e"
+    "ports"
     "portstats -nz"
+    "edge-ports"
 
     "packet-processors"
     "packet-requests"
 
     "intents"
-    "flows -s"
+    "flows"
     "groups"
 
     "roles"
@@ -118,18 +124,34 @@ CLI_COMMANDS=(
     "mcast-host-show"
 )
 
+JSON_CLI_COMMANDS=(
+    "netcfg -j"
+    "devices -j"
+    "device-drivers -j"
+    "links -j"
+    "hosts -j"
+    "ports -j"
+    "edge-ports -j"
+    "flows -j"
+    "groups -j"
+    "masters -j"
+    "routes -j"
+    "mcast-host-show -j"
+)
+
 port=${ONOS_WEB_PORT}
 user=${ONOS_WEB_USER}
 password=${ONOS_WEB_PASS}
 
 # Scan arguments for user/password or other options...
-while getopts n:P:u:p:x?h o; do
+while getopts n:P:u:p:x?j?h o; do
     case "$o" in
         n) name=$OPTARG;;
         P) port=$OPTARG;;
         u) user=$OPTARG;;
         p) password=$OPTARG;;
         x) extract=true;;
+        j) json=true;;
         *) usage;;
     esac
 done
@@ -158,8 +180,10 @@ for node in $nodes; do
     tar zxf ../$node.tar.gz && rm ../$node.tar.gz
 
     # Acquire remotely obtained diagnostics via ssh CLI
+    [ ! -z $json ] && CLI_COMMANDS=("${JSON_CLI_COMMANDS[@]}")
     for cmd in "${CLI_COMMANDS[@]}"; do
         cmdLog="$(echo $cmd | cut -d\  -f1 | sed 's/:/-/g').txt"
+        [ ! -z $json ] && cmdLog="${cmdLog%.txt}.json"
         printf "$cmdLog "
         onos $node $cmd 2>/dev/null >$cmdLog
     done

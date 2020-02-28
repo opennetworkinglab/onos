@@ -15,6 +15,7 @@
  */
 package org.onosproject.cli.net;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.karaf.shell.commands.Argument;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
@@ -52,7 +53,17 @@ public class EdgePortsListCommand extends AbstractShellCommand {
     }
 
     private void printEdgePoints(Iterable<ConnectPoint> edgePoints) {
-        sort(edgePoints).forEach(e -> print(FMT, e.deviceId(), e.port()));
+        List<ConnectPoint> sorted = sort(edgePoints);
+        if (outputJson()) {
+            ArrayNode result = mapper().createObjectNode().putArray(null);
+            sorted.forEach(e -> {
+                result.add(mapper().createObjectNode()
+                        .put(e.deviceId().toString(), e.port().toString()));
+            });
+            print("%s", result.toString());
+        } else {
+            sorted.forEach(e -> print(FMT, e.deviceId(), e.port()));
+        }
     }
 
     private static List<ConnectPoint> sort(Iterable<ConnectPoint> connectPoints) {

@@ -19,7 +19,7 @@ package org.onosproject.t3.impl;
 import com.google.common.collect.Sets;
 import org.onlab.packet.EthType;
 import org.onlab.packet.IpAddress;
-import org.onosproject.net.host.HostService;
+import org.onosproject.t3.api.HostNib;
 import org.onosproject.t3.api.StaticPacketTrace;
 import org.slf4j.Logger;
 
@@ -36,30 +36,30 @@ public class PingAllGenerator extends Generator<Set<StaticPacketTrace>> {
     private static final Logger log = getLogger(PingAllGenerator.class);
 
     private final EthType.EtherType etherType;
-    private final HostService hostService;
+    private final HostNib hostNib;
     private final TroubleshootManager manager;
 
     /**
      * Creates a generator for obtaining traces of pings between all the hosts in the network.
      *
      * @param etherType the type of traffic we are tracing.
-     * @param service   the host service
+     * @param hostNib   the host NIB
      * @param manager   the troubleshoot manager issuing the request.
      */
-    PingAllGenerator(EthType.EtherType etherType, HostService service, TroubleshootManager manager) {
+    PingAllGenerator(EthType.EtherType etherType, HostNib hostNib, TroubleshootManager manager) {
         this.etherType = etherType;
-        this.hostService = service;
+        this.hostNib = hostNib;
         this.manager = manager;
     }
 
     @Override
     protected void run() throws InterruptedException {
-        hostService.getHosts().forEach(host -> {
+        hostNib.getHosts().forEach(host -> {
             List<IpAddress> ipAddresses = manager.getIpAddresses(host, etherType, false);
             if (ipAddresses.size() > 0) {
                 //check if the host has only local IPs of that ETH type
                 boolean onlyLocalSrc = ipAddresses.size() == 1 && ipAddresses.get(0).isLinkLocal();
-                hostService.getHosts().forEach(hostToPing -> {
+                hostNib.getHosts().forEach(hostToPing -> {
                     List<IpAddress> ipAddressesToPing = manager.getIpAddresses(hostToPing, etherType, false);
                     //check if the other host has only local IPs of that ETH type
                     boolean onlyLocalDst = ipAddressesToPing.size() == 1 && ipAddressesToPing.get(0).isLinkLocal();

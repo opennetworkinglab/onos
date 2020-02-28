@@ -309,6 +309,8 @@ public final class EncodeInstructionCodecHelper {
         }
 
         if (device.is(ExtensionTreatmentCodec.class)) {
+            // for extension instructions, encoding device id is needed for the corresponding decoder
+            result.put("deviceId", deviceId.toString());
             ExtensionTreatmentCodec treatmentCodec = device.as(ExtensionTreatmentCodec.class);
             ObjectNode node = treatmentCodec.encode(extensionInstruction.extensionInstruction(), context);
             result.set(InstructionCodec.EXTENSION, node);

@@ -137,7 +137,10 @@ public final class DecodeInstructionCodecHelper {
             long tunnelId = nullIsIllegal(json.get(InstructionCodec.TUNNEL_ID),
                     InstructionCodec.TUNNEL_ID + InstructionCodec.MISSING_MEMBER_MESSAGE).asLong();
             return Instructions.modTunnelId(tunnelId);
+        } else if (subType.equals(L2ModificationInstruction.L2SubType.MPLS_BOS.name())) {
+            return Instructions.modMplsBos(json.get("bos").asBoolean());
         }
+
         throw new IllegalArgumentException("L2 Instruction subtype "
                 + subType + " is not supported");
     }

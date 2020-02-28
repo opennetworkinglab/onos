@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.karaf.shell.commands.Command;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.routeservice.ResolvedRoute;
+import org.onosproject.routeservice.Route;
 import org.onosproject.routeservice.RouteInfo;
 import org.onosproject.routeservice.RouteService;
 import org.onosproject.routeservice.RouteTableId;
@@ -111,23 +112,17 @@ public class RoutesListCommand extends AbstractShellCommand {
 
         routes.stream()
                 .flatMap(ri -> ri.allRoutes().stream())
-                .forEach(r -> result.add(json(mapper, r)));
-
-        return result;
-    }
-
-    /**
-     * Produces JSON object for a route.
-     *
-     * @param mapper the JSON object mapper to use
-     * @param route the route with the data
-     * @return JSON object for the route
-     */
-    private ObjectNode json(ObjectMapper mapper, ResolvedRoute route) {
-        ObjectNode result = mapper.createObjectNode();
-
-        result.put("prefix", route.prefix().toString());
-        result.put("nextHop", route.nextHop().toString());
+                .forEach(r -> {
+                    // use RouteCodec to encode the Route object inside ResolvedRoute
+                    ObjectNode routeNode = jsonForEntity(r.route(), Route.class);
+                    if (r.nextHopMac() != null) {
+                        routeNode.put("nextHopMac", r.nextHopMac().toString());
+                    }
+                    if (r.nextHopVlan() != null) {
+                        routeNode.put("nextHopVlan", r.nextHopVlan().toString());
+                    }
+                    result.add(routeNode);
+                });
 
         return result;
     }
