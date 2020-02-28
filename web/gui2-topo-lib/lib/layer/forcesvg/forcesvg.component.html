@@ -33,6 +33,7 @@
     <svg:g onos-linksvg [link]="link"
            *ngFor="let link of filteredLinks()"
            [highlightsEnabled]="highlightPorts"
+           [linkHighlight]="linksHighlighted.get(link.id)"
            (selectedEvent)="updateSelected($event)"
            [scale]="scale">
     </svg:g>

@@ -60,7 +60,7 @@
     <svg:rect
             class="node-container" x="-18" y="-18"
             width="36" height="36"
-            [@deviceLabelToggle]="{ value: labelToggle, params: {txtWidth: (36 + labelTextLen() * 1.1)+'px' }}"
+            [@deviceLabelToggle]="{ value: labelToggle, params: {txtWidth: (36 + labelTextLen() + (labelTextLen() > 0 ? 10 : 0))+'px' }}"
             filter= "url(#drop-shadow)">
     </svg:rect>
     <!-- Template explanation: Creates an SVG Rectangle slightly smaller and
