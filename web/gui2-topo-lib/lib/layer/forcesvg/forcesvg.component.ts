@@ -100,6 +100,7 @@ export class ForceSvgComponent implements OnInit, OnDestroy, OnChanges {
     public graph: ForceDirectedGraph;
     private selectedNodes: UiElement[] = [];
     viewInitialized: boolean = false;
+    linksHighlighted: Map<string, LinkHighlight>;
 
     // References to the children of this component - these are created in the
     // template view with the *ngFor and we get them by a query here
@@ -114,6 +115,7 @@ export class ForceSvgComponent implements OnInit, OnDestroy, OnChanges {
     ) {
         this.selectedLink = null;
         this.log.debug('ForceSvgComponent constructed');
+        this.linksHighlighted = new Map<string, LinkHighlight>();
     }
 
     /**
@@ -595,14 +597,9 @@ export class ForceSvgComponent implements OnInit, OnDestroy, OnChanges {
                 if (fadeMs > 0) {
                     lh.fadems = fadeMs;
                 }
-                // Don't user .filter() above as it will create a copy of the component which will be discarded
-                this.links.forEach((l) => {
-                    if (l.link.id === Link.linkIdFromShowHighlights(lh.id)) {
-                        l.linkHighlight = lh;
-                        this.ref.markForCheck(); // Forces ngOnChange in the LinkSvgComponent
-                    }
-                });
+                this.linksHighlighted.set(Link.linkIdFromShowHighlights(lh.id), lh);
             });
+            this.ref.detectChanges(); // Forces ngOnChange in the LinkSvgComponent
         }
     }
 

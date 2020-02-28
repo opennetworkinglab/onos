@@ -72,6 +72,9 @@ export class LinkSvgComponent extends NodeVisual implements OnChanges {
     ngOnChanges(changes: SimpleChanges) {
         if (changes['linkHighlight']) {
             const hl: LinkHighlight = changes['linkHighlight'].currentValue;
+            if (hl === undefined) {
+                return;
+            }
             clearTimeout(this.lastTimer);
             this.isHighlighted = true;
             this.log.debug('Link highlighted', this.link.id);
