@@ -18,12 +18,14 @@ package org.onosproject.t3.cli;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.EthType;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.VlanId;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cli.PlaceholderCompleter;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.criteria.Criterion;
@@ -45,23 +47,31 @@ import java.util.Set;
         description = "Traces all the mcast routes present in the system")
 public class TroubleshootMcastCommand extends AbstractShellCommand {
 
-
     @Option(name = "-v", aliases = "--verbose", description = "Outputs trace for each mcast route")
+    @Completion(PlaceholderCompleter.class)
     private boolean verbosity1 = false;
 
     @Option(name = "-vv", aliases = "--veryverbose", description = "Outputs middle level details of every trace")
+    @Completion(PlaceholderCompleter.class)
     private boolean verbosity2 = false;
 
     @Option(name = "-vvv", aliases = "--veryveryverbose", description = "Outputs complete details of every trace")
+    @Completion(PlaceholderCompleter.class)
     private boolean verbosity3 = false;
 
     @Option(name = "-vid", aliases = "--vlanId", description = "Vlan of incoming packet", valueToShowInHelp = "None")
+    @Completion(PlaceholderCompleter.class)
     String vlan = "None";
 
 
     @Override
     protected void doExecute() {
         TroubleshootService service = get(TroubleshootService.class);
+        if (service.checkNibsUnavailable()) {
+            print(TroubleshootLoadFileCommand.ERROR_NULL);
+            return;
+        }
+
         print("Tracing all Multicast routes in the System");
 
         //Create the generator for the list of traces.

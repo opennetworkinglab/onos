@@ -1,4 +1,4 @@
-COMPILE_DEPS = CORE_DEPS + CLI + REST + [
+COMPILE_DEPS = CORE_DEPS + JACKSON + CLI + REST + [
     "//core/store/serializers:onos-core-serializers",
     "//apps/mcast/api:onos-apps-mcast-api",
 ]

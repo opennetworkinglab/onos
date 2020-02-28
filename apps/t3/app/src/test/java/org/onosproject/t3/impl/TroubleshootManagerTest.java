@@ -25,7 +25,6 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.mastership.MastershipServiceAdapter;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultDevice;
@@ -37,29 +36,27 @@ import org.onosproject.net.Host;
 import org.onosproject.net.Link;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
-import org.onosproject.net.device.DeviceServiceAdapter;
-import org.onosproject.net.driver.DefaultDriver;
-import org.onosproject.net.driver.Driver;
-import org.onosproject.net.driver.DriverServiceAdapter;
-import org.onosproject.net.edge.EdgePortServiceAdapter;
 import org.onosproject.net.flow.FlowEntry;
-import org.onosproject.net.flow.FlowRuleServiceAdapter;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthTypeCriterion;
 import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.group.Group;
-import org.onosproject.net.group.GroupServiceAdapter;
-import org.onosproject.net.host.HostServiceAdapter;
-import org.onosproject.net.link.LinkServiceAdapter;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.routeservice.ResolvedRoute;
-import org.onosproject.routeservice.RouteServiceAdapter;
+import org.onosproject.t3.api.DeviceNib;
+import org.onosproject.t3.api.DriverNib;
+import org.onosproject.t3.api.EdgePortNib;
+import org.onosproject.t3.api.FlowNib;
+import org.onosproject.t3.api.GroupNib;
+import org.onosproject.t3.api.HostNib;
+import org.onosproject.t3.api.LinkNib;
+import org.onosproject.t3.api.MastershipNib;
+import org.onosproject.t3.api.RouteNib;
 import org.onosproject.t3.api.StaticPacketTrace;
 import org.slf4j.Logger;
 
-import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
 
@@ -84,24 +81,28 @@ public class TroubleshootManagerTest {
     @Before
     public void setUp() throws Exception {
         mngr = new TroubleshootManager();
-        mngr.flowRuleService = new TestFlowRuleService();
-        mngr.hostService = new TestHostService();
-        mngr.linkService = new TestLinkService();
-        mngr.driverService = new TestDriverService();
-        mngr.groupService = new TestGroupService();
-        mngr.deviceService = new TestDeviceService();
-        mngr.mastershipService = new TestMastershipService();
-        mngr.edgePortService = new TestEdgePortService();
-        mngr.routeService = new TestRouteService();
+
+        mngr.flowNib = new TestFlowRuleService();
+        mngr.groupNib = new TestGroupService();
+        mngr.hostNib = new TestHostService();
+        mngr.linkNib = new TestLinkService();
+        mngr.deviceNib = new TestDeviceService();
+        mngr.driverNib = new TestDriverService();
+        mngr.mastershipNib = new TestMastershipService();
+        mngr.edgePortNib = new TestEdgePortService();
+        mngr.routeNib = new TestRouteService();
 
         assertNotNull("Manager should not be null", mngr);
 
-        assertNotNull("Flow rule Service should not be null", mngr.flowRuleService);
-        assertNotNull("Host Service should not be null", mngr.hostService);
-        assertNotNull("Group Service should not be null", mngr.groupService);
-        assertNotNull("Driver Service should not be null", mngr.driverService);
-        assertNotNull("Link Service should not be null", mngr.linkService);
-        assertNotNull("Device Service should not be null", mngr.deviceService);
+        assertNotNull("Flow rule Service should not be null", mngr.flowNib);
+        assertNotNull("Group Service should not be null", mngr.groupNib);
+        assertNotNull("Host Service should not be null", mngr.hostNib);
+        assertNotNull("Link Service should not be null", mngr.linkNib);
+        assertNotNull("Device Service should not be null", mngr.deviceNib);
+        assertNotNull("Driver Service should not be null", mngr.driverNib);
+        assertNotNull("Mastership Service should not be null", mngr.driverNib);
+        assertNotNull("EdgePort Service should not be null", mngr.driverNib);
+        assertNotNull("Route Service should not be null", mngr.routeNib);
     }
 
     /**
@@ -436,7 +437,7 @@ public class TroubleshootManagerTest {
         assertNull("Trace should have 0 output", traceFail.getGroupOuputs(deviceId));
     }
 
-    private class TestFlowRuleService extends FlowRuleServiceAdapter {
+    private class TestFlowRuleService extends FlowNib {
         @Override
         public Iterable<FlowEntry> getFlowEntriesByState(DeviceId deviceId, FlowEntry.FlowEntryState state) {
             if (deviceId.equals(SINGLE_FLOW_DEVICE)) {
@@ -486,19 +487,7 @@ public class TroubleshootManagerTest {
         }
     }
 
-    private class TestDriverService extends DriverServiceAdapter {
-        @Override
-        public Driver getDriver(DeviceId deviceId) {
-            if (deviceId.equals(HARDWARE_DEVICE) || deviceId.equals(HARDWARE_DEVICE_10)) {
-                return new DefaultDriver("ofdpa", ImmutableList.of(),
-                        "test", "test", "test", new HashMap<>(), new HashMap<>());
-            }
-            return new DefaultDriver("NotHWDriver", ImmutableList.of(),
-                    "test", "test", "test", new HashMap<>(), new HashMap<>());
-        }
-    }
-
-    private class TestGroupService extends GroupServiceAdapter {
+    private class TestGroupService extends GroupNib {
         @Override
         public Iterable<Group> getGroups(DeviceId deviceId) {
             if (deviceId.equals(GROUP_FLOW_DEVICE)) {
@@ -520,7 +509,7 @@ public class TroubleshootManagerTest {
         }
     }
 
-    private class TestHostService extends HostServiceAdapter {
+    private class TestHostService extends HostNib {
         @Override
         public Set<Host> getConnectedHosts(ConnectPoint connectPoint) {
             if (connectPoint.equals(TOPO_FLOW_3_OUT_CP)) {
@@ -570,7 +559,7 @@ public class TroubleshootManagerTest {
         }
     }
 
-    private class TestLinkService extends LinkServiceAdapter {
+    private class TestLinkService extends LinkNib {
         @Override
         public Set<Link> getEgressLinks(ConnectPoint connectPoint) {
             if (connectPoint.equals(TOPO_FLOW_1_OUT_CP)
@@ -649,7 +638,7 @@ public class TroubleshootManagerTest {
         }
     }
 
-    private class TestDeviceService extends DeviceServiceAdapter {
+    private class TestDeviceService extends DeviceNib {
         @Override
         public Device getDevice(DeviceId deviceId) {
             if (deviceId.equals(DeviceId.deviceId("nonexistent"))) {
@@ -671,8 +660,24 @@ public class TroubleshootManagerTest {
         }
     }
 
-    private class TestEdgePortService extends EdgePortServiceAdapter {
+    private class TestDriverService extends DriverNib {
+        @Override
+        public String getDriverName(DeviceId deviceId) {
+            if (deviceId.equals(HARDWARE_DEVICE) || deviceId.equals(HARDWARE_DEVICE_10)) {
+                return "ofdpa";
+            }
+            return "NotHWDriver";
+        }
+    }
 
+    private class TestMastershipService extends MastershipNib {
+        @Override
+        public NodeId getMasterFor(DeviceId deviceId) {
+            return NodeId.nodeId(MASTER_1);
+        }
+    }
+
+    private class TestEdgePortService extends EdgePortNib {
         @Override
         public boolean isEdgePoint(ConnectPoint point) {
             return point.equals(MULTICAST_OUT_CP) ||
@@ -680,17 +685,11 @@ public class TroubleshootManagerTest {
         }
     }
 
-    private class TestRouteService extends RouteServiceAdapter {
+    private class TestRouteService extends RouteNib {
         @Override
         public Optional<ResolvedRoute> longestPrefixLookup(IpAddress ip) {
             return Optional.empty();
         }
     }
 
-    private class TestMastershipService extends MastershipServiceAdapter {
-        @Override
-        public NodeId getMasterFor(DeviceId deviceId) {
-            return NodeId.nodeId(MASTER_1);
-        }
-    }
 }

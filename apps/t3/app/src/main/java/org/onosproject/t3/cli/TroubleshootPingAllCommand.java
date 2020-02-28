@@ -23,6 +23,7 @@ import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cli.PlaceholderCompleter;
 import org.onosproject.cli.net.EthTypeCompleter;
 import org.onosproject.net.Host;
 import org.onosproject.net.flow.criteria.Criterion;
@@ -54,17 +55,24 @@ public class TroubleshootPingAllCommand extends AbstractShellCommand {
     String ethType = "ipv4";
 
     @Option(name = "-v", aliases = "--verbose", description = "Outputs trace for each host to host combination")
+    @Completion(PlaceholderCompleter.class)
     private boolean verbosity1 = false;
 
     @Option(name = "-vv", aliases = "--veryverbose", description = "Outputs details of every trace")
+    @Completion(PlaceholderCompleter.class)
     private boolean verbosity2 = false;
 
     @Option(name = "-d", aliases = "--delay", description = "delay between host to host trace display")
+    @Completion(PlaceholderCompleter.class)
     private long delay = 0;
 
     @Override
     protected void doExecute() {
         TroubleshootService service = get(TroubleshootService.class);
+        if (service.checkNibsUnavailable()) {
+            print(TroubleshootLoadFileCommand.ERROR_NULL);
+            return;
+        }
 
         EtherType type = EtherType.valueOf(ethType.toUpperCase());
 

@@ -83,4 +83,17 @@ public interface TroubleshootService {
      * @return a list of trace result
      */
     List<Set<StaticPacketTrace>> getMulitcastTrace(VlanId vlanId);
+
+    /**
+     * Checks the availability of all NIBs of the manager.
+     *
+     * @return true if any NIB objects is unavailable
+     */
+    boolean checkNibsUnavailable();
+
+    /**
+     * Applies created NIBs to the manager.
+     */
+    void applyNibs();
+
 }
