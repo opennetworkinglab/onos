@@ -158,13 +158,15 @@ public class OvsOfdpaPipeline extends Ofdpa2Pipeline {
 
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {
-        // create a new executor at each init and a new empty queue
-        groupChecker = Executors.newSingleThreadScheduledExecutor(groupedThreads("onos/driver",
-                                                                                 "ovs-ofdpa-%d", log));
-        flowRuleQueue = new ConcurrentLinkedQueue<>();
-        groupCheckerLock = new ReentrantLock();
-        groupChecker.scheduleAtFixedRate(new PopVlanPuntGroupChecker(), 20, 50, TimeUnit.MILLISECONDS);
-        super.init(deviceId, context);
+        if (!ready.getAndSet(true)) {
+            // create a new executor at each init and a new empty queue
+            groupChecker = Executors.newSingleThreadScheduledExecutor(groupedThreads("onos/driver",
+                    "ovs-ofdpa-%d", log));
+            flowRuleQueue = new ConcurrentLinkedQueue<>();
+            groupCheckerLock = new ReentrantLock();
+            groupChecker.scheduleAtFixedRate(new PopVlanPuntGroupChecker(), 20, 50, TimeUnit.MILLISECONDS);
+            super.init(deviceId, context);
+        }
     }
 
     protected void processFilter(FilteringObjective filteringObjective,

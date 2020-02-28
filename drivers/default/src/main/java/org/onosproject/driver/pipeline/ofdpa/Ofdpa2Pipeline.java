@@ -151,27 +151,36 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     private ScheduledExecutorService accumulatorExecutorService
         = newSingleThreadScheduledExecutor(groupedThreads("OfdpaPipeliner", "acc-%d", log));
 
+    protected AtomicBoolean ready = new AtomicBoolean(false);
+
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {
-        this.deviceId = deviceId;
+        if (!ready.getAndSet(true)) {
+            this.deviceId = deviceId;
 
-        serviceDirectory = context.directory();
-        coreService = serviceDirectory.get(CoreService.class);
-        flowRuleService = serviceDirectory.get(FlowRuleService.class);
-        groupService = serviceDirectory.get(GroupService.class);
-        flowObjectiveStore = context.store();
-        deviceService = serviceDirectory.get(DeviceService.class);
-        // Init the accumulator, if enabled
-        if (isAccumulatorEnabled(this)) {
-            accumulator = new ForwardingObjectiveAccumulator(context.accumulatorMaxObjectives(),
-                                                             context.accumulatorMaxBatchMillis(),
-                                                             context.accumulatorMaxIdleMillis());
+            serviceDirectory = context.directory();
+            coreService = serviceDirectory.get(CoreService.class);
+            flowRuleService = serviceDirectory.get(FlowRuleService.class);
+            groupService = serviceDirectory.get(GroupService.class);
+            flowObjectiveStore = context.store();
+            deviceService = serviceDirectory.get(DeviceService.class);
+            // Init the accumulator, if enabled
+            if (isAccumulatorEnabled(this)) {
+                accumulator = new ForwardingObjectiveAccumulator(context.accumulatorMaxObjectives(),
+                        context.accumulatorMaxBatchMillis(),
+                        context.accumulatorMaxIdleMillis());
+            }
+
+            initDriverId();
+            initGroupHander(context);
+
+            initializePipeline();
         }
+    }
 
-        initDriverId();
-        initGroupHander(context);
-
-        initializePipeline();
+    @Override
+    public boolean isReady() {
+        return ready.get();
     }
 
     void setupAccumulatorForTests(int maxFwd, int maxBatchMS, int maxIdleMS) {
