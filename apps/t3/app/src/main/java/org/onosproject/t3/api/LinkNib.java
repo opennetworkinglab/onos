@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
  * and supports alternative functions to
  * {@link org.onosproject.net.link.LinkService} for offline data.
  */
-public class LinkNib {
+public class LinkNib extends AbstractNib {
 
     // TODO with method optimization, store into subdivided structures at the first load
     private Set<Link> links;

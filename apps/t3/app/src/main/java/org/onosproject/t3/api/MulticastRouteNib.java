@@ -29,7 +29,7 @@ import java.util.Set;
  * and supports alternative functions to
  * {@link org.onosproject.mcast.api.MulticastRouteService} for offline data.
  */
-public class MulticastRouteNib {
+public class MulticastRouteNib extends AbstractNib {
 
     private Map<McastRoute, McastRouteData> mcastRoutes;
 

@@ -27,7 +27,7 @@ import java.util.Map;
  * and supports alternative functions to
  * {@link org.onosproject.mastership.MastershipService} for offline data.
  */
-public class MastershipNib {
+public class MastershipNib extends AbstractNib {
 
     private Map<DeviceId, NodeId> deviceMasterMap;
 

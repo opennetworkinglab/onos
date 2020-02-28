@@ -31,7 +31,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * and supports alternative functions to
  * {@link org.onosproject.net.config.NetworkConfigService} for offline data.
  */
-public class NetworkConfigNib {
+public class NetworkConfigNib extends AbstractNib {
 
     private static final Logger log = getLogger(NetworkConfigNib.class);
 
