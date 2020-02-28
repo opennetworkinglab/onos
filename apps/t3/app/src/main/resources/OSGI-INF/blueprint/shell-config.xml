@@ -20,6 +20,9 @@
             <action class="org.onosproject.t3.cli.TroubleshootLoadFileCommand"/>
         </command>
         <command>
+            <action class="org.onosproject.t3.cli.TroubleshootLoadSnapshotCommand"/>
+        </command>
+        <command>
             <action class="org.onosproject.t3.cli.TroubleshootTraceCommand"/>
         </command>
         <command>

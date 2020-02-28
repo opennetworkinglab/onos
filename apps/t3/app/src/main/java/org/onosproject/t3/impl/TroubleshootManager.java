@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
@@ -30,9 +31,9 @@ import org.apache.felix.scr.annotations.Property;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
+import org.onosproject.cfg.ComponentConfigService;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.VlanId;
-import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
@@ -76,6 +77,7 @@ import org.onosproject.t3.api.LinkNib;
 import org.onosproject.t3.api.MastershipNib;
 import org.onosproject.t3.api.MulticastRouteNib;
 import org.onosproject.t3.api.NetworkConfigNib;
+import org.onosproject.t3.api.NibProfile;
 import org.onosproject.t3.api.RouteNib;
 import org.onosproject.t3.api.StaticPacketTrace;
 import org.onosproject.t3.api.TroubleshootService;
@@ -150,6 +152,19 @@ public class TroubleshootManager implements TroubleshootService {
     public void activate(ComponentContext context) {
         cfgService.registerProperties(getClass());
         modified(context);
+
+        // initialize local NIB references
+        flowNib = FlowNib.getInstance();
+        groupNib = GroupNib.getInstance();
+        linkNib = LinkNib.getInstance();
+        hostNib = HostNib.getInstance();
+        deviceNib = DeviceNib.getInstance();
+        driverNib = DriverNib.getInstance();
+        mastershipNib = MastershipNib.getInstance();
+        edgePortNib = EdgePortNib.getInstance();
+        routeNib = RouteNib.getInstance();
+        networkConfigNib = NetworkConfigNib.getInstance();
+        mcastRouteNib = MulticastRouteNib.getInstance();
     }
 
     @Deactivate
@@ -181,25 +196,25 @@ public class TroubleshootManager implements TroubleshootService {
     }
 
     @Override
-    public boolean checkNibsUnavailable() {
+    public boolean checkNibValidity() {
         return Stream.of(flowNib, groupNib, linkNib, hostNib, deviceNib, driverNib,
                 mastershipNib, edgePortNib, routeNib, networkConfigNib, mcastRouteNib)
-                .anyMatch(x -> x == null);
+                .allMatch(nib -> nib != null && nib.isValid());
     }
 
     @Override
-    public void applyNibs() {
-        flowNib = FlowNib.getInstance();
-        groupNib = GroupNib.getInstance();
-        linkNib = LinkNib.getInstance();
-        hostNib = HostNib.getInstance();
-        deviceNib = DeviceNib.getInstance();
-        driverNib = DriverNib.getInstance();
-        mastershipNib = MastershipNib.getInstance();
-        edgePortNib = EdgePortNib.getInstance();
-        routeNib = RouteNib.getInstance();
-        networkConfigNib = NetworkConfigNib.getInstance();
-        mcastRouteNib = MulticastRouteNib.getInstance();
+    public String printNibSummary() {
+        StringBuilder summary = new StringBuilder().append("*** Current NIB in valid: ***\n");
+        Stream.of(flowNib, groupNib, linkNib, hostNib, deviceNib, driverNib,
+                mastershipNib, edgePortNib, routeNib, networkConfigNib, mcastRouteNib)
+                .forEach(nib -> {
+                    NibProfile profile = nib.getProfile();
+                    summary.append(String.format(
+                            nib.getClass().getName() + " created %s from %s\n",
+                            profile.date(), profile.sourceType()));
+                });
+
+        return summary.append(StringUtils.rightPad("", 125, '-')).toString();
     }
 
     @Override
