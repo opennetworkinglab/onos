@@ -69,9 +69,18 @@ public class TroubleshootPingAllCommand extends AbstractShellCommand {
     @Override
     protected void doExecute() {
         TroubleshootService service = get(TroubleshootService.class);
-        if (service.checkNibsUnavailable()) {
-            print(TroubleshootLoadFileCommand.ERROR_NULL);
-            return;
+        if (!service.checkNibValidity()) {
+            // if the NIB is found invalid, fill it with the current network states so that this command can proceed
+            print(T3CliUtils.NIB_AUTOFILLED);
+            TroubleshootLoadSnapshotCommand cmd = new TroubleshootLoadSnapshotCommand();
+            cmd.doExecute();
+            if (!service.checkNibValidity()) {
+                // if the NIB is still invalid even after auto-filled snapshots, stop and warn
+                print(T3CliUtils.NIB_TERMINATE);
+                return;
+            }
+        } else {
+            print(service.printNibSummary());
         }
 
         EtherType type = EtherType.valueOf(ethType.toUpperCase());

@@ -28,7 +28,7 @@ import java.util.Set;
  * and supports alternative functions to
  * {@link org.onosproject.net.edge.EdgePortService} for offline data.
  */
-public class EdgePortNib {
+public class EdgePortNib extends AbstractNib {
 
     private Map<DeviceId, Set<ConnectPoint>> edgePorts;
 

@@ -26,7 +26,7 @@ import java.util.Map;
  * and supports alternative functions to
  * {@link org.onosproject.net.driver.DriverService} for offline data.
  */
-public class DriverNib {
+public class DriverNib extends AbstractNib {
 
     private Map<DeviceId, String> deviceDriverMap;
 

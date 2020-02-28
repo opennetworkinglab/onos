@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
  * and supports alternative functions to
  * {@link org.onosproject.net.flow.FlowRuleService} for offline data.
  */
-public class FlowNib {
+public class FlowNib extends AbstractNib {
 
     // TODO with method optimization, store into subdivided structures at the first load
     private Set<FlowEntry> flows;

@@ -36,7 +36,7 @@ public interface TroubleshootService {
      * Requests a static trace be performed between all hosts in the network, given a type of traffic.
      *
      * @param type the etherType of the traffic we want to trace.
-     * @return a trace result
+     * @return trace result
      */
     List<StaticPacketTrace> pingAll(EthType.EtherType type);
 
@@ -44,7 +44,7 @@ public interface TroubleshootService {
      * Requests a static trace be performed between all hosts in the network, given a type of traffic.
      *
      * @param type the etherType of the traffic we want to trace.
-     * @return a trace result
+     * @return trace result
      */
     Generator<Set<StaticPacketTrace>> pingAllGenerator(EthType.EtherType type);
 
@@ -52,7 +52,7 @@ public interface TroubleshootService {
      * Requests a static trace be performed for all mcast Routes in the network.
      *
      * @param vlanId the vlanId configured for multicast.
-     * @return a set of trace result yielded one by one.
+     * @return set of trace result yielded one by one.
      */
     Generator<Set<StaticPacketTrace>> traceMcast(VlanId vlanId);
 
@@ -62,7 +62,7 @@ public interface TroubleshootService {
      * @param sourceHost      source host
      * @param destinationHost destination host
      * @param type            the etherType of the traffic we want to trace.
-     * @return a trace result
+     * @return trace result
      */
     Set<StaticPacketTrace> trace(HostId sourceHost, HostId destinationHost, EthType.EtherType type);
 
@@ -72,7 +72,7 @@ public interface TroubleshootService {
      *
      * @param packet description of packet
      * @param in     point at which packet starts
-     * @return a trace result
+     * @return trace result
      */
     StaticPacketTrace trace(TrafficSelector packet, ConnectPoint in);
 
@@ -80,20 +80,22 @@ public interface TroubleshootService {
      * Requests list of static trace to be performed for all mcast routes in the network.
      *
      * @param vlanId the vlan id configured for multicast
-     * @return a list of trace result
+     * @return list of trace result
      */
     List<Set<StaticPacketTrace>> getMulitcastTrace(VlanId vlanId);
 
     /**
-     * Checks the availability of all NIBs of the manager.
+     * Checks the validity of NIBs applied to the manager.
      *
-     * @return true if any NIB objects is unavailable
+     * @return true only if all NIBs are in the valid state.
      */
-    boolean checkNibsUnavailable();
+    boolean checkNibValidity();
 
     /**
-     * Applies created NIBs to the manager.
+     * Returns a summary describing all the NIBs applied to the manager.
+     *
+     * @return string for the summary
      */
-    void applyNibs();
+    String printNibSummary();
 
 }
