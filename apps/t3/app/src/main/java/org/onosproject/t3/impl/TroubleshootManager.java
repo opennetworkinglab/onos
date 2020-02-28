@@ -25,8 +25,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.cluster.NodeId;
-import org.onosproject.mastership.MastershipService;
-import org.onosproject.mcast.api.MulticastRouteService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
@@ -35,15 +33,10 @@ import org.onosproject.net.Link;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.config.ConfigException;
-import org.onosproject.net.config.NetworkConfigService;
 import org.onosproject.net.config.basics.InterfaceConfig;
-import org.onosproject.net.device.DeviceService;
-import org.onosproject.net.driver.DriverService;
-import org.onosproject.net.edge.EdgePortService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.FlowEntry;
 import org.onosproject.net.flow.FlowRule;
-import org.onosproject.net.flow.FlowRuleService;
 import org.onosproject.net.flow.IndexTableId;
 import org.onosproject.net.flow.TableId;
 import org.onosproject.net.flow.TrafficSelector;
@@ -59,20 +52,25 @@ import org.onosproject.net.flow.instructions.Instructions.OutputInstruction;
 import org.onosproject.net.flow.instructions.L2ModificationInstruction;
 import org.onosproject.net.group.Group;
 import org.onosproject.net.group.GroupBucket;
-import org.onosproject.net.group.GroupService;
-import org.onosproject.net.host.HostService;
 import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.intf.Interface;
-import org.onosproject.net.link.LinkService;
 import org.onosproject.routeservice.ResolvedRoute;
-import org.onosproject.routeservice.RouteService;
 import org.onosproject.segmentrouting.config.SegmentRoutingDeviceConfig;
+import org.onosproject.t3.api.DeviceNib;
+import org.onosproject.t3.api.DriverNib;
+import org.onosproject.t3.api.EdgePortNib;
+import org.onosproject.t3.api.FlowNib;
+import org.onosproject.t3.api.GroupNib;
 import org.onosproject.t3.api.GroupsInDevice;
+import org.onosproject.t3.api.HostNib;
+import org.onosproject.t3.api.LinkNib;
+import org.onosproject.t3.api.MastershipNib;
+import org.onosproject.t3.api.MulticastRouteNib;
+import org.onosproject.t3.api.NetworkConfigNib;
+import org.onosproject.t3.api.RouteNib;
 import org.onosproject.t3.api.StaticPacketTrace;
 import org.onosproject.t3.api.TroubleshootService;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.net.UnknownHostException;
@@ -85,6 +83,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static org.onlab.packet.EthType.EtherType;
@@ -109,48 +108,50 @@ public class TroubleshootManager implements TroubleshootService {
 
     static final String PACKET_TO_CONTROLLER = "Packet goes to the controller";
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    protected FlowRuleService flowRuleService;
+    // uses a snapshot (cache) of NIBs instead of interacting with ONOS core in runtime
+    protected FlowNib flowNib;
+    protected GroupNib groupNib;
+    protected LinkNib linkNib;
+    protected HostNib hostNib;
+    protected DeviceNib deviceNib;
+    protected DriverNib driverNib;
+    protected MastershipNib mastershipNib;
+    protected EdgePortNib edgePortNib;
+    protected RouteNib routeNib;
+    protected NetworkConfigNib networkConfigNib;
+    protected MulticastRouteNib mcastRouteNib;
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    protected GroupService groupService;
+    @Override
+    public boolean checkNibsUnavailable() {
+        return Stream.of(flowNib, groupNib, linkNib, hostNib, deviceNib, driverNib,
+                mastershipNib, edgePortNib, routeNib, networkConfigNib, mcastRouteNib)
+                .anyMatch(x -> x == null);
+    }
 
-    @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    protected LinkService linkService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    protected HostService hostService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    protected DriverService driverService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    protected DeviceService deviceService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    protected MastershipService mastershipService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    protected NetworkConfigService networkConfigService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    protected EdgePortService edgePortService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    protected RouteService routeService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    protected MulticastRouteService mcastService;
+    @Override
+    public void applyNibs() {
+        flowNib = FlowNib.getInstance();
+        groupNib = GroupNib.getInstance();
+        linkNib = LinkNib.getInstance();
+        hostNib = HostNib.getInstance();
+        deviceNib = DeviceNib.getInstance();
+        driverNib = DriverNib.getInstance();
+        mastershipNib = MastershipNib.getInstance();
+        edgePortNib = EdgePortNib.getInstance();
+        routeNib = RouteNib.getInstance();
+        networkConfigNib = NetworkConfigNib.getInstance();
+        mcastRouteNib = MulticastRouteNib.getInstance();
+    }
 
     @Override
     public List<StaticPacketTrace> pingAll(EtherType type) {
         ImmutableList.Builder<StaticPacketTrace> tracesBuilder = ImmutableList.builder();
-        hostService.getHosts().forEach(host -> {
+        hostNib.getHosts().forEach(host -> {
             List<IpAddress> ipAddresses = getIpAddresses(host, type, false);
             if (ipAddresses.size() > 0) {
                 //check if the host has only local IPs of that ETH type
                 boolean onlyLocalSrc = ipAddresses.size() == 1 && ipAddresses.get(0).isLinkLocal();
-                hostService.getHosts().forEach(hostToPing -> {
+                hostNib.getHosts().forEach(hostToPing -> {
                     List<IpAddress> ipAddressesToPing = getIpAddresses(hostToPing, type, false);
                     //check if the other host has only local IPs of that ETH type
                     boolean onlyLocalDst = ipAddressesToPing.size() == 1 && ipAddressesToPing.get(0).isLinkLocal();
@@ -170,18 +171,18 @@ public class TroubleshootManager implements TroubleshootService {
 
     @Override
     public Generator<Set<StaticPacketTrace>> pingAllGenerator(EtherType type) {
-        return new PingAllGenerator(type, hostService, this);
+        return new PingAllGenerator(type, hostNib, this);
     }
 
     @Override
     public Generator<Set<StaticPacketTrace>> traceMcast(VlanId vlanId) {
-        return new McastGenerator(mcastService, this, vlanId);
+        return new McastGenerator(mcastRouteNib, this, vlanId);
     }
 
     @Override
     public Set<StaticPacketTrace> trace(HostId sourceHost, HostId destinationHost, EtherType etherType) {
-        Host source = hostService.getHost(sourceHost);
-        Host destination = hostService.getHost(destinationHost);
+        Host source = hostNib.getHost(sourceHost);
+        Host destination = hostNib.getHost(destinationHost);
 
         //Temporary trace to fail in case we don't have enough information or what is provided is incoherent
         StaticPacketTrace failTrace = new StaticPacketTrace(null, null, Pair.of(source, destination));
@@ -243,7 +244,7 @@ public class TroubleshootManager implements TroubleshootService {
             }
 
             //l3 unicast, we get the dst mac of the leaf the source is connected to from netcfg
-            SegmentRoutingDeviceConfig segmentRoutingConfig = networkConfigService.getConfig(source.location()
+            SegmentRoutingDeviceConfig segmentRoutingConfig = networkConfigNib.getConfig(source.location()
                     .deviceId(), SegmentRoutingDeviceConfig.class);
             if (segmentRoutingConfig != null) {
                 selectorBuilder.matchEthDst(segmentRoutingConfig.routerMac());
@@ -337,8 +338,8 @@ public class TroubleshootManager implements TroubleshootService {
             return false;
         }
 
-        InterfaceConfig interfaceCfgH1 = networkConfigService.getConfig(source.location(), InterfaceConfig.class);
-        InterfaceConfig interfaceCfgH2 = networkConfigService.getConfig(destination.location(), InterfaceConfig.class);
+        InterfaceConfig interfaceCfgH1 = networkConfigNib.getConfig(source.location(), InterfaceConfig.class);
+        InterfaceConfig interfaceCfgH2 = networkConfigNib.getConfig(destination.location(), InterfaceConfig.class);
         if (interfaceCfgH1 != null && interfaceCfgH2 != null) {
 
             //following can be optimized but for clarity is left as is
@@ -376,7 +377,7 @@ public class TroubleshootManager implements TroubleshootService {
     public StaticPacketTrace trace(TrafficSelector packet, ConnectPoint in) {
         log.info("Tracing packet {} coming in through {}", packet, in);
         //device must exist in ONOS
-        Preconditions.checkNotNull(deviceService.getDevice(in.deviceId()),
+        Preconditions.checkNotNull(deviceNib.getDevice(in.deviceId()),
                 "Device " + in.deviceId() + " must exist in ONOS");
 
         StaticPacketTrace trace = new StaticPacketTrace(packet, in);
@@ -391,7 +392,7 @@ public class TroubleshootManager implements TroubleshootService {
 
     @Override
     public List<Set<StaticPacketTrace>> getMulitcastTrace(VlanId vlanId) {
-        Generator<Set<StaticPacketTrace>> gen = new McastGenerator(mcastService, this, vlanId);
+        Generator<Set<StaticPacketTrace>> gen = new McastGenerator(mcastRouteNib, this, vlanId);
         List<Set<StaticPacketTrace>> multicastTraceList =
                 StreamSupport.stream(gen.spliterator(), false).collect(Collectors.toList());
         return multicastTraceList;
@@ -440,7 +441,7 @@ public class TroubleshootManager implements TroubleshootService {
             log.debug("{}", outputPath.getFinalPacket());
 
             //Hosts for the the given output
-            Set<Host> hostsList = hostService.getConnectedHosts(cp);
+            Set<Host> hostsList = hostNib.getConnectedHosts(cp);
             //Hosts queried from the original ip or mac
             Set<Host> hosts = getHosts(trace);
 
@@ -465,12 +466,13 @@ public class TroubleshootManager implements TroubleshootService {
             } else if (cp.port().equals(PortNumber.CONTROLLER)) {
 
                 //Getting the master when the packet gets sent as packet in
-                NodeId master = mastershipService.getMasterFor(cp.deviceId());
+                NodeId master = mastershipNib.getMasterFor(cp.deviceId());
+                // TODO if we don't need to print master node id, exclude mastership NIB which is used only here
                 trace.addResultMessage(PACKET_TO_CONTROLLER + " " + master.id());
                 computePath(completePath, trace, outputPath.getOutput());
                 handleVlanToController(outputPath, trace);
 
-            } else if (linkService.getEgressLinks(cp).size() > 0) {
+            } else if (linkNib.getEgressLinks(cp).size() > 0) {
 
                 //TODO this can be optimized if we use a Tree structure for paths.
                 //if we already have outputs let's check if the one we are considering starts from one of the devices
@@ -502,7 +504,7 @@ public class TroubleshootManager implements TroubleshootService {
                 //let's add the ouput for the input
                 completePath.add(cp);
                 //let's compute the links for the given output
-                Set<Link> links = linkService.getEgressLinks(cp);
+                Set<Link> links = linkNib.getEgressLinks(cp);
                 log.debug("Egress Links {}", links);
                 //For each link we trace the corresponding device
                 for (Link link : links) {
@@ -517,7 +519,7 @@ public class TroubleshootManager implements TroubleshootService {
                     //continue the trace along the path
                     getTrace(completePath, dst, trace, isDualHomed);
                 }
-            } else if (edgePortService.isEdgePoint(outputPath.getOutput()) &&
+            } else if (edgePortNib.isEdgePoint(outputPath.getOutput()) &&
                     trace.getInitialPacket().getCriterion(Criterion.Type.ETH_DST) != null &&
                     ((EthCriterion) trace.getInitialPacket().getCriterion(Criterion.Type.ETH_DST))
                             .mac().isMulticast()) {
@@ -528,7 +530,7 @@ public class TroubleshootManager implements TroubleshootService {
                 if (!hasOtherOutput(in.deviceId(), trace, outputPath.getOutput())) {
                     return trace;
                 }
-            } else if (deviceService.getPort(cp) != null && deviceService.getPort(cp).isEnabled()) {
+            } else if (deviceNib.getPort(cp) != null && deviceNib.getPort(cp).isEnabled()) {
                 EthTypeCriterion ethTypeCriterion = (EthTypeCriterion) trace.getInitialPacket()
                         .getCriterion(Criterion.Type.ETH_TYPE);
                 //We treat as correct output only if it's not LLDP or BDDP
@@ -551,7 +553,7 @@ public class TroubleshootManager implements TroubleshootService {
                             if (ipAddress != null) {
                                 IpAddress finalIpAddress = ipAddress;
                                 if (hostsList.stream().anyMatch(host -> host.ipAddresses().contains(finalIpAddress)) ||
-                                        hostService.getHostsByIp(finalIpAddress).isEmpty()) {
+                                        hostNib.getHostsByIp(finalIpAddress).isEmpty()) {
                                     trace.addResultMessage("Packet is " +
                                             ((EthTypeCriterion) outputPath.getFinalPacket()
                                                     .getCriterion(Criterion.Type.ETH_TYPE)).ethType() +
@@ -574,7 +576,7 @@ public class TroubleshootManager implements TroubleshootService {
             } else {
                 computePath(completePath, trace, cp);
                 trace.setSuccess(false);
-                if (deviceService.getPort(cp) == null) {
+                if (deviceNib.getPort(cp) == null) {
                     //Port is not existent on device.
                     log.warn("Port {} is not available on device.", cp);
                     trace.addResultMessage("Port " + cp + "is not available on device. Packet is dropped");
@@ -660,15 +662,15 @@ public class TroubleshootManager implements TroubleshootService {
                 .getCriterion(Criterion.Type.IPV6_DST));
         Set<Host> hosts = new HashSet<>();
         if (ipv4Criterion != null) {
-            hosts.addAll(hostService.getHostsByIp(ipv4Criterion.ip().address()));
+            hosts.addAll(hostNib.getHostsByIp(ipv4Criterion.ip().address()));
         }
         if (ipv6Criterion != null) {
-            hosts.addAll(hostService.getHostsByIp(ipv6Criterion.ip().address()));
+            hosts.addAll(hostNib.getHostsByIp(ipv6Criterion.ip().address()));
         }
         EthCriterion ethCriterion = ((EthCriterion) trace.getInitialPacket()
                 .getCriterion(Criterion.Type.ETH_DST));
         if (ethCriterion != null) {
-            hosts.addAll(hostService.getHostsByMac(ethCriterion.mac()));
+            hosts.addAll(hostNib.getHostsByMac(ethCriterion.mac()));
         }
         return hosts;
     }
@@ -727,7 +729,7 @@ public class TroubleshootManager implements TroubleshootService {
         log.debug("Packet {} coming in from {}", packet, in);
 
         //if device is not available exit here.
-        if (!deviceService.isAvailable(in.deviceId())) {
+        if (!deviceNib.isAvailable(in.deviceId())) {
             trace.addResultMessage("Device is offline " + in.deviceId());
             computePath(completePath, trace, null);
             return trace;
@@ -765,7 +767,7 @@ public class TroubleshootManager implements TroubleshootService {
             log.debug("Found Flow Entry {}", flowEntry);
 
             boolean isOfdpaHardware = TroubleshootUtils.hardwareOfdpaMap
-                    .getOrDefault(driverService.getDriver(in.deviceId()).name(), false);
+                    .getOrDefault(driverNib.getDriverName(in.deviceId()), false);
 
             //if the flow entry on a table is null and we are on hardware we treat as table miss, with few exceptions
             if (flowEntry == null && isOfdpaHardware) {
@@ -945,11 +947,10 @@ public class TroubleshootManager implements TroubleshootService {
             ip = ((IPCriterion) trace.getInitialPacket().getCriterion(Criterion.Type.IPV6_DST)).ip().address();
         }
         if (ip != null) {
-            Optional<ResolvedRoute> optionalRoute = routeService.longestPrefixLookup(ip);
+            Optional<ResolvedRoute> optionalRoute = routeNib.longestPrefixLookup(ip);
             if (optionalRoute.isPresent()) {
                 ResolvedRoute route = optionalRoute.get();
-                route.prefix();
-                multipleRoutes = routeService.getAllResolvedRoutes(route.prefix()).size() > 1;
+                multipleRoutes = routeNib.getAllResolvedRoutes(route.prefix()).size() > 1;
             }
         }
         return multipleRoutes;
@@ -972,7 +973,7 @@ public class TroubleshootManager implements TroubleshootService {
         if (ethTypeCriterion != null && (ethTypeCriterion.ethType().equals(EtherType.LLDP.ethType())
                 || ethTypeCriterion.ethType().equals(EtherType.BDDP.ethType()))) {
             //get the active ports
-            List<Port> enabledPorts = deviceService.getPorts(in.deviceId()).stream()
+            List<Port> enabledPorts = deviceNib.getPorts(in.deviceId()).stream()
                     .filter(Port::isEnabled)
                     .collect(Collectors.toList());
             //build an output from each one
@@ -1012,9 +1013,9 @@ public class TroubleshootManager implements TroubleshootService {
         if (packetVlanIdCriterion.vlanId().equals(entryModVlanIdInstruction.vlanId())) {
             //find a rule on the same table that matches the vlan and
             // also all the other elements of the flow such as input port
-            secondVlanFlow = Lists.newArrayList(flowRuleService.getFlowEntriesByState(in.deviceId(),
-                    FlowEntry.FlowEntryState.ADDED).iterator())
-                    .stream()
+            secondVlanFlow = Lists.newArrayList(flowNib.getFlowEntriesByState(in.deviceId(),
+                    FlowEntry.FlowEntryState.ADDED)
+                    .iterator()).stream()
                     .filter(entry -> {
                         return entry.table().equals(IndexTableId.of(10));
                     })
@@ -1065,8 +1066,7 @@ public class TroubleshootManager implements TroubleshootService {
     private FlowEntry findNextTableIdEntry(DeviceId deviceId, int currentId) {
 
         final Comparator<FlowEntry> comparator = Comparator.comparing((FlowEntry f) -> ((IndexTableId) f.table()).id());
-
-        return Lists.newArrayList(flowRuleService.getFlowEntriesByState(deviceId, FlowEntry.FlowEntryState.ADDED)
+        return Lists.newArrayList(flowNib.getFlowEntriesByState(deviceId, FlowEntry.FlowEntryState.ADDED)
                 .iterator()).stream()
                 .filter(f -> ((IndexTableId) f.table()).id() > currentId).min(comparator).orElse(null);
     }
@@ -1149,7 +1149,7 @@ public class TroubleshootManager implements TroubleshootService {
         //handle all the internal instructions pointing to a group.
         for (Instruction instr : groupInstructionlist) {
             GroupInstruction groupInstruction = (GroupInstruction) instr;
-            Group group = Lists.newArrayList(groupService.getGroups(deviceId)).stream().filter(groupInternal -> {
+            Group group = Lists.newArrayList(groupNib.getGroups(deviceId)).stream().filter(groupInternal -> {
                 return groupInternal.id().equals(groupInstruction.groupId());
             }).findAny().orElse(null);
             if (group == null) {
@@ -1312,7 +1312,7 @@ public class TroubleshootManager implements TroubleshootService {
     private FlowEntry matchHighestPriority(TrafficSelector packet, ConnectPoint in, TableId tableId) {
         //Computing the possible match rules.
         final Comparator<FlowEntry> comparator = Comparator.comparing(FlowRule::priority);
-        return Lists.newArrayList(flowRuleService.getFlowEntriesByState(in.deviceId(), FlowEntry.FlowEntryState.ADDED)
+        return Lists.newArrayList(flowNib.getFlowEntriesByState(in.deviceId(), FlowEntry.FlowEntryState.ADDED)
                 .iterator()).stream()
                 .filter(flowEntry -> {
                     return flowEntry.table().equals(tableId);
