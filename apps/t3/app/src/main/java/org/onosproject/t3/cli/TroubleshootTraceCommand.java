@@ -18,6 +18,7 @@ package org.onosproject.t3.cli;
 
 import com.google.common.base.Preconditions;
 import org.apache.karaf.shell.api.action.Command;
+import org.apache.karaf.shell.api.action.Completion;
 import org.apache.karaf.shell.api.action.Option;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onlab.packet.IpAddress;
@@ -26,6 +27,10 @@ import org.onlab.packet.MplsLabel;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.VlanId;
 import org.onosproject.cli.AbstractShellCommand;
+import org.onosproject.cli.PlaceholderCompleter;
+import org.onosproject.cli.net.ConnectPointCompleter;
+import org.onosproject.cli.net.EthTypeCompleter;
+import org.onosproject.cli.net.IpProtocolCompleter;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
@@ -56,56 +61,77 @@ public class TroubleshootTraceCommand extends AbstractShellCommand {
     private static final String CONTROLLER = "CONTROLLER";
 
     @Option(name = "-v", aliases = "--verbose", description = "Outputs complete path")
+    @Completion(PlaceholderCompleter.class)
     private boolean verbosity1 = false;
 
     @Option(name = "-vv", aliases = "--veryverbose", description = "Outputs flows and groups for every device")
+    @Completion(PlaceholderCompleter.class)
     private boolean verbosity2 = false;
 
     @Option(name = "-s", aliases = "--srcIp", description = "Source IP")
+    @Completion(PlaceholderCompleter.class)
     String srcIp = null;
 
     @Option(name = "-sp", aliases = "--srcPort", description = "Source Port", required = true)
+    @Completion(ConnectPointCompleter.class)
     String srcPort = null;
 
     @Option(name = "-sm", aliases = "--srcMac", description = "Source MAC")
+    @Completion(PlaceholderCompleter.class)
     String srcMac = null;
 
     @Option(name = "-et", aliases = "--ethType", description = "ETH Type", valueToShowInHelp = "ipv4")
+    @Completion(EthTypeCompleter.class)
     String ethType = "ipv4";
 
     @Option(name = "-stp", aliases = "--srcTcpPort", description = "Source TCP Port")
+    @Completion(PlaceholderCompleter.class)
     String srcTcpPort = null;
 
     @Option(name = "-d", aliases = "--dstIp", description = "Destination IP")
+    @Completion(PlaceholderCompleter.class)
     String dstIp = null;
 
     @Option(name = "-dm", aliases = "--dstMac", description = "Destination MAC")
+    @Completion(PlaceholderCompleter.class)
     String dstMac = null;
 
     @Option(name = "-dtp", aliases = "--dstTcpPort", description = "destination TCP Port")
+    @Completion(PlaceholderCompleter.class)
     String dstTcpPort = null;
 
     @Option(name = "-vid", aliases = "--vlanId", description = "Vlan of incoming packet", valueToShowInHelp = "None")
+    @Completion(PlaceholderCompleter.class)
     String vlan = "None";
 
     @Option(name = "-ml", aliases = "--mplsLabel", description = "Mpls label of incoming packet")
+    @Completion(PlaceholderCompleter.class)
     String mplsLabel = null;
 
     @Option(name = "-mb", aliases = "--mplsBos", description = "MPLS BOS")
+    @Completion(PlaceholderCompleter.class)
     String mplsBos = null;
 
     @Option(name = "-ipp", aliases = "--ipProto", description = "IP Proto")
+    @Completion(IpProtocolCompleter.class)
     String ipProto = null;
 
     @Option(name = "-udps", aliases = "--udpSrc", description = "UDP Source")
+    @Completion(PlaceholderCompleter.class)
     String udpSrc = null;
 
     @Option(name = "-udpd", aliases = "--udpDst", description = "UDP Destination")
+    @Completion(PlaceholderCompleter.class)
     String udpDst = null;
 
     @Override
     protected void doExecute() {
         TroubleshootService service = get(TroubleshootService.class);
+        if (service.checkNibsUnavailable()) {
+            print(TroubleshootLoadFileCommand.ERROR_NULL);
+            return;
+        }
+
         String[] cpInfo = srcPort.split("/");
         Preconditions.checkArgument(cpInfo.length == 2, "wrong format of source port");
         ConnectPoint cp;

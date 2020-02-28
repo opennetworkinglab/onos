@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.packet.ChassisId;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.net.Annotations;
+import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.Device;
 import org.onosproject.net.Device.Type;
@@ -99,4 +100,26 @@ public final class DeviceCodec extends AnnotatedCodec<Device> {
         return new DefaultDevice(pid, id, type, mfr, hw, sw, serial,
                                  chassisId, annotations);
     }
+
+    /**
+     * Extracts annotations of given Object.
+     *
+     * @param deviceNode annotated JSON object node representing a device
+     * @param context decode context
+     * @return extracted Annotations
+     */
+    @Override
+    protected Annotations extractAnnotations(ObjectNode deviceNode, CodecContext context) {
+        ObjectNode annotationsNode = get(deviceNode, "annotations");
+        if (annotationsNode != null) {
+            // add needed fields to the annotations of the Device object
+            if (deviceNode.get(AVAILABLE) != null) {
+                annotationsNode.put(AVAILABLE, deviceNode.get(AVAILABLE).asText());
+            }
+            return context.codec(Annotations.class).decode(annotationsNode, context);
+        } else {
+            return DefaultAnnotations.EMPTY;
+        }
+    }
+
 }

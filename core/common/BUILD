@@ -1,4 +1,6 @@
-COMPILE_DEPS = CORE_DEPS + JACKSON + METRICS
+COMPILE_DEPS = CORE_DEPS + JACKSON + METRICS + KRYO + [
+    "//core/store/serializers:onos-core-serializers",
+]
 
 TEST_DEPS = TEST + ["//core/api:onos-api-tests"]
 

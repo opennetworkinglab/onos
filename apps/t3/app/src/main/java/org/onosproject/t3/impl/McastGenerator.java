@@ -22,9 +22,9 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
 import org.onosproject.mcast.api.McastRouteData;
-import org.onosproject.mcast.api.MulticastRouteService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.TrafficSelector;
+import org.onosproject.t3.api.MulticastRouteNib;
 import org.onosproject.t3.api.StaticPacketTrace;
 import org.slf4j.Logger;
 
@@ -44,27 +44,27 @@ public class McastGenerator extends Generator<Set<StaticPacketTrace>> {
     private static final String GENERATOR_ERROR =
             "Generator for mcast route trace has benn interrupted. The trace result may be incomplete.";
 
-    private final MulticastRouteService mcastService;
+    private final MulticastRouteNib mcastRouteNib;
     private final TroubleshootManager manager;
     private final VlanId vlanId;
 
     /**
      * Creates a generator for obtaining traces of all configured multicast routes.
      *
-     * @param service the host service
+     * @param mcastRouteNib the multicast route NIB
      * @param manager the troubleshoot manager issuing the request.
      * @param vlanId  the multicast configured VlanId.
      */
-    McastGenerator(MulticastRouteService service, TroubleshootManager manager, VlanId vlanId) {
-        this.mcastService = service;
+    McastGenerator(MulticastRouteNib mcastRouteNib, TroubleshootManager manager, VlanId vlanId) {
+        this.mcastRouteNib = mcastRouteNib;
         this.manager = manager;
         this.vlanId = vlanId;
     }
 
     @Override
     protected void run() {
-        mcastService.getRoutes().forEach(route -> {
-            McastRouteData routeData = mcastService.routeData(route);
+        mcastRouteNib.getRoutes().forEach(route -> {
+            McastRouteData routeData = mcastRouteNib.routeData(route);
             IpAddress group = route.group();
             routeData.sources().forEach((host, sources) -> {
                 sources.forEach(source -> {
