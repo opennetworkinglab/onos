@@ -17,23 +17,45 @@ package org.onosproject.codec.impl;
 
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.HostLocation;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onosproject.net.PortNumber;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onlab.util.Tools.nullIsIllegal;
 
 /**
- * Host JSON codec.
+ * HostLocation JSON codec.
  */
 public final class HostLocationCodec extends JsonCodec<HostLocation> {
+
+    public static final String ELEMENT_ID = "elementId";
+    public static final String PORT = "port";
+
+    private static final String MISSING_MEMBER_MESSAGE =
+            " member is required in HostLocation";
 
     @Override
     public ObjectNode encode(HostLocation hostLocation, CodecContext context) {
         checkNotNull(hostLocation, "Host location cannot be null");
         return context.mapper().createObjectNode()
-                .put("elementId", hostLocation.elementId().toString())
-                .put("port", hostLocation.port().toString());
+                .put(ELEMENT_ID, hostLocation.elementId().toString())
+                .put(PORT, hostLocation.port().toString());
     }
 
+    @Override
+    public HostLocation decode(ObjectNode json, CodecContext context) {
+        if (json == null || !json.isObject()) {
+            return null;
+        }
+
+        DeviceId deviceId = DeviceId.deviceId(nullIsIllegal(
+                json.get(ELEMENT_ID), ELEMENT_ID + MISSING_MEMBER_MESSAGE).asText());
+        PortNumber portNumber = PortNumber.portNumber(nullIsIllegal(
+                json.get(PORT), PORT + MISSING_MEMBER_MESSAGE).asText());
+
+        return new HostLocation(deviceId, portNumber, 0);
+    }
 }
