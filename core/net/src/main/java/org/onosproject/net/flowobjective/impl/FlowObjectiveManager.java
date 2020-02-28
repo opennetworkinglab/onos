@@ -295,7 +295,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
             try {
                 Pipeliner pipeliner = getDevicePipeliner(deviceId);
 
-                if (pipeliner != null) {
+                if (pipeliner != null && pipeliner.isReady()) {
                     if (objective instanceof NextObjective) {
                         nextToDevice.put(objective.id(), deviceId);
                         pipeliner.next((NextObjective) objective);
