@@ -81,4 +81,13 @@ public interface Pipeliner extends HandlerBehaviour {
      */
     List<String> getNextMappings(NextGroup nextGroup);
 
+    /**
+     * Returns pipeliner status.
+     *
+     * @return true if pipeliner is ready to accept objectives. False otherwise.
+     */
+    default boolean isReady() {
+        return true;
+    }
+
 }
