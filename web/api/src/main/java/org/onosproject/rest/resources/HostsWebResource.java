@@ -16,17 +16,9 @@
 package org.onosproject.rest.resources;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.onlab.packet.EthType;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.MacAddress;
-import org.onlab.packet.VlanId;
-import org.onosproject.net.ConnectPoint;
-import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
-import org.onosproject.net.HostLocation;
 import org.onosproject.net.SparseAnnotations;
 import org.onosproject.net.host.DefaultHostDescription;
 import org.onosproject.net.host.HostAdminService;
@@ -52,10 +44,6 @@ import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
 
 import static org.onlab.util.Tools.nullIsNotFound;
 import static org.onlab.util.Tools.readTreeFromStream;
@@ -70,8 +58,6 @@ public class HostsWebResource extends AbstractWebResource {
     @Context
     private UriInfo uriInfo;
     private static final String HOST_NOT_FOUND = "Host is not found";
-    private static final String[] REMOVAL_KEYS = {"mac", "vlan", "locations", "ipAddresses",
-            "auxLocations", "innerVlan", "outerTpid"};
 
     /**
      * Get all end-station hosts.
@@ -221,107 +207,16 @@ public class HostsWebResource extends AbstractWebResource {
          * @return host ID of new host created
          */
         private HostId parseHost(JsonNode node) {
-            MacAddress mac = MacAddress.valueOf(node.get("mac").asText());
-            VlanId vlanId = VlanId.vlanId((short) node.get("vlan").asInt(VlanId.UNTAGGED));
+            Host host = codec(Host.class).decode((ObjectNode) node, HostsWebResource.this);
 
-            // Parse locations
-            if (null == node.get("locations")) {
-                throw new IllegalArgumentException("location isn't specified");
-            }
-            Iterator<JsonNode> locationNodes = node.get("locations").elements();
-            Set<HostLocation> locations = new HashSet<>();
-            while (locationNodes.hasNext()) {
-                JsonNode locationNode = locationNodes.next();
-                String deviceAndPort = locationNode.get("elementId").asText() + "/" +
-                        locationNode.get("port").asText();
-                HostLocation hostLocation = new HostLocation(ConnectPoint.deviceConnectPoint(deviceAndPort), 0);
-                locations.add(hostLocation);
-            }
-
-            // Parse ipAddresses
-            if (null == node.get("ipAddresses")) {
-                throw new IllegalArgumentException("ipAddress isn't specified");
-            }
-            Iterator<JsonNode> ipNodes = node.get("ipAddresses").elements();
-            Set<IpAddress> ips = new HashSet<>();
-            while (ipNodes.hasNext()) {
-                ips.add(IpAddress.valueOf(ipNodes.next().asText()));
-            }
-
-            // Parse auxLocations
-            Set<HostLocation> auxLocations;
-            JsonNode auxLocationsNode = node.get("auxLocations");
-            if (null == auxLocationsNode) {
-                auxLocations = null;
-            } else {
-                Iterator<JsonNode> auxLocationNodes = auxLocationsNode.elements();
-                auxLocations = new HashSet<>();
-                while (auxLocationNodes.hasNext()) {
-                    JsonNode auxLocationNode = auxLocationNodes.next();
-                    String deviceAndPort = auxLocationNode.get("elementId").asText() + "/" +
-                            auxLocationNode.get("port").asText();
-                    HostLocation auxLocation = new HostLocation(ConnectPoint.deviceConnectPoint(deviceAndPort), 0);
-                    auxLocations.add(auxLocation);
-                }
-            }
-
-            // Parse innerVlan
-            JsonNode innerVlanNode = node.get("innerVlan");
-            VlanId innerVlan = (null == innerVlanNode) ? VlanId.NONE : VlanId.vlanId(innerVlanNode.asText());
-
-            // Parse outerTpid
-            JsonNode outerTpidNode = node.get("outerTpid");
-            EthType outerTpid = (null == outerTpidNode) ? EthType.EtherType.UNKNOWN.ethType() :
-                    EthType.EtherType.lookup((short) (Integer.decode(outerTpidNode.asText()) & 0xFFFF)).ethType();
-
-            // try to remove elements from json node after reading them
-            SparseAnnotations annotations = annotations(removeElements(node, REMOVAL_KEYS));
-            // Update host inventory
-
-            HostId hostId = HostId.hostId(mac, vlanId);
-            DefaultHostDescription desc = new DefaultHostDescription(mac, vlanId, locations, auxLocations,
-                    ips, innerVlan, outerTpid, true, annotations);
+            HostId hostId = host.id();
+            DefaultHostDescription desc = new DefaultHostDescription(
+                    host.mac(), host.vlan(), host.locations(), host.ipAddresses(), host.innerVlan(),
+                    host.tpid(), host.configured(), (SparseAnnotations) host.annotations());
             hostProviderService.hostDetected(hostId, desc, false);
+
             return hostId;
         }
-
-        /**
-         * Remove a set of elements from JsonNode by specifying keys.
-         *
-         * @param node JsonNode containing host information
-         * @param removalKeys key of elements that need to be removed
-         * @return removal keys
-         */
-        private JsonNode removeElements(JsonNode node, String[] removalKeys) {
-            ObjectMapper mapper = new ObjectMapper();
-            Map<String, Object> map = mapper.convertValue(node, Map.class);
-            for (String key : removalKeys) {
-                map.remove(key);
-            }
-            return mapper.convertValue(map, JsonNode.class);
-        }
-
-        /**
-         * Produces annotations from specified JsonNode. Copied from the ConfigProvider
-         * class for use in the POST method.
-         *
-         * @param node node to be annotated
-         * @return SparseAnnotations object with information about node
-         */
-        private SparseAnnotations annotations(JsonNode node) {
-            if (node == null) {
-                return DefaultAnnotations.EMPTY;
-            }
-
-            DefaultAnnotations.Builder builder = DefaultAnnotations.builder();
-            Iterator<String> it = node.fieldNames();
-            while (it.hasNext()) {
-                String k = it.next();
-                builder.set(k, node.get(k).asText());
-            }
-            return builder.build();
-        }
-
     }
 }
 

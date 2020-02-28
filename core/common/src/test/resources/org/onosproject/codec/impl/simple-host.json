@@ -1,0 +1,26 @@
+{
+  "mac": "46:E4:3C:A4:17:C8",
+  "vlan": "None",
+  "ipAddresses": [
+    "127.0.0.1"
+  ],
+  "locations": [
+    {
+      "elementId": "of:0000000000000002",
+      "port": "3"
+    }
+   ],
+  "auxLocations": [
+    {
+      "elementId": "of:0000000000000002",
+      "port": "4"
+    }
+  ],
+  "innerVlan": "10",
+  "outerTpid": "0x88a8",
+  "configured": false,
+  "suspended": false,
+  "annotations": {
+    "key1": "val1"
+  }
+}
