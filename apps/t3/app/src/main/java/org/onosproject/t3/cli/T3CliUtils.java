@@ -42,6 +42,11 @@ final class T3CliUtils {
     private static final String GROUP_BUCKET_FORMAT =
             "       id=0x%s, bucket=%s, bytes=%s, packets=%s, actions=%s";
 
+    public static final String NIB_AUTOFILLED =
+            "*** NIB is invalid. Snapshots for the NIB have been auto-filled: ***";
+    public static final String NIB_TERMINATE =
+            "*** NIB is still invalid. You can manually load it via CLI commands for T3 load and try again ***";
+
     /**
      * Builds a string output for the given trace for a specific level of verbosity.
      *

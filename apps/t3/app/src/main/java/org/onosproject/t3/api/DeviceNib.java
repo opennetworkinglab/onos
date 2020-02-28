@@ -32,7 +32,7 @@ import java.util.Set;
  * and supports alternative functions to
  * {@link org.onosproject.net.device.DeviceService} for offline data.
  */
-public class DeviceNib {
+public class DeviceNib extends AbstractNib {
 
     private Map<Device, Set<Port>> devicePortMap;
 

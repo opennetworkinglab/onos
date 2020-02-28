@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  * and supports alternative functions to
  * {@link org.onosproject.routeservice.RouteService} for offline data.
  */
-public class RouteNib {
+public class RouteNib extends AbstractNib {
 
     // TODO with method optimization, store into subdivided structures at the first load
     // unresolved Route is treated as ResolvedRoute with nextHopMac null

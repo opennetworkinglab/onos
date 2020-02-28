@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * and supports alternative functions to
  * {@link org.onosproject.net.host.HostService} for offline data.
  */
-public class HostNib {
+public class HostNib extends AbstractNib {
 
     // TODO with method optimization, store into subdivided structures at the first load
     private Set<Host> hosts;
