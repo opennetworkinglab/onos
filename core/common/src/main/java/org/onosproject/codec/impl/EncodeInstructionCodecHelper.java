@@ -18,6 +18,7 @@ package org.onosproject.codec.impl;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.osgi.ServiceDirectory;
+import org.onlab.packet.EthType;
 import org.onlab.util.HexString;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.net.flow.ExtensionTreatmentCodec;
@@ -35,7 +36,6 @@ import org.onosproject.net.flow.instructions.L3ModificationInstruction;
 import org.onosproject.net.flow.instructions.L4ModificationInstruction;
 import org.slf4j.Logger;
 
-import static org.onlab.util.Tools.toHexWithPrefix;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -140,7 +140,8 @@ public final class EncodeInstructionCodecHelper {
             case VLAN_PUSH:
                 final L2ModificationInstruction.ModVlanHeaderInstruction pushVlanInstruction =
                         (L2ModificationInstruction.ModVlanHeaderInstruction) l2Instruction;
-                result.put(InstructionCodec.ETHERNET_TYPE, pushVlanInstruction.ethernetType().toString());
+                result.put(InstructionCodec.ETHERNET_TYPE,
+                            toHexEthernetType(pushVlanInstruction.ethernetType().toString()));
                 break;
             case VLAN_POP:
                 break;
@@ -169,7 +170,7 @@ public final class EncodeInstructionCodecHelper {
                 final L2ModificationInstruction.ModMplsHeaderInstruction popHeaderInstruction =
                         (L2ModificationInstruction.ModMplsHeaderInstruction) l2Instruction;
                 result.put(InstructionCodec.ETHERNET_TYPE,
-                        toHexWithPrefix(popHeaderInstruction.ethernetType().toShort()));
+                           toHexEthernetType(popHeaderInstruction.ethernetType().toString()));
                 break;
             case DEC_MPLS_TTL:
                 break;
@@ -177,6 +178,16 @@ public final class EncodeInstructionCodecHelper {
                 log.info("Cannot convert L2 subtype of {}", l2Instruction.subtype());
                 break;
         }
+    }
+
+    /**
+     * Encode ethernet types in the conventional way of 4-digit hex string.
+     * @param ethTypeStr
+     * @return EtherType representation
+     */
+    private String toHexEthernetType(String ethTypeStr) {
+        EthType ethType = EthType.EtherType.valueOf(ethTypeStr.toUpperCase()).ethType();
+        return String.format("0x%04x", ethType.toShort());
     }
 
     /**
@@ -292,7 +303,9 @@ public final class EncodeInstructionCodecHelper {
             case GROUP:
                 final Instructions.GroupInstruction groupInstruction =
                         (Instructions.GroupInstruction) instruction;
-                result.put(InstructionCodec.GROUP_ID, groupInstruction.groupId().toString());
+                // a group id should be an unsigned integer
+                result.put(InstructionCodec.GROUP_ID,
+                           Integer.toUnsignedLong(groupInstruction.groupId().id()));
                 break;
 
             case METER:
