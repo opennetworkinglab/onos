@@ -15,12 +15,13 @@
  */
 package org.onosproject.codec.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
-import org.onosproject.core.ApplicationId;
-import org.onosproject.core.CoreService;
+import org.onosproject.net.flow.DefaultFlowEntry;
 import org.onosproject.net.flow.FlowEntry;
+import org.onosproject.net.flow.FlowRule;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 
@@ -31,45 +32,73 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class FlowEntryCodec extends JsonCodec<FlowEntry> {
 
+    public static final String GROUP_ID = "groupId";
+    public static final String STATE = "state";
+    public static final String LIFE = "life";
+    public static final String LIVE_TYPE = "liveType";
+    public static final String LAST_SEEN = "lastSeen";
+    public static final String PACKETS = "packets";
+    public static final String BYTES = "bytes";
+    public static final String TREATMENT = "treatment";
+    public static final String SELECTOR = "selector";
+
     @Override
     public ObjectNode encode(FlowEntry flowEntry, CodecContext context) {
         checkNotNull(flowEntry, "Flow entry cannot be null");
 
-        CoreService service = context.getService(CoreService.class);
-
-        ApplicationId appId = service.getAppId(flowEntry.appId());
-
-        String strAppId = (appId == null) ? "<none>" : appId.name();
-
-        final ObjectNode result = context.mapper().createObjectNode()
-                .put("id", Long.toString(flowEntry.id().value()))
-                .put("tableId", flowEntry.table().toString())
-                .put("appId", strAppId)
-                .put("groupId", flowEntry.groupId().id())
-                .put("priority", flowEntry.priority())
-                .put("timeout", flowEntry.timeout())
-                .put("isPermanent", flowEntry.isPermanent())
-                .put("deviceId", flowEntry.deviceId().toString())
-                .put("state", flowEntry.state().toString())
-                .put("life", flowEntry.life()) //FIXME life is destroying precision (seconds granularity is default)
-                .put("packets", flowEntry.packets())
-                .put("bytes", flowEntry.bytes())
-                .put("liveType", flowEntry.liveType().toString())
-                .put("lastSeen", flowEntry.lastSeen());
+        ObjectNode result = context.mapper().createObjectNode()
+                .put(GROUP_ID, flowEntry.groupId().id())
+                .put(STATE, flowEntry.state().toString())
+                //FIXME life is destroying precision (seconds granularity is default)
+                .put(LIFE, flowEntry.life())
+                .put(LIVE_TYPE, flowEntry.liveType().toString())
+                .put(LAST_SEEN, flowEntry.lastSeen())
+                .put(PACKETS, flowEntry.packets())
+                .put(BYTES, flowEntry.bytes())
+                // encode FlowRule-specific fields using the FlowRule codec
+                .setAll(context.codec(FlowRule.class).encode((FlowRule) flowEntry, context));
 
         if (flowEntry.treatment() != null) {
             final JsonCodec<TrafficTreatment> treatmentCodec =
                     context.codec(TrafficTreatment.class);
-            result.set("treatment", treatmentCodec.encode(flowEntry.treatment(), context));
+            result.set(TREATMENT, treatmentCodec.encode(flowEntry.treatment(), context));
         }
 
         if (flowEntry.selector() != null) {
             final JsonCodec<TrafficSelector> selectorCodec =
                     context.codec(TrafficSelector.class);
-            result.set("selector", selectorCodec.encode(flowEntry.selector(), context));
+            result.set(SELECTOR, selectorCodec.encode(flowEntry.selector(), context));
         }
 
         return result;
+    }
+
+    @Override
+    public FlowEntry decode(ObjectNode json, CodecContext context) {
+        checkNotNull(json, "JSON object cannot be null");
+
+        // decode FlowRule-specific fields using the FlowRule codec
+        FlowRule flowRule = context.codec(FlowRule.class).decode(json, context);
+
+        JsonNode stateNode = json.get(STATE);
+        FlowEntry.FlowEntryState state = (null == stateNode) ?
+                FlowEntry.FlowEntryState.ADDED : FlowEntry.FlowEntryState.valueOf(stateNode.asText());
+
+        JsonNode lifeNode = json.get(LIFE);
+        long life = (null == lifeNode) ? 0 : lifeNode.asLong();
+
+        JsonNode liveTypeNode = json.get(LIVE_TYPE);
+        FlowEntry.FlowLiveType liveType = (null == liveTypeNode) ?
+                FlowEntry.FlowLiveType.UNKNOWN : FlowEntry.FlowLiveType.valueOf(liveTypeNode.asText());
+
+        JsonNode packetsNode = json.get(PACKETS);
+        long packets = (null == packetsNode) ? 0 : packetsNode.asLong();
+
+        JsonNode bytesNode = json.get(BYTES);
+        long bytes = (null == bytesNode) ? 0 : bytesNode.asLong();
+
+        return new DefaultFlowEntry(flowRule, state, life,
+                                    liveType, packets, bytes);
     }
 
 }
