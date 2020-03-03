@@ -71,7 +71,8 @@ public final class GroupCodec extends JsonCodec<Group> {
     public ObjectNode encode(Group group, CodecContext context) {
         checkNotNull(group, "Group cannot be null");
         ObjectNode result = context.mapper().createObjectNode()
-                .put(ID, group.id().id().toString())
+                // a Group id should be an unsigned integer
+                .put(ID, Integer.toUnsignedLong(group.id().id()))
                 .put(STATE, group.state().toString())
                 .put(LIFE, group.life())
                 .put(PACKETS, group.packets())
@@ -89,7 +90,8 @@ public final class GroupCodec extends JsonCodec<Group> {
         }
 
         if (group.givenGroupId() != null) {
-            result.put(GIVEN_GROUP_ID, group.givenGroupId().toString());
+            // a given Group id should be an unsigned integer
+            result.put(GIVEN_GROUP_ID, Integer.toUnsignedLong(group.givenGroupId()));
         }
 
         ArrayNode buckets = context.mapper().createArrayNode();
@@ -110,10 +112,24 @@ public final class GroupCodec extends JsonCodec<Group> {
         final JsonCodec<GroupBucket> groupBucketCodec = context.codec(GroupBucket.class);
         CoreService coreService = context.getService(CoreService.class);
 
-        // parse group id
-        int groupIdInt = nullIsIllegal(json.get(GROUP_ID),
-                GROUP_ID + MISSING_MEMBER_MESSAGE).asInt();
-        GroupId groupId = new GroupId(groupIdInt);
+        // parse uInt Group id from the ID field
+        JsonNode idNode = json.get(ID);
+        Long id = (null == idNode) ?
+                // use GROUP_ID for the corresponding Group id if ID is not supplied
+                nullIsIllegal(json.get(GROUP_ID), ID + MISSING_MEMBER_MESSAGE).asLong() :
+                idNode.asLong();
+        GroupId groupId = GroupId.valueOf(id.intValue());
+
+        // parse uInt Group id given by caller. see the GroupDescription javadoc
+        JsonNode givenGroupIdNode = json.get(GIVEN_GROUP_ID);
+        // if GIVEN_GROUP_ID is not supplied, set null so the group subsystem
+        // to choose the Group id (which is the value of ID indeed).
+        // else, must be same with ID to show both originate from the same source
+        Integer givenGroupIdInt = (null == givenGroupIdNode) ?
+                null : new Long(json.get(GIVEN_GROUP_ID).asLong()).intValue();
+        if (givenGroupIdInt != null && !givenGroupIdInt.equals(groupId.id())) {
+            throw new IllegalArgumentException(GIVEN_GROUP_ID + " must be same with " + ID);
+        }
 
         // parse group key (appCookie)
         String groupKeyStr = nullIsIllegal(json.get(APP_COOKIE),
@@ -157,7 +173,6 @@ public final class GroupCodec extends JsonCodec<Group> {
         }
 
         // parse group buckets
-
         GroupBuckets buckets = null;
         List<GroupBucket> groupBucketList = new ArrayList<>();
         JsonNode bucketsJson = json.get(BUCKETS);
@@ -173,7 +188,7 @@ public final class GroupCodec extends JsonCodec<Group> {
         }
 
         GroupDescription groupDescription = new DefaultGroupDescription(deviceId,
-                groupType, buckets, groupKey, groupIdInt, appId);
+                groupType, buckets, groupKey, givenGroupIdInt, appId);
 
         return new DefaultGroup(groupId, groupDescription);
     }

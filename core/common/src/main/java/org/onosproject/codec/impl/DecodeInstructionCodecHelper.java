@@ -483,8 +483,10 @@ public final class DecodeInstructionCodecHelper {
             return Instructions.transition(nullIsIllegal(json.get(InstructionCodec.TABLE_ID),
                     InstructionCodec.TABLE_ID + InstructionCodec.MISSING_MEMBER_MESSAGE).asInt());
         } else if (type.equals(Instruction.Type.GROUP.name())) {
-            GroupId groupId = new GroupId(nullIsIllegal(json.get(InstructionCodec.GROUP_ID),
-                    InstructionCodec.GROUP_ID + InstructionCodec.MISSING_MEMBER_MESSAGE).asInt());
+            // a group id should be an unsigned integer
+            Long id = nullIsIllegal(json.get(InstructionCodec.GROUP_ID),
+                    InstructionCodec.GROUP_ID + InstructionCodec.MISSING_MEMBER_MESSAGE).asLong();
+            GroupId groupId = new GroupId(id.intValue());
             return Instructions.createGroup(groupId);
         } else if (type.equals(Instruction.Type.METER.name())) {
             MeterId meterId = MeterId.meterId(nullIsIllegal(json.get(InstructionCodec.METER_ID),

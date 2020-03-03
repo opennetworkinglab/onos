@@ -2,7 +2,7 @@
   "type": "ALL",
   "deviceId": "of:0000000000000001",
   "appCookie": "0x1234abCD",
-  "groupId": "1",
+  "id": "1",
   "buckets": [
     {
       "treatment": {

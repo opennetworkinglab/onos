@@ -1,0 +1,29 @@
+{
+  "priority": 1,
+  "isPermanent": false,
+  "timeout": 1,
+  "deviceId": "of:0000000000000001",
+  "tableId": 1,
+  "treatment": {
+    "instructions": [
+      {
+        "type": "OUTPUT",
+        "port": "CONTROLLER"
+      }
+    ],
+    "deferred": []
+  },
+  "selector": {
+    "criteria": [
+      {
+        "type": "ETH_TYPE",
+        "ethType": "0x800"
+      }
+    ]
+  },
+  "state": "ADDED",
+  "life": 1000,
+  "liveType": "UNKNOWN",
+  "packets": 123,
+  "bytes": 456
+}
