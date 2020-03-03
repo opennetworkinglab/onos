@@ -276,9 +276,9 @@ public class GroupsResourceTest extends ResourceTest {
         @Override
         public boolean matchesSafely(JsonObject jsonGroup) {
             // check id
-            final String jsonId = jsonGroup.get("id").asString();
+            final Long jsonId = jsonGroup.get("id").asLong();
             final String groupId = group.id().id().toString();
-            if (!jsonId.equals(groupId)) {
+            if (!jsonId.equals(Long.valueOf(groupId))) {
                 reason = "id " + group.id().id().toString();
                 return false;
             }
@@ -362,8 +362,8 @@ public class GroupsResourceTest extends ResourceTest {
                 final JsonObject jsonGroup = json.get(jsonGroupIndex).asObject();
 
                 final String groupId = group.id().id().toString();
-                final String jsonGroupId = jsonGroup.get("id").asString();
-                if (jsonGroupId.equals(groupId)) {
+                final Long jsonGroupId = jsonGroup.get("id").asLong();
+                if (jsonGroupId.equals(Long.valueOf(groupId))) {
                     groupFound = true;
 
                     //  We found the correct group, check attribute values
