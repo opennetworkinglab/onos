@@ -1240,7 +1240,8 @@ public class McastHandler {
                 (objective, error) -> {
                     log.warn("Failed to add {} on {}/{}, vlan {}: {}",
                             mcastIp, deviceId, port.toLong(), assignedVlan, error);
-                    srManager.invalidateNextObj(objective.id());
+                    // Schedule the removal using directly the key
+                    mcastWorker.execute(() -> mcastNextObjStore.remove(mcastStoreKey));
                 });
             ForwardingObjective fwdObj = mcastUtils.fwdObjBuilder(mcastIp, assignedVlan,
                                                           newNextObj.id()).add(context);
