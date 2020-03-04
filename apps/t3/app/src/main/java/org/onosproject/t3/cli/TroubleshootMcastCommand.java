@@ -79,7 +79,7 @@ public class TroubleshootMcastCommand extends AbstractShellCommand {
                         print("Failure: %s", trace.resultMessage());
                         failedTraces.add(trace);
                     } else {
-                        print("Success");
+                        print(trace.resultMessage());
                     }
                 }
             } else {
