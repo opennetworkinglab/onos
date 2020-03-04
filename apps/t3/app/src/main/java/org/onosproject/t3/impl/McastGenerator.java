@@ -40,6 +40,9 @@ public class McastGenerator extends Generator<Set<StaticPacketTrace>> {
     private static final Logger log = getLogger(McastGenerator.class);
     protected static final MacAddress IPV4_ADDRESS = MacAddress.valueOf("01:00:5E:00:00:00");
     protected static final MacAddress IPV6_ADDRESS = MacAddress.valueOf("33:33:00:00:00:00");
+    private static final String NO_SINK = "There is no sink for this mcast route";
+    private static final String GENERATOR_ERROR =
+            "Generator for mcast route trace has benn interrupted. The trace result may be incomplete.";
 
     private final MulticastRouteService mcastService;
     private final TroubleshootManager manager;
@@ -77,16 +80,27 @@ public class McastGenerator extends Generator<Set<StaticPacketTrace>> {
                                 .matchIPv6Dst(group.toIpPrefix())
                                 .matchEthType(EthType.EtherType.IPV6.ethType().toShort());
                     }
+
+                    StaticPacketTrace trace;
+                    // check this mcast route has no sink
+                    if (routeData.allSinks().size() == 0) {
+                        trace = new StaticPacketTrace(selector.build(), source);
+                        trace.addResultMessage(NO_SINK);
+                        // tracing mcast route with no sink is not a failure
+                        trace.setSuccess(true);
+                    } else {
+                        trace = manager.trace(selector.build(), source);
+                    }
                     try {
-                        yield(ImmutableSet.of(manager.trace(selector.build(), source)));
+                        yield(ImmutableSet.of(trace));
                     } catch (InterruptedException e) {
                         log.warn("Interrupted generator", e.getMessage());
                         log.debug("exception", e);
+                        trace.setSuccess(false);
+                        trace.addResultMessage(GENERATOR_ERROR);
                     }
                 });
             });
-
         });
-
     }
 }
