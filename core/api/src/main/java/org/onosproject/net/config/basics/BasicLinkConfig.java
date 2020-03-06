@@ -48,6 +48,7 @@ public final class BasicLinkConfig extends AllowedEntityConfig<LinkKey> {
     public static final String FLAPPING = "flapping";
     public static final String IS_DURABLE = "durable";
     public static final String IS_BIDIRECTIONAL = "bidirectional";
+    public static final String IS_METERED = "metered";
 
     @Override
     public boolean isValid() {
@@ -55,12 +56,13 @@ public final class BasicLinkConfig extends AllowedEntityConfig<LinkKey> {
         type();
 
         return hasOnlyFields(ALLOWED, TYPE, METRIC, LATENCY, BANDWIDTH, JITTER, DELAY, LOSS, AVAILABILITY, FLAPPING,
-                IS_DURABLE, IS_BIDIRECTIONAL) &&
+                IS_DURABLE, IS_BIDIRECTIONAL, IS_METERED) &&
                 isBoolean(ALLOWED, OPTIONAL) && isNumber(METRIC, OPTIONAL) &&
                 isNumber(LATENCY, OPTIONAL) && isNumber(BANDWIDTH, OPTIONAL) && isDecimal(JITTER, OPTIONAL) &&
                 isDecimal(DELAY, OPTIONAL) && isDecimal(LOSS, OPTIONAL) && isDecimal(AVAILABILITY, OPTIONAL) &&
                 isDecimal(FLAPPING, OPTIONAL) &&
-                isBoolean(IS_BIDIRECTIONAL, OPTIONAL);
+                isBoolean(IS_BIDIRECTIONAL, OPTIONAL) &&
+                isBoolean(IS_METERED, OPTIONAL);
     }
 
     /**
@@ -304,6 +306,29 @@ public final class BasicLinkConfig extends AllowedEntityConfig<LinkKey> {
      */
     public BasicLinkConfig flapping(Double flapping) {
         return (BasicLinkConfig) setOrClear(FLAPPING, flapping);
+    }
+
+    /**
+     * Returns if link is metered in the network model or not.
+     *
+     * @return true for metered, false otherwise
+     */
+    public Boolean isMetered() {
+        JsonNode res = object.path(IS_METERED);
+        if (res.isMissingNode()) {
+            return true;
+        }
+        return res.asBoolean();
+    }
+
+    /**
+     * Sets durability for this link.
+     *
+     * @param isMetered true for metered, false otherwise
+     * @return this BasicLinkConfig
+     */
+    public BasicLinkConfig isMetered(Boolean isMetered) {
+        return (BasicLinkConfig) setOrClear(IS_METERED, isMetered);
     }
 
     /**

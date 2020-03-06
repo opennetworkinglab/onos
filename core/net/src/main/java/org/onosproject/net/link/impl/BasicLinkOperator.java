@@ -113,6 +113,9 @@ public final class BasicLinkOperator implements ConfigOperator {
         if (cfg.flapping() != DEF_FLAPPING) {
             b.set(AnnotationKeys.FLAPPING, String.valueOf(cfg.flapping()));
         }
+        if (cfg.isMetered() != null) {
+            b.set(AnnotationKeys.METERED, String.valueOf(cfg.isMetered()));
+        }
         return b.build();
     }
 

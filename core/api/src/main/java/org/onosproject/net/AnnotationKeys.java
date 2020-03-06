@@ -242,6 +242,12 @@ public final class AnnotationKeys {
     public static final String FLAPPING = "flapping";
 
     /**
+     * Annotation key for identifying a metered link.
+     * The value of this key is expected to be a boolean for metered as true/false.
+     */
+    public static final String METERED = "metered";
+
+    /**
      * Returns the value annotated object for the specified annotation key.
      * The annotated value is expected to be String that can be parsed as double.
      * If parsing fails, the returned value will be {@value #DEFAULT_VALUE}.

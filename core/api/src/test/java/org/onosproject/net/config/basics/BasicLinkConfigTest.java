@@ -26,6 +26,7 @@ import org.onosproject.net.config.ConfigApplyDelegate;
 import java.time.Duration;
 
 import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
@@ -68,7 +69,8 @@ public class BasicLinkConfigTest {
                 .metric(METRIC)
                 .type(Link.Type.DIRECT)
                 .latency(LATENCY)
-                .isBidirectional(FALSE);
+                .isBidirectional(FALSE)
+                .isMetered(TRUE);
 
         assertThat(config.bandwidth(), is(BANDWIDTH));
         assertThat(config.jitter(), is(JITTER));
@@ -82,5 +84,6 @@ public class BasicLinkConfigTest {
         assertThat(config.latency(), is(LATENCY));
         assertThat(config.isBidirectional(), is(FALSE));
         assertThat(config.isValid(), is(true));
+        assertThat(config.isMetered(), is(TRUE));
     }
 }
