@@ -78,6 +78,7 @@ import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.workflow.api.CheckCondition.check;
 import static org.onosproject.workflow.api.WorkflowAttribute.REMOVE_AFTER_COMPLETE;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -198,6 +199,9 @@ public class WorkFlowEngine extends AbstractListenerManager<WorkflowDataEvent, W
                 log.info("{} worklet.process(done): {}", context.name(), initWorklet.tag());
                 log.trace("{} context: {}", context.name(), context);
             }
+
+            check(workplaceStore.getContext(context.name()) == null,
+                    "Duplicated workflow context(" + context.name() + ") assignment.");
 
         } catch (WorkflowException e) {
             log.error("Exception: ", e);
