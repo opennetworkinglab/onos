@@ -100,6 +100,30 @@ public class DistributedHostStoreTest {
                                                                 HOST_ADDRESS,
                                                                 HOST_LEARNT_WITH_ADDRESSES.configured(),
                                                                 HOST_LEARNT_WITH_ADDRESSES.annotations());
+
+    private static final HostDescription HOST_DESC_WITHOUT_AUX =
+            new DefaultHostDescription(HOSTID.mac(), HOSTID.vlanId(),
+                    Sets.newHashSet(HOST_LOC11), null,
+                    Sets.newHashSet(IP1, IP2), VlanId.NONE, EthType.EtherType.UNKNOWN.ethType(),
+                    false);
+    private static final HostDescription HOST_DESC_WITH_AUX =
+            new DefaultHostDescription(HOSTID1.mac(), HOSTID1.vlanId(),
+                    Sets.newHashSet(HOST_LOC11), Sets.newHashSet(HOST_LOC12),
+                    Sets.newHashSet(IP1, IP2), VlanId.NONE, EthType.EtherType.UNKNOWN.ethType(),
+                    false);
+    private  static final Host HOST_WITHOUT_AUX =
+            new DefaultHost(PID, HOSTID,
+                    HOST_DESC_WITHOUT_AUX.hwAddress(), HOST_DESC_WITHOUT_AUX.vlan(),
+                    HOST_DESC_WITHOUT_AUX.locations(), HOST_DESC_WITHOUT_AUX.auxLocations(),
+                    HOST_DESC_WITHOUT_AUX.ipAddress(), HOST_DESC_WITHOUT_AUX.innerVlan(), HOST_DESC_WITHOUT_AUX.tpid(),
+                    HOST_DESC_WITHOUT_AUX.configured(), false);
+    private  static final Host HOST_WITH_AUX =
+            new DefaultHost(PID, HOSTID1,
+                    HOST_DESC_WITH_AUX.hwAddress(), HOST_DESC_WITH_AUX.vlan(),
+                    HOST_DESC_WITH_AUX.locations(), HOST_DESC_WITH_AUX.auxLocations(),
+                    HOST_DESC_WITH_AUX.ipAddress(), HOST_DESC_WITH_AUX.innerVlan(), HOST_DESC_WITH_AUX.tpid(),
+                    HOST_DESC_WITH_AUX.configured(), false);
+
     private static final MapEvent<HostId, DefaultHost> HOST_EVENT =
             new MapEvent<>("foobar", HOSTID, new Versioned<>(NEW_HOST, 0), new Versioned<>(OLD_HOST, 0));
     private static final DefaultHost HOST1 = new DefaultHost(PID, HOSTID, HOSTID.mac(), HOSTID.vlanId(),
@@ -381,6 +405,19 @@ public class DistributedHostStoreTest {
         assertEquals(HostEvent.Type.HOST_REMOVED, delegate.lastEvent.type());
         assertEquals(HOST3, delegate.lastEvent.subject());
         assertNull(delegate.lastEvent.prevSubject());
+    }
+
+    @Test
+    public void testGetConnectedHost() {
+        ecXHostStore.createOrUpdateHost(PID, HOSTID, HOST_DESC_WITHOUT_AUX, false);
+        ecXHostStore.createOrUpdateHost(PID, HOSTID1, HOST_DESC_WITH_AUX, false);
+
+        assertEquals(Sets.newHashSet(HOST_WITHOUT_AUX, HOST_WITH_AUX),
+                ecXHostStore.getConnectedHosts(HOST_LOC11, false));
+        assertEquals(Sets.newHashSet(),
+                ecXHostStore.getConnectedHosts(HOST_LOC11, true));
+        assertEquals(Sets.newHashSet(HOST_WITH_AUX),
+                ecXHostStore.getConnectedHosts(HOST_LOC12, true));
     }
 
     private class TestStoreDelegate implements HostStoreDelegate {

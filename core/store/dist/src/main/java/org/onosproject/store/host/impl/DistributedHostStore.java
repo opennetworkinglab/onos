@@ -350,8 +350,23 @@ public class DistributedHostStore
 
     @Override
     public Set<Host> getConnectedHosts(ConnectPoint connectPoint) {
+        return getConnectedHosts(connectPoint, false);
+    }
+
+    @Override
+    public Set<Host> getConnectedHosts(ConnectPoint connectPoint, boolean matchAuxLocations) {
+        Predicate<Map.Entry<HostId, DefaultHost>> predicate;
+        if (matchAuxLocations) {
+            predicate = entry -> {
+                Set<HostLocation> auxLocations = entry.getValue().auxLocations();
+                return auxLocations != null && entry.getValue().auxLocations().contains(connectPoint);
+            };
+        } else {
+            predicate = entry -> entry.getValue().locations().contains(connectPoint);
+        }
+
         Set<Host> filtered = hosts.entrySet().stream()
-                .filter(entry -> entry.getValue().locations().contains(connectPoint))
+                .filter(predicate)
                 .map(Map.Entry::getValue)
                 .collect(Collectors.toSet());
         return ImmutableSet.copyOf(filtered);

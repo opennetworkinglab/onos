@@ -419,9 +419,14 @@ public class HostManager
 
     @Override
     public Set<Host> getConnectedHosts(ConnectPoint connectPoint) {
+        return getConnectedHosts(connectPoint, false);
+    }
+
+    @Override
+    public Set<Host> getConnectedHosts(ConnectPoint connectPoint, boolean matchAuxLocations) {
         checkPermission(HOST_READ);
         checkNotNull(connectPoint, "Connection point cannot be null");
-        return store.getConnectedHosts(connectPoint);
+        return store.getConnectedHosts(connectPoint, matchAuxLocations);
     }
 
     @Override
