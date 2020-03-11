@@ -17,6 +17,7 @@ package org.onosproject.net.driver;
 
 import org.onosproject.net.DeviceId;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -55,6 +56,13 @@ public interface DriverService extends DriverRegistry {
      *                                              are not found
      */
     Driver getDriver(DeviceId deviceId);
+
+    /**
+     * Returns a map between all devices and their driver names.
+     *
+     * @return map of (device id, driver name)
+     */
+    Map<DeviceId, String> getDeviceDrivers();
 
     /**
      * Creates a new driver handler for interacting with the specified device.

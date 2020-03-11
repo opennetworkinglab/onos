@@ -263,6 +263,12 @@
                 <ref component-id="roleCompleter"/>
             </completers>
         </command>
+        <command>
+            <action class="org.onosproject.cli.net.DeviceDriversCommand"/>
+            <completers>
+                <ref component-id="deviceIdCompleter"/>
+            </completers>
+        </command>
 
         <command>
             <action class="org.onosproject.cli.net.AnnotateDeviceCommand"/>

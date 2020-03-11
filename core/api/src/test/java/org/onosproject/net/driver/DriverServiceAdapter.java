@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.driver;
 
+import java.util.Map;
 import java.util.Set;
 
 import org.onosproject.net.DeviceId;
@@ -51,6 +52,11 @@ public class DriverServiceAdapter implements DriverService {
 
     @Override
     public Driver getDriver(String driverName) {
+        return null;
+    }
+
+    @Override
+    public Map<DeviceId, String> getDeviceDrivers() {
         return null;
     }
 

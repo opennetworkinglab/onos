@@ -39,6 +39,8 @@ import org.onosproject.net.driver.DriverService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -132,6 +134,15 @@ public class DriverManager implements DriverService {
         return nullIsNotFound(getDriver(device.manufacturer(),
                                         device.hwVersion(), device.swVersion()),
                               NO_DRIVER);
+    }
+
+    @Override
+    public Map<DeviceId, String> getDeviceDrivers() {
+        Map<DeviceId, String> deviceDriverNameMap = new HashMap<>();
+        deviceService.getDevices().forEach(device -> {
+            deviceDriverNameMap.put(device.id(), getDriver(device.id()).name());
+        });
+        return deviceDriverNameMap;
     }
 
     private Driver lookupDriver(String driverName) {
