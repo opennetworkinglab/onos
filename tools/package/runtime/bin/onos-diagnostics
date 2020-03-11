@@ -70,6 +70,7 @@ CLI_COMMANDS=(
     "cfg get"
 
     "devices"
+    "device-drivers"
     "links"
     "hosts"
     "interfaces"
