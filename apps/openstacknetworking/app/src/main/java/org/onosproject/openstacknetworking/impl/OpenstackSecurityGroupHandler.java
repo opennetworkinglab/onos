@@ -29,6 +29,7 @@ import org.onlab.packet.VlanId;
 import org.onlab.util.KryoNamespace;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
@@ -57,6 +58,7 @@ import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupEvent;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupListener;
 import org.onosproject.openstacknetworking.api.OpenstackSecurityGroupService;
 import org.onosproject.openstacknetworking.util.RulePopulatorUtil;
+import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeEvent;
 import org.onosproject.openstacknode.api.OpenstackNodeListener;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
@@ -113,6 +115,7 @@ import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.GRE;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.VLAN;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.VXLAN;
 import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_PRE_REMOVE;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValueAsBoolean;
 import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.USE_SECURITY_GROUP;
 import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.USE_SECURITY_GROUP_DEFAULT;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.swapStaleLocation;
@@ -286,6 +289,12 @@ public class OpenstackSecurityGroupHandler {
 
         securityGroupService.setSecurityGroupEnabled(useSecurityGroup);
         resetSecurityGroupRules();
+    }
+
+    private boolean getUseSecurityGroupFlag() {
+        Set<ConfigProperty> properties =
+                configService.getProperties(getClass().getName());
+        return getPropertyValueAsBoolean(properties, USE_SECURITY_GROUP);
     }
 
     private void initializeConnTrackTable(DeviceId deviceId, boolean install) {
@@ -672,7 +681,7 @@ public class OpenstackSecurityGroupHandler {
 
     private void resetSecurityGroupRules() {
 
-        if (useSecurityGroup) {
+        if (getUseSecurityGroupFlag()) {
             osNodeService.completeNodes(COMPUTE).forEach(node -> {
                 osFlowRuleService.setUpTableMissEntry(node.intgBridge(), ACL_EGRESS_TABLE);
                 initializeConnTrackTable(node.intgBridge(), true);
@@ -1127,7 +1136,7 @@ public class OpenstackSecurityGroupHandler {
         public void event(OpenstackNodeEvent event) {
             switch (event.type()) {
                 case OPENSTACK_NODE_COMPLETE:
-                    eventExecutor.execute(this::processNodeComplete);
+                    eventExecutor.execute(() -> processNodeComplete(event.subject()));
                     break;
                 case OPENSTACK_NODE_CREATED:
                 case OPENSTACK_NODE_REMOVED:
@@ -1138,12 +1147,37 @@ public class OpenstackSecurityGroupHandler {
             }
         }
 
-        private void processNodeComplete() {
+        private void processNodeComplete(OpenstackNode node) {
             if (!isRelevantHelper()) {
                 return;
             }
 
-            OpenstackSecurityGroupHandler.this.resetSecurityGroupRules();
+            resetSecurityGroupRulesByNode(node);
+        }
+
+        private void resetSecurityGroupRulesByNode(OpenstackNode node) {
+            if (getUseSecurityGroupFlag()) {
+                osFlowRuleService.setUpTableMissEntry(node.intgBridge(), ACL_EGRESS_TABLE);
+                initializeConnTrackTable(node.intgBridge(), true);
+                initializeAclTable(node.intgBridge(), true);
+                initializeIngressTable(node.intgBridge(), true);
+
+                securityGroupService.securityGroups().forEach(securityGroup ->
+                        securityGroup.getRules().forEach(
+                                OpenstackSecurityGroupHandler.this::securityGroupRuleAdded));
+            } else {
+                osFlowRuleService.connectTables(node.intgBridge(), ACL_EGRESS_TABLE, JUMP_TABLE);
+                initializeConnTrackTable(node.intgBridge(), false);
+                initializeAclTable(node.intgBridge(), false);
+                initializeIngressTable(node.intgBridge(), false);
+
+                securityGroupService.securityGroups().forEach(securityGroup ->
+                        securityGroup.getRules().forEach(
+                                OpenstackSecurityGroupHandler.this::securityGroupRuleRemoved));
+            }
+
+            log.info("Reset security group info " +
+                    (useSecurityGroup ? " with " : " without") + " Security Group");
         }
     }
 }
