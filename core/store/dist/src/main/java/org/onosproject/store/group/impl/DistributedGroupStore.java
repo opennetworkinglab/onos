@@ -27,6 +27,7 @@ import org.onosproject.core.GroupId;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.group.DefaultGroup;
 import org.onosproject.net.group.DefaultGroupBucket;
@@ -139,6 +140,9 @@ public class DistributedGroupStore
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService cfgService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected DeviceService deviceService;
 
     // Guarantees enabling DriverService before enabling GroupStore
     // (DriverService is used in serializing/de-serializing DefaultGroup)
@@ -379,7 +383,7 @@ public class DistributedGroupStore
 
     private Iterable<StoredGroupEntry> getStoredGroups(DeviceId deviceId) {
         NodeId master = mastershipService.getMasterFor(deviceId);
-        if (master == null) {
+        if (master == null && deviceService.isAvailable(deviceId)) {
             log.debug("Failed to getGroups: No master for {}", deviceId);
             return Collections.emptySet();
         }

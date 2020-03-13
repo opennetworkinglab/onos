@@ -87,6 +87,7 @@ public class DeviceFlowTable {
 
     private final DeviceId deviceId;
     private final ClusterCommunicationService clusterCommunicator;
+    private final ClusterService clusterService;
     private final DeviceService deviceService;
     private final LifecycleManager lifecycleManager;
     private final ScheduledExecutorService scheduler;
@@ -127,6 +128,7 @@ public class DeviceFlowTable {
         long antiEntropyPeriod) {
         this.deviceId = deviceId;
         this.clusterCommunicator = clusterCommunicator;
+        this.clusterService = clusterService;
         this.lifecycleManager = lifecycleManager;
         this.deviceService = deviceService;
         this.scheduler = scheduler;
@@ -236,7 +238,6 @@ public class DeviceFlowTable {
      */
     private CompletableFuture<Set<FlowEntry>> getFlowEntries(FlowBucket bucket) {
         DeviceReplicaInfo replicaInfo = lifecycleManager.getReplicaInfo();
-
         // If the local node is the master, fetch the entries locally. Otherwise, request the entries
         // from the current master. Note that there's a change of a brief cycle during a mastership change.
         if (replicaInfo.isMaster(localNodeId)) {
@@ -254,6 +255,18 @@ public class DeviceFlowTable {
                 Duration.ofSeconds(GET_FLOW_ENTRIES_TIMEOUT));
         } else if (deviceService.isAvailable(deviceId)) {
             throw new FlowRuleStoreException("There is no master for available device " + deviceId);
+        } else if (clusterService.getNodes().size() <= 1 + ECFlowRuleStore.backupCount) {
+            //TODO remove this check when [ONOS-8080] is fixed
+            //When device is not available and has no master and
+            // the number of nodes surpasses the guaranteed backup count,
+            // we are certain that this node has a replica.
+            // -- DISCLAIMER --
+            // You manually need to set the backup count for clusters > 3 nodes,
+            // the default is 2, which handles the single instance and 3 node scenarios
+            return CompletableFuture.completedFuture(
+                    bucket.getFlowBucket().values().stream()
+                            .flatMap(entries -> entries.values().stream())
+                            .collect(Collectors.toSet()));
         } else {
             return CompletableFuture.completedFuture(Collections.emptySet());
         }
@@ -823,8 +836,10 @@ public class DeviceFlowTable {
             this.replicaInfo = replicaInfo;
         }
 
-        // If the local node is neither the master or a backup for the device, clear the flow table.
-        if (!replicaInfo.isMaster(localNodeId) && !replicaInfo.isBackup(localNodeId)) {
+        // If the local node is neither the master or a backup for the device,
+        // and the number of nodes surpasses the guaranteed backup count, clear the flow table.
+        if (!replicaInfo.isMaster(localNodeId) && !replicaInfo.isBackup(localNodeId) &&
+            (clusterService.getNodes().size() > 1 + ECFlowRuleStore.backupCount)) {
             flowBuckets.values().forEach(bucket -> bucket.clear());
         }
         activeTerm = replicaInfo.term();
@@ -839,10 +854,11 @@ public class DeviceFlowTable {
             this.replicaInfo = replicaInfo;
 
             // If the local node is neither the master or a backup for the device *and the term is active*,
-            // clear the flow table.
+            // and the number of nodes surpasses the guaranteed backup count, clear the flow table.
             if (activeTerm == replicaInfo.term()
                 && !replicaInfo.isMaster(localNodeId)
-                && !replicaInfo.isBackup(localNodeId)) {
+                && !replicaInfo.isBackup(localNodeId)
+            && (clusterService.getNodes().size() > 1 + ECFlowRuleStore.backupCount)) {
                 flowBuckets.values().forEach(bucket -> bucket.clear());
             }
         }

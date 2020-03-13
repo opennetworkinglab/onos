@@ -33,6 +33,7 @@ import org.onosproject.mastership.MastershipServiceAdapter;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DeviceServiceAdapter;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.group.DefaultGroup;
@@ -189,6 +190,7 @@ public class DistributedGroupStoreTest {
         groupStoreImpl.clusterCommunicator = new ClusterCommunicationServiceAdapter();
         groupStoreImpl.mastershipService = new MasterOfAll();
         groupStoreImpl.cfgService = new ComponentConfigAdapter();
+        groupStoreImpl.deviceService = new InternalDeviceServiceImpl();
 
         ClusterService mockClusterService = createMock(ClusterService.class);
         NodeId nodeId = new NodeId(NODE_ID);
@@ -661,4 +663,10 @@ public class DistributedGroupStoreTest {
     }
 
 
+    private class InternalDeviceServiceImpl extends DeviceServiceAdapter {
+        @Override
+        public boolean isAvailable(DeviceId deviceId) {
+            return true;
+        }
+    }
 }
