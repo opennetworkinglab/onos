@@ -151,7 +151,7 @@ public class ECFlowRuleStore
     private boolean persistenceEnabled = EC_FLOW_RULE_STORE_PERSISTENCE_ENABLED_DEFAULT;
 
     /** Max number of backup copies for each device. */
-    private volatile int backupCount = MAX_BACKUP_COUNT_DEFAULT;
+    protected static volatile int backupCount = MAX_BACKUP_COUNT_DEFAULT;
 
     private InternalFlowTable flowTable = new InternalFlowTable();
 
@@ -370,12 +370,12 @@ public class ECFlowRuleStore
     @Override
     public int getFlowRuleCount(DeviceId deviceId, FlowEntryState state) {
         NodeId master = mastershipService.getMasterFor(deviceId);
-        if (master == null) {
+        if (master == null && deviceService.isAvailable(deviceId)) {
             log.debug("Failed to getFlowRuleCount: No master for {}", deviceId);
             return 0;
         }
 
-        if (Objects.equals(local, master)) {
+        if (Objects.equals(local, master) || master == null) {
             return flowTable.getFlowRuleCount(deviceId, state);
         }
 
@@ -395,12 +395,12 @@ public class ECFlowRuleStore
     public FlowEntry getFlowEntry(FlowRule rule) {
         NodeId master = mastershipService.getMasterFor(rule.deviceId());
 
-        if (master == null) {
+        if (master == null && deviceService.isAvailable(rule.deviceId())) {
             log.debug("Failed to getFlowEntry: No master for {}", rule.deviceId());
             return null;
         }
 
-        if (Objects.equals(local, master)) {
+        if (Objects.equals(local, master) || master == null) {
             return flowTable.getFlowEntry(rule);
         }
 
@@ -892,7 +892,7 @@ public class ECFlowRuleStore
     public Iterable<TableStatisticsEntry> getTableStatistics(DeviceId deviceId) {
         NodeId master = mastershipService.getMasterFor(deviceId);
 
-        if (master == null) {
+        if (master == null && deviceService.isAvailable(deviceId)) {
             log.debug("Failed to getTableStats: No master for {}", deviceId);
             return Collections.emptyList();
         }
