@@ -45,11 +45,15 @@ public class McastConfigTest {
             new TestApplicationId(CoreService.CORE_APP_NAME);
     private McastConfig config;
     private McastConfig invalidConfig;
+    private McastConfig configForInnerVlan;
+    private McastConfig invalidConfigForInnerVlan;
 
     private static final VlanId INGRESS_VLAN_1 = VlanId.NONE;
     private static final VlanId EGRESS_VLAN_1 = VlanId.NONE;
+    private static final VlanId EGRESS_INNER_VLAN_1 = VlanId.NONE;
     private static final VlanId INGRESS_VLAN_2 = VlanId.vlanId((short) 100);
     private static final VlanId EGRESS_VLAN_2 = VlanId.vlanId((short) 100);
+    private static final VlanId EGRESS_INNER_VLAN_2 = VlanId.vlanId((short) 100);
 
     /**
      * Initialize test related variables.
@@ -62,18 +66,28 @@ public class McastConfigTest {
                 .getResourceAsStream("/mcast-config.json");
         InputStream invalidJsonStream = McastConfigTest.class
                 .getResourceAsStream("/mcast-config-invalid.json");
+        InputStream jsonStreamForInnerVlan = McastConfigTest.class
+                .getResourceAsStream("/mcast-config-inner.json");
+        InputStream invalidJsonStreamForInnerVlan = McastConfigTest.class
+                .getResourceAsStream("/mcast-config-invalid-inner.json");
 
         ApplicationId subject = APP_ID;
         String key = CoreService.CORE_APP_NAME;
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonNode = mapper.readTree(jsonStream);
         JsonNode invalidJsonNode = mapper.readTree(invalidJsonStream);
+        JsonNode jsonNodeForInnerVlan = mapper.readTree(jsonStreamForInnerVlan);
+        JsonNode invalidJsonNodeForInnerVlan = mapper.readTree(invalidJsonStreamForInnerVlan);
         ConfigApplyDelegate delegate = new MockDelegate();
 
         config = new McastConfig();
         config.init(subject, key, jsonNode, mapper, delegate);
         invalidConfig = new McastConfig();
         invalidConfig.init(subject, key, invalidJsonNode, mapper, delegate);
+        configForInnerVlan = new McastConfig();
+        configForInnerVlan.init(subject, key, jsonNodeForInnerVlan, mapper, delegate);
+        invalidConfigForInnerVlan = new McastConfig();
+        invalidConfigForInnerVlan.init(subject, key, invalidJsonNodeForInnerVlan, mapper, delegate);
     }
 
     /**
@@ -85,6 +99,8 @@ public class McastConfigTest {
     public void isValid() throws Exception {
         assertTrue(config.isValid());
         assertFalse(invalidConfig.isValid());
+        assertTrue(configForInnerVlan.isValid());
+        assertFalse(invalidConfigForInnerVlan.isValid());
     }
 
     /**
@@ -137,6 +153,33 @@ public class McastConfigTest {
         VlanId egressVlan = config.egressVlan();
         assertNotNull("egressVlan should not be null", egressVlan);
         assertThat(egressVlan, is(EGRESS_VLAN_2));
+    }
+
+    /**
+     * Tests egress inner VLAN getter.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void egressInnerVlan() {
+        VlanId egressInnerVlan = config.egressInnerVlan();
+        assertNotNull("egressInnerVlan should not be null", egressInnerVlan);
+        assertThat(egressInnerVlan, is(EGRESS_INNER_VLAN_1));
+    }
+
+
+    /**
+     * Tests egress inner VLAN setter.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void setEgressInnerVlan() {
+        config.setEgressInnerVlan(EGRESS_INNER_VLAN_2);
+
+        VlanId egressInnerVlan = config.egressInnerVlan();
+        assertNotNull("egressInnerVlan should not be null", egressInnerVlan);
+        assertThat(egressInnerVlan, is(EGRESS_INNER_VLAN_2));
     }
 
     private class MockDelegate implements ConfigApplyDelegate {
