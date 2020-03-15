@@ -70,7 +70,6 @@ ts_library(
         "@npm//@angular/common",
         "@npm//@angular/core",
         "@npm//@angular/forms",
-        "@npm//@angular/http",
         "@npm//@angular/platform-browser",
         "@npm//@angular/router",
         "@npm//@types/jasmine",
