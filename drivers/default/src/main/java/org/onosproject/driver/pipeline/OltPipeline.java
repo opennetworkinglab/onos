@@ -406,6 +406,12 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
             builderToUpdate.matchVlanId(assignedVlan);
         }
 
+        Optional<Criterion> innerVlanIdCriterion = readFromSelector(fwd.meta(), Criterion.Type.INNER_VLAN_VID);
+        if (innerVlanIdCriterion.isPresent()) {
+            VlanId assignedInnerVlan = ((VlanIdCriterion) innerVlanIdCriterion.get()).vlanId();
+            builderToUpdate.matchMetadata(assignedInnerVlan.toShort());
+        }
+
         Optional<Criterion> ethTypeCriterion = readFromSelector(fwd.selector(), Criterion.Type.ETH_TYPE);
         if (ethTypeCriterion.isPresent()) {
             EthType ethType = ((EthTypeCriterion) ethTypeCriterion.get()).ethType();
