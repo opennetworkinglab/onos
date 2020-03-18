@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.onosproject.drivers.server;
 
 import org.onosproject.drivers.server.devices.RestServerSBDevice;
@@ -28,11 +29,13 @@ import org.slf4j.Logger;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.EnumSet;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import static org.slf4j.LoggerFactory.getLogger;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.drivers.server.Constants.MSG_CONTROLLER_NULL;
+import static org.onosproject.drivers.server.Constants.MSG_HANDLER_NULL;
+import static org.onosproject.drivers.server.Constants.MSG_DEVICE_NULL;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * The basic functionality of the server driver.
@@ -42,24 +45,6 @@ public class BasicServerDriver extends AbstractHandlerBehaviour {
     private final Logger log = getLogger(getClass());
 
     /**
-     * Resource endpoints of the server agent (REST server-side).
-     */
-    public    static final MediaType  JSON = MediaType.valueOf(MediaType.APPLICATION_JSON);
-    protected static final String ROOT_URL = "";
-    protected static final String SLASH = "/";
-    public    static final String BASE_URL = ROOT_URL + SLASH + "metron";
-
-    /**
-     * Common parameters to be exchanged with the server's agent.
-     */
-    public static final String PARAM_ID             = "id";
-    public static final String PARAM_NICS           = "nics";
-    public static final String PARAM_CPUS           = "cpus";
-    public static final String NIC_PARAM_RX_FILTER  = "rxFilter";
-    public static final String NIC_PARAM_RX_METHOD  = "method";
-
-
-    /**
      * Successful HTTP status codes.
      */
     private static final int STATUS_OK = Response.Status.OK.getStatusCode();
@@ -67,20 +52,11 @@ public class BasicServerDriver extends AbstractHandlerBehaviour {
     private static final int STATUS_ACCEPTED = Response.Status.ACCEPTED.getStatusCode();
 
     /**
-     * Messages for error handlers.
-     */
-    protected static final String MASTERSHIP_NULL = "Mastership service is null";
-    protected static final String CONTROLLER_NULL = "RestSB controller is null";
-    protected static final String DEVICE_ID_NULL  = "Device ID cannot be null";
-    protected static final String HANDLER_NULL    = "Handler cannot be null";
-    protected static final String DEVICE_NULL     = "Device cannot be null";
-
-    /**
      * A unique controller that handles the REST-based communication.
      */
     protected static RestSBController controller = null;
     protected static DriverHandler       handler = null;
-    private static final Object CONTROLLER_LOCK = new Object();
+    protected static final Object CONTROLLER_LOCK = new Object();
 
     public BasicServerDriver() {};
 
@@ -90,9 +66,11 @@ public class BasicServerDriver extends AbstractHandlerBehaviour {
      * @return DriverHandler instance
      */
     protected DriverHandler getHandler() {
-        synchronized (CONTROLLER_LOCK) {
-            handler = handler();
-            checkNotNull(handler, HANDLER_NULL);
+        if (handler == null) {
+            synchronized (CONTROLLER_LOCK) {
+                handler = super.handler();
+                checkNotNull(handler, MSG_HANDLER_NULL);
+            }
         }
 
         return handler;
@@ -107,11 +85,30 @@ public class BasicServerDriver extends AbstractHandlerBehaviour {
         synchronized (CONTROLLER_LOCK) {
             if (controller == null) {
                 controller = getHandler().get(RestSBController.class);
-                checkNotNull(controller, CONTROLLER_NULL);
+                checkNotNull(controller, MSG_CONTROLLER_NULL);
             }
         }
 
         return controller;
+    }
+
+    /**
+     * Retrieve an instance of the REST SB device, given its ID.
+     *
+     * @param deviceId a device ID
+     * @return RestSBDevice instance
+     */
+    public RestSBDevice getDevice(DeviceId deviceId) {
+        return getController().getDevice(deviceId);
+    }
+
+    /**
+     * Retrieve a REST SB device ID.
+     *
+     * @return a device Id
+     */
+    public DeviceId getDeviceId() {
+        return getHandler().data().deviceId();
     }
 
     /**
@@ -132,7 +129,7 @@ public class BasicServerDriver extends AbstractHandlerBehaviour {
         } catch (ClassCastException ccEx) {
             return null;
         }
-        checkNotNull(device, DEVICE_NULL);
+        checkNotNull(device, MSG_DEVICE_NULL);
 
         return device.portNameFromNumber(port);
     }
@@ -191,6 +188,16 @@ public class BasicServerDriver extends AbstractHandlerBehaviour {
         }
 
         return false;
+    }
+
+    /**
+     * Check whether a server device is active or not.
+     *
+     * @param device a device to check
+     * @return boolean status (true for active or false for inactive)
+     */
+    protected boolean deviceIsActive(RestSBDevice device) {
+        return device.isActive();
     }
 
     /**

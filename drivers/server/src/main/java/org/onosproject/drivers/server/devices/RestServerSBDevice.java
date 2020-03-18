@@ -16,15 +16,19 @@
 
 package org.onosproject.drivers.server.devices;
 
+import org.onosproject.drivers.server.devices.cpu.CpuCacheHierarchyDevice;
+import org.onosproject.drivers.server.devices.cpu.CpuDevice;
+import org.onosproject.drivers.server.devices.memory.MemoryHierarchyDevice;
 import org.onosproject.drivers.server.devices.nic.NicDevice;
 import org.onosproject.protocol.rest.RestSBDevice;
 
 import java.util.Collection;
 
 /**
- * Represents an abstraction of a REST server device in ONOS.
+ * Represents an abstraction of a REST server device.
  */
 public interface RestServerSBDevice extends RestSBDevice {
+
     /**
      * Returns the set of CPUs of the server.
      *
@@ -38,6 +42,41 @@ public interface RestServerSBDevice extends RestSBDevice {
      * @return number of CPUs
      */
     int numberOfCpus();
+
+    /**
+     * Returns the CPU cache hierarchy of the server.
+     *
+     * @return CPU cache hierarchy
+     */
+    CpuCacheHierarchyDevice caches();
+
+    /**
+     * Returns the number of CPU caches of the server.
+     *
+     * @return number of CPU caches
+     */
+    int numberOfCaches();
+
+    /**
+     * Returns the capacity of the CPU caches of the server.
+     *
+     * @return total CPU cache capacity
+     */
+    long cacheCapacity();
+
+    /**
+     * Returns the main memory hierarchy of the server.
+     *
+     * @return main memory hierarchy
+     */
+    MemoryHierarchyDevice memory();
+
+    /**
+     * Returns the capacity of the server's main memory.
+     *
+     * @return total main memory capacity
+     */
+    long memoryCapacity();
 
     /**
      * Returns the set of NICs of the server.

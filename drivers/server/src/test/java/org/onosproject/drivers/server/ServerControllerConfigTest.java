@@ -44,15 +44,7 @@ import static org.junit.Assert.assertThat;
  */
 public class ServerControllerConfigTest {
 
-    // Device information used during the tests
-    private static final String REST_SCHEME = "rest";
-    private static final String REST_DEV_TEST_IP_1 = "10.0.0.1";
-    private static final int    REST_TEST_PORT = 80;
-
     // Controller information used during the tests
-    private static final String REST_CTRL_TEST_IP_1 = "10.0.0.253";
-    private static final String REST_CTRL_TEST_IP_2 = "10.0.0.254";
-    private static final String REST_CTRL_TEST_TYPE = "tcp";
     private static List<ControllerInfo> controllers;
 
     // Device used during the tests

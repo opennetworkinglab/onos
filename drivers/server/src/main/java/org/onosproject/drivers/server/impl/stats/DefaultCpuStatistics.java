@@ -16,10 +16,12 @@
 
 package org.onosproject.drivers.server.impl.stats;
 
+import org.onosproject.drivers.server.devices.cpu.CpuCoreId;
 import org.onosproject.drivers.server.stats.CpuStatistics;
 import org.onosproject.drivers.server.stats.MonitoringUnit;
 
 import org.onosproject.net.DeviceId;
+
 import com.google.common.base.MoreObjects;
 
 import java.util.Optional;
@@ -28,20 +30,17 @@ import static org.onosproject.drivers.server.stats.MonitoringUnit.LatencyUnit;
 import static org.onosproject.drivers.server.stats.MonitoringUnit.ThroughputUnit;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkArgument;
+import static org.onosproject.drivers.server.Constants.MSG_CPU_CORE_NEGATIVE;
+import static org.onosproject.drivers.server.Constants.MSG_CPU_LOAD_NEGATIVE;
+import static org.onosproject.drivers.server.Constants.MSG_DEVICE_ID_NULL;
 
 /**
  * Default implementation for CPU statistics.
  */
 public final class DefaultCpuStatistics implements CpuStatistics {
 
-    private static final float MIN_CPU_LOAD = (float) 0.0;
-    private static final float MAX_CPU_LOAD = (float) 1.0;
-
     private static final LatencyUnit DEF_LATENCY_UNIT = LatencyUnit.NANO_SECOND;
     private static final ThroughputUnit DEF_THROUGHPUT_UNIT = ThroughputUnit.MBPS;
-
-    // Upper limit of CPU cores in one machine
-    public static final int MAX_CPU_NB = 512;
 
     private final DeviceId deviceId;
 
@@ -63,16 +62,15 @@ public final class DefaultCpuStatistics implements CpuStatistics {
     private DefaultCpuStatistics(DeviceId deviceId, int id, float load, int queue, int busySince,
             MonitoringUnit throughputUnit, float averageThroughput, MonitoringUnit latencyUnit,
             float minLatency, float averageLatency, float maxLatency) {
-        checkNotNull(deviceId, "Device ID is NULL");
-        checkArgument((id >= 0) && (id < MAX_CPU_NB),
-            "Invalid CPU core ID " + String.valueOf(id) + ", not in [0, " + String.valueOf(MAX_CPU_NB - 1) + "]");
-        checkArgument((load >= MIN_CPU_LOAD) && (load <= MAX_CPU_LOAD),
-            "Invalid CPU load " + Float.toString(load) + ", not in [" + MIN_CPU_LOAD + ", " + MAX_CPU_LOAD + "]");
+        checkNotNull(deviceId, MSG_DEVICE_ID_NULL);
+        checkArgument((id >= 0) && (id < CpuCoreId.MAX_CPU_CORE_NB), MSG_CPU_CORE_NEGATIVE);
+        checkArgument((load >= CpuStatistics.MIN_CPU_LOAD) &&
+                      (load <= CpuStatistics.MAX_CPU_LOAD), MSG_CPU_LOAD_NEGATIVE);
 
-        this.deviceId  = deviceId;
-        this.id        = id;
-        this.load      = load;
-        this.queue     = queue;
+        this.deviceId = deviceId;
+        this.id = id;
+        this.load = load;
+        this.queue = queue;
         this.busySince = busySince;
 
         this.throughputUnit = (throughputUnit == null) ?
@@ -91,10 +89,10 @@ public final class DefaultCpuStatistics implements CpuStatistics {
 
     // Constructor for serializer
     private DefaultCpuStatistics() {
-        this.deviceId  = null;
-        this.id        = 0;
-        this.load      = 0;
-        this.queue     = 0;
+        this.deviceId = null;
+        this.id = 0;
+        this.load = 0;
+        this.queue = 0;
         this.busySince = -1;
 
         this.throughputUnit = null;
@@ -349,6 +347,7 @@ public final class DefaultCpuStatistics implements CpuStatistics {
                 throughputUnit, averageThroughput,
                 latencyUnit, minLatency, averageLatency, maxLatency);
         }
+
     }
 
 }

@@ -19,26 +19,26 @@ package org.onosproject.drivers.server.devices.nic;
 import com.google.common.base.Strings;
 
 import static com.google.common.base.Preconditions.checkArgument;
-
+import static org.onosproject.drivers.server.Constants.MSG_NIC_FLOW_RULE_SCOPE_NULL;
 
 /**
 * Definition of network interface card's (NIC) rule's scope.
 */
 public enum NicRuleScope {
+
     /**
-     * A NIC rules is applied to the ingress traffic.
+     * A NIC rules is applied to ingress traffic.
      */
     INGRESS("ingress"),
     /**
-     * A NIC rules is applied to the egress traffic.
+     * A NIC rules is applied to egress traffic.
      */
     EGRESS("egress");
 
     protected String scope;
 
     private NicRuleScope(String scope) {
-        checkArgument(!Strings.isNullOrEmpty(scope),
-            "NIC rule scope is NULL or empty");
+        checkArgument(!Strings.isNullOrEmpty(scope), MSG_NIC_FLOW_RULE_SCOPE_NULL);
         this.scope = scope.toLowerCase();
     }
 

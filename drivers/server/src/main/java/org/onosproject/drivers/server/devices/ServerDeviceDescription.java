@@ -16,6 +16,9 @@
 
 package org.onosproject.drivers.server.devices;
 
+import org.onosproject.drivers.server.devices.cpu.CpuCacheHierarchyDevice;
+import org.onosproject.drivers.server.devices.cpu.CpuDevice;
+import org.onosproject.drivers.server.devices.memory.MemoryHierarchyDevice;
 import org.onosproject.drivers.server.devices.nic.NicDevice;
 import org.onosproject.net.device.DeviceDescription;
 
@@ -32,6 +35,20 @@ public interface ServerDeviceDescription extends DeviceDescription {
      * @return set of CPUs of the server device
      */
     Collection<CpuDevice> cpus();
+
+    /**
+     * The CPU cache hierarchy of the server device.
+     *
+     * @return CPU cache hierarchy of the server device
+     */
+    CpuCacheHierarchyDevice caches();
+
+    /**
+     * The memory hierarchy of the server device.
+     *
+     * @return memory hierarchy of the server device
+     */
+    MemoryHierarchyDevice memory();
 
     /**
      * The set of NICs of the server device.

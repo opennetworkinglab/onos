@@ -15,7 +15,13 @@
   ~ limitations under the License.
   -->
 <drivers>
-    <driver name="restServer" extends="default" manufacturer="GenuineIntel" hwVersion="Intel(R) Xeon(R) CPU E5-2667 v3 @ 3.20GHz" swVersion="Click 2.1">
+    <driver name="rest-server" manufacturer="Unknown" hwVersion="Unknown" swVersion="Unknown" extends="default">
+        <behaviour api="org.onosproject.net.behaviour.BasicSystemOperations"
+                   impl="org.onosproject.drivers.server.ServerBasicSystemOperations"/>
+
+        <behaviour api="org.onosproject.net.device.DeviceHandshaker"
+                   impl="org.onosproject.drivers.server.ServerHandshaker"/>
+
         <behaviour api="org.onosproject.net.behaviour.DevicesDiscovery"
                    impl="org.onosproject.drivers.server.ServerDevicesDiscovery"/>
 
@@ -28,15 +34,37 @@
         <behaviour api="org.onosproject.net.device.PortStatisticsDiscovery"
                    impl="org.onosproject.drivers.server.ServerDevicesDiscovery"/>
 
+        <behaviour api="org.onosproject.net.behaviour.PortAdmin"
+                   impl="org.onosproject.drivers.server.ServerPortAdmin"/>
+
+        <behaviour api="org.onosproject.net.behaviour.InterfaceConfig"
+                   impl="org.onosproject.drivers.server.ServerInterfaceConfig"/>
+
         <behaviour api="org.onosproject.drivers.server.behavior.CpuStatisticsDiscovery"
                    impl="org.onosproject.drivers.server.ServerDevicesDiscovery"/>
 
         <behaviour api="org.onosproject.drivers.server.behavior.MonitoringStatisticsDiscovery"
                    impl="org.onosproject.drivers.server.ServerDevicesDiscovery"/>
 
+        <behaviour api="org.onosproject.net.behaviour.DeviceSystemStatisticsQuery"
+                   impl="org.onosproject.drivers.server.ServerDevicesDiscovery"/>
+
         <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
                    impl="org.onosproject.drivers.server.FlowRuleProgrammableServerImpl"/>
+
+        <behaviour api="org.onosproject.net.behaviour.TableStatisticsDiscovery"
+                   impl="org.onosproject.drivers.server.ServerTableStatisticsDiscovery"/>
+
+        <behaviour api="org.onosproject.net.behaviour.QueueConfigBehaviour"
+                   impl="org.onosproject.drivers.server.ServerQueueConfig"/>
+
         <property name="ruleDeleteBatchSize">500</property>
+    </driver>
+
+    <driver name="rest-server-intel" manufacturer="GenuineIntel" hwVersion="Unknown" swVersion="Click 2.1" extends="rest-server">
+    </driver>
+
+    <driver name="rest-server-amd" manufacturer="AuthenticAMD" hwVersion="Unknown" swVersion="Click 2.1" extends="rest-server">
     </driver>
 </drivers>
 

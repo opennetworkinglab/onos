@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.onosproject.drivers.server.devices.nic;
 
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static org.onosproject.drivers.server.Constants.MSG_NIC_FLOW_FILTER_RSS_NEGATIVE;
 
 /**
  * A Receice-Side Scaling (RSS)-based Rx filter value.
@@ -72,7 +74,7 @@ public final class RssRxFilterValue extends RxFilterValue implements Comparable 
      * @param rssHash the RSS hash
      */
     public void setValue(int rssHash) {
-        checkArgument(rssHash >= 0, "Invalid RSS Rx filter " + rssHash);
+        checkArgument(rssHash >= 0, MSG_NIC_FLOW_FILTER_RSS_NEGATIVE);
         this.rssHash = rssHash;
     }
 

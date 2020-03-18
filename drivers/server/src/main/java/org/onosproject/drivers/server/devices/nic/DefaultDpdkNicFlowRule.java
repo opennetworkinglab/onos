@@ -26,13 +26,14 @@ import org.onlab.packet.MacAddress;
 public class DefaultDpdkNicFlowRule extends DefaultNicFlowRule {
 
     public DefaultDpdkNicFlowRule(
-            FlowRule         flowRule,
-            String           trafficClassId,
-            String           interfaceName,
-            long             interfaceNumber,
-            long             cpuCoreIndex,
-            NicRuleScope     scope) {
-        super(flowRule, trafficClassId, interfaceName, interfaceNumber, cpuCoreIndex, scope);
+            FlowRule flowRule,
+            String trafficClassId,
+            String interfaceName,
+            long interfaceNumber,
+            long cpuCoreIndex,
+            NicRuleScope scope) {
+        super(flowRule, trafficClassId, interfaceName,
+            interfaceNumber, cpuCoreIndex, scope);
     }
 
     @Override

@@ -16,12 +16,6 @@
 
 package org.onosproject.drivers.server;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Sets;
-
 import org.onosproject.drivers.server.devices.nic.NicFlowRule;
 import org.onosproject.drivers.server.devices.nic.NicRxFilter.RxFilter;
 import org.onosproject.net.DeviceId;
@@ -35,6 +29,13 @@ import org.onosproject.net.flow.FlowRuleService;
 
 import org.slf4j.Logger;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,10 +48,20 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.ws.rs.ProcessingException;
 
-import com.google.common.base.Strings;
-
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.drivers.server.Constants.JSON;
+import static org.onosproject.drivers.server.Constants.MSG_DEVICE_ID_NULL;
+import static org.onosproject.drivers.server.Constants.PARAM_ID;
+import static org.onosproject.drivers.server.Constants.PARAM_CPUS;
+import static org.onosproject.drivers.server.Constants.PARAM_NICS;
+import static org.onosproject.drivers.server.Constants.PARAM_NIC_RX_FILTER;
+import static org.onosproject.drivers.server.Constants.PARAM_NIC_RX_FILTER_FD;
+import static org.onosproject.drivers.server.Constants.PARAM_NIC_RX_METHOD;
+import static org.onosproject.drivers.server.Constants.PARAM_RULES;
+import static org.onosproject.drivers.server.Constants.PARAM_RULE_CONTENT;
+import static org.onosproject.drivers.server.Constants.SLASH;
+import static org.onosproject.drivers.server.Constants.URL_RULE_MANAGEMENT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -58,35 +69,26 @@ import static org.slf4j.LoggerFactory.getLogger;
  * converting ONOS FlowRule objetcs into
  * network interface card (NIC) rules and vice versa.
  */
-public class FlowRuleProgrammableServerImpl extends BasicServerDriver
+public class FlowRuleProgrammableServerImpl
+        extends BasicServerDriver
         implements FlowRuleProgrammable {
 
     private final Logger log = getLogger(getClass());
-
-    /**
-     * Resource endpoints of the server agent (REST server-side).
-     */
-    private static final String RULE_MANAGEMENT_URL = BASE_URL + SLASH + "rules";
-
-    /**
-     * Parameters to be exchanged with the server's agent.
-     */
-    private static final String PARAM_RULES        = "rules";
-    private static final String PARAM_CPU_ID       = "cpuId";
-    private static final String PARAM_CPU_RULES    = "cpuRules";
-    private static final String PARAM_RULE_ID      = "ruleId";
-    private static final String PARAM_RULE_CONTENT = "ruleContent";
-    private static final String PARAM_RX_FILTER_FD = "flow";
 
     /**
      * Driver's property to specify how many rules the controller can remove at once.
      */
     private static final String RULE_DELETE_BATCH_SIZE_PROPERTY = "ruleDeleteBatchSize";
 
+    public FlowRuleProgrammableServerImpl() {
+        super();
+        log.debug("Started");
+    }
+
     @Override
     public Collection<FlowEntry> getFlowEntries() {
-        DeviceId deviceId = getHandler().data().deviceId();
-        checkNotNull(deviceId, DEVICE_ID_NULL);
+        DeviceId deviceId = getDeviceId();
+        checkNotNull(deviceId, MSG_DEVICE_ID_NULL);
 
         // Expected FlowEntries installed through ONOS
         FlowRuleService flowService = getHandler().get(FlowRuleService.class);
@@ -95,7 +97,7 @@ public class FlowRuleProgrammableServerImpl extends BasicServerDriver
         // Hit the path that provides the server's flow rules
         InputStream response = null;
         try {
-            response = getController().get(deviceId, RULE_MANAGEMENT_URL, JSON);
+            response = getController().get(deviceId, URL_RULE_MANAGEMENT, JSON);
         } catch (ProcessingException pEx) {
             log.error("Failed to get NIC flow entries from device: {}", deviceId);
             return Collections.EMPTY_LIST;
@@ -127,7 +129,7 @@ public class FlowRuleProgrammableServerImpl extends BasicServerDriver
         for (JsonNode scNode : scsNode) {
             String scId = get(scNode, PARAM_ID);
             String rxFilter = get(
-                scNode.path(NIC_PARAM_RX_FILTER), NIC_PARAM_RX_METHOD);
+                scNode.path(PARAM_NIC_RX_FILTER), PARAM_NIC_RX_METHOD);
 
             // Only Flow-based RxFilter is permitted
             if (RxFilter.getByName(rxFilter) != RxFilter.FLOW) {
@@ -142,12 +144,12 @@ public class FlowRuleProgrammableServerImpl extends BasicServerDriver
 
                 // Each NIC can dispatch to multiple CPU cores
                 for (JsonNode cpuNode : cpusNode) {
-                    String cpuId = get(cpuNode, PARAM_CPU_ID);
-                    JsonNode rulesNode = cpuNode.path(PARAM_CPU_RULES);
+                    String cpuId = get(cpuNode, PARAM_ID);
+                    JsonNode rulesNode = cpuNode.path(PARAM_RULES);
 
                     // Multiple rules might correspond to each CPU core
                     for (JsonNode ruleNode : rulesNode) {
-                        long ruleId = ruleNode.path(PARAM_RULE_ID).asLong();
+                        long ruleId = ruleNode.path(PARAM_ID).asLong();
                         String ruleContent = get(ruleNode, PARAM_RULE_CONTENT);
 
                         // Search for this rule ID in ONOS's store
@@ -159,7 +161,7 @@ public class FlowRuleProgrammableServerImpl extends BasicServerDriver
                         // Rule trully present in the data plane => Add
                         } else {
                             actualFlowEntries.add(new DefaultFlowEntry(
-                                    r, FlowEntry.FlowEntryState.ADDED, 0, 0, 0));
+                                r, FlowEntry.FlowEntryState.ADDED, 0, 0, 0));
                         }
                     }
                 }
@@ -171,8 +173,8 @@ public class FlowRuleProgrammableServerImpl extends BasicServerDriver
 
     @Override
     public Collection<FlowRule> applyFlowRules(Collection<FlowRule> rules) {
-        DeviceId deviceId = getHandler().data().deviceId();
-        checkNotNull(deviceId, DEVICE_ID_NULL);
+        DeviceId deviceId = getDeviceId();
+        checkNotNull(deviceId, MSG_DEVICE_ID_NULL);
 
         // Set of truly-installed rules to be reported
         Set<FlowRule> installedRules = Sets.<FlowRule>newConcurrentHashSet();
@@ -195,8 +197,8 @@ public class FlowRuleProgrammableServerImpl extends BasicServerDriver
 
     @Override
     public Collection<FlowRule> removeFlowRules(Collection<FlowRule> rules) {
-        DeviceId deviceId = getHandler().data().deviceId();
-        checkNotNull(deviceId, DEVICE_ID_NULL);
+        DeviceId deviceId = getDeviceId();
+        checkNotNull(deviceId, MSG_DEVICE_ID_NULL);
 
         int ruleDeleteBatchSize = getRuleDeleteBatchSizeProperty(deviceId);
 
@@ -258,7 +260,7 @@ public class FlowRuleProgrammableServerImpl extends BasicServerDriver
                 try {
                     nicRule = (NicFlowRule) rule;
                 } catch (ClassCastException cEx) {
-                    log.warn("Skipping rule not crafted for NIC: {}", rule);
+                    log.warn("Skipping flow rule not crafted for NIC: {}", rule);
                 }
 
                 if (nicRule != null) {
@@ -319,12 +321,12 @@ public class FlowRuleProgrammableServerImpl extends BasicServerDriver
         ObjectNode scsObjNode = mapper.createObjectNode();
 
         // Add the service chain's traffic class ID that requested these rules
-        scsObjNode.put(BasicServerDriver.PARAM_ID, trafficClassId);
+        scsObjNode.put(PARAM_ID, trafficClassId);
 
         // Create the object node to host the Rx filter method
         ObjectNode methodObjNode = mapper.createObjectNode();
-        methodObjNode.put(BasicServerDriver.NIC_PARAM_RX_METHOD, PARAM_RX_FILTER_FD);
-        scsObjNode.put(BasicServerDriver.NIC_PARAM_RX_FILTER, methodObjNode);
+        methodObjNode.put(PARAM_NIC_RX_METHOD, PARAM_NIC_RX_FILTER_FD);
+        scsObjNode.put(PARAM_NIC_RX_FILTER, methodObjNode);
 
         // Map each core to an array of rule IDs and rules
         Map<Long, ArrayNode> cpuObjSet =
@@ -336,7 +338,7 @@ public class FlowRuleProgrammableServerImpl extends BasicServerDriver
         while (it.hasNext()) {
             NicFlowRule nicRule = (NicFlowRule) it.next();
             if (nicRule.isFullWildcard() && (rulesToInstall > 1)) {
-                log.warn("Skipping wildcard rule: {}", nicRule);
+                log.warn("Skipping wildcard flow rule: {}", nicRule);
                 it.remove();
                 continue;
             }
@@ -347,7 +349,7 @@ public class FlowRuleProgrammableServerImpl extends BasicServerDriver
             if (nic == null) {
                 nic = findNicInterfaceWithPort(deviceId, nicRule.interfaceNumber());
                 checkArgument(!Strings.isNullOrEmpty(nic),
-                    "Attempted to install rules in an invalid NIC");
+                    "Attempted to install flow rules in an invalid NIC");
             }
 
             // Create a JSON array for this CPU core
@@ -383,7 +385,7 @@ public class FlowRuleProgrammableServerImpl extends BasicServerDriver
 
             ObjectNode cpuObjNode = mapper.createObjectNode();
             cpuObjNode.put("cpuId", coreIndex);
-            cpuObjNode.putArray(PARAM_CPU_RULES).addAll(ruleArrayNode);
+            cpuObjNode.putArray(PARAM_RULES).addAll(ruleArrayNode);
 
             cpusArrayNode.add(cpuObjNode);
         }
@@ -396,7 +398,7 @@ public class FlowRuleProgrammableServerImpl extends BasicServerDriver
 
         // Post the NIC rules to the server
         int response = getController().post(
-            deviceId, RULE_MANAGEMENT_URL,
+            deviceId, URL_RULE_MANAGEMENT,
             new ByteArrayInputStream(sendObjNode.toString().getBytes()), JSON);
 
         // Upon an error, return an empty set of rules
@@ -427,7 +429,7 @@ public class FlowRuleProgrammableServerImpl extends BasicServerDriver
         // Try to remove the rules, although server might be unreachable
         try {
             response = getController().delete(deviceId,
-                RULE_MANAGEMENT_URL + SLASH + ruleIds, null, JSON);
+                URL_RULE_MANAGEMENT + SLASH + ruleIds, null, JSON);
         } catch (Exception ex) {
             log.error("Failed to remove NIC flow rule batch with {} rules from device {}", ruleCount, deviceId);
             return false;
