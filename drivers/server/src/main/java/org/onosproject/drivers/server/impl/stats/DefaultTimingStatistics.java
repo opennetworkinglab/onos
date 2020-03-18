@@ -24,6 +24,10 @@ import com.google.common.base.MoreObjects;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.drivers.server.Constants.MSG_STATS_TIMING_AUTO_SCALE_NEGATIVE;
+import static org.onosproject.drivers.server.Constants.MSG_STATS_TIMING_LAUNCH_NEGATIVE;
+import static org.onosproject.drivers.server.Constants.MSG_STATS_TIMING_PARSE_NEGATIVE;
+import static org.onosproject.drivers.server.Constants.MSG_STATS_UNIT_NULL;
 import static org.onosproject.drivers.server.stats.MonitoringUnit.LatencyUnit;
 
 /**
@@ -31,25 +35,25 @@ import static org.onosproject.drivers.server.stats.MonitoringUnit.LatencyUnit;
  */
 public final class DefaultTimingStatistics implements TimingStatistics {
 
-    private static final LatencyUnit DEF_UNIT = LatencyUnit.NANO_SECOND;
+    private static final LatencyUnit DEF_TIME_UNIT = LatencyUnit.NANO_SECOND;
 
     private final MonitoringUnit unit;
     private final long deployCommandParsingTime;
     private final long deployCommandLaunchingTime;
-    private long autoScaleTime;
+    private final long autoScaleTime;
 
     private DefaultTimingStatistics(
             MonitoringUnit unit,
             long parsingTime,
             long launchingTime,
             long autoScaleTime) {
-        checkNotNull(unit, "Time statistics unit is null");
-        checkArgument(parsingTime   >= 0, "Parsing time is negative");
-        checkArgument(launchingTime >= 0, "Launching time is negative");
-        checkArgument(autoScaleTime >= 0, "Auto-scale time is negative");
+        checkNotNull(unit, MSG_STATS_UNIT_NULL);
+        checkArgument(parsingTime >= 0, MSG_STATS_TIMING_PARSE_NEGATIVE);
+        checkArgument(launchingTime >= 0, MSG_STATS_TIMING_LAUNCH_NEGATIVE);
+        checkArgument(autoScaleTime >= 0, MSG_STATS_TIMING_AUTO_SCALE_NEGATIVE);
 
         this.unit = unit;
-        this.deployCommandParsingTime   = parsingTime;
+        this.deployCommandParsingTime = parsingTime;
         this.deployCommandLaunchingTime = launchingTime;
         this.autoScaleTime = autoScaleTime;
     }
@@ -57,7 +61,7 @@ public final class DefaultTimingStatistics implements TimingStatistics {
     // Constructor for serializer
     private DefaultTimingStatistics() {
         this.unit = null;
-        this.deployCommandParsingTime   = 0;
+        this.deployCommandParsingTime = 0;
         this.deployCommandLaunchingTime = 0;
         this.autoScaleTime = 0;
     }
@@ -100,7 +104,7 @@ public final class DefaultTimingStatistics implements TimingStatistics {
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .omitNullValues()
-                .add("unit", this.unit().toString())
+                .add("unit", this.unit())
                 .add("parsingTime", this.deployCommandParsingTime())
                 .add("launchingTime", this.deployCommandLaunchingTime())
                 .add("deploymentTime", this.totalDeploymentTime())
@@ -110,7 +114,7 @@ public final class DefaultTimingStatistics implements TimingStatistics {
 
     public static final class Builder {
 
-        MonitoringUnit unit = DEF_UNIT;
+        MonitoringUnit unit = DEF_TIME_UNIT;
         long deployCommandParsingTime;
         long deployCommandLaunchingTime;
         long autoScaleTime;
@@ -179,6 +183,7 @@ public final class DefaultTimingStatistics implements TimingStatistics {
                 unit, deployCommandParsingTime,
                 deployCommandLaunchingTime, autoScaleTime);
         }
+
     }
 
 }

@@ -29,32 +29,32 @@ public interface TimingStatistics {
     MonitoringUnit unit();
 
     /**
-     * Time (ns) to parse the controller's deployment instruction.
+     * Time (default is ns) to parse the controller's deployment instruction.
      *
-     * @return time in nanoseconds to parse a 'deploy' command
+     * @return time to parse a 'deploy' command
      */
     long deployCommandParsingTime();
 
     /**
-     * Time (ns) to launch a slave process in the dataplane.
+     * Time (default is ns) to launch a slave process in the dataplane.
      *
-     * @return time in nanoseconds to launch a 'deploy' command
+     * @return time to launch a 'deploy' command
      */
     long deployCommandLaunchingTime();
 
     /**
-     * Time (ns) to parse + launch the controller's deployment instruction.
+     * Time (default is ns) to parse + launch the controller's deployment instruction.
      * This is the sum of the above two timers.
      *
-     * @return time in nanoseconds to parse + launch a 'deploy' command
+     * @return time to parse + launch a 'deploy' command
      */
     long totalDeploymentTime();
 
     /**
-     * Time (ns) to perform a local reconfiguration.
+     * Time (default is ns) to perform a local reconfiguration.
      * (i.e., the agent auto-scales the number of CPUs).
      *
-     * @return time in nanoseconds to auto scale
+     * @return time to auto scale
      */
     long autoScaleTime();
 

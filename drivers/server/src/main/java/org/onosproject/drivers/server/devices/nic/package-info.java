@@ -15,6 +15,6 @@
  */
 
 /**
- * API for NIC server devices.
+ * API for a server's NIC devices.
  */
 package org.onosproject.drivers.server.devices.nic;

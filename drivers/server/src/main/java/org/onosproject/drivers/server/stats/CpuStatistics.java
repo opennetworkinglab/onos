@@ -24,6 +24,12 @@ import java.util.Optional;
 public interface CpuStatistics {
 
     /**
+     * Minimum and maximum CPU load values.
+     */
+    static final float MIN_CPU_LOAD = (float) 0.0;
+    static final float MAX_CPU_LOAD = (float) 1.0;
+
+    /**
      * Returns the ID of a CPU core.
      *
      * @return CPU core identifier

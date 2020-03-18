@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.onosproject.drivers.server.devices.nic;
 
 import org.onlab.packet.MacAddress;
@@ -20,6 +21,7 @@ import org.onlab.packet.MacAddress;
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.drivers.server.Constants.MSG_NIC_FLOW_FILTER_MAC_NULL;
 
 /**
  * A MAC Rx filter value.
@@ -73,7 +75,7 @@ public final class MacRxFilterValue extends RxFilterValue implements Comparable 
      * @param mac MAC value
      */
     public void setValue(MacAddress mac) {
-        checkNotNull(mac, "MAC address of Rx filter is NULL");
+        checkNotNull(mac, MSG_NIC_FLOW_FILTER_MAC_NULL);
         this.mac = mac;
     }
 
@@ -122,7 +124,7 @@ public final class MacRxFilterValue extends RxFilterValue implements Comparable 
 
     @Override
     public String toString() {
-        return  this.value().toString();
+        return this.value().toString();
     }
 
 }

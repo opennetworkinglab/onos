@@ -18,49 +18,61 @@ package org.onosproject.drivers.server.impl.devices;
 
 import org.onosproject.drivers.server.devices.nic.NicDevice;
 import org.onosproject.drivers.server.devices.nic.NicRxFilter;
+import org.onosproject.drivers.server.devices.nic.NicRxFilter.RxFilter;
+import org.onosproject.net.Port;
 
 import org.onlab.packet.MacAddress;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import static org.onosproject.net.Port.Type;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkArgument;
+import static org.onosproject.drivers.server.Constants.MSG_NIC_NAME_NULL;
+import static org.onosproject.drivers.server.Constants.MSG_NIC_MAC_NULL;
+import static org.onosproject.drivers.server.Constants.MSG_NIC_PORT_NUMBER_NEGATIVE;
+import static org.onosproject.drivers.server.Constants.MSG_NIC_PORT_TYPE_NULL;
+import static org.onosproject.drivers.server.Constants.MSG_NIC_RX_FILTER_NULL;
+import static org.onosproject.drivers.server.Constants.MSG_NIC_RX_FILTERS_NULL;
+import static org.onosproject.drivers.server.Constants.MSG_NIC_SPEED_NEGATIVE;
+import static org.onosproject.drivers.server.Constants.PARAM_NIC_PORT_TYPE_COPPER;
+import static org.onosproject.drivers.server.Constants.PARAM_NIC_PORT_TYPE_FIBER;
 
 /**
  * Default implementation for NIC devices.
  */
-public class DefaultNicDevice implements NicDevice, Comparable {
+public final class DefaultNicDevice implements NicDevice, Comparable {
 
     private final String     name;
     private final long       portNumber;
-    private final long       speed;
     private final Type       portType;
+    private final long       speed;
     private boolean          status;
     private final MacAddress macAddress;
     private NicRxFilter      rxFilterMechanisms;
 
-    // 200 Gbps or 200.000 Mbps
-    public static final long MAX_SPEED = 200000;
-
-    public DefaultNicDevice(
+    private DefaultNicDevice(
             String      name,
             long        portNumber,
             Type        portType,
             long        speed,
             boolean     status,
-            String      macStr,
+            MacAddress  mac,
             NicRxFilter rxFilterMechanisms) {
-        checkArgument(!Strings.isNullOrEmpty(name), "NIC name cannot be empty or NULL");
-        checkArgument(portNumber >= 0, "NIC port number must be non-negative");
-        checkNotNull(portType, "NIC port type cannot be null");
-        checkArgument((speed >= 0) && (speed <= MAX_SPEED),
-            "NIC speed must be positive and less or equal than " + MAX_SPEED + " Mbps");
-        checkNotNull(macStr, "NIC MAC address cannot be null");
-        checkNotNull(rxFilterMechanisms, "NIC Rx filter mechanisms cannot be null");
+        checkArgument(!Strings.isNullOrEmpty(name), MSG_NIC_NAME_NULL);
+        checkArgument(portNumber >= 0, MSG_NIC_PORT_NUMBER_NEGATIVE);
+        checkNotNull(portType, MSG_NIC_PORT_TYPE_NULL);
+        checkArgument((speed >= 0) && (speed <= NicDevice.MAX_SPEED),
+            MSG_NIC_SPEED_NEGATIVE);
+        checkNotNull(mac, MSG_NIC_MAC_NULL);
+        checkNotNull(rxFilterMechanisms, MSG_NIC_RX_FILTERS_NULL);
 
         // Implies a problem
         if (speed == 0) {
@@ -72,8 +84,17 @@ public class DefaultNicDevice implements NicDevice, Comparable {
         this.speed      = speed;
         this.portType   = portType;
         this.status     = status;
-        this.macAddress = MacAddress.valueOf(macStr);
-        this.rxFilterMechanisms  = rxFilterMechanisms;
+        this.macAddress = mac;
+        this.rxFilterMechanisms = rxFilterMechanisms;
+    }
+
+    /**
+     * Creates a builder for DefaultNicDevice object.
+     *
+     * @return builder object for DefaultNicDevice object
+     */
+    public static DefaultNicDevice.Builder builder() {
+        return new Builder();
     }
 
     @Override
@@ -123,7 +144,7 @@ public class DefaultNicDevice implements NicDevice, Comparable {
     }
 
     @Override
-    public void addRxFilterMechanism(NicRxFilter.RxFilter rxFilter) {
+    public void addRxFilterMechanism(RxFilter rxFilter) {
         this.rxFilterMechanisms.addRxFilter(rxFilter);
     }
 
@@ -184,6 +205,139 @@ public class DefaultNicDevice implements NicDevice, Comparable {
         }
 
         return -1;
+    }
+
+    public static final class Builder {
+        String      name;
+        long        portNumber = -1;
+        Type        portType = Type.FIBER;
+        long        speed = -1;
+        boolean     status = false;
+        MacAddress  macAddress = MacAddress.ZERO;
+        NicRxFilter rxFilterMechanisms = new NicRxFilter();
+
+        /**
+         * Port types that usually appear in commodity servers.
+         */
+        static final Map<String, Port.Type> PORT_TYPE_MAP =
+            Collections.unmodifiableMap(
+                new HashMap<String, Port.Type>() {
+                    {
+                        put(PARAM_NIC_PORT_TYPE_COPPER, Port.Type.COPPER);
+                        put(PARAM_NIC_PORT_TYPE_FIBER,  Port.Type.FIBER);
+                    }
+                }
+        );
+
+        private Builder() {
+
+        }
+
+        /**
+         * Sets the name of this NIC.
+         *
+         * @param name NIC name
+         * @return builder object
+         */
+        public Builder setName(String name) {
+            this.name = name;
+
+            return this;
+        }
+
+        /**
+         * Sets the NIC's port number.
+         *
+         * @param portNumber NIC's port number
+         * @return builder object
+         */
+        public Builder setPortNumber(long portNumber) {
+            this.portNumber = portNumber;
+
+            return this;
+        }
+
+        /**
+         * Sets the NIC's port type as a string.
+         *
+         * @param portTypeStr NIC's port type
+         * @return builder object
+         */
+        public Builder setPortType(String portTypeStr) {
+            portType = PORT_TYPE_MAP.get(portTypeStr);
+            if (portType == null) {
+                throw new IllegalArgumentException(
+                    portTypeStr + " is not a valid NIC port type");
+            }
+
+            return this;
+        }
+
+        /**
+         * Sets the NIC's speed.
+         *
+         * @param speed NIC's speed
+         * @return builder object
+         */
+        public Builder setSpeed(long speed) {
+            this.speed = speed;
+
+            return this;
+        }
+
+        /**
+         * Sets the NIC's status.
+         *
+         * @param status NIC's status
+         * @return builder object
+         */
+        public Builder setStatus(boolean status) {
+            this.status = status;
+
+            return this;
+        }
+
+        /**
+         * Sets the NIC's MAC address.
+         *
+         * @param macAddressStr NIC's MAC address
+         * @return builder object
+         */
+        public Builder setMacAddress(String macAddressStr) {
+            this.macAddress = MacAddress.valueOf(macAddressStr);
+
+            return this;
+        }
+
+        /**
+         * Sets the NIC's list of Rx filters as strings.
+         *
+         * @param rxFilters NIC's list of Rx filters
+         * @return builder object
+         */
+        public Builder setRxFilters(List<String> rxFilters) {
+            checkNotNull(rxFilters, MSG_NIC_RX_FILTERS_NULL);
+            for (String s : rxFilters) {
+                // Verify that this is a valid Rx filter
+                RxFilter rf = RxFilter.getByName(s);
+                checkNotNull(rf, MSG_NIC_RX_FILTER_NULL);
+                this.rxFilterMechanisms.addRxFilter(rf);
+            }
+
+            return this;
+        }
+
+        /**
+         * Creates a DefaultNicDevice object.
+         *
+         * @return DefaultNicDevice object
+         */
+        public DefaultNicDevice build() {
+            return new DefaultNicDevice(
+                name, portNumber, portType, speed,
+                status, macAddress, rxFilterMechanisms);
+        }
+
     }
 
 }

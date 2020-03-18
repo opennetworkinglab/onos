@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.onosproject.drivers.server.devices.nic;
 
 import java.util.Objects;
@@ -22,7 +23,9 @@ import java.util.Objects;
  */
 public abstract class RxFilterValue {
 
-    /* CPU id of the server this tag will lead to */
+    /**
+     * CPU ID of the server this tag will lead to.
+     */
     protected int cpuId;
 
     /**

@@ -25,6 +25,8 @@ import java.util.HashSet;
 import java.util.HashMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.drivers.server.Constants.MSG_NIC_FLOW_FILTER_NULL;
+import static org.onosproject.drivers.server.Constants.MSG_NIC_FLOW_FILTER_MECH_NULL;
 
 /**
  * Filtering mechanisms supported by a NIC device.
@@ -35,6 +37,7 @@ public class NicRxFilter {
      * Supported Rx filters.
      */
     public enum RxFilter {
+
         /**
          * NIC dispatches traffic according to VLAN tags.
          */
@@ -102,7 +105,7 @@ public class NicRxFilter {
     }
 
     public NicRxFilter(RxFilter rxFilter) {
-        checkNotNull(rxFilter, "NIC Rx filter is NULL");
+        checkNotNull(rxFilter, MSG_NIC_FLOW_FILTER_NULL);
 
         if (!ArrayUtils.contains(RxFilter.values(), rxFilter)) {
             throw new IllegalArgumentException(String.valueOf(rxFilter));
@@ -113,7 +116,7 @@ public class NicRxFilter {
     }
 
     public NicRxFilter(NicRxFilter other) {
-        checkNotNull(other, "NIC Rx filter mechanism is NULL");
+        checkNotNull(other, MSG_NIC_FLOW_FILTER_MECH_NULL);
         this.rxFilters = new HashSet<RxFilter>(other.rxFilters);
     }
 
@@ -132,7 +135,7 @@ public class NicRxFilter {
      * @param rxFilter an Rx filter to be added
      */
     public void addRxFilter(RxFilter rxFilter) {
-        checkNotNull(rxFilter, "NIC Rx filter is NULL");
+        checkNotNull(rxFilter, MSG_NIC_FLOW_FILTER_NULL);
         this.rxFilters.add(rxFilter);
     }
 

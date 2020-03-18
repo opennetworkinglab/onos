@@ -39,29 +39,27 @@ import java.util.Map;
 import javax.ws.rs.ProcessingException;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.drivers.server.Constants.JSON;
+import static org.onosproject.drivers.server.Constants.MSG_DEVICE_ID_NULL;
+import static org.onosproject.drivers.server.Constants.MSG_MASTERSHIP_NULL;
+import static org.onosproject.drivers.server.Constants.PARAM_CTRL;
+import static org.onosproject.drivers.server.Constants.PARAM_CTRL_IP;
+import static org.onosproject.drivers.server.Constants.PARAM_CTRL_PORT;
+import static org.onosproject.drivers.server.Constants.PARAM_CTRL_TYPE;
+import static org.onosproject.drivers.server.Constants.SLASH;
+import static org.onosproject.drivers.server.Constants.URL_CONTROLLERS_GET;
+import static org.onosproject.drivers.server.Constants.URL_CONTROLLERS_DEL;
+import static org.onosproject.drivers.server.Constants.URL_CONTROLLERS_SET;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Sets, gets, and removes controller configuration
- * from a commodity server (i.e., a REST device).
+ * Implementation of controller configuration behaviour for server devices.
  */
-public class ServerControllerConfig extends BasicServerDriver
+public class ServerControllerConfig
+        extends BasicServerDriver
         implements ControllerConfig {
 
     private final Logger log = getLogger(getClass());
-
-    /**
-     * Resource endpoints of the server agent (REST server-side).
-     */
-    private static final String CONTROLLERS_CONF_URL = BASE_URL + SLASH + "controllers";
-
-    /**
-     * Parameters to be exchanged with the server's agent.
-     */
-    private static final String PARAM_CTRL      = "controllers";
-    private static final String PARAM_CTRL_IP   = "ip";
-    private static final String PARAM_CTRL_PORT = "port";
-    private static final String PARAM_CTRL_TYPE = "type";
 
     /**
      * Constructs controller configuration for server.
@@ -75,11 +73,11 @@ public class ServerControllerConfig extends BasicServerDriver
     public List<ControllerInfo> getControllers() {
         List<ControllerInfo> controllers = Lists.newArrayList();
 
-        DeviceId deviceId = getHandler().data().deviceId();
-        checkNotNull(deviceId, DEVICE_ID_NULL);
+        DeviceId deviceId = getDeviceId();
+        checkNotNull(deviceId, MSG_DEVICE_ID_NULL);
 
         MastershipService mastershipService = getHandler().get(MastershipService.class);
-        checkNotNull(deviceId, MASTERSHIP_NULL);
+        checkNotNull(deviceId, MSG_MASTERSHIP_NULL);
 
         if (!mastershipService.isLocalMaster(deviceId)) {
             log.warn(
@@ -92,7 +90,7 @@ public class ServerControllerConfig extends BasicServerDriver
         // Hit the path that provides the server's controllers
         InputStream response = null;
         try {
-            response = getController().get(deviceId, CONTROLLERS_CONF_URL, JSON);
+            response = getController().get(deviceId, URL_CONTROLLERS_GET, JSON);
         } catch (ProcessingException pEx) {
             log.error("Failed to get controllers of device: {}", deviceId);
             return controllers;
@@ -117,9 +115,9 @@ public class ServerControllerConfig extends BasicServerDriver
             return controllers;
         }
 
+        // Fetch controllers' array
         JsonNode ctrlNode = objNode.path(PARAM_CTRL);
 
-        // Fetch controller objects
         for (JsonNode cn : ctrlNode) {
             ObjectNode ctrlObjNode = (ObjectNode) cn;
 
@@ -156,11 +154,11 @@ public class ServerControllerConfig extends BasicServerDriver
 
     @Override
     public void setControllers(List<ControllerInfo> controllers) {
-        DeviceId deviceId = getHandler().data().deviceId();
-        checkNotNull(deviceId, DEVICE_ID_NULL);
+        DeviceId deviceId = getDeviceId();
+        checkNotNull(deviceId, MSG_DEVICE_ID_NULL);
 
         MastershipService mastershipService = getHandler().get(MastershipService.class);
-        checkNotNull(deviceId, MASTERSHIP_NULL);
+        checkNotNull(deviceId, MSG_MASTERSHIP_NULL);
 
         if (!mastershipService.isLocalMaster(deviceId)) {
             log.warn(
@@ -189,7 +187,7 @@ public class ServerControllerConfig extends BasicServerDriver
 
         // Post the controllers to the device
         int response = getController().post(
-            deviceId, CONTROLLERS_CONF_URL,
+            deviceId, URL_CONTROLLERS_SET,
             new ByteArrayInputStream(sendObjNode.toString().getBytes()), JSON);
 
         if (!checkStatusCode(response)) {
@@ -201,11 +199,11 @@ public class ServerControllerConfig extends BasicServerDriver
 
     @Override
     public void removeControllers(List<ControllerInfo> controllers) {
-        DeviceId deviceId = getHandler().data().deviceId();
-        checkNotNull(deviceId, DEVICE_ID_NULL);
+        DeviceId deviceId = getDeviceId();
+        checkNotNull(deviceId, MSG_DEVICE_ID_NULL);
 
         MastershipService mastershipService = getHandler().get(MastershipService.class);
-        checkNotNull(deviceId, MASTERSHIP_NULL);
+        checkNotNull(deviceId, MSG_MASTERSHIP_NULL);
 
         if (!mastershipService.isLocalMaster(deviceId)) {
             log.warn(
@@ -219,7 +217,7 @@ public class ServerControllerConfig extends BasicServerDriver
             log.info("Remove controller with {}:{}:{}",
                 ctrl.type(), ctrl.ip().toString(), ctrl.port());
 
-            String remCtrlUrl = CONTROLLERS_CONF_URL + SLASH + ctrl.ip().toString();
+            String remCtrlUrl = URL_CONTROLLERS_DEL + SLASH + ctrl.ip().toString();
 
             // Remove this controller
             int response = getController().delete(deviceId, remCtrlUrl, null, JSON);

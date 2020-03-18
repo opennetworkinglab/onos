@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-present Open Networking Foundation
+ * Copyright 2020-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,34 +14,39 @@
  * limitations under the License.
  */
 
-package org.onosproject.drivers.server.devices;
+package org.onosproject.drivers.server.stats;
 
 /**
- * Represents an abstraction of a CPU core in ONOS.
+ * Main memory statistics API.
  */
-public interface CpuDevice {
+public interface MemoryStatistics {
 
     /**
-     * Returns the ID of this CPU.
-     * Typically this is the order number (0...N-1)
-     * of this CPU core in the socket.
+     * Returns the unit of main memory statistics.
      *
-     * @return CPU core ID
+     * @return main memory statistics' unit
      */
-    int id();
+    MonitoringUnit unit();
 
     /**
-     * Returns the vendor of this CPU core.
+     * Returns the amount of main memory being used.
      *
-     * @return CPU core vendor
+     * @return used main memory
      */
-    CpuVendor vendor();
+    long used();
 
     /**
-     * Returns the frequency of this CPU core in MHz.
+     * Returns the amount of main memory being free.
      *
-     * @return CPU core frequency in MHz
+     * @return free main memory
      */
-    long frequency();
+    long free();
+
+    /**
+     * Returns the total amount of main memory.
+     *
+     * @return total main memory
+     */
+    long total();
 
 }
