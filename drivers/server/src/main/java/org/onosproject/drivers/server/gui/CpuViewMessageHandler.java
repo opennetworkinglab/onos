@@ -43,9 +43,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.slf4j.LoggerFactory.getLogger;
-import static org.onosproject.drivers.server.gui.MetricType.CPU;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.drivers.server.Constants.MSG_UI_DATA_CPU_NULL;
+import static org.onosproject.drivers.server.gui.MetricType.CPU;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Message handler for passing CPU load data to the Web UI.
@@ -63,7 +64,8 @@ public class CpuViewMessageHandler extends BaseViewMessageHandler {
         return ImmutableSet.of(new CpuMessageRequest());
     }
 
-    private final class CpuMessageRequest extends BaseViewMessageHandler.ControlMessageRequest {
+    private final class CpuMessageRequest
+        extends BaseViewMessageHandler.ControlMessageRequest {
 
         private CpuMessageRequest() {
             super(CPU_DATA_REQ, CPU_DATA_RESP, CPUS_LABEL);
@@ -71,7 +73,7 @@ public class CpuViewMessageHandler extends BaseViewMessageHandler {
 
         @Override
         protected String[] getSeries() {
-            return createSeries(CPU, MAX_COLUMNS_NB);
+            return createIndexedSeries(CPU, MAX_COLUMNS_NB);
         }
 
         @Override
@@ -96,15 +98,15 @@ public class CpuViewMessageHandler extends BaseViewMessageHandler {
                     cpuStats = new ArrayList(serverDriver.getCpuStatistics(deviceId));
                     data = populateCpuDataHistory(deviceId, serverDev.numberOfCpus(), cpuStats);
                 } catch (Exception ex) {
-                    data = populateZeroDataHistory(deviceId, MAX_COLUMNS_NB);
+                    data = populateZeroMapDataHistory(deviceId, MAX_COLUMNS_NB);
                 }
-                checkNotNull(data, "No CPU data history to visualize");
+                checkNotNull(data, MSG_UI_DATA_CPU_NULL);
 
                 // Generate a timestamp
                 LocalDateTime ldt = new LocalDateTime(timestamp);
 
                 // Project the data
-                populateMetrics(cm, data, ldt, CPU, NUM_OF_DATA_POINTS);
+                populateMapMetrics(cm, data, ldt, CPU, NUM_OF_DATA_POINTS);
 
                 Set<DeviceId> deviceIds = Sets.newHashSet();
                 for (Device device : ds.getAvailableDevices()) {
@@ -133,14 +135,14 @@ public class CpuViewMessageHandler extends BaseViewMessageHandler {
                         cpuStats = new ArrayList(serverDriver.getCpuStatistics(deviceId));
                         data = populateCpuData(deviceId, serverDev.numberOfCpus(), cpuStats);
                     } catch (Exception ex) {
-                        data = populateZeroData(deviceId, MAX_COLUMNS_NB);
+                        data = populateZeroMapData(deviceId, MAX_COLUMNS_NB);
                     }
-                    checkNotNull(data, "No CPU data to visualize");
+                    checkNotNull(data, MSG_UI_DATA_CPU_NULL);
 
                     // Map them to the CPU cores
                     Map<String, Object> local = Maps.newHashMap();
                     for (int i = 0; i < data.size(); i++) {
-                        local.put(getLabel(CPU, i), data.get(i));
+                        local.put(getIndexedLabel(CPU, i), data.get(i));
                     }
 
                     // Last piece of data is the device ID
@@ -166,7 +168,7 @@ public class CpuViewMessageHandler extends BaseViewMessageHandler {
          */
         private Map<Integer, Float> populateCpuData(
                 DeviceId deviceId, int length, List<CpuStatistics> cpuStats) {
-            Map<Integer, Float> data = initializeData(MAX_COLUMNS_NB);
+            Map<Integer, Float> data = initializeMapData(MAX_COLUMNS_NB);
 
             for (CpuStatistics stats : cpuStats) {
                 int index = stats.id();
@@ -195,7 +197,7 @@ public class CpuViewMessageHandler extends BaseViewMessageHandler {
          */
         private Map<Integer, Float[]> populateCpuDataHistory(
                 DeviceId deviceId, int length, List<CpuStatistics> cpuStats) {
-            Map<Integer, Float[]> data = initializeDataHistory(MAX_COLUMNS_NB);
+            Map<Integer, Float[]> data = initializeMapDataHistory(MAX_COLUMNS_NB);
 
             for (CpuStatistics stats : cpuStats) {
                 int index = stats.id();

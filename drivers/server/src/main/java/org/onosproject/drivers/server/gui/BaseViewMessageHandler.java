@@ -37,8 +37,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.IntStream;
 
-import static org.slf4j.LoggerFactory.getLogger;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.drivers.server.Constants.MSG_UI_SUBMETRIC_NULL;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Base message handler for passing server data to the Web UI.
@@ -75,6 +76,13 @@ public abstract class BaseViewMessageHandler extends UiMessageHandler {
     // Device IDs
     public static final String DEVICE_IDS = "deviceIds";
 
+    protected static final Map<Integer, String> MEM_SUBMETRIC_MAP = new HashMap<Integer, String>();
+    static {
+        MEM_SUBMETRIC_MAP.put(0, "used");
+        MEM_SUBMETRIC_MAP.put(1, "free");
+        MEM_SUBMETRIC_MAP.put(2, "total");
+    }
+
     // Chart designer
     protected abstract class ControlMessageRequest extends ChartRequestHandler {
 
@@ -89,24 +97,39 @@ public abstract class BaseViewMessageHandler extends UiMessageHandler {
         protected abstract void populateChart(ChartModel cm, ObjectNode payload);
 
         /**
-         * Returns a x-axis label for a monitoring value.
+         * Returns a x-axis label for a monitoring value based on a map of submetrics.
+         *
+         * @param metric label metric
+         * @param map a map of submetrics
+         * @param index submetric index
+         * @return a data label
+         */
+        protected String getMappedLabel(MetricType metric, Map<Integer, String> map, int index) {
+            String submetric = map.get(index);
+            checkNotNull(submetric, MSG_UI_SUBMETRIC_NULL);
+            return StringUtils.lowerCase(metric.name()) + "_" + submetric;
+        }
+
+        /**
+         * Returns a x-axis label for a monitoring value based on a simple index.
          *
          * @param metric label metric
          * @param index label index
          * @return a data label
          */
-        protected String getLabel(MetricType metric, int index) {
+        protected String getIndexedLabel(MetricType metric, int index) {
             return StringUtils.lowerCase(metric.name()) + "_" + Integer.toString(index);
         }
 
         /**
-         * Fills an array of strings acting as x-axis.
+         * Fills an array of strings acting as x-axis based on a map of submetrics.
          *
          * @param metric x-axis metric
+         * @param map a map of submetrics
          * @param length the length of the array
          * @return an array of strings
          */
-        protected String[] createSeries(MetricType metric, int length) {
+        protected String[] createMappedSeries(MetricType metric, Map<Integer, String> map, int length) {
             if (length <= 0) {
                 return null;
             }
@@ -116,7 +139,30 @@ public abstract class BaseViewMessageHandler extends UiMessageHandler {
             }
 
             String[] series = IntStream.range(0, length)
-                .mapToObj(i -> getLabel(metric, i))
+                .mapToObj(i -> getMappedLabel(metric, map, i))
+                .toArray(String[]::new);
+
+            return series;
+        }
+
+        /**
+         * Fills an array of strings acting as x-axis based on a simple index.
+         *
+         * @param metric x-axis metric
+         * @param length the length of the array
+         * @return an array of strings
+         */
+        protected String[] createIndexedSeries(MetricType metric, int length) {
+            if (length <= 0) {
+                return null;
+            }
+
+            if (length > MAX_COLUMNS_NB) {
+                length = MAX_COLUMNS_NB;
+            }
+
+            String[] series = IntStream.range(0, length)
+                .mapToObj(i -> getIndexedLabel(metric, i))
                 .toArray(String[]::new);
 
             return series;
@@ -127,11 +173,11 @@ public abstract class BaseViewMessageHandler extends UiMessageHandler {
          *
          * @param deviceId the device being monitored
          * @param length the length of the array
-         * @return a map monitoring parameters to their load history buffers
+         * @return a map of monitoring parameters to their load history buffers
          */
         protected Map<Integer, LruCache<Float>> fetchCacheForDevice(DeviceId deviceId, int length) {
             if (!isValid(deviceId, length - 1)) {
-                log.error("Invalid access to data history by device {} with {} cores", deviceId, length);
+                log.error("Invalid access to data history by device {} with {} metrics", deviceId, length);
                 return null;
             }
 
@@ -161,7 +207,7 @@ public abstract class BaseViewMessageHandler extends UiMessageHandler {
                 DeviceId deviceId, int length, int index, float value) {
             if (!isValid(deviceId, length - 1) ||
                 !isValid(deviceId, index)) {
-                log.error("Invalid access to data {} history by device {} with {} cores",
+                log.error("Invalid access to data {} history by device {} with {} metrics",
                     index, deviceId, length);
                 return;
             }
@@ -172,7 +218,9 @@ public abstract class BaseViewMessageHandler extends UiMessageHandler {
                 checkNotNull(dataMap, "Failed to add measurement in the cache");
             }
 
-            dataMap.get(index).add(value);
+            if (dataMap.get(index) != null) {
+                dataMap.get(index).add(value);
+            }
         }
 
         /**
@@ -185,7 +233,7 @@ public abstract class BaseViewMessageHandler extends UiMessageHandler {
          */
         protected LruCache<Float> getDataHistory(DeviceId deviceId, int index) {
             if (!isValid(deviceId, index)) {
-                log.error("Invalid access to CPU {} load history by device {}", index, deviceId);
+                log.error("Invalid access to index {} history by device {}", index, deviceId);
                 return null;
             }
 
@@ -204,8 +252,8 @@ public abstract class BaseViewMessageHandler extends UiMessageHandler {
          * @param length the length of the array
          * @return a map of monitoring parameters to their initial values
          */
-        protected Map<Integer, Float> populateZeroData(DeviceId deviceId, int length) {
-            Map<Integer, Float> data = initializeData(length);
+        protected Map<Integer, Float> populateZeroMapData(DeviceId deviceId, int length) {
+            Map<Integer, Float> data = initializeMapData(length);
 
             for (int i = 0; i < length; i++) {
                 // Store it locally
@@ -222,8 +270,8 @@ public abstract class BaseViewMessageHandler extends UiMessageHandler {
          * @param length the length of the array
          * @return a map of monitoring parameters to their initial arrays of values
          */
-        protected Map<Integer, Float[]> populateZeroDataHistory(DeviceId deviceId, int length) {
-            Map<Integer, Float[]> data = initializeDataHistory(length);
+        protected Map<Integer, Float[]> populateZeroMapDataHistory(DeviceId deviceId, int length) {
+            Map<Integer, Float[]> data = initializeMapDataHistory(length);
 
             for (int i = 0; i < length; i++) {
                 addToCache(deviceId, length, i, 0);
@@ -254,7 +302,7 @@ public abstract class BaseViewMessageHandler extends UiMessageHandler {
          * @param metric a metric
          * @param numberOfPoints the number of data points
          */
-        protected void populateMetrics(
+        protected void populateMapMetrics(
                 ChartModel            cm,
                 Map<Integer, Float[]> data,
                 LocalDateTime         time,
@@ -264,7 +312,7 @@ public abstract class BaseViewMessageHandler extends UiMessageHandler {
                 Map<String, Object> local = Maps.newHashMap();
                 for (int j = 0; j < data.size(); j++) {
                     if (data.containsKey(j)) {
-                        local.put(getLabel(metric, j), data.get(j)[i]);
+                        local.put(getIndexedLabel(metric, j), data.get(j)[i]);
                     }
                 }
 
@@ -293,7 +341,7 @@ public abstract class BaseViewMessageHandler extends UiMessageHandler {
          * @param length the length of the array
          * @return a map of metrics to their initial values
          */
-        protected Map<Integer, Float> initializeData(int length) {
+        protected Map<Integer, Float> initializeMapData(int length) {
             Map<Integer, Float> data = Maps.newHashMap();
 
             for (int i = 0; i < length; i++) {
@@ -304,12 +352,12 @@ public abstract class BaseViewMessageHandler extends UiMessageHandler {
         }
 
         /**
-         * Create a data structure with zero-initialized arrays of data.
+         * Create a map data structure with zero-initialized arrays of data.
          *
          * @param length the length of the array
          * @return a map of metrics to their initial arrays of values
          */
-        protected Map<Integer, Float[]> initializeDataHistory(int length) {
+        protected Map<Integer, Float[]> initializeMapDataHistory(int length) {
             Map<Integer, Float[]> data = Maps.newHashMap();
 
             for (int i = 0; i < length; i++) {
@@ -372,7 +420,7 @@ public abstract class BaseViewMessageHandler extends UiMessageHandler {
                 ChartModel cm, MetricType metric, int length) {
             Map<String, Object> local = Maps.newHashMap();
             for (int i = 0; i < length; i++) {
-                local.put(getLabel(metric, i), new Float(0));
+                local.put(getIndexedLabel(metric, i), new Float(0));
             }
 
             local.put(LABEL, "No Servers");

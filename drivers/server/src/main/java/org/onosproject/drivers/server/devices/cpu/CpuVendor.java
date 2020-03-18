@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.drivers.server.devices;
+
+package org.onosproject.drivers.server.devices.cpu;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -24,7 +25,7 @@ import java.util.HashMap;
 public enum CpuVendor {
 
     INTEL("GenuineIntel"),
-    AMD("AMD");
+    AMD("AuthenticAMD");
 
     private String vendor;
 
@@ -41,9 +42,8 @@ public enum CpuVendor {
         this.vendor = vendor;
     }
 
-    public static CpuVendor getByName(String pr) {
-        pr = pr.toLowerCase();
-        return MAP.get(pr);
+    public static CpuVendor getByName(String cv) {
+        return MAP.get(cv.toLowerCase());
     }
 
     @Override

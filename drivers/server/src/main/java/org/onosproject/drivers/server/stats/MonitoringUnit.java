@@ -13,10 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.onosproject.drivers.server.stats;
 
 import java.util.Map;
 import java.util.HashMap;
+
+import static org.onosproject.drivers.server.Constants.MSG_CONVERSION_TO_BITS;
+import static org.onosproject.drivers.server.Constants.MSG_CONVERSION_TO_BYTES;
 
 /**
  * Representation of a monitoring unit.
@@ -125,6 +129,155 @@ public interface MonitoringUnit {
         @Override
         public String toString() {
             return this.latencyUnit;
+        }
+
+    };
+
+    /**
+     * Capacity-related monitoring units.
+     */
+    public enum CapacityUnit implements MonitoringUnit {
+
+        BITS("Bits"),
+        KILOBITS("kBits"),
+        MEGABITS("MBits"),
+        GIGABITS("GBits"),
+        BYTES("Bytes"),
+        KILOBYTES("kBytes"),
+        MEGABYTES("MBytes"),
+        GIGABYTES("GBytes");
+
+        private String capacityUnit;
+
+        // Statically maps capacity monitoring units to enum types
+        private static final Map<String, MonitoringUnit> MAP =
+            new HashMap<String, MonitoringUnit>();
+        static {
+            for (CapacityUnit cu : CapacityUnit.values()) {
+                MAP.put(cu.toString().toLowerCase(), (MonitoringUnit) cu);
+            }
+        }
+
+        private CapacityUnit(String capacityUnit) {
+            this.capacityUnit = capacityUnit;
+        }
+
+        public static MonitoringUnit getByName(String cu) {
+            cu = cu.toLowerCase();
+            return MAP.get(cu);
+        }
+
+        public static float toBits(float value, CapacityUnit fromUnit) {
+            if (value == 0) {
+                return value;
+            }
+
+            if (fromUnit == BITS) {
+                return value;
+            } else if (fromUnit == KILOBITS) {
+                return (value * 1000);
+            } else if (fromUnit == MEGABITS) {
+                return (value * 1000000);
+            } else if (fromUnit == GIGABITS) {
+                return (value * 1000000000);
+            } else if (fromUnit == BYTES) {
+                return value * 8;
+            } else if (fromUnit == KILOBYTES) {
+                return (value * 1000) * 8;
+            } else if (fromUnit == MEGABYTES) {
+                return (value * 1000000) * 8;
+            } else if (fromUnit == GIGABYTES) {
+                return (value * 1000000000) * 8;
+            }
+
+            throw new IllegalArgumentException(MSG_CONVERSION_TO_BITS);
+        }
+
+        public static float toKiloBits(float value, CapacityUnit fromUnit) {
+            return toBits(value, fromUnit) / 1000;
+        }
+
+        public static float toMegaBits(float value, CapacityUnit fromUnit) {
+            return toBits(value, fromUnit) / 1000000;
+        }
+
+        public static float toGigaBits(float value, CapacityUnit fromUnit) {
+            return toBits(value, fromUnit) / 1000000000;
+        }
+
+        public static float toBytes(float value, CapacityUnit fromUnit) {
+            if (value == 0) {
+                return value;
+            }
+
+            if (fromUnit == BITS) {
+                return value / 8;
+            } else if (fromUnit == KILOBITS) {
+                return (value * 1000) / 8;
+            } else if (fromUnit == MEGABITS) {
+                return (value * 1000000) / 8;
+            } else if (fromUnit == GIGABITS) {
+                return (value * 1000000000) / 8;
+            } else if (fromUnit == BYTES) {
+                return value;
+            } else if (fromUnit == KILOBYTES) {
+                return value * 1000;
+            } else if (fromUnit == MEGABYTES) {
+                return value * 1000000;
+            } else if (fromUnit == GIGABYTES) {
+                return value * 1000000000;
+            }
+
+            throw new IllegalArgumentException(MSG_CONVERSION_TO_BYTES);
+        }
+
+        public static float toKiloBytes(float value, CapacityUnit fromUnit) {
+            return toBytes(value, fromUnit) / 1000;
+        }
+
+        public static float toMegaBytes(float value, CapacityUnit fromUnit) {
+            return toBytes(value, fromUnit) / 1000000;
+        }
+
+        public static float toGigaBytes(float value, CapacityUnit fromUnit) {
+            return toBytes(value, fromUnit) / 1000000000;
+        }
+
+        @Override
+        public String toString() {
+            return this.capacityUnit;
+        }
+
+    };
+
+    /**
+     * Percentage-related monitoring unit.
+     */
+    public enum PercentageUnit implements MonitoringUnit {
+
+        PERCENTAGE("percentage");
+
+        private String percentageUnit;
+
+        // Statically maps percentage monitoring units to enum types
+        private static final Map<String, MonitoringUnit> MAP =
+            new HashMap<String, MonitoringUnit>();
+        static {
+            MAP.put(PERCENTAGE.toString().toLowerCase(), (MonitoringUnit) PERCENTAGE);
+        }
+
+        private PercentageUnit(String percentageUnit) {
+            this.percentageUnit = percentageUnit;
+        }
+
+        public static MonitoringUnit getByName(String pu) {
+            pu = pu.toLowerCase();
+            return MAP.get(pu);
+        }
+
+        @Override
+        public String toString() {
+            return this.percentageUnit;
         }
 
     };

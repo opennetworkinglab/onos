@@ -33,4 +33,5 @@ public interface CpuStatisticsDiscovery extends HandlerBehaviour {
      * @return CPU statistics list
      */
     Collection<CpuStatistics> discoverCpuStatistics();
+
 }

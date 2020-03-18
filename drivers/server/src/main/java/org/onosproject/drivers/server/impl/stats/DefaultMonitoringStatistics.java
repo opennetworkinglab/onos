@@ -16,7 +16,9 @@
 
 package org.onosproject.drivers.server.impl.stats;
 
+import org.onosproject.drivers.server.devices.cpu.CpuCoreId;
 import org.onosproject.drivers.server.stats.CpuStatistics;
+import org.onosproject.drivers.server.stats.MemoryStatistics;
 import org.onosproject.drivers.server.stats.MonitoringStatistics;
 import org.onosproject.drivers.server.stats.TimingStatistics;
 
@@ -29,10 +31,16 @@ import java.util.Collection;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkArgument;
+import static org.onosproject.drivers.server.Constants.MSG_CPU_CORE_NEGATIVE;
+import static org.onosproject.drivers.server.Constants.MSG_DEVICE_ID_NULL;
+import static org.onosproject.drivers.server.Constants.MSG_STATS_CPU_NULL;
+import static org.onosproject.drivers.server.Constants.MSG_STATS_MEMORY_NULL;
+import static org.onosproject.drivers.server.Constants.MSG_STATS_NIC_NULL;
+import static org.onosproject.drivers.server.Constants.MSG_STATS_TIMING_NULL;
 
 /**
  * Default monitoring statistics for server devices.
- * Includes CPU, NIC, and timing statistics.
+ * Includes CPU, main memory, NIC, and timing statistics.
  */
 public final class DefaultMonitoringStatistics implements MonitoringStatistics {
 
@@ -40,30 +48,35 @@ public final class DefaultMonitoringStatistics implements MonitoringStatistics {
 
     private final TimingStatistics           timingStatistics;
     private final Collection<CpuStatistics>  cpuStatistics;
+    private final MemoryStatistics           memoryStatistics;
     private final Collection<PortStatistics> nicStatistics;
 
     private DefaultMonitoringStatistics(
             DeviceId                   deviceId,
             TimingStatistics           timingStatistics,
             Collection<CpuStatistics>  cpuStatistics,
+            MemoryStatistics           memoryStatistics,
             Collection<PortStatistics> nicStatistics) {
-        checkNotNull(deviceId,         "Device ID is NULL");
-        checkNotNull(timingStatistics, "Timing statistics are NULL");
-        checkNotNull(cpuStatistics,    "CPU statistics are NULL");
-        checkNotNull(nicStatistics,    "NIC statistics are NULL");
+        checkNotNull(deviceId,         MSG_DEVICE_ID_NULL);
+        checkNotNull(timingStatistics, MSG_STATS_TIMING_NULL);
+        checkNotNull(cpuStatistics,    MSG_STATS_CPU_NULL);
+        checkNotNull(memoryStatistics, MSG_STATS_MEMORY_NULL);
+        checkNotNull(nicStatistics,    MSG_STATS_NIC_NULL);
 
-        this.deviceId         = deviceId;
+        this.deviceId = deviceId;
         this.timingStatistics = timingStatistics;
-        this.cpuStatistics    = cpuStatistics;
-        this.nicStatistics    = nicStatistics;
+        this.cpuStatistics = cpuStatistics;
+        this.memoryStatistics = memoryStatistics;
+        this.nicStatistics = nicStatistics;
     }
 
     // Constructor for serializer
     private DefaultMonitoringStatistics() {
-        this.deviceId         = null;
+        this.deviceId = null;
         this.timingStatistics = null;
-        this.cpuStatistics    = null;
-        this.nicStatistics    = null;
+        this.cpuStatistics = null;
+        this.memoryStatistics = null;
+        this.nicStatistics = null;
     }
 
     /**
@@ -87,17 +100,19 @@ public final class DefaultMonitoringStatistics implements MonitoringStatistics {
 
     @Override
     public CpuStatistics cpuStatistics(int cpuId) {
-        checkArgument(
-            (cpuId >= 0) && (cpuId < DefaultCpuStatistics.MAX_CPU_NB),
-            "CPU core ID must be in [0, " +
-            String.valueOf(DefaultCpuStatistics.MAX_CPU_NB - 1) + "]"
-        );
+        checkArgument((cpuId >= 0) && (cpuId < CpuCoreId.MAX_CPU_CORE_NB),
+            MSG_CPU_CORE_NEGATIVE);
         for (CpuStatistics cs : this.cpuStatistics) {
             if (cs.id() == cpuId) {
                 return cs;
             }
         }
         return null;
+    }
+
+    @Override
+    public MemoryStatistics memoryStatistics() {
+        return this.memoryStatistics;
     }
 
     @Override
@@ -132,6 +147,7 @@ public final class DefaultMonitoringStatistics implements MonitoringStatistics {
                 .omitNullValues()
                 .add("timingStatistics", timingStatistics())
                 .add("cpuStatistics",    cpuStatisticsAll())
+                .add("memoryStatistics", memoryStatistics())
                 .add("nicStatistics",    nicStatisticsAll())
                 .toString();
     }
@@ -141,6 +157,7 @@ public final class DefaultMonitoringStatistics implements MonitoringStatistics {
         DeviceId                   deviceId;
         TimingStatistics           timingStatistics;
         Collection<CpuStatistics>  cpuStatistics;
+        MemoryStatistics           memoryStatistics;
         Collection<PortStatistics> nicStatistics;
 
         private Builder() {
@@ -184,6 +201,18 @@ public final class DefaultMonitoringStatistics implements MonitoringStatistics {
         }
 
         /**
+         * Sets memory statistics.
+         *
+         * @param memoryStatistics memory statistics
+         * @return builder object
+         */
+        public Builder setMemoryStatistics(MemoryStatistics memoryStatistics) {
+            this.memoryStatistics = memoryStatistics;
+
+            return this;
+        }
+
+        /**
          * Sets NIC statistics.
          *
          * @param nicStatistics NIC statistics
@@ -202,11 +231,8 @@ public final class DefaultMonitoringStatistics implements MonitoringStatistics {
          */
         public DefaultMonitoringStatistics build() {
             return new DefaultMonitoringStatistics(
-                deviceId,
-                timingStatistics,
-                cpuStatistics,
-                nicStatistics
-            );
+                deviceId, timingStatistics, cpuStatistics,
+                memoryStatistics, nicStatistics);
         }
 
     }

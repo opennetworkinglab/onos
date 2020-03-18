@@ -43,9 +43,10 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-import static org.slf4j.LoggerFactory.getLogger;
-import static org.onosproject.drivers.server.gui.MetricType.LATENCY;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.drivers.server.Constants.MSG_UI_DATA_LATENCY_NULL;
+import static org.onosproject.drivers.server.gui.MetricType.LATENCY;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Message handler for passing latency data to the Web UI.
@@ -63,7 +64,8 @@ public class LatencyViewMessageHandler extends BaseViewMessageHandler {
         return ImmutableSet.of(new LatencyMessageRequest());
     }
 
-    private final class LatencyMessageRequest extends BaseViewMessageHandler.ControlMessageRequest {
+    private final class LatencyMessageRequest
+        extends BaseViewMessageHandler.ControlMessageRequest {
 
         private LatencyMessageRequest() {
             super(LATENCY_DATA_REQ, LATENCY_DATA_RESP, LATENCY_LABEL);
@@ -71,7 +73,7 @@ public class LatencyViewMessageHandler extends BaseViewMessageHandler {
 
         @Override
         protected String[] getSeries() {
-            return createSeries(LATENCY, MAX_COLUMNS_NB);
+            return createIndexedSeries(LATENCY, MAX_COLUMNS_NB);
         }
 
         @Override
@@ -93,17 +95,17 @@ public class LatencyViewMessageHandler extends BaseViewMessageHandler {
                 Map<Integer, Float[]> data = null;
                 MonitoringStatistics monStats = serverDriver.getGlobalMonitoringStatistics(deviceId);
                 if (monStats == null) {
-                    data = populateZeroDataHistory(deviceId, MAX_COLUMNS_NB);
+                    data = populateZeroMapDataHistory(deviceId, MAX_COLUMNS_NB);
                 } else {
                     data = populateLatencyDataHistory(deviceId, serverDev.numberOfCpus(), monStats);
                 }
-                checkNotNull(data, "No latency data history to visualize");
+                checkNotNull(data, MSG_UI_DATA_LATENCY_NULL);
 
                 // Generate a timestamp
                 LocalDateTime ldt = new LocalDateTime(timestamp);
 
                 // Project the data
-                populateMetrics(cm, data, ldt, LATENCY, NUM_OF_DATA_POINTS);
+                populateMapMetrics(cm, data, ldt, LATENCY, NUM_OF_DATA_POINTS);
 
                 Set<DeviceId> deviceIds = Sets.newHashSet();
                 for (Device device : ds.getAvailableDevices()) {
@@ -129,16 +131,16 @@ public class LatencyViewMessageHandler extends BaseViewMessageHandler {
                     Map<Integer, Float> data = null;
                     MonitoringStatistics monStats = serverDriver.getGlobalMonitoringStatistics(deviceId);
                     if (monStats == null) {
-                        data = populateZeroData(deviceId, MAX_COLUMNS_NB);
+                        data = populateZeroMapData(deviceId, MAX_COLUMNS_NB);
                     } else {
                         data = populateLatencyData(deviceId, serverDev.numberOfCpus(), monStats);
                     }
-                    checkNotNull(data, "No latency data to visualize");
+                    checkNotNull(data, MSG_UI_DATA_LATENCY_NULL);
 
                     // Map them to the CPU cores
                     Map<String, Object> local = Maps.newHashMap();
                     for (int i = 0; i < data.size(); i++) {
-                        local.put(getLabel(LATENCY, i), data.get(i));
+                        local.put(getIndexedLabel(LATENCY, i), data.get(i));
                     }
 
                     // Last piece of data is the device ID
@@ -164,7 +166,7 @@ public class LatencyViewMessageHandler extends BaseViewMessageHandler {
          */
         private Map<Integer, Float> populateLatencyData(
                 DeviceId deviceId, int length, MonitoringStatistics monStats) {
-            Map<Integer, Float> data = initializeData(MAX_COLUMNS_NB);
+            Map<Integer, Float> data = initializeMapData(MAX_COLUMNS_NB);
 
             for (CpuStatistics stats : monStats.cpuStatisticsAll()) {
                 int index = stats.id();
@@ -207,7 +209,7 @@ public class LatencyViewMessageHandler extends BaseViewMessageHandler {
          */
         private Map<Integer, Float[]> populateLatencyDataHistory(
                 DeviceId deviceId, int length, MonitoringStatistics monStats) {
-            Map<Integer, Float[]> data = initializeDataHistory(MAX_COLUMNS_NB);
+            Map<Integer, Float[]> data = initializeMapDataHistory(MAX_COLUMNS_NB);
 
             for (CpuStatistics stats : monStats.cpuStatisticsAll()) {
                 int index = stats.id();

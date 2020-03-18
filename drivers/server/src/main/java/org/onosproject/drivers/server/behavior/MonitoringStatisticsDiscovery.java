@@ -45,4 +45,5 @@ public interface MonitoringStatisticsDiscovery extends HandlerBehaviour {
      * @return resource-specific monitoring statistics
      */
     MonitoringStatistics discoverMonitoringStatistics(URI tcId);
+
 }

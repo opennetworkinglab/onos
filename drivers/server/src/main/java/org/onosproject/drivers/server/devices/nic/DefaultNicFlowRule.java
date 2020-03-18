@@ -45,6 +45,11 @@ import java.util.Set;
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.drivers.server.Constants.MSG_NIC_FLOW_RULE_CORE_ID_NEGATIVE;
+import static org.onosproject.drivers.server.Constants.MSG_NIC_FLOW_RULE_IFACE_NEGATIVE;
+import static org.onosproject.drivers.server.Constants.MSG_NIC_FLOW_RULE_IFACE_NULL;
+import static org.onosproject.drivers.server.Constants.MSG_NIC_FLOW_RULE_SCOPE_NULL;
+import static org.onosproject.drivers.server.Constants.MSG_NIC_FLOW_RULE_TC_ID_NULL;
 import static org.onosproject.net.flow.criteria.Criterion.Type.ETH_TYPE;
 import static org.onosproject.net.flow.criteria.Criterion.Type.ETH_SRC;
 import static org.onosproject.net.flow.criteria.Criterion.Type.ETH_DST;
@@ -94,29 +99,25 @@ public abstract class DefaultNicFlowRule extends DefaultFlowRule implements NicF
     protected Set<NicRuleAction> actions;
 
     protected DefaultNicFlowRule(
-            FlowRule         flowRule,
-            String           trafficClassId,
-            String           interfaceName,
-            long             interfaceNumber,
-            long             cpuCoreIndex,
-            NicRuleScope     scope) {
+            FlowRule     flowRule,
+            String       trafficClassId,
+            String       interfaceName,
+            long         interfaceNumber,
+            long         cpuCoreIndex,
+            NicRuleScope scope) {
         super(flowRule);
 
-        checkArgument(!Strings.isNullOrEmpty(trafficClassId),
-            "NIC rule's traffic class ID is NULL or empty");
-        checkNotNull(interfaceName,
-            "NIC rule's interface name is NULL");
-        checkArgument(interfaceNumber >= 0,
-            "NIC rule's interface number must not be negative");
-        checkArgument(cpuCoreIndex >= 0,
-            "NIC rule's CPU core index must not be negative");
-        checkNotNull(scope, "NIC rule's scope is NULL");
+        checkArgument(!Strings.isNullOrEmpty(trafficClassId), MSG_NIC_FLOW_RULE_TC_ID_NULL);
+        checkNotNull(interfaceName, MSG_NIC_FLOW_RULE_IFACE_NULL);
+        checkArgument(interfaceNumber >= 0, MSG_NIC_FLOW_RULE_IFACE_NEGATIVE);
+        checkArgument(cpuCoreIndex >= 0, MSG_NIC_FLOW_RULE_CORE_ID_NEGATIVE);
+        checkNotNull(scope, MSG_NIC_FLOW_RULE_SCOPE_NULL);
 
-        this.trafficClassId  = trafficClassId;
-        this.interfaceName   = interfaceName;
+        this.trafficClassId = trafficClassId;
+        this.interfaceName = interfaceName;
         this.interfaceNumber = interfaceNumber;
-        this.cpuCoreIndex    = cpuCoreIndex;
-        this.scope           = scope;
+        this.cpuCoreIndex = cpuCoreIndex;
+        this.scope = scope;
 
         this.populate();
     }
@@ -124,11 +125,11 @@ public abstract class DefaultNicFlowRule extends DefaultFlowRule implements NicF
     protected DefaultNicFlowRule(FlowRule flowRule) {
         super(flowRule);
 
-        this.trafficClassId  = Builder.DEFAULT_TRAFFIC_CLASS_ID;
-        this.interfaceName   = "";
+        this.trafficClassId = Builder.DEFAULT_TRAFFIC_CLASS_ID;
+        this.interfaceName = "";
         this.interfaceNumber = Builder.DEFAULT_INTERFACE_NB;
-        this.cpuCoreIndex    = Builder.DEFAULT_CPU_CORE_INDEX;
-        this.scope           = Builder.DEFAULT_RULE_SCOPE;
+        this.cpuCoreIndex = Builder.DEFAULT_CPU_CORE_INDEX;
+        this.scope = Builder.DEFAULT_RULE_SCOPE;
 
         this.populate();
     }
