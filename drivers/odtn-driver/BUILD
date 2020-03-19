@@ -11,6 +11,10 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + [
     "//drivers/optical:onos-drivers-optical",
     "//apps/faultmanagement/fmcli:onos-apps-faultmanagement-fmcli",  # Enabling Alarm stuff
     "//apps/faultmanagement/fmmgr:onos-apps-faultmanagement-fmmgr-native",
+    "//drivers/gnmi:onos-drivers-gnmi",
+    "//protocols/gnmi/stub:onos-protocols-gnmi-stub",
+    "//protocols/gnmi/api:onos-protocols-gnmi-api",
+    "//protocols/grpc/utils:onos-protocols-grpc-utils",
 ]
 
 TEST_DEPS = TEST_ADAPTERS + [
@@ -43,6 +47,7 @@ onos_app(
         "org.onosproject.drivers.netconf",
         "org.onosproject.drivers.optical",
         "org.onosproject.optical-model",
+        "org.onosproject.drivers.gnmi",
     ],
     title = "ODTN Driver",
     url = "https://wiki.onosproject.org/display/ODTN/ODTN",

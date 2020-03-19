@@ -227,5 +227,20 @@
     <behaviour api="org.onosproject.net.behaviour.ModulationConfig"
                impl="org.onosproject.drivers.odtn.CassiniModulationOpenConfig"/>
     </driver>
+
+    <driver name="gnmi-openconfig-terminal-device" manufacturer="OpenConfig" hwVersion="Unknown" swVersion="gNMI">
+        <behaviour api="org.onosproject.net.device.DeviceDescriptionDiscovery"
+                   impl="org.onosproject.drivers.odtn.openconfig.GnmiTerminalDeviceDiscovery"/>
+        <behaviour api="org.onosproject.odtn.behaviour.OdtnDeviceDescriptionDiscovery"
+                   impl="org.onosproject.drivers.odtn.openconfig.GnmiTerminalDeviceDiscovery"/>
+        <behaviour api="org.onosproject.net.flow.FlowRuleProgrammable"
+                   impl="org.onosproject.drivers.odtn.openconfig.GnmiTerminalDeviceFlowRuleProgrammable"/>
+        <behaviour api="org.onosproject.net.behaviour.PowerConfig"
+                   impl="org.onosproject.drivers.odtn.openconfig.GnmiTerminalDevicePowerConfig" />
+        <behaviour api="org.onosproject.net.behaviour.ModulationConfig"
+                   impl="org.onosproject.drivers.odtn.openconfig.GnmiTerminalDeviceModulationConfig" />
+        <behaviour api="org.onosproject.net.device.DeviceHandshaker"
+                   impl="org.onosproject.drivers.gnmi.GnmiHandshakerStandalone" />
+    </driver>
 </drivers>
 
