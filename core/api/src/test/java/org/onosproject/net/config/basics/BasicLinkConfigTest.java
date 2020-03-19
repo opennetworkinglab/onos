@@ -42,6 +42,8 @@ public class BasicLinkConfigTest {
     private static final double LOSS = 3.0;
     private static final double AVAILABILITY = 3.0;
     private static final double FLAPPING = 3.0;
+    private static final long TIER = 4;
+    private static final double METERED_USAGE = 85.0;
     private static final Duration LATENCY =  Duration.ofNanos(5555);
 
     /**
@@ -70,7 +72,9 @@ public class BasicLinkConfigTest {
                 .type(Link.Type.DIRECT)
                 .latency(LATENCY)
                 .isBidirectional(FALSE)
-                .isMetered(TRUE);
+                .isMetered(TRUE)
+                .tier(TIER)
+                .meteredUsage(METERED_USAGE);
 
         assertThat(config.bandwidth(), is(BANDWIDTH));
         assertThat(config.jitter(), is(JITTER));
@@ -85,5 +89,7 @@ public class BasicLinkConfigTest {
         assertThat(config.isBidirectional(), is(FALSE));
         assertThat(config.isValid(), is(true));
         assertThat(config.isMetered(), is(TRUE));
+        assertThat(config.tier(), is(TIER));
+        assertThat(config.meteredUsage(), is(METERED_USAGE));
     }
 }

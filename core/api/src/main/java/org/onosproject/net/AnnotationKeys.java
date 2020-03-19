@@ -248,6 +248,19 @@ public final class AnnotationKeys {
     public static final String METERED = "metered";
 
     /**
+     * Annotation key for data usage on a metered link.
+     * The value of this key is expected to be a percentage of the data available within the plan.
+     */
+    public static final String METERED_USAGE = "meteredUsage";
+
+    /**
+     * Annotation key for identifying the tier ranking of a link. Links with a lower tier would be
+     * selected in the path over links with a higher tier.
+     * The value of this key is expected to be a number that represents the tier value.
+     */
+    public static final String TIER = "tier";
+
+    /**
      * Returns the value annotated object for the specified annotation key.
      * The annotated value is expected to be String that can be parsed as double.
      * If parsing fails, the returned value will be {@value #DEFAULT_VALUE}.

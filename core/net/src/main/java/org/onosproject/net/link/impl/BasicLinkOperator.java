@@ -44,6 +44,8 @@ public final class BasicLinkOperator implements ConfigOperator {
     private static final double DEF_AVAILABILITY = -1.0;
     private static final double DEF_FLAPPING = -1.0;
     private static final double DEF_METRIC = -1;
+    private static final long DEF_TIER = -1;
+    private static final double DEF_METERED_USAGE = -1;
     private static final Duration DEF_DURATION = Duration.ofNanos(-1L);
     private static final Logger log = getLogger(BasicLinkOperator.class);
 
@@ -115,6 +117,12 @@ public final class BasicLinkOperator implements ConfigOperator {
         }
         if (cfg.isMetered() != null) {
             b.set(AnnotationKeys.METERED, String.valueOf(cfg.isMetered()));
+        }
+        if (cfg.tier() != DEF_TIER) {
+            b.set(AnnotationKeys.TIER, String.valueOf(cfg.tier()));
+        }
+        if (cfg.meteredUsage() != DEF_METERED_USAGE) {
+            b.set(AnnotationKeys.METERED_USAGE, String.valueOf(cfg.meteredUsage()));
         }
         return b.build();
     }
