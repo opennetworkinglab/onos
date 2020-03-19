@@ -29,8 +29,10 @@ import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.constraint.DomainConstraint;
 import org.onosproject.net.intent.constraint.LatencyConstraint;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
+import org.onosproject.net.intent.constraint.MeteredConstraint;
 import org.onosproject.net.intent.constraint.NonDisruptiveConstraint;
 import org.onosproject.net.intent.constraint.ObstacleConstraint;
+import org.onosproject.net.intent.constraint.TierConstraint;
 import org.onosproject.net.intent.constraint.WaypointConstraint;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -193,6 +195,41 @@ public final class DecodeConstraintCodecHelper {
         return nonDisruptive();
     }
 
+    private Constraint decodeMeteredConstraint() {
+        boolean metered = nullIsIllegal(json.get(ConstraintCodec.METERED),
+                ConstraintCodec.METERED + ConstraintCodec.MISSING_MEMBER_MESSAGE).asBoolean();
+        return new MeteredConstraint(metered);
+    }
+
+    /**
+     * Decodes a link type constraint.
+     *
+     * @return link type constraint object.
+     */
+    private Constraint decodeTierConstraint() {
+        boolean inclusive = nullIsIllegal(json.get(ConstraintCodec.INCLUSIVE),
+                ConstraintCodec.INCLUSIVE + ConstraintCodec.MISSING_MEMBER_MESSAGE).asBoolean();
+
+        TierConstraint.CostType costType = TierConstraint.CostType.valueOf(nullIsIllegal(
+                json.get(ConstraintCodec.COST_TYPE), ConstraintCodec.COST_TYPE + ConstraintCodec.MISSING_MEMBER_MESSAGE
+            ).asText());
+
+        JsonNode tiers = nullIsIllegal(json.get(ConstraintCodec.TIERS),
+                ConstraintCodec.TIERS + ConstraintCodec.MISSING_MEMBER_MESSAGE);
+        if (tiers.size() < 1) {
+            throw new IllegalArgumentException(
+                    ConstraintCodec.TIERS + " array in tier constraint must have at least one value");
+        }
+
+        ArrayList<Integer> tierEntries = new ArrayList<>(tiers.size());
+        IntStream.range(0, tiers.size())
+                .forEach(index ->
+                        tierEntries.add(new Integer(tiers.get(index).asText())));
+
+        return new TierConstraint(inclusive, costType,
+                tierEntries.toArray(new Integer[tiers.size()]));
+    }
+
     /**
      * Decodes the given constraint.
      *
@@ -221,7 +258,12 @@ public final class DecodeConstraintCodecHelper {
             return decodeDomainConstraint();
         } else if (type.equals(NonDisruptiveConstraint.class.getSimpleName())) {
             return decodeNonDisruptiveConstraint();
+        } else if (type.equals(MeteredConstraint.class.getSimpleName())) {
+            return decodeMeteredConstraint();
+        } else if (type.equals(TierConstraint.class.getSimpleName())) {
+            return decodeTierConstraint();
         }
+
         throw new IllegalArgumentException("Instruction type "
                 + type + " is not supported");
     }

@@ -23,7 +23,9 @@ import org.onosproject.net.intent.constraint.AnnotationConstraint;
 import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.constraint.LatencyConstraint;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
+import org.onosproject.net.intent.constraint.MeteredConstraint;
 import org.onosproject.net.intent.constraint.ObstacleConstraint;
+import org.onosproject.net.intent.constraint.TierConstraint;
 import org.onosproject.net.intent.constraint.WaypointConstraint;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -155,6 +157,38 @@ public final class EncodeConstraintCodecHelper {
         return result;
     }
 
+    private ObjectNode encodeMeteredConstraint() {
+        checkNotNull(constraint, "Metered constraint cannot be null");
+        final MeteredConstraint meteredConstraint =
+                (MeteredConstraint) constraint;
+        return context.mapper().createObjectNode()
+                .put("metered", meteredConstraint.isUseMetered());
+    }
+
+    /**
+     * Encodes a tier constraint.
+     *
+     * @return JSON ObjectNode representing the constraint
+     */
+    private ObjectNode encodeTierConstraint() {
+        checkNotNull(constraint, "Tier constraint cannot be null");
+        final TierConstraint tierConstraint = (TierConstraint) constraint;
+
+        final ObjectNode result = context.mapper().createObjectNode()
+                .put(ConstraintCodec.INCLUSIVE, tierConstraint.isInclusive())
+                .put(ConstraintCodec.COST_TYPE, tierConstraint.costType().name());
+
+        final ArrayNode jsonTiers = result.putArray(ConstraintCodec.TIERS);
+
+        if (tierConstraint.tiers() != null) {
+            for (Integer tier : tierConstraint.tiers()) {
+                jsonTiers.add(tier);
+            }
+        }
+
+        return result;
+    }
+
     /**
      * Encodes the constraint in JSON.
      *
@@ -174,6 +208,10 @@ public final class EncodeConstraintCodecHelper {
             result = encodeObstacleConstraint();
         } else if (constraint instanceof WaypointConstraint) {
             result = encodeWaypointConstraint();
+        } else if (constraint instanceof MeteredConstraint) {
+            result = encodeMeteredConstraint();
+        } else if (constraint instanceof TierConstraint) {
+            result = encodeTierConstraint();
         } else {
             result = context.mapper().createObjectNode();
         }

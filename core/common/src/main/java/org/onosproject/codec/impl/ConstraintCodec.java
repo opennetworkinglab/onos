@@ -36,10 +36,13 @@ public final class ConstraintCodec extends JsonCodec<Constraint> {
     static final String KEY = "key";
     static final String THRESHOLD = "threshold";
     static final String BANDWIDTH = "bandwidth";
+    static final String METERED = "metered";
     static final String LAMBDA = "lambda";
     static final String LATENCY_MILLIS = "latencyMillis";
     static final String OBSTACLES = "obstacles";
     static final String WAYPOINTS = "waypoints";
+    static final String TIERS = "tiers";
+    static final String COST_TYPE = "costType";
 
     @Override
     public ObjectNode encode(Constraint constraint, CodecContext context) {

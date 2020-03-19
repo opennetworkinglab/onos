@@ -31,7 +31,9 @@ import org.onosproject.net.intent.constraint.BandwidthConstraint;
 import org.onosproject.net.intent.constraint.DomainConstraint;
 import org.onosproject.net.intent.constraint.LatencyConstraint;
 import org.onosproject.net.intent.constraint.LinkTypeConstraint;
+import org.onosproject.net.intent.constraint.MeteredConstraint;
 import org.onosproject.net.intent.constraint.ObstacleConstraint;
+import org.onosproject.net.intent.constraint.TierConstraint;
 import org.onosproject.net.intent.constraint.WaypointConstraint;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -196,4 +198,37 @@ public class ConstraintCodecTest {
         Constraint constraint = getConstraint("DomainConstraint.json");
         assertThat(constraint, instanceOf(DomainConstraint.class));
     }
+
+    /**
+     * Tests metered constraint.
+     */
+    @Test
+    public void meteredConstraint() {
+        Constraint constraint = getConstraint("MeteredConstraint.json");
+        assertThat(constraint, instanceOf(MeteredConstraint.class));
+
+        MeteredConstraint meteredConstraint = (MeteredConstraint) constraint;
+
+        assertThat(meteredConstraint.isUseMetered(), is(true));
+    }
+
+    /**
+     * Tests tier constraint.
+     */
+    @Test
+    public void tierConstraint() {
+        Constraint constraint = getConstraint("TierConstraint.json");
+        assertThat(constraint, instanceOf(TierConstraint.class));
+
+        TierConstraint tierConstraint = (TierConstraint) constraint;
+
+        assertThat(tierConstraint.isInclusive(), is(true));
+        assertThat(tierConstraint.costType(), is(TierConstraint.CostType.ORDER));
+
+        assertThat(tierConstraint.tiers().get(0), is(3));
+        assertThat(tierConstraint.tiers().get(1), is(2));
+        assertThat(tierConstraint.tiers().get(2), is(1));
+    }
+
+
 }
