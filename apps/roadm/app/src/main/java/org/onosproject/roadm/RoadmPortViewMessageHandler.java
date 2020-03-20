@@ -24,6 +24,7 @@ import org.onlab.osgi.ServiceDirectory;
 import org.onlab.util.Frequency;
 import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Direction;
 import org.onosproject.net.ModulationScheme;
@@ -247,7 +248,11 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
 
         // Returns the current input power as a string, Unknown if no value can be found.
         private String getPreFecBer(DeviceId deviceId, PortNumber portNumber) {
-            BitErrorRateState bitErrorRateState = deviceService.getDevice(deviceId).as(BitErrorRateState.class);
+            Device device = deviceService.getDevice(deviceId);
+            if (device == null || !device.is(BitErrorRateState.class)) {
+                return RoadmUtil.UNKNOWN;
+            }
+            BitErrorRateState bitErrorRateState = device.as(BitErrorRateState.class);
             Optional<Double> preFecBer = bitErrorRateState.getPreFecBer(deviceId, portNumber);
             Double preFecBerVal = null;
             if (preFecBer.isPresent()) {
@@ -258,7 +263,11 @@ public class RoadmPortViewMessageHandler extends UiMessageHandler {
 
         // Returns the current input power as a string, Unknown if no value can be found.
         private String getPostFecBer(DeviceId deviceId, PortNumber portNumber) {
-            BitErrorRateState bitErrorRateState = deviceService.getDevice(deviceId).as(BitErrorRateState.class);
+            Device device = deviceService.getDevice(deviceId);
+            if (device == null || !device.is(BitErrorRateState.class)) {
+                return RoadmUtil.UNKNOWN;
+            }
+            BitErrorRateState bitErrorRateState = device.as(BitErrorRateState.class);
             Optional<Double> postFecBer = bitErrorRateState.getPostFecBer(deviceId, portNumber);
             Double postFecBerVal = null;
             if (postFecBer.isPresent()) {
