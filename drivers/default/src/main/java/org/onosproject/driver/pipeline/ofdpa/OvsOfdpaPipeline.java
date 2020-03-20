@@ -158,10 +158,24 @@ public class OvsOfdpaPipeline extends Ofdpa2Pipeline {
 
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {
-        if (!ready.getAndSet(true)) {
+        synchronized (this) {
+            if (isReady()) {
+                return;
+            }
+
+            // Terminate internal references
+            // We are terminating the references here
+            // because when the device is offline the apps
+            // are still sending flowobjectives
+            if (groupChecker != null) {
+                groupChecker.shutdown();
+            }
             // create a new executor at each init and a new empty queue
             groupChecker = Executors.newSingleThreadScheduledExecutor(groupedThreads("onos/driver",
                     "ovs-ofdpa-%d", log));
+            if (flowRuleQueue != null) {
+                flowRuleQueue.clear();
+            }
             flowRuleQueue = new ConcurrentLinkedQueue<>();
             groupCheckerLock = new ReentrantLock();
             groupChecker.scheduleAtFixedRate(new PopVlanPuntGroupChecker(), 20, 50, TimeUnit.MILLISECONDS);
