@@ -496,7 +496,10 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     private void invalidatePipeliner(DeviceId id) {
         log.info("Invalidating cached pipeline behaviour for {}", id);
         driverHandlers.remove(id);
-        pipeliners.remove(id);
+        Pipeliner pipeliner = pipeliners.remove(id);
+        if (pipeliner != null) {
+            pipeliner.cleanUp();
+        }
         if (deviceService.isAvailable(id)) {
             getAndInitDevicePipeliner(id);
         }
@@ -518,6 +521,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                         getAndInitDevicePipeliner(event.subject().id());
                       } else {
                         log.debug("Device is no longer available {}", event.subject().id());
+                        getDevicePipeliner(event.subject().id()).cleanUp();
                       }
                     });
                     break;
@@ -534,8 +538,11 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                     // before removing device, especially if they intend to
                     // replace driver/pipeliner assigned to the device.
                     devEventExecutor.execute(() -> {
-                      driverHandlers.remove(event.subject().id());
-                      pipeliners.remove(event.subject().id());
+                        driverHandlers.remove(event.subject().id());
+                        Pipeliner pipeliner = pipeliners.remove(event.subject().id());
+                        if (pipeliner != null) {
+                            pipeliner.cleanUp();
+                        }
                     });
                     break;
                 case DEVICE_SUSPENDED:

@@ -90,4 +90,11 @@ public interface Pipeliner extends HandlerBehaviour {
         return true;
     }
 
+    /**
+     * Clean up internal state of the pipeliner.
+     * Implementation is pipeliner specific.
+     */
+    default void cleanUp() {
+    }
+
 }

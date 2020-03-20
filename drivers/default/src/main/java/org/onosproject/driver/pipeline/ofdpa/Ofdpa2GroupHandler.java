@@ -124,6 +124,7 @@ public class Ofdpa2GroupHandler {
             new ConcurrentHashMap<>();
     private ScheduledExecutorService groupCheckerExecutor =
             Executors.newScheduledThreadPool(2, groupedThreads("onos/pipeliner", "ofdpa-%d", log));
+    private InnerGroupListener innerGroupListener = new InnerGroupListener();
     /**
      * Determines whether this pipeline support copy ttl instructions or not.
      *
@@ -202,7 +203,34 @@ public class Ofdpa2GroupHandler {
         pendingUpdateNextObjectives = new ConcurrentHashMap<>();
         GroupChecker groupChecker = new GroupChecker(this);
         groupCheckerExecutor.scheduleAtFixedRate(groupChecker, 0, 500, TimeUnit.MILLISECONDS);
-        groupService.addListener(new InnerGroupListener());
+        groupService.addListener(innerGroupListener);
+    }
+
+    // Terminate internal references
+    public void terminate() {
+        if (nextIndex != null) {
+            nextIndex.destroy();
+        }
+        nextIndex = null;
+        if (pendingAddNextObjectives != null) {
+            pendingAddNextObjectives.cleanUp();
+        }
+        pendingAddNextObjectives = null;
+        if (pendingRemoveNextObjectives != null) {
+            pendingRemoveNextObjectives.cleanUp();
+        }
+        pendingRemoveNextObjectives = null;
+        if (pendingGroups != null) {
+            pendingGroups.cleanUp();
+        }
+        pendingGroups = null;
+        if (groupCheckerExecutor != null) {
+            groupCheckerExecutor.shutdown();
+        }
+        groupCheckerExecutor = null;
+        if (groupService != null) {
+            groupService.removeListener(innerGroupListener);
+        }
     }
 
     //////////////////////////////////////
