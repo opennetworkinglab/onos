@@ -148,7 +148,11 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
 
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {
-        if (!ready.getAndSet(true)) {
+        synchronized (this) {
+            if (isReady()) {
+                return;
+            }
+
             this.deviceId = deviceId;
 
             serviceDirectory = context.directory();
@@ -168,12 +172,24 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
             initGroupHander(context);
 
             initializePipeline();
+            ready.set(true);
         }
     }
 
     @Override
     public boolean isReady() {
         return ready.get();
+    }
+
+    @Override
+    public void cleanUp() {
+        synchronized (this) {
+            if (!isReady()) {
+                return;
+            }
+            ready.set(false);
+        }
+        log.info("Cleaning up...");
     }
 
     void setupAccumulatorForTests(int maxFwd, int maxBatchMS, int maxIdleMS) {
@@ -190,6 +206,13 @@ public class Ofdpa2Pipeline extends AbstractHandlerBehaviour implements Pipeline
     }
 
     protected void initGroupHander(PipelinerContext context) {
+        // Terminate internal references
+        // We are terminating the references here
+        // because when the device is offline the apps
+        // are still sending flowobjectives
+        if (groupHandler != null) {
+            groupHandler.terminate();
+        }
         groupHandler = new Ofdpa2GroupHandler();
         groupHandler.init(deviceId, context);
     }

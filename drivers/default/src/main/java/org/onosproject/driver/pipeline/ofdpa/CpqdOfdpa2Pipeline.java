@@ -182,17 +182,38 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
 
     @Override
     protected void initGroupHander(PipelinerContext context) {
+        // Terminate internal references
+        // We are terminating the references here
+        // because when the device is offline the apps
+        // are still sending flowobjectives
+        if (groupHandler != null) {
+            groupHandler.terminate();
+        }
         groupHandler = new CpqdOfdpa2GroupHandler();
         groupHandler.init(deviceId, context);
     }
 
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {
-        if (!ready.getAndSet(true)) {
+        synchronized (this) {
+            if (isReady()) {
+                return;
+            }
+
             if (supportPuntGroup()) {
+                // Terminate internal references
+                // We are terminating the references here
+                // because when the device is offline the apps
+                // are still sending flowobjectives
+                if (groupChecker != null) {
+                    groupChecker.shutdown();
+                }
                 // create a new executor at each init and a new empty queue
                 groupChecker = Executors.newSingleThreadScheduledExecutor(groupedThreads("onos/driver",
                         "cpqd-ofdpa-%d", log));
+                if (flowRuleQueue != null) {
+                    flowRuleQueue.clear();
+                }
                 flowRuleQueue = new ConcurrentLinkedQueue<>();
                 groupCheckerLock = new ReentrantLock();
                 groupChecker.scheduleAtFixedRate(new PopVlanPuntGroupChecker(), 20, 50, TimeUnit.MILLISECONDS);

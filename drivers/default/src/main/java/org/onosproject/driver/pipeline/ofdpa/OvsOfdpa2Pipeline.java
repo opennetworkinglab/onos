@@ -32,6 +32,13 @@ public class OvsOfdpa2Pipeline extends CpqdOfdpa2Pipeline {
 
     @Override
     protected void initGroupHander(PipelinerContext context) {
+        // Terminate internal references
+        // We are terminating the references here
+        // because when the device is offline the apps
+        // are still sending flowobjectives
+        if (groupHandler != null) {
+            groupHandler.terminate();
+        }
         groupHandler = new OvsOfdpa2GroupHandler();
         groupHandler.init(deviceId, context);
     }
