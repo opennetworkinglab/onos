@@ -33,21 +33,11 @@ public interface ContextEventMapStore {
      * @param eventType the class name of event
      * @param eventHintSet Set of event hint string value of the event
      * @param contextName workflow context name
-     * @param programCounter the program counter of workflow
+     * @param programCounterString the program counter of workflow
      * @throws WorkflowException workflow exception
      */
     void registerEventMap(String eventType, Set<String> eventHintSet,
-                          String contextName, ProgramCounter programCounter) throws WorkflowException;
-
-    /**
-     * Registers workflow trigger flag.
-     * @param eventType the class name of event
-     * @param eventHintSet Set of event hint string value of the event
-     * @param contextName workflow context name
-     * @throws WorkflowException workflow exception
-     */
-    void registerTriggerFlag(String eventType, Set<String> eventHintSet,
-                                    String contextName) throws WorkflowException;
+                          String contextName, String programCounterString) throws WorkflowException;
 
     /**
      * Unregisters workflow context event mapping.
@@ -62,10 +52,10 @@ public interface ContextEventMapStore {
      * Returns workflow context event mapping.
      * @param eventType the class name of event
      * @param eventHint vent hint string value of the event
-     * @return Map of workflow context and value (WorkflowEventMetaData)
+     * @return Map of workflow context and value (program counter)
      * @throws WorkflowException workflow exception
      */
-    Map<String, WorkflowEventMetaData> getEventMapByHint(String eventType,
+    Map<String, String> getEventMapByHint(String eventType,
                                           String eventHint) throws WorkflowException;
 
     /**
@@ -76,23 +66,12 @@ public interface ContextEventMapStore {
     boolean isEventMapPresent(String contextName);
 
     /**
-     * Returns true or false depending on trigger flag for the workflow.
-     * @param eventType the class name of event
-     * @param eventHint vent hint string value of the event
-     * @param contextName name of workflow context
-     * @return Boolean true or false depending on trigger flag for the workflow
-     * @throws WorkflowException workflow exception
-     */
-    boolean isTriggerSet(String eventType, String eventHint,
-                         String contextName) throws WorkflowException;
-
-    /**
      * Returns child nodes on document tree path.
      * @param path document tree path including eventType and Hint
      * @return children under document tree path
      * @throws WorkflowException workflow exception
      */
-    Map<String, Versioned<WorkflowEventMetaData>> getChildren(String path) throws WorkflowException;
+    Map<String, Versioned<String>> getChildren(String path) throws WorkflowException;
 
     /**
      * Returns document path.

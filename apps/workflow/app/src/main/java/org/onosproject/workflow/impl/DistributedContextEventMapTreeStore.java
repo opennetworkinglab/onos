@@ -21,8 +21,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.WallClockTimestamp;
-import org.onosproject.workflow.api.ProgramCounter;
-import org.onosproject.workflow.api.WorkflowEventMetaData;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -66,11 +64,9 @@ public class DistributedContextEventMapTreeStore implements ContextEventMapStore
 
     private ApplicationId appId;
 
-    private AsyncDocumentTree<WorkflowEventMetaData> eventMapTree;
+    private AsyncDocumentTree<String> eventMapTree;
 
     private EventuallyConsistentMap<String, Set<String>> hintSetPerCxtMap;
-
-    private static final ProgramCounter INVALID_PC = ProgramCounter.valueOf("INVALID_WORKLET", 0);
 
 
     @Activate
@@ -81,12 +77,9 @@ public class DistributedContextEventMapTreeStore implements ContextEventMapStore
 
         KryoNamespace eventMapNamespace = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
-                .register(ProgramCounter.class)
-                .register(WorkflowEventMetaData.class)
-                .register(Set.class)
                 .build();
 
-        eventMapTree = storageService.<WorkflowEventMetaData>documentTreeBuilder()
+        eventMapTree = storageService.<String>documentTreeBuilder()
                 .withSerializer(Serializer.using(eventMapNamespace))
                 .withName("context-event-map-store")
                 .withOrdering(Ordering.INSERTION)
@@ -110,49 +103,25 @@ public class DistributedContextEventMapTreeStore implements ContextEventMapStore
 
     @Override
     public void registerEventMap(String eventType, Set<String> eventHintSet,
-                                 String contextName, ProgramCounter programCounter) throws WorkflowException {
+                                 String contextName, String programCounterString) throws WorkflowException {
         for (String eventHint : eventHintSet) {
             //Insert in eventCxtPerHintMap
             DocumentPath dpathForCxt = DocumentPath.from(Lists.newArrayList(
                     "root", eventType, eventHint, contextName));
-            WorkflowEventMetaData workflowEventMetaData = completeVersioned(eventMapTree.get(dpathForCxt));
-            if (workflowEventMetaData == null) {
-                workflowEventMetaData = new WorkflowEventMetaData(false, programCounter);
-                complete(eventMapTree.createRecursive(dpathForCxt, workflowEventMetaData));
+            String currentWorkletType = completeVersioned(eventMapTree.get(dpathForCxt));
+            if (currentWorkletType == null) {
+                complete(eventMapTree.createRecursive(dpathForCxt, programCounterString));
             } else {
-                WorkflowEventMetaData updatedWorkflowEventMetaData =
-                        new WorkflowEventMetaData(workflowEventMetaData.getTriggerFlag(), programCounter);
-                complete(eventMapTree.replace(dpathForCxt, updatedWorkflowEventMetaData, workflowEventMetaData));
+                complete(eventMapTree.replace(dpathForCxt, programCounterString, currentWorkletType));
             }
             log.trace("RegisterEventMap for eventType:{}, eventSet:{}, contextName:{}, pc:{}",
-                     eventType, eventHintSet, contextName, programCounter.toString());
+                    eventType, eventHintSet, contextName, programCounterString);
 
         }
         hintSetPerCxtMap.put(contextName, eventHintSet);
         log.trace("RegisterEventMap in hintSetPerCxt for " +
-                         "eventType:{}, eventSet:{}, contextName:{}, pc:{}",
-                 eventType, eventHintSet, contextName, programCounter.toString());
-    }
-
-    @Override
-    public void registerTriggerFlag(String eventType, Set<String> eventHintSet,
-                                 String contextName) throws WorkflowException {
-        for (String eventHint : eventHintSet) {
-            //Insert in eventCxtPerHintMap
-            DocumentPath dpathForCxt = DocumentPath.from(Lists.newArrayList(
-                    "root", eventType, eventHint, contextName));
-            WorkflowEventMetaData workflowEventMetaData = completeVersioned(eventMapTree.get(dpathForCxt));
-            if (workflowEventMetaData == null) {
-                workflowEventMetaData = new WorkflowEventMetaData(true, INVALID_PC);
-                complete(eventMapTree.createRecursive(dpathForCxt, workflowEventMetaData));
-            } else {
-                WorkflowEventMetaData updatedWorkflowEventMetaData =
-                        new WorkflowEventMetaData(true, workflowEventMetaData.getProgramCounter());
-                complete(eventMapTree.replace(dpathForCxt, updatedWorkflowEventMetaData, workflowEventMetaData));
-            }
-            log.trace("RegisterTriggerFlag for eventType:{}, eventSet:{}, contextName:{}",
-                      eventType, eventHintSet, contextName);
-        }
+                        "eventType:{}, eventSet:{}, contextName:{}, pc:{}",
+                eventType, eventHintSet, contextName, programCounterString);
     }
 
     @Override
@@ -160,39 +129,28 @@ public class DistributedContextEventMapTreeStore implements ContextEventMapStore
             throws WorkflowException {
 
         Set<String> hints = hintSetPerCxtMap.get(contextName);
-
-        if (Objects.isNull(hints)) {
-            return;
-        }
         for (String eventHint : hints) {
             //Remove from eventCxtPerHintMap
-            DocumentPath dpathForCxt = DocumentPath.from(Lists.newArrayList(
-                    "root", eventType, eventHint, contextName));
-            WorkflowEventMetaData workflowEventMetaData = completeVersioned(eventMapTree.get(dpathForCxt));
-            if (Objects.nonNull(workflowEventMetaData)) {
-                WorkflowEventMetaData updatedWorkflowEventMetaData = new WorkflowEventMetaData(workflowEventMetaData);
-                updatedWorkflowEventMetaData.setProgramCounterString(INVALID_PC);
-                complete(eventMapTree.replace(dpathForCxt, updatedWorkflowEventMetaData, workflowEventMetaData));
-                log.trace("UnregisterEventMap from eventCxtPerHintMap for eventType:{}, eventSet:{}, contextName:{}",
-                          eventType, eventHint, contextName);
-            }
+            complete(eventMapTree.removeNode(DocumentPath.from(Lists.newArrayList(
+                    "root", eventType, eventHint, contextName))));
+            log.trace("UnregisterEventMap from eventCxtPerHintMap for eventType:{}, eventSet:{}, contextName:{}",
+                    eventType, eventHint, contextName);
         }
         hintSetPerCxtMap.remove(contextName);
     }
 
 
     @Override
-    public Map<String, WorkflowEventMetaData> getEventMapByHint(String eventType,
-                                                                String eventHint) throws WorkflowException {
+    public Map<String, String> getEventMapByHint(String eventType, String eventHint) throws WorkflowException {
         DocumentPath path = DocumentPath.from(
                 Lists.newArrayList("root", eventType, eventHint));
-        Map<String, Versioned<WorkflowEventMetaData>> contexts = complete(eventMapTree.getChildren(path));
-        Map<String, WorkflowEventMetaData> eventMap = Maps.newHashMap();
+        Map<String, Versioned<String>> contexts = complete(eventMapTree.getChildren(path));
+        Map<String, String> eventMap = Maps.newHashMap();
         if (Objects.isNull(contexts)) {
             return eventMap;
         }
 
-        for (Map.Entry<String, Versioned<WorkflowEventMetaData>> entry : contexts.entrySet()) {
+        for (Map.Entry<String, Versioned<String>> entry : contexts.entrySet()) {
             eventMap.put(entry.getKey(), entry.getValue().value());
         }
         log.trace("getEventMapByHint returns eventMap {} ", eventMap);
@@ -212,25 +170,11 @@ public class DistributedContextEventMapTreeStore implements ContextEventMapStore
         }
     }
 
-    @Override
-    public boolean isTriggerSet(String eventType, String eventHint,
-                                String contextName) throws WorkflowException {
-
-        //Remove from eventCxtPerHintMap
-        DocumentPath dpathForCxt = DocumentPath.from(Lists.newArrayList(
-                "root", eventType, eventHint, contextName));
-        WorkflowEventMetaData workflowEventMetaData = completeVersioned(eventMapTree.get(dpathForCxt));
-        if (Objects.nonNull(workflowEventMetaData)) {
-            return workflowEventMetaData.getTriggerFlag();
-        } else {
-            return false;
-        }
-    }
 
     @Override
-    public Map<String, Versioned<WorkflowEventMetaData>> getChildren(String path) throws WorkflowException {
+    public Map<String, Versioned<String>> getChildren(String path) throws WorkflowException {
         DocumentPath dpath = DocumentPath.from(path);
-        Map<String, Versioned<WorkflowEventMetaData>> entries = complete(eventMapTree.getChildren(dpath));
+        Map<String, Versioned<String>> entries = complete(eventMapTree.getChildren(dpath));
         return entries;
     }
 
@@ -244,11 +188,11 @@ public class DistributedContextEventMapTreeStore implements ContextEventMapStore
     public ObjectNode asJsonTree() throws WorkflowException {
 
         DocumentPath rootPath = DocumentPath.from(Lists.newArrayList("root"));
-        Map<String, Versioned<WorkflowEventMetaData>> eventmap = complete(eventMapTree.getChildren(rootPath));
+        Map<String, Versioned<String>> eventmap = complete(eventMapTree.getChildren(rootPath));
 
         ObjectNode rootNode = JsonNodeFactory.instance.objectNode();
 
-        for (Map.Entry<String, Versioned<WorkflowEventMetaData>> eventTypeEntry : eventmap.entrySet()) {
+        for (Map.Entry<String, Versioned<String>> eventTypeEntry : eventmap.entrySet()) {
 
             String eventType = eventTypeEntry.getKey();
 
@@ -256,9 +200,9 @@ public class DistributedContextEventMapTreeStore implements ContextEventMapStore
             rootNode.put(eventType, eventTypeNode);
 
             DocumentPath eventTypePath = DocumentPath.from(Lists.newArrayList("root", eventType));
-            Map<String, Versioned<WorkflowEventMetaData>> hintmap = complete(eventMapTree.getChildren(eventTypePath));
+            Map<String, Versioned<String>> hintmap = complete(eventMapTree.getChildren(eventTypePath));
 
-            for (Map.Entry<String, Versioned<WorkflowEventMetaData>> hintEntry : hintmap.entrySet()) {
+            for (Map.Entry<String, Versioned<String>> hintEntry : hintmap.entrySet()) {
 
                 String hint = hintEntry.getKey();
 
@@ -266,10 +210,10 @@ public class DistributedContextEventMapTreeStore implements ContextEventMapStore
                 eventTypeNode.put(hint, hintNode);
 
                 DocumentPath hintPath = DocumentPath.from(Lists.newArrayList("root", eventType, hint));
-                Map<String, Versioned<WorkflowEventMetaData>> contextmap = complete(eventMapTree.getChildren(hintPath));
+                Map<String, Versioned<String>> contextmap = complete(eventMapTree.getChildren(hintPath));
 
-                for (Map.Entry<String, Versioned<WorkflowEventMetaData>> ctxtEntry : contextmap.entrySet()) {
-                    hintNode.put(ctxtEntry.getKey(), ctxtEntry.getValue().value().toString());
+                for (Map.Entry<String, Versioned<String>> ctxtEntry : contextmap.entrySet()) {
+                    hintNode.put(ctxtEntry.getKey(), ctxtEntry.getValue().value());
                 }
             }
         }

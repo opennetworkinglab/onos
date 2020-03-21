@@ -49,9 +49,9 @@ public interface WorkflowExecutionService extends ListenerService<WorkflowDataEv
      * @param eventType event type (class name of event)
      * @param eventHintSet Set of event hint value
      * @param contextName workflow context name to be called by this event map
-     * @param programCounter worklet type to be called by this event map
+     * @param programCounterString worklet type to be called by this event map
      * @throws WorkflowException workflow exception
      */
     void registerEventMap(Class<? extends Event> eventType, Set<String> eventHintSet,
-                          String contextName, ProgramCounter programCounter) throws WorkflowException;
+                          String contextName, String programCounterString) throws WorkflowException;
 }

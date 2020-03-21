@@ -144,29 +144,6 @@ public abstract class WorkflowContext extends WorkflowData {
     public abstract long completionEventTimeout();
 
     /**
-     * Sets event map store.
-     * @param contextEventMapStore event map store
-     */
-    public abstract void setEventMapStore(ContextEventMapStore contextEventMapStore);
-
-    /**
-     * Returns the event map store.
-     * @return ContextEventMapStore
-     */
-    public abstract ContextEventMapStore eventMapStore();
-
-
-    /**
-     * Registers an trigger event which has 'eventHint'.
-     * If the event happens, Workflow would be resatrted.
-     * @param event event when trigger happens
-     * @param eventHintSet Set of hint for the event
-     * @throws WorkflowException exception in case any
-     */
-    public abstract void registerTriggerEvent(Class<? extends Event> event,
-                                              Set<String> eventHintSet) throws WorkflowException;
-
-    /**
      * Sets workflow service.
      * @param workflowExecutionService workflow service
      */

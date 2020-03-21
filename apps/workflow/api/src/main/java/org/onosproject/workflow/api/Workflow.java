@@ -17,7 +17,6 @@ package org.onosproject.workflow.api;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -103,25 +102,10 @@ public interface Workflow {
     List<ProgramCounter> getProgram();
 
     /**
-     * Returns worklet instance with given worklet Name.
-     * @param workletType worklet name
-     * @return Worklet
-     * @throws WorkflowException workflow exception
-     */
-
-    Worklet getTriggerWorkletInstance(String workletType) throws WorkflowException;
-
-    /**
      * Returns worklet description.
      * @param pc program counter
      * @return worklet description list
      */
     WorkletDescription getWorkletDesc(ProgramCounter pc);
 
-    /**
-     * Returns trigger worklet class name if any.
-     * @return trigger worklet class name
-     */
-    Optional<String> getTriggerWorkletClassName();
-
-    }
+}

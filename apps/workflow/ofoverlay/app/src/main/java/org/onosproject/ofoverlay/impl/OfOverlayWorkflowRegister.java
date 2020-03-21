@@ -106,29 +106,6 @@ public class OfOverlayWorkflowRegister {
 
             workflowStore.register(workflow);
 
-        // registering new workflow definition
-        uri = URI.create("of-overlay.workflow-nova-with-trigger-to-restart");
-        workflow = ImmutableListWorkflow.builder()
-                .id(uri)
-                //.attribute(WorkflowAttribute.REMOVE_AFTER_COMPLETE)
-                .chain(Ovs.CreateOvsdbDevice.class.getName())
-                .chain(Ovs.UpdateOvsVersion.class.getName())
-                .chain(Ovs.UpdateBridgeId.class.getName())
-                .chain(DefaultWorkletDescription.builder().name(Ovs.CreateBridge.class.getName())
-                       .staticDataModel(BRIDGE_NAME, "br-int")
-                       .build())
-                .chain(DefaultWorkletDescription.builder().name(Ovs.CreateBridge.class.getName())
-                       .staticDataModel(BRIDGE_NAME, "br-phy")
-                       .build())
-                .chain(Ovs.CreateOverlayBridgeVxlanPort.class.getName())
-                .chain(Ovs.AddPhysicalPortsOnUnderlayBridge.class.getName())
-                .chain(Ovs.ConfigureUnderlayBridgeLocalIp.class.getName())
-                .trigger(Ovs.TrigerWorkflowAtDeviceReboot.class.getName())
-                .build();
-        workflowStore.register(workflow);
-
-
-
             // registering new workflow definition based on multi-event handling
             uri = URI.create("of-overlay.workflow-nova-multiEvent-test");
             workflow = ImmutableListWorkflow.builder()
