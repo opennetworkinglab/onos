@@ -40,8 +40,8 @@
         [ngClass]="['link', selected?'selected':'', enhanced?'enhanced':'', highlighted]"
         [ngStyle]="{'stroke-width': (enhanced ? 4 : 2) * scale + 'px'}"
         (click)="toggleSelected(link, $event)"
-        (mouseover)="enhance()"
-        [attr.filter]="highlighted?'url(#glow)':'none'">
+        (mouseover)="enhance()">
+<!--        [attr.filter]="highlighted?'url(#glow)':'none'">-->
 </svg:line>
 <svg:g xmlns:svg="http://www.w3.org/2000/svg"
        [ngClass]="['linkLabel']"

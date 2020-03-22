@@ -30,7 +30,7 @@ import {DeviceNodeSvgComponent} from './visuals/devicenodesvg/devicenodesvg.comp
 import {SubRegionNodeSvgComponent} from './visuals/subregionnodesvg/subregionnodesvg.component';
 import {HostNodeSvgComponent} from './visuals/hostnodesvg/hostnodesvg.component';
 import {LinkSvgComponent} from './visuals/linksvg/linksvg.component';
-import {Device, Host, Link, LinkType, Region} from './models';
+import {Device, Host, Link, LinkHighlight, LinkType, Region} from './models';
 import {ChangeDetectorRef, SimpleChange} from '@angular/core';
 import {TopologyService} from '../../topology.service';
 
@@ -100,6 +100,12 @@ describe('ForceSvgComponent', () => {
 
     const odtnSampleData = require('./tests/test-OdtnConfig-topo2CurrentRegion.json');
     const odtnRegionData: Region = <Region><unknown>(odtnSampleData.payload);
+
+    const topo2BaseData = require('./tests/topo2Highlights-base-data.json');
+    const topo2BaseRegionData: Region = <Region><unknown>(topo2BaseData.payload);
+
+    const highlightSampleData = require('./tests/topo2Highlights-sample.json');
+    const linkHightlights: LinkHighlight[] = <LinkHighlight[]><unknown>(highlightSampleData.payload.links);
 
     const emptyRegion: Region = <Region>{devices: [ [], [], [] ], hosts: [ [], [], [] ], links: []};
 
@@ -291,6 +297,24 @@ describe('ForceSvgComponent', () => {
         expect(component.graph.nodes.length).toBe(2);
 
         expect(component.graph.links.length).toBe(6);
+
+    });
+
+    it('should handle highlights and match them to existing links', () => {
+        component.regionData = topo2BaseRegionData;
+        component.ngOnChanges(
+            {'regionData' : new SimpleChange(<Region>{}, topo2BaseRegionData, true)});
+
+        expect(component.graph.links.length).toBe(9);
+
+        expect(linkHightlights.length).toBe(6);
+
+        // should be able to find all of the highlighted links in the original data set
+        linkHightlights.forEach((lh: LinkHighlight) => {
+            const foundLink = component.graph.links.find((l: Link) => l.id === Link.linkIdFromShowHighlights(lh.id));
+            expect(foundLink).toBeDefined();
+        });
+
 
     });
 });

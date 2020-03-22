@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
-import { HostNodeSvgComponent } from './hostnodesvg.component';
+import {HostNodeSvgComponent} from './hostnodesvg.component';
 import {ActivatedRoute, Params} from '@angular/router';
 import {of} from 'rxjs';
 import {LogService} from 'gui2-fw-lib';
-import {Host} from '../../models';
+import {Host, HostLabelToggle} from '../../models';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {ChangeDetectorRef} from '@angular/core';
 
@@ -36,6 +36,9 @@ describe('HostNodeSvgComponent', () => {
     let fixture: ComponentFixture<HostNodeSvgComponent>;
     let ar: MockActivatedRoute;
     let testHost: Host;
+
+    const topo2BaseData = require('../../tests/topo2Highlights-base-data.json');
+    const topo2BaseHostsData: Host[] = <Host[]><unknown>(topo2BaseData.payload.hosts[2]);
 
     beforeEach(async(() => {
         const logSpy = jasmine.createSpyObj('LogService', ['info', 'debug', 'warn', 'error']);
@@ -65,5 +68,25 @@ describe('HostNodeSvgComponent', () => {
 
     it('should create', () => {
         expect(component).toBeTruthy();
+    });
+
+    it('should be able to read host data properly', () => {
+        expect(topo2BaseHostsData.length).toBe(5);
+
+        expect(topo2BaseHostsData[0].id).toBe('00:00:00:00:00:30/None');
+
+        component.host = topo2BaseHostsData[0];
+        component.labelToggle = HostLabelToggle.Enum.NONE;
+        expect(component.hostName()).toBe('00:00:00:00:00:30/None');
+
+        component.labelToggle = HostLabelToggle.Enum.NAME;
+        expect(component.hostName()).toBe('h3');
+
+        component.labelToggle = HostLabelToggle.Enum.IP;
+        expect(component.hostName()).toBe('2001:2:3::1');
+
+        component.labelToggle = HostLabelToggle.Enum.MAC;
+        expect(component.hostName()).toBe('00:00:00:00:00:30/None');
+
     });
 });
