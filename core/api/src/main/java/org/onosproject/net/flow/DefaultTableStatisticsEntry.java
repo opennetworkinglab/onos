@@ -16,6 +16,8 @@
 package org.onosproject.net.flow;
 
 import org.onosproject.net.DeviceId;
+import com.google.common.base.MoreObjects.ToStringHelper;
+import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -57,11 +59,21 @@ public final class DefaultTableStatisticsEntry implements TableStatisticsEntry {
 
     @Override
     public String toString() {
-        return "device: " + deviceId + ", " +
-                "tableId: " + this.tableId + ", " +
-                "activeEntries: " + this.activeFlowEntries + ", " +
-                "packetsLookedUp: " + this.packetsLookedupCount + ", " +
-                "packetsMatched: " + this.packetsMatchedCount;
+        ToStringHelper toStringHelper = toStringHelper(this);
+        toStringHelper
+            .omitNullValues()
+            .add("Device ID", deviceId)
+            .add("Table ID", tableId)
+            .add("Active entries", activeFlowEntries);
+        if (hasPacketsLookedup()) {
+            toStringHelper.add("Packets looked-up", packetsLookedupCount);
+        }
+        toStringHelper.add("Packets matched", packetsMatchedCount);
+        if (hasMaxSize()) {
+            toStringHelper.add("Max size", maxSize);
+        }
+
+        return toStringHelper.toString();
     }
 
     @Override

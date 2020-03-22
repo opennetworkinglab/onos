@@ -22,6 +22,8 @@ import org.onlab.packet.VlanId;
 import java.util.List;
 import java.util.Objects;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 /**
  * Basic implementation of description of a legacy device interface.
  */
@@ -127,4 +129,17 @@ public class DefaultDeviceInterfaceDescription implements
     public int hashCode() {
         return Objects.hash(name, mode, vlans, isRateLimited, rateLimit);
     }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .omitNullValues()
+                .add("Device name", name())
+                .add("Device mode", mode())
+                .add("VLAN IDs", vlans())
+                .add("Rate limited", isRateLimited())
+                .add("Rate limit", rateLimit())
+                .toString();
+    }
+
 }
