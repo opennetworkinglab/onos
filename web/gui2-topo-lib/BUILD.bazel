@@ -43,6 +43,7 @@ ts_library(
         exclude = [
             "lib/layer/backgroundsvg/backgroundsvg.component.spec.ts",
             "lib/layer/forcesvg/forcesvg.component.spec.ts",
+            "lib/layer/forcesvg/visuals/hostnodesvg/hostnodesvg.component.spec.ts",
         ],
     ),
     tsconfig = "//web/gui2:tsconfig-test",

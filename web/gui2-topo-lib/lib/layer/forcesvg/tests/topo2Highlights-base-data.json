@@ -1,0 +1,380 @@
+{
+    "event": "topo2CurrentRegion",
+    "payload": {
+        "id": "(root)",
+        "subregions": [],
+        "links": [
+            {
+                "id": "device:leaf1/1~device:spine1/1",
+                "epA": "device:leaf1/1",
+                "epB": "device:spine1/1",
+                "type": "UiDeviceLink",
+                "portA": "1",
+                "portB": "1",
+                "rollup": [
+                    {
+                        "id": "device:leaf1/1~device:spine1/1",
+                        "epA": "device:leaf1/1",
+                        "epB": "device:spine1/1",
+                        "type": "UiDeviceLink",
+                        "portA": "1",
+                        "portB": "1"
+                    }
+                ]
+            },
+            {
+                "id": "device:leaf2/2~device:spine2/2",
+                "epA": "device:leaf2/2",
+                "epB": "device:spine2/2",
+                "type": "UiDeviceLink",
+                "portA": "2",
+                "portB": "2",
+                "rollup": [
+                    {
+                        "id": "device:leaf2/2~device:spine2/2",
+                        "epA": "device:leaf2/2",
+                        "epB": "device:spine2/2",
+                        "type": "UiDeviceLink",
+                        "portA": "2",
+                        "portB": "2"
+                    }
+                ]
+            },
+            {
+                "id": "00:00:00:00:00:1A/None~device:leaf1/3",
+                "epA": "00:00:00:00:00:1A/None",
+                "epB": "device:leaf1",
+                "type": "UiEdgeLink",
+                "portB": "3",
+                "rollup": [
+                    {
+                        "id": "00:00:00:00:00:1A/None~device:leaf1/3",
+                        "epA": "00:00:00:00:00:1A/None",
+                        "epB": "device:leaf1",
+                        "type": "UiEdgeLink",
+                        "portB": "3"
+                    }
+                ]
+            },
+            {
+                "id": "00:00:00:00:00:30/None~device:leaf2/3",
+                "epA": "00:00:00:00:00:30/None",
+                "epB": "device:leaf2",
+                "type": "UiEdgeLink",
+                "portB": "3",
+                "rollup": [
+                    {
+                        "id": "00:00:00:00:00:30/None~device:leaf2/3",
+                        "epA": "00:00:00:00:00:30/None",
+                        "epB": "device:leaf2",
+                        "type": "UiEdgeLink",
+                        "portB": "3"
+                    }
+                ]
+            },
+            {
+                "id": "device:leaf1/2~device:spine2/1",
+                "epA": "device:leaf1/2",
+                "epB": "device:spine2/1",
+                "type": "UiDeviceLink",
+                "portA": "2",
+                "portB": "1",
+                "rollup": [
+                    {
+                        "id": "device:leaf1/2~device:spine2/1",
+                        "epA": "device:leaf1/2",
+                        "epB": "device:spine2/1",
+                        "type": "UiDeviceLink",
+                        "portA": "2",
+                        "portB": "1"
+                    }
+                ]
+            },
+            {
+                "id": "device:leaf2/1~device:spine1/2",
+                "epA": "device:leaf2/1",
+                "epB": "device:spine1/2",
+                "type": "UiDeviceLink",
+                "portA": "1",
+                "portB": "2",
+                "rollup": [
+                    {
+                        "id": "device:leaf2/1~device:spine1/2",
+                        "epA": "device:leaf2/1",
+                        "epB": "device:spine1/2",
+                        "type": "UiDeviceLink",
+                        "portA": "1",
+                        "portB": "2"
+                    }
+                ]
+            },
+            {
+                "id": "00:00:00:00:00:20/None~device:leaf1/6",
+                "epA": "00:00:00:00:00:20/None",
+                "epB": "device:leaf1",
+                "type": "UiEdgeLink",
+                "portB": "6",
+                "rollup": [
+                    {
+                        "id": "00:00:00:00:00:20/None~device:leaf1/6",
+                        "epA": "00:00:00:00:00:20/None",
+                        "epB": "device:leaf1",
+                        "type": "UiEdgeLink",
+                        "portB": "6"
+                    }
+                ]
+            },
+            {
+                "id": "00:00:00:00:00:1C/None~device:leaf1/5",
+                "epA": "00:00:00:00:00:1C/None",
+                "epB": "device:leaf1",
+                "type": "UiEdgeLink",
+                "portB": "5",
+                "rollup": [
+                    {
+                        "id": "00:00:00:00:00:1C/None~device:leaf1/5",
+                        "epA": "00:00:00:00:00:1C/None",
+                        "epB": "device:leaf1",
+                        "type": "UiEdgeLink",
+                        "portB": "5"
+                    }
+                ]
+            },
+            {
+                "id": "00:00:00:00:00:1B/None~device:leaf1/4",
+                "epA": "00:00:00:00:00:1B/None",
+                "epB": "device:leaf1",
+                "type": "UiEdgeLink",
+                "portB": "4",
+                "rollup": [
+                    {
+                        "id": "00:00:00:00:00:1B/None~device:leaf1/4",
+                        "epA": "00:00:00:00:00:1B/None",
+                        "epB": "device:leaf1",
+                        "type": "UiEdgeLink",
+                        "portB": "4"
+                    }
+                ]
+            }
+        ],
+        "devices": [
+            [],
+            [],
+            [
+                {
+                    "id": "device:spine1",
+                    "nodeType": "device",
+                    "type": "switch",
+                    "online": true,
+                    "master": "172.24.0.3",
+                    "layer": "def",
+                    "props": {
+                        "managementAddress": "grpc://mininet:50003?device_id=1",
+                        "protocol": "P4Runtime, gNMI, gNOI",
+                        "gridX": "400.0",
+                        "gridY": "400.0",
+                        "driver": "stratum-bmv2",
+                        "name": "device:spine1",
+                        "p4DeviceId": "1",
+                        "locType": "grid"
+                    },
+                    "location": {
+                        "locType": "grid",
+                        "latOrY": 400.0,
+                        "longOrX": 400.0
+                    }
+                },
+                {
+                    "id": "device:spine2",
+                    "nodeType": "device",
+                    "type": "switch",
+                    "online": true,
+                    "master": "172.24.0.3",
+                    "layer": "def",
+                    "props": {
+                        "managementAddress": "grpc://mininet:50004?device_id=1",
+                        "protocol": "P4Runtime, gNMI, gNOI",
+                        "gridX": "600.0",
+                        "gridY": "400.0",
+                        "driver": "stratum-bmv2",
+                        "name": "device:spine2",
+                        "p4DeviceId": "1",
+                        "locType": "grid"
+                    },
+                    "location": {
+                        "locType": "grid",
+                        "latOrY": 400.0,
+                        "longOrX": 600.0
+                    }
+                },
+                {
+                    "id": "device:leaf2",
+                    "nodeType": "device",
+                    "type": "switch",
+                    "online": true,
+                    "master": "172.24.0.3",
+                    "layer": "def",
+                    "props": {
+                        "managementAddress": "grpc://mininet:50002?device_id=1",
+                        "protocol": "P4Runtime, gNMI, gNOI",
+                        "gridX": "800.0",
+                        "gridY": "600.0",
+                        "driver": "stratum-bmv2",
+                        "name": "device:leaf2",
+                        "p4DeviceId": "1",
+                        "locType": "grid"
+                    },
+                    "location": {
+                        "locType": "grid",
+                        "latOrY": 600.0,
+                        "longOrX": 800.0
+                    }
+                },
+                {
+                    "id": "device:leaf1",
+                    "nodeType": "device",
+                    "type": "switch",
+                    "online": true,
+                    "master": "172.24.0.3",
+                    "layer": "def",
+                    "props": {
+                        "managementAddress": "grpc://mininet:50001?device_id=1",
+                        "protocol": "P4Runtime, gNMI, gNOI",
+                        "gridX": "200.0",
+                        "gridY": "600.0",
+                        "driver": "stratum-bmv2",
+                        "name": "device:leaf1",
+                        "p4DeviceId": "1",
+                        "locType": "grid"
+                    },
+                    "location": {
+                        "locType": "grid",
+                        "latOrY": 600.0,
+                        "longOrX": 200.0
+                    }
+                }
+            ]
+        ],
+        "hosts": [
+            [],
+            [],
+            [
+                {
+                    "id": "00:00:00:00:00:30/None",
+                    "nodeType": "host",
+                    "layer": "def",
+                    "ips": [
+                        "2001:2:3::1"
+                    ],
+                    "props": {
+                        "gridX": "750.0",
+                        "gridY": "700.0",
+                        "latitude": null,
+                        "name": "h3",
+                        "locType": "grid",
+                        "longitude": null
+                    },
+                    "location": {
+                        "locType": "grid",
+                        "latOrY": 700.0,
+                        "longOrX": 750.0
+                    },
+                    "configured": false
+                },
+                {
+                    "id": "00:00:00:00:00:1A/None",
+                    "nodeType": "host",
+                    "layer": "def",
+                    "ips": [
+                        "2001:1:1::a"
+                    ],
+                    "props": {
+                        "gridX": "100.0",
+                        "gridY": "700.0",
+                        "latitude": null,
+                        "name": "h1a",
+                        "locType": "grid",
+                        "longitude": null
+                    },
+                    "location": {
+                        "locType": "grid",
+                        "latOrY": 700.0,
+                        "longOrX": 100.0
+                    },
+                    "configured": false
+                },
+                {
+                    "id": "00:00:00:00:00:1B/None",
+                    "nodeType": "host",
+                    "layer": "def",
+                    "ips": [
+                        "2001:1:1::b"
+                    ],
+                    "props": {
+                        "gridX": "100.0",
+                        "gridY": "800.0",
+                        "latitude": null,
+                        "name": "h1b",
+                        "locType": "grid",
+                        "longitude": null
+                    },
+                    "location": {
+                        "locType": "grid",
+                        "latOrY": 800.0,
+                        "longOrX": 100.0
+                    },
+                    "configured": false
+                },
+                {
+                    "id": "00:00:00:00:00:1C/None",
+                    "nodeType": "host",
+                    "layer": "def",
+                    "ips": [
+                        "2001:1:1::c"
+                    ],
+                    "props": {
+                        "gridX": "250.0",
+                        "gridY": "800.0",
+                        "latitude": null,
+                        "name": "h1c",
+                        "locType": "grid",
+                        "longitude": null
+                    },
+                    "location": {
+                        "locType": "grid",
+                        "latOrY": 800.0,
+                        "longOrX": 250.0
+                    },
+                    "configured": false
+                },
+                {
+                    "id": "00:00:00:00:00:20/None",
+                    "nodeType": "host",
+                    "layer": "def",
+                    "ips": [
+                        "2001:1:2::1"
+                    ],
+                    "props": {
+                        "gridX": "400.0",
+                        "gridY": "700.0",
+                        "latitude": null,
+                        "name": "h2",
+                        "locType": "grid",
+                        "longitude": null
+                    },
+                    "location": {
+                        "locType": "grid",
+                        "latOrY": 700.0,
+                        "longOrX": 400.0
+                    },
+                    "configured": false
+                }
+            ]
+        ],
+        "layerOrder": [
+            "opt",
+            "pkt",
+            "def"
+        ]
+    }
+}

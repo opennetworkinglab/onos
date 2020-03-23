@@ -69,8 +69,10 @@ export class HostNodeSvgComponent extends NodeVisual implements OnChanges {
             return this.host.ips.join(',');
         } else if (this.labelToggle === HostLabelToggle.Enum.MAC) {
             return this.host.id;
+        } else if (this.labelToggle === HostLabelToggle.Enum.NAME) {
+            return this.host.props.name;
         } else {
-            return this.host.id; // Todo - replace with a friendly name
+            return this.host.id;
         }
 
     }

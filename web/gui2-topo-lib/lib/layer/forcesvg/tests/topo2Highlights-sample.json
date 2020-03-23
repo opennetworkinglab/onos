@@ -1,0 +1,39 @@
+{
+  "event": "topo2Highlights",
+  "payload": {
+    "devices": [],
+    "hosts": [],
+    "links": [
+      {
+        "id": "device:leaf2/2~device:spine2/2",
+        "label": "964.91 Kbps",
+        "css": "secondary port-traffic-green"
+      },
+      {
+        "id": "device:leaf1/1~device:spine1/1",
+        "label": "3.92 Mbps",
+        "css": "secondary port-traffic-yellow"
+      },
+      {
+        "id": "00:00:00:00:00:30/None~device:leaf2/3",
+        "label": "4.46 Mbps",
+        "css": "secondary port-traffic-yellow"
+      },
+      {
+        "id": "device:leaf2/1~device:spine1/2",
+        "label": "3.53 Mbps",
+        "css": "secondary port-traffic-yellow"
+      },
+      {
+        "id": "device:leaf1/2~device:spine2/1",
+        "label": "1.06 Mbps",
+        "css": "secondary port-traffic-yellow"
+      },
+      {
+        "id": "00:00:00:00:00:20/None~device:leaf1/6",
+        "label": "4.98 Mbps",
+        "css": "secondary port-traffic-yellow"
+      }
+    ]
+  }
+}
