@@ -96,6 +96,8 @@ public class Traffic2Monitor extends TrafficMonitorBase {
 
     @Override
     protected void clearSelection() {
+        selectedNodes = null;
+        selectedIntents = null;
     }
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
