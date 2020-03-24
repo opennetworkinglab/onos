@@ -46,6 +46,9 @@ onos-publish-catalog publishing-catalog
 
 # publish artifacts
 onos-upload-artifacts.py publishing-catalog ${publish_url}
+if [ $dryRun -eq 0 ]; then
+    onos-upload-artifacts.py
+else
 
 # Build ONOS archetypes & deploy to staging repo using the release profile.
 # Note that release of the staging repository is a separate manual step.
