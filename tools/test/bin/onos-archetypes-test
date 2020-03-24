@@ -19,7 +19,7 @@ _EOF_
 set -e
 
 export AROOT=${ONOS_STAGE_ROOT:-/tmp}/foo
-export ARCHETYPE_OPTS="-DarchetypeGroupId=org.onosproject -DarchetypeVersion=2.2.2-rc5"
+export ARCHETYPE_OPTS="-DarchetypeGroupId=org.onosproject -DarchetypeVersion=2.2.2-SNAPSHOT"
 
 mkdir -p $AROOT
 # FIXME: for an in api bundle cli rest ui uitab uitopo ui2; do
