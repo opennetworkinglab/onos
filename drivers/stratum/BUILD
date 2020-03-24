@@ -22,6 +22,7 @@ onos_app(
         "org.onosproject.generaldeviceprovider",
         "org.onosproject.drivers.gnmi",
         "org.onosproject.drivers.gnoi",
+        "org.onosproject.drivers.odtn-driver",
         "org.onosproject.drivers.p4runtime",
         "org.onosproject.pipelines.basic",
     ],
