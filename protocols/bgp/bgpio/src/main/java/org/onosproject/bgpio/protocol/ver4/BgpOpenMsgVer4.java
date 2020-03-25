@@ -30,6 +30,7 @@ import org.onosproject.bgpio.types.BgpHeader;
 import org.onosproject.bgpio.types.BgpValueType;
 import org.onosproject.bgpio.types.FourOctetAsNumCapabilityTlv;
 import org.onosproject.bgpio.types.MultiProtocolExtnCapabilityTlv;
+import org.onosproject.bgpio.types.RouteRefreshCapabilityTlv;
 import org.onosproject.bgpio.util.Validation;
 import org.onosproject.bgpio.util.Constants;
 import org.onosproject.bgpio.types.RpdCapabilityTlv;
@@ -297,6 +298,15 @@ public class BgpOpenMsgVer4 implements BgpOpenMsg {
                 byte safi = cb.readByte();
                 tlv = new MultiProtocolExtnCapabilityTlv(afi, res, safi);
 
+                break;
+            case RouteRefreshCapabilityTlv.TYPE:
+                log.debug("RouteRefreshCapabilityTlv");
+
+                if (RouteRefreshCapabilityTlv.LENGTH != length) {
+                    throw new BgpParseException("Invalid length received for RouteRefreshCapabilityTlv.");
+                }
+
+                tlv = new RouteRefreshCapabilityTlv(true);
                 break;
             default:
                 log.debug("Warning: Unsupported TLV: " + type);
