@@ -52,6 +52,13 @@ public interface BgpFactory {
     BgpUpdateMsg.Builder updateMessageBuilder();
 
     /**
+     * Gets the builder object for route refresh message.
+     *
+     * @return builder object for route refresh message
+     */
+    BgpRouteRefreshMsg.Builder routeRefreshMsgBuilder();
+
+    /**
      * Gets the BGP message reader.
      *
      * @return BGP message reader

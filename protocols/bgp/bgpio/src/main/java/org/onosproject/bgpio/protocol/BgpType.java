@@ -21,7 +21,7 @@ package org.onosproject.bgpio.protocol;
  */
 public enum BgpType {
 
-    NONE(0), OPEN(1), UPDATE(2), NOTIFICATION(3), KEEP_ALIVE(4);
+    NONE(0), OPEN(1), UPDATE(2), NOTIFICATION(3), KEEP_ALIVE(4), ROUTE_REFRESH(5);
 
     int value;
 

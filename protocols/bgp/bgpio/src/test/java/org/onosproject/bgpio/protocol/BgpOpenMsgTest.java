@@ -297,7 +297,7 @@ public class BgpOpenMsgTest {
         // OPEN Message with invalid message type.
         byte[] openMsg = new byte[] {(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
                                      (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
-                                     (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, 0x00, 0x1d, 0x05, 0X04,
+                                     (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, 0x00, 0x1d, 0x06, 0X04,
                                      (byte) 0xfe, 0x09, 0x00, (byte) 0xb4, (byte) 0xc0, (byte) 0xa8, 0x00, 0x0f, 0x00 };
 
         ChannelBuffer buffer = ChannelBuffers.dynamicBuffer();

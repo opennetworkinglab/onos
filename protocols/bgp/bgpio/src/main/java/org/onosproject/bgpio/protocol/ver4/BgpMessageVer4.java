@@ -36,6 +36,7 @@ public abstract class BgpMessageVer4 {
 
     static final byte OPEN_MSG_TYPE = 0x1;
     static final byte KEEPALIVE_MSG_TYPE = 0x4;
+    static final byte ROUTEREFRESH_MSG_TYPE = 0x5;
     static final byte UPDATE_MSG_TYPE = 0x2;
     static final byte NOTIFICATION_MSG_TYPE = 0x3;
     static final int MINIMUM_COMMON_HEADER_LENGTH = 19;
@@ -98,6 +99,9 @@ public abstract class BgpMessageVer4 {
                 case NOTIFICATION_MSG_TYPE:
                     log.debug("NOTIFICATION MESSAGE is received");
                     return BgpNotificationMsgVer4.READER.readFrom(cb.readBytes(len), bgpHeader);
+                case ROUTEREFRESH_MSG_TYPE:
+                    log.debug("ROUTEREFRESH MESSAGE is received");
+                    return BgpRouteRefreshMsgVer4.READER.readFrom(cb.readBytes(len), bgpHeader);
                 default:
                     Validation.validateType(BgpErrorType.MESSAGE_HEADER_ERROR, BgpErrorType.BAD_MESSAGE_TYPE, type);
                     return null;
