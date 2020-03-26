@@ -65,6 +65,11 @@ public class BgpConfig implements BgpCfg {
     //Set default connection type as IPv4
     private ConnectionType connectionType = ConnectionType.IPV4;
 
+    private boolean isRouteRefreshEnabled = false;
+    private long periodicTimer;
+    private long warmupTimer;
+    private long cooldownTimer;
+
     /*
      * Constructor to initialize the values.
      */
@@ -163,6 +168,46 @@ public class BgpConfig implements BgpCfg {
     @Override
     public void setConnectionType(ConnectionType connectionType) {
         this.connectionType = connectionType;
+    }
+
+    @Override
+    public boolean isRouteRefreshEnabled() {
+        return this.isRouteRefreshEnabled;
+    }
+
+    @Override
+    public void setRouteRefreshEnabled(boolean isEnabled) {
+        this.isRouteRefreshEnabled = isEnabled;
+    }
+
+    @Override
+    public long getRouteRefreshPeriodicTimer() {
+        return this.periodicTimer;
+    }
+
+    @Override
+    public void setRouteRefreshPeriodicTimer(long periodicTimer) {
+        this.periodicTimer = periodicTimer;
+    }
+
+    @Override
+    public long getRouteRefreshWarmupTimer() {
+        return this.warmupTimer;
+    }
+
+    @Override
+    public void setRouteRefreshWarmupTimer(long warmupTimer) {
+        this.warmupTimer = warmupTimer;
+    }
+
+    @Override
+    public long getRouteRefreshCooldownTimer() {
+        return this.cooldownTimer;
+    }
+
+    @Override
+    public void setRouteRefreshCooldownTimer(long cooldownTimer) {
+        this.cooldownTimer = cooldownTimer;
     }
 
     @Override
