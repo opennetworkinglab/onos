@@ -390,4 +390,60 @@ public interface BgpCfg {
      */
     void setConnectionType(ConnectionType connectionType);
 
+    /**
+     * Gets route refresh is enabled or not.
+     *
+     * @return route refresh enabled
+     */
+    boolean isRouteRefreshEnabled();
+
+    /**
+     * Sets if route refresh is enabled or disabled.
+     *
+     * @param isEnabled is route refresh enabled
+     */
+    void setRouteRefreshEnabled(boolean isEnabled);
+
+    /**
+     * Gets the value of route refresh periodic timer.
+     *
+     * @return route refresh periodic timer value
+     */
+    long getRouteRefreshPeriodicTimer();
+
+    /**
+     * Sets the value of route refresh periodic timer.
+     *
+     * @param periodicTimer value for periodic timer
+     */
+    void setRouteRefreshPeriodicTimer(long periodicTimer);
+
+    /**
+     * Gets the value of route refresh warmup timer.
+     *
+     * @return route refresh warmup timer value
+     */
+    long getRouteRefreshWarmupTimer();
+
+    /**
+     * Sets the value of route refresh warmup timer.
+     *
+     * @param warmupTimer value for warmup timer
+     */
+    void setRouteRefreshWarmupTimer(long warmupTimer);
+
+    /**
+     * Gets the value of route refresh cooldown timer.
+     *
+     * @return route refresh cooldown timer value
+     */
+    long getRouteRefreshCooldownTimer();
+
+    /**
+     * Sets the value of route refresh cooldown timer.
+     *
+     * @param cooldownTimer value for cooldown timer
+     */
+    void setRouteRefreshCooldownTimer(long cooldownTimer);
+
 }

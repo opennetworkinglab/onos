@@ -154,6 +154,11 @@ public class BgpCfgProvider extends AbstractProvider {
         }
 
         bgpConfig.setConnectionType(getBgpConnectionTypeFromConfig(config));
+
+        bgpConfig.setRouteRefreshEnabled(config.routeRefreshEnabled());
+        bgpConfig.setRouteRefreshPeriodicTimer(config.rrPeriodicTimer());
+        bgpConfig.setRouteRefreshWarmupTimer(config.rrWarmupTimer());
+        bgpConfig.setRouteRefreshCooldownTimer(config.rrCooldownTimer());
     }
 
     /**
@@ -262,6 +267,11 @@ public class BgpCfgProvider extends AbstractProvider {
         }
 
         bgpConfig.setConnectionType(getBgpConnectionTypeFromConfig(config));
+
+        bgpConfig.setRouteRefreshEnabled(config.routeRefreshEnabled());
+        bgpConfig.setRouteRefreshPeriodicTimer(config.rrPeriodicTimer());
+        bgpConfig.setRouteRefreshWarmupTimer(config.rrWarmupTimer());
+        bgpConfig.setRouteRefreshCooldownTimer(config.rrCooldownTimer());
     }
 
     /**

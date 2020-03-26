@@ -67,6 +67,11 @@ public class BgpAppConfig extends Config<ApplicationId> {
     public static final String CONNECTION_TYPE_IPV6 = "IPV6";
     public static final String CONNECTION_TYPE_IPV4_AND_IPV6 = "IPV4_IPV6";
 
+    public static final String ROUTE_REFRESH_ENABLED = "routeRefreshEnabled";
+    public static final String RR_PERIODIC_TIMER = "rrPeriodicTimer";
+    public static final String RR_COOLDOWN_TIMER = "rrCooldownTimer";
+    public static final String RR_WARMUP_TIMER = "rrWarmupTimer";
+
     static final int MAX_SHORT_AS_NUMBER = 65535;
     static final long MAX_LONG_AS_NUMBER = 4294967295L;
 
@@ -75,6 +80,18 @@ public class BgpAppConfig extends Config<ApplicationId> {
 
     static final int MIN_HOLDTIME = 0;
     static final long MAX_HOLDTIME = 65535;
+
+    static final String RR_ENABLED_DEFAULT_VALUE = "false";
+    static final String PERIODIC_TIMER_DEFAULT_VALUE = "1800"; //30 minutes
+    static final String COOLDOWN_TIMER_DEFAULT_VALUE = "300"; //5 minutes
+    static final String WARMUP_TIMER_DEFAULT_VALUE = "30"; //30 seconds
+
+    static final long MIN_PERIODIC_TIMER = 1;
+    static final long MAX_PERIODIC_TIMER = Integer.MAX_VALUE;
+    static final long MIN_COOLDOWN_TIMER = 1;
+    static final long MAX_COOLDOWN_TIMER = Integer.MAX_VALUE;
+    static final long MIN_WARMUP_TIMER = 1;
+    static final long MAX_WARMUP_TIMER = Integer.MAX_VALUE;
 
     @Override
     public boolean isValid() {
@@ -85,13 +102,18 @@ public class BgpAppConfig extends Config<ApplicationId> {
 
         fields = hasOnlyFields(ROUTER_ID, LOCAL_AS, MAX_SESSION, LS_CAPABILITY,
                                HOLD_TIME, LARGE_AS_CAPABILITY, FLOW_SPEC_CAPABILITY,
-                               FLOW_SPEC_RPD_CAPABILITY, BGP_PEER, EVPN_CAPABILITY, CONNECTION_TYPE) &&
+                               FLOW_SPEC_RPD_CAPABILITY, BGP_PEER, EVPN_CAPABILITY, CONNECTION_TYPE,
+                               ROUTE_REFRESH_ENABLED, RR_PERIODIC_TIMER, RR_COOLDOWN_TIMER, RR_WARMUP_TIMER) &&
                 isIpAddress(ROUTER_ID, MANDATORY) && isNumber(LOCAL_AS, MANDATORY) &&
                 isNumber(MAX_SESSION, OPTIONAL, MIN_SESSION_NUMBER, MAX_SESSION_NUMBER)
                 && isNumber(HOLD_TIME, OPTIONAL, MIN_HOLDTIME, MAX_HOLDTIME) &&
                 isBoolean(LS_CAPABILITY, OPTIONAL) && isBoolean(LARGE_AS_CAPABILITY, OPTIONAL) &&
                 isString(FLOW_SPEC_CAPABILITY, OPTIONAL) && isBoolean(FLOW_SPEC_RPD_CAPABILITY, OPTIONAL)
-                && isBoolean(EVPN_CAPABILITY, OPTIONAL) && isString(CONNECTION_TYPE, OPTIONAL);
+                && isBoolean(EVPN_CAPABILITY, OPTIONAL) && isString(CONNECTION_TYPE, OPTIONAL)
+                && isBoolean(ROUTE_REFRESH_ENABLED, OPTIONAL)
+                && isNumber(RR_PERIODIC_TIMER, OPTIONAL, MIN_PERIODIC_TIMER, MAX_PERIODIC_TIMER)
+                && isNumber(RR_COOLDOWN_TIMER, OPTIONAL, MIN_COOLDOWN_TIMER, MAX_COOLDOWN_TIMER)
+                && isNumber(RR_WARMUP_TIMER, OPTIONAL, MIN_WARMUP_TIMER, MAX_WARMUP_TIMER);
 
         if (!fields) {
             return fields;
@@ -179,6 +201,42 @@ public class BgpAppConfig extends Config<ApplicationId> {
      */
     public String connectionType() {
         return get(CONNECTION_TYPE, null);
+    }
+
+    /**
+     * Returns if route refresh is enabled in the configuration.
+     *
+     * @return route refresh enabled
+     */
+    public boolean routeRefreshEnabled() {
+        return Boolean.parseBoolean(get(ROUTE_REFRESH_ENABLED, RR_ENABLED_DEFAULT_VALUE));
+    }
+
+    /**
+     * Returns value of route refresh periodic timer from the configuration.
+     *
+     * @return route refresh periodic timer
+     */
+    public long rrPeriodicTimer() {
+        return Long.parseLong(get(RR_PERIODIC_TIMER, PERIODIC_TIMER_DEFAULT_VALUE));
+    }
+
+    /**
+     * Returns value of route refresh warmup timer from the configuration.
+     *
+     * @return route refresh warmup timer
+     */
+    public long rrWarmupTimer() {
+        return Long.parseLong(get(RR_WARMUP_TIMER, WARMUP_TIMER_DEFAULT_VALUE));
+    }
+
+    /**
+     * Returns value of route refresh cooldown timer from the configuration.
+     *
+     * @return route refresh cooldown timer
+     */
+    public long rrCooldownTimer() {
+        return Long.parseLong(get(RR_COOLDOWN_TIMER, COOLDOWN_TIMER_DEFAULT_VALUE));
     }
 
     /**
