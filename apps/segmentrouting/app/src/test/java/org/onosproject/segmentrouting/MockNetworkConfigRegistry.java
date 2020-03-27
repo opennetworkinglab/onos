@@ -16,10 +16,14 @@
 
 package org.onosproject.segmentrouting;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.config.Config;
 import org.onosproject.net.config.NetworkConfigRegistryAdapter;
+import org.onosproject.net.config.basics.BasicDeviceConfig;
 
 import java.util.Objects;
 import java.util.Set;
@@ -40,6 +44,25 @@ class MockNetworkConfigRegistry extends NetworkConfigRegistryAdapter {
                 .filter(config -> subject.equals(config.subject()))
                 .filter(config -> configClass.equals(config.getClass()))
                 .findFirst().orElse(null);
+        return (C) c;
+    }
+
+    @Override
+    public <S, C extends Config<S>> C addConfig(S subject, Class<C> configClass) {
+        Config c = configs.stream()
+                .filter(config -> subject.equals(config.subject()))
+                .filter(config -> configClass.equals(config.getClass()))
+                .findFirst().orElseGet(() -> {
+                    if (configClass.equals(BasicDeviceConfig.class)) {
+                        BasicDeviceConfig deviceConfig = new BasicDeviceConfig();
+                        ObjectMapper mapper = new ObjectMapper();
+                        deviceConfig.init((DeviceId) subject, ((DeviceId) subject).toString(),
+                                          JsonNodeFactory.instance.objectNode(), mapper, config -> {
+                                });
+                        return deviceConfig;
+                    }
+                    return null;
+                });
         return (C) c;
     }
 

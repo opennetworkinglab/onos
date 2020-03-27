@@ -139,6 +139,7 @@ public class IcmpHandlerTest {
 
         // Apply config
         MockNetworkConfigRegistry mockNetworkConfigRegistry = new MockNetworkConfigRegistry();
+
         mockNetworkConfigRegistry.applyConfig(remoteLeafConfig);
         mockNetworkConfigRegistry.applyConfig(remoteLeafPorts1Config);
         mockNetworkConfigRegistry.applyConfig(remoteLeafPorts2Config);
