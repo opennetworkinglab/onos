@@ -31,6 +31,8 @@ import org.onosproject.core.IdGenerator;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.config.NetworkConfigRegistry;
+import org.onosproject.net.config.basics.BasicDeviceConfig;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
@@ -173,6 +175,9 @@ public class FlowRuleManager
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ClusterService clusterService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected NetworkConfigRegistry netCfgService;
 
     @Activate
     public void activate(ComponentContext context) {
@@ -828,7 +833,14 @@ public class FlowRuleManager
                 case DEVICE_AVAILABILITY_CHANGED:
                     DeviceId deviceId = event.subject().id();
                     if (!deviceService.isAvailable(deviceId)) {
-                        if (purgeOnDisconnection) {
+                        BasicDeviceConfig cfg = netCfgService.getConfig(deviceId, BasicDeviceConfig.class);
+                        //if purgeOnDisconnection is set for the device or it's a global configuration
+                        // lets remove the flows. Priority is given to the per device flag
+                        boolean purge = cfg != null && cfg.isPurgeOnDisconnectionConfigured() ?
+                                cfg.purgeOnDisconnection() : purgeOnDisconnection;
+                        if (purge) {
+                            log.info("PurgeOnDisconnection is requested for device {}, " +
+                                             "removing flows", deviceId);
                             store.purgeFlowRule(deviceId);
                         }
                     }

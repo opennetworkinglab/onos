@@ -18,6 +18,7 @@ package org.onosproject.segmentrouting.config;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.Before;
@@ -29,6 +30,7 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.config.NetworkConfigRegistry;
+import org.onosproject.net.config.basics.BasicDeviceConfig;
 import org.onosproject.net.config.basics.InterfaceConfig;
 import org.onosproject.net.host.InterfaceIpAddress;
 import org.onosproject.net.intf.Interface;
@@ -73,10 +75,12 @@ public class DeviceConfigurationTest {
 
     private DeviceConfiguration devConfig;
 
+    private NetworkConfigRegistry networkConfigService;
+
     @Before
     public void setUp() throws Exception {
         InterfaceService interfaceService;
-        NetworkConfigRegistry networkConfigService;
+        networkConfigService = null;
         NeighbourResolutionService neighbourResolutionService;
         SegmentRoutingManager srManager;
 
@@ -86,6 +90,10 @@ public class DeviceConfigurationTest {
         JsonNode jsonNode = mapper.readTree(jsonStream);
         SegmentRoutingDeviceConfig srDevConfig = new SegmentRoutingDeviceConfig();
         srDevConfig.init(DEV1, CONFIG_KEY, jsonNode, mapper, config -> { });
+        BasicDeviceConfig basicDeviceConfig = new BasicDeviceConfig();
+        basicDeviceConfig.init(DEV1, DEV1.toString(), JsonNodeFactory.instance.objectNode(), mapper, config -> { });
+        BasicDeviceConfig purgeOnDisconnectConfig = basicDeviceConfig.purgeOnDisconnection(true);
+
 
         // Mock interface netcfg
         jsonStream = InterfaceConfig.class.getResourceAsStream("/interface1.json");
@@ -102,6 +110,12 @@ public class DeviceConfigurationTest {
                 .andReturn(Sets.newHashSet(DEV1)).anyTimes();
         expect(networkConfigService.getConfig(DEV1, SegmentRoutingDeviceConfig.class))
                 .andReturn(srDevConfig).anyTimes();
+        expect(networkConfigService.addConfig(DEV1, BasicDeviceConfig.class))
+                .andReturn(basicDeviceConfig).anyTimes();
+        expect(networkConfigService.getConfig(DEV1, BasicDeviceConfig.class))
+                .andReturn(basicDeviceConfig).anyTimes();
+        expect(networkConfigService.applyConfig(DEV1, BasicDeviceConfig.class, purgeOnDisconnectConfig.node()))
+                .andReturn(purgeOnDisconnectConfig).anyTimes();
         expect(networkConfigService.getSubjects(ConnectPoint.class, InterfaceConfig.class))
                 .andReturn(Sets.newHashSet(CP1, CP2)).anyTimes();
         expect(networkConfigService.getConfig(CP1, InterfaceConfig.class)).andReturn(interfaceConfig1).anyTimes();
@@ -156,5 +170,11 @@ public class DeviceConfigurationTest {
         assertTrue(devConfig.inSameSubnet(DEV1, PREFIX1.address()));
         assertTrue(devConfig.inSameSubnet(DEV1, PREFIX2.address()));
         assertFalse(devConfig.inSameSubnet(DEV1, ROUTE1.address()));
+    }
+
+    @Test
+    public void getPurgeOnDisconnect() {
+        assertNotNull(networkConfigService.getConfig(DEV1, BasicDeviceConfig.class));
+        assertTrue(networkConfigService.getConfig(DEV1, BasicDeviceConfig.class).purgeOnDisconnection());
     }
 }

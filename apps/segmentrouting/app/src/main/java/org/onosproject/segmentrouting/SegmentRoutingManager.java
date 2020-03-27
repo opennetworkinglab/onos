@@ -486,10 +486,6 @@ public class SegmentRoutingManager implements SegmentRoutingService {
         l2TunnelHandler = new DefaultL2TunnelHandler(this);
         topologyHandler = new TopologyHandler(this);
 
-        compCfgService.preSetProperty("org.onosproject.net.group.impl.GroupManager",
-                                      "purgeOnDisconnection", "true", false);
-        compCfgService.preSetProperty("org.onosproject.net.flow.impl.FlowRuleManager",
-                                      "purgeOnDisconnection", "true", false);
         compCfgService.preSetProperty("org.onosproject.provider.host.impl.HostLocationProvider",
                                       "requestInterceptsEnabled", "false", false);
         compCfgService.preSetProperty("org.onosproject.net.neighbour.impl.NeighbourResolutionManager",
