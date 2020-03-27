@@ -20,6 +20,8 @@ import org.onlab.util.TriConsumer;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.config.NetworkConfigRegistry;
+import org.onosproject.net.config.basics.BasicDeviceConfig;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
@@ -114,6 +116,9 @@ public class MeterManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MastershipService mastershipService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected NetworkConfigRegistry netCfgService;
+
     /** Number of worker threads. */
     private int numThreads = MM_NUM_THREADS_DEFAULT;
 
@@ -189,11 +194,11 @@ public class MeterManager
         flag = Tools.isPropertyEnabled(properties, MM_PURGE_ON_DISCONNECTION);
         if (flag == null) {
             log.info("PurgeOnDisconnection is not configured," +
-                    "using current value of {}", purgeOnDisconnection);
+                             "using current value of {}", purgeOnDisconnection);
         } else {
             purgeOnDisconnection = flag;
             log.info("Configured. PurgeOnDisconnection is {}",
-                    purgeOnDisconnection ? "enabled" : "disabled");
+                     purgeOnDisconnection ? "enabled" : "disabled");
         }
 
         String s = get(properties, MM_FALLBACK_METER_POLL_FREQUENCY);
@@ -442,7 +447,14 @@ public class MeterManager
                 case DEVICE_AVAILABILITY_CHANGED:
                     DeviceId deviceId = event.subject().id();
                     if (!deviceService.isAvailable(deviceId)) {
-                        if (purgeOnDisconnection) {
+                        BasicDeviceConfig cfg = netCfgService.getConfig(deviceId, BasicDeviceConfig.class);
+                        //if purgeOnDisconnection is set for the device or it's a global configuration
+                        // lets remove the meters.
+                        boolean purge = cfg != null && cfg.isPurgeOnDisconnectionConfigured() ?
+                                cfg.purgeOnDisconnection() : purgeOnDisconnection;
+                        if (purge) {
+                            log.info("PurgeOnDisconnection is requested for device {}, " +
+                                             "removing meters", deviceId);
                             store.purgeMeter(deviceId);
                         }
                     }

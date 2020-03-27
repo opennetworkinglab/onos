@@ -21,6 +21,8 @@ import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.config.NetworkConfigRegistry;
+import org.onosproject.net.config.basics.BasicDeviceConfig;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
@@ -114,6 +116,9 @@ public class GroupManager
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected MastershipService mastershipService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected NetworkConfigRegistry netCfgService;
+
     /** Frequency (in seconds) for polling groups via fallback provider. */
     private int fallbackGroupPollFrequency = GM_POLL_FREQUENCY_DEFAULT;
 
@@ -169,11 +174,11 @@ public class GroupManager
         flag = Tools.isPropertyEnabled(properties, GM_PURGE_ON_DISCONNECTION);
         if (flag == null) {
             log.info("PurgeOnDisconnection is not configured, " +
-                    "using current value of {}", purgeOnDisconnection);
+                             "using current value of {}", purgeOnDisconnection);
         } else {
             purgeOnDisconnection = flag;
             log.info("Configured. PurgeOnDisconnection is {}",
-                    purgeOnDisconnection ? "enabled" : "disabled");
+                     purgeOnDisconnection ? "enabled" : "disabled");
         }
         String s = get(properties, GM_POLL_FREQUENCY);
         try {
@@ -451,8 +456,14 @@ public class GroupManager
                         log.debug("Device {} became unavailable for {}; clearing initial audit status",
                                 deviceId, event.type());
                         store.deviceInitialAuditCompleted(deviceId, false);
-
-                        if (purgeOnDisconnection) {
+                        BasicDeviceConfig cfg = netCfgService.getConfig(deviceId, BasicDeviceConfig.class);
+                        //if purgeOnDisconnection is set for the device or it's a global configuration
+                        // lets remove the groups.
+                        boolean purge = cfg != null && cfg.isPurgeOnDisconnectionConfigured() ?
+                                cfg.purgeOnDisconnection() : purgeOnDisconnection;
+                        if (purge) {
+                            log.info("PurgeOnDisconnection is requested for device {}, " +
+                                             "removing groups", deviceId);
                             store.purgeGroupEntry(deviceId);
                         }
                     }
