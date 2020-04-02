@@ -703,7 +703,7 @@ public class OpenstackSecurityGroupHandler {
         }
 
         log.info("Reset security group info " +
-                (useSecurityGroup ? " with " : " without") + " Security Group");
+                (getUseSecurityGroupFlag() ? " with " : " without") + " Security Group");
     }
 
     private void securityGroupRuleAdded(SecurityGroupRule sgRule) {
@@ -820,7 +820,7 @@ public class OpenstackSecurityGroupHandler {
 
         @Override
         public boolean isRelevant(InstancePortEvent event) {
-            return useSecurityGroup;
+            return getUseSecurityGroupFlag();
         }
 
         private boolean isRelevantHelper(InstancePortEvent event) {
@@ -965,7 +965,7 @@ public class OpenstackSecurityGroupHandler {
                 return false;
             }
 
-            return useSecurityGroup;
+            return getUseSecurityGroupFlag();
         }
 
         private boolean isRelevantHelper(OpenstackNetworkEvent event) {
@@ -1005,7 +1005,7 @@ public class OpenstackSecurityGroupHandler {
                 return false;
             }
 
-            return useSecurityGroup;
+            return getUseSecurityGroupFlag();
         }
 
         private boolean isRelevantHelper(OpenstackNetworkEvent event) {
@@ -1075,7 +1075,7 @@ public class OpenstackSecurityGroupHandler {
 
         @Override
         public boolean isRelevant(OpenstackSecurityGroupEvent event) {
-            return useSecurityGroup;
+            return getUseSecurityGroupFlag();
         }
 
         private boolean isRelevantHelper() {
@@ -1176,7 +1176,7 @@ public class OpenstackSecurityGroupHandler {
             }
 
             log.info("Reset security group info " +
-                    (useSecurityGroup ? " with " : " without") + " Security Group");
+                    (getUseSecurityGroupFlag() ? " with " : " without") + " Security Group");
         }
     }
 }
