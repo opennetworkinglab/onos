@@ -899,6 +899,7 @@ public class DistributedGroupStore
                   existing.id(),
                   existing.deviceId(),
                   existing.state());
+        // TODO is this really safe ?
         synchronized (existing) {
             existing.setState(GroupState.PENDING_DELETE);
             getGroupStoreKeyMap().
@@ -908,6 +909,36 @@ public class DistributedGroupStore
         log.debug("deleteGroupDescriptionInternal: in device {} issuing GROUP_REMOVE_REQUESTED",
                   deviceId);
         notifyDelegate(new GroupEvent(Type.GROUP_REMOVE_REQUESTED, existing));
+    }
+
+    /**
+     * Updates the stats of an existing group entry.
+     *
+     * @param group the new stats
+     * @param existing the existing group
+     */
+    private void updateGroupEntryStatsInternal(Group group, StoredGroupEntry existing) {
+        for (GroupBucket bucket : group.buckets().buckets()) {
+            Optional<GroupBucket> matchingBucket =
+                    existing.buckets().buckets()
+                            .stream()
+                            .filter((existingBucket) -> (existingBucket.equals(bucket)))
+                            .findFirst();
+            if (matchingBucket.isPresent()) {
+                ((StoredGroupBucketEntry) matchingBucket.
+                        get()).setPackets(bucket.packets());
+                ((StoredGroupBucketEntry) matchingBucket.
+                        get()).setBytes(bucket.bytes());
+            } else {
+                log.warn("updateGroupEntryStatsInternal: No matching bucket {}" +
+                        " to update stats", bucket);
+            }
+        }
+        existing.setLife(group.life());
+        existing.setPackets(group.packets());
+        existing.setBytes(group.bytes());
+        existing.setReferenceCount(group.referenceCount());
+        existing.setFailedRetryCount(0);
     }
 
     /**
@@ -926,28 +957,10 @@ public class DistributedGroupStore
             log.trace("addOrUpdateGroupEntry: updating group entry {} in device {}",
                       group.id(),
                       group.deviceId());
+            // TODO is this really safe ?
             synchronized (existing) {
-                for (GroupBucket bucket : group.buckets().buckets()) {
-                    Optional<GroupBucket> matchingBucket =
-                            existing.buckets().buckets()
-                                    .stream()
-                                    .filter((existingBucket) -> (existingBucket.equals(bucket)))
-                                    .findFirst();
-                    if (matchingBucket.isPresent()) {
-                        ((StoredGroupBucketEntry) matchingBucket.
-                                get()).setPackets(bucket.packets());
-                        ((StoredGroupBucketEntry) matchingBucket.
-                                get()).setBytes(bucket.bytes());
-                    } else {
-                        log.warn("addOrUpdateGroupEntry: No matching "
-                                         + "buckets to update stats");
-                    }
-                }
-                existing.setLife(group.life());
-                existing.setPackets(group.packets());
-                existing.setBytes(group.bytes());
-                existing.setReferenceCount(group.referenceCount());
-                existing.setFailedRetryCount(0);
+                // Update stats
+                updateGroupEntryStatsInternal(group, existing);
                 if ((existing.state() == GroupState.PENDING_ADD) ||
                         (existing.state() == GroupState.PENDING_ADD_RETRY)) {
                     log.trace("addOrUpdateGroupEntry: group entry {} in device {} moving from {} to ADDED",
@@ -972,13 +985,65 @@ public class DistributedGroupStore
                                                     existing.appCookie()), existing);
             }
         } else {
-            log.warn("addOrUpdateGroupEntry: Group update "
-                             + "happening for a non-existing entry in the map");
+            log.warn("addOrUpdateGroupEntry: Group update {} " +
+                    "happening for a non-existing entry in the map", group);
         }
 
-        // XXX if map is going to trigger event, is this one needed?
+        // TODO if map is going to trigger event, is this one needed?
         if (event != null) {
             notifyDelegate(event);
+        }
+    }
+
+    /**
+     * Updates stats of an existing entry.
+     *
+     * @param group group entry
+     */
+    private void updateGroupEntryStats(Group group) {
+        // check if this new entry is an update to an existing entry
+        StoredGroupEntry existing = getStoredGroupEntry(group.deviceId(),
+                                                        group.id());
+        if (existing != null) {
+            log.trace("updateStatsGroupEntry: updating group entry {} in device {}",
+                      group.id(),
+                      group.deviceId());
+            // TODO is this really safe ?
+            synchronized (existing) {
+                // We don't make further update - it will be gone after the next update
+                if (existing.state() == GroupState.PENDING_DELETE) {
+                    log.trace("updateStatsGroupEntry: group entry {} in device {} is in {} not updated",
+                              existing.id(),
+                              existing.deviceId(),
+                              existing.state());
+                    return;
+                }
+                // Update stats
+                updateGroupEntryStatsInternal(group, existing);
+                if ((existing.state() == GroupState.PENDING_ADD) ||
+                        (existing.state() == GroupState.PENDING_ADD_RETRY)) {
+                    log.trace("updateStatsGroupEntry: group entry {} in device {} moving from {} to ADDED",
+                              existing.id(),
+                              existing.deviceId(),
+                              existing.state());
+                    existing.setState(GroupState.ADDED);
+                    existing.setIsGroupStateAddedFirstTime(true);
+                } else {
+                    log.trace("updateStatsGroupEntry: group entry {} in device {} moving from {} to ADDED",
+                              existing.id(),
+                              existing.deviceId(),
+                              GroupState.PENDING_UPDATE);
+                    existing.setState(GroupState.ADDED);
+                    existing.setIsGroupStateAddedFirstTime(false);
+                }
+                //Re-PUT map entries to trigger map update events
+                getGroupStoreKeyMap().
+                        put(new GroupStoreKeyMapKey(existing.deviceId(),
+                                                    existing.appCookie()), existing);
+            }
+        } else {
+            log.warn("updateStatsGroupEntry: Group update {} "
+                    + "happening for a non-existing entry in the map", group);
         }
     }
 
@@ -1571,6 +1636,6 @@ public class DistributedGroupStore
     private void groupAdded(Group group) {
         log.trace("Group {} Added or Updated in device {}",
                   group, group.deviceId());
-        addOrUpdateGroupEntry(group);
+        updateGroupEntryStats(group);
     }
 }
