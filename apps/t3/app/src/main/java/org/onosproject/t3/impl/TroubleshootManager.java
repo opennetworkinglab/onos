@@ -1174,7 +1174,16 @@ public class TroubleshootManager implements TroubleshootService {
                                            Builder builder, List<PortNumber> outputPorts,
                                            ConnectPoint in, List<ConnectPoint> completePath) {
         List<Instruction> groupInstructionlist = new ArrayList<>();
-        for (Instruction instruction : instructions) {
+        // sort instructions according to priority (larger Instruction.Type ENUM constant first)
+        // which enables to treat other actions before the OUTPUT action
+        //TODO improve the priority scheme according to the OpenFlow ActionSet spec
+        List<Instruction> instructionsSorted = new ArrayList<>();
+        instructionsSorted.addAll(instructions);
+        instructionsSorted.sort((instr1, instr2) -> {
+            return Integer.compare(instr2.type().ordinal(), instr1.type().ordinal());
+        });
+
+        for (Instruction instruction : instructionsSorted) {
             log.debug("Considering Instruction {}", instruction);
             //if the instruction is not group we need to update the packet or add the output
             //to the possible outputs for this packet
