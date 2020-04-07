@@ -199,6 +199,39 @@ final class T3TestObjects {
 
     static final ConnectPoint GROUP_FLOW_OUT_CP = ConnectPoint.deviceConnectPoint(GROUP_FLOW_DEVICE + "/" + 2);
 
+    // Group multiple action order test
+    static final DeviceId ACTION_ORDER_DEVICE = DeviceId.deviceId("ActionOrderDevice");
+    private static final VlanId ACTION_ORDER_VLAN_ID = VlanId.vlanId("999");
+    static final MplsLabel ACTION_ORDER_MPLS_LABEL = MplsLabel.mplsLabel("999");
+    private static final TrafficTreatment ACTION_ORDER_FLOW_TREATMENT = DefaultTrafficTreatment.builder()
+            .pushVlan()
+            .setVlanId(ACTION_ORDER_VLAN_ID)
+            .group(GROUP_ID)
+            .build();
+    private static final FlowRule ACTION_ORDER_FLOW = DefaultFlowEntry.builder().forDevice(ACTION_ORDER_DEVICE)
+            .forTable(0)
+            .withPriority(100)
+            .withSelector(SINGLE_FLOW_SELECTOR)
+            .withTreatment(ACTION_ORDER_FLOW_TREATMENT)
+            .fromApp(new DefaultApplicationId(0, "TestApp"))
+            .makePermanent()
+            .build();
+    static final FlowEntry ACTION_ORDER_FLOW_ENTRY = new DefaultFlowEntry(ACTION_ORDER_FLOW);
+    private static final TrafficTreatment ACTION_ORDER_GROUP_TREATMENT = DefaultTrafficTreatment.builder()
+            // make lower order actions come first
+            .setOutput(PortNumber.portNumber(2))
+            .setMpls(ACTION_ORDER_MPLS_LABEL)
+            .pushMpls()
+            .popVlan()
+            .build();
+    private static final GroupBucket ACTION_ORDER_BUCKET = DefaultGroupBucket
+            .createSelectGroupBucket(ACTION_ORDER_GROUP_TREATMENT);
+    private static final GroupBuckets ACTION_ORDER_BUCKETS = new GroupBuckets(ImmutableList.of(ACTION_ORDER_BUCKET));
+    static final Group ACTION_ORDER_GROUP = new DefaultGroup(
+            GROUP_ID, ACTION_ORDER_DEVICE, Group.Type.SELECT, ACTION_ORDER_BUCKETS);
+    static final ConnectPoint ACTION_ORDER_IN_CP = ConnectPoint.deviceConnectPoint(ACTION_ORDER_DEVICE + "/" + 1);
+    static final ConnectPoint ACTION_ORDER_OUT_CP = ConnectPoint.deviceConnectPoint(ACTION_ORDER_DEVICE + "/" + 2);
+
     //topology
 
     static final DeviceId TOPO_FLOW_DEVICE = DeviceId.deviceId("SingleFlowDevice1");
