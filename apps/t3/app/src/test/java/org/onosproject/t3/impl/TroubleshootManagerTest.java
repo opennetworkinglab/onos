@@ -47,6 +47,7 @@ import org.onosproject.net.flow.FlowRuleServiceAdapter;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.EthTypeCriterion;
+import org.onosproject.net.flow.criteria.MplsCriterion;
 import org.onosproject.net.flow.criteria.VlanIdCriterion;
 import org.onosproject.net.group.Group;
 import org.onosproject.net.group.GroupServiceAdapter;
@@ -231,6 +232,27 @@ public class TroubleshootManagerTest {
                 .get(0).getFinalPacket().getCriterion(Criterion.Type.MPLS_LABEL));
         assertNull("Packet should not have MPLS Label", traceSuccess.getGroupOuputs(GROUP_FLOW_DEVICE)
                 .get(0).getFinalPacket().getCriterion(Criterion.Type.MPLS_BOS));
+
+    }
+
+    /**
+     * Test a single flow rule that points to a group with multiple actions
+     * that need to be executed in the order specified in the OpenFlow spec.
+     */
+    @Test
+    public void testGroupMultipleActionsOrdered() {
+
+        StaticPacketTrace traceSuccess = testSuccess(
+                PACKET_OK, ACTION_ORDER_IN_CP, ACTION_ORDER_DEVICE, ACTION_ORDER_OUT_CP, 1, 1);
+
+        assertEquals("Packet should not have VLAN ID",
+                VlanId.NONE,
+                ((VlanIdCriterion) traceSuccess.getGroupOuputs(ACTION_ORDER_DEVICE)
+                        .get(0).getFinalPacket().getCriterion(Criterion.Type.VLAN_VID)).vlanId());
+        assertEquals("Packet should have MPLS label",
+                ACTION_ORDER_MPLS_LABEL,
+                ((MplsCriterion) traceSuccess.getGroupOuputs(ACTION_ORDER_DEVICE)
+                        .get(0).getFinalPacket().getCriterion(Criterion.Type.MPLS_LABEL)).label());
 
     }
 
@@ -457,6 +479,8 @@ public class TroubleshootManagerTest {
                 return ImmutableList.of(DUAL_HOME_FLOW_ENTRY);
             } else if (deviceId.equals(DUAL_HOME_DEVICE_2) || deviceId.equals(DUAL_HOME_DEVICE_3)) {
                 return ImmutableList.of(DUAL_HOME_OUT_FLOW_ENTRY);
+            } else if (deviceId.equals(ACTION_ORDER_DEVICE)) {
+                return ImmutableList.of(ACTION_ORDER_FLOW_ENTRY);
             }
             return ImmutableList.of();
         }
@@ -489,6 +513,8 @@ public class TroubleshootManagerTest {
                 return ImmutableList.of(NO_BUCKET_GROUP);
             } else if (deviceId.equals(DUAL_HOME_DEVICE_1)) {
                 return ImmutableList.of(DUAL_HOME_GROUP);
+            } else if (deviceId.equals(ACTION_ORDER_DEVICE)) {
+                return ImmutableList.of(ACTION_ORDER_GROUP);
             }
             return ImmutableList.of();
         }
@@ -509,7 +535,8 @@ public class TroubleshootManagerTest {
                     connectPoint.equals(HARDWARE_DEVICE_OUT_CP) ||
                     connectPoint.equals(HARDWARE_DEVICE_10_OUT_CP) ||
                     connectPoint.equals(DEFERRED_CP_2_OUT) ||
-                    connectPoint.equals(DUAL_LINK_3_CP_3_OUT)) {
+                    connectPoint.equals(DUAL_LINK_3_CP_3_OUT) ||
+                    connectPoint.equals(ACTION_ORDER_OUT_CP)) {
                 return ImmutableSet.of(H1);
             }
             if (connectPoint.equals(DUAL_HOME_CP_2_2) || connectPoint.equals(DUAL_HOME_CP_3_2)) {
