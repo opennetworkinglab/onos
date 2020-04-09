@@ -17,6 +17,7 @@ package org.onosproject.codec.impl;
 
 import com.codahale.metrics.Metric;
 import com.google.common.collect.ImmutableSet;
+import org.onosproject.net.intf.Interface;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -161,6 +162,7 @@ public class CodecManager implements CodecService {
         registerCodec(PiTableModel.class, new PiTableModelCodec());
         registerCodec(PiMatchFieldModel.class, new PiMatchFieldModelCodec());
         registerCodec(PiActionParamModel.class, new PiActionParamModelCodec());
+        registerCodec(Interface.class, new InterfaceCodec());
         log.info("Started");
     }
 

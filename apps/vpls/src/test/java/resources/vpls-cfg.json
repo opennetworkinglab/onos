@@ -1,0 +1,67 @@
+{
+  "ports": {
+    "of:0000000000000001/1": {
+      "interfaces": [
+        {
+          "name": "h1",
+          "vlan": "100"
+        }
+      ]
+    },
+    "of:0000000000000002/1": {
+      "interfaces": [
+        {
+          "name": "h2",
+          "vlan": "200"
+        }
+      ]
+    },
+    "of:0000000000000003/1": {
+      "interfaces": [
+        {
+          "name": "h3",
+          "vlan": "300"
+        }
+      ]
+    },
+    "of:0000000000000004/1": {
+      "interfaces": [
+        {
+          "name": "h4",
+          "vlan": "400"
+        }
+      ]
+    },
+    "of:0000000000000005/1": {
+      "interfaces": [
+        {
+          "name": "h5"
+        }
+      ]
+    },
+    "of:0000000000000006/1": {
+      "interfaces": [
+        {
+          "name": "h6"
+        }
+      ]
+    }
+  },
+  "apps" : {
+    "org.onosproject.vpls" : {
+      "vpls" : {
+        "vplsList" : [
+          {
+            "name" : "VPLS1",
+            "interfaces" : ["h1", "h2", "h5", "h6"]
+          },
+          {
+            "name" : "VPLS2",
+            "interfaces" : ["h3", "h4"],
+            "encapsulation" : "vlan"
+          }
+        ]
+      }
+    }
+  }
+}

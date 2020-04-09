@@ -19,6 +19,8 @@ import com.google.common.collect.ImmutableSet;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onosproject.codec.CodecService;
+import org.onosproject.codec.JsonCodec;
 import org.onosproject.net.EncapsulationType;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.vpls.api.VplsData;
@@ -27,6 +29,7 @@ import org.onosproject.vpls.api.VplsOperationService;
 import org.onosproject.vpls.store.VplsStoreEvent;
 
 import java.util.Collection;
+import java.util.Set;
 
 import static org.junit.Assert.*;
 import static org.onosproject.net.EncapsulationType.*;
@@ -37,6 +40,7 @@ import static org.onosproject.vpls.api.VplsData.VplsState.*;
  */
 public class VplsManagerTest extends VplsTest {
     private VplsManager vplsManager;
+    private CodecService codecService = new TestCodecService();
     private TestVplsStore vplsStore = new TestVplsStore();
     private TestHostService hostService = new TestHostService();
     private TestInterfaceService interfaceService = new TestInterfaceService();
@@ -45,6 +49,7 @@ public class VplsManagerTest extends VplsTest {
     @Before
     public void setup() {
         vplsManager = new VplsManager();
+        vplsManager.codecService = codecService;
         vplsManager.hostService = hostService;
         vplsManager.vplsStore = vplsStore;
         vplsManager.operationService = vplsOperationService;
@@ -333,6 +338,33 @@ public class VplsManagerTest extends VplsTest {
          */
         public VplsOperation operation() {
             return operation;
+        }
+    }
+
+    /**
+     * Test Codec service.
+     */
+    class TestCodecService implements CodecService {
+
+
+        @Override
+        public Set<Class<?>> getCodecs() {
+            return null;
+        }
+
+        @Override
+        public <T> JsonCodec<T> getCodec(Class<T> entityClass) {
+            return null;
+        }
+
+        @Override
+        public <T> void registerCodec(Class<T> entityClass, JsonCodec<T> codec) {
+
+        }
+
+        @Override
+        public void unregisterCodec(Class<?> entityClass) {
+
         }
     }
 

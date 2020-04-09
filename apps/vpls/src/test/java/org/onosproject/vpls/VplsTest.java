@@ -629,6 +629,7 @@ public abstract class VplsTest {
         NetworkConfigListener listener;
         VplsAppConfig vplsAppConfig;
 
+
         @Override
         public void addListener(NetworkConfigListener listener) {
             this.listener = listener;

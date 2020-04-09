@@ -1,0 +1,75 @@
+{
+  "type": "object",
+  "title": "vpls",
+  "required": [
+    "vpls"
+  ],
+  "properties": {
+    "vpls": {
+      "type": "array",
+      "xml": {
+        "name": "vpls",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "title": "vpls",
+        "required": [
+          "name",
+          "encapsulation"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "VPLS1"
+          },
+          "encapsulation": {
+            "type": "string",
+            "example": "VLAN"
+          },
+          "interfaces": {
+            "type": "array",
+            "xml": {
+              "name": "interfaces",
+              "wrapped": true
+            },
+            "items": {
+              "type": "object",
+              "title": "interfaces",
+              "required": [
+                "name",
+                "connect point",
+                "ips",
+                "mac",
+                "vlan"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "example": "h1"
+                },
+                "connect point": {
+                  "type": "string",
+                  "example": "of:0000000000000001/1"
+                },
+                "ips": {
+                  "type": "array",
+                  "example": ["10.0.1.1/24"]
+                },
+                "mac": {
+                  "type": "string",
+                  "example": "00:04:00:00:00:02"
+                },
+                "vlan": {
+                  "type": "string",
+                  "example": "100"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
