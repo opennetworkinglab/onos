@@ -124,9 +124,9 @@ load("//tools/build/bazel:gnoi_workspace.bzl", "generate_gnoi")
 generate_gnoi()
 
 # For GUI2 build
-RULES_NODEJS_VERSION = "1.1.0"
+RULES_NODEJS_VERSION = "1.6.0"
 
-RULES_NODEJS_SHA256 = "c97bf38546c220fa250ff2cc052c1a9eac977c662c1fc23eda797b0ce8e70a43"
+RULES_NODEJS_SHA256 = "f9e7b9f42ae202cc2d2ce6d698ccb49a9f7f7ea572a78fd451696d03ef2ee116"
 
 load("//tools/build/bazel:topo_workspace.bzl", "generate_topo_device")
 
@@ -141,9 +141,9 @@ http_archive(
 )
 
 # Rules for compiling sass
-RULES_SASS_VERSION = "1.24.0"
+RULES_SASS_VERSION = "1.25.0"
 
-RULES_SASS_SHA256 = "77e241148f26d5dbb98f96fe0029d8f221c6cb75edbb83e781e08ac7f5322c5f"
+RULES_SASS_SHA256 = "c78be58f5e0a29a04686b628cf54faaee0094322ae0ac99da5a8a8afca59a647"
 
 http_archive(
     name = "io_bazel_rules_sass",
@@ -171,9 +171,8 @@ node_repositories(
 # TODO give this a name like `gui2_npm` once the @bazel/karma tools can tolerate a name other than `npm`
 yarn_install(
     name = "npm",
-    args = ["--frozen-lockfile"],
     package_json = "//web/gui2:package.json",
-    use_global_yarn_cache = False,
+    use_global_yarn_cache = True,
     yarn_lock = "//web/gui2:yarn.lock",
 )
 

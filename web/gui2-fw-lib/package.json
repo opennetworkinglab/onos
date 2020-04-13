@@ -1,0 +1,37 @@
+{
+    "name": "gui2-fw-lib",
+    "version": "2.3.5",
+    "author": {
+        "name": "Sean Condon",
+        "email": "sean@opennetworking.org"
+    },
+    "description": "ONOS Project GUI Framework Library built on Angular9+",
+    "keywords": [
+        "ONOS",
+        "SDN",
+        "Controller",
+        "ONF",
+        "Open",
+        "Networking",
+        "Foundation"
+    ],
+    "homepage": "https://onosproject.org/onos/",
+    "bugs": "support@opennetworking.org",
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/opennetworkinglab/onos.git"
+    },
+    "peerDependencies": {
+        "@angular/common": "^9.1.0",
+        "@angular/core": "^9.1.0"
+    },
+    "main": "./bundles/gui2-fw-lib.umd.js",
+    "fesm5": "./fesm5/gui2-fw-lib.js",
+    "fesm2015": "./fesm2015/gui2-fw-lib.js",
+    "esm5": "./esm5/gui2-fw-lib_public_index.js",
+    "esm2015": "./esm2015/gui2-fw-lib_public_index.js",
+    "typings": "./index.d.ts",
+    "module": "./fesm5/gui2-fw-lib.js",
+    "es2015": "./fesm2015/gui2-fw-lib.js"
+}
