@@ -1,6 +1,6 @@
 load("@npm_angular_bazel//:index.bzl", "ng_module")
 load("@npm_bazel_typescript//:index.bzl", "ts_library")
-load("@npm_bazel_karma//:index.bzl", "karma_web_test_suite")
+load("@npm_bazel_karma//:index.bzl", "karma_web_test")
 
 package(default_visibility = ["//:__subpackages__"])
 
@@ -144,7 +144,7 @@ genrule(
              && echo '});' >> $@""",
 )
 
-karma_web_test_suite(
+karma_web_test(
     name = "test",
     srcs = [
     ],

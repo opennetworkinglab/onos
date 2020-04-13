@@ -14,9 +14,9 @@
  limitations under the License.
 """
 
-load("@npm_angular_bazel//:index.bzl", "ng_module")
+load("@npm_angular_bazel//:index.bzl", "ng_module", "ng_package")
 load("@npm_bazel_typescript//:index.bzl", "ts_library")
-load("@npm_bazel_karma//:index.bzl", "karma_web_test_suite")
+load("@npm_bazel_karma//:index.bzl", "karma_web_test")
 
 package(default_visibility = ["//:__subpackages__"])
 
@@ -77,7 +77,7 @@ ts_library(
     ],
 )
 
-karma_web_test_suite(
+karma_web_test(
     name = "test",
     srcs = [
         # We are manaully adding the bazel generated named-UMD d3 bundle here as
@@ -103,5 +103,22 @@ karma_web_test_suite(
         "//web/gui:src/main/webapp/data",
         "//web/gui2/src/main/webapp:d3_requirejs",
         "//web/gui2/src/main/webapp:rxjs_umd_modules",
+    ],
+)
+
+# bazel run //web/gui2-fw-lib:gui2-fw-lib-pkg.pack to create a tgz
+ng_package(
+    name = "npm_package",
+    srcs = ["package.json"],
+    data = glob([
+        "**/*.css",
+        "**/*.html",
+    ]),
+    entry_point = ":index.ts",
+    entry_point_name = "gui2-fw-lib",
+    include_devmode_srcs = False,
+    readme_md = ":README.md",
+    deps = [
+        ":gui2-fw-lib",
     ],
 )
