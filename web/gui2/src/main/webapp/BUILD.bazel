@@ -29,6 +29,7 @@ load("@npm_bazel_typescript//:index.bzl", "ts_config", "ts_devserver", "ts_libra
 
 exports_files([
     "WEB-INF/web.xml",
+    "karma.conf.js",
 ])
 
 # We don't import from these, but the generated ngfactory code will

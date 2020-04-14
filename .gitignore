@@ -51,10 +51,12 @@ web/gui2/.npm/
 web/gui2/src/main/webapp/**/*.js
 !web/gui2/src/main/webapp/rxjs_shims.js
 !web/gui2/src/main/webapp/rollup.config.js
+!web/gui2/src/main/webapp/karma.conf.js
 web/gui2/e2e/**/*.js
 web/gui2-fw-lib/**/*.js
 web/gui2-topo-lib/**/*.js
 apps/faultmanagement/fm-gui2-lib/**/*.js
 apps/roadm/web/roadm-gui/**/*.js
+apps/yang-gui/yang-gui2-lib/**/*.js
 tools/package/archetypes/ui2/src/main/resources/archetype-resources/web/__artifactId__-gui/dist/
 tools/package/archetypes/ui2/src/main/resources/archetype-resources/web/__artifactId__-gui/projects/__artifactId__-gui-lib/src/**/*.js
