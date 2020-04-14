@@ -26,4 +26,13 @@ public final class OsgiPropertyConstants {
     static final String POLL_FREQUENCY_MINUTE = "pollFrequencyMinute";
     static final int DEFAULT_POLL_FREQUENCY_MINUTE = 1;
 
+    static final String REBOOT_RETRY_COUNT = "rebootRetryCount";
+    static final int DEFAULT_REBOOT_RETRY_COUNT = 10;
+
+    static final String INITIAL_CLUSTER_TIMEOUT_PERIOD = "initialClusterTimeoutPeriod";
+    static final int DEFAULT_CLUSTER_TIMEOUT_PERIOD = 4;
+
+    static final String INITIAL_DIAGNOSIS_ACTION = "initialDiagnosisAction";
+    static final boolean DEFAULT_DIAGNOSIS_ACTION = true;
+
 }

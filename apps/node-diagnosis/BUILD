@@ -1,5 +1,7 @@
 COMPILE_DEPS = CORE_DEPS + CLI + [
     "@org_apache_karaf_bundle_core//jar",
+    "@sigar//jar",
+    "@jackson_databind//jar",
 ]
 
 osgi_jar_with_tests(
