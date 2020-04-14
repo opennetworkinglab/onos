@@ -42,9 +42,10 @@ TEST_DEPS = TEST + [
 # This export allows targets in other packages to reference files that live
 # in this package.
 # TODO Try to move this in to /web/gui2-fw-lib when possible
-exports_files([
-    "tsconfig.json",
-])
+exports_files(
+    ["tsconfig.json"],
+    visibility = ["//visibility:public"],
+)
 
 ts_config(
     name = "tsconfig-test",

@@ -22,7 +22,7 @@ import {
 } from '@angular/core';
 import {ForceDirectedGraph, Node} from '../models';
 import * as d3 from 'd3';
-import {LogService, MetaUi, ZoomUtils} from 'gui2-fw-lib/public_api';
+import {LogService, MetaUi, ZoomUtils} from 'org_onosproject_onos/web/gui2-fw-lib/public_api';
 import {BackgroundSvgComponent} from '../../backgroundsvg/backgroundsvg.component';
 
 @Directive({

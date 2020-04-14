@@ -19,7 +19,7 @@ import { MapSelectorComponent } from './mapselector.component';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {ActivatedRoute, Params} from '@angular/router';
 import {of} from 'rxjs';
-import {FnService, LogService} from 'gui2-fw-lib/public_api';
+import {FnService, LogService} from 'org_onosproject_onos/web/gui2-fw-lib/public_api';
 
 class MockActivatedRoute extends ActivatedRoute {
     constructor(params: Params) {

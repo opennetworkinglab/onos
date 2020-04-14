@@ -18,7 +18,7 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { MapSvgComponent } from './mapsvg.component';
 import {HttpClient} from '@angular/common/http';
 import {from} from 'rxjs';
-import {LogService} from 'gui2-fw-lib/public_api';
+import {LogService} from 'org_onosproject_onos/web/gui2-fw-lib/public_api';
 
 class MockHttpClient {
     get() {

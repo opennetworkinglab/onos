@@ -15,7 +15,7 @@
  */
 import {Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges} from '@angular/core';
 import {animate, state, style, transition, trigger} from '@angular/animations';
-import {DetailsPanelBaseImpl, FnService, LionService, LogService, WebSocketService} from 'gui2-fw-lib/public_api';
+import {DetailsPanelBaseImpl, FnService, LionService, LogService, WebSocketService} from 'org_onosproject_onos/web/gui2-fw-lib/public_api';
 import {Host, Link, LinkType, NodeType, UiElement} from '../../layer/forcesvg/models';
 import {Params, Router} from '@angular/router';
 

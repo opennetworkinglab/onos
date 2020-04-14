@@ -15,7 +15,7 @@
 */
 import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {Gui2FwLibModule} from 'gui2-fw-lib/public_api';
+import {Gui2FwLibModule} from 'org_onosproject_onos/web/gui2-fw-lib/public_api';
 import {MeterComponent} from './meter/meter.component';
 import {FormsModule} from '@angular/forms';
 import {RouterModule} from '@angular/router';

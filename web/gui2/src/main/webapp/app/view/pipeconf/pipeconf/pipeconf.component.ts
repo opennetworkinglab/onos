@@ -20,7 +20,7 @@ import {
     LogService, SortDir,
     TableBaseImpl,
     WebSocketService
-} from 'gui2-fw-lib/public_api';
+} from 'org_onosproject_onos/web/gui2-fw-lib/public_api';
 import {ActivatedRoute, Router} from '@angular/router';
 
 const pipeconfReq = 'pipeconfRequest';

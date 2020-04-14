@@ -16,7 +16,7 @@
 import {ForceDirectedGraph, Options} from './force-directed-graph';
 import {Node} from './node';
 import {Link} from './link';
-import {LogService} from 'gui2-fw-lib/public_api';
+import {LogService} from 'org_onosproject_onos/web/gui2-fw-lib/public_api';
 import {TestBed} from '@angular/core/testing';
 
 export class TestNode extends Node {

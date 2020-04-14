@@ -40,11 +40,10 @@ ng_module(
         ],
     ),
     assets = glob([
-        "src/lib/**/*.css",
-        "src/lib/**/*.html",
+        "lib/**/*.css",
+        "lib/**/*.html",
     ]),
-    entry_point = ":src/public_api.ts",
-    module_name = "gui2-fw-lib",
+    entry_point = ":public_api.ts",
     tsconfig = "//web/gui2:tsconfig.json",
     deps = [
         "@npm//@angular/animations",
@@ -106,7 +105,7 @@ karma_web_test(
     ],
 )
 
-# bazel run //web/gui2-fw-lib:gui2-fw-lib-pkg.pack to create a tgz
+# bazel run //web/gui2-fw-lib:npm_package.pack to create a tgz
 ng_package(
     name = "npm_package",
     srcs = ["package.json"],
@@ -114,8 +113,7 @@ ng_package(
         "**/*.css",
         "**/*.html",
     ]),
-    entry_point = ":index.ts",
-    entry_point_name = "gui2-fw-lib",
+    entry_point = ":public_api.ts",
     include_devmode_srcs = False,
     readme_md = ":README.md",
     deps = [

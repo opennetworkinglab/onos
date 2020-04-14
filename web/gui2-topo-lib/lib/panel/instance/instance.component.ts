@@ -26,7 +26,7 @@ import {
     PanelBaseImpl,
     IconService,
     SvgUtilService, LionService
-} from 'gui2-fw-lib/public_api';
+} from 'org_onosproject_onos/web/gui2-fw-lib/public_api';
 
 /**
  * A model of instance information that drives each panel

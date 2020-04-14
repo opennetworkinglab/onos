@@ -28,7 +28,7 @@ import {
     SimpleChanges,
     ViewChildren
 } from '@angular/core';
-import {LocMeta, LogService, MetaUi, WebSocketService, ZoomUtils} from 'gui2-fw-lib/public_api';
+import {LocMeta, LogService, MetaUi, WebSocketService, ZoomUtils} from 'org_onosproject_onos/web/gui2-fw-lib/public_api';
 import {
     Badge,
     Device, DeviceHighlight,

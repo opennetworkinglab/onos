@@ -24,7 +24,7 @@ import {
     TableBaseImpl, TableResponse, SortDir,
     UrlFnService,
     WebSocketService
-} from 'gui2-fw-lib/public_api';
+} from 'org_onosproject_onos/web/gui2-fw-lib/public_api';
 
 const INSTALLED = 'INSTALLED';
 const ACTIVE = 'ACTIVE';

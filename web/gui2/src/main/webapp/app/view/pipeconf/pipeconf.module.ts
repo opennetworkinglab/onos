@@ -18,7 +18,7 @@ import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {PipeconfComponent} from './pipeconf/pipeconf.component';
 import {PipeconfDetailsComponent} from './pipeconfdetails/pipeconfdetails.component';
-import { Gui2FwLibModule } from 'gui2-fw-lib/public_api';
+import { Gui2FwLibModule } from 'org_onosproject_onos/web/gui2-fw-lib/public_api';
 import {FormsModule} from '@angular/forms';
 import {RouterModule} from '@angular/router';
 

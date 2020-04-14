@@ -19,7 +19,7 @@
     // using the ///<reference types=""/> syntax.
     "types": [],
     "paths": {
-      "org_onosproject_onos/web/gui2-fw-lib": ["../gui2-fw-lib"]
+      "org_onosproject_onos/*": ["*"]
     }
   }
 }

@@ -17,7 +17,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { HostComponent } from './host/host.component';
-import { Gui2FwLibModule } from 'gui2-fw-lib/public_api';
+import { Gui2FwLibModule } from 'org_onosproject_onos/web/gui2-fw-lib/public_api';
 import { HostDetailsComponent } from './hostdetails/hostdetails.component';
 import {RouterModule} from '@angular/router';
 

@@ -16,7 +16,7 @@
 import { TestBed } from '@angular/core/testing';
 
 import { TrafficService } from './traffic.service';
-import {FnService, LogService} from 'gui2-fw-lib/public_api';
+import {FnService, LogService} from 'org_onosproject_onos/web/gui2-fw-lib/public_api';
 import {ActivatedRoute, Params} from '@angular/router';
 import {of} from 'rxjs';
 

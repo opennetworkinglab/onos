@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import {LogService, WebSocketService} from 'gui2-fw-lib/public_api';
+import {LogService, WebSocketService} from 'org_onosproject_onos/web/gui2-fw-lib/public_api';
 
 export enum LayoutType {
     LAYOUT_DEFAULT = 'default',

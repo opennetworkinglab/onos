@@ -16,7 +16,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { DeviceNodeSvgComponent } from './devicenodesvg.component';
-import {FnService, IconService, LogService, SvgUtilService} from 'gui2-fw-lib/public_api';
+import {FnService, IconService, LogService, SvgUtilService} from 'org_onosproject_onos/web/gui2-fw-lib/public_api';
 import {ActivatedRoute, Params} from '@angular/router';
 import {of} from 'rxjs';
 import {ChangeDetectorRef} from '@angular/core';
