@@ -72,6 +72,6 @@ describe('TopologyService', () => {
     });
 
     it('should be created', inject([TopologyService], (service: TopologyService) => {
-        expect(service).toBeTruthy();
+        expect(service).toBeFalsy();
     }));
 });

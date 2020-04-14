@@ -77,7 +77,7 @@ ts_library(
 )
 
 karma_web_test(
-    name = "test",
+    name = "test-not-coverage",  # coverage is to avoid being picked up by 'ot' alias
     srcs = [
         # We are manaully adding the bazel generated named-UMD d3 bundle here as
         # named-UMD bundles for non-APF npm packages are not yet automatically added.
@@ -89,10 +89,7 @@ karma_web_test(
         "@npm//:node_modules/zone.js/dist/zone-testing-bundle.js",
         "@npm//:node_modules/reflect-metadata/Reflect.js",
     ],
-    #    browsers = [
-    #        "@io_bazel_rules_webtesting//browsers:chromium-local",
-    #        "@io_bazel_rules_webtesting//browsers:firefox-local",
-    #    ],
+    config_file = "//web/gui2/src/main/webapp:karma.conf.js",
     tags = ["native"],
     runtime_deps = [
         "//web/gui2/src/main/webapp:initialize_testbed",
@@ -102,6 +99,9 @@ karma_web_test(
         "//web/gui:src/main/webapp/data",
         "//web/gui2/src/main/webapp:d3_requirejs",
         "//web/gui2/src/main/webapp:rxjs_umd_modules",
+        "@npm//@angular-devkit/build-angular",
+        "@npm//karma-coverage-istanbul-reporter",
+        "@npm//karma-jasmine-html-reporter",
     ],
 )
 
