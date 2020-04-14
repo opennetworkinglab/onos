@@ -15,7 +15,7 @@
  */
 import { TestBed, inject } from '@angular/core/testing';
 
-import { LogService, ConsoleLoggerService } from 'gui2-fw-lib/public_api';
+import { LogService, ConsoleLoggerService } from 'org_onosproject_onos/web/gui2-fw-lib/public_api';
 import { OnosService } from './onos.service';
 
 /**

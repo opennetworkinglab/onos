@@ -20,7 +20,7 @@ import {
     SimpleChanges
 } from '@angular/core';
 import { MapObject } from '../maputils';
-import {LogService, MapBounds} from 'gui2-fw-lib/public_api';
+import {LogService, MapBounds} from 'org_onosproject_onos/web/gui2-fw-lib/public_api';
 import {HttpClient} from '@angular/common/http';
 import * as d3 from 'd3';
 import * as topojson from 'topojson-client';

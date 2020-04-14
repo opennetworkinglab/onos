@@ -16,7 +16,7 @@
 import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {LinkComponent} from './link/link.component';
-import {Gui2FwLibModule} from 'gui2-fw-lib/public_api';
+import {Gui2FwLibModule} from 'org_onosproject_onos/web/gui2-fw-lib/public_api';
 import {RouterModule} from '@angular/router';
 
 @NgModule({

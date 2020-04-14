@@ -15,7 +15,7 @@
  */
 
 import {Component, OnInit, OnDestroy, Inject} from '@angular/core';
-import {WebSocketService, LogService, FnService, SortDir, TableBaseImpl} from 'gui2-fw-lib/public_api';
+import {WebSocketService, LogService, FnService, SortDir, TableBaseImpl} from 'org_onosproject_onos/web/gui2-fw-lib/public_api';
 import { HttpClient } from '@angular/common/http';
 
 /**

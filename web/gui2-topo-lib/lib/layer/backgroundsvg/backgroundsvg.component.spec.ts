@@ -19,7 +19,7 @@ import { BackgroundSvgComponent } from './backgroundsvg.component';
 import {MapSvgComponent, TopoData} from '../mapsvg/mapsvg.component';
 import {from} from 'rxjs';
 import {HttpClient} from '@angular/common/http';
-import {LocMeta, LogService, ZoomUtils} from 'gui2-fw-lib/public_api';
+import {LocMeta, LogService, ZoomUtils} from 'org_onosproject_onos/web/gui2-fw-lib/public_api';
 import {MapObject} from '../maputils';
 import {ForceSvgComponent} from '../forcesvg/forcesvg.component';
 

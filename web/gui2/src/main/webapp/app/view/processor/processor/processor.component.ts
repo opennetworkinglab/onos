@@ -19,7 +19,7 @@ import {
     LogService,
     WebSocketService,
     TableBaseImpl
-} from 'gui2-fw-lib/public_api';
+} from 'org_onosproject_onos/web/gui2-fw-lib/public_api';
 import { ActivatedRoute } from '@angular/router';
 
 /**

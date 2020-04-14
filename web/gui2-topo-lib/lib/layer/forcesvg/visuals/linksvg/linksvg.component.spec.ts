@@ -16,7 +16,7 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { LinkSvgComponent } from './linksvg.component';
-import {LogService} from 'gui2-fw-lib/public_api';
+import {LogService} from 'org_onosproject_onos/web/gui2-fw-lib/public_api';
 import {ActivatedRoute, Params} from '@angular/router';
 import {of} from 'rxjs';
 import {Device, Link, RegionLink, LinkType} from '../../models';

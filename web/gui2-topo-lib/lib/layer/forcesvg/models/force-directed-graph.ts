@@ -17,7 +17,7 @@ import { EventEmitter } from '@angular/core';
 import { Link } from './link';
 import { Node } from './node';
 import * as d3 from 'd3-force';
-import {LogService} from 'gui2-fw-lib/public_api';
+import {LogService} from 'org_onosproject_onos/web/gui2-fw-lib/public_api';
 
 const FORCES = {
     COLLISION: 1,

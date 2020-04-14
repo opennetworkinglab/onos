@@ -16,7 +16,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PortComponent } from './port/port.component';
-import { Gui2FwLibModule } from 'gui2-fw-lib/public_api';
+import { Gui2FwLibModule } from 'org_onosproject_onos/web/gui2-fw-lib/public_api';
 import { FormsModule } from '@angular/forms';
 import { PortDetailsComponent } from './portdetails/portdetails.component';
 import {RouterModule} from '@angular/router';

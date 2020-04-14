@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 import { LayoutService } from './layout.service';
 import {ActivatedRoute, Params} from '@angular/router';
 import {of} from 'rxjs';
-import {FnService, LogService} from 'gui2-fw-lib/public_api';
+import {FnService, LogService} from 'org_onosproject_onos/web/gui2-fw-lib/public_api';
 
 class MockActivatedRoute extends ActivatedRoute {
     constructor(params: Params) {

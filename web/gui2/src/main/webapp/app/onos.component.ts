@@ -30,7 +30,7 @@ import {
     WebSocketService,
     WsOptions,
     KeysService
-} from 'gui2-fw-lib/public_api';
+} from 'org_onosproject_onos/web/gui2-fw-lib/public_api';
 import { OnosService, View } from './onos.service';
 
 // secret sauce

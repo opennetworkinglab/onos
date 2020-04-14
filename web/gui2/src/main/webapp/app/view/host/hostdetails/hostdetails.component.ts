@@ -21,7 +21,7 @@ import {
     LogService,
     DetailsPanelBaseImpl,
     WebSocketService
-} from 'gui2-fw-lib/public_api';
+} from 'org_onosproject_onos/web/gui2-fw-lib/public_api';
 
 /**
  * The details view when a host row is clicked from the Host view

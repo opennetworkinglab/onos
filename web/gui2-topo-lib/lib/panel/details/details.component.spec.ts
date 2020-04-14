@@ -22,7 +22,7 @@ import { DetailsComponent } from './details.component';
 import {
     FnService, LionService,
     LogService, IconComponent
-} from 'gui2-fw-lib/public_api';
+} from 'org_onosproject_onos/web/gui2-fw-lib/public_api';
 import {RouterTestingModule} from '@angular/router/testing';
 
 class MockActivatedRoute extends ActivatedRoute {

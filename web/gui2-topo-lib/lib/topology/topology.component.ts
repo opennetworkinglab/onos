@@ -33,7 +33,7 @@ import {
     TopoZoomPrefs,
     WebSocketService,
     ZoomUtils
-} from 'gui2-fw-lib/public_api';
+} from 'org_onosproject_onos/web/gui2-fw-lib/public_api';
 import {InstanceComponent} from '../panel/instance/instance.component';
 import {DetailsComponent} from '../panel/details/details.component';
 import {BackgroundSvgComponent} from '../layer/backgroundsvg/backgroundsvg.component';
@@ -67,7 +67,7 @@ import {
     ALARMS_TOGGLE
 } from '../panel/toolbar/toolbar.component';
 import {TrafficService, TrafficType} from '../traffic.service';
-import {ZoomableDirective} from 'gui2-fw-lib/public_api';
+import {ZoomableDirective} from 'org_onosproject_onos/web/gui2-fw-lib/public_api';
 import {MapObject} from '../layer/maputils';
 import {LayoutService, LayoutType} from '../layout.service';
 import {SelectedEvent} from '../layer/forcesvg/visuals/nodevisual';
