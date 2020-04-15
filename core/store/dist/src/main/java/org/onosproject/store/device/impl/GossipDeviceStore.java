@@ -322,11 +322,13 @@ public class GossipDeviceStore
             mergedDesc = device.get(providerId).getDeviceDesc();
         }
 
-        // FIXME: This may result in duplicate events as each instance reports on the new device
-        // regardless of whether it is a master or not.
-        log.debug("Notifying peers of a device update topology event for providerId: {} and deviceId: {}",
-                providerId, deviceId);
-        notifyPeers(new InternalDeviceEvent(providerId, deviceId, mergedDesc));
+        // If this node is the master for the device, update peers.
+        if (isMaster) {
+            log.debug("Notifying peers of a device update topology event for providerId: {} and deviceId: {}",
+                    providerId, deviceId);
+            notifyPeers(new InternalDeviceEvent(providerId, deviceId, mergedDesc));
+        }
+        notifyDelegateIfNotNull(deviceEvent);
 
         return deviceEvent;
     }
@@ -1055,6 +1057,7 @@ public class GossipDeviceStore
                       deviceId);
             notifyPeers(new InternalDeviceRemovedEvent(deviceId, timestamp));
         }
+        notifyDelegateIfNotNull(event);
 
         // Relinquish mastership if acquired to remove the device.
         if (relinquishAtEnd) {
@@ -1096,6 +1099,8 @@ public class GossipDeviceStore
             }
             markOfflineInternal(deviceId, timestamp);
             descs.clear();
+            // Forget about the device
+            offline.remove(deviceId);
             return device == null ? null :
                     new DeviceEvent(DeviceEvent.Type.DEVICE_REMOVED, device, null);
         }

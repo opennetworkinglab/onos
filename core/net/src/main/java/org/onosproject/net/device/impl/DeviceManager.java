@@ -18,6 +18,7 @@ package org.onosproject.net.device.impl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import com.google.common.util.concurrent.Futures;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -384,7 +385,6 @@ public class DeviceManager
         DeviceEvent event = store.removeDevice(deviceId);
         if (event != null) {
             log.info("Device {} administratively removed", deviceId);
-            post(event);
         }
     }
 
@@ -555,10 +555,12 @@ public class DeviceManager
             // Generate updated description and establish my Role
             deviceDescription = BasicDeviceOperator.combine(cfg, deviceDescription);
 
-            MastershipRole role = mastershipService.requestRoleForSync(deviceId);
+            // Wait for the end of the election. sync call of requestRoleFor
+            // wait only 3s and it is not entirely safe since the leadership
+            // election timer can be higher.
+            MastershipRole role = Futures.getUnchecked(mastershipService.requestRoleFor(deviceId));
             log.info("Local role is {} for {}", role, deviceId);
-            DeviceEvent event = store.createOrUpdateDevice(provider().id(), deviceId,
-                    deviceDescription);
+            store.createOrUpdateDevice(provider().id(), deviceId, deviceDescription);
             applyRole(deviceId, role);
 
             if (portConfig != null) {
@@ -576,11 +578,6 @@ public class DeviceManager
                 log.info("Device {} connected", deviceId);
             } else {
                 log.info("Device {} registered", deviceId);
-            }
-
-            if (event != null) {
-                log.trace("event: {} {}", event.type(), event);
-                post(event);
             }
         }
 
@@ -1039,7 +1036,7 @@ public class DeviceManager
                             (dev == null) ? null : BasicDeviceOperator.descriptionOf(dev);
                     desc = BasicDeviceOperator.combine(cfg, desc);
                     if (desc != null && dp != null) {
-                        de = store.createOrUpdateDevice(dp.id(), did, desc);
+                        store.createOrUpdateDevice(dp.id(), did, desc);
                     }
                 }
             } else if (event.configClass().equals(PortDescriptionsConfig.class)) {
