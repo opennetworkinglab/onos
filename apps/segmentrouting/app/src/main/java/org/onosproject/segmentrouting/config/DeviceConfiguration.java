@@ -110,12 +110,14 @@ public class DeviceConfiguration implements DeviceProperties {
         Set<DeviceId> deviceSubjects =
                 srManager.cfgService.getSubjects(DeviceId.class, SegmentRoutingDeviceConfig.class);
         deviceSubjects.forEach(subject -> {
-            //Setting purge on disconnection flag for the device SR has control over.
-            // addConfig returns a config if it exists or creates a new one.
-            log.info("PurgeOnDisconnection set to true for device {}", subject);
             BasicDeviceConfig basicDeviceConfig = srManager.cfgService.addConfig(subject, BasicDeviceConfig.class);
-            basicDeviceConfig.purgeOnDisconnection(true);
-            srManager.cfgService.applyConfig(subject, BasicDeviceConfig.class, basicDeviceConfig.node());
+            if (!basicDeviceConfig.purgeOnDisconnection()) {
+                // Setting purge on disconnection flag for the device SR has control over.
+                // addConfig returns a config if it exists or creates a new one.
+                log.info("PurgeOnDisconnection set to true for device {}", subject);
+                basicDeviceConfig.purgeOnDisconnection(true);
+                srManager.cfgService.applyConfig(subject, BasicDeviceConfig.class, basicDeviceConfig.node());
+            }
             SegmentRoutingDeviceConfig config =
                     srManager.cfgService.getConfig(subject, SegmentRoutingDeviceConfig.class);
             SegmentRouterInfo info = new SegmentRouterInfo();
