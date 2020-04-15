@@ -167,13 +167,16 @@ public class SimpleDeviceStore
             descs.putDeviceDesc(deviceDescription);
             Device newDevice = composeDevice(deviceId, providerDescs);
 
+            DeviceEvent event = null;
             if (oldDevice == null) {
                 // ADD
-                return createDevice(providerId, newDevice);
+                event = createDevice(providerId, newDevice);
             } else {
                 // UPDATE or ignore (no change or stale)
-                return updateDevice(providerId, oldDevice, newDevice);
+                event = updateDevice(providerId, oldDevice, newDevice);
             }
+            notifyDelegateIfNotNull(event);
+            return event;
         }
     }
 
@@ -659,6 +662,12 @@ public class SimpleDeviceStore
                 new DefaultPort(device, number, false, annotations) :
                 new DefaultPort(device, number, isEnabled, portDesc.type(),
                                 portDesc.portSpeed(), annotations);
+    }
+
+    private void notifyDelegateIfNotNull(DeviceEvent event) {
+        if (event != null) {
+            notifyDelegate(event);
+        }
     }
 
     /**
