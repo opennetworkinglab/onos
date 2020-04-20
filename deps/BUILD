@@ -45,14 +45,6 @@ wrapped_osgi_jar(
 )
 
 wrapped_osgi_jar(
-    name = "io_grpc_grpc_core_perfmark",
-    generate_pom = True,
-    jar = "@io_grpc_grpc_java//core:perfmark",
-    visibility = ["//visibility:public"],
-    deps = [],
-)
-
-wrapped_osgi_jar(
     name = "io_grpc_grpc_stub",
     generate_pom = True,
     jar = "@io_grpc_grpc_java//stub",
