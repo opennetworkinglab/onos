@@ -39,8 +39,10 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
@@ -105,6 +107,9 @@ import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.g
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.isAssociatedWithVM;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.processGarpPacketForFloatingIp;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.swapStaleLocation;
+import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildMoveArpShaToThaExtension;
+import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildMoveArpSpaToTpaExtension;
+import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildMoveEthSrcToDstExtension;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -138,6 +143,9 @@ public class OpenstackRoutingArpHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected InstancePortAdminService instancePortService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected ClusterService clusterService;
@@ -507,8 +515,14 @@ public class OpenstackRoutingArpHandler {
                 .matchArpTpa(Ip4Address.valueOf(fip.getFloatingIpAddress()))
                 .build();
 
+        Device device = deviceService.getDevice(gateway.intgBridge());
+
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .extension(buildMoveEthSrcToDstExtension(device), device.id())
+                .extension(buildMoveArpShaToThaExtension(device), device.id())
+                .extension(buildMoveArpSpaToTpaExtension(device), device.id())
                 .setArpOp(ARP.OP_REPLY)
+                .setEthSrc(targetMac)
                 .setArpSha(targetMac)
                 .setArpSpa(Ip4Address.valueOf(fip.getFloatingIpAddress()))
                 .setOutput(PortNumber.IN_PORT)
