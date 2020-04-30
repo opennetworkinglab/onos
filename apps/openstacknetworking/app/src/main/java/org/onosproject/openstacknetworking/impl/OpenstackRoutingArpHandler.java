@@ -568,23 +568,30 @@ public class OpenstackRoutingArpHandler {
                 .matchArpTpa(ipAddress.getIp4Address())
                 .build();
 
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setArpOp(ARP.OP_REPLY)
-                .setArpSha(MacAddress.valueOf(gatewayMac))
-                .setArpSpa(ipAddress.getIp4Address())
-                .setOutput(PortNumber.IN_PORT)
-                .build();
+        osNodeService.completeNodes(GATEWAY).forEach(n -> {
+                    Device device = deviceService.getDevice(n.intgBridge());
 
-        osNodeService.completeNodes(GATEWAY).forEach(n ->
-                osFlowRuleService.setRule(
-                        appId,
-                        n.intgBridge(),
-                        selector,
-                        treatment,
-                        PRIORITY_ARP_GATEWAY_RULE,
-                        GW_COMMON_TABLE,
-                        install
-                )
+                    TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                            .extension(buildMoveEthSrcToDstExtension(device), device.id())
+                            .extension(buildMoveArpShaToThaExtension(device), device.id())
+                            .extension(buildMoveArpSpaToTpaExtension(device), device.id())
+                            .setArpOp(ARP.OP_REPLY)
+                            .setEthSrc(MacAddress.valueOf(gatewayMac))
+                            .setArpSha(MacAddress.valueOf(gatewayMac))
+                            .setArpSpa(ipAddress.getIp4Address())
+                            .setOutput(PortNumber.IN_PORT)
+                            .build();
+
+                    osFlowRuleService.setRule(
+                            appId,
+                            n.intgBridge(),
+                            selector,
+                            treatment,
+                            PRIORITY_ARP_GATEWAY_RULE,
+                            GW_COMMON_TABLE,
+                            install
+                    );
+                }
         );
 
         if (install) {
