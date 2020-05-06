@@ -301,28 +301,34 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         if (nextObjective.type() != NextObjective.Type.BROADCAST) {
             log.error("OLT only supports broadcast groups.");
             fail(nextObjective, ObjectiveError.BADPARAMS);
+            return;
         }
 
-        if (nextObjective.next().size() != 1) {
+        if (nextObjective.next().size() != 1 && !nextObjective.op().equals(Objective.Operation.REMOVE)) {
             log.error("OLT only supports singleton broadcast groups.");
             fail(nextObjective, ObjectiveError.BADPARAMS);
+            return;
         }
 
-        TrafficTreatment treatment = nextObjective.next().stream().findFirst().get();
+        Optional<TrafficTreatment> treatmentOpt = nextObjective.next().stream().findFirst();
+        if (treatmentOpt.isEmpty() && !nextObjective.op().equals(Objective.Operation.REMOVE)) {
+            log.error("Next objective {} does not have a treatment", nextObjective);
+            fail(nextObjective, ObjectiveError.BADPARAMS);
+            return;
+        }
 
-
-        GroupBucket bucket = DefaultGroupBucket.createAllGroupBucket(treatment);
         GroupKey key = new DefaultGroupKey(appKryo.serialize(nextObjective.id()));
 
-
         pendingGroups.put(key, nextObjective);
-
+        log.trace("NextObjective Operation {}", nextObjective.op());
         switch (nextObjective.op()) {
             case ADD:
                 GroupDescription groupDesc =
                         new DefaultGroupDescription(deviceId,
                                                     GroupDescription.Type.ALL,
-                                                    new GroupBuckets(Collections.singletonList(bucket)),
+                                                    new GroupBuckets(
+                                                            Collections.singletonList(
+                                                                buildBucket(treatmentOpt.get()))),
                                                     key,
                                                     null,
                                                     nextObjective.appId());
@@ -333,12 +339,16 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 break;
             case ADD_TO_EXISTING:
                 groupService.addBucketsToGroup(deviceId, key,
-                                               new GroupBuckets(Collections.singletonList(bucket)),
+                                               new GroupBuckets(
+                                                       Collections.singletonList(
+                                                               buildBucket(treatmentOpt.get()))),
                                                key, nextObjective.appId());
                 break;
             case REMOVE_FROM_EXISTING:
                 groupService.removeBucketsFromGroup(deviceId, key,
-                                                    new GroupBuckets(Collections.singletonList(bucket)),
+                                                    new GroupBuckets(
+                                                            Collections.singletonList(
+                                                                buildBucket(treatmentOpt.get()))),
                                                     key, nextObjective.appId());
                 break;
             default:
@@ -346,6 +356,10 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         }
 
 
+    }
+
+    private GroupBucket buildBucket(TrafficTreatment treatment) {
+        return DefaultGroupBucket.createAllGroupBucket(treatment);
     }
 
     private void processMulticastRule(ForwardingObjective fwd) {
@@ -1015,16 +1029,23 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
     private class InnerGroupListener implements GroupListener {
         @Override
         public void event(GroupEvent event) {
+            GroupKey key = event.subject().appCookie();
+            NextObjective obj = pendingGroups.getIfPresent(key);
+            if (obj == null) {
+                log.debug("No pending group for {}, moving on", key);
+                return;
+            }
+            log.trace("Event {} for group {}, handling pending" +
+                              "NextGroup {}", event.type(), key, obj.id());
             if (event.type() == GroupEvent.Type.GROUP_ADDED ||
                     event.type() == GroupEvent.Type.GROUP_UPDATED) {
-                GroupKey key = event.subject().appCookie();
-
-                NextObjective obj = pendingGroups.getIfPresent(key);
-                if (obj != null) {
                     flowObjectiveStore.putNextGroup(obj.id(), new OLTPipelineGroup(key));
                     pass(obj);
                     pendingGroups.invalidate(key);
-                }
+            } else if (event.type() == GroupEvent.Type.GROUP_REMOVED) {
+                    flowObjectiveStore.removeNextGroup(obj.id());
+                    pass(obj);
+                    pendingGroups.invalidate(key);
             }
         }
     }
