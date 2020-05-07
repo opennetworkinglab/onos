@@ -126,7 +126,6 @@ public class OpenstackSwitchingDhcpHandlerTest {
         dhcpHandler.coreService = new TestCoreService();
         dhcpHandler.configService = new TestConfigService();
         dhcpHandler.packetService = new TestPacketService();
-        dhcpHandler.instancePortService = new TestInstancePortService();
         dhcpHandler.osNetworkService = new TestOpenstackNetworkService();
         dhcpHandler.osNodeService = new TestOpenstackNodeService();
         dhcpHandler.osFlowRuleService = new TestOpenstackFlowRuleService();
@@ -369,17 +368,6 @@ public class OpenstackSwitchingDhcpHandlerTest {
      * Mocks the LeadershipService.
      */
     private class TestLeadershipService extends LeadershipServiceAdapter {
-    }
-
-    /**
-     * Mocks the InstancePortService.
-     */
-    private class TestInstancePortService extends InstancePortServiceAdapter {
-
-        @Override
-        public InstancePort instancePort(MacAddress macAddress) {
-            return new TestInstancePort();
-        }
     }
 
     /**
