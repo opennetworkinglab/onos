@@ -45,8 +45,6 @@ import org.onosproject.net.packet.PacketContext;
 import org.onosproject.net.packet.PacketProcessor;
 import org.onosproject.net.packet.PacketService;
 import org.onosproject.openstacknetworking.api.Constants;
-import org.onosproject.openstacknetworking.api.InstancePort;
-import org.onosproject.openstacknetworking.api.InstancePortService;
 import org.onosproject.openstacknetworking.api.OpenstackFlowRuleService;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknode.api.OpenstackNode;
@@ -134,9 +132,6 @@ public class OpenstackSwitchingDhcpHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected PacketService packetService;
-
-    @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    protected InstancePortService instancePortService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected OpenstackNetworkService osNetworkService;
@@ -242,18 +237,30 @@ public class OpenstackSwitchingDhcpHandler {
             }
 
             MacAddress clientMac = MacAddress.valueOf(dhcpPacket.getClientHardwareAddress());
-            InstancePort reqInstPort = instancePortService.instancePort(clientMac);
-            if (reqInstPort == null) {
-                log.trace("Failed to find host(MAC:{})", clientMac);
+
+            Port port = osNetworkService.ports().stream()
+                    .filter(p -> MacAddress.valueOf(p.getMacAddress()).equals(clientMac))
+                    .findAny().orElse(null);
+
+            if (port == null) {
+                log.warn("Failed to retrieve openstack port information for MAC {}", clientMac);
                 return;
             }
+
+            IP fixedIp = port.getFixedIps().stream().findFirst().orElse(null);
+
+            if (fixedIp == null) {
+                log.warn("There is no IP addresses are assigned with the port {}", port.getId());
+                return;
+            }
+
             Ethernet ethPacket = context.inPacket().parsed();
             switch (inPacketType) {
                 case DHCPDISCOVER:
-                    processDhcpDiscover(context, clientMac, reqInstPort, ethPacket);
+                    processDhcpDiscover(context, clientMac, port, ethPacket);
                     break;
                 case DHCPREQUEST:
-                    processDhcpRequest(context, clientMac, reqInstPort, ethPacket);
+                    processDhcpRequest(context, clientMac, port, ethPacket);
                     break;
                 case DHCPRELEASE:
                     log.trace("DHCP RELEASE received from {}", clientMac);
@@ -265,23 +272,25 @@ public class OpenstackSwitchingDhcpHandler {
         }
 
         private void processDhcpDiscover(PacketContext context, MacAddress clientMac,
-                                         InstancePort instPort, Ethernet ethPacket) {
+                                         Port port, Ethernet ethPacket) {
             log.trace("DHCP DISCOVER received from {}", clientMac);
             Ethernet discoverReply = buildReply(ethPacket,
                                                 (byte) DHCPOFFER.getValue(),
-                                                instPort);
+                                                port);
             sendReply(context, discoverReply);
-            log.trace("DHCP OFFER({}) is sent for {}", instPort.ipAddress(), clientMac);
+            log.trace("DHCP OFFER({}) is sent for {}",
+                            port.getFixedIps().stream().findFirst(), clientMac);
         }
 
         private void processDhcpRequest(PacketContext context, MacAddress clientMac,
-                                        InstancePort instPort, Ethernet ethPacket) {
+                                        Port port, Ethernet ethPacket) {
             log.trace("DHCP REQUEST received from {}", clientMac);
             Ethernet requestReply = buildReply(ethPacket,
                                                 (byte) DHCPACK.getValue(),
-                                                instPort);
+                                                port);
             sendReply(context, requestReply);
-            log.trace("DHCP ACK({}) is sent for {}", instPort.ipAddress(), clientMac);
+            log.trace("DHCP ACK({}) is sent for {}",
+                            port.getFixedIps().stream().findFirst(), clientMac);
         }
 
         private DHCP.MsgType getPacketType(DHCP dhcpPacket) {
@@ -299,16 +308,14 @@ public class OpenstackSwitchingDhcpHandler {
         }
 
         private Ethernet buildReply(Ethernet ethRequest, byte packetType,
-                                    InstancePort reqInstPort) {
-            log.trace("Build for DHCP reply msg for instance port {}", reqInstPort.toString());
-            Port osPort = osNetworkService.port(reqInstPort.portId());
-            if (osPort == null) {
-                log.error("Failed to retrieve openstack port information for instance port {}",
-                        reqInstPort.toString());
-                return null;
-            }
+                                    Port port) {
+            log.trace("Build for DHCP reply msg for openstack port {}", port.toString());
+
             // pick one IP address to make a reply
-            IP fixedIp = osPort.getFixedIps().stream().findFirst().get();
+            // since we check the validity of fixed IP address at parent method,
+            // so no need to double check the fixed IP existence here
+            IP fixedIp = port.getFixedIps().stream().findFirst().get();
+
             Subnet osSubnet = osNetworkService.subnet(fixedIp.getSubnetId());
 
             Ethernet ethReply = new Ethernet();
@@ -321,7 +328,7 @@ public class OpenstackSwitchingDhcpHandler {
 
             ipv4Reply.setSourceAddress(
                     clusterService.getLocalNode().ip().getIp4Address().toString());
-            ipv4Reply.setDestinationAddress(reqInstPort.ipAddress().getIp4Address().toInt());
+            ipv4Reply.setDestinationAddress(fixedIp.getIpAddress());
             ipv4Reply.setTtl(PACKET_TTL);
 
             UDP udpRequest = (UDP) ipv4Request.getPayload();
@@ -333,7 +340,7 @@ public class OpenstackSwitchingDhcpHandler {
             DHCP dhcpReply = buildDhcpReply(
                     dhcpRequest,
                     packetType,
-                    reqInstPort.ipAddress().getIp4Address(),
+                    Ip4Address.valueOf(fixedIp.getIpAddress()),
                     osSubnet);
 
             udpReply.setPayload(dhcpReply);
