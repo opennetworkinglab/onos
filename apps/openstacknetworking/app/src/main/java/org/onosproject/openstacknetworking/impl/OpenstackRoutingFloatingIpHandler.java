@@ -18,15 +18,21 @@ package org.onosproject.openstacknetworking.impl;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import org.onlab.packet.ARP;
+import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.VlanId;
+import org.onosproject.cfg.ComponentConfigService;
+import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
@@ -72,8 +78,10 @@ import java.util.concurrent.ExecutorService;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.openstacknetworking.api.Constants.ARP_BROADCAST_MODE;
 import static org.onosproject.openstacknetworking.api.Constants.GW_COMMON_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
+import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ARP_GATEWAY_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_EXTERNAL_FLOATING_ROUTING_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FLOATING_EXTERNAL;
 import static org.onosproject.openstacknetworking.api.Constants.ROUTING_TABLE;
@@ -85,15 +93,20 @@ import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.GRE;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.VLAN;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.VXLAN;
 import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_PRE_REMOVE;
+import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.ARP_MODE;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.associatedFloatingIp;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.externalPeerRouterForNetwork;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getGwByComputeDevId;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getGwByInstancePort;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValue;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.isAssociatedWithVM;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.processGarpPacketForFloatingIp;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.swapStaleLocation;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.tunnelPortNumByNetId;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildExtension;
+import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildMoveArpShaToThaExtension;
+import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildMoveArpSpaToTpaExtension;
+import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildMoveEthSrcToDstExtension;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
 
 /**
@@ -142,6 +155,9 @@ public class OpenstackRoutingFloatingIpHandler {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected PacketService packetService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected ComponentConfigService configService;
+
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
     private final OpenstackRouterListener
@@ -184,6 +200,12 @@ public class OpenstackRoutingFloatingIpHandler {
         eventExecutor.shutdown();
 
         log.info("Stopped");
+    }
+
+    private String getArpMode() {
+        Set<ConfigProperty> properties =
+                configService.getProperties(OpenstackRoutingArpHandler.class.getName());
+        return getPropertyValue(properties, ARP_MODE);
     }
 
     private void setFloatingIpRules(NetFloatingIP floatingIp,
@@ -484,6 +506,51 @@ public class OpenstackRoutingFloatingIpHandler {
                 PRIORITY_FLOATING_EXTERNAL,
                 GW_COMMON_TABLE,
                 install);
+
+        setArpRule(floatingIp, instPort.macAddress(), selectedGatewayNode, install);
+    }
+
+    private void setArpRule(NetFloatingIP floatingIp, MacAddress targetMac,
+                            OpenstackNode gateway, boolean install) {
+        if (ARP_BROADCAST_MODE.equals(getArpMode())) {
+            TrafficSelector selector = DefaultTrafficSelector.builder()
+                    .matchInPort(gateway.uplinkPortNum())
+                    .matchEthType(EthType.EtherType.ARP.ethType().toShort())
+                    .matchArpOp(ARP.OP_REQUEST)
+                    .matchArpTpa(Ip4Address.valueOf(floatingIp.getFloatingIpAddress()))
+                    .build();
+
+            Device device = deviceService.getDevice(gateway.intgBridge());
+
+            TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                    .extension(buildMoveEthSrcToDstExtension(device), device.id())
+                    .extension(buildMoveArpShaToThaExtension(device), device.id())
+                    .extension(buildMoveArpSpaToTpaExtension(device), device.id())
+                    .setArpOp(ARP.OP_REPLY)
+                    .setEthSrc(targetMac)
+                    .setArpSha(targetMac)
+                    .setArpSpa(Ip4Address.valueOf(floatingIp.getFloatingIpAddress()))
+                    .setOutput(PortNumber.IN_PORT)
+                    .build();
+
+            osFlowRuleService.setRule(
+                    appId,
+                    gateway.intgBridge(),
+                    selector,
+                    treatment,
+                    PRIORITY_ARP_GATEWAY_RULE,
+                    GW_COMMON_TABLE,
+                    install
+            );
+
+            if (install) {
+                log.info("Install ARP Rule for Floating IP {}",
+                        floatingIp.getFloatingIpAddress());
+            } else {
+                log.info("Uninstall ARP Rule for Floating IP {}",
+                        floatingIp.getFloatingIpAddress());
+            }
+        }
     }
 
     private void setUpstreamRules(NetFloatingIP floatingIp, Network osNet,
