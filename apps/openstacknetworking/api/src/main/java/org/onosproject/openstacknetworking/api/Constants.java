@@ -60,6 +60,7 @@ public final class Constants {
 
     public static final String PCI_VENDOR_INFO = "pci_vendor_info";
     public static final String DIRECT = "direct";
+    public static final String BAREMETAL = "baremetal";
     public static final String PCISLOT = "pci_slot";
 
     public static final String ANNOTATION_NETWORK_ID = "networkId";
