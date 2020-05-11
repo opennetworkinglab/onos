@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
@@ -95,6 +96,7 @@ import org.openstack4j.model.network.RouterInterface;
 import org.openstack4j.model.network.SecurityGroup;
 import org.openstack4j.model.network.Subnet;
 import org.openstack4j.openstack.OSFactory;
+import org.openstack4j.openstack.networking.domain.NeutronPort;
 import org.openstack4j.openstack.networking.domain.NeutronRouterInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1470,6 +1472,53 @@ public final class OpenstackNetworkingUtil {
         String subnet = ipAddr + "/" + prefixLength;
         SubnetUtils utils = new SubnetUtils(subnet);
         return utils.getInfo().getBroadcastAddress();
+    }
+
+    /**
+     * Obtains the DHCP server name from option.
+     *
+     * @param port neutron port
+     * @return server name
+     */
+    public static String getDhcpServerName(NeutronPort port) {
+        return getDhcpOptionValue(port, "server-ip-address");
+    }
+
+    /**
+     * Obtains the DHCP static boot file name from option.
+     *
+     * @param port neutron port
+     * @return DHCP static boot file name
+     */
+    public static String getDhcpStaticBootFileName(NeutronPort port) {
+        return getDhcpOptionValue(port, "tag:!ipxe,67");
+    }
+
+    /**
+     * Obtains the DHCP full boot file name from option.
+     *
+     * @param port neutron port
+     * @return DHCP full boot file name
+     */
+    public static String getDhcpFullBootFileName(NeutronPort port) {
+        return getDhcpOptionValue(port, "tag:ipxe,67");
+    }
+
+    private static String getDhcpOptionValue(NeutronPort port, String optionNameStr) {
+        ObjectNode node = modelEntityToJson(port, NeutronPort.class);
+
+        if (node != null) {
+            JsonNode portJson = node.get("port");
+            ArrayNode options = (ArrayNode) portJson.get("extra_dhcp_opts");
+            for (JsonNode option : options) {
+                String optionName = option.get("optName").asText();
+                if (StringUtils.equals(optionName, optionNameStr)) {
+                    return option.get("optValue").asText();
+                }
+            }
+        }
+
+        return null;
     }
 
     /**

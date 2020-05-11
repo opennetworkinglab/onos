@@ -63,6 +63,7 @@ import org.openstack4j.model.network.IP;
 import org.openstack4j.model.network.Network;
 import org.openstack4j.model.network.Port;
 import org.openstack4j.model.network.Subnet;
+import org.openstack4j.openstack.networking.domain.NeutronPort;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 
@@ -81,15 +82,20 @@ import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_DomainServer;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_END;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_LeaseTime;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_MessageType;
+import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_RequestedParameters;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_RouterAddress;
 import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_SubnetMask;
 import static org.onlab.packet.DHCP.MsgType.DHCPACK;
 import static org.onlab.packet.DHCP.MsgType.DHCPOFFER;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.openstacknetworking.api.Constants.BAREMETAL;
 import static org.onosproject.openstacknetworking.api.Constants.DEFAULT_GATEWAY_MAC_STR;
 import static org.onosproject.openstacknetworking.api.Constants.DHCP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_DHCP_RULE;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getBroadcastAddr;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getDhcpFullBootFileName;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getDhcpServerName;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getDhcpStaticBootFileName;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -119,6 +125,9 @@ public class OpenstackSwitchingDhcpHandler {
     private static final byte DHCP_OPTION_DATA_LENGTH = (byte) 4;
     private static final int DHCP_OPTION_DNS_LENGTH = 8;
     private static final int DHCP_OPTION_MTU_LENGTH = 2;
+
+    private static final byte DHCP_OPTION_SERVER_NAME_CODE = (byte) 66;
+    private static final byte DHCP_OPTION_BOOT_FILE_NAME_CODE = (byte) 67;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
@@ -338,7 +347,7 @@ public class OpenstackSwitchingDhcpHandler {
                     dhcpRequest,
                     packetType,
                     Ip4Address.valueOf(fixedIp.getIpAddress()),
-                    osSubnet);
+                    (NeutronPort) port, osSubnet);
 
             udpReply.setPayload(dhcpReply);
             ipv4Reply.setPayload(udpReply);
@@ -365,7 +374,7 @@ public class OpenstackSwitchingDhcpHandler {
         }
 
         private DHCP buildDhcpReply(DHCP request, byte msgType, Ip4Address yourIp,
-                                    Subnet osSubnet) {
+                                    NeutronPort port, Subnet osSubnet) {
             Ip4Address gatewayIp = clusterService.getLocalNode().ip().getIp4Address();
             int subnetPrefixLen = IpPrefix.valueOf(osSubnet.getCidr()).prefixLength();
 
@@ -411,6 +420,12 @@ public class OpenstackSwitchingDhcpHandler {
             // Performs only if the gateway is set in subnet.
             if (!Strings.isNullOrEmpty(osSubnet.getGateway())) {
                 options.add(doRouterAddr(osSubnet));
+            }
+
+            // sets TFTP and bootfilename for PXE boot
+            if (BAREMETAL.equalsIgnoreCase(port.getvNicType())) {
+                options.add(doTftp(port));
+                options.add(doBootfileName(request, port));
             }
 
             // end option
@@ -505,6 +520,39 @@ public class OpenstackSwitchingDhcpHandler {
 
             option.setData(ByteBuffer.allocate(DHCP_OPTION_MTU_LENGTH)
                             .putShort(osNetwork.getMTU().shortValue()).array());
+
+            return option;
+        }
+
+        private DhcpOption doTftp(NeutronPort port) {
+            String serverName = getDhcpServerName(port);
+            log.info("DHCP server name : {}", serverName);
+
+            DhcpOption option = new DhcpOption();
+            option.setCode(DHCP_OPTION_SERVER_NAME_CODE);
+            option.setLength((byte) serverName.length());
+            option.setData(serverName.getBytes());
+
+            return option;
+        }
+
+        private DhcpOption doBootfileName(DHCP request, NeutronPort port) {
+            String bootStaticFileName = getDhcpStaticBootFileName(port);
+            String bootFullFileName = getDhcpFullBootFileName(port);
+
+            DhcpOption option = new DhcpOption();
+            option.setCode(DHCP_OPTION_BOOT_FILE_NAME_CODE);
+
+            DhcpOption requestOption = request.getOption(OptionCode_RequestedParameters);
+            if (requestOption.getLength() > 30) {
+                log.info("DHCP static boot file name {}", bootStaticFileName);
+                option.setLength((byte) bootStaticFileName.length());
+                option.setData(bootStaticFileName.getBytes());
+            } else {
+                log.info("DHCP full boot file path {}", bootFullFileName);
+                option.setLength((byte) bootFullFileName.length());
+                option.setData(bootFullFileName.getBytes());
+            }
 
             return option;
         }
