@@ -195,30 +195,24 @@ public class CpqdOfdpa2Pipeline extends Ofdpa2Pipeline {
 
     @Override
     public void init(DeviceId deviceId, PipelinerContext context) {
-        synchronized (this) {
-            if (isReady()) {
-                return;
+        if (supportPuntGroup()) {
+            // Terminate internal references
+            // We are terminating the references here
+            // because when the device is offline the apps
+            // are still sending flowobjectives
+            if (groupChecker != null) {
+                groupChecker.shutdown();
             }
-
-            if (supportPuntGroup()) {
-                // Terminate internal references
-                // We are terminating the references here
-                // because when the device is offline the apps
-                // are still sending flowobjectives
-                if (groupChecker != null) {
-                    groupChecker.shutdown();
-                }
-                // create a new executor at each init and a new empty queue
-                groupChecker = Executors.newSingleThreadScheduledExecutor(groupedThreads("onos/driver",
-                        "cpqd-ofdpa-%d", log));
-                if (flowRuleQueue != null) {
-                    flowRuleQueue.clear();
-                }
-                flowRuleQueue = new ConcurrentLinkedQueue<>();
-                groupCheckerLock = new ReentrantLock();
-                groupChecker.scheduleAtFixedRate(new PopVlanPuntGroupChecker(), 20, 50, TimeUnit.MILLISECONDS);
-                super.init(deviceId, context);
+            // create a new executor at each init and a new empty queue
+            groupChecker = Executors.newSingleThreadScheduledExecutor(groupedThreads("onos/driver",
+                    "cpqd-ofdpa-%d", log));
+            if (flowRuleQueue != null) {
+                flowRuleQueue.clear();
             }
+            flowRuleQueue = new ConcurrentLinkedQueue<>();
+            groupCheckerLock = new ReentrantLock();
+            groupChecker.scheduleAtFixedRate(new PopVlanPuntGroupChecker(), 20, 50, TimeUnit.MILLISECONDS);
+            super.init(deviceId, context);
         }
     }
     /*
