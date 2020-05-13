@@ -298,6 +298,12 @@ public class MeterManager
         store.freeMeterId(deviceId, meterId);
     }
 
+    @Override
+    public void purgeMeters(DeviceId deviceId) {
+        // We delegate direclty to the store
+        store.purgeMeter(deviceId);
+    }
+
     private class InternalMeterProviderService
             extends AbstractProviderService<MeterProvider>
             implements MeterProviderService {

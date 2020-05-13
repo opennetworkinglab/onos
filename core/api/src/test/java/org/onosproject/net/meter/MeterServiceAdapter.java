@@ -60,6 +60,11 @@ public class MeterServiceAdapter implements MeterService {
     }
 
     @Override
+    public void purgeMeters(DeviceId deviceId) {
+
+    }
+
+    @Override
     public void addListener(MeterListener listener) {
 
     }
