@@ -84,4 +84,13 @@ public interface MeterService
      * @param meterId the id to be freed
      */
     void freeMeterId(DeviceId deviceId, MeterId meterId);
+
+    /**
+     * Purges all the meters on the specified device.
+     * @param deviceId device identifier
+     */
+    default void purgeMeters(DeviceId deviceId){
+        //Default implementation does nothing
+    }
+
 }

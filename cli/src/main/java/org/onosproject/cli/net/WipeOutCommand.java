@@ -35,6 +35,7 @@ import org.onosproject.net.intent.IntentListener;
 import org.onosproject.net.intent.IntentService;
 import org.onosproject.net.intent.Key;
 import org.onosproject.net.link.LinkAdminService;
+import org.onosproject.net.meter.MeterService;
 import org.onosproject.net.region.RegionAdminService;
 import org.onosproject.ui.UiExtensionService;
 import org.onosproject.ui.UiTopoLayoutService;
@@ -71,6 +72,7 @@ public class WipeOutCommand extends AbstractShellCommand {
         wipeOutHosts();
         wipeOutFlows();
         wipeOutGroups();
+        wipeOutMeters();
         wipeOutDevices();
         wipeOutLinks();
         wipeOutNetworkConfig();
@@ -129,6 +131,15 @@ public class WipeOutCommand extends AbstractShellCommand {
         DeviceAdminService deviceAdminService = get(DeviceAdminService.class);
         for (Device device : deviceAdminService.getDevices()) {
             groupService.purgeGroupEntries(device.id());
+        }
+    }
+
+    private void wipeOutMeters() {
+        print("Wiping meters");
+        MeterService meterService = get(MeterService.class);
+        DeviceAdminService deviceAdminService = get(DeviceAdminService.class);
+        for (Device device : deviceAdminService.getDevices()) {
+            meterService.purgeMeters(device.id());
         }
     }
 
