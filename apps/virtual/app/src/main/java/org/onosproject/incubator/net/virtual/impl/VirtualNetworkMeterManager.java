@@ -216,6 +216,11 @@ public class VirtualNetworkMeterManager
         // Do nothing
     }
 
+    @Override
+    public void purgeMeters(DeviceId deviceId) {
+        // Do nothing
+    }
+
     private class InternalMeterProviderService
             extends AbstractVirtualProviderService<VirtualMeterProvider>
             implements VirtualMeterProviderService {
