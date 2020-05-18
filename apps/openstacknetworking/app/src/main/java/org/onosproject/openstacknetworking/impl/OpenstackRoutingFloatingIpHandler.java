@@ -507,15 +507,17 @@ public class OpenstackRoutingFloatingIpHandler {
                 GW_COMMON_TABLE,
                 install);
 
-        setArpRule(floatingIp, instPort.macAddress(), selectedGatewayNode, install);
+        setArpRule(floatingIp, instPort.macAddress(), externalPeerRouter, selectedGatewayNode, install);
     }
 
     private void setArpRule(NetFloatingIP floatingIp, MacAddress targetMac,
+                            ExternalPeerRouter externalPeerRouter,
                             OpenstackNode gateway, boolean install) {
-        if (ARP_BROADCAST_MODE.equals(getArpMode())) {
+        if (ARP_BROADCAST_MODE.equals(getArpMode()) && externalPeerRouter.ipAddress() != null) {
             TrafficSelector selector = DefaultTrafficSelector.builder()
                     .matchInPort(gateway.uplinkPortNum())
                     .matchEthType(EthType.EtherType.ARP.ethType().toShort())
+                    .matchArpSpa(Ip4Address.valueOf(externalPeerRouter.ipAddress().toString()))
                     .matchArpOp(ARP.OP_REQUEST)
                     .matchArpTpa(Ip4Address.valueOf(floatingIp.getFloatingIpAddress()))
                     .build();
