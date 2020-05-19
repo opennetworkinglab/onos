@@ -16,8 +16,10 @@
 package org.onosproject.vpls.rest;
 
 
+
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.intf.Interface;
 import org.onosproject.net.intf.InterfaceAdminService;
 import org.onosproject.rest.AbstractWebResource;
@@ -44,8 +46,9 @@ import java.util.Collection;
 import java.util.ArrayList;
 
 
-import static org.onlab.util.Tools.readTreeFromStream;
 import static org.onlab.util.Tools.nullIsNotFound;
+import static org.onlab.util.Tools.nullIsIllegal;
+import static org.onlab.util.Tools.readTreeFromStream;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -57,9 +60,12 @@ public class VplsWebResource extends AbstractWebResource {
     private UriInfo uriInfo;
 
     private static final String VPLS_NOT_FOUND = "Vpls is not found for ";
+    private static final String DEVICE_NOT_FOUND = "Device is not found for ";
+    private static final String PORT_NOT_FOUND = "Port is not found for ";
     private static final String VPLSS = "vplss";
     private static final String VPLS = "vpls";
     private static final String INTERFACES = "interfaces";
+    private static final String INTERFACES_KEY_ERROR = "No interfaces";
 
     private final ObjectNode root = mapper().createObjectNode();
     private final Logger log = getLogger(getClass());
@@ -115,12 +121,17 @@ public class VplsWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response createVpls(InputStream stream) {
         Vpls service = get(Vpls.class);
+        DeviceService deviceService = get(DeviceService.class);
         InterfaceAdminService interfaceService = get(InterfaceAdminService.class);
         try {
             ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
 
             VplsData vplsData = codec(VplsData.class).decode(jsonTree, this);
             vplsData.interfaces().forEach(interf -> {
+                nullIsNotFound(deviceService.getDevice(interf.connectPoint().deviceId()),
+                        DEVICE_NOT_FOUND + interf.connectPoint().deviceId());
+                nullIsNotFound(deviceService.getPort(interf.connectPoint()),
+                        PORT_NOT_FOUND + interf.connectPoint().port());
                     interfaceService.add(interf);
             });
             service.addInterfaces(vplsData, vplsData.interfaces());
@@ -152,14 +163,21 @@ public class VplsWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response addInterfaces(@PathParam("vplsName") String vplsName, InputStream stream) {
         Vpls service = get(Vpls.class);
+        DeviceService deviceService = get(DeviceService.class);
         InterfaceAdminService interfaceService = get(InterfaceAdminService.class);
         final VplsData vplsData = nullIsNotFound(service.getVpls(vplsName),
                 VPLS_NOT_FOUND + vplsName);
         try {
             ObjectNode jsonTree = readTreeFromStream(mapper(), stream);
+            ArrayNode routesArray = nullIsIllegal((ArrayNode) jsonTree.get(INTERFACES),
+                    INTERFACES_KEY_ERROR);
             Collection<Interface> interfaceList = new ArrayList<>();
-            jsonTree.forEach(interf -> {
-                Interface inter = codec(Interface.class).decode(jsonTree, this);
+           routesArray.forEach(interfJson -> {
+                Interface inter = codec(Interface.class).decode((ObjectNode) interfJson, this);
+                nullIsNotFound(deviceService.getDevice(inter.connectPoint().deviceId()),
+                        DEVICE_NOT_FOUND + inter.connectPoint().deviceId());
+                nullIsNotFound(deviceService.getPort(inter.connectPoint()),
+                        PORT_NOT_FOUND + inter.connectPoint().port());
                 interfaceList.add(inter);
                 interfaceService.add(inter);
             });
@@ -174,7 +192,6 @@ public class VplsWebResource extends AbstractWebResource {
         } catch (IOException e) {
             throw new IllegalArgumentException(e.getMessage());
         }
-
     }
 
     /**

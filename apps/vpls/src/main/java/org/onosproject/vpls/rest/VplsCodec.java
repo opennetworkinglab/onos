@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.IntStream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -62,11 +63,10 @@ public final class VplsCodec extends JsonCodec<VplsData> {
         if (json == null || !json.isObject()) {
             return null;
         }
-
-        String vplsName = json.findValue(NAME).asText();
-        EncapsulationType encap = EncapsulationType.enumFromString(json.findValue(ENCAPSULATION_TYPE).asText());
-        VplsData vplsData = VplsData.of(vplsName, encap);
-
+        List<String> names = new ArrayList<>();
+        json.findValues(NAME).forEach(jsonNode -> {
+            names.add(jsonNode.asText());
+        });
         Collection<Interface> interfaceList = new ArrayList<>();
         JsonNode interfacesJeson = json.findValue(INTERFACES);
         JsonCodec<Interface> interfaceCodec = context.codec(Interface.class);
@@ -75,8 +75,16 @@ public final class VplsCodec extends JsonCodec<VplsData> {
                     .forEach(i -> interfaceList.add(
                             interfaceCodec.decode(get(interfacesJeson, i),
                                     context)));
-            vplsData.addInterfaces(interfaceList);
+
         }
+        interfaceList.forEach(interf -> {
+            names.remove(interf.name());
+        });
+        String vplsName = names.get(0);
+        EncapsulationType encap =  json.findValue(ENCAPSULATION_TYPE) == null ?
+                null : EncapsulationType.enumFromString(json.findValue(ENCAPSULATION_TYPE).asText());
+        VplsData vplsData = VplsData.of(vplsName, encap);
+        vplsData.addInterfaces(interfaceList);
         return vplsData;
     }
 

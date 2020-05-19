@@ -15,8 +15,7 @@
         "type": "object",
         "title": "vpls",
         "required": [
-          "name",
-          "encapsulation"
+          "name"
         ],
         "properties": {
           "name": {
