@@ -306,7 +306,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
             try {
                 Pipeliner pipeliner = getDevicePipeliner(deviceId);
 
-                if (pipeliner != null && pipeliner.isReady()) {
+                if (pipeliner != null) {
                     if (objective instanceof NextObjective) {
                         nextToDevice.put(objective.id(), deviceId);
                         pipeliner.next((NextObjective) objective);
@@ -515,10 +515,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
     private void invalidatePipeliner(DeviceId id) {
         log.info("Invalidating cached pipeline behaviour for {}", id);
         driverHandlers.remove(id);
-        Pipeliner pipeliner = pipeliners.remove(id);
-        if (pipeliner != null) {
-            pipeliner.cleanUp();
-        }
+        pipeliners.remove(id);
         if (deviceService.isAvailable(id)) {
             getAndInitDevicePipeliner(id);
         }
@@ -540,7 +537,6 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                         getAndInitDevicePipeliner(event.subject().id());
                       } else {
                         log.debug("Device is no longer available {}", event.subject().id());
-                        getDevicePipeliner(event.subject().id()).cleanUp();
                       }
                     });
                     break;
@@ -558,10 +554,7 @@ public class FlowObjectiveManager implements FlowObjectiveService {
                     // replace driver/pipeliner assigned to the device.
                     devEventExecutor.execute(() -> {
                         driverHandlers.remove(event.subject().id());
-                        Pipeliner pipeliner = pipeliners.remove(event.subject().id());
-                        if (pipeliner != null) {
-                            pipeliner.cleanUp();
-                        }
+                        pipeliners.remove(event.subject().id());
                     });
                     break;
                 case DEVICE_SUSPENDED:
