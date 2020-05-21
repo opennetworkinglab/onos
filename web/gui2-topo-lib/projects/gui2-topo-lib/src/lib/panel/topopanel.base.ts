@@ -78,7 +78,7 @@ export abstract class TopoPanelBaseImpl extends PanelBaseImpl {
             tr.append('td').attr('class', cls).text(txt);
         }
 
-        addCell('label', lab + ' :');
+        addCell('label', lab);
         addCell('value', value);
     }
 
