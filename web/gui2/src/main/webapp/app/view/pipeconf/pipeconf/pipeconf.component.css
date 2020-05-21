@@ -18,7 +18,7 @@
 /* Base */
 #ov-pipeconf h2 {
     display: inline-block;
-    margin-left: 10px;
+    margin: 0 0 0 16px;
 }
 
 #pipeconf-info h2 {
@@ -86,81 +86,4 @@
 
 .pipeconf-table tr td p {
     margin: 5px 0;
-}
-
-/* Detail panel */
-.container {
-    padding: 10px;
-    overflow: hidden;
-}
-
-.container .top, .bottom {
-    padding: 15px;
-}
-.container .bottom {
-    overflow-y: scroll;
-}
-
-.container .bottom h2 {
-    margin: 0;
-}
-
-.container .top .detail-panel-header {
-    display: inline-block;
-    margin: 0 0 10px;
-}
-
-
-.detail-panel-table {
-    width: 100%;
-    overflow-y: hidden;
-}
-
-.detail-panel-table td, th {
-    text-align: left;
-    padding: 6px 12px;
-}
-
-.top-info {
-    font-size: 12pt;
-}
-
-.top-info .label {
-    font-weight: bold;
-    text-align: right;
-    display: inline-block;
-    margin: 0;
-    padding-right:6px;
-}
-
-.top-info .value {
-    margin: 0;
-    text-align: left;
-    display: inline-block;
-}
-
-/* Widgets */
-.collapse-btn {
-    cursor: pointer;
-    display: inline-block;
-    max-height: 30px;
-    overflow-y: hidden;
-    position: relative;
-    top: 8px;
-}
-
-.close-btn {
-    display: inline-block;
-    float: right;
-    margin: 0.1em;
-    cursor: pointer;
-}
-
-.text-center {
-    text-align: center !important;
-}
-
-.no-data {
-    text-align: center !important;
-    font-style: italic;
 }
