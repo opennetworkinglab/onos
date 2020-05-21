@@ -18,22 +18,27 @@ package org.onosproject.drivers.server;
 
 import org.onosproject.drivers.server.behavior.CpuStatisticsDiscovery;
 import org.onosproject.drivers.server.behavior.MonitoringStatisticsDiscovery;
-import org.onosproject.drivers.server.devices.CpuDevice;
-import org.onosproject.drivers.server.devices.CpuVendor;
+import org.onosproject.drivers.server.devices.cpu.CpuCacheHierarchyDevice;
+import org.onosproject.drivers.server.devices.cpu.CpuDevice;
+import org.onosproject.drivers.server.devices.memory.MemoryHierarchyDevice;
 import org.onosproject.drivers.server.devices.nic.NicDevice;
-import org.onosproject.drivers.server.devices.nic.NicRxFilter;
-import org.onosproject.drivers.server.devices.nic.NicRxFilter.RxFilter;
 import org.onosproject.drivers.server.devices.ServerDeviceDescription;
 import org.onosproject.drivers.server.devices.RestServerSBDevice;
 import org.onosproject.drivers.server.stats.CpuStatistics;
+import org.onosproject.drivers.server.stats.MemoryStatistics;
 import org.onosproject.drivers.server.stats.MonitoringStatistics;
 import org.onosproject.drivers.server.stats.TimingStatistics;
 
+import org.onosproject.drivers.server.impl.devices.DefaultBasicCpuCacheDevice;
+import org.onosproject.drivers.server.impl.devices.DefaultCpuCacheHierarchyDevice;
 import org.onosproject.drivers.server.impl.devices.DefaultCpuDevice;
+import org.onosproject.drivers.server.impl.devices.DefaultMemoryHierarchyDevice;
+import org.onosproject.drivers.server.impl.devices.DefaultMemoryModuleDevice;
 import org.onosproject.drivers.server.impl.devices.DefaultNicDevice;
 import org.onosproject.drivers.server.impl.devices.DefaultRestServerSBDevice;
 import org.onosproject.drivers.server.impl.devices.DefaultServerDeviceDescription;
 import org.onosproject.drivers.server.impl.stats.DefaultCpuStatistics;
+import org.onosproject.drivers.server.impl.stats.DefaultMemoryStatistics;
 import org.onosproject.drivers.server.impl.stats.DefaultMonitoringStatistics;
 import org.onosproject.drivers.server.impl.stats.DefaultTimingStatistics;
 
@@ -43,6 +48,10 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.behaviour.DevicesDiscovery;
+import org.onosproject.net.behaviour.DeviceCpuStats;
+import org.onosproject.net.behaviour.DeviceMemoryStats;
+import org.onosproject.net.behaviour.DeviceSystemStatisticsQuery;
+import org.onosproject.net.behaviour.DeviceSystemStats;
 import org.onosproject.net.device.DeviceDescription;
 import org.onosproject.net.device.DeviceDescriptionDiscovery;
 import org.onosproject.net.device.DefaultPortStatistics;
@@ -50,10 +59,8 @@ import org.onosproject.net.device.DefaultPortDescription;
 import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.device.PortStatistics;
 import org.onosproject.net.device.PortStatisticsDiscovery;
-import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.protocol.rest.RestSBDevice;
-import org.onosproject.protocol.rest.RestSBDevice.AuthenticationScheme;
 
 import org.slf4j.Logger;
 
@@ -64,6 +71,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.common.collect.ImmutableList;
 
 import java.io.InputStream;
@@ -74,113 +82,109 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import javax.ws.rs.ProcessingException;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.drivers.server.Constants.JSON;
+import static org.onosproject.drivers.server.Constants.MSG_DEVICE_NULL;
+import static org.onosproject.drivers.server.Constants.MSG_DEVICE_ID_NULL;
+import static org.onosproject.drivers.server.Constants.MSG_NIC_NAME_NULL;
+import static org.onosproject.drivers.server.Constants.MSG_NIC_PORT_NUMBER_NEGATIVE;
+import static org.onosproject.drivers.server.Constants.MSG_STATS_TIMING_DEPLOY_INCONSISTENT;
+import static org.onosproject.drivers.server.Constants.PARAM_ID;
+import static org.onosproject.drivers.server.Constants.PARAM_CAPACITY;
+import static org.onosproject.drivers.server.Constants.PARAM_CHASSIS_ID;
+import static org.onosproject.drivers.server.Constants.PARAM_CPUS;
+import static org.onosproject.drivers.server.Constants.PARAM_NICS;
+import static org.onosproject.drivers.server.Constants.PARAM_NAME;
+import static org.onosproject.drivers.server.Constants.PARAM_MEMORY;
+import static org.onosproject.drivers.server.Constants.PARAM_MEMORY_HIERARCHY;
+import static org.onosproject.drivers.server.Constants.PARAM_MEMORY_MODULES;
+import static org.onosproject.drivers.server.Constants.PARAM_MEMORY_STATS_FREE;
+import static org.onosproject.drivers.server.Constants.PARAM_MEMORY_STATS_TOTAL;
+import static org.onosproject.drivers.server.Constants.PARAM_MEMORY_STATS_USED;
+import static org.onosproject.drivers.server.Constants.PARAM_MANUFACTURER;
+import static org.onosproject.drivers.server.Constants.PARAM_HW_VENDOR;
+import static org.onosproject.drivers.server.Constants.PARAM_SW_VENDOR;
+import static org.onosproject.drivers.server.Constants.PARAM_SERIAL;
+import static org.onosproject.drivers.server.Constants.PARAM_TIMING_STATS;
+import static org.onosproject.drivers.server.Constants.PARAM_TIMING_STATS_AUTOSCALE;
+import static org.onosproject.drivers.server.Constants.PARAM_CPU_CACHE_LEVEL;
+import static org.onosproject.drivers.server.Constants.PARAM_CPU_CACHE_LEVELS;
+import static org.onosproject.drivers.server.Constants.PARAM_CPU_CACHE_LINE_LEN;
+import static org.onosproject.drivers.server.Constants.PARAM_CPU_CACHE_POLICY;
+import static org.onosproject.drivers.server.Constants.PARAM_CPU_CACHE_SETS;
+import static org.onosproject.drivers.server.Constants.PARAM_CPU_CACHE_SHARED;
+import static org.onosproject.drivers.server.Constants.PARAM_CPU_CACHE_TYPE;
+import static org.onosproject.drivers.server.Constants.PARAM_CPU_CACHE_WAYS;
+import static org.onosproject.drivers.server.Constants.PARAM_CPU_CACHES;
+import static org.onosproject.drivers.server.Constants.PARAM_CPU_CACHE_HIERARCHY;
+import static org.onosproject.drivers.server.Constants.PARAM_CPU_CORES;
+import static org.onosproject.drivers.server.Constants.PARAM_CPU_FREQUENCY;
+import static org.onosproject.drivers.server.Constants.PARAM_CPU_ID_LOG;
+import static org.onosproject.drivers.server.Constants.PARAM_CPU_ID_PHY;
+import static org.onosproject.drivers.server.Constants.PARAM_CPU_LOAD;
+import static org.onosproject.drivers.server.Constants.PARAM_CPU_LATENCY;
+import static org.onosproject.drivers.server.Constants.PARAM_CPU_QUEUE;
+import static org.onosproject.drivers.server.Constants.PARAM_CPU_SOCKET;
+import static org.onosproject.drivers.server.Constants.PARAM_CPU_SOCKETS;
+import static org.onosproject.drivers.server.Constants.PARAM_CPU_STATUS;
+import static org.onosproject.drivers.server.Constants.PARAM_CPU_THROUGHPUT;
+import static org.onosproject.drivers.server.Constants.PARAM_CPU_VENDOR;
+import static org.onosproject.drivers.server.Constants.PARAM_MEMORY_WIDTH_DATA;
+import static org.onosproject.drivers.server.Constants.PARAM_MEMORY_WIDTH_TOTAL;
+import static org.onosproject.drivers.server.Constants.PARAM_NIC_HW_ADDR;
+import static org.onosproject.drivers.server.Constants.PARAM_NIC_PORT_TYPE;
+import static org.onosproject.drivers.server.Constants.PARAM_NIC_RX_FILTER;
+import static org.onosproject.drivers.server.Constants.PARAM_NIC_STATS_RX_COUNT;
+import static org.onosproject.drivers.server.Constants.PARAM_NIC_STATS_RX_BYTES;
+import static org.onosproject.drivers.server.Constants.PARAM_NIC_STATS_RX_DROPS;
+import static org.onosproject.drivers.server.Constants.PARAM_NIC_STATS_RX_ERRORS;
+import static org.onosproject.drivers.server.Constants.PARAM_NIC_STATS_TX_COUNT;
+import static org.onosproject.drivers.server.Constants.PARAM_NIC_STATS_TX_BYTES;
+import static org.onosproject.drivers.server.Constants.PARAM_NIC_STATS_TX_DROPS;
+import static org.onosproject.drivers.server.Constants.PARAM_NIC_STATS_TX_ERRORS;
+import static org.onosproject.drivers.server.Constants.PARAM_MON_AVERAGE;
+import static org.onosproject.drivers.server.Constants.PARAM_MON_BUSY_CPUS;
+import static org.onosproject.drivers.server.Constants.PARAM_MON_FREE_CPUS;
+import static org.onosproject.drivers.server.Constants.PARAM_MON_MAX;
+import static org.onosproject.drivers.server.Constants.PARAM_MON_MIN;
+import static org.onosproject.drivers.server.Constants.PARAM_MON_UNIT;
+import static org.onosproject.drivers.server.Constants.PARAM_SPEED;
+import static org.onosproject.drivers.server.Constants.PARAM_SPEED_CONF;
+import static org.onosproject.drivers.server.Constants.PARAM_STATUS;
+import static org.onosproject.drivers.server.Constants.PARAM_TIMING_PARSE;
+import static org.onosproject.drivers.server.Constants.PARAM_TIMING_LAUNCH;
+import static org.onosproject.drivers.server.Constants.PARAM_TIMING_DEPLOY;
+import static org.onosproject.drivers.server.Constants.PARAM_TIMING_AUTOSCALE;
+import static org.onosproject.drivers.server.Constants.PARAM_TYPE;
+import static org.onosproject.drivers.server.Constants.SLASH;
+import static org.onosproject.drivers.server.Constants.URL_SRV_GLOBAL_STATS;
+import static org.onosproject.drivers.server.Constants.URL_SRV_RESOURCE_DISCOVERY;
+import static org.onosproject.drivers.server.Constants.URL_SERVICE_CHAINS_STATS;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Discovers the device details of
- * REST-based commodity server devices.
+ * Discovers the device details of server devices.
  */
-public class ServerDevicesDiscovery extends BasicServerDriver
+public class ServerDevicesDiscovery
+        extends BasicServerDriver
         implements  DevicesDiscovery, DeviceDescriptionDiscovery,
                     PortStatisticsDiscovery, CpuStatisticsDiscovery,
-                    MonitoringStatisticsDiscovery {
+                    MonitoringStatisticsDiscovery, DeviceSystemStatisticsQuery {
 
     private final Logger log = getLogger(getClass());
 
     /**
-     * Resource endpoints of the server agent (REST server-side).
-     */
-    private static final String RESOURCE_DISCOVERY_URL   = BASE_URL + SLASH + "resources";
-    private static final String GLOBAL_STATS_URL         = BASE_URL + SLASH + "stats";
-    private static final String SERVICE_CHAINS_STATS_URL = BASE_URL + SLASH + "chains_stats";  // + /ID
-
-    /**
-     * Parameters to be exchanged with the server's agent.
-     */
-    private static final String PARAM_MANUFACTURER     = "manufacturer";
-    private static final String PARAM_HW_VENDOR        = "hwVersion";
-    private static final String PARAM_SW_VENDOR        = "swVersion";
-    private static final String PARAM_SERIAL           = "serial";
-    private static final String PARAM_TIMING_STATS     = "timingStats";
-    private static final String PARAM_TIMING_AUTOSCALE = "autoScaleTimingStats";
-
-    private static final String NIC_PARAM_NAME             = "name";
-    private static final String NIC_PARAM_PORT_INDEX       = "index";
-    private static final String NIC_PARAM_PORT_TYPE        = "portType";
-    private static final String NIC_PARAM_PORT_TYPE_FIBER  = "fiber";
-    private static final String NIC_PARAM_PORT_TYPE_COPPER = "copper";
-    private static final String NIC_PARAM_SPEED            = "speed";
-    private static final String NIC_PARAM_STATUS           = "status";
-    private static final String NIC_PARAM_HW_ADDR          = "hwAddr";
-
-    /**
-     * NIC statistics.
-     */
-    private static final String NIC_STATS_TX_COUNT  = "txCount";
-    private static final String NIC_STATS_TX_BYTES  = "txBytes";
-    private static final String NIC_STATS_TX_DROPS  = "txDropped";
-    private static final String NIC_STATS_TX_ERRORS = "txErrors";
-    private static final String NIC_STATS_RX_COUNT  = "rxCount";
-    private static final String NIC_STATS_RX_BYTES  = "rxBytes";
-    private static final String NIC_STATS_RX_DROPS  = "rxDropped";
-    private static final String NIC_STATS_RX_ERRORS = "rxErrors";
-
-    /**
-     * CPU statistics.
-     */
-    private static final String CPU_PARAM_ID         = "id";
-    private static final String CPU_PARAM_VENDOR     = "vendor";
-    private static final String CPU_PARAM_FREQUENCY  = "frequency";
-    private static final String CPU_PARAM_LOAD       = "load";
-    private static final String CPU_PARAM_QUEUE      = "queue";
-    private static final String CPU_PARAM_STATUS     = "busy";
-    private static final String CPU_PARAM_THROUGHPUT = "throughput";
-    private static final String CPU_PARAM_LATENCY    = "latency";
-    private static final String MON_PARAM_UNIT       = "unit";
-    private static final String MON_PARAM_BUSY_CPUS  = "busyCpus";
-    private static final String MON_PARAM_FREE_CPUS  = "freeCpus";
-    private static final String MON_PARAM_MIN        = "min";
-    private static final String MON_PARAM_AVERAGE    = "average";
-    private static final String MON_PARAM_MAX        = "max";
-
-    /**
-     * Timing statistics.
-     */
-    private static final String TIMING_PARAM_PARSE     = "parseTime";
-    private static final String TIMING_PARAM_LAUNCH    = "launchTime";
-    private static final String TIMING_PARAM_DEPLOY    = "deployTime";
-    private static final String TIMING_PARAM_AUTOSCALE = "autoScaleTime";
-
-    /**
      * Auxiliary constants.
      */
-    private static final short  DISCOVERY_RETRIES  = 3;
-    private static final String CPU_VENDOR_NULL    = "Unsupported CPU vendor" +
-        " Choose one in: " + BasicServerDriver.enumTypesToString(CpuVendor.class);
-    private static final String NIC_RX_FILTER_NULL = "Unsupported NIC Rx filter" +
-        " Choose one in: " + BasicServerDriver.enumTypesToString(RxFilter.class);
-
-    /**
-     * Port types that usually appear in commodity servers.
-     */
-    public static final Map<String, Port.Type> PORT_TYPE_MAP =
-        Collections.unmodifiableMap(
-            new HashMap<String, Port.Type>() {
-                {
-                    put(NIC_PARAM_PORT_TYPE_FIBER,  Port.Type.FIBER);
-                    put(NIC_PARAM_PORT_TYPE_COPPER, Port.Type.COPPER);
-                }
-            }
-        );
+    private static final short DISCOVERY_RETRIES = 3;
 
     /**
      * Constructs server device discovery.
@@ -190,13 +194,16 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         log.debug("Started");
     }
 
+    /**
+     * Implements DevicesDiscovery behaviour.
+     */
     @Override
     public Set<DeviceId> deviceIds() {
         // Set of devices to return
         Set<DeviceId> devices = new HashSet<DeviceId>();
 
-        DeviceId deviceId = getHandler().data().deviceId();
-        checkNotNull(deviceId, DEVICE_ID_NULL);
+        DeviceId deviceId = getDeviceId();
+        checkNotNull(deviceId, MSG_DEVICE_ID_NULL);
         devices.add(deviceId);
 
         return devices;
@@ -207,6 +214,9 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         return getDeviceDetails(deviceId);
     }
 
+    /**
+     * Implements DeviceDescriptionDiscovery behaviour.
+     */
     @Override
     public DeviceDescription discoverDeviceDetails() {
         return getDeviceDetails(null);
@@ -221,18 +231,18 @@ public class ServerDevicesDiscovery extends BasicServerDriver
     private DeviceDescription getDeviceDetails(DeviceId deviceId) {
         // Retrieve the device ID, if null given
         if (deviceId == null) {
-            deviceId = getHandler().data().deviceId();
-            checkNotNull(deviceId, DEVICE_ID_NULL);
+            deviceId = getDeviceId();
+            checkNotNull(deviceId, MSG_DEVICE_ID_NULL);
         }
 
         // Get the device
-        RestSBDevice device = getController().getDevice(deviceId);
-        checkNotNull(device, DEVICE_NULL);
+        RestSBDevice device = getDevice(deviceId);
+        checkNotNull(device, MSG_DEVICE_NULL);
 
         // Hit the path that provides the server's resources
         InputStream response = null;
         try {
-            response = getController().get(deviceId, RESOURCE_DISCOVERY_URL, JSON);
+            response = getController().get(deviceId, URL_SRV_RESOURCE_DISCOVERY, JSON);
         } catch (ProcessingException pEx) {
             log.error("Failed to discover the device details of: {}", deviceId);
             return null;
@@ -258,62 +268,237 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         }
 
         // Get all the attributes
-        String id     = get(jsonNode, BasicServerDriver.PARAM_ID);
-        String vendor = get(jsonNode, PARAM_MANUFACTURER);
-        String hw     = get(jsonNode, PARAM_HW_VENDOR);
-        String sw     = get(jsonNode, PARAM_SW_VENDOR);
-        String serial = get(jsonNode, PARAM_SERIAL);
+        String id      = get(jsonNode, PARAM_ID);
+        String vendor  = get(jsonNode, PARAM_MANUFACTURER);
+        String hw      = get(jsonNode, PARAM_HW_VENDOR);
+        String sw      = get(jsonNode, PARAM_SW_VENDOR);
+        String serial  = get(jsonNode, PARAM_SERIAL);
+        long chassisId = objNode.path(PARAM_CHASSIS_ID).asLong();
 
-        // CPUs are composite attributes
-        Set<CpuDevice> cpuSet = new HashSet<CpuDevice>();
-        JsonNode cpuNode = objNode.path(BasicServerDriver.PARAM_CPUS);
+        // Pass the southbound protocol as an annotation
+        DefaultAnnotations.Builder annotations = DefaultAnnotations.builder();
+        annotations.set(AnnotationKeys.PROTOCOL, "REST");
+
+        // Parse CPU devices
+        Collection<CpuDevice> cpuSet = parseCpuDevices(objNode);
+
+        // Parse memory hierarchy device
+        MemoryHierarchyDevice memHierarchyDev = parseMemoryHierarchyDevice(objNode);
+
+        // Parse CPU cache hierachy device
+        CpuCacheHierarchyDevice cacheHierarchyDev = parseCpuCacheHierarchyDevice(objNode);
+
+        // NICs are composite attributes too
+        Collection<NicDevice> nicSet = parseNicDevices(mapper, objNode, annotations);
+
+        // Construct a server device,
+        // i.e., a RestSBDevice extended with CPU, cache, memory, and NIC information
+        RestServerSBDevice dev = new DefaultRestServerSBDevice(
+            device.ip(), device.port(), device.username(),
+            device.password(), device.protocol(), device.url(),
+            device.isActive(), device.testUrl().orElse(""),
+            vendor, hw, sw, cpuSet, cacheHierarchyDev,
+            memHierarchyDev, nicSet);
+        checkNotNull(dev, MSG_DEVICE_NULL);
+
+        // Set alive
+        raiseDeviceReconnect(dev);
+
+        // Updates the controller with the complete device information
+        getController().removeDevice(deviceId);
+        getController().addDevice((RestSBDevice) dev);
+
+        // Create a description for this server device
+        ServerDeviceDescription desc = null;
+        try {
+            desc = new DefaultServerDeviceDescription(
+                new URI(id), Device.Type.SERVER, vendor,
+                hw, sw, serial, new ChassisId(chassisId),
+                cpuSet, cacheHierarchyDev, memHierarchyDev,
+                nicSet, annotations.build());
+        } catch (URISyntaxException uEx) {
+            log.error("Failed to create a server device description for: {}",
+                deviceId);
+            return null;
+        }
+
+        log.info("Device's {} details sent to the controller", deviceId);
+
+        return desc;
+    }
+
+    /**
+     * Parse the input JSON object, looking for CPU-related
+     * information. Upon success, construct and return a list
+     * of CPU devices.
+     *
+     * @param objNode input JSON node with CPU device information
+     * @return list of CPU devices
+     */
+    private Collection<CpuDevice> parseCpuDevices(ObjectNode objNode) {
+        Collection<CpuDevice> cpuSet = Sets.newHashSet();
+        JsonNode cpuNode = objNode.path(PARAM_CPUS);
 
         // Construct CPU objects
         for (JsonNode cn : cpuNode) {
             ObjectNode cpuObjNode = (ObjectNode) cn;
 
             // All the CPU attributes
-            int           cpuId = cpuObjNode.path(CPU_PARAM_ID).asInt();
-            String cpuVendorStr = get(cn, CPU_PARAM_VENDOR);
-            long   cpuFrequency = cpuObjNode.path(CPU_PARAM_FREQUENCY).asLong();
+            int   physicalCpuId = cpuObjNode.path(PARAM_CPU_ID_PHY).asInt();
+            int    logicalCpuId = cpuObjNode.path(PARAM_CPU_ID_LOG).asInt();
+            int       cpuSocket = cpuObjNode.path(PARAM_CPU_SOCKET).asInt();
+            String cpuVendorStr = get(cn, PARAM_CPU_VENDOR);
+            long   cpuFrequency = cpuObjNode.path(PARAM_CPU_FREQUENCY).asLong();
 
-            // Verify that this is a valid vendor
-            CpuVendor cpuVendor = CpuVendor.getByName(cpuVendorStr);
-            checkNotNull(cpuVendor, CPU_VENDOR_NULL);
-
-            // Construct a CPU device
-            CpuDevice cpu = new DefaultCpuDevice(cpuId, cpuVendor, cpuFrequency);
-
-            // Add it to the set
-            cpuSet.add(cpu);
+            // Construct a CPU device and add it to the set
+            cpuSet.add(
+                DefaultCpuDevice.builder()
+                    .setCoreId(logicalCpuId, physicalCpuId)
+                    .setVendor(cpuVendorStr)
+                    .setSocket(cpuSocket)
+                    .setFrequency(cpuFrequency)
+                    .build());
         }
 
-        // NICs are composite attributes too
-        Set<NicDevice> nicSet = new HashSet<NicDevice>();
+        return cpuSet;
+    }
+
+    /**
+     * Parse the input JSON object, looking for CPU cache-related
+     * information. Upon success, construct and return a CPU cache
+     * hierarchy device.
+     *
+     * @param objNode input JSON node with CPU cache device information
+     * @return a CPU cache hierarchy devices
+     */
+    private CpuCacheHierarchyDevice parseCpuCacheHierarchyDevice(ObjectNode objNode) {
+        JsonNode cacheHierarchyNode = objNode.path(PARAM_CPU_CACHE_HIERARCHY);
+        ObjectNode cacheHierarchyObjNode = (ObjectNode) cacheHierarchyNode;
+        if (cacheHierarchyObjNode == null) {
+            return null;
+        }
+
+        int socketsNb = cacheHierarchyObjNode.path(PARAM_CPU_SOCKETS).asInt();
+        int coresNb = cacheHierarchyObjNode.path(PARAM_CPU_CORES).asInt();
+        int levels = cacheHierarchyObjNode.path(PARAM_CPU_CACHE_LEVELS).asInt();
+
+        JsonNode cacheNode = cacheHierarchyObjNode.path(PARAM_CPU_CACHES);
+
+        DefaultCpuCacheHierarchyDevice.Builder cacheBuilder =
+            DefaultCpuCacheHierarchyDevice.builder()
+                .setSocketsNumber(socketsNb)
+                .setCoresNumber(coresNb)
+                .setLevels(levels);
+
+        // Construct CPU cache objects
+        for (JsonNode cn : cacheNode) {
+            ObjectNode cacheObjNode = (ObjectNode) cn;
+
+            // CPU cache attributes
+            String cpuVendorStr = get(cn, PARAM_CPU_VENDOR);
+            String     levelStr = get(cn, PARAM_CPU_CACHE_LEVEL);
+            String      typeStr = get(cn, PARAM_CPU_CACHE_TYPE);
+            String    policyStr = get(cn, PARAM_CPU_CACHE_POLICY);
+            long       capacity = cacheObjNode.path(PARAM_CAPACITY).asLong();
+            int            sets = cacheObjNode.path(PARAM_CPU_CACHE_SETS).asInt();
+            int            ways = cacheObjNode.path(PARAM_CPU_CACHE_WAYS).asInt();
+            int         lineLen = cacheObjNode.path(PARAM_CPU_CACHE_LINE_LEN).asInt();
+            boolean      shared = cacheObjNode.path(PARAM_CPU_CACHE_SHARED).asInt() > 0;
+
+            // Construct a basic CPU cache device and add it to the hierarchy
+            cacheBuilder.addBasicCpuCacheDevice(
+                DefaultBasicCpuCacheDevice.builder()
+                    .setVendor(cpuVendorStr)
+                    .setCacheId(levelStr, typeStr)
+                    .setPolicy(policyStr)
+                    .setCapacity(capacity)
+                    .setNumberOfSets(sets)
+                    .setNumberOfWays(ways)
+                    .setLineLength(lineLen)
+                    .isShared(shared)
+                    .build());
+        }
+
+        return cacheBuilder.build();
+    }
+
+    /**
+     * Parse the input JSON object, looking for memory-related
+     * information. Upon success, construct and return a memory
+     * hierarchy device.
+     *
+     * @param objNode input JSON node with memory device information
+     * @return a memory hierarchy device
+     */
+    private MemoryHierarchyDevice parseMemoryHierarchyDevice(ObjectNode objNode) {
+        JsonNode memHierarchyNode = objNode.path(PARAM_MEMORY_HIERARCHY);
+        ObjectNode memoryHierarchyObjNode = (ObjectNode) memHierarchyNode;
+        if (memoryHierarchyObjNode == null) {
+            return null;
+        }
+
+        JsonNode memoryNode = memoryHierarchyObjNode.path(PARAM_MEMORY_MODULES);
+
+        DefaultMemoryHierarchyDevice.Builder memoryBuilder =
+            DefaultMemoryHierarchyDevice.builder();
+
+        // Construct memory modules
+        for (JsonNode mn : memoryNode) {
+            ObjectNode memoryObjNode = (ObjectNode) mn;
+
+            String typeStr = get(mn, PARAM_TYPE);
+            String manufacturerStr = get(mn, PARAM_MANUFACTURER);
+            String serialStr = get(mn, PARAM_SERIAL);
+            int dataWidth = memoryObjNode.path(PARAM_MEMORY_WIDTH_DATA).asInt();
+            int totalWidth = memoryObjNode.path(PARAM_MEMORY_WIDTH_TOTAL).asInt();
+            long capacity = memoryObjNode.path(PARAM_CAPACITY).asLong();
+            long speed = memoryObjNode.path(PARAM_SPEED).asLong();
+            long configuredSpeed = memoryObjNode.path(PARAM_SPEED_CONF).asLong();
+
+            // Construct a memory module and add it to the hierarchy
+            memoryBuilder.addMemoryModule(
+                DefaultMemoryModuleDevice.builder()
+                    .setType(typeStr)
+                    .setManufacturer(manufacturerStr)
+                    .setSerialNumber(serialStr)
+                    .setDataWidth(dataWidth)
+                    .setTotalWidth(totalWidth)
+                    .setCapacity(capacity)
+                    .setSpeed(speed)
+                    .setConfiguredSpeed(configuredSpeed)
+                    .build());
+        }
+
+        return memoryBuilder.build();
+    }
+
+    /**
+     * Parse the input JSON object, looking for NIC-related
+     * information. Upon success, construct and return a list
+     * of NIC devices.
+     *
+     * @param mapper input JSON object mapper
+     * @param objNode input JSON node with NIC device information
+     * @param annotations device annotations
+     * @return list of CPU devices
+     */
+    private Collection<NicDevice> parseNicDevices(
+            ObjectMapper mapper, ObjectNode objNode, DefaultAnnotations.Builder annotations) {
+        Collection<NicDevice> nicSet = Sets.newHashSet();
         JsonNode nicNode = objNode.path(PARAM_NICS);
-
-        DefaultAnnotations.Builder annotations = DefaultAnnotations.builder();
-
-        // Pass the southbound protocol as an annotation
-        annotations.set(AnnotationKeys.PROTOCOL, "REST");
 
         // Construct NIC objects
         for (JsonNode nn : nicNode) {
             ObjectNode nicObjNode = (ObjectNode) nn;
 
             // All the NIC attributes
-            String nicName     = get(nn, NIC_PARAM_NAME);
-            long nicIndex      = nicObjNode.path(NIC_PARAM_PORT_INDEX).asLong();
-            long speed         = nicObjNode.path(NIC_PARAM_SPEED).asLong();
-            String portTypeStr = get(nn, NIC_PARAM_PORT_TYPE);
-            Port.Type portType = PORT_TYPE_MAP.get(portTypeStr);
-            if (portType == null) {
-                throw new IllegalArgumentException(
-                    portTypeStr + " is not a valid port type for NIC " + nicName);
-            }
-            boolean status     = nicObjNode.path(NIC_PARAM_STATUS).asInt() > 0;
-            String hwAddr      = get(nn, NIC_PARAM_HW_ADDR);
-            JsonNode tagNode   = nicObjNode.path(BasicServerDriver.NIC_PARAM_RX_FILTER);
+            String nicName     = get(nn, PARAM_NAME);
+            long nicIndex      = nicObjNode.path(PARAM_ID).asLong();
+            long speed         = nicObjNode.path(PARAM_SPEED).asLong();
+            String portTypeStr = get(nn, PARAM_NIC_PORT_TYPE);
+            boolean status     = nicObjNode.path(PARAM_STATUS).asInt() > 0;
+            String hwAddr      = get(nn, PARAM_NIC_HW_ADDR);
+            JsonNode tagNode   = nicObjNode.path(PARAM_NIC_RX_FILTER);
             if (tagNode == null) {
                 throw new IllegalArgumentException(
                     "The Rx filters of NIC " + nicName + " are not reported");
@@ -328,76 +513,36 @@ public class ServerDevicesDiscovery extends BasicServerDriver
                 continue;
             }
 
-            // Parse the array of strings and create an RxFilter object
-            NicRxFilter rxFilterMechanism = new NicRxFilter();
-            for (String s : rxFilters) {
-                // Verify that this is a valid Rx filter
-                RxFilter rf = RxFilter.getByName(s);
-                checkNotNull(rf, NIC_RX_FILTER_NULL);
-
-                rxFilterMechanism.addRxFilter(rf);
-            }
-
             // Store NIC name to number mapping as an annotation
             annotations.set(nicName, Long.toString(nicIndex));
 
-            // Construct a NIC device for this server
-            NicDevice nic = new DefaultNicDevice(
-                nicName, nicIndex, portType, speed, status, hwAddr, rxFilterMechanism);
-
-            // Add it to the set
-            nicSet.add(nic);
+            // Construct a NIC device and add it to the set
+            nicSet.add(
+                DefaultNicDevice.builder()
+                    .setName(nicName)
+                    .setPortNumber(nicIndex)
+                    .setPortNumber(nicIndex)
+                    .setPortType(portTypeStr)
+                    .setSpeed(speed)
+                    .setStatus(status)
+                    .setMacAddress(hwAddr)
+                    .setRxFilters(rxFilters)
+                    .build());
         }
 
-        // Construct a complete server device object.
-        // Lists of NICs and CPUs extend the information
-        // already in RestSBDevice (parent class).
-        RestServerSBDevice dev = new DefaultRestServerSBDevice(
-            device.ip(), device.port(), device.username(),
-            device.password(), device.protocol(), device.url(),
-            device.isActive(), device.testUrl().orElse(""),
-            vendor, hw, sw, AuthenticationScheme.BASIC, "",
-            cpuSet, nicSet
-        );
-        checkNotNull(dev, DEVICE_NULL);
-
-        // Set alive
-        raiseDeviceReconnect(dev);
-
-        // Updates the controller with the complete device information
-        getController().removeDevice(deviceId);
-        getController().addDevice((RestSBDevice) dev);
-
-        // Create a description for this server device
-        ServerDeviceDescription desc = null;
-
-        try {
-            desc = new DefaultServerDeviceDescription(
-                new URI(id), Device.Type.SERVER, vendor,
-                hw, sw, serial, new ChassisId(),
-                cpuSet, nicSet, annotations.build()
-            );
-        } catch (URISyntaxException uEx) {
-            log.error("Failed to create a server device description for: {}",
-                deviceId);
-            return null;
-        }
-
-        log.info("Device's {} details sent to the controller", deviceId);
-
-        return desc;
+        return nicSet;
     }
 
     @Override
     public List<PortDescription> discoverPortDetails() {
         // Retrieve the device ID
-        DeviceId deviceId = getHandler().data().deviceId();
-        checkNotNull(deviceId, DEVICE_ID_NULL);
+        DeviceId deviceId = getDeviceId();
+        checkNotNull(deviceId, MSG_DEVICE_ID_NULL);
 
         // .. and object
         RestServerSBDevice device = null;
         try {
-            device = (RestServerSBDevice) getController().getDevice(deviceId);
+            device = (RestServerSBDevice) getDevice(deviceId);
         } catch (ClassCastException ccEx) {
             log.error("Failed to discover ports for device {}", deviceId);
             return Collections.EMPTY_LIST;
@@ -427,7 +572,8 @@ public class ServerDevicesDiscovery extends BasicServerDriver
             // Create a port description and add it to the list
             portDescriptions.add(
                     DefaultPortDescription.builder()
-                            .withPortNumber(PortNumber.portNumber(nic.portNumber(), nic.name()))
+                            // CHECK: .withPortNumber(PortNumber.portNumber(nic.portNumber(), nic.name()))
+                            .withPortNumber(PortNumber.portNumber(nic.portNumber()))
                             .isEnabled(nic.status())
                             .type(nic.portType())
                             .portSpeed(nic.speed())
@@ -442,11 +588,14 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         return ImmutableList.copyOf(portDescriptions);
     }
 
+    /**
+     * Implements PortStatisticsDiscovery behaviour.
+     */
     @Override
     public Collection<PortStatistics> discoverPortStatistics() {
         // Retrieve the device ID
-        DeviceId deviceId = getHandler().data().deviceId();
-        checkNotNull(deviceId, DEVICE_ID_NULL);
+        DeviceId deviceId = getDeviceId();
+        checkNotNull(deviceId, MSG_DEVICE_ID_NULL);
 
         // Get port statistics for this device
         return getPortStatistics(deviceId);
@@ -476,11 +625,14 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         return portStats;
     }
 
+    /**
+     * Implements CpuStatisticsDiscovery behaviour.
+     */
     @Override
     public Collection<CpuStatistics> discoverCpuStatistics() {
         // Retrieve the device ID
-        DeviceId deviceId = getHandler().data().deviceId();
-        checkNotNull(deviceId, DEVICE_ID_NULL);
+        DeviceId deviceId = getDeviceId();
+        checkNotNull(deviceId, MSG_DEVICE_ID_NULL);
 
         // Get CPU statistics for this device
         return getCpuStatistics(deviceId);
@@ -510,11 +662,14 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         return cpuStats;
     }
 
+    /**
+     * Implements MonitoringStatisticsDiscovery behaviour.
+     */
     @Override
     public MonitoringStatistics discoverGlobalMonitoringStatistics() {
         // Retrieve the device ID
-        DeviceId deviceId = getHandler().data().deviceId();
-        checkNotNull(deviceId, DEVICE_ID_NULL);
+        DeviceId deviceId = getDeviceId();
+        checkNotNull(deviceId, MSG_DEVICE_ID_NULL);
 
         // Get global monitoring statistics for this device
         return getGlobalMonitoringStatistics(deviceId);
@@ -532,7 +687,7 @@ public class ServerDevicesDiscovery extends BasicServerDriver
 
         RestServerSBDevice device = null;
         try {
-            device = (RestServerSBDevice) getController().getDevice(deviceId);
+            device = (RestServerSBDevice) getDevice(deviceId);
         } catch (ClassCastException ccEx) {
             log.error("Failed to retrieve global monitoring statistics from device {}",
                 deviceId);
@@ -545,7 +700,7 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         // Hit the path that provides the server's global resources
         InputStream response = null;
         try {
-            response = getController().get(deviceId, GLOBAL_STATS_URL, JSON);
+            response = getController().get(deviceId, URL_SRV_GLOBAL_STATS, JSON);
         } catch (ProcessingException pEx) {
             log.error("Failed to retrieve global monitoring statistics from device {}",
                 deviceId);
@@ -576,11 +731,14 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         }
 
         // Get high-level CPU statistics
-        int busyCpus = objNode.path(MON_PARAM_BUSY_CPUS).asInt();
-        int freeCpus = objNode.path(MON_PARAM_FREE_CPUS).asInt();
+        int busyCpus = objNode.path(PARAM_MON_BUSY_CPUS).asInt();
+        int freeCpus = objNode.path(PARAM_MON_FREE_CPUS).asInt();
 
         // Get a list of CPU statistics per core
         Collection<CpuStatistics> cpuStats = parseCpuStatistics(deviceId, objNode);
+
+        // Get main memory statistics
+        MemoryStatistics memStats = parseMemoryStatistics(deviceId, objNode);
 
         // Get a list of port statistics
         Collection<PortStatistics> nicStats = parseNicStatistics(deviceId, objNode);
@@ -588,16 +746,14 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         // Get zero timing statistics
         TimingStatistics timinsgStats = getZeroTimingStatistics();
 
-        // Ready to construct the grand object
-        DefaultMonitoringStatistics.Builder statsBuilder =
-            DefaultMonitoringStatistics.builder();
-
-        statsBuilder.setDeviceId(deviceId)
-                .setTimingStatistics(timinsgStats)
-                .setCpuStatistics(cpuStats)
-                .setNicStatistics(nicStats);
-
-        monStats = statsBuilder.build();
+        // Construct a global monitoring statistics object out of smaller ones
+        monStats = DefaultMonitoringStatistics.builder()
+                    .setDeviceId(deviceId)
+                    .setTimingStatistics(timinsgStats)
+                    .setCpuStatistics(cpuStats)
+                    .setMemoryStatistics(memStats)
+                    .setNicStatistics(nicStats)
+                    .build();
 
         // When a device reports monitoring data, it means it is alive
         raiseDeviceReconnect(device);
@@ -610,8 +766,8 @@ public class ServerDevicesDiscovery extends BasicServerDriver
     @Override
     public MonitoringStatistics discoverMonitoringStatistics(URI tcId) {
         // Retrieve the device ID
-        DeviceId deviceId = getHandler().data().deviceId();
-        checkNotNull(deviceId, DEVICE_ID_NULL);
+        DeviceId deviceId = getDeviceId();
+        checkNotNull(deviceId, MSG_DEVICE_ID_NULL);
 
         // Get resource-specific monitoring statistics for this device
         return getMonitoringStatistics(deviceId, tcId);
@@ -631,7 +787,7 @@ public class ServerDevicesDiscovery extends BasicServerDriver
 
         RestServerSBDevice device = null;
         try {
-            device = (RestServerSBDevice) getController().getDevice(deviceId);
+            device = (RestServerSBDevice) getDevice(deviceId);
         } catch (ClassCastException ccEx) {
             log.error("Failed to retrieve monitoring statistics from device {}",
                 deviceId);
@@ -642,7 +798,7 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         }
 
         // Create a resource-specific URL
-        String scUrl = SERVICE_CHAINS_STATS_URL + SLASH + tcId.toString();
+        String scUrl = URL_SERVICE_CHAINS_STATS + SLASH + tcId.toString();
 
         // Hit the path that provides the server's specific resources
         InputStream response = null;
@@ -692,22 +848,23 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         // Get a list of CPU statistics per core
         Collection<CpuStatistics> cpuStats = parseCpuStatistics(deviceId, objNode);
 
+        // Get main memory statistics
+        MemoryStatistics memStats = parseMemoryStatistics(deviceId, objNode);
+
         // Get a list of port statistics
         Collection<PortStatistics> nicStats = parseNicStatistics(deviceId, objNode);
 
         // Get timing statistics
         TimingStatistics timinsgStats = parseTimingStatistics(objNode);
 
-        // Ready to construct the grand object
-        DefaultMonitoringStatistics.Builder statsBuilder =
-            DefaultMonitoringStatistics.builder();
-
-        statsBuilder.setDeviceId(deviceId)
-                .setTimingStatistics(timinsgStats)
-                .setCpuStatistics(cpuStats)
-                .setNicStatistics(nicStats);
-
-        monStats = statsBuilder.build();
+        // Construct a global monitoring statistics object out of smaller ones
+        monStats = DefaultMonitoringStatistics.builder()
+                    .setDeviceId(deviceId)
+                    .setTimingStatistics(timinsgStats)
+                    .setCpuStatistics(cpuStats)
+                    .setMemoryStatistics(memStats)
+                    .setNicStatistics(nicStats)
+                    .build();
 
         // When a device reports monitoring data, it means it is alive
         raiseDeviceReconnect(device);
@@ -733,71 +890,103 @@ public class ServerDevicesDiscovery extends BasicServerDriver
 
         Collection<CpuStatistics> cpuStats = Lists.newArrayList();
 
-        JsonNode cpuNode = objNode.path(BasicServerDriver.PARAM_CPUS);
+        JsonNode cpuNode = objNode.path(PARAM_CPUS);
 
         for (JsonNode cn : cpuNode) {
             ObjectNode cpuObjNode = (ObjectNode) cn;
 
             // CPU statistics builder
-            DefaultCpuStatistics.Builder cpuBuilder = DefaultCpuStatistics.builder();
+            DefaultCpuStatistics.Builder cpuStatsBuilder = DefaultCpuStatistics.builder();
 
             // Throughput statistics are optional
-            JsonNode throughputNode = cpuObjNode.get(CPU_PARAM_THROUGHPUT);
+            JsonNode throughputNode = cpuObjNode.get(PARAM_CPU_THROUGHPUT);
             if (throughputNode != null) {
-                String throughputUnit = get(throughputNode, MON_PARAM_UNIT);
+                String throughputUnit = get(throughputNode, PARAM_MON_UNIT);
                 if (!Strings.isNullOrEmpty(throughputUnit)) {
-                    cpuBuilder.setThroughputUnit(throughputUnit);
+                    cpuStatsBuilder.setThroughputUnit(throughputUnit);
                 }
                 float averageThroughput = (float) 0;
-                if (throughputNode.get(MON_PARAM_AVERAGE) != null) {
-                    averageThroughput = throughputNode.path(MON_PARAM_AVERAGE).floatValue();
+                if (throughputNode.get(PARAM_MON_AVERAGE) != null) {
+                    averageThroughput = throughputNode.path(PARAM_MON_AVERAGE).floatValue();
                 }
-                cpuBuilder.setAverageThroughput(averageThroughput);
+                cpuStatsBuilder.setAverageThroughput(averageThroughput);
             }
 
             // Latency statistics are optional
-            JsonNode latencyNode = cpuObjNode.get(CPU_PARAM_LATENCY);
+            JsonNode latencyNode = cpuObjNode.get(PARAM_CPU_LATENCY);
             if (latencyNode != null) {
-                String latencyUnit = get(latencyNode, MON_PARAM_UNIT);
+                String latencyUnit = get(latencyNode, PARAM_MON_UNIT);
                 if (!Strings.isNullOrEmpty(latencyUnit)) {
-                    cpuBuilder.setLatencyUnit(latencyUnit);
+                    cpuStatsBuilder.setLatencyUnit(latencyUnit);
                 }
                 float minLatency = (float) 0;
-                if (latencyNode.get(MON_PARAM_MIN) != null) {
-                    minLatency = latencyNode.path(MON_PARAM_MIN).floatValue();
+                if (latencyNode.get(PARAM_MON_MIN) != null) {
+                    minLatency = latencyNode.path(PARAM_MON_MIN).floatValue();
                 }
                 float averageLatency = (float) 0;
-                if (latencyNode.get(MON_PARAM_AVERAGE) != null) {
-                    averageLatency = latencyNode.path(MON_PARAM_AVERAGE).floatValue();
+                if (latencyNode.get(PARAM_MON_AVERAGE) != null) {
+                    averageLatency = latencyNode.path(PARAM_MON_AVERAGE).floatValue();
                 }
                 float maxLatency = (float) 0;
-                if (latencyNode.get(MON_PARAM_MAX) != null) {
-                    maxLatency = latencyNode.path(MON_PARAM_MAX).floatValue();
+                if (latencyNode.get(PARAM_MON_MAX) != null) {
+                    maxLatency = latencyNode.path(PARAM_MON_MAX).floatValue();
                 }
 
-                cpuBuilder.setMinLatency(minLatency)
+                cpuStatsBuilder.setMinLatency(minLatency)
                     .setAverageLatency(averageLatency)
                     .setMaxLatency(maxLatency);
             }
 
             // CPU ID with its load and status
-            int cpuId = cpuObjNode.path(CPU_PARAM_ID).asInt();
-            float cpuLoad = cpuObjNode.path(CPU_PARAM_LOAD).floatValue();
-            int queueId = cpuObjNode.path(CPU_PARAM_QUEUE).asInt();
-            int busySince = cpuObjNode.path(CPU_PARAM_STATUS).asInt();
+            int cpuId = cpuObjNode.path(PARAM_ID).asInt();
+            float cpuLoad = cpuObjNode.path(PARAM_CPU_LOAD).floatValue();
+            int queueId = cpuObjNode.path(PARAM_CPU_QUEUE).asInt();
+            int busySince = cpuObjNode.path(PARAM_CPU_STATUS).asInt();
 
-            // This is mandatory information
-            cpuBuilder.setDeviceId(deviceId)
+            // We have all the statistics for this CPU core
+            cpuStats.add(
+                cpuStatsBuilder
+                    .setDeviceId(deviceId)
                     .setId(cpuId)
                     .setLoad(cpuLoad)
                     .setQueue(queueId)
-                    .setBusySince(busySince);
-
-            // We have all the statistics for this CPU core
-            cpuStats.add(cpuBuilder.build());
+                    .setBusySince(busySince)
+                    .build());
         }
 
         return cpuStats;
+    }
+
+    /**
+     * Parse the input JSON object, looking for memory-related
+     * statistics. Upon success, construct and return a memory
+     * statistics objects.
+     *
+     * @param deviceId the device ID that sent the JSON object
+     * @param objNode input JSON node with memory statistics information
+     * @return memory statistics object
+     */
+    private MemoryStatistics parseMemoryStatistics(DeviceId deviceId, JsonNode objNode) {
+        if ((deviceId == null) || (objNode == null)) {
+            return null;
+        }
+
+        JsonNode memoryNode = objNode.path(PARAM_MEMORY);
+        ObjectNode memoryObjNode = (ObjectNode) memoryNode;
+
+        // Fetch memory statistics
+        String unit = get(memoryNode, PARAM_MON_UNIT);
+        long used = memoryObjNode.path(PARAM_MEMORY_STATS_USED).asLong();
+        long free = memoryObjNode.path(PARAM_MEMORY_STATS_FREE).asLong();
+        long total = memoryObjNode.path(PARAM_MEMORY_STATS_TOTAL).asLong();
+
+        // Memory statistics builder
+        return DefaultMemoryStatistics.builder()
+                .setDeviceId(deviceId)
+                .setMemoryUsed(used)
+                .setMemoryFree(free)
+                .setMemoryTotal(total)
+                .build();
     }
 
     /**
@@ -816,7 +1005,7 @@ public class ServerDevicesDiscovery extends BasicServerDriver
 
         RestServerSBDevice device = null;
         try {
-            device = (RestServerSBDevice) getController().getDevice(deviceId);
+            device = (RestServerSBDevice) getDevice(deviceId);
         } catch (ClassCastException ccEx) {
             return Collections.EMPTY_LIST;
         }
@@ -832,25 +1021,25 @@ public class ServerDevicesDiscovery extends BasicServerDriver
             ObjectNode nicObjNode = (ObjectNode) nn;
 
             // All the NIC attributes
-            String nicName  = get(nn, NIC_PARAM_NAME);
-            checkArgument(!Strings.isNullOrEmpty(nicName), "NIC name is empty or NULL");
+            String nicName  = get(nn, PARAM_NAME);
+            checkArgument(!Strings.isNullOrEmpty(nicName), MSG_NIC_NAME_NULL);
 
             long portNumber = device.portNumberFromName(nicName);
-            checkArgument(portNumber >= 0, "Unknown port ID " + portNumber + " for NIC " + nicName);
+            checkArgument(portNumber >= 0, MSG_NIC_PORT_NUMBER_NEGATIVE);
 
-            long rxCount   = nicObjNode.path(NIC_STATS_RX_COUNT).asLong();
-            long rxBytes   = nicObjNode.path(NIC_STATS_RX_BYTES).asLong();
-            long rxDropped = nicObjNode.path(NIC_STATS_RX_DROPS).asLong();
-            long rxErrors  = nicObjNode.path(NIC_STATS_RX_ERRORS).asLong();
-            long txCount   = nicObjNode.path(NIC_STATS_TX_COUNT).asLong();
-            long txBytes   = nicObjNode.path(NIC_STATS_TX_BYTES).asLong();
-            long txDropped = nicObjNode.path(NIC_STATS_TX_DROPS).asLong();
-            long txErrors  = nicObjNode.path(NIC_STATS_TX_ERRORS).asLong();
+            long rxCount   = nicObjNode.path(PARAM_NIC_STATS_RX_COUNT).asLong();
+            long rxBytes   = nicObjNode.path(PARAM_NIC_STATS_RX_BYTES).asLong();
+            long rxDropped = nicObjNode.path(PARAM_NIC_STATS_RX_DROPS).asLong();
+            long rxErrors  = nicObjNode.path(PARAM_NIC_STATS_RX_ERRORS).asLong();
+            long txCount   = nicObjNode.path(PARAM_NIC_STATS_TX_COUNT).asLong();
+            long txBytes   = nicObjNode.path(PARAM_NIC_STATS_TX_BYTES).asLong();
+            long txDropped = nicObjNode.path(PARAM_NIC_STATS_TX_DROPS).asLong();
+            long txErrors  = nicObjNode.path(PARAM_NIC_STATS_TX_ERRORS).asLong();
 
-            // Incorporate these statistics into an object
-            DefaultPortStatistics.Builder nicBuilder = DefaultPortStatistics.builder();
-
-            nicBuilder.setDeviceId(deviceId)
+            // Construct a NIC statistics object and add it to the set
+            nicStats.add(
+                DefaultPortStatistics.builder()
+                    .setDeviceId(deviceId)
                     .setPort(PortNumber.portNumber(portNumber))
                     .setPacketsReceived(rxCount)
                     .setPacketsSent(txCount)
@@ -859,10 +1048,8 @@ public class ServerDevicesDiscovery extends BasicServerDriver
                     .setPacketsRxDropped(rxDropped)
                     .setPacketsRxErrors(rxErrors)
                     .setPacketsTxDropped(txDropped)
-                    .setPacketsTxErrors(txErrors);
-
-            // We have statistics for this NIC
-            nicStats.add(nicBuilder.build());
+                    .setPacketsTxErrors(txErrors)
+                    .build());
         }
 
         return nicStats;
@@ -888,40 +1075,42 @@ public class ServerDevicesDiscovery extends BasicServerDriver
             return getZeroTimingStatistics();
         }
 
-        DefaultTimingStatistics.Builder timingBuilder = DefaultTimingStatistics.builder();
+        DefaultTimingStatistics.Builder timingBuilder =
+            DefaultTimingStatistics.builder();
 
         // Get timing statistics
         JsonNode timingNode = objNode.path(PARAM_TIMING_STATS);
         ObjectNode timingObjNode = (ObjectNode) timingNode;
 
         // The unit of timing statistics
-        String timingStatsUnit = get(timingNode, MON_PARAM_UNIT);
+        String timingStatsUnit = get(timingNode, PARAM_MON_UNIT);
         if (!Strings.isNullOrEmpty(timingStatsUnit)) {
             timingBuilder.setUnit(timingStatsUnit);
         }
 
         // Time (ns) to parse the controller's deployment instruction
         long parsingTime = 0;
-        if (timingObjNode.get(TIMING_PARAM_PARSE) != null) {
-            parsingTime = timingObjNode.path(TIMING_PARAM_PARSE).asLong();
+        if (timingObjNode.get(PARAM_TIMING_PARSE) != null) {
+            parsingTime = timingObjNode.path(PARAM_TIMING_PARSE).asLong();
         }
         // Time (ns) to do the deployment
         long launchingTime = 0;
-        if (timingObjNode.get(TIMING_PARAM_LAUNCH) != null) {
-            launchingTime = timingObjNode.path(TIMING_PARAM_LAUNCH).asLong();
+        if (timingObjNode.get(PARAM_TIMING_LAUNCH) != null) {
+            launchingTime = timingObjNode.path(PARAM_TIMING_LAUNCH).asLong();
         }
         // Deployment time (ns) equals to time to parse + time to launch
         long deployTime = 0;
-        if (timingObjNode.get(TIMING_PARAM_DEPLOY) != null) {
-            deployTime = timingObjNode.path(TIMING_PARAM_DEPLOY).asLong();
+        if (timingObjNode.get(PARAM_TIMING_DEPLOY) != null) {
+            deployTime = timingObjNode.path(PARAM_TIMING_DEPLOY).asLong();
         }
-        checkArgument(deployTime == parsingTime + launchingTime, "Inconsistent timing statistics");
+        checkArgument(deployTime == parsingTime + launchingTime,
+            MSG_STATS_TIMING_DEPLOY_INCONSISTENT);
 
         timingBuilder.setParsingTime(parsingTime)
                     .setLaunchingTime(launchingTime);
 
         // Get autoscale timing statistics
-        JsonNode autoscaleTimingNode = objNode.path(PARAM_TIMING_AUTOSCALE);
+        JsonNode autoscaleTimingNode = objNode.path(PARAM_TIMING_STATS_AUTOSCALE);
         if (autoscaleTimingNode == null) {
             return timingBuilder.build();
         }
@@ -929,8 +1118,8 @@ public class ServerDevicesDiscovery extends BasicServerDriver
         ObjectNode autoScaleTimingObjNode = (ObjectNode) autoscaleTimingNode;
         // Time (ns) to autoscale a server's load
         long autoScaleTime = 0;
-        if (autoScaleTimingObjNode.get(TIMING_PARAM_AUTOSCALE) != null) {
-            autoScaleTime = autoScaleTimingObjNode.path(TIMING_PARAM_AUTOSCALE).asLong();
+        if (autoScaleTimingObjNode.get(PARAM_TIMING_AUTOSCALE) != null) {
+            autoScaleTime = autoScaleTimingObjNode.path(PARAM_TIMING_AUTOSCALE).asLong();
         }
         timingBuilder.setAutoScaleTime(autoScaleTime);
 
@@ -945,13 +1134,75 @@ public class ServerDevicesDiscovery extends BasicServerDriver
      * @return TimingStatistics object
      */
     private TimingStatistics getZeroTimingStatistics() {
-        DefaultTimingStatistics.Builder zeroTimingBuilder = DefaultTimingStatistics.builder();
+        return DefaultTimingStatistics.builder()
+                    .setParsingTime(0)
+                    .setLaunchingTime(0)
+                    .setAutoScaleTime(0)
+                    .build();
+    }
 
-        zeroTimingBuilder.setParsingTime(0)
-                         .setLaunchingTime(0)
-                         .setAutoScaleTime(0);
+    /**
+     * Implements DeviceSystemStatisticsQuery behaviour.
+     */
+    @Override
+    public Optional<DeviceSystemStats> getDeviceSystemStats() {
+        // Retrieve the device ID from the handler
+        DeviceId deviceId = getDeviceId();
+        checkNotNull(deviceId, MSG_DEVICE_ID_NULL);
 
-        return zeroTimingBuilder.build();
+        // ....to retrieve monitoring statistics
+        MonitoringStatistics monStats = getGlobalMonitoringStatistics(deviceId);
+
+        Optional<DeviceCpuStats> cpuStats = getOverallCpuUsage(monStats);
+        Optional<DeviceMemoryStats> memoryStats = getOverallMemoryUsage(monStats);
+
+        if (cpuStats.isPresent() && memoryStats.isPresent()) {
+            return Optional.of(new DeviceSystemStats(memoryStats.get(), cpuStats.get()));
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Get CPU usage of server device.
+     *
+     * @param monStats global monitoring statistics which contain CPU statistics
+     * @return cpuStats, device CPU usage stats if available
+     */
+    private Optional<DeviceCpuStats> getOverallCpuUsage(MonitoringStatistics monStats) {
+        if (monStats == null) {
+            return Optional.empty();
+        }
+
+        if (monStats.numberOfCpus() == 0) {
+            return Optional.of(new DeviceCpuStats());
+        }
+
+        float usedCpu = 0.0f;
+        for (CpuStatistics cpuCoreStats : monStats.cpuStatisticsAll()) {
+            if (cpuCoreStats.busy()) {
+                usedCpu += cpuCoreStats.load();
+            }
+        }
+
+        return Optional.of(new DeviceCpuStats(usedCpu / (float) monStats.numberOfCpus()));
+    }
+
+    /**
+     * Get memory usage of server device in KB.
+     *
+     * @param monStats global monitoring statistics which contain memory statistics
+     * @return memoryStats, device memory usage stats if available
+     */
+    private Optional<DeviceMemoryStats> getOverallMemoryUsage(MonitoringStatistics monStats) {
+        if (monStats == null) {
+            return Optional.empty();
+        }
+
+        MemoryStatistics memStats = monStats.memoryStatistics();
+
+        return Optional.of(
+            new DeviceMemoryStats(memStats.free(), memStats.used(), memStats.total()));
     }
 
 }

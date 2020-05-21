@@ -22,9 +22,14 @@ import static org.onosproject.net.Port.Type;
 
 /**
  * Represents an abstraction of a
- * network interface card (NIC) device in ONOS.
+ * network interface card (NIC) device.
  */
 public interface NicDevice extends Comparable {
+
+    /**
+     * Maximum link speed in Mbps.
+     */
+    static final long MAX_SPEED = 400000;
 
     /**
      * Returns the name of this NIC.

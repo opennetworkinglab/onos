@@ -1,0 +1,58 @@
+/*
+ * Copyright 2020-present Open Networking Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ ONOS GUI -- Memory UI -- CSS file
+ */
+
+#ov-memory {
+    padding: 20px;
+    position: relative;
+}
+
+.light #ov-memory {
+    color: navy;
+}
+.dark #ov-memory {
+    color: #88f;
+}
+
+#ov-memory .button-panel {
+    margin: 10px;
+    width: 200px;
+}
+
+.light #ov-memory .button-panel {
+    background-color: #ccf;
+}
+.dark #ov-memory .button-panel {
+    background-color: #444;
+}
+
+#ov-memory #chart-loader {
+    position: absolute;
+    width: 200px;
+    height: 50px;
+    margin-left: -100px;
+    margin-top: -25px;
+    z-index: 900;
+    top: 50%;
+    text-align: center;
+    left: 50%;
+    font-size: 25px;
+    font-weight: bold;
+    color: #ccc;
+}

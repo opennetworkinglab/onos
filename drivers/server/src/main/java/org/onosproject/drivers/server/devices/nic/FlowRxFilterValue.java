@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.onosproject.drivers.server.devices.nic;
 
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.drivers.server.Constants.MSG_NIC_FLOW_FILTER_NEGATIVE;
+import static org.onosproject.drivers.server.Constants.MSG_NIC_FLOW_RULE_NULL;
 
 /**
  * A flow rule-based Rx filter value.
@@ -92,8 +95,7 @@ public final class FlowRxFilterValue extends RxFilterValue
      * @param value a CPU core ID for this Rx filter
      */
     private void setValue(long value) {
-        checkArgument(value >= 0,
-            "NIC flow Rx filter has invalid CPU core ID");
+        checkArgument(value >= 0, MSG_NIC_FLOW_FILTER_NEGATIVE);
         this.value = value;
     }
 
@@ -112,8 +114,7 @@ public final class FlowRxFilterValue extends RxFilterValue
      * @param flowRule Flow Rx filter rule as a string
      */
     public void setRule(String flowRule) {
-        checkNotNull(flowRule,
-            "NIC flow Rx filter rule is NULL");
+        checkNotNull(flowRule, MSG_NIC_FLOW_RULE_NULL);
         this.flowRule = flowRule;
     }
 

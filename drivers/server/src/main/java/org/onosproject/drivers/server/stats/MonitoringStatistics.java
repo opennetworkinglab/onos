@@ -51,6 +51,13 @@ public interface MonitoringStatistics {
     CpuStatistics cpuStatistics(int cpuId);
 
     /**
+     * Returns main memory statistics of a server device.
+     *
+     * @return main memory statistics
+     */
+    MemoryStatistics memoryStatistics();
+
+    /**
      * Returns the NIC statistics of a server device.
      * Includes the statistics of all NICs.
      *

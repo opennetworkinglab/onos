@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.onosproject.drivers.server.devices.nic;
 
 import org.onlab.packet.VlanId;
@@ -20,6 +21,7 @@ import org.onlab.packet.VlanId;
 import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.drivers.server.Constants.MSG_NIC_FLOW_FILTER_VLAN_NULL;
 
 /**
  * A VLAN Rx filter value.
@@ -73,7 +75,7 @@ public class VlanRxFilterValue extends RxFilterValue {
      * @param vlanId VLAN ID value
      */
     public void setValue(VlanId vlanId) {
-        checkNotNull(vlanId, "VLAN ID of Rx filter is NULL");
+        checkNotNull(vlanId, MSG_NIC_FLOW_FILTER_VLAN_NULL);
         this.vlanId = vlanId;
     }
 
@@ -99,7 +101,7 @@ public class VlanRxFilterValue extends RxFilterValue {
 
     @Override
     public String toString() {
-        return  this.value().toString();
+        return this.value().toString();
     }
 
 }

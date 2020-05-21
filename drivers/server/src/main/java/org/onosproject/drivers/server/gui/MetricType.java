@@ -22,9 +22,14 @@ package org.onosproject.drivers.server.gui;
 public enum MetricType {
 
     /**
-     * CPU cores of a commodity server.
+     * A commodity server's CPU cores.
      */
     CPU,
+
+    /**
+     * A commodity server's main memory.
+     */
+    MEMORY,
 
     /**
      * Per core latency.

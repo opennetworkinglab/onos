@@ -43,9 +43,10 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-import static org.slf4j.LoggerFactory.getLogger;
-import static org.onosproject.drivers.server.gui.MetricType.THROUGHPUT;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.drivers.server.Constants.MSG_UI_DATA_THROUGHPUT_NULL;
+import static org.onosproject.drivers.server.gui.MetricType.THROUGHPUT;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Message handler for passing throughput data to the Web UI.
@@ -63,7 +64,8 @@ public class ThroughputViewMessageHandler extends BaseViewMessageHandler {
         return ImmutableSet.of(new ThroughputMessageRequest());
     }
 
-    private final class ThroughputMessageRequest extends BaseViewMessageHandler.ControlMessageRequest {
+    private final class ThroughputMessageRequest
+        extends BaseViewMessageHandler.ControlMessageRequest {
 
         private ThroughputMessageRequest() {
             super(THROUGHPUT_DATA_REQ, THROUGHPUT_DATA_RESP, THROUGHPUT_LABEL);
@@ -71,7 +73,7 @@ public class ThroughputViewMessageHandler extends BaseViewMessageHandler {
 
         @Override
         protected String[] getSeries() {
-            return createSeries(THROUGHPUT, MAX_COLUMNS_NB);
+            return createIndexedSeries(THROUGHPUT, MAX_COLUMNS_NB);
         }
 
         @Override
@@ -93,17 +95,17 @@ public class ThroughputViewMessageHandler extends BaseViewMessageHandler {
                 Map<Integer, Float[]> data = null;
                 MonitoringStatistics monStats = serverDriver.getGlobalMonitoringStatistics(deviceId);
                 if (monStats == null) {
-                    data = populateZeroDataHistory(deviceId, MAX_COLUMNS_NB);
+                    data = populateZeroMapDataHistory(deviceId, MAX_COLUMNS_NB);
                 } else {
                     data = populateThroughputDataHistory(deviceId, serverDev.numberOfCpus(), monStats);
                 }
-                checkNotNull(data, "No throughput data history to visualize");
+                checkNotNull(data, MSG_UI_DATA_THROUGHPUT_NULL);
 
                 // Generate a timestamp
                 LocalDateTime ldt = new LocalDateTime(timestamp);
 
                 // Project the data
-                populateMetrics(cm, data, ldt, THROUGHPUT, NUM_OF_DATA_POINTS);
+                populateMapMetrics(cm, data, ldt, THROUGHPUT, NUM_OF_DATA_POINTS);
 
                 Set<DeviceId> deviceIds = Sets.newHashSet();
                 for (Device device : ds.getAvailableDevices()) {
@@ -129,16 +131,16 @@ public class ThroughputViewMessageHandler extends BaseViewMessageHandler {
                     Map<Integer, Float> data = null;
                     MonitoringStatistics monStats = serverDriver.getGlobalMonitoringStatistics(deviceId);
                     if (monStats == null) {
-                        data = populateZeroData(deviceId, MAX_COLUMNS_NB);
+                        data = populateZeroMapData(deviceId, MAX_COLUMNS_NB);
                     } else {
                         data = populateThroughputData(deviceId, serverDev.numberOfCpus(), monStats);
                     }
-                    checkNotNull(data, "No throughput data to visualize");
+                    checkNotNull(data, MSG_UI_DATA_THROUGHPUT_NULL);
 
                     // Map them to the CPU cores
                     Map<String, Object> local = Maps.newHashMap();
                     for (int i = 0; i < data.size(); i++) {
-                        local.put(getLabel(THROUGHPUT, i), data.get(i));
+                        local.put(getIndexedLabel(THROUGHPUT, i), data.get(i));
                     }
 
                     // Last piece of data is the device ID
@@ -164,7 +166,7 @@ public class ThroughputViewMessageHandler extends BaseViewMessageHandler {
          */
         private Map<Integer, Float> populateThroughputData(
                 DeviceId deviceId, int length, MonitoringStatistics monStats) {
-            Map<Integer, Float> data = initializeData(MAX_COLUMNS_NB);
+            Map<Integer, Float> data = initializeMapData(MAX_COLUMNS_NB);
 
             for (CpuStatistics stats : monStats.cpuStatisticsAll()) {
                 int index = stats.id();
@@ -206,7 +208,7 @@ public class ThroughputViewMessageHandler extends BaseViewMessageHandler {
          */
         private Map<Integer, Float[]> populateThroughputDataHistory(
                 DeviceId deviceId, int length, MonitoringStatistics monStats) {
-            Map<Integer, Float[]> data = initializeDataHistory(MAX_COLUMNS_NB);
+            Map<Integer, Float[]> data = initializeMapDataHistory(MAX_COLUMNS_NB);
 
             for (CpuStatistics stats : monStats.cpuStatisticsAll()) {
                 int index = stats.id();

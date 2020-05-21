@@ -23,7 +23,8 @@ import java.util.Map;
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-
+import static org.onosproject.drivers.server.Constants.MSG_NIC_FLOW_RULE_ACTION_TYPE_NULL;
+import static org.onosproject.drivers.server.Constants.MSG_NIC_FLOW_RULE_ACTION_VAL_NULL;
 
 /**
  * Definition of network interface card (NIC) rule action.
@@ -37,6 +38,7 @@ public class NicRuleAction {
      * Source: https://doc.dpdk.org/guides/prog_guide/rte_flow.html
      */
     public enum Action {
+
         /**
          * Leaves traffic up for additional processing
          * by subsequent flow rules.
@@ -229,16 +231,15 @@ public class NicRuleAction {
     public static final long NO_ACTION_VALUE  = (long) -1;
 
     public NicRuleAction(Action actionType, long actionValue) {
-        checkNotNull(actionType, "NIC rule action type is NULL");
-        checkArgument(actionValue >= 0,
-            "NIC rule action " + actionType + " requires an action value");
+        checkNotNull(actionType, MSG_NIC_FLOW_RULE_ACTION_TYPE_NULL);
+        checkArgument(actionValue >= 0, MSG_NIC_FLOW_RULE_ACTION_VAL_NULL);
 
         this.actionType = actionType;
         this.actionValue = actionValue;
     }
 
     public NicRuleAction(Action actionType) {
-        checkNotNull(actionType, "NIC rule action type is NULL");
+        checkNotNull(actionType, MSG_NIC_FLOW_RULE_ACTION_TYPE_NULL);
 
         this.actionType = actionType;
         this.actionValue = NO_ACTION_VALUE;

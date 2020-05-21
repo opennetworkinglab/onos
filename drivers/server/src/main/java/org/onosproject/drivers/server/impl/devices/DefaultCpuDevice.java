@@ -16,59 +16,68 @@
 
 package org.onosproject.drivers.server.impl.devices;
 
-import org.onosproject.drivers.server.devices.CpuDevice;
-import org.onosproject.drivers.server.devices.CpuVendor;
-
-import org.onosproject.drivers.server.impl.stats.DefaultCpuStatistics;
+import org.onosproject.drivers.server.devices.cpu.CpuCoreId;
+import org.onosproject.drivers.server.devices.cpu.CpuDevice;
+import org.onosproject.drivers.server.devices.cpu.CpuVendor;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Strings;
+
+import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkArgument;
-
-import java.util.Objects;
+import static org.onosproject.drivers.server.Constants.MSG_CPU_CORE_ID_NULL;
+import static org.onosproject.drivers.server.Constants.MSG_CPU_FREQUENCY_NEGATIVE;
+import static org.onosproject.drivers.server.Constants.MSG_CPU_SOCKET_NEGATIVE;
+import static org.onosproject.drivers.server.Constants.MSG_CPU_VENDOR_NULL;
 
 /**
  * Default implementation for CPU core devices.
  */
-public class DefaultCpuDevice implements CpuDevice {
+public final class DefaultCpuDevice implements CpuDevice {
 
-    private final int       id;
+    private final CpuCoreId id;
     private final CpuVendor vendor;
-    private final long      frequency;
+    private final int socket;
+    private final long frequency;
 
-    // Maximum CPU core frequency in MHz
-    public static final long MAX_FREQUENCY_MHZ = 4500;
+    private DefaultCpuDevice(CpuCoreId id, CpuVendor vendor, int socket, long frequency) {
+        checkNotNull(id, MSG_CPU_CORE_ID_NULL);
+        checkNotNull(vendor, MSG_CPU_VENDOR_NULL);
+        checkArgument((socket >= 0) && (socket < CpuCoreId.MAX_CPU_SOCKET_NB),
+            MSG_CPU_SOCKET_NEGATIVE);
+        checkArgument((frequency > 0) && (frequency <= CpuDevice.MAX_FREQUENCY_MHZ),
+            MSG_CPU_FREQUENCY_NEGATIVE);
 
-    public DefaultCpuDevice(int id, CpuVendor vendor, long frequency) {
-        checkArgument(
-            (id >= 0) && (id < DefaultCpuStatistics.MAX_CPU_NB),
-            "CPU core ID must be in [0, " +
-            String.valueOf(DefaultCpuStatistics.MAX_CPU_NB - 1) + "]"
-        );
-        checkNotNull(
-            vendor,
-            "CPU core vendor cannot be null"
-        );
-        checkArgument(
-            (frequency > 0) && (frequency <= MAX_FREQUENCY_MHZ),
-            "CPU core frequency (MHz) must be positive and less or equal than " +
-            MAX_FREQUENCY_MHZ + " MHz"
-        );
-
-        this.id        = id;
-        this.vendor    = vendor;
+        this.id = id;
+        this.vendor = vendor;
+        this.socket = socket;
         this.frequency = frequency;
     }
 
+    /**
+     * Creates a builder for DefaultCpuDevice object.
+     *
+     * @return builder object for DefaultCpuDevice object
+     */
+    public static DefaultCpuDevice.Builder builder() {
+        return new Builder();
+    }
+
     @Override
-    public int id() {
+    public CpuCoreId id() {
         return this.id;
     }
 
     @Override
     public CpuVendor vendor() {
         return this.vendor;
+    }
+
+    @Override
+    public int socket() {
+        return this.socket;
     }
 
     @Override
@@ -82,6 +91,7 @@ public class DefaultCpuDevice implements CpuDevice {
                 .omitNullValues()
                 .add("id",        id())
                 .add("vendor",    vendor())
+                .add("socket",    socket())
                 .add("frequency", frequency())
                 .toString();
     }
@@ -97,12 +107,85 @@ public class DefaultCpuDevice implements CpuDevice {
         CpuDevice device = (CpuDevice) obj;
         return  this.id() ==  device.id() &&
                 this.vendor() == device.vendor() &&
+                this.socket() == device.socket() &&
                 this.frequency() == device.frequency();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, vendor, frequency);
+        return Objects.hash(id, vendor, socket, frequency);
+    }
+
+    public static final class Builder {
+        CpuCoreId id = null;
+        CpuVendor vendor = null;
+        int socket = -1;
+        long frequency = -1;
+
+        private Builder() {
+
+        }
+
+        /**
+         * Sets the CPU core ID of this CPU.
+         *
+         * @param logicalCoreId logical CPU core ID
+         * @param physicalCoreId physical CPU core ID
+         * @return builder object
+         */
+        public Builder setCoreId(int logicalCoreId, int physicalCoreId) {
+            this.id = new CpuCoreId(logicalCoreId, physicalCoreId);
+
+            return this;
+        }
+
+        /**
+         * Sets the CPU vendor of this CPU.
+         *
+         * @param vendorStr CPU vendor as a string
+         * @return builder object
+         */
+        public Builder setVendor(String vendorStr) {
+            if (!Strings.isNullOrEmpty(vendorStr)) {
+                this.vendor = CpuVendor.getByName(vendorStr);
+            }
+
+            return this;
+        }
+
+        /**
+         * Sets the CPU socket of this CPU.
+         *
+         * @param socket CPU socket
+         * @return builder object
+         */
+        public Builder setSocket(int socket) {
+            this.socket = socket;
+
+            return this;
+        }
+
+        /**
+         * Sets the frequency of this CPU.
+         *
+         * @param frequency CPU frequency
+         * @return builder object
+         */
+        public Builder setFrequency(long frequency) {
+            this.frequency = frequency;
+
+            return this;
+        }
+
+        /**
+         * Creates a DefaultCpuDevice object.
+         *
+         * @return DefaultCpuDevice object
+         */
+        public DefaultCpuDevice build() {
+            return new DefaultCpuDevice(id, vendor, socket, frequency);
+        }
+
     }
 
 }
