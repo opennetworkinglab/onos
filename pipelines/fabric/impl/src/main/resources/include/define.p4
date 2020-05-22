@@ -100,6 +100,9 @@ typedef bit<2> direction_t;
 typedef bit pcc_gate_status_t;
 typedef bit<32> sdf_rule_id_t;
 typedef bit<32> pcc_rule_id_t;
+typedef bit<32> far_id_t;
+typedef bit<32> ctr_id_t;
+typedef bit<32> teid_t;
 
 // spgw.p4 expects uplink packets with IP dst on this subnet
 // 140.0.0.0/8

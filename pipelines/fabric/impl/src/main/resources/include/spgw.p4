@@ -17,6 +17,10 @@
 #ifndef __SPGW__
 #define __SPGW__
 
+#define MAX_PDR_COUNTERS 1024
+#define DEFAULT_PDR_CTR_ID 0
+#define DEFAULT_FAR_ID 0
+
 control spgw_normalizer(
         in    bool   is_gtpu_encapped,
         out   ipv4_t gtpu_ipv4,
@@ -49,38 +53,35 @@ control spgw_ingress(
         inout standard_metadata_t standard_metadata
     ) {
 
-    direct_counter(CounterType.packets_and_bytes) ue_counter;
+    counter(MAX_PDR_COUNTERS, CounterType.packets_and_bytes) pdr_counter;
 
     @hidden
     action gtpu_decap() {
+        // grab information from the tunnel that we'll need later
+        fabric_meta.spgw.teid = gtpu.teid;
+        fabric_meta.spgw.tunnel_dst_addr = gtpu_ipv4.dst_addr;
+        // update metadata src and dst addresses with the inner packet 
+        fabric_meta.ipv4_src_addr = ipv4.src_addr;
+        fabric_meta.ipv4_dst_addr = ipv4.dst_addr;
+        // decap
         gtpu_ipv4.setInvalid();
         gtpu_udp.setInvalid();
         gtpu.setInvalid();
+
     }
 
-    action set_dl_sess_info(bit<32> teid,
-                            bit<32> s1u_enb_addr,
-                            bit<32> s1u_sgw_addr) {
-        fabric_meta.spgw.teid = teid;
-        fabric_meta.spgw.s1u_enb_addr = s1u_enb_addr;
-        fabric_meta.spgw.s1u_sgw_addr = s1u_sgw_addr;
-        ue_counter.count();
-    }
-
-    table dl_sess_lookup {
+    table downlink_filter_table {
         key = {
-            // UE addr for downlink
-            ipv4.dst_addr : exact @name("ipv4_dst");
+            // UE addr pool for downlink
+            ipv4.dst_addr : lpm @name("ipv4_prefix");
         }
         actions = {
-            set_dl_sess_info();
-            @defaultonly nop();
+            nop();
         }
         const default_action = nop();
-        counters = ue_counter;
     }
 
-    table s1u_filter_table {
+    table uplink_filter_table {
         key = {
             // IP addresses of the S1U interfaces of this SPGW-U instance (when uplink)
             gtpu_ipv4.dst_addr : exact @name("gtp_ipv4_dst");
@@ -91,66 +92,103 @@ control spgw_ingress(
         const default_action = nop();
     }
 
-#ifdef WITH_SPGW_PCC_GATING
-    action set_sdf_rule_id(sdf_rule_id_t id) {
-        fabric_meta.spgw.sdf_rule_id = id;
+    action set_pdr_attributes(ctr_id_t ctr_id,
+                              far_id_t far_id) {
+        fabric_meta.spgw.pdr_hit = _TRUE;
+        fabric_meta.spgw.ctr_id = ctr_id;
+        fabric_meta.spgw.far_id = far_id;
     }
 
-    action set_pcc_rule_id(pcc_rule_id_t id) {
-        fabric_meta.spgw.pcc_rule_id = id;
-    }
-
-    action set_pcc_info(pcc_gate_status_t gate_status) {
-        fabric_meta.spgw.pcc_gate_status = gate_status;
-    }
-
-    table sdf_rule_lookup {
+    // These two tables scale well and cover the average case PDR
+    table downlink_pdr_lookup {
         key = {
-            fabric_meta.spgw.direction   : exact @name("spgw_direction");
-            ipv4.src_addr                : ternary @name("ipv4_src");
-            ipv4.dst_addr                : ternary @name("ipv4_dst");
-            ipv4.protocol                : ternary @name("ip_proto");
-            fabric_meta.l4_sport         : ternary @name("l4_sport");
-            fabric_meta.l4_dport         : ternary @name("l4_dport");
+            ipv4.dst_addr : exact @name("ue_addr");
         }
         actions = {
-            set_sdf_rule_id();
+            set_pdr_attributes;
         }
-        const default_action = set_sdf_rule_id(DEFAULT_SDF_RULE_ID);
     }
-
-    table pcc_rule_lookup {
+    table uplink_pdr_lookup {
         key = {
-            fabric_meta.spgw.sdf_rule_id : exact @name("sdf_rule_id");
+            // tunnel_dst_addr will be static for Q2 target. Can remove if need more scaling
+            fabric_meta.spgw.tunnel_dst_addr  : exact @name("tunnel_ipv4_dst");
+            fabric_meta.spgw.teid          : exact @name("teid");
+            ipv4.src_addr                  : exact @name("ue_addr");
         }
         actions = {
-            set_pcc_rule_id();
+            set_pdr_attributes;
         }
-        const default_action = set_pcc_rule_id(DEFAULT_PCC_RULE_ID);
     }
-
-    table pcc_info_lookup {
+    // This table scales poorly and covers uncommon PDRs
+    table flexible_pdr_lookup {
         key = {
-            fabric_meta.spgw.pcc_rule_id : exact @name("pcc_rule_id");
+            // Direction. Eventually change to interface
+            fabric_meta.spgw.direction    : ternary @name("spgw_direction");
+            // F-TEID
+            fabric_meta.spgw.tunnel_dst_addr : ternary @name("tunnel_ipv4_dst");
+            fabric_meta.spgw.teid            : ternary @name("teid");
+            // SDF (5-tuple)
+            ipv4.src_addr                 : ternary @name("ipv4_src");
+            ipv4.dst_addr                 : ternary @name("ipv4_dst");
+            ipv4.protocol                 : ternary @name("ip_proto");
+            fabric_meta.l4_sport          : ternary @name("l4_sport");
+            fabric_meta.l4_dport          : ternary @name("l4_dport");
         }
         actions = {
-            set_pcc_info();
+            set_pdr_attributes;
         }
-        const default_action = set_pcc_info(PCC_GATE_OPEN);
+        const default_action = set_pdr_attributes(DEFAULT_PDR_CTR_ID, DEFAULT_FAR_ID);
     }
-#endif // WITH_SPGW_PCC_GATING
+
+    action load_normal_far_attributes(bit<1> drop,
+                                      bit<1> notify_cp) {
+        // general far attributes
+        fabric_meta.spgw.far_dropped = (_BOOL)drop;
+        fabric_meta.spgw.notify_cp   = (_BOOL)notify_cp;
+    }
+    action load_tunnel_far_attributes(bit<1>         drop,
+                                      bit<1>         notify_cp,
+                                      ipv4_addr_t    tunnel_src_addr,
+                                      ipv4_addr_t    tunnel_dst_addr,
+                                      teid_t         teid) {
+        // general far attributes
+        fabric_meta.spgw.far_dropped = (_BOOL)drop;
+        fabric_meta.spgw.notify_cp = (_BOOL)notify_cp;
+        // GTP tunnel attributes
+        fabric_meta.spgw.outer_header_creation = _TRUE;
+        fabric_meta.spgw.teid = teid;
+        fabric_meta.spgw.tunnel_src_addr = tunnel_src_addr;
+        fabric_meta.spgw.tunnel_dst_addr = tunnel_dst_addr;
+        // update metadata IP addresses for correct routing/hashing
+        fabric_meta.ipv4_src_addr = tunnel_src_addr;
+        fabric_meta.ipv4_dst_addr = tunnel_dst_addr;
+    }
+
+
+    table far_lookup {
+        key = {
+            fabric_meta.spgw.far_id : exact @name("far_id");
+        }
+        actions = {
+            load_normal_far_attributes;
+            load_tunnel_far_attributes;
+        }
+        // default is drop and don't notify CP
+        const default_action = load_normal_far_attributes(1w1, 1w0);
+    }
 
     apply {
         if (gtpu.isValid()) {
             // If here, pkt has outer IP dst on
             // S1U_SGW_PREFIX/S1U_SGW_PREFIX_LEN subnet.
             // TODO: check also that gtpu.msgtype == GTP_GPDU
-            if (!s1u_filter_table.apply().hit) {
+            if (!uplink_filter_table.apply().hit) {
+                // Should this be changed to a forwarding/next skip instead of a drop?
                 mark_to_drop(standard_metadata);
             }
             fabric_meta.spgw.direction = SPGW_DIR_UPLINK;
             gtpu_decap();
-        } else if (dl_sess_lookup.apply().hit) {
+        } else if (downlink_filter_table.apply().hit) {
             fabric_meta.spgw.direction = SPGW_DIR_DOWNLINK;
         } else {
             fabric_meta.spgw.direction = SPGW_DIR_UNKNOWN;
@@ -158,20 +196,39 @@ control spgw_ingress(
             return;
         }
 
-#ifdef WITH_SPGW_PCC_GATING
-        // Allow all traffic by default.
-        fabric_meta.spgw.pcc_gate_status = PCC_GATE_OPEN;
-
-        sdf_rule_lookup.apply();
-        pcc_rule_lookup.apply();
-        pcc_info_lookup.apply();
-
-        if (fabric_meta.spgw.pcc_gate_status == PCC_GATE_CLOSED) {
-            mark_to_drop(standard_metadata);
+        // Try the efficient PDR tables first (This PDR partitioning only works
+        // if the PDRs do not overlap. Will need fixing later.)
+        if (fabric_meta.spgw.direction == SPGW_DIR_UPLINK) {
+            uplink_pdr_lookup.apply();
+        } else if (fabric_meta.spgw.direction == SPGW_DIR_DOWNLINK) {
+            downlink_pdr_lookup.apply();
+        } else { // SPGW_DIR_UNKNOWN
+            return;
         }
-#endif // WITH_SPGW_PCC_GATING
+        // If those fail to find a match, use the wildcard tables
+        if (fabric_meta.spgw.pdr_hit == _FALSE) {
+            flexible_pdr_lookup.apply();
+        }
 
-        // Don't ask why... we'll need this later.
+        pdr_counter.count(fabric_meta.spgw.ctr_id);
+        // Load FAR info
+        far_lookup.apply();
+
+        if (fabric_meta.spgw.notify_cp == _TRUE) {
+            // TODO: cpu clone session here
+        }
+        if (fabric_meta.spgw.far_dropped == _TRUE) {
+            // Do dropping in the same way as fabric's filtering.p4, so we can traverse
+            // the ACL table, which is good for cases like DHCP.
+            fabric_meta.skip_forwarding = _TRUE;
+            fabric_meta.skip_next = _TRUE;
+        }
+
+        // Nothing to be done immediately for forwarding or encapsulation.
+        // Forwarding is done by other parts of fabric.p4, and
+        // encapsulation is done in the egress
+
+        // Needed for correct GTPU encapsulation in egress
         fabric_meta.spgw.ipv4_len = ipv4.total_len;
     }
 }
@@ -186,6 +243,9 @@ control spgw_egress(
         in    standard_metadata_t std_meta
     ) {
 
+    counter(MAX_PDR_COUNTERS, CounterType.packets_and_bytes) pdr_counter;
+
+
     @hidden
     action gtpu_encap() {
         gtpu_ipv4.setValid();
@@ -195,21 +255,22 @@ control spgw_egress(
         gtpu_ipv4.ecn = 0;
         gtpu_ipv4.total_len = ipv4.total_len
                 + (IPV4_HDR_SIZE + UDP_HDR_SIZE + GTP_HDR_SIZE);
-        gtpu_ipv4.identification = 0x1513; /* From NGIC */
+        gtpu_ipv4.identification = 0x1513; /* From NGIC. TODO: Needs to be dynamic */
         gtpu_ipv4.flags = 0;
         gtpu_ipv4.frag_offset = 0;
         gtpu_ipv4.ttl = DEFAULT_IPV4_TTL;
         gtpu_ipv4.protocol = PROTO_UDP;
-        gtpu_ipv4.dst_addr = fabric_meta.spgw.s1u_enb_addr;
-        gtpu_ipv4.src_addr = fabric_meta.spgw.s1u_sgw_addr;
+        gtpu_ipv4.src_addr = fabric_meta.spgw.tunnel_src_addr;
+        gtpu_ipv4.dst_addr = fabric_meta.spgw.tunnel_dst_addr;
         gtpu_ipv4.hdr_checksum = 0; // Updated later
 
         gtpu_udp.setValid();
-        gtpu_udp.sport = UDP_PORT_GTPU;
+        gtpu_udp.sport = UDP_PORT_GTPU; // TODO: make this dynamic per 3GPP specs
         gtpu_udp.dport = UDP_PORT_GTPU;
         gtpu_udp.len = fabric_meta.spgw.ipv4_len
                 + (UDP_HDR_SIZE + GTP_HDR_SIZE);
-        gtpu_udp.checksum = 0; // Updated later
+        gtpu_udp.checksum = 0; // Updated later, if WITH_SPGW_UDP_CSUM_UPDATE
+
 
         gtpu.setValid();
         gtpu.version = GTPU_VERSION;
@@ -224,7 +285,9 @@ control spgw_egress(
     }
 
     apply {
-        if (fabric_meta.spgw.direction == SPGW_DIR_DOWNLINK) {
+        pdr_counter.count(fabric_meta.spgw.ctr_id);
+
+        if (fabric_meta.spgw.outer_header_creation == _TRUE) {
             gtpu_encap();
         }
     }

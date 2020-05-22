@@ -32,12 +32,14 @@
         ["fabric_metadata_t._ip_proto16", 8, false],
         ["fabric_metadata_t._l4_sport17", 16, false],
         ["fabric_metadata_t._l4_dport18", 16, false],
-        ["fabric_metadata_t._bng_type19", 2, false],
-        ["fabric_metadata_t._bng_line_id20", 32, false],
-        ["fabric_metadata_t._bng_pppoe_session_id21", 16, false],
-        ["fabric_metadata_t._bng_ds_meter_result22", 32, false],
-        ["fabric_metadata_t._bng_s_tag23", 12, false],
-        ["fabric_metadata_t._bng_c_tag24", 12, false],
+        ["fabric_metadata_t._ipv4_src_addr19", 32, false],
+        ["fabric_metadata_t._ipv4_dst_addr20", 32, false],
+        ["fabric_metadata_t._bng_type21", 2, false],
+        ["fabric_metadata_t._bng_line_id22", 32, false],
+        ["fabric_metadata_t._bng_pppoe_session_id23", 16, false],
+        ["fabric_metadata_t._bng_ds_meter_result24", 32, false],
+        ["fabric_metadata_t._bng_s_tag25", 12, false],
+        ["fabric_metadata_t._bng_c_tag26", 12, false],
         ["_padding_0", 2, false]
       ]
     },
@@ -333,34 +335,7 @@
         {
           "name" : "start",
           "id" : 0,
-          "parser_ops" : [
-            {
-              "parameters" : [
-                {
-                  "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t._bng_s_tag23"]
-                },
-                {
-                  "type" : "hexstr",
-                  "value" : "0x0000"
-                }
-              ],
-              "op" : "set"
-            },
-            {
-              "parameters" : [
-                {
-                  "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t._bng_c_tag24"]
-                },
-                {
-                  "type" : "hexstr",
-                  "value" : "0x0000"
-                }
-              ],
-              "op" : "set"
-            }
-          ],
+          "parser_ops" : [],
           "transitions" : [
             {
               "type" : "hexstr",
@@ -493,7 +468,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t._bng_s_tag23"]
+                  "value" : ["scalars", "fabric_metadata_t._bng_s_tag25"]
                 },
                 {
                   "type" : "field",
@@ -553,7 +528,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "fabric_metadata_t._bng_c_tag24"]
+                  "value" : ["scalars", "fabric_metadata_t._bng_c_tag26"]
                 },
                 {
                   "type" : "field",
@@ -775,6 +750,32 @@
                 }
               ],
               "op" : "set"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["scalars", "fabric_metadata_t._ipv4_src_addr19"]
+                },
+                {
+                  "type" : "field",
+                  "value" : ["ipv4", "src_addr"]
+                }
+              ],
+              "op" : "set"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["scalars", "fabric_metadata_t._ipv4_dst_addr20"]
+                },
+                {
+                  "type" : "field",
+                  "value" : ["ipv4", "dst_addr"]
+                }
+              ],
+              "op" : "set"
             }
           ],
           "transitions" : [
@@ -945,7 +946,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "include/parser.p4",
-        "line" : 269,
+        "line" : 267,
         "column" : 8,
         "source_fragment" : "FabricDeparser"
       },
@@ -1403,7 +1404,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._bng_line_id20"]
+              "value" : ["scalars", "fabric_metadata_t._bng_line_id22"]
             }
           ],
           "source_info" : {
@@ -1425,7 +1426,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._bng_type19"]
+              "value" : ["scalars", "fabric_metadata_t._bng_type21"]
             },
             {
               "type" : "hexstr",
@@ -1434,7 +1435,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../header.p4",
-            "line" : 160,
+            "line" : 159,
             "column" : 36,
             "source_fragment" : "2w0x0; ..."
           }
@@ -1475,7 +1476,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 114,
+            "line" : 117,
             "column" : 31,
             "source_fragment" : "0x0800; ..."
           }
@@ -1504,7 +1505,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._bng_line_id20"]
+              "value" : ["scalars", "fabric_metadata_t._bng_line_id22"]
             }
           ],
           "source_info" : {
@@ -1531,7 +1532,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._bng_type19"]
+              "value" : ["scalars", "fabric_metadata_t._bng_type21"]
             },
             {
               "type" : "hexstr",
@@ -1540,7 +1541,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../header.p4",
-            "line" : 162,
+            "line" : 161,
             "column" : 39,
             "source_fragment" : "2w0x2;; ..."
           }
@@ -1550,7 +1551,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._bng_pppoe_session_id21"]
+              "value" : ["scalars", "fabric_metadata_t._bng_pppoe_session_id23"]
             },
             {
               "type" : "runtime_data",
@@ -1573,7 +1574,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._bng_line_id20"]
+              "value" : ["scalars", "fabric_metadata_t._bng_line_id22"]
             }
           ],
           "source_info" : {
@@ -1595,7 +1596,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._bng_type19"]
+              "value" : ["scalars", "fabric_metadata_t._bng_type21"]
             },
             {
               "type" : "hexstr",
@@ -1604,7 +1605,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../header.p4",
-            "line" : 162,
+            "line" : 161,
             "column" : 39,
             "source_fragment" : "2w0x2;; ..."
           }
@@ -1618,7 +1619,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._bng_line_id20"]
+              "value" : ["scalars", "fabric_metadata_t._bng_line_id22"]
             }
           ],
           "source_info" : {
@@ -1672,7 +1673,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._bng_line_id20"]
+              "value" : ["scalars", "fabric_metadata_t._bng_line_id22"]
             },
             {
               "type" : "runtime_data",
@@ -2230,7 +2231,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._bng_s_tag23"]
+              "value" : ["scalars", "fabric_metadata_t._bng_s_tag25"]
             },
             {
               "type" : "runtime_data",
@@ -2249,7 +2250,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._bng_c_tag24"]
+              "value" : ["scalars", "fabric_metadata_t._bng_c_tag26"]
             },
             {
               "type" : "runtime_data",
@@ -2953,7 +2954,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._bng_type19"]
+              "value" : ["scalars", "fabric_metadata_t._bng_type21"]
             },
             {
               "type" : "hexstr",
@@ -2962,7 +2963,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../header.p4",
-            "line" : 161,
+            "line" : 160,
             "column" : 37,
             "source_fragment" : "2w0x1; ..."
           }
@@ -3042,7 +3043,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._bng_line_id20"]
+              "value" : ["scalars", "fabric_metadata_t._bng_line_id22"]
             }
           ],
           "source_info" : {
@@ -3128,11 +3129,11 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._bng_line_id20"]
+              "value" : ["scalars", "fabric_metadata_t._bng_line_id22"]
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._bng_ds_meter_result22"]
+              "value" : ["scalars", "fabric_metadata_t._bng_ds_meter_result24"]
             }
           ],
           "source_info" : {
@@ -3158,11 +3159,11 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._bng_line_id20"]
+              "value" : ["scalars", "fabric_metadata_t._bng_line_id22"]
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._bng_ds_meter_result22"]
+              "value" : ["scalars", "fabric_metadata_t._bng_ds_meter_result24"]
             }
           ],
           "source_info" : {
@@ -3199,7 +3200,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 118,
+            "line" : 121,
             "column" : 33,
             "source_fragment" : "0x8864; ..."
           }
@@ -3285,7 +3286,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._bng_pppoe_session_id21"]
+              "value" : ["scalars", "fabric_metadata_t._bng_pppoe_session_id23"]
             }
           ],
           "source_info" : {
@@ -3304,7 +3305,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._bng_line_id20"]
+              "value" : ["scalars", "fabric_metadata_t._bng_line_id22"]
             }
           ],
           "source_info" : {
@@ -3370,7 +3371,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 120,
+            "line" : 123,
             "column" : 35,
             "source_fragment" : "0x0021; ..."
           }
@@ -3528,7 +3529,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 112,
+            "line" : 115,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -3607,7 +3608,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 111,
+            "line" : 114,
             "column" : 31,
             "source_fragment" : "0x8100; ..."
           }
@@ -3705,7 +3706,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 111,
+            "line" : 114,
             "column" : 31,
             "source_fragment" : "0x8100; ..."
           }
@@ -3822,7 +3823,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 111,
+            "line" : 114,
             "column" : 31,
             "source_fragment" : "0x8100; ..."
           }
@@ -3841,7 +3842,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 111,
+            "line" : 114,
             "column" : 31,
             "source_fragment" : "0x8100; ..."
           }
@@ -4516,7 +4517,7 @@
             {
               "match_type" : "lpm",
               "name" : "ipv4_dst",
-              "target" : ["ipv4", "dst_addr"],
+              "target" : ["scalars", "fabric_metadata_t._ipv4_dst_addr20"],
               "mask" : null
             }
           ],
@@ -4827,13 +4828,13 @@
             {
               "match_type" : "exact",
               "name" : "s_tag",
-              "target" : ["scalars", "fabric_metadata_t._bng_s_tag23"],
+              "target" : ["scalars", "fabric_metadata_t._bng_s_tag25"],
               "mask" : null
             },
             {
               "match_type" : "exact",
               "name" : "c_tag",
-              "target" : ["scalars", "fabric_metadata_t._bng_c_tag24"],
+              "target" : ["scalars", "fabric_metadata_t._bng_c_tag26"],
               "mask" : null
             }
           ],
@@ -5016,7 +5017,7 @@
             {
               "match_type" : "exact",
               "name" : "line_id",
-              "target" : ["scalars", "fabric_metadata_t._bng_line_id20"],
+              "target" : ["scalars", "fabric_metadata_t._bng_line_id22"],
               "mask" : null
             },
             {
@@ -5094,7 +5095,7 @@
             {
               "match_type" : "exact",
               "name" : "line_id",
-              "target" : ["scalars", "fabric_metadata_t._bng_line_id20"],
+              "target" : ["scalars", "fabric_metadata_t._bng_line_id22"],
               "mask" : null
             }
           ],
@@ -5177,7 +5178,7 @@
             {
               "match_type" : "ternary",
               "name" : "line_id",
-              "target" : ["scalars", "fabric_metadata_t._bng_line_id20"],
+              "target" : ["scalars", "fabric_metadata_t._bng_line_id22"],
               "mask" : null
             },
             {
@@ -5294,11 +5295,11 @@
             "input" : [
               {
                 "type" : "field",
-                "value" : ["ipv4", "dst_addr"]
+                "value" : ["scalars", "fabric_metadata_t._ipv4_src_addr19"]
               },
               {
                 "type" : "field",
-                "value" : ["ipv4", "src_addr"]
+                "value" : ["scalars", "fabric_metadata_t._ipv4_dst_addr20"]
               },
               {
                 "type" : "field",
@@ -6613,7 +6614,7 @@
               "op" : "==",
               "left" : {
                 "type" : "field",
-                "value" : ["scalars", "fabric_metadata_t._bng_type19"]
+                "value" : ["scalars", "fabric_metadata_t._bng_type21"]
               },
               "right" : {
                 "type" : "hexstr",
