@@ -54,19 +54,19 @@ public final class OfdpaPipelineUtility {
     }
 
     // Ofdpa specific tables number
-    static final int PORT_TABLE = 0;
-    static final int VLAN_TABLE = 10;
+    public static final int PORT_TABLE = 0;
+    public static final int VLAN_TABLE = 10;
     static final int VLAN_1_TABLE = 11;
     static final int MPLS_L2_PORT_FLOW_TABLE = 13;
     static final int MPLS_L2_PORT_PCP_TRUST_FLOW_TABLE = 16;
-    static final int TMAC_TABLE = 20;
-    static final int UNICAST_ROUTING_TABLE = 30;
-    static final int MULTICAST_ROUTING_TABLE = 40;
-    static final int MPLS_TABLE_0 = 23;
-    static final int MPLS_TABLE_1 = 24;
-    static final int MPLS_L3_TYPE_TABLE = 27;
-    static final int MPLS_TYPE_TABLE = 29;
-    static final int BRIDGING_TABLE = 50;
+    public static final int TMAC_TABLE = 20;
+    public static final int UNICAST_ROUTING_TABLE = 30;
+    public static final int MULTICAST_ROUTING_TABLE = 40;
+    public static final int MPLS_TABLE_0 = 23;
+    public static final int MPLS_TABLE_1 = 24;
+    public static final int MPLS_L3_TYPE_TABLE = 27;
+    public static final int MPLS_TYPE_TABLE = 29;
+    public static final int BRIDGING_TABLE = 50;
     public static final int ACL_TABLE = 60;
     static final int EGRESS_VLAN_FLOW_TABLE = 210;
     static final int EGRESS_DSCP_PCP_REMARK_FLOW_TABLE = 230;

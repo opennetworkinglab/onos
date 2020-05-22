@@ -109,7 +109,7 @@ public class OvsOfdpaPipeline extends Ofdpa2Pipeline {
      * This is a non-OFDPA table to emulate OFDPA packet in behavior.
      * VLAN will be popped before punting if the VLAN is internally assigned.
      */
-    private static final int PUNT_TABLE = 63;
+    public static final int PUNT_TABLE = 63;
 
     /**
      * A static indirect group that pop vlan and punt to controller.
@@ -117,7 +117,7 @@ public class OvsOfdpaPipeline extends Ofdpa2Pipeline {
      * The purpose of using a group instead of immediate action is that this
      * won't affect another copy on the data plane when write action exists.
      */
-    private static final int POP_VLAN_PUNT_GROUP_ID = 0xd0000000;
+    public static final int POP_VLAN_PUNT_GROUP_ID = 0xd0000000;
 
     /**
      * Executor for group checker thread that checks pop vlan punt group.
@@ -141,6 +141,11 @@ public class OvsOfdpaPipeline extends Ofdpa2Pipeline {
 
     @Override
     protected boolean requireEthType() {
+        return false;
+    }
+
+    @Override
+    public boolean requireSecondVlanTableEntry() {
         return false;
     }
 
