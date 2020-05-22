@@ -135,22 +135,21 @@ header gtpu_t {
     bit<1>  npdu_flag;  /* n-pdn number present ? */
     bit<8>  msgtype;    /* message type */
     bit<16> msglen;     /* message length */
-    bit<32> teid;       /* tunnel endpoint id */
+    teid_t  teid;       /* tunnel endpoint id */
 }
 
 struct spgw_meta_t {
     direction_t       direction;
     bit<16>           ipv4_len;
-    bit<32>           teid;
-    bit<32>           s1u_enb_addr;
-    bit<32>           s1u_sgw_addr;
-#ifdef WITH_SPGW_PCC_GATING
-    bit<16>           l4_sport;
-    bit<16>           l4_dport;
-    pcc_gate_status_t pcc_gate_status;
-    sdf_rule_id_t     sdf_rule_id;
-    pcc_rule_id_t     pcc_rule_id;
-#endif // WITH_SPGW_PCC_GATING
+    teid_t            teid;
+    bit<32>           tunnel_src_addr;
+    bit<32>           tunnel_dst_addr;
+    ctr_id_t          ctr_id;
+    far_id_t          far_id;
+    _BOOL             pdr_hit;
+    _BOOL             far_dropped;
+    _BOOL             notify_cp;
+    _BOOL             outer_header_creation;
 }
 #endif // WITH_SPGW
 
@@ -194,6 +193,8 @@ struct fabric_metadata_t {
     bit<8>        ip_proto;
     bit<16>       l4_sport;
     bit<16>       l4_dport;
+    bit<32>       ipv4_src_addr;
+    bit<32>       ipv4_dst_addr;
 #ifdef WITH_SPGW
     spgw_meta_t   spgw;
 #endif // WITH_SPGW

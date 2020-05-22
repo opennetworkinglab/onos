@@ -125,6 +125,8 @@ parser FabricParser (packet_in packet,
         packet.extract(hdr.ipv4);
         fabric_metadata.ip_proto = hdr.ipv4.protocol;
         fabric_metadata.ip_eth_type = ETHERTYPE_IPV4;
+        fabric_metadata.ipv4_src_addr = hdr.ipv4.src_addr;
+        fabric_metadata.ipv4_dst_addr = hdr.ipv4.dst_addr;
         last_ipv4_dscp = hdr.ipv4.dscp;
         //Need header verification?
         transition select(hdr.ipv4.protocol) {
