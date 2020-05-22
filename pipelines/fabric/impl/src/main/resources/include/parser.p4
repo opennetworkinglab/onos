@@ -125,6 +125,8 @@ parser FabricParser (packet_in packet,
         packet.extract(hdr.ipv4);
         fabric_metadata.ip_proto = hdr.ipv4.protocol;
         fabric_metadata.ip_eth_type = ETHERTYPE_IPV4;
+        fabric_metadata.ipv4_src_addr = hdr.ipv4.src_addr;
+        fabric_metadata.ipv4_dst_addr = hdr.ipv4.dst_addr;
         last_ipv4_dscp = hdr.ipv4.dscp;
         //Need header verification?
         transition select(hdr.ipv4.protocol) {
@@ -183,17 +185,6 @@ parser FabricParser (packet_in packet,
 
 #ifdef WITH_SPGW
     state parse_gtpu {
-        transition select(hdr.ipv4.dst_addr[31:32-S1U_SGW_PREFIX_LEN]) {
-            // Avoid parsing GTP and inner headers if we know this GTP packet
-            // is not to be processed by this switch.
-            // FIXME: use parser value sets when support is ready in ONOS.
-            // To set the S1U_SGW_PREFIX value at runtime.
-            S1U_SGW_PREFIX[31:32-S1U_SGW_PREFIX_LEN]: do_parse_gtpu;
-            default: accept;
-        }
-    }
-
-    state do_parse_gtpu {
         packet.extract(hdr.gtpu);
         transition parse_inner_ipv4;
     }
@@ -211,13 +202,25 @@ parser FabricParser (packet_in packet,
 
     state parse_inner_udp {
         packet.extract(hdr.inner_udp);
-        fabric_metadata.l4_sport = hdr.inner_udp.sport;
-        fabric_metadata.l4_dport = hdr.inner_udp.dport;
+        fabric_metadata.inner_l4_sport = hdr.inner_udp.sport;
+        fabric_metadata.inner_l4_dport = hdr.inner_udp.dport;
 #ifdef WITH_INT
         transition parse_int;
 #else
         transition accept;
 #endif // WITH_INT
+    }
+
+        state parse_inner_tcp {
+        packet.extract(hdr.inner_tcp);
+        fabric_metadata.inner_l4_sport = hdr.inner_tcp.sport;
+        fabric_metadata.inner_l4_dport = hdr.inner_tcp.dport;
+        transition accept;
+    }
+
+        state parse_inner_icmp {
+        packet.extract(hdr.inner_icmp);
+        transition accept;
     }
 #endif // WITH_SPGW
 
@@ -286,7 +289,7 @@ control FabricDeparser(packet_out packet,in parsed_headers_t hdr) {
 #ifdef WITH_SPGW
         packet.emit(hdr.gtpu_ipv4);
         packet.emit(hdr.gtpu_udp);
-        packet.emit(hdr.gtpu);
+        packet.emit(hdr.outer_gtpu);
 #endif // WITH_SPGW
         packet.emit(hdr.ipv4);
 #ifdef WITH_IPV6
@@ -295,6 +298,14 @@ control FabricDeparser(packet_out packet,in parsed_headers_t hdr) {
         packet.emit(hdr.tcp);
         packet.emit(hdr.udp);
         packet.emit(hdr.icmp);
+#ifdef WITH_SPGW
+        // if we parsed a GTPU packet but did not decap it
+        packet.emit(hdr.gtpu);
+        packet.emit(hdr.inner_ipv4);
+        packet.emit(hdr.inner_tcp);
+        packet.emit(hdr.inner_udp);
+        packet.emit(hdr.inner_icmp);
+#endif // WITH_SPGW
 #ifdef WITH_INT
         packet.emit(hdr.intl4_shim);
         packet.emit(hdr.int_header);

@@ -32,7 +32,7 @@
 #endif // WITH_PORT_COUNTER
 
 #ifdef WITH_SPGW
-#include "include/spgw.p4"
+#include "include/control/spgw.p4"
 #endif // WITH_SPGW
 
 #ifdef WITH_BNG
@@ -55,19 +55,17 @@ control FabricIngress (inout parsed_headers_t hdr,
 #ifdef WITH_PORT_COUNTER
     PortCountersControl() port_counters_control;
 #endif // WITH_PORT_COUNTER
+#ifdef WITH_SPGW
+    SpgwIngress() spgw_ingress;
+#endif // WITH_SPGW
 
     apply {
         _PRE_INGRESS
-#ifdef WITH_SPGW
-        spgw_normalizer.apply(hdr.gtpu.isValid(), hdr.gtpu_ipv4, hdr.gtpu_udp,
-                              hdr.ipv4, hdr.udp, hdr.inner_ipv4, hdr.inner_udp);
-#endif // WITH_SPGW
         pkt_io_ingress.apply(hdr, fabric_metadata, standard_metadata);
-        filtering.apply(hdr, fabric_metadata, standard_metadata);
 #ifdef WITH_SPGW
-        spgw_ingress.apply(hdr.gtpu_ipv4, hdr.gtpu_udp, hdr.gtpu,
-                           hdr.ipv4, hdr.udp, fabric_metadata, standard_metadata);
+        spgw_ingress.apply(hdr, fabric_metadata, standard_metadata);
 #endif // WITH_SPGW
+        filtering.apply(hdr, fabric_metadata, standard_metadata);
         if (fabric_metadata.skip_forwarding == _FALSE) {
             forwarding.apply(hdr, fabric_metadata, standard_metadata);
         }
@@ -96,14 +94,16 @@ control FabricEgress (inout parsed_headers_t hdr,
 
     PacketIoEgress() pkt_io_egress;
     EgressNextControl() egress_next;
+#ifdef WITH_SPGW
+    SpgwEgress() spgw_egress;
+#endif // WITH_SPGW
 
     apply {
         _PRE_EGRESS
         pkt_io_egress.apply(hdr, fabric_metadata, standard_metadata);
         egress_next.apply(hdr, fabric_metadata, standard_metadata);
 #ifdef WITH_SPGW
-        spgw_egress.apply(hdr.ipv4, hdr.gtpu_ipv4, hdr.gtpu_udp, hdr.gtpu,
-                          fabric_metadata, standard_metadata);
+        spgw_egress.apply(hdr, fabric_metadata);
 #endif // WITH_SPGW
 #ifdef WITH_BNG
         bng_egress.apply(hdr, fabric_metadata, standard_metadata);

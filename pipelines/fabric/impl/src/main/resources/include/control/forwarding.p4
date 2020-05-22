@@ -107,7 +107,7 @@ control Forwarding (inout parsed_headers_t hdr,
     #endif
     table routing_v4 {
         key = {
-            hdr.ipv4.dst_addr: lpm @name("ipv4_dst");
+            fabric_metadata.ipv4_dst_addr: lpm @name("ipv4_dst");
         }
         actions = {
             set_next_id_routing_v4;

@@ -24,7 +24,9 @@
         ["fabric_metadata_t.is_controller_packet_out", 1, false],
         ["fabric_metadata_t.ip_proto", 8, false],
         ["fabric_metadata_t.l4_sport", 16, false],
-        ["fabric_metadata_t.l4_dport", 16, false]
+        ["fabric_metadata_t.l4_dport", 16, false],
+        ["fabric_metadata_t.ipv4_src_addr", 32, false],
+        ["fabric_metadata_t.ipv4_dst_addr", 32, false]
       ]
     },
     {
@@ -637,6 +639,32 @@
                 }
               ],
               "op" : "set"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["scalars", "fabric_metadata_t.ipv4_src_addr"]
+                },
+                {
+                  "type" : "field",
+                  "value" : ["ipv4", "src_addr"]
+                }
+              ],
+              "op" : "set"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["scalars", "fabric_metadata_t.ipv4_dst_addr"]
+                },
+                {
+                  "type" : "field",
+                  "value" : ["ipv4", "dst_addr"]
+                }
+              ],
+              "op" : "set"
             }
           ],
           "transitions" : [
@@ -807,7 +835,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "include/parser.p4",
-        "line" : 269,
+        "line" : 268,
         "column" : 8,
         "source_fragment" : "FabricDeparser"
       },
@@ -2359,7 +2387,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 112,
+            "line" : 126,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -2438,7 +2466,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 111,
+            "line" : 125,
             "column" : 31,
             "source_fragment" : "0x8100; ..."
           }
@@ -3075,7 +3103,7 @@
             {
               "match_type" : "lpm",
               "name" : "ipv4_dst",
-              "target" : ["ipv4", "dst_addr"],
+              "target" : ["scalars", "fabric_metadata_t.ipv4_dst_addr"],
               "mask" : null
             }
           ],
@@ -3433,11 +3461,11 @@
             "input" : [
               {
                 "type" : "field",
-                "value" : ["ipv4", "dst_addr"]
+                "value" : ["scalars", "fabric_metadata_t.ipv4_src_addr"]
               },
               {
                 "type" : "field",
-                "value" : ["ipv4", "src_addr"]
+                "value" : ["scalars", "fabric_metadata_t.ipv4_dst_addr"]
               },
               {
                 "type" : "field",
@@ -3537,7 +3565,7 @@
           "id" : 3,
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 71,
+            "line" : 69,
             "column" : 12,
             "source_fragment" : "fabric_metadata.skip_forwarding == false"
           },
@@ -3648,7 +3676,7 @@
           "id" : 7,
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 75,
+            "line" : 73,
             "column" : 12,
             "source_fragment" : "fabric_metadata.skip_next == false"
           },
@@ -3735,7 +3763,7 @@
       "id" : 1,
       "source_info" : {
         "filename" : "fabric.p4",
-        "line" : 93,
+        "line" : 91,
         "column" : 8,
         "source_fragment" : "FabricEgress"
       },

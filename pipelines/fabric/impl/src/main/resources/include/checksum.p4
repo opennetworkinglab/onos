@@ -18,7 +18,7 @@
 #define __CHECKSUM__
 
 #ifdef WITH_SPGW
-#include "spgw.p4"
+#include "control/spgw.p4"
 #endif // WITH_SPGW
 
 control FabricComputeChecksum(inout parsed_headers_t hdr,

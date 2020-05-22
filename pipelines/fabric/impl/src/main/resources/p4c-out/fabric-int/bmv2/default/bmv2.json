@@ -27,14 +27,16 @@
         ["fabric_metadata_t._ip_proto12", 8, false],
         ["fabric_metadata_t._l4_sport13", 16, false],
         ["fabric_metadata_t._l4_dport14", 16, false],
-        ["fabric_metadata_t._int_meta_source15", 1, false],
-        ["fabric_metadata_t._int_meta_transit16", 1, false],
-        ["fabric_metadata_t._int_meta_sink17", 1, false],
-        ["fabric_metadata_t._int_meta_switch_id18", 32, false],
-        ["fabric_metadata_t._int_meta_new_words19", 8, false],
-        ["fabric_metadata_t._int_meta_new_bytes20", 16, false],
-        ["fabric_metadata_t._int_meta_ig_tstamp21", 32, false],
-        ["fabric_metadata_t._int_meta_eg_tstamp22", 32, false],
+        ["fabric_metadata_t._ipv4_src_addr15", 32, false],
+        ["fabric_metadata_t._ipv4_dst_addr16", 32, false],
+        ["fabric_metadata_t._int_meta_source17", 1, false],
+        ["fabric_metadata_t._int_meta_transit18", 1, false],
+        ["fabric_metadata_t._int_meta_sink19", 1, false],
+        ["fabric_metadata_t._int_meta_switch_id20", 32, false],
+        ["fabric_metadata_t._int_meta_new_words21", 8, false],
+        ["fabric_metadata_t._int_meta_new_bytes22", 16, false],
+        ["fabric_metadata_t._int_meta_ig_tstamp23", 32, false],
+        ["fabric_metadata_t._int_meta_eg_tstamp24", 32, false],
         ["_padding_0", 6, false]
       ]
     },
@@ -828,6 +830,32 @@
               "parameters" : [
                 {
                   "type" : "field",
+                  "value" : ["scalars", "fabric_metadata_t._ipv4_src_addr15"]
+                },
+                {
+                  "type" : "field",
+                  "value" : ["ipv4", "src_addr"]
+                }
+              ],
+              "op" : "set"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
+                  "value" : ["scalars", "fabric_metadata_t._ipv4_dst_addr16"]
+                },
+                {
+                  "type" : "field",
+                  "value" : ["ipv4", "dst_addr"]
+                }
+              ],
+              "op" : "set"
+            },
+            {
+              "parameters" : [
+                {
+                  "type" : "field",
                   "value" : ["scalars", "last_ipv4_dscp_0"]
                 },
                 {
@@ -1109,7 +1137,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "include/parser.p4",
-        "line" : 269,
+        "line" : 268,
         "column" : 8,
         "source_fragment" : "FabricDeparser"
       },
@@ -1472,7 +1500,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_source15"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_source17"]
             },
             {
               "type" : "expression",
@@ -2670,7 +2698,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 157,
+            "line" : 165,
             "column" : 36,
             "source_fragment" : "4; ..."
           }
@@ -3088,7 +3116,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 153,
+            "line" : 161,
             "column" : 24,
             "source_fragment" : "0x1; ..."
           }
@@ -3110,7 +3138,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_transit16"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_transit18"]
             },
             {
               "type" : "expression",
@@ -3139,7 +3167,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id18"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id20"]
             },
             {
               "type" : "runtime_data",
@@ -3237,7 +3265,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -3251,7 +3279,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -3279,7 +3307,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -3293,7 +3321,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -3362,7 +3390,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -3376,7 +3404,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -3404,7 +3432,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -3418,7 +3446,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -3553,7 +3581,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -3567,7 +3595,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -3595,7 +3623,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -3609,7 +3637,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -3723,7 +3751,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -3737,7 +3765,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -3765,7 +3793,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -3779,7 +3807,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -3959,7 +3987,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -3973,7 +4001,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4001,7 +4029,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -4015,7 +4043,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4163,7 +4191,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -4177,7 +4205,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4205,7 +4233,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -4219,7 +4247,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4433,7 +4461,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -4447,7 +4475,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4475,7 +4503,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -4489,7 +4517,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4543,7 +4571,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id18"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id20"]
             }
           ],
           "source_info" : {
@@ -4558,7 +4586,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -4572,7 +4600,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4600,7 +4628,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -4614,7 +4642,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4734,7 +4762,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id18"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id20"]
             }
           ],
           "source_info" : {
@@ -4749,7 +4777,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -4763,7 +4791,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4791,7 +4819,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -4805,7 +4833,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4893,7 +4921,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id18"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id20"]
             }
           ],
           "source_info" : {
@@ -4908,7 +4936,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -4922,7 +4950,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -4950,7 +4978,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -4964,7 +4992,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5118,7 +5146,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id18"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id20"]
             }
           ],
           "source_info" : {
@@ -5133,7 +5161,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -5147,7 +5175,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5175,7 +5203,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -5189,7 +5217,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5322,7 +5350,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id18"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id20"]
             }
           ],
           "source_info" : {
@@ -5337,7 +5365,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -5351,7 +5379,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5379,7 +5407,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -5393,7 +5421,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5592,7 +5620,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id18"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id20"]
             }
           ],
           "source_info" : {
@@ -5607,7 +5635,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -5621,7 +5649,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5649,7 +5677,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -5663,7 +5691,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5830,7 +5858,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id18"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id20"]
             }
           ],
           "source_info" : {
@@ -5845,7 +5873,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -5859,7 +5887,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -5887,7 +5915,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -5901,7 +5929,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6134,7 +6162,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id18"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_switch_id20"]
             }
           ],
           "source_info" : {
@@ -6149,7 +6177,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -6163,7 +6191,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6191,7 +6219,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -6205,7 +6233,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6280,7 +6308,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -6294,7 +6322,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6322,7 +6350,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -6336,7 +6364,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6424,7 +6452,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -6438,7 +6466,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6466,7 +6494,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -6480,7 +6508,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6602,7 +6630,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -6616,7 +6644,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6644,7 +6672,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -6658,7 +6686,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6750,7 +6778,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -6764,7 +6792,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6792,7 +6820,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -6806,7 +6834,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6932,7 +6960,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -6946,7 +6974,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -6974,7 +7002,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -6988,7 +7016,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7133,7 +7161,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -7147,7 +7175,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7175,7 +7203,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -7189,7 +7217,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7368,7 +7396,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -7382,7 +7410,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7410,7 +7438,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -7424,7 +7452,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7493,7 +7521,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -7507,7 +7535,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7535,7 +7563,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -7549,7 +7577,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7652,7 +7680,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -7666,7 +7694,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7694,7 +7722,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -7708,7 +7736,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7830,7 +7858,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -7844,7 +7872,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -7872,7 +7900,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -7886,7 +7914,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8042,7 +8070,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -8056,7 +8084,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8084,7 +8112,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -8098,7 +8126,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8224,7 +8252,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -8238,7 +8266,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8266,7 +8294,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -8280,7 +8308,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8440,7 +8468,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -8454,7 +8482,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8482,7 +8510,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -8496,7 +8524,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8675,7 +8703,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -8689,7 +8717,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8717,7 +8745,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -8731,7 +8759,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8944,7 +8972,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
             },
             {
               "type" : "expression",
@@ -8958,7 +8986,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -8986,7 +9014,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+              "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
             },
             {
               "type" : "expression",
@@ -9000,7 +9028,7 @@
                       "op" : "+",
                       "left" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       },
                       "right" : {
                         "type" : "hexstr",
@@ -9176,7 +9204,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 112,
+            "line" : 126,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -9255,7 +9283,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 111,
+            "line" : 125,
             "column" : 31,
             "source_fragment" : "0x8100; ..."
           }
@@ -9689,7 +9717,7 @@
                       },
                       "right" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       }
                     }
                   },
@@ -9787,7 +9815,7 @@
                       },
                       "right" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes20"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_bytes22"]
                       }
                     }
                   },
@@ -9836,7 +9864,7 @@
                       },
                       "right" : {
                         "type" : "field",
-                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words19"]
+                        "value" : ["scalars", "fabric_metadata_t._int_meta_new_words21"]
                       }
                     }
                   },
@@ -10154,7 +10182,7 @@
             {
               "match_type" : "lpm",
               "name" : "ipv4_dst",
-              "target" : ["ipv4", "dst_addr"],
+              "target" : ["scalars", "fabric_metadata_t._ipv4_dst_addr16"],
               "mask" : null
             }
           ],
@@ -10549,11 +10577,11 @@
             "input" : [
               {
                 "type" : "field",
-                "value" : ["ipv4", "dst_addr"]
+                "value" : ["scalars", "fabric_metadata_t._ipv4_src_addr15"]
               },
               {
                 "type" : "field",
-                "value" : ["ipv4", "src_addr"]
+                "value" : ["scalars", "fabric_metadata_t._ipv4_dst_addr16"]
               },
               {
                 "type" : "field",
@@ -10653,7 +10681,7 @@
           "id" : 3,
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 71,
+            "line" : 69,
             "column" : 12,
             "source_fragment" : "fabric_metadata.skip_forwarding == false"
           },
@@ -10764,7 +10792,7 @@
           "id" : 7,
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 75,
+            "line" : 73,
             "column" : 12,
             "source_fragment" : "fabric_metadata.skip_next == false"
           },
@@ -10851,7 +10879,7 @@
       "id" : 1,
       "source_info" : {
         "filename" : "fabric.p4",
-        "line" : 93,
+        "line" : 91,
         "column" : 8,
         "source_fragment" : "FabricEgress"
       },
@@ -12630,7 +12658,7 @@
                   "left" : null,
                   "right" : {
                     "type" : "field",
-                    "value" : ["scalars", "fabric_metadata_t._int_meta_source15"]
+                    "value" : ["scalars", "fabric_metadata_t._int_meta_source17"]
                   }
                 }
               },
@@ -12686,7 +12714,7 @@
                   "left" : null,
                   "right" : {
                     "type" : "field",
-                    "value" : ["scalars", "fabric_metadata_t._int_meta_transit16"]
+                    "value" : ["scalars", "fabric_metadata_t._int_meta_transit18"]
                   }
                 }
               },
