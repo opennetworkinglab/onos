@@ -445,9 +445,11 @@ class OFChannelHandler extends ChannelInboundHandlerAdapter
                     h.portDescReplies.add((OFPortDescStatsReply) m);
                 }
                 //h.portDescReply = (OFPortDescStatsReply) m; // temp store
-                log.debug("Received port desc reply for switch at {}: {}",
-                         h.getSwitchInfoString(),
-                         ((OFPortDescStatsReply) m).getEntries());
+                if (log.isDebugEnabled()) {
+                    log.debug("Received port desc reply for switch at {}: {}",
+                              h.getSwitchInfoString(),
+                              ((OFPortDescStatsReply) m).getEntries());
+                }
                 try {
                     h.sendHandshakeSetConfig();
                 } catch (IOException e) {
@@ -600,21 +602,23 @@ class OFChannelHandler extends ChannelInboundHandlerAdapter
                     return;
                 }
 
+                // set switch information
                 h.sw.setOFVersion(h.ofVersion);
                 h.sw.setFeaturesReply(h.featuresReply);
                 h.sw.setPortDescReplies(h.portDescReplies);
                 h.sw.setMeterFeaturesReply(h.meterFeaturesReply);
                 h.sw.setConnected(true);
                 h.sw.setChannel(h);
+
+                //Port Description List has served its purpose, clearing.
+                h.portDescReplies.clear();
+
 //                boolean success = h.sw.connectSwitch();
 //
 //                if (!success) {
 //                    disconnectDuplicate(h);
 //                    return;
 //                }
-                // set switch information
-
-
 
                 log.debug("Switch {} bound to class {}, description {}",
                         h.sw, h.sw.getClass(), drep);
@@ -861,10 +865,29 @@ class OFChannelHandler extends ChannelInboundHandlerAdapter
             void processOFStatisticsReply(OFChannelHandler h,
                     OFStatsReply m) {
                 if (m.getStatsType().equals(OFStatsType.PORT_DESC)) {
-                    log.debug("Received port desc message from {}: {}",
-                             h.sw.getDpid(),
-                             ((OFPortDescStatsReply) m).getEntries());
-                    h.sw.setPortDescReply((OFPortDescStatsReply) m);
+                    if (log.isDebugEnabled()) {
+                        log.debug("Received port desc message from {}: {}",
+                                  h.sw.getDpid(),
+                                  ((OFPortDescStatsReply) m).getEntries());
+                    }
+                    if (m.getFlags().contains(OFStatsReplyFlags.REPLY_MORE)) {
+                        log.debug("Active Stats reply indicates more stats from sw {} for "
+                                          + "port description",
+                                  h.getSwitchInfoString());
+                        h.portDescReplies.add((OFPortDescStatsReply) m);
+                        h.dispatchMessage(m);
+                        return;
+                    }
+
+                    h.portDescReplies.add((OFPortDescStatsReply) m);
+                    if (log.isDebugEnabled()) {
+                        log.debug("Adding all Port Desc Active Replies to {}: {}",
+                                  h.sw.getDpid(),
+                                  h.portDescReplies);
+                    }
+                    h.sw.setPortDescReplies(h.portDescReplies);
+                    //clearing to wait for next full response
+                    h.portDescReplies.clear();
                 }
                 h.dispatchMessage(m);
             }
