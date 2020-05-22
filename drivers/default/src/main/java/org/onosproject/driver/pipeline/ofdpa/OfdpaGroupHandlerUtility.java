@@ -68,16 +68,16 @@ public final class OfdpaGroupHandlerUtility {
      * L2 Flood Groups have <4bits-4><12bits-vlanId><16bits-index>
      * L3 VPN Groups have <4bits-9><4bits-2><24bits-index>
      */
-    static final int L2_INTERFACE_TYPE = 0x00000000;
+    public static final int L2_INTERFACE_TYPE = 0x00000000;
     static final int L2_UNFILTERED_TYPE = 0xb0000000;
     static final int L3_INTERFACE_TYPE = 0x50000000;
     static final int L3_UNICAST_TYPE = 0x20000000;
-    static final int L3_MULTICAST_TYPE = 0x60000000;
+    public static final int L3_MULTICAST_TYPE = 0x60000000;
     static final int MPLS_INTERFACE_TYPE = 0x90000000;
     static final int MPLS_L3VPN_SUBTYPE = 0x92000000;
     static final int L3_ECMP_TYPE = 0x70000000;
-    static final int L2_FLOOD_TYPE = 0x40000000;
-    static final int L2_MULTICAST_TYPE = 0x30000000;
+    public static final int L2_FLOOD_TYPE = 0x40000000;
+    public static final int L2_MULTICAST_TYPE = 0x30000000;
     static final int L2_LB_TYPE = 0xc0000000;
 
     static final int TYPE_MASK = 0x0fffffff;
