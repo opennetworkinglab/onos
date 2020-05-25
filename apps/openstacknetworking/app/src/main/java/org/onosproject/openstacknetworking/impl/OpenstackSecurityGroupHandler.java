@@ -551,9 +551,6 @@ public class OpenstackSecurityGroupHandler {
 
         Set<TrafficSelector> selectorSet = Sets.newHashSet();
 
-        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
-        buildMatches(sBuilder, sgRule, vmIp, remoteIp, netId);
-
         if (sgRule.getPortRangeMax() != null && sgRule.getPortRangeMin() != null &&
                 sgRule.getPortRangeMin() < sgRule.getPortRangeMax()) {
             Map<TpPort, TpPort> portRangeMatchMap =
@@ -561,23 +558,46 @@ public class OpenstackSecurityGroupHandler {
                             sgRule.getPortRangeMax());
             portRangeMatchMap.forEach((key, value) -> {
 
+                TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
+                buildMatches(sBuilder, sgRule, vmIp, remoteIp, netId);
+
                 if (sgRule.getProtocol().equalsIgnoreCase(PROTO_TCP)) {
                     if (sgRule.getDirection().equalsIgnoreCase(EGRESS)) {
-                        sBuilder.matchTcpSrcMasked(key, value);
+                        if (value.toInt() == TpPort.MAX_PORT) {
+                            sBuilder.matchTcpSrc(key);
+                        } else {
+                            sBuilder.matchTcpSrcMasked(key, value);
+                        }
                     } else {
-                        sBuilder.matchTcpDstMasked(key, value);
+                        if (value.toInt() == TpPort.MAX_PORT) {
+                            sBuilder.matchTcpDst(key);
+                        } else {
+                            sBuilder.matchTcpDstMasked(key, value);
+                        }
                     }
                 } else if (sgRule.getProtocol().equalsIgnoreCase(PROTO_UDP)) {
                     if (sgRule.getDirection().equalsIgnoreCase(EGRESS)) {
-                        sBuilder.matchUdpSrcMasked(key, value);
+                        if (value.toInt() == TpPort.MAX_PORT) {
+                            sBuilder.matchUdpSrc(key);
+                        } else {
+                            sBuilder.matchUdpSrcMasked(key, value);
+                        }
                     } else {
-                        sBuilder.matchUdpDstMasked(key, value);
+                        if (value.toInt() == TpPort.MAX_PORT) {
+                            sBuilder.matchUdpDst(key);
+                        } else {
+                            sBuilder.matchUdpDstMasked(key, value);
+                        }
                     }
                 }
 
                 selectorSet.add(sBuilder.build());
             });
         } else {
+
+            TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
+            buildMatches(sBuilder, sgRule, vmIp, remoteIp, netId);
+
             selectorSet.add(sBuilder.build());
         }
 
