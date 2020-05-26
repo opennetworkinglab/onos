@@ -79,16 +79,16 @@
         <div class="table-header">
             <table>
                 <tr>
-                    <td colId="state" (click)="onSort('state')">{{lionFn('state')}}
+                    <td class="col8pct" colId="state" (click)="onSort('state')">{{lionFn('state')}}
                         <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('state')"></onos-icon>
                     </td>
-                    <td colId="packets" (click)="onSort('packets')">{{lionFn('packets')}}
+                    <td class="col8pct" colId="packets" (click)="onSort('packets')">{{lionFn('packets')}}
                         <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('packets')"></onos-icon>
                     </td>
-                    <td colId="duration" (click)="onSort('duration')">{{lionFn('duration')}}
+                    <td class="col10pct" colId="duration" (click)="onSort('duration')">{{lionFn('duration')}}
                         <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('duration')"></onos-icon>
                     </td>
-                    <td colId="priority" (click)="onSort('priority')">{{lionFn('priority')}}
+                    <td class="col8pct" colId="priority" (click)="onSort('priority')">{{lionFn('priority')}}
                         <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('priority')"></onos-icon>
                     </td>
                     <td colId="tableName" (click)="onSort('tableName')">{{lionFn('tableName')}}
@@ -100,7 +100,7 @@
                     <td colId="treatment" (click)="onSort('treatment')">{{lionFn('treatment')}}
                         <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('treatment')"></onos-icon>
                     </td>
-                    <td colId="appName" (click)="onSort('appName')">{{lionFn('appName')}}
+                    <td class="col8pct" colId="appName" (click)="onSort('appName')">{{lionFn('appName')}}
                         <onos-icon classes="active-sort" [iconSize]="10" [iconId]="sortIcon('appName')"></onos-icon>
                     </td>
                 </tr>
@@ -114,14 +114,14 @@
                 </tr>
                 <ng-template ngFor let-flow [ngForOf]="tableData | filter : tableDataFilter">
                     <tr (click)="selectCallback($event, flow)" [ngClass]="{selected: flow.id === selId, 'data-change': isChanged(flow.id)}">
-                        <td>{{flow.state}}</td>
-                        <td>{{flow.packets}}</td>
-                        <td>{{flow.duration}}</td>
-                        <td>{{flow.priority}}</td>
+                        <td class="col8pct">{{flow.state}}</td>
+                        <td class="col8pct">{{flow.packets}}</td>
+                        <td class="col10pct">{{flow.duration}}</td>
+                        <td class="col8pct">{{flow.priority}}</td>
                         <td>{{flow.tableName}}</td>
                         <td>{{flow.selector_c}}</td>
                         <td>{{flow.treatment_c}}</td>
-                        <td>{{flow.appName}}</td>
+                        <td class="col10pct">{{flow.appName}}</td>
                     </tr>
                     <tr (click)="selectCallback($event, flow)" [ngClass]="{selected: flow.id === selId, 'data-change': isChanged(flow.id)}" [hidden]="brief">
                         <td class="selector" colspan="8">{{flow.selector}} </td>
