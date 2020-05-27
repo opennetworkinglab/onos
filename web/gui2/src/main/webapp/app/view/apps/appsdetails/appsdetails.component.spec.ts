@@ -153,7 +153,7 @@ describe('AppsDetailsComponent', () => {
         const appDe: DebugElement = fixture.debugElement;
         const divDe = appDe.query(By.css('div.top-content div.right table.app-props'));
         const div: HTMLElement = divDe.nativeElement;
-        expect(div.textContent).toEqual('%app_id%:%state%:%category%:%version%:%origin%:%role%:');
+        expect(div.textContent).toEqual('%app_id%%state%%category%%version%%origin%%role%');
     });
 
     it('should have an a inside an div.app-url inside a div.top-content', () => {

@@ -275,10 +275,22 @@ all of the tabular views and the topology view. It references the `gui2-fw-lib`
 and `gui2-topo-lib` as just other dependencies. 
 
 ## Running unit tests
-This is automatically done when using `bazel test //web/gui2:onos-gui2-ng-tests`
+This is automatically done when using:
+
+* for FW lib `bazel test //web/gui2-fw-lib:test-not-coverage`
+* for Topo lib `bazel test //web/gui2-topo-lib:test-not-coverage`
+
+> Note: these tests are **not** run by Jenkins, or when you do a unit test build with
+> the `ot` or `ob` alias locally. They have been omitted, as they required everyone
+> to have ChromeHeadless installed locally. Instead they **must** be run by GUI
+> developers before submitting GUI code.
+>
+> Currently there is no test for the main `gui2` project. They hve been temporarily
+> disabled because of Bazel-Karma issues. 
 
 ## Running checkstyle (lint)
 This is automatically done when using `bazel test //web/gui2:onos-gui2-ng-tests`
+> Temporarily disabled.
 
 ## Generating documentation
 To run it manually in Angular CLI run `npm run compodoc` to generate documentation

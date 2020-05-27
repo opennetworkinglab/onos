@@ -120,6 +120,6 @@ describe('PortdetailsComponent', () => {
         const portDe: DebugElement = fixture.debugElement;
         const divDe = portDe.query(By.css('div.top-content div.top-tables div.left'));
         const div: HTMLElement = divDe.nativeElement;
-        expect(div.textContent).toEqual('ID :Device :Type :Speed :Enabled :');
+        expect(div.textContent).toEqual('IDDeviceTypeSpeedEnabled');
     });
 });
