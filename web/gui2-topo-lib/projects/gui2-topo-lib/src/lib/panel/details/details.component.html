@@ -57,7 +57,7 @@
                            (click)="navto(buttonAttribs(btn).path)"
                         [iconSize]="25"
                         [iconId]="buttonAttribs(btn).gid"
-                        [toolTip]="lionFnTopo(buttonAttribs(btn).tt)"
+                        [toolTip]="lionFnFlow(buttonAttribs(btn).tt)"
                         classes="button icon selected">
                 </onos-icon>
             </div>
@@ -66,6 +66,7 @@
                            (click)="navto('pipeconf')"
                            [iconSize]="25"
                            [iconId]="'pipeconfTable'"
+                           [toolTip]="'Show Pipeconf table for this device'"
                            classes="button icon selected">
                 </onos-icon>
             </div>

@@ -1,4 +1,4 @@
-# ONOS GUI 2.1.0
+# ONOS GUI 2.2.0
 
 This project is based on __[Angular 7](https://angular.io/docs)__ 
 and __[ES6](http://www.ecma-international.org/ecma-262/6.0/index.html)__ (aka __ES2015__), 
