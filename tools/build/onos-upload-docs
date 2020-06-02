@@ -19,34 +19,9 @@ if echo $ONOS_VERSION_STRING | grep -- '-b'; then
     exit 0
 fi
 
-scp $remote:/var/www/api/index.html /tmp/index.html
-CURRENT_VERSION_STRING=`grep URL /tmp/index.html | sed "s%.*URL=/%%" | sed "s%/.*%%"`
-CURRENT_VERSION_SPLIT=(${CURRENT_VERSION_STRING//\./ })
-ONOS_VERSION_SPLIT=(${ONOS_VERSION_STRING//\./ })
-
-if (( ${ONOS_VERSION_SPLIT[1]} >= ${CURRENT_VERSION_SPLIT[1]} )); then
-    replace="1"
-    echo "Should replace current version $CURRENT_VERSION_STRING with new ONOS version $ONOS_VERSION_STRING"
-else
-    echo "Not replacing current version $CURRENT_VERSION_STRING with ONOS version $ONOS_VERSION_STRING"
-    replace="0"
-fi
-
-if echo $ONOS_VERSION_STRING | grep -- '-'; then
-    echo "ONOS version $ONOS_VERSION_STRING is a beta or RC. Not replacing default document set."
-    replace="0"
-fi
-
 scp $docs $remote:/tmp/onos-apidocs-$ONOS_VERSION.tar.gz
 ssh $remote "
     mkdir -p /var/www/api/$ONOS_VERSION
     cd /var/www/api/$ONOS_VERSION
     unzip /tmp/onos-apidocs-$ONOS_VERSION.tar.gz
-    #mv onos-apidocs-$ONOS_VERSION/* .
-    #rm -rf onos-apidocs-$ONOS_VERSION
-
-    # bump /var/www/api/index.html
-    if [ "$replace" == "1" ]; then
-       sed -i -E 's#/[^/]+/#/$ONOS_VERSION/#g' /var/www/api/index.html
-    fi
 "
