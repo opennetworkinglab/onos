@@ -97,24 +97,9 @@ import static org.onosproject.drivers.server.Constants.MSG_DEVICE_ID_NULL;
 import static org.onosproject.drivers.server.Constants.MSG_NIC_NAME_NULL;
 import static org.onosproject.drivers.server.Constants.MSG_NIC_PORT_NUMBER_NEGATIVE;
 import static org.onosproject.drivers.server.Constants.MSG_STATS_TIMING_DEPLOY_INCONSISTENT;
-import static org.onosproject.drivers.server.Constants.PARAM_ID;
 import static org.onosproject.drivers.server.Constants.PARAM_CAPACITY;
 import static org.onosproject.drivers.server.Constants.PARAM_CHASSIS_ID;
 import static org.onosproject.drivers.server.Constants.PARAM_CPUS;
-import static org.onosproject.drivers.server.Constants.PARAM_NICS;
-import static org.onosproject.drivers.server.Constants.PARAM_NAME;
-import static org.onosproject.drivers.server.Constants.PARAM_MEMORY;
-import static org.onosproject.drivers.server.Constants.PARAM_MEMORY_HIERARCHY;
-import static org.onosproject.drivers.server.Constants.PARAM_MEMORY_MODULES;
-import static org.onosproject.drivers.server.Constants.PARAM_MEMORY_STATS_FREE;
-import static org.onosproject.drivers.server.Constants.PARAM_MEMORY_STATS_TOTAL;
-import static org.onosproject.drivers.server.Constants.PARAM_MEMORY_STATS_USED;
-import static org.onosproject.drivers.server.Constants.PARAM_MANUFACTURER;
-import static org.onosproject.drivers.server.Constants.PARAM_HW_VENDOR;
-import static org.onosproject.drivers.server.Constants.PARAM_SW_VENDOR;
-import static org.onosproject.drivers.server.Constants.PARAM_SERIAL;
-import static org.onosproject.drivers.server.Constants.PARAM_TIMING_STATS;
-import static org.onosproject.drivers.server.Constants.PARAM_TIMING_STATS_AUTOSCALE;
 import static org.onosproject.drivers.server.Constants.PARAM_CPU_CACHE_LEVEL;
 import static org.onosproject.drivers.server.Constants.PARAM_CPU_CACHE_LEVELS;
 import static org.onosproject.drivers.server.Constants.PARAM_CPU_CACHE_LINE_LEN;
@@ -137,8 +122,19 @@ import static org.onosproject.drivers.server.Constants.PARAM_CPU_SOCKETS;
 import static org.onosproject.drivers.server.Constants.PARAM_CPU_STATUS;
 import static org.onosproject.drivers.server.Constants.PARAM_CPU_THROUGHPUT;
 import static org.onosproject.drivers.server.Constants.PARAM_CPU_VENDOR;
+import static org.onosproject.drivers.server.Constants.PARAM_HW_VENDOR;
+import static org.onosproject.drivers.server.Constants.PARAM_ID;
+import static org.onosproject.drivers.server.Constants.PARAM_MANUFACTURER;
+import static org.onosproject.drivers.server.Constants.PARAM_MEMORY;
+import static org.onosproject.drivers.server.Constants.PARAM_MEMORY_HIERARCHY;
+import static org.onosproject.drivers.server.Constants.PARAM_MEMORY_MODULES;
+import static org.onosproject.drivers.server.Constants.PARAM_MEMORY_STATS_FREE;
+import static org.onosproject.drivers.server.Constants.PARAM_MEMORY_STATS_TOTAL;
+import static org.onosproject.drivers.server.Constants.PARAM_MEMORY_STATS_USED;
 import static org.onosproject.drivers.server.Constants.PARAM_MEMORY_WIDTH_DATA;
 import static org.onosproject.drivers.server.Constants.PARAM_MEMORY_WIDTH_TOTAL;
+import static org.onosproject.drivers.server.Constants.PARAM_NAME;
+import static org.onosproject.drivers.server.Constants.PARAM_NICS;
 import static org.onosproject.drivers.server.Constants.PARAM_NIC_HW_ADDR;
 import static org.onosproject.drivers.server.Constants.PARAM_NIC_PORT_TYPE;
 import static org.onosproject.drivers.server.Constants.PARAM_NIC_RX_FILTER;
@@ -156,18 +152,22 @@ import static org.onosproject.drivers.server.Constants.PARAM_MON_FREE_CPUS;
 import static org.onosproject.drivers.server.Constants.PARAM_MON_MAX;
 import static org.onosproject.drivers.server.Constants.PARAM_MON_MIN;
 import static org.onosproject.drivers.server.Constants.PARAM_MON_UNIT;
+import static org.onosproject.drivers.server.Constants.PARAM_SERIAL;
 import static org.onosproject.drivers.server.Constants.PARAM_SPEED;
 import static org.onosproject.drivers.server.Constants.PARAM_SPEED_CONF;
 import static org.onosproject.drivers.server.Constants.PARAM_STATUS;
-import static org.onosproject.drivers.server.Constants.PARAM_TIMING_PARSE;
-import static org.onosproject.drivers.server.Constants.PARAM_TIMING_LAUNCH;
-import static org.onosproject.drivers.server.Constants.PARAM_TIMING_DEPLOY;
+import static org.onosproject.drivers.server.Constants.PARAM_SW_VENDOR;
 import static org.onosproject.drivers.server.Constants.PARAM_TIMING_AUTOSCALE;
+import static org.onosproject.drivers.server.Constants.PARAM_TIMING_DEPLOY;
+import static org.onosproject.drivers.server.Constants.PARAM_TIMING_LAUNCH;
+import static org.onosproject.drivers.server.Constants.PARAM_TIMING_PARSE;
+import static org.onosproject.drivers.server.Constants.PARAM_TIMING_STATS;
+import static org.onosproject.drivers.server.Constants.PARAM_TIMING_STATS_AUTOSCALE;
 import static org.onosproject.drivers.server.Constants.PARAM_TYPE;
 import static org.onosproject.drivers.server.Constants.SLASH;
+import static org.onosproject.drivers.server.Constants.URL_SERVICE_CHAINS_STATS;
 import static org.onosproject.drivers.server.Constants.URL_SRV_GLOBAL_STATS;
 import static org.onosproject.drivers.server.Constants.URL_SRV_RESOURCE_DISCOVERY;
-import static org.onosproject.drivers.server.Constants.URL_SERVICE_CHAINS_STATS;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -891,6 +891,9 @@ public class ServerDevicesDiscovery
         Collection<CpuStatistics> cpuStats = Lists.newArrayList();
 
         JsonNode cpuNode = objNode.path(PARAM_CPUS);
+        if (cpuNode.isMissingNode()) {
+            return cpuStats;
+        }
 
         for (JsonNode cn : cpuNode) {
             ObjectNode cpuObjNode = (ObjectNode) cn;
@@ -972,6 +975,9 @@ public class ServerDevicesDiscovery
         }
 
         JsonNode memoryNode = objNode.path(PARAM_MEMORY);
+        if (memoryNode.isMissingNode()) {
+            return getZeroMemoryStatistics(deviceId);
+        }
         ObjectNode memoryObjNode = (ObjectNode) memoryNode;
 
         // Fetch memory statistics
@@ -1016,6 +1022,9 @@ public class ServerDevicesDiscovery
         Collection<PortStatistics> nicStats = Lists.newArrayList();
 
         JsonNode nicNode = objNode.path(PARAM_NICS);
+        if (nicNode.isMissingNode()) {
+            return nicStats;
+        }
 
         for (JsonNode nn : nicNode) {
             ObjectNode nicObjNode = (ObjectNode) nn;
@@ -1070,17 +1079,16 @@ public class ServerDevicesDiscovery
             return timinsgStats;
         }
 
-        // If no timing statistics are present, then send zeros
-        if (objNode.get(PARAM_TIMING_STATS) == null) {
+        // Get timing statistics
+        JsonNode timingNode = objNode.path(PARAM_TIMING_STATS);
+        if (timingNode.isMissingNode()) {
+            // If no timing statistics are present, then send zeros
             return getZeroTimingStatistics();
         }
+        ObjectNode timingObjNode = (ObjectNode) timingNode;
 
         DefaultTimingStatistics.Builder timingBuilder =
             DefaultTimingStatistics.builder();
-
-        // Get timing statistics
-        JsonNode timingNode = objNode.path(PARAM_TIMING_STATS);
-        ObjectNode timingObjNode = (ObjectNode) timingNode;
 
         // The unit of timing statistics
         String timingStatsUnit = get(timingNode, PARAM_MON_UNIT);
@@ -1124,6 +1132,23 @@ public class ServerDevicesDiscovery
         timingBuilder.setAutoScaleTime(autoScaleTime);
 
         return timingBuilder.build();
+    }
+
+    /**
+     * Return a memory statistics object with zero counters.
+     * This is useful when constructing MonitoringStatistics
+     * objects that do not require memory statistics.
+     *
+     * @param deviceId a device ID
+     * @return MemoryStatistics object
+     */
+    private MemoryStatistics getZeroMemoryStatistics(DeviceId deviceId) {
+        return DefaultMemoryStatistics.builder()
+                    .setDeviceId(deviceId)
+                    .setMemoryUsed(0)
+                    .setMemoryFree(0)
+                    .setMemoryTotal(0)
+                    .build();
     }
 
     /**
