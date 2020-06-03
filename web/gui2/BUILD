@@ -124,6 +124,7 @@ genrule(
         "//web/gui2-fw-lib:gui2_fw_lib_ext_css",
         "//web/gui2-topo-lib:gui2-topo-lib-build",
         "//apps/faultmanagement/fm-gui2-lib:fm-gui2-lib-build",
+        "//apps/inbandtelemetry/int-gui2-lib:int-gui2-lib-build",
         ":_root_level_files",
         ":_web_app_all",
         "//apps/roadm/web/roadm-gui:roadm-gui-lib-build",
@@ -153,6 +154,9 @@ genrule(
           " ROADM_GUI_LIB_FILES=($(locations //apps/roadm/web/roadm-gui:roadm-gui-lib-build)) &&" +  # An array of filenames - sorted by time created
           " tar xf $$ROOT/$${ROADM_GUI_LIB_FILES[0]} &&" +
           " mv package/ node_modules/roadm-gui-lib/ &&" +
+          " INT_GUI2_LIB_FILES=($(locations //apps/inbandtelemetry/int-gui2-lib:int-gui2-lib-build)) &&" +  # An array of filenames - sorted by time created
+          " tar xf $$ROOT/$${INT_GUI2_LIB_FILES[0]} &&" +
+          " mv package/ node_modules/int-gui2-lib/ &&" +
           # End of add in modules from external packages
           " mkdir -p src/main/webapp/app/fw &&" +
           " (cd src/main/webapp/app/fw &&" +

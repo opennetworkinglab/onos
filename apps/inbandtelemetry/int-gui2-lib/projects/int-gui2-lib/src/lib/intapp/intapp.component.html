@@ -1,0 +1,195 @@
+<!--
+~ Copyright 2020-present Open Networking Foundation
+~
+~ Licensed under the Apache License, Version 2.0 (the "License");
+~ you may not use this file except in compliance with the License.
+~ You may obtain a copy of the License at
+~
+~     http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS,
+~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~ See the License for the specific language governing permissions and
+~ limitations under the License.
+-->
+<div id="ov-int-app-main">
+    <div class="tabular-header">
+        <h2 style="font-weight: bold">In-band Network Telemetry (INT) Control
+            Application</h2>
+    </div>
+
+    <hr>
+
+    <div class="tabular-header">
+        <h2>
+            INT Collector Configuration
+        </h2>
+        <div class="config-panel">
+            <h3>
+                Collector IPv4 address and UDP port
+            </h3>
+            <form [formGroup]="formConf" (ngSubmit)="sendIntConfigString()">
+                <input type="text" placeholder="IPv4 address" [ngClass]="{ 'is-invalid': formConf.controls.colIp.errors }"
+                       class="form-control" formControlName="colIp">
+                :
+                <input type="text" placeholder="port" class="form-control" [ngClass]="{ 'is-invalid': formConf.controls.colPort.errors }" formControlName="colPort">
+                <div *ngIf="formConf.controls.colIp.errors" class="invalid-feedback">
+                    <div class="error-text" *ngIf="formConf.controls.colIp.errors.required"> Control IP is required</div>
+                    <div class="error-text" *ngIf="formConf.controls.colIp.errors.pattern">Control IP must be a valid IP address</div>
+                </div>
+                <div *ngIf="formConf.controls.colPort.errors" class="invalid-feedback">
+                    <div class="error-text" *ngIf="formConf.controls.colPort.errors.required">Port is required</div>
+                    <div class="error-text" *ngIf="formConf.controls.colPort.errors.pattern">Port must be a valid Port number</div>
+                </div>
+                <div class="config-button-panel">
+                    <button class="int-app-button">
+                        Apply Configuration
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="tabular-header">
+        <h2 style="font-weight: bold">In-band Network Telemetry (INT) Control
+            Application</h2>
+    </div>
+
+    <hr>
+                <div class="tabular-header">
+                    <h2>
+                        INT Watchlist Rules
+                    </h2>
+                    <div>
+                        <form [formGroup]="formSend" (ngSubmit)="sendIntIntentString()">
+                        <div class="input-panel">
+                            <h3>
+                                Create New Watchlist Rule
+                            </h3>
+                            <div>
+                                <label>
+                                <input type="text" placeholder="Source IP address" [ngClass]="{ 'is-invalid': formSend.controls.ip4SrcPrefix.errors }"
+                                       class="form-control" formControlName="ip4SrcPrefix">
+
+                                </label>
+                                <label>
+                                    <input type="text" placeholder="Dest IP address" [ngClass]="{ 'is-invalid': formSend.controls.ip4DstPrefix.errors }"
+                                           class="form-control" formControlName="ip4DstPrefix">
+                                </label>
+                                <label>
+                                    <input type="text" placeholder="Source port" [ngClass]="{ 'is-invalid': formSend.controls.l4SrcPort.errors }"
+                                               class="form-control" formControlName="l4SrcPort">
+                                </label>
+                                <label>
+                                    <input type="text" placeholder="Dest port" [ngClass]="{ 'is-invalid': formSend.controls.l4DstPort.errors }"
+                                           class="form-control" formControlName="l4DstPort">
+                                </label>
+                                <label>
+                                    Protocol
+                                    <select name="protocol" formControlName="protocol">
+                                        <option selected disabled hidden
+                                                style="display: none" value=''></option>
+                                        <option value="TCP">TCP</option>
+                                        <option value="UDP">UDP</option>
+                                    </select>
+                                </label>
+                                <div *ngIf="formSend.controls.ip4DstPrefix.errors" class="invalid-feedback">
+                                    <div class="error-text" *ngIf="formSend.controls.ip4DstPrefix.errors.required"> Destination IP is required</div>
+                                    <div class="error-text" *ngIf="formSend.controls.ip4DstPrefix.errors.pattern">Destination IP must be a valid IP address</div>
+                                </div>
+                                <div *ngIf="formSend.controls.ip4SrcPrefix.errors" class="invalid-feedback">
+                                    <div class="error-text" *ngIf="formSend.controls.ip4SrcPrefix.errors.required">Source IP is required</div>
+                                    <div class="error-text" *ngIf="formSend.controls.ip4SrcPrefix.errors.pattern">Source IP must be a valid IP address</div>
+                                </div>
+                                <div *ngIf="formSend.controls.l4DstPort.errors" class="invalid-feedback">
+                                    <div class="error-text" *ngIf="formSend.controls.l4DstPort.errors.pattern">Destination Port must be a valid Port</div>
+                                </div>
+                                <div *ngIf="formSend.controls.l4SrcPort.errors" class="invalid-feedback">
+                                    <div class="error-text" *ngIf="formSend.controls.l4SrcPort.errors.pattern">Source Port must be a valid Port</div>
+                                </div>
+                            </div>
+                            <div>
+                                    <div class="myrow">
+                                        <div *ngFor="let data of metaData">
+                                            <div class="mygrid">
+                                                <label>
+                                                    <input type="checkbox"
+                                                           (change)="onCheckboxChange(data.value, $event.target.checked)"/>
+                                                    {{ data.name }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                            </div>
+                        </div>
+                        <div class="button-panel">
+                            <button class="int-app-button">
+                                Apply Watchlist Rule
+                            </button>
+                        </div>
+                        </form>
+                    </div>
+                </div>
+
+    <!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
+    <div class='int-app-main-intents'>
+        <div class="tabular-header">
+            <h2>Installed Watchlist Rules ({{tableData.length}} total)</h2>
+            <div class="ctrl-btns">
+                <div class="refresh" (click)="toggleRefresh()">
+                    <onos-icon classes="{{ autoRefresh?'active refresh':'refresh'}}" iconId="refresh" iconSize="42"
+                               toolTip="{{ autoRefreshTip }}"></onos-icon>
+                </div>
+                <!-- tooltip tt-msg="uninstallTip" -->
+                <div (click)="delIntIntent()">
+                    <onos-icon classes="{active: ctrlBtnState.selection}" iconId="garbage"
+                               iconSize="42"></onos-icon>
+                </div>
+            </div>
+        </div>
+
+        <div id="summary-list" class="summary-list" onosTableResize>
+            <div class="table-header">
+                <table>
+                    <tr>
+                        <td colId="available" class="table-icon"></td>
+                        <td colId="type" class="table-icon"></td>
+                        <td colId="id">ID</td>
+                        <td colId="srcAddr" sortable>Src Address</td>
+                        <td colId="dstAddr" sortable>Dst Address</td>
+                        <td colId="srcPort" sortable>Src Port</td>
+                        <td colId="dstPort" sortable>Dst Port</td>
+                        <td colId="protocol" sortable>Protocol</td>
+                        <td colId="metadata" sortable>Metadata</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="table-body">
+                <table>
+                    <tr class="table-body" *ngIf="tableData.length === 0" class="no-data">
+                        <td colspan="9">{{ annots.noRowsMsg }}</td>
+                    </tr>
+                    <tr *ngFor="let row of tableData | filter : tableDataFilter"
+                        (click)="selectCallback($event, row)"
+                        [ngClass]="{selected: row.id === selId, 'data-change': isChanged(row.id)}">
+                        <td class="table-icon">
+                            <onos-icon classes="{{ row._iconid_available}}"
+                                       iconId={{row._iconid_available}}></onos-icon>
+                        </td>
+                        <td class="table-icon">
+                            <onos-icon classes="{{row._iconid_type? 'active-type':undefined}}"
+                                       iconId="{{row._iconid_type}}"></onos-icon>
+                        </td>
+                        <td>{{ row.id }}</td>
+                        <td>{{ row.srcAddr }}</td>
+                        <td>{{ row.dstAddr}}</td>
+                        <td>{{ row.srcPort}}</td>
+                        <td>{{ row.dstPort }}</td>
+                        <td>{{ row.protocol }}</td>
+                        <td>{{ row.metadata }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

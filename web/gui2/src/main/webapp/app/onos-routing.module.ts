@@ -17,6 +17,7 @@ import {NgModule} from '@angular/core';
 import {Routes, RouterModule} from '@angular/router';
 import {Gui2TopoLibModule} from 'gui2-topo-lib';
 import {FmGui2LibModule} from 'fm-gui2-lib';
+import {intAppGui2LibModule} from 'int-gui2-lib';
 import {RoadmGuiLibModule} from 'roadm-gui-lib';
 
 /**
@@ -98,10 +99,14 @@ const onosRoutes: Routes = [
         loadChildren: 'roadm-gui-lib#RoadmGuiLibModule'
     },
     {
+        path: 'intApp',
+        loadChildren: 'int-gui2-lib#intAppGui2LibModule'
+    },
+    {
         path: '',
         redirectTo: 'topo2', // Default to Topology view
         pathMatch: 'full'
-    }
+    },
 ];
 
 /**

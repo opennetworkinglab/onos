@@ -53,7 +53,7 @@
 
     function intIntentBuildTable(o) {
         var handlers = {},
-            root = o.tag,
+            root = o.tag + 's',
             req = o.tag + 'DataRequest',
             resp = o.tag + 'DataResponse',
             onSel = fs.isF(o.selCb),
