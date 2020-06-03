@@ -52,8 +52,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.drivers.server.Constants.JSON;
 import static org.onosproject.drivers.server.Constants.MSG_DEVICE_ID_NULL;
-import static org.onosproject.drivers.server.Constants.PARAM_ID;
 import static org.onosproject.drivers.server.Constants.PARAM_CPUS;
+import static org.onosproject.drivers.server.Constants.PARAM_ID;
+import static org.onosproject.drivers.server.Constants.PARAM_NAME;
 import static org.onosproject.drivers.server.Constants.PARAM_NICS;
 import static org.onosproject.drivers.server.Constants.PARAM_NIC_RX_FILTER;
 import static org.onosproject.drivers.server.Constants.PARAM_NIC_RX_FILTER_FD;
@@ -362,8 +363,8 @@ public class FlowRuleProgrammableServerImpl
 
             // Each rule has an ID and a content
             ObjectNode ruleNode = mapper.createObjectNode();
-            ruleNode.put("ruleId", nicRule.id().value());
-            ruleNode.put("ruleContent", nicRule.ruleBody());
+            ruleNode.put(PARAM_ID, nicRule.id().value());
+            ruleNode.put(PARAM_RULE_CONTENT, nicRule.ruleBody());
 
             ruleArrayNode.add(ruleNode);
         }
@@ -374,7 +375,7 @@ public class FlowRuleProgrammableServerImpl
         }
 
         ObjectNode nicObjNode = mapper.createObjectNode();
-        nicObjNode.put("nicName", nic);
+        nicObjNode.put(PARAM_NAME, nic);
 
         ArrayNode cpusArrayNode = nicObjNode.putArray(PARAM_CPUS);
 
@@ -384,7 +385,7 @@ public class FlowRuleProgrammableServerImpl
             ArrayNode ruleArrayNode = entry.getValue();
 
             ObjectNode cpuObjNode = mapper.createObjectNode();
-            cpuObjNode.put("cpuId", coreIndex);
+            cpuObjNode.put(PARAM_ID, coreIndex);
             cpuObjNode.putArray(PARAM_RULES).addAll(ruleArrayNode);
 
             cpusArrayNode.add(cpuObjNode);
