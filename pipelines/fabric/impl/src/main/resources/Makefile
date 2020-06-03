@@ -21,6 +21,9 @@ fabric-full:
 		-DWITH_INT_SOURCE -DWITH_INT_TRANSIT -DWITH_INT_SINK"
 
 constants:
+ifndef ONOS_ROOT
+	$(error ONOS_ROOT is undefined)
+endif
 	docker run -v $(ONOS_ROOT):/onos -w /onos/tools/dev/bin \
 		--entrypoint ./onos-gen-p4-constants opennetworking/p4mn:stable \
 		-o /onos/pipelines/fabric/impl/src/main/java/org/onosproject/pipelines/fabric/impl/behaviour/FabricConstants.java \
