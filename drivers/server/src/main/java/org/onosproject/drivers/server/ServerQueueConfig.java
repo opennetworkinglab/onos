@@ -48,8 +48,8 @@ import static org.onosproject.drivers.server.Constants.PARAM_NICS;
 import static org.onosproject.drivers.server.Constants.PARAM_NIC_MAX_RATE;
 import static org.onosproject.drivers.server.Constants.PARAM_QUEUES;
 import static org.onosproject.drivers.server.Constants.PARAM_TYPE;
-import static org.onosproject.drivers.server.Constants.MSG_DEVICE_NULL;
 import static org.onosproject.drivers.server.Constants.MSG_DEVICE_ID_NULL;
+import static org.onosproject.drivers.server.Constants.MSG_DEVICE_NULL;
 import static org.onosproject.drivers.server.Constants.URL_NIC_QUEUE_ADMIN;
 import static org.slf4j.LoggerFactory.getLogger;
 

@@ -38,8 +38,8 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.drivers.server.Constants.MSG_DEVICE_NULL;
 import static org.onosproject.drivers.server.Constants.MSG_DEVICE_ID_NULL;
+import static org.onosproject.drivers.server.Constants.MSG_DEVICE_NULL;
 import static org.onosproject.net.device.DeviceInterfaceDescription.Mode;
 import static org.slf4j.LoggerFactory.getLogger;
 
