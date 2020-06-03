@@ -117,10 +117,15 @@ const onosRoutes: Route[] = [
         loadChildren: () => import('../../../../../../apps/yang-gui/yang-gui2-lib/lib/yang-gui2-lib.module').then(m => m.YangGui2LibModule)
     },
     <Route>{
+        path: 'intApp',
+        pathMatch: 'prefix',
+        loadChildren: () => import('../../../../../../apps/inbandtelemetry/intApp-gui2/intApp/lib/intapp-gui2-lib.module').then(m => m.intAppGui2LibModule)
+    },
+    <Route>{
         path: '',
         redirectTo: 'topo2', // Default to Topology view
         pathMatch: 'full'
-    }
+    },
 ];
 
 /**

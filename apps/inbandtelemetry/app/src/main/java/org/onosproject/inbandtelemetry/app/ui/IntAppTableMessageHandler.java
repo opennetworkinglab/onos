@@ -40,6 +40,7 @@ import java.util.Set;
  */
 public class IntAppTableMessageHandler extends UiMessageHandler {
     private static final String INT_APP_INT_INTENT = "intAppIntIntent";
+    private static final String INT_APP_INT_INTENT_PAYLOAD = "intAppIntIntents";
     private static final String INT_APP_INT_INTENT_DATA_REQUEST = INT_APP_INT_INTENT + "DataRequest";
     private static final String INT_APP_INT_INTENT_DATA_RESPONSE = INT_APP_INT_INTENT + "DataResponse";
 
@@ -73,7 +74,7 @@ public class IntAppTableMessageHandler extends UiMessageHandler {
     private final class IntAppIntIntentRequestHandler extends TableRequestHandler {
 
         private IntAppIntIntentRequestHandler() {
-            super(INT_APP_INT_INTENT_DATA_REQUEST, INT_APP_INT_INTENT_DATA_RESPONSE, INT_APP_INT_INTENT);
+            super(INT_APP_INT_INTENT_DATA_REQUEST, INT_APP_INT_INTENT_DATA_RESPONSE, INT_APP_INT_INTENT_PAYLOAD);
         }
 
         @Override

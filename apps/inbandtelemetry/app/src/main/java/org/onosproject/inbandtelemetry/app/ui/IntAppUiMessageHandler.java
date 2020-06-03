@@ -36,6 +36,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 
+import static org.onosproject.inbandtelemetry.api.IntIntent.IntHeaderType.HOP_BY_HOP;
+
 public class IntAppUiMessageHandler extends UiMessageHandler {
 
     private static final String INT_INTENT_ADD_REQUEST = "intIntentAddRequest";
@@ -53,7 +55,7 @@ public class IntAppUiMessageHandler extends UiMessageHandler {
                 new IntIntentAddRequestHandler(),
                 new IntIntentDelRequestHandler(),
                 new IntConfigAddRequestHandler()
-//                new intConfigDelRequestHandler()
+                //new intConfigDelRequestHandler()
         );
     }
 
@@ -180,7 +182,7 @@ public class IntAppUiMessageHandler extends UiMessageHandler {
             }
 
             builder.withSelector(sBuilder.build())
-                    .withHeaderType(IntIntent.IntHeaderType.HOP_BY_HOP)
+                    .withHeaderType(HOP_BY_HOP)
                     .withReportType(IntIntent.IntReportType.TRACKED_FLOW)
                     .withTelemetryMode(IntIntent.TelemetryMode.INBAND_TELEMETRY);
             intService.installIntIntent(builder.build());

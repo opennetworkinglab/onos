@@ -61,6 +61,7 @@ public class IntAppUiComponent {
             new UiExtension.Builder(getClass().getClassLoader(), uiViews)
                     .resourcePath(VIEW_ID)
                     .messageHandlerFactory(messageHandlerFactory)
+                    .ui2()
                     .build();
 
     @Activate
