@@ -31,6 +31,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 
+import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.RAW_DEVICE_CONFIG;
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.TOFINO_BIN;
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.TOFINO_CONTEXT_JSON;
 
@@ -48,14 +49,18 @@ public class TofinoPipelineProgrammable
 
     @Override
     public ByteBuffer createDeviceDataBuffer(PiPipeconf pipeconf) {
-
         List<ByteBuffer> buffers = Lists.newLinkedList();
-        try {
-            buffers.add(nameBuffer(pipeconf));
-            buffers.add(extensionBuffer(pipeconf, TOFINO_BIN));
-            buffers.add(extensionBuffer(pipeconf, TOFINO_CONTEXT_JSON));
-        } catch (ExtensionException e) {
-            return null;
+
+        if (pipeconf.extension(RAW_DEVICE_CONFIG).isPresent()) {
+            buffers.add(rawDeviceConfig(pipeconf));
+        } else {
+            try {
+                buffers.add(nameBuffer(pipeconf));
+                buffers.add(extensionBuffer(pipeconf, TOFINO_BIN));
+                buffers.add(extensionBuffer(pipeconf, TOFINO_CONTEXT_JSON));
+            } catch (ExtensionException e) {
+                return null;
+            }
         }
 
         // Concatenate buffers (flip so they can be read).
@@ -91,6 +96,19 @@ public class TofinoPipelineProgrammable
         } catch (IOException ex) {
             log.warn("Unable to read extension {} from pipeconf {}: {}",
                      extType, pipeconf.id(), ex.getMessage());
+            throw new ExtensionException();
+        }
+    }
+
+    private ByteBuffer rawDeviceConfig(PiPipeconf pipeconf) {
+        try {
+            byte[] bytes = IOUtils.toByteArray(pipeconf.extension(RAW_DEVICE_CONFIG).get());
+            return ByteBuffer.allocate(bytes.length)
+                    .order(ByteOrder.LITTLE_ENDIAN)
+                    .put(bytes);
+        } catch (IOException ex) {
+            log.warn("Unable to read raw device config from pipeconf {}: {}",
+                     pipeconf.id(), ex.getMessage());
             throw new ExtensionException();
         }
     }
