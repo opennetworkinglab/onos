@@ -125,6 +125,11 @@ public interface PiPipeconf {
         // TODO: consider a better way to get the CPU port in the interpreter
         // (see FabricInterpreter.java mapLogicalPortNumber). Perhaps using
         // pipeconf annotations?
-        CPU_PORT_TXT
+        CPU_PORT_TXT,
+
+        /**
+         * Raw device config.
+         */
+        RAW_DEVICE_CONFIG
     }
 }
