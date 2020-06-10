@@ -145,6 +145,14 @@ public class DistributedMcastRoutesStore
     }
 
     @Override
+    public void removeSources(McastRoute route, Set<ConnectPoint> sources) {
+        mcastRoutes.compute(route, (k, v) -> {
+            v.removeSources(HostId.NONE, sources);
+            return v;
+        });
+    }
+
+    @Override
     public void removeSources(McastRoute route, HostId hostId, Set<ConnectPoint> sources) {
         mcastRoutes.compute(route, (k, v) -> {
             v.removeSources(hostId, sources);
