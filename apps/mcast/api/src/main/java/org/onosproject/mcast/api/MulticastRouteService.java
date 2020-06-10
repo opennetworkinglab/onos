@@ -86,7 +86,7 @@ public interface MulticastRouteService
      * used as different sources for that Mcast Tree. For dual-homed sources
      * please use {@link #addSource(McastRoute route, HostId hostId) addSource}.
      *
-     * @param route a Multicast route
+     * @param route   a Multicast route
      * @param sources a set of source connect points
      */
     void addSources(McastRoute route, Set<ConnectPoint> sources);
@@ -105,6 +105,26 @@ public interface MulticastRouteService
      * @param source a host source
      */
     void removeSource(McastRoute route, HostId source);
+
+    /**
+     * Removes a set of sources from the route.
+     * If this method is used the connect points will all be
+     * used as different sources for that Mcast Tree. For dual-homed sources
+     * please use {@link #removeSource(McastRoute, HostId)}.
+     *
+     * @param route   the multicast route
+     * @param sources set of sources
+     */
+    void removeSources(McastRoute route, Set<ConnectPoint> sources);
+
+    /**
+     * Removes a set of source connect points for a given host source from the route.
+     *
+     * @param route         a multicast route
+     * @param hostId        a source host
+     * @param connectPoints the source for the specific connect points
+     */
+    void removeSources(McastRoute route, HostId hostId, Set<ConnectPoint> connectPoints);
 
     /**
      * Adds a sink to the route to which a data stream should be

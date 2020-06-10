@@ -121,8 +121,8 @@ public final class McastRouteData {
      * Adds sources for a given host Id. If the Host Id is {@link HostId#NONE} the sources are intended to be
      * used at all times independently of the attached host.
      *
-     * @param hostId the host
-     * @param sources  the sources
+     * @param hostId  the host
+     * @param sources the sources
      */
     public void addSources(HostId hostId, Set<ConnectPoint> sources) {
         checkNotNull(hostId);
