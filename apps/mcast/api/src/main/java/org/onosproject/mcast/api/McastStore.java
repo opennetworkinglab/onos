@@ -57,7 +57,7 @@ public interface McastStore extends Store<McastEvent, McastStoreDelegate> {
      * The source stored with this method are not tied with any host.
      * Traffic will be sent from all of them.
      *
-     * @param route a Multicast route
+     * @param route   a Multicast route
      * @param sources set of specific connect points
      */
     void storeSources(McastRoute route, Set<ConnectPoint> sources);
@@ -76,6 +76,15 @@ public interface McastStore extends Store<McastEvent, McastStoreDelegate> {
      * @param source a source
      */
     void removeSource(McastRoute route, HostId source);
+
+    /**
+     * Removes a set of source connect points for a given route.
+     * This method is not tied with any host.
+     *
+     * @param route   a Multicast route
+     * @param sources set of specific connect points
+     */
+    void removeSources(McastRoute route, Set<ConnectPoint> sources);
 
     /**
      * Removes a set of source connect points for a given host the route.
