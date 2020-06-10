@@ -174,6 +174,25 @@ public class MulticastRouteManager
     }
 
     @Override
+    public void removeSources(McastRoute route, Set<ConnectPoint> connectPoints) {
+        checkNotNull(route, "Route cannot be null");
+        checkNotNull(connectPoints, "ConnectPoints cannot be null");
+        if (checkRoute(route)) {
+            store.removeSources(route, connectPoints);
+        }
+    }
+
+    @Override
+    public void removeSources(McastRoute route, HostId hostId, Set<ConnectPoint> connectPoints) {
+        checkNotNull(route, "Route cannot be null");
+        checkNotNull(hostId, "HostId cannot be null");
+        checkNotNull(connectPoints, "ConnectPoints cannot be null");
+        if (checkRoute(route)) {
+            store.removeSources(route, hostId, connectPoints);
+        }
+    }
+
+    @Override
     public void addSink(McastRoute route, HostId hostId) {
         if (checkRoute(route)) {
             Set<ConnectPoint> sinks = new HashSet<>();
@@ -305,7 +324,7 @@ public class MulticastRouteManager
                         if ((event.prevSubject() != null && event.subject() != null)) {
                             //we compute the difference between old locations and new ones and remove the previous
                             Set<HostLocation> removedConnectPoint = Sets.difference(event.prevSubject().locations(),
-                                event.subject().locations()).immutableCopy();
+                                    event.subject().locations()).immutableCopy();
                             if (!removedConnectPoint.isEmpty()) {
                                 if (!routesForSource.isEmpty()) {
                                     eventRemoveSources(hostId, removedConnectPoint, routesForSource);
@@ -315,7 +334,7 @@ public class MulticastRouteManager
                                 }
                             }
                             Set<HostLocation> addedConnectPoints = Sets.difference(event.subject().locations(),
-                                event.prevSubject().locations()).immutableCopy();
+                                    event.prevSubject().locations()).immutableCopy();
                             //if the host now has some new locations we add them to the sinks set
                             if (!addedConnectPoints.isEmpty()) {
                                 if (!routesForSource.isEmpty()) {
