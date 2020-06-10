@@ -60,7 +60,6 @@ public class MetersWebResource extends AbstractWebResource {
     private static final String DEVICE_INVALID = "Invalid deviceId in meter creation request";
     private static final String METER_NOT_FOUND = "Meter is not found for ";
 
-    private final MeterService meterService = get(MeterService.class);
     private final ObjectNode root = mapper().createObjectNode();
     private final ArrayNode metersNode = root.putArray("meters");
 
@@ -73,6 +72,7 @@ public class MetersWebResource extends AbstractWebResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getMeters() {
+        MeterService meterService = get(MeterService.class);
         final Iterable<Meter> meters = meterService.getAllMeters();
         if (meters != null) {
             meters.forEach(meter -> metersNode.add(codec(Meter.class).encode(meter, this)));
@@ -92,6 +92,7 @@ public class MetersWebResource extends AbstractWebResource {
     @Path("{deviceId}")
     public Response getMetersByDeviceId(@PathParam("deviceId") String deviceId) {
         DeviceId did = DeviceId.deviceId(deviceId);
+        MeterService meterService = get(MeterService.class);
         final Iterable<Meter> meters = meterService.getMeters(did);
         if (meters != null) {
             meters.forEach(meter -> metersNode.add(codec(Meter.class).encode(meter, this)));
@@ -114,7 +115,7 @@ public class MetersWebResource extends AbstractWebResource {
                                                  @PathParam("meterId") String meterId) {
         DeviceId did = DeviceId.deviceId(deviceId);
         MeterId mid = MeterId.meterId(Long.valueOf(meterId));
-
+        MeterService meterService = get(MeterService.class);
         final Meter meter = nullIsNotFound(meterService.getMeter(did, mid),
                 METER_NOT_FOUND + mid.id());
 
@@ -153,6 +154,7 @@ public class MetersWebResource extends AbstractWebResource {
             final MeterRequest meterRequest = codec(MeterRequest.class)
                     .decode(jsonTree, this);
 
+            MeterService meterService = get(MeterService.class);
             final Meter meter = meterService.submit(meterRequest);
 
             UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()
@@ -180,6 +182,8 @@ public class MetersWebResource extends AbstractWebResource {
                                                 @PathParam("meterId") String meterId) {
         DeviceId did = DeviceId.deviceId(deviceId);
         MeterId mid = MeterId.meterId(Long.valueOf(meterId));
+
+        MeterService meterService = get(MeterService.class);
         final Meter tmpMeter = meterService.getMeter(did, mid);
         if (tmpMeter != null) {
             final MeterRequest meterRequest = meterToMeterRequest(tmpMeter, "REMOVE");
