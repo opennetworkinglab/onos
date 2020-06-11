@@ -183,11 +183,39 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
             fail(filter, ObjectiveError.BADPARAMS);
             return;
         }
+        Optional<Instruction> vlanId = filter.meta().immediate().stream()
+                .filter(t -> t.type().equals(Instruction.Type.L2MODIFICATION)
+                        && ((L2ModificationInstruction) t).subtype()
+                        .equals(L2ModificationInstruction.L2SubType.VLAN_ID))
+                .limit(1)
+                .findFirst();
+
+        Optional<Instruction> vlanPcp = filter.meta().immediate().stream()
+                .filter(t -> t.type().equals(Instruction.Type.L2MODIFICATION)
+                        && ((L2ModificationInstruction) t).subtype()
+                        .equals(L2ModificationInstruction.L2SubType.VLAN_PCP))
+                .limit(1)
+                .findFirst();
+
+        Optional<Instruction> vlanPush = filter.meta().immediate().stream()
+                .filter(t -> t.type().equals(Instruction.Type.L2MODIFICATION)
+                        && ((L2ModificationInstruction) t).subtype()
+                        .equals(L2ModificationInstruction.L2SubType.VLAN_PUSH))
+                .limit(1)
+                .findFirst();
 
         if (ethType.ethType().equals(EthType.EtherType.EAPOL.ethType())) {
-            provisionEthTypeBasedFilter(filter, ethType, output);
+
+            if (vlanId.isEmpty() || vlanPush.isEmpty()) {
+                log.warn("Missing EAPOL vlan or vlanPush");
+                fail(filter, ObjectiveError.BADPARAMS);
+                return;
+            }
+            provisionEthTypeBasedFilter(filter, ethType, output,
+                                        (L2ModificationInstruction) vlanId.get(),
+                                        (L2ModificationInstruction) vlanPush.get());
         } else if (ethType.ethType().equals(EthType.EtherType.LLDP.ethType())) {
-            provisionEthTypeBasedFilter(filter, ethType, output);
+            provisionEthTypeBasedFilter(filter, ethType, output, null, null);
 
         } else if (ethType.ethType().equals(EthType.EtherType.IPV4.ethType())) {
             IPProtocolCriterion ipProto = (IPProtocolCriterion)
@@ -198,7 +226,15 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 return;
             }
             if (ipProto.protocol() == IPv4.PROTOCOL_IGMP) {
-                provisionIgmp(filter, ethType, ipProto, output);
+
+                if (vlanId.isEmpty() || vlanPcp.isEmpty()) {
+                    log.warn("Missing IGMP vlan or pcp");
+                    fail(filter, ObjectiveError.BADPARAMS);
+                    return;
+                }
+                provisionIgmp(filter, ethType, ipProto, output,
+                              (L2ModificationInstruction) vlanId.get(),
+                              (L2ModificationInstruction) vlanPcp.get());
             } else if (ipProto.protocol() == IPv4.PROTOCOL_UDP) {
                 UdpPortCriterion udpSrcPort = (UdpPortCriterion)
                         filterForCriterion(filter.conditions(), Criterion.Type.UDP_SRC);
@@ -208,7 +244,8 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
                 if ((udpSrcPort.udpPort().toInt() == 67 && udpDstPort.udpPort().toInt() == 68) ||
                     (udpSrcPort.udpPort().toInt() == 68 && udpDstPort.udpPort().toInt() == 67)) {
-                    provisionDhcp(filter, ethType, ipProto, udpSrcPort, udpDstPort, output);
+                    provisionDhcp(filter, ethType, ipProto, udpSrcPort, udpDstPort, vlanId.orElse(null),
+                                  vlanPcp.orElse(null), output);
                 } else {
                     log.warn("Filtering rule with unsupported UDP src {} or dst {} port", udpSrcPort, udpDstPort);
                     fail(filter, ObjectiveError.UNSUPPORTED);
@@ -234,7 +271,8 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
                 if ((udpSrcPort.udpPort().toInt() == 546 && udpDstPort.udpPort().toInt() == 547) ||
                     (udpSrcPort.udpPort().toInt() == 547 && udpDstPort.udpPort().toInt() == 546)) {
-                    provisionDhcp(filter, ethType, ipProto, udpSrcPort, udpDstPort, output);
+                    provisionDhcp(filter, ethType, ipProto, udpSrcPort, udpDstPort, vlanId.orElse(null),
+                                  vlanPcp.orElse(null), output);
                 } else {
                     log.warn("Filtering rule with unsupported UDP src {} or dst {} port", udpSrcPort, udpDstPort);
                     fail(filter, ObjectiveError.UNSUPPORTED);
@@ -871,33 +909,41 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
 
     private void provisionEthTypeBasedFilter(FilteringObjective filter,
                                              EthTypeCriterion ethType,
-                                             Instructions.OutputInstruction output) {
+                                             Instructions.OutputInstruction output,
+                                             L2ModificationInstruction vlanId,
+                                             L2ModificationInstruction vlanPush) {
 
         Instruction meter = filter.meta().metered();
         Instruction writeMetadata = filter.meta().writeMetadata();
 
-        Criterion vlanId = filterForCriterion(filter.conditions(), Criterion.Type.VLAN_VID);
+        TrafficSelector selector = buildSelector(filter.key(), ethType);
+        TrafficTreatment treatment;
 
-        TrafficSelector selector = buildSelector(filter.key(), ethType, vlanId);
-        TrafficTreatment treatment = buildTreatment(output, meter, writeMetadata);
+        if (vlanPush == null || vlanId == null) {
+            treatment = buildTreatment(output, meter, writeMetadata);
+        } else {
+            // we need to push the vlan because it came untagged (ATT)
+            treatment = buildTreatment(output, meter, vlanPush, vlanId, writeMetadata);
+        }
+
         buildAndApplyRule(filter, selector, treatment);
 
     }
 
     private void provisionIgmp(FilteringObjective filter, EthTypeCriterion ethType,
                                IPProtocolCriterion ipProto,
-                               Instructions.OutputInstruction output) {
+                               Instructions.OutputInstruction output,
+                               L2ModificationInstruction vlan, L2ModificationInstruction pcp) {
 
         Instruction meter = filter.meta().metered();
         Instruction writeMetadata = filter.meta().writeMetadata();
 
-        // cTag
+        // uniTagMatch
         VlanIdCriterion vlanId = (VlanIdCriterion) filterForCriterion(filter.conditions(),
                 Criterion.Type.VLAN_VID);
-        Criterion cTagPriority = filterForCriterion(filter.conditions(), Criterion.Type.VLAN_PCP);
 
-        TrafficSelector selector = buildSelector(filter.key(), ethType, ipProto, vlanId, cTagPriority);
-        TrafficTreatment treatment = buildTreatment(output, meter, writeMetadata);
+        TrafficSelector selector = buildSelector(filter.key(), ethType, ipProto, vlanId);
+        TrafficTreatment treatment = buildTreatment(output, vlan, pcp, meter, writeMetadata);
         buildAndApplyRule(filter, selector, treatment);
     }
 
@@ -905,16 +951,35 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                                IPProtocolCriterion ipProto,
                                UdpPortCriterion udpSrcPort,
                                UdpPortCriterion udpDstPort,
+                               Instruction vlanIdInstruction,
+                               Instruction vlanPcpInstruction,
                                Instructions.OutputInstruction output) {
 
         Instruction meter = filter.meta().metered();
         Instruction writeMetadata = filter.meta().writeMetadata();
 
-        VlanIdCriterion vlanId = (VlanIdCriterion)
+        VlanIdCriterion matchVlanId = (VlanIdCriterion)
                 filterForCriterion(filter.conditions(), Criterion.Type.VLAN_VID);
 
-        TrafficSelector selector = buildSelector(filter.key(), ethType, ipProto, udpSrcPort, udpDstPort, vlanId);
-        TrafficTreatment treatment = buildTreatment(output, meter, writeMetadata);
+        TrafficSelector selector;
+        TrafficTreatment treatment;
+
+        if (matchVlanId != null) {
+            log.debug("Building selector with match VLAN, {}", matchVlanId);
+            // in case of TT upstream the packet comes tagged and the vlan is swapped.
+            selector = buildSelector(filter.key(), ethType, ipProto, udpSrcPort,
+                                     udpDstPort, matchVlanId);
+            treatment = buildTreatment(output, meter, writeMetadata,
+                                       vlanIdInstruction, vlanPcpInstruction);
+        } else {
+            log.debug("Building selector with no VLAN");
+            // in case of ATT upstream the packet comes in untagged and we need to push the vlan
+            selector = buildSelector(filter.key(), ethType, ipProto, udpSrcPort, udpDstPort);
+            treatment = buildTreatment(output, meter, vlanIdInstruction, writeMetadata);
+        }
+        //In case of downstream there will be no match on the VLAN, which is null,
+        // so it will just be output, meter, writeMetadata
+
         buildAndApplyRule(filter, selector, treatment);
     }
 
