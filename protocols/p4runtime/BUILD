@@ -3,6 +3,7 @@ BUNDLES = [
     "//protocols/p4runtime/ctl:onos-protocols-p4runtime-ctl",
     "//protocols/p4runtime/model:onos-protocols-p4runtime-model",
     "//protocols/p4runtime/proto:onos-protocols-p4runtime-proto",
+    "//protocols/p4runtime/utils:onos-protocols-p4runtime-utils",
 ]
 
 onos_app(

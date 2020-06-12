@@ -4,6 +4,7 @@ COMPILE_DEPS = CORE_DEPS + KRYO + [
     "//protocols/grpc/ctl:onos-protocols-grpc-ctl",
     "//protocols/p4runtime/api:onos-protocols-p4runtime-api",
     "//protocols/p4runtime/proto:onos-protocols-p4runtime-proto",
+    "//protocols/p4runtime/utils:onos-protocols-p4runtime-utils",
     "//deps:com_google_protobuf_protobuf_java",
     "//deps:io_grpc_grpc_api_context",
     "//deps:io_grpc_grpc_netty",
