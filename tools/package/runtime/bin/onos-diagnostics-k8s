@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Copyright 2015-present Open Networking Foundation
+# Copyright 2020-present Open Networking Foundation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,33 +16,32 @@
 # limitations under the License.
 #
 
-# -----------------------------------------------------------------------------
-# Tool to collect cluster-wide diagnostics into a single tar stream.
-# -----------------------------------------------------------------------------
+# --------------------------------------------------------------------------------
+# Tool to collect cluster-wide diagnostics into a single tar stream using kubectl
+# --------------------------------------------------------------------------------
 function usage() {
-    echo "usage: $(basename $0) [-x] [-j] [-n name] [-P port] [-u user] [-p password] [ip1 ip2...]"
+    echo "usage: $(basename $0) [-x] [-j] [-n name] [-k karaf_home] [pod1 pod2...]"
     echo ""
     echo "Environment Variables:"
     echo "    DIAGS_PROFILE     Profile to be used to collect diags."
     echo "                      Availables profiles in onos-diagnostics-profile"
-    echo "    ONOS_INSTANCES    IPs or hostnames of ONOS cluster machines"
-    echo "    ONOS_WEB_USER     username for REST API"
-    echo "    ONOS_WEB_PASS     password for REST API"
+    echo "    KARAF_HOME        KARAF_HOME inside the ONOS pod (path from the mount point)"
+    echo "    ONOS_PODS         ONOS pods composing the cluster"
     echo ""
     echo "Example Usages:"
     echo "    # Collect compressed diagnostics for the cluster."
-    echo "    # REST API user and password are drawn from environment variables."
+    echo "    # Karaf home is drawn from environment variable."
     echo "    # Collection archive will be named /tmp/onos-diags.tar.gz"
-    echo "    # The cluster node IPs will be drawn from ONOS_INSTANCES variable."
+    echo "    # ONOS pods names will be drawn from ONOS_PODS variable."
     echo "    # Diags profile is drawn from environment variable."
     echo "    > $(basename $0) "
     echo ""
     echo "    # Collect diagnostics for the cluster and leave them extracted. "
     echo "    # Collection directory will be named /tmp/prague-diags/"
     echo "    # Collection archive will be named /tmp/prague-diags.tar.gz."
-    echo "    # REST API user name is 'onos' and password is 'rules'."
-    echo "    # The cluster node IPs will be drawn from ONOS_INSTANCES variable."
-    echo "    > $(basename $0) -x -n prague -u onos -p rules"
+    echo "    # Karaf home is '/root/foo/karaf'."
+    echo "    # ONOS pods names will be drawn from ONOS_PODS variable."
+    echo "    > $(basename $0) -x -n prague -k karaf"
     echo ""
     echo "    # Collect diagnostics for the cluster and store them in JSON files."
     echo "    # JSON_CLI_COMMANDS below lists JSON-supported diagnostics commands."
@@ -50,13 +49,15 @@ function usage() {
     echo "    > $(basename $0) -j"
     echo ""
     echo "    # Collect compressed diagnostics for a cluster."
-    echo "    # REST API user name is 'onos' and password is 'rules'."
+    echo "    # Karaf home is 'karaf'."
     echo "    # Collection archive will be named /tmp/onos-diags.tar.gz"
-    echo "    # The cluster node IPs are listed explicitly."
-    echo "    > $(basename $0) -u onos -p rules 172.17.0.11 172.17.0.12 172.17.0.13"
+    echo "    # The pods names are listed explicitly."
+    echo "    > $(basename $0) -k karaf onos-0 onos-1 onos-2"
 
     exit 1
 }
+
+command -v kubectl >/dev/null 2>&1 || usage;
 
 # Let's source the different profiles
 . onos-diagnostics-profile
@@ -64,23 +65,11 @@ function usage() {
 # By default the ONOS base profile will be used
 [ -z "$DIAGS_PROFILE" ] && DIAGS_PROFILE=ONOS_PROFILE;
 
-ONOS_WEB_USER=${ONOS_WEB_USER:-onos}  # ONOS WEB User defaults to 'onos'
-ONOS_WEB_PASS=${ONOS_WEB_PASS:-rocks} # ONOS WEB Password defaults to 'rocks'
-ONOS_WEB_PORT=${ONOS_WEB_PORT:-8181}  # REST API port defaults to '8181'
-
-. $(dirname $0)/_find-node
-
-port=${ONOS_WEB_PORT}
-user=${ONOS_WEB_USER}
-password=${ONOS_WEB_PASS}
-
 # Scan arguments for user/password or other options...
-while getopts n:P:u:p:x?j?h o; do
+while getopts n:k:x?j?h o; do
     case "$o" in
         n) name=$OPTARG;;
-        P) port=$OPTARG;;
-        u) user=$OPTARG;;
-        p) password=$OPTARG;;
+        k) KARAF_HOME=$OPTARG;;
         x) extract=true;;
         j) json=true;;
         *) usage;;
@@ -90,12 +79,14 @@ done
 let OPC=$OPTIND-1
 shift $OPC
 
-[ $# -lt 1 -a -z "$ONOS_INSTANCES" ] && usage;
+[ $# -lt 1 -a -z "$ONOS_PODS" ] && usage;
+
+[ -z "$KARAF_HOME" ] && usage;
 
 diags=/tmp/${name:-onos}-diags
 rm -fr $diags $diags.tar.gz; mkdir -p $diags
 
-[ -z $1 ] && nodes=$ONOS_INSTANCES || nodes=$*
+[ -z $1 ] && nodes=$ONOS_PODS || nodes=$*
 
 # -j option will activate T3_OFFLINE_PROFILE
 [ ! -z $json ] && DIAGS_PROFILE=T3_OFFLINE_PROFILE
@@ -108,22 +99,21 @@ for node in $nodes; do
     cd $diags; rm -fr $node; mkdir -p $node; cd $node;
 
     if [ -z $json ]; then
-        # Acquire locally obtained diagnostics via REST API and extract them
+        # Acquire locally obtained diagnostics via kubectl
         printf "logs "
-        curl -sS --fail --user $user:$password  \
-            http://$node:$port/onos/v1/diagnostics > ../$node.tar.gz
-        tar zxf ../$node.tar.gz && rm ../$node.tar.gz
+        kubectl cp $node:$KARAF_HOME/data/log .
+        kubectl exec -it $node -- bash -c "ls -l apps/*" > apps-dir.txt
     fi
 
-    # Acquire remotely obtained diagnostics via ssh CLI
+    # Acquire apps info through onos cli
     eval CLI_COMMANDS=\${${DIAGS_PROFILE}[@]}
     for cmd in $CLI_COMMANDS; do
         # @ is used as workaround for the array expansion
         cmd="$(echo $cmd | sed 's/@/ /g')"
         cmdLog="$(echo $cmd | cut -d\  -f1 | sed 's/:/-/g').txt"
-        [ ! -z $json ] && cmdLog="${cmdLog%.txt}.json"
         printf "$cmdLog "
-        onos $node $cmd 2>/dev/null >$cmdLog
+        CMD="kubectl exec -it $node -- bash $KARAF_HOME/bin/client"
+        $CMD "$cmd" 2>/dev/null | sed -n '1!p' >$cmdLog
     done
 
     printf " Done.\n"
