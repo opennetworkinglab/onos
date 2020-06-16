@@ -18,6 +18,9 @@ fabric-full:
 		-DWITH_INT_SOURCE -DWITH_INT_TRANSIT -DWITH_INT_SINK"
 
 constants:
+ifndef ONOS_ROOT
+	$(error ONOS_ROOT is undefined)
+endif
 	onos-gen-p4-constants \
 		-o $(ONOS_ROOT)/pipelines/fabric/src/main/java/org/onosproject/pipelines/fabric/FabricConstants.java \
 		fabric p4c-out/fabric-full/bmv2/default/p4info.txt
