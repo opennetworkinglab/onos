@@ -16,7 +16,7 @@ FULL_SSH_KEY=$(cat ~/.ssh/id_rsa.pub)
 echo "The public key in local host is: $SSH_KEY"
 
 # Create Atomix cluster using Atomix docker image
-ATOMIX_IMAGE=atomix/atomix:3.1.5
+ATOMIX_IMAGE=atomix/atomix:3.1.9
 for i in {1..3}; do
     echo "Setting up atomix-$i..."
     docker container run --detach --name atomix-$i --hostname atomix-$i \
