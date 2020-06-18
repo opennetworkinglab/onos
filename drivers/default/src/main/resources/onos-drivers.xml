@@ -193,6 +193,7 @@
                    impl="org.onosproject.driver.pipeline.OltPipeline"/>
         <behaviour api="org.onosproject.net.behaviour.MeterQuery"
                    impl="org.onosproject.driver.query.FullMetersAvailable"/>
+        <property name="accumulatorEnabled">true</property>
     </driver>
     <driver name="fj-olt" extends="default"
             manufacturer="Fujitsu" hwVersion="svkOLT" swVersion="v1.0">
