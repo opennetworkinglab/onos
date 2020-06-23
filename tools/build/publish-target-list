@@ -1,8 +1,10 @@
 # Targets placed in this list will be published as Maven artifacts
     //apps/intentsync:onos-apps-intentsync
     //apps/mcast/api:onos-apps-mcast-api
+    //apps/mcast/cli:onos-apps-mcast-cli
     //apps/newoptical:onos-apps-newoptical
     //apps/optical-model:onos-apps-optical-model
+    //apps/portloadbalancer:onos-apps-portloadbalancer
     //apps/restconf/api:onos-apps-restconf-api
     //apps/routing-api:onos-apps-routing-api
     //apps/route-service/api:onos-apps-route-service-api
@@ -13,6 +15,7 @@
     //core/net:onos-core-net
     //core/store/dist:onos-core-dist
     //core/store/persistence:onos-core-persistence
+    //core/store/primitives:onos-core-primitives
     //core/store/serializers:onos-core-serializers
     //drivers/utilities:onos-drivers-utilities
     //drivers/default:onos-drivers-default
