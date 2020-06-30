@@ -88,10 +88,10 @@ PROTOCOL_MAP = {
 }
 
 PROTOCOL_APP_MAP = {
-    "//protocols/grpc:onos-protocols-grpc-oar": ["stratum"],
-    "//protocols/gnmi:onos-protocols-gnmi-oar": ["stratum"],
-    "//protocols/gnoi:onos-protocols-gnoi-oar": ["stratum"],
-    "//protocols/p4runtime:onos-protocols-p4runtime-oar": ["stratum"],
+    "//protocols/grpc:onos-protocols-grpc-oar": ["stratum", "tost"],
+    "//protocols/gnmi:onos-protocols-gnmi-oar": ["stratum", "tost"],
+    "//protocols/gnoi:onos-protocols-gnoi-oar": ["stratum", "tost"],
+    "//protocols/p4runtime:onos-protocols-p4runtime-oar": ["stratum", "tost"],
     "//protocols/restconf/server:onos-protocols-restconf-server-oar": [],
     "//protocols/xmpp/core:onos-protocols-xmpp-core-oar": [],
     "//protocols/xmpp/pubsub:onos-protocols-xmpp-pubsub-oar": [],
@@ -116,15 +116,15 @@ PROVIDER_MAP = {
 }
 
 PROVIDER_APP_MAP = {
-    "//providers/general:onos-providers-general-oar": ["stratum"],
+    "//providers/general:onos-providers-general-oar": ["stratum", "tost"],
     "//providers/bgp:onos-providers-bgp-oar": [],
     "//providers/bgpcep:onos-providers-bgpcep-oar": [],
-    "//providers/host:onos-providers-host-oar": ["seba", "stratum"],
-    "//providers/hostprobing:onos-providers-hostprobing-oar": ["seba", "stratum"],
+    "//providers/host:onos-providers-host-oar": ["seba", "stratum", "tost"],
+    "//providers/hostprobing:onos-providers-hostprobing-oar": ["seba", "stratum", "tost"],
     "//providers/isis:onos-providers-isis-oar": [],
     "//providers/link:onos-providers-link-oar": ["stratum"],
-    "//providers/lldp:onos-providers-lldp-oar": ["seba", "stratum"],
-    "//providers/netcfghost:onos-providers-netcfghost-oar": ["seba", "stratum"],
+    "//providers/lldp:onos-providers-lldp-oar": ["seba", "stratum", "tost"],
+    "//providers/netcfghost:onos-providers-netcfghost-oar": ["seba", "stratum", "tost"],
     "//providers/netcfglinks:onos-providers-netcfglinks-oar": ["stratum"],
     "//providers/netconf:onos-providers-netconf-oar": [],
     "//providers/null:onos-providers-null-oar": [],
@@ -134,7 +134,7 @@ PROVIDER_APP_MAP = {
     "//providers/ovsdb:onos-providers-ovsdb-oar": [],
     "//providers/ovsdb/host:onos-providers-ovsdb-host-oar": [],
     "//providers/ovsdb/base:onos-providers-ovsdb-base-oar": [],
-    "//providers/p4runtime:onos-providers-p4runtime-oar": ["stratum"],
+    "//providers/p4runtime:onos-providers-p4runtime-oar": ["stratum", "tost"],
     "//providers/pcep:onos-providers-pcep-oar": [],
     "//providers/rest:onos-providers-rest-oar": [],
     "//providers/snmp:onos-providers-snmp-oar": [],
@@ -149,10 +149,10 @@ PROVIDER_APP_MAP = {
 #
 
 DRIVER_MAP = {
-    "//drivers/default:onos-drivers-default-oar": ["minimal", "seba", "stratum"],
+    "//drivers/default:onos-drivers-default-oar": ["minimal", "seba", "stratum", "tost"],
     "//drivers/arista:onos-drivers-arista-oar": [],
-    "//drivers/bmv2:onos-drivers-bmv2-oar": ["stratum"],
-    "//drivers/barefoot:onos-drivers-barefoot-oar": ["stratum"],
+    "//drivers/bmv2:onos-drivers-bmv2-oar": ["stratum", "tost"],
+    "//drivers/barefoot:onos-drivers-barefoot-oar": ["stratum", "tost"],
     "//drivers/ciena/waveserver:onos-drivers-ciena-waveserver-oar": [],
     "//drivers/ciena/c5162:onos-drivers-ciena-c5162-oar": [],
     "//drivers/ciena/c5170:onos-drivers-ciena-c5170-oar": [],
@@ -162,8 +162,8 @@ DRIVER_MAP = {
     "//drivers/corsa:onos-drivers-corsa-oar": [],
     "//drivers/flowspec:onos-drivers-flowspec-oar": [],
     "//drivers/fujitsu:onos-drivers-fujitsu-oar": [],
-    "//drivers/gnmi:onos-drivers-gnmi-oar": ["stratum"],
-    "//drivers/gnoi:onos-drivers-gnoi-oar": ["stratum"],
+    "//drivers/gnmi:onos-drivers-gnmi-oar": ["stratum", "tost"],
+    "//drivers/gnoi:onos-drivers-gnoi-oar": ["stratum", "tost"],
     "//drivers/hp:onos-drivers-hp-oar": [],
     "//drivers/huawei:onos-drivers-huawei-oar": [],
     "//drivers/juniper:onos-drivers-juniper-oar": [],
@@ -176,11 +176,11 @@ DRIVER_MAP = {
     "//drivers/oplink:onos-drivers-oplink-oar": [],
     "//drivers/optical:onos-drivers-optical-oar": [],
     "//drivers/ovsdb:onos-drivers-ovsdb-oar": [],
-    "//drivers/p4runtime:onos-drivers-p4runtime-oar": ["stratum"],
+    "//drivers/p4runtime:onos-drivers-p4runtime-oar": ["stratum", "tost"],
     "//drivers/polatis/netconf:onos-drivers-polatis-netconf-oar": [],
     "//drivers/polatis/openflow:onos-drivers-polatis-openflow-oar": [],
     "//drivers/server:onos-drivers-server-oar": [],
-    "//drivers/stratum:onos-drivers-stratum-oar": ["stratum"],
+    "//drivers/stratum:onos-drivers-stratum-oar": ["stratum", "tost"],
 }
 
 #
@@ -220,7 +220,7 @@ APP_MAP = {
     "//apps/cord-support:onos-apps-cord-support-oar": [],
     "//apps/cpman/app:onos-apps-cpman-app-oar": [],
     "//apps/dhcp:onos-apps-dhcp-oar": [],
-    "//apps/dhcprelay:onos-apps-dhcprelay-oar": [],
+    "//apps/dhcprelay:onos-apps-dhcprelay-oar": ["tost"],
     "//apps/drivermatrix:onos-apps-drivermatrix-oar": [],
     "//apps/events:onos-apps-events-oar": [],
     "//apps/evpn-route-service:onos-apps-evpn-route-service-oar": [],
@@ -243,7 +243,7 @@ APP_MAP = {
     "//apps/layout:onos-apps-layout-oar": [],
     "//apps/linkprops:onos-apps-linkprops-oar": [],
     "//apps/mappingmanagement:onos-apps-mappingmanagement-oar": [],
-    "//apps/mcast:onos-apps-mcast-oar": ["seba"],
+    "//apps/mcast:onos-apps-mcast-oar": ["seba", "tost"],
     "//apps/metrics:onos-apps-metrics-oar": [],
     "//apps/mfwd:onos-apps-mfwd-oar": [],
     "//apps/mlb:onos-apps-mlb-oar": [],
@@ -272,18 +272,18 @@ APP_MAP = {
     "//apps/pathpainter:onos-apps-pathpainter-oar": [],
     "//apps/pcep-api:onos-apps-pcep-api-oar": [],
     "//apps/pim:onos-apps-pim-oar": [],
-    "//apps/portloadbalancer:onos-apps-portloadbalancer-oar": ["seba"],
+    "//apps/portloadbalancer:onos-apps-portloadbalancer-oar": ["seba", "tost"],
     "//apps/powermanagement:onos-apps-powermanagement-oar": [],
     "//apps/proxyarp:onos-apps-proxyarp-oar": [],
     "//apps/rabbitmq:onos-apps-rabbitmq-oar": [],
     "//apps/reactive-routing:onos-apps-reactive-routing-oar": [],
     "//apps/restconf:onos-apps-restconf-oar": [],
     "//apps/roadm:onos-apps-roadm-oar": [],
-    "//apps/route-service:onos-apps-route-service-oar": ["seba"],
-    "//apps/routeradvertisement:onos-apps-routeradvertisement-oar": [],
+    "//apps/route-service:onos-apps-route-service-oar": ["seba", "tost"],
+    "//apps/routeradvertisement:onos-apps-routeradvertisement-oar": ["tost"],
     "//apps/routing/cpr:onos-apps-routing-cpr-oar": [],
     "//apps/routing/fibinstaller:onos-apps-routing-fibinstaller-oar": [],
-    "//apps/routing/fpm:onos-apps-routing-fpm-oar": [],
+    "//apps/routing/fpm:onos-apps-routing-fpm-oar": ["tost"],
     "//apps/scalablegateway:onos-apps-scalablegateway-oar": [],
     "//apps/sdnip:onos-apps-sdnip-oar": [],
     "//apps/segmentrouting:onos-apps-segmentrouting-oar": ["seba"],
@@ -317,7 +317,7 @@ APP_MAP = {
     "//apps/yang:onos-apps-yang-oar": [],
     # "//apps/yms:onos-apps-yms-oar": [],
     "//web/gui:onos-web-gui-oar": [],
-    "//web/gui2:onos-web-gui2-oar": ["stratum"],
+    "//web/gui2:onos-web-gui2-oar": ["stratum", "tost"],
 }
 
 #
@@ -325,8 +325,8 @@ APP_MAP = {
 #
 
 PIPELINE_MAP = {
-    "//pipelines/basic:onos-pipelines-basic-oar": ["stratum"],
-    "//pipelines/fabric:onos-pipelines-fabric-oar": ["stratum"],
+    "//pipelines/basic:onos-pipelines-basic-oar": ["stratum", "tost"],
+    "//pipelines/fabric:onos-pipelines-fabric-oar": ["stratum", "tost"],
 }
 
 MODELS_MAP = {
