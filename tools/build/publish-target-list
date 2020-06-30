@@ -59,3 +59,5 @@
     //deps:io_grpc_grpc_api_context
     //deps:io_grpc_grpc_stub
     //deps:io_grpc_grpc_protobuf
+    //deps:io_grpc_grpc_netty
+    //deps:io_grpc_grpc_core_internal
