@@ -17,6 +17,7 @@ package org.onosproject.k8snode.api;
 
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
+import org.onosproject.k8snode.api.K8sApiConfig.Mode;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 
@@ -37,8 +38,51 @@ public interface K8sNode {
         /**
          * Signifies that this is a kubernetes minion node.
          */
-        MINION
+        MINION,
     }
+
+    /**
+     * Returns cluster name of the node.
+     *
+     * @return cluster name
+     */
+    String clusterName();
+
+    /**
+     * Returns host short name.
+     *
+     * @return host short name
+     */
+    String hostShortName();
+
+    /**
+     * Returns a unique string with the given length and string.
+     *
+     * @param length target string length
+     * @return a unique string
+     */
+    String uniqueString(int length);
+
+    /**
+     * Returns the segmentation ID.
+     *
+     * @return segmentation ID
+     */
+    int segmentId();
+
+    /**
+     * Returns the key of VXLAN/GRE/GENEVE tunnel.
+     *
+     * @return key of various tunnel
+     */
+    String tunnelKey();
+
+    /**
+     * Returns the CNI running mode.
+     *
+     * @return CNI running mode
+     */
+    Mode mode();
 
     /**
      * Returns hostname of the node.
@@ -83,6 +127,13 @@ public interface K8sNode {
     DeviceId localBridge();
 
     /**
+     * Returns the device ID of the tunnel bridge at the node.
+     *
+     * @return device id
+     */
+    DeviceId tunBridge();
+
+    /**
      * Returns the external interface name.
      *
      * @return external interface name
@@ -112,6 +163,14 @@ public interface K8sNode {
      * @return updated kubernetes node
      */
     K8sNode updateLocalBridge(DeviceId deviceId);
+
+    /**
+     * Returns new kubernetes node instance with given tun bridge.
+     *
+     * @param deviceId tunnel bridge device ID
+     * @return updated kubernetes node
+     */
+    K8sNode updateTunBridge(DeviceId deviceId);
 
     /**
      * Returns the management network IP address of the node.
@@ -156,6 +215,118 @@ public interface K8sNode {
      * @return updated kubernetes node
      */
     K8sNode updateExtGatewayMac(MacAddress macAddress);
+
+    /**
+     * Returns GRE port name.
+     *
+     * @return GRE port name
+     */
+    String grePortName();
+
+    /**
+     * Returns VXLAN port name.
+     *
+     * @return VXLAN port name
+     */
+    String vxlanPortName();
+
+    /**
+     * Returns GENEVE port name.
+     *
+     * @return GENEVE port name
+     */
+    String genevePortName();
+
+    /**
+     * Returns integration bridge name.
+     *
+     * @return integration bridge name
+     */
+    String intgBridgeName();
+
+    /**
+     * Returns external bridge name.
+     *
+     * @return external bridge name
+     */
+    String extBridgeName();
+
+    /**
+     * Returns local bridge name.
+     *
+     * @return local bridge name
+     */
+    String localBridgeName();
+
+    /**
+     * Returns tun bridge name.
+     *
+     * @return tun bridge name
+     */
+    String tunBridgeName();
+
+    /**
+     * Returns integration bridge port name.
+     *
+     * @return integration bridge port name
+     */
+    String intgBridgePortName();
+
+    /**
+     * Returns external bridge port name.
+     *
+     * @return external bridge port name
+     */
+    String extBridgePortName();
+
+    /**
+     * Returns local bridge port name.
+     *
+     * @return local bridge port name
+     */
+    String localBridgePortName();
+
+    /**
+     * Returns integration to external patch port name.
+     *
+     * @return integration to external patch port name
+     */
+    String intgToExtPatchPortName();
+
+    /**
+     * Returns integration to tunnel patch port name.
+     *
+     * @return integration to tunnel patch port name
+     */
+    String intgToTunPatchPortName();
+
+    /**
+     * Returns integration to local patch port name.
+     *
+     * @return integration to local patch port name
+     */
+    String intgToLocalPatchPortName();
+
+    /**
+     * Returns local to integration patch port name.
+     *
+     * @return local to integration patch port name
+     */
+    String localToIntgPatchPortName();
+
+    /**
+     * Returns external to integration patch port name.
+     *
+     * @return external to integration patch port name
+     */
+    String extToIntgPatchPortName();
+
+    /**
+     * Returns tunnel to integration patch port name.
+     *
+     * @return tunnel to integration patch port name
+     */
+    String tunToIntgPatchPortName();
 
     /**
      * Returns the GRE tunnel port number.
@@ -204,7 +375,7 @@ public interface K8sNode {
      *
      * @return patch port number
      */
-    PortNumber localToIntgPatchPortNumber();
+    PortNumber localToIntgPatchPortNum();
 
     /**
      * Returns the external to integration patch port number.
@@ -268,6 +439,14 @@ public interface K8sNode {
         K8sNode build();
 
         /**
+         * Returns kubernetes node builder with supplied cluster name.
+         *
+         * @param clusterName cluster name
+         * @return kubernetes node builder
+         */
+        Builder clusterName(String clusterName);
+
+        /**
          * Returns kubernetes node builder with supplied hostname.
          *
          * @param hostname hostname of the node
@@ -282,6 +461,22 @@ public interface K8sNode {
          * @return kubernetes node builder
          */
         Builder type(Type type);
+
+        /**
+         * Returns kubernetes node builder with supplied segment ID.
+         *
+         * @param segmentId kubernetes node segment ID
+         * @return kubernetes node builder
+         */
+        Builder segmentId(int segmentId);
+
+        /**
+         * Return kubernetes node builder with supplied mode.
+         *
+         * @param mode kubernetes CNI running mode
+         * @return kubernetes node builder
+         */
+        Builder mode(Mode mode);
 
         /**
          * Returns kubernetes node builder with supplied integration bridge name.
@@ -306,6 +501,14 @@ public interface K8sNode {
          * @return kubernetes node builder
          */
         Builder localBridge(DeviceId deviceId);
+
+        /**
+         * Returns kubernetes node builder with supplied tunnel bridge name.
+         *
+         * @param deviceId tunnel bridge device ID
+         * @return kubernetes node builder
+         */
+        Builder tunBridge(DeviceId deviceId);
 
         /**
          * Returns kubernetes node builder with supplied external interface.

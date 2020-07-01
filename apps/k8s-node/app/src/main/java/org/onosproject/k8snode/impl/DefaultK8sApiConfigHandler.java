@@ -25,6 +25,8 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.k8snode.api.DefaultK8sNode;
+import org.onosproject.k8snode.api.ExternalNetworkService;
+import org.onosproject.k8snode.api.HostNodesInfo;
 import org.onosproject.k8snode.api.K8sApiConfig;
 import org.onosproject.k8snode.api.K8sApiConfigAdminService;
 import org.onosproject.k8snode.api.K8sApiConfigEvent;
@@ -44,6 +46,9 @@ import java.util.concurrent.ExecutorService;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.k8snode.api.Constants.DEFAULT_CLUSTER_NAME;
+import static org.onosproject.k8snode.api.Constants.EXTERNAL_TO_ROUTER;
+import static org.onosproject.k8snode.api.K8sApiConfig.Mode.PASSTHROUGH;
 import static org.onosproject.k8snode.api.K8sNode.Type.MASTER;
 import static org.onosproject.k8snode.api.K8sNode.Type.MINION;
 import static org.onosproject.k8snode.api.K8sNodeService.APP_ID;
@@ -65,6 +70,9 @@ public class DefaultK8sApiConfigHandler {
     private static final String EXT_GATEWAY_IP = "external.gateway.ip";
     private static final String EXT_INTF_NAME = "external.interface.name";
 
+    private static final String DEFAULT_GATEWAY_IP = "127.0.0.1";
+    private static final String DEFAULT_BRIDGE_IP = "127.0.0.1";
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
@@ -79,6 +87,9 @@ public class DefaultK8sApiConfigHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected K8sNodeAdminService k8sNodeAdminService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected ExternalNetworkService extNetworkService;
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
@@ -127,21 +138,32 @@ public class DefaultK8sApiConfigHandler {
         }
 
         k8sClient.nodes().list().getItems().forEach(n ->
-            k8sNodeAdminService.createNode(buildK8sNode(n))
+            k8sNodeAdminService.createNode(buildK8sNode(n, config))
         );
     }
 
-    private K8sNode buildK8sNode(Node node) {
+    private K8sNode buildK8sNode(Node node, K8sApiConfig config) {
         String hostname = node.getMetadata().getName();
         IpAddress managementIp = null;
         IpAddress dataIp = null;
 
-        for (NodeAddress nodeAddress:node.getStatus().getAddresses()) {
-            // we need to consider assigning managementIp and dataIp differently
-            // FIXME: ExternalIp is not considered currently
-            if (nodeAddress.getType().equals(INTERNAL_IP)) {
-                managementIp = IpAddress.valueOf(nodeAddress.getAddress());
-                dataIp = IpAddress.valueOf(nodeAddress.getAddress());
+        // pass-through mode: we use host IP as the management and data IP
+        // normal mode: we use K8S node's internal IP as the management and data IP
+        if (config.mode() == PASSTHROUGH) {
+            HostNodesInfo info = config.infos().stream().filter(h -> h.nodes()
+                    .contains(hostname)).findAny().orElse(null);
+            if (info == null) {
+                log.error("None of the nodes were found in the host nodes info mapping list");
+            } else {
+                managementIp = info.hostIp();
+                dataIp = info.hostIp();
+            }
+        } else {
+            for (NodeAddress nodeAddress:node.getStatus().getAddresses()) {
+                if (nodeAddress.getType().equals(INTERNAL_IP)) {
+                    managementIp = IpAddress.valueOf(nodeAddress.getAddress());
+                    dataIp = IpAddress.valueOf(nodeAddress.getAddress());
+                }
             }
         }
 
@@ -162,17 +184,37 @@ public class DefaultK8sApiConfigHandler {
 
         Map<String, String> annots = node.getMetadata().getAnnotations();
 
-        String extIntf = annots.get(EXT_INTF_NAME);
-        String extGatewayIpStr = annots.get(EXT_GATEWAY_IP);
-        String extBridgeIpStr = annots.get(EXT_BRIDGE_IP);
+        String extIntf = "";
+        String extGatewayIpStr = DEFAULT_GATEWAY_IP;
+        String extBridgeIpStr = DEFAULT_BRIDGE_IP;
+
+        if (config.mode() == PASSTHROUGH) {
+            extNetworkService.registerNetwork(config.extNetworkCidr());
+            extIntf = EXTERNAL_TO_ROUTER + "-" + config.clusterShortName();
+            IpAddress gatewayIp = extNetworkService.getGatewayIp(config.extNetworkCidr());
+            IpAddress bridgeIp = extNetworkService.allocateIp(config.extNetworkCidr());
+            if (gatewayIp != null) {
+                extGatewayIpStr = gatewayIp.toString();
+            }
+            if (bridgeIp != null) {
+                extBridgeIpStr = bridgeIp.toString();
+            }
+        } else {
+            extIntf = annots.get(EXT_INTF_NAME);
+            extGatewayIpStr = annots.get(EXT_GATEWAY_IP);
+            extBridgeIpStr = annots.get(EXT_BRIDGE_IP);
+        }
 
         return DefaultK8sNode.builder()
+                .clusterName(DEFAULT_CLUSTER_NAME)
                 .hostname(hostname)
                 .managementIp(managementIp)
                 .dataIp(dataIp)
                 .extIntf(extIntf)
                 .type(nodeType)
+                .segmentId(config.segmentId())
                 .state(PRE_ON_BOARD)
+                .mode(config.mode())
                 .extBridgeIp(IpAddress.valueOf(extBridgeIpStr))
                 .extGatewayIp(IpAddress.valueOf(extGatewayIpStr))
                 .podCidr(node.getSpec().getPodCIDR())
@@ -209,6 +251,7 @@ public class DefaultK8sApiConfigHandler {
             if (checkApiServerConfig(config)) {
                 K8sApiConfig newConfig = config.updateState(K8sApiConfig.State.CONNECTED);
                 k8sApiConfigAdminService.updateApiConfig(newConfig);
+
                 bootstrapK8sNodes(config);
             }
         }

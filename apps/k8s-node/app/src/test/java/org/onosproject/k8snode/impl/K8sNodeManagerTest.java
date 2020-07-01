@@ -68,6 +68,8 @@ public class K8sNodeManagerTest {
     private static final String ERR_NOT_MATCH = "Node did not match";
     private static final String ERR_NOT_FOUND = "Node did not exist";
 
+    private static final String CLUSTER_NAME = "kubernetes";
+
     private static final String MINION_1_HOSTNAME = "minion_1";
     private static final String MINION_2_HOSTNAME = "minion_2";
     private static final String MINION_3_HOSTNAME = "minion_3";
@@ -84,31 +86,41 @@ public class K8sNodeManagerTest {
     private static final Device MINION_2_LOCAL_DEVICE = createDevice(8);
     private static final Device MINION_3_LOCAL_DEVICE = createDevice(9);
 
+    private static final Device MINION_1_TUN_DEVICE = createDevice(10);
+    private static final Device MINION_2_TUN_DEVICE = createDevice(11);
+    private static final Device MINION_3_TUN_DEVICE = createDevice(12);
+
 
     private static final K8sNode MINION_1 = createNode(
+            CLUSTER_NAME,
             MINION_1_HOSTNAME,
             MINION,
             MINION_1_INTG_DEVICE,
             MINION_1_EXT_DEVICE,
             MINION_1_LOCAL_DEVICE,
+            MINION_1_TUN_DEVICE,
             IpAddress.valueOf("10.100.0.1"),
             INIT
     );
     private static final K8sNode MINION_2 = createNode(
+            CLUSTER_NAME,
             MINION_2_HOSTNAME,
             MINION,
             MINION_2_INTG_DEVICE,
             MINION_2_EXT_DEVICE,
             MINION_2_LOCAL_DEVICE,
+            MINION_2_TUN_DEVICE,
             IpAddress.valueOf("10.100.0.2"),
             INIT
     );
     private static final K8sNode MINION_3 = createNode(
+            CLUSTER_NAME,
             MINION_3_HOSTNAME,
             MINION,
             MINION_3_INTG_DEVICE,
             MINION_3_EXT_DEVICE,
             MINION_3_LOCAL_DEVICE,
+            MINION_3_TUN_DEVICE,
             IpAddress.valueOf("10.100.0.3"),
             COMPLETE
     );
@@ -334,16 +346,18 @@ public class K8sNodeManagerTest {
 
     }
 
-    private static K8sNode createNode(String hostname, K8sNode.Type type,
+    private static K8sNode createNode(String clusterName, String hostname, K8sNode.Type type,
                                       Device intgBridge, Device extBridge,
-                                      Device localBridge, IpAddress ipAddr,
-                                      K8sNodeState state) {
+                                      Device localBridge, Device tunBridge,
+                                      IpAddress ipAddr, K8sNodeState state) {
         return DefaultK8sNode.builder()
                 .hostname(hostname)
+                .clusterName(clusterName)
                 .type(type)
                 .intgBridge(intgBridge.id())
                 .extBridge(extBridge.id())
                 .localBridge(localBridge.id())
+                .tunBridge(tunBridge.id())
                 .managementIp(ipAddr)
                 .dataIp(ipAddr)
                 .state(state)

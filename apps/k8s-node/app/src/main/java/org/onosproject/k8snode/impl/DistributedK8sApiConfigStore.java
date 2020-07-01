@@ -20,7 +20,9 @@ import org.onlab.packet.IpAddress;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.k8snode.api.DefaultHostNodesInfo;
 import org.onosproject.k8snode.api.DefaultK8sApiConfig;
+import org.onosproject.k8snode.api.HostNodesInfo;
 import org.onosproject.k8snode.api.K8sApiConfig;
 import org.onosproject.k8snode.api.K8sApiConfigEvent;
 import org.onosproject.k8snode.api.K8sApiConfigStore;
@@ -72,8 +74,11 @@ public class DistributedK8sApiConfigStore
             .register(KryoNamespaces.API)
             .register(K8sApiConfig.class)
             .register(DefaultK8sApiConfig.class)
+            .register(K8sApiConfig.Mode.class)
             .register(K8sApiConfig.Scheme.class)
             .register(K8sApiConfig.State.class)
+            .register(HostNodesInfo.class)
+            .register(DefaultHostNodesInfo.class)
             .register(Collection.class)
             .build();
 

@@ -25,11 +25,13 @@ import org.onosproject.codec.CodecService;
 import org.onosproject.codec.impl.CodecManager;
 import org.onosproject.k8snode.api.DefaultK8sApiConfig;
 import org.onosproject.k8snode.api.DefaultK8sNode;
+import org.onosproject.k8snode.api.HostNodesInfo;
 import org.onosproject.k8snode.api.K8sApiConfig;
 import org.onosproject.k8snode.api.K8sApiConfigAdminService;
 import org.onosproject.k8snode.api.K8sNode;
 import org.onosproject.k8snode.api.K8sNodeAdminService;
 import org.onosproject.k8snode.api.K8sNodeState;
+import org.onosproject.k8snode.codec.HostNodesInfoCodec;
 import org.onosproject.k8snode.codec.K8sApiConfigCodec;
 import org.onosproject.k8snode.codec.K8sNodeCodec;
 import org.onosproject.net.DeviceId;
@@ -81,6 +83,7 @@ public class K8sNodeWebResourceTest extends ResourceTest {
         codecService.activate();
         codecService.registerCodec(K8sNode.class, new K8sNodeCodec());
         codecService.registerCodec(K8sApiConfig.class, new K8sApiConfigCodec());
+        codecService.registerCodec(HostNodesInfo.class, new HostNodesInfoCodec());
         ServiceDirectory testDirectory =
                 new TestServiceDirectory()
                 .add(K8sNodeAdminService.class, mockK8sNodeAdminService)
@@ -89,6 +92,7 @@ public class K8sNodeWebResourceTest extends ResourceTest {
         setServiceDirectory(testDirectory);
 
         k8sNode = DefaultK8sNode.builder()
+                .clusterName("kubernetes")
                 .hostname("minion-node")
                 .type(K8sNode.Type.MINION)
                 .dataIp(IpAddress.valueOf("10.134.34.222"))
@@ -99,6 +103,9 @@ public class K8sNodeWebResourceTest extends ResourceTest {
                 .build();
 
         k8sApiConfig = DefaultK8sApiConfig.builder()
+                .clusterName("kubernetes")
+                .segmentId(1)
+                .mode(K8sApiConfig.Mode.NORMAL)
                 .scheme(K8sApiConfig.Scheme.HTTPS)
                 .ipAddress(IpAddress.valueOf("10.134.34.223"))
                 .port(6443)

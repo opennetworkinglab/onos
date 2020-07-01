@@ -55,6 +55,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.k8snode.api.K8sApiConfig.Mode.NORMAL;
 import static org.onosproject.k8snode.api.K8sNodeState.COMPLETE;
 import static org.onosproject.k8snode.impl.OsgiPropertyConstants.OVSDB_PORT;
 import static org.onosproject.k8snode.impl.OsgiPropertyConstants.OVSDB_PORT_NUM_DEFAULT;
@@ -159,6 +160,7 @@ public class K8sNodeManager
         K8sNode intNode;
         K8sNode extNode;
         K8sNode localNode;
+        K8sNode tunNode;
 
         if (node.intgBridge() == null) {
             String deviceIdStr = genDpid(deviceIdCounter.incrementAndGet());
@@ -196,7 +198,24 @@ public class K8sNodeManager
                     NOT_DUPLICATED_MSG, localNode.localBridge());
         }
 
-        nodeStore.createNode(localNode);
+        if (node.mode() == NORMAL) {
+            if (node.tunBridge() == null) {
+                String deviceIdStr = genDpid(deviceIdCounter.incrementAndGet());
+                checkNotNull(deviceIdStr, ERR_NULL_DEVICE_ID);
+                tunNode = localNode.updateTunBridge(DeviceId.deviceId(deviceIdStr));
+                checkArgument(!hasTunBridge(tunNode.tunBridge(), tunNode.hostname()),
+                        NOT_DUPLICATED_MSG, tunNode.tunBridge());
+            } else {
+                tunNode = localNode;
+                checkArgument(!hasTunBridge(tunNode.tunBridge(), tunNode.hostname()),
+                        NOT_DUPLICATED_MSG, tunNode.tunBridge());
+            }
+
+            nodeStore.createNode(tunNode);
+        } else {
+            nodeStore.createNode(localNode);
+        }
+
         log.info(String.format(MSG_NODE, extNode.hostname(), MSG_CREATED));
     }
 
@@ -207,6 +226,7 @@ public class K8sNodeManager
         K8sNode intNode;
         K8sNode extNode;
         K8sNode localNode;
+        K8sNode tunNode;
 
         K8sNode existingNode = nodeStore.node(node.hostname());
         checkNotNull(existingNode, ERR_NULL_NODE);
@@ -247,7 +267,22 @@ public class K8sNodeManager
                     NOT_DUPLICATED_MSG, localNode.localBridge());
         }
 
-        nodeStore.updateNode(localNode);
+        if (node.mode() == NORMAL) {
+            DeviceId existTunBridge = nodeStore.node(node.hostname()).tunBridge();
+
+            if (localNode.tunBridge() == null) {
+                tunNode = localNode.updateTunBridge(existTunBridge);
+                checkArgument(!hasTunBridge(tunNode.tunBridge(), tunNode.hostname()),
+                        NOT_DUPLICATED_MSG, tunNode.tunBridge());
+            } else {
+                tunNode = localNode;
+                checkArgument(!hasTunBridge(tunNode.tunBridge(), tunNode.hostname()),
+                        NOT_DUPLICATED_MSG, tunNode.tunBridge());
+            }
+            nodeStore.updateNode(tunNode);
+        } else {
+            nodeStore.updateNode(localNode);
+        }
         log.info(String.format(MSG_NODE, extNode.hostname(), MSG_UPDATED));
     }
 
@@ -262,6 +297,13 @@ public class K8sNodeManager
     @Override
     public Set<K8sNode> nodes() {
         return nodeStore.nodes();
+    }
+
+    @Override
+    public Set<K8sNode> nodes(String clusterName) {
+        return nodeStore.nodes().stream()
+                .filter(n -> n.clusterName().equals(clusterName))
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -325,6 +367,15 @@ public class K8sNodeManager
         Optional<K8sNode> existNode = nodeStore.nodes().stream()
                 .filter(n -> !n.hostname().equals(hostname))
                 .filter(n -> deviceId.equals(n.localBridge()))
+                .findFirst();
+
+        return existNode.isPresent();
+    }
+
+    private boolean hasTunBridge(DeviceId deviceId, String hostname) {
+        Optional<K8sNode> existNode = nodeStore.nodes().stream()
+                .filter(n -> !n.hostname().equals(hostname))
+                .filter(n -> deviceId.equals(n.tunBridge()))
                 .findFirst();
 
         return existNode.isPresent();

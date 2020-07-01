@@ -18,20 +18,25 @@ package org.onosproject.k8snode.codec;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.codec.impl.CodecManager;
 import org.onosproject.core.CoreService;
+import org.onosproject.k8snode.api.DefaultHostNodesInfo;
 import org.onosproject.k8snode.api.DefaultK8sApiConfig;
+import org.onosproject.k8snode.api.HostNodesInfo;
 import org.onosproject.k8snode.api.K8sApiConfig;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.easymock.EasyMock.createMock;
@@ -51,6 +56,7 @@ public class K8sApiConfigCodecTest {
     MockCodecContext context;
 
     JsonCodec<K8sApiConfig> k8sApiConfigCodec;
+    JsonCodec<HostNodesInfo> hostNodesInfoCodec;
 
     final CoreService mockCoreService = createMock(CoreService.class);
     private static final String REST_APP_ID = "org.onosproject.rest";
@@ -62,8 +68,10 @@ public class K8sApiConfigCodecTest {
     public void setUp() {
         context = new MockCodecContext();
         k8sApiConfigCodec = new K8sApiConfigCodec();
+        hostNodesInfoCodec = new HostNodesInfoCodec();
 
         assertThat(k8sApiConfigCodec, notNullValue());
+        assertThat(hostNodesInfoCodec, notNullValue());
 
         expect(mockCoreService.registerApplication(REST_APP_ID))
                 .andReturn(APP_ID).anyTimes();
@@ -76,7 +84,16 @@ public class K8sApiConfigCodecTest {
      */
     @Test
     public void testK8sApiConfigEncode() {
+        HostNodesInfo info = new DefaultHostNodesInfo.Builder()
+                .hostIp(IpAddress.valueOf("192.168.10.10"))
+                .nodes(ImmutableSet.of("master", "worker"))
+                .build();
+
         K8sApiConfig config = DefaultK8sApiConfig.builder()
+                .clusterName("kubernetes")
+                .segmentId(1)
+                .extNetworkCidr(IpPrefix.valueOf("192.168.200.0/24"))
+                .mode(K8sApiConfig.Mode.NORMAL)
                 .scheme(K8sApiConfig.Scheme.HTTPS)
                 .ipAddress(IpAddress.valueOf("10.10.10.23"))
                 .port(6443)
@@ -85,6 +102,7 @@ public class K8sApiConfigCodecTest {
                 .caCertData("caCertData")
                 .clientCertData("clientCertData")
                 .clientKeyData("clientKeyData")
+                .infos(ImmutableSet.of(info))
                 .build();
 
         ObjectNode configJson = k8sApiConfigCodec.encode(config, context);
@@ -100,6 +118,10 @@ public class K8sApiConfigCodecTest {
     public void testK8sApiConfigDecode() throws IOException {
         K8sApiConfig config = getK8sApiConfig("K8sApiConfig.json");
 
+        assertEquals("kubernetes", config.clusterName());
+        assertEquals(1, config.segmentId());
+        assertEquals("192.168.200.0/24", config.extNetworkCidr().toString());
+        assertEquals("NORMAL", config.mode().name());
         assertEquals("HTTPS", config.scheme().name());
         assertEquals("10.134.34.223", config.ipAddress().toString());
         assertEquals(6443, config.port());
@@ -107,6 +129,9 @@ public class K8sApiConfigCodecTest {
         assertEquals("caCertData", config.caCertData());
         assertEquals("clientCertData", config.clientCertData());
         assertEquals("clientKeyData", config.clientKeyData());
+
+        Set<HostNodesInfo> infos = config.infos();
+        assertEquals(1, infos.size());
     }
 
     private K8sApiConfig getK8sApiConfig(String resourceName) throws IOException {
@@ -140,6 +165,9 @@ public class K8sApiConfigCodecTest {
         public <T> JsonCodec<T> codec(Class<T> entityClass) {
             if (entityClass == K8sApiConfig.class) {
                 return (JsonCodec<T>) k8sApiConfigCodec;
+            }
+            if (entityClass == HostNodesInfo.class) {
+                return (JsonCodec<T>) hostNodesInfoCodec;
             }
             return manager.getCodec(entityClass);
         }

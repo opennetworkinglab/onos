@@ -1,0 +1,7 @@
+{
+  "type": "array",
+  "items": {
+    "type": "string",
+    "example": "k8s-master"
+  }
+}

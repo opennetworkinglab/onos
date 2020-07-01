@@ -72,12 +72,18 @@ public class K8sApiConfigManagerTest {
     public void setUp() {
 
         apiConfig1 = DefaultK8sApiConfig.builder()
+                .clusterName("kubernetes1")
+                .segmentId(1)
+                .mode(K8sApiConfig.Mode.NORMAL)
                 .scheme(K8sApiConfig.Scheme.HTTP)
                 .ipAddress(IpAddress.valueOf("10.10.10.2"))
                 .port(6443)
                 .state(DISCONNECTED)
                 .build();
         apiConfig2 = DefaultK8sApiConfig.builder()
+                .clusterName("kubernetes2")
+                .segmentId(2)
+                .mode(K8sApiConfig.Mode.NORMAL)
                 .scheme(K8sApiConfig.Scheme.HTTPS)
                 .ipAddress(IpAddress.valueOf("10.10.10.3"))
                 .port(6443)
@@ -88,6 +94,9 @@ public class K8sApiConfigManagerTest {
                 .clientKeyData("clientKeyData")
                 .build();
         apiConfig3 = DefaultK8sApiConfig.builder()
+                .clusterName("kubernetes3")
+                .segmentId(3)
+                .mode(K8sApiConfig.Mode.PASSTHROUGH)
                 .scheme(K8sApiConfig.Scheme.HTTP)
                 .ipAddress(IpAddress.valueOf("10.10.10.4"))
                 .port(8080)

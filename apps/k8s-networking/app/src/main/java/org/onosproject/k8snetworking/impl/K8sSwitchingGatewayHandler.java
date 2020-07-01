@@ -240,7 +240,7 @@ public class K8sSwitchingGatewayHandler {
         if (REPLY.equals(type)) {
             sBuilder.matchIPSrc(IpPrefix.valueOf(k8sNetwork.gatewayIp(),
                     HOST_PREFIX));
-            tBuilder.setOutput(k8sNode.localToIntgPatchPortNumber());
+            tBuilder.setOutput(k8sNode.localToIntgPatchPortNum());
         }
 
         k8sFlowRuleService.setRule(

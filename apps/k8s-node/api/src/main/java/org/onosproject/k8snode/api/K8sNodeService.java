@@ -36,6 +36,14 @@ public interface K8sNodeService extends ListenerService<K8sNodeEvent, K8sNodeLis
     Set<K8sNode> nodes();
 
     /**
+     * Returns kubernetes nodes associated with cluster name.
+     *
+     * @param clusterName cluster name
+     * @return set of kubernetes nodes
+     */
+    Set<K8sNode> nodes(String clusterName);
+
+    /**
      * Returns all nodes with the specified type.
      *
      * @param type node type

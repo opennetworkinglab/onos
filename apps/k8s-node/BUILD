@@ -1,6 +1,7 @@
 BUNDLES = JACKSON + [
     "//apps/k8s-node/api:onos-apps-k8s-node-api",
     "//apps/k8s-node/app:onos-apps-k8s-node-app",
+    "@commons_net//jar",
     "@k8s_client//jar",
     "@k8s_model//jar",
     "@okhttp//jar",
