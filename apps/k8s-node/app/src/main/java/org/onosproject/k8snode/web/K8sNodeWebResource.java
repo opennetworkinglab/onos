@@ -19,8 +19,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
+import org.onlab.packet.IpAddress;
 import org.onosproject.k8snode.api.K8sApiConfig;
 import org.onosproject.k8snode.api.K8sApiConfigAdminService;
+import org.onosproject.k8snode.api.K8sHost;
+import org.onosproject.k8snode.api.K8sHostAdminService;
 import org.onosproject.k8snode.api.K8sNode;
 import org.onosproject.k8snode.api.K8sNodeAdminService;
 import org.onosproject.k8snode.api.K8sNodeState;
@@ -42,6 +45,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.io.InputStream;
+import java.util.HashSet;
 import java.util.Set;
 
 import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
@@ -61,11 +65,15 @@ public class K8sNodeWebResource extends AbstractWebResource {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final String MESSAGE_NODE = "Received node %s request";
+    private static final String MESSAGE_HOST = "Received host %s request";
     private static final String NODES = "nodes";
     private static final String API_CONFIGS = "apiConfigs";
+    private static final String HOSTS = "hosts";
+    private static final String NODE_NAMES = "nodeNames";
     private static final String CREATE = "CREATE";
     private static final String UPDATE = "UPDATE";
     private static final String NODE_ID = "NODE_ID";
+    private static final String HOST_IP = "HOST_IP";
     private static final String REMOVE = "REMOVE";
     private static final String QUERY = "QUERY";
     private static final String INIT = "INIT";
@@ -78,6 +86,7 @@ public class K8sNodeWebResource extends AbstractWebResource {
     private static final String ERROR_MESSAGE = " cannot be null";
 
     private final K8sNodeAdminService nodeAdminService = get(K8sNodeAdminService.class);
+    private final K8sHostAdminService hostAdminService = get(K8sHostAdminService.class);
     private final K8sApiConfigAdminService configAdminService = get(K8sApiConfigAdminService.class);
 
     @Context
@@ -155,8 +164,8 @@ public class K8sNodeWebResource extends AbstractWebResource {
     public Response deleteNodes(@PathParam("hostname") String hostname) {
         log.trace(String.format(MESSAGE_NODE, REMOVE));
 
-        K8sNode existing =
-                nodeAdminService.node(nullIsIllegal(hostname, HOST_NAME + ERROR_MESSAGE));
+        K8sNode existing = nodeAdminService.node(
+                nullIsIllegal(hostname, HOST_NAME + ERROR_MESSAGE));
 
         if (existing == null) {
             log.warn("There is no node configuration to delete : {}", hostname);
@@ -293,30 +302,6 @@ public class K8sNodeWebResource extends AbstractWebResource {
         return ok(mapper().createObjectNode().put(RESULT, result)).build();
     }
 
-    private Set<K8sNode> readNodeConfiguration(InputStream input) {
-        Set<K8sNode> nodeSet = Sets.newHashSet();
-        try {
-            JsonNode jsonTree = readTreeFromStream(mapper().enable(INDENT_OUTPUT), input);
-            ArrayNode nodes = (ArrayNode) jsonTree.path(NODES);
-            nodes.forEach(node -> {
-                try {
-                    ObjectNode objectNode = node.deepCopy();
-                    K8sNode k8sNode =
-                            codec(K8sNode.class).decode(objectNode, this);
-
-                    nodeSet.add(k8sNode);
-                } catch (Exception e) {
-                    log.error("Exception occurred due to {}", e);
-                    throw new IllegalArgumentException();
-                }
-            });
-        } catch (Exception e) {
-            throw new IllegalArgumentException(e);
-        }
-
-        return nodeSet;
-    }
-
     /**
      * Creates a set of kubernetes API config from the JSON input stream.
      *
@@ -387,8 +372,8 @@ public class K8sNodeWebResource extends AbstractWebResource {
     public Response deleteApiConfig(@PathParam("endpoint") String endpoint) {
         log.trace(String.format(MESSAGE_NODE, REMOVE));
 
-        K8sApiConfig existing =
-                configAdminService.apiConfig(nullIsIllegal(endpoint, ENDPOINT + ERROR_MESSAGE));
+        K8sApiConfig existing = configAdminService.apiConfig(
+                nullIsIllegal(endpoint, ENDPOINT + ERROR_MESSAGE));
 
         if (existing == null) {
             log.warn("There is no API configuration to delete : {}", endpoint);
@@ -398,6 +383,139 @@ public class K8sNodeWebResource extends AbstractWebResource {
         }
 
         return Response.noContent().build();
+    }
+
+    /**
+     * Creates a set of kubernetes hosts' config from the JSON input stream.
+     *
+     * @param input kubernetes hosts JSON input stream
+     * @return 201 CREATED if the JSON is correct, 400 BAD_REQUEST if the JSON
+     * is malformed
+     * @onos.rsModel K8sHosts
+     */
+    @POST
+    @Path("host")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response createHosts(InputStream input) {
+        log.trace(String.format(MESSAGE_NODE, CREATE));
+
+        readHostsConfiguration(input).forEach(host -> {
+            K8sHost existing = hostAdminService.host(host.hostIp());
+            if (existing == null) {
+                hostAdminService.createHost(host);
+            }
+        });
+
+        UriBuilder locationBuilder = uriInfo.getBaseUriBuilder()
+                .path(HOSTS)
+                .path(HOST_IP);
+
+        return created(locationBuilder.build()).build();
+    }
+
+    /**
+     * Add a set of new nodes into the existing host.
+     *
+     * @param hostIp host IP address
+     * @param input kubernetes node names JSON input stream
+     * @return 200 UPDATED if the JSON is correct, 400 BAD_REQUEST if the JSON
+     * is malformed
+     * @onos.rsModel K8sNodeNames
+     */
+    @PUT
+    @Path("host/add/nodes/{hostIp}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response addNodesToHost(@PathParam("hostIp") String hostIp,
+                                   InputStream input) {
+        log.trace(String.format(MESSAGE_HOST, UPDATE));
+
+        Set<String> newNodeNames = readNodeNamesConfiguration(input);
+        K8sHost host = hostAdminService.host(IpAddress.valueOf(hostIp));
+        Set<String> existNodeNames = host.nodeNames();
+        existNodeNames.addAll(newNodeNames);
+        K8sHost updated = host.updateNodeNames(existNodeNames);
+        hostAdminService.updateHost(updated);
+        return Response.ok().build();
+    }
+
+    /**
+     * Remove a set of new nodes from the existing host.
+     *
+     * @param hostIp host IP address
+     * @param input kubernetes node names JSON input stream
+     * @return 200 UPDATED if the JSON is correct, 400 BAD_REQUEST if the JSON
+     * is malformed
+     * @onos.rsModel K8sNodeNames
+     */
+    @PUT
+    @Path("host/delete/nodes/{hostIp}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response removeNodesFromHost(@PathParam("hostIp") String hostIp,
+                                        InputStream input) {
+        log.trace(String.format(MESSAGE_HOST, UPDATE));
+
+        Set<String> newNodeNames = readNodeNamesConfiguration(input);
+        K8sHost host = hostAdminService.host(IpAddress.valueOf(hostIp));
+        Set<String> existNodeNames = host.nodeNames();
+        existNodeNames.removeAll(newNodeNames);
+        K8sHost updated = host.updateNodeNames(existNodeNames);
+        hostAdminService.updateHost(updated);
+        return Response.ok().build();
+    }
+
+    /**
+     * Removes a kubernetes host' config.
+     *
+     * @param hostIp host IP contained in kubernetes nodes configuration
+     * @return 204 NO_CONTENT, 400 BAD_REQUEST if the JSON is malformed, and
+     * 304 NOT_MODIFIED without the updated config
+     */
+    @DELETE
+    @Path("host/{hostIp}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteHost(@PathParam("hostIp") String hostIp) {
+        log.trace(String.format(MESSAGE_HOST, REMOVE));
+
+        K8sHost existing = hostAdminService.host(IpAddress.valueOf(
+                        nullIsIllegal(hostIp, HOST_IP + ERROR_MESSAGE)));
+
+        if (existing == null) {
+            log.warn("There is no host configuration to delete : {}", hostIp);
+            return Response.notModified().build();
+        } else {
+            hostAdminService.removeHost(IpAddress.valueOf(
+                    nullIsIllegal(hostIp, HOST_IP + ERROR_MESSAGE)));
+        }
+
+        return Response.noContent().build();
+    }
+
+    private Set<K8sNode> readNodeConfiguration(InputStream input) {
+        Set<K8sNode> nodeSet = Sets.newHashSet();
+        try {
+            JsonNode jsonTree = readTreeFromStream(mapper().enable(INDENT_OUTPUT), input);
+            ArrayNode nodes = (ArrayNode) jsonTree.path(NODES);
+            nodes.forEach(node -> {
+                try {
+                    ObjectNode objectNode = node.deepCopy();
+                    K8sNode k8sNode =
+                            codec(K8sNode.class).decode(objectNode, this);
+
+                    nodeSet.add(k8sNode);
+                } catch (Exception e) {
+                    log.error("Exception occurred due to {}", e);
+                    throw new IllegalArgumentException();
+                }
+            });
+        } catch (Exception e) {
+            throw new IllegalArgumentException(e);
+        }
+
+        return nodeSet;
     }
 
     private Set<K8sApiConfig> readApiConfigConfiguration(InputStream input) {
@@ -422,5 +540,50 @@ public class K8sNodeWebResource extends AbstractWebResource {
         }
 
         return configSet;
+    }
+
+    private Set<K8sHost> readHostsConfiguration(InputStream input) {
+        Set<K8sHost> hostSet = new HashSet<>();
+        try {
+            JsonNode jsonTree = readTreeFromStream(mapper().enable(INDENT_OUTPUT), input);
+            ArrayNode hosts = (ArrayNode) jsonTree.path(HOSTS);
+            hosts.forEach(host -> {
+                try {
+                    ObjectNode objectNode = host.deepCopy();
+                    K8sHost k8sHost =
+                            codec(K8sHost.class).decode(objectNode, this);
+
+                    hostSet.add(k8sHost);
+                } catch (Exception e) {
+                    log.error("Exception occurred due to {}", e);
+                    throw new IllegalArgumentException();
+                }
+            });
+        } catch (Exception e) {
+            throw new IllegalArgumentException(e);
+        }
+
+        return hostSet;
+    }
+
+    private Set<String> readNodeNamesConfiguration(InputStream input) {
+        Set<String> nodeNames = new HashSet<>();
+        try {
+            JsonNode jsonTree = readTreeFromStream(mapper().enable(INDENT_OUTPUT), input);
+            ArrayNode names = (ArrayNode) jsonTree.path(NODE_NAMES);
+            names.forEach(name -> {
+                try {
+                    ObjectNode objectNode = name.deepCopy();
+                    nodeNames.add(objectNode.asText());
+                } catch (Exception e) {
+                    log.error("Exception occurred due to {}", e);
+                    throw new IllegalArgumentException();
+                }
+            });
+        } catch (Exception e) {
+            throw new IllegalArgumentException(e);
+        }
+
+        return nodeNames;
     }
 }

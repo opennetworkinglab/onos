@@ -19,7 +19,10 @@ import com.google.common.collect.ImmutableSet;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.k8snode.api.DefaultK8sExternalNetwork;
 import org.onosproject.k8snode.api.DefaultK8sNode;
+import org.onosproject.k8snode.api.K8sApiConfig;
+import org.onosproject.k8snode.api.K8sExternalNetwork;
 import org.onosproject.k8snode.api.K8sNode;
 import org.onosproject.k8snode.api.K8sNodeEvent;
 import org.onosproject.k8snode.api.K8sNodeState;
@@ -77,6 +80,9 @@ public class DistributedK8sNodeStore
             .register(DefaultK8sNode.class)
             .register(K8sNode.Type.class)
             .register(K8sNodeState.class)
+            .register(K8sApiConfig.Mode.class)
+            .register(K8sExternalNetwork.class)
+            .register(DefaultK8sExternalNetwork.class)
             .register(Collection.class)
             .build();
 

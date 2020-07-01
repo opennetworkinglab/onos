@@ -1,0 +1,31 @@
+{
+  "type": "object",
+  "required": [
+    "hosts"
+  ],
+  "properties": {
+    "hosts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "hostIp",
+          "nodeNames"
+        ],
+        "properties": {
+          "hostIp": {
+            "type": "string",
+            "example": "192.168.200.10"
+          },
+          "nodeNames": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "example": "k8s-master"
+            }
+          }
+        }
+      }
+    }
+  }
+}

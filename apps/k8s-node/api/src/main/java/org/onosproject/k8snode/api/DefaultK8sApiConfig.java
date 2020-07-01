@@ -16,11 +16,17 @@
 package org.onosproject.k8snode.api;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableSet;
+import org.apache.commons.lang.StringUtils;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 
 import java.util.Objects;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static org.onosproject.k8snode.api.Constants.DEFAULT_CLUSTER_NAME;
+import static org.onosproject.k8snode.api.K8sApiConfig.Mode.NORMAL;
 import static org.onosproject.k8snode.api.K8sApiConfig.Scheme.HTTPS;
 
 /**
@@ -30,7 +36,13 @@ public final class DefaultK8sApiConfig implements K8sApiConfig {
 
     private static final String NOT_NULL_MSG = "API Config % cannot be null";
 
+    private static final int SHORT_NAME_LENGTH = 10;
+
+    private final String clusterName;
+    private final int segmentId;
+    private final IpPrefix extNetworkCidr;
     private final Scheme scheme;
+    private final Mode mode;
     private final IpAddress ipAddress;
     private final int port;
     private final State state;
@@ -38,18 +50,45 @@ public final class DefaultK8sApiConfig implements K8sApiConfig {
     private final String caCertData;
     private final String clientCertData;
     private final String clientKeyData;
+    private final Set<HostNodesInfo> infos;
 
-    private DefaultK8sApiConfig(Scheme scheme, IpAddress ipAddress, int port,
-                                State state, String token, String caCertData,
-                                String clientCertData, String clientKeyData) {
+    private DefaultK8sApiConfig(String clusterName, int segmentId, IpPrefix extNetworkCidr,
+                                Scheme scheme, IpAddress ipAddress, int port,
+                                Mode mode, State state, String token, String caCertData,
+                                String clientCertData, String clientKeyData, Set<HostNodesInfo> infos) {
+        this.clusterName = clusterName;
+        this.segmentId = segmentId;
+        this.extNetworkCidr = extNetworkCidr;
         this.scheme = scheme;
         this.ipAddress = ipAddress;
         this.port = port;
+        this.mode = mode;
         this.state = state;
         this.token = token;
         this.caCertData = caCertData;
         this.clientCertData = clientCertData;
         this.clientKeyData = clientKeyData;
+        this.infos = infos;
+    }
+
+    @Override
+    public String clusterName() {
+        return clusterName;
+    }
+
+    @Override
+    public String clusterShortName() {
+        return StringUtils.substring(clusterName, 0, SHORT_NAME_LENGTH);
+    }
+
+    @Override
+    public int segmentId() {
+        return segmentId;
+    }
+
+    @Override
+    public IpPrefix extNetworkCidr() {
+        return extNetworkCidr;
     }
 
     @Override
@@ -73,16 +112,26 @@ public final class DefaultK8sApiConfig implements K8sApiConfig {
     }
 
     @Override
+    public Mode mode() {
+        return mode;
+    }
+
+    @Override
     public K8sApiConfig updateState(State newState) {
         return new Builder()
+                .clusterName(clusterName)
+                .segmentId(segmentId)
+                .extNetworkCidr(extNetworkCidr)
                 .scheme(scheme)
                 .ipAddress(ipAddress)
                 .port(port)
                 .state(newState)
+                .mode(mode)
                 .token(token)
                 .caCertData(caCertData)
                 .clientCertData(clientCertData)
                 .clientKeyData(clientKeyData)
+                .infos(infos)
                 .build();
     }
 
@@ -107,6 +156,11 @@ public final class DefaultK8sApiConfig implements K8sApiConfig {
     }
 
     @Override
+    public Set<HostNodesInfo> infos() {
+        return ImmutableSet.copyOf(infos);
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -117,31 +171,41 @@ public final class DefaultK8sApiConfig implements K8sApiConfig {
         DefaultK8sApiConfig that = (DefaultK8sApiConfig) o;
         return port == that.port &&
                 scheme == that.scheme &&
+                clusterName.equals(that.clusterName) &&
+                segmentId == that.segmentId &&
+                extNetworkCidr == that.extNetworkCidr &&
                 ipAddress.equals(that.ipAddress) &&
+                mode == that.mode &&
                 state == that.state &&
                 token.equals(that.token) &&
                 caCertData.equals(that.caCertData) &&
                 clientCertData.equals(that.clientCertData) &&
-                clientKeyData.equals(that.clientKeyData);
+                clientKeyData.equals(that.clientKeyData) &&
+                infos.equals(that.infos);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(scheme, ipAddress, port, state, token, caCertData,
-                clientCertData, clientKeyData);
+        return Objects.hash(clusterName, segmentId, extNetworkCidr, scheme, ipAddress,
+                port, mode, state, token, caCertData, clientCertData, clientKeyData, infos);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
+                .add("clusterName", clusterName)
+                .add("segmentID", segmentId)
+                .add("extNetworkCIDR", extNetworkCidr)
                 .add("scheme", scheme)
                 .add("ipAddress", ipAddress)
                 .add("port", port)
+                .add("mode", mode)
                 .add("state", state)
                 .add("token", token)
                 .add("caCertData", caCertData)
                 .add("clientCertData", clientCertData)
                 .add("clientKeyData", clientKeyData)
+                .add("infos", infos)
                 .toString();
     }
 
@@ -156,7 +220,11 @@ public final class DefaultK8sApiConfig implements K8sApiConfig {
 
     public static final class Builder implements K8sApiConfig.Builder {
 
+        private String clusterName;
+        private int segmentId;
+        private IpPrefix extNetworkCidr;
         private Scheme scheme;
+        private Mode mode;
         private IpAddress ipAddress;
         private int port;
         private State state;
@@ -164,6 +232,7 @@ public final class DefaultK8sApiConfig implements K8sApiConfig {
         private String caCertData;
         private String clientCertData;
         private String clientKeyData;
+        private Set<HostNodesInfo> infos;
 
         @Override
         public K8sApiConfig build() {
@@ -177,8 +246,38 @@ public final class DefaultK8sApiConfig implements K8sApiConfig {
                 checkArgument(clientKeyData != null, NOT_NULL_MSG, "clientKeyData");
             }
 
-            return new DefaultK8sApiConfig(scheme, ipAddress, port, state, token,
-                    caCertData, clientCertData, clientKeyData);
+            if (StringUtils.isEmpty(clusterName)) {
+                clusterName = DEFAULT_CLUSTER_NAME;
+            }
+
+            if (mode == null) {
+                mode = NORMAL;
+            }
+
+            if (infos == null) {
+                infos = ImmutableSet.of();
+            }
+
+            return new DefaultK8sApiConfig(clusterName, segmentId, extNetworkCidr, scheme, ipAddress,
+                    port, mode, state, token, caCertData, clientCertData, clientKeyData, infos);
+        }
+
+        @Override
+        public Builder clusterName(String clusterName) {
+            this.clusterName = clusterName;
+            return this;
+        }
+
+        @Override
+        public Builder segmentId(int segmentId) {
+            this.segmentId = segmentId;
+            return this;
+        }
+
+        @Override
+        public K8sApiConfig.Builder extNetworkCidr(IpPrefix extNetworkCidr) {
+            this.extNetworkCidr = extNetworkCidr;
+            return this;
         }
 
         @Override
@@ -206,6 +305,12 @@ public final class DefaultK8sApiConfig implements K8sApiConfig {
         }
 
         @Override
+        public K8sApiConfig.Builder mode(Mode mode) {
+            this.mode = mode;
+            return this;
+        }
+
+        @Override
         public Builder token(String token) {
             this.token = token;
             return this;
@@ -226,6 +331,12 @@ public final class DefaultK8sApiConfig implements K8sApiConfig {
         @Override
         public Builder clientKeyData(String clientKeyData) {
             this.clientKeyData = clientKeyData;
+            return this;
+        }
+
+        @Override
+        public K8sApiConfig.Builder infos(Set<HostNodesInfo> infos) {
+            this.infos = infos;
             return this;
         }
     }

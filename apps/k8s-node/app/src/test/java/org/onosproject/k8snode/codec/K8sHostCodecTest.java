@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-present Open Networking Foundation
+ * Copyright 2020-present Open Networking Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.onosproject.k8snode.codec;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
@@ -25,10 +26,8 @@ import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.codec.impl.CodecManager;
 import org.onosproject.core.CoreService;
-import org.onosproject.k8snode.api.DefaultK8sNode;
-import org.onosproject.k8snode.api.K8sNode;
-import org.onosproject.k8snode.api.K8sNodeState;
-import org.onosproject.net.DeviceId;
+import org.onosproject.k8snode.api.DefaultK8sHost;
+import org.onosproject.k8snode.api.K8sHost;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,17 +40,15 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.onosproject.k8snode.codec.K8sNodeJsonMatcher.matchesK8sNode;
+import static org.onosproject.k8snode.api.K8sHostState.INIT;
+import static org.onosproject.k8snode.codec.K8sHostJsonMatcher.matchesK8sHost;
 import static org.onosproject.net.NetTestTools.APP_ID;
 
-/**
- * Unit tests for Kubernetes Node codec.
- */
-public class K8sNodeCodecTest {
+public class K8sHostCodecTest {
 
     MockCodecContext context;
 
-    JsonCodec<K8sNode> k8sNodeCodec;
+    JsonCodec<K8sHost> k8sHostCodec;
 
     final CoreService mockCoreService = createMock(CoreService.class);
     private static final String REST_APP_ID = "org.onosproject.rest";
@@ -62,9 +59,9 @@ public class K8sNodeCodecTest {
     @Before
     public void setUp() {
         context = new MockCodecContext();
-        k8sNodeCodec = new K8sNodeCodec();
+        k8sHostCodec = new K8sHostCodec();
 
-        assertThat(k8sNodeCodec, notNullValue());
+        assertThat(k8sHostCodec, notNullValue());
 
         expect(mockCoreService.registerApplication(REST_APP_ID))
                 .andReturn(APP_ID).anyTimes();
@@ -73,56 +70,38 @@ public class K8sNodeCodecTest {
     }
 
     /**
-     * Tests the kubernetes minion node encoding.
+     * Tests the kubernetes host encoding.
      */
     @Test
-    public void testK8sMinionNodeEncode() {
-        K8sNode node = DefaultK8sNode.builder()
-                .clusterName("kubernetes")
-                .hostname("minion")
-                .type(K8sNode.Type.MINION)
-                .segmentId(100)
-                .state(K8sNodeState.INIT)
-                .managementIp(IpAddress.valueOf("10.10.10.1"))
-                .dataIp(IpAddress.valueOf("20.20.20.2"))
-                .intgBridge(DeviceId.deviceId("kbr-int"))
-                .extIntf("eth1")
-                .extBridgeIp(IpAddress.valueOf("10.10.10.5"))
-                .extGatewayIp(IpAddress.valueOf("10.10.10.1"))
+    public void testK8sHostEncode() {
+        K8sHost host = DefaultK8sHost.builder()
+                .hostIp(IpAddress.valueOf("192.168.200.10"))
+                .state(INIT)
+                .nodeNames(ImmutableSet.of("1", "2"))
                 .build();
 
-        ObjectNode nodeJson = k8sNodeCodec.encode(node, context);
-        assertThat(nodeJson, matchesK8sNode(node));
+        ObjectNode hostJson = k8sHostCodec.encode(host, context);
+        assertThat(hostJson, matchesK8sHost(host));
     }
 
     /**
-     * Tests the kubernetes minion node decoding.
-     *
-     * @throws IOException IO exception
+     * Tests the kubernetes host decoding.
      */
     @Test
-    public void testK8sMinionNodeDecode() throws IOException {
-        K8sNode node = getK8sNode("K8sMinionNode.json");
+    public void testK8sHostDecode() throws IOException {
+        K8sHost host = getK8sHost("K8sHost.json");
 
-        assertEquals("kubernetes", node.clusterName());
-        assertEquals("minion", node.hostname());
-        assertEquals("MINION", node.type().name());
-        assertEquals(100, node.segmentId());
-        assertEquals("172.16.130.4", node.managementIp().toString());
-        assertEquals("172.16.130.4", node.dataIp().toString());
-        assertEquals("of:00000000000000a1", node.intgBridge().toString());
-        assertEquals("eth1", node.extIntf());
-        assertEquals("172.16.130.5", node.extBridgeIp().toString());
-        assertEquals("172.16.130.1", node.extGatewayIp().toString());
+        assertEquals("192.168.200.10", host.hostIp().toString());
+        assertEquals("INIT", host.state().name());
     }
 
-    private K8sNode getK8sNode(String resourceName) throws IOException {
-        InputStream jsonStream = K8sNodeCodecTest.class.getResourceAsStream(resourceName);
+    private K8sHost getK8sHost(String resourceName) throws IOException {
+        InputStream jsonStream = K8sHostCodecTest.class.getResourceAsStream(resourceName);
         JsonNode json = context.mapper().readTree(jsonStream);
         assertThat(json, notNullValue());
-        K8sNode node = k8sNodeCodec.decode((ObjectNode) json, context);
-        assertThat(node, notNullValue());
-        return node;
+        K8sHost host = k8sHostCodec.decode((ObjectNode) json, context);
+        assertThat(host, notNullValue());
+        return host;
     }
 
     private class MockCodecContext implements CodecContext {
@@ -145,8 +124,8 @@ public class K8sNodeCodecTest {
         @Override
         @SuppressWarnings("unchecked")
         public <T> JsonCodec<T> codec(Class<T> entityClass) {
-            if (entityClass == K8sNode.class) {
-                return (JsonCodec<T>) k8sNodeCodec;
+            if (entityClass == K8sHost.class) {
+                return (JsonCodec<T>) k8sHostCodec;
             }
             return manager.getCodec(entityClass);
         }

@@ -9,6 +9,7 @@
       "items": {
         "type": "object",
         "required": [
+          "clusterName",
           "hostname",
           "type",
           "managementIp",
@@ -16,6 +17,10 @@
           "integrationBridge"
         ],
         "properties": {
+          "clusterName": {
+            "type": "string",
+            "example": "kubernetes"
+          },
           "hostname": {
             "type": "string",
             "example": "host1"

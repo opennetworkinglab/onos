@@ -1,9 +1,21 @@
 {
+  "clusterName": "kubernetes",
+  "segmentId": 1,
+  "extNetworkCidr": "192.168.200.0/24",
+  "mode": "NORMAL",
   "scheme" : "HTTPS",
   "ipAddress" : "10.134.34.223",
   "port" : 6443,
   "token": "token",
   "caCertData": "caCertData",
   "clientCertData": "clientCertData",
-  "clientKeyData": "clientKeyData"
+  "clientKeyData": "clientKeyData",
+  "hostNodesInfo": [
+    {
+      "hostIp": "192.168.10.10",
+      "nodes": [
+        "master", "worker"
+      ]
+    }
+  ]
 }

@@ -1,6 +1,7 @@
 {
   "nodes" : [
     {
+      "clusterName": "kubernetes",
       "hostname" : "minion-node",
       "type" : "MINION",
       "managementIp" : "10.134.231.32",
