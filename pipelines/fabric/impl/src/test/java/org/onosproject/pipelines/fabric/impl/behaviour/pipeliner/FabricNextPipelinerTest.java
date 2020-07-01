@@ -39,7 +39,7 @@ import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionParam;
 import org.onosproject.net.pi.runtime.PiActionProfileGroupId;
 import org.onosproject.net.pi.runtime.PiGroupKey;
-import org.onosproject.pipelines.fabric.impl.behaviour.FabricConstants;
+import org.onosproject.pipelines.fabric.FabricConstants;
 
 import java.util.List;
 import java.util.stream.Collectors;

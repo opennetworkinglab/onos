@@ -19,7 +19,7 @@ package org.onosproject.pipelines.fabric.impl.behaviour.bng;
 import com.google.common.collect.ImmutableList;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.PiCriterion;
-import org.onosproject.pipelines.fabric.impl.behaviour.FabricConstants;
+import org.onosproject.pipelines.fabric.FabricConstants;
 
 import java.util.Set;
 import java.util.stream.Collectors;

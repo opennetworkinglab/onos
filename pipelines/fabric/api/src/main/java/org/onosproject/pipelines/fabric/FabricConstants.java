@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.onosproject.pipelines.fabric.impl.behaviour;
+package org.onosproject.pipelines.fabric;
 
 import org.onosproject.net.pi.model.PiActionId;
 import org.onosproject.net.pi.model.PiActionParamId;
