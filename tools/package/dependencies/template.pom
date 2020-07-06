@@ -33,7 +33,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <karaf.version>4.2.8</karaf.version>
+        <karaf.version>4.2.9</karaf.version>
         <maven.version.min>3.3.9</maven.version.min>
         <java.version.min><!-- JAVA_VERSION --></java.version.min>
         <onos.version><!-- ONOS_VERSION --></onos.version>
