@@ -116,7 +116,7 @@ PROVIDER_MAP = {
 }
 
 PROVIDER_APP_MAP = {
-    "//providers/general:onos-providers-general-oar": ["minimal", "stratum"],
+    "//providers/general:onos-providers-general-oar": ["stratum"],
     "//providers/bgp:onos-providers-bgp-oar": [],
     "//providers/bgpcep:onos-providers-bgpcep-oar": [],
     "//providers/host:onos-providers-host-oar": ["seba", "stratum"],
