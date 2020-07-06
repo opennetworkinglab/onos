@@ -102,7 +102,7 @@ FEATURES_HEADER = '''\
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.2.0"
           name="onos-%s">
-    <repository>mvn:org.apache.karaf.features/standard/4.2.8/xml/features</repository>
+    <repository>mvn:org.apache.karaf.features/standard/4.2.9/xml/features</repository>
 ''' % ONOS_VERSION
 
 FEATURES_FOOTER = "</features>"
