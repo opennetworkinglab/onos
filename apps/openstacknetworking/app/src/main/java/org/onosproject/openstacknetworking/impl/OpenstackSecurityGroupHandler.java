@@ -115,9 +115,9 @@ import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.GRE;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.VLAN;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.VXLAN;
 import static org.onosproject.openstacknetworking.api.OpenstackNetworkEvent.Type.OPENSTACK_PORT_PRE_REMOVE;
-import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValueAsBoolean;
 import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.USE_SECURITY_GROUP;
 import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.USE_SECURITY_GROUP_DEFAULT;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValueAsBoolean;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.swapStaleLocation;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.computeCtMaskFlag;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.computeCtStateFlag;
@@ -221,8 +221,16 @@ public class OpenstackSecurityGroupHandler {
             groupedThreads(this.getClass().getSimpleName(), "event-handler"));
 
     private static final String PROTO_ICMP = "ICMP";
+    private static final String PROTO_ICMP_NUM = "1";
     private static final String PROTO_TCP = "TCP";
+    private static final String PROTO_TCP_NUM = "6";
     private static final String PROTO_UDP = "UDP";
+    private static final String PROTO_UDP_NUM = "17";
+    private static final String PROTO_SCTP = "SCTP";
+    private static final String PROTO_SCTP_NUM = "132";
+    private static final byte PROTOCOL_SCTP = (byte) 0x84;
+    private static final String PROTO_ANY = "ANY";
+    private static final String PROTO_ANY_NUM = "0";
     private static final String ETHTYPE_IPV4 = "IPV4";
     private static final String EGRESS = "EGRESS";
     private static final String INGRESS = "INGRESS";
@@ -383,10 +391,39 @@ public class OpenstackSecurityGroupHandler {
         }
     }
 
+    private boolean checkProtocol(String protocol) {
+        if (protocol == null) {
+            log.debug("No protocol was specified, use default IP(v4/v6) protocol.");
+            return true;
+        } else {
+            String protocolUpper = protocol.toUpperCase();
+            if (protocolUpper.equals(PROTO_TCP) ||
+                    protocolUpper.equals(PROTO_UDP) ||
+                    protocolUpper.equals(PROTO_ICMP) ||
+                    protocolUpper.equals(PROTO_SCTP) ||
+                    protocolUpper.equals(PROTO_ANY) ||
+                    protocol.equals(PROTO_TCP_NUM) ||
+                    protocol.equals(PROTO_UDP_NUM) ||
+                    protocol.equals(PROTO_ICMP_NUM) ||
+                    protocol.equals(PROTO_SCTP_NUM) ||
+                    protocol.equals(PROTO_ANY_NUM)) {
+                return true;
+            } else {
+                log.error("Unsupported protocol {}, we only support " +
+                        "TCP/UDP/ICMP/SCTP protocols.", protocol);
+                return false;
+            }
+        }
+    }
+
     private void populateSecurityGroupRule(SecurityGroupRule sgRule,
                                            InstancePort instPort,
                                            IpPrefix remoteIp,
                                            boolean install) {
+        if (!checkProtocol(sgRule.getProtocol())) {
+            return;
+        }
+
         Set<TrafficSelector> selectors = buildSelectors(sgRule,
                         Ip4Address.valueOf(instPort.ipAddress().toInetAddress()),
                                     remoteIp, instPort.networkId());
@@ -562,7 +599,8 @@ public class OpenstackSecurityGroupHandler {
                 TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
                 buildMatches(sBuilder, sgRule, vmIp, remoteIp, netId);
 
-                if (sgRule.getProtocol().equalsIgnoreCase(PROTO_TCP)) {
+                if (sgRule.getProtocol().equalsIgnoreCase(PROTO_TCP) ||
+                        sgRule.getProtocol().equals(PROTO_TCP_NUM)) {
                     if (sgRule.getDirection().equalsIgnoreCase(EGRESS)) {
                         if (value.toInt() == TpPort.MAX_PORT) {
                             sBuilder.matchTcpSrc(key);
@@ -576,7 +614,8 @@ public class OpenstackSecurityGroupHandler {
                             sBuilder.matchTcpDstMasked(key, value);
                         }
                     }
-                } else if (sgRule.getProtocol().equalsIgnoreCase(PROTO_UDP)) {
+                } else if (sgRule.getProtocol().equalsIgnoreCase(PROTO_UDP) ||
+                        sgRule.getProtocol().equals(PROTO_UDP_NUM)) {
                     if (sgRule.getDirection().equalsIgnoreCase(EGRESS)) {
                         if (value.toInt() == TpPort.MAX_PORT) {
                             sBuilder.matchUdpSrc(key);
@@ -588,6 +627,21 @@ public class OpenstackSecurityGroupHandler {
                             sBuilder.matchUdpDst(key);
                         } else {
                             sBuilder.matchUdpDstMasked(key, value);
+                        }
+                    }
+                } else if (sgRule.getProtocol().equalsIgnoreCase(PROTO_SCTP) ||
+                        sgRule.getProtocol().equals(PROTO_SCTP_NUM)) {
+                    if (sgRule.getDirection().equalsIgnoreCase(EGRESS)) {
+                        if (value.toInt() == TpPort.MAX_PORT) {
+                            sBuilder.matchSctpSrc(key);
+                        } else {
+                            sBuilder.matchSctpSrcMasked(key, value);
+                        }
+                    } else {
+                        if (value.toInt() == TpPort.MAX_PORT) {
+                            sBuilder.matchSctpDst(key);
+                        } else {
+                            sBuilder.matchSctpDstMasked(key, value);
                         }
                     }
                 }
@@ -615,6 +669,8 @@ public class OpenstackSecurityGroupHandler {
         buildMatchPort(sBuilder, sgRule.getProtocol(), sgRule.getDirection(),
                 sgRule.getPortRangeMin() == null ? 0 : sgRule.getPortRangeMin(),
                 sgRule.getPortRangeMax() == null ? 0 : sgRule.getPortRangeMax());
+        buildMatchIcmp(sBuilder, sgRule.getProtocol(),
+                sgRule.getPortRangeMin(), sgRule.getPortRangeMax());
         buildMatchRemoteIp(sBuilder, remoteIp, sgRule.getDirection());
     }
 
@@ -666,15 +722,23 @@ public class OpenstackSecurityGroupHandler {
         if (protocol != null) {
             switch (protocol.toUpperCase()) {
                 case PROTO_ICMP:
+                case PROTO_ICMP_NUM:
                     sBuilder.matchIPProtocol(IPv4.PROTOCOL_ICMP);
                     break;
                 case PROTO_TCP:
+                case PROTO_TCP_NUM:
                     sBuilder.matchIPProtocol(IPv4.PROTOCOL_TCP);
                     break;
                 case PROTO_UDP:
+                case PROTO_UDP_NUM:
                     sBuilder.matchIPProtocol(IPv4.PROTOCOL_UDP);
                     break;
+                case PROTO_SCTP:
+                case PROTO_SCTP_NUM:
+                    sBuilder.matchIPProtocol(PROTOCOL_SCTP);
+                    break;
                 default:
+                    break;
             }
         }
     }
@@ -682,18 +746,44 @@ public class OpenstackSecurityGroupHandler {
     private void buildMatchPort(TrafficSelector.Builder sBuilder,
                                 String protocol, String direction,
                                 int portMin, int portMax) {
-        if (portMin > 0 && portMax > 0 && portMin == portMax) {
-            if (protocol.equalsIgnoreCase(PROTO_TCP)) {
+        if (portMax > 0 && portMin == portMax) {
+            if (protocol.equalsIgnoreCase(PROTO_TCP) ||
+                    protocol.equals(PROTO_TCP_NUM)) {
                 if (direction.equalsIgnoreCase(EGRESS)) {
                     sBuilder.matchTcpSrc(TpPort.tpPort(portMax));
                 } else {
                     sBuilder.matchTcpDst(TpPort.tpPort(portMax));
                 }
-            } else if (protocol.equalsIgnoreCase(PROTO_UDP)) {
+            } else if (protocol.equalsIgnoreCase(PROTO_UDP) ||
+                    protocol.equals(PROTO_UDP_NUM)) {
                 if (direction.equalsIgnoreCase(EGRESS)) {
                     sBuilder.matchUdpSrc(TpPort.tpPort(portMax));
                 } else {
                     sBuilder.matchUdpDst(TpPort.tpPort(portMax));
+                }
+            } else if (protocol.equalsIgnoreCase(PROTO_SCTP) ||
+                    protocol.equals(PROTO_SCTP_NUM)) {
+                if (direction.equalsIgnoreCase(EGRESS)) {
+                    sBuilder.matchSctpSrc(TpPort.tpPort(portMax));
+                } else {
+                    sBuilder.matchSctpDst(TpPort.tpPort(portMax));
+                }
+            }
+        }
+
+
+    }
+
+    private void buildMatchIcmp(TrafficSelector.Builder sBuilder,
+                                String protocol, Integer icmpCode, Integer icmpType) {
+        if (protocol != null) {
+            if (protocol.equalsIgnoreCase(PROTO_ICMP) ||
+                    protocol.equals(PROTO_ICMP_NUM)) {
+                if (icmpCode != null && icmpCode >= 0 && icmpCode <= 255) {
+                    sBuilder.matchIcmpCode(icmpCode.byteValue());
+                }
+                if (icmpType != null && icmpType >= 0 && icmpType <= 255) {
+                    sBuilder.matchIcmpType(icmpType.byteValue());
                 }
             }
         }
