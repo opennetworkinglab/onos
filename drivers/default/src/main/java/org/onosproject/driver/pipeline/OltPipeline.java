@@ -88,6 +88,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static org.onosproject.core.CoreService.CORE_APP_NAME;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -481,7 +482,12 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         Criterion innerVlan = selector.getCriterion(Criterion.Type.INNER_VLAN_VID);
 
         if (inport == null || output == null || innerVlan == null || outerVlan == null) {
-            log.error("Forwarding objective is underspecified: {}", fwd);
+            // Avoid logging a non-error from lldp, bbdp and eapol core flows.
+            if (!fwd.appId().name().equals(CORE_APP_NAME)) {
+                log.error("Forwarding objective is underspecified: {}", fwd);
+            } else {
+                log.debug("Not installing unsupported core generated flow {}", fwd);
+            }
             fail(fwd, ObjectiveError.BADPARAMS);
             return;
         }
@@ -514,7 +520,12 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         Criterion dstMac = selector.getCriterion(Criterion.Type.ETH_DST);
 
         if (outerVlan == null || innerVlanCriterion == null || inport == null) {
-            log.error("Forwarding objective is underspecified: {}", fwd);
+            // Avoid logging a non-error from lldp, bbdp and eapol core flows.
+            if (!fwd.appId().name().equals(CORE_APP_NAME)) {
+                log.error("Forwarding objective is underspecified: {}", fwd);
+            } else {
+                log.debug("Not installing unsupported core generated flow {}", fwd);
+            }
             fail(fwd, ObjectiveError.BADPARAMS);
             return;
         }
