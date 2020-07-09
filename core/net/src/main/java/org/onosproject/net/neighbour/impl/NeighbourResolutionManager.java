@@ -84,7 +84,7 @@ import static org.onosproject.net.packet.PacketPriority.CONTROL;
     service = NeighbourResolutionService.class,
     property = {
         NRM_ARP_ENABLED + ":Boolean=" + NRM_ARP_ENABLED_DEFAULT,
-        NRM_NDP_ENABLED + ":Boolean=" + NRM_NDP_ENABLED,
+        NRM_NDP_ENABLED + ":Boolean=" + NRM_NDP_ENABLED_DEFAULT,
         NRM_REQUEST_INTERCEPTS_ENABLED + ":Boolean=" + NRM_REQUEST_INTERCEPTS_ENABLED_DEFAULT
     }
 )
