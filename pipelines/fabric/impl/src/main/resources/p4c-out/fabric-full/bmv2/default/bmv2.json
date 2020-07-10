@@ -657,7 +657,18 @@
     {
       "id" : 2,
       "name" : "fl_0",
-      "elements" : []
+      "source_info" : {
+        "filename" : "include/int/int_main.p4",
+        "line" : 89,
+        "column" : 60,
+        "source_fragment" : "{standard_metadata.ingress_port}"
+      },
+      "elements" : [
+        {
+          "type" : "field",
+          "value" : ["standard_metadata", "ingress_port"]
+        }
+      ]
     }
   ],
   "errors" : [
@@ -5784,7 +5795,7 @@
             "filename" : "include/int/int_main.p4",
             "line" : 89,
             "column" : 12,
-            "source_fragment" : "clone(CloneType.I2E, REPORT_MIRROR_SESSION_ID)"
+            "source_fragment" : "clone3(CloneType.I2E, REPORT_MIRROR_SESSION_ID, {standard_metadata.ingress_port})"
           }
         }
       ]
@@ -13752,6 +13763,21 @@
           }
         },
         {
+          "op" : "add_header",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "report_eth_type"
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/int/int_report.p4",
+            "line" : 53,
+            "column" : 8,
+            "source_fragment" : "hdr.report_eth_type.setValid()"
+          }
+        },
+        {
           "op" : "assign",
           "parameters" : [
             {
@@ -13780,7 +13806,7 @@
           ],
           "source_info" : {
             "filename" : "include/int/int_report.p4",
-            "line" : 56,
+            "line" : 57,
             "column" : 8,
             "source_fragment" : "hdr.report_ipv4.setValid()"
           }
@@ -13799,7 +13825,7 @@
           ],
           "source_info" : {
             "filename" : "include/int/int_report.p4",
-            "line" : 57,
+            "line" : 58,
             "column" : 8,
             "source_fragment" : "hdr.report_ipv4.version = 4w4"
           }
@@ -13818,7 +13844,7 @@
           ],
           "source_info" : {
             "filename" : "include/int/int_report.p4",
-            "line" : 58,
+            "line" : 59,
             "column" : 8,
             "source_fragment" : "hdr.report_ipv4.ihl = 4w5"
           }
@@ -13837,7 +13863,7 @@
           ],
           "source_info" : {
             "filename" : "include/int/int_report.p4",
-            "line" : 59,
+            "line" : 60,
             "column" : 8,
             "source_fragment" : "hdr.report_ipv4.dscp = 6w0"
           }
@@ -13856,7 +13882,7 @@
           ],
           "source_info" : {
             "filename" : "include/int/int_report.p4",
-            "line" : 60,
+            "line" : 61,
             "column" : 8,
             "source_fragment" : "hdr.report_ipv4.ecn = 2w0"
           }
@@ -13898,7 +13924,7 @@
           ],
           "source_info" : {
             "filename" : "include/int/int_report.p4",
-            "line" : 62,
+            "line" : 63,
             "column" : 8,
             "source_fragment" : "hdr.report_ipv4.total_len = (bit<16>) IPV4_MIN_HEAD_LEN + (bit<16>) UDP_HEADER_LEN + ..."
           }
@@ -13917,7 +13943,7 @@
           ],
           "source_info" : {
             "filename" : "include/int/int_report.p4",
-            "line" : 65,
+            "line" : 66,
             "column" : 8,
             "source_fragment" : "hdr.report_ipv4.identification = 0"
           }
@@ -13936,7 +13962,7 @@
           ],
           "source_info" : {
             "filename" : "include/int/int_report.p4",
-            "line" : 66,
+            "line" : 67,
             "column" : 8,
             "source_fragment" : "hdr.report_ipv4.flags = 0"
           }
@@ -13955,7 +13981,7 @@
           ],
           "source_info" : {
             "filename" : "include/int/int_report.p4",
-            "line" : 67,
+            "line" : 68,
             "column" : 8,
             "source_fragment" : "hdr.report_ipv4.frag_offset = 0"
           }
@@ -13974,7 +14000,7 @@
           ],
           "source_info" : {
             "filename" : "include/int/int_report.p4",
-            "line" : 68,
+            "line" : 69,
             "column" : 8,
             "source_fragment" : "hdr.report_ipv4.ttl = 0xFF"
           }
@@ -14012,7 +14038,7 @@
           ],
           "source_info" : {
             "filename" : "include/int/int_report.p4",
-            "line" : 70,
+            "line" : 71,
             "column" : 8,
             "source_fragment" : "hdr.report_ipv4.src_addr = src_ip"
           }
@@ -14031,7 +14057,7 @@
           ],
           "source_info" : {
             "filename" : "include/int/int_report.p4",
-            "line" : 71,
+            "line" : 72,
             "column" : 8,
             "source_fragment" : "hdr.report_ipv4.dst_addr = mon_ip"
           }
@@ -14046,7 +14072,7 @@
           ],
           "source_info" : {
             "filename" : "include/int/int_report.p4",
-            "line" : 74,
+            "line" : 75,
             "column" : 8,
             "source_fragment" : "hdr.report_udp.setValid()"
           }
@@ -14065,7 +14091,7 @@
           ],
           "source_info" : {
             "filename" : "include/int/int_report.p4",
-            "line" : 75,
+            "line" : 76,
             "column" : 8,
             "source_fragment" : "hdr.report_udp.sport = 0"
           }
@@ -14084,7 +14110,7 @@
           ],
           "source_info" : {
             "filename" : "include/int/int_report.p4",
-            "line" : 76,
+            "line" : 77,
             "column" : 8,
             "source_fragment" : "hdr.report_udp.dport = mon_port"
           }
@@ -14126,7 +14152,7 @@
           ],
           "source_info" : {
             "filename" : "include/int/int_report.p4",
-            "line" : 77,
+            "line" : 78,
             "column" : 8,
             "source_fragment" : "hdr.report_udp.len = (bit<16>) UDP_HEADER_LEN + (bit<16>) REPORT_FIXED_HEADER_LEN + ..."
           }
@@ -17488,7 +17514,7 @@
             "filename" : "include/int/int_main.p4",
             "line" : 89,
             "column" : 12,
-            "source_fragment" : "clone(CloneType.I2E, REPORT_MIRROR_SESSION_ID)"
+            "source_fragment" : "clone3(CloneType.I2E, REPORT_MIRROR_SESSION_ID, {standard_metadata.ingress_port})"
           },
           "key" : [],
           "match_type" : "exact",
@@ -20701,7 +20727,7 @@
           "id" : 98,
           "source_info" : {
             "filename" : "include/int/int_report.p4",
-            "line" : 86,
+            "line" : 87,
             "column" : 10,
             "source_fragment" : "tb_generate_report"
           },

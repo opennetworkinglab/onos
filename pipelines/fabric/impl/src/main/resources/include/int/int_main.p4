@@ -86,7 +86,7 @@ control process_set_source_sink (
         if(fabric_metadata.int_meta.sink == _TRUE) {
             // FIXME: this works only on BMv2
             #ifdef __TARGET_BMV2__
-            clone(CloneType.I2E, REPORT_MIRROR_SESSION_ID);
+            clone3(CloneType.I2E, REPORT_MIRROR_SESSION_ID, {standard_metadata.ingress_port});
             #endif
         }
 #endif // WITH_INT_SINK
