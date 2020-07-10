@@ -50,6 +50,7 @@ control process_int_report (
         hdr.report_ethernet.setValid();
         hdr.report_ethernet.dst_addr = mon_mac;
         hdr.report_ethernet.src_addr = src_mac;
+        hdr.report_eth_type.setValid();
         hdr.report_eth_type.value = ETHERTYPE_IPV4;
 
         //Report IPV4 Header
