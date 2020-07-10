@@ -252,7 +252,7 @@ public class ONOSLLDP extends LLDP {
             }
         }
 
-        log.error("Cannot find the port description tlv type.");
+        log.debug("Cannot find the port description tlv type.");
         return null;
     }
 
