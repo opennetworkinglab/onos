@@ -828,7 +828,7 @@ public class OpenstackRoutingSnatHandler {
 
         IpAddress natAddress = externalGatewayIpSnatEnabled(osRouter.get(), osNetworkAdminService);
         if (natAddress == null) {
-            log.warn("NAT address is not found");
+            log.debug("NAT address is not found");
             return;
         }
 
