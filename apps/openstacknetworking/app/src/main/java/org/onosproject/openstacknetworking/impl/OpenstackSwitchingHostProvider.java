@@ -42,6 +42,8 @@ import org.onosproject.net.provider.AbstractProvider;
 import org.onosproject.net.provider.ProviderId;
 import org.onosproject.openstacknetworking.api.Constants;
 import org.onosproject.openstacknetworking.api.OpenstackNetwork.Type;
+import org.onosproject.openstacknetworking.api.OpenstackNetworkEvent;
+import org.onosproject.openstacknetworking.api.OpenstackNetworkListener;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeEvent;
@@ -71,6 +73,7 @@ import static org.onosproject.openstacknetworking.api.Constants.ANNOTATION_SEGME
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
 import static org.onosproject.openstacknetworking.api.Constants.PORT_NAME_PREFIX_VM;
 import static org.onosproject.openstacknetworking.api.Constants.PORT_NAME_VHOST_USER_PREFIX_VM;
+import static org.onosproject.openstacknetworking.api.Constants.TUNNEL_TYPE;
 import static org.onosproject.openstacknetworking.api.Constants.portNamePrefixMap;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.FLAT;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.vnicType;
@@ -112,6 +115,8 @@ public class OpenstackSwitchingHostProvider
             groupedThreads(this.getClass().getSimpleName(), "device-event"));
     private final InternalDeviceListener internalDeviceListener =
             new InternalDeviceListener();
+    private final InternalNetworkListener internalNetworkListener =
+            new InternalNetworkListener();
     private final InternalOpenstackNodeListener internalNodeListener =
             new InternalOpenstackNodeListener();
 
@@ -127,6 +132,7 @@ public class OpenstackSwitchingHostProvider
         coreService.registerApplication(OPENSTACK_NETWORKING_APP_ID);
         deviceService.addListener(internalDeviceListener);
         osNodeService.addListener(internalNodeListener);
+        osNetworkService.addListener(internalNetworkListener);
         hostProviderService = hostProviderRegistry.register(this);
 
         log.info("Started");
@@ -136,6 +142,7 @@ public class OpenstackSwitchingHostProvider
     protected void deactivate() {
         hostProviderRegistry.unregister(this);
         osNodeService.removeListener(internalNodeListener);
+        osNetworkService.removeListener(internalNetworkListener);
         deviceService.removeListener(internalDeviceListener);
 
         executor.shutdown();
@@ -158,7 +165,11 @@ public class OpenstackSwitchingHostProvider
         log.debug("Instance port {} is detected from {}",
                 event.port().annotations().value(PORT_NAME),
                 event.subject().id());
-        processPortAdded(event.port());
+        // we check the existence of openstack port, in case VM creation
+        // event comes before port creation
+        if (osNetworkService.port(event.port()) != null) {
+            processPortAdded(event.port());
+        }
     }
 
     /**
@@ -171,7 +182,11 @@ public class OpenstackSwitchingHostProvider
         log.debug("Instance port {} is removed from {}",
                 event.port().annotations().value(PORT_NAME),
                 event.subject().id());
-        processPortRemoved(event.port());
+        // we check the existence of openstack port, will not remove any hosts
+        // or instance ports with non-exist openstack port
+        if (osNetworkService.port(event.port()) != null) {
+            processPortRemoved(event.port());
+        }
     }
 
     /**
@@ -439,6 +454,32 @@ public class OpenstackSwitchingHostProvider
                         log.info("Remove stale host {}", host.id());
                         hostProviderService.hostVanished(host.id());
                     });
+        }
+    }
+
+    private class InternalNetworkListener implements OpenstackNetworkListener {
+
+        @Override
+        public void event(OpenstackNetworkEvent event) {
+            switch (event.type()) {
+                case OPENSTACK_PORT_CREATED:
+                    executor.execute(() -> processOpenstackPortAddition(event));
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void processOpenstackPortAddition(OpenstackNetworkEvent event) {
+            String portId = event.port().getId();
+            deviceService.getDevices().forEach(device -> {
+                deviceService.getPorts(device.id()).stream()
+                        .filter(Port::isEnabled)
+                        .filter(p -> p.annotations().value(PORT_NAME) != null)
+                        .filter(p -> portId.contains(p.annotations().value(PORT_NAME).substring(3)))
+                        .filter(p -> !TUNNEL_TYPE.contains(p.annotations().value(PORT_NAME).toUpperCase()))
+                        .findAny().ifPresent(OpenstackSwitchingHostProvider.this::processPortAdded);
+            });
         }
     }
 }

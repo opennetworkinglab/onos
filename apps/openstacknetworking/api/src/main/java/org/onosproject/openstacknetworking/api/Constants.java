@@ -16,11 +16,13 @@
 package org.onosproject.openstacknetworking.api;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Provides constants used in OpenStackSwitching.
@@ -132,6 +134,8 @@ public final class Constants {
     public static final String FLAT = "FLAT";
     public static final String GRE = "GRE";
     public static final String GENEVE = "GENEVE";
+
+    public static final Set<String> TUNNEL_TYPE = ImmutableSet.of(VXLAN, GRE, GENEVE);
 
     public static Map<String, String> portNamePrefixMap() {
         return PORT_NAME_PREFIX_MAP;
