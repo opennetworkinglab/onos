@@ -572,7 +572,10 @@ public class NetconfControllerImpl implements NetconfController {
                     Set<String> forReturnValue = new LinkedHashSet<>(replyArguments);
                     return CompletableFuture.completedFuture((T) forReturnValue);
                 default:
-                    String returnValue = Optional.ofNullable(replyArguments.get(0)).orElse(null);
+                    String returnValue = null;
+                    if (!replyArguments.isEmpty()) {
+                        returnValue = Optional.ofNullable(replyArguments.get(0)).orElse(null);
+                    }
                     return CompletableFuture.completedFuture((T) returnValue);
             }
         } catch (InterruptedException e) {
