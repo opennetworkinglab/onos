@@ -545,7 +545,7 @@ public class OpenstackMetadataProxyHandler {
 
             String method = oldRequest.getRequestLine().getMethod().toUpperCase();
 
-            log.info("Sending HTTP {} request to metadata endpoint {}...", method, url);
+            log.debug("Sending HTTP {} request to metadata endpoint {}...", method, url);
 
             switch (method) {
                 case HTTP_POST_METHOD:
