@@ -28,6 +28,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.onosproject.store.primitives.ConsistentMapBackedJavaMap;
 
@@ -275,6 +276,11 @@ public final class TestConsistentMap<K, V> extends ConsistentMapAdapter<K, V> {
         Versioned<V> result = map.put(key, value);
         notifyListeners(mapName, key, value, result);
         return true;
+    }
+
+    @Override
+    public Stream<Map.Entry<K, Versioned<V>>> stream() {
+        return map.entrySet().stream();
     }
 
     @Override
