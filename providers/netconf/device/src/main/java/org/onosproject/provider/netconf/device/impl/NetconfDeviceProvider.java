@@ -274,7 +274,8 @@ public class NetconfDeviceProvider extends AbstractProvider
         if (active) {
             switch (newRole) {
                 case MASTER:
-                    if (controller.getNetconfDevice(deviceId) == null) {
+                    if (controller.getNetconfDevice(deviceId) == null ||
+                               !controller.getNetconfDevice(deviceId).isMasterSession()) {
                         connectionExecutor.execute(exceptionSafe(() -> withDeviceLock(
                                 () -> initiateConnection(deviceId), deviceId).run()));
                         log.debug("Accepting mastership role change to {} for device {}", newRole, deviceId);
