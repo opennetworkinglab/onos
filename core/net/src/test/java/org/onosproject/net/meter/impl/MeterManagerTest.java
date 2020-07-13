@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -73,6 +74,7 @@ import org.onosproject.net.provider.ProviderId;
 import org.onosproject.store.meter.impl.DistributedMeterStore;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.TestStorageService;
+import org.osgi.service.component.ComponentContext;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -80,8 +82,12 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.concurrent.CompletableFuture;
 
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -114,7 +120,6 @@ public class MeterManagerTest {
     private static final Device PROGRAMMABLE_DEV =
             new DefaultDevice(PROGRAMMABLE_PROVIDER, PROGRAMMABLE_DID, Device.Type.SWITCH,
                     "", "", "", "", null, ANNOTATIONS);
-
 
     private MeterService service;
 
@@ -232,8 +237,6 @@ public class MeterManagerTest {
         meterStore = new DistributedMeterStore();
         // Let's initialize some internal services of the store
         TestUtils.setField(meterStore, "storageService", new TestStorageService());
-        TestUtils.setField(meterStore, "clusterService", new TestClusterService());
-        TestUtils.setField(meterStore, "mastershipService", new TestMastershipService());
         TestUtils.setField(meterStore, "driverService", driverService);
 
         // Inject TestApplicationId into the DistributedMeterStore serializer
@@ -252,16 +255,20 @@ public class MeterManagerTest {
         manager.deviceService = deviceService;
         manager.mastershipService = new TestMastershipService();
         manager.cfgService = new ComponentConfigAdapter();
-        TestUtils.setField(manager, "storageService", new TestStorageService());
+        manager.clusterService = new TestClusterService();
         // Init the reference of the registry
         registry = manager;
 
         manager.driverService = driverService;
 
         // Activate the manager
-        manager.activate(null);
-        // Initialize the test provider
+        Dictionary<String, Object> cfgDict = new Hashtable<>();
+        ComponentContext componentContext = EasyMock.createMock(ComponentContext.class);
+        expect(componentContext.getProperties()).andReturn(cfgDict);
+        replay(componentContext);
+        manager.activate(componentContext);
 
+        // Initialize the test provider
         provider = new TestProvider(PID);
         // Register the provider against the manager
         providerService = registry.register(provider);
@@ -315,8 +322,8 @@ public class MeterManagerTest {
         // Submit meter request
         manager.submit(m1Request.add());
         // Verify add
-        assertTrue("The meter was not added", manager.getAllMeters().size() == 1);
-        assertTrue("The meter was not added", manager.getMeters(did1).size() == 1);
+        assertEquals("The meter was not added", 1, manager.getAllMeters().size());
+        assertEquals("The meter was not added", 1, manager.getMeters(did1).size());
         // Get Meter
         Meter installingMeter = manager.getMeter(did1, mid1);
         // Verify add of installingMeter and pending add state
@@ -329,8 +336,8 @@ public class MeterManagerTest {
         Meter installedMeter = manager.getMeter(did1, mid1);
         // Verify installation
         assertThat(installedMeter.state(), is(MeterState.ADDED));
-        assertTrue("The meter was not installed", manager.getAllMeters().size() == 1);
-        assertTrue("The meter was not installed", manager.getMeters(did1).size() == 1);
+        assertEquals("The meter was not installed", 1, manager.getAllMeters().size());
+        assertEquals("The meter was not installed", 1, manager.getMeters(did1).size());
     }
 
     /**
@@ -348,14 +355,14 @@ public class MeterManagerTest {
         Meter withdrawingMeter = manager.getMeter(did1, mid1);
         // Verify withdrawing
         assertThat(withdrawingMeter.state(), is(MeterState.PENDING_REMOVE));
-        assertTrue("The meter was not withdrawn", manager.getAllMeters().size() == 1);
-        assertTrue("The meter was not withdrawn", manager.getMeters(did1).size() == 1);
+        assertEquals("The meter was not withdrawn", 1, manager.getAllMeters().size());
+        assertEquals("The meter was not withdrawn", 1, manager.getMeters(did1).size());
         // Let's simulate a working data-plane
         pushMetrics(MeterOperation.Type.REMOVE, withdrawingMeter);
         // Verify withdrawn
         assertNull(manager.getMeter(did1, mid1));
-        assertTrue("The meter was not removed", manager.getAllMeters().size() == 0);
-        assertTrue("The meter was not removed", manager.getMeters(did1).size() == 0);
+        assertEquals("The meter was not removed", 0, manager.getAllMeters().size());
+        assertEquals("The meter was not removed", 0, manager.getMeters(did1).size());
     }
 
     /**
@@ -370,9 +377,9 @@ public class MeterManagerTest {
         // Submit meter 2
         manager.submit(m2Request.add());
         // Verify add
-        assertTrue("The meter was not added", manager.getAllMeters().size() == 2);
-        assertTrue("The meter was not added", manager.getMeters(did1).size() == 1);
-        assertTrue("The meter was not added", manager.getMeters(did2).size() == 1);
+        assertEquals("The meter was not added", 2, manager.getAllMeters().size());
+        assertEquals("The meter was not added", 1, manager.getMeters(did1).size());
+        assertEquals("The meter was not added", 1, manager.getMeters(did2).size());
         // Get Meters
         Meter installingMeter1 = manager.getMeter(did1, mid1);
         Meter installingMeter2 = manager.getMeter(did2, mid1);
@@ -391,9 +398,9 @@ public class MeterManagerTest {
         // Verify installation
         assertThat(installedMeter1.state(), is(MeterState.ADDED));
         assertThat(installedMeter2.state(), is(MeterState.ADDED));
-        assertTrue("The meter was not installed", manager.getAllMeters().size() == 2);
-        assertTrue("The meter was not installed", manager.getMeters(did1).size() == 1);
-        assertTrue("The meter was not installed", manager.getMeters(did2).size() == 1);
+        assertEquals("The meter was not installed", 2, manager.getAllMeters().size());
+        assertEquals("The meter was not installed", 1, manager.getMeters(did1).size());
+        assertEquals("The meter was not installed", 1, manager.getMeters(did2).size());
     }
 
     /**
@@ -417,73 +424,78 @@ public class MeterManagerTest {
         // Verify withdrawing
         assertThat(withdrawingMeter1.state(), is(MeterState.PENDING_REMOVE));
         assertThat(withdrawingMeter2.state(), is(MeterState.PENDING_REMOVE));
-        assertTrue("The meter was not withdrawn", manager.getAllMeters().size() == 2);
-        assertTrue("The meter was not withdrawn", manager.getMeters(did1).size() == 1);
-        assertTrue("The meter was not withdrawn", manager.getMeters(did2).size() == 1);
+        assertEquals("The meter was not withdrawn", 2, manager.getAllMeters().size());
+        assertEquals("The meter was not withdrawn", 1, manager.getMeters(did1).size());
+        assertEquals("The meter was not withdrawn", 1, manager.getMeters(did2).size());
         // Let's simulate a working data-plane
         pushMetrics(MeterOperation.Type.REMOVE, withdrawingMeter1);
         pushMetrics(MeterOperation.Type.REMOVE, withdrawingMeter2);
         // Verify withdrawn
         assertNull(manager.getMeter(did1, mid1));
         assertNull(manager.getMeter(did2, mid1));
-        assertTrue("The meter was not removed", manager.getAllMeters().size() == 0);
-        assertTrue("The meter was not removed", manager.getMeters(did1).size() == 0);
-        assertTrue("The meter was not removed", manager.getMeters(did2).size() == 0);
+        assertEquals("The meter was not removed", 0, manager.getAllMeters().size());
+        assertEquals("The meter was not removed", 0, manager.getMeters(did1).size());
+        assertEquals("The meter was not removed", 0, manager.getMeters(did2).size());
+    }
+
+    /**
+     * Test purge meter.
+     */
+    @Test
+    public void testPurge() {
+        // Init store
+        initMeterStore();
+        // Submit meter request
+        manager.submit(m1Request.add());
+        // Verify submit
+        Meter submittingMeter = manager.getMeter(did1, mid1);
+        assertThat(submittingMeter.state(), is(MeterState.PENDING_ADD));
+        assertEquals("The meter was not added", 1, manager.getAllMeters().size());
+        assertEquals("The meter was not added", 1, manager.getMeters(did1).size());
+        // Purge the meters
+        manager.purgeMeters(did1);
+        // Verify purge
+        assertNull(manager.getMeter(did1, mid1));
+        assertEquals("The meter was not purged", 0, manager.getAllMeters().size());
+        assertEquals("The meter was not purged", 0, manager.getMeters(did1).size());
     }
 
     @Test
     public void testAddFromMeterProgrammable()  {
-
         // Init store
         initMeterStore();
-
         manager.submit(mProgrammableRequest.add());
-
         TestTools.assertAfter(500, () -> {
-
-            assertTrue("The meter was not added", manager.getAllMeters().size() == 1);
-
+            assertEquals("The meter was not added", 1, manager.getAllMeters().size());
             assertThat(manager.getMeter(PROGRAMMABLE_DID, MeterId.meterId(1)), is(mProgrammable));
         });
-
     }
 
     @Test
     public void testAddBatchFromMeterProgrammable()  {
-
         // Init store
         initMeterStore();
-
         List<MeterOperation> operations = ImmutableList.of(new MeterOperation(mProgrammable, MeterOperation.Type.ADD));
         manager.defaultProvider().performMeterOperation(PROGRAMMABLE_DID, new MeterOperations(operations));
-
         TestTools.assertAfter(500, () -> {
-
-            assertTrue("The meter was not added", meterOperations.size() == 1);
-
-            assertTrue("Wrong Meter Operation", meterOperations.get(0).meter().id().equals(mProgrammable.id()));
+            assertEquals("The meter was not added", 1, meterOperations.size());
+            assertEquals("Wrong Meter Operation", meterOperations.get(0).meter().id(), mProgrammable.id());
         });
 
     }
 
     @Test
     public void testGetFromMeterProgrammable()  {
-
         // Init store
         initMeterStore();
-
         MeterDriverProvider fallback = (MeterDriverProvider) manager.defaultProvider();
-
         testAddFromMeterProgrammable();
-
         fallback.init(manager.deviceService, fallback.meterProviderService, manager.mastershipService, 1);
-
         TestTools.assertAfter(2000, () -> {
-            assertTrue("The meter was not added", manager.getAllMeters().size() == 1);
+            assertEquals("The meter was not added", 1, manager.getAllMeters().size());
             Meter m = manager.getMeters(PROGRAMMABLE_DID).iterator().next();
             assertEquals("incorrect state", MeterState.ADDED, m.state());
         });
-
     }
 
     // Test cluster service

@@ -30,10 +30,27 @@ public class MeterData {
     private final Optional<MeterFailReason> reason;
     private final NodeId origin;
 
+    /**
+     * Builds up a meter data.
+     * @param meter the meter
+     * @param reason the reason of the failure
+     * @param origin the node from which the request is originated
+     * @deprecated in ONOS 2.2
+     */
+    @Deprecated
     public MeterData(Meter meter, MeterFailReason reason, NodeId origin) {
         this.meter = meter;
         this.reason = Optional.ofNullable(reason);
         this.origin = origin;
+    }
+
+    /**
+     * Builds up a meter data.
+     * @param meter the meter
+     * @param reason the reason of the failure
+     */
+    public MeterData(Meter meter, MeterFailReason reason) {
+        this(meter, reason, null);
     }
 
     public Meter meter() {
@@ -44,6 +61,12 @@ public class MeterData {
         return this.reason;
     }
 
+    /**
+     * Returns the origin node.
+     * @return the node id of the origin node
+     * @deprecated in ONOS 2.2
+     */
+    @Deprecated
     public NodeId origin() {
         return this.origin;
     }
