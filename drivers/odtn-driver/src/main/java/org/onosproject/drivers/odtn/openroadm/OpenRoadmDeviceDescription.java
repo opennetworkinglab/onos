@@ -43,6 +43,7 @@ import org.onosproject.net.device.PortDescription;
 import org.onosproject.net.intent.OpticalPathIntent;
 import org.onosproject.net.optical.device.OchPortHelper;
 import org.onosproject.net.optical.device.OmsPortHelper;
+import org.onosproject.netconf.DatastoreId;
 import org.onosproject.netconf.NetconfDevice;
 import org.onosproject.netconf.NetconfException;
 import org.onosproject.netconf.NetconfSession;
@@ -115,21 +116,33 @@ public class OpenRoadmDeviceDescription extends OpenRoadmNetconfHandlerBehaviour
     }
 
     /**
-     * Builds a request to get Ports data (<circuit-packs>).
+     * Builds a request to get specific circuit pack data (by name).
      *
      * @return A string with the Netconf RPC
      */
-    private String getDeviceCircuitPacksBuilder() {
-        return getDeviceXmlNodeBuilder("<circuit-packs/>");
+    private String getDeviceCircuitPackByNameBuilder(String cpName) {
+        StringBuilder filter = new StringBuilder();
+        filter.append(OPENROADM_DEVICE_OPEN);
+        filter.append("<circuit-packs>");
+        filter.append(" <circuit-pack-name>");
+        filter.append(cpName);
+        filter.append(" </circuit-pack-name>");
+        filter.append("</circuit-packs>");
+        filter.append(OPENROADM_DEVICE_CLOSE);
+        return filteredGetBuilder(filter.toString());
     }
 
     /**
      * Builds a request to get External Links data (<external-link>).
      *
-     * @return A string with the Netconf RPC
+     * @return A string with the Netconf filter for the get-config operation.
      */
     private String getDeviceExternalLinksBuilder() {
-        return getDeviceXmlNodeBuilder("<external-link/>");
+        StringBuilder rb = new StringBuilder();
+        rb.append(OPENROADM_DEVICE_OPEN);
+        rb.append("<external-link/>");
+        rb.append(OPENROADM_DEVICE_CLOSE);
+        return rb.toString();
     }
 
     /**
@@ -344,8 +357,6 @@ public class OpenRoadmDeviceDescription extends OpenRoadmNetconfHandlerBehaviour
     }
 
 
-
-
     /**
      * Get the external links as a list of XML hieriarchical configs.
      *  @param session the NETConf session to the OpenROADM device.
@@ -353,13 +364,13 @@ public class OpenRoadmDeviceDescription extends OpenRoadmNetconfHandlerBehaviour
      */
     List<HierarchicalConfiguration> getExternalLinks(NetconfSession session) {
         try {
-            String reply = session.rpc(getDeviceExternalLinksBuilder()).get();
-            XMLConfiguration extLinksConf = //
+            String reply = session.getConfig(DatastoreId.RUNNING, getDeviceExternalLinksBuilder());
+            XMLConfiguration extLinksConf =
                 (XMLConfiguration) XmlConfigParser.loadXmlString(reply);
             extLinksConf.setExpressionEngine(new XPathExpressionEngine());
             return extLinksConf.configurationsAt(
                     "/data/org-openroadm-device/external-link");
-        } catch (NetconfException | InterruptedException | ExecutionException e) {
+        } catch (NetconfException e) {
             log.error("[OPENROADM] {} exception getting external links", did());
             return ImmutableList.of();
         }
@@ -367,173 +378,441 @@ public class OpenRoadmDeviceDescription extends OpenRoadmNetconfHandlerBehaviour
 
 
     /**
-     * Get the circuit packs from the device as a list of XML hierarchical configs.
-     *  @param session the NETConf session to the OpenROADM device.
-     *  @return a list of hierarchical conf. each one circuit pack.
+     * Get config and status info for a specific circuit pack as a
+     * list of XML hierarchical configs.
+     * @param session the NETConf session to the OpenROADM device.
+     * @param cpName the name of the requested circuit-pack
+     * @return the hierarchical conf. for the circuit pack.
      */
-    List<HierarchicalConfiguration> getCircuitPacks(NetconfSession session) {
+    HierarchicalConfiguration getCircuitPackByName(NetconfSession session, String cpName) {
         try {
-            String reply = session.rpc(getDeviceCircuitPacksBuilder()).get();
-            XMLConfiguration cpConf = //
+            String reply = session.rpc(getDeviceCircuitPackByNameBuilder(cpName)).get();
+            XMLConfiguration cpConf =
                 (XMLConfiguration) XmlConfigParser.loadXmlString(reply);
             cpConf.setExpressionEngine(new XPathExpressionEngine());
-            return cpConf.configurationsAt(
+            List<HierarchicalConfiguration> cPacks = cpConf.configurationsAt(
                     "/data/org-openroadm-device/circuit-packs");
+            // <circuit-pack-name> is the key for the list.
+            // It shouldn't happen they are > 1
+            if (cPacks.size() > 1) {
+                log.warn("[OPENROADM] More than one circuit pack with the same name. Using first one");
+            }
+            return cPacks.get(0);
         } catch (NetconfException | InterruptedException | ExecutionException e) {
-            log.error("[OPENROADM] {} exception getting circuit packs", did());
+            log.error("[OPENROADM] {} exception getting circuit pack {}: {}", did(), cpName, e);
+            return null;
+        }
+    }
+
+
+    /**
+     * Get config and status info for the degrees from the device as a list
+     * of XML hierarchical configs.
+     *  @param session the NETConf session to the OpenROADM device.
+     *  @return a list of hierarchical conf. each one degree.
+     */
+    List<HierarchicalConfiguration> getDegrees(NetconfSession session) {
+        try {
+            String reply = session.rpc(getDeviceDegreesBuilder()).get();
+            XMLConfiguration conf =
+                (XMLConfiguration) XmlConfigParser.loadXmlString(reply);
+            conf.setExpressionEngine(new XPathExpressionEngine());
+            return conf.configurationsAt(
+                    "/data/org-openroadm-device/degree");
+        } catch (NetconfException | InterruptedException | ExecutionException e) {
+            log.error("[OPENROADM] {} exception getting degrees: {}", did(), e);
             return ImmutableList.of();
         }
     }
+
+
+    /**
+     * Get config and status info for the SRGs from the device as a list
+     * of XML hierarchical configs.
+     *  @param session the NETConf session to the OpenROADM device.
+     *  @return a list of hierarchical conf. each one SRG.
+     */
+    List<HierarchicalConfiguration> getSrgs(NetconfSession session) {
+        try {
+            String reply = session.rpc(getDeviceSharedRiskGroupsBuilder()).get();
+            XMLConfiguration conf =
+                (XMLConfiguration) XmlConfigParser.loadXmlString(reply);
+            conf.setExpressionEngine(new XPathExpressionEngine());
+            return conf.configurationsAt(
+                    "/data/org-openroadm-device/shared-risk-group");
+        } catch (NetconfException | InterruptedException | ExecutionException e) {
+            log.error("[OPENROADM] {} exception getting SRGs: {}", did(), e);
+            return ImmutableList.of();
+        }
+    }
+
 
     /**
      * Returns a list of PortDescriptions for the device.
      *
      * @return a list of descriptions.
      */
+    /*
+     * Assumptions: ROADM degree ports are Oms carrying 80 lambdas (should be
+     *              configurable)
+     *              ROADM SRG (client) ports are OCh carrying ODU4 (should be
+     *              configurable)
+     */
+
     @Override
-        public List<PortDescription> discoverPortDetails() {
-            NetconfSession session = getNetconfSession(did());
-            if (session == null) {
-                log.error("discoverPortDetails null session for {}", did());
-                return ImmutableList.of();
-            }
-            if (!getDevice().annotations().keys().contains("openroadm-node-id")) {
-                log.error("PortDiscovery before DeviceDiscovery, using netconf");
+    public List<PortDescription> discoverPortDetails() {
+        NetconfSession session = getNetconfSession(did());
+        if (session == null) {
+            log.error("discoverPortDetails null session for {}", did());
             return ImmutableList.of();
         }
-        String nodeId = getDevice().annotations().value("openroadm-node-id");
-        List<PortDescription> list = new ArrayList<PortDescription>();
-        List<HierarchicalConfiguration> circuitPacks = getCircuitPacks(session);
-        /*
-         * Iterate all the ports. We need to pass the whole circuitPacks list
-         * because some port data refers to ports in other circuit packs
-         * (reverse), in addition to pass the current circuit pack name, list of
-         * external ports etc
-         */
-        for (HierarchicalConfiguration c : circuitPacks) {
-            parsePorts(list, nodeId, // c contains the whole circuit pack
-                       c.getString("circuit-pack-name"), //
-                       c.configurationsAt(
-                         "ports[port-qual='roadm-external']"), // ext ports
-                       circuitPacks, getExternalLinks(session));
+        if (!getDevice().annotations().keys().contains("openroadm-node-id")) {
+            log.error("Unable to run PortDiscovery: missing openroadm-node-id annotation." +
+                      " Probable failure during DeviceDiscovery. Aborting!");
+        return ImmutableList.of();
         }
+
+        List<HierarchicalConfiguration> externalLinks = getExternalLinks(session);
+        List<PortDescription> list = new ArrayList<PortDescription>();
+        discoverDegreePorts(session, list, externalLinks);
+        discoverSrgPorts(session, list, externalLinks);
+        return list;
+    }
+
+   /**
+    * Parses degree (ROADM) port information.
+    *
+    * @param session the NETConf session to the OpenROADM device.
+    * @param list  List of port descriptions to append to.
+    * @param externalLinks Hierarchical configuration containing all the external
+    *        links.
+    * Port-id is obtained from degree-number and from the index contained
+    * in the <connection-ports> leaf.
+    * For OpenROADM Device model 2.2 both <degree-number> and <index> inside
+    * <connection-ports> are key for the related lists, so composing them
+    * assures identificator uniqueness.
+    * Degree IDs are chosen as 10 * degree-number + index to avoid overlapping
+    * with SRGs IDs.
+    * The above formula allows making a two-digit number starting from two
+    * one-digit numbers (actually, only port index needs to be single digit and
+    * this assumption is assured by what stated in the model:
+    *     OpenROADM Device model 2.2 (line 675):
+    *        (connection-ports) description "Port associated with degree: One if bi-directional; two if uni-directional"
+    * If my numbers are A and B, to have a number in the form AB (i.e. 11, 12, 21,
+    * 31, 42, ...) I have to multiply A by 10.
+    *
+    * Note that both bidirectional and unidirectional ports IDs are taken from
+    * the datastore.
+    * Ex. DEG1 bidirectional port
+    *          ONOS port ID: 11
+    *     DEG3 unidirectional port
+    *          ONOS port IDs: 31 and 32
+    */
+    private List<PortDescription>
+    discoverDegreePorts(NetconfSession session,
+                        List<PortDescription> list,
+                        List<HierarchicalConfiguration> externalLinks) {
+        int degreeNumber = 0;
+        String nodeId = getDevice().annotations().value(AnnotationKeys.OPENROADM_NODEID);
+        List<HierarchicalConfiguration> degrees = getDegrees(session);
+        for (HierarchicalConfiguration degree : degrees) {
+            degreeNumber = degree.getInt("degree-number", 0);
+            // From OpenROADM Device model 2.2: degree-number must be > 0
+            if (degreeNumber == 0) {
+                log.warn("[OPENROADM] Device {} <degree-number> MUST be > 0", did());
+                continue;
+            }
+
+            List<HierarchicalConfiguration> connectionPorts =
+                degree.configurationsAt("connection-ports");
+            for (HierarchicalConfiguration cport : connectionPorts) {
+                int portIndex = cport.getInt("index", 0);
+                long portNum = degreeNumber * 10 + portIndex;
+                PortNumber pNum = PortNumber.portNumber(portNum);
+                String cpName = cport.getString("circuit-pack-name", "");
+                String portName = cport.getString("port-name", "");
+                PortNumber reversepNum = findDegreeReversePort(degreeNumber, portIndex, connectionPorts);
+                HierarchicalConfiguration eLink = parseExternalLink(externalLinks, nodeId, cpName, portName);
+                HierarchicalConfiguration circuitPack = getCircuitPackByName(session, cpName);
+                List<HierarchicalConfiguration> cpPorts =
+                    circuitPack.configurationsAt("ports[port-name='" + portName + "']");
+                if (cpPorts.size() > 1) {
+                    log.warn("[OPENROADM] {}: more than one port with the same name. Using first one", did());
+                }
+                HierarchicalConfiguration port = cpPorts.get(0);
+                PortDescription pd = buildDegreePortDesc(nodeId, cpName, pNum, reversepNum, port, eLink);
+                if (pd != null) {
+                    list.add(pd);
+                }
+            }
+        }
+
+        return list;
+    }
+
+   /**
+    * Parses SRG (ROADM) port information.
+    *
+    * @param session the NETConf session to the OpenROADM device.
+    * @param list  List of port descriptions to append to.
+    * @param externalLinks Hierarchical configuration containing all the external
+    *        links.
+    *
+    * Port-id is obtained from srg-number and the number of the client
+    * port contained in the <logical-connection-point> leaf.
+    * OpenROADM Device Whitepaper for release 2.2, sect. 7.2.2.2.1:
+    *     "For the ROADM SRG add/drop port, the logical connection point should
+    *      be set to the format “SRG<n>-PP<m>”, where <n> is the SRG number
+    *      and <m> is the add/drop port pair identifier. For example SRG1
+    *      add/drop port #7 would have the logical connection point set to
+    *      SRG1-PP7".
+    * The method extract <m> following the sustring PP and use it in conjuncion
+    * with the degree-number taken from the <degree> branch (If the datastore is
+    * consistent this should be the same number in SRG<n>).
+    * To avoid overlapping with IDs assigned to degrees, the srg-number is multiplied
+    * by 1000. The to cover the uni-directional case (that needs two IDs, one per
+    * direction) the port index is multiplied by 10.
+    * Using 1000 as multiplier avoids overlapping with degree port IDs as long as
+    * the number of degree in the ROADM is less than 100. Current optical
+    * technologies don't allow ROADMs having such a high number of degrees.
+    *
+    * For unidirectional links the logical connection point is assumed to
+    * have the form DEGn-PPi[-TX/-RX] and to the RX link is assigned an ID
+    * following (+1) the TX one.
+    * Ex. SRG1 second port bidirectional link (SRG1-PP2)
+    *                      ONOS port ID: 1020
+    *     SRG2 third port, unidirectional link (SRG2-PP3-TX, SRG2-PP3-RX)
+    *                      ONOS port IDs: 2030 and 2031
+    */
+    private List<PortDescription>
+    discoverSrgPorts(NetconfSession session,
+                     List<PortDescription> list,
+                     List<HierarchicalConfiguration> externalLinks) {
+        int srgNumber = 0;
+        String nodeId = getDevice().annotations().value(AnnotationKeys.OPENROADM_NODEID);
+        List<HierarchicalConfiguration> srgs = getSrgs(session);
+        for (HierarchicalConfiguration s : srgs) {
+            srgNumber = s.getInt("srg-number", 0);
+            // From OpenROADM Device model 2.2: srg-number must be > 0
+            if (srgNumber == 0) {
+                log.warn("[OPENROADM] Device {} <srg-number> MUST be > 0", did());
+                continue;
+            }
+
+            List<HierarchicalConfiguration> srgCircuitPacks =
+                s.configurationsAt("circuit-packs");
+            for (HierarchicalConfiguration scp : srgCircuitPacks) {
+                String srgCpName = scp.getString("circuit-pack-name");
+                HierarchicalConfiguration cpConf = getCircuitPackByName(session, srgCpName);
+
+                List<HierarchicalConfiguration> ports = cpConf.configurationsAt("ports[port-qual='roadm-external']");
+                for (HierarchicalConfiguration p : ports) {
+                    String portName = p.getString("port-name");
+                    String lcp = p.getString("logical-connection-point", "unknown");
+                    int ppIndex = lcp.indexOf("PP");
+                    if (ppIndex == -1) {
+                        log.warn("[OPENROADM] {}: cannot find port index for circuit-pack {}", did(), srgCpName);
+                    } else {
+                        long portNum, revPortNum;
+                        String[] split = lcp.split("-");
+                        // 1000 is chosen as base value to avoid overlapping
+                        // with IDs for degree ports that have 10 as base value
+                        long basePort = srgNumber * 1000 + Long.parseLong(split[1].replace("PP", "")) * 10;
+                        if (split.length > 2) {
+                        // Unidirectional port
+                            portNum = basePort + (split[2].equals("RX") ? 1 : 0);
+                            revPortNum = basePort + (split[2].equals("RX") ? 0 : 1);
+                        } else {
+                        // Bidirectional port
+                            portNum = basePort;
+                            revPortNum = 0;
+                        }
+                        PortNumber pNum = PortNumber.portNumber(portNum);
+                        PortNumber reversepNum = PortNumber.portNumber(revPortNum);
+                        HierarchicalConfiguration eLink = parseExternalLink(externalLinks, nodeId, srgCpName, portName);
+                        PortDescription pd = buildSrgPortDesc(nodeId, srgCpName, pNum, reversepNum, p, eLink);
+                        if (pd != null) {
+                            list.add(pd);
+                        }
+                    }
+                }
+            }
+        }
+
         return list;
     }
 
     /**
-     * Parses port information.
+     * Locate (if present) the external link for a given <circuit-pack, port> pair
+     * within the Hierarchical Configuration.
      *
-     *  @param list  List of port descriptions to append to.
-     *  @param nodeId OpenROADM node identifier.
-     *  @param circuitPackName Name of the circuit pack the ports belong to
-     *  @param ports hierarchical conf containing all the ports for the circuit
-     * pack
-     *  @param circuitPacks all the circuit packs (to correlate data).
-     *  @param extLinks Hierarchical configuration containing all the ext.
-     * links.
+     * @param extLinks Hierarchical configuration containing all the external
+     *        links.
+     * @param nodeId The OpenRoadm nodeId of the current node.
+     * @param circuitPackName name of the circuit pack of the port.
+     * @param portName name of the port.
+     * @return the external link.
      */
-    protected void parsePorts(List<PortDescription> list, String nodeId,
-                              String circuitPackName,
-                              List<HierarchicalConfiguration> ports,
-                              List<HierarchicalConfiguration> circuitPacks,
-                              List<HierarchicalConfiguration> extLinks) {
-        checkNotNull(nodeId);
-        checkNotNull(circuitPackName);
-        for (HierarchicalConfiguration port : ports) {
-            try {
-                String portName = checkNotNull(port.getString("port-name"));
-                long portNum = Long.parseLong(port.getString("label"));
-                PortNumber pNum = PortNumber.portNumber(portNum);
-                PortNumber reversepNum = findReversePort(port, circuitPacks);
-                // To see if we have an external port
-                HierarchicalConfiguration eLink = null;
-                for (HierarchicalConfiguration extLink : extLinks) {
-                    String eln =
-                        checkNotNull(extLink.getString("external-link-name"));
-                    String esnid =
-                        checkNotNull(extLink.getString("source/node-id"));
-                    String escpn =
-                        checkNotNull(extLink.getString("source/circuit-pack-name"));
-                    String espn =
-                        checkNotNull(extLink.getString("source/port-name"));
-                    if (nodeId.equals(esnid) && circuitPackName.equals(escpn) &&
-                            portName.equals(espn)) {
-                        eLink = extLink;
-                    }
+    private HierarchicalConfiguration parseExternalLink(List<HierarchicalConfiguration> extLinks,
+                                                        String nodeId,
+                                                        String circuitPackName,
+                                                        String portName) {
+        HierarchicalConfiguration eLink = null;
+        try {
+            for (HierarchicalConfiguration extLink : extLinks) {
+                String eln =
+                    checkNotNull(extLink.getString("external-link-name"));
+                String esnid =
+                    checkNotNull(extLink.getString("source/node-id"));
+                String escpn =
+                    checkNotNull(extLink.getString("source/circuit-pack-name"));
+                String espn =
+                    checkNotNull(extLink.getString("source/port-name"));
+                if (nodeId.equals(esnid) && circuitPackName.equals(escpn) &&
+                        portName.equals(espn)) {
+                    eLink = extLink;
                 }
-                PortDescription pd = parsePortComponent(
-                        nodeId, circuitPackName, pNum, reversepNum, port, eLink);
-                if (pd != null) {
-                    list.add(pd);
-                }
-            } catch (NetconfException e) {
-                log.error("[OPENROADM] {} NetConf exception", did());
-                return;
             }
+        } catch (NullPointerException e) {
+            log.error("[OPENROADM] {} invalid external-links", did());
         }
+        return eLink;
     }
 
+
     /**
-     * Given a device port (external), return its patner/reverse port.
+     * Given a degree port (external), return its partner/reverse port.
      *
-     * @param thisPort the port for which we are looking for the reverse port.
-     * @param circuitPacks all the circuit packs (to correlate data).
+     * @param degreeNumber Number identifying the current degree.
+     * @param portIndex the index of the port (degree branch) for which we are
+     *        looking for the reverse port.
+     * @param connPorts list of connection-ports as hierarchical configuration.
      * @return the port number for the reverse port.
-     * @throws NetconfException .
      */
     protected PortNumber
-    findReversePort(HierarchicalConfiguration thisPort,
-                    List<HierarchicalConfiguration> circuitPacks)
-      throws NetconfException {
-        String partnerCircuitPackName =
-          checkNotNull(thisPort.getString("partner-port/circuit-pack-name"));
-        String partnerPortName =
-          checkNotNull(thisPort.getString("partner-port/port-name"));
-        for (HierarchicalConfiguration c : circuitPacks) {
-            if (!partnerCircuitPackName.equals(
-                  c.getString("circuit-pack-name"))) {
-                continue;
-            }
-            for (HierarchicalConfiguration thatPort :
-                 c.configurationsAt("ports[port-qual='roadm-external']")) {
-                String thatPortName = thatPort.getString("port-name");
-                if (partnerPortName.equals(thatPortName)) {
-                    long thatPortNum =
-                      Long.parseLong(thatPort.getString("label"));
-                    return PortNumber.portNumber(thatPortNum);
-                }
+    findDegreeReversePort(int degreeNumber, int portIndex,
+                          List<HierarchicalConfiguration> connPorts) {
+        // bidirectional port.
+        if (connPorts.size() == 1) {
+            return PortNumber.portNumber(0);
+        }
+
+        for (HierarchicalConfiguration cp : connPorts) {
+            int revPortIndex = cp.getInt("index", -1);
+            if (revPortIndex != portIndex) {
+                return PortNumber.portNumber(10 * degreeNumber + revPortIndex);
             }
         }
         // We should not reach here
-        throw new NetconfException("missing partner/reverse port info");
+        return PortNumber.portNumber(0);
     }
 
     /**
      * Parses a component XML doc into a PortDescription.
      * An OMS port description is constructed from XML parsed data.
      *
-     * @param port the port to parse
-     * @return PortDescription or null
+     * @param nodeId The OpenRoadm nodeId of the current node.
+     * @param circuitPackName name of circuit pack containing the port.
+     * @param pNum the portNumber of the port.
+     * @param reversepNum the portNumber of the partner port.
+     * @param port the hierarchical configuration of the port to parse
+     * @param extLink Hierarchical configuration for the external links.
+     * @return PortDescription or null.
      */
     private PortDescription
-    parsePortComponent(String nodeId, String circuitPackName, PortNumber pNum,
-                       PortNumber reversepNum, HierarchicalConfiguration port,
-                       HierarchicalConfiguration extLink) {
+    buildDegreePortDesc(String nodeId, String circuitPackName,
+                        PortNumber pNum, PortNumber reversepNum,
+                        HierarchicalConfiguration port,
+                        HierarchicalConfiguration extLink) {
+        DefaultAnnotations annotations = createPortAnnotations(nodeId,
+                                                               circuitPackName,
+                                                               pNum,
+                                                               reversepNum,
+                                                               port,
+                                                               extLink);
+
+               // Relationship : START and STOP Freq not being used (See
+               // LambdaQuery)
+        return OmsPortHelper.omsPortDescription(pNum,
+                                                true /* enabled */,
+                                                START_CENTER_FREQ,
+                                                STOP_CENTER_FREQ,
+                                                CHANNEL_SPACING.frequency(),
+                                                annotations);
+    }
+
+    /**
+     * Parses a component XML doc into a PortDescription.
+     * An Och port description is constructed from XML parsed data.
+     *
+     * @param nodeId The OpenRoadm nodeId of the current node.
+     * @param circuitPackName name of circuit pack containing the port.
+     * @param pNum the portNumber of the port.
+     * @param reversepNum the portNumber of the partner port.
+     * @param port the hierarchical configuration of the port to parse
+     * @param extLink Hierarchical configuration for the external links.
+     * @return PortDescription or null.
+     */
+    private PortDescription
+    buildSrgPortDesc(String nodeId, String circuitPackName,
+                     PortNumber pNum, PortNumber reversepNum,
+                     HierarchicalConfiguration port,
+                     HierarchicalConfiguration extLink) {
+        DefaultAnnotations annotations = createPortAnnotations(nodeId,
+                                                               circuitPackName,
+                                                               pNum,
+                                                               reversepNum,
+                                                               port,
+                                                               extLink);
+
+        OchSignal signalId =
+                  OchSignal.newDwdmSlot(ChannelSpacing.CHL_50GHZ, 3);
+        return OchPortHelper.ochPortDescription(pNum,
+                                                true /* enabled */,
+                                                OduSignalType.ODU4,
+                                                true /* tunable */,
+                                                signalId,
+                                                annotations);
+
+    }
+    /**
+     * Creates annotations for the port.
+     *
+     * @param nodeId The OpenRoadm nodeId of the current node.
+     * @param circuitPackName name of circuit pack containing the port.
+     * @param pNum the portNumber of the port.
+     * @param reversepNum the portNumber of the partner port.
+     * @param port the hierarchical configuration of the port to parse
+     * @param extLink Hierarchical configuration for the external links.
+     * @return DefaultAnnotation.
+     */
+    private DefaultAnnotations
+    createPortAnnotations(String nodeId,
+                          String circuitPackName,
+                          PortNumber pNum,
+                          PortNumber reversepNum,
+                          HierarchicalConfiguration port,
+                          HierarchicalConfiguration extLink) {
         Map<String, String> annotations = new HashMap<>();
+        String portName = port.getString("port-name");
         annotations.put(AnnotationKeys.OPENROADM_NODEID, nodeId);
         annotations.put(AnnotationKeys.OPENROADM_CIRCUIT_PACK_NAME,
                         circuitPackName);
-        annotations.put(AnnotationKeys.OPENROADM_PORT_NAME,
-                        port.getString("port-name"));
+        annotations.put(org.onosproject.net.AnnotationKeys.PORT_NAME, portName);
+        annotations.put(AnnotationKeys.OPENROADM_PORT_NAME, portName);
         annotations.put(AnnotationKeys.OPENROADM_PARTNER_CIRCUIT_PACK_NAME,
                         port.getString("partner-port/circuit-pack-name", ""));
         annotations.put(AnnotationKeys.OPENROADM_PARTNER_PORT_NAME,
                         port.getString("partner-port/port-name", ""));
         annotations.put(AnnotationKeys.OPENROADM_LOGICAL_CONNECTION_POINT,
                         port.getString("logical-connection-point", ""));
-        // Annotate the reverse port, this is needed for bidir intents.
-        annotations.put(OpticalPathIntent.REVERSE_PORT_ANNOTATION_KEY,
-                        Long.toString(reversepNum.toLong()));
+        // Annotate the reverse port, this is needed for bidir intents
+        // (Partner port is present in the datastore only for
+        // unidirectional ports).
+        if (reversepNum.toLong() != 0) {
+            annotations.put(OpticalPathIntent.REVERSE_PORT_ANNOTATION_KEY,
+                            Long.toString(reversepNum.toLong()));
+        }
 
         // for backwards compatibility
         annotations.put("logical-connection-point",
@@ -548,28 +827,6 @@ public class OpenRoadmDeviceDescription extends OpenRoadmNetconfHandlerBehaviour
             annotations.put("openroadm-external-port-name", edpn);
         }
 
-        /*
-         * Declare the actual optical port:
-         * Assumptions: client ports are OCh, assumed to carry ODU4 (should be
-         * configurable)
-         */
-        if (port.getString("port-wavelength-type", "wavelength")
-              .equals("wavelength")) {
-            // OchSignal is needed for OchPortDescription constructor, but it's
-            // tunable
-            OchSignal signalId =
-              OchSignal.newDwdmSlot(ChannelSpacing.CHL_50GHZ, 3);
-            return OchPortHelper.ochPortDescription(
-              pNum, true /* enabled */, OduSignalType.ODU4, true /* tunable */,
-              signalId,
-              DefaultAnnotations.builder().putAll(annotations).build());
-        } else {
-            return OmsPortHelper.omsPortDescription(
-              pNum, true /* enabled */,
-              // Relationship : START and STOP Freq  not being used (See
-              // LambdaQuery)
-              START_CENTER_FREQ, STOP_CENTER_FREQ, CHANNEL_SPACING.frequency(),
-              DefaultAnnotations.builder().putAll(annotations).build());
-        }
+        return DefaultAnnotations.builder().putAll(annotations).build();
     }
 }
