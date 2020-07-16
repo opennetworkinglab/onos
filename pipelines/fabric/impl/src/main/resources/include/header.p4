@@ -142,14 +142,18 @@ struct spgw_meta_t {
     direction_t       direction;
     bit<16>           ipv4_len;
     teid_t            teid;
+    bit<16>           tunnel_src_port;
     bit<32>           tunnel_src_addr;
     bit<32>           tunnel_dst_addr;
-    ctr_id_t          ctr_id;
+    pdr_ctr_id_t      ctr_id;
     far_id_t          far_id;
+    spgw_interface_t  src_iface;
+    _BOOL             skip_spgw;
     _BOOL             pdr_hit;
     _BOOL             far_dropped;
-    _BOOL             notify_cp;
-    _BOOL             outer_header_creation;
+    _BOOL             notify_spgwc;
+    _BOOL             needs_gtpu_encap;
+    _BOOL             needs_gtpu_decap;
 }
 #endif // WITH_SPGW
 
@@ -196,6 +200,8 @@ struct fabric_metadata_t {
     bit<32>       ipv4_src_addr;
     bit<32>       ipv4_dst_addr;
 #ifdef WITH_SPGW
+    bit<16>       inner_l4_sport;
+    bit<16>       inner_l4_dport;
     spgw_meta_t   spgw;
 #endif // WITH_SPGW
 #ifdef WITH_BNG
@@ -220,9 +226,12 @@ struct parsed_headers_t {
 #ifdef WITH_SPGW
     ipv4_t gtpu_ipv4;
     udp_t gtpu_udp;
+    gtpu_t outer_gtpu;
     gtpu_t gtpu;
     ipv4_t inner_ipv4;
     udp_t inner_udp;
+    tcp_t inner_tcp;
+    icmp_t inner_icmp;
 #endif // WITH_SPGW
     ipv4_t ipv4;
 #ifdef WITH_IPV6
