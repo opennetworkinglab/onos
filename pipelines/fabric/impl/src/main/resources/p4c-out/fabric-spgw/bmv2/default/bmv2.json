@@ -3481,7 +3481,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 150,
+            "line" : 153,
             "column" : 36,
             "source_fragment" : "2w1; ..."
           }
@@ -3567,7 +3567,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 151,
+            "line" : 154,
             "column" : 38,
             "source_fragment" : "2w2; ..."
           }
@@ -3593,7 +3593,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 149,
+            "line" : 152,
             "column" : 37,
             "source_fragment" : "2w0; ..."
           }
@@ -3987,7 +3987,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 132,
+            "line" : 135,
             "column" : 28,
             "source_fragment" : "5; ..."
           }
@@ -4143,7 +4143,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 145,
+            "line" : 148,
             "column" : 32,
             "source_fragment" : "64; ..."
           }
@@ -4162,7 +4162,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 129,
+            "line" : 132,
             "column" : 25,
             "source_fragment" : "17; ..."
           }
@@ -4677,7 +4677,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 115,
+            "line" : 118,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -4756,7 +4756,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 114,
+            "line" : 117,
             "column" : 31,
             "source_fragment" : "0x8100; ..."
           }

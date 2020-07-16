@@ -104,10 +104,13 @@ typedef bit<32> far_id_t;
 typedef bit<32> ctr_id_t;
 typedef bit<32> teid_t;
 
-// spgw.p4 expects uplink packets with IP dst on this subnet
-// 140.0.0.0/8
-const ipv4_addr_t S1U_SGW_PREFIX = 2348810240;
+#ifndef S1U_SGW_PREFIX
+// By default spgw.p4 expects uplink packets with IP dst matching 140.0.0.0/8
+// FIXME: refactor pipeline to remove dependency on this value or allow setting it at runtime
+//  (e.g. via parser value sets)
+#define S1U_SGW_PREFIX (8w140++8w0++8w0++8w0)
 #define S1U_SGW_PREFIX_LEN 8
+#endif
 
 const bit<16> ETHERTYPE_QINQ = 0x88A8;
 const bit<16> ETHERTYPE_QINQ_NON_STD = 0x9100;

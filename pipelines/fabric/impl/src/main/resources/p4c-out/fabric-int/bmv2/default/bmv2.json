@@ -2698,7 +2698,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 160,
+            "line" : 163,
             "column" : 36,
             "source_fragment" : "4; ..."
           }
@@ -3116,7 +3116,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 156,
+            "line" : 159,
             "column" : 24,
             "source_fragment" : "0x1; ..."
           }
@@ -9204,7 +9204,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 115,
+            "line" : 118,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -9283,7 +9283,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 114,
+            "line" : 117,
             "column" : 31,
             "source_fragment" : "0x8100; ..."
           }
