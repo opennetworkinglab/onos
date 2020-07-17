@@ -34,6 +34,7 @@ import p4.v1.P4RuntimeOuterClass;
 import java.util.concurrent.CompletableFuture;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.onosproject.p4runtime.ctl.client.P4RuntimeClientImpl.SHORT_TIMEOUT_SECONDS;
 import static org.onosproject.p4runtime.ctl.codec.Codecs.CODECS;
@@ -270,16 +271,15 @@ public final class ReadRequestImpl implements P4RuntimeReadClient.ReadRequest {
     private void doTableEntry(PiTableId piTableId, boolean defaultEntries)
             throws InternalRequestException {
         checkNotNull(piTableId);
-        final P4RuntimeOuterClass.Entity entityMsg = P4RuntimeOuterClass.Entity
-                .newBuilder()
-                .setTableEntry(
-                        P4RuntimeOuterClass.TableEntry.newBuilder()
-                                .setTableId(p4TableId(piTableId))
-                                .setIsDefaultAction(defaultEntries)
-                                .setCounterData(P4RuntimeOuterClass.CounterData
-                                                        .getDefaultInstance())
-                                .build())
-                .build();
+        final var builder = P4RuntimeOuterClass.TableEntry.newBuilder()
+                .setTableId(p4TableId(piTableId))
+                .setIsDefaultAction(defaultEntries);
+        if (tableHasCounters(piTableId)) {
+            builder.setCounterData(P4RuntimeOuterClass.CounterData
+                                           .getDefaultInstance());
+        }
+        final var entityMsg = P4RuntimeOuterClass.Entity
+                .newBuilder().setTableEntry(builder.build()).build();
         requestMsg.addEntities(entityMsg);
     }
 
@@ -332,6 +332,13 @@ public final class ReadRequestImpl implements P4RuntimeReadClient.ReadRequest {
         } catch (P4InfoBrowser.NotFoundException e) {
             throw new InternalRequestException(e.getMessage());
         }
+    }
+
+    private boolean tableHasCounters(PiTableId piTableId) throws InternalRequestException {
+        return pipeconf.pipelineModel().table(piTableId).orElseThrow(
+                () -> new InternalRequestException(format(
+                        "Not such a table in pipeline model: %s", piTableId)))
+                .counters().size() > 0;
     }
 
     private int p4ActionProfileId(PiActionProfileId piActionProfileId)
