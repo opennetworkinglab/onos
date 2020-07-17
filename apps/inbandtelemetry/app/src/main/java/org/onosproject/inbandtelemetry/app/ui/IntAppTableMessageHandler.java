@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.inbandtelemetry.api.IntIntent;
 import org.onosproject.inbandtelemetry.api.IntIntentId;
+import org.onosproject.net.behaviour.inbandtelemetry.IntMetadataType;
 import org.onosproject.inbandtelemetry.api.IntService;
 import org.onosproject.net.flow.criteria.Criterion;
 import org.onosproject.net.flow.criteria.IPCriterion;
@@ -105,7 +106,7 @@ public class IntAppTableMessageHandler extends UiMessageHandler {
             TcpPortCriterion tcpDstPort = (TcpPortCriterion) intent.selector().getCriterion(Criterion.Type.TCP_DST);
             UdpPortCriterion udpSrcPort = (UdpPortCriterion) intent.selector().getCriterion(Criterion.Type.UDP_SRC);
             UdpPortCriterion udpDstPort = (UdpPortCriterion) intent.selector().getCriterion(Criterion.Type.UDP_DST);
-            Set<IntIntent.IntMetadataType> metadataTypes = intent.metadataTypes();
+            Set<IntMetadataType> metadataTypes = intent.metadataTypes();
             row.cell(ID, intentId.toString())
                     .cell(SRC_ADDR, ip4Src == null ? "N/A" : ip4Src.ip().toString())
                     .cell(DST_ADDR, ip4Dst == null ? "N/A" : ip4Dst.ip().toString());
@@ -123,7 +124,7 @@ public class IntAppTableMessageHandler extends UiMessageHandler {
                         .cell(DST_PORT, "N/A");
             }
             String metaStr = "";
-            for (IntIntent.IntMetadataType metadataType : metadataTypes) {
+            for (IntMetadataType metadataType : metadataTypes) {
                 metaStr += metadataType.toString();
                 metaStr += ", ";
             }

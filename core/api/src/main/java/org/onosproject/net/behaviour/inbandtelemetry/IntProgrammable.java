@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.inbandtelemetry.api;
+package org.onosproject.net.behaviour.inbandtelemetry;
 
 import com.google.common.annotations.Beta;
 import org.onosproject.net.PortNumber;
@@ -55,7 +55,7 @@ public interface IntProgrammable extends HandlerBehaviour {
 
     /**
      * Configures the given port as an INT source port. Packets received via
-     * this port can be modified to add the INT header, if a corresponding  INT
+     * this port can be modified to add the INT header, if a corresponding INT
      * objective is matched. Returns true if the operation was successful, false
      * otherwise.
      *
@@ -79,7 +79,7 @@ public interface IntProgrammable extends HandlerBehaviour {
      * Adds a given IntObjective to the device.
      *
      * @param obj an IntObjective
-     * @return true if the objective is successfully added; false otherwise.
+     * @return true if the objective was successfully added; false otherwise.
      */
     boolean addIntObjective(IntObjective obj);
 
@@ -87,7 +87,7 @@ public interface IntProgrammable extends HandlerBehaviour {
      * Removes a given IntObjective entry from the device.
      *
      * @param obj an IntObjective
-     * @return true if the objective is successfully removed; false otherwise.
+     * @return true if the objective was successfully removed; false otherwise.
      */
     boolean removeIntObjective(IntObjective obj);
 
@@ -97,7 +97,7 @@ public interface IntProgrammable extends HandlerBehaviour {
      * @param config a configuration regarding to the collector
      * @return true if the objective is successfully added; false otherwise.
      */
-    boolean setupIntConfig(IntConfig config);
+    boolean setupIntConfig(IntDeviceConfig config);
 
     /**
      * Clean up any INT-related configuration from the device.
