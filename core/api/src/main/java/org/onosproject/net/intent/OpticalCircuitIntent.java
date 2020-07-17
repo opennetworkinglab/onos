@@ -21,8 +21,11 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.net.CltSignalType;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.ResourceGroup;
+import org.onosproject.net.OchSignal;
+import org.onosproject.net.Path;
 
 import java.util.Collections;
+import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -37,6 +40,9 @@ public class OpticalCircuitIntent extends Intent {
     private final CltSignalType signalType;
     private final boolean isBidirectional;
 
+    private final Optional<OchSignal> ochSignal;
+    private final Optional<Path> suggestedPath;
+
     /**
      * Creates an optical circuit intent between the specified
      * connection points.
@@ -47,17 +53,28 @@ public class OpticalCircuitIntent extends Intent {
      * @param dst the destination transponder port
      * @param signalType ODU signal type
      * @param isBidirectional indicate if intent is bidirectional
+     * @param ochSignal optional suggested signal
+     * @param suggestedPath optional suggested path
      * @param priority priority to use for flows from this intent
      * @param resourceGroup resource group for this intent
      */
-    protected OpticalCircuitIntent(ApplicationId appId, Key key, ConnectPoint src, ConnectPoint dst,
-                                   CltSignalType signalType, boolean isBidirectional, int priority,
+    protected OpticalCircuitIntent(ApplicationId appId,
+                                   Key key,
+                                   ConnectPoint src,
+                                   ConnectPoint dst,
+                                   CltSignalType signalType,
+                                   boolean isBidirectional,
+                                   Optional<OchSignal> ochSignal,
+                                   Optional<Path> suggestedPath,
+                                   int priority,
                                    ResourceGroup resourceGroup) {
         super(appId, key, Collections.emptyList(), priority, resourceGroup);
         this.src = checkNotNull(src);
         this.dst = checkNotNull(dst);
         this.signalType = checkNotNull(signalType);
         this.isBidirectional = isBidirectional;
+        this.ochSignal = ochSignal;
+        this.suggestedPath = suggestedPath;
     }
 
     /**
@@ -78,6 +95,8 @@ public class OpticalCircuitIntent extends Intent {
         private ConnectPoint dst;
         private CltSignalType signalType;
         private boolean isBidirectional;
+        private Optional<OchSignal> ochSignal = Optional.empty();
+        private Optional<Path> suggestedPath = Optional.empty();
 
         @Override
         public Builder appId(ApplicationId appId) {
@@ -144,6 +163,28 @@ public class OpticalCircuitIntent extends Intent {
         }
 
         /**
+         * Sets the OCh signal of the intent.
+         *
+         * @param ochSignal the lambda
+         * @return this builder
+         */
+        public OpticalCircuitIntent.Builder ochSignal(Optional<OchSignal> ochSignal) {
+            this.ochSignal = ochSignal;
+            return this;
+        }
+
+        /**
+         * Sets the suggestedPath of the intent.
+         *
+         * @param suggestedPath the path
+         * @return this builder
+         */
+        public OpticalCircuitIntent.Builder suggestedPath(Optional<Path> suggestedPath) {
+            this.suggestedPath = suggestedPath;
+            return this;
+        }
+
+        /**
          * Builds an optical circuit intent from the accumulated parameters.
          *
          * @return point to point intent
@@ -157,6 +198,8 @@ public class OpticalCircuitIntent extends Intent {
                     dst,
                     signalType,
                     isBidirectional,
+                    ochSignal,
+                    suggestedPath,
                     priority,
                     resourceGroup
             );
@@ -172,6 +215,8 @@ public class OpticalCircuitIntent extends Intent {
         this.dst = null;
         this.signalType = null;
         this.isBidirectional = false;
+        this.ochSignal = null;
+        this.suggestedPath = null;
     }
 
     /**
@@ -210,6 +255,25 @@ public class OpticalCircuitIntent extends Intent {
         return isBidirectional;
     }
 
+    /**
+     * Returns the OCh signal of the intent.
+     *
+     * @return the lambda
+     */
+
+    public Optional<OchSignal> ochSignal() {
+        return ochSignal;
+    }
+
+    /**
+     * Returns the suggestedPath of the intent.
+     *
+     * @return the suggestedPath
+     */
+    public Optional<Path> suggestedPath() {
+        return suggestedPath;
+    }
+
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
@@ -222,6 +286,8 @@ public class OpticalCircuitIntent extends Intent {
                 .add("dst", dst)
                 .add("signalType", signalType)
                 .add("isBidirectional", isBidirectional)
+                .add("ochSignal", ochSignal)
+                .add("suggestedPath", suggestedPath)
                 .add("resourceGroup", resourceGroup())
                 .toString();
     }

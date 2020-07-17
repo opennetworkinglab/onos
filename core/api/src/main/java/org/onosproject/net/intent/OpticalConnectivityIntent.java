@@ -169,8 +169,8 @@ public final class OpticalConnectivityIntent extends Intent {
          * @param ochSignal the lambda
          * @return this builder
          */
-        public Builder ochSignal(OchSignal ochSignal) {
-            this.ochSignal = Optional.ofNullable(ochSignal);
+        public Builder ochSignal(Optional<OchSignal> ochSignal) {
+            this.ochSignal = ochSignal;
             return this;
         }
 
@@ -180,8 +180,8 @@ public final class OpticalConnectivityIntent extends Intent {
          * @param suggestedPath the path
          * @return this builder
          */
-        public Builder suggestedPath(Path suggestedPath) {
-            this.suggestedPath = Optional.ofNullable(suggestedPath);
+        public Builder suggestedPath(Optional<Path> suggestedPath) {
+            this.suggestedPath = suggestedPath;
             return this;
         }
 

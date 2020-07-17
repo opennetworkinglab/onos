@@ -250,6 +250,8 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
             ConnectPoint dstCP = new ConnectPoint(dst.elementId(), ochPorts.getRight().number());
 
             // Create optical connectivity intent
+            // In this case the channel and path optionally specified in this circuit intent
+            // are used to create the connectivity intent
             connectivityIntent = OpticalConnectivityIntent.builder()
                     .appId(appId)
                     // TODO New top-level Intent created and submitted
@@ -261,6 +263,8 @@ public class OpticalCircuitIntentCompiler implements IntentCompiler<OpticalCircu
                     .priority(OPTICAL_CONNECTIVITY_INTENT_PRIORITY)
                     .signalType(ochPorts.getLeft().signalType())
                     .bidirectional(intent.isBidirectional())
+                    .ochSignal(intent.ochSignal())
+                    .suggestedPath(intent.suggestedPath())
                     .resourceGroup(intent.resourceGroup())
                     .build();
 

@@ -38,6 +38,9 @@ import static org.onosproject.net.Device.Type;
 import static org.onosproject.net.optical.device.OpticalDeviceServiceView.opticalView;
 
 import org.slf4j.Logger;
+
+import java.util.Optional;
+
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -103,6 +106,8 @@ public final class OpticalIntentUtility {
                         .dst(egress)
                         .signalType(signalType)
                         .bidirectional(bidirectional)
+                        .ochSignal(Optional.ofNullable(signal))
+                        .suggestedPath(Optional.ofNullable(suggestedPath))
                         .build();
             } else if (Type.OTN.equals(srcDevice.type())) {
                 intent = OpticalOduIntent.builder()
@@ -125,8 +130,8 @@ public final class OpticalIntentUtility {
                     .dst(egress)
                     .signalType(signalType)
                     .bidirectional(bidirectional)
-                    .ochSignal(signal)
-                    .suggestedPath(suggestedPath)
+                    .ochSignal(Optional.ofNullable(signal))
+                    .suggestedPath(Optional.ofNullable(suggestedPath))
                     .build();
         } else {
             log.debug("Unable to create optical intent between connect points {} and {}", ingress, egress);
@@ -146,13 +151,13 @@ public final class OpticalIntentUtility {
      * @param bidirectional if this argument is true, the optical link created
      * will be bidirectional, otherwise the link will be unidirectional.
      * @param signal optical signal
-     * @param path suggested path for the intent
+     * @param suggestedPath suggested path for the intent
      *
      * @return created intent
      */
     public static Intent createExplicitOpticalIntent(ConnectPoint ingress, ConnectPoint
             egress, DeviceService deviceService, Key key, ApplicationId appId, boolean
-                                                     bidirectional, OchSignal signal, Path path) {
+                                                     bidirectional, OchSignal signal, Path suggestedPath) {
 
         Intent intent = null;
 
@@ -188,6 +193,8 @@ public final class OpticalIntentUtility {
                         .dst(egress)
                         .signalType(signalType)
                         .bidirectional(bidirectional)
+                        .ochSignal(Optional.ofNullable(signal))
+                        .suggestedPath(Optional.ofNullable(suggestedPath))
                         .build();
             } else if (Type.OTN.equals(srcDevice.type())) {
                 intent = OpticalOduIntent.builder()
@@ -212,8 +219,8 @@ public final class OpticalIntentUtility {
                     .dst(egress)
                     .signalType(signalType)
                     .bidirectional(bidirectional)
-                    .ochSignal(signal)
-                    .suggestedPath(path)
+                    .ochSignal(Optional.ofNullable(signal))
+                    .suggestedPath(Optional.ofNullable(suggestedPath))
                     .build();
         } else {
             log.error("Unable to create explicit optical intent between connect points {} and {}", ingress, egress);
