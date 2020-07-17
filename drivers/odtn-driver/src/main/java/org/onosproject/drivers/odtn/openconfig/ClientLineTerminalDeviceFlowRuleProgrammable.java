@@ -125,7 +125,6 @@ public class ClientLineTerminalDeviceFlowRuleProgrammable
 
         //Print out number of rules sent to the device (without receiving errors)
         openConfigLog("applyFlowRules added {}", added.size());
-
         return added;
     }
 
@@ -136,6 +135,8 @@ public class ClientLineTerminalDeviceFlowRuleProgrammable
      */
     @Override
     public Collection<FlowEntry> getFlowEntries() {
+        log.debug("getFlowEntries device {} cache size {}", did(), getConnectionCache().size(did()));
+
         Collection<FlowEntry> fetched = fetchConnectionsFromDevice().stream()
                 .map(fr -> new DefaultFlowEntry(fr, FlowEntry.FlowEntryState.ADDED, 0, 0, 0))
                 .collect(Collectors.toList());
@@ -164,7 +165,7 @@ public class ClientLineTerminalDeviceFlowRuleProgrammable
             try {
                 TerminalDeviceFlowRule termFlowRule = new TerminalDeviceFlowRule(r, getLinePorts());
                 removeFlowRule(session, termFlowRule);
-                getConnectionCache().remove(did(), r);
+                getConnectionCache().remove(did(), termFlowRule.connectionName());
                 removed.add(r);
             } catch (Exception e) {
                 openConfigError("Error {}", e);
@@ -524,8 +525,7 @@ public class ClientLineTerminalDeviceFlowRuleProgrammable
             FlowRuleParser frp = new FlowRuleParser(rule);
             String componentName = frp.getPortNumber().toString();
 
-            log.info("Removing LINE FlowRule device {} line port {}",
-                    did(), componentName);
+            log.info("Removing LINE FlowRule device {} line port {}", did(), componentName);
 
             try {
                 setLogicalChannel(session, OPERATION_DISABLE, componentName);
@@ -584,8 +584,8 @@ public class ClientLineTerminalDeviceFlowRuleProgrammable
 
         TrafficSelector selectorDrop = DefaultTrafficSelector.builder()
                 .matchInPort(inputPortNumber)
-                .add(Criteria.matchOchSignalType(OchSignalType.FIXED_GRID))
                 .add(Criteria.matchLambda(toOchSignal(centralFreq, 50.0)))
+                .add(Criteria.matchOchSignalType(OchSignalType.FIXED_GRID))
                 .build();
 
         TrafficTreatment treatmentDrop = DefaultTrafficTreatment.builder()
