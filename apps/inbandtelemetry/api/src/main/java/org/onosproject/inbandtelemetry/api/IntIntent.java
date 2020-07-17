@@ -16,6 +16,7 @@
 package org.onosproject.inbandtelemetry.api;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.net.behaviour.inbandtelemetry.IntMetadataType;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.TrafficSelector;
 
@@ -40,55 +41,17 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 @Beta
 public final class IntIntent {
-    /**
-     * Represents a type of INT metadata.
-     */
-    public enum IntMetadataType {
-        /**
-         * The unique ID of a switch.
-         */
-        SWITCH_ID,
-        /**
-         * The ports on which the INT packet was received and sent out.
-         */
-        L1_PORT_ID,
-        /**
-         * Time taken for the INT packet to be switched within the device.
-         */
-        HOP_LATENCY,
-        /**
-         * The build-up of traffic in the queue that the INT packet observes
-         * in the device while being forwarded.
-         */
-        QUEUE_OCCUPANCY,
-        /**
-         * The device local time when the INT packet was received on the ingress port.
-         */
-        INGRESS_TIMESTAMP,
-        /**
-         * The device local time when the INT packet was processed by the egress port.
-         */
-        EGRESS_TIMESTAMP,
-        /**
-         * The logical ports on which the INT packet was received and sent out.
-         */
-        L2_PORT_ID,
-        /**
-         * Current utilization of the egress port via witch the INT packet was sent out.
-         */
-        EGRESS_TX_UTIL
-    }
 
     /**
      * Represents an INT header type.
      */
     public enum IntHeaderType {
         /**
-         * Intemediate devices must process this type of INT header.
+         * Intermediate devices must process this type of INT header.
          */
         HOP_BY_HOP,
         /**
-         * Intemediate devices must ignore this type of INT header.
+         * Intermediate devices must ignore this type of INT header.
          */
         DESTINATION
     }
@@ -102,7 +65,7 @@ public final class IntIntent {
          */
         TRACKED_FLOW,
         /**
-         * Reports for all dropeed packets matching a drop watchlist.
+         * Reports for all dropped packets matching a drop watchlist.
          */
         DROPPED_PACKET,
         /**

@@ -16,6 +16,7 @@
 package org.onosproject.inbandtelemetry.api;
 
 import com.google.common.annotations.Beta;
+import org.onosproject.net.behaviour.inbandtelemetry.IntDeviceConfig;
 import org.onosproject.net.DeviceId;
 
 import java.util.Map;
@@ -76,14 +77,14 @@ public interface IntService {
      *
      * @param cfg configuration to set up
      */
-    void setConfig(IntConfig cfg);
+    void setConfig(IntDeviceConfig cfg);
 
     /**
      * Retrieves the INT configuration.
      *
      * @return configuration
      */
-    IntConfig getConfig();
+    IntDeviceConfig getConfig();
 
     /**
      * Installs an IntIntent to devices.
