@@ -16,7 +16,7 @@
 
 package org.onosproject.pipelines.fabric.impl;
 
-import org.onosproject.inbandtelemetry.api.IntProgrammable;
+import org.onosproject.net.behaviour.inbandtelemetry.IntProgrammable;
 
 import org.onosproject.net.behaviour.BngProgrammable;
 import org.onosproject.net.behaviour.Pipeliner;

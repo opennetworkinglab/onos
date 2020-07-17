@@ -1,7 +1,6 @@
 BUNDLES = [
     "//pipelines/fabric/api:onos-pipelines-fabric-api",
     "//pipelines/fabric/impl:onos-pipelines-fabric-impl",
-    "//apps/inbandtelemetry/api:onos-apps-inbandtelemetry-api",
 ]
 
 onos_app(

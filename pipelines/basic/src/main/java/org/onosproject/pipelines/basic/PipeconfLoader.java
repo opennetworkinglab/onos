@@ -18,7 +18,7 @@ package org.onosproject.pipelines.basic;
 
 import com.google.common.collect.ImmutableList;
 import org.onosproject.core.CoreService;
-import org.onosproject.inbandtelemetry.api.IntProgrammable;
+import org.onosproject.net.behaviour.inbandtelemetry.IntProgrammable;
 import org.onosproject.net.behaviour.Pipeliner;
 import org.onosproject.net.device.PortStatisticsDiscovery;
 import org.onosproject.net.pi.model.DefaultPiPipeconf;
