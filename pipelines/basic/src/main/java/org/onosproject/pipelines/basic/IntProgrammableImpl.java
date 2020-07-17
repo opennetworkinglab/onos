@@ -16,15 +16,15 @@
 package org.onosproject.pipelines.basic;
 
 import com.google.common.collect.Sets;
+import org.onosproject.net.behaviour.inbandtelemetry.IntMetadataType;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.inbandtelemetry.api.IntConfig;
-import org.onosproject.inbandtelemetry.api.IntIntent;
-import org.onosproject.inbandtelemetry.api.IntObjective;
-import org.onosproject.inbandtelemetry.api.IntProgrammable;
+import org.onosproject.net.behaviour.inbandtelemetry.IntDeviceConfig;
+import org.onosproject.net.behaviour.inbandtelemetry.IntObjective;
+import org.onosproject.net.behaviour.inbandtelemetry.IntProgrammable;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.driver.AbstractHandlerBehaviour;
@@ -215,7 +215,7 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
     }
 
     @Override
-    public boolean setupIntConfig(IntConfig config) {
+    public boolean setupIntConfig(IntDeviceConfig config) {
         return setupIntReportInternal(config);
     }
 
@@ -353,9 +353,9 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
                 .build();
     }
 
-    private int buildInstructionBitmap(Set<IntIntent.IntMetadataType> metadataTypes) {
+    private int buildInstructionBitmap(Set<IntMetadataType> metadataTypes) {
         int instBitmap = 0;
-        for (IntIntent.IntMetadataType metadataType : metadataTypes) {
+        for (IntMetadataType metadataType : metadataTypes) {
             switch (metadataType) {
                 case SWITCH_ID:
                     instBitmap |= (1 << 15);
@@ -430,7 +430,7 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
         }
     }
 
-    private boolean setupIntReportInternal(IntConfig cfg) {
+    private boolean setupIntReportInternal(IntDeviceConfig cfg) {
         if (!setupBehaviour()) {
             return false;
         }
@@ -446,7 +446,7 @@ public class IntProgrammableImpl extends AbstractHandlerBehaviour implements Int
         }
     }
 
-    private FlowRule buildReportEntry(IntConfig cfg) {
+    private FlowRule buildReportEntry(IntDeviceConfig cfg) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchPi(PiCriterion.builder().matchExact(
                         IntConstants.HDR_INT_IS_VALID, (byte) 0x01)

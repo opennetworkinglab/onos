@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.inbandtelemetry.api;
+package org.onosproject.net.behaviour.inbandtelemetry;
 
+import com.google.common.collect.ImmutableSet;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.TrafficSelector;
 
@@ -22,10 +23,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.onosproject.inbandtelemetry.api.IntIntent.IntMetadataType;
-import static org.onosproject.inbandtelemetry.api.IntIntent.IntHeaderType;
 
+/**
+ * Represents a device-level objective to collect INT metadata for packets
+ * identified by a traffic selector.
+ */
 public final class IntObjective {
 
     private static final int DEFAULT_PRIORITY = 10;
@@ -33,22 +35,17 @@ public final class IntObjective {
     // TrafficSelector to describe target flows to monitor
     private final TrafficSelector selector;
     // Set of metadata types to collect
-    private final Set<IntMetadataType> metadataTypes;
-    // Type of header (either hop-by-hop or destination)
-    private final IntHeaderType headerType;
+    private final ImmutableSet<IntMetadataType> metadataTypes;
 
     /**
      * Creates an IntObjective.
      *
      * @param selector      the traffic selector that identifies traffic to enable INT
      * @param metadataTypes a set of metadata types to collect
-     * @param headerType    the type of INT header
      */
-    private IntObjective(TrafficSelector selector, Set<IntMetadataType> metadataTypes,
-                         IntHeaderType headerType) {
+    private IntObjective(TrafficSelector selector, Set<IntMetadataType> metadataTypes) {
         this.selector = selector;
-        this.metadataTypes = metadataTypes;
-        this.headerType = headerType;
+        this.metadataTypes = ImmutableSet.copyOf(metadataTypes);
     }
 
     /**
@@ -70,21 +67,11 @@ public final class IntObjective {
     }
 
     /**
-     * Returns a INT header type specified in this objective.
-     *
-     * @return INT header type
-     */
-    public IntHeaderType headerType() {
-        return headerType;
-    }
-
-    /**
      * An IntObjective builder.
      */
     public static final class Builder {
         private TrafficSelector selector = DefaultTrafficSelector.emptySelector();
-        private Set<IntMetadataType> metadataTypes = new HashSet<>();
-        private IntHeaderType headerType = IntHeaderType.HOP_BY_HOP;
+        private final Set<IntMetadataType> metadataTypes = new HashSet<>();
 
         /**
          * Assigns a selector to the IntObjective.
@@ -109,17 +96,6 @@ public final class IntObjective {
         }
 
         /**
-         * Assigns a header type to the IntObjective.
-         *
-         * @param headerType a header type
-         * @return an IntObjective builder
-         */
-        public IntObjective.Builder withHeaderType(IntHeaderType headerType) {
-            this.headerType = headerType;
-            return this;
-        }
-
-        /**
          * Builds the IntObjective.
          *
          * @return an IntObjective
@@ -127,9 +103,8 @@ public final class IntObjective {
         public IntObjective build() {
             checkArgument(!selector.criteria().isEmpty(), "Empty selector cannot match any flow.");
             checkArgument(!metadataTypes.isEmpty(), "Metadata types cannot be empty");
-            checkNotNull(headerType, "Header type cannot be null.");
 
-            return new IntObjective(selector, metadataTypes, headerType);
+            return new IntObjective(selector, metadataTypes);
         }
     }
 }

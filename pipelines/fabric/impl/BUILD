@@ -5,7 +5,6 @@ COMPILE_DEPS = CORE_DEPS + KRYO + [
     "//providers/general/device:onos-providers-general-device",
     "//pipelines/basic:onos-pipelines-basic",
     "//core/store/serializers:onos-core-serializers",
-    "//apps/inbandtelemetry/api:onos-apps-inbandtelemetry-api",
     "//drivers/p4runtime:onos-drivers-p4runtime",
 ]
 

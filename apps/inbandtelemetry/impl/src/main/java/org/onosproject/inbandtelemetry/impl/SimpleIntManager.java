@@ -21,11 +21,12 @@ import org.onlab.util.KryoNamespace;
 import org.onlab.util.SharedScheduledExecutors;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.inbandtelemetry.api.IntConfig;
+import org.onosproject.net.behaviour.inbandtelemetry.IntMetadataType;
+import org.onosproject.net.behaviour.inbandtelemetry.IntDeviceConfig;
 import org.onosproject.inbandtelemetry.api.IntIntent;
 import org.onosproject.inbandtelemetry.api.IntIntentId;
-import org.onosproject.inbandtelemetry.api.IntObjective;
-import org.onosproject.inbandtelemetry.api.IntProgrammable;
+import org.onosproject.net.behaviour.inbandtelemetry.IntObjective;
+import org.onosproject.net.behaviour.inbandtelemetry.IntProgrammable;
 import org.onosproject.inbandtelemetry.api.IntService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
@@ -114,7 +115,7 @@ public class SimpleIntManager implements IntService {
     // Distributed state.
     private ConsistentMap<IntIntentId, IntIntent> intentMap;
     private ConsistentMap<DeviceId, Long> devicesToConfigure;
-    private AtomicValue<IntConfig> intConfig;
+    private AtomicValue<IntDeviceConfig> intConfig;
     private AtomicValue<Boolean> intStarted;
     private AtomicIdGenerator intentIds;
 
@@ -138,11 +139,11 @@ public class SimpleIntManager implements IntService {
                 .register(IntIntentId.class)
                 .register(IntDeviceRole.class)
                 .register(IntIntent.IntHeaderType.class)
-                .register(IntIntent.IntMetadataType.class)
+                .register(IntMetadataType.class)
                 .register(IntIntent.IntReportType.class)
                 .register(IntIntent.TelemetryMode.class)
-                .register(IntConfig.class)
-                .register(IntConfig.TelemetrySpec.class);
+                .register(IntDeviceConfig.class)
+                .register(IntDeviceConfig.TelemetrySpec.class);
 
         devicesToConfigure = storageService.<DeviceId, Long>consistentMapBuilder()
                 .withSerializer(Serializer.using(serializer.build()))
@@ -168,7 +169,7 @@ public class SimpleIntManager implements IntService {
                 .asAtomicValue();
         intStarted.addListener(intStartedListener);
 
-        intConfig = storageService.<IntConfig>atomicValueBuilder()
+        intConfig = storageService.<IntDeviceConfig>atomicValueBuilder()
                 .withSerializer(Serializer.using(serializer.build()))
                 .withName("onos-int-config")
                 .withApplicationId(appId)
@@ -241,14 +242,14 @@ public class SimpleIntManager implements IntService {
     }
 
     @Override
-    public void setConfig(IntConfig cfg) {
+    public void setConfig(IntDeviceConfig cfg) {
         checkNotNull(cfg);
         // Atomic value event will trigger device configure.
         intConfig.set(cfg);
     }
 
     @Override
-    public IntConfig getConfig() {
+    public IntDeviceConfig getConfig() {
         return intConfig.get();
     }
 
@@ -438,10 +439,11 @@ public class SimpleIntManager implements IntService {
     }
 
     private IntObjective getIntObjective(IntIntent intent) {
+        // FIXME: we are ignore intent.headerType()
+        //  what should we do with it?
         return new IntObjective.Builder()
                 .withSelector(intent.selector())
                 .withMetadataTypes(intent.metadataTypes())
-                .withHeaderType(intent.headerType())
                 .build();
     }
 
@@ -486,9 +488,9 @@ public class SimpleIntManager implements IntService {
     }
 
     private class InternalIntConfigListener
-            implements AtomicValueEventListener<IntConfig> {
+            implements AtomicValueEventListener<IntDeviceConfig> {
         @Override
-        public void event(AtomicValueEvent<IntConfig> event) {
+        public void event(AtomicValueEvent<IntDeviceConfig> event) {
             triggerAllDeviceConfigure();
         }
     }

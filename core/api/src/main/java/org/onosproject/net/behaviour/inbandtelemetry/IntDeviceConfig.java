@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.inbandtelemetry.api;
+package org.onosproject.net.behaviour.inbandtelemetry;
 
 import com.google.common.annotations.Beta;
 import org.onlab.packet.IpAddress;
@@ -23,10 +23,10 @@ import org.onlab.packet.TpPort;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Network-level INT configuration.
+ * Device-level configuration of the INT process.
  */
 @Beta
-public final class IntConfig {
+public final class IntDeviceConfig {
     /**
      * Represents a type of telemetry spec to collect in the dataplane.
      */
@@ -55,8 +55,8 @@ public final class IntConfig {
     private final TelemetrySpec spec;
     private boolean enabled;
 
-    private IntConfig(IpAddress collectorIp, TpPort collectorPort, MacAddress collectorNextHopMac,
-                      IpAddress sinkIp, MacAddress sinkMac, TelemetrySpec spec, boolean enabled) {
+    private IntDeviceConfig(IpAddress collectorIp, TpPort collectorPort, MacAddress collectorNextHopMac,
+                            IpAddress sinkIp, MacAddress sinkMac, TelemetrySpec spec, boolean enabled) {
         this.collectorIp = collectorIp;
         this.collectorPort = collectorPort;
         this.collectorNextHopMac = collectorNextHopMac;
@@ -172,7 +172,7 @@ public final class IntConfig {
          * @param collectorIp IP address of the collector
          * @return an IntConfig builder
          */
-        public IntConfig.Builder withCollectorIp(IpAddress collectorIp) {
+        public IntDeviceConfig.Builder withCollectorIp(IpAddress collectorIp) {
             this.collectorIp = collectorIp;
             return this;
         }
@@ -183,7 +183,7 @@ public final class IntConfig {
          * @param collectorPort UDP port number of the collector
          * @return an IntConfig builder
          */
-        public IntConfig.Builder withCollectorPort(TpPort collectorPort) {
+        public IntDeviceConfig.Builder withCollectorPort(TpPort collectorPort) {
             this.collectorPort = collectorPort;
             return this;
         }
@@ -195,7 +195,7 @@ public final class IntConfig {
          * @param collectorNextHopMac MAC address of the collector
          * @return an IntConfig builder
          */
-        public IntConfig.Builder withCollectorNextHopMac(MacAddress collectorNextHopMac) {
+        public IntDeviceConfig.Builder withCollectorNextHopMac(MacAddress collectorNextHopMac) {
             this.collectorNextHopMac = collectorNextHopMac;
             return this;
         }
@@ -206,7 +206,7 @@ public final class IntConfig {
          * @param sinkIp sink device's IP address
          * @return an IntConfig builder
          */
-        public IntConfig.Builder withSinkIp(IpAddress sinkIp) {
+        public IntDeviceConfig.Builder withSinkIp(IpAddress sinkIp) {
             this.sinkIp = sinkIp;
             return this;
         }
@@ -217,7 +217,7 @@ public final class IntConfig {
          * @param sinkMac sink device's MAC address
          * @return an IntConfig builder
          */
-        public IntConfig.Builder withSinkMac(MacAddress sinkMac) {
+        public IntDeviceConfig.Builder withSinkMac(MacAddress sinkMac) {
             this.sinkMac = sinkMac;
             return this;
         }
@@ -228,7 +228,7 @@ public final class IntConfig {
          * @param spec telemetry spec
          * @return an IntConfig builder
          */
-        public IntConfig.Builder withTelemetrySpec(TelemetrySpec spec) {
+        public IntDeviceConfig.Builder withTelemetrySpec(TelemetrySpec spec) {
             this.spec = spec;
             return this;
         }
@@ -240,7 +240,7 @@ public final class IntConfig {
          * @param enabled the status of INT
          * @return an IntConfig builder
          */
-        public IntConfig.Builder enabled(boolean enabled) {
+        public IntDeviceConfig.Builder enabled(boolean enabled) {
             this.enabled = enabled;
             return this;
         }
@@ -250,13 +250,13 @@ public final class IntConfig {
          *
          * @return an IntConfig object
          */
-        public IntConfig build() {
+        public IntDeviceConfig build() {
             checkNotNull(collectorIp, "Collector IP should be specified.");
             checkNotNull(collectorPort, "Collector port number should be specified.");
             checkNotNull(collectorNextHopMac, "Next hop MAC address for report packets should be provided.");
             checkNotNull(sinkIp, "Sink IP address for report packets should be specified.");
             checkNotNull(sinkMac, "Sink MAC address for report packets should be specified.");
-            return new IntConfig(collectorIp, collectorPort, collectorNextHopMac,
+            return new IntDeviceConfig(collectorIp, collectorPort, collectorNextHopMac,
                                  sinkIp, sinkMac, spec, enabled);
         }
     }

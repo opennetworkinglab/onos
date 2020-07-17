@@ -25,8 +25,9 @@ import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
 import org.onosproject.inbandtelemetry.api.IntIntent;
 import org.onosproject.inbandtelemetry.api.IntIntentId;
+import org.onosproject.net.behaviour.inbandtelemetry.IntMetadataType;
 import org.onosproject.inbandtelemetry.api.IntService;
-import org.onosproject.inbandtelemetry.api.IntConfig;
+import org.onosproject.net.behaviour.inbandtelemetry.IntDeviceConfig;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.ui.RequestHandler;
@@ -67,7 +68,7 @@ public class IntAppUiMessageHandler extends UiMessageHandler {
             log.info("intConfigAddRequest: {}", payload);
 
             intService = get(IntService.class);
-            IntConfig.Builder builder = IntConfig.builder();
+            IntDeviceConfig.Builder builder = IntDeviceConfig.builder();
 
             if (payload.get("collectorIp") != null) {
                 builder.withCollectorIp(IpAddress.valueOf(payload.get("collectorIp").asText()));
@@ -152,25 +153,25 @@ public class IntAppUiMessageHandler extends UiMessageHandler {
                     for (final JsonNode json : meta) {
                         switch (json.asText()) {
                             case "SWITCH_ID":
-                                builder.withMetadataType(IntIntent.IntMetadataType.SWITCH_ID);
+                                builder.withMetadataType(IntMetadataType.SWITCH_ID);
                                 break;
                             case "PORT_ID":
-                                builder.withMetadataType(IntIntent.IntMetadataType.L1_PORT_ID);
+                                builder.withMetadataType(IntMetadataType.L1_PORT_ID);
                                 break;
                             case "HOP_LATENCY":
-                                builder.withMetadataType(IntIntent.IntMetadataType.HOP_LATENCY);
+                                builder.withMetadataType(IntMetadataType.HOP_LATENCY);
                                 break;
                             case "QUEUE_OCCUPANCY":
-                                builder.withMetadataType(IntIntent.IntMetadataType.QUEUE_OCCUPANCY);
+                                builder.withMetadataType(IntMetadataType.QUEUE_OCCUPANCY);
                                 break;
                             case "INGRESS_TIMESTAMP":
-                                builder.withMetadataType(IntIntent.IntMetadataType.INGRESS_TIMESTAMP);
+                                builder.withMetadataType(IntMetadataType.INGRESS_TIMESTAMP);
                                 break;
                             case "EGRESS_TIMESTAMP":
-                                builder.withMetadataType(IntIntent.IntMetadataType.EGRESS_TIMESTAMP);
+                                builder.withMetadataType(IntMetadataType.EGRESS_TIMESTAMP);
                                 break;
                             case "EGRESS_TX_UTIL":
-                                builder.withMetadataType(IntIntent.IntMetadataType.EGRESS_TX_UTIL);
+                                builder.withMetadataType(IntMetadataType.EGRESS_TX_UTIL);
                                 break;
                             default:
                                 break;
