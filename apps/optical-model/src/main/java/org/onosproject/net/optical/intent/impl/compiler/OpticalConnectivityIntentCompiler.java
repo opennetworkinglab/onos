@@ -34,6 +34,10 @@ import org.onosproject.net.DefaultPath;
 import org.onosproject.net.OchSignalType;
 import org.onosproject.net.DefaultOchSignalComparator;
 import org.onosproject.net.DefaultLink;
+import org.onosproject.net.resource.Resource;
+import org.onosproject.net.resource.ResourceAllocation;
+import org.onosproject.net.resource.ResourceService;
+import org.onosproject.net.resource.Resources;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -49,10 +53,6 @@ import org.onosproject.net.intent.OpticalConnectivityIntent;
 import org.onosproject.net.intent.OpticalPathIntent;
 import org.onosproject.net.optical.OchPort;
 import org.onosproject.net.provider.ProviderId;
-import org.onosproject.net.resource.Resource;
-import org.onosproject.net.resource.ResourceAllocation;
-import org.onosproject.net.resource.ResourceService;
-import org.onosproject.net.resource.Resources;
 import org.onosproject.net.topology.LinkWeigher;
 import org.onosproject.net.topology.Topology;
 import org.onosproject.net.topology.TopologyEdge;
@@ -157,6 +157,7 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
 
         // Allocate resources and create optical path intent
         if (found.isPresent()) {
+            log.debug("Suitable lightpath FOUND for intent {}", intent);
             resources.addAll(convertToResources(found.get().getKey(), found.get().getValue()));
             allocateResources(intent, resources);
             OchSignal ochSignal = OchSignal.toFixedGrid(found.get().getValue(), ChannelSpacing.CHL_50GHZ);
@@ -203,8 +204,10 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
     private List<Resource> convertToResources(Path path, Collection<OchSignal> lambda) {
         return path.links().stream()
                 .flatMap(x -> Stream.of(
-                        Resources.discrete(x.src().deviceId(), x.src().port()).resource(),
-                        Resources.discrete(x.dst().deviceId(), x.dst().port()).resource()
+                        Resources.discrete(x.src().deviceId(),
+                                deviceService.getPort(x.src().deviceId(), x.src().port()).number()).resource(),
+                        Resources.discrete(x.dst().deviceId(),
+                                deviceService.getPort(x.dst().deviceId(), x.dst().port()).number()).resource()
                 ))
                 .flatMap(x -> lambda.stream().map(x::child))
                 .collect(Collectors.toList());
@@ -285,15 +288,26 @@ public class OpticalConnectivityIntentCompiler implements IntentCompiler<Optical
      * @return set of common lambdas
      */
     private Set<OchSignal> findCommonLambdas(Path path) {
-        return path.links().stream()
+
+        Set<OchSignal> ochSignals = path.links().stream()
                 .flatMap(x -> Stream.of(
-                        Resources.discrete(x.src().deviceId(), x.src().port()).id(),
-                        Resources.discrete(x.dst().deviceId(), x.dst().port()).id()
+                        Resources.discrete(x.src().deviceId(),
+                                deviceService.getPort(x.src().deviceId(), x.src().port()).number()).id(),
+                        Resources.discrete(x.dst().deviceId(),
+                                deviceService.getPort(x.dst().deviceId(), x.dst().port()).number()).id()
                 ))
                 .map(x -> resourceService.getAvailableResourceValues(x, OchSignal.class))
                 .map(x -> (Set<OchSignal>) ImmutableSet.copyOf(x))
                 .reduce(Sets::intersection)
                 .orElse(Collections.emptySet());
+
+        if (ochSignals.isEmpty()) {
+            log.warn("Common lambdas not found");
+        } else {
+            log.debug("Common lambdas found {}", ochSignals);
+        }
+
+        return ochSignals;
     }
 
     /**
