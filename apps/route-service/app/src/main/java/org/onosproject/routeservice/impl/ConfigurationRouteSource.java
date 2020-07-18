@@ -30,7 +30,10 @@ import org.onosproject.net.config.NetworkConfigEvent;
 import org.onosproject.net.config.NetworkConfigListener;
 import org.onosproject.net.config.NetworkConfigRegistry;
 import org.onosproject.net.config.basics.SubjectFactories;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -39,6 +42,8 @@ import java.util.stream.Collectors;
  */
 @Component(immediate = true)
 public class ConfigurationRouteSource {
+
+    private static final Logger log = LoggerFactory.getLogger(ConfigurationRouteSource.class);
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected NetworkConfigRegistry netcfgRegistry;
@@ -62,6 +67,17 @@ public class ConfigurationRouteSource {
     protected void activate() {
         netcfgRegistry.addListener(netcfgListener);
         netcfgRegistry.registerConfigFactory(routeConfigFactory);
+
+        // Read initial routes in netcfg
+        netcfgRegistry.getSubjects(ApplicationId.class, RouteConfig.class).forEach(subject -> {
+            Optional.ofNullable(netcfgRegistry.getConfig(subject, RouteConfig.class))
+                    .map(RouteConfig::getRoutes)
+                    .ifPresent(routes -> {
+                        log.info("Load initial routes from netcfg: {}", routes);
+                        routeService.update(routes);
+                    });
+        });
+
     }
 
     @Deactivate
