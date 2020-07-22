@@ -21,6 +21,7 @@ profiles([
     "seba",
     "stratum",
     "tost",
+    "sona",
 ])
 
 filegroup(
@@ -35,6 +36,7 @@ filegroup(
         ":seba_profile": extensions("seba") + apps("seba"),
         ":stratum_profile": extensions("stratum") + apps("stratum"),
         ":tost_profile": extensions("tost") + apps("tost"),
+        ":sona_profile": extensions("sona") + apps("sona"),
         "//conditions:default": extensions() + apps(),
     }),
     visibility = ["//visibility:public"],
@@ -76,6 +78,7 @@ genrule(
         ":seba_profile": apps("seba"),
         ":stratum_profile": apps("stratum"),
         ":tost_profile": apps("tost"),
+        ":sona_profile": apps("sona"),
         "//conditions:default": apps(),
     }),
     outs = ["onos.tar.gz"],
