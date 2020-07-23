@@ -36,7 +36,7 @@ export class UrlFnService {
 
     matchSecure(protocol: string): string {
         const p: string = this.w.location.protocol;
-        const secure: boolean = (p === 'https' || p === 'wss');
+        const secure: boolean = (p.includes('https') || p.includes('wss'));
         return secure ? protocol + 's' : protocol;
     }
 
