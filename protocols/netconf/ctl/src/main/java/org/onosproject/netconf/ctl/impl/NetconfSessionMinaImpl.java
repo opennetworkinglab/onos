@@ -52,7 +52,7 @@ import org.onosproject.netconf.NetconfSessionFactory;
 import org.onosproject.netconf.NetconfTransportException;
 import org.slf4j.Logger;
 
-import java.io.CharArrayReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
@@ -122,6 +122,8 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
     private static final String NETCONF_11_CAPABILITY = "urn:ietf:params:netconf:base:1.1";
     private static final String NETCONF_CLIENT_CAPABILITY = "netconfClientCapability";
     private static final String NOTIFICATION_STREAM = "notificationStream";
+    private static final String SSH_KEY_PATH = "/root/.ssh/id_rsa";
+    private static final String EMPTY_STRING = "";
 
     private static ServiceDirectory directory = new DefaultServiceDirectory();
 
@@ -255,16 +257,16 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
                 deviceInfo.port())
                 .verify(connectTimeout, TimeUnit.SECONDS);
         session = connectFuture.getSession();
-        //Using the device ssh key if possible
-        if (deviceInfo.getKey() != null) {
-            try (PEMParser pemParser = new PEMParser(new CharArrayReader(deviceInfo.getKey()))) {
+        //Using the onos private ssh key at path SSH_KEY_PATH
+        if (deviceInfo.password().equals(EMPTY_STRING)) {
+            try (PEMParser pemParser = new PEMParser(new FileReader(SSH_KEY_PATH))) {
                 JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider(BouncyCastleProvider.PROVIDER_NAME);
                 try {
                     KeyPair kp = converter.getKeyPair((PEMKeyPair) pemParser.readObject());
                     session.addPublicKeyIdentity(kp);
                 } catch (IOException e) {
-                    throw new NetconfException("Failed to authenticate session with device " +
-                            deviceInfo + "check key to be a valid key", e);
+                    throw new NetconfException("Failed to authenticate session. Please check if ssk key is generated" +
+" on ONOS host machine at path " + SSH_KEY_PATH + " : ", e);
                 }
             }
         } else {
