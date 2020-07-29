@@ -181,4 +181,9 @@ public class BgpControllerAdapter implements BgpController {
     public void removePrefixListener(BgpPrefixListener listener) {
         // TODO Auto-generated method stub
     }
+
+    @Override
+    public void notifyTopologyChange() {
+        // TODO Auto-generated method stub
+    }
 }

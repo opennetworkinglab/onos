@@ -155,4 +155,9 @@ public interface BgpPeer {
     void updateEvpnNlri(FlowSpecOperation operType, IpAddress nextHop,
                         List<BgpValueType> extcommunity,
                         List<BgpEvpnNlri> evpnNlris);
+
+    /**
+     * Send the Route Refresh message to the connected BGP peer.
+     */
+    void sendRouteRefreshMessage();
 }

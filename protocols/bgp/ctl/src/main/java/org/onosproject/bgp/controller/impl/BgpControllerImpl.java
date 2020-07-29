@@ -46,8 +46,15 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static org.onlab.util.Tools.groupedThreads;
 
 @Component(immediate = true, service = BgpController.class)
 public class BgpControllerImpl implements BgpController {
@@ -71,6 +78,19 @@ public class BgpControllerImpl implements BgpController {
     private Map<String, List<String>> activeSessionExceptionMap = new TreeMap<>();
     private Map<String, List<String>> closedSessionExceptionMap = new TreeMap<>();
     protected Set<BgpRouteListener> bgpRouteListener = new CopyOnWriteArraySet<>();
+
+    //IDs for timers
+    private static final int PERIODIC_TIMER = 1001;
+    private static final int WARMUP_TIMER = 1002;
+    private static final int COOLDOWN_TIMER = 1003;
+
+    private static final int POOL_SIZE = 3; //Current pool size is 3
+    private ScheduledExecutorService executor;
+    private ScheduledFuture<?> cooldownFuture;
+    private ScheduledFuture<?> periodicFuture;
+    private ScheduledFuture<?> warmupFuture;
+
+    private AtomicBoolean hasTopologyChanged = new AtomicBoolean(false);
 
     @Override
     public void activeSessionExceptionAdd(String peerId, String exception) {
@@ -131,6 +151,9 @@ public class BgpControllerImpl implements BgpController {
     @Activate
     public void activate() {
         this.ctrl.start();
+        executor = Executors.newScheduledThreadPool(
+                        POOL_SIZE,
+                        groupedThreads("onos/apps/bgpcontroller", "bgp-rr-timer"));
         log.info("Started");
     }
 
@@ -141,6 +164,7 @@ public class BgpControllerImpl implements BgpController {
         // Close all connected peers
         closeConnectedPeers();
         this.ctrl.stop();
+        executor.shutdown();
         log.info("Stopped");
     }
 
@@ -265,6 +289,17 @@ public class BgpControllerImpl implements BgpController {
             } else {
                 this.log.debug("Added Peer {}", bgpId.toString());
                 connectedPeers.put(bgpId, bgpPeer);
+
+                //If all timers are stopped, start periodic timer
+                this.log.info("Start periodic timer");
+                if (bgpconfig.isRouteRefreshEnabled()
+                        && (periodicFuture == null || periodicFuture.isCancelled())
+                        && (cooldownFuture == null || cooldownFuture.isCancelled())
+                        && (warmupFuture == null || warmupFuture.isCancelled())) {
+                        periodicFuture = executor.schedule(periodicTimerTask,
+                            bgpconfig.getRouteRefreshPeriodicTimer(), TimeUnit.SECONDS);
+                }
+
                 return true;
             }
         }
@@ -383,4 +418,143 @@ public class BgpControllerImpl implements BgpController {
     public Set<BgpPrefixListener> prefixListener() {
         return bgpPrefixListener;
     }
+
+    @Override
+    public void notifyTopologyChange() {
+        log.info("Topology change received");
+
+        hasTopologyChanged.set(true);
+
+        //If cooldown timer is running, do nothing further because routeRefresh will be sent when it expires
+        if (cooldownFuture != null && !cooldownFuture.isCancelled()) {
+            log.debug("Do nothing : Cooldown timer running");
+            return;
+        }
+
+        //If warmup timer is running, refresh it. If not, start it
+        if (warmupFuture != null && !warmupFuture.isCancelled()) {
+            warmupFuture.cancel(true);
+            warmupFuture = null;
+
+            warmupFuture = executor.schedule(warmupTimerTask,
+                    bgpconfig.getRouteRefreshWarmupTimer(), TimeUnit.SECONDS);
+
+            log.debug("Warmup timer running. Re-started warmup timer");
+            return;
+        } else {
+            warmupFuture = executor.schedule(warmupTimerTask,
+                    bgpconfig.getRouteRefreshWarmupTimer(), TimeUnit.SECONDS);
+            log.debug("Warmup timer started");
+            return;
+        }
+    }
+
+    protected void resetTimers() {
+        if (periodicFuture != null && !periodicFuture.isCancelled()) {
+            periodicFuture.cancel(true);
+            periodicFuture = null;
+        }
+
+        if (warmupFuture != null && !warmupFuture.isCancelled()) {
+            warmupFuture.cancel(true);
+            warmupFuture = null;
+        }
+
+        if (cooldownFuture != null && !cooldownFuture.isCancelled()) {
+            cooldownFuture.cancel(true);
+            cooldownFuture = null;
+        }
+    }
+
+    protected synchronized void timerCallback(int timerId) {
+        switch (timerId) {
+            case PERIODIC_TIMER:
+                //Cancel periodic timer and run cooldown timer
+                periodicFuture.cancel(true);
+                periodicFuture = null;
+
+                sendRouteRefreshToPeers();
+
+                //Cancel warmup timer if it is running
+                if (warmupFuture != null && !warmupFuture.isCancelled()) {
+                    warmupFuture.cancel(true);
+                    warmupFuture = null;
+                }
+
+                cooldownFuture = executor.schedule(cooldownTimerTask,
+                        bgpconfig.getRouteRefreshCooldownTimer(), TimeUnit.SECONDS);
+                log.debug("Cooldown timer started");
+                break;
+            case WARMUP_TIMER:
+                //Send route refresh and start cooldown timer
+                warmupFuture.cancel(true);
+                warmupFuture = null;
+
+                sendRouteRefreshToPeers();
+
+                cooldownFuture = executor.schedule(cooldownTimerTask,
+                        bgpconfig.getRouteRefreshCooldownTimer(), TimeUnit.SECONDS);
+                //Cancel periodic timer, if it is running
+                if (periodicFuture != null && !periodicFuture.isCancelled()) {
+                    periodicFuture.cancel(true);
+                    periodicFuture = null;
+                }
+                log.debug("Cooldown timer started");
+                break;
+            case COOLDOWN_TIMER:
+                //If hasTopologyChanged is true, we need to restart cooldown timer.
+                //Otherwise, start periodic timer
+                boolean hasTopologyChangedValue = hasTopologyChanged.get();
+
+                cooldownFuture.cancel(true);
+                cooldownFuture = null;
+
+                if (hasTopologyChangedValue) {
+                    sendRouteRefreshToPeers();
+                    cooldownFuture = executor.schedule(cooldownTimerTask,
+                            bgpconfig.getRouteRefreshCooldownTimer(), TimeUnit.SECONDS);
+                    log.debug("Cooldown timer started");
+                } else {
+                    periodicFuture = executor.schedule(periodicTimerTask,
+                            bgpconfig.getRouteRefreshPeriodicTimer(), TimeUnit.SECONDS);
+                    log.debug("Periodic timer started");
+                }
+                break;
+            default:
+                log.error("Invalid timerId in callback");
+        }
+
+    }
+
+    private synchronized void sendRouteRefreshToPeers() {
+        //Iterate over peers and send route refresh
+        connectedPeers.forEach((k, v) -> v.sendRouteRefreshMessage());
+
+        //Refresh hasTopologyChanged variable
+        hasTopologyChanged.set(false);
+    }
+
+    private Runnable periodicTimerTask = new Runnable() {
+        @Override
+        public void run() {
+            log.debug("Periodic Timer Expired");
+            timerCallback(PERIODIC_TIMER);
+        }
+    };
+
+    private Runnable cooldownTimerTask = new Runnable() {
+        @Override
+        public void run() {
+            log.info("Cooldown Timer Expired");
+            timerCallback(COOLDOWN_TIMER);
+        }
+    };
+
+    private Runnable warmupTimerTask = new Runnable() {
+        @Override
+        public void run() {
+            log.debug("Warmup Timer Expired");
+            timerCallback(WARMUP_TIMER);
+        }
+    };
 }

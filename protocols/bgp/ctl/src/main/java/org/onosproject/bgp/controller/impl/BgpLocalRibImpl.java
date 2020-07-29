@@ -153,7 +153,8 @@ public class BgpLocalRibImpl implements BgpLocalRib {
                 for (BgpNodeListener l : bgpController.listener()) {
                     l.addNode((BgpNodeLSNlriVer4) nlri, details);
                 }
-                log.debug("Local RIB ad node: {}", detailsLocRib.toString());
+                bgpController.notifyTopologyChange();
+                log.debug("Local RIB add node: {}", detailsLocRib.toString());
             }
         } else if (nlri instanceof BgpLinkLsNlriVer4) {
             BgpLinkLSIdentifier linkLsIdentifier = ((BgpLinkLsNlriVer4) nlri).getLinkIdentifier();
@@ -173,6 +174,7 @@ public class BgpLocalRibImpl implements BgpLocalRib {
                 for (BgpLinkListener l : bgpController.linkListener()) {
                     l.addLink((BgpLinkLsNlriVer4) nlri, details);
                 }
+                bgpController.notifyTopologyChange();
                 log.debug("Local RIB add link: {}", detailsLocRib.toString());
             }
         } else if (nlri instanceof BgpPrefixIPv4LSNlriVer4) {
@@ -314,6 +316,7 @@ public class BgpLocalRibImpl implements BgpLocalRib {
                 l.deleteNode((BgpNodeLSNlriVer4) nlri);
             }
             nodeTree.remove(nodeLsIdentifier);
+            bgpController.notifyTopologyChange();
         }
     }
 
@@ -379,7 +382,7 @@ public class BgpLocalRibImpl implements BgpLocalRib {
                 l.deleteLink((BgpLinkLsNlriVer4) nlri);
             }
             linkTree.remove(linkLsIdentifier);
-
+            bgpController.notifyTopologyChange();
         }
     }
 
