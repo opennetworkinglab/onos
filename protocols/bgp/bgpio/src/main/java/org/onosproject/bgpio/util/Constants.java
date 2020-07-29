@@ -22,6 +22,8 @@ public final class Constants {
     private Constants() {
     }
 
+    public static final byte EMPTY = 0x00; //Empty byte
+
     public static final short TYPE_AND_LEN = 4;
     public static final short TYPE_AND_LEN_AS_SHORT = 4;
     public static final short TYPE_AND_LEN_AS_BYTE = 3;

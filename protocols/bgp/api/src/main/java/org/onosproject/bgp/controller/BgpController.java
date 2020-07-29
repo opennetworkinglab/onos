@@ -221,4 +221,9 @@ public interface BgpController {
      */
     Set<BgpRouteListener> routeListener();
 
+    /**
+     * Helper function to notify the controller if the topology has changed.
+     * Controller will decide if route-refresh needs to be triggered
+     */
+    void notifyTopologyChange();
 }

@@ -46,6 +46,7 @@ import org.onosproject.bgpio.types.Med;
 import org.onosproject.bgpio.types.MpReachNlri;
 import org.onosproject.bgpio.types.MpUnReachNlri;
 import org.onosproject.bgpio.types.MultiProtocolExtnCapabilityTlv;
+import org.onosproject.bgpio.types.RouteRefreshCapabilityTlv;
 import org.onosproject.bgpio.types.Origin;
 import org.onosproject.bgpio.types.RpdCapabilityTlv;
 import org.onosproject.bgpio.types.attr.WideCommunity;
@@ -157,6 +158,19 @@ public class BgpPeerImpl implements BgpPeer {
             }
         }
         log.debug("IS capabality is not supported ");
+        return false;
+    }
+
+    private final boolean isRouteRefreshSupported() {
+        List<BgpValueType> capabilities = sessionInfo.remoteBgpCapability();
+
+        for (BgpValueType currentCapability : capabilities) {
+            if (currentCapability instanceof RouteRefreshCapabilityTlv) {
+                //Presence of Reoute Refresh capability TLV means route refresh is supported
+                log.debug("Route Refresh is supported by peer");
+                return true;
+            }
+        }
         return false;
     }
 
@@ -317,6 +331,24 @@ public class BgpPeerImpl implements BgpPeer {
                 .updateMessageBuilder().setBgpPathAttributes(attributesList)
                 .build();
         channel.write(Collections.singletonList(msg));
+    }
+
+    @Override
+    public void sendRouteRefreshMessage() {
+        if (!isRouteRefreshSupported()) {
+            log.debug("Route Refresh not supported by peer, so cannot send message");
+            return;
+        }
+
+        BgpMessage msg = Controller.getBgpMessageFactory4()
+                .routeRefreshMsgBuilder()
+                .addAfiSafiValue(Constants.AFI_IPV6_UNICAST, Constants.EMPTY, Constants.SAFI_UNICAST)
+                .addAfiSafiValue(Constants.AFI_VALUE, Constants.EMPTY, Constants.SAFI_VALUE)
+                .build();
+
+        channel.write(Collections.singletonList(msg));
+
+        log.info("Route Refresh sent to {}", channelId);
     }
 
     @Override
