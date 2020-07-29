@@ -97,12 +97,20 @@ typedef bit<16> l4_port_t;
 
 // SPGW types
 typedef bit<2> direction_t;
+typedef bit<8> spgw_interface_t;
 typedef bit pcc_gate_status_t;
 typedef bit<32> sdf_rule_id_t;
 typedef bit<32> pcc_rule_id_t;
 typedef bit<32> far_id_t;
-typedef bit<32> ctr_id_t;
+typedef bit<32> pdr_ctr_id_t;
 typedef bit<32> teid_t;
+
+const spgw_interface_t SPGW_IFACE_UNKNOWN = 8w0;
+const spgw_interface_t SPGW_IFACE_ACCESS = 8w1;
+const spgw_interface_t SPGW_IFACE_CORE = 8w2;
+const direction_t SPGW_DIR_UNKNOWN = 2w0;
+const direction_t SPGW_DIR_UPLINK = 2w1;
+const direction_t SPGW_DIR_DOWNLINK = 2w2;
 
 #ifndef S1U_SGW_PREFIX
 // By default spgw.p4 expects uplink packets with IP dst matching 140.0.0.0/8
@@ -147,13 +155,7 @@ const vlan_id_t DEFAULT_VLAN_ID = 12w4094;
 const bit<8> DEFAULT_MPLS_TTL = 64;
 const bit<8> DEFAULT_IPV4_TTL = 64;
 
-const sdf_rule_id_t DEFAULT_SDF_RULE_ID = 0;
-const pcc_rule_id_t DEFAULT_PCC_RULE_ID = 0;
-const direction_t SPGW_DIR_UNKNOWN = 2w0;
-const direction_t SPGW_DIR_UPLINK = 2w1;
-const direction_t SPGW_DIR_DOWNLINK = 2w2;
-const pcc_gate_status_t PCC_GATE_OPEN = 1w0;
-const pcc_gate_status_t PCC_GATE_CLOSED = 1w1;
+
 
 /* indicate INT at LSB of DSCP */
 const bit<6> INT_DSCP = 0x1;

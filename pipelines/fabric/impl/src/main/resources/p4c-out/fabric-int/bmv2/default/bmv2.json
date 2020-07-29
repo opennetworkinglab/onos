@@ -1137,7 +1137,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "include/parser.p4",
-        "line" : 267,
+        "line" : 268,
         "column" : 8,
         "source_fragment" : "FabricDeparser"
       },
@@ -2698,7 +2698,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 163,
+            "line" : 165,
             "column" : 36,
             "source_fragment" : "4; ..."
           }
@@ -3116,7 +3116,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 159,
+            "line" : 161,
             "column" : 24,
             "source_fragment" : "0x1; ..."
           }
@@ -9204,7 +9204,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 118,
+            "line" : 126,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -9283,7 +9283,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 117,
+            "line" : 125,
             "column" : 31,
             "source_fragment" : "0x8100; ..."
           }
@@ -10681,7 +10681,7 @@
           "id" : 3,
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 71,
+            "line" : 69,
             "column" : 12,
             "source_fragment" : "fabric_metadata.skip_forwarding == false"
           },
@@ -10792,7 +10792,7 @@
           "id" : 7,
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 75,
+            "line" : 73,
             "column" : 12,
             "source_fragment" : "fabric_metadata.skip_next == false"
           },
@@ -10879,7 +10879,7 @@
       "id" : 1,
       "source_info" : {
         "filename" : "fabric.p4",
-        "line" : 93,
+        "line" : 91,
         "column" : 8,
         "source_fragment" : "FabricEgress"
       },

@@ -835,7 +835,7 @@
       "id" : 0,
       "source_info" : {
         "filename" : "include/parser.p4",
-        "line" : 267,
+        "line" : 268,
         "column" : 8,
         "source_fragment" : "FabricDeparser"
       },
@@ -2387,7 +2387,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 118,
+            "line" : 126,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -2466,7 +2466,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 117,
+            "line" : 125,
             "column" : 31,
             "source_fragment" : "0x8100; ..."
           }
@@ -3565,7 +3565,7 @@
           "id" : 3,
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 71,
+            "line" : 69,
             "column" : 12,
             "source_fragment" : "fabric_metadata.skip_forwarding == false"
           },
@@ -3676,7 +3676,7 @@
           "id" : 7,
           "source_info" : {
             "filename" : "fabric.p4",
-            "line" : 75,
+            "line" : 73,
             "column" : 12,
             "source_fragment" : "fabric_metadata.skip_next == false"
           },
@@ -3763,7 +3763,7 @@
       "id" : 1,
       "source_info" : {
         "filename" : "fabric.p4",
-        "line" : 93,
+        "line" : 91,
         "column" : 8,
         "source_fragment" : "FabricEgress"
       },
