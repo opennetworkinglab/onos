@@ -30,15 +30,18 @@ fi
 # Check that environment setup is correct
 onos-release-prerequisites ${DRY_RUN}
 
-if [ ${IS_DRY_RUN} -eq 0 ]; then
-    # Block commits to Gerrit
-    ssh -p 29418 gerrit.onosproject.org projectlock lock onos ${BRANCH}
-fi
+# FIXME: re-enable locking when projectlock will be added to new ONOS gerrit
+#  or change the release process to tag a specific commit instead of the whole branch
+#if [ ${IS_DRY_RUN} -eq 0 ]; then
+#    # Block commits to Gerrit
+#    ssh -p 29418 gerrit.onosproject.org projectlock lock onos ${BRANCH}
+#fi
 
 # Prepare the build tree
 onos-prepare-release $VERSION $BRANCH "onos-build-and-upload $VERSION $NEXT_VERSION $BRANCH $DRY_RUN"
 
-if [ ${IS_DRY_RUN} -eq 0 ]; then
-    # Unblock commits
-    ssh -p 29418 gerrit.onosproject.org projectlock unlock onos ${BRANCH}
-fi
+# See FIXME above
+#if [ ${IS_DRY_RUN} -eq 0 ]; then
+#    # Unblock commits
+#    ssh -p 29418 gerrit.onosproject.org projectlock unlock onos ${BRANCH}
+#fi
