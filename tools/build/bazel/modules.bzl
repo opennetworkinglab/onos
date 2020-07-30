@@ -233,7 +233,7 @@ APP_MAP = {
     "//apps/gluon:onos-apps-gluon-oar": [],
     "//apps/graphitemetrics:onos-apps-graphitemetrics-oar": [],
     "//apps/imr:onos-apps-imr-oar": [],
-    "//apps/inbandtelemetry:onos-apps-inbandtelemetry-oar": [],
+    "//apps/inbandtelemetry:onos-apps-inbandtelemetry-oar": ["tost"],
     "//apps/influxdbmetrics:onos-apps-influxdbmetrics-oar": [],
     "//apps/intentsync:onos-apps-intentsync-oar": [],
     "//apps/k8s-networking:onos-apps-k8s-networking-oar": ["sona"],
