@@ -20,6 +20,7 @@ import com.google.common.annotations.Beta;
 
 import org.onosproject.net.driver.HandlerBehaviour;
 
+import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -30,55 +31,32 @@ import java.util.concurrent.CompletableFuture;
 public interface SoftwareUpgrade extends HandlerBehaviour {
 
     /**
-     * Upload a package to device. If no destination path is specified
-     * the package will be stored in the /tmp folder with a randomized name.
-     *
-     * @param sourcePath path to local package.
-     * @param destinationPath (optional) path where the package will be saved.
-     * @return path where the package was saved on device or null in case of an error.
+     * Completion status of upgrade.
      */
-    public CompletableFuture<String> uploadPackage(String sourcePath, String destinationPath);
+    public enum Status {
+        /**
+         * Indicates a successfully completed upgrade.
+         */
+        SUCCESS,
 
-    /**
-     * Causes the device to switch from the current software agent
-     * to the provided agent.
-     *
-     * @param packagePath path to package on device.
-     * @return success - if no exceptions occured; device uptime; device version.
-     */
-    public CompletableFuture<Response> swapAgent(String packagePath);
-
-    /**
-     * Response of SwapAgent.
-     */
-    public final class Response {
-        private final Long uptime;
-        private final String version;
-        private final boolean success;
-
-        public Response(Long a, String b) {
-            uptime = a;
-            version = b;
-            success = true;
-        }
-
-        public Response() {
-            uptime = 0L;
-            version = "";
-            success = false;
-        }
-
-        public Long getUptime() {
-            return uptime;
-        }
-
-        public String getVersion() {
-            return version;
-        }
-
-        public boolean isSuccess() {
-            return success;
-        }
+        /**
+         * Indicates an aborted upgrade.
+         */
+        FAILURE
     }
 
+    /**
+     * Configures the uri from where the upgrade will be pulled.
+     *
+     * @param uri uri of the software upgrade location
+     * @return boolean true if the uri was properly configured
+     */
+    boolean configureUri(URI uri);
+
+    /**
+     * Performs an upgrade.
+     *
+     * @return A future that will be completed when the upgrade completes
+     */
+    CompletableFuture<Status> upgrade();
 }
