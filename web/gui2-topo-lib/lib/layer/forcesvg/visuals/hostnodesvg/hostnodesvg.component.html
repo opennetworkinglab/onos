@@ -21,14 +21,6 @@
         line 3) Merge this blurred and shifted layer and overlay it with the
             original target object
     -->
-    <svg:filter id="drop-shadow-host" x="-25%" y="-25%" width="200%" height="200%">
-        <svg:feGaussianBlur in="SourceAlpha" stdDeviation="4" result="blur" />
-        <svg:feOffset in="blur" dx="4" dy="4" result="offsetBlur"/>
-        <svg:feMerge >
-            <svg:feMergeNode in="offsetBlur" />
-            <svg:feMergeNode in="SourceGraphic" />
-        </svg:feMerge>
-    </svg:filter>
     <svg:radialGradient id="three_stops_radial">
         <svg:stop offset= "0%" style="stop-color: #e3e5d6;" />
         <svg:stop offset= "70%" style="stop-color: #c3c5b6;" />
@@ -52,7 +44,6 @@
         line 2) Apply the radial gradient defined above to the circle
     -->
     <svg:circle r="15"
-        filter="url(#drop-shadow-host)"
         style="fill: url(#three_stops_radial)">
     </svg:circle>
     <svg:use xlink:href="#m_endstation" width="22.5" height="22.5" x="-11.25" y="-11.25">
