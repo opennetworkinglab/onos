@@ -25,7 +25,9 @@ import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.mastership.MastershipAdminService;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.AnnotationKeys;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
@@ -221,7 +223,10 @@ public abstract class TopologySimulator {
                              String hw, String sw, int portCount) {
         DeviceDescription desc =
                 new DefaultDeviceDescription(id.uri(), type, "ONF", hw, sw, "1234",
-                                             new ChassisId(chassisId));
+                                             new ChassisId(chassisId),
+                                             DefaultAnnotations.builder()
+                                                     .set(AnnotationKeys.NAME, "Switch " + chassisId)
+                                                     .build());
         deviceIds.add(id);
         mastershipAdminService.setRoleSync(localNode, id, MASTER);
         deviceProviderService.deviceConnected(id, desc);
@@ -286,7 +291,7 @@ public abstract class TopologySimulator {
             ipBytes[3] = (byte) (i + 1);
             HostId id = hostId(MacAddress.valueOf(macBytes), VlanId.NONE);
             IpAddress ip = IpAddress.valueOf(IpAddress.Version.INET, ipBytes);
-            hostProviderService.hostDetected(id, description(id, ip, deviceId, port), false);
+            hostProviderService.hostDetected(id, description(i, id, ip, deviceId, port), false);
         }
     }
 
@@ -362,7 +367,10 @@ public abstract class TopologySimulator {
         return new DefaultDeviceDescription(device.id().uri(), device.type(),
                                             device.manufacturer(),
                                             device.hwVersion(), device.swVersion(),
-                                            device.serialNumber(), device.chassisId());
+                                            device.serialNumber(), device.chassisId(),
+                                            DefaultAnnotations.builder()
+                                                    .putAll(device.annotations())
+                                                    .build());
     }
 
     /**
@@ -383,22 +391,29 @@ public abstract class TopologySimulator {
      */
     static DefaultHostDescription description(Host host) {
         return new DefaultHostDescription(host.mac(), host.vlan(), host.location(),
-                                          host.ipAddresses());
+                                          host.ipAddresses(),
+                                          DefaultAnnotations.builder()
+                                                  .putAll(host.annotations())
+                                                  .build());
     }
 
     /**
      * Generates a host description from the given id and location information.
      *
+     * @param index    host index for friendly name
      * @param hostId   host identifier
      * @param ip       host IP
      * @param deviceId edge device
      * @param port     edge port
      * @return host description
      */
-    static HostDescription description(HostId hostId, IpAddress ip,
+    static HostDescription description(int index, HostId hostId, IpAddress ip,
                                        DeviceId deviceId, int port) {
         HostLocation location = new HostLocation(deviceId, portNumber(port), 0L);
-        return new DefaultHostDescription(hostId.mac(), hostId.vlanId(), location, ip);
+        return new DefaultHostDescription(hostId.mac(), hostId.vlanId(), location, ip,
+                                          DefaultAnnotations.builder()
+                                                  .set(AnnotationKeys.NAME, "Host " + index)
+                                                  .build());
     }
 
     /**
