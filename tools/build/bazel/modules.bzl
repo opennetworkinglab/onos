@@ -317,7 +317,7 @@ APP_MAP = {
     "//apps/yang-gui:onos-apps-yang-gui-oar": [],
     "//apps/yang:onos-apps-yang-oar": ["stratum", "tost"],
     # "//apps/yms:onos-apps-yms-oar": [],
-    "//web/gui:onos-web-gui-oar": ["sona"],
+    "//web/gui:onos-web-gui-oar": ["sona", "tost"],
     "//web/gui2:onos-web-gui2-oar": ["stratum", "tost"],
 }
 
