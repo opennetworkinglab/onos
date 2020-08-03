@@ -1,4 +1,3 @@
-ARG BAZEL_VER=1.0.0
 ARG JOBS=2
 ARG PROFILE=default
 ARG TAG=11.0.8-11.41.23
@@ -20,10 +19,10 @@ ENV BUILD_DEPS \
     unzip
 RUN apt-get update && apt-get install -y ${BUILD_DEPS}
 
-# Install Bazel
-ARG BAZEL_VER
-RUN curl -L -o bazel.sh https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VER}/bazel-${BAZEL_VER}-installer-linux-x86_64.sh
-RUN chmod +x bazel.sh && ./bazel.sh
+# Install Bazelisk, which will download the version of bazel specified in
+# .bazelversion
+RUN curl -L -o bazelisk https://github.com/bazelbuild/bazelisk/releases/download/v1.5.0/bazelisk-linux-amd64
+RUN chmod +x bazelisk && mv bazelisk /usr/bin
 
 # Build-stage environment variables
 ENV ONOS_ROOT /src/onos
@@ -41,7 +40,7 @@ WORKDIR ${ONOS_ROOT}
 ARG JOBS
 ARG JAVA_PATH
 ARG PROFILE
-RUN bazel build onos \
+RUN bazelisk build onos \
     --jobs ${JOBS} \
     --verbose_failures \
     --javabase=@bazel_tools//tools/jdk:absolute_javabase \
