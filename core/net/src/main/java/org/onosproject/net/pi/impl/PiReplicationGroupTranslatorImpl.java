@@ -118,7 +118,7 @@ final class PiReplicationGroupTranslatorImpl {
             // Use incremental instance IDs for replicas of the same port.
             replicaMap.putIfAbsent(port, Sets.newHashSet());
             replicaMap.get(port).add(
-                    new PiPreReplica(port, replicaMap.get(port).size() + 1));
+                    new PiPreReplica(port, replicaMap.get(port).size()));
         }
         return replicaMap.values().stream()
                 .flatMap(Collection::stream)
