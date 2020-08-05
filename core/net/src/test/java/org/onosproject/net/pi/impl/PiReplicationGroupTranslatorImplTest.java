@@ -74,15 +74,15 @@ public class PiReplicationGroupTranslatorImplTest {
             allOutputBucket(3));
 
     private static final Set<PiPreReplica> REPLICAS = ImmutableSet.of(
-            new PiPreReplica(PortNumber.portNumber(1), 1),
-            new PiPreReplica(PortNumber.portNumber(2), 1),
-            new PiPreReplica(PortNumber.portNumber(3), 1));
+            new PiPreReplica(PortNumber.portNumber(1), 0),
+            new PiPreReplica(PortNumber.portNumber(2), 0),
+            new PiPreReplica(PortNumber.portNumber(3), 0));
     private static final Set<PiPreReplica> REPLICAS_2 = ImmutableSet.of(
-            new PiPreReplica(PortNumber.portNumber(1), 1),
+            new PiPreReplica(PortNumber.portNumber(1), 0),
+            new PiPreReplica(PortNumber.portNumber(2), 0),
             new PiPreReplica(PortNumber.portNumber(2), 1),
-            new PiPreReplica(PortNumber.portNumber(2), 2),
-            new PiPreReplica(PortNumber.portNumber(3), 1),
-            new PiPreReplica(PortNumber.portNumber(3), 2));
+            new PiPreReplica(PortNumber.portNumber(3), 0),
+            new PiPreReplica(PortNumber.portNumber(3), 1));
 
     private static final PiMulticastGroupEntry PI_MULTICAST_GROUP =
             PiMulticastGroupEntry.builder()
