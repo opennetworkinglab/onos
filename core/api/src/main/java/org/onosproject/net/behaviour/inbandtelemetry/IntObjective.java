@@ -67,6 +67,15 @@ public final class IntObjective {
     }
 
     /**
+     * Returns a new INT objective builder.
+     *
+     * @return INT objective builder
+     */
+    public static IntObjective.Builder builder() {
+        return new Builder();
+    }
+
+    /**
      * An IntObjective builder.
      */
     public static final class Builder {
