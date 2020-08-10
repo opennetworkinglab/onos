@@ -18,6 +18,7 @@ package org.onosproject.rest.resources;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onosproject.app.ApplicationAdminService;
 import org.onosproject.app.ApplicationException;
+import org.onosproject.cluster.ComponentsMonitorService;
 import org.onosproject.core.Application;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
@@ -50,6 +51,8 @@ public class ApplicationsWebResource extends AbstractWebResource {
 
     private static final String APP_ID_NOT_FOUND = "Application ID is not found";
     private static final String APP_NOT_FOUND = "Application is not found";
+    private static final String APP_READY = "ready";
+    private static final String APP_PENDING = "pending";
 
     private static final String URL = "url";
     private static final String ACTIVATE = "activate";
@@ -82,6 +85,23 @@ public class ApplicationsWebResource extends AbstractWebResource {
         ApplicationAdminService service = get(ApplicationAdminService.class);
         ApplicationId appId = nullIsNotFound(service.getId(name), APP_NOT_FOUND);
         return response(service, appId);
+    }
+
+    /**
+     * Get application health.
+     *
+     * @param name application name
+     * @return 200 OK with app health in the body; 404 if app is not found
+     */
+    @GET
+    @Path("{name}/health")
+    public Response health(@PathParam("name") String name) {
+        ApplicationAdminService service = get(ApplicationAdminService.class);
+        ApplicationId appId = nullIsNotFound(service.getId(name), APP_NOT_FOUND);
+
+        ComponentsMonitorService componentsMonitorService = get(ComponentsMonitorService.class);
+        boolean ready = componentsMonitorService.isFullyStarted(service.getApplication(appId).features());
+        return Response.ok(mapper().createObjectNode().put("message", ready ? APP_READY : APP_PENDING)).build();
     }
 
     /**
