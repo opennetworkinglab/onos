@@ -104,4 +104,13 @@ class DeviceDescriptions {
         }
         portDescs.put(newOne.value().portNumber(), newOne);
     }
+
+    /**
+     * Removes PortDescription.
+     *
+     * @param portNumber the port to remove.
+     */
+    public void removePortDesc(PortNumber portNumber) {
+        portDescs.remove(portNumber);
+    }
 }
