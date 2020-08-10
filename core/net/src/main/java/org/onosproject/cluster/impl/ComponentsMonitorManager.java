@@ -16,6 +16,7 @@
 
 package org.onosproject.cluster.impl;
 
+import com.google.common.collect.Lists;
 import org.osgi.service.component.runtime.ServiceComponentRuntime;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -25,6 +26,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.apache.karaf.features.Feature;
 import org.apache.karaf.features.FeaturesService;
 import org.onosproject.cluster.ClusterAdminService;
+import org.onosproject.cluster.ComponentsMonitorService;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
@@ -33,6 +35,7 @@ import org.osgi.service.component.runtime.dto.ComponentDescriptionDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -45,8 +48,8 @@ import static org.onlab.util.Tools.groupedThreads;
  * are properly activated and keeps the cluster node service appropriately
  * updated.
  */
-@Component(immediate = true)
-public class ComponentsMonitor {
+@Component(immediate = true, service = { ComponentsMonitorService.class })
+public class ComponentsMonitorManager implements ComponentsMonitorService {
 
     private Logger log = LoggerFactory.getLogger(getClass());
 
@@ -133,7 +136,7 @@ public class ComponentsMonitor {
     private boolean isFullyStarted() {
         try {
             for (Feature feature : featuresService.listInstalledFeatures()) {
-                if (!isFullyStarted(feature)) {
+                if (needToCheck(feature) && !isFullyStarted(feature)) {
                     return false;
                 }
             }
@@ -149,20 +152,30 @@ public class ComponentsMonitor {
                !feature.getId().contains("thirdparty");
     }
 
-    private boolean isFullyStarted(Feature feature) {
-        if (needToCheck(feature)) {
+    @Override
+    public boolean isFullyStarted(List<String> featureStrings) {
+        List<Feature> features = Lists.newArrayList();
+        for (String featureString : featureStrings) {
             try {
-                return feature.getBundles().stream()
-                    .map(info -> bundleContext.getBundle())
-                    .allMatch(this::isFullyStarted);
-            } catch (NullPointerException npe) {
-                // FIXME: Remove this catch block when Felix fixes the bug
-                // Due to a bug in the Felix implementation, this can throw an NPE.
-                // Catch the error and do something sensible with it.
+                features.add(featuresService.getFeature(featureString));
+            } catch (Exception e) {
+                log.debug("Feature {} not found", featureString);
                 return false;
             }
-        } else {
-            return true;
+        }
+        return features.stream().allMatch(this::isFullyStarted);
+    }
+
+    private boolean isFullyStarted(Feature feature) {
+        try {
+            return feature.getBundles().stream()
+                .map(info -> bundleContext.getBundle(info.getLocation()))
+                .allMatch(bundle -> bundle != null && isFullyStarted(bundle));
+        } catch (NullPointerException npe) {
+            // FIXME: Remove this catch block when Felix fixes the bug
+            // Due to a bug in the Felix implementation, this can throw an NPE.
+            // Catch the error and do something sensible with it.
+            return false;
         }
     }
 
