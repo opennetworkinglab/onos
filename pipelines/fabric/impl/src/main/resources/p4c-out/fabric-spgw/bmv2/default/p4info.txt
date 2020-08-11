@@ -423,12 +423,6 @@ tables {
     bitwidth: 32
     match_type: EXACT
   }
-  match_fields {
-    id: 3
-    name: "ue_addr"
-    bitwidth: 32
-    match_type: EXACT
-  }
   action_refs {
     id: 16799934
   }
