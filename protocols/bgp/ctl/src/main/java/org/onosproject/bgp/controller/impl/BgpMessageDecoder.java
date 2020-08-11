@@ -55,10 +55,16 @@ public class BgpMessageDecoder extends FrameDecoder {
 
         try {
             while (buffer.readableBytes() > 0) {
-                buffer.markReaderIndex();
-                BgpHeader bgpHeader = new BgpHeader();
-                BgpMessage message = reader.readFrom(buffer, bgpHeader);
-                msgList.add(message);
+                 try {
+                    buffer.markReaderIndex();
+                    BgpHeader bgpHeader = new BgpHeader();
+                    BgpMessage message = reader.readFrom(buffer, bgpHeader);
+                    msgList.add(message);
+                } catch (Exception e) {
+                    if (buffer.readableBytes() == 0 && msgList.size() == 0) {
+                        throw e;
+                    }
+                }
             }
             ctx.setAttachment(null);
             return msgList;
