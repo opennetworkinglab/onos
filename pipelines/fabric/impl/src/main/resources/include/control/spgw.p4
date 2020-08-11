@@ -92,10 +92,8 @@ control SpgwIngress(inout parsed_headers_t hdr,
     }
     table uplink_pdr_lookup {
         key = {
-            // tunnel_dst_addr will be static for Q2 target. Can remove if need more scaling
             hdr.ipv4.dst_addr           : exact @name("tunnel_ipv4_dst");
             hdr.gtpu.teid               : exact @name("teid");
-            hdr.inner_ipv4.src_addr     : exact @name("ue_addr");
         }
         actions = {
             set_pdr_attributes;
