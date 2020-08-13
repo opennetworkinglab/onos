@@ -50,6 +50,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static org.onosproject.net.flowobjective.NextObjective.Type.SIMPLE;
 import static org.onosproject.pipelines.fabric.impl.behaviour.FabricUtils.outputPort;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -128,9 +129,12 @@ public class FabricPipeliner extends AbstractFabricHandlerBehavior
             return;
         }
 
-        if (obj.op() == Objective.Operation.MODIFY) {
-            // TODO: support MODIFY operation
-            log.warn("MODIFY operation not yet supported for NextObjective, will return failure :(");
+        if (obj.op() == Objective.Operation.MODIFY && obj.type() != SIMPLE) {
+            log.warn("MODIFY operation not yet supported for NextObjective {}, will return failure :(",
+                    obj.type());
+            if (log.isTraceEnabled()) {
+                log.trace("Objective {}", obj);
+            }
             fail(obj, ObjectiveError.UNSUPPORTED);
             return;
         }
@@ -182,10 +186,16 @@ public class FabricPipeliner extends AbstractFabricHandlerBehavior
         if (flowRules.isEmpty()) {
             return;
         }
+
+        if (log.isTraceEnabled()) {
+            log.trace("Objective {} -> Flows {}", objective, flowRules);
+        }
+
         final FlowRuleOperations.Builder ops = FlowRuleOperations.builder();
         switch (objective.op()) {
             case ADD:
             case ADD_TO_EXISTING:
+            case MODIFY:
                 flowRules.forEach(ops::add);
                 break;
             case REMOVE:
@@ -193,7 +203,7 @@ public class FabricPipeliner extends AbstractFabricHandlerBehavior
                 flowRules.forEach(ops::remove);
                 break;
             default:
-                log.warn("Unsupported Objective operation '{}'", objective.op());
+                log.warn("Unsupported Objective operation {}", objective.op());
                 return;
         }
         flowRuleService.apply(ops.build());
@@ -203,6 +213,11 @@ public class FabricPipeliner extends AbstractFabricHandlerBehavior
         if (groups.isEmpty()) {
             return;
         }
+
+        if (log.isTraceEnabled()) {
+            log.trace("Objective {} -> Groups {}", objective, groups);
+        }
+
         switch (objective.op()) {
             case ADD:
                 groups.forEach(groupService::addGroup);
@@ -219,6 +234,14 @@ public class FabricPipeliner extends AbstractFabricHandlerBehavior
                 break;
             case REMOVE_FROM_EXISTING:
                 groups.forEach(group -> groupService.removeBucketsFromGroup(
+                        deviceId, group.appCookie(), group.buckets(),
+                        group.appCookie(), group.appId())
+                );
+                break;
+            case MODIFY:
+                // Modify is only supported for simple next objective
+                // Replace group bucket directly
+                groups.forEach(group -> groupService.setBucketsForGroup(
                         deviceId, group.appCookie(), group.buckets(),
                         group.appCookie(), group.appId())
                 );
