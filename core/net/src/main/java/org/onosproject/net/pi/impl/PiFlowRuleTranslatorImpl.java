@@ -145,7 +145,7 @@ final class PiFlowRuleTranslatorImpl {
 
         if (!rule.isPermanent()) {
             if (tableModel.supportsAging()) {
-                tableEntryBuilder.withTimeout((double) rule.timeout());
+                tableEntryBuilder.withTimeout(rule.timeout());
             } else {
                 log.debug("Flow rule is temporary, but table '{}' doesn't support " +
                                   "aging, translating to permanent.", tableModel.id());
@@ -355,13 +355,13 @@ final class PiFlowRuleTranslatorImpl {
 
             if (!piCriterionFields.containsKey(fieldId) && criterion == null) {
                 // Neither a field in PiCriterion is available nor a Criterion mapping is possible.
-                // Can ignore if the match is ternary or LPM.
+                // Can ignore if match is ternary-like, as it means "don't care".
                 switch (fieldModel.matchType()) {
                     case TERNARY:
                     case LPM:
+                    case RANGE:
                         // Skip field.
                         break;
-                    // FIXME: Can we handle the case of RANGE or VALID match?
                     default:
                         throw new PiTranslationException(format(
                                 "No value found for required match field '%s'", fieldId));
