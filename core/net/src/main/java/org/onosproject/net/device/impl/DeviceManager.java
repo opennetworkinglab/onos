@@ -1144,7 +1144,9 @@ public class DeviceManager
                 DeviceDescription desc =
                         (dev == null) ? null : BasicDeviceOperator.descriptionOf(dev);
                 Optional<Config> prevConfig = event.prevConfig();
-                desc = deviceAnnotationOp.combine(did, desc, prevConfig);
+                if (desc != null) { // Fix for NPE due to desc being null
+                    desc = deviceAnnotationOp.combine(did, desc, prevConfig);
+                }
                 if (desc != null && dp != null) {
                     store.createOrUpdateDevice(dp.id(), did, desc);
                 }
