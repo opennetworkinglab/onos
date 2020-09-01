@@ -17,6 +17,7 @@ package org.onosproject.k8snode.api;
 
 import org.onlab.packet.IpAddress;
 import org.onosproject.event.ListenerService;
+import org.onosproject.net.DeviceId;
 
 import java.util.Set;
 
@@ -48,4 +49,20 @@ public interface K8sHostService extends ListenerService<K8sHostEvent, K8sHostLis
      * @return kubernetes host
      */
     K8sHost host(IpAddress hostIp);
+
+    /**
+     * Returns the host with the specified device ID.
+     *
+     * @param deviceId device identifier
+     * @return kubernetes host
+     */
+    K8sHost host(DeviceId deviceId);
+
+    /**
+     * Returns the host with the specified tunnel bridge device ID.
+     *
+     * @param deviceId tunnel bridge's device ID
+     * @return kubernetes host
+     */
+    K8sHost hostByTunBridge(DeviceId deviceId);
 }

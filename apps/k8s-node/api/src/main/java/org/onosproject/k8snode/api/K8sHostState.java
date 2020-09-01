@@ -31,6 +31,20 @@ public enum K8sHostState {
 
         @Override
         public K8sHostState nextState() {
+            return DEVICE_CREATED;
+        }
+    },
+    /**
+     * Indicates bridge devices are added according to the host state.
+     */
+    DEVICE_CREATED {
+        @Override
+        public void process(K8sHostHandler handler, K8sHost host) {
+            handler.processDeviceCreatedState(host);
+        }
+
+        @Override
+        public K8sHostState nextState() {
             return COMPLETE;
         }
     },

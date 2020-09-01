@@ -15,6 +15,7 @@
  */
 package org.onosproject.k8snode.impl;
 
+import com.google.common.collect.ImmutableSet;
 import io.fabric8.kubernetes.api.model.Node;
 import io.fabric8.kubernetes.api.model.NodeAddress;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -24,6 +25,7 @@ import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.k8snode.api.DefaultK8sHost;
 import org.onosproject.k8snode.api.DefaultK8sNode;
 import org.onosproject.k8snode.api.ExternalNetworkService;
 import org.onosproject.k8snode.api.HostNodesInfo;
@@ -31,8 +33,12 @@ import org.onosproject.k8snode.api.K8sApiConfig;
 import org.onosproject.k8snode.api.K8sApiConfigAdminService;
 import org.onosproject.k8snode.api.K8sApiConfigEvent;
 import org.onosproject.k8snode.api.K8sApiConfigListener;
+import org.onosproject.k8snode.api.K8sHost;
+import org.onosproject.k8snode.api.K8sHostAdminService;
+import org.onosproject.k8snode.api.K8sHostState;
 import org.onosproject.k8snode.api.K8sNode;
 import org.onosproject.k8snode.api.K8sNodeAdminService;
+import org.onosproject.k8snode.api.K8sTunnelBridge;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -44,6 +50,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 
+import static java.lang.Thread.sleep;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.k8snode.api.Constants.DEFAULT_CLUSTER_NAME;
@@ -73,6 +80,8 @@ public class DefaultK8sApiConfigHandler {
     private static final String DEFAULT_GATEWAY_IP = "127.0.0.1";
     private static final String DEFAULT_BRIDGE_IP = "127.0.0.1";
 
+    private static final long SLEEP_MS = 3000; // we wait 3s
+
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
 
@@ -87,6 +96,9 @@ public class DefaultK8sApiConfigHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected K8sNodeAdminService k8sNodeAdminService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected K8sHostAdminService k8sHostAdminService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ExternalNetworkService extNetworkService;
@@ -140,6 +152,32 @@ public class DefaultK8sApiConfigHandler {
         k8sClient.nodes().list().getItems().forEach(n ->
             k8sNodeAdminService.createNode(buildK8sNode(n, config))
         );
+    }
+
+    private void bootstrapK8sHosts(K8sApiConfig config) {
+        KubernetesClient k8sClient = k8sClient(config);
+
+        if (k8sClient == null) {
+            log.warn("Failed to connect to kubernetes API server");
+            return;
+        }
+
+        config.infos().forEach(h -> {
+            k8sHostAdminService.createHost(buildK8sHost(h, config));
+        });
+
+    }
+
+    private K8sHost buildK8sHost(HostNodesInfo hostNodesInfo, K8sApiConfig config) {
+        int segmentId = config.segmentId();
+        K8sTunnelBridge bridge = new K8sTunnelBridge(segmentId);
+
+        return DefaultK8sHost.builder()
+                .hostIp(hostNodesInfo.hostIp())
+                .state(K8sHostState.INIT)
+                .tunBridges(ImmutableSet.of(bridge))
+                .nodeNames(hostNodesInfo.nodes())
+                .build();
     }
 
     private K8sNode buildK8sNode(Node node, K8sApiConfig config) {
@@ -253,6 +291,14 @@ public class DefaultK8sApiConfigHandler {
                 k8sApiConfigAdminService.updateApiConfig(newConfig);
 
                 bootstrapK8sNodes(config);
+
+                try {
+                    sleep(SLEEP_MS);
+                } catch (InterruptedException e) {
+                    log.error("Exception caused during init state checking...");
+                }
+
+                bootstrapK8sHosts(config);
             }
         }
     }

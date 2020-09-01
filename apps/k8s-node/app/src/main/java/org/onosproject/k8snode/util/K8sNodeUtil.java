@@ -259,4 +259,19 @@ public final class K8sNodeUtil {
 
         return new DefaultKubernetesClient(configBuilder.build());
     }
+
+    /**
+     * Auto generates DPID from the given name.
+     *
+     * @param name name
+     * @return auto generated DPID
+     */
+    public static String genDpidFromName(String name) {
+        if (name != null) {
+            String hexString = Integer.toHexString(name.hashCode());
+            return OF_PREFIX + Strings.padStart(hexString, 16, '0');
+        }
+
+        return null;
+    }
 }
