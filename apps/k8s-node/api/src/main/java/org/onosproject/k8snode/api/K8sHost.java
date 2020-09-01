@@ -55,6 +55,13 @@ public interface K8sHost {
     DeviceId ovsdb();
 
     /**
+     * Returns the set of tunnel bridges belong to the host.
+     *
+     * @return a set of tunnel bridges
+     */
+    Set<K8sTunnelBridge> tunBridges();
+
+    /**
      * Returns new kubernetes host instance with given state.
      *
      * @param newState updated state
@@ -63,7 +70,7 @@ public interface K8sHost {
     K8sHost updateState(K8sHostState newState);
 
     /**
-     * Returns new kuberentes host instance with given node names.
+     * Returns new kubernetes host instance with given node names.
      *
      * @param nodeNames a set of node names
      * @return updated kubernetes host
@@ -105,5 +112,13 @@ public interface K8sHost {
          * @return kubernetes host builder
          */
         Builder state(K8sHostState state);
+
+        /**
+         * Returns kubernetes host builder with supplied tunnel bridges set.
+         *
+         * @param tunBridges tunnel bridges
+         * @return kubernetes host builder
+         */
+        Builder tunBridges(Set<K8sTunnelBridge> tunBridges);
     }
 }

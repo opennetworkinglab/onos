@@ -30,6 +30,7 @@ import org.onosproject.k8snode.api.K8sHostListener;
 import org.onosproject.k8snode.api.K8sHostService;
 import org.onosproject.k8snode.api.K8sHostStore;
 import org.onosproject.k8snode.api.K8sHostStoreDelegate;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.store.service.StorageService;
 import org.osgi.service.component.ComponentContext;
@@ -184,6 +185,25 @@ public class K8sHostManager
         return hostStore.hosts().stream()
                 .filter(h -> Objects.equals(h.hostIp(), hostIp))
                 .findFirst().orElse(null);
+    }
+
+    @Override
+    public K8sHost host(DeviceId deviceId) {
+        return hostStore.hosts().stream()
+                .filter(host -> Objects.equals(host.ovsdb(), deviceId))
+                .findFirst().orElse(null);
+    }
+
+    @Override
+    public K8sHost hostByTunBridge(DeviceId deviceId) {
+        for (K8sHost host : hostStore.hosts()) {
+            long cnt = host.tunBridges().stream().filter(
+                    br -> br.dpid().equals(deviceId.toString())).count();
+            if (cnt > 0) {
+                return host;
+            }
+        }
+        return null;
     }
 
     private class InternalHostStoreDelegate implements K8sHostStoreDelegate {

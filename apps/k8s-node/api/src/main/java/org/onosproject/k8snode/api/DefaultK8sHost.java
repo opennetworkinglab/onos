@@ -34,6 +34,7 @@ public class DefaultK8sHost implements K8sHost {
     private final IpAddress hostIp;
     private final Set<String> nodeNames;
     private final K8sHostState state;
+    private final Set<K8sTunnelBridge> tunBridges;
 
     private static final String NOT_NULL_MSG = "Host % cannot be null";
 
@@ -45,12 +46,14 @@ public class DefaultK8sHost implements K8sHost {
      * @param hostIp        host IP address
      * @param nodeNames     node names
      * @param state         host state
+     * @param tunBridges    a set of tunnel bridges
      */
     protected DefaultK8sHost(IpAddress hostIp, Set<String> nodeNames,
-                             K8sHostState state) {
+                             K8sHostState state, Set<K8sTunnelBridge> tunBridges) {
         this.hostIp = hostIp;
         this.nodeNames = nodeNames;
         this.state = state;
+        this.tunBridges = tunBridges;
     }
 
     @Override
@@ -74,11 +77,17 @@ public class DefaultK8sHost implements K8sHost {
     }
 
     @Override
+    public Set<K8sTunnelBridge> tunBridges() {
+        return ImmutableSet.copyOf(tunBridges);
+    }
+
+    @Override
     public K8sHost updateState(K8sHostState newState) {
         return new Builder()
                 .hostIp(hostIp)
                 .nodeNames(nodeNames)
                 .state(newState)
+                .tunBridges(tunBridges)
                 .build();
     }
 
@@ -88,6 +97,7 @@ public class DefaultK8sHost implements K8sHost {
                 .hostIp(hostIp)
                 .nodeNames(nodeNames)
                 .state(state)
+                .tunBridges(tunBridges)
                 .build();
     }
 
@@ -102,7 +112,8 @@ public class DefaultK8sHost implements K8sHost {
         DefaultK8sHost that = (DefaultK8sHost) o;
         return Objects.equals(hostIp, that.hostIp) &&
                 Objects.equals(nodeNames, that.nodeNames) &&
-                state == that.state;
+                state == that.state &&
+                Objects.equals(tunBridges, that.tunBridges);
     }
 
     @Override
@@ -116,6 +127,7 @@ public class DefaultK8sHost implements K8sHost {
                 .add("hostIp", hostIp)
                 .add("nodeNames", nodeNames)
                 .add("state", state)
+                .add("tunBridges", tunBridges)
                 .toString();
     }
 
@@ -133,6 +145,7 @@ public class DefaultK8sHost implements K8sHost {
         private IpAddress hostIp;
         private Set<String> nodeNames;
         private K8sHostState state;
+        private Set<K8sTunnelBridge> tunBridges;
 
         // private constructor not intended to use from external
         private Builder() {
@@ -147,7 +160,11 @@ public class DefaultK8sHost implements K8sHost {
                 nodeNames = new HashSet<>();
             }
 
-            return new DefaultK8sHost(hostIp, nodeNames, state);
+            if (tunBridges == null) {
+                tunBridges = new HashSet<>();
+            }
+
+            return new DefaultK8sHost(hostIp, nodeNames, state, tunBridges);
         }
 
         @Override
@@ -165,6 +182,12 @@ public class DefaultK8sHost implements K8sHost {
         @Override
         public Builder state(K8sHostState state) {
             this.state = state;
+            return this;
+        }
+
+        @Override
+        public Builder tunBridges(Set<K8sTunnelBridge> tunBridges) {
+            this.tunBridges = tunBridges;
             return this;
         }
     }

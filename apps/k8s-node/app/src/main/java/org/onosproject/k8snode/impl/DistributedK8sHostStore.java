@@ -26,6 +26,7 @@ import org.onosproject.k8snode.api.K8sHostEvent;
 import org.onosproject.k8snode.api.K8sHostState;
 import org.onosproject.k8snode.api.K8sHostStore;
 import org.onosproject.k8snode.api.K8sHostStoreDelegate;
+import org.onosproject.k8snode.api.K8sTunnelBridge;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
@@ -80,6 +81,7 @@ public class DistributedK8sHostStore
             .register(K8sHost.class)
             .register(DefaultK8sHost.class)
             .register(K8sHostState.class)
+            .register(K8sTunnelBridge.class)
             .register(Collection.class)
             .build();
 

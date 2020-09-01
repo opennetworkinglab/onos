@@ -29,6 +29,14 @@ public interface K8sHostHandler {
     void processInitState(K8sHost k8sHost);
 
     /**
+     * Processes the given node for device created state.
+     * It creates required ports on the bridges based on the node type.
+     *
+     * @param k8sHost kubernetes host
+     */
+    void processDeviceCreatedState(K8sHost k8sHost);
+
+    /**
      * Processes the given host for complete state.
      * It performs post-init jobs for the complete host.
      *
