@@ -95,6 +95,7 @@ public final class Constants {
     public static final int PRIORITY_NODE_PORT_RULE = 42000;
     public static final int PRIORITY_NODE_PORT_REMOTE_RULE = 41500;
     public static final int PRIORITY_NODE_PORT_INTER_RULE = 40000;
+    public static final int PRIORITY_DEFAULT_RULE = 0;
 
     // flow table index
     public static final int STAT_INGRESS_TABLE = 0;
@@ -124,6 +125,8 @@ public final class Constants {
     public static final int POD_RESOLUTION_TABLE = 11;
 
     public static final int LOCAL_ENTRY_TABLE = 0;
+
+    public static final int TUN_ENTRY_TABLE = 0;
 
     // CLI item length
     public static final int CLI_ID_LENGTH = 30;

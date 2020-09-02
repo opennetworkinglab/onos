@@ -287,6 +287,13 @@ public interface K8sNode {
     String localBridgePortName();
 
     /**
+     * Returns tunnel bridge port name.
+     *
+     * @return tunnel bridge port name
+     */
+    String tunBridgePortName();
+
+    /**
      * Returns integration to external patch port name.
      *
      * @return integration to external patch port name
@@ -383,6 +390,20 @@ public interface K8sNode {
      * @return patch port number
      */
     PortNumber extToIntgPatchPortNum();
+
+    /**
+     * Returns the integration to tunnel patch port number.
+     *
+     * @return patch port number
+     */
+    PortNumber intgToTunPortNum();
+
+    /**
+     * Returns the tunnel to integration patch port number.
+     *
+     * @return patch port number
+     */
+    PortNumber tunToIntgPortNum();
 
     /**
      * Returns the external bridge to router port number.
