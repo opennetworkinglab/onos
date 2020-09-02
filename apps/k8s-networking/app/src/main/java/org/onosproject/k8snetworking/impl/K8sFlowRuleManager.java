@@ -70,6 +70,7 @@ import static org.onosproject.k8snetworking.api.Constants.PRIORITY_SNAT_RULE;
 import static org.onosproject.k8snetworking.api.Constants.ROUTING_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.STAT_EGRESS_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.STAT_INGRESS_TABLE;
+import static org.onosproject.k8snetworking.api.Constants.TUN_ENTRY_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.VTAG_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.VTAP_EGRESS_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.VTAP_INGRESS_TABLE;
@@ -317,16 +318,32 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
                 }
                 tBuilder.transition(STAT_EGRESS_TABLE);
             } else {
+                K8sNode localNode = k8sNodeService.node(k8sNetwork.name());
+                tBuilder.setOutput(node.intgToTunPortNum());
+
+                // install flows into tunnel bridge
                 PortNumber portNum = tunnelPortNumByNetId(k8sNetwork.networkId(),
                         k8sNetworkService, node);
-                K8sNode localNode = k8sNodeService.node(k8sNetwork.name());
+                TrafficTreatment treatmentToRemote = DefaultTrafficTreatment.builder()
+                        .extension(buildExtension(
+                                deviceService,
+                                node.tunBridge(),
+                                localNode.dataIp().getIp4Address()),
+                                node.tunBridge())
+                        .setTunnelId(Long.valueOf(k8sNetwork.segmentId()))
+                        .setOutput(portNum)
+                        .build();
 
-                tBuilder.extension(buildExtension(
-                        deviceService,
-                        node.intgBridge(),
-                        localNode.dataIp().getIp4Address()),
-                        node.intgBridge())
-                        .setOutput(portNum);
+                FlowRule remoteFlowRule = DefaultFlowRule.builder()
+                        .forDevice(node.tunBridge())
+                        .withSelector(sBuilder.build())
+                        .withTreatment(treatmentToRemote)
+                        .withPriority(PRIORITY_CIDR_RULE)
+                        .fromApp(appId)
+                        .makePermanent()
+                        .forTable(TUN_ENTRY_TABLE)
+                        .build();
+                applyRule(remoteFlowRule, true);
             }
 
             FlowRule flowRule = DefaultFlowRule.builder()

@@ -396,6 +396,16 @@ public class DefaultK8sNode implements K8sNode {
     }
 
     @Override
+    public PortNumber intgToTunPortNum() {
+        return portNumber(intgBridge, intgToTunPatchPortName());
+    }
+
+    @Override
+    public PortNumber tunToIntgPortNum() {
+        return portNumber(tunBridge, tunToIntgPatchPortName());
+    }
+
+    @Override
     public PortNumber extBridgePortNum() {
         if (this.extIntf == null) {
             return null;
@@ -515,6 +525,15 @@ public class DefaultK8sNode implements K8sNode {
             return LOCAL_BRIDGE + "-" + uniqueString(5);
         } else {
             return LOCAL_BRIDGE;
+        }
+    }
+
+    @Override
+    public String tunBridgePortName() {
+        if (mode == PASSTHROUGH) {
+            return TUNNEL_BRIDGE + "-" + uniqueString(5);
+        } else {
+            return TUNNEL_BRIDGE;
         }
     }
 
