@@ -286,6 +286,9 @@ public class BgpRouteProvider extends AbstractProvider {
                                 = (BgpEvpnRouteType2Nlri) nlri
                                 .getNlri();
                         MacAddress macAddress = macIpAdvNlri.getMacAddress();
+                        if (macIpAdvNlri.getIpAddress() == null) {
+                            continue;
+                        }
                         Ip4Address ipAddress = Ip4Address
                                 .valueOf(macIpAdvNlri.getIpAddress());
                         RouteDistinguisher rd = macIpAdvNlri
@@ -319,6 +322,9 @@ public class BgpRouteProvider extends AbstractProvider {
                                 = (BgpEvpnRouteType2Nlri) nlri
                                 .getNlri();
                         MacAddress macAddress = macIpAdvNlri.getMacAddress();
+                        if (macIpAdvNlri.getIpAddress() == null) {
+                            continue;
+                        }
                         Ip4Address ipAddress = Ip4Address
                                 .valueOf(macIpAdvNlri.getIpAddress());
                         RouteDistinguisher rd = macIpAdvNlri
