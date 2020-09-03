@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
 import org.onosproject.k8snode.api.K8sNode;
 
 /**
@@ -39,6 +40,7 @@ public final class K8sNodeJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode
     private static final String EXTERNAL_INTF = "externalInterface";
     private static final String EXTERNAL_BRIDGE_IP = "externalBridgeIp";
     private static final String EXTERNAL_GATEWAY_IP = "externalGatewayIp";
+    private static final String EXTERNAL_GATEWAY_MAC = "externalGatewayMac";
 
     private K8sNodeJsonMatcher(K8sNode node) {
         this.node = node;
@@ -143,6 +145,16 @@ public final class K8sNodeJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode
             IpAddress extGatewayIp = node.extGatewayIp();
             if (!jsonExtGatewayIp.asText().equals(extGatewayIp.toString())) {
                 description.appendText("External gateway IP was " + jsonExtGatewayIp.asText());
+                return false;
+            }
+        }
+
+        // check external gateway MAC
+        JsonNode jsonExtGatewayMac = jsonNode.get(EXTERNAL_GATEWAY_MAC);
+        if (jsonExtGatewayMac != null) {
+            MacAddress extGatewayMac = node.extGatewayMac();
+            if (!jsonExtGatewayMac.asText().equals(extGatewayMac.toString())) {
+                description.appendText("External gateway MAC was " + jsonExtGatewayMac.asText());
                 return false;
             }
         }

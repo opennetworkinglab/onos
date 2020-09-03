@@ -41,6 +41,7 @@ public final class K8sApiConfigJsonMatcher extends TypeSafeDiagnosingMatcher<Jso
     private static final String CLIENT_CERT_DATA = "clientCertData";
     private static final String CLIENT_KEY_DATA = "clientKeyData";
     private static final String HOST_NODES_INFO = "hostNodesInfo";
+    private static final String DVR = "dvr";
 
     private K8sApiConfigJsonMatcher(K8sApiConfig k8sApiConfig) {
         this.k8sApiConfig = k8sApiConfig;
@@ -113,6 +114,16 @@ public final class K8sApiConfigJsonMatcher extends TypeSafeDiagnosingMatcher<Jso
         if (jsonState != null) {
             if (!jsonState.asText().equals(state)) {
                 description.appendText("state was " + jsonState);
+                return false;
+            }
+        }
+
+        // check DVR
+        JsonNode jsonDvr = jsonNode.get(DVR);
+        boolean dvr = k8sApiConfig.dvr();
+        if (jsonDvr != null) {
+            if (jsonDvr.asBoolean() != dvr) {
+                description.appendText("DVR was " + jsonDvr);
                 return false;
             }
         }

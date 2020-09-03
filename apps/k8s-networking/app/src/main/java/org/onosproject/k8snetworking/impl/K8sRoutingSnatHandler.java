@@ -19,6 +19,7 @@ import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpPrefix;
+import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
@@ -70,6 +71,7 @@ import static org.onosproject.k8snetworking.util.RulePopulatorUtil.CT_NAT_SRC_FL
 import static org.onosproject.k8snetworking.util.RulePopulatorUtil.buildMoveArpShaToThaExtension;
 import static org.onosproject.k8snetworking.util.RulePopulatorUtil.buildMoveArpSpaToTpaExtension;
 import static org.onosproject.k8snetworking.util.RulePopulatorUtil.buildMoveEthSrcToDstExtension;
+import static org.onosproject.k8snode.api.Constants.DEFAULT_EXTERNAL_GATEWAY_MAC;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -259,8 +261,14 @@ public class K8sRoutingSnatHandler {
 
             tBuilder.extension(natTreatment, k8sNode.extBridge())
                     .setEthSrc(k8sNode.extBridgeMac())
-                    .setEthDst(k8sNode.extGatewayMac())
-                    .setOutput(k8sNode.extBridgePortNum());
+                    .setEthDst(k8sNode.extGatewayMac());
+
+            if (MacAddress.valueOf(DEFAULT_EXTERNAL_GATEWAY_MAC).equals(
+                    k8sNode.extGatewayMac())) {
+                tBuilder.setOutput(k8sNode.extIntfPortNum());
+            } else {
+                tBuilder.setOutput(k8sNode.extBridgePortNum());
+            }
         }
 
         k8sFlowRuleService.setRule(

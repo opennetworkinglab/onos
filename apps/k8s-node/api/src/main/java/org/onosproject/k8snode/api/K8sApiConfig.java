@@ -174,6 +174,13 @@ public interface K8sApiConfig {
     Set<HostNodesInfo> infos();
 
     /**
+     * Returns the distributed virtual router flag value.
+     *
+     * @return true if it supports DVR, false otherwise
+     */
+    boolean dvr();
+
+    /**
      * Builder of new API config entity.
      */
     interface Builder {
@@ -288,5 +295,13 @@ public interface K8sApiConfig {
          * @return kubernetes API config builder
          */
         Builder infos(Set<HostNodesInfo> infos);
+
+        /**
+         * Returns kubernetes API server config builder with supplied DVR flag.
+         *
+         * @param dvr distributed virtual router flag
+         * @return kubernetes API config builder
+         */
+        Builder dvr(boolean dvr);
     }
 }

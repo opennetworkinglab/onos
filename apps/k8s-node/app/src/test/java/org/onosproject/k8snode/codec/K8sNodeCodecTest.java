@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.codec.impl.CodecManager;
@@ -89,6 +90,7 @@ public class K8sNodeCodecTest {
                 .extIntf("eth1")
                 .extBridgeIp(IpAddress.valueOf("10.10.10.5"))
                 .extGatewayIp(IpAddress.valueOf("10.10.10.1"))
+                .extGatewayMac(MacAddress.valueOf("FF:FF:FF:FF:FF:FF"))
                 .build();
 
         ObjectNode nodeJson = k8sNodeCodec.encode(node, context);
@@ -114,6 +116,7 @@ public class K8sNodeCodecTest {
         assertEquals("eth1", node.extIntf());
         assertEquals("172.16.130.5", node.extBridgeIp().toString());
         assertEquals("172.16.130.1", node.extGatewayIp().toString());
+        assertEquals("FF:FF:FF:FF:FF:FF", node.extGatewayMac().toString());
     }
 
     private K8sNode getK8sNode(String resourceName) throws IOException {

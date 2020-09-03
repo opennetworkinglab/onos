@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertTrue;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
@@ -103,6 +104,7 @@ public class K8sApiConfigCodecTest {
                 .clientCertData("clientCertData")
                 .clientKeyData("clientKeyData")
                 .infos(ImmutableSet.of(info))
+                .dvr(true)
                 .build();
 
         ObjectNode configJson = k8sApiConfigCodec.encode(config, context);
@@ -129,6 +131,7 @@ public class K8sApiConfigCodecTest {
         assertEquals("caCertData", config.caCertData());
         assertEquals("clientCertData", config.clientCertData());
         assertEquals("clientKeyData", config.clientKeyData());
+        assertTrue(config.dvr());
 
         Set<HostNodesInfo> infos = config.infos();
         assertEquals(1, infos.size());

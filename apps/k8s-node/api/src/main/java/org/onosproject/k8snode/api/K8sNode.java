@@ -413,6 +413,13 @@ public interface K8sNode {
     PortNumber extBridgePortNum();
 
     /**
+     * Returns the external interface (attached to external bridge) port number.
+     *
+     * @return port number, null if the port does ont exist
+     */
+    PortNumber extIntfPortNum();
+
+    /**
      * Returns the integration bridge's MAC address.
      *
      * @return MAC address; null if the MAC address does not exist

@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang.StringUtils;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
 import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.k8snode.api.DefaultK8sNode;
@@ -54,6 +55,7 @@ public final class K8sNodeCodec extends JsonCodec<K8sNode> {
     private static final String EXTERNAL_INTF = "externalInterface";
     private static final String EXTERNAL_BRIDGE_IP = "externalBridgeIp";
     private static final String EXTERNAL_GATEWAY_IP = "externalGatewayIp";
+    private static final String EXTERNAL_GATEWAY_MAC = "externalGatewayMac";
 
     private static final String MISSING_MESSAGE = " is required in K8sNode";
 
@@ -99,6 +101,10 @@ public final class K8sNodeCodec extends JsonCodec<K8sNode> {
 
         if (node.extGatewayIp() != null) {
             result.put(EXTERNAL_GATEWAY_IP, node.extGatewayIp().toString());
+        }
+
+        if (node.extGatewayMac() != null) {
+            result.put(EXTERNAL_GATEWAY_MAC, node.extGatewayMac().toString());
         }
 
         return result;
@@ -174,6 +180,11 @@ public final class K8sNodeCodec extends JsonCodec<K8sNode> {
         JsonNode extGatewayIpJson = json.get(EXTERNAL_GATEWAY_IP);
         if (extGatewayIpJson != null) {
             nodeBuilder.extGatewayIp(IpAddress.valueOf(extGatewayIpJson.asText()));
+        }
+
+        JsonNode extGatewayMacJson = json.get(EXTERNAL_GATEWAY_MAC);
+        if (extGatewayMacJson != null) {
+            nodeBuilder.extGatewayMac(MacAddress.valueOf(extGatewayMacJson.asText()));
         }
 
         log.trace("node is {}", nodeBuilder.build().toString());

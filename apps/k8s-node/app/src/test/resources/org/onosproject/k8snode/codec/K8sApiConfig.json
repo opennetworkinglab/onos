@@ -17,5 +17,6 @@
         "master", "worker"
       ]
     }
-  ]
+  ],
+  "dvr": true
 }

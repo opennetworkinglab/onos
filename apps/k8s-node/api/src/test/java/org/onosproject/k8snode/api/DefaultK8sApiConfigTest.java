@@ -68,6 +68,9 @@ public final class DefaultK8sApiConfigTest {
     private static final String CLIENT_KEY_DATA_1 = "clientKeyData1";
     private static final String CLIENT_KEY_DATA_2 = "clientKeyData2";
 
+    private static final boolean DVR_1 = true;
+    private static final boolean DVR_2 = false;
+
     private K8sApiConfig config1;
     private K8sApiConfig sameAsConfig1;
     private K8sApiConfig config2;
@@ -98,6 +101,7 @@ public final class DefaultK8sApiConfigTest {
                 .caCertData(CA_CERT_DATA_1)
                 .clientCertData(CLIENT_CERT_DATA_1)
                 .clientKeyData(CLIENT_KEY_DATA_1)
+                .dvr(DVR_1)
                 .build();
 
         sameAsConfig1 = DefaultK8sApiConfig.builder()
@@ -113,6 +117,7 @@ public final class DefaultK8sApiConfigTest {
                 .caCertData(CA_CERT_DATA_1)
                 .clientCertData(CLIENT_CERT_DATA_1)
                 .clientKeyData(CLIENT_KEY_DATA_1)
+                .dvr(DVR_1)
                 .build();
 
         config2 = DefaultK8sApiConfig.builder()
@@ -128,6 +133,7 @@ public final class DefaultK8sApiConfigTest {
                 .caCertData(CA_CERT_DATA_2)
                 .clientCertData(CLIENT_CERT_DATA_2)
                 .clientKeyData(CLIENT_KEY_DATA_2)
+                .dvr(DVR_2)
                 .build();
     }
 
@@ -160,5 +166,6 @@ public final class DefaultK8sApiConfigTest {
         assertEquals(CA_CERT_DATA_1, config.caCertData());
         assertEquals(CLIENT_CERT_DATA_1, config.clientCertData());
         assertEquals(CLIENT_KEY_DATA_1, config.clientKeyData());
+        assertEquals(DVR_1, config.dvr());
     }
 }
