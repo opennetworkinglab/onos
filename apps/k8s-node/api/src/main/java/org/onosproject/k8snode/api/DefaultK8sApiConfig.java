@@ -51,11 +51,13 @@ public final class DefaultK8sApiConfig implements K8sApiConfig {
     private final String clientCertData;
     private final String clientKeyData;
     private final Set<HostNodesInfo> infos;
+    private final boolean dvr;
 
     private DefaultK8sApiConfig(String clusterName, int segmentId, IpPrefix extNetworkCidr,
                                 Scheme scheme, IpAddress ipAddress, int port,
                                 Mode mode, State state, String token, String caCertData,
-                                String clientCertData, String clientKeyData, Set<HostNodesInfo> infos) {
+                                String clientCertData, String clientKeyData,
+                                Set<HostNodesInfo> infos, boolean dvr) {
         this.clusterName = clusterName;
         this.segmentId = segmentId;
         this.extNetworkCidr = extNetworkCidr;
@@ -69,6 +71,7 @@ public final class DefaultK8sApiConfig implements K8sApiConfig {
         this.clientCertData = clientCertData;
         this.clientKeyData = clientKeyData;
         this.infos = infos;
+        this.dvr = dvr;
     }
 
     @Override
@@ -132,6 +135,7 @@ public final class DefaultK8sApiConfig implements K8sApiConfig {
                 .clientCertData(clientCertData)
                 .clientKeyData(clientKeyData)
                 .infos(infos)
+                .dvr(dvr)
                 .build();
     }
 
@@ -161,6 +165,11 @@ public final class DefaultK8sApiConfig implements K8sApiConfig {
     }
 
     @Override
+    public boolean dvr() {
+        return dvr;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -181,13 +190,14 @@ public final class DefaultK8sApiConfig implements K8sApiConfig {
                 caCertData.equals(that.caCertData) &&
                 clientCertData.equals(that.clientCertData) &&
                 clientKeyData.equals(that.clientKeyData) &&
-                infos.equals(that.infos);
+                infos.equals(that.infos) &&
+                dvr == that.dvr;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(clusterName, segmentId, extNetworkCidr, scheme, ipAddress,
-                port, mode, state, token, caCertData, clientCertData, clientKeyData, infos);
+        return Objects.hash(clusterName, segmentId, extNetworkCidr, scheme, ipAddress, port,
+                mode, state, token, caCertData, clientCertData, clientKeyData, infos, dvr);
     }
 
     @Override
@@ -206,6 +216,7 @@ public final class DefaultK8sApiConfig implements K8sApiConfig {
                 .add("clientCertData", clientCertData)
                 .add("clientKeyData", clientKeyData)
                 .add("infos", infos)
+                .add("dvr", dvr)
                 .toString();
     }
 
@@ -233,6 +244,7 @@ public final class DefaultK8sApiConfig implements K8sApiConfig {
         private String clientCertData;
         private String clientKeyData;
         private Set<HostNodesInfo> infos;
+        private boolean dvr;
 
         @Override
         public K8sApiConfig build() {
@@ -259,7 +271,7 @@ public final class DefaultK8sApiConfig implements K8sApiConfig {
             }
 
             return new DefaultK8sApiConfig(clusterName, segmentId, extNetworkCidr, scheme, ipAddress,
-                    port, mode, state, token, caCertData, clientCertData, clientKeyData, infos);
+                    port, mode, state, token, caCertData, clientCertData, clientKeyData, infos, dvr);
         }
 
         @Override
@@ -337,6 +349,12 @@ public final class DefaultK8sApiConfig implements K8sApiConfig {
         @Override
         public K8sApiConfig.Builder infos(Set<HostNodesInfo> infos) {
             this.infos = infos;
+            return this;
+        }
+
+        @Override
+        public K8sApiConfig.Builder dvr(boolean dvr) {
+            this.dvr = dvr;
             return this;
         }
     }

@@ -57,6 +57,7 @@ public final class K8sApiConfigCodec extends JsonCodec<K8sApiConfig> {
     private static final String CLIENT_CERT_DATA = "clientCertData";
     private static final String CLIENT_KEY_DATA = "clientKeyData";
     private static final String HOST_NODES_INFO = "hostNodesInfo";
+    private static final String DVR = "dvr";
 
     private static final String MISSING_MESSAGE = " is required in K8sApiConfig";
 
@@ -69,7 +70,8 @@ public final class K8sApiConfigCodec extends JsonCodec<K8sApiConfig> {
                 .put(SCHEME, entity.scheme().name())
                 .put(IP_ADDRESS, entity.ipAddress().toString())
                 .put(PORT, entity.port())
-                .put(STATE, entity.state().name());
+                .put(STATE, entity.state().name())
+                .put(DVR, entity.dvr());
 
         if (entity.scheme() == HTTPS) {
             node.put(CA_CERT_DATA, entity.caCertData())
@@ -158,6 +160,11 @@ public final class K8sApiConfigCodec extends JsonCodec<K8sApiConfig> {
                 .ipAddress(ipAddress)
                 .port(port)
                 .state(DISCONNECTED);
+
+        JsonNode dvrJson = json.get(DVR);
+        if (dvrJson != null) {
+            builder.dvr(dvrJson.asBoolean());
+        }
 
         JsonNode tokenJson = json.get(TOKEN);
         JsonNode caCertDataJson = json.get(CA_CERT_DATA);

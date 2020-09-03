@@ -48,4 +48,6 @@ public final class Constants {
     public static final String DEFAULT_CONFIG_MODE = "NORMAL";
 
     public static final int DEFAULT_SEGMENT_ID = 100;
+    public static final String DEFAULT_EXTERNAL_GATEWAY_MAC = "fa:00:00:00:00:01";
+    public static final String DEFAULT_EXTERNAL_BRIDGE_MAC = "fa:00:00:00:00:02";
 }

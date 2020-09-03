@@ -20,6 +20,7 @@ import io.fabric8.kubernetes.api.model.Node;
 import io.fabric8.kubernetes.api.model.NodeAddress;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
@@ -54,6 +55,7 @@ import static java.lang.Thread.sleep;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.k8snode.api.Constants.DEFAULT_CLUSTER_NAME;
+import static org.onosproject.k8snode.api.Constants.DEFAULT_EXTERNAL_GATEWAY_MAC;
 import static org.onosproject.k8snode.api.Constants.EXTERNAL_TO_ROUTER;
 import static org.onosproject.k8snode.api.K8sApiConfig.Mode.PASSTHROUGH;
 import static org.onosproject.k8snode.api.K8sNode.Type.MASTER;
@@ -243,7 +245,7 @@ public class DefaultK8sApiConfigHandler {
             extBridgeIpStr = annots.get(EXT_BRIDGE_IP);
         }
 
-        return DefaultK8sNode.builder()
+        K8sNode.Builder builder = DefaultK8sNode.builder()
                 .clusterName(DEFAULT_CLUSTER_NAME)
                 .hostname(hostname)
                 .managementIp(managementIp)
@@ -255,8 +257,13 @@ public class DefaultK8sApiConfigHandler {
                 .mode(config.mode())
                 .extBridgeIp(IpAddress.valueOf(extBridgeIpStr))
                 .extGatewayIp(IpAddress.valueOf(extGatewayIpStr))
-                .podCidr(node.getSpec().getPodCIDR())
-                .build();
+                .podCidr(node.getSpec().getPodCIDR());
+
+        if (config.dvr()) {
+            builder.extGatewayMac(MacAddress.valueOf(DEFAULT_EXTERNAL_GATEWAY_MAC));
+        }
+
+        return builder.build();
     }
 
     /**

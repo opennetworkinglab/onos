@@ -9,5 +9,6 @@
   "externalBridge": "of:00000000000000b1",
   "externalInterface": "eth1",
   "externalBridgeIp": "172.16.130.5",
-  "externalGatewayIp": "172.16.130.1"
+  "externalGatewayIp": "172.16.130.1",
+  "externalGatewayMac": "FF:FF:FF:FF:FF:FF"
 }

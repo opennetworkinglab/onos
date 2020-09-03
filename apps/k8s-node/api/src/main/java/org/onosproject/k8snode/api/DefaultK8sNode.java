@@ -32,6 +32,8 @@ import java.util.UUID;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.onosproject.k8snode.api.Constants.DEFAULT_CLUSTER_NAME;
+import static org.onosproject.k8snode.api.Constants.DEFAULT_EXTERNAL_BRIDGE_MAC;
+import static org.onosproject.k8snode.api.Constants.DEFAULT_EXTERNAL_GATEWAY_MAC;
 import static org.onosproject.k8snode.api.Constants.EXTERNAL_BRIDGE;
 import static org.onosproject.k8snode.api.Constants.GENEVE_TUNNEL;
 import static org.onosproject.k8snode.api.Constants.GRE_TUNNEL;
@@ -414,6 +416,14 @@ public class DefaultK8sNode implements K8sNode {
     }
 
     @Override
+    public PortNumber extIntfPortNum() {
+        if (this.extIntf == null) {
+            return null;
+        }
+        return portNumber(extBridge, extIntf());
+    }
+
+    @Override
     public MacAddress intgBridgeMac() {
         return macAddress(intgBridge, intgBridgeName());
     }
@@ -425,7 +435,11 @@ public class DefaultK8sNode implements K8sNode {
 
     @Override
     public MacAddress extBridgeMac() {
-        return macAddress(extBridge, extBridgeName());
+        if (MacAddress.valueOf(DEFAULT_EXTERNAL_GATEWAY_MAC).equals(extGatewayMac())) {
+            return MacAddress.valueOf(DEFAULT_EXTERNAL_BRIDGE_MAC);
+        } else {
+            return macAddress(extBridge, extBridgeName());
+        }
     }
 
     @Override
