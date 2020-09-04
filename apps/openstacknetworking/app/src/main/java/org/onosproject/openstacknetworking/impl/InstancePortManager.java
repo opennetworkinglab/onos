@@ -80,6 +80,7 @@ public class InstancePortManager
 
     protected final Logger log = getLogger(getClass());
 
+    private static final String OPENSTACK_PROVIDER = "sona:org.onosproject.openstacknetworking";
     private static final String MSG_INSTANCE_PORT = "Instance port %s %s";
     private static final String MSG_CREATED = "created";
     private static final String MSG_UPDATED = "updated";
@@ -302,9 +303,12 @@ public class InstancePortManager
                 return false;
             }
 
+            boolean isProvider =
+                    OPENSTACK_PROVIDER.equals(event.subject().providerId().id());
+
             // do not allow to proceed without leadership
             NodeId leader = leadershipService.getLeader(appId.name());
-            return Objects.equals(localNodeId, leader);
+            return Objects.equals(localNodeId, leader) && isProvider;
         }
 
         @Override
