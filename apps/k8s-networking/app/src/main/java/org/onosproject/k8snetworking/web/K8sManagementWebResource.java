@@ -53,15 +53,8 @@ import static org.onosproject.k8snode.api.K8sNodeState.COMPLETE;
 public class K8sManagementWebResource extends AbstractWebResource {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final String PORT_ID = "portId";
-    private static final String DEVICE_ID = "deviceId";
-    private static final String PORT_NUMBER = "portNumber";
-    private static final String IP_ADDRESS = "ipAddress";
-    private static final String MAC_ADDRESS = "macAddress";
-    private static final String NETWORK_ID = "networkId";
-
-    private static final long SLEEP_MIDDLE_MS = 3000; // we wait 3s
-    private static final long TIMEOUT_MS = 10000; // we wait 10s
+    private static final long SLEEP_MS = 10000; // we wait 10s
+    private static final long TIMEOUT_MS = 30000; // we wait 30s
 
     private final K8sApiConfigService configService = get(K8sApiConfigService.class);
     private final K8sPodAdminService podAdminService = get(K8sPodAdminService.class);
@@ -186,7 +179,7 @@ public class K8sManagementWebResource extends AbstractWebResource {
             long  waitMs = timeoutExpiredMs - System.currentTimeMillis();
 
             try {
-                sleep(SLEEP_MIDDLE_MS);
+                sleep(SLEEP_MS);
             } catch (InterruptedException e) {
                 log.error("Exception caused during node synchronization...");
             }

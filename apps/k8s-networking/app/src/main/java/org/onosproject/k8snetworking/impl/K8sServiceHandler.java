@@ -316,9 +316,7 @@ public class K8sServiceHandler {
         });
 
         // setup load balancing rules using group table
-        k8sServiceService.services().stream()
-                .filter(s -> CLUSTER_IP.equals(s.getSpec().getType()))
-                .forEach(s -> setStatelessGroupFlowRules(deviceId, s, install));
+        k8sServiceService.services().forEach(s -> setStatelessGroupFlowRules(deviceId, s, install));
     }
 
     private void setSrcDstCidrRules(DeviceId deviceId, String srcCidr,
