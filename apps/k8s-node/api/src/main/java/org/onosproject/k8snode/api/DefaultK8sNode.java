@@ -373,7 +373,7 @@ public class DefaultK8sNode implements K8sNode {
 
     @Override
     public PortNumber intgBridgePortNum() {
-        return portNumber(intgBridge, intgBridgePortName());
+        return PortNumber.LOCAL;
     }
 
     @Override
@@ -384,7 +384,6 @@ public class DefaultK8sNode implements K8sNode {
     @Override
     public PortNumber intgToLocalPatchPortNum() {
         return portNumber(intgBridge, intgToLocalPatchPortName());
-
     }
 
     @Override
@@ -409,10 +408,7 @@ public class DefaultK8sNode implements K8sNode {
 
     @Override
     public PortNumber extBridgePortNum() {
-        if (this.extIntf == null) {
-            return null;
-        }
-        return portNumber(extBridge, extBridgePortName());
+        return PortNumber.LOCAL;
     }
 
     @Override

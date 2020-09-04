@@ -33,8 +33,8 @@ import static org.onosproject.k8snode.api.K8sNodeState.INIT;
         description = "Synchronizes all kubernetes flow rules")
 public class K8sSyncRulesCommand extends AbstractShellCommand {
 
-    private static final long SLEEP_MS = 3000; // we wait 3s for init each node
-    private static final long TIMEOUT_MS = 10000; // we wait 10s
+    private static final long SLEEP_MS = 10000; // we wait 10s for init each node
+    private static final long TIMEOUT_MS = 30000; // we wait 30s
 
     private static final String SUCCESS_MSG = "Successfully synchronize flow rules for node %s!";
     private static final String FAIL_MSG = "Failed to synchronize flow rules for node %s.";

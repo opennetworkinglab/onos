@@ -184,6 +184,11 @@ public class K8sRoutingArpHandler {
     }
 
     private void setPodArpRequestRule(K8sNode k8sNode, boolean install) {
+        if (k8sNode.extBridgePortNum() == null) {
+            log.warn("External bridge port is disabled.");
+            return;
+        }
+
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchInPort(k8sNode.extToIntgPatchPortNum())
                 .matchEthType(Ethernet.TYPE_ARP)
