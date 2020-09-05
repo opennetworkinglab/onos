@@ -27,7 +27,7 @@ tar xf $KARAF_TAR
 #tar xf $KARAF_PATCHES
 
 # Unroll the Apache Karaf bits, prune them and make ONOS top-level directories.
-KARAF_DIR=$(ls -d apache*)
+export KARAF_DIR=$(ls -d apache*)
 rm -rf $KARAF_DIR/demos
 
 # Patch the log-file size in place to increase it to 10 MB
@@ -35,12 +35,12 @@ perl -pi.old -e "s/maxFileSize=1MB/maxFileSize=10MB/g" \
     $KARAF_DIR/etc/org.ops4j.pax.logging.cfg
 
 # Patch-in proper Karaf version into the startup script
-sed -i.bk "s/apache-karaf-\$KARAF_VERSION/$KARAF_DIR/g" $SANDBOX/bin/onos-service
+perl -pi.bk -e 's/apache-karaf-\$KARAF_VERSION/$ENV{KARAF_DIR}/g' $SANDBOX/bin/onos-service
 
 # hack - need to break the link to the script in the source tree for bazel
-sed -i.bk "s/apache-karaf-\$KARAF_VERSION/$KARAF_DIR/g" $SANDBOX/bin/onos
+perl -pi.bk -e 's/apache-karaf-\$KARAF_VERSION/$ENV{KARAF_DIR}/g' $SANDBOX/bin/onos
 
-rm -f bin/*.bk
+rm -f $SANDBOX/bin/*.bk
 chmod a+x $SANDBOX/bin/onos-service $SANDBOX/bin/onos
 
 # Patch the Apache Karaf distribution with ONOS branding bundle
