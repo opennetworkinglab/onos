@@ -1,24 +1,23 @@
 #!/bin/bash
 # -----------------------------------------------------------------------------
-# Checks whether all ONOS components are either ACTIVE or DISABLED.
+# Checks whether all ONOS components are either ACTIVE or SATISFIED.
 # -----------------------------------------------------------------------------
-
 aux=/tmp/stc/stc-$$.log
 trap "rm -f $aux 2>/dev/null" EXIT
 
 for attempt in {1..30}; do
-    onos ${1:-$OCI} onos:scr-list > $aux
+    onos ${1:-$OCI} onos:scr-list &> $aux
 
-    if grep -q UNSATISFIED $aux; then
+    if grep -q -E "UNKNOWN|not found" $aux; then
         sleep 1
     else
         if [ -n "$2" ]; then
             echo "Searching for ACTIVE $2"
             egrep "ACTIVE.*$2" $aux && exit 0 || sleep 1
         else
-            cat $aux &&  exit 0
+            cat $aux && exit 0
         fi
     fi
 done
 
-exit 1
+cat $aux && exit 1
