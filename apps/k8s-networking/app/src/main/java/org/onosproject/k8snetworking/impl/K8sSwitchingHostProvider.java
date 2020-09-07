@@ -23,6 +23,8 @@ import org.onlab.util.Tools;
 import org.onosproject.core.CoreService;
 import org.onosproject.k8snetworking.api.K8sNetwork;
 import org.onosproject.k8snetworking.api.K8sNetworkAdminService;
+import org.onosproject.k8snetworking.api.K8sNetworkEvent;
+import org.onosproject.k8snetworking.api.K8sNetworkListener;
 import org.onosproject.k8snetworking.api.K8sPort;
 import org.onosproject.k8snode.api.K8sNode;
 import org.onosproject.k8snode.api.K8sNodeEvent;
@@ -65,8 +67,11 @@ import static org.onosproject.k8snetworking.api.Constants.ANNOTATION_CREATE_TIME
 import static org.onosproject.k8snetworking.api.Constants.ANNOTATION_NETWORK_ID;
 import static org.onosproject.k8snetworking.api.Constants.ANNOTATION_PORT_ID;
 import static org.onosproject.k8snetworking.api.Constants.ANNOTATION_SEGMENT_ID;
+import static org.onosproject.k8snetworking.api.Constants.GENEVE;
+import static org.onosproject.k8snetworking.api.Constants.GRE;
 import static org.onosproject.k8snetworking.api.Constants.K8S_NETWORKING_APP_ID;
-import static org.onosproject.k8snetworking.api.Constants.PORT_NAME_PREFIX_CONTAINER;
+import static org.onosproject.k8snetworking.api.Constants.VXLAN;
+import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.existingContainerPort;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.isContainer;
 import static org.onosproject.k8snode.api.K8sNodeState.INIT;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
@@ -81,7 +86,6 @@ public class K8sSwitchingHostProvider extends AbstractProvider implements HostPr
 
     private static final String ERR_ADD_HOST = "Failed to add host: ";
     private static final String SONA_HOST_SCHEME = "sona-k8s";
-    private static final int PORT_PREFIX_LENGTH = 4;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
@@ -112,6 +116,8 @@ public class K8sSwitchingHostProvider extends AbstractProvider implements HostPr
             new InternalDeviceListener();
     private final InternalK8sNodeListener internalK8sNodeListener =
             new InternalK8sNodeListener();
+    private final InternalK8sNetworkListener internalK8sNetworkListener =
+            new InternalK8sNetworkListener();
 
     /**
      * Creates kubernetes switching host provider.
@@ -125,6 +131,7 @@ public class K8sSwitchingHostProvider extends AbstractProvider implements HostPr
         coreService.registerApplication(K8S_NETWORKING_APP_ID);
         deviceService.addListener(internalDeviceListener);
         k8sNodeService.addListener(internalK8sNodeListener);
+        k8sNetworkService.addListener(internalK8sNetworkListener);
         hostProviderService = hostProviderRegistry.register(this);
 
         log.info("Started");
@@ -133,6 +140,7 @@ public class K8sSwitchingHostProvider extends AbstractProvider implements HostPr
     @Deactivate
     protected void deactivate() {
         hostProviderRegistry.unregister(this);
+        k8sNetworkService.removeListener(internalK8sNetworkListener);
         k8sNodeService.removeListener(internalK8sNodeListener);
         deviceService.removeListener(internalDeviceListener);
 
@@ -272,7 +280,7 @@ public class K8sSwitchingHostProvider extends AbstractProvider implements HostPr
 
         if (isContainer(portName)) {
             return k8sNetworkService.ports().stream()
-                    .filter(p -> p.portId().contains(portName.substring(PORT_PREFIX_LENGTH)))
+                    .filter(p -> existingContainerPort(p.portId(), portName))
                     .findAny().orElse(null);
         } else {
             return null;
@@ -290,8 +298,7 @@ public class K8sSwitchingHostProvider extends AbstractProvider implements HostPr
 
             String portName = port.annotations().value(PORT_NAME);
 
-            return !Strings.isNullOrEmpty(portName) &&
-                    portName.startsWith(PORT_NAME_PREFIX_CONTAINER);
+            return !Strings.isNullOrEmpty(portName) && isContainer(portName);
         }
 
         private boolean isRelevantHelper(DeviceEvent event) {
@@ -433,6 +440,48 @@ public class K8sSwitchingHostProvider extends AbstractProvider implements HostPr
                                 k8sNode.hostname());
                         processPortInactivated(port);
                     });
+        }
+    }
+
+    private class InternalK8sNetworkListener implements K8sNetworkListener {
+
+        @Override
+        public void event(K8sNetworkEvent event) {
+            switch (event.type()) {
+                case K8S_PORT_CREATED:
+                    executor.execute(() -> processK8sPortAddition(event));
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void processK8sPortAddition(K8sNetworkEvent event) {
+            String portId = event.port().portId();
+            for (Device device : deviceService.getDevices()) {
+                Port port = deviceService.getPorts(device.id()).stream()
+                        .filter(Port::isEnabled)
+                        .filter(p -> p.annotations().value(PORT_NAME) != null)
+                        .filter(p -> existingContainerPort(portId, p.annotations().value(PORT_NAME)))
+                        .findAny().orElse(null);
+
+                if (port != null) {
+                    String upperPortName = port.annotations().value(PORT_NAME).toUpperCase();
+                    // we do not handle tunnel typed port
+                    if (upperPortName.contains(VXLAN) || upperPortName.contains(GRE) ||
+                            upperPortName.contains(GENEVE)) {
+                        continue;
+                    }
+
+                    // if we have null device ID, we simply update the device ID on the k8s port
+                    if (event.port().deviceId() == null) {
+                        K8sPort updated = event.port().updateDeviceId(device.id());
+                        k8sNetworkService.updatePort(updated);
+                    }
+
+                    processPortAdded(port);
+                }
+            }
         }
     }
 }
