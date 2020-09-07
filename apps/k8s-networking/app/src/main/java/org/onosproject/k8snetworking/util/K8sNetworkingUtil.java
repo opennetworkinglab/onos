@@ -29,6 +29,7 @@ import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.util.SubnetUtils;
+import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
@@ -43,10 +44,15 @@ import org.onosproject.k8snetworking.api.K8sPort;
 import org.onosproject.k8snetworking.api.K8sServiceService;
 import org.onosproject.k8snode.api.K8sApiConfig;
 import org.onosproject.k8snode.api.K8sApiConfigService;
+import org.onosproject.k8snode.api.K8sHost;
+import org.onosproject.k8snode.api.K8sHostService;
 import org.onosproject.k8snode.api.K8sNode;
 import org.onosproject.k8snode.api.K8sNodeService;
+import org.onosproject.k8snode.api.K8sTunnelBridge;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.group.DefaultGroupKey;
 import org.onosproject.net.group.GroupKey;
 import org.slf4j.Logger;
@@ -63,8 +69,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.onosproject.k8snetworking.api.Constants.DEFAULT_NAMESPACE_HASH;
-import static org.onosproject.k8snetworking.api.Constants.PORT_NAME_PREFIX_CONTAINER;
+import static org.onosproject.k8snetworking.api.Constants.NORMAL_PORT_NAME_PREFIX_CONTAINER;
+import static org.onosproject.k8snetworking.api.Constants.NORMAL_PORT_PREFIX_LENGTH;
+import static org.onosproject.k8snetworking.api.Constants.PT_PORT_NAME_PREFIX_CONTAINER;
+import static org.onosproject.k8snetworking.api.Constants.PT_PORT_PREFIX_LENGTH;
 import static org.onosproject.k8snetworking.api.K8sPort.State.INACTIVE;
+import static org.onosproject.k8snode.api.K8sApiConfig.Mode.PASSTHROUGH;
+import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 
 /**
  * An utility that used in kubernetes networking app.
@@ -101,7 +112,31 @@ public final class K8sNetworkingUtil {
      * @return true if the port is associated with container; false otherwise
      */
     public static boolean isContainer(String portName) {
-        return portName != null && portName.contains(PORT_NAME_PREFIX_CONTAINER);
+        return portName != null && (portName.contains(NORMAL_PORT_NAME_PREFIX_CONTAINER) ||
+                portName.contains(PT_PORT_NAME_PREFIX_CONTAINER));
+    }
+
+    /**
+     * Checks that whether the compared ports exist in the source name.
+     *
+     * @param sourceName    source port name
+     * @param comparedName  port name to be compared
+     * @return true if the compared port name exists, false otherwise
+     */
+    public static boolean existingContainerPort(String sourceName, String comparedName) {
+        if (comparedName == null) {
+            return false;
+        }
+
+        if (comparedName.contains(NORMAL_PORT_NAME_PREFIX_CONTAINER)) {
+            return sourceName.contains(comparedName.substring(NORMAL_PORT_PREFIX_LENGTH));
+        }
+
+        if (comparedName.contains(PT_PORT_NAME_PREFIX_CONTAINER)) {
+            return sourceName.contains(comparedName.substring(PT_PORT_PREFIX_LENGTH));
+        }
+
+        return false;
     }
 
     /**
@@ -133,16 +168,55 @@ public final class K8sNetworkingUtil {
      */
     public static PortNumber tunnelPortNumByNetType(K8sNetwork.Type netType,
                                                     K8sNode node) {
-        switch (netType) {
-            case VXLAN:
-                return node.vxlanPortNum();
-            case GRE:
-                return node.grePortNum();
-            case GENEVE:
-                return node.genevePortNum();
-            default:
+        if (node.mode() == PASSTHROUGH) {
+            K8sHostService hostService =
+                    DefaultServiceDirectory.getService(K8sHostService.class);
+            Port port = null;
+            for (K8sHost host : hostService.hosts()) {
+                if (host.nodeNames().contains(node.hostname())) {
+                    for (K8sTunnelBridge bridge : host.tunBridges()) {
+                        if (bridge.tunnelId() == node.segmentId()) {
+                            String portName = netType.name().toLowerCase() +
+                                    "-" + node.segmentId();
+                            port = port(bridge.deviceId(), portName);
+                        }
+                    }
+                }
+            }
+
+            if (port == null) {
                 return null;
+            } else {
+                return port.number();
+            }
+
+        } else {
+            switch (netType) {
+                case VXLAN:
+                    return node.vxlanPortNum();
+                case GRE:
+                    return node.grePortNum();
+                case GENEVE:
+                    return node.genevePortNum();
+                default:
+                    return null;
+            }
         }
+    }
+
+    /**
+     * Obtains the port from the device with the given port name.
+     *
+     * @param deviceId      device identifier
+     * @param portName      port name
+     * @return port object
+     */
+    public static Port port(DeviceId deviceId, String portName) {
+        DeviceService deviceService = DefaultServiceDirectory.getService(DeviceService.class);
+        return deviceService.getPorts(deviceId).stream()
+                .filter(p -> p.isEnabled() &&
+                        Objects.equals(p.annotations().value(PORT_NAME), portName))
+                .findAny().orElse(null);
     }
 
     /**

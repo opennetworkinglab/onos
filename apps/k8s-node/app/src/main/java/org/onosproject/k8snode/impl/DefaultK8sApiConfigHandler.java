@@ -61,6 +61,7 @@ import static org.onosproject.k8snode.api.K8sApiConfig.Mode.PASSTHROUGH;
 import static org.onosproject.k8snode.api.K8sNode.Type.MASTER;
 import static org.onosproject.k8snode.api.K8sNode.Type.MINION;
 import static org.onosproject.k8snode.api.K8sNodeService.APP_ID;
+import static org.onosproject.k8snode.api.K8sNodeState.ON_BOARDED;
 import static org.onosproject.k8snode.api.K8sNodeState.PRE_ON_BOARD;
 import static org.onosproject.k8snode.util.K8sNodeUtil.k8sClient;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -82,7 +83,7 @@ public class DefaultK8sApiConfigHandler {
     private static final String DEFAULT_GATEWAY_IP = "127.0.0.1";
     private static final String DEFAULT_BRIDGE_IP = "127.0.0.1";
 
-    private static final long SLEEP_MS = 3000; // we wait 3s
+    private static final long SLEEP_MS = 10000; // we wait 10s
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
@@ -151,9 +152,22 @@ public class DefaultK8sApiConfigHandler {
             return;
         }
 
-        k8sClient.nodes().list().getItems().forEach(n ->
-            k8sNodeAdminService.createNode(buildK8sNode(n, config))
-        );
+        for (Node node : k8sClient.nodes().list().getItems()) {
+            K8sNode k8sNode = buildK8sNode(node, config);
+            k8sNodeAdminService.createNode(k8sNode);
+
+            while (k8sNodeAdminService.node(k8sNode.hostname()).state() != ON_BOARDED) {
+                try {
+                    sleep(SLEEP_MS);
+                } catch (InterruptedException e) {
+                    log.error("Exception caused during on-boarding state checking...");
+                }
+
+                if (k8sNodeAdminService.node(k8sNode.hostname()).state() == ON_BOARDED) {
+                    break;
+                }
+            }
+        }
     }
 
     private void bootstrapK8sHosts(K8sApiConfig config) {
@@ -299,13 +313,9 @@ public class DefaultK8sApiConfigHandler {
 
                 bootstrapK8sNodes(config);
 
-                try {
-                    sleep(SLEEP_MS);
-                } catch (InterruptedException e) {
-                    log.error("Exception caused during init state checking...");
+                if (config.infos().size() > 0) {
+                    bootstrapK8sHosts(config);
                 }
-
-                bootstrapK8sHosts(config);
             }
         }
     }

@@ -107,6 +107,14 @@ public interface K8sPort {
     K8sPort updatePortNumber(PortNumber portNumber);
 
     /**
+     * Returns new port instance with the given device ID.
+     *
+     * @param deviceId device identifier
+     * @return updated port
+     */
+    K8sPort updateDeviceId(DeviceId deviceId);
+
+    /**
      * Builder of new port.
      */
     interface Builder {

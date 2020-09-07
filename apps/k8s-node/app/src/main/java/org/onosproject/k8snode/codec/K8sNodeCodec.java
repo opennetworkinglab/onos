@@ -44,6 +44,7 @@ public final class K8sNodeCodec extends JsonCodec<K8sNode> {
     private static final String CLUSTER_NAME = "clusterName";
     private static final String HOSTNAME = "hostname";
     private static final String TYPE = "type";
+    private static final String MODE = "mode";
     private static final String SEGMENT_ID = "segmentId";
     private static final String MANAGEMENT_IP = "managementIp";
     private static final String DATA_IP = "dataIp";
@@ -67,6 +68,7 @@ public final class K8sNodeCodec extends JsonCodec<K8sNode> {
                 .put(CLUSTER_NAME, node.clusterName())
                 .put(HOSTNAME, node.hostname())
                 .put(TYPE, node.type().name())
+                .put(MODE, node.mode().name())
                 .put(SEGMENT_ID, node.segmentId())
                 .put(STATE, node.state().name())
                 .put(MANAGEMENT_IP, node.managementIp().toString());

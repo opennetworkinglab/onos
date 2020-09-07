@@ -190,7 +190,24 @@ public class DefaultK8sNode implements K8sNode {
 
     @Override
     public DeviceId tunBridge() {
-        return tunBridge;
+
+        if (mode == PASSTHROUGH) {
+            K8sHostService hostService =
+                    DefaultServiceDirectory.getService(K8sHostService.class);
+            DeviceId deviceId = null;
+            for (K8sHost host : hostService.hosts()) {
+                if (host.nodeNames().contains(hostname())) {
+                    for (K8sTunnelBridge bridge : host.tunBridges()) {
+                        if (bridge.tunnelId() == segmentId()) {
+                            deviceId = bridge.deviceId();
+                        }
+                    }
+                }
+            }
+            return deviceId;
+        } else {
+            return tunBridge;
+        }
     }
 
     @Override
@@ -403,7 +420,28 @@ public class DefaultK8sNode implements K8sNode {
 
     @Override
     public PortNumber tunToIntgPortNum() {
-        return portNumber(tunBridge, tunToIntgPatchPortName());
+        if (mode() == PASSTHROUGH) {
+            K8sHostService hostService =
+                    DefaultServiceDirectory.getService(K8sHostService.class);
+            Port port = null;
+            for (K8sHost host : hostService.hosts()) {
+                if (host.nodeNames().contains(hostname())) {
+                    for (K8sTunnelBridge bridge : host.tunBridges()) {
+                        if (bridge.tunnelId() == segmentId()) {
+                            port = port(bridge.deviceId(), tunToIntgPatchPortName());
+                        }
+                    }
+                }
+            }
+
+            if (port == null) {
+                return null;
+            } else {
+                return port.number();
+            }
+        } else {
+            return portNumber(tunBridge, tunToIntgPatchPortName());
+        }
     }
 
     @Override

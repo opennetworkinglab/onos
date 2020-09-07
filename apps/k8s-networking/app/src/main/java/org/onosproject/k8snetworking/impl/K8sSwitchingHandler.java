@@ -66,8 +66,12 @@ import static org.onosproject.k8snetworking.api.Constants.PRIORITY_SWITCHING_RUL
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_TUNNEL_TAG_RULE;
 import static org.onosproject.k8snetworking.api.Constants.TUN_ENTRY_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.VTAG_TABLE;
+import static org.onosproject.k8snetworking.api.K8sNetwork.Type.GENEVE;
+import static org.onosproject.k8snetworking.api.K8sNetwork.Type.GRE;
+import static org.onosproject.k8snetworking.api.K8sNetwork.Type.VXLAN;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.getPropertyValue;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.tunnelPortNumByNetId;
+import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.tunnelPortNumByNetType;
 import static org.onosproject.k8snetworking.util.RulePopulatorUtil.buildExtension;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -228,9 +232,9 @@ public class K8sSwitchingHandler {
     }
 
     private void setRulesForTunnelBridge(K8sNode node, boolean install) {
-        setRulesForTunnelBridgeByType(node, K8sNetwork.Type.VXLAN, install);
-        setRulesForTunnelBridgeByType(node, K8sNetwork.Type.GRE, install);
-        setRulesForTunnelBridgeByType(node, K8sNetwork.Type.GENEVE, install);
+        setRulesForTunnelBridgeByType(node, VXLAN, install);
+        setRulesForTunnelBridgeByType(node, GRE, install);
+        setRulesForTunnelBridgeByType(node, GENEVE, install);
     }
 
     private void setRulesForTunnelBridgeByType(K8sNode node, K8sNetwork.Type type, boolean install) {
@@ -239,13 +243,13 @@ public class K8sSwitchingHandler {
 
         switch (type) {
             case VXLAN:
-                portNum = node.vxlanPortNum();
+                portNum = tunnelPortNumByNetType(VXLAN, node);
                 break;
             case GRE:
-                portNum = node.grePortNum();
+                portNum = tunnelPortNumByNetType(GRE, node);
                 break;
             case GENEVE:
-                portNum = node.genevePortNum();
+                portNum = tunnelPortNumByNetType(GENEVE, node);
                 break;
             default:
                 return;
