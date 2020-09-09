@@ -21,41 +21,38 @@ import org.onosproject.net.DeviceId;
 
 import java.util.Objects;
 
-import static org.onosproject.k8snode.api.Constants.GENEVE_TUNNEL;
-import static org.onosproject.k8snode.api.Constants.GRE_TUNNEL;
-import static org.onosproject.k8snode.api.Constants.TUNNEL_BRIDGE;
-import static org.onosproject.k8snode.api.Constants.VXLAN_TUNNEL;
+import static org.onosproject.k8snode.api.Constants.ROUTER_BRIDGE;
 
 /**
- * K8s tunnel bridge.
+ * K8s router bridge.
  */
-public class K8sTunnelBridge implements K8sBridge {
+public class K8sRouterBridge implements K8sBridge {
 
     private static final String OF_PREFIX = "of:";
 
-    private final int tunnelId;
+    private final int segmentId;
 
     /**
      * Default constructor.
      *
-     * @param tunnelId  tunnel identifier
+     * @param segmentId  segment identifier
      */
-    public K8sTunnelBridge(int tunnelId) {
-        this.tunnelId = tunnelId;
+    public K8sRouterBridge(int segmentId) {
+        this.segmentId = segmentId;
+    }
+
+    /**
+     * Returns segment ID.
+     *
+     * @return segment ID
+     */
+    public int segmentId() {
+        return segmentId;
     }
 
     @Override
     public DeviceId deviceId() {
         return DeviceId.deviceId(dpid());
-    }
-
-    /**
-     * Returns tunnel ID.
-     *
-     * @return tunnel ID
-     */
-    public int tunnelId() {
-        return tunnelId;
     }
 
     @Override
@@ -65,34 +62,7 @@ public class K8sTunnelBridge implements K8sBridge {
 
     @Override
     public String name() {
-        return TUNNEL_BRIDGE + "-" + tunnelId;
-    }
-
-    /**
-     * Returns GRE port name.
-     *
-     * @return GRE port name
-     */
-    public String grePortName() {
-        return GRE_TUNNEL + "-" + tunnelId;
-    }
-
-    /**
-     * Returns VXLAN port name.
-     *
-     * @return VXLAN port name
-     */
-    public String vxlanPortName() {
-        return VXLAN_TUNNEL + "-" + tunnelId;
-    }
-
-    /**
-     * Returns GENEVE port name.
-     *
-     * @return GENEVE port name
-     */
-    public String genevePortName() {
-        return GENEVE_TUNNEL + "-" + tunnelId;
+        return ROUTER_BRIDGE + "-" + segmentId;
     }
 
     @Override
@@ -103,19 +73,19 @@ public class K8sTunnelBridge implements K8sBridge {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        K8sTunnelBridge that = (K8sTunnelBridge) o;
-        return tunnelId == that.tunnelId;
+        K8sRouterBridge that = (K8sRouterBridge) o;
+        return segmentId == that.segmentId;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(tunnelId);
+        return Objects.hash(segmentId);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
-                .add("tunnelId", tunnelId)
+                .add("segmentId", segmentId)
                 .toString();
     }
 

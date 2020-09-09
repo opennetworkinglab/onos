@@ -158,7 +158,7 @@ public class K8sSwitchingGatewayHandler {
 
             if (node.hostname().equals(k8sNetwork.name())) {
                 tBuilder.setEthDst(node.intgBridgeMac())
-                        .setOutput(PortNumber.LOCAL);
+                        .setOutput(node.intgEntryPortNum());
             } else {
                 K8sNode localNode = k8sNodeService.node(k8sNetwork.name());
 
@@ -198,7 +198,7 @@ public class K8sSwitchingGatewayHandler {
 
             if (node.hostname().equals(k8sNetwork.name())) {
                 sBuilder = DefaultTrafficSelector.builder()
-                        .matchInPort(PortNumber.LOCAL)
+                        .matchInPort(node.intgEntryPortNum())
                         .matchEthType(Ethernet.TYPE_IPV4)
                         .matchIPDst(IpPrefix.valueOf(k8sNetwork.gatewayIp(),
                                 HOST_PREFIX));

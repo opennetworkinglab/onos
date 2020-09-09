@@ -62,6 +62,13 @@ public interface K8sHost {
     Set<K8sTunnelBridge> tunBridges();
 
     /**
+     * Returns the set of router bridges belong to the host.
+     *
+     * @return a set of router bridges
+     */
+    Set<K8sRouterBridge> routerBridges();
+
+    /**
      * Returns new kubernetes host instance with given state.
      *
      * @param newState updated state
@@ -120,5 +127,13 @@ public interface K8sHost {
          * @return kubernetes host builder
          */
         Builder tunBridges(Set<K8sTunnelBridge> tunBridges);
+
+        /**
+         * Returns kubernetes host builder with supplied router bridges set.
+         *
+         * @param routerBridges router bridges
+         * @return kubernetes host builder
+         */
+        Builder routerBridges(Set<K8sRouterBridge> routerBridges);
     }
 }

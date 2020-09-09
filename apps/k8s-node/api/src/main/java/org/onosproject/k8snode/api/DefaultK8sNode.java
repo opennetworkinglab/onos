@@ -34,16 +34,22 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static org.onosproject.k8snode.api.Constants.DEFAULT_CLUSTER_NAME;
 import static org.onosproject.k8snode.api.Constants.DEFAULT_EXTERNAL_BRIDGE_MAC;
 import static org.onosproject.k8snode.api.Constants.DEFAULT_EXTERNAL_GATEWAY_MAC;
+import static org.onosproject.k8snode.api.Constants.DEFAULT_INTG_BRIDGE_MAC;
 import static org.onosproject.k8snode.api.Constants.EXTERNAL_BRIDGE;
+import static org.onosproject.k8snode.api.Constants.EXTERNAL_TO_ROUTER;
 import static org.onosproject.k8snode.api.Constants.GENEVE_TUNNEL;
 import static org.onosproject.k8snode.api.Constants.GRE_TUNNEL;
 import static org.onosproject.k8snode.api.Constants.INTEGRATION_BRIDGE;
 import static org.onosproject.k8snode.api.Constants.INTEGRATION_TO_EXTERNAL_BRIDGE;
 import static org.onosproject.k8snode.api.Constants.INTEGRATION_TO_LOCAL_BRIDGE;
 import static org.onosproject.k8snode.api.Constants.INTEGRATION_TO_TUN_BRIDGE;
+import static org.onosproject.k8snode.api.Constants.K8S_TO_OS_BRIDGE;
 import static org.onosproject.k8snode.api.Constants.LOCAL_BRIDGE;
 import static org.onosproject.k8snode.api.Constants.LOCAL_TO_INTEGRATION_BRIDGE;
+import static org.onosproject.k8snode.api.Constants.OS_TO_K8S_BRIDGE;
 import static org.onosproject.k8snode.api.Constants.PHYSICAL_EXTERNAL_BRIDGE;
+import static org.onosproject.k8snode.api.Constants.ROUTER;
+import static org.onosproject.k8snode.api.Constants.ROUTER_TO_EXTERNAL;
 import static org.onosproject.k8snode.api.Constants.TUNNEL_BRIDGE;
 import static org.onosproject.k8snode.api.Constants.TUN_TO_INTEGRATION_BRIDGE;
 import static org.onosproject.k8snode.api.Constants.VXLAN_TUNNEL;
@@ -445,6 +451,63 @@ public class DefaultK8sNode implements K8sNode {
     }
 
     @Override
+    public PortNumber routerToExtPortNum() {
+        if (mode() == PASSTHROUGH) {
+            K8sHostService hostService =
+                    DefaultServiceDirectory.getService(K8sHostService.class);
+            Port port = null;
+            for (K8sHost host : hostService.hosts()) {
+                if (host.nodeNames().contains(hostname())) {
+                    for (K8sRouterBridge bridge : host.routerBridges()) {
+                        if (bridge.segmentId() == segmentId()) {
+                            port = port(bridge.deviceId(), routerToExtPatchPortName());
+                        }
+                    }
+                }
+            }
+
+            if (port == null) {
+                return null;
+            } else {
+                return port.number();
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    public PortNumber extToRouterPortNum() {
+        return portNumber(extBridge, extToRouterPatchPortName());
+    }
+
+    @Override
+    public PortNumber routerPortNum() {
+        if (mode() == PASSTHROUGH) {
+            K8sHostService hostService =
+                    DefaultServiceDirectory.getService(K8sHostService.class);
+            Port port = null;
+            for (K8sHost host : hostService.hosts()) {
+                if (host.nodeNames().contains(hostname())) {
+                    for (K8sRouterBridge bridge : host.routerBridges()) {
+                        if (bridge.segmentId() == segmentId()) {
+                            port = port(bridge.deviceId(), routerPortName());
+                        }
+                    }
+                }
+            }
+
+            if (port == null) {
+                return null;
+            } else {
+                return port.number();
+            }
+        }
+
+        return null;
+    }
+
+    @Override
     public PortNumber extBridgePortNum() {
         return PortNumber.LOCAL;
     }
@@ -459,7 +522,11 @@ public class DefaultK8sNode implements K8sNode {
 
     @Override
     public MacAddress intgBridgeMac() {
-        return macAddress(intgBridge, intgBridgeName());
+        if (mode == PASSTHROUGH) {
+            return MacAddress.valueOf(DEFAULT_INTG_BRIDGE_MAC);
+        } else {
+            return macAddress(intgBridge, intgBridgeName());
+        }
     }
 
     @Override
@@ -519,6 +586,24 @@ public class DefaultK8sNode implements K8sNode {
             return INTEGRATION_BRIDGE + "-" + uniqueString(5);
         } else {
             return INTEGRATION_BRIDGE;
+        }
+    }
+
+    @Override
+    public String intgEntryPortName() {
+        if (mode == PASSTHROUGH) {
+            return k8sToOsIntgPatchPortName();
+        } else {
+            return intgBridgeName();
+        }
+    }
+
+    @Override
+    public PortNumber intgEntryPortNum() {
+        if (mode == PASSTHROUGH) {
+            return portNumber(intgBridge, k8sToOsIntgPatchPortName());
+        } else {
+            return intgBridgePortNum();
         }
     }
 
@@ -636,6 +721,51 @@ public class DefaultK8sNode implements K8sNode {
             return TUN_TO_INTEGRATION_BRIDGE + "-" + uniqueString(5);
         } else {
             return TUN_TO_INTEGRATION_BRIDGE;
+        }
+    }
+
+    @Override
+    public String k8sToOsIntgPatchPortName() {
+        if (mode == PASSTHROUGH) {
+            return K8S_TO_OS_BRIDGE + "-" + uniqueString(5);
+        } else {
+            return K8S_TO_OS_BRIDGE;
+        }
+    }
+
+    @Override
+    public String osToK8sIntgPatchPortName() {
+        if (mode == PASSTHROUGH) {
+            return OS_TO_K8S_BRIDGE + "-" + uniqueString(5);
+        } else {
+            return OS_TO_K8S_BRIDGE;
+        }
+    }
+
+    @Override
+    public String routerToExtPatchPortName() {
+        if (mode == PASSTHROUGH) {
+            return ROUTER_TO_EXTERNAL + "-" + uniqueString(5);
+        } else {
+            return ROUTER_TO_EXTERNAL;
+        }
+    }
+
+    @Override
+    public String extToRouterPatchPortName() {
+        if (mode == PASSTHROUGH) {
+            return EXTERNAL_TO_ROUTER + "-" + uniqueString(5);
+        } else {
+            return EXTERNAL_TO_ROUTER;
+        }
+    }
+
+    @Override
+    public String routerPortName() {
+        if (mode == PASSTHROUGH) {
+            return ROUTER + "-" + segmentId();
+        } else {
+            return ROUTER;
         }
     }
 

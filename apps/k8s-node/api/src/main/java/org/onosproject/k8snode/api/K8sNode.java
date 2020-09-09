@@ -245,6 +245,20 @@ public interface K8sNode {
     String intgBridgeName();
 
     /**
+     * Returns the entry port name of integration bridge.
+     *
+     * @return entry port name
+     */
+    String intgEntryPortName();
+
+    /**
+     * Return the port number of integration bridge's entry port.
+     *
+     * @return port number
+     */
+    PortNumber intgEntryPortNum();
+
+    /**
      * Returns external bridge name.
      *
      * @return external bridge name
@@ -336,6 +350,41 @@ public interface K8sNode {
     String tunToIntgPatchPortName();
 
     /**
+     * Returns kubernetes to openstack integration patch port name.
+     *
+     * @return kubernetes to openstack integration patch port name
+     */
+    String k8sToOsIntgPatchPortName();
+
+    /**
+     * Returns openstack to kubernetes integration patch port name.
+     *
+     * @return openstack to kubernetes integration patch port name
+     */
+    String osToK8sIntgPatchPortName();
+
+    /**
+     * Returns router to external bridge patch port name.
+     *
+     * @return router to external bridge patch port name
+     */
+    String routerToExtPatchPortName();
+
+    /**
+     * Returns external to router bridge patch port name.
+     *
+     * @return external to router bridge patch port name
+     */
+    String extToRouterPatchPortName();
+
+    /**
+     * Returns router part name.
+     *
+     * @return router port name
+     */
+    String routerPortName();
+
+    /**
      * Returns the GRE tunnel port number.
      *
      * @return GRE port number; null if the GRE tunnel port does not exist
@@ -404,6 +453,27 @@ public interface K8sNode {
      * @return patch port number
      */
     PortNumber tunToIntgPortNum();
+
+    /**
+     * Returns the router to external bridge patch port number.
+     *
+     * @return patch port number
+     */
+    PortNumber routerToExtPortNum();
+
+    /**
+     * Returns the external to router bridge patch port number.
+     *
+     * @return patch port number
+     */
+    PortNumber extToRouterPortNum();
+
+    /**
+     * Returns the router port number.
+     *
+     * @return router port number
+     */
+    PortNumber routerPortNum();
 
     /**
      * Returns the external bridge to router port number.

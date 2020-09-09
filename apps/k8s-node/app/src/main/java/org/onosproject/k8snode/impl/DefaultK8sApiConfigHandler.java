@@ -39,6 +39,7 @@ import org.onosproject.k8snode.api.K8sHostAdminService;
 import org.onosproject.k8snode.api.K8sHostState;
 import org.onosproject.k8snode.api.K8sNode;
 import org.onosproject.k8snode.api.K8sNodeAdminService;
+import org.onosproject.k8snode.api.K8sRouterBridge;
 import org.onosproject.k8snode.api.K8sTunnelBridge;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -186,12 +187,14 @@ public class DefaultK8sApiConfigHandler {
 
     private K8sHost buildK8sHost(HostNodesInfo hostNodesInfo, K8sApiConfig config) {
         int segmentId = config.segmentId();
-        K8sTunnelBridge bridge = new K8sTunnelBridge(segmentId);
+        K8sTunnelBridge tBridge = new K8sTunnelBridge(segmentId);
+        K8sRouterBridge rBridge = new K8sRouterBridge(segmentId);
 
         return DefaultK8sHost.builder()
                 .hostIp(hostNodesInfo.hostIp())
                 .state(K8sHostState.INIT)
-                .tunBridges(ImmutableSet.of(bridge))
+                .tunBridges(ImmutableSet.of(tBridge))
+                .routerBridges(ImmutableSet.of(rBridge))
                 .nodeNames(hostNodesInfo.nodes())
                 .build();
     }

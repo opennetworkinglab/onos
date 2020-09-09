@@ -24,6 +24,7 @@ import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
 import org.onosproject.k8snode.api.K8sHost;
 import org.onosproject.k8snode.api.K8sHostService;
+import org.onosproject.k8snode.api.K8sRouterBridge;
 import org.onosproject.k8snode.api.K8sTunnelBridge;
 
 import java.util.Comparator;
@@ -42,8 +43,8 @@ import static org.onosproject.k8snode.util.K8sNodeUtil.prettyJson;
 public class K8sHostListCommand extends AbstractShellCommand {
 
     private static final int HOST_IP_LENGTH = 15;
-    private static final int NODES_LENGTH = 40;
     private static final int TUNBRS_LENGTH = 40;
+    private static final int RTRBRS_LENGTH = 40;
     private static final int STATUS_LENGTH = 15;
 
     @Override
@@ -53,17 +54,18 @@ public class K8sHostListCommand extends AbstractShellCommand {
         hosts.sort(Comparator.comparing(K8sHost::hostIp));
 
         String format = genFormatString(
-                ImmutableList.of(HOST_IP_LENGTH, NODES_LENGTH, TUNBRS_LENGTH, STATUS_LENGTH));
+                ImmutableList.of(HOST_IP_LENGTH, TUNBRS_LENGTH, RTRBRS_LENGTH, STATUS_LENGTH));
 
         if (outputJson()) {
             print("%s", json(hosts));
         } else {
-            print(format, "Host IP", "Nodes", "Tunnel Bridges", "State");
+            print(format, "Host IP", "Tunnel Bridges", "Router Bridges", "State");
             for (K8sHost host : hosts) {
                 print(format,
                         host.hostIp().toString(),
-                        host.nodeNames().toString(),
                         host.tunBridges().stream().map(K8sTunnelBridge::name)
+                                .collect(Collectors.toSet()).toString(),
+                        host.routerBridges().stream().map(K8sRouterBridge::name)
                                 .collect(Collectors.toSet()).toString(),
                         host.state().toString());
             }

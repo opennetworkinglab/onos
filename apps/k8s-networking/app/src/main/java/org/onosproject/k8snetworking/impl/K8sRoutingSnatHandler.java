@@ -33,10 +33,15 @@ import org.onosproject.k8snetworking.api.K8sNetworkListener;
 import org.onosproject.k8snetworking.api.K8sNetworkService;
 import org.onosproject.k8snetworking.api.K8sPort;
 import org.onosproject.k8snetworking.util.RulePopulatorUtil;
+import org.onosproject.k8snode.api.K8sHost;
+import org.onosproject.k8snode.api.K8sHostEvent;
+import org.onosproject.k8snode.api.K8sHostListener;
+import org.onosproject.k8snode.api.K8sHostService;
 import org.onosproject.k8snode.api.K8sNode;
 import org.onosproject.k8snode.api.K8sNodeEvent;
 import org.onosproject.k8snode.api.K8sNodeListener;
 import org.onosproject.k8snode.api.K8sNodeService;
+import org.onosproject.k8snode.api.K8sRouterBridge;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -64,14 +69,17 @@ import static org.onosproject.k8snetworking.api.Constants.DEFAULT_GATEWAY_MAC;
 import static org.onosproject.k8snetworking.api.Constants.EXT_ENTRY_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.K8S_NETWORKING_APP_ID;
 import static org.onosproject.k8snetworking.api.Constants.POD_RESOLUTION_TABLE;
+import static org.onosproject.k8snetworking.api.Constants.PRIORITY_DEFAULT_RULE;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_EXTERNAL_ROUTING_RULE;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_STATEFUL_SNAT_RULE;
+import static org.onosproject.k8snetworking.api.Constants.ROUTER_EXTRY_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.ROUTING_TABLE;
 import static org.onosproject.k8snetworking.util.RulePopulatorUtil.CT_NAT_SRC_FLAG;
 import static org.onosproject.k8snetworking.util.RulePopulatorUtil.buildMoveArpShaToThaExtension;
 import static org.onosproject.k8snetworking.util.RulePopulatorUtil.buildMoveArpSpaToTpaExtension;
 import static org.onosproject.k8snetworking.util.RulePopulatorUtil.buildMoveEthSrcToDstExtension;
 import static org.onosproject.k8snode.api.Constants.DEFAULT_EXTERNAL_GATEWAY_MAC;
+import static org.onosproject.k8snode.api.K8sApiConfig.Mode.PASSTHROUGH;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -115,12 +123,17 @@ public class K8sRoutingSnatHandler {
     protected K8sNodeService k8sNodeService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected K8sHostService k8sHostService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected K8sFlowRuleService k8sFlowRuleService;
 
     private final InternalK8sNetworkListener k8sNetworkListener =
             new InternalK8sNetworkListener();
     private final InternalK8sNodeListener k8sNodeListener =
             new InternalK8sNodeListener();
+    private final InternalK8sHostListener k8sHostListener =
+            new InternalK8sHostListener();
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
 
@@ -135,12 +148,14 @@ public class K8sRoutingSnatHandler {
         leadershipService.runForLeadership(appId.name());
         k8sNetworkService.addListener(k8sNetworkListener);
         k8sNodeService.addListener(k8sNodeListener);
+        k8sHostService.addListener(k8sHostListener);
 
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
+        k8sHostService.removeListener(k8sHostListener);
         k8sNodeService.removeListener(k8sNodeListener);
         k8sNetworkService.removeListener(k8sNetworkListener);
         leadershipService.withdraw(appId.name());
@@ -201,8 +216,8 @@ public class K8sRoutingSnatHandler {
                 install);
     }
 
-    private void setSnatDownstreamRule(K8sNode k8sNode,
-                                       boolean install) {
+    private void setExtSnatDownstreamRule(K8sNode k8sNode,
+                                          boolean install) {
         DeviceId deviceId = k8sNode.extBridge();
 
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
@@ -231,8 +246,8 @@ public class K8sRoutingSnatHandler {
                 install);
     }
 
-    private void setSnatUpstreamRule(K8sNode k8sNode,
-                                     boolean install) {
+    private void setExtSnatUpstreamRule(K8sNode k8sNode,
+                                        boolean install) {
 
         K8sNetwork net = k8sNetworkService.network(k8sNode.hostname());
 
@@ -263,11 +278,15 @@ public class K8sRoutingSnatHandler {
                     .setEthSrc(k8sNode.extBridgeMac())
                     .setEthDst(k8sNode.extGatewayMac());
 
-            if (MacAddress.valueOf(DEFAULT_EXTERNAL_GATEWAY_MAC).equals(
-                    k8sNode.extGatewayMac())) {
-                tBuilder.setOutput(k8sNode.extIntfPortNum());
+            if (k8sNode.mode() == PASSTHROUGH) {
+                tBuilder.setOutput(k8sNode.extToRouterPortNum());
             } else {
-                tBuilder.setOutput(k8sNode.extBridgePortNum());
+                if (MacAddress.valueOf(DEFAULT_EXTERNAL_GATEWAY_MAC).equals(
+                        k8sNode.extGatewayMac())) {
+                    tBuilder.setOutput(k8sNode.extIntfPortNum());
+                } else {
+                    tBuilder.setOutput(k8sNode.extBridgePortNum());
+                }
             }
         }
 
@@ -312,6 +331,52 @@ public class K8sRoutingSnatHandler {
         });
     }
 
+    private void setRouterSnatUpstreamRule(K8sNode k8sNode,
+                                           K8sRouterBridge bridge,
+                                           boolean install) {
+
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchInPort(k8sNode.routerToExtPortNum())
+                .build();
+
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setOutput(k8sNode.routerPortNum())
+                .build();
+
+        k8sFlowRuleService.setRule(
+                appId,
+                bridge.deviceId(),
+                selector,
+                treatment,
+                PRIORITY_DEFAULT_RULE,
+                ROUTER_EXTRY_TABLE,
+                install);
+    }
+
+    private void setRouterSnatDownstreamRule(K8sNode k8sNode,
+                                             K8sRouterBridge bridge,
+                                             boolean install) {
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchInPort(k8sNode.routerPortNum())
+                .matchIPDst(IpPrefix.valueOf(k8sNode.extBridgeIp(), 32))
+                .build();
+
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setOutput(k8sNode.routerToExtPortNum())
+                .build();
+
+        k8sFlowRuleService.setRule(
+                appId,
+                bridge.deviceId(),
+                selector,
+                treatment,
+                PRIORITY_DEFAULT_RULE,
+                ROUTER_EXTRY_TABLE,
+                install);
+    }
+
     private class InternalK8sNodeListener implements K8sNodeListener {
 
         private boolean isRelevantHelper() {
@@ -339,13 +404,54 @@ public class K8sRoutingSnatHandler {
             }
 
             setExtIntfArpRule(k8sNode, true);
-            setSnatDownstreamRule(k8sNode, true);
+            setExtSnatDownstreamRule(k8sNode, true);
             setContainerToExtRule(k8sNode, true);
         }
 
         private void processNodeUpdate(K8sNode k8sNode) {
             if (k8sNode.extGatewayMac() != null) {
-                setSnatUpstreamRule(k8sNode, true);
+                setExtSnatUpstreamRule(k8sNode, true);
+            }
+        }
+    }
+
+    private class InternalK8sHostListener implements K8sHostListener {
+
+        private boolean isRelevantHelper() {
+            return Objects.equals(localNodeId, leadershipService.getLeader(appId.name()));
+        }
+
+        @Override
+        public void event(K8sHostEvent event) {
+            switch (event.type()) {
+                case K8S_HOST_COMPLETE:
+                    eventExecutor.execute(() -> processNodeCompletion(event.subject()));
+                    break;
+                case K8S_HOST_INCOMPLETE:
+                default:
+                    break;
+            }
+        }
+
+        private void processNodeCompletion(K8sHost k8sHost) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            for (String name : k8sHost.nodeNames()) {
+                K8sNode node = k8sNodeService.node(name);
+                if (node == null) {
+                    return;
+                }
+                K8sRouterBridge bridge = k8sHost.routerBridges().stream()
+                        .filter(b -> b.segmentId() == node.segmentId())
+                        .findAny().orElse(null);
+                if (bridge == null) {
+                    return;
+                }
+
+                setRouterSnatUpstreamRule(node, bridge, true);
+                setRouterSnatDownstreamRule(node, bridge, true);
             }
         }
     }
