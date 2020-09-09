@@ -349,7 +349,7 @@ public class K8sSwitchingHandler {
     private void setLocalTunnelTagFlowRules(K8sNode k8sNode, boolean install) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
-                .matchInPort(PortNumber.LOCAL)
+                .matchInPort(k8sNode.intgEntryPortNum())
                 .build();
 
         K8sNetwork net = k8sNetworkService.network(k8sNode.hostname());

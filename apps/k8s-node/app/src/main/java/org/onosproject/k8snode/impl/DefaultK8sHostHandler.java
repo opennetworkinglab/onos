@@ -20,6 +20,7 @@ import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.k8snode.api.K8sBridge;
 import org.onosproject.k8snode.api.K8sHost;
 import org.onosproject.k8snode.api.K8sHostAdminService;
 import org.onosproject.k8snode.api.K8sHostEvent;
@@ -28,6 +29,7 @@ import org.onosproject.k8snode.api.K8sHostListener;
 import org.onosproject.k8snode.api.K8sHostState;
 import org.onosproject.k8snode.api.K8sNode;
 import org.onosproject.k8snode.api.K8sNodeAdminService;
+import org.onosproject.k8snode.api.K8sRouterBridge;
 import org.onosproject.k8snode.api.K8sTunnelBridge;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
@@ -68,6 +70,7 @@ import static org.onlab.packet.TpPort.tpPort;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.k8snode.api.Constants.GENEVE;
 import static org.onosproject.k8snode.api.Constants.GRE;
+import static org.onosproject.k8snode.api.Constants.OS_INTEGRATION_BRIDGE;
 import static org.onosproject.k8snode.api.Constants.VXLAN;
 import static org.onosproject.k8snode.api.K8sHostState.COMPLETE;
 import static org.onosproject.k8snode.api.K8sHostState.DEVICE_CREATED;
@@ -163,6 +166,12 @@ public class DefaultK8sHostHandler implements K8sHostHandler {
                 createBridge(k8sHost.ovsdb(), tunBridge);
             }
         }
+
+        for (K8sRouterBridge routerBridge : k8sHost.routerBridges()) {
+            if (!deviceService.isAvailable(routerBridge.deviceId())) {
+                createBridge(k8sHost.ovsdb(), routerBridge);
+            }
+        }
     }
 
     @Override
@@ -178,7 +187,8 @@ public class DefaultK8sHostHandler implements K8sHostHandler {
                 for (String node : k8sHost.nodeNames()) {
                     K8sNode k8sNode = k8sNodeAdminService.node(node);
                     if (k8sNode.segmentId() == bridge.tunnelId()) {
-                        createPatchInterfaces(k8sHost.ovsdb(), bridge, k8sNode);
+                        createTunnelPatchInterfaces(k8sHost.ovsdb(), bridge, k8sNode);
+                        createInterPatchInterfaces(k8sHost.ovsdb(), k8sNode);
                     }
                 }
             }
@@ -197,6 +207,16 @@ public class DefaultK8sHostHandler implements K8sHostHandler {
                     createGeneveTunnelInterface(k8sHost.ovsdb(), bridge);
                 }
             }
+
+            // create patch ports into router bridge face to external bridge
+            for (K8sRouterBridge bridge : k8sHost.routerBridges()) {
+                for (String node : k8sHost.nodeNames()) {
+                    K8sNode k8sNode = k8sNodeAdminService.node(node);
+                    if (k8sNode.segmentId() == bridge.segmentId()) {
+                        createRouterPatchInterfaces(k8sHost.ovsdb(), bridge, k8sNode);
+                    }
+                }
+            }
         } catch (Exception e) {
             log.error("Exception occurred because of {}", e);
         }
@@ -212,7 +232,7 @@ public class DefaultK8sHostHandler implements K8sHostHandler {
         // do something if needed
     }
 
-    private void createBridge(DeviceId ovsdb, K8sTunnelBridge bridge) {
+    private void createBridge(DeviceId ovsdb, K8sBridge bridge) {
         Device device = deviceService.getDevice(ovsdb);
 
         List<ControllerInfo> controllers = clusterService.getNodes().stream()
@@ -232,7 +252,7 @@ public class DefaultK8sHostHandler implements K8sHostHandler {
         bridgeConfig.addBridge(builder.build());
     }
 
-    private void createPatchInterfaces(DeviceId ovsdb, K8sTunnelBridge bridge, K8sNode k8sNode) {
+    private void createTunnelPatchInterfaces(DeviceId ovsdb, K8sBridge bridge, K8sNode k8sNode) {
         Device device = deviceService.getDevice(ovsdb);
         if (device == null || !device.is(InterfaceConfig.class)) {
             log.error("Failed to create patch interface on {}", ovsdb);
@@ -241,7 +261,7 @@ public class DefaultK8sHostHandler implements K8sHostHandler {
 
         InterfaceConfig ifaceConfig = device.as(InterfaceConfig.class);
 
-        // tunnel bridge -> integration bridge
+        // tunnel bridge -> k8s integration bridge
         PatchDescription brTunIntPatchDesc =
                 DefaultPatchDescription.builder()
                         .deviceId(bridge.name())
@@ -250,6 +270,46 @@ public class DefaultK8sHostHandler implements K8sHostHandler {
                         .build();
 
         ifaceConfig.addPatchMode(k8sNode.tunToIntgPatchPortName(), brTunIntPatchDesc);
+    }
+
+    private void createInterPatchInterfaces(DeviceId ovsdb, K8sNode k8sNode) {
+        Device device = deviceService.getDevice(ovsdb);
+        if (device == null || !device.is(InterfaceConfig.class)) {
+            log.error("Failed to create patch interface on {}", ovsdb);
+            return;
+        }
+
+        InterfaceConfig ifaceConfig = device.as(InterfaceConfig.class);
+
+        // openstack integration bridge -> k8s integration bridge
+        PatchDescription osIntK8sIntPatchDesc =
+                DefaultPatchDescription.builder()
+                        .deviceId(OS_INTEGRATION_BRIDGE)
+                        .ifaceName(k8sNode.osToK8sIntgPatchPortName())
+                        .peer(k8sNode.k8sToOsIntgPatchPortName())
+                        .build();
+
+        ifaceConfig.addPatchMode(k8sNode.tunToIntgPatchPortName(), osIntK8sIntPatchDesc);
+    }
+
+    private void createRouterPatchInterfaces(DeviceId ovsdb, K8sBridge bridge, K8sNode k8sNode) {
+        Device device = deviceService.getDevice(ovsdb);
+        if (device == null || !device.is(InterfaceConfig.class)) {
+            log.error("Failed to create patch interface on {}", ovsdb);
+            return;
+        }
+
+        InterfaceConfig ifaceConfig = device.as(InterfaceConfig.class);
+
+        // router bridge -> external bridge
+        PatchDescription brRouterExtPatchDesc =
+                DefaultPatchDescription.builder()
+                        .deviceId(bridge.name())
+                        .ifaceName(k8sNode.routerToExtPatchPortName())
+                        .peer(k8sNode.extToRouterPatchPortName())
+                        .build();
+
+        ifaceConfig.addPatchMode(k8sNode.tunToIntgPatchPortName(), brRouterExtPatchDesc);
     }
 
     private void createVxlanTunnelInterface(DeviceId ovsdb, K8sTunnelBridge bridge) {
@@ -356,8 +416,14 @@ public class DefaultK8sHostHandler implements K8sHostHandler {
             log.error("Exception caused during init state checking...");
         }
 
-        for (K8sTunnelBridge tunBridge : k8sHost.tunBridges()) {
+        for (K8sBridge tunBridge : k8sHost.tunBridges()) {
             if (!deviceService.isAvailable(tunBridge.deviceId())) {
+                return false;
+            }
+        }
+
+        for (K8sBridge routerBridge: k8sHost.routerBridges()) {
+            if (!deviceService.isAvailable(routerBridge.deviceId())) {
                 return false;
             }
         }

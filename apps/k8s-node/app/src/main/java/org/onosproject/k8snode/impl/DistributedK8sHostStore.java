@@ -21,11 +21,13 @@ import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.k8snode.api.DefaultK8sHost;
+import org.onosproject.k8snode.api.K8sBridge;
 import org.onosproject.k8snode.api.K8sHost;
 import org.onosproject.k8snode.api.K8sHostEvent;
 import org.onosproject.k8snode.api.K8sHostState;
 import org.onosproject.k8snode.api.K8sHostStore;
 import org.onosproject.k8snode.api.K8sHostStoreDelegate;
+import org.onosproject.k8snode.api.K8sRouterBridge;
 import org.onosproject.k8snode.api.K8sTunnelBridge;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
@@ -81,7 +83,9 @@ public class DistributedK8sHostStore
             .register(K8sHost.class)
             .register(DefaultK8sHost.class)
             .register(K8sHostState.class)
+            .register(K8sBridge.class)
             .register(K8sTunnelBridge.class)
+            .register(K8sRouterBridge.class)
             .register(Collection.class)
             .build();
 
