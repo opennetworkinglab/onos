@@ -286,10 +286,18 @@ public class DefaultK8sHostHandler implements K8sHostHandler {
                 DefaultPatchDescription.builder()
                         .deviceId(OS_INTEGRATION_BRIDGE)
                         .ifaceName(k8sNode.osToK8sIntgPatchPortName())
-                        .peer(k8sNode.k8sToOsIntgPatchPortName())
+                        .peer(k8sNode.k8sIntgToOsPatchPortName())
                         .build();
+        ifaceConfig.addPatchMode(k8sNode.osToK8sIntgPatchPortName(), osIntK8sIntPatchDesc);
 
-        ifaceConfig.addPatchMode(k8sNode.tunToIntgPatchPortName(), osIntK8sIntPatchDesc);
+        // openstack integration bridge -> k8s external bridge
+        PatchDescription osIntK8sExPatchDesc =
+                DefaultPatchDescription.builder()
+                        .deviceId(OS_INTEGRATION_BRIDGE)
+                        .ifaceName(k8sNode.osToK8sExtPatchPortName())
+                        .peer(k8sNode.k8sExtToOsPatchPortName())
+                        .build();
+        ifaceConfig.addPatchMode(k8sNode.osToK8sExtPatchPortName(), osIntK8sExPatchDesc);
     }
 
     private void createRouterPatchInterfaces(DeviceId ovsdb, K8sBridge bridge, K8sNode k8sNode) {

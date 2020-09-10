@@ -38,8 +38,10 @@ public final class Constants {
     public static final String ROUTER = "router";
     public static final String INTEGRATION_TO_TUN_BRIDGE = "int-tun";
     public static final String TUN_TO_INTEGRATION_BRIDGE = "tun-int";
-    public static final String OS_TO_K8S_BRIDGE = "os-k8s";
-    public static final String K8S_TO_OS_BRIDGE = "k8s-os";
+    public static final String OS_TO_K8S_INTEGRATION_BRIDGE = "os-k8s-int";
+    public static final String K8S_INTEGRATION_TO_OS_BRIDGE = "k8s-int-os";
+    public static final String OS_TO_K8S_EXTERNAL_BRIDGE = "os-k8s-ext";
+    public static final String K8S_EXTERNAL_TO_OS_BRIDGE = "k8s-ext-os";
     public static final String VXLAN_TUNNEL = "vxlan";
     public static final String GRE_TUNNEL = "gre";
     public static final String GENEVE_TUNNEL = "geneve";

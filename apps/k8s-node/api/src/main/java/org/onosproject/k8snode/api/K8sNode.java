@@ -354,7 +354,14 @@ public interface K8sNode {
      *
      * @return kubernetes to openstack integration patch port name
      */
-    String k8sToOsIntgPatchPortName();
+    String k8sIntgToOsPatchPortName();
+
+    /**
+     * Returns kubernetes external to openstack patch port name.
+     *
+     * @return kubernetes external to openstack patch port name
+     */
+    String k8sExtToOsPatchPortName();
 
     /**
      * Returns openstack to kubernetes integration patch port name.
@@ -362,6 +369,13 @@ public interface K8sNode {
      * @return openstack to kubernetes integration patch port name
      */
     String osToK8sIntgPatchPortName();
+
+    /**
+     * Returns openstack to kubernetes external patch port name.
+     *
+     * @return openstack to kubernetes external patch port name
+     */
+    String osToK8sExtPatchPortName();
 
     /**
      * Returns router to external bridge patch port name.
