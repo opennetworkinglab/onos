@@ -48,6 +48,7 @@ import org.onosproject.k8snode.api.K8sHost;
 import org.onosproject.k8snode.api.K8sHostService;
 import org.onosproject.k8snode.api.K8sNode;
 import org.onosproject.k8snode.api.K8sNodeService;
+import org.onosproject.k8snode.api.K8sRouterBridge;
 import org.onosproject.k8snode.api.K8sTunnelBridge;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
@@ -632,6 +633,48 @@ public final class K8sNetworkingUtil {
             fsb.append("s");
         });
         return fsb.toString();
+    }
+
+    /**
+     * Returns all device identifiers belong to kubernetes nodes and hosts.
+     *
+     * @param nodeService   node service
+     * @param hostService   host service
+     * @return all device identifiers belong to kubernetes nodes and hosts
+     */
+    public static Set<DeviceId> allK8sDevices(K8sNodeService nodeService,
+                                              K8sHostService hostService) {
+        Set<DeviceId> allDevIds = new HashSet<>();
+
+        Set<DeviceId> intgDevIds = nodeService.completeNodes().stream()
+                .map(K8sNode::intgBridge).collect(Collectors.toSet());
+        Set<DeviceId> extDevIds = nodeService.completeNodes().stream()
+                .map(K8sNode::extBridge).collect(Collectors.toSet());
+        Set<DeviceId> tunDevIds = nodeService.completeNodes().stream()
+                .map(K8sNode::tunBridge).collect(Collectors.toSet());
+        Set<DeviceId> localDevIds = nodeService.completeNodes().stream()
+                .map(K8sNode::localBridge).collect(Collectors.toSet());
+
+        Set<DeviceId> hostTunDevIds = new HashSet<>();
+        Set<DeviceId> hostRouterDevIds = new HashSet<>();
+
+        for (K8sHost host : hostService.completeHosts()) {
+            Set<K8sTunnelBridge> hostTunBrs = host.tunBridges();
+            Set<K8sRouterBridge> hostRouterBrs = host.routerBridges();
+            hostTunDevIds.addAll(hostTunBrs.stream().map(K8sTunnelBridge::deviceId)
+                    .collect(Collectors.toSet()));
+            hostRouterDevIds.addAll(hostRouterBrs.stream().map(K8sRouterBridge::deviceId)
+                    .collect(Collectors.toSet()));
+        }
+
+        allDevIds.addAll(intgDevIds);
+        allDevIds.addAll(extDevIds);
+        allDevIds.addAll(tunDevIds);
+        allDevIds.addAll(localDevIds);
+        allDevIds.addAll(hostTunDevIds);
+        allDevIds.addAll(hostRouterDevIds);
+
+        return allDevIds;
     }
 
     private static int binLower(String binStr, int bits) {

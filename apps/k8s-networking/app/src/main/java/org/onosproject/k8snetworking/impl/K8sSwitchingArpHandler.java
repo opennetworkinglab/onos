@@ -36,12 +36,14 @@ import org.onosproject.k8snetworking.api.K8sNetwork;
 import org.onosproject.k8snetworking.api.K8sNetworkService;
 import org.onosproject.k8snetworking.api.K8sPort;
 import org.onosproject.k8snetworking.api.K8sServiceService;
+import org.onosproject.k8snode.api.K8sHostService;
 import org.onosproject.k8snode.api.K8sNode;
 import org.onosproject.k8snode.api.K8sNodeEvent;
 import org.onosproject.k8snode.api.K8sNodeListener;
 import org.onosproject.k8snode.api.K8sNodeService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -82,11 +84,12 @@ import static org.onosproject.k8snetworking.api.Constants.K8S_NETWORKING_APP_ID;
 import static org.onosproject.k8snetworking.api.Constants.NODE_IP_PREFIX;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_ARP_CONTROL_RULE;
 import static org.onosproject.k8snetworking.api.Constants.SERVICE_FAKE_MAC_STR;
+import static org.onosproject.k8snetworking.api.Constants.SHIFTED_IP_PREFIX;
 import static org.onosproject.k8snetworking.impl.OsgiPropertyConstants.ARP_MODE;
 import static org.onosproject.k8snetworking.impl.OsgiPropertyConstants.ARP_MODE_DEFAULT;
 import static org.onosproject.k8snetworking.impl.OsgiPropertyConstants.GATEWAY_MAC;
 import static org.onosproject.k8snetworking.impl.OsgiPropertyConstants.GATEWAY_MAC_DEFAULT;
-import static org.onosproject.k8snetworking.api.Constants.SHIFTED_IP_PREFIX;
+import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.allK8sDevices;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.getPropertyValue;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.unshiftIpDomain;
 
@@ -137,6 +140,9 @@ public class K8sSwitchingArpHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected K8sNodeService k8sNodeService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected K8sHostService k8sHostService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected K8sNetworkService k8sNetworkService;
@@ -211,6 +217,12 @@ public class K8sSwitchingArpHandler {
     private void processPacketIn(PacketContext context, Ethernet ethPacket) {
         // if the ARP mode is configured as broadcast mode, we simply ignore ARP packet_in
         if (ARP_BROADCAST_MODE.equals(getArpMode())) {
+            return;
+        }
+
+        DeviceId deviceId = context.inPacket().receivedFrom().deviceId();
+
+        if (!allK8sDevices(k8sNodeService, k8sHostService).contains(deviceId)) {
             return;
         }
 
