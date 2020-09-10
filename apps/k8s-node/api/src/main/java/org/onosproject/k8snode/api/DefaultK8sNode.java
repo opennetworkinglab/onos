@@ -43,10 +43,12 @@ import static org.onosproject.k8snode.api.Constants.INTEGRATION_BRIDGE;
 import static org.onosproject.k8snode.api.Constants.INTEGRATION_TO_EXTERNAL_BRIDGE;
 import static org.onosproject.k8snode.api.Constants.INTEGRATION_TO_LOCAL_BRIDGE;
 import static org.onosproject.k8snode.api.Constants.INTEGRATION_TO_TUN_BRIDGE;
-import static org.onosproject.k8snode.api.Constants.K8S_TO_OS_BRIDGE;
+import static org.onosproject.k8snode.api.Constants.K8S_EXTERNAL_TO_OS_BRIDGE;
+import static org.onosproject.k8snode.api.Constants.K8S_INTEGRATION_TO_OS_BRIDGE;
 import static org.onosproject.k8snode.api.Constants.LOCAL_BRIDGE;
 import static org.onosproject.k8snode.api.Constants.LOCAL_TO_INTEGRATION_BRIDGE;
-import static org.onosproject.k8snode.api.Constants.OS_TO_K8S_BRIDGE;
+import static org.onosproject.k8snode.api.Constants.OS_TO_K8S_EXTERNAL_BRIDGE;
+import static org.onosproject.k8snode.api.Constants.OS_TO_K8S_INTEGRATION_BRIDGE;
 import static org.onosproject.k8snode.api.Constants.PHYSICAL_EXTERNAL_BRIDGE;
 import static org.onosproject.k8snode.api.Constants.ROUTER;
 import static org.onosproject.k8snode.api.Constants.ROUTER_TO_EXTERNAL;
@@ -592,7 +594,7 @@ public class DefaultK8sNode implements K8sNode {
     @Override
     public String intgEntryPortName() {
         if (mode == PASSTHROUGH) {
-            return k8sToOsIntgPatchPortName();
+            return k8sIntgToOsPatchPortName();
         } else {
             return intgBridgeName();
         }
@@ -601,7 +603,7 @@ public class DefaultK8sNode implements K8sNode {
     @Override
     public PortNumber intgEntryPortNum() {
         if (mode == PASSTHROUGH) {
-            return portNumber(intgBridge, k8sToOsIntgPatchPortName());
+            return portNumber(intgBridge, k8sIntgToOsPatchPortName());
         } else {
             return intgBridgePortNum();
         }
@@ -725,20 +727,38 @@ public class DefaultK8sNode implements K8sNode {
     }
 
     @Override
-    public String k8sToOsIntgPatchPortName() {
+    public String k8sIntgToOsPatchPortName() {
         if (mode == PASSTHROUGH) {
-            return K8S_TO_OS_BRIDGE + "-" + uniqueString(5);
+            return K8S_INTEGRATION_TO_OS_BRIDGE + "-" + uniqueString(5);
         } else {
-            return K8S_TO_OS_BRIDGE;
+            return K8S_INTEGRATION_TO_OS_BRIDGE;
+        }
+    }
+
+    @Override
+    public String k8sExtToOsPatchPortName() {
+        if (mode == PASSTHROUGH) {
+            return K8S_EXTERNAL_TO_OS_BRIDGE + "-" + uniqueString(5);
+        } else {
+            return K8S_EXTERNAL_TO_OS_BRIDGE;
         }
     }
 
     @Override
     public String osToK8sIntgPatchPortName() {
         if (mode == PASSTHROUGH) {
-            return OS_TO_K8S_BRIDGE + "-" + uniqueString(5);
+            return OS_TO_K8S_INTEGRATION_BRIDGE + "-" + uniqueString(5);
         } else {
-            return OS_TO_K8S_BRIDGE;
+            return OS_TO_K8S_INTEGRATION_BRIDGE;
+        }
+    }
+
+    @Override
+    public String osToK8sExtPatchPortName() {
+        if (mode == PASSTHROUGH) {
+            return OS_TO_K8S_EXTERNAL_BRIDGE + "-" + uniqueString(5);
+        } else {
+            return OS_TO_K8S_EXTERNAL_BRIDGE;
         }
     }
 
