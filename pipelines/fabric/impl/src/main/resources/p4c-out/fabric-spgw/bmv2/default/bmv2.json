@@ -7824,16 +7824,36 @@
             "filename" : "include/control/next.p4",
             "line" : 372,
             "column" : 15,
-            "source_fragment" : "hdr.ipv4.isValid()"
+            "source_fragment" : "hdr.ipv4.isValid() && fabric_metadata.fwd_type != FWD_BRIDGING"
           },
           "expression" : {
             "type" : "expression",
             "value" : {
-              "op" : "d2b",
-              "left" : null,
+              "op" : "and",
+              "left" : {
+                "type" : "expression",
+                "value" : {
+                  "op" : "d2b",
+                  "left" : null,
+                  "right" : {
+                    "type" : "field",
+                    "value" : ["ipv4", "$valid$"]
+                  }
+                }
+              },
               "right" : {
-                "type" : "field",
-                "value" : ["ipv4", "$valid$"]
+                "type" : "expression",
+                "value" : {
+                  "op" : "!=",
+                  "left" : {
+                    "type" : "field",
+                    "value" : ["scalars", "fabric_metadata_t._fwd_type8"]
+                  },
+                  "right" : {
+                    "type" : "hexstr",
+                    "value" : "0x00"
+                  }
+                }
               }
             }
           },
