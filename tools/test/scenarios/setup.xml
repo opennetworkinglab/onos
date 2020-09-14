@@ -110,6 +110,8 @@
 
                 <step name="Check-Nodes-${#}" exec="onos-check-nodes ${OC#}" delay="3"
                       requires="~Wait-for-Start-${#}"/>
+                <step name="Check-Storage-Nodes-${#}" exec="onos-check-storage-nodes ${OC#}" delay="3"
+                      requires="~Wait-for-Start-${#}"/>
                 <step name="Check-Components-${#}" delay="5"
                       exec="onos-check-components ${OC#}"
                       requires="~Wait-for-Start-${#}"/>
