@@ -1,20 +1,20 @@
 #!/bin/bash
 # -----------------------------------------------------------------------------
-# Checks whether all and only the ONOS instances configured active.
+# Checks whether all and only the configured ONOS core storeage instances are active.
 # -----------------------------------------------------------------------------
 
 aux=/tmp/stc/stc-$$.log
 trap "rm -f $aux $aux.1 $aux.2 2>/dev/null" EXIT
 
 for attempt in {1..5}; do
-    onos ${1:-$OCI} "onos:nodes" > $aux
+    onos ${1:-$OCI} "onos:storage-nodes" > $aux
     cat $aux
 
     # Normalize the nodes
     cut -d= -f3 $aux | cut -d: -f1 | sort > $aux.1
 
     # Normalize the expected nodes
-    nodes=${2:-$ONOS_INSTANCES}
+    nodes=${2:-$ONOS_CORES}
     (for node in $nodes; do echo $node; done) | sort > $aux.2
 
     # Check for differences
