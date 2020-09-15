@@ -284,4 +284,35 @@ public class MacAddress {
         Matcher matcher = MAC_PATTERN.matcher(mac);
         return matcher.matches();
     }
+
+    /**
+     * Checks if the Mac Address is inside a range defined by macAddr and mask.
+     *
+     * @param macAddr the mac address
+     * @param maskAddr the mask
+     * @return true if in range, false otherwise.
+     */
+    public boolean inRange(MacAddress macAddr, MacAddress maskAddr) {
+        byte[] min = macAddr.toBytes();
+        byte[] mask = maskAddr.toBytes();
+        boolean inRange = true;
+
+        int i = 0;
+
+        //if mask is 00 stop
+        while (inRange && i < mask.length && (mask[i] & 0xFF) != 0) {
+            int ibmac = this.address[i] & 0xFF;
+            int ibmin = min[i] & 0xFF;
+            int ibmask = mask[i] & 0xFF;
+            if (ibmask == 255) {
+                inRange = ibmac == ibmin;
+            } else if (ibmac < ibmin || ibmac >= ibmask) {
+                inRange = false;
+                break;
+            }
+            i++;
+        }
+
+        return inRange;
+    }
 }

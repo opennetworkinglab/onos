@@ -33,6 +33,13 @@ public class MacAddressTest {
     private static final MacAddress MAC_LLDP_3 = MacAddress.valueOf("01:80:c2:00:00:0e");
     private static final MacAddress MAC_ONOS = MacAddress.valueOf("a4:23:05:01:02:03");
     private static final MacAddress MAC_ONOS_EQUAL = MacAddress.valueOf("a4:23:05:01:02:03");
+    // For range testing
+    private static final MacAddress MAC_IPV4_MCAST = MacAddress.valueOf("01:00:5e:00:00:00");
+    private static final MacAddress MAC_IPV4_MCAST_ADDR = MacAddress.valueOf("01:00:5e:00:01:01");
+    private static final MacAddress MAC_IPV4_MCAST_MASK = MacAddress.valueOf("ff:ff:ff:80:00:00");
+    private static final MacAddress MAC_IPV6_MCAST = MacAddress.valueOf("33:33:00:00:00:00");
+    private static final MacAddress MAC_IPV6_MCAST_ADDR = MacAddress.valueOf("33:33:00:00:00:01");
+    private static final MacAddress MAC_IPV6_MCAST_MASK = MacAddress.valueOf("ff:ff:00:00:00:00");
 
     private static final byte[] OUI_ONOS = {(byte) 0xa4, (byte) 0x23, (byte) 0x05};
     private static final byte[] MAC_ONOS_BYTE = {
@@ -158,6 +165,18 @@ public class MacAddressTest {
     @Test
     public void testOui() throws Exception {
         assertArrayEquals(MAC_ONOS.oui(), OUI_ONOS);
+    }
+
+    @Test
+    public void testContained() throws Exception {
+        assertFalse(MAC_NORMAL.inRange(MAC_IPV4_MCAST, MAC_IPV4_MCAST_MASK));
+        assertFalse(MAC_NORMAL.inRange(MAC_IPV6_MCAST, MAC_IPV6_MCAST_MASK));
+        // Contained in itself
+        assertTrue(MAC_IPV4_MCAST.inRange(MAC_IPV4_MCAST, MAC_IPV4_MCAST_MASK));
+        assertTrue(MAC_IPV6_MCAST.inRange(MAC_IPV6_MCAST, MAC_IPV6_MCAST_MASK));
+        // Verify the mcast addresses
+        assertTrue(MAC_IPV4_MCAST_ADDR.inRange(MAC_IPV4_MCAST, MAC_IPV4_MCAST_MASK));
+        assertTrue(MAC_IPV6_MCAST_ADDR.inRange(MAC_IPV6_MCAST, MAC_IPV6_MCAST_MASK));
     }
 
     @Test
