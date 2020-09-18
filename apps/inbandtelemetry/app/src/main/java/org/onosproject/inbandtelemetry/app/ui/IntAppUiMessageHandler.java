@@ -20,14 +20,11 @@ import com.google.common.collect.ImmutableSet;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.Ip4Prefix;
-import org.onlab.packet.IpAddress;
-import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
 import org.onosproject.inbandtelemetry.api.IntIntent;
 import org.onosproject.inbandtelemetry.api.IntIntentId;
 import org.onosproject.net.behaviour.inbandtelemetry.IntMetadataType;
 import org.onosproject.inbandtelemetry.api.IntService;
-import org.onosproject.net.behaviour.inbandtelemetry.IntDeviceConfig;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.ui.RequestHandler;
@@ -43,8 +40,6 @@ public class IntAppUiMessageHandler extends UiMessageHandler {
 
     private static final String INT_INTENT_ADD_REQUEST = "intIntentAddRequest";
     private static final String INT_INTENT_DEL_REQUEST = "intIntentDelRequest";
-    private static final String INT_CONFIG_ADD_REQUEST = "intConfigAddRequest";
-//    private static final String INT_CONFIG_DEL_REQUEST = "intConfigDelRequest";
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -54,44 +49,8 @@ public class IntAppUiMessageHandler extends UiMessageHandler {
     protected Collection<RequestHandler> createRequestHandlers() {
         return ImmutableSet.of(
                 new IntIntentAddRequestHandler(),
-                new IntIntentDelRequestHandler(),
-                new IntConfigAddRequestHandler()
-                //new intConfigDelRequestHandler()
+                new IntIntentDelRequestHandler()
         );
-    }
-
-    private final class IntConfigAddRequestHandler extends RequestHandler {
-        private IntConfigAddRequestHandler() {
-            super(INT_CONFIG_ADD_REQUEST);
-        }
-
-        @Override
-        public void process(ObjectNode payload) {
-            log.info("intConfigAddRequest: {}", payload);
-
-            intService = get(IntService.class);
-            IntDeviceConfig.Builder builder = IntDeviceConfig.builder();
-
-            if (payload.get("collectorIp") != null) {
-                builder.withCollectorIp(IpAddress.valueOf(payload.get("collectorIp").asText()));
-            } else {
-                builder.withCollectorIp(IpAddress.valueOf("127.0.0.1"));
-            }
-
-            if (payload.get("collectorPort") != null) {
-                builder.withCollectorPort(TpPort.tpPort(
-                        payload.get("collectorPort").asInt()));
-            } else {
-                builder.withCollectorPort(TpPort.tpPort(1234));
-            }
-
-            builder.enabled(true)
-                    .withSinkIp(IpAddress.valueOf("10.192.19.180"))
-                    .withSinkMac(MacAddress.NONE)
-                    .withCollectorNextHopMac(MacAddress.BROADCAST);
-
-            intService.setConfig(builder.build());
-        }
     }
 
     private final class IntIntentDelRequestHandler extends RequestHandler {

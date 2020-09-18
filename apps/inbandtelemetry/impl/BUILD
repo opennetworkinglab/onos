@@ -4,7 +4,7 @@ COMPILE_DEPS = CORE_DEPS + KRYO + [
     "//apps/inbandtelemetry/api:onos-apps-inbandtelemetry-api",
 ]
 
-TEST_DEPS = TEST_ADAPTERS
+TEST_DEPS = TEST_ADAPTERS + JACKSON
 
 osgi_jar_with_tests(
     test_deps = TEST_DEPS,
