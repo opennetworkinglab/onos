@@ -20,6 +20,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -54,9 +55,11 @@ public final class IntDeviceConfig {
     private final MacAddress sinkMac;
     private final TelemetrySpec spec;
     private boolean enabled;
+    private int hopLatencySensitivity;
 
     private IntDeviceConfig(IpAddress collectorIp, TpPort collectorPort, MacAddress collectorNextHopMac,
-                            IpAddress sinkIp, MacAddress sinkMac, TelemetrySpec spec, boolean enabled) {
+                            IpAddress sinkIp, MacAddress sinkMac, TelemetrySpec spec, boolean enabled,
+                            int hopLatencySensitivity) {
         this.collectorIp = collectorIp;
         this.collectorPort = collectorPort;
         this.collectorNextHopMac = collectorNextHopMac;
@@ -64,6 +67,7 @@ public final class IntDeviceConfig {
         this.sinkMac = sinkMac;
         this.spec = spec;
         this.enabled = enabled;
+        this.hopLatencySensitivity = hopLatencySensitivity;
     }
 
     /**
@@ -145,6 +149,15 @@ public final class IntDeviceConfig {
     }
 
     /**
+     * Returns the minimal interval of hop latency change for a flow.
+     *
+     * @return the minimal interval of hop latency change for a flow.
+     */
+    public int minFlowHopLatencyChangeNs() {
+        return hopLatencySensitivity;
+    }
+
+    /**
      * Returns a new builder.
      *
      * @return new builder
@@ -165,6 +178,7 @@ public final class IntDeviceConfig {
         private MacAddress sinkMac;
         private TelemetrySpec spec = TelemetrySpec.INT;
         private boolean enabled = false;
+        int minFlowHopLatencyChangeNs = 0;
 
         /**
          * Assigns a collector IP address to the IntConfig object.
@@ -246,6 +260,17 @@ public final class IntDeviceConfig {
         }
 
         /**
+         * Sets the minimal interval of hop latency change for a flow.
+         *
+         * @param value the minimal interval of hop latency change for a flow
+         * @return an IntConfig builder
+         */
+        public IntDeviceConfig.Builder withMinFlowHopLatencyChangeNs(int value) {
+            this.minFlowHopLatencyChangeNs = value;
+            return this;
+        }
+
+        /**
          * Builds the IntConfig object.
          *
          * @return an IntConfig object
@@ -253,11 +278,10 @@ public final class IntDeviceConfig {
         public IntDeviceConfig build() {
             checkNotNull(collectorIp, "Collector IP should be specified.");
             checkNotNull(collectorPort, "Collector port number should be specified.");
-            checkNotNull(collectorNextHopMac, "Next hop MAC address for report packets should be provided.");
-            checkNotNull(sinkIp, "Sink IP address for report packets should be specified.");
-            checkNotNull(sinkMac, "Sink MAC address for report packets should be specified.");
+            checkArgument(minFlowHopLatencyChangeNs >= 0, "Hop latency sensitivity must be positive or zero");
+
             return new IntDeviceConfig(collectorIp, collectorPort, collectorNextHopMac,
-                                 sinkIp, sinkMac, spec, enabled);
+                                 sinkIp, sinkMac, spec, enabled, minFlowHopLatencyChangeNs);
         }
     }
 }

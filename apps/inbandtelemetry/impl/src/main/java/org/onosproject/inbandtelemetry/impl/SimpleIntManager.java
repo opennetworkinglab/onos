@@ -21,6 +21,7 @@ import org.onlab.util.KryoNamespace;
 import org.onlab.util.SharedScheduledExecutors;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.net.behaviour.inbandtelemetry.IntReportConfig;
 import org.onosproject.net.behaviour.inbandtelemetry.IntMetadataType;
 import org.onosproject.net.behaviour.inbandtelemetry.IntDeviceConfig;
 import org.onosproject.inbandtelemetry.api.IntIntent;
@@ -34,6 +35,12 @@ import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.MastershipRole;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.config.ConfigFactory;
+import org.onosproject.net.config.NetworkConfigEvent;
+import org.onosproject.net.config.NetworkConfigListener;
+import org.onosproject.net.config.NetworkConfigRegistry;
+import org.onosproject.net.config.NetworkConfigService;
+import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
@@ -108,6 +115,12 @@ public class SimpleIntManager implements IntService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     private HostService hostService;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    private NetworkConfigService netcfgService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    private NetworkConfigRegistry netcfgRegistry;
+
     private final Striped<Lock> deviceLocks = Striped.lock(10);
 
     private final ConcurrentMap<DeviceId, ScheduledFuture<?>> scheduledDeviceTasks = Maps.newConcurrentMap();
@@ -127,6 +140,16 @@ public class SimpleIntManager implements IntService {
     private final InternalIntStartedListener intStartedListener = new InternalIntStartedListener();
     private final InternalDeviceToConfigureListener devicesToConfigureListener =
             new InternalDeviceToConfigureListener();
+    private final NetworkConfigListener appConfigListener = new IntAppConfigListener();
+
+    private final ConfigFactory<ApplicationId, IntReportConfig> intAppConfigFactory =
+            new ConfigFactory<>(SubjectFactories.APP_SUBJECT_FACTORY,
+                    IntReportConfig.class, "report") {
+                @Override
+                public IntReportConfig createConfig() {
+                    return new IntReportConfig();
+                }
+            };
 
     @Activate
     public void activate() {
@@ -184,6 +207,9 @@ public class SimpleIntManager implements IntService {
 
         hostService.addListener(hostListener);
         deviceService.addListener(deviceListener);
+
+        netcfgRegistry.registerConfigFactory(intAppConfigFactory);
+        netcfgService.addListener(appConfigListener);
 
         startInt();
         log.info("Started", appId.id());
@@ -522,6 +548,37 @@ public class SimpleIntManager implements IntService {
             if (oldTask != null) {
                 oldTask.cancel(false);
             }
+        }
+    }
+
+    private class IntAppConfigListener implements NetworkConfigListener {
+
+        @Override
+        public void event(NetworkConfigEvent event) {
+            switch (event.type()) {
+                case CONFIG_ADDED:
+                case CONFIG_UPDATED:
+                    event.config()
+                            .map(config -> (IntReportConfig) config)
+                            .ifPresent(config -> {
+                                IntDeviceConfig intDeviceConfig = IntDeviceConfig.builder()
+                                        .withMinFlowHopLatencyChangeNs(config.minFlowHopLatencyChangeNs())
+                                        .withCollectorPort(config.collectorPort())
+                                        .withCollectorIp(config.collectorIp())
+                                        .enabled(true)
+                                        .build();
+                                setConfig(intDeviceConfig);
+                            });
+                    break;
+                // TODO: Support removing INT config.
+                default:
+                    break;
+            }
+        }
+
+        @Override
+        public boolean isRelevant(NetworkConfigEvent event) {
+            return event.configClass() == IntReportConfig.class;
         }
     }
 }
