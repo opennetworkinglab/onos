@@ -7,20 +7,11 @@
     // constants
     var intIntentAddReq = 'intIntentAddRequest';
     var intIntentDelReq = 'intIntentDelRequest';
-    var intConfigAddReq = 'intConfigAddRequest';
 
     var refreshInterval = 1000;
 
     var propOrder = ['id', 'srcAddr', 'dstAddr', 'srcPort', 'dstPort', 'insMask'];
     var friendlyProps = ['IntIntent ID', 'Src Address', 'Dst Address', 'Src Port', 'Dst Port', 'Ins Mask'];
-
-    function sendIntConfigString() {
-        var configObjectNode = {
-            "collectorIp": $scope.collectorIp,
-            "collectorPort": $scope.collectorPort
-        };
-        wss.sendEvent(intConfigAddReq, configObjectNode);
-    }
 
     function sendIntIntentString() {
         var inst = [];
