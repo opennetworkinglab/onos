@@ -119,6 +119,8 @@ import static org.onosproject.fwd.OsgiPropertyConstants.PACKET_OUT_ONLY;
 import static org.onosproject.fwd.OsgiPropertyConstants.PACKET_OUT_ONLY_DEFAULT;
 import static org.onosproject.fwd.OsgiPropertyConstants.RECORD_METRICS;
 import static org.onosproject.fwd.OsgiPropertyConstants.RECORD_METRICS_DEFAULT;
+import static org.onosproject.fwd.OsgiPropertyConstants.INHERIT_FLOW_TREATMENT;
+import static org.onosproject.fwd.OsgiPropertyConstants.INHERIT_FLOW_TREATMENT_DEFAULT;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -142,7 +144,8 @@ import static org.slf4j.LoggerFactory.getLogger;
         MATCH_TCP_UDP_PORTS + ":Boolean=" + MATCH_TCP_UDP_PORTS_DEFAULT,
         MATCH_ICMP_FIELDS + ":Boolean=" + MATCH_ICMP_FIELDS_DEFAULT,
         IGNORE_IPV4_MCAST_PACKETS + ":Boolean=" + IGNORE_IPV4_MCAST_PACKETS_DEFAULT,
-        RECORD_METRICS + ":Boolean=" + RECORD_METRICS_DEFAULT
+        RECORD_METRICS + ":Boolean=" + RECORD_METRICS_DEFAULT,
+        INHERIT_FLOW_TREATMENT + ":Boolean=" + INHERIT_FLOW_TREATMENT_DEFAULT
     }
 )
 public class ReactiveForwarding {
@@ -223,6 +226,9 @@ public class ReactiveForwarding {
 
     /** Enable record metrics for reactive forwarding. */
     private boolean recordMetrics = RECORD_METRICS_DEFAULT;
+
+    /** Enable use of builder from packet context to define flow treatment; default is false. */
+    private boolean inheritFlowTreatment = INHERIT_FLOW_TREATMENT_DEFAULT;
 
     private final TopologyListener topologyListener = new InternalTopologyListener();
 
@@ -458,6 +464,17 @@ public class ReactiveForwarding {
 
         flowPriority = Tools.getIntegerProperty(properties, FLOW_PRIORITY, FLOW_PRIORITY_DEFAULT);
         log.info("Configured. Flow Priority is configured to {}", flowPriority);
+
+        Boolean inheritFlowTreatmentEnabled =
+                Tools.isPropertyEnabled(properties, INHERIT_FLOW_TREATMENT);
+        if (inheritFlowTreatmentEnabled == null) {
+            log.info("Inherit flow treatment is not configured, " +
+                             "using current value of {}", inheritFlowTreatment);
+        } else {
+            inheritFlowTreatment = inheritFlowTreatmentEnabled;
+            log.info("Configured. Inherit flow treatment is {}",
+                     inheritFlowTreatment ? "enabled" : "disabled");
+        }
     }
 
     /**
@@ -713,9 +730,16 @@ public class ReactiveForwarding {
                 }
             }
         }
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setOutput(portNumber)
-                .build();
+        TrafficTreatment treatment;
+        if (inheritFlowTreatment) {
+            treatment = context.treatmentBuilder()
+                    .setOutput(portNumber)
+                    .build();
+        } else {
+            treatment = DefaultTrafficTreatment.builder()
+                    .setOutput(portNumber)
+                    .build();
+        }
 
         ForwardingObjective forwardingObjective = DefaultForwardingObjective.builder()
                 .withSelector(selectorBuilder.build())

@@ -64,4 +64,7 @@ public final class OsgiPropertyConstants {
 
     static final String RECORD_METRICS = "recordMetrics";
     static final boolean RECORD_METRICS_DEFAULT = false;
+
+    static final String INHERIT_FLOW_TREATMENT = "inheritFlowTreatment";
+    static final boolean INHERIT_FLOW_TREATMENT_DEFAULT = false;
 }
