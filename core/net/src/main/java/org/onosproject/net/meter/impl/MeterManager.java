@@ -394,7 +394,7 @@ public class MeterManager
                 // FIXME: Installing a meter is meaningful for OpenFlow, but not for P4Runtime.
                 // It looks like this flow is used only for p4runtime to emulate the installation
                 // since meters are already instantiated - we need just modify the params.
-                if (m.state() == MeterState.PENDING_ADD) {
+                if (m.state() == MeterState.PENDING_ADD && m.meterCellId().type() != MeterCellType.INDEX) {
                     // offload the task to avoid the overloading of the sb threads
                     meterInstallers.execute(new MeterInstaller(m.deviceId(), m, MeterOperation.Type.MODIFY));
                 // Remove workflow. Regarding OpenFlow, meters have been removed from
