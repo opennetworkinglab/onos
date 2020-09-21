@@ -226,15 +226,9 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
                 return;
             }
             if (ipProto.protocol() == IPv4.PROTOCOL_IGMP) {
-
-                if (vlanId.isEmpty() || vlanPcp.isEmpty()) {
-                    log.warn("Missing IGMP vlan or pcp");
-                    fail(filter, ObjectiveError.BADPARAMS);
-                    return;
-                }
                 provisionIgmp(filter, ethType, ipProto, output,
-                              (L2ModificationInstruction) vlanId.get(),
-                              (L2ModificationInstruction) vlanPcp.get());
+                              vlanId.orElse(null),
+                              vlanPcp.orElse(null));
             } else if (ipProto.protocol() == IPv4.PROTOCOL_UDP) {
                 UdpPortCriterion udpSrcPort = (UdpPortCriterion)
                         filterForCriterion(filter.conditions(), Criterion.Type.UDP_SRC);
@@ -933,7 +927,7 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
     private void provisionIgmp(FilteringObjective filter, EthTypeCriterion ethType,
                                IPProtocolCriterion ipProto,
                                Instructions.OutputInstruction output,
-                               L2ModificationInstruction vlan, L2ModificationInstruction pcp) {
+                               Instruction vlan, Instruction pcp) {
 
         Instruction meter = filter.meta().metered();
         Instruction writeMetadata = filter.meta().writeMetadata();
