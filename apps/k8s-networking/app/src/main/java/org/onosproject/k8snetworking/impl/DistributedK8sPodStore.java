@@ -33,6 +33,7 @@ import io.fabric8.kubernetes.api.model.EnvFromSource;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarSource;
 import io.fabric8.kubernetes.api.model.ExecAction;
+import io.fabric8.kubernetes.api.model.FieldsV1;
 import io.fabric8.kubernetes.api.model.HTTPGetAction;
 import io.fabric8.kubernetes.api.model.HTTPHeader;
 import io.fabric8.kubernetes.api.model.HostPathVolumeSource;
@@ -41,6 +42,7 @@ import io.fabric8.kubernetes.api.model.KeyToPath;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.LabelSelectorRequirement;
 import io.fabric8.kubernetes.api.model.Lifecycle;
+import io.fabric8.kubernetes.api.model.ManagedFieldsEntry;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.NodeSelector;
 import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
@@ -200,6 +202,8 @@ public class DistributedK8sPodStore
             .register(LabelSelector.class)
             .register(LabelSelectorRequirement.class)
             .register(PodAntiAffinity.class)
+            .register(ManagedFieldsEntry.class)
+            .register(FieldsV1.class)
             .register(LinkedHashMap.class)
             .register(Collection.class)
             .build();

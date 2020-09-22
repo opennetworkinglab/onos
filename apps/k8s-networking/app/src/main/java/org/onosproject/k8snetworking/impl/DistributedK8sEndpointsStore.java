@@ -20,6 +20,8 @@ import io.fabric8.kubernetes.api.model.EndpointAddress;
 import io.fabric8.kubernetes.api.model.EndpointPort;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
 import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.api.model.FieldsV1;
+import io.fabric8.kubernetes.api.model.ManagedFieldsEntry;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectReference;
 import org.onlab.util.KryoNamespace;
@@ -79,6 +81,8 @@ public class DistributedK8sEndpointsStore
             .register(EndpointAddress.class)
             .register(ObjectReference.class)
             .register(EndpointPort.class)
+            .register(ManagedFieldsEntry.class)
+            .register(FieldsV1.class)
             .register(LinkedHashMap.class)
             .register(Collection.class)
             .build();

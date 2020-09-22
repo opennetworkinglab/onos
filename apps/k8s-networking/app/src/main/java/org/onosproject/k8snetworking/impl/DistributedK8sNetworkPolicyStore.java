@@ -16,9 +16,11 @@
 package org.onosproject.k8snetworking.impl;
 
 import com.google.common.collect.ImmutableSet;
+import io.fabric8.kubernetes.api.model.FieldsV1;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.LabelSelectorRequirement;
+import io.fabric8.kubernetes.api.model.ManagedFieldsEntry;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.networking.IPBlock;
 import io.fabric8.kubernetes.api.model.networking.NetworkPolicy;
@@ -88,6 +90,8 @@ public class DistributedK8sNetworkPolicyStore
             .register(IPBlock.class)
             .register(LabelSelector.class)
             .register(LabelSelectorRequirement.class)
+            .register(ManagedFieldsEntry.class)
+            .register(FieldsV1.class)
             .register(LinkedHashMap.class)
             .register(IntOrString.class)
             .build();
