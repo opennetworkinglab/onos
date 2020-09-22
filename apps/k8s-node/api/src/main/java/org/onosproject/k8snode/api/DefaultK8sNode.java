@@ -585,7 +585,7 @@ public class DefaultK8sNode implements K8sNode {
     @Override
     public String intgBridgeName() {
         if (mode == PASSTHROUGH) {
-            return INTEGRATION_BRIDGE + "-" + uniqueString(5);
+            return INTEGRATION_BRIDGE + "-" + uniqueString(4);
         } else {
             return INTEGRATION_BRIDGE;
         }
@@ -612,7 +612,7 @@ public class DefaultK8sNode implements K8sNode {
     @Override
     public String extBridgeName() {
         if (mode == PASSTHROUGH) {
-            return EXTERNAL_BRIDGE + "-" + uniqueString(5);
+            return EXTERNAL_BRIDGE + "-" + uniqueString(4);
         } else {
             return EXTERNAL_BRIDGE;
         }
@@ -621,7 +621,7 @@ public class DefaultK8sNode implements K8sNode {
     @Override
     public String localBridgeName() {
         if (mode == PASSTHROUGH) {
-            return LOCAL_BRIDGE + "-" + uniqueString(5);
+            return LOCAL_BRIDGE + "-" + uniqueString(4);
         } else {
             return LOCAL_BRIDGE;
         }
@@ -639,7 +639,7 @@ public class DefaultK8sNode implements K8sNode {
     @Override
     public String intgBridgePortName() {
         if (mode == PASSTHROUGH) {
-            return INTEGRATION_BRIDGE + "-" + uniqueString(5);
+            return INTEGRATION_BRIDGE + "-" + uniqueString(4);
         } else {
             return INTEGRATION_BRIDGE;
         }
@@ -648,7 +648,7 @@ public class DefaultK8sNode implements K8sNode {
     @Override
     public String extBridgePortName() {
         if (mode == PASSTHROUGH) {
-            return EXTERNAL_BRIDGE + "-" + uniqueString(5);
+            return EXTERNAL_BRIDGE + "-" + uniqueString(4);
         } else {
             return EXTERNAL_BRIDGE;
         }
@@ -657,7 +657,7 @@ public class DefaultK8sNode implements K8sNode {
     @Override
     public String localBridgePortName() {
         if (mode == PASSTHROUGH) {
-            return LOCAL_BRIDGE + "-" + uniqueString(5);
+            return LOCAL_BRIDGE + "-" + uniqueString(4);
         } else {
             return LOCAL_BRIDGE;
         }
@@ -666,7 +666,7 @@ public class DefaultK8sNode implements K8sNode {
     @Override
     public String tunBridgePortName() {
         if (mode == PASSTHROUGH) {
-            return TUNNEL_BRIDGE + "-" + uniqueString(5);
+            return TUNNEL_BRIDGE + "-" + uniqueString(4);
         } else {
             return TUNNEL_BRIDGE;
         }
@@ -675,7 +675,7 @@ public class DefaultK8sNode implements K8sNode {
     @Override
     public String intgToExtPatchPortName() {
         if (mode == PASSTHROUGH) {
-            return INTEGRATION_TO_EXTERNAL_BRIDGE + "-" + uniqueString(5);
+            return INTEGRATION_TO_EXTERNAL_BRIDGE + "-" + uniqueString(4);
         } else {
             return INTEGRATION_TO_EXTERNAL_BRIDGE;
         }
@@ -684,7 +684,7 @@ public class DefaultK8sNode implements K8sNode {
     @Override
     public String intgToTunPatchPortName() {
         if (mode == PASSTHROUGH) {
-            return INTEGRATION_TO_TUN_BRIDGE + "-" + uniqueString(5);
+            return INTEGRATION_TO_TUN_BRIDGE + "-" + uniqueString(4);
         } else {
             return INTEGRATION_TO_TUN_BRIDGE;
         }
@@ -693,7 +693,7 @@ public class DefaultK8sNode implements K8sNode {
     @Override
     public String intgToLocalPatchPortName() {
         if (mode == PASSTHROUGH) {
-            return INTEGRATION_TO_LOCAL_BRIDGE + "-" + uniqueString(5);
+            return INTEGRATION_TO_LOCAL_BRIDGE + "-" + uniqueString(4);
         } else {
             return INTEGRATION_TO_LOCAL_BRIDGE;
         }
@@ -702,7 +702,7 @@ public class DefaultK8sNode implements K8sNode {
     @Override
     public String localToIntgPatchPortName() {
         if (mode == PASSTHROUGH) {
-            return LOCAL_TO_INTEGRATION_BRIDGE + "-" + uniqueString(5);
+            return LOCAL_TO_INTEGRATION_BRIDGE + "-" + uniqueString(4);
         } else {
             return LOCAL_TO_INTEGRATION_BRIDGE;
         }
@@ -711,7 +711,7 @@ public class DefaultK8sNode implements K8sNode {
     @Override
     public String extToIntgPatchPortName() {
         if (mode == PASSTHROUGH) {
-            return PHYSICAL_EXTERNAL_BRIDGE + "-" + uniqueString(5);
+            return PHYSICAL_EXTERNAL_BRIDGE + "-" + uniqueString(4);
         } else {
             return PHYSICAL_EXTERNAL_BRIDGE;
         }
@@ -720,7 +720,7 @@ public class DefaultK8sNode implements K8sNode {
     @Override
     public String tunToIntgPatchPortName() {
         if (mode == PASSTHROUGH) {
-            return TUN_TO_INTEGRATION_BRIDGE + "-" + uniqueString(5);
+            return TUN_TO_INTEGRATION_BRIDGE + "-" + uniqueString(4);
         } else {
             return TUN_TO_INTEGRATION_BRIDGE;
         }
@@ -729,7 +729,7 @@ public class DefaultK8sNode implements K8sNode {
     @Override
     public String k8sIntgToOsPatchPortName() {
         if (mode == PASSTHROUGH) {
-            return K8S_INTEGRATION_TO_OS_BRIDGE + "-" + uniqueString(5);
+            return K8S_INTEGRATION_TO_OS_BRIDGE + "-" + uniqueString(4);
         } else {
             return K8S_INTEGRATION_TO_OS_BRIDGE;
         }
@@ -738,7 +738,7 @@ public class DefaultK8sNode implements K8sNode {
     @Override
     public String k8sExtToOsPatchPortName() {
         if (mode == PASSTHROUGH) {
-            return K8S_EXTERNAL_TO_OS_BRIDGE + "-" + uniqueString(5);
+            return K8S_EXTERNAL_TO_OS_BRIDGE + "-" + uniqueString(4);
         } else {
             return K8S_EXTERNAL_TO_OS_BRIDGE;
         }
@@ -747,7 +747,7 @@ public class DefaultK8sNode implements K8sNode {
     @Override
     public String osToK8sIntgPatchPortName() {
         if (mode == PASSTHROUGH) {
-            return OS_TO_K8S_INTEGRATION_BRIDGE + "-" + uniqueString(5);
+            return OS_TO_K8S_INTEGRATION_BRIDGE + "-" + uniqueString(4);
         } else {
             return OS_TO_K8S_INTEGRATION_BRIDGE;
         }
@@ -756,7 +756,7 @@ public class DefaultK8sNode implements K8sNode {
     @Override
     public String osToK8sExtPatchPortName() {
         if (mode == PASSTHROUGH) {
-            return OS_TO_K8S_EXTERNAL_BRIDGE + "-" + uniqueString(5);
+            return OS_TO_K8S_EXTERNAL_BRIDGE + "-" + uniqueString(4);
         } else {
             return OS_TO_K8S_EXTERNAL_BRIDGE;
         }
@@ -765,7 +765,7 @@ public class DefaultK8sNode implements K8sNode {
     @Override
     public String routerToExtPatchPortName() {
         if (mode == PASSTHROUGH) {
-            return ROUTER_TO_EXTERNAL + "-" + uniqueString(5);
+            return ROUTER_TO_EXTERNAL + "-" + uniqueString(4);
         } else {
             return ROUTER_TO_EXTERNAL;
         }
@@ -774,7 +774,7 @@ public class DefaultK8sNode implements K8sNode {
     @Override
     public String extToRouterPatchPortName() {
         if (mode == PASSTHROUGH) {
-            return EXTERNAL_TO_ROUTER + "-" + uniqueString(5);
+            return EXTERNAL_TO_ROUTER + "-" + uniqueString(4);
         } else {
             return EXTERNAL_TO_ROUTER;
         }
