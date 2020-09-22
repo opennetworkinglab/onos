@@ -45,6 +45,7 @@ import org.onosproject.net.meter.MeterState;
 import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.TestStorageService;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.concurrent.CompletableFuture;
@@ -413,6 +414,64 @@ public class DistributedMeterStoreTest {
         assertThat(0, is(meterStore.getAllMeters().size()));
         assertThat(0, is(meterStore.getAllMeters(did1).size()));
         assertNull(meterStore.getMeter(keyOne));
+    }
+
+    /**
+     * Test getMeters API immutability.
+     */
+    @Test
+    public void testGetMetersImmutability() {
+        // Init the store
+        initMeterStore();
+
+        // Simulate the allocation of an id
+        MeterId idOne = meterStore.allocateMeterId(did1);
+        // Verify the allocation
+        assertThat(mid1, is(idOne));
+        // Let's create a meter
+        Meter meterOne = DefaultMeter.builder()
+                .forDevice(did1)
+                .fromApp(APP_ID)
+                .withId(mid1)
+                .withUnit(Meter.Unit.KB_PER_SEC)
+                .withBands(Collections.singletonList(b1))
+                .build();
+        // Set the state
+        ((DefaultMeter) meterOne).setState(MeterState.PENDING_ADD);
+        // Store the meter
+        meterStore.storeMeter(meterOne);
+
+        // Verify the immutability
+        Collection<Meter> meters = meterStore.getAllMeters();
+        Collection<Meter> metersDevice = meterStore.getAllMeters(did1);
+        assertThat(1, is(meters.size()));
+        assertThat(1, is(metersDevice.size()));
+
+        MeterId idTwo = meterStore.allocateMeterId(did1);
+        // Verify the allocation
+        assertThat(mid2, is(idTwo));
+        // Let's create a meter
+        Meter meterTwo = DefaultMeter.builder()
+                .forDevice(did1)
+                .fromApp(APP_ID)
+                .withId(mid2)
+                .withUnit(Meter.Unit.KB_PER_SEC)
+                .withBands(Collections.singletonList(b1))
+                .build();
+        // Set the state
+        ((DefaultMeter) meterTwo).setState(MeterState.PENDING_ADD);
+        // Store the meter
+        meterStore.storeMeter(meterTwo);
+
+        assertThat(1, is(meters.size()));
+        assertThat(1, is(metersDevice.size()));
+
+        meters = meterStore.getAllMeters();
+        metersDevice = meterStore.getAllMeters(did1);
+        assertThat(2, is(meters.size()));
+        assertThat(2, is(metersDevice.size()));
+
+
     }
 
     // Test class for driver service.

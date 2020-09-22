@@ -16,6 +16,7 @@
 package org.onosproject.store.meter.impl;
 
 import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -88,6 +89,7 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
     private static final String METERSTORE = "onos-meter-store";
     private ConsistentMap<MeterKey, MeterData> meters;
     private MapEventListener<MeterKey, MeterData> mapListener = new InternalMapEventListener();
+    private Map<MeterKey, MeterData> metersMap;
 
     // Meters features related objects
     private static final String METERFEATURESSTORE = "onos-meter-features-store";
@@ -157,6 +159,7 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
                                                  Meter.Unit.class,
                                                  MeterFailReason.class,
                                                  MeterFeaturesFlag.class)).build();
+        metersMap = meters.asJavaMap();
         // Init the set of the available ids
         availableMeterIds = new DefaultDistributedSet<>(storageService.<MeterKey>setBuilder()
                 .withName(AVAILABLEMETERIDSTORE)
@@ -276,10 +279,10 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
     }
 
     @Override
-    public void updateMeterState(Meter meter) {
+    public Meter updateMeterState(Meter meter) {
         // Update meter if present (stats workflow)
         MeterKey key = MeterKey.key(meter.deviceId(), meter.id());
-        meters.computeIfPresent(key, (k, v) -> {
+        Versioned<MeterData> value = meters.computeIfPresent(key, (k, v) -> {
             DefaultMeter m = (DefaultMeter) v.meter();
             MeterState meterState = m.state();
             if (meterState == MeterState.PENDING_ADD) {
@@ -292,6 +295,7 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
             m.setReferenceCount(meter.referenceCount());
             return new MeterData(m, null);
         });
+        return value != null ? value.value().meter() : null;
     }
 
     @Override
@@ -302,14 +306,14 @@ public class DistributedMeterStore extends AbstractStore<MeterEvent, MeterStoreD
 
     @Override
     public Collection<Meter> getAllMeters() {
-        return Collections2.transform(meters.asJavaMap().values(),
+        return Collections2.transform(ImmutableSet.copyOf(metersMap.values()),
                                       MeterData::meter);
     }
 
     @Override
     public Collection<Meter> getAllMeters(DeviceId deviceId) {
         return Collections2.transform(
-                Collections2.filter(meters.asJavaMap().values(),
+                Collections2.filter(ImmutableSet.copyOf(metersMap.values()),
                         (MeterData m) -> m.meter().deviceId().equals(deviceId)),
                 MeterData::meter);
     }

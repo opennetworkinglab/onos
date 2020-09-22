@@ -70,8 +70,9 @@ public interface MeterStore extends Store<MeterEvent, MeterStoreDelegate> {
      * Updates a given meter's state with the provided state.
      *
      * @param meter a meter
+     * @return the updated meter
      */
-    void updateMeterState(Meter meter);
+    Meter updateMeterState(Meter meter);
 
     /**
      * Obtains a meter matching the given meter key.
@@ -84,7 +85,7 @@ public interface MeterStore extends Store<MeterEvent, MeterStoreDelegate> {
     /**
      * Returns all meters stored in the store.
      *
-     * @return a collection of meters
+     * @return an immutable copy of all meters
      */
     Collection<Meter> getAllMeters();
 
@@ -93,7 +94,7 @@ public interface MeterStore extends Store<MeterEvent, MeterStoreDelegate> {
      * precise device.
      *
      * @param deviceId the device to get the meter list from
-     * @return a collection of meters
+     * @return an immutable copy of the meters stored for a given device
      */
     Collection<Meter> getAllMeters(DeviceId deviceId);
 
