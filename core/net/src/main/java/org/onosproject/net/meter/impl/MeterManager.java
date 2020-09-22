@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.meter.impl;
 
+import com.google.common.collect.Sets;
 import org.onlab.util.PredictableExecutor;
 import org.onlab.util.PredictableExecutor.PickyRunnable;
 import org.onlab.util.Tools;
@@ -385,17 +386,26 @@ public class MeterManager
                     });
 
             // Update the meter stats in the store (first time move the state from pending to added)
+            Collection<Meter> addedMeters = Sets.newHashSet();
             meterEntries.stream()
                     .filter(m -> allMeters.stream()
                             .anyMatch(sm -> sm.deviceId().equals(deviceId) && sm.id().equals(m.id())))
-                    .forEach(m -> store.updateMeterState(m));
+                    .forEach(m -> {
+                        Meter updatedMeter = store.updateMeterState(m);
+                        if (updatedMeter != null && updatedMeter.state() == MeterState.ADDED) {
+                            addedMeters.add(updatedMeter);
+                        }
+                    });
+            Collection<Meter> newAllMeters = Sets.newHashSet(allMeters);
+            newAllMeters.removeAll(addedMeters);
 
-            allMeters.forEach(m -> {
+            newAllMeters.forEach(m -> {
                 // FIXME: Installing a meter is meaningful for OpenFlow, but not for P4Runtime.
                 // It looks like this flow is used only for p4runtime to emulate the installation
                 // since meters are already instantiated - we need just modify the params.
                 if (m.state() == MeterState.PENDING_ADD && m.meterCellId().type() != MeterCellType.INDEX) {
                     // offload the task to avoid the overloading of the sb threads
+                    log.debug("Modify meter {} in device {}", m.id(), deviceId);
                     meterInstallers.execute(new MeterInstaller(m.deviceId(), m, MeterOperation.Type.MODIFY));
                 // Remove workflow. Regarding OpenFlow, meters have been removed from
                 // the device but they are still in the store, we will purge them definitely.
@@ -403,6 +413,7 @@ public class MeterManager
                 // for P4Runtime will avoid to send a remove op. Then, we reach this point
                 // and we purge the meter from the store
                 } else if (m.state() == MeterState.PENDING_REMOVE) {
+                    log.debug("Delete meter {} now in store", m.id());
                     store.deleteMeterNow(m);
                 }
             });
