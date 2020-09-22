@@ -44,6 +44,8 @@ public final class TestConsistentMap<K, V> extends ConsistentMapAdapter<K, V> {
     private final String mapName;
     private final AtomicLong counter = new AtomicLong(0);
     private final Serializer serializer;
+    private Map<K, V> javaMap;
+
 
     private TestConsistentMap(String mapName, Serializer serializer) {
         map = new ConcurrentHashMap<>();
@@ -197,9 +199,7 @@ public final class TestConsistentMap<K, V> extends ConsistentMapAdapter<K, V> {
 
     @Override
     public Collection<Versioned<V>> values() {
-        return map.values()
-                .stream()
-                .collect(Collectors.toList());
+        return map.values();
     }
 
     @Override
@@ -295,7 +295,12 @@ public final class TestConsistentMap<K, V> extends ConsistentMapAdapter<K, V> {
 
     @Override
     public Map<K, V> asJavaMap() {
-        return new ConsistentMapBackedJavaMap<>(this);
+        synchronized (this) {
+            if (javaMap == null) {
+                javaMap = new ConsistentMapBackedJavaMap<>(this);
+            }
+        }
+        return javaMap;
     }
 
     public static Builder builder() {
