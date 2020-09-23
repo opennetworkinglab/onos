@@ -69,7 +69,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.onlab.packet.IPv6.getLinkLocalAddress;
 import static org.onlab.util.Tools.get;
@@ -469,14 +468,10 @@ public class HostManager
 
         @Override
         public void hostDetected(HostId hostId, HostDescription initialHostDescription, boolean replaceIps) {
+            log.debug("Host Detected {}, {}", hostId, initialHostDescription);
             HostDescription hostDescription = initialHostDescription;
             checkNotNull(hostId, HOST_ID_NULL);
             checkValidity();
-            hostDescription = validateHost(hostDescription, hostId);
-
-            if (!allowDuplicateIps) {
-                removeDuplicates(hostId, hostDescription);
-            }
 
             BasicHostConfig cfg = networkConfigService.getConfig(hostId, BasicHostConfig.class);
             if (!isAllowed(cfg)) {
@@ -485,6 +480,11 @@ public class HostManager
             }
 
             hostDescription = BasicHostOperator.combine(cfg, initialHostDescription);
+
+            if (!allowDuplicateIps) {
+                removeDuplicates(hostId, hostDescription);
+            }
+
             HostAnnotationConfig annoConfig = networkConfigService.getConfig(hostId, HostAnnotationConfig.class);
             if (annoConfig != null) {
                 hostDescription = hostAnnotationOperator.combine(hostId, hostDescription, Optional.of(annoConfig));
@@ -556,15 +556,6 @@ public class HostManager
                     }
                 });
             });
-        }
-
-        // returns a HostDescription made from the union of the BasicHostConfig
-        // annotations if it exists
-        private HostDescription validateHost(HostDescription hostDescription, HostId hostId) {
-            BasicHostConfig cfg = networkConfigService.getConfig(hostId, BasicHostConfig.class);
-            checkState(cfg == null || cfg.isAllowed(), "Host {} is not allowed", hostId);
-
-            return BasicHostOperator.combine(cfg, hostDescription);
         }
 
         @Override
