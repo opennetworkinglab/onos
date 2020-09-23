@@ -124,7 +124,7 @@ public final class K8sNetworkingUtil {
      * @param comparedName  port name to be compared
      * @return true if the compared port name exists, false otherwise
      */
-    public static boolean existingContainerPort(String sourceName, String comparedName) {
+    public static boolean existingContainerPortByName(String sourceName, String comparedName) {
         if (comparedName == null) {
             return false;
         }
@@ -138,6 +138,24 @@ public final class K8sNetworkingUtil {
         }
 
         return false;
+    }
+
+    /**
+     * Checks that whether the compared ports exist in the source MAC address.
+     *
+     * @param sourceMac     source port MAC address
+     * @param comparedMac   MAC address of port to be compared
+     * @return true if the compared port MAC address exists, false otherwise
+     */
+    public static boolean existingContainerPortByMac(String sourceMac, String comparedMac) {
+        if (comparedMac == null || sourceMac == null) {
+            return false;
+        }
+
+        String shortSourceMac = sourceMac.substring(3).toUpperCase();
+        String shortComparedMac = comparedMac.substring(3).toUpperCase();
+
+        return shortSourceMac.equals(shortComparedMac);
     }
 
     /**

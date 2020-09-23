@@ -21,6 +21,9 @@ import org.onlab.packet.IpAddress;
 import java.util.Set;
 
 import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertFalse;
+import static junit.framework.TestCase.assertTrue;
+import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.existingContainerPortByMac;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.getSubnetIps;
 
 /**
@@ -44,5 +47,27 @@ public final class K8sNetworkUtilTest {
         String dClassCidr = "10.10.10.10/32";
         Set<IpAddress> dClassIps = getSubnetIps(dClassCidr);
         assertEquals(0, dClassIps.size());
+    }
+
+    /**
+     * Tests the existing container port by MAC.
+     */
+    @Test
+    public void testExistingContainerPortByMac() {
+        String sourceMacStr = "fe:85:5a:d8:68:1d";
+        String comparedMacStr = "8A:85:5A:D8:68:1D";
+
+        boolean result1 = existingContainerPortByMac(sourceMacStr, comparedMacStr);
+        boolean result2 = existingContainerPortByMac(comparedMacStr, sourceMacStr);
+
+        assertTrue(result1);
+        assertTrue(result2);
+
+        String wrongMacStr = "8A:85:5A:D8:68:1F";
+        boolean result3 = existingContainerPortByMac(sourceMacStr, wrongMacStr);
+        boolean result4 = existingContainerPortByMac(wrongMacStr, sourceMacStr);
+
+        assertFalse(result3);
+        assertFalse(result4);
     }
 }

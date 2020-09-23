@@ -71,9 +71,11 @@ import static org.onosproject.k8snetworking.api.Constants.GENEVE;
 import static org.onosproject.k8snetworking.api.Constants.GRE;
 import static org.onosproject.k8snetworking.api.Constants.K8S_NETWORKING_APP_ID;
 import static org.onosproject.k8snetworking.api.Constants.VXLAN;
-import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.existingContainerPort;
+import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.existingContainerPortByMac;
+import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.existingContainerPortByName;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.isContainer;
 import static org.onosproject.k8snode.api.K8sNodeState.INIT;
+import static org.onosproject.net.AnnotationKeys.PORT_MAC;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 
 /**
@@ -161,10 +163,13 @@ public class K8sSwitchingHostProvider extends AbstractProvider implements HostPr
      * @param port port object used in ONOS
      */
     private void processPortAdded(Port port) {
-        K8sPort k8sPort = portToK8sPort(port);
+        K8sPort k8sPort = portToK8sPortByName(port);
         if (k8sPort == null) {
-            log.warn(ERR_ADD_HOST + "Kubernetes port for {} not found", port);
-            return;
+            k8sPort = portToK8sPortByMac(port);
+            if (k8sPort == null) {
+                log.warn(ERR_ADD_HOST + "Kubernetes port for {} not found", port);
+                return;
+            }
         }
 
         K8sNetwork k8sNet = k8sNetworkService.network(k8sPort.networkId());
@@ -240,11 +245,14 @@ public class K8sSwitchingHostProvider extends AbstractProvider implements HostPr
 
         hosts.forEach(h -> hostProviderService.hostVanished(h.id()));
 
-        K8sPort k8sPort = portToK8sPort(port);
+        K8sPort k8sPort = portToK8sPortByName(port);
 
         if (k8sPort == null) {
-            log.warn(ERR_ADD_HOST + "Kubernetes port for {} not found", port);
-            return;
+            k8sPort = portToK8sPortByMac(port);
+            if (k8sPort == null) {
+                log.warn(ERR_ADD_HOST + "Kubernetes port for {} not found", port);
+                return;
+            }
         }
 
         k8sNetworkService.removePort(k8sPort.portId());
@@ -256,11 +264,14 @@ public class K8sSwitchingHostProvider extends AbstractProvider implements HostPr
      * @param port ONOS port
      */
     private void processPortInactivated(Port port) {
-        K8sPort k8sPort = portToK8sPort(port);
+        K8sPort k8sPort = portToK8sPortByName(port);
 
         if (k8sPort == null) {
-            log.warn(ERR_ADD_HOST + "Kubernetes port for {} not found", port);
-            return;
+            k8sPort = portToK8sPortByMac(port);
+            if (k8sPort == null) {
+                log.warn(ERR_ADD_HOST + "Kubernetes port for {} not found", port);
+                return;
+            }
         }
 
         k8sNetworkService.updatePort(k8sPort.updateState(K8sPort.State.INACTIVE));
@@ -272,7 +283,7 @@ public class K8sSwitchingHostProvider extends AbstractProvider implements HostPr
      * @param port ONOS port
      * @return mapped kubernetes port
      */
-    private K8sPort portToK8sPort(Port port) {
+    private K8sPort portToK8sPortByName(Port port) {
         String portName = port.annotations().value(PORT_NAME);
         if (Strings.isNullOrEmpty(portName)) {
             return null;
@@ -280,7 +291,29 @@ public class K8sSwitchingHostProvider extends AbstractProvider implements HostPr
 
         if (isContainer(portName)) {
             return k8sNetworkService.ports().stream()
-                    .filter(p -> existingContainerPort(p.portId(), portName))
+                    .filter(p -> existingContainerPortByName(p.portId(), portName))
+                    .findAny().orElse(null);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Converts ONOS port to kubernetes port.
+     *
+     * @param port ONOS port
+     * @return mapped kubernetes port
+     */
+    private K8sPort portToK8sPortByMac(Port port) {
+        String portName = port.annotations().value(PORT_NAME);
+        String portMac = port.annotations().value(PORT_MAC);
+        if (Strings.isNullOrEmpty(portMac) || Strings.isNullOrEmpty(portName)) {
+            return null;
+        }
+
+        if (isContainer(portName)) {
+            return k8sNetworkService.ports().stream()
+                    .filter(p -> existingContainerPortByMac(p.macAddress().toString(), portMac))
                     .findAny().orElse(null);
         } else {
             return null;
@@ -457,12 +490,13 @@ public class K8sSwitchingHostProvider extends AbstractProvider implements HostPr
         }
 
         private void processK8sPortAddition(K8sNetworkEvent event) {
-            String portId = event.port().portId();
+            String mac = event.port().macAddress().toString();
             for (Device device : deviceService.getDevices()) {
                 Port port = deviceService.getPorts(device.id()).stream()
                         .filter(Port::isEnabled)
+                        .filter(p -> p.annotations().value(PORT_MAC) != null)
                         .filter(p -> p.annotations().value(PORT_NAME) != null)
-                        .filter(p -> existingContainerPort(portId, p.annotations().value(PORT_NAME)))
+                        .filter(p -> existingContainerPortByMac(mac, p.annotations().value(PORT_MAC)))
                         .findAny().orElse(null);
 
                 if (port != null) {
