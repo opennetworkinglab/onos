@@ -818,7 +818,16 @@ public class FlowEntryBuilder {
             builder.setIpDscp(ipDscp.getValue().getDscpValue());
             break;
         case ARP_THA:
+            @SuppressWarnings("unchecked")
+            OFOxm<org.projectfloodlight.openflow.types.MacAddress> arptha =
+                    (OFOxm<org.projectfloodlight.openflow.types.MacAddress>) oxm;
+            builder.setArpTha(MacAddress.valueOf(arptha.getValue().getLong()));
+            break;
         case ARP_TPA:
+            @SuppressWarnings("unchecked")
+            OFOxm<IPv4Address> arptpa = (OFOxm<IPv4Address>) oxm;
+            builder.setArpTpa(Ip4Address.valueOf(arptpa.getValue().getInt()));
+            break;
         case BSN_EGR_PORT_GROUP_ID:
         case BSN_GLOBAL_VRF_ALLOWED:
         case BSN_IN_PORTS_128:

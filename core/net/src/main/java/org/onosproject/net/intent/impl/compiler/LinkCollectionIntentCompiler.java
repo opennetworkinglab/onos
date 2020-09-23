@@ -280,6 +280,8 @@ public class LinkCollectionIntentCompiler
             case IPV6_FLABEL:
             case ARP_SPA:
             case ARP_SHA:
+            case ARP_TPA:
+            case ARP_THA:
             case ARP_OP:
             case TTL_OUT:
             case TTL_IN:

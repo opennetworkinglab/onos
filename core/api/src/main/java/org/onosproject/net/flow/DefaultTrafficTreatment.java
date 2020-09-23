@@ -505,6 +505,16 @@ public final class DefaultTrafficTreatment implements TrafficTreatment {
         }
 
         @Override
+        public Builder setArpTpa(IpAddress addr) {
+            return add(Instructions.modArpTpa(addr));
+        }
+
+        @Override
+        public Builder setArpTha(MacAddress addr) {
+            return add(Instructions.modArpTha(addr));
+        }
+
+        @Override
         public Builder setArpOp(short op) {
             return add(Instructions.modL3ArpOp(op));
         }

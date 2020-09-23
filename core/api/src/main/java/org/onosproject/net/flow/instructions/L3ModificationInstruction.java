@@ -82,6 +82,16 @@ public abstract class L3ModificationInstruction implements Instruction {
         ARP_SHA,
 
         /**
+         * ARP IP dst modification.
+         */
+        ARP_TPA,
+
+        /**
+         * ARP Ether dst modification.
+         */
+        ARP_THA,
+
+        /**
          * Arp operation modification.
          */
         ARP_OP,

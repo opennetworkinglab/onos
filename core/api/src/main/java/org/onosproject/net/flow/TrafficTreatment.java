@@ -420,6 +420,22 @@ public interface TrafficTreatment {
         Builder setArpSha(MacAddress addr);
 
         /**
+         * Sets the arp dst ip address.
+         *
+         * @param addr an ip
+         * @return a treatment builder
+         */
+        Builder setArpTpa(IpAddress addr);
+
+        /**
+         * Sets the arp dst mac address.
+         *
+         * @param addr a macaddress
+         * @return a treatment builder
+         */
+        Builder setArpTha(MacAddress addr);
+
+        /**
          * Sets the arp operation.
          *
          * @param op the value of arp operation.

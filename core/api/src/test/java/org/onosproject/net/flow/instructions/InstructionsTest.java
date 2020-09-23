@@ -1221,6 +1221,21 @@ public class InstructionsTest {
     }
 
     /**
+     * Test the modArpTpa() method.
+     */
+    @Test
+    public void testModArpTpaMethod() {
+        final Instruction instruction = Instructions.modArpTpa(ip41);
+        final L3ModificationInstruction.ModArpIPInstruction modArpIPInstruction =
+                checkAndConvert(instruction,
+                                Instruction.Type.L3MODIFICATION,
+                                L3ModificationInstruction.ModArpIPInstruction.class);
+        assertThat(modArpIPInstruction.subtype(),
+                   is(L3ModificationInstruction.L3SubType.ARP_TPA));
+        assertThat(modArpIPInstruction.ip(), is(ip41));
+    }
+
+    /**
      * Tests the equals(), hashCode() and toString() methods of the
      * ModArpIPInstruction class.
      */
@@ -1250,6 +1265,21 @@ public class InstructionsTest {
                                 L3ModificationInstruction.ModArpEthInstruction.class);
         assertThat(modArpEthInstruction.subtype(),
                    is(L3ModificationInstruction.L3SubType.ARP_SHA));
+        assertThat(modArpEthInstruction.mac(), is(mac1));
+    }
+
+    /**
+     * Test the modArpTha() method.
+     */
+    @Test
+    public void testModArpThaMethod() {
+        final Instruction instruction = Instructions.modArpTha(mac1);
+        final L3ModificationInstruction.ModArpEthInstruction modArpEthInstruction =
+                checkAndConvert(instruction,
+                                Instruction.Type.L3MODIFICATION,
+                                L3ModificationInstruction.ModArpEthInstruction.class);
+        assertThat(modArpEthInstruction.subtype(),
+                   is(L3ModificationInstruction.L3SubType.ARP_THA));
         assertThat(modArpEthInstruction.mac(), is(mac1));
     }
 

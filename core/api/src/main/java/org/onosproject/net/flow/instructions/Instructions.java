@@ -321,6 +321,28 @@ public final class Instructions {
     }
 
     /**
+     * Creates a L3 ARP IP src modification.
+     *
+     * @param addr the ip address to modify to
+     * @return a L3 modification
+     */
+    public static L3ModificationInstruction modArpTpa(IpAddress addr) {
+        checkNotNull(addr, "Dst l3 ARP IP address cannot be null");
+        return new ModArpIPInstruction(L3SubType.ARP_TPA, addr);
+    }
+
+    /**
+     * Creates a l3 ARP Ether src modification.
+     *
+     * @param addr the mac address to modify to
+     * @return a l3 modification
+     */
+    public static L3ModificationInstruction modArpTha(MacAddress addr) {
+        checkNotNull(addr, "Dst l3 ARP address cannot be null");
+        return new ModArpEthInstruction(L3SubType.ARP_THA, addr);
+    }
+
+    /**
      * Creates a l3 ARP operation modification.
      *
      * @param op the ARP operation to modify to
