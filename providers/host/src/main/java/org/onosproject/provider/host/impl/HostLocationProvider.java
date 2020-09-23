@@ -472,6 +472,7 @@ public class HostLocationProvider extends AbstractProvider implements HostProvid
         private void createOrUpdateHost(HostId hid, MacAddress mac, VlanId vlan,
                                         VlanId innerVlan, EthType outerTpid,
                                         HostLocation hloc, IpAddress ip) {
+            log.debug("Creating Host {} based on Location {}", hid, hloc);
             Set<HostLocation> newLocations = Sets.newHashSet(hloc);
 
             if (multihomingEnabled) {
