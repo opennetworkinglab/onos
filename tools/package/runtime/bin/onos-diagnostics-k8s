@@ -20,12 +20,13 @@
 # Tool to collect cluster-wide diagnostics into a single tar stream using kubectl
 # --------------------------------------------------------------------------------
 function usage() {
-    echo "usage: $(basename $0) [-x] [-j] [-n name] [-k karaf_home] [pod1 pod2...]"
+    echo "usage: $(basename $0) [-x] [-j] [-l] [-n name] [-k karaf_home] [-s namespace] [pod1 pod2...]"
     echo ""
     echo "Environment Variables:"
     echo "    DIAGS_PROFILE     Profile to be used to collect diags."
     echo "                      Availables profiles in onos-diagnostics-profile"
     echo "    KARAF_HOME        KARAF_HOME inside the ONOS pod (path from the mount point)"
+    echo "    NAMESPACE         k8s namespace"
     echo "    ONOS_PODS         ONOS pods composing the cluster"
     echo ""
     echo "Example Usages:"
@@ -48,6 +49,9 @@ function usage() {
     echo "    # Collection archive will be named /tmp/onos-diags.tar.gz"
     echo "    > $(basename $0) -j"
     echo ""
+    echo "    # Collect ONOS logs from the Karaf home."
+    echo "    > $(basename $0) -l"
+    echo ""
     echo "    # Collect compressed diagnostics for a cluster."
     echo "    # Karaf home is 'karaf'."
     echo "    # Collection archive will be named /tmp/onos-diags.tar.gz"
@@ -66,12 +70,14 @@ command -v kubectl >/dev/null 2>&1 || usage;
 [ -z "$DIAGS_PROFILE" ] && DIAGS_PROFILE=ONOS_PROFILE;
 
 # Scan arguments for user/password or other options...
-while getopts n:k:x?j?h o; do
+while getopts n:k:s:x?j?l?h o; do
     case "$o" in
         n) name=$OPTARG;;
         k) KARAF_HOME=$OPTARG;;
+        s) NAMESPACE=$OPTARG;;
         x) extract=true;;
         j) json=true;;
+        l) KARAF_LOG=true;;
         *) usage;;
     esac
 done
@@ -82,6 +88,8 @@ shift $OPC
 [ $# -lt 1 -a -z "$ONOS_PODS" ] && usage;
 
 [ -z "$KARAF_HOME" ] && usage;
+
+[ -z "$NAMESPACE" ] && usage;
 
 diags=/tmp/${name:-onos}-diags
 rm -fr $diags $diags.tar.gz; mkdir -p $diags
@@ -101,8 +109,12 @@ for node in $nodes; do
     if [ -z $json ]; then
         # Acquire locally obtained diagnostics via kubectl
         printf "logs "
-        kubectl cp $node:$KARAF_HOME/data/log .
-        kubectl exec -it $node -- bash -c "ls -l apps/*" > apps-dir.txt
+        if [ -z "$KARAF_LOG" ]; then
+          kubectl -n $NAMESPACE logs $node > karaf.log
+        else
+          kubectl -n $NAMESPACE cp $node:$KARAF_HOME/data/log .
+        fi
+        kubectl -n $NAMESPACE exec -it $node -- bash -c "ls -l apps/*" > apps-dir.txt
     fi
 
     # Acquire apps info through onos cli
@@ -112,7 +124,7 @@ for node in $nodes; do
         cmd="$(echo $cmd | sed 's/@/ /g')"
         cmdLog="$(echo $cmd | cut -d\  -f1 | sed 's/:/-/g').txt"
         printf "$cmdLog "
-        CMD="kubectl exec -it $node -- bash $KARAF_HOME/bin/client"
+        CMD="kubectl -n $NAMESPACE exec -it $node -- bash $KARAF_HOME/bin/client"
         $CMD "$cmd" 2>/dev/null | sed -n '1!p' >$cmdLog
     done
 
