@@ -37,13 +37,9 @@
     //protocols/netconf/api:onos-protocols-netconf-api
     //protocols/openflow/api:onos-protocols-openflow-api
     //protocols/openflow/ctl:onos-protocols-openflow-ctl
-    //protocols/ospf/api:onos-protocols-ospf-api
-    //protocols/ospf/protocol:onos-protocols-ospf-protocol
     //protocols/ovsdb/api:onos-protocols-ovsdb-api
     //protocols/ovsdb/ctl:onos-protocols-ovsdb-ctl
     //protocols/ovsdb/rfc:onos-protocols-ovsdb-rfc
-    //protocols/pcep/server/api:onos-protocols-pcep-server-api
-    //protocols/pcep/pcepio:onos-protocols-pcep-pcepio
     //protocols/rest/api:onos-protocols-rest-api
     //protocols/restconf/client/api:onos-protocols-restconf-client-api
     //protocols/snmp/api:onos-protocols-snmp-api
