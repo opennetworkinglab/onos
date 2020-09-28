@@ -3,7 +3,7 @@
 # Changes ONOS version in POM files, and other release artifacts.
 # -----------------------------------------------------------------------------
 
-set -e
+set -ex
 
 [ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
 . $ONOS_ROOT/tools/build/envDefaults

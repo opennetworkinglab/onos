@@ -82,7 +82,7 @@ public final class IntReportConfig extends Config<ApplicationId> {
      * This value is used to instruct an INT-capable device to produce reports
      * only for packets which hop latency changed by at least minFlowHopLatencyChangeNs
      * from the previously reported value for the same flow (5-tuple), i.e., produce a
-     * report only if `(currentHopLatency - previousHopLatency) > minFlowHopLatencyChangeNs`.
+     * report only if `(currentHopLatency - previousHopLatency) &gt; minFlowHopLatencyChangeNs`.
      * Some device implementations might support only specific intervals, e.g., powers of 2.
      *
      * @return Interval in nanoseconds

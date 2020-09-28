@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-JAVA_DOCS = "-link https://docs.oracle.com/javase/11/docs/api/"
+JAVA_DOCS = "-link https://docs.oracle.com/en/java/javase/11/docs/api/"
 
 def dump(obj):
     print(dir(obj))
