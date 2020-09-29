@@ -52,5 +52,11 @@
     //web/api:onos-rest
     //deps:com_google_protobuf_protobuf_java
     //deps:io_grpc_grpc_api_context
-    //deps:io_grpc_grpc_stub
+    //deps:io_grpc_grpc_auth
+    //deps:io_grpc_grpc_core_inprocess
+    //deps:io_grpc_grpc_core_internal
+    //deps:io_grpc_grpc_core_util
+    //deps:io_grpc_grpc_netty
     //deps:io_grpc_grpc_protobuf
+    //deps:io_grpc_grpc_protobuf_lite
+    //deps:io_grpc_grpc_stub
