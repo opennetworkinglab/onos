@@ -471,6 +471,9 @@ tables {
   action_refs {
     id: 16787606
   }
+  action_refs {
+    id: 16801146
+  }
   const_default_action_id: 16834935
   size: 2048
 }
@@ -918,30 +921,39 @@ actions {
 }
 actions {
   preamble {
-    id: 16829280
-    name: "FabricIngress.spgw_ingress.decap_inner_tcp"
-    alias: "decap_inner_tcp"
+    id: 16801146
+    name: "FabricIngress.spgw_ingress.load_dbuf_far_attributes"
+    alias: "load_dbuf_far_attributes"
   }
-}
-actions {
-  preamble {
-    id: 16815878
-    name: "FabricIngress.spgw_ingress.decap_inner_udp"
-    alias: "decap_inner_udp"
+  params {
+    id: 1
+    name: "drop"
+    bitwidth: 1
   }
-}
-actions {
-  preamble {
-    id: 16801274
-    name: "FabricIngress.spgw_ingress.decap_inner_icmp"
-    alias: "decap_inner_icmp"
+  params {
+    id: 2
+    name: "notify_cp"
+    bitwidth: 1
   }
-}
-actions {
-  preamble {
-    id: 16830582
-    name: "FabricIngress.spgw_ingress.decap_inner_unknown"
-    alias: "decap_inner_unknown"
+  params {
+    id: 3
+    name: "tunnel_src_port"
+    bitwidth: 16
+  }
+  params {
+    id: 4
+    name: "tunnel_src_addr"
+    bitwidth: 32
+  }
+  params {
+    id: 5
+    name: "tunnel_dst_addr"
+    bitwidth: 32
+  }
+  params {
+    id: 6
+    name: "teid"
+    bitwidth: 32
   }
 }
 actions {

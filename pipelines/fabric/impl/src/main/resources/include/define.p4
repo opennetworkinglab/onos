@@ -108,6 +108,7 @@ typedef bit<32> teid_t;
 const spgw_interface_t SPGW_IFACE_UNKNOWN = 8w0;
 const spgw_interface_t SPGW_IFACE_ACCESS = 8w1;
 const spgw_interface_t SPGW_IFACE_CORE = 8w2;
+const spgw_interface_t SPGW_IFACE_FROM_DBUF = 8w3;
 const direction_t SPGW_DIR_UNKNOWN = 2w0;
 const direction_t SPGW_DIR_UPLINK = 2w1;
 const direction_t SPGW_DIR_DOWNLINK = 2w2;

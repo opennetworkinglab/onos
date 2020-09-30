@@ -154,6 +154,7 @@ struct spgw_meta_t {
     _BOOL             notify_spgwc;
     _BOOL             needs_gtpu_encap;
     _BOOL             needs_gtpu_decap;
+    _BOOL             skip_egress_pdr_ctr;
 }
 #endif // WITH_SPGW
 

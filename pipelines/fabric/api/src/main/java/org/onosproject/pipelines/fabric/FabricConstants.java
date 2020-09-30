@@ -216,8 +216,6 @@ public final class FabricConstants {
     public static final PiCounterId FABRIC_INGRESS_FORWARDING_MPLS_COUNTER =
             PiCounterId.of("FabricIngress.forwarding.mpls_counter");
     // Action IDs
-    public static final PiActionId FABRIC_EGRESS_BNG_EGRESS_DOWNSTREAM_ENCAP_V4 =
-            PiActionId.of("FabricEgress.bng_egress.downstream.encap_v4");
     public static final PiActionId FABRIC_INGRESS_NEXT_SET_NEXT_ID_XCONNECT =
             PiActionId.of("FabricIngress.next.set_next_id_xconnect");
     public static final PiActionId FABRIC_INGRESS_FORWARDING_NOP_ROUTING_V4 =
@@ -266,14 +264,10 @@ public final class FabricConstants {
             PiActionId.of("FabricIngress.forwarding.set_next_id_routing_v6");
     public static final PiActionId FABRIC_INGRESS_NEXT_ROUTING_SIMPLE =
             PiActionId.of("FabricIngress.next.routing_simple");
-    public static final PiActionId FABRIC_INGRESS_SPGW_INGRESS_DECAP_INNER_TCP =
-            PiActionId.of("FabricIngress.spgw_ingress.decap_inner_tcp");
-    public static final PiActionId FABRIC_INGRESS_SPGW_INGRESS_DECAP_INNER_ICMP =
-            PiActionId.of("FabricIngress.spgw_ingress.decap_inner_icmp");
+    public static final PiActionId FABRIC_EGRESS_BNG_EGRESS_DOWNSTREAM_ENCAP_V4 =
+            PiActionId.of("FabricEgress.bng_egress.downstream.encap_v4");
     public static final PiActionId FABRIC_INGRESS_NEXT_OUTPUT_HASHED =
             PiActionId.of("FabricIngress.next.output_hashed");
-    public static final PiActionId FABRIC_INGRESS_SPGW_INGRESS_DECAP_INNER_UDP =
-            PiActionId.of("FabricIngress.spgw_ingress.decap_inner_udp");
     public static final PiActionId FABRIC_INGRESS_FORWARDING_POP_MPLS_AND_NEXT =
             PiActionId.of("FabricIngress.forwarding.pop_mpls_and_next");
     public static final PiActionId FABRIC_EGRESS_BNG_EGRESS_DOWNSTREAM_ENCAP_V6 =
@@ -294,13 +288,13 @@ public final class FabricConstants {
             PiActionId.of("FabricIngress.bng_ingress.upstream.term_enabled_v6");
     public static final PiActionId FABRIC_INGRESS_BNG_INGRESS_UPSTREAM_TERM_ENABLED_V4 =
             PiActionId.of("FabricIngress.bng_ingress.upstream.term_enabled_v4");
-    public static final PiActionId FABRIC_INGRESS_SPGW_INGRESS_DECAP_INNER_UNKNOWN =
-            PiActionId.of("FabricIngress.spgw_ingress.decap_inner_unknown");
     public static final PiActionId FABRIC_INGRESS_PROCESS_SET_SOURCE_SINK_INT_SET_SOURCE =
             PiActionId.of("FabricIngress.process_set_source_sink.int_set_source");
     public static final PiActionId NOP = PiActionId.of("nop");
     public static final PiActionId FABRIC_INGRESS_NEXT_OUTPUT_SIMPLE =
             PiActionId.of("FabricIngress.next.output_simple");
+    public static final PiActionId FABRIC_INGRESS_SPGW_INGRESS_LOAD_DBUF_FAR_ATTRIBUTES =
+            PiActionId.of("FabricIngress.spgw_ingress.load_dbuf_far_attributes");
     public static final PiActionId FABRIC_INGRESS_SPGW_INGRESS_SET_SOURCE_IFACE =
             PiActionId.of("FabricIngress.spgw_ingress.set_source_iface");
     public static final PiActionId FABRIC_INGRESS_FILTERING_DENY =
