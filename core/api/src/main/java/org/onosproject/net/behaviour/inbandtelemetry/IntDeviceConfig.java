@@ -170,12 +170,11 @@ public final class IntDeviceConfig {
      * An IntConfig object builder.
      */
     public static final class Builder {
-
-        private IpAddress collectorIp;
-        private TpPort collectorPort;
-        private MacAddress collectorNextHopMac;
-        private IpAddress sinkIp;
-        private MacAddress sinkMac;
+        private IpAddress collectorIp = IpAddress.valueOf(0);
+        private TpPort collectorPort = TpPort.tpPort(0);
+        private MacAddress collectorNextHopMac = MacAddress.valueOf(0);
+        private IpAddress sinkIp = IpAddress.valueOf(0);
+        private MacAddress sinkMac = MacAddress.valueOf(0);
         private TelemetrySpec spec = TelemetrySpec.INT;
         private boolean enabled = false;
         int minFlowHopLatencyChangeNs = 0;

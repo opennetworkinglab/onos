@@ -210,9 +210,20 @@ public class SimpleIntManager implements IntService {
 
         netcfgRegistry.registerConfigFactory(intAppConfigFactory);
         netcfgService.addListener(appConfigListener);
+        // Initialize the INT report
+        IntReportConfig reportConfig = netcfgService.getConfig(appId, IntReportConfig.class);
+        if (reportConfig != null) {
+            IntDeviceConfig intDeviceConfig = IntDeviceConfig.builder()
+                    .withMinFlowHopLatencyChangeNs(reportConfig.minFlowHopLatencyChangeNs())
+                    .withCollectorPort(reportConfig.collectorPort())
+                    .withCollectorIp(reportConfig.collectorIp())
+                    .enabled(true)
+                    .build();
+            setConfig(intDeviceConfig);
+        }
 
         startInt();
-        log.info("Started", appId.id());
+        log.info("Started");
     }
 
     @Deactivate
@@ -242,6 +253,8 @@ public class SimpleIntManager implements IntService {
         });
         // Clean up INT rules from existing devices.
         deviceService.getDevices().forEach(d -> cleanupDevice(d.id()));
+        netcfgService.removeListener(appConfigListener);
+        netcfgRegistry.unregisterConfigFactory(intAppConfigFactory);
         log.info("Deactivated");
     }
 
@@ -293,7 +306,11 @@ public class SimpleIntManager implements IntService {
     public void removeIntIntent(IntIntentId intentId) {
         checkNotNull(intentId);
         // Intent map event will trigger device configure.
-        intentMap.remove(intentId).value();
+        if (!intentMap.containsKey(intentId)) {
+            log.warn("INT intent {} does not exists, skip removing the intent.", intentId);
+            return;
+        }
+        intentMap.remove(intentId);
     }
 
     @Override
