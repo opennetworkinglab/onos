@@ -28,10 +28,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 // constants
 const intIntentAddReq = 'intIntentAddRequest';
 const intIntentDelReq = 'intIntentDelRequest';
-const intConfigAddReq = 'intConfigAddRequest';
-const regColIp = '^([0-9]{1,3}\\.){3}[0-9]{1,3}$';
-const regColPort = '^[0-9]{0,5}$';
-const regSendIp = '^([0-9]{1,3}\\.){3}[0-9]{1,3}(/[0-9]{1,2})?$'
+const regSendIp = '^([0-9]{1,3}\\.){3}[0-9]{1,3}(\\/[0-9]{1,2})?$'
 const regSendPort ='^[0-9]{0,5}$'
 
 export interface Metadata {
@@ -86,10 +83,6 @@ export class IntAppComponent extends TableBaseImpl implements OnInit, OnDestroy 
             l4DstPort: new FormControl(null, [ Validators.pattern(regSendPort)]),
             protocol: new FormControl(),
         });
-        this.formConf = this.fb.group({
-            colIp: new FormControl(null, [Validators.required, Validators.pattern(regColIp)]),
-            colPort: new FormControl( null, [Validators.required, Validators.pattern(regColPort)])
-        });
         this.log.debug('IntAppComponent initialized');
     }
 
@@ -115,17 +108,6 @@ export class IntAppComponent extends TableBaseImpl implements OnInit, OnDestroy 
             const index = meta.controls.findIndex(x => x.value === name);
             meta.removeAt(index);
         }
-    }
-
-    sendIntConfigString() {
-        if (this.formConf.invalid) {
-            return;
-        }
-        let configObjectNode = {
-            "collectorIp": this.formConf.value.colIp,
-            "collectorPort": this.formConf.value.colPort
-        };
-        this.wss.sendEvent(intConfigAddReq, configObjectNode);
     }
 
     sendIntIntentString() {
