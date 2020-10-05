@@ -77,6 +77,7 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_TUNNEL_
 import static org.onosproject.openstacknetworking.api.Constants.STAT_FLAT_OUTBOUND_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.VTAG_TABLE;
 import static org.onosproject.openstacknetworking.api.InstancePortEvent.Type.OPENSTACK_INSTANCE_MIGRATION_STARTED;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.deriveResourceName;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValue;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.structurePortName;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.swapStaleLocation;
@@ -549,7 +550,7 @@ public class OpenstackSwitchingHandler {
         if (osNet == null || Strings.isNullOrEmpty(osNet.getProviderSegID())) {
             final String error =
                     String.format(ERR_SET_FLOWS_VNI,
-                        instPort, osNet == null ? STR_NONE : osNet.getName());
+                        instPort, osNet == null ? STR_NONE : deriveResourceName(osNet));
             throw new IllegalStateException(error);
         }
 
@@ -567,7 +568,7 @@ public class OpenstackSwitchingHandler {
         if (osNet == null || Strings.isNullOrEmpty(osNet.getProviderSegID())) {
             final String error =
                     String.format(ERR_SET_FLOWS_VNI,
-                        instPort, osNet == null ? STR_NONE : osNet.getName());
+                        instPort, osNet == null ? STR_NONE : deriveResourceName(osNet));
             throw new IllegalStateException(error);
         }
         return Long.valueOf(osNet.getProviderSegID());

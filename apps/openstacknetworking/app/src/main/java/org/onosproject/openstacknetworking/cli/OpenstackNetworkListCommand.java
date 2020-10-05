@@ -30,6 +30,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.deriveResourceName;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.modelEntityToJson;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.prettyJson;
 
@@ -47,7 +48,7 @@ public class OpenstackNetworkListCommand extends AbstractShellCommand {
     protected void doExecute() {
         OpenstackNetworkService service = get(OpenstackNetworkService.class);
         List<Network> networks = Lists.newArrayList(service.networks());
-        networks.sort(Comparator.comparing(Network::getName));
+        networks.sort(Comparator.comparing(Network::getId));
 
         if (outputJson()) {
             print("%s", json(networks));
@@ -69,7 +70,7 @@ public class OpenstackNetworkListCommand extends AbstractShellCommand {
                 });
 
                 print(FORMAT, net.getId(),
-                        net.getName(),
+                        deriveResourceName(net),
                         service.networkType(net.getId()).toString(),
                         net.getProviderSegID(),
                         subnets.isEmpty() ? "" : subnetsString,

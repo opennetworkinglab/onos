@@ -83,6 +83,7 @@ import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.GRE;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.LOCAL;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.VLAN;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.VXLAN;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.deriveResourceName;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getIntfNameFromPciAddress;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.vnicType;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.GATEWAY;
@@ -211,7 +212,7 @@ public class OpenstackNetworkManager
             return finalAugmentedNetwork;
         });
 
-        log.info(String.format(MSG_NETWORK, osNet.getName(), MSG_CREATED));
+        log.info(String.format(MSG_NETWORK, deriveResourceName(osNet), MSG_CREATED));
     }
 
     @Override
@@ -241,7 +242,7 @@ public class OpenstackNetworkManager
             }
             Network osNet = osNetworkStore.removeNetwork(netId);
             if (osNet != null) {
-                log.info(String.format(MSG_NETWORK, osNet.getName(), MSG_REMOVED));
+                log.info(String.format(MSG_NETWORK, deriveResourceName(osNet), MSG_REMOVED));
             }
 
             Versioned<OpenstackNetwork> augmentedNetwork = augmentedNetworkMap.remove(netId);
@@ -751,7 +752,7 @@ public class OpenstackNetworkManager
                 .filter(port -> Objects.equals(port.getDeviceId(), router.getId()))
                 .findAny().orElse(null);
         if (exGatewayPort == null) {
-            log.warn("no external gateway port for router({})", router.getName());
+            log.warn("no external gateway port for router({})", deriveResourceName(router));
             return null;
         }
 
