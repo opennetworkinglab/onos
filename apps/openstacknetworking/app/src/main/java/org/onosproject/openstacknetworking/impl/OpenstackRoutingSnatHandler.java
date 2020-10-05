@@ -114,6 +114,7 @@ import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_STATEFU
 import static org.onosproject.openstacknetworking.api.Constants.ROUTING_TABLE;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.FLAT;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.VLAN;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.deriveResourceName;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.externalGatewayIpSnatEnabled;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.externalPeerRouterFromSubnet;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValueAsBoolean;
@@ -1341,8 +1342,7 @@ public class OpenstackRoutingSnatHandler {
             }
 
             log.debug("Router(name:{}, ID:{}) is created",
-                    event.subject().getName(),
-                    event.subject().getId());
+                    deriveResourceName(event.subject()), event.subject().getId());
 
             routerUpdated(event.subject());
         }
@@ -1353,8 +1353,7 @@ public class OpenstackRoutingSnatHandler {
             }
 
             log.debug("Router(name:{}, ID:{}) is updated",
-                    event.subject().getName(),
-                    event.subject().getId());
+                    deriveResourceName(event.subject()), event.subject().getId());
 
             routerUpdated(event.subject());
         }

@@ -85,6 +85,7 @@ import org.openstack4j.api.types.Facing;
 import org.openstack4j.core.transport.Config;
 import org.openstack4j.core.transport.ObjectMapperSingleton;
 import org.openstack4j.model.ModelEntity;
+import org.openstack4j.model.common.BasicResource;
 import org.openstack4j.model.common.Identifier;
 import org.openstack4j.model.network.ExternalGateway;
 import org.openstack4j.model.network.IP;
@@ -172,6 +173,9 @@ public final class OpenstackNetworkingUtil {
     private static final String ZERO_FUNCTION_NUMBER = "0";
     private static final String PREFIX_DEVICE_NUMBER = "s";
     private static final String PREFIX_FUNCTION_NUMBER = "f";
+
+    private static final String PARENTHESES_START = "(";
+    private static final String PARENTHESES_END = ")";
 
     // keystone endpoint related variables
     private static final String DOMAIN_DEFAULT = "default";
@@ -530,7 +534,7 @@ public final class OpenstackNetworkingUtil {
      * @param osSg  openstack security group
      */
     public static void printSecurityGroup(SecurityGroup osSg) {
-        print(SECURITY_GROUP_FORMAT, osSg.getId(), osSg.getName());
+        print(SECURITY_GROUP_FORMAT, osSg.getId(), deriveResourceName(osSg));
     }
 
     /**
@@ -541,7 +545,7 @@ public final class OpenstackNetworkingUtil {
     public static void printNetwork(Network osNet) {
         final String strNet = String.format(NETWORK_FORMAT,
                 osNet.getId(),
-                osNet.getName(),
+                deriveResourceName(osNet),
                 osNet.getProviderSegID(),
                 osNet.getSubnets());
         print(strNet);
@@ -556,7 +560,7 @@ public final class OpenstackNetworkingUtil {
     public static void printSubnet(Subnet osSubnet,
                                    OpenstackNetworkService osNetService) {
         final Network network = osNetService.network(osSubnet.getNetworkId());
-        final String netName = network == null ? NOT_AVAILABLE : network.getName();
+        final String netName = network == null ? NOT_AVAILABLE : deriveResourceName(network);
         final String strSubnet = String.format(SUBNET_FORMAT,
                 osSubnet.getId(),
                 netName,
@@ -576,7 +580,7 @@ public final class OpenstackNetworkingUtil {
                 .map(IP::getIpAddress)
                 .collect(Collectors.toList());
         final Network network = osNetService.network(osPort.getNetworkId());
-        final String netName = network == null ? NOT_AVAILABLE : network.getName();
+        final String netName = network == null ? NOT_AVAILABLE : deriveResourceName(network);
         final String strPort = String.format(PORT_FORMAT,
                 osPort.getId(),
                 netName,
@@ -609,7 +613,7 @@ public final class OpenstackNetworkingUtil {
 
         final String strRouter = String.format(ROUTER_FORMAT,
                 osRouter.getId(),
-                osRouter.getName(),
+                deriveResourceName(osRouter),
                 externals.isEmpty() ? "" : externals,
                 internals.isEmpty() ? "" : internals);
         print(strRouter);
@@ -1163,8 +1167,7 @@ public final class OpenstackNetworkingUtil {
         }
         if (osRouter.getExternalGatewayInfo() == null) {
             // this router does not have external connectivity
-            log.trace("router({}) has no external gateway",
-                    osRouter.getName());
+            log.trace("router({}) has no external gateway", deriveResourceName(osRouter));
             return null;
         }
 
@@ -1502,6 +1505,20 @@ public final class OpenstackNetworkingUtil {
      */
     public static String getDhcpFullBootFileName(NeutronPort port) {
         return getDhcpOptionValue(port, "tag:ipxe,67");
+    }
+
+    /**
+     * Returns a valid resource name.
+     *
+     * @param resource openstack basic resource object
+     * @return a valid resource name
+     */
+    public static String deriveResourceName(BasicResource resource) {
+        if (Strings.isNullOrEmpty(resource.getName())) {
+            return PARENTHESES_START + resource.getId() + PARENTHESES_END;
+        } else {
+            return resource.getName();
+        }
     }
 
     private static String getDhcpOptionValue(NeutronPort port, String optionNameStr) {

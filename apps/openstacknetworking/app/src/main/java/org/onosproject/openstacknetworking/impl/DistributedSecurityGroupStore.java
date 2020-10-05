@@ -118,7 +118,7 @@ public class DistributedSecurityGroupStore
     @Override
     public void createSecurityGroup(SecurityGroup sg) {
         osSecurityGroupStore.compute(sg.getId(), (id, existing) -> {
-            final String error = sg.getName() + ERR_DUPLICATE;
+            final String error = sg.getId() + ERR_DUPLICATE;
             checkArgument(existing == null, error);
             return sg;
         });
@@ -127,7 +127,7 @@ public class DistributedSecurityGroupStore
     @Override
     public void updateSecurityGroup(SecurityGroup sg) {
         osSecurityGroupStore.compute(sg.getId(), (id, existing) -> {
-            final String error = sg.getName() + ERR_NOT_FOUND;
+            final String error = sg.getId() + ERR_NOT_FOUND;
             checkArgument(existing != null, error);
             return sg;
         });

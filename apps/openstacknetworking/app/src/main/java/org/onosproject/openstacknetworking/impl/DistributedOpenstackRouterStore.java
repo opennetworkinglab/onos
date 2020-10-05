@@ -163,7 +163,7 @@ public class DistributedOpenstackRouterStore
     @Override
     public void createRouter(Router osRouter) {
         osRouterStore.compute(osRouter.getId(), (id, existing) -> {
-            final String error = osRouter.getName() + ERR_DUPLICATE;
+            final String error = osRouter.getId() + ERR_DUPLICATE;
             checkArgument(existing == null, error);
             return osRouter;
         });
@@ -172,7 +172,7 @@ public class DistributedOpenstackRouterStore
     @Override
     public void updateRouter(Router osRouter) {
         osRouterStore.compute(osRouter.getId(), (id, existing) -> {
-            final String error = osRouter.getName() + ERR_NOT_FOUND;
+            final String error = osRouter.getId() + ERR_NOT_FOUND;
             checkArgument(existing != null, error);
             return osRouter;
         });

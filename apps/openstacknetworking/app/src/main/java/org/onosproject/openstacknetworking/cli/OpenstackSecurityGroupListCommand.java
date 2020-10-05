@@ -28,7 +28,7 @@ import org.openstack4j.openstack.networking.domain.NeutronSecurityGroup;
 import java.util.Comparator;
 import java.util.List;
 
-import static org.onosproject.cli.AbstractShellCommand.get;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.deriveResourceName;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.modelEntityToJson;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.prettyJson;
 
@@ -57,7 +57,7 @@ public class OpenstackSecurityGroupListCommand extends AbstractShellCommand {
             print("Hint: use --json option to see security group rules as well\n");
             print(FORMAT, "ID", "Name");
             for (SecurityGroup sg: service.securityGroups()) {
-                print(FORMAT, sg.getId(), sg.getName());
+                print(FORMAT, sg.getId(), deriveResourceName(sg));
             }
         }
     }

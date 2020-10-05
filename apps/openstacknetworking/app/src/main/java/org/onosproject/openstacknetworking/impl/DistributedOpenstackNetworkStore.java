@@ -206,7 +206,7 @@ public class DistributedOpenstackNetworkStore
     @Override
     public void createNetwork(Network osNet) {
         osNetworkStore.compute(osNet.getId(), (id, existing) -> {
-            final String error = osNet.getName() + ERR_DUPLICATE;
+            final String error = osNet.getId() + ERR_DUPLICATE;
             checkArgument(existing == null, error);
             return osNet;
         });
@@ -215,7 +215,7 @@ public class DistributedOpenstackNetworkStore
     @Override
     public void updateNetwork(Network osNet) {
         osNetworkStore.compute(osNet.getId(), (id, existing) -> {
-            final String error = osNet.getName() + ERR_NOT_FOUND;
+            final String error = osNet.getId() + ERR_NOT_FOUND;
             checkArgument(existing != null, error);
             return osNet;
         });

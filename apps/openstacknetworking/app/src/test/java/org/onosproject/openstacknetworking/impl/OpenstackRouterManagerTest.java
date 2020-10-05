@@ -187,18 +187,6 @@ public class OpenstackRouterManagerTest {
     }
 
     /**
-     * Tests if updating a router with null name fails with an exception.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void testCreateRouterWithNullName() {
-        final Router testRouter = NeutronRouter.builder()
-                .id(ROUTER_ID)
-                .name(null)
-                .build();
-        target.createRouter(testRouter);
-    }
-
-    /**
      * Tests if creating a duplicate router fails with an exception.
      */
     @Test(expected = IllegalArgumentException.class)
