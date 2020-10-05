@@ -18,118 +18,97 @@
         <h2 style="font-weight: bold">In-band Network Telemetry (INT) Control
             Application</h2>
     </div>
-
     <hr>
-
     <div class="tabular-header">
         <h2>
-            INT Collector Configuration
+            INT Watchlist Rules
         </h2>
-        <div class="config-panel">
-            <h3>
-                Collector IPv4 address and UDP port
-            </h3>
-            <form [formGroup]="formConf" (ngSubmit)="sendIntConfigString()">
-                <input type="text" placeholder="IPv4 address" [ngClass]="{ 'is-invalid': formConf.controls.colIp.errors }"
-                       class="form-control" formControlName="colIp">
-                :
-                <input type="text" placeholder="port" class="form-control" [ngClass]="{ 'is-invalid': formConf.controls.colPort.errors }" formControlName="colPort">
-                <div *ngIf="formConf.controls.colIp.errors" class="invalid-feedback">
-                    <div class="error-text" *ngIf="formConf.controls.colIp.errors.required"> Control IP is required</div>
-                    <div class="error-text" *ngIf="formConf.controls.colIp.errors.pattern">Control IP must be a valid IP address</div>
+        <div>
+            <form [formGroup]="formSend" (ngSubmit)="sendIntIntentString()">
+                <div class="input-panel">
+                    <h3>
+                        Create New Watchlist Rule
+                    </h3>
+                    <div>
+                        <label>
+                            <input type="text" placeholder="Source IP prefix"
+                                   [ngClass]="{ 'is-invalid': formSend.controls.ip4SrcPrefix.errors }"
+                                   class="form-control" formControlName="ip4SrcPrefix">
+
+                        </label>
+                        <label>
+                            <input type="text" placeholder="Dest IP prefix"
+                                   [ngClass]="{ 'is-invalid': formSend.controls.ip4DstPrefix.errors }"
+                                   class="form-control" formControlName="ip4DstPrefix">
+                        </label>
+                        <label>
+                            <input type="text" placeholder="Source port"
+                                   [ngClass]="{ 'is-invalid': formSend.controls.l4SrcPort.errors }"
+                                   class="form-control" formControlName="l4SrcPort">
+                        </label>
+                        <label>
+                            <input type="text" placeholder="Destination port"
+                                   [ngClass]="{ 'is-invalid': formSend.controls.l4DstPort.errors }"
+                                   class="form-control" formControlName="l4DstPort">
+                        </label>
+                        <label>
+                            Protocol
+                            <select name="protocol" formControlName="protocol">
+                                <option selected disabled hidden
+                                        style="display: none" value=''></option>
+                                <option value="TCP">TCP</option>
+                                <option value="UDP">UDP</option>
+                            </select>
+                        </label>
+                        <div *ngIf="formSend.controls.ip4DstPrefix.errors" class="invalid-feedback">
+                            <div class="error-text" *ngIf="formSend.controls.ip4DstPrefix.errors.required"> Destination
+                                IP is required
+                            </div>
+                            <div class="error-text" *ngIf="formSend.controls.ip4DstPrefix.errors.pattern">Destination IP
+                                must be a valid IP address
+                            </div>
+                        </div>
+                        <div *ngIf="formSend.controls.ip4SrcPrefix.errors" class="invalid-feedback">
+                            <div class="error-text" *ngIf="formSend.controls.ip4SrcPrefix.errors.required">Source IP is
+                                required
+                            </div>
+                            <div class="error-text" *ngIf="formSend.controls.ip4SrcPrefix.errors.pattern">Source IP must
+                                be a valid IP address
+                            </div>
+                        </div>
+                        <div *ngIf="formSend.controls.l4DstPort.errors" class="invalid-feedback">
+                            <div class="error-text" *ngIf="formSend.controls.l4DstPort.errors.pattern">Destination Port
+                                must be a valid Port
+                            </div>
+                        </div>
+                        <div *ngIf="formSend.controls.l4SrcPort.errors" class="invalid-feedback">
+                            <div class="error-text" *ngIf="formSend.controls.l4SrcPort.errors.pattern">Source Port must
+                                be a valid Port
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="myrow">
+                            <div *ngFor="let data of metaData">
+                                <div class="mygrid">
+                                    <label>
+                                        <input type="checkbox"
+                                               (change)="onCheckboxChange(data.value, $event.target.checked)"/>
+                                        {{ data.name }}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div *ngIf="formConf.controls.colPort.errors" class="invalid-feedback">
-                    <div class="error-text" *ngIf="formConf.controls.colPort.errors.required">Port is required</div>
-                    <div class="error-text" *ngIf="formConf.controls.colPort.errors.pattern">Port must be a valid Port number</div>
-                </div>
-                <div class="config-button-panel">
+                <div class="button-panel">
                     <button class="int-app-button">
-                        Apply Configuration
+                        Apply Watchlist Rule
                     </button>
                 </div>
             </form>
         </div>
     </div>
-    <div class="tabular-header">
-        <h2 style="font-weight: bold">In-band Network Telemetry (INT) Control
-            Application</h2>
-    </div>
-
-    <hr>
-                <div class="tabular-header">
-                    <h2>
-                        INT Watchlist Rules
-                    </h2>
-                    <div>
-                        <form [formGroup]="formSend" (ngSubmit)="sendIntIntentString()">
-                        <div class="input-panel">
-                            <h3>
-                                Create New Watchlist Rule
-                            </h3>
-                            <div>
-                                <label>
-                                <input type="text" placeholder="Source IP address" [ngClass]="{ 'is-invalid': formSend.controls.ip4SrcPrefix.errors }"
-                                       class="form-control" formControlName="ip4SrcPrefix">
-
-                                </label>
-                                <label>
-                                    <input type="text" placeholder="Dest IP address" [ngClass]="{ 'is-invalid': formSend.controls.ip4DstPrefix.errors }"
-                                           class="form-control" formControlName="ip4DstPrefix">
-                                </label>
-                                <label>
-                                    <input type="text" placeholder="Source port" [ngClass]="{ 'is-invalid': formSend.controls.l4SrcPort.errors }"
-                                               class="form-control" formControlName="l4SrcPort">
-                                </label>
-                                <label>
-                                    <input type="text" placeholder="Dest port" [ngClass]="{ 'is-invalid': formSend.controls.l4DstPort.errors }"
-                                           class="form-control" formControlName="l4DstPort">
-                                </label>
-                                <label>
-                                    Protocol
-                                    <select name="protocol" formControlName="protocol">
-                                        <option selected disabled hidden
-                                                style="display: none" value=''></option>
-                                        <option value="TCP">TCP</option>
-                                        <option value="UDP">UDP</option>
-                                    </select>
-                                </label>
-                                <div *ngIf="formSend.controls.ip4DstPrefix.errors" class="invalid-feedback">
-                                    <div class="error-text" *ngIf="formSend.controls.ip4DstPrefix.errors.required"> Destination IP is required</div>
-                                    <div class="error-text" *ngIf="formSend.controls.ip4DstPrefix.errors.pattern">Destination IP must be a valid IP address</div>
-                                </div>
-                                <div *ngIf="formSend.controls.ip4SrcPrefix.errors" class="invalid-feedback">
-                                    <div class="error-text" *ngIf="formSend.controls.ip4SrcPrefix.errors.required">Source IP is required</div>
-                                    <div class="error-text" *ngIf="formSend.controls.ip4SrcPrefix.errors.pattern">Source IP must be a valid IP address</div>
-                                </div>
-                                <div *ngIf="formSend.controls.l4DstPort.errors" class="invalid-feedback">
-                                    <div class="error-text" *ngIf="formSend.controls.l4DstPort.errors.pattern">Destination Port must be a valid Port</div>
-                                </div>
-                                <div *ngIf="formSend.controls.l4SrcPort.errors" class="invalid-feedback">
-                                    <div class="error-text" *ngIf="formSend.controls.l4SrcPort.errors.pattern">Source Port must be a valid Port</div>
-                                </div>
-                            </div>
-                            <div>
-                                    <div class="myrow">
-                                        <div *ngFor="let data of metaData">
-                                            <div class="mygrid">
-                                                <label>
-                                                    <input type="checkbox"
-                                                           (change)="onCheckboxChange(data.value, $event.target.checked)"/>
-                                                    {{ data.name }}
-                                                </label>
-                                            </div>
-                                        </div>
-                                    </div>
-                            </div>
-                        </div>
-                        <div class="button-panel">
-                            <button class="int-app-button">
-                                Apply Watchlist Rule
-                            </button>
-                        </div>
-                        </form>
-                    </div>
-                </div>
 
     <!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
     <div class='int-app-main-intents'>

@@ -3,15 +3,17 @@
 #ov-int-app-main {
     padding: 20px;
 }
+
 .light #ov-int-app-main {
     color: navy;
 }
+
 .dark #ov-int-app-main {
     color: #88f;
 }
 
 #ov-int-app-main .button-panel {
-    margin: 10px;
+    margin-top: 15px;
     width: 200px;
 }
 
@@ -29,11 +31,11 @@
     text-align: center;
 }
 
-
 .light #ov-int-app-main .int-app-button {
     color: white;
     background-color: #99d;
 }
+
 .dark #ov-int-app-main .int-app-button {
     color: black;
     background-color: #aaa;
@@ -67,10 +69,16 @@
     color: white;
     background-color: #99d;
 }
+
 .dark #ov-int-app-main .int-app-config-button {
     color: black;
     background-color: #aaa;
 }
+
+#ov-int-app-main .tabular-header {
+    padding-left: 10px;
+}
+
 /*---------------------------------------------------------------------------*/
 #ov-int-app-main hr {
     border: 0;
@@ -92,6 +100,7 @@
     display: inline-block;
     margin-bottom: 10px;
 }
+
 /* #ov-int-app-main .table-body{
     display: inline-block;
     overflow-y: scroll;
@@ -107,6 +116,7 @@
 .light #ov-int-app-main-item-details-panel.floatpanel {
     background-color: rgb(229, 234, 237);
 }
+
 .dark #ov-int-app-main-item-details-panel.floatpanel {
     background-color: #3A4042;
 }
@@ -123,7 +133,12 @@
 #ov-int-app-main-item-details-panel td {
     padding: 5px;
 }
+
 #ov-int-app-main-item-details-panel td.label {
     font-style: italic;
     opacity: 0.8;
+}
+
+#ov-int-app-main p .int-intent-add-msg {
+    color: red;
 }

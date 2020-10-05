@@ -111,7 +111,6 @@ public final class IntObjective {
          */
         public IntObjective build() {
             checkArgument(!selector.criteria().isEmpty(), "Empty selector cannot match any flow.");
-            checkArgument(!metadataTypes.isEmpty(), "Metadata types cannot be empty");
 
             return new IntObjective(selector, metadataTypes);
         }
