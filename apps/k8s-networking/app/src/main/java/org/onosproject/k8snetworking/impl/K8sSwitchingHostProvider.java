@@ -26,6 +26,7 @@ import org.onosproject.k8snetworking.api.K8sNetworkAdminService;
 import org.onosproject.k8snetworking.api.K8sNetworkEvent;
 import org.onosproject.k8snetworking.api.K8sNetworkListener;
 import org.onosproject.k8snetworking.api.K8sPort;
+import org.onosproject.k8snode.api.K8sHostService;
 import org.onosproject.k8snode.api.K8sNode;
 import org.onosproject.k8snode.api.K8sNodeEvent;
 import org.onosproject.k8snode.api.K8sNodeListener;
@@ -34,6 +35,7 @@ import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultAnnotations;
 import org.onosproject.net.Device;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.Host;
 import org.onosproject.net.HostId;
 import org.onosproject.net.HostLocation;
@@ -71,6 +73,7 @@ import static org.onosproject.k8snetworking.api.Constants.GENEVE;
 import static org.onosproject.k8snetworking.api.Constants.GRE;
 import static org.onosproject.k8snetworking.api.Constants.K8S_NETWORKING_APP_ID;
 import static org.onosproject.k8snetworking.api.Constants.VXLAN;
+import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.allK8sDevices;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.existingContainerPortByMac;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.existingContainerPortByName;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.isContainer;
@@ -109,6 +112,9 @@ public class K8sSwitchingHostProvider extends AbstractProvider implements HostPr
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected K8sNodeService k8sNodeService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected K8sHostService k8sHostService;
 
     private HostProviderService hostProviderService;
 
@@ -330,8 +336,10 @@ public class K8sSwitchingHostProvider extends AbstractProvider implements HostPr
             }
 
             String portName = port.annotations().value(PORT_NAME);
+            DeviceId deviceId = event.subject().id();
 
-            return !Strings.isNullOrEmpty(portName) && isContainer(portName);
+            return !Strings.isNullOrEmpty(portName) && isContainer(portName) &&
+                    allK8sDevices(k8sNodeService, k8sHostService).contains(deviceId);
         }
 
         private boolean isRelevantHelper(DeviceEvent event) {
