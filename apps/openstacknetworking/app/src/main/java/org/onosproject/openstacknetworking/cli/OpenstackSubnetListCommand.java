@@ -29,6 +29,7 @@ import org.openstack4j.openstack.networking.domain.NeutronSubnet;
 import java.util.Comparator;
 import java.util.List;
 
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.deriveResourceName;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.modelEntityToJson;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.prettyJson;
 
@@ -46,7 +47,7 @@ public class OpenstackSubnetListCommand extends AbstractShellCommand {
     protected void doExecute() {
         OpenstackNetworkService service = get(OpenstackNetworkService.class);
         List<Subnet> subnets = Lists.newArrayList(service.subnets());
-        subnets.sort(Comparator.comparing(Subnet::getName));
+        subnets.sort(Comparator.comparing(Subnet::getId));
 
         if (outputJson()) {
             print("%s", json(subnets));
@@ -56,10 +57,10 @@ public class OpenstackSubnetListCommand extends AbstractShellCommand {
 
             for (Subnet subnet: subnets) {
                 Network osNet = service.network(subnet.getNetworkId());
-                String netName = osNet == null ? "N/A" : osNet.getName();
+                String netName = osNet == null ? "N/A" : deriveResourceName(osNet);
                 print(FORMAT,
                         subnet.getId(),
-                        subnet.getName(),
+                        deriveResourceName(subnet),
                         subnet.getCidr(),
                         subnet.getGateway(),
                         subnet.getNetworkId(),

@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.deriveResourceName;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -110,17 +111,15 @@ public class OpenstackRouterManager
     public void createRouter(Router osRouter) {
         checkNotNull(osRouter, ERR_NULL_ROUTER);
         checkArgument(!Strings.isNullOrEmpty(osRouter.getId()), ERR_NULL_ROUTER_ID);
-        checkArgument(!Strings.isNullOrEmpty(osRouter.getName()), ERR_NULL_ROUTER_NAME);
 
         osRouterStore.createRouter(osRouter);
-        log.info(String.format(MSG_ROUTER, osRouter.getName(), MSG_CREATED));
+        log.info(String.format(MSG_ROUTER, deriveResourceName(osRouter), MSG_CREATED));
     }
 
     @Override
     public void updateRouter(Router osRouter) {
         checkNotNull(osRouter, ERR_NULL_ROUTER);
         checkArgument(!Strings.isNullOrEmpty(osRouter.getId()), ERR_NULL_ROUTER_ID);
-        checkArgument(!Strings.isNullOrEmpty(osRouter.getName()), ERR_NULL_ROUTER_NAME);
 
         osRouterStore.updateRouter(osRouter);
         log.info(String.format(MSG_ROUTER, osRouter.getId(), MSG_UPDATED));
@@ -136,7 +135,7 @@ public class OpenstackRouterManager
             }
             Router osRouter = osRouterStore.removeRouter(routerId);
             if (osRouter != null) {
-                log.info(String.format(MSG_ROUTER, osRouter.getName(), MSG_REMOVED));
+                log.info(String.format(MSG_ROUTER, deriveResourceName(osRouter), MSG_REMOVED));
             }
         }
     }
