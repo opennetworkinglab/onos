@@ -29,12 +29,14 @@ public class DefaultK8sExternalNetwork implements K8sExternalNetwork {
     private final IpAddress extBridgeIp;
     private final IpAddress extGatewayIp;
     private final MacAddress extGatewayMac;
+    private final String extIntf;
 
     protected DefaultK8sExternalNetwork(IpAddress extBridgeIp, IpAddress extGatewayIp,
-                                        MacAddress extGatewayMac) {
+                                        MacAddress extGatewayMac, String extIntf) {
         this.extBridgeIp = extBridgeIp;
         this.extGatewayIp = extGatewayIp;
         this.extGatewayMac = extGatewayMac;
+        this.extIntf = extIntf;
     }
 
     @Override
@@ -50,6 +52,11 @@ public class DefaultK8sExternalNetwork implements K8sExternalNetwork {
     @Override
     public MacAddress extGatewayMac() {
         return extGatewayMac;
+    }
+
+    @Override
+    public String extIntf() {
+        return extIntf;
     }
 
     /**
@@ -71,12 +78,13 @@ public class DefaultK8sExternalNetwork implements K8sExternalNetwork {
         }
         DefaultK8sExternalNetwork that = (DefaultK8sExternalNetwork) o;
         return extBridgeIp.equals(that.extBridgeIp) &&
-                extGatewayIp.equals(that.extGatewayIp);
+                extGatewayIp.equals(that.extGatewayIp) &&
+                extIntf.equals(that.extIntf);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(extBridgeIp, extGatewayIp, extGatewayMac);
+        return Objects.hash(extBridgeIp, extGatewayIp, extGatewayMac, extIntf);
     }
 
     @Override
@@ -85,6 +93,7 @@ public class DefaultK8sExternalNetwork implements K8sExternalNetwork {
                 .add("extBridgeIp", extBridgeIp)
                 .add("extGatewayIp", extGatewayIp)
                 .add("extGatewayMac", extGatewayMac)
+                .add("extIntf", extIntf)
                 .toString();
     }
 
@@ -93,6 +102,7 @@ public class DefaultK8sExternalNetwork implements K8sExternalNetwork {
         private IpAddress extBridgeIp;
         private IpAddress extGatewayIp;
         private MacAddress extGatewayMac;
+        private String extIntf;
 
         // private constructor not intended to use from external
         private Builder() {
@@ -100,7 +110,7 @@ public class DefaultK8sExternalNetwork implements K8sExternalNetwork {
 
         @Override
         public K8sExternalNetwork build() {
-            return new DefaultK8sExternalNetwork(extBridgeIp, extGatewayIp, extGatewayMac);
+            return new DefaultK8sExternalNetwork(extBridgeIp, extGatewayIp, extGatewayMac, extIntf);
         }
 
         @Override
@@ -118,6 +128,12 @@ public class DefaultK8sExternalNetwork implements K8sExternalNetwork {
         @Override
         public Builder extGatewayMac(MacAddress extGatewayMac) {
             this.extGatewayMac = extGatewayMac;
+            return this;
+        }
+
+        @Override
+        public Builder extIntf(String extIntf) {
+            this.extIntf = extIntf;
             return this;
         }
     }

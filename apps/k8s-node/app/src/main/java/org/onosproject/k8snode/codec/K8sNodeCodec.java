@@ -48,6 +48,7 @@ public final class K8sNodeCodec extends JsonCodec<K8sNode> {
     private static final String SEGMENT_ID = "segmentId";
     private static final String MANAGEMENT_IP = "managementIp";
     private static final String DATA_IP = "dataIp";
+    private static final String NODE_IP = "nodeIp";
     private static final String INTEGRATION_BRIDGE = "integrationBridge";
     private static final String EXTERNAL_BRIDGE = "externalBridge";
     private static final String LOCAL_BRIDGE = "localBridge";
@@ -71,7 +72,8 @@ public final class K8sNodeCodec extends JsonCodec<K8sNode> {
                 .put(MODE, node.mode().name())
                 .put(SEGMENT_ID, node.segmentId())
                 .put(STATE, node.state().name())
-                .put(MANAGEMENT_IP, node.managementIp().toString());
+                .put(MANAGEMENT_IP, node.managementIp().toString())
+                .put(NODE_IP, node.nodeIp().toString());
 
         if (node.intgBridge() != null) {
             result.put(INTEGRATION_BRIDGE, node.intgBridge().toString());
@@ -130,13 +132,16 @@ public final class K8sNodeCodec extends JsonCodec<K8sNode> {
                 TYPE + MISSING_MESSAGE);
         String mIp = nullIsIllegal(json.get(MANAGEMENT_IP).asText(),
                 MANAGEMENT_IP + MISSING_MESSAGE);
+        String nIp = nullIsIllegal(json.get(NODE_IP).asText(),
+                NODE_IP + MISSING_MESSAGE);
 
         DefaultK8sNode.Builder nodeBuilder = DefaultK8sNode.builder()
                 .clusterName(clusterName)
                 .hostname(hostname)
                 .type(K8sNode.Type.valueOf(type))
                 .state(K8sNodeState.INIT)
-                .managementIp(IpAddress.valueOf(mIp));
+                .managementIp(IpAddress.valueOf(mIp))
+                .nodeIp(IpAddress.valueOf(nIp));
 
         if (json.get(DATA_IP) != null) {
             nodeBuilder.dataIp(IpAddress.valueOf(json.get(DATA_IP).asText()));

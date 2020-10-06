@@ -45,6 +45,13 @@ public interface K8sExternalNetwork {
     MacAddress extGatewayMac();
 
     /**
+     * Returns the external interface name.
+     *
+     * @return interface name
+     */
+    String extIntf();
+
+    /**
      * Builder of new network entity.
      */
     interface Builder {
@@ -57,27 +64,35 @@ public interface K8sExternalNetwork {
         K8sExternalNetwork build();
 
         /**
-         * Returns kubernetes node builder with supplied external bridge IP.
+         * Returns kubernetes external network builder with supplied external bridge IP.
          *
          * @param extBridgeIp external bridge IP
-         * @return kubernetes node builder
+         * @return kubernetes external network builder
          */
         Builder extBridgeIp(IpAddress extBridgeIp);
 
         /**
-         * Returns kubernetes node builder with supplied gateway IP.
+         * Returns kubernetes external network builder with supplied gateway IP.
          *
          * @param extGatewayIp external gateway IP
-         * @return kubernetes node builder
+         * @return kubernetes external network builder
          */
         Builder extGatewayIp(IpAddress extGatewayIp);
 
         /**
-         * Returns kubernetes node builder with supplied external gateway MAC.
+         * Returns kubernetes external network builder with supplied external gateway MAC.
          *
          * @param extGatewayMac external gateway MAC address
-         * @return kubernetes node builder
+         * @return kubernetes external network builder
          */
         Builder extGatewayMac(MacAddress extGatewayMac);
+
+        /**
+         * Returns kubernetes external network builder with supplied external interface.
+         *
+         * @param extIntf external interface name
+         * @return kubernetes external network builder
+         */
+        Builder extIntf(String extIntf);
     }
 }
