@@ -46,6 +46,6 @@ public final class IntIntentId extends Identifier<Long> {
 
     @Override
     public String toString() {
-        return Long.toHexString(this.identifier);
+        return Long.toString(this.identifier);
     }
 }
