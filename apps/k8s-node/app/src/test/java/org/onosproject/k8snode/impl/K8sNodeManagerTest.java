@@ -360,6 +360,7 @@ public class K8sNodeManagerTest {
                 .tunBridge(tunBridge.id())
                 .managementIp(ipAddr)
                 .dataIp(ipAddr)
+                .nodeIp(ipAddr)
                 .state(state)
                 .build();
     }

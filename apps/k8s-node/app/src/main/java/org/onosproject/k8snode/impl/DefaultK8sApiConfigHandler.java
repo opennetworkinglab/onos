@@ -203,6 +203,7 @@ public class DefaultK8sApiConfigHandler {
         String hostname = node.getMetadata().getName();
         IpAddress managementIp = null;
         IpAddress dataIp = null;
+        IpAddress nodeIp = null;
 
         // pass-through mode: we use host IP as the management and data IP
         // normal mode: we use K8S node's internal IP as the management and data IP
@@ -215,11 +216,17 @@ public class DefaultK8sApiConfigHandler {
                 managementIp = info.hostIp();
                 dataIp = info.hostIp();
             }
+            for (NodeAddress nodeAddress:node.getStatus().getAddresses()) {
+                if (nodeAddress.getType().equals(INTERNAL_IP)) {
+                    nodeIp = IpAddress.valueOf(nodeAddress.getAddress());
+                }
+            }
         } else {
             for (NodeAddress nodeAddress:node.getStatus().getAddresses()) {
                 if (nodeAddress.getType().equals(INTERNAL_IP)) {
                     managementIp = IpAddress.valueOf(nodeAddress.getAddress());
                     dataIp = IpAddress.valueOf(nodeAddress.getAddress());
+                    nodeIp = IpAddress.valueOf(nodeAddress.getAddress());
                 }
             }
         }
@@ -267,6 +274,7 @@ public class DefaultK8sApiConfigHandler {
                 .hostname(hostname)
                 .managementIp(managementIp)
                 .dataIp(dataIp)
+                .nodeIp(nodeIp)
                 .extIntf(extIntf)
                 .type(nodeType)
                 .segmentId(config.segmentId())

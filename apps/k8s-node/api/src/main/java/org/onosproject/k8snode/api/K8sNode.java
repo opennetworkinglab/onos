@@ -187,6 +187,13 @@ public interface K8sNode {
     IpAddress dataIp();
 
     /**
+     * Returns the kubernetes node IP address.
+     *
+     * @return ip address; null if node has no IP address
+     */
+    IpAddress nodeIp();
+
+    /**
      * Returns the initialization state of the node.
      *
      * @return node state
@@ -645,6 +652,14 @@ public interface K8sNode {
          * @return kubernetes node builder
          */
         Builder dataIp(IpAddress dataIp);
+
+        /**
+         * Returns the kubernetes node builder with supplied node IP address.
+         *
+         * @param nodeIp node IP address
+         * @return kubernetes node builder
+         */
+        Builder nodeIp(IpAddress nodeIp);
 
         /**
          * Returns kubernetes node builder with supplied node state.

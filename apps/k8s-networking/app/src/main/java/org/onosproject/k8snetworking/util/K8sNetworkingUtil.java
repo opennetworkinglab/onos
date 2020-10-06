@@ -400,7 +400,7 @@ public final class K8sNetworkingUtil {
         nodeService.completeNodes().forEach(n -> {
             K8sNetwork network = networkService.network(n.hostname());
             if (network != null) {
-                ipMap.put(n.dataIp().toString(), network.gatewayIp().toString());
+                ipMap.put(n.nodeIp().toString(), network.gatewayIp().toString());
             }
         });
 

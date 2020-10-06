@@ -35,6 +35,7 @@ public final class K8sNodeJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode
     private static final String SEGMENT_ID = "segmentId";
     private static final String MANAGEMENT_IP = "managementIp";
     private static final String DATA_IP = "dataIp";
+    private static final String NODE_IP = "nodeIp";
     private static final String INTEGRATION_BRIDGE = "integrationBridge";
     private static final String STATE = "state";
     private static final String EXTERNAL_INTF = "externalInterface";
@@ -88,6 +89,14 @@ public final class K8sNodeJsonMatcher extends TypeSafeDiagnosingMatcher<JsonNode
         String mgmtIp = node.managementIp().toString();
         if (!jsonMgmtIp.equals(mgmtIp)) {
             description.appendText("management IP was " + jsonMgmtIp);
+            return false;
+        }
+
+        // check node IP
+        String jsonNodeIp = jsonNode.get(NODE_IP).asText();
+        String nodeIp = node.nodeIp().toString();
+        if (!jsonNodeIp.equals(nodeIp)) {
+            description.appendText("node IP was " + jsonNodeIp);
             return false;
         }
 

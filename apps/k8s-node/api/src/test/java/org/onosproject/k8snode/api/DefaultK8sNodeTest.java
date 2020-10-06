@@ -51,6 +51,7 @@ public final class DefaultK8sNodeTest {
 
     private static final IpAddress MANAGEMENT_IP = IpAddress.valueOf("10.10.10.10");
     private static final IpAddress DATA_IP = IpAddress.valueOf("20.20.20.20");
+    private static final IpAddress NODE_IP = IpAddress.valueOf("30.30.30.30");
 
     private static final String BRIDGE_INTF_1 = "eth1";
     private static final String BRIDGE_INTF_2 = "eth2";
@@ -124,6 +125,7 @@ public final class DefaultK8sNodeTest {
                 .segmentId(SEGMENT_ID_1)
                 .managementIp(MANAGEMENT_IP)
                 .dataIp(DATA_IP)
+                .nodeIp(NODE_IP)
                 .intgBridge(DEVICE_1.id())
                 .extBridge(DEVICE_1.id())
                 .localBridge(DEVICE_1.id())
@@ -196,6 +198,7 @@ public final class DefaultK8sNodeTest {
                 .extIntf(BRIDGE_INTF_1)
                 .managementIp(TEST_IP)
                 .dataIp(TEST_IP)
+                .nodeIp(NODE_IP)
                 .state(INIT)
                 .extBridgeIp(EXT_BRIDGE_IP_1)
                 .extGatewayIp(EXT_GATEWAY_IP_1)
@@ -219,6 +222,7 @@ public final class DefaultK8sNodeTest {
                 .extIntf(BRIDGE_INTF_1)
                 .managementIp(TEST_IP)
                 .dataIp(TEST_IP)
+                .nodeIp(NODE_IP)
                 .state(INIT)
                 .extBridgeIp(EXT_BRIDGE_IP_1)
                 .extGatewayIp(EXT_GATEWAY_IP_1)
@@ -243,6 +247,7 @@ public final class DefaultK8sNodeTest {
                 .tunBridge(DEVICE_1.id())
                 .extIntf(BRIDGE_INTF_1)
                 .dataIp(TEST_IP)
+                .nodeIp(NODE_IP)
                 .state(INIT)
                 .extBridgeIp(EXT_BRIDGE_IP_1)
                 .extGatewayIp(EXT_GATEWAY_IP_1)
@@ -256,6 +261,7 @@ public final class DefaultK8sNodeTest {
         assertEquals(node.type(), MINION);
         assertEquals(node.managementIp(), MANAGEMENT_IP);
         assertEquals(node.dataIp(), DATA_IP);
+        assertEquals(node.nodeIp(), NODE_IP);
     }
 
     private static Device createDevice(long devIdNum) {
@@ -287,6 +293,7 @@ public final class DefaultK8sNodeTest {
                 .extIntf(bridgeIntf)
                 .managementIp(ipAddr)
                 .dataIp(ipAddr)
+                .nodeIp(ipAddr)
                 .state(state)
                 .extBridgeIp(extBridgeIp)
                 .extGatewayIp(extGatewayIp)

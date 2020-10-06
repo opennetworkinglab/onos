@@ -86,6 +86,7 @@ public class K8sNodeCodecTest {
                 .state(K8sNodeState.INIT)
                 .managementIp(IpAddress.valueOf("10.10.10.1"))
                 .dataIp(IpAddress.valueOf("20.20.20.2"))
+                .nodeIp(IpAddress.valueOf("30.30.30.3"))
                 .intgBridge(DeviceId.deviceId("kbr-int"))
                 .extIntf("eth1")
                 .extBridgeIp(IpAddress.valueOf("10.10.10.5"))
@@ -112,6 +113,7 @@ public class K8sNodeCodecTest {
         assertEquals(100, node.segmentId());
         assertEquals("172.16.130.4", node.managementIp().toString());
         assertEquals("172.16.130.4", node.dataIp().toString());
+        assertEquals("172.16.130.5", node.nodeIp().toString());
         assertEquals("of:00000000000000a1", node.intgBridge().toString());
         assertEquals("eth1", node.extIntf());
         assertEquals("172.16.130.5", node.extBridgeIp().toString());

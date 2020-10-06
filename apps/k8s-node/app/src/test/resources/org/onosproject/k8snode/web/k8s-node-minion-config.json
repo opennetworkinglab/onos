@@ -6,6 +6,7 @@
       "type" : "MINION",
       "managementIp" : "10.134.231.32",
       "dataIp" : "10.134.34.224",
+      "nodeIp" : "30.30.30.3",
       "integrationBridge" : "of:00000000000000a2",
       "externalBridge" : "of:00000000000000b2"
     }

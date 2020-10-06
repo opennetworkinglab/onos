@@ -5,6 +5,7 @@
   "segmentId": 100,
   "managementIp": "172.16.130.4",
   "dataIp": "172.16.130.4",
+  "nodeIp": "172.16.130.5",
   "integrationBridge": "of:00000000000000a1",
   "externalBridge": "of:00000000000000b1",
   "externalInterface": "eth1",
