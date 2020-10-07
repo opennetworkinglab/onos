@@ -88,6 +88,7 @@ public final class Constants {
     public static final int PRIORITY_CT_DROP_RULE = 32500;
     public static final int PRIORITY_NAT_RULE = 30000;
     public static final int PRIORITY_GATEWAY_RULE = 31000;
+    public static final int PRIORITY_INTER_NODE_RULE = 33000;
     public static final int PRIORITY_LOCAL_BRIDGE_RULE = 32000;
     public static final int PRIORITY_SWITCHING_RULE = 30000;
     public static final int PRIORITY_CIDR_RULE = 30000;
