@@ -133,7 +133,7 @@ public final class Constants {
     public static final int EXT_ENTRY_TABLE = 0;
     public static final int POD_RESOLUTION_TABLE = 11;
 
-    public static final int ROUTER_EXTRY_TABLE = 0;
+    public static final int ROUTER_ENTRY_TABLE = 0;
     public static final int EXT_RESOLUTION_TABLE = 11;
 
     public static final int LOCAL_ENTRY_TABLE = 0;

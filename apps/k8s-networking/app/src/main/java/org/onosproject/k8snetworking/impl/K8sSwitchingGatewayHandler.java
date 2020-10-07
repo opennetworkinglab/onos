@@ -250,7 +250,7 @@ public class K8sSwitchingGatewayHandler {
             }
 
             if (sameHost) {
-                TrafficSelector selector = DefaultTrafficSelector.builder()
+                TrafficSelector originalSelector = DefaultTrafficSelector.builder()
                         .matchEthType(Ethernet.TYPE_IPV4)
                         .matchIPSrc(IpPrefix.valueOf(srcNode.podCidr()))
                         .matchIPDst(IpPrefix.valueOf(dstNode.podCidr()))
@@ -263,7 +263,22 @@ public class K8sSwitchingGatewayHandler {
                 k8sFlowRuleService.setRule(
                         appId,
                         dstNode.tunBridge(),
-                        selector,
+                        originalSelector,
+                        treatment,
+                        PRIORITY_INTER_NODE_RULE,
+                        TUN_ENTRY_TABLE,
+                        install);
+
+                TrafficSelector transformedSelector = DefaultTrafficSelector.builder()
+                        .matchEthType(Ethernet.TYPE_IPV4)
+                        .matchIPSrc(IpPrefix.valueOf(shiftIpDomain(srcNode.podCidr(), SHIFTED_IP_PREFIX)))
+                        .matchIPDst(IpPrefix.valueOf(dstNode.podCidr()))
+                        .build();
+
+                k8sFlowRuleService.setRule(
+                        appId,
+                        dstNode.tunBridge(),
+                        transformedSelector,
                         treatment,
                         PRIORITY_INTER_NODE_RULE,
                         TUN_ENTRY_TABLE,

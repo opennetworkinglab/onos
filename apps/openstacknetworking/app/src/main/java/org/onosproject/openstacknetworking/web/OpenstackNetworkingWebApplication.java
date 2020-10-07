@@ -33,7 +33,8 @@ public class OpenstackNetworkingWebApplication extends AbstractWebApplication {
                 OpenstackSecurityGroupRuleWebResource.class,
                 OpenstackSecurityGroupWebResource.class,
                 OpenstackSubnetWebResource.class,
-                OpenstackManagementWebResource.class
+                OpenstackManagementWebResource.class,
+                OpenstackK8sIntegrationWebResource.class
         );
     }
 }

@@ -612,6 +612,29 @@ public class DefaultK8sNode implements K8sNode {
     }
 
     @Override
+    public MacAddress intgEntryPortMac() {
+        return macAddress(intgBridge, intgEntryPortName());
+    }
+
+    @Override
+    public MacAddress portMacByName(String portName) {
+        if (portName == null) {
+            return null;
+        } else {
+            return macAddress(this.intgBridge, portName);
+        }
+    }
+
+    @Override
+    public PortNumber portNumByName(String portName) {
+        if (portName == null) {
+            return null;
+        } else {
+            return portNumber(this.intgBridge, portName);
+        }
+    }
+
+    @Override
     public PortNumber intgEntryPortNum() {
         if (mode == PASSTHROUGH) {
             return portNumber(intgBridge, k8sIntgToOsPatchPortName());

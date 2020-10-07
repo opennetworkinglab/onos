@@ -83,6 +83,7 @@ public final class Constants {
     public static final int PRIORITY_SWITCHING_RULE = 30000;
     public static final int PRIORITY_FLAT_JUMP_UPSTREAM_RULE = 41000;
     public static final int PRIORITY_FLAT_UPSTREAM_RULE = 41000;
+    public static final int PRIORITY_FLAT_ARP_UPSTREAM_RULE = 41500;
     public static final int PRIORITY_FLAT_DOWNSTREAM_RULE = 42000;
     public static final int PRIORITY_DHCP_RULE = 42000;
     public static final int PRIORITY_ADMIN_RULE = 32000;
@@ -98,6 +99,9 @@ public final class Constants {
     public static final int PRIORITY_ARP_GROUP_RULE = 39000;
     public static final int PRIORITY_FORCED_ACL_RULE = 50000;
     public static final int PRIORITY_ICMP_PROBE_RULE = 50000;
+
+    public static final int PRIORITY_CNI_PT_ARP_RULE = 41500;
+    public static final int PRIORITY_CNI_PT_IP_RULE = 41400;
 
     // flow table index
     public static final int STAT_INBOUND_TABLE = 0;

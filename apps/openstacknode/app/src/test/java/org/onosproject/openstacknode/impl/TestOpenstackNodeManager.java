@@ -18,6 +18,7 @@ package org.onosproject.openstacknode.impl;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeAdminService;
@@ -78,7 +79,12 @@ public class TestOpenstackNodeManager implements OpenstackNodeService, Openstack
                 .findFirst().orElse(null);
     }
 
-        @Override
+    @Override
+    public OpenstackNode node(IpAddress mgmtIp) {
+        return null;
+    }
+
+    @Override
         public void addVfPort(OpenstackNode osNode, String portName) {
     }
 

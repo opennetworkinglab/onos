@@ -23,6 +23,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.onlab.junit.TestUtils;
+import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterServiceAdapter;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreServiceAdapter;
@@ -634,6 +635,11 @@ public class OpenstackNetworkManagerTest {
                     .filter(osNode -> Objects.equals(osNode.intgBridge(), deviceId) ||
                             Objects.equals(osNode.ovsdb(), deviceId))
                     .findFirst().orElse(null);
+        }
+
+        @Override
+        public OpenstackNode node(IpAddress mgmtIp) {
+            return null;
         }
 
         @Override

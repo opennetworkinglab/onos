@@ -17,6 +17,7 @@ package org.onosproject.openstacknode.impl;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
+import org.onlab.packet.IpAddress;
 import org.onlab.util.Tools;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
@@ -283,6 +284,13 @@ public class OpenstackNodeManager
         return osNodeStore.nodes().stream()
                 .filter(osNode -> Objects.equals(osNode.intgBridge(), deviceId) ||
                         Objects.equals(osNode.ovsdb(), deviceId))
+                .findFirst().orElse(null);
+    }
+
+    @Override
+    public OpenstackNode node(IpAddress mgmtIp) {
+        return osNodeStore.nodes().stream()
+                .filter(osNode -> Objects.equals(osNode.managementIp(), mgmtIp))
                 .findFirst().orElse(null);
     }
 

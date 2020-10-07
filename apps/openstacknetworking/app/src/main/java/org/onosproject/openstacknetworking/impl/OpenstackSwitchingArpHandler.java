@@ -718,13 +718,13 @@ public class OpenstackSwitchingArpHandler {
                         osNetworkService, remoteNode);
 
                 TrafficTreatment treatmentToRemote = DefaultTrafficTreatment.builder()
-                .extension(buildExtension(
-                        deviceService,
-                        remoteNode.intgBridge(),
-                        localNode.dataIp().getIp4Address()),
-                        remoteNode.intgBridge())
-                .setOutput(portNum)
-                .build();
+                        .extension(buildExtension(
+                                deviceService,
+                                remoteNode.intgBridge(),
+                                localNode.dataIp().getIp4Address()),
+                                remoteNode.intgBridge())
+                        .setOutput(portNum)
+                        .build();
 
                 osFlowRuleService.setRule(
                         appId,
@@ -812,9 +812,9 @@ public class OpenstackSwitchingArpHandler {
     }
 
     private void processFlowTableRules(OpenstackNode osNode,
-                                        String segId, String netId,
-                                        boolean isTunnel,
-                                        boolean install) {
+                                       String segId, String netId,
+                                       boolean isTunnel,
+                                       boolean install) {
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
                 .matchEthType(EthType.EtherType.ARP.ethType().toShort())
                 .matchArpOp(ARP.OP_REQUEST);
@@ -1096,8 +1096,8 @@ public class OpenstackSwitchingArpHandler {
 
             netIds.stream()
                     .filter(nid -> osNetworkService.networkType(nid) == VXLAN ||
-                                    osNetworkService.networkType(nid) == GRE ||
-                                    osNetworkService.networkType(nid) == GENEVE)
+                            osNetworkService.networkType(nid) == GRE ||
+                            osNetworkService.networkType(nid) == GENEVE)
                     .forEach(nid -> {
                         String segId = osNetworkService.segmentId(nid);
                         setBaseVnetArpRuleForBroadcastMode(osNode, segId, nid, true, install);
@@ -1119,7 +1119,7 @@ public class OpenstackSwitchingArpHandler {
                         .forEach(p -> {
                             setArpRequestRule(p, install);
                             setArpReplyRule(p, install);
-                });
+                        });
             } else {
                 // we do nothing for proxy mode
             }

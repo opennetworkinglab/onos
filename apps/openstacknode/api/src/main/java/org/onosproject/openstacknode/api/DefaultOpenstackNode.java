@@ -20,6 +20,7 @@ import com.google.common.base.Strings;
 import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
+import org.onosproject.net.Annotations;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
@@ -242,6 +243,24 @@ public class DefaultOpenstackNode implements OpenstackNode {
     }
 
     @Override
+    public MacAddress portMacByName(String portName) {
+        if (portName == null) {
+            return null;
+        } else {
+            return macAddress(this.intgBridge, portName);
+        }
+    }
+
+    @Override
+    public PortNumber portNumByName(String portName) {
+        if (portName == null) {
+            return null;
+        } else {
+            return portNumber(this.intgBridge, portName);
+        }
+    }
+
+    @Override
     public MacAddress vlanPortMac() {
         if (vlanIntf == null) {
             return null;
@@ -392,6 +411,25 @@ public class DefaultOpenstackNode implements OpenstackNode {
     @Override
     public NeutronConfig neutronConfig() {
         return neutronConfig;
+    }
+
+    private MacAddress macAddress(DeviceId deviceId, String portName) {
+        Port port = port(deviceId, portName);
+        Annotations annots = port.annotations();
+        return annots != null ? MacAddress.valueOf(annots.value(PORT_MAC)) : null;
+    }
+
+    private PortNumber portNumber(DeviceId deviceId, String portName) {
+        Port port = port(deviceId, portName);
+        return port != null ? port.number() : null;
+    }
+
+    private Port port(DeviceId deviceId, String portName) {
+        DeviceService deviceService = DefaultServiceDirectory.getService(DeviceService.class);
+        return deviceService.getPorts(deviceId).stream()
+                .filter(p -> p.isEnabled() &&
+                        Objects.equals(p.annotations().value(PORT_NAME), portName))
+                .findAny().orElse(null);
     }
 
     /**

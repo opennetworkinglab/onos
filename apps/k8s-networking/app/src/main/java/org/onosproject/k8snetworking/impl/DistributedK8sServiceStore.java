@@ -23,6 +23,7 @@ import io.fabric8.kubernetes.api.model.LoadBalancerIngress;
 import io.fabric8.kubernetes.api.model.LoadBalancerStatus;
 import io.fabric8.kubernetes.api.model.ManagedFieldsEntry;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.ServiceSpec;
@@ -91,6 +92,7 @@ public class DistributedK8sServiceStore
             .register(ClientIPConfig.class)
             .register(ManagedFieldsEntry.class)
             .register(FieldsV1.class)
+            .register(OwnerReference.class)
             .register(LinkedHashMap.class)
             .register(Collection.class)
             .build();
