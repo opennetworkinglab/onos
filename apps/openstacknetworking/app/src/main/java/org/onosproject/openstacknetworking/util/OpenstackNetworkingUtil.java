@@ -1518,6 +1518,34 @@ public final class OpenstackNetworkingUtil {
         }
     }
 
+    /**
+     * Returns a shifted IP address.
+     *
+     * @param ipAddress     IP address to be shifted
+     * @param shiftPrefix   A IP prefix used in shifted IP address
+     * @return shifted Ip address
+     */
+    public static String shiftIpDomain(String ipAddress, String shiftPrefix) {
+        String origIpPrefix = ipAddress.split("\\.")[0] + "." + ipAddress.split("\\.")[1];
+        return StringUtils.replace(ipAddress, origIpPrefix, shiftPrefix);
+    }
+
+    /**
+     * Returns an unshifted IP address.
+     *
+     * @param ipAddress     IP address to be unshifted
+     * @param ipPrefix      IP prefix which to be used for unshifting
+     * @param cidr          a POD network CIDR
+     * @return unshifted IP address
+     */
+    public static String unshiftIpDomain(String ipAddress,
+                                         String ipPrefix,
+                                         String cidr) {
+
+        String origIpPrefix = cidr.split("\\.")[0] + "." + cidr.split("\\.")[1];
+        return StringUtils.replace(ipAddress, ipPrefix, origIpPrefix);
+    }
+
     private static String getDhcpOptionValue(NeutronPort port, String optionNameStr) {
         ObjectNode node = modelEntityToJson(port, NeutronPort.class);
 

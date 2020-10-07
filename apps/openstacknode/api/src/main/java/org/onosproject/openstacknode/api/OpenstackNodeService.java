@@ -15,6 +15,7 @@
  */
 package org.onosproject.openstacknode.api;
 
+import org.onlab.packet.IpAddress;
 import org.onosproject.event.ListenerService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.openstacknode.api.OpenstackNode.NodeType;
@@ -75,6 +76,14 @@ public interface OpenstackNodeService extends ListenerService<OpenstackNodeEvent
      * @return openstack node
      */
     OpenstackNode node(DeviceId deviceId);
+
+    /**
+     * Returns the node with the specified management IP address.
+     *
+     * @param mgmtIp management IP
+     * @return openstack node
+     */
+    OpenstackNode node(IpAddress mgmtIp);
 
     /**
      * Adds the vf port to the given openstack node.

@@ -259,6 +259,29 @@ public interface K8sNode {
     String intgEntryPortName();
 
     /**
+     * Returns the entry port MAC address.
+     *
+     * @return entry port MAC address
+     */
+    MacAddress intgEntryPortMac();
+
+    /**
+     * Returns the port MAC address with the given patch port name.
+     *
+     * @param portName patch port name
+     * @return port MAC address
+     */
+    MacAddress portMacByName(String portName);
+
+    /**
+     * Returns the port number with the given patch port name.
+     *
+     * @param portName patch port name
+     * @return port number
+     */
+    PortNumber portNumByName(String portName);
+
+    /**
      * Return the port number of integration bridge's entry port.
      *
      * @return port number

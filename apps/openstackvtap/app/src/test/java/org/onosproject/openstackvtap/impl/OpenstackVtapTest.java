@@ -194,6 +194,11 @@ public abstract class OpenstackVtapTest {
         }
 
         @Override
+        public OpenstackNode node(IpAddress mgmtIp) {
+            return null;
+        }
+
+        @Override
         public void addVfPort(OpenstackNode osNode, String portName) {
         }
 

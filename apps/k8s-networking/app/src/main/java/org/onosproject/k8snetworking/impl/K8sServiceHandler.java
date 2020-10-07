@@ -58,7 +58,6 @@ import org.onosproject.k8snode.api.K8sNodeEvent;
 import org.onosproject.k8snode.api.K8sNodeListener;
 import org.onosproject.k8snode.api.K8sNodeService;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
@@ -120,9 +119,7 @@ import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.getBclassIpPr
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.nodeIpGatewayIpMap;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.podByIp;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.portNumberByName;
-import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.tunnelPortNumByNetId;
 import static org.onosproject.k8snetworking.util.RulePopulatorUtil.CT_NAT_DST_FLAG;
-import static org.onosproject.k8snetworking.util.RulePopulatorUtil.buildExtension;
 import static org.onosproject.k8snetworking.util.RulePopulatorUtil.buildGroupBucket;
 import static org.onosproject.k8snetworking.util.RulePopulatorUtil.buildLoadExtension;
 import static org.onosproject.k8snetworking.util.RulePopulatorUtil.buildResubmitExtension;
@@ -643,34 +640,23 @@ public class K8sServiceHandler {
                     tBuilder.setEthSrc(mac);
                 }
                 tBuilder.transition(STAT_EGRESS_TABLE);
-            } else {
-                K8sNode localNode = k8sNodeService.node(network.name());
-
-                tBuilder.setOutput(n.intgToTunPortNum());
-
-                PortNumber portNum = tunnelPortNumByNetId(network.networkId(),
-                        k8sNetworkService, n);
 
                 // install rules into tunnel bridge
-                TrafficTreatment treatmentToRemote = DefaultTrafficTreatment.builder()
-                        .extension(buildExtension(
-                                deviceService,
-                                n.tunBridge(),
-                                localNode.dataIp().getIp4Address()),
-                                n.tunBridge())
-                        .setTunnelId(Long.valueOf(network.segmentId()))
-                        .setOutput(portNum)
+                TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                        .setOutput(n.tunToIntgPortNum())
                         .build();
 
                 k8sFlowRuleService.setRule(
                         appId,
                         n.tunBridge(),
                         sBuilder.build(),
-                        treatmentToRemote,
+                        treatment,
                         PRIORITY_CIDR_RULE,
                         TUN_ENTRY_TABLE,
                         install
                 );
+            } else {
+                tBuilder.setOutput(n.intgToTunPortNum());
             }
 
             k8sFlowRuleService.setRule(

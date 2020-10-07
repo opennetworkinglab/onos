@@ -94,6 +94,16 @@ public class OpenstackNodeAdapter implements OpenstackNode {
     }
 
     @Override
+    public MacAddress portMacByName(String portName) {
+        return null;
+    }
+
+    @Override
+    public PortNumber portNumByName(String portName) {
+        return null;
+    }
+
+    @Override
     public MacAddress vlanPortMac() {
         return null;
     }

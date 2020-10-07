@@ -236,36 +236,43 @@ public class K8sSwitchingArpHandler {
 
     private void processArpRequest(PacketContext context, Ethernet ethPacket) {
         ARP arpPacket = (ARP) ethPacket.getPayload();
-        K8sPort srcPort = k8sNetworkService.ports().stream()
+        K8sPort srcK8sPort = k8sNetworkService.ports().stream()
                 .filter(p -> p.macAddress().equals(ethPacket.getSourceMAC()))
                 .findAny().orElse(null);
 
-        if (srcPort == null && !context.inPacket().receivedFrom().port()
-                .equals(PortNumber.LOCAL)) {
+        PortNumber srcPortNum = context.inPacket().receivedFrom().port();
+        DeviceId srcDeviceId = context.inPacket().receivedFrom().deviceId();
+        boolean isEntryPort = false;
+
+        for (K8sNode node : k8sNodeService.completeNodes()) {
+            if (srcDeviceId.equals(node.intgBridge()) &&
+                    srcPortNum.equals(node.intgEntryPortNum())) {
+                isEntryPort = true;
+            }
+        }
+
+        // if the ARP request is not initiated from regular k8s ports nor
+        // integration bridge entry port, we simply ignore the ARP request...
+        if (srcK8sPort == null && !isEntryPort) {
             log.warn("Failed to find source port(MAC:{})", ethPacket.getSourceMAC());
             return;
         }
 
-        // FIXME: this is a workaround for storing host GW MAC address,
-        // need to find a way to store the MAC address in persistent way
-        if (context.inPacket().receivedFrom().port().equals(PortNumber.LOCAL)) {
-            gwMacAddress = ethPacket.getSourceMAC();
-        }
-
         IpAddress targetIp = Ip4Address.valueOf(arpPacket.getTargetProtocolAddress());
 
+        // look up the MAC address from regular k8s ports
         MacAddress replyMac = k8sNetworkService.ports().stream()
                 //        .filter(p -> p.networkId().equals(srcPort.networkId()))
                 .filter(p -> p.ipAddress().equals(targetIp))
                 .map(K8sPort::macAddress)
                 .findAny().orElse(null);
 
-        long gwIpCnt = k8sNetworkService.networks().stream()
-                .filter(n -> n.gatewayIp().equals(targetIp))
-                .count();
-
-        if (gwIpCnt > 0) {
-            replyMac = gwMacAddress;
+        // look up the MAC address from special integration entry port (e.g., LOCAL, k8s-int-os)
+        for (K8sNetwork network : k8sNetworkService.networks()) {
+            if (network.gatewayIp().equals(targetIp)) {
+                K8sNode node = k8sNodeService.node(network.name());
+                replyMac = node.intgEntryPortMac();
+            }
         }
 
         if (replyMac == null) {
@@ -331,10 +338,6 @@ public class K8sSwitchingArpHandler {
                     }
                 }
             }
-        }
-
-        if (replyMac == null) {
-            replyMac = MacAddress.valueOf(gatewayMac);
         }
 
         if (replyMac == null) {

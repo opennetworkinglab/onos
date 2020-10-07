@@ -130,6 +130,22 @@ public interface OpenstackNode {
     PortNumber patchPortNum();
 
     /**
+     * Returns the port MAC address with the given patch port name.
+     *
+     * @param portName patch port name
+     * @return port MAC address
+     */
+    MacAddress portMacByName(String portName);
+
+    /**
+     * Returns the port number with the given patch port name.
+     *
+     * @param portName patch port name
+     * @return port number
+     */
+    PortNumber portNumByName(String portName);
+
+    /**
      * Returns the vlan port MAC address.
      *
      * @return mac address; null if vlan port does not exist

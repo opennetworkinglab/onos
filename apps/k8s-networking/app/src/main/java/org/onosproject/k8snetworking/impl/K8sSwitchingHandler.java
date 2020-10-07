@@ -36,6 +36,7 @@ import org.onosproject.k8snode.api.K8sNodeEvent;
 import org.onosproject.k8snode.api.K8sNodeListener;
 import org.onosproject.k8snode.api.K8sNodeService;
 import org.onosproject.mastership.MastershipService;
+import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverService;
@@ -445,7 +446,12 @@ public class K8sSwitchingHandler {
     private class InternalK8sNetworkListener implements K8sNetworkListener {
 
         private boolean isRelevantHelper(K8sNetworkEvent event) {
-            return mastershipService.isLocalMaster(event.port().deviceId());
+            DeviceId deviceId = event.port().deviceId();
+            if (deviceId == null) {
+                return false;
+            } else {
+                return mastershipService.isLocalMaster(deviceId);
+            }
         }
 
         @Override
