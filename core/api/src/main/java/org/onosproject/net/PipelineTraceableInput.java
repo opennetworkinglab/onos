@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.onosproject.core.GroupId;
 import org.onosproject.net.flow.FlowEntry;
-import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.group.Group;
 
 import java.util.List;
@@ -29,20 +28,29 @@ import java.util.Map;
 /**
  * Represents the input of the pipeline traceable processing.
  */
-public class PipelineTraceableInput {
+public final class PipelineTraceableInput {
 
     // Input state for the traceable behavior
-    TrafficSelector ingressPacket;
-    ConnectPoint ingressPort;
+    private PipelineTraceablePacket ingressPacket;
+    private ConnectPoint ingressPort;
     // List here all possible device state using
     // possibly an optimized reference
-    List<FlowEntry> flows = Lists.newArrayList();
-    Map<GroupId, Group> groups = Maps.newHashMap();
+    private List<FlowEntry> flows = Lists.newArrayList();
+    private Map<GroupId, Group> groups = Maps.newHashMap();
+    private List<DataPlaneEntity> deviceState;
 
-    public PipelineTraceableInput(TrafficSelector ingressPacket, ConnectPoint ingressPort,
+    /**
+     * Builds a pipeline traceable input.
+     *
+     * @param ingressPacket the input packet
+     * @param ingressPort the input port
+     * @param deviceState the device state
+     */
+    public PipelineTraceableInput(PipelineTraceablePacket ingressPacket, ConnectPoint ingressPort,
                                   List<DataPlaneEntity> deviceState) {
         this.ingressPacket = ingressPacket;
         this.ingressPort = ingressPort;
+        this.deviceState = deviceState;
         processDeviceState(deviceState);
     }
 
@@ -62,7 +70,7 @@ public class PipelineTraceableInput {
      *
      * @return the ingress packet
      */
-    public TrafficSelector ingressPacket() {
+    public PipelineTraceablePacket ingressPacket() {
         return ingressPacket;
     }
 
@@ -73,6 +81,15 @@ public class PipelineTraceableInput {
      */
     public ConnectPoint ingressPort() {
         return ingressPort;
+    }
+
+    /**
+     * Getter for the device state.
+     *
+     * @return the device state
+     */
+    public List<DataPlaneEntity> deviceState() {
+        return deviceState;
     }
 
     /**
@@ -99,7 +116,7 @@ public class PipelineTraceableInput {
      * @param groupId the group id
      * @return the group, otherwise null.
      */
-    public Group getGroup(GroupId groupId) {
+    public Group groupById(GroupId groupId) {
         return groups.get(groupId);
     }
 

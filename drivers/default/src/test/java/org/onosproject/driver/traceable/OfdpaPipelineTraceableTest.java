@@ -26,6 +26,7 @@ import org.onosproject.net.PipelineTraceableHitChain;
 import org.onosproject.net.PipelineTraceableInput;
 import org.onosproject.net.PipelineTraceableOutput;
 import org.onosproject.net.PipelineTraceableOutput.PipelineTraceableResult;
+import org.onosproject.net.PipelineTraceablePacket;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.PipelineTraceable;
 import org.onosproject.net.behaviour.Pipeliner;
@@ -139,26 +140,26 @@ public class OfdpaPipelineTraceableTest {
      */
     @Test
     public void testOvsOfdpaPuntIP() {
-        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(IN_PUNT_IP_PACKET, OFDPA_CP,
-                getDataPlaneEntities(OVS_OFDPA_DRIVER, PUNT_IP_OVS_OFDPA));
+        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(new PipelineTraceablePacket(
+                IN_PUNT_IP_PACKET), OFDPA_CP, getDataPlaneEntities(OVS_OFDPA_DRIVER, PUNT_IP_OVS_OFDPA));
         PipelineTraceable pipelineTraceable = setUpOvsOfdpa();
 
         PipelineTraceableOutput pipelineOutput = pipelineTraceable.apply(pipelineInput);
         assertNotNull(pipelineOutput);
-        assertThat(pipelineOutput.getHitChains().size(), is(1));
-        assertThat(pipelineOutput.getResult(), is(PipelineTraceableResult.SUCCESS));
+        assertThat(pipelineOutput.hitChains().size(), is(1));
+        assertThat(pipelineOutput.result(), is(PipelineTraceableResult.SUCCESS));
 
-        PipelineTraceableHitChain hitChain = pipelineOutput.getHitChains().get(0);
+        PipelineTraceableHitChain hitChain = pipelineOutput.hitChains().get(0);
         assertNotNull(hitChain);
         List<List<DataPlaneEntity>> chains = getHitChains(PUNT_IP_OVS_OFDPA);
         assertThat(chains.size(), is(1));
 
-        assertNotNull(hitChain.getOutputPort());
-        assertThat(hitChain.getOutputPort().port(), is(PortNumber.CONTROLLER));
-        assertThat(hitChain.getHitChain().size(), is(7));
-        assertEquals(IN_PUNT_IP_PACKET, hitChain.getEgressPacket());
+        assertNotNull(hitChain.outputPort());
+        assertThat(hitChain.outputPort().port(), is(PortNumber.CONTROLLER));
+        assertThat(hitChain.hitChain().size(), is(7));
+        assertEquals(IN_PUNT_IP_PACKET, hitChain.egressPacket().packet());
         assertFalse(hitChain.isDropped());
-        assertEquals(chains.get(0), hitChain.getHitChain());
+        assertEquals(chains.get(0), hitChain.hitChain());
     }
 
     /**
@@ -166,26 +167,26 @@ public class OfdpaPipelineTraceableTest {
      */
     @Test
     public void testOfdpaPuntIP() {
-        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(IN_PUNT_IP_PACKET, OFDPA_CP,
-                getDataPlaneEntities(OFDPA_DRIVER, PUNT_IP_OFDPA));
+        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(new PipelineTraceablePacket(
+                IN_PUNT_IP_PACKET), OFDPA_CP, getDataPlaneEntities(OFDPA_DRIVER, PUNT_IP_OFDPA));
         PipelineTraceable pipelineTraceable = setUpOfdpa();
 
         PipelineTraceableOutput pipelineOutput = pipelineTraceable.apply(pipelineInput);
         assertNotNull(pipelineOutput);
-        assertThat(pipelineOutput.getHitChains().size(), is(1));
-        assertThat(pipelineOutput.getResult(), is(PipelineTraceableResult.SUCCESS));
+        assertThat(pipelineOutput.hitChains().size(), is(1));
+        assertThat(pipelineOutput.result(), is(PipelineTraceableResult.SUCCESS));
 
-        PipelineTraceableHitChain hitChain = pipelineOutput.getHitChains().get(0);
+        PipelineTraceableHitChain hitChain = pipelineOutput.hitChains().get(0);
         assertNotNull(hitChain);
         List<List<DataPlaneEntity>> chains = getHitChains(PUNT_IP_OFDPA);
         assertThat(chains.size(), is(1));
 
-        assertNotNull(hitChain.getOutputPort());
-        assertThat(hitChain.getOutputPort().port(), is(PortNumber.CONTROLLER));
-        assertThat(hitChain.getHitChain().size(), is(4));
-        assertEquals(IN_PUNT_IP_PACKET, hitChain.getEgressPacket());
+        assertNotNull(hitChain.outputPort());
+        assertThat(hitChain.outputPort().port(), is(PortNumber.CONTROLLER));
+        assertThat(hitChain.hitChain().size(), is(4));
+        assertEquals(IN_PUNT_IP_PACKET, hitChain.egressPacket().packet());
         assertFalse(hitChain.isDropped());
-        assertEquals(chains.get(0), hitChain.getHitChain());
+        assertEquals(chains.get(0), hitChain.hitChain());
     }
 
     /**
@@ -193,49 +194,49 @@ public class OfdpaPipelineTraceableTest {
      */
     @Test
     public void testOvsOfdpaArp() {
-        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(IN_ARP_PACKET, OFDPA_CP,
-                getDataPlaneEntities(OVS_OFDPA_DRIVER, ARP_OVS_OFDPA));
+        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(new PipelineTraceablePacket(
+                IN_ARP_PACKET), OFDPA_CP, getDataPlaneEntities(OVS_OFDPA_DRIVER, ARP_OVS_OFDPA));
         PipelineTraceable pipelineTraceable = setUpOvsOfdpa();
 
         PipelineTraceableOutput pipelineOutput = pipelineTraceable.apply(pipelineInput);
         assertNotNull(pipelineOutput);
-        assertThat(pipelineOutput.getHitChains().size(), is(3));
-        assertThat(pipelineOutput.getResult(), is(PipelineTraceableResult.SUCCESS));
+        assertThat(pipelineOutput.hitChains().size(), is(3));
+        assertThat(pipelineOutput.result(), is(PipelineTraceableResult.SUCCESS));
 
-        PipelineTraceableHitChain hitChain = pipelineOutput.getHitChains().get(0);
+        PipelineTraceableHitChain hitChain = pipelineOutput.hitChains().get(0);
         assertNotNull(hitChain);
         List<List<DataPlaneEntity>> chains = getHitChains(ARP_OVS_OFDPA);
         assertThat(chains.size(), is(3));
 
         // This is the copy sent to the controller
-        assertNotNull(hitChain.getOutputPort());
-        assertThat(hitChain.getOutputPort().port(), is(PortNumber.CONTROLLER));
-        assertThat(hitChain.getHitChain().size(), is(7));
-        assertEquals(IN_ARP_PACKET, hitChain.getEgressPacket());
+        assertNotNull(hitChain.outputPort());
+        assertThat(hitChain.outputPort().port(), is(PortNumber.CONTROLLER));
+        assertThat(hitChain.hitChain().size(), is(7));
+        assertEquals(IN_ARP_PACKET, hitChain.egressPacket().packet());
         assertFalse(hitChain.isDropped());
-        assertEquals(chains.get(0), hitChain.getHitChain());
+        assertEquals(chains.get(0), hitChain.hitChain());
 
         // This is the copy sent to the member port
-        hitChain = pipelineOutput.getHitChains().get(1);
+        hitChain = pipelineOutput.hitChains().get(1);
         assertNotNull(hitChain);
 
-        assertNotNull(hitChain.getOutputPort());
-        assertThat(hitChain.getOutputPort().port(), is(OUT_PORT));
-        assertThat(hitChain.getHitChain().size(), is(8));
-        assertEquals(IN_ARP_PACKET, hitChain.getEgressPacket());
+        assertNotNull(hitChain.outputPort());
+        assertThat(hitChain.outputPort().port(), is(OUT_PORT));
+        assertThat(hitChain.hitChain().size(), is(8));
+        assertEquals(IN_ARP_PACKET, hitChain.egressPacket().packet());
         assertFalse(hitChain.isDropped());
-        assertEquals(chains.get(1), hitChain.getHitChain());
+        assertEquals(chains.get(1), hitChain.hitChain());
 
         // This is the copy sent on the input port
-        hitChain = pipelineOutput.getHitChains().get(2);
+        hitChain = pipelineOutput.hitChains().get(2);
         assertNotNull(hitChain);
 
-        assertNotNull(hitChain.getOutputPort());
-        assertThat(hitChain.getOutputPort().port(), is(PORT));
-        assertThat(hitChain.getHitChain().size(), is(8));
-        assertEquals(IN_ARP_PACKET, hitChain.getEgressPacket());
+        assertNotNull(hitChain.outputPort());
+        assertThat(hitChain.outputPort().port(), is(PORT));
+        assertThat(hitChain.hitChain().size(), is(8));
+        assertEquals(IN_ARP_PACKET, hitChain.egressPacket().packet());
         assertTrue(hitChain.isDropped());
-        assertEquals(chains.get(2), hitChain.getHitChain());
+        assertEquals(chains.get(2), hitChain.hitChain());
     }
 
     /**
@@ -243,47 +244,47 @@ public class OfdpaPipelineTraceableTest {
      */
     @Test
     public void testOfdpaArp() {
-        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(IN_ARP_PACKET, OFDPA_CP,
-                getDataPlaneEntities(OFDPA_DRIVER, ARP_OFDPA));
+        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(new PipelineTraceablePacket(
+                IN_ARP_PACKET), OFDPA_CP, getDataPlaneEntities(OFDPA_DRIVER, ARP_OFDPA));
         PipelineTraceable pipelineTraceable = setUpOfdpa();
 
         PipelineTraceableOutput pipelineOutput = pipelineTraceable.apply(pipelineInput);
         assertNotNull(pipelineOutput);
-        assertThat(pipelineOutput.getHitChains().size(), is(3));
-        assertThat(pipelineOutput.getResult(), is(PipelineTraceableResult.SUCCESS));
+        assertThat(pipelineOutput.hitChains().size(), is(3));
+        assertThat(pipelineOutput.result(), is(PipelineTraceableResult.SUCCESS));
 
-        PipelineTraceableHitChain hitChain = pipelineOutput.getHitChains().get(0);
+        PipelineTraceableHitChain hitChain = pipelineOutput.hitChains().get(0);
         assertNotNull(hitChain);
         List<List<DataPlaneEntity>> chains = getHitChains(ARP_OFDPA);
         assertThat(chains.size(), is(3));
 
 
-        assertNotNull(hitChain.getOutputPort());
-        assertThat(hitChain.getOutputPort().port(), is(PortNumber.CONTROLLER));
-        assertThat(hitChain.getHitChain().size(), is(4));
-        assertEquals(IN_ARP_PACKET, hitChain.getEgressPacket());
+        assertNotNull(hitChain.outputPort());
+        assertThat(hitChain.outputPort().port(), is(PortNumber.CONTROLLER));
+        assertThat(hitChain.hitChain().size(), is(4));
+        assertEquals(IN_ARP_PACKET, hitChain.egressPacket().packet());
         assertFalse(hitChain.isDropped());
-        assertEquals(chains.get(0), hitChain.getHitChain());
+        assertEquals(chains.get(0), hitChain.hitChain());
 
-        hitChain = pipelineOutput.getHitChains().get(1);
+        hitChain = pipelineOutput.hitChains().get(1);
         assertNotNull(hitChain);
 
-        assertNotNull(hitChain.getOutputPort());
-        assertThat(hitChain.getOutputPort().port(), is(OUT_PORT));
-        assertThat(hitChain.getHitChain().size(), is(6));
-        assertEquals(IN_ARP_PACKET, hitChain.getEgressPacket());
+        assertNotNull(hitChain.outputPort());
+        assertThat(hitChain.outputPort().port(), is(OUT_PORT));
+        assertThat(hitChain.hitChain().size(), is(6));
+        assertEquals(IN_ARP_PACKET, hitChain.egressPacket().packet());
         assertFalse(hitChain.isDropped());
-        assertEquals(chains.get(1), hitChain.getHitChain());
+        assertEquals(chains.get(1), hitChain.hitChain());
 
-        hitChain = pipelineOutput.getHitChains().get(2);
+        hitChain = pipelineOutput.hitChains().get(2);
         assertNotNull(hitChain);
 
-        assertNotNull(hitChain.getOutputPort());
-        assertThat(hitChain.getOutputPort().port(), is(PORT));
-        assertThat(hitChain.getHitChain().size(), is(6));
-        assertEquals(IN_ARP_PACKET, hitChain.getEgressPacket());
+        assertNotNull(hitChain.outputPort());
+        assertThat(hitChain.outputPort().port(), is(PORT));
+        assertThat(hitChain.hitChain().size(), is(6));
+        assertEquals(IN_ARP_PACKET, hitChain.egressPacket().packet());
         assertTrue(hitChain.isDropped());
-        assertEquals(chains.get(2), hitChain.getHitChain());
+        assertEquals(chains.get(2), hitChain.hitChain());
     }
 
     /**
@@ -291,26 +292,26 @@ public class OfdpaPipelineTraceableTest {
      */
     @Test
     public void testOvsOfdpaPuntLldp() {
-        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(IN_PUNT_LLDP_PACKET, OFDPA_CP,
-                getDataPlaneEntities(OVS_OFDPA_DRIVER, PUNT_LLDP_OVS_OFDPA));
+        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(new PipelineTraceablePacket(
+                IN_PUNT_LLDP_PACKET), OFDPA_CP, getDataPlaneEntities(OVS_OFDPA_DRIVER, PUNT_LLDP_OVS_OFDPA));
         PipelineTraceable pipelineTraceable = setUpOvsOfdpa();
 
         PipelineTraceableOutput pipelineOutput = pipelineTraceable.apply(pipelineInput);
         assertNotNull(pipelineOutput);
-        assertThat(pipelineOutput.getHitChains().size(), is(1));
-        assertThat(pipelineOutput.getResult(), is(PipelineTraceableResult.SUCCESS));
+        assertThat(pipelineOutput.hitChains().size(), is(1));
+        assertThat(pipelineOutput.result(), is(PipelineTraceableResult.SUCCESS));
 
-        PipelineTraceableHitChain hitChain = pipelineOutput.getHitChains().get(0);
+        PipelineTraceableHitChain hitChain = pipelineOutput.hitChains().get(0);
         assertNotNull(hitChain);
         List<List<DataPlaneEntity>> chains = getHitChains(PUNT_LLDP_OVS_OFDPA);
         assertThat(chains.size(), is(1));
 
-        assertNotNull(hitChain.getOutputPort());
-        assertThat(hitChain.getOutputPort().port(), is(PortNumber.CONTROLLER));
-        assertThat(hitChain.getHitChain().size(), is(7));
-        assertEquals(IN_PUNT_LLDP_PACKET, hitChain.getEgressPacket());
+        assertNotNull(hitChain.outputPort());
+        assertThat(hitChain.outputPort().port(), is(PortNumber.CONTROLLER));
+        assertThat(hitChain.hitChain().size(), is(7));
+        assertEquals(IN_PUNT_LLDP_PACKET, hitChain.egressPacket().packet());
         assertFalse(hitChain.isDropped());
-        assertEquals(chains.get(0), hitChain.getHitChain());
+        assertEquals(chains.get(0), hitChain.hitChain());
     }
 
     /**
@@ -318,26 +319,26 @@ public class OfdpaPipelineTraceableTest {
      */
     @Test
     public void testOfdpaPuntLldp() {
-        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(IN_PUNT_LLDP_PACKET, OFDPA_CP,
-                getDataPlaneEntities(OFDPA_DRIVER, PUNT_LLDP_OFDPA));
+        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(new PipelineTraceablePacket(
+                IN_PUNT_LLDP_PACKET), OFDPA_CP, getDataPlaneEntities(OFDPA_DRIVER, PUNT_LLDP_OFDPA));
         PipelineTraceable pipelineTraceable = setUpOfdpa();
 
         PipelineTraceableOutput pipelineOutput = pipelineTraceable.apply(pipelineInput);
         assertNotNull(pipelineOutput);
-        assertThat(pipelineOutput.getHitChains().size(), is(1));
-        assertThat(pipelineOutput.getResult(), is(PipelineTraceableResult.SUCCESS));
+        assertThat(pipelineOutput.hitChains().size(), is(1));
+        assertThat(pipelineOutput.result(), is(PipelineTraceableResult.SUCCESS));
 
-        PipelineTraceableHitChain hitChain = pipelineOutput.getHitChains().get(0);
+        PipelineTraceableHitChain hitChain = pipelineOutput.hitChains().get(0);
         assertNotNull(hitChain);
         List<List<DataPlaneEntity>> chains = getHitChains(PUNT_LLDP_OFDPA);
         assertThat(chains.size(), is(1));
 
-        assertNotNull(hitChain.getOutputPort());
-        assertThat(hitChain.getOutputPort().port(), is(PortNumber.CONTROLLER));
-        assertThat(hitChain.getHitChain().size(), is(4));
-        assertEquals(IN_PUNT_LLDP_PACKET, hitChain.getEgressPacket());
+        assertNotNull(hitChain.outputPort());
+        assertThat(hitChain.outputPort().port(), is(PortNumber.CONTROLLER));
+        assertThat(hitChain.hitChain().size(), is(4));
+        assertEquals(IN_PUNT_LLDP_PACKET, hitChain.egressPacket().packet());
         assertFalse(hitChain.isDropped());
-        assertEquals(chains.get(0), hitChain.getHitChain());
+        assertEquals(chains.get(0), hitChain.hitChain());
     }
 
     /**
@@ -345,26 +346,26 @@ public class OfdpaPipelineTraceableTest {
      */
     @Test
     public void testOvsOfdpaL2BridingUntagged() {
-        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(IN_L2_BRIDG_UNTAG_PACKET, OFDPA_CP,
-                getDataPlaneEntities(OVS_OFDPA_DRIVER, L2_BRIDG_UNTAG_OVS_OFDPA));
+        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(new PipelineTraceablePacket(
+                IN_L2_BRIDG_UNTAG_PACKET), OFDPA_CP, getDataPlaneEntities(OVS_OFDPA_DRIVER, L2_BRIDG_UNTAG_OVS_OFDPA));
         PipelineTraceable pipelineTraceable = setUpOvsOfdpa();
 
         PipelineTraceableOutput pipelineOutput = pipelineTraceable.apply(pipelineInput);
         assertNotNull(pipelineOutput);
-        assertThat(pipelineOutput.getHitChains().size(), is(1));
-        assertThat(pipelineOutput.getResult(), is(PipelineTraceableResult.SUCCESS));
+        assertThat(pipelineOutput.hitChains().size(), is(1));
+        assertThat(pipelineOutput.result(), is(PipelineTraceableResult.SUCCESS));
 
-        PipelineTraceableHitChain hitChain = pipelineOutput.getHitChains().get(0);
+        PipelineTraceableHitChain hitChain = pipelineOutput.hitChains().get(0);
         assertNotNull(hitChain);
         List<List<DataPlaneEntity>> chains = getHitChains(L2_BRIDG_UNTAG_OVS_OFDPA);
         assertThat(chains.size(), is(1));
 
-        assertNotNull(hitChain.getOutputPort());
-        assertThat(hitChain.getOutputPort().port(), is(OUT_PORT));
-        assertThat(hitChain.getHitChain().size(), is(6));
-        assertEquals(IN_L2_BRIDG_UNTAG_PACKET, hitChain.getEgressPacket());
+        assertNotNull(hitChain.outputPort());
+        assertThat(hitChain.outputPort().port(), is(OUT_PORT));
+        assertThat(hitChain.hitChain().size(), is(6));
+        assertEquals(IN_L2_BRIDG_UNTAG_PACKET, hitChain.egressPacket().packet());
         assertFalse(hitChain.isDropped());
-        assertEquals(chains.get(0), hitChain.getHitChain());
+        assertEquals(chains.get(0), hitChain.hitChain());
     }
 
     /**
@@ -372,26 +373,26 @@ public class OfdpaPipelineTraceableTest {
      */
     @Test
     public void testOfdpaL2BridingUntagged() {
-        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(IN_L2_BRIDG_UNTAG_PACKET, OFDPA_CP,
-                getDataPlaneEntities(OFDPA_DRIVER, L2_BRIDG_UNTAG_OFDPA));
+        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(new PipelineTraceablePacket(
+                IN_L2_BRIDG_UNTAG_PACKET), OFDPA_CP, getDataPlaneEntities(OFDPA_DRIVER, L2_BRIDG_UNTAG_OFDPA));
         PipelineTraceable pipelineTraceable = setUpOfdpa();
 
         PipelineTraceableOutput pipelineOutput = pipelineTraceable.apply(pipelineInput);
         assertNotNull(pipelineOutput);
-        assertThat(pipelineOutput.getHitChains().size(), is(1));
-        assertThat(pipelineOutput.getResult(), is(PipelineTraceableResult.SUCCESS));
+        assertThat(pipelineOutput.hitChains().size(), is(1));
+        assertThat(pipelineOutput.result(), is(PipelineTraceableResult.SUCCESS));
 
-        PipelineTraceableHitChain hitChain = pipelineOutput.getHitChains().get(0);
+        PipelineTraceableHitChain hitChain = pipelineOutput.hitChains().get(0);
         assertNotNull(hitChain);
         List<List<DataPlaneEntity>> chains = getHitChains(L2_BRIDG_UNTAG_OFDPA);
         assertThat(chains.size(), is(1));
 
-        assertNotNull(hitChain.getOutputPort());
-        assertThat(hitChain.getOutputPort().port(), is(OUT_PORT));
-        assertThat(hitChain.getHitChain().size(), is(4));
-        assertEquals(IN_L2_BRIDG_UNTAG_PACKET, hitChain.getEgressPacket());
+        assertNotNull(hitChain.outputPort());
+        assertThat(hitChain.outputPort().port(), is(OUT_PORT));
+        assertThat(hitChain.hitChain().size(), is(4));
+        assertEquals(IN_L2_BRIDG_UNTAG_PACKET, hitChain.egressPacket().packet());
         assertFalse(hitChain.isDropped());
-        assertEquals(chains.get(0), hitChain.getHitChain());
+        assertEquals(chains.get(0), hitChain.hitChain());
     }
 
     /**
@@ -399,37 +400,37 @@ public class OfdpaPipelineTraceableTest {
      */
     @Test
     public void testOvsOfdpaL2BroadcastUntagged() {
-        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(IN_L2_BROAD_UNTAG_PACKET, OFDPA_CP,
-                getDataPlaneEntities(OVS_OFDPA_DRIVER, L2_BROAD_UNTAG_OVS_OFDPA));
+        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(new PipelineTraceablePacket(
+                IN_L2_BROAD_UNTAG_PACKET), OFDPA_CP, getDataPlaneEntities(OVS_OFDPA_DRIVER, L2_BROAD_UNTAG_OVS_OFDPA));
         PipelineTraceable pipelineTraceable = setUpOvsOfdpa();
 
         PipelineTraceableOutput pipelineOutput = pipelineTraceable.apply(pipelineInput);
         assertNotNull(pipelineOutput);
-        assertThat(pipelineOutput.getHitChains().size(), is(2));
-        assertThat(pipelineOutput.getResult(), is(PipelineTraceableResult.SUCCESS));
+        assertThat(pipelineOutput.hitChains().size(), is(2));
+        assertThat(pipelineOutput.result(), is(PipelineTraceableResult.SUCCESS));
 
-        PipelineTraceableHitChain hitChain = pipelineOutput.getHitChains().get(0);
+        PipelineTraceableHitChain hitChain = pipelineOutput.hitChains().get(0);
         assertNotNull(hitChain);
         List<List<DataPlaneEntity>> chains = getHitChains(L2_BROAD_UNTAG_OVS_OFDPA);
         assertThat(chains.size(), is(2));
 
-        assertNotNull(hitChain.getOutputPort());
-        assertThat(hitChain.getOutputPort().port(), is(OUT_PORT));
-        assertThat(hitChain.getHitChain().size(), is(7));
-        assertEquals(IN_L2_BROAD_UNTAG_PACKET, hitChain.getEgressPacket());
+        assertNotNull(hitChain.outputPort());
+        assertThat(hitChain.outputPort().port(), is(OUT_PORT));
+        assertThat(hitChain.hitChain().size(), is(7));
+        assertEquals(IN_L2_BROAD_UNTAG_PACKET, hitChain.egressPacket().packet());
         assertFalse(hitChain.isDropped());
-        assertEquals(chains.get(0), hitChain.getHitChain());
+        assertEquals(chains.get(0), hitChain.hitChain());
 
         // Dropped chain - input port!
-        hitChain = pipelineOutput.getHitChains().get(1);
+        hitChain = pipelineOutput.hitChains().get(1);
         assertNotNull(hitChain);
 
-        assertNotNull(hitChain.getOutputPort());
-        assertThat(hitChain.getOutputPort().port(), is(PORT));
-        assertThat(hitChain.getHitChain().size(), is(7));
-        assertEquals(IN_L2_BROAD_UNTAG_PACKET, hitChain.getEgressPacket());
+        assertNotNull(hitChain.outputPort());
+        assertThat(hitChain.outputPort().port(), is(PORT));
+        assertThat(hitChain.hitChain().size(), is(7));
+        assertEquals(IN_L2_BROAD_UNTAG_PACKET, hitChain.egressPacket().packet());
         assertTrue(hitChain.isDropped());
-        assertEquals(chains.get(1), hitChain.getHitChain());
+        assertEquals(chains.get(1), hitChain.hitChain());
     }
 
     /**
@@ -437,37 +438,37 @@ public class OfdpaPipelineTraceableTest {
      */
     @Test
     public void testOfdpaL2BroadcastUntagged() {
-        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(IN_L2_BROAD_UNTAG_PACKET, OFDPA_CP,
-                getDataPlaneEntities(OFDPA_DRIVER, L2_BROAD_UNTAG_OFDPA));
+        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(new PipelineTraceablePacket(
+                IN_L2_BROAD_UNTAG_PACKET), OFDPA_CP, getDataPlaneEntities(OFDPA_DRIVER, L2_BROAD_UNTAG_OFDPA));
         PipelineTraceable pipelineTraceable = setUpOfdpa();
 
         PipelineTraceableOutput pipelineOutput = pipelineTraceable.apply(pipelineInput);
         assertNotNull(pipelineOutput);
-        assertThat(pipelineOutput.getHitChains().size(), is(2));
-        assertThat(pipelineOutput.getResult(), is(PipelineTraceableResult.SUCCESS));
+        assertThat(pipelineOutput.hitChains().size(), is(2));
+        assertThat(pipelineOutput.result(), is(PipelineTraceableResult.SUCCESS));
 
-        PipelineTraceableHitChain hitChain = pipelineOutput.getHitChains().get(0);
+        PipelineTraceableHitChain hitChain = pipelineOutput.hitChains().get(0);
         assertNotNull(hitChain);
         List<List<DataPlaneEntity>> chains = getHitChains(L2_BROAD_UNTAG_OFDPA);
         assertThat(chains.size(), is(2));
 
-        assertNotNull(hitChain.getOutputPort());
-        assertThat(hitChain.getOutputPort().port(), is(OUT_PORT));
-        assertThat(hitChain.getHitChain().size(), is(5));
-        assertEquals(IN_L2_BROAD_UNTAG_PACKET, hitChain.getEgressPacket());
+        assertNotNull(hitChain.outputPort());
+        assertThat(hitChain.outputPort().port(), is(OUT_PORT));
+        assertThat(hitChain.hitChain().size(), is(5));
+        assertEquals(IN_L2_BROAD_UNTAG_PACKET, hitChain.egressPacket().packet());
         assertFalse(hitChain.isDropped());
-        assertEquals(chains.get(0), hitChain.getHitChain());
+        assertEquals(chains.get(0), hitChain.hitChain());
 
         // Dropped chain - input port!
-        hitChain = pipelineOutput.getHitChains().get(1);
+        hitChain = pipelineOutput.hitChains().get(1);
         assertNotNull(hitChain);
 
-        assertNotNull(hitChain.getOutputPort());
-        assertThat(hitChain.getOutputPort().port(), is(PORT));
-        assertThat(hitChain.getHitChain().size(), is(5));
-        assertEquals(IN_L2_BROAD_UNTAG_PACKET, hitChain.getEgressPacket());
+        assertNotNull(hitChain.outputPort());
+        assertThat(hitChain.outputPort().port(), is(PORT));
+        assertThat(hitChain.hitChain().size(), is(5));
+        assertEquals(IN_L2_BROAD_UNTAG_PACKET, hitChain.egressPacket().packet());
         assertTrue(hitChain.isDropped());
-        assertEquals(chains.get(1), hitChain.getHitChain());
+        assertEquals(chains.get(1), hitChain.hitChain());
     }
 
     /**
@@ -475,27 +476,28 @@ public class OfdpaPipelineTraceableTest {
      */
     @Test
     public void testOvsOfdpaL3Unicast() {
-        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(IN_L3_UCAST_UNTAG_PACKET, UP_OFDPA_CP,
-                getDataPlaneEntities(OVS_OFDPA_DRIVER, L3_UCAST_UNTAG_OVS_OFDPA));
+        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(new PipelineTraceablePacket(
+                IN_L3_UCAST_UNTAG_PACKET), UP_OFDPA_CP, getDataPlaneEntities(OVS_OFDPA_DRIVER,
+                L3_UCAST_UNTAG_OVS_OFDPA));
         PipelineTraceable pipelineTraceable = setUpOvsOfdpa();
 
         PipelineTraceableOutput pipelineOutput = pipelineTraceable.apply(pipelineInput);
         assertNotNull(pipelineOutput);
 
-        assertThat(pipelineOutput.getHitChains().size(), is(1));
-        assertThat(pipelineOutput.getResult(), is(PipelineTraceableResult.SUCCESS));
+        assertThat(pipelineOutput.hitChains().size(), is(1));
+        assertThat(pipelineOutput.result(), is(PipelineTraceableResult.SUCCESS));
 
-        PipelineTraceableHitChain hitChain = pipelineOutput.getHitChains().get(0);
+        PipelineTraceableHitChain hitChain = pipelineOutput.hitChains().get(0);
         assertNotNull(hitChain);
         List<List<DataPlaneEntity>> chains = getHitChains(L3_UCAST_UNTAG_OVS_OFDPA);
         assertThat(chains.size(), is(1));
 
-        assertNotNull(hitChain.getOutputPort());
-        assertThat(hitChain.getOutputPort().port(), is(OUT_PORT));
-        assertThat(hitChain.getHitChain().size(), is(7));
-        assertEquals(OUT_L3_UCAST_UNTAG_PACKET, hitChain.getEgressPacket());
+        assertNotNull(hitChain.outputPort());
+        assertThat(hitChain.outputPort().port(), is(OUT_PORT));
+        assertThat(hitChain.hitChain().size(), is(7));
+        assertEquals(OUT_L3_UCAST_UNTAG_PACKET, hitChain.egressPacket().packet());
         assertFalse(hitChain.isDropped());
-        assertEquals(chains.get(0), hitChain.getHitChain());
+        assertEquals(chains.get(0), hitChain.hitChain());
     }
 
     /**
@@ -503,27 +505,27 @@ public class OfdpaPipelineTraceableTest {
      */
     @Test
     public void testOfdpaL3Unicast() {
-        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(IN_L3_UCAST_UNTAG_PACKET, UP_OFDPA_CP,
-                getDataPlaneEntities(OFDPA_DRIVER, L3_UCAST_UNTAG_OFDPA));
+        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(new PipelineTraceablePacket(
+                IN_L3_UCAST_UNTAG_PACKET), UP_OFDPA_CP, getDataPlaneEntities(OFDPA_DRIVER, L3_UCAST_UNTAG_OFDPA));
         PipelineTraceable pipelineTraceable = setUpOfdpa();
 
         PipelineTraceableOutput pipelineOutput = pipelineTraceable.apply(pipelineInput);
         assertNotNull(pipelineOutput);
 
-        assertThat(pipelineOutput.getHitChains().size(), is(1));
-        assertThat(pipelineOutput.getResult(), is(PipelineTraceableResult.SUCCESS));
+        assertThat(pipelineOutput.hitChains().size(), is(1));
+        assertThat(pipelineOutput.result(), is(PipelineTraceableResult.SUCCESS));
 
-        PipelineTraceableHitChain hitChain = pipelineOutput.getHitChains().get(0);
+        PipelineTraceableHitChain hitChain = pipelineOutput.hitChains().get(0);
         assertNotNull(hitChain);
         List<List<DataPlaneEntity>> chains = getHitChains(L3_UCAST_UNTAG_OFDPA);
         assertThat(chains.size(), is(1));
 
-        assertNotNull(hitChain.getOutputPort());
-        assertThat(hitChain.getOutputPort().port(), is(OUT_PORT));
-        assertThat(hitChain.getHitChain().size(), is(6));
-        assertEquals(OUT_L3_UCAST_UNTAG_PACKET, hitChain.getEgressPacket());
+        assertNotNull(hitChain.outputPort());
+        assertThat(hitChain.outputPort().port(), is(OUT_PORT));
+        assertThat(hitChain.hitChain().size(), is(6));
+        assertEquals(OUT_L3_UCAST_UNTAG_PACKET, hitChain.egressPacket().packet());
         assertFalse(hitChain.isDropped());
-        assertEquals(chains.get(0), hitChain.getHitChain());
+        assertEquals(chains.get(0), hitChain.hitChain());
     }
 
     /**
@@ -531,38 +533,38 @@ public class OfdpaPipelineTraceableTest {
      */
     @Test
     public void testOvsOfdpaL3Ecmp() {
-        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(IN_L3_ECMP_PACKET, OFDPA_CP,
-                getDataPlaneEntities(OVS_OFDPA_DRIVER, L3_ECMP_OVS_OFDPA));
+        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(new PipelineTraceablePacket(
+                IN_L3_ECMP_PACKET), OFDPA_CP, getDataPlaneEntities(OVS_OFDPA_DRIVER, L3_ECMP_OVS_OFDPA));
         PipelineTraceable pipelineTraceable = setUpOvsOfdpa();
 
         PipelineTraceableOutput pipelineOutput = pipelineTraceable.apply(pipelineInput);
         assertNotNull(pipelineOutput);
 
-        assertThat(pipelineOutput.getHitChains().size(), is(2));
-        assertThat(pipelineOutput.getResult(), is(PipelineTraceableResult.SUCCESS));
+        assertThat(pipelineOutput.hitChains().size(), is(2));
+        assertThat(pipelineOutput.result(), is(PipelineTraceableResult.SUCCESS));
 
-        PipelineTraceableHitChain hitChain = pipelineOutput.getHitChains().get(0);
+        PipelineTraceableHitChain hitChain = pipelineOutput.hitChains().get(0);
         assertNotNull(hitChain);
         List<List<DataPlaneEntity>> chains = getHitChains(L3_ECMP_OVS_OFDPA);
         assertThat(chains.size(), is(2));
 
-        assertNotNull(hitChain.getOutputPort());
-        assertThat(hitChain.getOutputPort().port(), is(UP_PORT));
-        assertThat(hitChain.getHitChain().size(), is(9));
-        assertEquals(OUT_L3_ECMP_PACKET, hitChain.getEgressPacket());
+        assertNotNull(hitChain.outputPort());
+        assertThat(hitChain.outputPort().port(), is(UP_PORT));
+        assertThat(hitChain.hitChain().size(), is(9));
+        assertEquals(OUT_L3_ECMP_PACKET, hitChain.egressPacket().packet());
         assertFalse(hitChain.isDropped());
-        assertEquals(chains.get(0), hitChain.getHitChain());
+        assertEquals(chains.get(0), hitChain.hitChain());
 
         // 2nd spine!
-        hitChain = pipelineOutput.getHitChains().get(1);
+        hitChain = pipelineOutput.hitChains().get(1);
         assertNotNull(hitChain);
 
-        assertNotNull(hitChain.getOutputPort());
-        assertThat(hitChain.getOutputPort().port(), is(UP_PORT_1));
-        assertThat(hitChain.getHitChain().size(), is(9));
-        assertEquals(OUT_L3_ECMP_PACKET_1, hitChain.getEgressPacket());
+        assertNotNull(hitChain.outputPort());
+        assertThat(hitChain.outputPort().port(), is(UP_PORT_1));
+        assertThat(hitChain.hitChain().size(), is(9));
+        assertEquals(OUT_L3_ECMP_PACKET_1, hitChain.egressPacket().packet());
         assertFalse(hitChain.isDropped());
-        assertEquals(chains.get(1), hitChain.getHitChain());
+        assertEquals(chains.get(1), hitChain.hitChain());
     }
 
     /**
@@ -570,37 +572,37 @@ public class OfdpaPipelineTraceableTest {
      */
     @Test
     public void testOfdpaL3Ecmp() {
-        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(IN_L3_ECMP_PACKET, OFDPA_CP,
-                getDataPlaneEntities(OFDPA_DRIVER, L3_ECMP_OFDPA));
+        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(new PipelineTraceablePacket(
+                IN_L3_ECMP_PACKET), OFDPA_CP, getDataPlaneEntities(OFDPA_DRIVER, L3_ECMP_OFDPA));
         PipelineTraceable pipelineTraceable = setUpOfdpa();
 
         PipelineTraceableOutput pipelineOutput = pipelineTraceable.apply(pipelineInput);
         assertNotNull(pipelineOutput);
 
-        assertThat(pipelineOutput.getHitChains().size(), is(2));
-        assertThat(pipelineOutput.getResult(), is(PipelineTraceableResult.SUCCESS));
+        assertThat(pipelineOutput.hitChains().size(), is(2));
+        assertThat(pipelineOutput.result(), is(PipelineTraceableResult.SUCCESS));
 
-        PipelineTraceableHitChain hitChain = pipelineOutput.getHitChains().get(0);
+        PipelineTraceableHitChain hitChain = pipelineOutput.hitChains().get(0);
         assertNotNull(hitChain);
         List<List<DataPlaneEntity>> chains = getHitChains(L3_ECMP_OFDPA);
         assertThat(chains.size(), is(2));
 
-        assertNotNull(hitChain.getOutputPort());
-        assertThat(hitChain.getOutputPort().port(), is(UP_PORT));
-        assertThat(hitChain.getHitChain().size(), is(8));
-        assertEquals(OUT_L3_ECMP_PACKET_OFDPA, hitChain.getEgressPacket());
+        assertNotNull(hitChain.outputPort());
+        assertThat(hitChain.outputPort().port(), is(UP_PORT));
+        assertThat(hitChain.hitChain().size(), is(8));
+        assertEquals(OUT_L3_ECMP_PACKET_OFDPA, hitChain.egressPacket().packet());
         assertFalse(hitChain.isDropped());
-        assertEquals(chains.get(0), hitChain.getHitChain());
+        assertEquals(chains.get(0), hitChain.hitChain());
 
-        hitChain = pipelineOutput.getHitChains().get(1);
+        hitChain = pipelineOutput.hitChains().get(1);
         assertNotNull(hitChain);
 
-        assertNotNull(hitChain.getOutputPort());
-        assertThat(hitChain.getOutputPort().port(), is(UP_PORT_1));
-        assertThat(hitChain.getHitChain().size(), is(8));
-        assertEquals(OUT_L3_ECMP_PACKET_OFDPA_1, hitChain.getEgressPacket());
+        assertNotNull(hitChain.outputPort());
+        assertThat(hitChain.outputPort().port(), is(UP_PORT_1));
+        assertThat(hitChain.hitChain().size(), is(8));
+        assertEquals(OUT_L3_ECMP_PACKET_OFDPA_1, hitChain.egressPacket().packet());
         assertFalse(hitChain.isDropped());
-        assertEquals(chains.get(1), hitChain.getHitChain());
+        assertEquals(chains.get(1), hitChain.hitChain());
     }
 
     /**
@@ -608,27 +610,28 @@ public class OfdpaPipelineTraceableTest {
      */
     @Test
     public void testOvsOfdpaMplsEcmp() {
-        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(IN_MPLS_ECMP_PACKET, UP_OFDPA_CP,
+        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(new PipelineTraceablePacket(
+                IN_MPLS_ECMP_PACKET), UP_OFDPA_CP,
                 getDataPlaneEntities(OVS_OFDPA_DRIVER, MPLS_ECMP_OVS_OFDPA));
         PipelineTraceable pipelineTraceable = setUpOvsOfdpa();
 
         PipelineTraceableOutput pipelineOutput = pipelineTraceable.apply(pipelineInput);
         assertNotNull(pipelineOutput);
 
-        assertThat(pipelineOutput.getHitChains().size(), is(1));
-        assertThat(pipelineOutput.getResult(), is(PipelineTraceableResult.SUCCESS));
+        assertThat(pipelineOutput.hitChains().size(), is(1));
+        assertThat(pipelineOutput.result(), is(PipelineTraceableResult.SUCCESS));
 
-        PipelineTraceableHitChain hitChain = pipelineOutput.getHitChains().get(0);
+        PipelineTraceableHitChain hitChain = pipelineOutput.hitChains().get(0);
         assertNotNull(hitChain);
         List<List<DataPlaneEntity>> chains = getHitChains(MPLS_ECMP_OVS_OFDPA);
         assertThat(chains.size(), is(1));
 
-        assertNotNull(hitChain.getOutputPort());
-        assertThat(hitChain.getOutputPort().port(), is(UP_PORT_1));
-        assertThat(hitChain.getHitChain().size(), is(9));
-        assertEquals(OUT_MPLS_ECMP_PACKET, hitChain.getEgressPacket());
+        assertNotNull(hitChain.outputPort());
+        assertThat(hitChain.outputPort().port(), is(UP_PORT_1));
+        assertThat(hitChain.hitChain().size(), is(9));
+        assertEquals(OUT_MPLS_ECMP_PACKET, hitChain.egressPacket().packet());
         assertFalse(hitChain.isDropped());
-        assertEquals(chains.get(0), hitChain.getHitChain());
+        assertEquals(chains.get(0), hitChain.hitChain());
     }
 
     /**
@@ -636,27 +639,27 @@ public class OfdpaPipelineTraceableTest {
      */
     @Test
     public void testOfdpaMplsEcmp() {
-        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(IN_MPLS_ECMP_PACKET_OFDPA, OFDPA_CP,
-                getDataPlaneEntities(OFDPA_DRIVER, MPLS_ECMP_OFDPA));
+        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(new PipelineTraceablePacket(
+                IN_MPLS_ECMP_PACKET_OFDPA), OFDPA_CP, getDataPlaneEntities(OFDPA_DRIVER, MPLS_ECMP_OFDPA));
         PipelineTraceable pipelineTraceable = setUpOfdpa();
 
         PipelineTraceableOutput pipelineOutput = pipelineTraceable.apply(pipelineInput);
         assertNotNull(pipelineOutput);
 
-        assertThat(pipelineOutput.getHitChains().size(), is(1));
-        assertThat(pipelineOutput.getResult(), is(PipelineTraceableResult.SUCCESS));
+        assertThat(pipelineOutput.hitChains().size(), is(1));
+        assertThat(pipelineOutput.result(), is(PipelineTraceableResult.SUCCESS));
 
-        PipelineTraceableHitChain hitChain = pipelineOutput.getHitChains().get(0);
+        PipelineTraceableHitChain hitChain = pipelineOutput.hitChains().get(0);
         assertNotNull(hitChain);
         List<List<DataPlaneEntity>> chains = getHitChains(MPLS_ECMP_OFDPA);
         assertThat(chains.size(), is(1));
 
-        assertNotNull(hitChain.getOutputPort());
-        assertThat(hitChain.getOutputPort().port(), is(UP_PORT_1));
-        assertThat(hitChain.getHitChain().size(), is(7));
+        assertNotNull(hitChain.outputPort());
+        assertThat(hitChain.outputPort().port(), is(UP_PORT_1));
+        assertThat(hitChain.hitChain().size(), is(7));
         assertFalse(hitChain.isDropped());
-        assertEquals(chains.get(0), hitChain.getHitChain());
-        assertEquals(OUT_MPLS_ECMP_PACKET, hitChain.getEgressPacket());
+        assertEquals(chains.get(0), hitChain.hitChain());
+        assertEquals(OUT_MPLS_ECMP_PACKET, hitChain.egressPacket().packet());
     }
 
     /**
@@ -664,25 +667,25 @@ public class OfdpaPipelineTraceableTest {
      */
     @Test
     public void testOvsOfdpaL2BroadEmpty() {
-        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(IN_L2_BROAD_UNTAG_PACKET, OFDPA_CP,
-                getDataPlaneEntities(OVS_OFDPA_DRIVER, L2_BROAD_EMPTY_OVS_OFDPA));
+        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(new PipelineTraceablePacket(
+                IN_L2_BROAD_UNTAG_PACKET), OFDPA_CP, getDataPlaneEntities(OVS_OFDPA_DRIVER, L2_BROAD_EMPTY_OVS_OFDPA));
         PipelineTraceable pipelineTraceable = setUpOvsOfdpa();
 
         PipelineTraceableOutput pipelineOutput = pipelineTraceable.apply(pipelineInput);
         assertNotNull(pipelineOutput);
-        assertThat(pipelineOutput.getHitChains().size(), is(1));
-        assertThat(pipelineOutput.getResult(), is(PipelineTraceableResult.NO_GROUP_MEMBERS));
+        assertThat(pipelineOutput.hitChains().size(), is(1));
+        assertThat(pipelineOutput.result(), is(PipelineTraceableResult.NO_GROUP_MEMBERS));
 
-        PipelineTraceableHitChain hitChain = pipelineOutput.getHitChains().get(0);
+        PipelineTraceableHitChain hitChain = pipelineOutput.hitChains().get(0);
         assertNotNull(hitChain);
         List<List<DataPlaneEntity>> chains = getHitChains(L2_BROAD_EMPTY_OVS_OFDPA);
         assertThat(chains.size(), is(1));
 
-        assertNull(hitChain.getOutputPort());
-        assertThat(hitChain.getHitChain().size(), is(6));
-        assertEquals(OUT_L2_BROAD_EMPTY, hitChain.getEgressPacket());
+        assertNull(hitChain.outputPort());
+        assertThat(hitChain.hitChain().size(), is(6));
+        assertEquals(OUT_L2_BROAD_EMPTY, hitChain.egressPacket().packet());
         assertTrue(hitChain.isDropped());
-        assertEquals(chains.get(0), hitChain.getHitChain());
+        assertEquals(chains.get(0), hitChain.hitChain());
     }
 
     /**
@@ -690,25 +693,25 @@ public class OfdpaPipelineTraceableTest {
      */
     @Test
     public void testOfdpaL2BroadEmpty() {
-        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(IN_L2_BROAD_UNTAG_PACKET, OFDPA_CP,
-                getDataPlaneEntities(OFDPA_DRIVER, L2_BROAD_EMPTY_OFDPA));
+        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(new PipelineTraceablePacket(
+                IN_L2_BROAD_UNTAG_PACKET), OFDPA_CP, getDataPlaneEntities(OFDPA_DRIVER, L2_BROAD_EMPTY_OFDPA));
         PipelineTraceable pipelineTraceable = setUpOfdpa();
 
         PipelineTraceableOutput pipelineOutput = pipelineTraceable.apply(pipelineInput);
         assertNotNull(pipelineOutput);
-        assertThat(pipelineOutput.getHitChains().size(), is(1));
-        assertThat(pipelineOutput.getResult(), is(PipelineTraceableResult.NO_GROUP_MEMBERS));
+        assertThat(pipelineOutput.hitChains().size(), is(1));
+        assertThat(pipelineOutput.result(), is(PipelineTraceableResult.NO_GROUP_MEMBERS));
 
-        PipelineTraceableHitChain hitChain = pipelineOutput.getHitChains().get(0);
+        PipelineTraceableHitChain hitChain = pipelineOutput.hitChains().get(0);
         assertNotNull(hitChain);
         List<List<DataPlaneEntity>> chains = getHitChains(L2_BROAD_EMPTY_OFDPA);
         assertThat(chains.size(), is(1));
 
-        assertNull(hitChain.getOutputPort());
-        assertThat(hitChain.getHitChain().size(), is(4));
-        assertEquals(OUT_L2_BROAD_EMPTY, hitChain.getEgressPacket());
+        assertNull(hitChain.outputPort());
+        assertThat(hitChain.hitChain().size(), is(4));
+        assertEquals(OUT_L2_BROAD_EMPTY, hitChain.egressPacket().packet());
         assertTrue(hitChain.isDropped());
-        assertEquals(chains.get(0), hitChain.getHitChain());
+        assertEquals(chains.get(0), hitChain.hitChain());
     }
 
     /**
@@ -716,26 +719,27 @@ public class OfdpaPipelineTraceableTest {
      */
     @Test
     public void testOvsOfdpaL2BridingNotOrdered() {
-        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(IN_L2_BRIDG_UNTAG_PACKET, OFDPA_CP,
-                getDataPlaneEntities(OVS_OFDPA_DRIVER, L2_BRIDG_NOT_ORDERED_OVS_OFDPA));
+        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(new PipelineTraceablePacket(
+                IN_L2_BRIDG_UNTAG_PACKET), OFDPA_CP, getDataPlaneEntities(OVS_OFDPA_DRIVER,
+                L2_BRIDG_NOT_ORDERED_OVS_OFDPA));
         PipelineTraceable pipelineTraceable = setUpOvsOfdpa();
 
         PipelineTraceableOutput pipelineOutput = pipelineTraceable.apply(pipelineInput);
         assertNotNull(pipelineOutput);
-        assertThat(pipelineOutput.getHitChains().size(), is(1));
-        assertThat(pipelineOutput.getResult(), is(PipelineTraceableResult.SUCCESS));
+        assertThat(pipelineOutput.hitChains().size(), is(1));
+        assertThat(pipelineOutput.result(), is(PipelineTraceableResult.SUCCESS));
 
-        PipelineTraceableHitChain hitChain = pipelineOutput.getHitChains().get(0);
+        PipelineTraceableHitChain hitChain = pipelineOutput.hitChains().get(0);
         assertNotNull(hitChain);
         List<List<DataPlaneEntity>> chains = getHitChains(L2_BRIDG_NOT_ORDERED_OVS_OFDPA);
         assertThat(chains.size(), is(1));
 
-        assertNotNull(hitChain.getOutputPort());
-        assertThat(hitChain.getOutputPort().port(), is(OUT_PORT));
-        assertThat(hitChain.getHitChain().size(), is(6));
-        assertEquals(IN_L2_BRIDG_UNTAG_PACKET, hitChain.getEgressPacket());
+        assertNotNull(hitChain.outputPort());
+        assertThat(hitChain.outputPort().port(), is(OUT_PORT));
+        assertThat(hitChain.hitChain().size(), is(6));
+        assertEquals(IN_L2_BRIDG_UNTAG_PACKET, hitChain.egressPacket().packet());
         assertFalse(hitChain.isDropped());
-        assertEquals(chains.get(0), hitChain.getHitChain());
+        assertEquals(chains.get(0), hitChain.hitChain());
     }
 
     /**
@@ -743,26 +747,26 @@ public class OfdpaPipelineTraceableTest {
      */
     @Test
     public void testOfdpaL2BridingNotOrdered() {
-        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(IN_L2_BRIDG_UNTAG_PACKET, OFDPA_CP,
-                getDataPlaneEntities(OFDPA_DRIVER, L2_BRIDG_NOT_ORDERED_OFDPA));
+        PipelineTraceableInput pipelineInput = new PipelineTraceableInput(new PipelineTraceablePacket(
+                IN_L2_BRIDG_UNTAG_PACKET), OFDPA_CP, getDataPlaneEntities(OFDPA_DRIVER, L2_BRIDG_NOT_ORDERED_OFDPA));
         PipelineTraceable pipelineTraceable = setUpOfdpa();
 
         PipelineTraceableOutput pipelineOutput = pipelineTraceable.apply(pipelineInput);
         assertNotNull(pipelineOutput);
-        assertThat(pipelineOutput.getHitChains().size(), is(1));
-        assertThat(pipelineOutput.getResult(), is(PipelineTraceableResult.SUCCESS));
+        assertThat(pipelineOutput.hitChains().size(), is(1));
+        assertThat(pipelineOutput.result(), is(PipelineTraceableResult.SUCCESS));
 
-        PipelineTraceableHitChain hitChain = pipelineOutput.getHitChains().get(0);
+        PipelineTraceableHitChain hitChain = pipelineOutput.hitChains().get(0);
         assertNotNull(hitChain);
         List<List<DataPlaneEntity>> chains = getHitChains(L2_BRIDG_NOT_ORDERED_OFDPA);
         assertThat(chains.size(), is(1));
 
-        assertNotNull(hitChain.getOutputPort());
-        assertThat(hitChain.getOutputPort().port(), is(OUT_PORT));
-        assertThat(hitChain.getHitChain().size(), is(4));
-        assertEquals(IN_L2_BRIDG_UNTAG_PACKET, hitChain.getEgressPacket());
+        assertNotNull(hitChain.outputPort());
+        assertThat(hitChain.outputPort().port(), is(OUT_PORT));
+        assertThat(hitChain.hitChain().size(), is(4));
+        assertEquals(IN_L2_BRIDG_UNTAG_PACKET, hitChain.egressPacket().packet());
         assertFalse(hitChain.isDropped());
-        assertEquals(chains.get(0), hitChain.getHitChain());
+        assertEquals(chains.get(0), hitChain.hitChain());
     }
 
 }

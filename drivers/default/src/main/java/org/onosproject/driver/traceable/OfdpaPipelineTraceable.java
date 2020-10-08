@@ -30,6 +30,7 @@ import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DataPlaneEntity;
 import org.onosproject.net.PipelineTraceableInput;
 import org.onosproject.net.PipelineTraceableOutput;
+import org.onosproject.net.PipelineTraceablePacket;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.behaviour.PipelineTraceable;
 import org.onosproject.net.behaviour.Pipeliner;
@@ -106,13 +107,14 @@ public class OfdpaPipelineTraceable extends AbstractHandlerBehaviour implements 
         List<FlowEntry> outputFlows = new ArrayList<>();
         List<Instruction> deferredInstructions = new ArrayList<>();
         PipelineTraceableHitChain currentHitChain = PipelineTraceableHitChain.emptyHitChain();
-        TrafficSelector currentPacket = DefaultTrafficSelector.builder(input.ingressPacket()).build();
+        TrafficSelector currentPacket = DefaultTrafficSelector.builder(
+                input.ingressPacket().packet()).build();
 
         // Init step - find out the first table
         int initialTableId = -1;
         FlowEntry nextTableIdEntry = findNextTableIdEntry(initialTableId, input.flows());
         if (nextTableIdEntry == null) {
-            currentHitChain.setEgressPacket(currentPacket);
+            currentHitChain.setEgressPacket(new PipelineTraceablePacket(currentPacket));
             currentHitChain.dropped();
             return outputBuilder.appendToLog("No flow rules for device " + deviceId + ". Aborting")
                     .noFlows()
@@ -137,7 +139,7 @@ public class OfdpaPipelineTraceable extends AbstractHandlerBehaviour implements 
 
                 if (((IndexTableId) tableId).id() == MPLS_L3_TYPE_TABLE) {
                     // Apparently a miss but Table 27 on OFDPA is a fixed table
-                    currentPacket = handleOfdpa27FixedTable(input.ingressPacket(), currentPacket);
+                    currentPacket = handleOfdpa27FixedTable(input.ingressPacket().packet(), currentPacket);
                     // The nextTable should be ACL
                     tableId = IndexTableId.of(ACL_TABLE - 1);
                 }
@@ -147,8 +149,8 @@ public class OfdpaPipelineTraceable extends AbstractHandlerBehaviour implements 
                 log.debug("Next table id entry {}", nextTableIdEntry);
                 // FIXME Find better solution that enable granularity greater than 0 or all rules
                 // (another possibility is max tableId)
-                if (nextTableIdEntry == null && currentHitChain.getHitChain().size() == 0) {
-                    currentHitChain.setEgressPacket(currentPacket);
+                if (nextTableIdEntry == null && currentHitChain.hitChain().size() == 0) {
+                    currentHitChain.setEgressPacket(new PipelineTraceablePacket(currentPacket));
                     currentHitChain.dropped();
                     return outputBuilder.appendToLog("No flow rules for device " + deviceId + ". Aborting")
                             .noFlows()
@@ -173,7 +175,7 @@ public class OfdpaPipelineTraceable extends AbstractHandlerBehaviour implements 
                 }
 
             } else if (flowEntry == null) {
-                currentHitChain.setEgressPacket(currentPacket);
+                currentHitChain.setEgressPacket(new PipelineTraceablePacket(currentPacket));
                 currentHitChain.dropped();
                 return outputBuilder.appendToLog("Packet has no match on table " + tableId
                         + " in device " + deviceId + ". Dropping")
@@ -231,7 +233,7 @@ public class OfdpaPipelineTraceable extends AbstractHandlerBehaviour implements 
                         if (secondVlanFlow != null) {
                             currentHitChain.addDataPlaneEntity(new DataPlaneEntity(secondVlanFlow));
                         } else {
-                            currentHitChain.setEgressPacket(currentPacket);
+                            currentHitChain.setEgressPacket(new PipelineTraceablePacket(currentPacket));
                             currentHitChain.dropped();
                             return outputBuilder.appendToLog("Missing forwarding rule for tagged"
                                     + " packet on " + deviceId)
@@ -253,16 +255,16 @@ public class OfdpaPipelineTraceable extends AbstractHandlerBehaviour implements 
         // need to reflect the updates performed on the packets and on the chain.
         List<PortNumber> outputPorts = new ArrayList<>();
         handleOutputFlows(currentPacket, outputFlows, egressPacket, outputPorts, currentHitChain,
-                outputBuilder, input.ingressPacket());
+                outputBuilder, input.ingressPacket().packet());
 
         // Immediate instructions
         log.debug("Current packet {} - applying immediate instructions", currentPacket);
         // Handling immediate instructions which basically means handling output to controller.
         // OVS has immediate -> group -> OUTPUT:CONTROLLER.
-        List<DataPlaneEntity> entries = ImmutableList.copyOf(currentHitChain.getHitChain());
+        List<DataPlaneEntity> entries = ImmutableList.copyOf(currentHitChain.hitChain());
         // Go to the next step - using a copy of the egress packet and of the hit chain
         PipelineTraceableHitChain newHitChain = PipelineTraceableHitChain.emptyHitChain();
-        currentHitChain.getHitChain().forEach(newHitChain::addDataPlaneEntity);
+        currentHitChain.hitChain().forEach(newHitChain::addDataPlaneEntity);
         TrafficSelector.Builder newEgressPacket = DefaultTrafficSelector.builder(egressPacket.build());
         for (DataPlaneEntity entry : entries) {
             flowEntry = entry.getFlowEntry();
@@ -286,7 +288,7 @@ public class OfdpaPipelineTraceable extends AbstractHandlerBehaviour implements 
         // If there are no outputs - packet is dropped
         // Let's store the partial hit chain and set a message
         if (outputPorts.isEmpty()) {
-            currentHitChain.setEgressPacket(egressPacket.build());
+            currentHitChain.setEgressPacket(new PipelineTraceablePacket(egressPacket.build()));
             currentHitChain.dropped();
             outputBuilder.appendToLog("Packet has no output in device " + deviceId + ". Dropping")
                     .dropped()
@@ -563,8 +565,8 @@ public class OfdpaPipelineTraceable extends AbstractHandlerBehaviour implements 
         // Create the final hit chain from the current one (deep copy)
         ConnectPoint outputPort = new ConnectPoint(deviceId, outputInstruction.port());
         PipelineTraceableHitChain finalHitChain = new PipelineTraceableHitChain(outputPort,
-                Lists.newArrayList(currentHitChain.getHitChain()),
-                egressPacket.build());
+                Lists.newArrayList(currentHitChain.hitChain()),
+                new PipelineTraceablePacket(egressPacket.build()));
         // Dropped early
         if (dropped) {
             log.debug("Packet {} has been dropped", egressPacket.build());
@@ -585,11 +587,12 @@ public class OfdpaPipelineTraceable extends AbstractHandlerBehaviour implements 
 
         VlanIdCriterion initialVid = (VlanIdCriterion) initialPacket
                 .getCriterion(Criterion.Type.VLAN_VID);
-        VlanIdCriterion finalVid = (VlanIdCriterion) currentHitChain.getEgressPacket()
+        VlanIdCriterion finalVid = (VlanIdCriterion) currentHitChain.egressPacket().packet()
                 .getCriterion(Criterion.Type.VLAN_VID);
 
         if (initialVid != null && !initialVid.equals(finalVid) && initialVid.vlanId().equals(VlanId.NONE)) {
-            Set<Criterion> finalCriteria = new HashSet<>(currentHitChain.getEgressPacket().criteria());
+            Set<Criterion> finalCriteria = new HashSet<>(currentHitChain.egressPacket()
+                    .packet().criteria());
             //removing the final vlanId
             finalCriteria.remove(finalVid);
             TrafficSelector.Builder packetUpdated = DefaultTrafficSelector.builder();
@@ -597,7 +600,7 @@ public class OfdpaPipelineTraceable extends AbstractHandlerBehaviour implements 
             //Initial was none so we set it to that
             packetUpdated.add(Criteria.matchVlanId(VlanId.NONE));
             //Update final packet
-            currentHitChain.setEgressPacket(packetUpdated.build());
+            currentHitChain.setEgressPacket(new PipelineTraceablePacket(packetUpdated.build()));
         }
     }
 
@@ -628,7 +631,7 @@ public class OfdpaPipelineTraceable extends AbstractHandlerBehaviour implements 
                 // or add the output to the possible outputs for this packet
                 if (instruction.type().equals(Instruction.Type.OUTPUT)) {
                     buildOutputFromDevice(egressPacket, outputPorts, (OutputInstruction) instruction,
-                            currentHitChain, outputBuilder, input.ingressPacket(), dropped);
+                            currentHitChain, outputBuilder, input.ingressPacket().packet(), dropped);
                 } else {
                     egressPacket = translateInstruction(egressPacket, instruction);
                 }
@@ -645,7 +648,7 @@ public class OfdpaPipelineTraceable extends AbstractHandlerBehaviour implements 
 
             // group does not exist in the dataplane
             if (group == null) {
-                currentHitChain.setEgressPacket(egressPacket.build());
+                currentHitChain.setEgressPacket(new PipelineTraceablePacket(egressPacket.build()));
                 currentHitChain.dropped();
                 outputBuilder.appendToLog("Null group for Instruction " + instr)
                         .noGroups()
@@ -659,7 +662,7 @@ public class OfdpaPipelineTraceable extends AbstractHandlerBehaviour implements 
             if (group.buckets().buckets().size() == 0) {
                 // add the group to the traversed groups
                 currentHitChain.addDataPlaneEntity(new DataPlaneEntity(group));
-                currentHitChain.setEgressPacket(egressPacket.build());
+                currentHitChain.setEgressPacket(new PipelineTraceablePacket(egressPacket.build()));
                 currentHitChain.dropped();
                 outputBuilder.appendToLog("Group " + group.id() + " has no buckets")
                         .noMembers()
@@ -677,7 +680,7 @@ public class OfdpaPipelineTraceable extends AbstractHandlerBehaviour implements 
 
                 // Go to the next step - using a copy of the egress packet and of the hit chain
                 newHitChain = PipelineTraceableHitChain.emptyHitChain();
-                currentHitChain.getHitChain().forEach(newHitChain::addDataPlaneEntity);
+                currentHitChain.hitChain().forEach(newHitChain::addDataPlaneEntity);
                 newEgressPacket = DefaultTrafficSelector.builder(egressPacket.build());
                 getGroupsFromInstructions(groups, bucket.treatment().allInstructions(), newEgressPacket,
                         outputPorts, newHitChain, outputBuilder, input,
@@ -733,7 +736,7 @@ public class OfdpaPipelineTraceable extends AbstractHandlerBehaviour implements 
         // of the egress packet and of the current hit chain.
         if (outputFlowInstruction.size() == 1) {
             buildOutputFromDevice(newEgressPacket, outputPorts, (OutputInstruction) outputFlowInstruction.get(0),
-                    currentHitChain, outputBuilder, input.ingressPacket(), false);
+                    currentHitChain, outputBuilder, input.ingressPacket().packet(), false);
         }
 
         // If there is no output let's see if there any deferred instruction point to groups.
