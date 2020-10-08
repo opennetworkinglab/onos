@@ -74,7 +74,7 @@ public final class PipelineTraceableOutput {
      *
      * @return the log message
      */
-    public String getLog() {
+    public String log() {
         return log;
     }
 
@@ -83,7 +83,7 @@ public final class PipelineTraceableOutput {
      *
      * @return the pipeline hit chains
      */
-    public List<PipelineTraceableHitChain> getHitChains() {
+    public List<PipelineTraceableHitChain> hitChains() {
         return hitChains;
     }
 
@@ -92,7 +92,7 @@ public final class PipelineTraceableOutput {
      *
      * @return the pipeline traceable result
      */
-    public PipelineTraceableResult getResult() {
+    public PipelineTraceableResult result() {
         return result;
     }
 
@@ -106,6 +106,16 @@ public final class PipelineTraceableOutput {
     }
 
     /**
+     * Returns a new builder initialized with the traceable output.
+     *
+     * @param pipelineTraceableOutput the output used for the initialization
+     * @return an initialized builder
+     */
+    public static PipelineTraceableOutput.Builder builder(PipelineTraceableOutput pipelineTraceableOutput) {
+        return new PipelineTraceableOutput.Builder(pipelineTraceableOutput);
+    }
+
+    /**
      * Builder of pipeline traceable entities.
      */
     public static final class Builder {
@@ -113,6 +123,15 @@ public final class PipelineTraceableOutput {
         private StringBuilder log = new StringBuilder();
         private List<PipelineTraceableHitChain> hitChains = Lists.newArrayList();
         private PipelineTraceableResult result = PipelineTraceableResult.SUCCESS;
+
+        private Builder() {
+        }
+
+        private Builder(PipelineTraceableOutput traceableOutput) {
+            appendToLog("\n" + traceableOutput.log());
+            setResult(traceableOutput.result());
+            traceableOutput.hitChains().forEach(this::addHitChain);
+        }
 
         /**
          * Appends a message to the log.
@@ -128,7 +147,7 @@ public final class PipelineTraceableOutput {
             return this;
         }
 
-        private Builder setResult(PipelineTraceableResult result) {
+        public Builder setResult(PipelineTraceableResult result) {
             // Do not override original failure
             if (this.result == PipelineTraceableResult.SUCCESS) {
                 this.result = result;

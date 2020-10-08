@@ -78,7 +78,6 @@ final class TraceableTestObjects {
 
     static final TrafficSelector IN_ARP_PACKET = DefaultTrafficSelector.builder()
             .matchInPort(OFDPA_CP.port())
-            .matchIPDst(IpPrefix.valueOf("255.255.255.255/32"))
             .matchEthType(EthType.EtherType.ARP.ethType().toShort())
             .matchVlanId(VlanId.NONE)
             .build();
@@ -122,7 +121,6 @@ final class TraceableTestObjects {
             .matchEthDst(LEAF_MAC)
             .matchEthType(MPLS_UNICAST.ethType().toShort())
             .matchVlanId(VlanId.NONE)
-            .matchIPDst(IP_DST_1)
             .matchMplsLabel(MPLS_LABEL)
             .matchMplsBos(true)
             .build();
@@ -132,7 +130,6 @@ final class TraceableTestObjects {
             .matchEthDst(LEAF_MAC)
             .matchEthType(MPLS_UNICAST.ethType().toShort())
             .matchVlanId(VlanId.NONE)
-            .matchIPDst(IP_DST_1)
             .matchMplsLabel(MPLS_LABEL)
             .matchMplsBos(true)
             .matchMetadata(IPV4.ethType().toShort())
@@ -184,7 +181,6 @@ final class TraceableTestObjects {
             .matchEthDst(SPINE_MAC)
             .matchEthType(IPV4.ethType().toShort())
             .matchVlanId(VlanId.NONE)
-            .matchIPDst(IP_DST_1)
             .build();
 
     static final TrafficSelector OUT_L2_BROAD_EMPTY = DefaultTrafficSelector.builder()
