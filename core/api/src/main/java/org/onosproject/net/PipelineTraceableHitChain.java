@@ -17,7 +17,6 @@
 package org.onosproject.net;
 
 import com.google.common.collect.Lists;
-import org.onosproject.net.flow.TrafficSelector;
 
 import java.util.List;
 import java.util.Objects;
@@ -25,11 +24,11 @@ import java.util.Objects;
 /**
  * Class to represent the pipeline hit chain and the result of the pipeline processing.
  */
-public class PipelineTraceableHitChain {
+public final class PipelineTraceableHitChain {
 
     private ConnectPoint outputPort;
     private List<DataPlaneEntity> hitChain;
-    private TrafficSelector egressPacket;
+    private PipelineTraceablePacket egressPacket;
     // By default packets are dropped
     private boolean dropped = true;
 
@@ -42,10 +41,10 @@ public class PipelineTraceableHitChain {
      *
      * @param output   the output connect point
      * @param hits     the hits in the pipeline (flows, groups and other abstractions)
-     * @param packet   the selector representing the final packet
+     * @param packet   the traceable packet representing the final packet
      */
     public PipelineTraceableHitChain(ConnectPoint output, List<DataPlaneEntity> hits,
-                                     TrafficSelector packet) {
+                                     PipelineTraceablePacket packet) {
         this.outputPort = output;
         this.hitChain = hits;
         this.egressPacket = packet;
@@ -65,7 +64,7 @@ public class PipelineTraceableHitChain {
      *
      * @return the connect point
      */
-    public ConnectPoint getOutputPort() {
+    public ConnectPoint outputPort() {
         return outputPort;
     }
 
@@ -83,7 +82,7 @@ public class PipelineTraceableHitChain {
      *
      * @return flows and groups that matched.
      */
-    public List<DataPlaneEntity> getHitChain() {
+    public List<DataPlaneEntity> hitChain() {
         return hitChain;
     }
 
@@ -113,9 +112,9 @@ public class PipelineTraceableHitChain {
     /**
      * Returns the egress packet after traversing the pipeline.
      *
-     * @return the selector representing the packet infos
+     * @return the traceable packet representing the packet infos
      */
-    public TrafficSelector getEgressPacket() {
+    public PipelineTraceablePacket egressPacket() {
         return egressPacket;
     }
 
@@ -124,7 +123,7 @@ public class PipelineTraceableHitChain {
      *
      * @param egressPacket the egress packet
      */
-    public void setEgressPacket(TrafficSelector egressPacket) {
+    public void setEgressPacket(PipelineTraceablePacket egressPacket) {
         this.egressPacket = egressPacket;
     }
 
@@ -164,7 +163,7 @@ public class PipelineTraceableHitChain {
         if (obj instanceof PipelineTraceableHitChain) {
             PipelineTraceableHitChain that = (PipelineTraceableHitChain) obj;
             return Objects.equals(this.outputPort, that.outputPort) &&
-                    Objects.equals(this.hitChain, that.getHitChain()) &&
+                    Objects.equals(this.hitChain, that.hitChain) &&
                     Objects.equals(this.egressPacket, that.egressPacket) &&
                     Objects.equals(this.dropped, that.dropped);
         }
