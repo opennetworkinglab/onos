@@ -341,8 +341,7 @@ public class K8sSwitchingArpHandler {
         }
 
         if (replyMac == null) {
-            log.debug("Failed to find MAC address for {}", targetIp);
-            return;
+            replyMac = MacAddress.valueOf(gatewayMac);
         }
 
         Ethernet ethReply = ARP.buildArpReply(
