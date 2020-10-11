@@ -332,7 +332,7 @@ public class K8sRoutingSnatHandler {
             return;
         }
 
-        TrafficSelector selector = DefaultTrafficSelector.builder()
+        TrafficSelector ipSelector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchInPort(k8sNode.routerToExtPortNum())
                 .build();
@@ -344,7 +344,21 @@ public class K8sRoutingSnatHandler {
         k8sFlowRuleService.setRule(
                 appId,
                 bridge.deviceId(),
-                selector,
+                ipSelector,
+                treatment,
+                PRIORITY_DEFAULT_RULE,
+                ROUTER_ENTRY_TABLE,
+                install);
+
+        TrafficSelector arpSelector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_ARP)
+                .matchInPort(k8sNode.routerToExtPortNum())
+                .build();
+
+        k8sFlowRuleService.setRule(
+                appId,
+                bridge.deviceId(),
+                arpSelector,
                 treatment,
                 PRIORITY_DEFAULT_RULE,
                 ROUTER_ENTRY_TABLE,
@@ -358,7 +372,7 @@ public class K8sRoutingSnatHandler {
             return;
         }
 
-        TrafficSelector selector = DefaultTrafficSelector.builder()
+        TrafficSelector ipSelector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchInPort(k8sNode.routerPortNum())
                 .matchIPDst(IpPrefix.valueOf(k8sNode.extBridgeIp(), 32))
@@ -371,7 +385,22 @@ public class K8sRoutingSnatHandler {
         k8sFlowRuleService.setRule(
                 appId,
                 bridge.deviceId(),
-                selector,
+                ipSelector,
+                treatment,
+                PRIORITY_DEFAULT_RULE,
+                ROUTER_ENTRY_TABLE,
+                install);
+
+        TrafficSelector arpSelector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_ARP)
+                .matchInPort(k8sNode.routerPortNum())
+                .matchArpTpa(Ip4Address.valueOf(k8sNode.extBridgeIp().toString()))
+                .build();
+
+        k8sFlowRuleService.setRule(
+                appId,
+                bridge.deviceId(),
+                arpSelector,
                 treatment,
                 PRIORITY_DEFAULT_RULE,
                 ROUTER_ENTRY_TABLE,
