@@ -88,6 +88,7 @@ public class DhcpRelayAgentOption extends DhcpOption {
             ByteBuffer byteBuffer = ByteBuffer.wrap(data, offset, length);
             relayOption.code = byteBuffer.get();
             relayOption.length = byteBuffer.get();
+            relayOption.data = data;
 
             while (byteBuffer.remaining() >= DEFAULT_LEN) {
                 byte subOptCode = byteBuffer.get();
