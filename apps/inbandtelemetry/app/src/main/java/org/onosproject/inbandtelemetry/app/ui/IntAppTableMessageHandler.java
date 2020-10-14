@@ -56,8 +56,10 @@ public class IntAppTableMessageHandler extends UiMessageHandler {
     private static final String DST_PORT = "dstPort";
     private static final String PROTOCOL = "protocol";
     private static final String METADATA = "metadata";
+    private static final String TELEMETRY_MODE = "telemetryMode";
 
-    private static final String[] COLUMN_IDS = {ID, SRC_ADDR, DST_ADDR, SRC_PORT, DST_PORT, PROTOCOL, METADATA};
+    private static final String[] COLUMN_IDS = {
+            ID, SRC_ADDR, DST_ADDR, SRC_PORT, DST_PORT, PROTOCOL, METADATA, TELEMETRY_MODE};
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -130,6 +132,7 @@ public class IntAppTableMessageHandler extends UiMessageHandler {
                 metaStr += ", ";
             }
             row.cell(METADATA, metaStr);
+            row.cell(TELEMETRY_MODE, intent.telemetryMode());
         }
     }
 
