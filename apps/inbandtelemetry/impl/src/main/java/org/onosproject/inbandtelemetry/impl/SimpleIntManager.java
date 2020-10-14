@@ -65,7 +65,6 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -101,25 +100,25 @@ public class SimpleIntManager implements IntService {
     private static final String APP_NAME = "org.onosproject.inbandtelemetry";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    private CoreService coreService;
+    protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    private DeviceService deviceService;
+    protected DeviceService deviceService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    private StorageService storageService;
+    protected StorageService storageService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    private MastershipService mastershipService;
+    protected MastershipService mastershipService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    private HostService hostService;
+    protected HostService hostService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    private NetworkConfigService netcfgService;
+    protected NetworkConfigService netcfgService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    private NetworkConfigRegistry netcfgRegistry;
+    protected NetworkConfigRegistry netcfgRegistry;
 
     private final Striped<Lock> deviceLocks = Striped.lock(10);
 
@@ -386,7 +385,7 @@ public class SimpleIntManager implements IntService {
         device.as(IntProgrammable.class).cleanup();
     }
 
-    private boolean configDevice(DeviceId deviceId) {
+    protected boolean configDevice(DeviceId deviceId) {
         // Returns true if config was successful, false if not and a clean up is
         // needed.
         final Device device = deviceService.getDevice(deviceId);
@@ -400,12 +399,11 @@ public class SimpleIntManager implements IntService {
         }
 
         final boolean isEdge = !hostService.getConnectedHosts(deviceId).isEmpty();
-        final IntDeviceRole intDeviceRole = isEdge
-                ? IntDeviceRole.SOURCE_SINK
-                : IntDeviceRole.TRANSIT;
+        final IntDeviceRole intDeviceRole =
+                isEdge ? IntDeviceRole.SOURCE_SINK : IntDeviceRole.TRANSIT;
 
         log.info("Started programming of INT device {} with role {}...",
-                 deviceId, intDeviceRole);
+                deviceId, intDeviceRole);
 
         final IntProgrammable intProg = device.as(IntProgrammable.class);
 
@@ -419,12 +417,16 @@ public class SimpleIntManager implements IntService {
             return false;
         }
 
-        if (intDeviceRole != IntDeviceRole.SOURCE_SINK) {
-            // Stop here, no more configuration needed for transit devices.
+        boolean supportSource = intProg.supportsFunctionality(IntProgrammable.IntFunctionality.SOURCE);
+        boolean supportSink = intProg.supportsFunctionality(IntProgrammable.IntFunctionality.SINK);
+        boolean supportPostcard = intProg.supportsFunctionality(IntProgrammable.IntFunctionality.POSTCARD);
+
+        if (intDeviceRole != IntDeviceRole.SOURCE_SINK && !supportPostcard) {
+            // Stop here, no more configuration needed for transit devices unless it support postcard.
             return true;
         }
 
-        if (intProg.supportsFunctionality(IntProgrammable.IntFunctionality.SINK)) {
+        if (supportSink || supportPostcard) {
             if (!intProg.setupIntConfig(intConfig.get())) {
                 log.warn("Unable to apply INT report config on {}", deviceId);
                 return false;
@@ -440,14 +442,14 @@ public class SimpleIntManager implements IntService {
                 .collect(Collectors.toSet());
 
         for (PortNumber port : hostPorts) {
-            if (intProg.supportsFunctionality(IntProgrammable.IntFunctionality.SOURCE)) {
+            if (supportSource) {
                 log.info("Setting port {}/{} as INT source port...", deviceId, port);
                 if (!intProg.setSourcePort(port)) {
                     log.warn("Unable to set INT source port {} on {}", port, deviceId);
                     return false;
                 }
             }
-            if (intProg.supportsFunctionality(IntProgrammable.IntFunctionality.SINK)) {
+            if (supportSink) {
                 log.info("Setting port {}/{} as INT sink port...", deviceId, port);
                 if (!intProg.setSinkPort(port)) {
                     log.warn("Unable to set INT sink port {} on {}", port, deviceId);
@@ -456,28 +458,32 @@ public class SimpleIntManager implements IntService {
             }
         }
 
-        if (!intProg.supportsFunctionality(IntProgrammable.IntFunctionality.SOURCE)) {
-            // Stop here, no more configuration needed for sink devices.
+        if (!supportSource && !supportPostcard) {
+            // Stop here, no more configuration needed for sink devices unless
+            // it supports postcard mode.
             return true;
         }
 
         // Apply intents.
         // This is a trivial implementation where we simply get the
-        // corresponding INT objective from an intent and we apply to all source
-        // device.
-        final Collection<IntObjective> objectives = intentMap.values().stream()
-                .map(v -> getIntObjective(v.value()))
-                .collect(Collectors.toList());
+        // corresponding INT objective from an intent and we apply to all
+        // device which support reporting.
         int appliedCount = 0;
-        for (IntObjective objective : objectives) {
-            if (intProg.addIntObjective(objective)) {
-                appliedCount = appliedCount + 1;
+        for (Versioned<IntIntent> versionedIntent : intentMap.values()) {
+            IntIntent intent = versionedIntent.value();
+            IntObjective intObjective = getIntObjective(intent);
+            if (intent.telemetryMode() == IntIntent.TelemetryMode.INBAND_TELEMETRY && supportSource) {
+                intProg.addIntObjective(intObjective);
+                appliedCount++;
+            } else if (intent.telemetryMode() == IntIntent.TelemetryMode.POSTCARD && supportPostcard) {
+                intProg.addIntObjective(intObjective);
+                appliedCount++;
+            } else {
+                log.warn("Device {} does not support intent {}.", deviceId, intent);
             }
         }
-
         log.info("Completed programming of {}, applied {} INT objectives of {} total",
-                 deviceId, appliedCount, objectives.size());
-
+                deviceId, appliedCount, intentMap.size());
         return true;
     }
 

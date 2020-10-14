@@ -15,6 +15,7 @@
  */
 package org.onosproject.net.behaviour.inbandtelemetry;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.TrafficSelector;
@@ -73,6 +74,24 @@ public final class IntObjective {
      */
     public static IntObjective.Builder builder() {
         return new Builder();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        IntObjective that = (IntObjective) o;
+        return Objects.equal(selector, that.selector) &&
+                Objects.equal(metadataTypes, that.metadataTypes);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(selector, metadataTypes);
     }
 
     /**

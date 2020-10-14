@@ -82,6 +82,7 @@ export class IntAppComponent extends TableBaseImpl implements OnInit, OnDestroy 
             l4SrcPort: new FormControl(null, [ Validators.pattern(regSendPort)]),
             l4DstPort: new FormControl(null, [ Validators.pattern(regSendPort)]),
             protocol: new FormControl(),
+            telemetryMode: new FormControl("POSTCARD")
         });
         this.log.debug('IntAppComponent initialized');
     }
@@ -120,7 +121,8 @@ export class IntAppComponent extends TableBaseImpl implements OnInit, OnDestroy 
             "l4SrcPort": this.formSend.value.l4SrcPort,
             "l4DstPort": this.formSend.value.l4DstPort,
             "protocol": this.formSend.value.protocol,
-            "metadata": this.formSend.value.name
+            "metadata": this.formSend.value.name,
+            "telemetryMode": this.formSend.value.telemetryMode
         };
         this.wss.sendEvent(intIntentAddReq, intentObjectNode);
     }
