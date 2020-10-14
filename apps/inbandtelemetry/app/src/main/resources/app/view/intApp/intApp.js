@@ -83,7 +83,8 @@
             "l4SrcPort": $scope.l4SrcPort,
             "l4DstPort": $scope.l4DstPort,
             "protocol": $scope.protocol,
-            "metadata": inst
+            "metadata": inst,
+            "telemetryMode": $scope.telemetryMode
         };
         if (checkArgAndShowMsg()) {
             wss.sendEvent(intIntentAddReq, intentObjectNode);
@@ -228,6 +229,7 @@
                 $scope.l4SrcPort = "";
                 $scope.l4DstPort = "";
                 $scope.protocol = "";
+                $scope.telemetryMode = "POSTCARD";
 
                 // get data the first time...
                 // getData();

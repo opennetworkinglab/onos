@@ -1,0 +1,5 @@
+{
+  "collectorIp": "10.0.0.1",
+  "collectorPort": 32766,
+  "minFlowHopLatencyChangeNs": 32
+}

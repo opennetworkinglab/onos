@@ -154,10 +154,23 @@ public class IntAppUiMessageHandler extends UiMessageHandler {
                 }
             }
 
+            jsonNodeVal = payload.get("telemetryMode");
+            if (jsonNodeVal != null) {
+                if (jsonNodeVal.asText()
+                        .equalsIgnoreCase(IntIntent.TelemetryMode.POSTCARD.toString())) {
+                    builder.withTelemetryMode(IntIntent.TelemetryMode.POSTCARD);
+                } else if (jsonNodeVal.asText()
+                        .equalsIgnoreCase(IntIntent.TelemetryMode.INBAND_TELEMETRY.toString())) {
+                    builder.withTelemetryMode(IntIntent.TelemetryMode.INBAND_TELEMETRY);
+                } else {
+                    log.warn("Unsupport telemetry mode {}", jsonNodeVal.asText());
+                    return;
+                }
+            }
+
             builder.withSelector(sBuilder.build())
                     .withHeaderType(HOP_BY_HOP)
-                    .withReportType(IntIntent.IntReportType.TRACKED_FLOW)
-                    .withTelemetryMode(IntIntent.TelemetryMode.INBAND_TELEMETRY);
+                    .withReportType(IntIntent.IntReportType.TRACKED_FLOW);
             intService.installIntIntent(builder.build());
         }
 

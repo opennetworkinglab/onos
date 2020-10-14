@@ -16,6 +16,7 @@
 package org.onosproject.net.behaviour.inbandtelemetry;
 
 import com.google.common.annotations.Beta;
+import com.google.common.base.Objects;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
@@ -36,14 +37,14 @@ public final class IntDeviceConfig {
          * Embeds telemetry metadata according to the INT specification.
          *
          * @see <a href="https://github.com/p4lang/p4-applications/blob/master/docs/INT.pdf">
-         *     INT sepcification</a>
+         * INT sepcification</a>
          */
         INT,
         /**
          * Embeds telemetry metadata according to the OAM specification.
          *
          * @see <a href="https://tools.ietf.org/html/draft-ietf-ippm-ioam-data">
-         *     Data fields for In-situ OAM</a>
+         * Data fields for In-situ OAM</a>
          */
         IOAM
     }
@@ -166,6 +167,31 @@ public final class IntDeviceConfig {
         return new Builder();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        IntDeviceConfig that = (IntDeviceConfig) o;
+        return enabled == that.enabled &&
+                hopLatencySensitivity == that.hopLatencySensitivity &&
+                Objects.equal(collectorIp, that.collectorIp) &&
+                Objects.equal(collectorPort, that.collectorPort) &&
+                Objects.equal(collectorNextHopMac, that.collectorNextHopMac) &&
+                Objects.equal(sinkIp, that.sinkIp) &&
+                Objects.equal(sinkMac, that.sinkMac) &&
+                spec == that.spec;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(collectorIp, collectorPort, collectorNextHopMac,
+                sinkIp, sinkMac, spec, enabled, hopLatencySensitivity);
+    }
+
     /**
      * An IntConfig object builder.
      */
@@ -280,7 +306,7 @@ public final class IntDeviceConfig {
             checkArgument(minFlowHopLatencyChangeNs >= 0, "Hop latency sensitivity must be positive or zero");
 
             return new IntDeviceConfig(collectorIp, collectorPort, collectorNextHopMac,
-                                 sinkIp, sinkMac, spec, enabled, minFlowHopLatencyChangeNs);
+                    sinkIp, sinkMac, spec, enabled, minFlowHopLatencyChangeNs);
         }
     }
 }

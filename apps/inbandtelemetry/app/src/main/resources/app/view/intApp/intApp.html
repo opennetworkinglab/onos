@@ -46,6 +46,13 @@
                             <option value="UDP">UDP</option>
                         </select>
                     </label>
+                    <label>
+                        Telemetry Mode
+                        <select name="telemetryMode" ng-model="telemetryMode">
+                            <option selected value="POSTCARD">Postcard (INT-XD)</option>
+                            <option value="INBAND_TELEMETRY">Embedded Data (INT-MD)</option>
+                        </select>
+                    </label>
                 </div>
                 <div>
                     <label>
@@ -122,6 +129,7 @@
                         <td colId="dstPort" sortable>Dst Port</td>
                         <td colId="protocol" sortable>Protocol</td>
                         <td colId="metadata" sortable>Metadata</td>
+                        <td colId="telemetryMode" sortable>Telemetry Mode</td>
                     </tr>
                 </table>
             </div>
@@ -138,6 +146,7 @@
                         <td>{{item.dstPort}}</td>
                         <td>{{item.protocol}}</td>
                         <td>{{item.metadata}}</td>
+                        <td>{{item.telemetryMode}}</td>
                     </tr>
                 </table>
             </div>

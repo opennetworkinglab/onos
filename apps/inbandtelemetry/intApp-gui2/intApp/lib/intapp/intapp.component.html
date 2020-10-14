@@ -60,6 +60,13 @@
                                 <option value="UDP">UDP</option>
                             </select>
                         </label>
+                        <label>
+                            Telemetry Mode
+                            <select name="telemetryMode" formControlName="telemetryMode">
+                                <option selected value="POSTCARD">Postcard (INT-XD)</option>
+                                <option value="INBAND_TELEMETRY">Embedded Data (INT-MD)</option>
+                            </select>
+                        </label>
                         <div *ngIf="formSend.controls.ip4DstPrefix.errors" class="invalid-feedback">
                             <div class="error-text" *ngIf="formSend.controls.ip4DstPrefix.errors.required"> Destination
                                 IP is required
@@ -140,6 +147,7 @@
                         <td colId="dstPort" sortable>Dst Port</td>
                         <td colId="protocol" sortable>Protocol</td>
                         <td colId="metadata" sortable>Metadata</td>
+                        <td colId="telemetryMode" sortable>Telemetry Mode</td>
                     </tr>
                 </table>
             </div>
@@ -166,6 +174,7 @@
                         <td>{{ row.dstPort }}</td>
                         <td>{{ row.protocol }}</td>
                         <td>{{ row.metadata }}</td>
+                        <td>{{ row.telemetryMode }}</td>
                     </tr>
                 </table>
             </div>
