@@ -2387,7 +2387,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 127,
+            "line" : 116,
             "column" : 31,
             "source_fragment" : "0x8847; ..."
           }
@@ -2466,7 +2466,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/../define.p4",
-            "line" : 126,
+            "line" : 115,
             "column" : 31,
             "source_fragment" : "0x8100; ..."
           }

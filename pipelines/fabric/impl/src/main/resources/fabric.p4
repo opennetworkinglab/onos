@@ -56,14 +56,14 @@ control FabricIngress (inout parsed_headers_t hdr,
     PortCountersControl() port_counters_control;
 #endif // WITH_PORT_COUNTER
 #ifdef WITH_SPGW
-    SpgwIngress() spgw_ingress;
+    SpgwIngress() spgw;
 #endif // WITH_SPGW
 
     apply {
         _PRE_INGRESS
         pkt_io_ingress.apply(hdr, fabric_metadata, standard_metadata);
 #ifdef WITH_SPGW
-        spgw_ingress.apply(hdr, fabric_metadata, standard_metadata);
+        spgw.apply(hdr, fabric_metadata, standard_metadata);
 #endif // WITH_SPGW
         filtering.apply(hdr, fabric_metadata, standard_metadata);
         if (fabric_metadata.skip_forwarding == _FALSE) {
@@ -95,7 +95,7 @@ control FabricEgress (inout parsed_headers_t hdr,
     PacketIoEgress() pkt_io_egress;
     EgressNextControl() egress_next;
 #ifdef WITH_SPGW
-    SpgwEgress() spgw_egress;
+    SpgwEgress() spgw;
 #endif // WITH_SPGW
 
     apply {
@@ -103,7 +103,7 @@ control FabricEgress (inout parsed_headers_t hdr,
         pkt_io_egress.apply(hdr, fabric_metadata, standard_metadata);
         egress_next.apply(hdr, fabric_metadata, standard_metadata);
 #ifdef WITH_SPGW
-        spgw_egress.apply(hdr, fabric_metadata);
+        spgw.apply(hdr, fabric_metadata);
 #endif // WITH_SPGW
 #ifdef WITH_BNG
         bng_egress.apply(hdr, fabric_metadata, standard_metadata);

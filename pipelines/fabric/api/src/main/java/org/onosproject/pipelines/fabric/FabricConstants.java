@@ -111,24 +111,22 @@ public final class FabricConstants {
             PiTableId.of("FabricIngress.next.hashed");
     public static final PiTableId FABRIC_INGRESS_BNG_INGRESS_T_LINE_MAP =
             PiTableId.of("FabricIngress.bng_ingress.t_line_map");
-    public static final PiTableId FABRIC_INGRESS_SPGW_INGRESS_FAR_LOOKUP =
-            PiTableId.of("FabricIngress.spgw_ingress.far_lookup");
     public static final PiTableId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_TB_INT_INSERT =
             PiTableId.of("FabricEgress.process_int_main.process_int_transit.tb_int_insert");
+    public static final PiTableId FABRIC_INGRESS_SPGW_UPLINK_PDRS =
+            PiTableId.of("FabricIngress.spgw.uplink_pdrs");
+    public static final PiTableId FABRIC_INGRESS_SPGW_INTERFACES =
+            PiTableId.of("FabricIngress.spgw.interfaces");
     public static final PiTableId FABRIC_INGRESS_FILTERING_FWD_CLASSIFIER =
             PiTableId.of("FabricIngress.filtering.fwd_classifier");
     public static final PiTableId FABRIC_INGRESS_NEXT_XCONNECT =
             PiTableId.of("FabricIngress.next.xconnect");
     public static final PiTableId FABRIC_INGRESS_NEXT_NEXT_VLAN =
             PiTableId.of("FabricIngress.next.next_vlan");
-    public static final PiTableId FABRIC_INGRESS_SPGW_INGRESS_DOWNLINK_PDR_LOOKUP =
-            PiTableId.of("FabricIngress.spgw_ingress.downlink_pdr_lookup");
     public static final PiTableId FABRIC_INGRESS_NEXT_SIMPLE =
             PiTableId.of("FabricIngress.next.simple");
     public static final PiTableId FABRIC_INGRESS_NEXT_MULTICAST =
             PiTableId.of("FabricIngress.next.multicast");
-    public static final PiTableId FABRIC_INGRESS_SPGW_INGRESS_UPLINK_PDR_LOOKUP =
-            PiTableId.of("FabricIngress.spgw_ingress.uplink_pdr_lookup");
     public static final PiTableId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_SOURCE_TB_INT_SOURCE =
             PiTableId.of("FabricEgress.process_int_main.process_int_source.tb_int_source");
     public static final PiTableId FABRIC_INGRESS_FORWARDING_ROUTING_V6 =
@@ -151,8 +149,8 @@ public final class FabricConstants {
             PiTableId.of("FabricIngress.forwarding.bridging");
     public static final PiTableId FABRIC_INGRESS_BNG_INGRESS_DOWNSTREAM_T_LINE_SESSION_MAP =
             PiTableId.of("FabricIngress.bng_ingress.downstream.t_line_session_map");
-    public static final PiTableId FABRIC_INGRESS_SPGW_INGRESS_INTERFACE_LOOKUP =
-            PiTableId.of("FabricIngress.spgw_ingress.interface_lookup");
+    public static final PiTableId FABRIC_INGRESS_SPGW_FARS =
+            PiTableId.of("FabricIngress.spgw.fars");
     public static final PiTableId FABRIC_EGRESS_EGRESS_NEXT_EGRESS_VLAN =
             PiTableId.of("FabricEgress.egress_next.egress_vlan");
     public static final PiTableId FABRIC_INGRESS_PROCESS_SET_SOURCE_SINK_TB_SET_SINK =
@@ -165,13 +163,15 @@ public final class FabricConstants {
             PiTableId.of("FabricIngress.bng_ingress.downstream.t_qos_v6");
     public static final PiTableId FABRIC_INGRESS_BNG_INGRESS_DOWNSTREAM_T_QOS_V4 =
             PiTableId.of("FabricIngress.bng_ingress.downstream.t_qos_v4");
+    public static final PiTableId FABRIC_INGRESS_SPGW_DOWNLINK_PDRS =
+            PiTableId.of("FabricIngress.spgw.downlink_pdrs");
     // Indirect Counter IDs
-    public static final PiCounterId FABRIC_EGRESS_SPGW_EGRESS_PDR_COUNTER =
-            PiCounterId.of("FabricEgress.spgw_egress.pdr_counter");
-    public static final PiCounterId FABRIC_INGRESS_SPGW_INGRESS_PDR_COUNTER =
-            PiCounterId.of("FabricIngress.spgw_ingress.pdr_counter");
+    public static final PiCounterId FABRIC_EGRESS_SPGW_PDR_COUNTER =
+            PiCounterId.of("FabricEgress.spgw.pdr_counter");
     public static final PiCounterId FABRIC_EGRESS_BNG_EGRESS_DOWNSTREAM_C_LINE_TX =
             PiCounterId.of("FabricEgress.bng_egress.downstream.c_line_tx");
+    public static final PiCounterId FABRIC_INGRESS_SPGW_PDR_COUNTER =
+            PiCounterId.of("FabricIngress.spgw.pdr_counter");
     public static final PiCounterId FABRIC_INGRESS_PORT_COUNTERS_CONTROL_EGRESS_PORT_COUNTER =
             PiCounterId.of("FabricIngress.port_counters_control.egress_port_counter");
     public static final PiCounterId FABRIC_INGRESS_BNG_INGRESS_UPSTREAM_C_DROPPED =
@@ -234,6 +234,8 @@ public final class FabricConstants {
             PiActionId.of("FabricIngress.next.set_double_vlan");
     public static final PiActionId FABRIC_EGRESS_PROCESS_INT_MAIN_PROCESS_INT_TRANSIT_INIT_METADATA =
             PiActionId.of("FabricEgress.process_int_main.process_int_transit.init_metadata");
+    public static final PiActionId FABRIC_INGRESS_SPGW_LOAD_DBUF_FAR =
+            PiActionId.of("FabricIngress.spgw.load_dbuf_far");
     public static final PiActionId FABRIC_INGRESS_ACL_DROP =
             PiActionId.of("FabricIngress.acl.drop");
     public static final PiActionId FABRIC_INGRESS_ACL_SET_CLONE_SESSION_ID =
@@ -242,14 +244,12 @@ public final class FabricConstants {
             PiActionId.of("FabricIngress.bng_ingress.upstream.punt_to_cpu");
     public static final PiActionId FABRIC_INGRESS_BNG_INGRESS_DOWNSTREAM_DROP =
             PiActionId.of("FabricIngress.bng_ingress.downstream.drop");
-    public static final PiActionId FABRIC_INGRESS_SPGW_INGRESS_SET_PDR_ATTRIBUTES =
-            PiActionId.of("FabricIngress.spgw_ingress.set_pdr_attributes");
+    public static final PiActionId FABRIC_INGRESS_SPGW_LOAD_NORMAL_FAR =
+            PiActionId.of("FabricIngress.spgw.load_normal_far");
     public static final PiActionId FABRIC_INGRESS_NEXT_SET_VLAN =
             PiActionId.of("FabricIngress.next.set_vlan");
     public static final PiActionId FABRIC_INGRESS_ACL_NOP_ACL =
             PiActionId.of("FabricIngress.acl.nop_acl");
-    public static final PiActionId FABRIC_INGRESS_SPGW_INGRESS_LOAD_NORMAL_FAR_ATTRIBUTES =
-            PiActionId.of("FabricIngress.spgw_ingress.load_normal_far_attributes");
     public static final PiActionId FABRIC_INGRESS_BNG_INGRESS_SET_LINE =
             PiActionId.of("FabricIngress.bng_ingress.set_line");
     public static final PiActionId FABRIC_INGRESS_BNG_INGRESS_UPSTREAM_TERM_DISABLED =
@@ -258,6 +258,8 @@ public final class FabricConstants {
             PiActionId.of("FabricIngress.acl.set_next_id_acl");
     public static final PiActionId FABRIC_INGRESS_FILTERING_PERMIT =
             PiActionId.of("FabricIngress.filtering.permit");
+    public static final PiActionId FABRIC_INGRESS_SPGW_IFACE_MISS =
+            PiActionId.of("FabricIngress.spgw.iface_miss");
     public static final PiActionId FABRIC_INGRESS_FORWARDING_SET_NEXT_ID_ROUTING_V4 =
             PiActionId.of("FabricIngress.forwarding.set_next_id_routing_v4");
     public static final PiActionId FABRIC_INGRESS_FORWARDING_SET_NEXT_ID_ROUTING_V6 =
@@ -268,6 +270,8 @@ public final class FabricConstants {
             PiActionId.of("FabricEgress.bng_egress.downstream.encap_v4");
     public static final PiActionId FABRIC_INGRESS_NEXT_OUTPUT_HASHED =
             PiActionId.of("FabricIngress.next.output_hashed");
+    public static final PiActionId FABRIC_INGRESS_SPGW_LOAD_IFACE =
+            PiActionId.of("FabricIngress.spgw.load_iface");
     public static final PiActionId FABRIC_INGRESS_FORWARDING_POP_MPLS_AND_NEXT =
             PiActionId.of("FabricIngress.forwarding.pop_mpls_and_next");
     public static final PiActionId FABRIC_EGRESS_BNG_EGRESS_DOWNSTREAM_ENCAP_V6 =
@@ -278,6 +282,8 @@ public final class FabricConstants {
             PiActionId.of("FabricIngress.acl.punt_to_cpu");
     public static final PiActionId FABRIC_INGRESS_BNG_INGRESS_DOWNSTREAM_QOS_PRIO =
             PiActionId.of("FabricIngress.bng_ingress.downstream.qos_prio");
+    public static final PiActionId FABRIC_INGRESS_SPGW_LOAD_PDR =
+            PiActionId.of("FabricIngress.spgw.load_pdr");
     public static final PiActionId FABRIC_EGRESS_EGRESS_NEXT_POP_VLAN =
             PiActionId.of("FabricEgress.egress_next.pop_vlan");
     public static final PiActionId FABRIC_INGRESS_PROCESS_SET_SOURCE_SINK_INT_SET_SINK =
@@ -293,12 +299,10 @@ public final class FabricConstants {
     public static final PiActionId NOP = PiActionId.of("nop");
     public static final PiActionId FABRIC_INGRESS_NEXT_OUTPUT_SIMPLE =
             PiActionId.of("FabricIngress.next.output_simple");
-    public static final PiActionId FABRIC_INGRESS_SPGW_INGRESS_LOAD_DBUF_FAR_ATTRIBUTES =
-            PiActionId.of("FabricIngress.spgw_ingress.load_dbuf_far_attributes");
-    public static final PiActionId FABRIC_INGRESS_SPGW_INGRESS_SET_SOURCE_IFACE =
-            PiActionId.of("FabricIngress.spgw_ingress.set_source_iface");
     public static final PiActionId FABRIC_INGRESS_FILTERING_DENY =
             PiActionId.of("FabricIngress.filtering.deny");
+    public static final PiActionId FABRIC_INGRESS_SPGW_LOAD_TUNNEL_FAR =
+            PiActionId.of("FabricIngress.spgw.load_tunnel_far");
     public static final PiActionId FABRIC_INGRESS_BNG_INGRESS_DOWNSTREAM_SET_SESSION =
             PiActionId.of("FabricIngress.bng_ingress.downstream.set_session");
     public static final PiActionId FABRIC_INGRESS_NEXT_SET_MCAST_GROUP_ID =
@@ -310,8 +314,6 @@ public final class FabricConstants {
     public static final PiActionId NO_ACTION = PiActionId.of("NoAction");
     public static final PiActionId FABRIC_INGRESS_NEXT_OUTPUT_XCONNECT =
             PiActionId.of("FabricIngress.next.output_xconnect");
-    public static final PiActionId FABRIC_INGRESS_SPGW_INGRESS_LOAD_TUNNEL_FAR_ATTRIBUTES =
-            PiActionId.of("FabricIngress.spgw_ingress.load_tunnel_far_attributes");
     // Action Param IDs
     public static final PiActionParamId DMAC = PiActionParamId.of("dmac");
     public static final PiActionParamId MON_PORT =
@@ -333,16 +335,12 @@ public final class FabricConstants {
             PiActionParamId.of("tunnel_src_port");
     public static final PiActionParamId LABEL = PiActionParamId.of("label");
     public static final PiActionParamId SRC_IP = PiActionParamId.of("src_ip");
-    public static final PiActionParamId SKIP_SPGW =
-            PiActionParamId.of("skip_spgw");
     public static final PiActionParamId MON_MAC = PiActionParamId.of("mon_mac");
     public static final PiActionParamId NEXT_ID = PiActionParamId.of("next_id");
     public static final PiActionParamId INS_CNT = PiActionParamId.of("ins_cnt");
     public static final PiActionParamId SRC_MAC = PiActionParamId.of("src_mac");
     public static final PiActionParamId INNER_VLAN_ID =
             PiActionParamId.of("inner_vlan_id");
-    public static final PiActionParamId DIRECTION =
-            PiActionParamId.of("direction");
     public static final PiActionParamId PPPOE_SESSION_ID =
             PiActionParamId.of("pppoe_session_id");
     public static final PiActionParamId CTR_ID = PiActionParamId.of("ctr_id");
