@@ -161,4 +161,6 @@ public final class OsgiPropertyConstants {
     public static final String FOM_ACCUMULATOR_MAX_BATCH_MILLIS = "accumulatorMaxBatchMillis";
     public static final int FOM_ACCUMULATOR_MAX_BATCH_MILLIS_DEFAULT = 500;
 
+    public static final String IFOM_OBJ_TIMEOUT_MS = "objectiveTimeoutMs";
+    public static final int IFOM_OBJ_TIMEOUT_MS_DEFAULT = 15000;
 }
