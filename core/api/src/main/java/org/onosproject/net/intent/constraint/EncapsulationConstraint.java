@@ -17,9 +17,12 @@
 package org.onosproject.net.intent.constraint;
 
 
+import org.onlab.util.Identifier;
 import org.onosproject.net.EncapsulationType;
 import org.onosproject.net.Link;
 import org.onosproject.net.intent.ResourceContext;
+
+import java.util.Optional;
 
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -30,6 +33,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class EncapsulationConstraint extends BooleanConstraint {
 
     private EncapsulationType encapType;
+    private Optional<Identifier<?>> suggestedIdentifier;
 
     /**
      * Creates a new encapsulation constraint.
@@ -39,8 +43,20 @@ public class EncapsulationConstraint extends BooleanConstraint {
     public EncapsulationConstraint(EncapsulationType encapType) {
         checkNotNull(encapType, "EncapsulationType cannot be null");
         this.encapType = encapType;
+        this.suggestedIdentifier = Optional.empty();
     }
 
+    /**
+     * Creates a new encapsulation constraint with suggested identifier.
+     *
+     * @param encapType the encapsulation type {@link EncapsulationType}
+     * @param identifier the suggested identifier
+     */
+    public EncapsulationConstraint(EncapsulationType encapType, Identifier<?> identifier) {
+        checkNotNull(encapType, "EncapsulationType cannot be null");
+        this.encapType = encapType;
+        this.suggestedIdentifier = Optional.of(identifier);
+    }
 
     // doesn't use LinkResourceService
     @Override
@@ -58,6 +74,18 @@ public class EncapsulationConstraint extends BooleanConstraint {
      */
     public EncapsulationType encapType() {
         return encapType;
+    }
+
+    /**
+     * Returns the suggested identifier.
+     *
+     * @return suggestedIdentifier
+     */
+    public Optional<Identifier<?>> suggestedIdentifier() {
+        if (suggestedIdentifier.isPresent()) {
+            return suggestedIdentifier;
+        }
+        return Optional.empty();
     }
 
     @Override
