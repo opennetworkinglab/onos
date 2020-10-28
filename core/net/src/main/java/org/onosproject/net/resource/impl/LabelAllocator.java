@@ -44,6 +44,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -242,6 +243,36 @@ public final class LabelAllocator {
         return ids;
     }
 
+    // Implements suggestedIdentifier behavior
+    private Map<LinkKey, Identifier<?>> suggestedIdentifierBehavior(Set<LinkKey> links,
+                                                           EncapsulationType type,
+                                                           Identifier<?> suggested) {
+        // Init step
+        Map<LinkKey, Identifier<?>> ids = Maps.newHashMap();
+        Set<Identifier<?>> candidates;
+        Identifier<?> selected = null;
+
+        // Iterates for each link selecting a label in the candidate set
+        // Select the suggested if available on the whole path
+        for (LinkKey link : links) {
+            // Get candidates set for the current link
+            candidates = getCandidates(link, type);
+
+            // Select the suggested if included in the candidates
+            // Otherwise select an other label for the current link
+            if (candidates.contains(suggested)) {
+                selected = suggested;
+            } else {
+                // If candidates is empty or does not contain suggested
+                log.warn("Suggested label {} is not available on link {}", suggested, link);
+                return Collections.emptyMap();
+            }
+            // Selected is associated to link
+            ids.put(link, selected);
+        }
+        return ids;
+    }
+
     // Implements NO_SWAP behavior
     private Map<LinkKey, Identifier<?>> noSwapBehavior(Set<LinkKey> links, EncapsulationType type) {
         // Init steps
@@ -306,9 +337,21 @@ public final class LabelAllocator {
      * @param  type the encapsulation type
      * @return the mappings between key and id
      */
-    private Map<LinkKey, Identifier<?>> findAvailableIDs(Set<LinkKey> links, EncapsulationType type) {
+    private Map<LinkKey, Identifier<?>> findAvailableIDs(Set<LinkKey> links,
+                                                         EncapsulationType type,
+                                                         Optional<Identifier<?>> suggestedIdentifier) {
         // Init step
         Map<LinkKey, Identifier<?>> ids;
+
+        //Use suggested identifier if possible
+        if (suggestedIdentifier.isPresent()) {
+            ids = suggestedIdentifierBehavior(links, type, suggestedIdentifier.get());
+
+            if (!ids.isEmpty()) {
+                return ids;
+            }
+        }
+
         // Performs label selection according to the defined optimization behavior
         switch (optLabelSelection) {
             // No swapping of the labels
@@ -367,6 +410,54 @@ public final class LabelAllocator {
      * @param links the links where labels will be allocated
      * @param resourceConsumer the resource consumer
      * @param type the encapsulation type
+     * @param suggestedIdentifier used if available
+     * @return the list of links and associated labels
+     */
+    public Map<LinkKey, Identifier<?>> assignLabelToLinks(Set<Link> links,
+                                                          ResourceConsumer resourceConsumer,
+                                                          EncapsulationType type,
+                                                          Optional<Identifier<?>> suggestedIdentifier) {
+        // To preserve order of the links. This is important for MIN_SWAP behavior
+        Set<LinkKey> linkRequest = links.stream()
+                .map(LinkKey::linkKey)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        Map<LinkKey, Identifier<?>> availableIds = findAvailableIDs(linkRequest, type, suggestedIdentifier);
+        if (availableIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        Set<Resource> resources = availableIds.entrySet().stream()
+                .flatMap(x -> Stream.of(
+                        Resources.discrete(
+                                x.getKey().src().deviceId(),
+                                x.getKey().src().port(),
+                                x.getValue()
+                        ).resource(),
+                        Resources.discrete(
+                                x.getKey().dst().deviceId(),
+                                x.getKey().dst().port(),
+                                x.getValue()
+                        ).resource()
+                ))
+                .collect(Collectors.toSet());
+
+        List<ResourceAllocation> allocations = resourceService.allocate(resourceConsumer,
+                ImmutableList.copyOf(resources));
+
+        if (allocations.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        return ImmutableMap.copyOf(availableIds);
+    }
+
+    /**
+     * Allocates labels and associates them to links.
+     *
+     * @param links the links where labels will be allocated
+     * @param resourceConsumer the resource consumer
+     * @param type the encapsulation type
      * @return the list of links and associated labels
      */
     public Map<LinkKey, Identifier<?>> assignLabelToLinks(Set<Link> links,
@@ -377,7 +468,7 @@ public final class LabelAllocator {
                 .map(LinkKey::linkKey)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 
-        Map<LinkKey, Identifier<?>> availableIds = findAvailableIDs(linkRequest, type);
+        Map<LinkKey, Identifier<?>> availableIds = findAvailableIDs(linkRequest, type, Optional.empty());
         if (availableIds.isEmpty()) {
             return Collections.emptyMap();
         }
@@ -414,14 +505,17 @@ public final class LabelAllocator {
      * @param links the links on which labels will be reserved
      * @param resourceConsumer the resource consumer
      * @param type the encapsulation type
+     * @param suggestedIdentifier used if available
      * @return the list of ports and associated labels
      */
     public Map<ConnectPoint, Identifier<?>> assignLabelToPorts(Set<Link> links,
                                                                ResourceConsumer resourceConsumer,
-                                                               EncapsulationType type) {
+                                                               EncapsulationType type,
+                                                               Optional<Identifier<?>> suggestedIdentifier) {
         Map<LinkKey, Identifier<?>> allocation = this.assignLabelToLinks(links,
-                                                                         resourceConsumer,
-                                                                         type);
+                resourceConsumer,
+                type,
+                suggestedIdentifier);
         if (allocation.isEmpty()) {
             return Collections.emptyMap();
         }
@@ -430,6 +524,32 @@ public final class LabelAllocator {
             finalAllocation.putIfAbsent(link.src(), value);
             finalAllocation.putIfAbsent(link.dst(), value);
         });
+        return ImmutableMap.copyOf(finalAllocation);
+    }
+
+    /**
+     * Allocates labels and associates them to source
+     * and destination ports of a link.
+     *
+     * @param links the links on which labels will be reserved
+     * @param resourceConsumer the resource consumer
+     * @param type the encapsulation type
+     * @return the list of ports and associated labels
+     */
+    public Map<ConnectPoint, Identifier<?>> assignLabelToPorts(Set<Link> links,
+                                                               ResourceConsumer resourceConsumer,
+                                                               EncapsulationType type) {
+        Map<LinkKey, Identifier<?>> allocation = this.assignLabelToLinks(links,
+                resourceConsumer,
+                type);
+        if (allocation.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        Map<ConnectPoint, Identifier<?>> finalAllocation = Maps.newHashMap();
+        allocation.forEach((link, value) -> {
+                finalAllocation.putIfAbsent(link.src(), value);
+                finalAllocation.putIfAbsent(link.dst(), value);
+            });
         return ImmutableMap.copyOf(finalAllocation);
     }
 

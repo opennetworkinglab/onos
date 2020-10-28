@@ -19,6 +19,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.SetMultimap;
+import org.onosproject.net.resource.impl.LabelAllocator;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -47,7 +48,6 @@ import org.onosproject.net.intent.LinkCollectionIntent;
 import org.onosproject.net.intent.PathIntent;
 import org.onosproject.net.intent.constraint.EncapsulationConstraint;
 import org.onosproject.net.resource.ResourceService;
-import org.onosproject.net.resource.impl.LabelAllocator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -110,9 +110,9 @@ public class LinkCollectionIntentCompiler
         computePorts(intent, inputPorts, outputPorts);
 
         if (encapConstraint.isPresent()) {
-            labels = labelAllocator.assignLabelToPorts(intent.links(),
-                                                       intent.key(),
-                                                       encapConstraint.get().encapType());
+            labels = labelAllocator.assignLabelToPorts(intent.links(), intent.key(),
+                                                       encapConstraint.get().encapType(),
+                                                       encapConstraint.get().suggestedIdentifier());
         }
 
         ImmutableList.Builder<Intent> intentList = ImmutableList.builder();
