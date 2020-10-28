@@ -249,7 +249,7 @@ public class OpenstackSwitchingDhcpHandler {
                     .findAny().orElse(null);
 
             if (port == null) {
-                log.warn("Failed to retrieve openstack port information for MAC {}", clientMac);
+                log.debug("Ignore DHCP request, since it comes from unmanaged openstack VM {}", clientMac);
                 return;
             }
 
