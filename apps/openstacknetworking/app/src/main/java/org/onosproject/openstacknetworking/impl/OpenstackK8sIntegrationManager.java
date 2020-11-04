@@ -16,14 +16,19 @@
 package org.onosproject.openstacknetworking.impl;
 
 
+import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
+import org.onlab.packet.IPv4;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.TpPort;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.net.DeviceId;
+import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
@@ -38,6 +43,7 @@ import org.onosproject.openstacknetworking.api.OpenstackNetwork;
 import org.onosproject.openstacknetworking.api.OpenstackNetworkService;
 import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
+import org.openstack4j.model.network.Network;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -45,12 +51,22 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
+import java.util.Map;
+import java.util.Objects;
+
+import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.onosproject.openstacknetworking.api.Constants.DHCP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.FLAT_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_CNI_PT_IP_RULE;
+import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_CNI_PT_NODE_PORT_ARP_EXT_RULE;
+import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_CNI_PT_NODE_PORT_ARP_RULE;
+import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_CNI_PT_NODE_PORT_IP_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.STAT_FLAT_OUTBOUND_TABLE;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.FLAT;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.shiftIpDomain;
+import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.structurePortName;
+import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildPortRangeMatches;
+import static org.onosproject.openstacknode.api.Constants.INTEGRATION_TO_PHYSICAL_PREFIX;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -65,7 +81,10 @@ public class OpenstackK8sIntegrationManager implements OpenstackK8sIntegrationSe
 
     protected final Logger log = getLogger(getClass());
 
-    public static final String SHIFTED_IP_PREFIX = "172.10";
+    private static final String SHIFTED_IP_PREFIX = "172.10";
+    private static final int NODE_PORT_MIN = 30000;
+    private static final int NODE_PORT_MAX = 32767;
+    public static final String NODE_FAKE_IP_STR = "172.172.172.172";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
@@ -84,6 +103,9 @@ public class OpenstackK8sIntegrationManager implements OpenstackK8sIntegrationSe
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected InstancePortService instancePortService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected DeviceService deviceService;
 
     private ApplicationId appId;
 
@@ -119,22 +141,30 @@ public class OpenstackK8sIntegrationManager implements OpenstackK8sIntegrationSe
         setPodToNodeIpRules(k8sNodeIp, podGatewayIp, osK8sIntPortName, false);
     }
 
+    @Override
+    public void installCniPtNodePortRules(IpAddress k8sNodeIp, String osK8sExtPortName) {
+        setNodePortIngressRules(k8sNodeIp, osK8sExtPortName, true);
+        setNodePortEgressRules(k8sNodeIp, osK8sExtPortName, true);
+
+        setArpRequestRules(k8sNodeIp, osK8sExtPortName, true);
+        setArpReplyRules(k8sNodeIp, osK8sExtPortName, true);
+    }
+
+    @Override
+    public void uninstallCniPtNodePortRules(IpAddress k8sNodeIp, String osK8sExtPortName) {
+        setNodePortIngressRules(k8sNodeIp, osK8sExtPortName, false);
+        setNodePortEgressRules(k8sNodeIp, osK8sExtPortName, false);
+
+        setArpRequestRules(k8sNodeIp, osK8sExtPortName, false);
+        setArpReplyRules(k8sNodeIp, osK8sExtPortName, false);
+    }
+
     private void setNodeToPodIpRules(IpAddress k8sNodeIp,
                                      IpPrefix podCidr, IpPrefix serviceCidr,
                                      IpAddress gatewayIp, String osK8sIntPortName,
                                      MacAddress k8sIntOsPortMac, boolean install) {
 
-        InstancePort instPort = instancePortService.instancePorts().stream().filter(p -> {
-            OpenstackNetwork.Type netType = osNetworkService.networkType(p.networkId());
-            return netType == FLAT && p.ipAddress().equals(k8sNodeIp);
-        }).findAny().orElse(null);
-
-        if (instPort == null) {
-            return;
-        }
-
-        DeviceId deviceId = instPort.deviceId();
-        OpenstackNode osNode = osNodeService.node(deviceId);
+        OpenstackNode osNode = osNodeByNodeIp(k8sNodeIp);
 
         if (osNode == null) {
             return;
@@ -203,17 +233,13 @@ public class OpenstackK8sIntegrationManager implements OpenstackK8sIntegrationSe
 
     private void setPodToNodeIpRules(IpAddress k8sNodeIp, IpAddress gatewayIp,
                                      String osK8sIntPortName, boolean install) {
-        InstancePort instPort = instancePortService.instancePorts().stream().filter(p -> {
-            OpenstackNetwork.Type netType = osNetworkService.networkType(p.networkId());
-            return netType == FLAT && p.ipAddress().equals(k8sNodeIp);
-        }).findAny().orElse(null);
+        InstancePort instPort = instPortByNodeIp(k8sNodeIp);
 
         if (instPort == null) {
             return;
         }
 
-        DeviceId deviceId = instPort.deviceId();
-        OpenstackNode osNode = osNodeService.node(deviceId);
+        OpenstackNode osNode = osNodeByNodeIp(k8sNodeIp);
 
         if (osNode == null) {
             return;
@@ -246,5 +272,234 @@ public class OpenstackK8sIntegrationManager implements OpenstackK8sIntegrationSe
                 DHCP_TABLE,
                 install
         );
+    }
+
+    private void setNodePortIngressRules(IpAddress k8sNodeIp,
+                                         String osK8sExtPortName,
+                                         boolean install) {
+        OpenstackNode osNode = osNodeByNodeIp(k8sNodeIp);
+
+        if (osNode == null) {
+            return;
+        }
+
+        PortNumber osK8sExtPortNum = portNumberByNodeIpAndPortName(k8sNodeIp, osK8sExtPortName);
+
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setOutput(osK8sExtPortNum)
+                .build();
+
+        Map<TpPort, TpPort> portRangeMatchMap =
+                buildPortRangeMatches(NODE_PORT_MIN, NODE_PORT_MAX);
+
+        portRangeMatchMap.forEach((key, value) -> {
+            TrafficSelector.Builder tcpSelectorBuilder = DefaultTrafficSelector.builder()
+                    .matchEthType(Ethernet.TYPE_IPV4)
+                    .matchIPDst(IpPrefix.valueOf(k8sNodeIp, 32))
+                    .matchIPProtocol(IPv4.PROTOCOL_TCP)
+                    .matchTcpDstMasked(key, value);
+
+            TrafficSelector.Builder udpSelectorBuilder = DefaultTrafficSelector.builder()
+                    .matchEthType(Ethernet.TYPE_IPV4)
+                    .matchIPDst(IpPrefix.valueOf(k8sNodeIp, 32))
+                    .matchIPProtocol(IPv4.PROTOCOL_UDP)
+                    .matchUdpDstMasked(key, value);
+
+            osFlowRuleService.setRule(
+                    appId,
+                    osNode.intgBridge(),
+                    tcpSelectorBuilder.build(),
+                    treatment,
+                    PRIORITY_CNI_PT_NODE_PORT_IP_RULE,
+                    FLAT_TABLE,
+                    install
+            );
+
+            osFlowRuleService.setRule(
+                    appId,
+                    osNode.intgBridge(),
+                    udpSelectorBuilder.build(),
+                    treatment,
+                    PRIORITY_CNI_PT_NODE_PORT_IP_RULE,
+                    FLAT_TABLE,
+                    install
+            );
+        });
+    }
+
+    private void setNodePortEgressRules(IpAddress k8sNodeIp,
+                                        String osK8sExtPortName,
+                                        boolean install) {
+        InstancePort instPort = instPortByNodeIp(k8sNodeIp);
+
+        if (instPort == null) {
+            return;
+        }
+
+        OpenstackNode osNode = osNodeByNodeIp(k8sNodeIp);
+
+        if (osNode == null) {
+            return;
+        }
+
+        PortNumber osK8sExtPortNum = portNumberByNodeIpAndPortName(k8sNodeIp, osK8sExtPortName);
+
+        Port phyPort = phyPortByInstPort(instPort);
+
+        if (phyPort == null) {
+            log.warn("No phys interface found for instance port {}", instPort);
+            return;
+        }
+
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchInPort(osK8sExtPortNum)
+                .build();
+
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setEthSrc(instPort.macAddress())
+                .setOutput(phyPort.number())
+                .build();
+
+        osFlowRuleService.setRule(
+                appId,
+                osNode.intgBridge(),
+                selector,
+                treatment,
+                PRIORITY_CNI_PT_NODE_PORT_IP_RULE,
+                DHCP_TABLE,
+                install
+        );
+    }
+
+    private void setArpRequestRules(IpAddress k8sNodeIp, String osK8sExtPortName, boolean install) {
+        InstancePort instPort = instPortByNodeIp(k8sNodeIp);
+
+        if (instPort == null) {
+            return;
+        }
+
+        OpenstackNode osNode = osNodeByNodeIp(k8sNodeIp);
+
+        if (osNode == null) {
+            return;
+        }
+
+        PortNumber osK8sExtPortNum = portNumberByNodeIpAndPortName(k8sNodeIp, osK8sExtPortName);
+
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_ARP)
+                .matchArpOp(ARP.OP_REQUEST)
+                .matchInPort(osK8sExtPortNum)
+                .build();
+
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .transition(STAT_FLAT_OUTBOUND_TABLE)
+                .build();
+
+        osFlowRuleService.setRule(
+                appId,
+                osNode.intgBridge(),
+                selector,
+                treatment,
+                PRIORITY_CNI_PT_NODE_PORT_ARP_RULE,
+                DHCP_TABLE,
+                install
+        );
+
+        Port phyPort = phyPortByInstPort(instPort);
+
+        if (phyPort == null) {
+            log.warn("No phys interface found for instance port {}", instPort);
+            return;
+        }
+
+        TrafficTreatment extTreatment = DefaultTrafficTreatment.builder()
+                .setOutput(phyPort.number())
+                .build();
+
+        osFlowRuleService.setRule(
+                appId,
+                osNode.intgBridge(),
+                selector,
+                extTreatment,
+                PRIORITY_CNI_PT_NODE_PORT_ARP_EXT_RULE,
+                FLAT_TABLE,
+                install
+        );
+    }
+
+    private void setArpReplyRules(IpAddress k8sNodeIp, String osK8sExtPortName, boolean install) {
+        OpenstackNode osNode = osNodeByNodeIp(k8sNodeIp);
+
+        if (osNode == null) {
+            return;
+        }
+
+        PortNumber osK8sExtPortNum = portNumberByNodeIpAndPortName(k8sNodeIp, osK8sExtPortName);
+
+        TrafficSelector selector = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_ARP)
+                .matchArpOp(ARP.OP_REPLY)
+                .matchArpTpa(Ip4Address.valueOf(NODE_FAKE_IP_STR))
+                .build();
+
+        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                .setOutput(osK8sExtPortNum)
+                .build();
+
+        osFlowRuleService.setRule(
+                appId,
+                osNode.intgBridge(),
+                selector,
+                treatment,
+                PRIORITY_CNI_PT_NODE_PORT_ARP_RULE,
+                FLAT_TABLE,
+                install
+        );
+    }
+
+    private InstancePort instPortByNodeIp(IpAddress k8sNodeIp) {
+        return instancePortService.instancePorts().stream().filter(p -> {
+            OpenstackNetwork.Type netType = osNetworkService.networkType(p.networkId());
+            return netType == FLAT && p.ipAddress().equals(k8sNodeIp);
+        }).findAny().orElse(null);
+    }
+
+    private OpenstackNode osNodeByNodeIp(IpAddress k8sNodeIp) {
+        InstancePort instPort = instPortByNodeIp(k8sNodeIp);
+
+        if (instPort == null) {
+            return null;
+        }
+
+        return osNodeService.node(instPort.deviceId());
+    }
+
+    private PortNumber portNumberByNodeIpAndPortName(IpAddress k8sNodeIp, String portName) {
+        OpenstackNode osNode = osNodeByNodeIp(k8sNodeIp);
+
+        if (osNode == null) {
+            return null;
+        }
+
+        return osNode.portNumByName(portName);
+    }
+
+    private Port phyPortByInstPort(InstancePort instPort) {
+        Network network = osNetworkService.network(instPort.networkId());
+
+        if (network == null) {
+            log.warn("The network does not exist");
+            return null;
+        }
+
+        return deviceService.getPorts(instPort.deviceId()).stream()
+                .filter(port -> {
+                    String annotPortName = port.annotations().value(PORT_NAME);
+                    String portName = structurePortName(INTEGRATION_TO_PHYSICAL_PREFIX
+                            + network.getProviderPhyNet());
+                    return Objects.equals(annotPortName, portName);
+                }).findAny().orElse(null);
     }
 }

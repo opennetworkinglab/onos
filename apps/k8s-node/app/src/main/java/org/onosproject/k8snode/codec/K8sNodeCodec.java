@@ -24,6 +24,7 @@ import org.onosproject.codec.CodecContext;
 import org.onosproject.codec.JsonCodec;
 import org.onosproject.k8snode.api.DefaultK8sNode;
 import org.onosproject.k8snode.api.K8sNode;
+import org.onosproject.k8snode.api.K8sNodeInfo;
 import org.onosproject.k8snode.api.K8sNodeState;
 import org.onosproject.net.DeviceId;
 import org.slf4j.Logger;
@@ -49,6 +50,7 @@ public final class K8sNodeCodec extends JsonCodec<K8sNode> {
     private static final String MANAGEMENT_IP = "managementIp";
     private static final String DATA_IP = "dataIp";
     private static final String NODE_IP = "nodeIp";
+    private static final String NODE_MAC = "nodeMac";
     private static final String INTEGRATION_BRIDGE = "integrationBridge";
     private static final String EXTERNAL_BRIDGE = "externalBridge";
     private static final String LOCAL_BRIDGE = "localBridge";
@@ -95,6 +97,10 @@ public final class K8sNodeCodec extends JsonCodec<K8sNode> {
             result.put(DATA_IP, node.dataIp().toString());
         }
 
+        if (node.nodeMac() != null) {
+            result.put(NODE_MAC, node.nodeMac().toString());
+        }
+
         if (node.extIntf() != null) {
             result.put(EXTERNAL_INTF, node.extIntf());
         }
@@ -135,13 +141,15 @@ public final class K8sNodeCodec extends JsonCodec<K8sNode> {
         String nIp = nullIsIllegal(json.get(NODE_IP).asText(),
                 NODE_IP + MISSING_MESSAGE);
 
+        K8sNodeInfo nodeInfo = new K8sNodeInfo(IpAddress.valueOf(nIp), null);
+
         DefaultK8sNode.Builder nodeBuilder = DefaultK8sNode.builder()
                 .clusterName(clusterName)
                 .hostname(hostname)
                 .type(K8sNode.Type.valueOf(type))
                 .state(K8sNodeState.INIT)
                 .managementIp(IpAddress.valueOf(mIp))
-                .nodeIp(IpAddress.valueOf(nIp));
+                .nodeInfo(nodeInfo);
 
         if (json.get(DATA_IP) != null) {
             nodeBuilder.dataIp(IpAddress.valueOf(json.get(DATA_IP).asText()));

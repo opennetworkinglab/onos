@@ -30,6 +30,7 @@ import org.onosproject.k8snode.api.K8sApiConfig;
 import org.onosproject.k8snode.api.K8sApiConfigAdminService;
 import org.onosproject.k8snode.api.K8sNode;
 import org.onosproject.k8snode.api.K8sNodeAdminService;
+import org.onosproject.k8snode.api.K8sNodeInfo;
 import org.onosproject.k8snode.api.K8sNodeState;
 import org.onosproject.k8snode.codec.HostNodesInfoCodec;
 import org.onosproject.k8snode.codec.K8sApiConfigCodec;
@@ -97,7 +98,7 @@ public class K8sNodeWebResourceTest extends ResourceTest {
                 .type(K8sNode.Type.MINION)
                 .dataIp(IpAddress.valueOf("10.134.34.222"))
                 .managementIp(IpAddress.valueOf("10.134.231.30"))
-                .nodeIp(IpAddress.valueOf("30.30.30.3"))
+                .nodeInfo(new K8sNodeInfo(IpAddress.valueOf("30.30.30.3"), null))
                 .intgBridge(DeviceId.deviceId("of:00000000000000a1"))
                 .extBridge(DeviceId.deviceId("of:00000000000000b1"))
                 .state(K8sNodeState.INIT)

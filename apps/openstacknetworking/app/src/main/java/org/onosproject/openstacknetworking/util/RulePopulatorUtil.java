@@ -15,6 +15,7 @@
  */
 package org.onosproject.openstacknetworking.util;
 
+import com.google.common.collect.Maps;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.TpPort;
@@ -38,6 +39,8 @@ import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_LOAD;
 import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ARP_SHA_TO_THA;
@@ -81,6 +84,14 @@ public final class RulePopulatorUtil {
     private static final int ADDRESS_V6_MAX_FLAG = 3;
     private static final int PORT_MIN_FLAG = 4;
     private static final int PORT_MAX_FLAG = 5;
+
+    private static final String STR_ZERO = "0";
+    private static final String STR_ONE = "1";
+    private static final String STR_PADDING = "0000000000000000";
+    private static final int MASK_BEGIN_IDX = 0;
+    private static final int MASK_MAX_IDX = 16;
+    private static final int MASK_RADIX = 2;
+    private static final int PORT_RADIX = 16;
 
     // Refer to http://openvswitch.org/support/dist-docs/ovs-fields.7.txt for the values
     public static final long CT_STATE_NONE = 0;
@@ -403,6 +414,95 @@ public final class RulePopulatorUtil {
         }
 
         return ctMaskFlag;
+    }
+
+    /**
+     * Computes port and port mask value from port min/max values.
+     *
+     * @param portMin port min value
+     * @param portMax port max value
+     * @return Port Mask value
+     */
+    public static Map<TpPort, TpPort> buildPortRangeMatches(int portMin, int portMax) {
+
+        boolean processing = true;
+        int start = portMin;
+        Map<TpPort, TpPort> portMaskMap = Maps.newHashMap();
+        while (processing) {
+            String minStr = Integer.toBinaryString(start);
+            String binStrMinPadded = STR_PADDING.substring(minStr.length()) + minStr;
+
+            int mask = testMasks(binStrMinPadded, start, portMax);
+            int maskStart = binLower(binStrMinPadded, mask);
+            int maskEnd = binHigher(binStrMinPadded, mask);
+
+            log.debug("start : {} port/mask = {} / {} ", start, getMask(mask), maskStart);
+            portMaskMap.put(TpPort.tpPort(maskStart), TpPort.tpPort(
+                    Integer.parseInt(Objects.requireNonNull(getMask(mask)), PORT_RADIX)));
+
+            start = maskEnd + 1;
+            if (start > portMax) {
+                processing = false;
+            }
+        }
+
+        return portMaskMap;
+    }
+
+    private static int binLower(String binStr, int bits) {
+        StringBuilder outBin = new StringBuilder(
+                binStr.substring(MASK_BEGIN_IDX, MASK_MAX_IDX - bits));
+        for (int i = 0; i < bits; i++) {
+            outBin.append(STR_ZERO);
+        }
+
+        return Integer.parseInt(outBin.toString(), MASK_RADIX);
+    }
+
+    private static int binHigher(String binStr, int bits) {
+        StringBuilder outBin = new StringBuilder(
+                binStr.substring(MASK_BEGIN_IDX, MASK_MAX_IDX - bits));
+        for (int i = 0; i < bits; i++) {
+            outBin.append(STR_ONE);
+        }
+
+        return Integer.parseInt(outBin.toString(), MASK_RADIX);
+    }
+
+    private static int testMasks(String binStr, int start, int end) {
+        int mask = MASK_BEGIN_IDX;
+        for (; mask <= MASK_MAX_IDX; mask++) {
+            int maskStart = binLower(binStr, mask);
+            int maskEnd = binHigher(binStr, mask);
+            if (maskStart < start || maskEnd > end) {
+                return mask - 1;
+            }
+        }
+
+        return mask;
+    }
+
+    private static String getMask(int bits) {
+        switch (bits) {
+            case 0:  return "ffff";
+            case 1:  return "fffe";
+            case 2:  return "fffc";
+            case 3:  return "fff8";
+            case 4:  return "fff0";
+            case 5:  return "ffe0";
+            case 6:  return "ffc0";
+            case 7:  return "ff80";
+            case 8:  return "ff00";
+            case 9:  return "fe00";
+            case 10: return "fc00";
+            case 11: return "f800";
+            case 12: return "f000";
+            case 13: return "e000";
+            case 14: return "c000";
+            case 15: return "8000";
+            case 16: return "0000";
+            default: return null;
+        }
     }
 
     private static boolean checkTreatmentResolver(Device device) {

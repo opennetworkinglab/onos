@@ -24,6 +24,7 @@ import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertTrue;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.existingContainerPortByMac;
+import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.getGatewayIp;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.getSubnetIps;
 
 /**
@@ -47,6 +48,13 @@ public final class K8sNetworkUtilTest {
         String dClassCidr = "10.10.10.10/32";
         Set<IpAddress> dClassIps = getSubnetIps(dClassCidr);
         assertEquals(0, dClassIps.size());
+    }
+
+    @Test
+    public void testGetGatewayIp() {
+        String classCidr = "10.10.10.0/24";
+        IpAddress gatewayIp = getGatewayIp(classCidr);
+        assertEquals("10.10.10.1", gatewayIp.toString());
     }
 
     /**

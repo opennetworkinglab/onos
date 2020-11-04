@@ -295,6 +295,19 @@ public final class K8sNetworkingUtil {
     }
 
     /**
+     * Obtains gateway IP address of the given subnet.
+     *
+     * @param cidr CIDR
+     * @return gateway IP address
+     */
+    public static IpAddress getGatewayIp(String cidr) {
+        SubnetUtils utils = new SubnetUtils(cidr);
+        utils.setInclusiveHostCount(false);
+        SubnetUtils.SubnetInfo info = utils.getInfo();
+        return IpAddress.valueOf(info.getLowAddress());
+    }
+
+    /**
      * Obtains flow group key from the given id.
      *
      * @param groupId flow group identifier

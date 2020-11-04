@@ -28,6 +28,7 @@ import org.onosproject.codec.impl.CodecManager;
 import org.onosproject.core.CoreService;
 import org.onosproject.k8snode.api.DefaultK8sNode;
 import org.onosproject.k8snode.api.K8sNode;
+import org.onosproject.k8snode.api.K8sNodeInfo;
 import org.onosproject.k8snode.api.K8sNodeState;
 import org.onosproject.net.DeviceId;
 
@@ -86,7 +87,7 @@ public class K8sNodeCodecTest {
                 .state(K8sNodeState.INIT)
                 .managementIp(IpAddress.valueOf("10.10.10.1"))
                 .dataIp(IpAddress.valueOf("20.20.20.2"))
-                .nodeIp(IpAddress.valueOf("30.30.30.3"))
+                .nodeInfo(new K8sNodeInfo(IpAddress.valueOf("30.30.30.3"), null))
                 .intgBridge(DeviceId.deviceId("kbr-int"))
                 .extIntf("eth1")
                 .extBridgeIp(IpAddress.valueOf("10.10.10.5"))

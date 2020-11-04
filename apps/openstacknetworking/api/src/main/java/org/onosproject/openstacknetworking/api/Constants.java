@@ -102,6 +102,9 @@ public final class Constants {
 
     public static final int PRIORITY_CNI_PT_ARP_RULE = 41500;
     public static final int PRIORITY_CNI_PT_IP_RULE = 41400;
+    public static final int PRIORITY_CNI_PT_NODE_PORT_IP_RULE = 42500;
+    public static final int PRIORITY_CNI_PT_NODE_PORT_ARP_RULE = 43000;
+    public static final int PRIORITY_CNI_PT_NODE_PORT_ARP_EXT_RULE = 41500;
 
     // flow table index
     public static final int STAT_INBOUND_TABLE = 0;
