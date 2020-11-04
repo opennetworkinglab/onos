@@ -80,7 +80,7 @@ public class DefaultK8sNode implements K8sNode {
     private final DeviceId tunBridge;
     private final IpAddress managementIp;
     private final IpAddress dataIp;
-    private final IpAddress nodeIp;
+    private final K8sNodeInfo nodeInfo;
     private final K8sNodeState state;
     private final K8sExternalNetwork extNetwork;
     private final String podCidr;
@@ -103,7 +103,7 @@ public class DefaultK8sNode implements K8sNode {
      * @param tunBridge         tunnel bridge
      * @param managementIp      management IP address
      * @param dataIp            data IP address
-     * @param nodeIp            node IP address
+     * @param nodeInfo          node info
      * @param state             node state
      * @param extNetwork        external network
      * @param podCidr           POD CIDR
@@ -112,7 +112,7 @@ public class DefaultK8sNode implements K8sNode {
                              int segmentId, Mode mode, DeviceId intgBridge,
                              DeviceId extBridge, DeviceId localBridge,
                              DeviceId tunBridge, IpAddress managementIp,
-                             IpAddress dataIp, IpAddress nodeIp, K8sNodeState state,
+                             IpAddress dataIp, K8sNodeInfo nodeInfo, K8sNodeState state,
                              K8sExternalNetwork extNetwork, String podCidr) {
         this.clusterName = clusterName;
         this.hostname = hostname;
@@ -125,7 +125,7 @@ public class DefaultK8sNode implements K8sNode {
         this.tunBridge = tunBridge;
         this.managementIp = managementIp;
         this.dataIp = dataIp;
-        this.nodeIp = nodeIp;
+        this.nodeInfo = nodeInfo;
         this.state = state;
         this.extNetwork = extNetwork;
         this.podCidr = podCidr;
@@ -237,7 +237,7 @@ public class DefaultK8sNode implements K8sNode {
                 .tunBridge(tunBridge)
                 .managementIp(managementIp)
                 .dataIp(dataIp)
-                .nodeIp(nodeIp)
+                .nodeInfo(nodeInfo)
                 .state(state)
                 .extBridgeIp(extNetwork.extBridgeIp())
                 .extGatewayIp(extNetwork.extGatewayIp())
@@ -261,7 +261,7 @@ public class DefaultK8sNode implements K8sNode {
                 .tunBridge(tunBridge)
                 .managementIp(managementIp)
                 .dataIp(dataIp)
-                .nodeIp(nodeIp)
+                .nodeInfo(nodeInfo)
                 .state(state)
                 .extBridgeIp(extNetwork.extBridgeIp())
                 .extGatewayIp(extNetwork.extGatewayIp())
@@ -285,7 +285,7 @@ public class DefaultK8sNode implements K8sNode {
                 .tunBridge(tunBridge)
                 .managementIp(managementIp)
                 .dataIp(dataIp)
-                .nodeIp(nodeIp)
+                .nodeInfo(nodeInfo)
                 .state(state)
                 .extBridgeIp(extNetwork.extBridgeIp())
                 .extGatewayIp(extNetwork.extGatewayIp())
@@ -309,7 +309,7 @@ public class DefaultK8sNode implements K8sNode {
                 .tunBridge(deviceId)
                 .managementIp(managementIp)
                 .dataIp(dataIp)
-                .nodeIp(nodeIp)
+                .nodeInfo(nodeInfo)
                 .state(state)
                 .extBridgeIp(extNetwork.extBridgeIp())
                 .extGatewayIp(extNetwork.extGatewayIp())
@@ -330,8 +330,22 @@ public class DefaultK8sNode implements K8sNode {
     }
 
     @Override
+    public K8sNodeInfo nodeInfo() {
+        return nodeInfo;
+    }
+
+    @Override
     public IpAddress nodeIp() {
-        return nodeIp;
+        return nodeInfo.nodeIp();
+    }
+
+    @Override
+    public MacAddress nodeMac() {
+        if (nodeInfo == null) {
+            return null;
+        } else {
+            return nodeInfo.nodeMac();
+        }
     }
 
     @Override
@@ -358,7 +372,7 @@ public class DefaultK8sNode implements K8sNode {
                 .tunBridge(tunBridge)
                 .managementIp(managementIp)
                 .dataIp(dataIp)
-                .nodeIp(nodeIp)
+                .nodeInfo(nodeInfo)
                 .state(newState)
                 .extBridgeIp(extNetwork.extBridgeIp())
                 .extGatewayIp(extNetwork.extGatewayIp())
@@ -382,11 +396,35 @@ public class DefaultK8sNode implements K8sNode {
                 .tunBridge(tunBridge)
                 .managementIp(managementIp)
                 .dataIp(dataIp)
-                .nodeIp(nodeIp)
+                .nodeInfo(nodeInfo)
                 .state(state)
                 .extBridgeIp(extNetwork.extBridgeIp())
                 .extGatewayIp(extNetwork.extGatewayIp())
                 .extGatewayMac(newMac)
+                .extIntf(extNetwork.extIntf())
+                .podCidr(podCidr)
+                .build();
+    }
+
+    @Override
+    public K8sNode updateNodeInfo(K8sNodeInfo newNodeInfo) {
+        return new Builder()
+                .hostname(hostname)
+                .clusterName(clusterName)
+                .type(type)
+                .segmentId(segmentId)
+                .mode(mode)
+                .intgBridge(intgBridge)
+                .extBridge(extBridge)
+                .localBridge(localBridge)
+                .tunBridge(tunBridge)
+                .managementIp(managementIp)
+                .dataIp(dataIp)
+                .nodeInfo(newNodeInfo)
+                .state(state)
+                .extBridgeIp(extNetwork.extBridgeIp())
+                .extGatewayIp(extNetwork.extGatewayIp())
+                .extGatewayMac(extNetwork.extGatewayMac())
                 .extIntf(extNetwork.extIntf())
                 .podCidr(podCidr)
                 .build();
@@ -617,20 +655,20 @@ public class DefaultK8sNode implements K8sNode {
     }
 
     @Override
-    public MacAddress portMacByName(String portName) {
+    public MacAddress portMacByName(DeviceId deviceId, String portName) {
         if (portName == null) {
             return null;
         } else {
-            return macAddress(this.intgBridge, portName);
+            return macAddress(deviceId, portName);
         }
     }
 
     @Override
-    public PortNumber portNumByName(String portName) {
+    public PortNumber portNumByName(DeviceId deviceId, String portName) {
         if (portName == null) {
             return null;
         } else {
-            return portNumber(this.intgBridge, portName);
+            return portNumber(deviceId, portName);
         }
     }
 
@@ -843,7 +881,7 @@ public class DefaultK8sNode implements K8sNode {
                     tunBridge.equals(that.tunBridge) &&
                     managementIp.equals(that.managementIp) &&
                     dataIp.equals(that.dataIp) &&
-                    nodeIp.equals(that.nodeIp) &&
+                    nodeInfo.equals(that.nodeInfo) &&
                     extNetwork.equals(that.extNetwork) &&
                     podCidr.equals(that.podCidr) &&
                     state == that.state;
@@ -855,7 +893,7 @@ public class DefaultK8sNode implements K8sNode {
     @Override
     public int hashCode() {
         return Objects.hash(clusterName, hostname, type, segmentId, mode, intgBridge, extBridge,
-                localBridge, tunBridge, managementIp, dataIp, nodeIp, state, extNetwork, podCidr);
+                localBridge, tunBridge, managementIp, dataIp, nodeInfo, state, extNetwork, podCidr);
     }
 
     @Override
@@ -872,7 +910,7 @@ public class DefaultK8sNode implements K8sNode {
                 .add("tunBridge", tunBridge)
                 .add("managementIp", managementIp)
                 .add("dataIp", dataIp)
-                .add("nodeIp", nodeIp)
+                .add("nodeInfo", nodeInfo)
                 .add("state", state)
                 .add("extBridgeIp", extNetwork.extBridgeIp())
                 .add("extGatewayIp", extNetwork.extGatewayIp())
@@ -937,7 +975,7 @@ public class DefaultK8sNode implements K8sNode {
                 .extIntf(node.extIntf())
                 .managementIp(node.managementIp())
                 .dataIp(node.dataIp())
-                .nodeIp(node.nodeIp())
+                .nodeInfo(node.nodeInfo())
                 .state(node.state())
                 .extBridgeIp(node.extBridgeIp())
                 .extGatewayIp(node.extGatewayIp())
@@ -959,7 +997,7 @@ public class DefaultK8sNode implements K8sNode {
         private DeviceId tunBridge;
         private IpAddress managementIp;
         private IpAddress dataIp;
-        private IpAddress nodeIp;
+        private K8sNodeInfo nodeInfo;
         private K8sNodeState state;
         private K8sApiConfig apiConfig;
         private String extIntf;
@@ -978,7 +1016,7 @@ public class DefaultK8sNode implements K8sNode {
             checkArgument(type != null, NOT_NULL_MSG, "type");
             checkArgument(state != null, NOT_NULL_MSG, "state");
             checkArgument(managementIp != null, NOT_NULL_MSG, "management IP");
-            checkArgument(nodeIp != null, NOT_NULL_MSG, "node IP");
+            checkArgument(nodeInfo != null, NOT_NULL_MSG, "node info");
 
             if (StringUtils.isEmpty(clusterName)) {
                 clusterName = DEFAULT_CLUSTER_NAME;
@@ -1006,7 +1044,7 @@ public class DefaultK8sNode implements K8sNode {
                     tunBridge,
                     managementIp,
                     dataIp,
-                    nodeIp,
+                    nodeInfo,
                     state,
                     extNetwork,
                     podCidr);
@@ -1079,8 +1117,8 @@ public class DefaultK8sNode implements K8sNode {
         }
 
         @Override
-        public Builder nodeIp(IpAddress nodeIp) {
-            this.nodeIp = nodeIp;
+        public Builder nodeInfo(K8sNodeInfo nodeInfo) {
+            this.nodeInfo = nodeInfo;
             return this;
         }
 

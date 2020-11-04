@@ -187,11 +187,25 @@ public interface K8sNode {
     IpAddress dataIp();
 
     /**
+     * Returns the kubernetes node info.
+     *
+     * @return node info; null if node info not exists
+     */
+    K8sNodeInfo nodeInfo();
+
+    /**
      * Returns the kubernetes node IP address.
      *
-     * @return ip address; null if node has no IP address
+     * @return node IP address; null if the node IP not exists
      */
     IpAddress nodeIp();
+
+    /**
+     * Returns the kubernetes node MAC address.
+     *
+     * @return node MAC address; null if the node MAC not exists
+     */
+    MacAddress nodeMac();
 
     /**
      * Returns the initialization state of the node.
@@ -222,6 +236,14 @@ public interface K8sNode {
      * @return updated kubernetes node
      */
     K8sNode updateExtGatewayMac(MacAddress macAddress);
+
+    /**
+     * Returns new kubernetes node instance with given node info.
+     *
+     * @param nodeInfo updated node info
+     * @return updated kubernetes node
+     */
+    K8sNode updateNodeInfo(K8sNodeInfo nodeInfo);
 
     /**
      * Returns GRE port name.
@@ -268,18 +290,20 @@ public interface K8sNode {
     /**
      * Returns the port MAC address with the given patch port name.
      *
+     * @param deviceId device identifier
      * @param portName patch port name
      * @return port MAC address
      */
-    MacAddress portMacByName(String portName);
+    MacAddress portMacByName(DeviceId deviceId, String portName);
 
     /**
      * Returns the port number with the given patch port name.
      *
+     * @param deviceId device identifier
      * @param portName patch port name
      * @return port number
      */
-    PortNumber portNumByName(String portName);
+    PortNumber portNumByName(DeviceId deviceId, String portName);
 
     /**
      * Return the port number of integration bridge's entry port.
@@ -677,12 +701,12 @@ public interface K8sNode {
         Builder dataIp(IpAddress dataIp);
 
         /**
-         * Returns the kubernetes node builder with supplied node IP address.
+         * Returns the kubernetes node builder with supplied node info.
          *
-         * @param nodeIp node IP address
+         * @param nodeInfo node info
          * @return kubernetes node builder
          */
-        Builder nodeIp(IpAddress nodeIp);
+        Builder nodeInfo(K8sNodeInfo nodeInfo);
 
         /**
          * Returns kubernetes node builder with supplied node state.

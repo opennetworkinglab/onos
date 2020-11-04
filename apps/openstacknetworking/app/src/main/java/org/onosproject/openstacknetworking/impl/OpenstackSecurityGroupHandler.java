@@ -17,7 +17,6 @@
 package org.onosproject.openstacknetworking.impl;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
@@ -119,6 +118,7 @@ import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.USE
 import static org.onosproject.openstacknetworking.impl.OsgiPropertyConstants.USE_SECURITY_GROUP_DEFAULT;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValueAsBoolean;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.swapStaleLocation;
+import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildPortRangeMatches;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.computeCtMaskFlag;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.computeCtStateFlag;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.niciraConnTrackTreatmentBuilder;
@@ -140,14 +140,7 @@ public class OpenstackSecurityGroupHandler {
 
     private static final int VM_IP_PREFIX = 32;
 
-    private static final String STR_ZERO = "0";
-    private static final String STR_ONE = "1";
     private static final String STR_NULL = "null";
-    private static final String STR_PADDING = "0000000000000000";
-    private static final int MASK_BEGIN_IDX = 0;
-    private static final int MASK_MAX_IDX = 16;
-    private static final int MASK_RADIX = 2;
-    private static final int PORT_RADIX = 16;
 
     /** Apply OpenStack security group rule for VM traffic. */
     private boolean useSecurityGroup = USE_SECURITY_GROUP_DEFAULT;
@@ -843,88 +836,6 @@ public class OpenstackSecurityGroupHandler {
                     log.debug("Removed security group rule {} from port {}",
                             sgRule.getId(), port.getId());
                 });
-    }
-
-    private int binLower(String binStr, int bits) {
-        StringBuilder outBin = new StringBuilder(
-                        binStr.substring(MASK_BEGIN_IDX, MASK_MAX_IDX - bits));
-        for (int i = 0; i < bits; i++) {
-            outBin.append(STR_ZERO);
-        }
-
-        return Integer.parseInt(outBin.toString(), MASK_RADIX);
-    }
-
-    private int binHigher(String binStr, int bits) {
-        StringBuilder outBin = new StringBuilder(
-                        binStr.substring(MASK_BEGIN_IDX, MASK_MAX_IDX - bits));
-        for (int i = 0; i < bits; i++) {
-            outBin.append(STR_ONE);
-        }
-
-        return Integer.parseInt(outBin.toString(), MASK_RADIX);
-    }
-
-    private int testMasks(String binStr, int start, int end) {
-        int mask = MASK_BEGIN_IDX;
-        for (; mask <= MASK_MAX_IDX; mask++) {
-            int maskStart = binLower(binStr, mask);
-            int maskEnd = binHigher(binStr, mask);
-            if (maskStart < start || maskEnd > end) {
-                return mask - 1;
-            }
-        }
-
-        return mask;
-    }
-
-    private String getMask(int bits) {
-        switch (bits) {
-            case 0:  return "ffff";
-            case 1:  return "fffe";
-            case 2:  return "fffc";
-            case 3:  return "fff8";
-            case 4:  return "fff0";
-            case 5:  return "ffe0";
-            case 6:  return "ffc0";
-            case 7:  return "ff80";
-            case 8:  return "ff00";
-            case 9:  return "fe00";
-            case 10: return "fc00";
-            case 11: return "f800";
-            case 12: return "f000";
-            case 13: return "e000";
-            case 14: return "c000";
-            case 15: return "8000";
-            case 16: return "0000";
-            default: return null;
-        }
-    }
-
-    private Map<TpPort, TpPort> buildPortRangeMatches(int portMin, int portMax) {
-
-        boolean processing = true;
-        int start = portMin;
-        Map<TpPort, TpPort> portMaskMap = Maps.newHashMap();
-        while (processing) {
-            String minStr = Integer.toBinaryString(start);
-            String binStrMinPadded = STR_PADDING.substring(minStr.length()) + minStr;
-
-            int mask = testMasks(binStrMinPadded, start, portMax);
-            int maskStart = binLower(binStrMinPadded, mask);
-            int maskEnd = binHigher(binStrMinPadded, mask);
-
-            log.debug("start : {} port/mask = {} / {} ", start, getMask(mask), maskStart);
-            portMaskMap.put(TpPort.tpPort(maskStart), TpPort.tpPort(
-                    Integer.parseInt(Objects.requireNonNull(getMask(mask)), PORT_RADIX)));
-
-            start = maskEnd + 1;
-            if (start > portMax) {
-                processing = false;
-            }
-        }
-
-        return portMaskMap;
     }
 
     private class InternalInstancePortListener implements InstancePortListener {

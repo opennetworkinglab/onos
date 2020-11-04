@@ -23,6 +23,7 @@ import org.junit.Test;
 import org.onlab.junit.TestUtils;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
 import org.onosproject.cluster.ClusterServiceAdapter;
 import org.onosproject.cluster.LeadershipServiceAdapter;
 import org.onosproject.core.ApplicationId;
@@ -32,6 +33,7 @@ import org.onosproject.event.Event;
 import org.onosproject.k8snode.api.DefaultK8sNode;
 import org.onosproject.k8snode.api.K8sNode;
 import org.onosproject.k8snode.api.K8sNodeEvent;
+import org.onosproject.k8snode.api.K8sNodeInfo;
 import org.onosproject.k8snode.api.K8sNodeListener;
 import org.onosproject.k8snode.api.K8sNodeState;
 import org.onosproject.net.DefaultDevice;
@@ -74,6 +76,10 @@ public class K8sNodeManagerTest {
     private static final String MINION_2_HOSTNAME = "minion_2";
     private static final String MINION_3_HOSTNAME = "minion_3";
 
+    private static final IpAddress NODE_IP = IpAddress.valueOf("30.30.30.30");
+    private static final MacAddress NODE_MAC = MacAddress.valueOf("fa:00:00:00:00:08");
+    private static final K8sNodeInfo NODE_INFO = new K8sNodeInfo(NODE_IP, NODE_MAC);
+
     private static final Device MINION_1_INTG_DEVICE = createDevice(1);
     private static final Device MINION_2_INTG_DEVICE = createDevice(2);
     private static final Device MINION_3_INTG_DEVICE = createDevice(3);
@@ -100,6 +106,7 @@ public class K8sNodeManagerTest {
             MINION_1_LOCAL_DEVICE,
             MINION_1_TUN_DEVICE,
             IpAddress.valueOf("10.100.0.1"),
+            NODE_INFO,
             INIT
     );
     private static final K8sNode MINION_2 = createNode(
@@ -111,6 +118,7 @@ public class K8sNodeManagerTest {
             MINION_2_LOCAL_DEVICE,
             MINION_2_TUN_DEVICE,
             IpAddress.valueOf("10.100.0.2"),
+            NODE_INFO,
             INIT
     );
     private static final K8sNode MINION_3 = createNode(
@@ -122,6 +130,7 @@ public class K8sNodeManagerTest {
             MINION_3_LOCAL_DEVICE,
             MINION_3_TUN_DEVICE,
             IpAddress.valueOf("10.100.0.3"),
+            NODE_INFO,
             COMPLETE
     );
 
@@ -349,7 +358,8 @@ public class K8sNodeManagerTest {
     private static K8sNode createNode(String clusterName, String hostname, K8sNode.Type type,
                                       Device intgBridge, Device extBridge,
                                       Device localBridge, Device tunBridge,
-                                      IpAddress ipAddr, K8sNodeState state) {
+                                      IpAddress ipAddr, K8sNodeInfo nodeInfo,
+                                      K8sNodeState state) {
         return DefaultK8sNode.builder()
                 .hostname(hostname)
                 .clusterName(clusterName)
@@ -360,7 +370,7 @@ public class K8sNodeManagerTest {
                 .tunBridge(tunBridge.id())
                 .managementIp(ipAddr)
                 .dataIp(ipAddr)
-                .nodeIp(ipAddr)
+                .nodeInfo(nodeInfo)
                 .state(state)
                 .build();
     }

@@ -20,6 +20,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.onlab.packet.ChassisId;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
 import org.onosproject.k8snode.api.K8sNode.Type;
 import org.onosproject.net.DefaultDevice;
 import org.onosproject.net.Device;
@@ -52,6 +53,8 @@ public final class DefaultK8sNodeTest {
     private static final IpAddress MANAGEMENT_IP = IpAddress.valueOf("10.10.10.10");
     private static final IpAddress DATA_IP = IpAddress.valueOf("20.20.20.20");
     private static final IpAddress NODE_IP = IpAddress.valueOf("30.30.30.30");
+    private static final MacAddress NODE_MAC = MacAddress.valueOf("fa:00:00:00:00:08");
+    private static final K8sNodeInfo NODE_INFO = new K8sNodeInfo(NODE_IP, NODE_MAC);
 
     private static final String BRIDGE_INTF_1 = "eth1";
     private static final String BRIDGE_INTF_2 = "eth2";
@@ -78,6 +81,7 @@ public final class DefaultK8sNodeTest {
             DEVICE_1,
             BRIDGE_INTF_1,
             TEST_IP,
+            NODE_INFO,
             INIT,
             EXT_BRIDGE_IP_1,
             EXT_GATEWAY_IP_1,
@@ -93,6 +97,7 @@ public final class DefaultK8sNodeTest {
             DEVICE_1,
             BRIDGE_INTF_1,
             TEST_IP,
+            NODE_INFO,
             INIT,
             EXT_BRIDGE_IP_1,
             EXT_GATEWAY_IP_1,
@@ -108,6 +113,7 @@ public final class DefaultK8sNodeTest {
             DEVICE_2,
             BRIDGE_INTF_2,
             TEST_IP,
+            NODE_INFO,
             INIT,
             EXT_BRIDGE_IP_2,
             EXT_GATEWAY_IP_2,
@@ -125,7 +131,7 @@ public final class DefaultK8sNodeTest {
                 .segmentId(SEGMENT_ID_1)
                 .managementIp(MANAGEMENT_IP)
                 .dataIp(DATA_IP)
-                .nodeIp(NODE_IP)
+                .nodeInfo(NODE_INFO)
                 .intgBridge(DEVICE_1.id())
                 .extBridge(DEVICE_1.id())
                 .localBridge(DEVICE_1.id())
@@ -198,7 +204,7 @@ public final class DefaultK8sNodeTest {
                 .extIntf(BRIDGE_INTF_1)
                 .managementIp(TEST_IP)
                 .dataIp(TEST_IP)
-                .nodeIp(NODE_IP)
+                .nodeInfo(NODE_INFO)
                 .state(INIT)
                 .extBridgeIp(EXT_BRIDGE_IP_1)
                 .extGatewayIp(EXT_GATEWAY_IP_1)
@@ -222,7 +228,7 @@ public final class DefaultK8sNodeTest {
                 .extIntf(BRIDGE_INTF_1)
                 .managementIp(TEST_IP)
                 .dataIp(TEST_IP)
-                .nodeIp(NODE_IP)
+                .nodeInfo(NODE_INFO)
                 .state(INIT)
                 .extBridgeIp(EXT_BRIDGE_IP_1)
                 .extGatewayIp(EXT_GATEWAY_IP_1)
@@ -247,7 +253,7 @@ public final class DefaultK8sNodeTest {
                 .tunBridge(DEVICE_1.id())
                 .extIntf(BRIDGE_INTF_1)
                 .dataIp(TEST_IP)
-                .nodeIp(NODE_IP)
+                .nodeInfo(NODE_INFO)
                 .state(INIT)
                 .extBridgeIp(EXT_BRIDGE_IP_1)
                 .extGatewayIp(EXT_GATEWAY_IP_1)
@@ -261,7 +267,7 @@ public final class DefaultK8sNodeTest {
         assertEquals(node.type(), MINION);
         assertEquals(node.managementIp(), MANAGEMENT_IP);
         assertEquals(node.dataIp(), DATA_IP);
-        assertEquals(node.nodeIp(), NODE_IP);
+        assertEquals(node.nodeInfo(), NODE_INFO);
     }
 
     private static Device createDevice(long devIdNum) {
@@ -278,7 +284,7 @@ public final class DefaultK8sNodeTest {
     private static K8sNode createNode(String clusterName, String hostname, Type type,
                                       int segmentId, Device intgBridge, Device extBridge,
                                       Device localBridge, Device tunBridge, String bridgeIntf,
-                                      IpAddress ipAddr, K8sNodeState state,
+                                      IpAddress ipAddr, K8sNodeInfo info, K8sNodeState state,
                                       IpAddress extBridgeIp, IpAddress extGatewayIp,
                                       String podCidr) {
         return DefaultK8sNode.builder()
@@ -293,7 +299,7 @@ public final class DefaultK8sNodeTest {
                 .extIntf(bridgeIntf)
                 .managementIp(ipAddr)
                 .dataIp(ipAddr)
-                .nodeIp(ipAddr)
+                .nodeInfo(info)
                 .state(state)
                 .extBridgeIp(extBridgeIp)
                 .extGatewayIp(extGatewayIp)

@@ -51,4 +51,20 @@ public interface OpenstackK8sIntegrationService {
     void uninstallCniPtNodeRules(IpAddress k8sNodeIp, IpPrefix podCidr,
                                  IpPrefix serviceCidr, IpAddress podGatewayIp,
                                  String osK8sIntPortName, MacAddress k8sIntOsPortMac);
+
+    /**
+     * Installs K8S pass-through CNI related node port flow rules.
+     *
+     * @param k8sNodeIp         kubernetes node IP address
+     * @param osK8sExtPortName  openstack k8s external patch port name
+     */
+    void installCniPtNodePortRules(IpAddress k8sNodeIp, String osK8sExtPortName);
+
+    /**
+     * Uninstalls K8S pass-through CNI related node port flow rules.
+     *
+     * @param k8sNodeIp         kubernetes node IP address
+     * @param osK8sExtPortName  openstack k8s external patch port name
+     */
+    void uninstallCniPtNodePortRules(IpAddress k8sNodeIp, String osK8sExtPortName);
 }

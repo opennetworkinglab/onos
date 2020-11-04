@@ -39,6 +39,8 @@ public final class Constants {
     public static final String DEFAULT_SERVICE_IP_NAT_MODE_STR = NAT_STATELESS;
     public static final String CONTROLLER_MAC_STR = "fe:00:00:00:00:10";
     public static final String SERVICE_FAKE_MAC_STR = "fe:00:00:00:00:20";
+    public static final String NODE_FAKE_IP_STR = "172.172.172.172";
+    public static final String NODE_FAKE_MAC_STR = "fe:00:00:00:00:80";
 
     public static final MacAddress DEFAULT_GATEWAY_MAC =
                         MacAddress.valueOf(DEFAULT_GATEWAY_MAC_STR);
@@ -102,8 +104,6 @@ public final class Constants {
     public static final int PRIORITY_FORCED_ACL_RULE = 50000;
     public static final int PRIORITY_ICMP_PROBE_RULE = 50000;
     public static final int PRIORITY_NODE_PORT_RULE = 42000;
-    public static final int PRIORITY_NODE_PORT_REMOTE_RULE = 41500;
-    public static final int PRIORITY_NODE_PORT_INTER_RULE = 40000;
     public static final int PRIORITY_DEFAULT_RULE = 0;
 
     // flow table index

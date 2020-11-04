@@ -64,6 +64,7 @@ import static org.onosproject.k8snetworking.api.Constants.DST;
 import static org.onosproject.k8snetworking.api.Constants.HOST_PREFIX;
 import static org.onosproject.k8snetworking.api.Constants.K8S_NETWORKING_APP_ID;
 import static org.onosproject.k8snetworking.api.Constants.LOCAL_ENTRY_TABLE;
+import static org.onosproject.k8snetworking.api.Constants.NODE_IP_PREFIX;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_ARP_REPLY_RULE;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_GATEWAY_RULE;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_INTER_NODE_RULE;
@@ -279,6 +280,23 @@ public class K8sSwitchingGatewayHandler {
                         appId,
                         dstNode.tunBridge(),
                         transformedSelector,
+                        treatment,
+                        PRIORITY_INTER_NODE_RULE,
+                        TUN_ENTRY_TABLE,
+                        install);
+
+                String nodeIpPrefix = NODE_IP_PREFIX + ".0.0.0/8";
+
+                TrafficSelector nodePortSelector = DefaultTrafficSelector.builder()
+                        .matchEthType(Ethernet.TYPE_IPV4)
+                        .matchIPSrc(IpPrefix.valueOf(nodeIpPrefix))
+                        .matchIPDst(IpPrefix.valueOf(dstNode.podCidr()))
+                        .build();
+
+                k8sFlowRuleService.setRule(
+                        appId,
+                        dstNode.tunBridge(),
+                        nodePortSelector,
                         treatment,
                         PRIORITY_INTER_NODE_RULE,
                         TUN_ENTRY_TABLE,

@@ -25,6 +25,7 @@ import org.onosproject.k8snode.api.K8sApiConfig;
 import org.onosproject.k8snode.api.K8sExternalNetwork;
 import org.onosproject.k8snode.api.K8sNode;
 import org.onosproject.k8snode.api.K8sNodeEvent;
+import org.onosproject.k8snode.api.K8sNodeInfo;
 import org.onosproject.k8snode.api.K8sNodeState;
 import org.onosproject.k8snode.api.K8sNodeStore;
 import org.onosproject.k8snode.api.K8sNodeStoreDelegate;
@@ -79,6 +80,7 @@ public class DistributedK8sNodeStore
             .register(K8sNode.class)
             .register(DefaultK8sNode.class)
             .register(K8sNode.Type.class)
+            .register(K8sNodeInfo.class)
             .register(K8sNodeState.class)
             .register(K8sApiConfig.Mode.class)
             .register(K8sExternalNetwork.class)

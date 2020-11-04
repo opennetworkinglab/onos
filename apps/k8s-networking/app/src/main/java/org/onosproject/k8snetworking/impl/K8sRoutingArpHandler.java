@@ -178,7 +178,6 @@ public class K8sRoutingArpHandler {
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_ARP)
                 .matchArpOp(ARP.OP_REPLY)
-                .matchArpSpa(Ip4Address.valueOf(k8sNode.extGatewayIp().toString()))
                 .build();
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()

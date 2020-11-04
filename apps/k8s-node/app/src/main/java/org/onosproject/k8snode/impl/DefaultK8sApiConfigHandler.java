@@ -39,6 +39,7 @@ import org.onosproject.k8snode.api.K8sHostAdminService;
 import org.onosproject.k8snode.api.K8sHostState;
 import org.onosproject.k8snode.api.K8sNode;
 import org.onosproject.k8snode.api.K8sNodeAdminService;
+import org.onosproject.k8snode.api.K8sNodeInfo;
 import org.onosproject.k8snode.api.K8sRouterBridge;
 import org.onosproject.k8snode.api.K8sTunnelBridge;
 import org.osgi.service.component.annotations.Activate;
@@ -274,7 +275,7 @@ public class DefaultK8sApiConfigHandler {
                 .hostname(hostname)
                 .managementIp(managementIp)
                 .dataIp(dataIp)
-                .nodeIp(nodeIp)
+                .nodeInfo(new K8sNodeInfo(nodeIp, null))
                 .extIntf(extIntf)
                 .type(nodeType)
                 .segmentId(config.segmentId())

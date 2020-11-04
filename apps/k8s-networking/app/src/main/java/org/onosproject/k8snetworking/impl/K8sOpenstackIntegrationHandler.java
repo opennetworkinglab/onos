@@ -63,6 +63,7 @@ public class K8sOpenstackIntegrationHandler {
 
     private static final String K8S_NODE_IP = "k8sNodeIp";
     private static final String OS_K8S_INT_PORT_NAME = "osK8sIntPortName";
+    private static final String OS_K8S_EXT_PORT_NAME = "osK8sExtPortName";
     private static final String POD_CIDR = "podCidr";
     private static final String SERVICE_CIDR = "serviceCidr";
     private static final String POD_GW_IP = "podGwIp";
@@ -121,7 +122,8 @@ public class K8sOpenstackIntegrationHandler {
         String srcPodPrefix = getBclassIpPrefixFromCidr(nodePodCidr);
         String podCidr = srcPodPrefix + B_CLASS_SUFFIX;
         String osK8sIntPortName = k8sNode.osToK8sIntgPatchPortName();
-        String k8sIntOsPortMac = k8sNode.portMacByName(k8sNode.k8sIntgToOsPatchPortName()).toString();
+        String k8sIntOsPortMac = k8sNode.portMacByName(k8sNode.intgBridge(),
+                k8sNode.k8sIntgToOsPatchPortName()).toString();
 
         String path = install ? "node/pt-install" : "node/pt-uninstall";
 
@@ -159,6 +161,43 @@ public class K8sOpenstackIntegrationHandler {
         }
     }
 
+    private void setCniPtNodePortRules(K8sNode k8sNode, boolean install) {
+        String k8sNodeIp = k8sNode.nodeIp().toString();
+        String osK8sExtPortName = k8sNode.osToK8sExtPatchPortName();
+
+        String path = install ? "nodeport/pt-install" : "nodeport/pt-uninstall";
+
+        String jsonString = "";
+
+        try {
+            jsonString = new JSONObject()
+                    .put(K8S_NODE_IP, k8sNodeIp)
+                    .put(SERVICE_CIDR, SERVICE_IP_CIDR_DEFAULT)
+                    .put(OS_K8S_EXT_PORT_NAME, osK8sExtPortName)
+                    .toString();
+            log.info("push integration configuration {}", jsonString);
+        } catch (JSONException e) {
+            log.error("Failed to generate JSON string");
+            return;
+        }
+
+        HttpAuthenticationFeature feature =
+                HttpAuthenticationFeature.basic(ONOS_USERNAME, ONOS_PASSWORD);
+
+        final Client client = ClientBuilder.newClient();
+        client.register(feature);
+        String host = "http://" + k8sNode.managementIp().toString() + ":" + ONOS_PORT + "/";
+        String endpoint = host + OS_K8S_INTEGRATION_EP;
+        WebTarget wt = client.target(endpoint).path(path);
+        Response response = wt.request(MediaType.APPLICATION_JSON_TYPE)
+                .put(Entity.json(jsonString));
+        final int status = response.getStatus();
+
+        if (status != 200) {
+            log.error("Failed to install/uninstall openstack k8s CNI PT node port rules.");
+        }
+    }
+
     private class InternalK8sNodeListener implements K8sNodeListener {
 
         @Override
@@ -190,6 +229,7 @@ public class K8sOpenstackIntegrationHandler {
             }
 
             setCniPtNodeRules(k8sNode, true);
+            setCniPtNodePortRules(k8sNode, true);
         }
 
         private void processNodeIncompletion(K8sNode k8sNode) {
@@ -198,6 +238,7 @@ public class K8sOpenstackIntegrationHandler {
             }
 
             setCniPtNodeRules(k8sNode, false);
+            setCniPtNodePortRules(k8sNode, false);
         }
     }
 }

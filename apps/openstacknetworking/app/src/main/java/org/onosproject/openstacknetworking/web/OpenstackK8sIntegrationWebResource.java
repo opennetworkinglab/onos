@@ -45,6 +45,7 @@ public class OpenstackK8sIntegrationWebResource extends AbstractWebResource {
 
     private static final String K8S_NODE_IP = "k8sNodeIp";
     private static final String OS_K8S_INT_PORT_NAME = "osK8sIntPortName";
+    private static final String OS_K8S_EXT_PORT_NAME = "osK8sExtPortName";
     private static final String POD_CIDR = "podCidr";
     private static final String SERVICE_CIDR = "serviceCidr";
     private static final String POD_GW_IP = "podGwIp";
@@ -56,7 +57,7 @@ public class OpenstackK8sIntegrationWebResource extends AbstractWebResource {
     /**
      * Installs CNI pass-through related flow rules for each kubernetes nodes.
      *
-     * @param input     JSON string
+     * @param input JSON string
      * @return 200 ok, 400 BAD_REQUEST if the json is malformed
      * @throws IOException exception
      */
@@ -82,9 +83,9 @@ public class OpenstackK8sIntegrationWebResource extends AbstractWebResource {
     }
 
     /**
-     * Installs CNI pass-through related flow rules for each kubernetes nodes.
+     * Uninstalls CNI pass-through related flow rules for each kubernetes nodes.
      *
-     * @param input     JSON string
+     * @param input JSON string
      * @return 200 ok, 400 BAD_REQUEST if the json is malformed
      * @throws IOException exception
      */
@@ -105,6 +106,52 @@ public class OpenstackK8sIntegrationWebResource extends AbstractWebResource {
 
         intService.uninstallCniPtNodeRules(k8sNodeIp, podCidr, serviceCidr,
                 podGwIp, osK8sIntPortName, k8sIntOsPortMac);
+
+        return Response.ok().build();
+    }
+
+    /**
+     * Installs CNI pass-through related node port flow rules.
+     *
+     * @param input JSON string
+     * @return 200 ok, 400 BAD_REQUEST if the json is malformed
+     * @throws IOException exception
+     */
+    @PUT
+    @Path("nodeport/pt-install")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response installCniPtNodePortRules(InputStream input) throws IOException {
+        log.trace("Install K8S CNI pass-through node port rules");
+
+        JsonNode json = readTreeFromStream(mapper().enable(INDENT_OUTPUT), input);
+        IpAddress k8sNodeIp = IpAddress.valueOf(json.get(K8S_NODE_IP).asText());
+        String osK8sExtPortName = json.get(OS_K8S_EXT_PORT_NAME).asText();
+
+        intService.installCniPtNodePortRules(k8sNodeIp, osK8sExtPortName);
+
+        return Response.ok().build();
+    }
+
+    /**
+     * Uninstalls CNI pass-through related node port flow rules.
+     *
+     * @param input JSON string
+     * @return 200 ok, 400 BAD_REQUEST if the json is malformed
+     * @throws IOException exception
+     */
+    @PUT
+    @Path("nodeport/pt-uninstall")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response uninstallCniPtNodePortRules(InputStream input) throws IOException {
+        log.trace("Uninstall K8S CNI pass-through node port rules");
+
+        JsonNode json = readTreeFromStream(mapper().enable(INDENT_OUTPUT), input);
+        IpAddress k8sNodeIp = IpAddress.valueOf(json.get(K8S_NODE_IP).asText());
+        String osK8sExtPortName = json.get(OS_K8S_EXT_PORT_NAME).asText();
+
+        intService.uninstallCniPtNodePortRules(k8sNodeIp, osK8sExtPortName);
 
         return Response.ok().build();
     }
