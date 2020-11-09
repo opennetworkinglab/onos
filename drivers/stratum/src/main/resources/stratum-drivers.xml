@@ -36,12 +36,4 @@
         <behaviour api="org.onosproject.net.behaviour.PiPipelineProgrammable"
                    impl="org.onosproject.drivers.stratum.FpmPipelineProgrammable"/>
     </driver>
-
-    <driver name="stratum-fpm-odtn" manufacturer="Open Networking Foundation"
-            hwVersion="FPM" swVersion="Stratum" extends="stratum-fpm,gnmi-openconfig-terminal-device">
-        <!-- Here we add the original Stratum handshaker since the gnmi-openconfig-terminal-device
-             driver override the handshaker behaviour with GnmiHandshakerStandalone. -->
-        <behaviour api="org.onosproject.net.device.DeviceHandshaker"
-                   impl="org.onosproject.drivers.stratum.StratumHandshaker"/>
-    </driver>
 </drivers>
