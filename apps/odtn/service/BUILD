@@ -27,7 +27,7 @@ osgi_jar_with_tests(
 APPS = [
     "org.onosproject.yang",
     "org.onosproject.config",
-    "org.onosproject.configsync",
+    #"org.onosproject.configsync",
     "org.onosproject.models.tapi",
     "org.onosproject.odtn-api",
 
@@ -37,7 +37,7 @@ APPS = [
     "org.onosproject.drivers.odtn-driver",
     "org.onosproject.netconf",
     "org.onosproject.optical-model",
-    "org.onosproject.configsync-netconf",
+    #"org.onosproject.configsync-netconf",
     "org.onosproject.protocols.restconfserver",
 ]
 

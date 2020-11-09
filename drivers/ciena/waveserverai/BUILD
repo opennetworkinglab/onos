@@ -27,7 +27,7 @@ REQUIRED_APPS = [
     "org.onosproject.drivers.optical",
     "org.onosproject.models.ciena.waveserverai",
     "org.onosproject.netconf",
-    "org.onosproject.netconfsb",
+    #"org.onosproject.netconfsb",
     "org.onosproject.drivers.netconf",
     "org.onosproject.linkdiscovery",
 ]

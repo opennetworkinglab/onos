@@ -5,7 +5,7 @@ APPS = [
     "org.onosproject.restconf",
     "org.onosproject.protocols.restconfserver",
     "org.onosproject.netconf",
-    "org.onosproject.netconfsb",
+    #"org.onosproject.netconfsb",
     "org.onosproject.models.openroadm",
 ]
 

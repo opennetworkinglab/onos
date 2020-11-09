@@ -19,7 +19,7 @@ BUNDLES = [
 REQUIRED_APPS = [
     "org.onosproject.linkdiscovery",
     "org.onosproject.netconf",
-    "org.onosproject.netconfsb",
+    #"org.onosproject.netconfsb",
     "org.onosproject.drivers.netconf",
 ]
 
