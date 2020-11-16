@@ -64,4 +64,7 @@ public final class OsgiPropertyConstants {
 
     public static final String LINK_WEIGHT_FUNCTION = "linkWeightFunction";
     public static final String LINK_WEIGHT_FUNCTION_DEFAULT = "hopCount";
+
+    public static final String MAX_PATHS = "maxPaths";
+    public static final int MAX_PATHS_DEFAULT = -1;
 }

@@ -69,11 +69,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static org.onlab.graph.GraphPathSearch.ALL_PATHS;
 import static org.onlab.util.Tools.get;
 import static org.onlab.util.Tools.isNullOrEmpty;
 import static org.onosproject.net.topology.TopologyEvent.Type.TOPOLOGY_CHANGED;
-import static org.onosproject.store.OsgiPropertyConstants.LINK_WEIGHT_FUNCTION;
-import static org.onosproject.store.OsgiPropertyConstants.LINK_WEIGHT_FUNCTION_DEFAULT;
+import static org.onosproject.store.OsgiPropertyConstants.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -89,7 +89,8 @@ import static org.slf4j.LoggerFactory.getLogger;
                 TopologyStore.class, PathAdminService.class
         },
         property = {
-                LINK_WEIGHT_FUNCTION + "=" + LINK_WEIGHT_FUNCTION_DEFAULT
+                LINK_WEIGHT_FUNCTION + "=" + LINK_WEIGHT_FUNCTION_DEFAULT,
+                MAX_PATHS + "=" + MAX_PATHS_DEFAULT,
         }
 )
 public class DistributedTopologyStore
@@ -127,6 +128,9 @@ public class DistributedTopologyStore
 
     /** Default link-weight function: hopCount, linkMetric, geoDistance. */
     private String linkWeightFunction = LINK_WEIGHT_FUNCTION_DEFAULT;
+
+    /** Default max-paths count. */
+    private int maxPaths = ALL_PATHS;
 
     // Cluster root to broadcast points bindings to allow convergence to
     // a shared broadcast tree; node that is the master of the cluster root
@@ -173,6 +177,15 @@ public class DistributedTopologyStore
                     linkWeightFunction.equals(GEO_DISTANCE) ?
                             new GeoDistanceLinkWeight(deviceService) : null;
             setDefaultLinkWeigher(weight);
+        }
+
+        String newMaxPaths = get(properties, MAX_PATHS);
+        if (newMaxPaths != null) {
+            try {
+                setDefaultMaxPaths(Integer.parseInt(newMaxPaths));
+            } catch (NumberFormatException e) {
+                log.warn("maxPaths must be a number; not {}", newMaxPaths);
+            }
         }
         log.info(FORMAT, linkWeightFunction);
     }
@@ -337,6 +350,11 @@ public class DistributedTopologyStore
         return (DefaultTopology) topology;
     }
 
+    @Override
+    public void setDefaultMaxPaths(int maxPaths) {
+        this.maxPaths = maxPaths;
+        DefaultTopology.setDefaultMaxPaths(maxPaths);
+    }
     @Override
     public void setDefaultLinkWeigher(LinkWeigher linkWeigher) {
         DefaultTopology.setDefaultLinkWeigher(linkWeigher);

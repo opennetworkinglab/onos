@@ -94,6 +94,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
             new LazyKShortestPathsSearch<>();
 
 
+    private static int defaultMaxPaths = ALL_PATHS;
     private static LinkWeigher defaultLinkWeigher = null;
     private static GraphPathSearch<TopologyVertex, TopologyEdge> defaultGraphPathSearch = null;
 
@@ -110,6 +111,18 @@ public class DefaultTopology extends AbstractModel implements Topology {
     private final Supplier<ImmutableSetMultimap<ClusterId, ConnectPoint>> broadcastSets;
     private final Function<ConnectPoint, Boolean> broadcastFunction;
     private final Supplier<ClusterIndexes> clusterIndexes;
+
+    /**
+     * Sets the default maximum path count to be used when computing paths. If
+     * -1 is specified, the builtin default <code>ALL_PATHS</code>, signifying
+     * that all available paths should be returned is used.
+     *
+     * @param maxPaths new default max path count
+     */
+    public static synchronized void setDefaultMaxPaths(int maxPaths) {
+        log.info("Setting new default maximum paths count to {}", maxPaths);
+        defaultMaxPaths = maxPaths;
+    }
 
     /**
      * Sets the default link-weight to be used when computing paths. If null is
@@ -152,7 +165,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
 
         // Build the graph
         this.graph = new DefaultTopologyGraph(description.vertexes(),
-                description.edges());
+                                              description.edges());
 
         this.clusterResults = Suppliers.memoize(this::searchForClusters);
         this.clusters = Suppliers.memoize(this::buildTopologyClusters);
@@ -304,7 +317,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
         // Find the cluster to which the device belongs.
         TopologyCluster cluster = clustersByDevice().get(connectPoint.deviceId());
         checkArgument(cluster != null,
-                "No cluster found for device %s", connectPoint.deviceId());
+                      "No cluster found for device %s", connectPoint.deviceId());
 
         // If the broadcast set is null or empty, or if the point explicitly
         // belongs to it, return true.
@@ -341,7 +354,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * @return set of shortest paths
      */
     public Set<Path> getPaths(DeviceId src, DeviceId dst) {
-        return getPaths(src, dst, linkWeight(), ALL_PATHS);
+        return getPaths(src, dst, linkWeight(), defaultMaxPaths);
     }
 
     /**
@@ -354,7 +367,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * @return set of shortest paths
      */
     public Set<Path> getPaths(DeviceId src, DeviceId dst, LinkWeigher weigher) {
-        return getPaths(src, dst, weigher, ALL_PATHS);
+        return getPaths(src, dst, weigher, defaultMaxPaths);
     }
 
     /**
@@ -368,9 +381,9 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * which paths will be returned depends on the currently specified
      * {@code GraphPathSearch}. See {@link #setDefaultGraphPathSearch}.
      *
-     * @param src    source device
-     * @param dst    destination device
-     * @param weigher link weight function
+     * @param src      source device
+     * @param dst      destination device
+     * @param weigher  link weight function
      * @param maxPaths maximum number of paths
      * @return set of shortest paths
      */
@@ -397,8 +410,8 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * Computes on-demand the k-shortest paths between source and
      * destination devices.
      *
-     * @param src    source device
-     * @param dst    destination device
+     * @param src      source device
+     * @param dst      destination device
      * @param maxPaths maximum number of paths (k)
      * @return set of k-shortest paths
      */
@@ -411,13 +424,13 @@ public class DefaultTopology extends AbstractModel implements Topology {
     /**
      * Computes on-demand the k-shortest paths between source and
      * destination devices.
-     *
+     * <p>
      * The first {@code maxPaths} paths will be returned
      * in ascending order according to the provided {@code weigher}
      *
-     * @param src    source device
-     * @param dst    destination device
-     * @param weigher link weight function
+     * @param src      source device
+     * @param dst      destination device
+     * @param weigher  link weight function
      * @param maxPaths maximum number of paths (k)
      * @return set of k-shortest paths
      */
@@ -434,17 +447,16 @@ public class DefaultTopology extends AbstractModel implements Topology {
 
         return KSHORTEST.search(graph, srcV, dstV, weigher, maxPaths)
                 .paths().stream()
-                    .map(this::networkPath)
-                    .collect(ImmutableSet.toImmutableSet());
+                .map(this::networkPath)
+                .collect(ImmutableSet.toImmutableSet());
     }
 
     /**
      * Lazily computes on-demand the k-shortest paths between source and
      * destination devices.
      *
-     *
-     * @param src    source device
-     * @param dst    destination device
+     * @param src source device
+     * @param dst destination device
      * @return stream of k-shortest paths
      */
     public Stream<Path> getKShortestPaths(DeviceId src, DeviceId dst) {
@@ -455,9 +467,8 @@ public class DefaultTopology extends AbstractModel implements Topology {
      * Lazily computes on-demand the k-shortest paths between source and
      * destination devices.
      *
-     *
-     * @param src    source device
-     * @param dst    destination device
+     * @param src     source device
+     * @param dst     destination device
      * @param weigher link weight function
      * @return stream of k-shortest paths
      */
@@ -472,7 +483,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
         }
 
         return LAZY_KSHORTEST.lazyPathSearch(graph, srcV, dstV, weigher)
-                    .map(this::networkPath);
+                .map(this::networkPath);
     }
 
     /**
@@ -507,7 +518,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
         }
 
         GraphPathSearch.Result<TopologyVertex, TopologyEdge> result =
-                SUURBALLE.search(graph, srcV, dstV, weigher, ALL_PATHS);
+                SUURBALLE.search(graph, srcV, dstV, weigher, defaultMaxPaths);
         ImmutableSet.Builder<DisjointPath> builder = ImmutableSet.builder();
         for (org.onlab.graph.Path<TopologyVertex, TopologyEdge> path : result.paths()) {
             DisjointPath disjointPath =
@@ -544,7 +555,7 @@ public class DefaultTopology extends AbstractModel implements Topology {
         SrlgGraphSearch<TopologyVertex, TopologyEdge> srlg =
                 new SrlgGraphSearch<>(riskProfile);
         GraphPathSearch.Result<TopologyVertex, TopologyEdge> result =
-                srlg.search(graph, srcV, dstV, weigher, ALL_PATHS);
+                srlg.search(graph, srcV, dstV, weigher, defaultMaxPaths);
         ImmutableSet.Builder<DisjointPath> builder = ImmutableSet.builder();
         for (org.onlab.graph.Path<TopologyVertex, TopologyEdge> path : result.paths()) {
             DisjointPath disjointPath =
@@ -619,12 +630,12 @@ public class DefaultTopology extends AbstractModel implements Topology {
         if (!path.hasBackup()) {
             // There was no secondary path available.
             return new DefaultDisjointPath(CORE_PROVIDER_ID,
-                    (DefaultPath) networkPath(path.primary()),
-                    null);
+                                           (DefaultPath) networkPath(path.primary()),
+                                           null);
         }
         return new DefaultDisjointPath(CORE_PROVIDER_ID,
-                (DefaultPath) networkPath(path.primary()),
-                (DefaultPath) networkPath(path.secondary()));
+                                       (DefaultPath) networkPath(path.primary()),
+                                       (DefaultPath) networkPath(path.secondary()));
     }
 
     // Searches for SCC clusters in the network topology graph using Tarjan
@@ -651,9 +662,9 @@ public class DefaultTopology extends AbstractModel implements Topology {
 
             ClusterId cid = ClusterId.clusterId(i);
             DefaultTopologyCluster cluster = new DefaultTopologyCluster(cid,
-                    vertexSet.size(),
-                    edgeSet.size(),
-                    findRoot(vertexSet));
+                                                                        vertexSet.size(),
+                                                                        edgeSet.size(),
+                                                                        findRoot(vertexSet));
             clusterBuilder.put(cid, cluster);
         }
         return clusterBuilder.build();
@@ -756,8 +767,8 @@ public class DefaultTopology extends AbstractModel implements Topology {
 
         // Finalize all indexes.
         return new ClusterIndexes(clusterBuilder.build(),
-                devicesBuilder.build(),
-                linksBuilder.build());
+                                  devicesBuilder.build(),
+                                  linksBuilder.build());
     }
 
     private GraphPathSearch<TopologyVertex, TopologyEdge> graphPathSearch() {

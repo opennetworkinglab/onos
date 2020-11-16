@@ -41,4 +41,13 @@ public interface PathAdminService {
      */
     void setDefaultGraphPathSearch(GraphPathSearch<TopologyVertex, TopologyEdge> graphPathSearch);
 
+    /**
+     * Sets the default maximum path count to be used when computing paths. If
+     * -1 is specified, the builtin default <code>ALL_PATHS</code>, signifying
+     * that all available paths should be returned is used.
+     *
+     * @param maxPaths new default max path count
+     */
+    default void setDefaultMaxPaths(int maxPaths) {};
+
 }
