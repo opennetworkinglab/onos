@@ -37,7 +37,7 @@
         <maven.version.min>3.3.9</maven.version.min>
         <java.version.min><!-- JAVA_VERSION --></java.version.min>
         <onos.version><!-- ONOS_VERSION --></onos.version>
-        <errorprone.version>2.3.3</errorprone.version>
+        <errorprone.version>2.3.4</errorprone.version>
     </properties>
 
     <dependencyManagement>
