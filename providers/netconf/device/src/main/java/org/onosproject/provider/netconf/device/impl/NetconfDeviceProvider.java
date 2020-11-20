@@ -98,12 +98,10 @@ import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
 
 import static java.util.concurrent.Executors.newScheduledThreadPool;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.netconf.NetconfDeviceInfo.extractIpPortPath;
-import static org.onosproject.provider.netconf.device.impl.OsgiPropertyConstants.MAX_RETRIES;
-import static org.onosproject.provider.netconf.device.impl.OsgiPropertyConstants.MAX_RETRIES_DEFAULT;
-import static org.onosproject.provider.netconf.device.impl.OsgiPropertyConstants.POLL_FREQUENCY_SECONDS;
-import static org.onosproject.provider.netconf.device.impl.OsgiPropertyConstants.POLL_FREQUENCY_SECONDS_DEFAULT;
+import static org.onosproject.provider.netconf.device.impl.OsgiPropertyConstants.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -113,6 +111,7 @@ import static org.slf4j.LoggerFactory.getLogger;
         property = {
                 POLL_FREQUENCY_SECONDS + ":Integer=" + POLL_FREQUENCY_SECONDS_DEFAULT,
                 MAX_RETRIES + ":Integer=" + MAX_RETRIES_DEFAULT,
+                RETRY_FREQUENCY_SECONDS + ":Integer=" + RETRY_FREQUENCY_SECONDS_DEFAULT
         })
 public class NetconfDeviceProvider extends AbstractProvider
         implements DeviceProvider {
@@ -167,16 +166,24 @@ public class NetconfDeviceProvider extends AbstractProvider
      */
     private int maxRetries = MAX_RETRIES_DEFAULT;
 
+    /**
+     * Configure retry frequency for connecting with device again; default is 30 sec.
+     */
+    private int retryFrequency = RETRY_FREQUENCY_SECONDS_DEFAULT;
+
     protected ExecutorService connectionExecutor = Executors.newFixedThreadPool(CORE_POOL_SIZE,
             groupedThreads("onos/netconfDeviceProviderConnection",
                     "connection-executor-%d", log));
     protected ScheduledExecutorService pollingExecutor = newScheduledThreadPool(CORE_POOL_SIZE,
             groupedThreads("onos/netconfDeviceProviderPoll",
                     "polling-executor-%d", log));
-
+    protected ScheduledExecutorService reconnectionExecutor = newSingleThreadScheduledExecutor(
+            groupedThreads("onos/netconfDeviceProviderReconnection",
+                           "reconnection-executor-%d", log));
     protected DeviceProviderService providerService;
     private final Map<DeviceId, AtomicInteger> retriedPortDiscoveryMap = new ConcurrentHashMap<>();
     protected ScheduledFuture<?> scheduledTask;
+    protected ScheduledFuture<?> scheduledReconnectionTask;
     private final Striped<Lock> deviceLocks = Striped.lock(30);
 
     protected final ConfigFactory factory =
@@ -207,8 +214,8 @@ public class NetconfDeviceProvider extends AbstractProvider
         cfgService.addListener(cfgListener);
         controller.addDeviceListener(innerNodeListener);
         deviceService.addListener(deviceListener);
-        pollingExecutor.execute(NetconfDeviceProvider.this::connectDevices);
         scheduledTask = schedulePolling();
+        scheduledReconnectionTask = scheduleConnectDevices();
         modified(context);
         log.info("Started");
     }
@@ -232,6 +239,7 @@ public class NetconfDeviceProvider extends AbstractProvider
         scheduledTask.cancel(true);
         connectionExecutor.shutdown();
         pollingExecutor.shutdown();
+        reconnectionExecutor.shutdown();
         log.info("Stopped");
     }
 
@@ -251,6 +259,18 @@ public class NetconfDeviceProvider extends AbstractProvider
                 }
                 scheduledTask = schedulePolling();
                 log.info("Configured. Poll frequency is configured to {} seconds", pollFrequency);
+            }
+
+            int newRetryFrequency = Tools.getIntegerProperty(properties, RETRY_FREQUENCY_SECONDS,
+                                                            RETRY_FREQUENCY_SECONDS_DEFAULT);
+
+            if (newRetryFrequency != retryFrequency) {
+                retryFrequency = newRetryFrequency;
+                if (scheduledReconnectionTask != null) {
+                    scheduledReconnectionTask.cancel(false);
+                }
+                scheduledReconnectionTask = scheduleConnectDevices();
+                log.info("Configured. Retry frequency is configured to {} seconds", retryFrequency);
             }
 
             maxRetries = Tools.getIntegerProperty(properties, MAX_RETRIES, MAX_RETRIES_DEFAULT);
@@ -405,10 +425,16 @@ public class NetconfDeviceProvider extends AbstractProvider
         };
     }
 
-    //Connecting devices with initial config
+    private ScheduledFuture scheduleConnectDevices() {
+        return reconnectionExecutor.scheduleAtFixedRate(this::connectDevices, 0, retryFrequency,
+                                                        TimeUnit.SECONDS);
+    }
+
+    /* Connecting devices with initial config. This will keep on retrying infinitely for all devices which are not
+    connecting with ONOS. To stop retry, please remove device from netcfg*/
     private void connectDevices() {
         Set<DeviceId> deviceSubjects = cfgService.getSubjects(DeviceId.class, NetconfDeviceConfig.class);
-        deviceSubjects.parallelStream().forEach(deviceId -> {
+        deviceSubjects.parallelStream().filter(deviceId -> !deviceService.isAvailable(deviceId)).forEach(deviceId -> {
             connectionExecutor.execute(exceptionSafe(() -> runElectionFor(deviceId)));
         });
     }
