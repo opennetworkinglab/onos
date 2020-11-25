@@ -51,13 +51,8 @@ import java.util.concurrent.ExecutorService;
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.k8snode.api.K8sNodeEvent.Type.K8S_NODE_COMPLETE;
-import static org.onosproject.k8snode.api.K8sNodeEvent.Type.K8S_NODE_CREATED;
-import static org.onosproject.k8snode.api.K8sNodeEvent.Type.K8S_NODE_INCOMPLETE;
-import static org.onosproject.k8snode.api.K8sNodeEvent.Type.K8S_NODE_REMOVED;
-import static org.onosproject.k8snode.api.K8sNodeEvent.Type.K8S_NODE_UPDATED;
-import static org.onosproject.k8snode.api.K8sNodeState.COMPLETE;
-import static org.onosproject.k8snode.api.K8sNodeState.INCOMPLETE;
+import static org.onosproject.k8snode.api.K8sNodeEvent.Type.*;
+import static org.onosproject.k8snode.api.K8sNodeState.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -188,6 +183,11 @@ public class DistributedK8sNodeStore
                         } else if (event.newValue().value().state() == INCOMPLETE) {
                             notifyDelegate(new K8sNodeEvent(
                                     K8S_NODE_INCOMPLETE,
+                                    event.newValue().value()
+                            ));
+                        } else if (event.newValue().value().state() == OFF_BOARDED) {
+                            notifyDelegate(new K8sNodeEvent(
+                                    K8S_NODE_OFF_BOARDED,
                                     event.newValue().value()
                             ));
                         }

@@ -67,8 +67,8 @@ import static org.onosproject.k8snetworking.api.Constants.DEFAULT_GATEWAY_MAC;
 import static org.onosproject.k8snetworking.api.Constants.EXT_ENTRY_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.K8S_NETWORKING_APP_ID;
 import static org.onosproject.k8snetworking.api.Constants.POD_RESOLUTION_TABLE;
-import static org.onosproject.k8snetworking.api.Constants.PRIORITY_DEFAULT_RULE;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_EXTERNAL_ROUTING_RULE;
+import static org.onosproject.k8snetworking.api.Constants.PRIORITY_ROUTER_RULE;
 import static org.onosproject.k8snetworking.api.Constants.PRIORITY_STATEFUL_SNAT_RULE;
 import static org.onosproject.k8snetworking.api.Constants.ROUTER_ENTRY_TABLE;
 import static org.onosproject.k8snetworking.api.Constants.ROUTING_TABLE;
@@ -346,7 +346,7 @@ public class K8sRoutingSnatHandler {
                 bridge.deviceId(),
                 ipSelector,
                 treatment,
-                PRIORITY_DEFAULT_RULE,
+                PRIORITY_ROUTER_RULE,
                 ROUTER_ENTRY_TABLE,
                 install);
 
@@ -360,7 +360,7 @@ public class K8sRoutingSnatHandler {
                 bridge.deviceId(),
                 arpSelector,
                 treatment,
-                PRIORITY_DEFAULT_RULE,
+                PRIORITY_ROUTER_RULE,
                 ROUTER_ENTRY_TABLE,
                 install);
     }
@@ -387,7 +387,7 @@ public class K8sRoutingSnatHandler {
                 bridge.deviceId(),
                 ipSelector,
                 treatment,
-                PRIORITY_DEFAULT_RULE,
+                PRIORITY_ROUTER_RULE,
                 ROUTER_ENTRY_TABLE,
                 install);
 
@@ -402,7 +402,7 @@ public class K8sRoutingSnatHandler {
                 bridge.deviceId(),
                 arpSelector,
                 treatment,
-                PRIORITY_DEFAULT_RULE,
+                PRIORITY_ROUTER_RULE,
                 ROUTER_ENTRY_TABLE,
                 install);
     }
@@ -436,6 +436,9 @@ public class K8sRoutingSnatHandler {
                 case K8S_NODE_UPDATED:
                     eventExecutor.execute(() -> processNodeUpdate(event.subject()));
                     break;
+                case K8S_NODE_OFF_BOARDED:
+                    eventExecutor.execute(() -> processNodeOffboard(event.subject()));
+                    break;
                 case K8S_NODE_INCOMPLETE:
                 default:
                     break;
@@ -451,6 +454,17 @@ public class K8sRoutingSnatHandler {
             setExtSnatDownstreamRule(k8sNode, true);
             setContainerToExtRule(k8sNode, true);
             setRouterSnatRules(k8sNode, true);
+        }
+
+        private void processNodeOffboard(K8sNode k8sNode) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            setExtIntfArpRule(k8sNode, false);
+            setExtSnatDownstreamRule(k8sNode, false);
+            setContainerToExtRule(k8sNode, false);
+            setRouterSnatRules(k8sNode, false);
         }
 
         private void processNodeUpdate(K8sNode k8sNode) {

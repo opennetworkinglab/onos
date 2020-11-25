@@ -86,6 +86,7 @@ import static org.onosproject.k8snode.util.K8sNodeUtil.isOvsdbConnected;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.slf4j.LoggerFactory.getLogger;
 
+
 /**
  * Service bootstraps kubernetes node based on its type.
  */
@@ -258,6 +259,11 @@ public class DefaultK8sNodeHandler implements K8sNodeHandler {
 
     @Override
     public void processPostOnBoardState(K8sNode k8sNode) {
+        // do something if needed
+    }
+
+    @Override
+    public void processOffBoardedState(K8sNode k8sNode) {
         // do something if needed
     }
 
@@ -630,6 +636,18 @@ public class DefaultK8sNodeHandler implements K8sNodeHandler {
             return;
         }
 
+        if (k8sNode.mode() == NORMAL) {
+            // delete tunnel bridge from the node
+            client.dropBridge(k8sNode.tunBridgeName());
+        } else {
+            // remove the patch ports direct to the integration bridge from tunnel bridge
+            removeTunnelPatchPort(k8sNode);
+            // remove the patch ports direct to the external bridge from the router bridge
+            removeRouterPatchPort(k8sNode);
+            // remove the patch ports directs to the openstack's br-int bridge from the int and ext bridges
+            removeOpenstackPatchPorts(k8sNode);
+        }
+
         // delete integration bridge from the node
         client.dropBridge(k8sNode.intgBridgeName());
 
@@ -639,13 +657,42 @@ public class DefaultK8sNodeHandler implements K8sNodeHandler {
         // delete local bridge from the node
         client.dropBridge(k8sNode.localBridgeName());
 
-        if (k8sNode.mode() == NORMAL) {
-            // delete tunnel bridge from the node
-            client.dropBridge(k8sNode.tunBridgeName());
+        // disconnect ovsdb
+        // client.disconnect();
+    }
+
+    private void removeTunnelPatchPort(K8sNode k8sNode) {
+        OvsdbClientService client = getOvsdbClient(k8sNode, ovsdbPortNum, ovsdbController);
+        if (client == null) {
+            log.info("Failed to get ovsdb client");
+            return;
         }
 
-        // disconnect ovsdb
-        client.disconnect();
+        client.dropInterface(k8sNode.tunToIntgPatchPortName());
+    }
+
+    private void removeRouterPatchPort(K8sNode k8sNode) {
+        OvsdbClientService client = getOvsdbClient(k8sNode, ovsdbPortNum, ovsdbController);
+        if (client == null) {
+            log.info("Failed to get ovsdb client");
+            return;
+        }
+
+        client.dropInterface(k8sNode.routerToExtPatchPortName());
+    }
+
+    private void removeOpenstackPatchPorts(K8sNode k8sNode) {
+        OvsdbClientService client = getOvsdbClient(k8sNode, ovsdbPortNum, ovsdbController);
+        if (client == null) {
+            log.info("Failed to get ovsdb client");
+            return;
+        }
+
+        // remove patch port attached at br-int peers with the k8s integration bridge
+        client.dropInterface(k8sNode.osToK8sIntgPatchPortName());
+
+        // remove patch port attached at br-int peers with the k8s external bridge
+        client.dropInterface(k8sNode.osToK8sExtPatchPortName());
     }
 
     /**
@@ -831,21 +878,17 @@ public class DefaultK8sNodeHandler implements K8sNodeHandler {
                 case K8S_NODE_CREATED:
                 case K8S_NODE_UPDATED:
                     eventExecutor.execute(() -> {
-
                         if (!isRelevantHelper()) {
                             return;
                         }
-
                         bootstrapNode(event.subject());
                     });
                     break;
                 case K8S_NODE_REMOVED:
                     eventExecutor.execute(() -> {
-
                         if (!isRelevantHelper()) {
                             return;
                         }
-
                         processK8sNodeRemoved(event.subject());
                     });
                     break;

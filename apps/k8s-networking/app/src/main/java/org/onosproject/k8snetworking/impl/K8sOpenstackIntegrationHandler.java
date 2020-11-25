@@ -215,8 +215,8 @@ public class K8sOpenstackIntegrationHandler {
                 case K8S_NODE_COMPLETE:
                     eventExecutor.execute(() -> processNodeCompletion(event.subject()));
                     break;
-                case K8S_NODE_INCOMPLETE:
-                    eventExecutor.execute(() -> processNodeIncompletion(event.subject()));
+                case K8S_NODE_OFF_BOARDED:
+                    eventExecutor.execute(() -> processNodeOffboard(event.subject()));
                     break;
                 default:
                     break;
@@ -232,7 +232,7 @@ public class K8sOpenstackIntegrationHandler {
             setCniPtNodePortRules(k8sNode, true);
         }
 
-        private void processNodeIncompletion(K8sNode k8sNode) {
+        private void processNodeOffboard(K8sNode k8sNode) {
             if (!isRelevantHelper()) {
                 return;
             }

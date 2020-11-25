@@ -50,7 +50,12 @@ public class K8sNodeEvent extends AbstractEvent<K8sNodeEvent.Type, K8sNode> {
         /**
          * Signifies that the node state is incomplete.
          */
-        K8S_NODE_INCOMPLETE
+        K8S_NODE_INCOMPLETE,
+
+        /**
+         * Signifies that the node state is off-boarded.
+         */
+        K8S_NODE_OFF_BOARDED
     }
 
     /**
