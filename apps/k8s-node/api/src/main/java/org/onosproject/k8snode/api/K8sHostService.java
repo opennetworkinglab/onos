@@ -65,4 +65,12 @@ public interface K8sHostService extends ListenerService<K8sHostEvent, K8sHostLis
      * @return kubernetes host
      */
     K8sHost hostByTunBridge(DeviceId deviceId);
+
+    /**
+     * Returns the host with the specified router bridge device ID.
+     *
+     * @param deviceId router bridge's device ID
+     * @return kubernetes host
+     */
+    K8sHost hostByRouterBridge(DeviceId deviceId);
 }

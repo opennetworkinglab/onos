@@ -400,6 +400,9 @@ public class K8sNodePortHandler {
                 case K8S_NODE_COMPLETE:
                     eventExecutor.execute(() -> processNodeCompletion(event.subject()));
                     break;
+                case K8S_NODE_OFF_BOARDED:
+                    eventExecutor.execute(() -> processNodeOffboard(event.subject()));
+                    break;
                 case K8S_NODE_INCOMPLETE:
                 default:
                     break;
@@ -431,6 +434,10 @@ public class K8sNodePortHandler {
 
             setIntgToExtRules(updatedNode, getServiceCidr(), true);
             setTunToIntgRules(updatedNode, true);
+        }
+
+        private void processNodeOffboard(K8sNode k8sNode) {
+            setTunToIntgRules(k8sNode, false);
         }
     }
 }

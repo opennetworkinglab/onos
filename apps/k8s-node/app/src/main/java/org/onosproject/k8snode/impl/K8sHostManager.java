@@ -206,6 +206,18 @@ public class K8sHostManager
         return null;
     }
 
+    @Override
+    public K8sHost hostByRouterBridge(DeviceId deviceId) {
+        for (K8sHost host : hostStore.hosts()) {
+            long cnt = host.routerBridges().stream().filter(
+                    br -> br.dpid().equals(deviceId.toString())).count();
+            if (cnt > 0) {
+                return host;
+            }
+        }
+        return null;
+    }
+
     private class InternalHostStoreDelegate implements K8sHostStoreDelegate {
 
         @Override

@@ -448,6 +448,7 @@ public class DefaultK8sHostHandler implements K8sHostHandler {
             log.error("Exception caused during init state checking...");
         }
 
+        // checks whether all tunneling ports exist
         for (K8sTunnelBridge bridge: k8sHost.tunBridges()) {
             if (!isTunPortEnabled(bridge, bridge.vxlanPortName())) {
                 return false;
@@ -460,12 +461,40 @@ public class DefaultK8sHostHandler implements K8sHostHandler {
             }
         }
 
+        // checks whether all patch ports attached to tunnel bridge exist
+        for (K8sTunnelBridge bridge : k8sHost.tunBridges()) {
+            for (String node : k8sHost.nodeNames()) {
+                K8sNode k8sNode = k8sNodeAdminService.node(node);
+                if (!isTunPortEnabled(bridge, k8sNode.tunToIntgPatchPortName())) {
+                    return false;
+                }
+            }
+        }
+
+        // checks whether all patch ports attached to router bridge exist
+        for (K8sRouterBridge bridge : k8sHost.routerBridges()) {
+            for (String node : k8sHost.nodeNames()) {
+                K8sNode k8sNode = k8sNodeAdminService.node(node);
+                if (!isRouterPortEnabled(bridge, k8sNode.routerToExtPatchPortName())) {
+                    return false;
+                }
+            }
+        }
+
         return true;
     }
 
     private boolean isTunPortEnabled(K8sTunnelBridge tunBridge, String intf) {
         return deviceService.isAvailable(tunBridge.deviceId()) &&
                 deviceService.getPorts(tunBridge.deviceId()).stream()
+                        .anyMatch(port -> Objects.equals(
+                                port.annotations().value(PORT_NAME), intf) &&
+                                port.isEnabled());
+    }
+
+    private boolean isRouterPortEnabled(K8sRouterBridge routerBridge, String intf) {
+        return deviceService.isAvailable(routerBridge.deviceId()) &&
+                deviceService.getPorts(routerBridge.deviceId()).stream()
                         .anyMatch(port -> Objects.equals(
                                 port.annotations().value(PORT_NAME), intf) &&
                                 port.isEnabled());
@@ -600,29 +629,30 @@ public class DefaultK8sHostHandler implements K8sHostHandler {
                             return;
                         }
 
-                        K8sHost k8sHost = k8sHostAdminService.hostByTunBridge(device.id());
+                        K8sHost tunnelHost = k8sHostAdminService.hostByTunBridge(device.id());
 
-                        if (k8sHost == null) {
+                        if (tunnelHost == null) {
                             return;
                         }
 
-                        Port port = event.port();
-                        String portName = port.annotations().value(PORT_NAME);
-                        if (k8sHost.state() == DEVICE_CREATED) {
-
-                            K8sTunnelBridge tunBridge = k8sHost.tunBridges().stream().filter(
+                        if (tunnelHost.state() == DEVICE_CREATED) {
+                            // we bootstrap the host whenever any ports added to the tunnel bridge
+                            tunnelHost.tunBridges().stream().filter(
                                     br -> br.deviceId().equals(device.id())
-                            ).findAny().orElse(null);
+                            ).findAny().ifPresent(tunBridge -> bootstrapHost(tunnelHost));
+                        }
 
-                            if (tunBridge != null) {
-                                if (Objects.equals(portName, tunBridge.vxlanPortName()) ||
-                                        Objects.equals(portName, tunBridge.grePortName()) ||
-                                        Objects.equals(portName, tunBridge.genevePortName())) {
-                                    log.info("Interface {} added or updated to {}",
-                                            portName, device.id());
-                                    bootstrapHost(k8sHost);
-                                }
-                            }
+                        K8sHost routerHost = k8sHostAdminService.hostByRouterBridge(device.id());
+
+                        if (routerHost == null) {
+                            return;
+                        }
+
+                        if (routerHost.state() == DEVICE_CREATED) {
+                            // we bootstrap the host whenever any ports added to the router bridge
+                            routerHost.routerBridges().stream().filter(
+                                    br -> br.deviceId().equals(device.id())
+                            ).findAny().ifPresent(routerBridge -> bootstrapHost(routerHost));
                         }
                     });
                     break;

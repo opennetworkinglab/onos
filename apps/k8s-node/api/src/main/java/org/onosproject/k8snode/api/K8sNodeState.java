@@ -117,6 +117,20 @@ public enum K8sNodeState {
         public K8sNodeState nextState() {
             return INIT;
         }
+    },
+    /**
+     * Indicates node is removed.
+     */
+    OFF_BOARDED {
+        @Override
+        public void process(K8sNodeHandler handler, K8sNode node) {
+            handler.processOffBoardedState(node);
+        }
+
+        @Override
+        public K8sNodeState nextState() {
+            return OFF_BOARDED;
+        }
     };
 
     /**

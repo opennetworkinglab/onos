@@ -104,6 +104,7 @@ public final class Constants {
     public static final int PRIORITY_FORCED_ACL_RULE = 50000;
     public static final int PRIORITY_ICMP_PROBE_RULE = 50000;
     public static final int PRIORITY_NODE_PORT_RULE = 42000;
+    public static final int PRIORITY_ROUTER_RULE = 10000;
     public static final int PRIORITY_DEFAULT_RULE = 0;
 
     // flow table index

@@ -75,4 +75,11 @@ public interface K8sNodeHandler {
      * @param k8sNode kubernetes node
      */
     void processPostOnBoardState(K8sNode k8sNode);
+
+    /**
+     * Processes the given node for off boarded state.
+     *
+     * @param k8sNode kubernetes node
+     */
+    void processOffBoardedState(K8sNode k8sNode);
 }
