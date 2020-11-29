@@ -52,9 +52,6 @@ public class MainIndexResource extends AbstractInjectionResource {
     private static final String INDEX = "index.html";
     private static final String NOT_READY = "not-ready.html";
 
-    private static final String CONTENT_SECURITY_POLICY = "Content-Security-Policy";
-    private static final String FRAME_ANCESTORS_NONE = "frame-ancestors 'none'";
-
     private static final String INJECT_USER_START = "<!-- {INJECTED-USER-START} -->";
     private static final String INJECT_USER_END = "<!-- {INJECTED-USER-END} -->";
 
@@ -117,9 +114,7 @@ public class MainIndexResource extends AbstractInjectionResource {
                         new ByteArrayInputStream(SCRIPT_END),
                         stream(index, p0e, p3s)));
 
-        return Response.ok(new SequenceInputStream(streams))
-                       .header(CONTENT_SECURITY_POLICY, FRAME_ANCESTORS_NONE)
-                       .build();
+        return Response.ok(new SequenceInputStream(streams)).build();
     }
 
     private InputStream userConsoleLog(String userName) {

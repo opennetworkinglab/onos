@@ -21,6 +21,16 @@
          id="ONOS" version="2.5">
     <display-name>ONOS GUI 2</display-name>
 
+    <filter>
+        <filter-name>Http Response Headers Filter</filter-name>
+        <filter-class>org.onosproject.ui.impl.gui2.HttpResponseHeadersFilter</filter-class>
+    </filter>
+    
+    <filter-mapping> 
+        <filter-name>Http Response Headers Filter</filter-name> 
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>
     </welcome-file-list>
