@@ -52,7 +52,6 @@ import static com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT;
 import static javax.ws.rs.core.Response.created;
 import static org.onlab.util.Tools.nullIsIllegal;
 import static org.onlab.util.Tools.readTreeFromStream;
-import static org.onosproject.k8snode.api.K8sNodeState.OFF_BOARDED;
 import static org.onosproject.k8snode.api.K8sNodeState.POST_ON_BOARD;
 import static org.onosproject.k8snode.util.K8sNodeUtil.endpoint;
 
@@ -176,34 +175,6 @@ public class K8sNodeWebResource extends AbstractWebResource {
         }
 
         return Response.noContent().build();
-    }
-
-    /**
-     * Off-board a kubernetes node.
-     *
-     * @param hostname host name contained in kubernetes nodes configuration
-     * @return 200 OK with the updated kubernetes node's config, 400 BAD_REQUEST
-     * if the JSON is malformed, and 304 NOT_MODIFIED without the updated config
-     */
-    @PUT
-    @Path("node/offboard/{hostname}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response offboardNode(@PathParam("hostname") String hostname) {
-        log.trace(String.format(MESSAGE_NODE, UPDATE));
-
-        K8sNode existing = nodeAdminService.node(
-                nullIsIllegal(hostname, HOST_NAME + ERROR_MESSAGE));
-
-        if (existing == null) {
-            log.warn("There is no node configuration to offboard : {}", hostname);
-            return Response.notModified().build();
-        } else {
-            K8sNode updated = existing.updateState(OFF_BOARDED);
-            nodeAdminService.updateNode(updated);
-        }
-
-        return Response.ok().build();
     }
 
     /**

@@ -332,52 +332,6 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
         applyRule(flowRule, true);
     }
 
-    private void purgeAnyRoutingRule(K8sNode localNode) {
-        K8sNetwork k8sNetwork = k8sNetworkService.network(localNode.hostname());
-        IpPrefix srcIpPrefix = IpPrefix.valueOf(k8sNetwork.gatewayIp(), HOST_PREFIX);
-        IpPrefix dstIpPrefix = IpPrefix.valueOf(k8sNetwork.cidr());
-
-        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPSrc(srcIpPrefix)
-                .matchIPDst(dstIpPrefix);
-
-        for (K8sNode node : k8sNodeService.nodes()) {
-            TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
-                    .setTunnelId(Long.valueOf(k8sNetwork.segmentId()));
-
-            if (node.hostname().equals(k8sNetwork.name())) {
-                tBuilder.transition(STAT_EGRESS_TABLE);
-            } else {
-                tBuilder.setOutput(node.intgToTunPortNum());
-
-                // install flows into tunnel bridge
-                PortNumber portNum = tunnelPortNumByNetId(k8sNetwork.networkId(),
-                        k8sNetworkService, node);
-                TrafficTreatment treatmentToRemote = DefaultTrafficTreatment.builder()
-                        .extension(buildExtension(
-                                deviceService,
-                                node.tunBridge(),
-                                localNode.dataIp().getIp4Address()),
-                                node.tunBridge())
-                        .setTunnelId(Long.valueOf(k8sNetwork.segmentId()))
-                        .setOutput(portNum)
-                        .build();
-
-                FlowRule remoteFlowRule = DefaultFlowRule.builder()
-                        .forDevice(node.tunBridge())
-                        .withSelector(sBuilder.build())
-                        .withTreatment(treatmentToRemote)
-                        .withPriority(PRIORITY_CIDR_RULE)
-                        .fromApp(appId)
-                        .makePermanent()
-                        .forTable(TUN_ENTRY_TABLE)
-                        .build();
-                applyRule(remoteFlowRule, false);
-            }
-        }
-    }
-
     private void setAnyRoutingRule(IpPrefix srcIpPrefix, MacAddress mac,
                                    K8sNetwork k8sNetwork) {
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
@@ -452,9 +406,6 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
                 case K8S_NODE_COMPLETE:
                     deviceEventExecutor.execute(() -> processNodeCompletion(event.subject()));
                     break;
-                case K8S_NODE_OFF_BOARDED:
-                    deviceEventExecutor.execute(() -> processNodeOffboard(event.subject()));
-                    break;
                 case K8S_NODE_CREATED:
                 default:
                     // do nothing
@@ -480,16 +431,6 @@ public class K8sFlowRuleManager implements K8sFlowRuleService {
                             .findAny().ifPresent(bridge -> setupRouter(node, bridge));
                 }
             }
-        }
-
-        private void processNodeOffboard(K8sNode node) {
-            log.info("Offboarded node {} is detected", node.hostname());
-
-            if (!isRelevantHelper()) {
-                return;
-            }
-
-            purgeAnyRoutingRule(node);
         }
     }
 

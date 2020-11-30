@@ -185,11 +185,6 @@ public class DistributedK8sNodeStore
                                     K8S_NODE_INCOMPLETE,
                                     event.newValue().value()
                             ));
-                        } else if (event.newValue().value().state() == OFF_BOARDED) {
-                            notifyDelegate(new K8sNodeEvent(
-                                    K8S_NODE_OFF_BOARDED,
-                                    event.newValue().value()
-                            ));
                         }
                     });
                     break;

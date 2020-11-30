@@ -16,6 +16,7 @@
 package org.onosproject.k8snetworking.web;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.onlab.packet.IpAddress;
 import org.onlab.util.ItemNotFoundException;
 import org.onosproject.k8snetworking.api.K8sEndpointsAdminService;
 import org.onosproject.k8snetworking.api.K8sIngressAdminService;
@@ -23,10 +24,13 @@ import org.onosproject.k8snetworking.api.K8sNamespaceAdminService;
 import org.onosproject.k8snetworking.api.K8sNetworkAdminService;
 import org.onosproject.k8snetworking.api.K8sNetworkPolicyAdminService;
 import org.onosproject.k8snetworking.api.K8sPodAdminService;
+import org.onosproject.k8snetworking.api.K8sPort;
 import org.onosproject.k8snetworking.api.K8sServiceAdminService;
 import org.onosproject.k8snetworking.util.K8sNetworkingUtil;
 import org.onosproject.k8snode.api.K8sApiConfig;
 import org.onosproject.k8snode.api.K8sApiConfigService;
+import org.onosproject.k8snode.api.K8sHost;
+import org.onosproject.k8snode.api.K8sHostAdminService;
 import org.onosproject.k8snode.api.K8sNode;
 import org.onosproject.k8snode.api.K8sNodeAdminService;
 import org.onosproject.k8snode.api.K8sNodeState;
@@ -34,11 +38,15 @@ import org.onosproject.rest.AbstractWebResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.lang.Thread.sleep;
 import static org.onosproject.k8snetworking.util.K8sNetworkingUtil.syncPortFromPod;
@@ -53,8 +61,12 @@ import static org.onosproject.k8snode.api.K8sNodeState.COMPLETE;
 public class K8sManagementWebResource extends AbstractWebResource {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    private static final long MID_SLEEP_MS = 3000; // we wait 3s
     private static final long SLEEP_MS = 10000; // we wait 10s
     private static final long TIMEOUT_MS = 30000; // we wait 30s
+
+    private static final String MESSAGE_ALL = "Received all %s request";
+    private static final String REMOVE = "REMOVE";
 
     private final K8sApiConfigService configService = get(K8sApiConfigService.class);
     private final K8sPodAdminService podAdminService = get(K8sPodAdminService.class);
@@ -70,6 +82,8 @@ public class K8sManagementWebResource extends AbstractWebResource {
                                             get(K8sNetworkAdminService.class);
     private final K8sNodeAdminService nodeAdminService =
                                             get(K8sNodeAdminService.class);
+    private final K8sHostAdminService hostAdminService =
+                                            get(K8sHostAdminService.class);
     private final K8sNetworkPolicyAdminService policyAdminService =
                                             get(K8sNetworkPolicyAdminService.class);
 
@@ -160,6 +174,64 @@ public class K8sManagementWebResource extends AbstractWebResource {
 
         syncRulesBase();
         return ok(mapper().createObjectNode()).build();
+    }
+
+    /**
+     * Removes all nodes and hosts.
+     *
+     * @return 204 NO_CONTENT, 400 BAD_REQUEST if the JSON is malformed, and
+     * 304 NOT_MODIFIED without the updated config
+     */
+    @DELETE
+    @Path("purge/all")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response purgeAll() {
+        log.trace(String.format(MESSAGE_ALL, REMOVE));
+
+        Set<String> portIds = networkAdminService.ports().stream().map(K8sPort::portId).collect(Collectors.toSet());
+        portIds.forEach(networkAdminService::removePort);
+
+        try {
+            sleep(MID_SLEEP_MS);
+        } catch (InterruptedException e) {
+            log.error("Exception caused during node synchronization...");
+        }
+
+        Set<String> masters = nodeAdminService.nodes(K8sNode.Type.MASTER).stream()
+                .map(K8sNode::hostname).collect(Collectors.toSet());
+        Set<String> workers = nodeAdminService.nodes(K8sNode.Type.MINION).stream()
+                .map(K8sNode::hostname).collect(Collectors.toSet());
+
+        for (String hostname : workers) {
+            nodeAdminService.removeNode(hostname);
+            try {
+                sleep(MID_SLEEP_MS);
+            } catch (InterruptedException e) {
+                log.error("Exception caused during node synchronization...");
+            }
+        }
+
+        for (String hostname : masters) {
+            nodeAdminService.removeNode(hostname);
+            try {
+                sleep(MID_SLEEP_MS);
+            } catch (InterruptedException e) {
+                log.error("Exception caused during node synchronization...");
+            }
+        }
+
+        Set<IpAddress> allHosts = hostAdminService.hosts().stream().map(K8sHost::hostIp).collect(Collectors.toSet());
+        for (IpAddress hostIp : allHosts) {
+            hostAdminService.removeHost(hostIp);
+            try {
+                sleep(MID_SLEEP_MS);
+            } catch (InterruptedException e) {
+                log.error("Exception caused during node synchronization...");
+            }
+        }
+
+        return Response.noContent().build();
     }
 
     private void syncRulesBase() {
