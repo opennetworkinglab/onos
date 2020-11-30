@@ -126,17 +126,4 @@ public class K8sPortWebResource extends AbstractWebResource {
         adminService.removePort(id);
         return Response.noContent().build();
     }
-
-    /**
-     * Removes the port with the given id.
-     *
-     * @return 204 NO_CONTENT, 400 BAD_REQUEST if the port does not exist
-     */
-    @DELETE
-    public Response removeAllPorts() {
-        adminService.ports().stream()
-                .map(K8sPort::portId)
-                .forEach(adminService::removePort);
-        return Response.noContent().build();
-    }
 }

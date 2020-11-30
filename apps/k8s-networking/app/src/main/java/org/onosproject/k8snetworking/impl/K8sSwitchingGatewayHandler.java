@@ -227,44 +227,6 @@ public class K8sSwitchingGatewayHandler {
         }
     }
 
-    private void setGatewayTunnelRule(K8sNode node, boolean install) {
-
-        K8sNetwork k8sNetwork = k8sNetworkService.network(node.hostname());
-
-        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPDst(IpPrefix.valueOf(k8sNetwork.gatewayIp(),
-                        HOST_PREFIX));
-
-        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
-
-        K8sNode localNode = k8sNodeService.node(k8sNetwork.name());
-
-        tBuilder.setOutput(node.intgToTunPortNum());
-
-        // install flows into tunnel bridge
-        PortNumber portNum = tunnelPortNumByNetId(k8sNetwork.networkId(),
-                k8sNetworkService, node);
-        TrafficTreatment treatmentToRemote = DefaultTrafficTreatment.builder()
-                .extension(buildExtension(
-                        deviceService,
-                        node.tunBridge(),
-                        localNode.dataIp().getIp4Address()),
-                        node.tunBridge())
-                .setTunnelId(Long.valueOf(k8sNetwork.segmentId()))
-                .setOutput(portNum)
-                .build();
-
-        k8sFlowRuleService.setRule(
-                appId,
-                node.tunBridge(),
-                sBuilder.build(),
-                treatmentToRemote,
-                PRIORITY_GATEWAY_RULE,
-                TUN_ENTRY_TABLE,
-                install);
-    }
-
     private void setInterNodeRoutingRules(K8sNode srcNode, boolean install) {
         if (srcNode == null) {
             return;
@@ -491,9 +453,6 @@ public class K8sSwitchingGatewayHandler {
                 case K8S_NODE_COMPLETE:
                     eventExecutor.execute(() -> processNodeCompletion(event.subject()));
                     break;
-                case K8S_NODE_OFF_BOARDED:
-                    eventExecutor.execute(() -> processNodeOffboard(event.subject()));
-                    break;
                 case K8S_NODE_INCOMPLETE:
                 default:
                     break;
@@ -512,15 +471,6 @@ public class K8sSwitchingGatewayHandler {
             k8sNetworkService.networks().forEach(n -> setLocalBridgeArpRules(n, true));
 
             setInterNodeRoutingRules(node, true);
-        }
-
-        private void processNodeOffboard(K8sNode node) {
-            if (!isRelevantHelper()) {
-                return;
-            }
-
-            setGatewayTunnelRule(node, false);
-            setInterNodeRoutingRules(node, false);
         }
     }
 }

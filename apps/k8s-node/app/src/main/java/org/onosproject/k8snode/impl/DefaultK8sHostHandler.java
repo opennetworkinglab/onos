@@ -530,6 +530,20 @@ public class DefaultK8sHostHandler implements K8sHostHandler {
         }
     }
 
+    private void processHostRemoval(K8sHost k8sHost) {
+        OvsdbClientService client = getOvsdbClient(k8sHost, ovsdbPortNum, ovsdbController);
+        if (client == null) {
+            log.info("Failed to get ovsdb client");
+            return;
+        }
+
+        // delete tunnel bridge from the host
+        k8sHost.tunBridges().forEach(br -> client.dropBridge(br.name()));
+
+        // delete router bridge from the host
+        k8sHost.routerBridges().forEach(br -> client.dropBridge(br.name()));
+    }
+
     private class InternalOvsdbListener implements DeviceListener {
 
         @Override
@@ -715,6 +729,14 @@ public class DefaultK8sHostHandler implements K8sHostHandler {
                     });
                     break;
                 case K8S_HOST_REMOVED:
+                    eventExecutor.execute(() -> {
+                        if (!isRelevantHelper()) {
+                            return;
+                        }
+
+                        processHostRemoval(event.subject());
+                    });
+                    break;
                 case K8S_HOST_INCOMPLETE:
                 default:
                     break;

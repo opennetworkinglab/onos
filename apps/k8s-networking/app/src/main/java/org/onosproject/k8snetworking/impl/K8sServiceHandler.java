@@ -983,9 +983,6 @@ public class K8sServiceHandler {
                 case K8S_NODE_COMPLETE:
                     eventExecutor.execute(() -> processNodeCompletion(k8sNode));
                     break;
-                case K8S_NODE_OFF_BOARDED:
-                    eventExecutor.execute(() -> processNodeOffboard(k8sNode));
-                    break;
                 case K8S_NODE_INCOMPLETE:
                 default:
                     break;
@@ -1000,15 +997,6 @@ public class K8sServiceHandler {
             setServiceNatRules(node.intgBridge(), true);
             k8sEndpointsService.endpointses().forEach(e -> setEndpointsRules(e, true));
             k8sNetworkService.networks().forEach(n -> setupServiceDefaultRule(n, true));
-        }
-
-        private void processNodeOffboard(K8sNode node) {
-            if (!isRelevantHelper()) {
-                return;
-            }
-
-            K8sNetwork network = k8sNetworkService.network(node.hostname());
-            setupServiceDefaultRule(network, false);
         }
     }
 

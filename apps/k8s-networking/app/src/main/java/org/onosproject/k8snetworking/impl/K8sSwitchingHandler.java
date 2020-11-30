@@ -497,8 +497,6 @@ public class K8sSwitchingHandler {
                 case K8S_NODE_COMPLETE:
                     eventExecutor.execute(() -> processNodeCompletion(event.subject()));
                     break;
-                case K8S_NODE_OFF_BOARDED:
-                    eventExecutor.execute(() -> processNodeOffboard(event.subject()));
                 default:
                     break;
             }
@@ -512,14 +510,6 @@ public class K8sSwitchingHandler {
             setExtToIntgTunnelTagFlowRules(k8sNode, true);
             setLocalTunnelTagFlowRules(k8sNode, true);
             setRulesForTunnelBridge(k8sNode, true);
-        }
-
-        private void processNodeOffboard(K8sNode k8sNode) {
-            if (!isRelevantHelper()) {
-                return;
-            }
-
-            setRulesForTunnelBridge(k8sNode, false);
         }
     }
 }
