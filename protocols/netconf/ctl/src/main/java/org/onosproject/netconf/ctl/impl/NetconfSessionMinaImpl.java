@@ -580,7 +580,7 @@ public class NetconfSessionMinaImpl extends AbstractNetconfSession {
 
         String rpc = request;
         //  - assign message-id
-        int msgId = messageIdInteger.incrementAndGet();
+        int msgId = messageIdInteger.getAndIncrement();
         //  - re-write request to insert message-id
         // FIXME avoid using formatRequestMessageId
         rpc = formatRequestMessageId(rpc, msgId);
