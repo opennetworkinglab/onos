@@ -321,6 +321,15 @@ public class NetconfDeviceProvider extends AbstractProvider
     }
 
     @Override
+    public boolean isAvailable(DeviceId deviceId) {
+        boolean isReachable = isTcpConnectionAvailable(deviceId);
+        if (isReachable) {
+            return controller.pingDevice(deviceId);
+        }
+        return false;
+    }
+
+    @Override
     public boolean isReachable(DeviceId deviceId) {
         boolean sessionExists =
                 Optional.ofNullable(controller.getDevicesMap().get(deviceId))
@@ -332,33 +341,7 @@ public class NetconfDeviceProvider extends AbstractProvider
 
         //FIXME this is a workaround util device state is shared
         // between controller instances.
-        Device device = deviceService.getDevice(deviceId);
-        String ip;
-        int port;
-        if (device != null) {
-            ip = device.annotations().value(IPADDRESS);
-            port = Integer.parseInt(device.annotations().value(PORT));
-        } else {
-            Triple<String, Integer, Optional<String>> info = extractIpPortPath(deviceId);
-            ip = info.getLeft();
-            port = info.getMiddle();
-        }
-        // FIXME just opening TCP session probably is not the appropriate
-        // method to test reachability.
-        //test connection to device opening a socket to it.
-        log.debug("Testing reachability for {}:{}", ip, port);
-        Socket socket = new Socket();
-        try {
-            socket.connect(new InetSocketAddress(ip, port), 1000);
-            log.debug("rechability of {}, {}, {}", deviceId, socket.isConnected(), !socket.isClosed());
-            boolean isConnected = socket.isConnected() && !socket.isClosed();
-            socket.close();
-            return isConnected;
-        } catch (IOException e) {
-            log.info("Device {} is not reachable", deviceId);
-            log.debug("  error details", e);
-            return false;
-        }
+        return isTcpConnectionAvailable(deviceId);
     }
 
     @Override
@@ -407,6 +390,36 @@ public class NetconfDeviceProvider extends AbstractProvider
     public void triggerDisconnect(DeviceId deviceId) {
         log.debug("Forcing disconnect for device {}", deviceId);
         controller.disconnectDevice(deviceId, true);
+    }
+
+    private boolean isTcpConnectionAvailable(DeviceId deviceId) {
+        Device device = deviceService.getDevice(deviceId);
+        String ip;
+        int port;
+        if (device != null) {
+            ip = device.annotations().value(IPADDRESS);
+            port = Integer.parseInt(device.annotations().value(PORT));
+        } else {
+            Triple<String, Integer, Optional<String>> info = extractIpPortPath(deviceId);
+            ip = info.getLeft();
+            port = info.getMiddle();
+        }
+        // FIXME just opening TCP session probably is not the appropriate
+        // method to test reachability.
+        //test connection to device opening a socket to it.
+        log.debug("Testing reachability for {}:{}", ip, port);
+        Socket socket = new Socket();
+        try {
+            socket.connect(new InetSocketAddress(ip, port), 1000);
+            log.debug("rechability of {}, {}, {}", deviceId, socket.isConnected(), !socket.isClosed());
+            boolean isConnected = socket.isConnected() && !socket.isClosed();
+            socket.close();
+            return isConnected;
+        } catch (IOException e) {
+            log.info("Device {} is not reachable", deviceId);
+            log.debug("  error details", e);
+            return false;
+        }
     }
 
     private ScheduledFuture schedulePolling() {
