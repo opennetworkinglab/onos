@@ -40,6 +40,7 @@ import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiPacketMetadata;
 import org.onosproject.net.pi.runtime.PiPacketOperation;
+import org.onosproject.pipelines.fabric.FabricConstants;
 
 import java.nio.ByteBuffer;
 import java.util.Collection;

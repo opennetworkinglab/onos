@@ -48,7 +48,7 @@ import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionParam;
 import org.onosproject.pipelines.fabric.impl.behaviour.FabricCapabilities;
-import org.onosproject.pipelines.fabric.impl.behaviour.FabricConstants;
+import org.onosproject.pipelines.fabric.FabricConstants;
 
 import java.util.List;
 import java.util.Map;

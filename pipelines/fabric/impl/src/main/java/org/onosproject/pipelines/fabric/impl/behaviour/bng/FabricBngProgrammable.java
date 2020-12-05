@@ -46,7 +46,7 @@ import org.onosproject.net.pi.runtime.PiCounterCellId;
 import org.onosproject.net.pi.runtime.PiExactFieldMatch;
 import org.onosproject.p4runtime.api.P4RuntimeWriteClient;
 import org.onosproject.pipelines.fabric.impl.behaviour.FabricCapabilities;
-import org.onosproject.pipelines.fabric.impl.behaviour.FabricConstants;
+import org.onosproject.pipelines.fabric.FabricConstants;
 
 import java.util.Collection;
 import java.util.List;

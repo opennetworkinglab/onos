@@ -30,156 +30,8 @@
 #define MAX_PDR_COUNTERS  2 * MAX_UES
 #define MAX_FARS          2 * MAX_UES
 
-
-
-control SpgwIngress(inout parsed_headers_t hdr,
-                    inout fabric_metadata_t fabric_md,
-                    inout standard_metadata_t standard_metadata) {
-
-
-
-
-    //=============================//
-    //===== Interface Tables ======//
-    //=============================//
-
-    action set_source_iface(spgw_interface_t src_iface, direction_t direction,
-                            bit<1> skip_spgw) {
-        // Interface type can be access, core, n6_lan, etc (see InterfaceType enum)
-        // If interface is from the control plane, direction can be either up or down
-        fabric_md.spgw.src_iface = src_iface;
-        fabric_md.spgw.direction = direction;
-        fabric_md.spgw.skip_spgw = (_BOOL)skip_spgw;
-    }
-    // TODO: check also that gtpu.msgtype == GTP_GPDU... somewhere
-    table interface_lookup {
-        key = {
-            hdr.ipv4.dst_addr  : lpm    @name("ipv4_dst_addr");  // outermost header
-            hdr.gtpu.isValid() : exact  @name("gtpu_is_valid");
-        }
-        actions = {
-            set_source_iface;
-        }
-        const default_action = set_source_iface(SPGW_IFACE_UNKNOWN, SPGW_DIR_UNKNOWN, 1);
-        size = MAX_INTERFACES;
-    }
-
-
-    //=============================//
-    //===== PDR Tables ======//
-    //=============================//
-
-    action set_pdr_attributes(pdr_ctr_id_t ctr_id,
-                              far_id_t far_id,
-                              bit<1> needs_gtpu_decap) {
-        fabric_md.spgw.pdr_hit = _TRUE;
-        fabric_md.spgw.ctr_id = ctr_id;
-        fabric_md.spgw.far_id = far_id;
-        fabric_md.spgw.needs_gtpu_decap = (_BOOL)needs_gtpu_decap;
-    }
-
-    // These two tables scale well and cover the average case PDR
-    table downlink_pdr_lookup {
-        key = {
-            // only available ipv4 header
-            hdr.ipv4.dst_addr : exact @name("ue_addr");
-        }
-        actions = {
-            set_pdr_attributes;
-        }
-        const default_action = set_pdr_attributes(DEFAULT_PDR_CTR_ID, DEFAULT_FAR_ID, 0);
-        size = MAX_DOWNLINK_PDRS;
-    }
-    table uplink_pdr_lookup {
-        key = {
-            hdr.ipv4.dst_addr           : exact @name("tunnel_ipv4_dst");
-            hdr.gtpu.teid               : exact @name("teid");
-        }
-        actions = {
-            set_pdr_attributes;
-        }
-        const default_action = set_pdr_attributes(DEFAULT_PDR_CTR_ID, DEFAULT_FAR_ID, 0);
-        size = MAX_UPLINK_PDRS;
-    }
-    // This table scales poorly and covers uncommon PDRs
-    table flexible_pdr_lookup {
-        key = {
-            fabric_md.spgw.src_iface    : ternary @name("src_iface");
-            // GTPU
-            hdr.gtpu.isValid()          : ternary @name("gtpu_is_valid");
-            hdr.gtpu.teid               : ternary @name("teid");
-            // SDF
-            // outer 5-tuple
-            hdr.ipv4.src_addr           : ternary @name("ipv4_src");
-            hdr.ipv4.dst_addr           : ternary @name("ipv4_dst");
-            hdr.ipv4.protocol           : ternary @name("ip_proto");
-            fabric_md.l4_sport          : ternary @name("l4_sport");
-            fabric_md.l4_dport          : ternary @name("l4_dport");
-            // inner 5-tuple
-            hdr.inner_ipv4.src_addr     : ternary @name("inner_ipv4_src");
-            hdr.inner_ipv4.dst_addr     : ternary @name("inner_ipv4_dst");
-            hdr.inner_ipv4.protocol     : ternary @name("inner_ip_proto");
-            fabric_md.inner_l4_sport    : ternary @name("inner_l4_sport");
-            fabric_md.inner_l4_dport    : ternary @name("inner_l4_dport");
-        }
-        actions = {
-            set_pdr_attributes;
-        }
-        const default_action = set_pdr_attributes(DEFAULT_PDR_CTR_ID, DEFAULT_FAR_ID, 0);
-    }
-
-    //=============================//
-    //===== FAR Tables ======//
-    //=============================//
-
-    action load_normal_far_attributes(bit<1> drop,
-                                      bit<1> notify_cp) {
-        // general far attributes
-        fabric_md.spgw.far_dropped  = (_BOOL)drop;
-        fabric_md.spgw.notify_spgwc = (_BOOL)notify_cp;
-    }
-    action load_tunnel_far_attributes(bit<1>      drop,
-                                      bit<1>      notify_cp,
-                                      bit<16>   tunnel_src_port,
-                                      bit<32>   tunnel_src_addr,
-                                      bit<32>   tunnel_dst_addr,
-                                      teid_t    teid) {
-        // general far attributes
-        fabric_md.spgw.far_dropped  = (_BOOL)drop;
-        fabric_md.spgw.notify_spgwc = (_BOOL)notify_cp;
-        // GTP tunnel attributes
-        fabric_md.spgw.needs_gtpu_encap = _TRUE;
-        fabric_md.spgw.teid = teid;
-        fabric_md.spgw.tunnel_src_port = tunnel_src_port;
-        fabric_md.spgw.tunnel_src_addr = tunnel_src_addr;
-        fabric_md.spgw.tunnel_dst_addr = tunnel_dst_addr;
-        // update metadata for correct routing/hashing
-        fabric_md.ipv4_src_addr = tunnel_src_addr;
-        fabric_md.ipv4_dst_addr = tunnel_dst_addr;
-        fabric_md.l4_sport = tunnel_src_port;
-        fabric_md.l4_dport = UDP_PORT_GTPU;
-    }
-
-    table far_lookup {
-        key = {
-            fabric_md.spgw.far_id : exact @name("far_id");
-        }
-        actions = {
-            load_normal_far_attributes;
-            load_tunnel_far_attributes;
-        }
-        // default is drop and don't notify CP
-        const default_action = load_normal_far_attributes(1, 1);
-        size = MAX_FARS;
-    }
-
-    //=============================//
-    //===== Misc Things ======//
-    //=============================//
-    
-    counter(MAX_PDR_COUNTERS, CounterType.packets_and_bytes) pdr_counter;
-
-
+control DecapGtpu(inout parsed_headers_t hdr,
+                  inout fabric_metadata_t fabric_md) {
     @hidden
     action decap_inner_common() {
         // Correct parser-set metadata to use the inner header values
@@ -194,23 +46,27 @@ control SpgwIngress(inout parsed_headers_t hdr,
         hdr.inner_ipv4.setInvalid();
         hdr.gtpu.setInvalid();
     }
+    @hidden
     action decap_inner_tcp() {
         decap_inner_common();
         hdr.udp.setInvalid();
         hdr.tcp = hdr.inner_tcp;
         hdr.inner_tcp.setInvalid();
     }
+    @hidden
     action decap_inner_udp() {
         decap_inner_common();
         hdr.udp = hdr.inner_udp;
         hdr.inner_udp.setInvalid();
     }
+    @hidden
     action decap_inner_icmp() {
         decap_inner_common();
         hdr.udp.setInvalid();
         hdr.icmp = hdr.inner_icmp;
         hdr.inner_icmp.setInvalid();
     }
+    @hidden
     action decap_inner_unknown() {
         decap_inner_common();
         hdr.udp.setInvalid();
@@ -218,9 +74,9 @@ control SpgwIngress(inout parsed_headers_t hdr,
     @hidden
     table decap_gtpu {
         key = {
-            hdr.inner_tcp.isValid()     : exact;
-            hdr.inner_udp.isValid()     : exact;
-            hdr.inner_icmp.isValid()    : exact;
+            hdr.inner_tcp.isValid()  : exact;
+            hdr.inner_udp.isValid()  : exact;
+            hdr.inner_icmp.isValid() : exact;
         }
         actions = {
             decap_inner_tcp;
@@ -234,6 +90,149 @@ control SpgwIngress(inout parsed_headers_t hdr,
             (false, true,  false) : decap_inner_udp();
             (false, false, true)  : decap_inner_icmp();
         }
+        size = 4;
+    }
+    apply {
+        decap_gtpu.apply();
+    }
+}
+
+
+control SpgwIngress(inout parsed_headers_t hdr,
+                    inout fabric_metadata_t fabric_md,
+                    inout standard_metadata_t standard_metadata) {
+
+    //=============================//
+    //===== Misc Things ======//
+    //=============================//
+    
+    counter(MAX_PDR_COUNTERS, CounterType.packets_and_bytes) pdr_counter;
+
+    DecapGtpu() decap_gtpu_from_dbuf;
+    DecapGtpu() decap_gtpu;
+
+
+    //=============================//
+    //===== Interface Tables ======//
+    //=============================//
+
+    action load_iface(spgw_interface_t src_iface) {
+        // Interface type can be access, core, from_dbuf (see InterfaceType enum)
+        fabric_md.spgw.src_iface = src_iface;
+        fabric_md.spgw.skip_spgw = _FALSE;
+    }
+    action iface_miss() {
+        fabric_md.spgw.src_iface = SPGW_IFACE_UNKNOWN;
+        fabric_md.spgw.skip_spgw = _TRUE;
+    }
+
+    // TODO: check also that gtpu.msgtype == GTP_GPDU... somewhere
+    table interfaces {
+        key = {
+            hdr.ipv4.dst_addr  : lpm    @name("ipv4_dst_addr");  // outermost header
+            hdr.gtpu.isValid() : exact  @name("gtpu_is_valid");
+        }
+        actions = {
+            load_iface;
+            @defaultonly iface_miss;
+        }
+        const default_action = iface_miss();
+        size = MAX_INTERFACES;
+    }
+
+
+    //=============================//
+    //===== PDR Tables ======//
+    //=============================//
+
+    action load_pdr(pdr_ctr_id_t ctr_id,
+                    far_id_t far_id,
+                    bit<1> needs_gtpu_decap) {
+        fabric_md.spgw.ctr_id = ctr_id;
+        fabric_md.spgw.far_id = far_id;
+        fabric_md.spgw.needs_gtpu_decap = (_BOOL)needs_gtpu_decap;
+    }
+
+    // These two tables scale well and cover the average case PDR
+    table downlink_pdrs {
+        key = {
+            // only available ipv4 header
+            hdr.ipv4.dst_addr : exact @name("ue_addr");
+        }
+        actions = {
+            load_pdr;
+        }
+        size = MAX_DOWNLINK_PDRS;
+    }
+
+    table uplink_pdrs {
+        key = {
+            hdr.ipv4.dst_addr           : exact @name("tunnel_ipv4_dst");
+            hdr.gtpu.teid               : exact @name("teid");
+        }
+        actions = {
+            load_pdr;
+        }
+        size = MAX_UPLINK_PDRS;
+    }
+
+    //=============================//
+    //===== FAR Tables ======//
+    //=============================//
+
+    action load_normal_far(bit<1> drop,
+                           bit<1> notify_cp) {
+        // general far attributes
+        fabric_md.skip_forwarding = (_BOOL)drop;
+        fabric_md.skip_next = (_BOOL)drop;
+        fabric_md.spgw.notify_spgwc = (_BOOL)notify_cp;
+    }
+    action load_tunnel_far(bit<1>      drop,
+                           bit<1>      notify_cp,
+                           bit<16>   tunnel_src_port,
+                           bit<32>   tunnel_src_addr,
+                           bit<32>   tunnel_dst_addr,
+                           teid_t    teid) {
+        // general far attributes
+        fabric_md.skip_forwarding = (_BOOL)drop;
+        fabric_md.skip_next = (_BOOL)drop;
+        fabric_md.spgw.notify_spgwc = (_BOOL)notify_cp;
+        // GTP tunnel attributes
+        fabric_md.spgw.needs_gtpu_encap = _TRUE;
+        fabric_md.spgw.teid = teid;
+        fabric_md.spgw.tunnel_src_port = tunnel_src_port;
+        fabric_md.spgw.tunnel_src_addr = tunnel_src_addr;
+        fabric_md.spgw.tunnel_dst_addr = tunnel_dst_addr;
+        // update metadata for correct routing/hashing
+        fabric_md.ipv4_src_addr = tunnel_src_addr;
+        fabric_md.ipv4_dst_addr = tunnel_dst_addr;
+        fabric_md.l4_sport = tunnel_src_port;
+        fabric_md.l4_dport = UDP_PORT_GTPU;
+    }
+
+    action load_dbuf_far(bit<1>    drop,
+                         bit<1>    notify_cp,
+                         bit<16>   tunnel_src_port,
+                         bit<32>   tunnel_src_addr,
+                         bit<32>   tunnel_dst_addr,
+                         teid_t    teid) {
+        load_tunnel_far(drop, notify_cp, tunnel_src_port,
+                                   tunnel_src_addr, tunnel_dst_addr, teid);
+        fabric_md.spgw.skip_egress_pdr_ctr = _TRUE;
+    }
+
+    table fars {
+        key = {
+            fabric_md.spgw.far_id : exact @name("far_id");
+        }
+        actions = {
+            load_normal_far;
+            load_tunnel_far;
+            load_dbuf_far;
+        }
+        // default is drop and don't notify CP
+        const default_action = load_normal_far(1, 0);
+        size = MAX_FARS;
     }
 
 
@@ -243,50 +242,36 @@ control SpgwIngress(inout parsed_headers_t hdr,
     apply {
 
         // Interfaces
-        interface_lookup.apply();
+        if (interfaces.apply().hit) {
+            if (fabric_md.spgw.src_iface == SPGW_IFACE_FROM_DBUF) {
+                decap_gtpu_from_dbuf.apply(hdr, fabric_md);
+            }
+            // PDRs
+            if (hdr.gtpu.isValid()) {
+                uplink_pdrs.apply();
+            } else {
+                downlink_pdrs.apply();
+            }
+            if (fabric_md.spgw.src_iface != SPGW_IFACE_FROM_DBUF) {
+                pdr_counter.count(fabric_md.spgw.ctr_id);
+            }
 
-        // If interface table missed, or the interface skips PDRs/FARs (TODO: is that a thing?)
-        if (fabric_md.spgw.skip_spgw == _TRUE) return;
+            // GTPU Decapsulate
+            if (fabric_md.spgw.needs_gtpu_decap == _TRUE) { 
+                decap_gtpu.apply(hdr, fabric_md);
+            }
 
-        // PDRs
-        // Currently only best-case PDR tables to make v1model-to-tofino compiler happy
-        if (hdr.gtpu.isValid()) {
-            uplink_pdr_lookup.apply();
-        } else {
-            downlink_pdr_lookup.apply();
+            // FARs
+            // Load FAR info
+            fars.apply();
+
+            // Nothing to be done immediately for forwarding or encapsulation.
+            // Forwarding is done by other parts of fabric.p4, and
+            // encapsulation is done in the egress
+
+            // Needed for correct GTPU encapsulation in egress
+            fabric_md.spgw.ipv4_len = hdr.ipv4.total_len;
         }
-        // Inefficient PDR table if efficient tables missed
-        // Removed to make v1model-to-tofino compiler happy. Not removed in TNA port
-        //if (fabric_md.spgw.pdr_hit == _FALSE) {
-        //    flexible_pdr_lookup.apply();
-        //}
-        pdr_counter.count(fabric_md.spgw.ctr_id);
-
-        // GTPU Decapsulate
-        if (fabric_md.spgw.needs_gtpu_decap == _TRUE) { 
-            decap_gtpu.apply();
-        }
-
-        // FARs
-        // Load FAR info
-        far_lookup.apply();
-
-        if (fabric_md.spgw.notify_spgwc == _TRUE) {
-            // TODO: cpu clone action here
-        }
-        if (fabric_md.spgw.far_dropped == _TRUE) {
-            // Do dropping in the same way as fabric's filtering.p4, so we can traverse
-            // the ACL table, which is good for cases like DHCP.
-            fabric_md.skip_forwarding = _TRUE;
-            fabric_md.skip_next = _TRUE;
-        }
-
-        // Nothing to be done immediately for forwarding or encapsulation.
-        // Forwarding is done by other parts of fabric.p4, and
-        // encapsulation is done in the egress
-
-        // Needed for correct GTPU encapsulation in egress
-        fabric_md.spgw.ipv4_len = hdr.ipv4.total_len;
     }
 }
 
@@ -340,11 +325,13 @@ control SpgwEgress(
     }
 
     apply {
-        if (fabric_md.spgw.skip_spgw == _TRUE) return;
-        pdr_counter.count(fabric_md.spgw.ctr_id);
-
-        if (fabric_md.spgw.needs_gtpu_encap == _TRUE) {
-            gtpu_encap();
+        if (fabric_md.spgw.skip_spgw == _FALSE) {
+            if (fabric_md.spgw.needs_gtpu_encap == _TRUE) {
+                gtpu_encap();
+            }
+            if (fabric_md.spgw.skip_egress_pdr_ctr == _FALSE) {
+                pdr_counter.count(fabric_md.spgw.ctr_id);
+            }
         }
     }
 }

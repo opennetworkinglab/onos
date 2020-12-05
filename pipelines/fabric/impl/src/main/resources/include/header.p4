@@ -139,7 +139,6 @@ header gtpu_t {
 }
 
 struct spgw_meta_t {
-    direction_t       direction;
     bit<16>           ipv4_len;
     teid_t            teid;
     bit<16>           tunnel_src_port;
@@ -149,11 +148,10 @@ struct spgw_meta_t {
     far_id_t          far_id;
     spgw_interface_t  src_iface;
     _BOOL             skip_spgw;
-    _BOOL             pdr_hit;
-    _BOOL             far_dropped;
     _BOOL             notify_spgwc;
     _BOOL             needs_gtpu_encap;
     _BOOL             needs_gtpu_decap;
+    _BOOL             skip_egress_pdr_ctr;
 }
 #endif // WITH_SPGW
 
