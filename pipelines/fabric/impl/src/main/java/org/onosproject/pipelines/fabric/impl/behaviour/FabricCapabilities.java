@@ -17,6 +17,7 @@
 package org.onosproject.pipelines.fabric.impl.behaviour;
 
 import org.onosproject.net.pi.model.PiPipeconf;
+import org.onosproject.pipelines.fabric.FabricConstants;
 import org.slf4j.Logger;
 
 import java.io.BufferedReader;

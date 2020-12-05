@@ -42,6 +42,7 @@ import org.onosproject.net.flow.criteria.UdpPortCriterion;
 import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionParam;
+import org.onosproject.pipelines.fabric.FabricConstants;
 import org.onosproject.pipelines.fabric.impl.FabricPipeconfLoader;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;

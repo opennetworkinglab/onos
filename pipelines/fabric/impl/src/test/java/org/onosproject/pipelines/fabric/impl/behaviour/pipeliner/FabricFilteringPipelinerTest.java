@@ -38,7 +38,7 @@ import org.onosproject.net.flowobjective.FilteringObjective;
 import org.onosproject.net.flowobjective.ObjectiveError;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionParam;
-import org.onosproject.pipelines.fabric.impl.behaviour.FabricConstants;
+import org.onosproject.pipelines.fabric.FabricConstants;
 
 import java.util.Collection;
 import java.util.List;

@@ -26,7 +26,7 @@ ifndef ONOS_ROOT
 endif
 	docker run -v $(ONOS_ROOT):/onos -w /onos/tools/dev/bin \
 		--entrypoint ./onos-gen-p4-constants opennetworking/p4mn:stable \
-		-o /onos/pipelines/fabric/impl/src/main/java/org/onosproject/pipelines/fabric/impl/behaviour/FabricConstants.java \
+		-o /onos/pipelines/fabric/api/src/main/java/org/onosproject/pipelines/fabric/FabricConstants.java \
 		fabric /onos/pipelines/fabric/impl/src/main/resources/p4c-out/fabric-full/bmv2/default/p4info.txt
 
 clean:

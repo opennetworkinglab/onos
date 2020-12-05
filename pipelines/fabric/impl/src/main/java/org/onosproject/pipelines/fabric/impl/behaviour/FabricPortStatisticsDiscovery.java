@@ -19,6 +19,7 @@ package org.onosproject.pipelines.fabric.impl.behaviour;
 
 import org.onosproject.net.pi.model.PiCounterId;
 import org.onosproject.pipelines.basic.PortStatisticsDiscoveryImpl;
+import org.onosproject.pipelines.fabric.FabricConstants;
 
 /**
  * Implementation of the PortStatisticsBehaviour for fabric.p4.
