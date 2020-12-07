@@ -41,6 +41,15 @@ public class P4ActionParamModelTest {
 
     private final P4ActionParamModel actionParamModel3 = new P4ActionParamModel(piActionParamId, BIT_WIDTH_64);
 
+    private final P4ActionParamModel actionParamModel4 = new
+            P4ActionParamModel(piActionParamId, P4ActionParamModel.BIT_WIDTH_UNDEFINED);
+
+    private final P4ActionParamModel sameAsActionParamModel4 =
+            new P4ActionParamModel(sameAsPiActionParamId, P4ActionParamModel.BIT_WIDTH_UNDEFINED);
+
+    private final P4ActionParamModel actionParamModel5 =
+            new P4ActionParamModel(piActionParamId2, P4ActionParamModel.BIT_WIDTH_UNDEFINED);
+
 
 
     /**
@@ -58,8 +67,10 @@ public class P4ActionParamModelTest {
     public void testEquals() {
         new EqualsTester()
                 .addEqualityGroup(actionParamModel, sameAsActionParamModel)
+                .addEqualityGroup(actionParamModel4, sameAsActionParamModel4)
                 .addEqualityGroup(actionParamModel2)
                 .addEqualityGroup(actionParamModel3)
+                .addEqualityGroup(actionParamModel5)
                 .testEquals();
     }
 }

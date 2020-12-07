@@ -26,6 +26,7 @@ import java.util.Objects;
  * Implementation of PiMatchFieldModel for P4Runtime.
  */
 final class P4MatchFieldModel implements PiMatchFieldModel {
+    static final int BIT_WIDTH_UNDEFINED = -1;
 
     private final PiMatchFieldId id;
     private final int bitWidth;
@@ -45,6 +46,11 @@ final class P4MatchFieldModel implements PiMatchFieldModel {
     @Override
     public int bitWidth() {
         return bitWidth;
+    }
+
+    @Override
+    public boolean hasBitWidth() {
+        return bitWidth != BIT_WIDTH_UNDEFINED;
     }
 
     @Override

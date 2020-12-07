@@ -42,6 +42,14 @@ public class P4MatchFieldModelTest {
     private static final P4MatchFieldModel P4_MATCH_FIELD_MODEL_2 =
         new P4MatchFieldModel(PI_MATCH_FIELD_ID_2, BIT_WIDTH_2, PI_MATCH_TYPE_2);
 
+    private static final P4MatchFieldModel P4_MATCH_FIELD_MODEL_3 =
+            new P4MatchFieldModel(PI_MATCH_FIELD_ID_1, P4MatchFieldModel.BIT_WIDTH_UNDEFINED, PI_MATCH_TYPE_1);
+    private static final P4MatchFieldModel SAME_AS_P4_MATCH_FIELD_MODEL_3 =
+            new P4MatchFieldModel(PI_MATCH_FIELD_ID_1, P4MatchFieldModel.BIT_WIDTH_UNDEFINED, PI_MATCH_TYPE_1);
+
+    private static final P4MatchFieldModel P4_MATCH_FIELD_MODEL_4 =
+            new P4MatchFieldModel(PI_MATCH_FIELD_ID_2, P4MatchFieldModel.BIT_WIDTH_UNDEFINED, PI_MATCH_TYPE_2);
+
     /**
      * Checks that the P4MatchFieldModel class is immutable.
      */
@@ -57,7 +65,9 @@ public class P4MatchFieldModelTest {
     public void testEquals() {
         new EqualsTester()
             .addEqualityGroup(P4_MATCH_FIELD_MODEL_1, SAME_AS_P4_MATCH_FIELD_MODEL_1)
+            .addEqualityGroup(P4_MATCH_FIELD_MODEL_3, SAME_AS_P4_MATCH_FIELD_MODEL_3)
             .addEqualityGroup(P4_MATCH_FIELD_MODEL_2)
+            .addEqualityGroup(P4_MATCH_FIELD_MODEL_4)
             .testEquals();
     }
 }

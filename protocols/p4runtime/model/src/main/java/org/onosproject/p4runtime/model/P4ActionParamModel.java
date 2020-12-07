@@ -25,6 +25,7 @@ import java.util.Objects;
  * Implementation of PiActionParamModel for P4Runtime.
  */
 final class P4ActionParamModel implements PiActionParamModel {
+    static final int BIT_WIDTH_UNDEFINED = -1;
 
     private final PiActionParamId id;
     private final int bitWidth;
@@ -42,6 +43,11 @@ final class P4ActionParamModel implements PiActionParamModel {
     @Override
     public int bitWidth() {
         return bitWidth;
+    }
+
+    @Override
+    public boolean hasBitWidth() {
+        return bitWidth != BIT_WIDTH_UNDEFINED;
     }
 
     @Override

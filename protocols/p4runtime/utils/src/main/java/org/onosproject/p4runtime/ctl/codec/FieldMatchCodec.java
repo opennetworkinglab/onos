@@ -71,7 +71,10 @@ public final class FieldMatchCodec
             case EXACT:
                 PiExactFieldMatch fieldMatch = (PiExactFieldMatch) piFieldMatch;
                 ByteString exactValue = ByteString.copyFrom(fieldMatch.value().asReadOnlyBuffer());
-                assertSize(VALUE_OF_PREFIX + entityName, exactValue, fieldBitwidth);
+                // We support string only for EXACT match (via p4runtime_translation)
+                if (!browser.isTypeString(matchFieldInfo.getTypeName())) {
+                    assertSize(VALUE_OF_PREFIX + entityName, exactValue, fieldBitwidth);
+                }
                 return messageBuilder.setExact(
                         P4RuntimeOuterClass.FieldMatch.Exact
                                 .newBuilder()
