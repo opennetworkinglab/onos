@@ -33,10 +33,19 @@ public interface PiMatchFieldModel {
 
     /**
      * Returns the number of bits matched by this field.
+     * It returns -1 if the bit width of the match field is not predefined.
      *
-     * @return number of bits
+     * @return number of bits, -1 in case it is not predefined
      */
     int bitWidth();
+
+    /**
+     * Return true is the match field has a predefined bit width.
+     * It returns false if it can have arbitrary bit width.
+     *
+     * @return True if the match field has predefined bit width, false otherwise
+     */
+    boolean hasBitWidth();
 
     /**
      * Returns the type of match applied to this field.

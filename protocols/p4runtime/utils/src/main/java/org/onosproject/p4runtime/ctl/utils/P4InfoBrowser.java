@@ -31,6 +31,7 @@ import p4.config.v1.P4InfoOuterClass.P4Info;
 import p4.config.v1.P4InfoOuterClass.Preamble;
 import p4.config.v1.P4InfoOuterClass.Table;
 import p4.config.v1.P4InfoOuterClass.Digest;
+import p4.config.v1.P4Types;
 
 import java.util.Map;
 
@@ -57,6 +58,7 @@ public final class P4InfoBrowser {
     private final Map<Integer, EntityBrowser<ControllerPacketMetadata.Metadata>> ctrlPktMetadatasMetadata =
             Maps.newHashMap();
     private final EntityBrowser<Digest> digests = new EntityBrowser<>("digest");
+    private final Map<String, Boolean> isTypeString = Maps.newHashMap();
 
     /**
      * Creates a new browser for the given P4Info.
@@ -121,6 +123,12 @@ public final class P4InfoBrowser {
 
         p4info.getDigestsList().forEach(
                 entity -> digests.addWithPreamble(entity.getPreamble(), entity));
+        p4info.getTypeInfo().getNewTypesMap().forEach(
+                (s, p4NewTypeSpec) ->
+                        isTypeString.put(s,
+                                         p4NewTypeSpec.hasTranslatedType()
+                                                 && p4NewTypeSpec.getTranslatedType().hasSdnString()
+                        ));
     }
 
     /**
@@ -242,6 +250,17 @@ public final class P4InfoBrowser {
         // Throws exception if controller packet metadata id is not found.
         ctrlPktMetadatas.getById(controllerPacketMetadataId);
         return ctrlPktMetadatasMetadata.get(controllerPacketMetadataId);
+    }
+
+    /**
+     * Checks if the given type name is a sdn_string.
+     *
+     * @param typeName Type name to check
+     * @return True if the given type name is a sdn_string, false otherwise
+     */
+    public boolean isTypeString(P4Types.P4NamedType typeName) {
+        return isTypeString.containsKey(typeName.getName())
+                && isTypeString.get(typeName.getName());
     }
 
     /**

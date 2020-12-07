@@ -64,6 +64,7 @@ import p4.config.v1.P4InfoOuterClass.Meter;
 import p4.config.v1.P4InfoOuterClass.MeterSpec;
 import p4.config.v1.P4InfoOuterClass.P4Info;
 import p4.config.v1.P4InfoOuterClass.Table;
+import p4.config.v1.P4Types;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -189,7 +190,9 @@ public final class P4InfoParser {
                 tableFieldMapBuilder.put(
                         fieldId,
                         new P4MatchFieldModel(fieldId,
-                                              fieldMsg.getBitwidth(),
+                                              isFieldString(p4info, fieldMsg.getTypeName().getName()) ?
+                                                      P4MatchFieldModel.BIT_WIDTH_UNDEFINED :
+                                                      fieldMsg.getBitwidth(),
                                               mapMatchFieldType(fieldMsg.getMatchType())));
 
             }
@@ -385,8 +388,11 @@ public final class P4InfoParser {
             actionMsg.getParamsList().forEach(paramMsg -> {
                 final PiActionParamId paramId = PiActionParamId.of(paramMsg.getName());
                 paramMapBuilder.put(paramId,
-                                    new P4ActionParamModel(PiActionParamId.of(paramMsg.getName()),
-                                                           paramMsg.getBitwidth()));
+                                    new P4ActionParamModel(
+                                            PiActionParamId.of(paramMsg.getName()),
+                                            isFieldString(p4info, paramMsg.getTypeName().getName()) ?
+                                                    P4ActionParamModel.BIT_WIDTH_UNDEFINED :
+                                                    paramMsg.getBitwidth()));
             });
             actionMap.put(
                     actionMsg.getPreamble().getId(),
@@ -479,5 +485,12 @@ public final class P4InfoParser {
                 .map(a -> a.substring(name.length() + 2, a.length() - 1))
                 .findFirst()
                 .orElse(null);
+    }
+
+    private static boolean isFieldString(P4Info p4info, String fieldTypeName) {
+        P4Types.P4TypeInfo p4TypeInfo = p4info.getTypeInfo();
+        return p4TypeInfo.containsNewTypes(fieldTypeName) &&
+                p4TypeInfo.getNewTypesOrThrow(fieldTypeName).hasTranslatedType() &&
+                p4TypeInfo.getNewTypesOrThrow(fieldTypeName).getTranslatedType().hasSdnString();
     }
 }

@@ -277,7 +277,9 @@ final class PiFlowRuleTranslatorImpl {
                             "Not such parameter '%s' for action '%s'", param.id(), actionModel)));
             try {
                 newActionBuilder.withParameter(new PiActionParam(param.id(),
-                                                                 param.value().fit(paramModel.bitWidth())));
+                                                                 paramModel.hasBitWidth() ?
+                                                                         param.value().fit(paramModel.bitWidth()) :
+                                                                         param.value()));
             } catch (ByteSequenceTrimException e) {
                 throw new PiTranslationException(format(
                         "Size mismatch for parameter '%s' of action '%s': %s",
@@ -372,7 +374,8 @@ final class PiFlowRuleTranslatorImpl {
 
             PiFieldMatch fieldMatch = null;
 
-            if (criterion != null) {
+            // TODO: we currently do not support fields with arbitrary bit width
+            if (criterion != null && fieldModel.hasBitWidth()) {
                 // Criterion mapping is possible for this field id.
                 try {
                     fieldMatch = translateCriterion(criterion, fieldId, fieldModel.matchType(), bitWidth);
@@ -458,8 +461,12 @@ final class PiFlowRuleTranslatorImpl {
         try {
             switch (fieldModel.matchType()) {
                 case EXACT:
+                    // TODO: arbitrary bit width is supported only for the EXACT match case.
+                    PiExactFieldMatch exactField = (PiExactFieldMatch) fieldMatch;
                     return new PiExactFieldMatch(fieldMatch.fieldId(),
-                                                 ((PiExactFieldMatch) fieldMatch).value().fit(modelBitWidth));
+                                                 fieldModel.hasBitWidth() ?
+                                                         exactField.value().fit(modelBitWidth) :
+                                                         exactField.value());
                 case TERNARY:
                     PiTernaryFieldMatch ternField = (PiTernaryFieldMatch) fieldMatch;
                     ImmutableByteSequence ternMask = ternField.mask().fit(modelBitWidth);
