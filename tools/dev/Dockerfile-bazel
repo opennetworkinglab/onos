@@ -1,0 +1,65 @@
+# Copyright 2020-present Open Networking Foundation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+# With this dockerfile you can build a ONOS Docker container from the output of
+# a local build with Bazel.
+# The container must be build from the bazel-bin folder (due to symlink and
+# COPY command incompatibilities).
+# e.g. docker build -t onosproject/onos:latest -f $ONOS_ROOT/tools/dev/Dockerfile-bazel $ONOS_ROOT/bazel-bin
+
+ARG TAG=11.0.8-11.41.23
+ARG JAVA_PATH=/usr/lib/jvm/zulu11-ca-amd64
+
+# Firts stage to copy and untar ONOS archive inside the container.
+FROM bitnami/minideb:jessie as untar
+
+COPY ./onos.tar.gz /
+RUN mkdir /output/
+RUN tar -xf /onos.tar.gz -C /output/ --strip-components=1
+
+# Second and final stage is the runtime environment.
+FROM azul/zulu-openjdk:${TAG}
+
+LABEL org.label-schema.name="ONOS" \
+      org.label-schema.description="SDN Controller" \
+      org.label-schema.usage="http://wiki.onosproject.org" \
+      org.label-schema.url="http://onosproject.org" \
+      org.label-scheme.vendor="Open Networking Foundation" \
+      org.label-schema.schema-version="1.0" \
+      maintainer="onos-dev@onosproject.org"
+
+RUN apt-get update && apt-get install -y curl && \
+	rm -rf /var/lib/apt/lists/*
+
+# Copy ONOS in /root/onos
+COPY --from=untar /output /root/onos
+
+WORKDIR /root/onos
+
+# Set JAVA_HOME (by default not exported by zulu images)
+ARG JAVA_PATH
+ENV JAVA_HOME ${JAVA_PATH}
+
+# Ports
+# 6653 - OpenFlow
+# 6640 - OVSDB
+# 8181 - GUI
+# 8101 - ONOS CLI
+# 9876 - ONOS intra-cluster communication
+EXPOSE 6653 6640 8181 8101 9876
+
+# Run ONOS
+ENTRYPOINT ["./bin/onos-service"]
+CMD ["server"]
