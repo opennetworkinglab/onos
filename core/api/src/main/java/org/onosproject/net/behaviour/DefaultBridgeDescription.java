@@ -41,6 +41,7 @@ public final class DefaultBridgeDescription implements BridgeDescription {
     private final Optional<String> datapathType;
     private final Optional<List<ControlProtocolVersion>> controlProtocols;
     private final Optional<Boolean> disableInBand;
+    private final Optional<Boolean> mcastSnoopingEnable;
 
     /* Adds more configurations */
 
@@ -51,6 +52,7 @@ public final class DefaultBridgeDescription implements BridgeDescription {
                                      Optional<String> datapathId,
                                      Optional<String> datapathType,
                                      Optional<Boolean> disableInBand,
+                                     Optional<Boolean> mcastSnoopingEnable,
                                      Optional<List<ControlProtocolVersion>> controlProtocols) {
         this.name = checkNotNull(name);
         this.controllers = controllers;
@@ -59,6 +61,7 @@ public final class DefaultBridgeDescription implements BridgeDescription {
         this.datapathId = datapathId;
         this.datapathType = datapathType;
         this.disableInBand = disableInBand;
+        this.mcastSnoopingEnable = mcastSnoopingEnable;
         this.controlProtocols = controlProtocols;
     }
 
@@ -116,6 +119,11 @@ public final class DefaultBridgeDescription implements BridgeDescription {
         return disableInBand;
     }
 
+    @Override
+    public Optional<Boolean> mcastSnoopingEnable() {
+        return mcastSnoopingEnable;
+    }
+
     /**
      * Creates and returns a new builder instance.
      *
@@ -135,6 +143,7 @@ public final class DefaultBridgeDescription implements BridgeDescription {
         private Optional<String> datapathType = Optional.empty();
         private Optional<List<ControlProtocolVersion>> controlProtocols = Optional.empty();
         private Optional<Boolean> disableInBand = Optional.empty();
+        private Optional<Boolean> mcastSnoopingEnable = Optional.empty();
 
         private Builder() {
         }
@@ -147,6 +156,7 @@ public final class DefaultBridgeDescription implements BridgeDescription {
                                                 datapathId,
                                                 datapathType,
                                                 disableInBand,
+                                                mcastSnoopingEnable,
                                                 controlProtocols);
         }
 
@@ -198,6 +208,12 @@ public final class DefaultBridgeDescription implements BridgeDescription {
         @Override
         public Builder disableInBand() {
             this.disableInBand = Optional.of(Boolean.TRUE);
+            return this;
+        }
+
+        @Override
+        public BridgeDescription.Builder mcastSnoopingEnable() {
+            this.mcastSnoopingEnable = Optional.of(Boolean.TRUE);
             return this;
         }
     }

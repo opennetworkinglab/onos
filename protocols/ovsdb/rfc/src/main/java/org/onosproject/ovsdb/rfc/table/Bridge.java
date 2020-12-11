@@ -41,7 +41,7 @@ public class Bridge extends AbstractOvsdbTableService {
         CONTROLLER("controller"), PROTOCOLS("protocols"),
         FAILMODE("fail_mode"), STATUS("status"), OTHERCONFIG("other_config"),
         EXTERNALIDS("external_ids"), FLOODVLANS("flood_vlans"),
-        FLOWTABLES("flow_tables");
+        FLOWTABLES("flow_tables"), MCASTSNOOPINGENABLE("mcast_snooping_enable");
 
         private final String columnName;
 
@@ -557,4 +557,30 @@ public class Bridge extends AbstractOvsdbTableService {
         super.setDataHandler(columndesc, flowTables);
     }
 
+    /**
+     * Get the Column entity which column name is "mcast_snooping_enable" from the Row
+     * entity of attributes.
+     * @return the Column entity which column name is "mcast_snooping_enable"
+     */
+    public Column getMcastSnoopingEnableColumn() {
+        ColumnDescription columndesc = new ColumnDescription(
+                BridgeColumn.MCASTSNOOPINGENABLE
+                        .columnName(),
+                "getMcastSnoopingEnableColumn",
+                VersionNum.VERSION650);
+        return (Column) super.getColumnHandler(columndesc);
+    }
+
+    /**
+     * Add a column entity which column name is "mcast_snooping_enable" to the Row entity
+     * of attributes.
+     * @param flag the column data which column name is "mcast_snooping_enable"
+     */
+    public void setMcastSnoopingEnable(boolean flag) {
+        ColumnDescription columndesc = new ColumnDescription(
+                BridgeColumn.MCASTSNOOPINGENABLE
+                        .columnName(),
+                "setMcastSnoopingEnable", VersionNum.VERSION650);
+        super.setDataHandler(columndesc, flag);
+    }
 }

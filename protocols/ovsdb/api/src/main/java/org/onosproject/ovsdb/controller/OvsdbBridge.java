@@ -53,6 +53,9 @@ public final class OvsdbBridge {
     /* other optional configs */
     private final Map<String, String> otherConfigs;
 
+    /* multicast snooping flag */
+    private final Optional<Boolean> mcastSnoopingEnable;
+
     /**
      * Default constructor.
      *
@@ -62,18 +65,20 @@ public final class OvsdbBridge {
      * @param datapathType ovs datapath_type
      * @param controlProtocols list of control protocols
      * @param otherConfigs other configs
+     * @param mcastSnoopingEnable multicast snooping enable
      */
     private OvsdbBridge(String name, Optional<FailMode> failMode,
                        List<ControllerInfo> controllers,
                        Optional<String> datapathType,
                        Optional<List<ControlProtocolVersion>> controlProtocols,
-                       Map<String, String> otherConfigs) {
+                       Map<String, String> otherConfigs, Optional<Boolean> mcastSnoopingEnable) {
         this.name = checkNotNull(name);
         this.failMode = failMode;
         this.controllers = controllers;
         this.datapathType = datapathType;
         this.controlProtocols = controlProtocols;
         this.otherConfigs = otherConfigs;
+        this.mcastSnoopingEnable = mcastSnoopingEnable;
     }
 
     /**
@@ -130,6 +135,15 @@ public final class OvsdbBridge {
     }
 
     /**
+     * Returns multicast snooping flag value of the bridge.
+     *
+     * @return multicast snooping flag
+     */
+    public Optional<Boolean> mcastSnoopingEnable() {
+        return mcastSnoopingEnable;
+    }
+
+    /**
      * Gets the datapathId of bridge.
      *
      * @return datapath id; null if not used
@@ -164,6 +178,7 @@ public final class OvsdbBridge {
                 .add("datapathType", datapathType)
                 .add("controlProtocols", controlProtocols)
                 .add("otherConfigs", otherConfigs)
+                .add("mcastSnoopingEnable", mcastSnoopingEnable)
                 .toString();
     }
 
@@ -196,6 +211,7 @@ public final class OvsdbBridge {
         private Optional<String> datapathType = Optional.empty();
         private Map<String, String> otherConfigs = Maps.newHashMap();
         private Optional<List<ControlProtocolVersion>> controlProtocols = Optional.empty();
+        private Optional<Boolean> mcastSnoopingEnable = Optional.empty();
 
         private Builder() {
         }
@@ -219,6 +235,9 @@ public final class OvsdbBridge {
             if (bridgeDesc.controlProtocols().isPresent()) {
                 this.controlProtocols = bridgeDesc.controlProtocols();
             }
+            if (bridgeDesc.mcastSnoopingEnable().isPresent()) {
+                this.mcastSnoopingEnable = bridgeDesc.mcastSnoopingEnable();
+            }
             this.name = bridgeDesc.name();
             this.failMode = bridgeDesc.failMode();
             this.controllers = Lists.newArrayList(bridgeDesc.controllers());
@@ -230,7 +249,8 @@ public final class OvsdbBridge {
          * @return ovsdb bridge
          */
         public OvsdbBridge build() {
-            return new OvsdbBridge(name, failMode, controllers, datapathType, controlProtocols, otherConfigs);
+            return new OvsdbBridge(name, failMode, controllers, datapathType,
+                    controlProtocols, otherConfigs, mcastSnoopingEnable);
         }
 
         /**
@@ -327,6 +347,16 @@ public final class OvsdbBridge {
          */
         public Builder disableInBand() {
             otherConfigs.put(DATAPATH_ID, Boolean.TRUE.toString());
+            return this;
+        }
+
+        /**
+         * Returns OVSDB bridge builder with a given mcast snooping enable flag.
+         *
+         * @return ovsdb bridge builder
+         */
+        public Builder mcastSnoopingEnable() {
+            this.mcastSnoopingEnable = Optional.of(Boolean.TRUE);
             return this;
         }
     }
