@@ -16,10 +16,8 @@
 package org.onosproject.openstacknetworking.impl;
 
 
-import org.onlab.packet.ARP;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
-import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
@@ -55,13 +53,12 @@ import java.util.Map;
 import java.util.Objects;
 
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
-import static org.onosproject.openstacknetworking.api.Constants.DHCP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.FLAT_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.PRE_FLAT_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_CNI_PT_IP_RULE;
-import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_CNI_PT_NODE_PORT_ARP_EXT_RULE;
-import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_CNI_PT_NODE_PORT_ARP_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_CNI_PT_NODE_PORT_IP_RULE;
-import static org.onosproject.openstacknetworking.api.Constants.STAT_FLAT_OUTBOUND_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SWITCHING_RULE;
+import static org.onosproject.openstacknetworking.api.Constants.VTAG_TABLE;
 import static org.onosproject.openstacknetworking.api.OpenstackNetwork.Type.FLAT;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.shiftIpDomain;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.structurePortName;
@@ -145,18 +142,12 @@ public class OpenstackK8sIntegrationManager implements OpenstackK8sIntegrationSe
     public void installCniPtNodePortRules(IpAddress k8sNodeIp, String osK8sExtPortName) {
         setNodePortIngressRules(k8sNodeIp, osK8sExtPortName, true);
         setNodePortEgressRules(k8sNodeIp, osK8sExtPortName, true);
-
-        setArpRequestRules(k8sNodeIp, osK8sExtPortName, true);
-        setArpReplyRules(k8sNodeIp, osK8sExtPortName, true);
     }
 
     @Override
     public void uninstallCniPtNodePortRules(IpAddress k8sNodeIp, String osK8sExtPortName) {
         setNodePortIngressRules(k8sNodeIp, osK8sExtPortName, false);
         setNodePortEgressRules(k8sNodeIp, osK8sExtPortName, false);
-
-        setArpRequestRules(k8sNodeIp, osK8sExtPortName, false);
-        setArpReplyRules(k8sNodeIp, osK8sExtPortName, false);
     }
 
     private void setNodeToPodIpRules(IpAddress k8sNodeIp,
@@ -260,7 +251,7 @@ public class OpenstackK8sIntegrationManager implements OpenstackK8sIntegrationSe
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .setIpDst(k8sNodeIp)
                 .setEthDst(instPort.macAddress())
-                .transition(STAT_FLAT_OUTBOUND_TABLE)
+                .transition(FLAT_TABLE)
                 .build();
 
         osFlowRuleService.setRule(
@@ -269,9 +260,11 @@ public class OpenstackK8sIntegrationManager implements OpenstackK8sIntegrationSe
                 selector,
                 treatment,
                 PRIORITY_CNI_PT_IP_RULE,
-                DHCP_TABLE,
+                PRE_FLAT_TABLE,
                 install
         );
+
+        setJumpRules(osK8sIntPortNum, osNode, install);
     }
 
     private void setNodePortIngressRules(IpAddress k8sNodeIp,
@@ -311,7 +304,7 @@ public class OpenstackK8sIntegrationManager implements OpenstackK8sIntegrationSe
                     tcpSelectorBuilder.build(),
                     treatment,
                     PRIORITY_CNI_PT_NODE_PORT_IP_RULE,
-                    FLAT_TABLE,
+                    PRE_FLAT_TABLE,
                     install
             );
 
@@ -321,7 +314,7 @@ public class OpenstackK8sIntegrationManager implements OpenstackK8sIntegrationSe
                     udpSelectorBuilder.build(),
                     treatment,
                     PRIORITY_CNI_PT_NODE_PORT_IP_RULE,
-                    FLAT_TABLE,
+                    PRE_FLAT_TABLE,
                     install
             );
         });
@@ -367,96 +360,11 @@ public class OpenstackK8sIntegrationManager implements OpenstackK8sIntegrationSe
                 selector,
                 treatment,
                 PRIORITY_CNI_PT_NODE_PORT_IP_RULE,
-                DHCP_TABLE,
-                install
-        );
-    }
-
-    private void setArpRequestRules(IpAddress k8sNodeIp, String osK8sExtPortName, boolean install) {
-        InstancePort instPort = instPortByNodeIp(k8sNodeIp);
-
-        if (instPort == null) {
-            return;
-        }
-
-        OpenstackNode osNode = osNodeByNodeIp(k8sNodeIp);
-
-        if (osNode == null) {
-            return;
-        }
-
-        PortNumber osK8sExtPortNum = portNumberByNodeIpAndPortName(k8sNodeIp, osK8sExtPortName);
-
-        TrafficSelector selector = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_ARP)
-                .matchArpOp(ARP.OP_REQUEST)
-                .matchInPort(osK8sExtPortNum)
-                .build();
-
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .transition(STAT_FLAT_OUTBOUND_TABLE)
-                .build();
-
-        osFlowRuleService.setRule(
-                appId,
-                osNode.intgBridge(),
-                selector,
-                treatment,
-                PRIORITY_CNI_PT_NODE_PORT_ARP_RULE,
-                DHCP_TABLE,
+                PRE_FLAT_TABLE,
                 install
         );
 
-        Port phyPort = phyPortByInstPort(instPort);
-
-        if (phyPort == null) {
-            log.warn("No phys interface found for instance port {}", instPort);
-            return;
-        }
-
-        TrafficTreatment extTreatment = DefaultTrafficTreatment.builder()
-                .setOutput(phyPort.number())
-                .build();
-
-        osFlowRuleService.setRule(
-                appId,
-                osNode.intgBridge(),
-                selector,
-                extTreatment,
-                PRIORITY_CNI_PT_NODE_PORT_ARP_EXT_RULE,
-                FLAT_TABLE,
-                install
-        );
-    }
-
-    private void setArpReplyRules(IpAddress k8sNodeIp, String osK8sExtPortName, boolean install) {
-        OpenstackNode osNode = osNodeByNodeIp(k8sNodeIp);
-
-        if (osNode == null) {
-            return;
-        }
-
-        PortNumber osK8sExtPortNum = portNumberByNodeIpAndPortName(k8sNodeIp, osK8sExtPortName);
-
-        TrafficSelector selector = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_ARP)
-                .matchArpOp(ARP.OP_REPLY)
-                .matchArpTpa(Ip4Address.valueOf(NODE_FAKE_IP_STR))
-                .build();
-
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setOutput(osK8sExtPortNum)
-                .build();
-
-        osFlowRuleService.setRule(
-                appId,
-                osNode.intgBridge(),
-                selector,
-                treatment,
-                PRIORITY_CNI_PT_NODE_PORT_ARP_RULE,
-                FLAT_TABLE,
-                install
-        );
+        setJumpRules(osK8sExtPortNum, osNode, install);
     }
 
     private InstancePort instPortByNodeIp(IpAddress k8sNodeIp) {
@@ -501,5 +409,25 @@ public class OpenstackK8sIntegrationManager implements OpenstackK8sIntegrationSe
                             + network.getProviderPhyNet());
                     return Objects.equals(annotPortName, portName);
                 }).findAny().orElse(null);
+    }
+
+    private void setJumpRules(PortNumber portNumber, OpenstackNode osNode, boolean install) {
+        TrafficSelector jumpSelector = DefaultTrafficSelector.builder()
+                .matchInPort(portNumber)
+                .build();
+
+        TrafficTreatment jumpTreatment = DefaultTrafficTreatment.builder()
+                .transition(PRE_FLAT_TABLE)
+                .build();
+
+        osFlowRuleService.setRule(
+                appId,
+                osNode.intgBridge(),
+                jumpSelector,
+                jumpTreatment,
+                PRIORITY_SWITCHING_RULE,
+                VTAG_TABLE,
+                install
+        );
     }
 }

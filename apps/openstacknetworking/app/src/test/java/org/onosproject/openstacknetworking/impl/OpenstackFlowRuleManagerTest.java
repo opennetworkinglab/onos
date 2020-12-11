@@ -55,11 +55,10 @@ import static org.onosproject.openstacknetworking.api.Constants.DHCP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.FLAT_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.FORWARDING_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.JUMP_TABLE;
-import static org.onosproject.openstacknetworking.api.Constants.STAT_FLAT_OUTBOUND_TABLE;
+import static org.onosproject.openstacknetworking.api.Constants.PRE_FLAT_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.STAT_INBOUND_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.STAT_OUTBOUND_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.VTAG_TABLE;
-import static org.onosproject.openstacknetworking.api.Constants.VTAP_FLAT_OUTBOUND_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.VTAP_INBOUND_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.VTAP_OUTBOUND_TABLE;
 
@@ -193,7 +192,7 @@ public class OpenstackFlowRuleManagerTest {
         fros = Sets.newConcurrentHashSet();
 
         target.initializePipeline(DEVICE_ID);
-        assertEquals("Flow Rule size was not match", 13, fros.size());
+        assertEquals("Flow Rule size was not match", 12, fros.size());
 
         Map<Integer, Integer> fromToTableMap = Maps.newConcurrentMap();
         fromToTableMap.put(STAT_INBOUND_TABLE, VTAP_INBOUND_TABLE);
@@ -204,8 +203,7 @@ public class OpenstackFlowRuleManagerTest {
         fromToTableMap.put(ACL_EGRESS_TABLE, JUMP_TABLE);
         fromToTableMap.put(STAT_OUTBOUND_TABLE, VTAP_OUTBOUND_TABLE);
         fromToTableMap.put(VTAP_OUTBOUND_TABLE, FORWARDING_TABLE);
-        fromToTableMap.put(STAT_FLAT_OUTBOUND_TABLE, VTAP_FLAT_OUTBOUND_TABLE);
-        fromToTableMap.put(VTAP_FLAT_OUTBOUND_TABLE, FLAT_TABLE);
+        fromToTableMap.put(PRE_FLAT_TABLE, FLAT_TABLE);
 
         fros.stream().map(FlowRuleOperation::rule).forEach(fr -> {
             if (fr.tableId() != JUMP_TABLE && fr.tableId() != FLAT_TABLE) {
