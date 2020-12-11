@@ -497,6 +497,11 @@ public class DefaultOvsdbClient implements OvsdbProviderService, OvsdbClientServ
                     .collect(Collectors.toCollection(HashSet::new)));
         }
 
+        if (ovsdbBridge.mcastSnoopingEnable().isPresent()) {
+            boolean mcastSnoopingFlag = ovsdbBridge.mcastSnoopingEnable().get();
+            bridge.setMcastSnoopingEnable(mcastSnoopingFlag);
+        }
+
         String bridgeUuid = getBridgeUuid(ovsdbBridge.name());
         if (bridgeUuid == null) {
             bridge.setName(ovsdbBridge.name());
