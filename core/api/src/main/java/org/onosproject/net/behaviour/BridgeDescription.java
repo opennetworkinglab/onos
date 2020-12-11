@@ -104,6 +104,15 @@ public interface BridgeDescription extends Description {
     Optional<Boolean> disableInBand();
 
     /**
+     * Returns multicast snooping is enabled or not. If set to true, enable multicast
+     * snooping on the bridge.
+     * If it is not set, the multicast snooping is disabled.
+     *
+     * @return true if the multicast snooping is enabled, false otherwise
+     */
+    Optional<Boolean> mcastSnoopingEnable();
+
+    /**
      * Returns list of Control Protocol Versions supported on device.
      * @return List of Control Protocol Versions enabled on bridge
      */
@@ -176,6 +185,13 @@ public interface BridgeDescription extends Description {
          * @return bridge description builder
          */
         Builder disableInBand();
+
+        /**
+         * Returns bridge description builder with mcast snooping enabled.
+         *
+         * @return bridge description builder
+         */
+        Builder mcastSnoopingEnable();
 
         /**
          * Builds an immutable bridge description.
