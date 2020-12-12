@@ -60,30 +60,22 @@ import java.util.concurrent.ExecutorService;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.onosproject.openstacknetworking.api.Constants.ACL_EGRESS_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.ARP_BROADCAST_MODE;
 import static org.onosproject.openstacknetworking.api.Constants.ARP_TABLE;
-import static org.onosproject.openstacknetworking.api.Constants.DHCP_TABLE;
-import static org.onosproject.openstacknetworking.api.Constants.FLAT_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.FORWARDING_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
+import static org.onosproject.openstacknetworking.api.Constants.PRE_FLAT_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_ADMIN_RULE;
-import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FLAT_DOWNSTREAM_RULE;
-import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FLAT_JUMP_UPSTREAM_RULE;
-import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FLAT_UPSTREAM_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_SWITCHING_RULE;
 import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_TUNNEL_TAG_RULE;
-import static org.onosproject.openstacknetworking.api.Constants.STAT_FLAT_OUTBOUND_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.VTAG_TABLE;
 import static org.onosproject.openstacknetworking.api.InstancePortEvent.Type.OPENSTACK_INSTANCE_MIGRATION_STARTED;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.deriveResourceName;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.getPropertyValue;
-import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.structurePortName;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.swapStaleLocation;
 import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.tunnelPortNumByNetId;
 import static org.onosproject.openstacknetworking.util.RulePopulatorUtil.buildExtension;
-import static org.onosproject.openstacknode.api.Constants.INTEGRATION_TO_PHYSICAL_PREFIX;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -168,7 +160,7 @@ public class OpenstackSwitchingHandler {
                 .build();
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .transition(STAT_FLAT_OUTBOUND_TABLE)
+                .transition(PRE_FLAT_TABLE)
                 .build();
 
         osFlowRuleService.setRule(
@@ -176,75 +168,9 @@ public class OpenstackSwitchingHandler {
                 port.deviceId(),
                 selector,
                 treatment,
-                PRIORITY_FLAT_JUMP_UPSTREAM_RULE,
-                DHCP_TABLE,
+                PRIORITY_SWITCHING_RULE,
+                VTAG_TABLE,
                 install);
-    }
-
-    private void setDownstreamRuleForFlat(InstancePort instPort,
-                                          short ethType, boolean install) {
-        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
-
-        if (ethType == Ethernet.TYPE_IPV4) {
-            sBuilder.matchEthType(Ethernet.TYPE_IPV4)
-                    .matchIPDst(instPort.ipAddress().toIpPrefix());
-        } else if (ethType == Ethernet.TYPE_ARP) {
-            sBuilder.matchEthType(Ethernet.TYPE_ARP)
-                    .matchArpTpa(instPort.ipAddress().getIp4Address());
-        }
-
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setOutput(instPort.portNumber())
-                .build();
-
-        osFlowRuleService.setRule(
-                appId,
-                instPort.deviceId(),
-                sBuilder.build(),
-                treatment,
-                PRIORITY_FLAT_DOWNSTREAM_RULE,
-                FLAT_TABLE,
-                install);
-    }
-
-    private void setDownstreamRulesForFlat(InstancePort instPort, boolean install) {
-        setDownstreamRuleForFlat(instPort, Ethernet.TYPE_IPV4, install);
-        setDownstreamRuleForFlat(instPort, Ethernet.TYPE_ARP, install);
-    }
-
-    private void setUpstreamRulesForFlat(InstancePort instPort, boolean install) {
-        TrafficSelector selector = DefaultTrafficSelector.builder()
-                .matchInPort(instPort.portNumber())
-                .build();
-
-        Network network = osNetworkService.network(instPort.networkId());
-
-        if (network == null) {
-            log.warn("The network does not exist");
-            return;
-        }
-
-        deviceService.getPorts(instPort.deviceId()).stream()
-                .filter(port -> {
-                    String annotPortName = port.annotations().value(PORT_NAME);
-                    String portName = structurePortName(INTEGRATION_TO_PHYSICAL_PREFIX
-                            + network.getProviderPhyNet());
-                    return Objects.equals(annotPortName, portName);
-                })
-                .findAny().ifPresent(port -> {
-                    TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                            .setOutput(port.number())
-                            .build();
-
-                    osFlowRuleService.setRule(
-                            appId,
-                            instPort.deviceId(),
-                            selector,
-                            treatment,
-                            PRIORITY_FLAT_UPSTREAM_RULE,
-                            FLAT_TABLE,
-                            install);
-        });
     }
 
     /**
@@ -466,9 +392,6 @@ public class OpenstackSwitchingHandler {
                 break;
             case VLAN:
                 setNetworkBlockRulesForVlan(network.getProviderSegID(), install);
-                break;
-            case FLAT:
-                // TODO: need to find a way to block flat typed network
                 break;
             default:
                 break;
@@ -742,8 +665,6 @@ public class OpenstackSwitchingHandler {
 
         private void setNetworkRulesForFlat(InstancePort instPort, boolean install) {
             setJumpRulesForFlat(instPort, install);
-            setDownstreamRulesForFlat(instPort, install);
-            setUpstreamRulesForFlat(instPort, install);
         }
 
         /**
@@ -790,8 +711,6 @@ public class OpenstackSwitchingHandler {
 
         private void removeVportRulesForFlat(InstancePort instPort) {
             setJumpRulesForFlat(instPort, false);
-            setUpstreamRulesForFlat(instPort, false);
-            setDownstreamRulesForFlat(instPort, false);
         }
 
         private void instPortDetected(InstancePort instPort) {

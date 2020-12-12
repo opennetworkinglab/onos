@@ -22,14 +22,12 @@ import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
-import org.onlab.packet.Ethernet;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.net.DeviceId;
-import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultFlowRule;
@@ -47,22 +45,14 @@ import org.onosproject.openstacknode.api.OpenstackNode;
 import org.onosproject.openstacknode.api.OpenstackNodeEvent;
 import org.onosproject.openstacknode.api.OpenstackNodeListener;
 import org.onosproject.openstacknode.api.OpenstackNodeService;
-import org.onosproject.openstacknode.api.OpenstackPhyInterface;
 import org.slf4j.Logger;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.net.AnnotationKeys.PORT_NAME;
-import static org.onosproject.openstacknetworking.api.Constants.DHCP_TABLE;
 import static org.onosproject.openstacknetworking.api.Constants.OPENSTACK_NETWORKING_APP_ID;
-import static org.onosproject.openstacknetworking.api.Constants.PRIORITY_FLAT_JUMP_UPSTREAM_RULE;
-import static org.onosproject.openstacknetworking.api.Constants.STAT_FLAT_OUTBOUND_TABLE;
-import static org.onosproject.openstacknetworking.util.OpenstackNetworkingUtil.structurePortName;
-import static org.onosproject.openstacknode.api.Constants.INTEGRATION_TO_PHYSICAL_PREFIX;
 import static org.onosproject.openstacknode.api.OpenstackNode.NodeType.COMPUTE;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -76,6 +66,7 @@ public class OpenstackFlowRuleManager implements OpenstackFlowRuleService {
     private final Logger log = getLogger(getClass());
 
     private static final int DROP_PRIORITY = 0;
+    private static final int LOW_PRIORITY = 10000;
     private static final int HIGH_PRIORITY = 30000;
     private static final int TIMEOUT_SNAT_RULE = 60;
 
@@ -235,70 +226,17 @@ public class OpenstackFlowRuleManager implements OpenstackFlowRuleService {
         // table lookup
         setupJumpTable(deviceId);
 
+        // for setting up default FLAT table behavior which is NORMAL
+        setupFlatTable(deviceId);
+
         // for outbound table transition
         connectTables(deviceId, Constants.STAT_OUTBOUND_TABLE,
-                                Constants.VTAP_OUTBOUND_TABLE);
+                Constants.VTAP_OUTBOUND_TABLE);
         connectTables(deviceId, Constants.VTAP_OUTBOUND_TABLE,
-                                Constants.FORWARDING_TABLE);
+                Constants.FORWARDING_TABLE);
 
-        // for FLAT outbound table transition
-        connectTables(deviceId, Constants.STAT_FLAT_OUTBOUND_TABLE,
-                                Constants.VTAP_FLAT_OUTBOUND_TABLE);
-        connectTables(deviceId, Constants.VTAP_FLAT_OUTBOUND_TABLE,
-                                Constants.FLAT_TABLE);
-
-        // for FLAT table drop
-        setUpTableMissEntry(deviceId, Constants.FLAT_TABLE);
-
-        // for FLAT jump rules
-        if (!osNodeService.node(deviceId).phyIntfs().isEmpty()) {
-            setFlatJumpRules(deviceId);
-        }
-    }
-
-    private void setFlatJumpRules(DeviceId deviceId) {
-        osNodeService.node(deviceId)
-                     .phyIntfs()
-                     .forEach(phyInterface ->
-                             setFlatJumpRulesForPatchPort(deviceId, phyInterface));
-    }
-
-    private void setFlatJumpRuleForPatchPort(DeviceId deviceId,
-                                           PortNumber portNumber, short ethType) {
-        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
-        selector.matchInPort(portNumber)
-                .matchEthType(ethType);
-
-        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder();
-        treatment.transition(STAT_FLAT_OUTBOUND_TABLE);
-        FlowRule flowRuleForIp = DefaultFlowRule.builder()
-                .forDevice(deviceId)
-                .withSelector(selector.build())
-                .withTreatment(treatment.build())
-                .withPriority(PRIORITY_FLAT_JUMP_UPSTREAM_RULE)
-                .fromApp(appId)
-                .makePermanent()
-                .forTable(DHCP_TABLE)
-                .build();
-
-        applyRule(flowRuleForIp, true);
-    }
-
-    private void setFlatJumpRulesForPatchPort(DeviceId deviceId,
-                                              OpenstackPhyInterface phyIntf) {
-        Optional<Port> patchPort = deviceService.getPorts(deviceId).stream()
-                .filter(port -> {
-                    String annotPortName = port.annotations().value(PORT_NAME);
-                    String portName = structurePortName(
-                            INTEGRATION_TO_PHYSICAL_PREFIX + phyIntf.network());
-                    return Objects.equals(annotPortName, portName);
-                })
-                .findAny();
-
-        patchPort.ifPresent(port -> {
-            setFlatJumpRuleForPatchPort(deviceId, port.number(), Ethernet.TYPE_IPV4);
-            setFlatJumpRuleForPatchPort(deviceId, port.number(), Ethernet.TYPE_ARP);
-        });
+        // for PRE_FLAT and FLAT table transition
+        connectTables(deviceId, Constants.PRE_FLAT_TABLE, Constants.FLAT_TABLE);
     }
 
     private void setupJumpTable(DeviceId deviceId) {
@@ -333,6 +271,24 @@ public class OpenstackFlowRuleManager implements OpenstackFlowRuleService {
                 .fromApp(appId)
                 .makePermanent()
                 .forTable(Constants.JUMP_TABLE)
+                .build();
+
+        applyRule(flowRule, true);
+    }
+
+    private void setupFlatTable(DeviceId deviceId) {
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder()
+                .setOutput(PortNumber.NORMAL);
+
+        FlowRule flowRule = DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .withSelector(selector.build())
+                .withTreatment(treatment.build())
+                .withPriority(LOW_PRIORITY)
+                .fromApp(appId)
+                .makePermanent()
+                .forTable(Constants.FLAT_TABLE)
                 .build();
 
         applyRule(flowRule, true);

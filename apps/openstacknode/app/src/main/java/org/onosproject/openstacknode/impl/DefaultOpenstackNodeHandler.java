@@ -341,6 +341,7 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
                 .failMode(BridgeDescription.FailMode.SECURE)
                 .datapathId(dpid)
                 .disableInBand()
+                .mcastSnoopingEnable()
                 .controllers(controllers);
 
         if (osNode.datapathType().equals(NETDEV)) {
@@ -418,7 +419,8 @@ public class DefaultOpenstackNodeHandler implements OpenstackNodeHandler {
         String bridgeName = BRIDGE_PREFIX + phyInterface.network();
 
         BridgeDescription.Builder builder = DefaultBridgeDescription.builder()
-                .name(bridgeName);
+                .name(bridgeName)
+                .mcastSnoopingEnable();
 
         BridgeConfig bridgeConfig = device.as(BridgeConfig.class);
         bridgeConfig.addBridge(builder.build());
