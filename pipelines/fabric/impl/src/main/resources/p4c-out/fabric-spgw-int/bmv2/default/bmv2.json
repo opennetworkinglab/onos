@@ -5,13 +5,12 @@
       "id" : 0,
       "fields" : [
         ["last_ipv4_dscp_0", 6, false],
+        ["tmp_0", 16, false],
         ["tmp_1", 16, false],
-        ["tmp_2", 16, false],
-        ["tmp_3", 4, false],
+        ["tmp_2", 4, false],
         ["tmp", 32, false],
-        ["tmp_0", 32, false],
+        ["tmp_3", 32, false],
         ["spgw_tmp", 1, false],
-        ["egress_next_tmp", 1, false],
         ["process_int_main_process_int_transit_hasReturned", 1, false],
         ["fabric_metadata_t._ip_eth_type0", 16, false],
         ["fabric_metadata_t._vlan_id1", 12, false],
@@ -52,7 +51,8 @@
         ["fabric_metadata_t._int_meta_new_words36", 8, false],
         ["fabric_metadata_t._int_meta_new_bytes37", 16, false],
         ["fabric_metadata_t._int_meta_ig_tstamp38", 32, false],
-        ["fabric_metadata_t._int_meta_eg_tstamp39", 32, false]
+        ["fabric_metadata_t._int_meta_eg_tstamp39", 32, false],
+        ["_padding_0", 1, false]
       ]
     },
     {
@@ -648,7 +648,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "tmp_1"]
+                  "value" : ["scalars", "tmp_0"]
                 },
                 {
                   "type" : "lookahead",
@@ -686,7 +686,7 @@
           "transition_key" : [
             {
               "type" : "field",
-              "value" : ["scalars", "tmp_1"]
+              "value" : ["scalars", "tmp_0"]
             }
           ]
         },
@@ -707,7 +707,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "tmp_2"]
+                  "value" : ["scalars", "tmp_1"]
                 },
                 {
                   "type" : "lookahead",
@@ -733,7 +733,7 @@
           "transition_key" : [
             {
               "type" : "field",
-              "value" : ["scalars", "tmp_2"]
+              "value" : ["scalars", "tmp_1"]
             }
           ]
         },
@@ -843,7 +843,7 @@
               "parameters" : [
                 {
                   "type" : "field",
-                  "value" : ["scalars", "tmp_3"]
+                  "value" : ["scalars", "tmp_2"]
                 },
                 {
                   "type" : "lookahead",
@@ -869,7 +869,7 @@
           "transition_key" : [
             {
               "type" : "field",
-              "value" : ["scalars", "tmp_3"]
+              "value" : ["scalars", "tmp_2"]
             }
           ]
         },
@@ -1530,7 +1530,7 @@
       "binding" : "FabricEgress.egress_next.egress_vlan",
       "source_info" : {
         "filename" : "include/control/next.p4",
-        "line" : 313,
+        "line" : 314,
         "column" : 50,
         "source_fragment" : "egress_vlan_counter"
       }
@@ -5753,7 +5753,7 @@
           "parameters" : [
             {
               "type" : "field",
-              "value" : ["scalars", "tmp_0"]
+              "value" : ["scalars", "tmp_3"]
             },
             {
               "type" : "expression",
@@ -5789,7 +5789,7 @@
             },
             {
               "type" : "field",
-              "value" : ["scalars", "tmp_0"]
+              "value" : ["scalars", "tmp_3"]
             }
           ],
           "source_info" : {
@@ -5814,7 +5814,7 @@
       "primitives" : []
     },
     {
-      "name" : "nop",
+      "name" : "NoAction",
       "id" : 57,
       "runtime_data" : [],
       "primitives" : []
@@ -5826,14 +5826,8 @@
       "primitives" : []
     },
     {
-      "name" : "NoAction",
-      "id" : 59,
-      "runtime_data" : [],
-      "primitives" : []
-    },
-    {
       "name" : "FabricEgress.process_int_main.process_int_source.int_source_dscp",
-      "id" : 60,
+      "id" : 59,
       "runtime_data" : [
         {
           "name" : "max_hop",
@@ -6328,7 +6322,7 @@
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.init_metadata",
-      "id" : 61,
+      "id" : 60,
       "runtime_data" : [
         {
           "name" : "switch_id",
@@ -6388,13 +6382,13 @@
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i0",
-      "id" : 62,
+      "id" : 61,
       "runtime_data" : [],
       "primitives" : []
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i1",
-      "id" : 63,
+      "id" : 62,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -6551,7 +6545,7 @@
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i2",
-      "id" : 64,
+      "id" : 63,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -6676,7 +6670,7 @@
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i3",
-      "id" : 65,
+      "id" : 64,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -6867,7 +6861,7 @@
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i4",
-      "id" : 66,
+      "id" : 65,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -7037,7 +7031,7 @@
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i5",
-      "id" : 67,
+      "id" : 66,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -7273,7 +7267,7 @@
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i6",
-      "id" : 68,
+      "id" : 67,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -7477,7 +7471,7 @@
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i7",
-      "id" : 69,
+      "id" : 68,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -7747,7 +7741,7 @@
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i8",
-      "id" : 70,
+      "id" : 69,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -7872,7 +7866,7 @@
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i9",
-      "id" : 71,
+      "id" : 70,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -8063,7 +8057,7 @@
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i10",
-      "id" : 72,
+      "id" : 71,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -8222,7 +8216,7 @@
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i11",
-      "id" : 73,
+      "id" : 72,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -8447,7 +8441,7 @@
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i12",
-      "id" : 74,
+      "id" : 73,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -8651,7 +8645,7 @@
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i13",
-      "id" : 75,
+      "id" : 74,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -8921,7 +8915,7 @@
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i14",
-      "id" : 76,
+      "id" : 75,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -9159,7 +9153,7 @@
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i15",
-      "id" : 77,
+      "id" : 76,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -9463,13 +9457,13 @@
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i0",
-      "id" : 78,
+      "id" : 77,
       "runtime_data" : [],
       "primitives" : []
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i1",
-      "id" : 79,
+      "id" : 78,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -9594,7 +9588,7 @@
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i2",
-      "id" : 80,
+      "id" : 79,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -9738,7 +9732,7 @@
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i3",
-      "id" : 81,
+      "id" : 80,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -9916,7 +9910,7 @@
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i4",
-      "id" : 82,
+      "id" : 81,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -10064,7 +10058,7 @@
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i5",
-      "id" : 83,
+      "id" : 82,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -10246,7 +10240,7 @@
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i6",
-      "id" : 84,
+      "id" : 83,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -10447,7 +10441,7 @@
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i7",
-      "id" : 85,
+      "id" : 84,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -10682,7 +10676,7 @@
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i8",
-      "id" : 86,
+      "id" : 85,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -10807,7 +10801,7 @@
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i9",
-      "id" : 87,
+      "id" : 86,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -10966,7 +10960,7 @@
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i10",
-      "id" : 88,
+      "id" : 87,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -11144,7 +11138,7 @@
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i11",
-      "id" : 89,
+      "id" : 88,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -11356,7 +11350,7 @@
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i12",
-      "id" : 90,
+      "id" : 89,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -11538,7 +11532,7 @@
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i13",
-      "id" : 91,
+      "id" : 90,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -11754,7 +11748,7 @@
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i14",
-      "id" : 92,
+      "id" : 91,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -11989,7 +11983,7 @@
     },
     {
       "name" : "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i15",
-      "id" : 93,
+      "id" : 92,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -12258,7 +12252,7 @@
     },
     {
       "name" : "FabricEgress.egress_next.pop_mpls_if_present",
-      "id" : 94,
+      "id" : 93,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -12299,7 +12293,7 @@
     },
     {
       "name" : "FabricEgress.egress_next.set_mpls",
-      "id" : 95,
+      "id" : 94,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -12416,7 +12410,7 @@
     },
     {
       "name" : "FabricEgress.egress_next.push_vlan",
-      "id" : 96,
+      "id" : 95,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -12514,7 +12508,7 @@
     },
     {
       "name" : "FabricEgress.egress_next.pop_vlan",
-      "id" : 97,
+      "id" : 96,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -12527,9 +12521,31 @@
           ],
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 316,
+            "line" : 322,
             "column" : 8,
             "source_fragment" : "hdr.vlan_tag.setInvalid()"
+          }
+        }
+      ]
+    },
+    {
+      "name" : "FabricEgress.egress_next.drop",
+      "id" : 97,
+      "runtime_data" : [],
+      "primitives" : [
+        {
+          "op" : "mark_to_drop",
+          "parameters" : [
+            {
+              "type" : "header",
+              "value" : "standard_metadata"
+            }
+          ],
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 327,
+            "column" : 8,
+            "source_fragment" : "mark_to_drop(standard_metadata)"
           }
         }
       ]
@@ -13209,7 +13225,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 337,
+            "line" : 349,
             "column" : 12,
             "source_fragment" : "mark_to_drop(standard_metadata)"
           }
@@ -13222,66 +13238,6 @@
       "runtime_data" : [],
       "primitives" : [
         {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["scalars", "egress_next_tmp"]
-            },
-            {
-              "type" : "expression",
-              "value" : {
-                "type" : "expression",
-                "value" : {
-                  "op" : "b2d",
-                  "left" : null,
-                  "right" : {
-                    "type" : "bool",
-                    "value" : true
-                  }
-                }
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name" : "act_12",
-      "id" : 103,
-      "runtime_data" : [],
-      "primitives" : [
-        {
-          "op" : "assign",
-          "parameters" : [
-            {
-              "type" : "field",
-              "value" : ["scalars", "egress_next_tmp"]
-            },
-            {
-              "type" : "expression",
-              "value" : {
-                "type" : "expression",
-                "value" : {
-                  "op" : "b2d",
-                  "left" : null,
-                  "right" : {
-                    "type" : "bool",
-                    "value" : false
-                  }
-                }
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name" : "act_13",
-      "id" : 104,
-      "runtime_data" : [],
-      "primitives" : [
-        {
           "op" : "mark_to_drop",
           "parameters" : [
             {
@@ -13291,7 +13247,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 370,
+            "line" : 376,
             "column" : 35,
             "source_fragment" : "mark_to_drop(standard_metadata)"
           }
@@ -13299,8 +13255,8 @@
       ]
     },
     {
-      "name" : "act_14",
-      "id" : 105,
+      "name" : "act_12",
+      "id" : 103,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -13340,7 +13296,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 369,
+            "line" : 375,
             "column" : 12,
             "source_fragment" : "hdr.mpls.ttl = hdr.mpls.ttl - 1"
           }
@@ -13348,8 +13304,8 @@
       ]
     },
     {
-      "name" : "act_15",
-      "id" : 106,
+      "name" : "act_13",
+      "id" : 104,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -13362,7 +13318,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 374,
+            "line" : 380,
             "column" : 39,
             "source_fragment" : "mark_to_drop(standard_metadata)"
           }
@@ -13370,8 +13326,8 @@
       ]
     },
     {
-      "name" : "act_16",
-      "id" : 107,
+      "name" : "act_14",
+      "id" : 105,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -13411,7 +13367,7 @@
           ],
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 373,
+            "line" : 379,
             "column" : 16,
             "source_fragment" : "hdr.ipv4.ttl = hdr.ipv4.ttl - 1"
           }
@@ -13419,8 +13375,8 @@
       ]
     },
     {
-      "name" : "act_17",
-      "id" : 108,
+      "name" : "act_15",
+      "id" : 106,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -13445,8 +13401,8 @@
       ]
     },
     {
-      "name" : "act_18",
-      "id" : 109,
+      "name" : "act_16",
+      "id" : 107,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -13475,8 +13431,8 @@
       ]
     },
     {
-      "name" : "act_19",
-      "id" : 110,
+      "name" : "act_17",
+      "id" : 108,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -13511,8 +13467,8 @@
       ]
     },
     {
-      "name" : "act_20",
-      "id" : 111,
+      "name" : "act_18",
+      "id" : 109,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -13560,8 +13516,8 @@
       ]
     },
     {
-      "name" : "act_21",
-      "id" : 112,
+      "name" : "act_19",
+      "id" : 110,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -13609,8 +13565,8 @@
       ]
     },
     {
-      "name" : "act_22",
-      "id" : 113,
+      "name" : "act_20",
+      "id" : 111,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -13658,8 +13614,8 @@
       ]
     },
     {
-      "name" : "act_23",
-      "id" : 114,
+      "name" : "act_21",
+      "id" : 112,
       "runtime_data" : [],
       "primitives" : [
         {
@@ -15427,7 +15383,7 @@
           "id" : 28,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 337,
+            "line" : 349,
             "column" : 12,
             "source_fragment" : "mark_to_drop(standard_metadata)"
           },
@@ -15456,7 +15412,7 @@
           "id" : 29,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 341,
+            "line" : 353,
             "column" : 36,
             "source_fragment" : "pop_mpls_if_present()"
           },
@@ -15467,14 +15423,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [94],
+          "action_ids" : [93],
           "actions" : ["FabricEgress.egress_next.pop_mpls_if_present"],
           "base_default_next" : "FabricEgress.egress_next.egress_vlan",
           "next_tables" : {
             "FabricEgress.egress_next.pop_mpls_if_present" : "FabricEgress.egress_next.egress_vlan"
           },
           "default_entry" : {
-            "action_id" : 94,
+            "action_id" : 93,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -15485,7 +15441,7 @@
           "id" : 30,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 343,
+            "line" : 355,
             "column" : 12,
             "source_fragment" : "set_mpls()"
           },
@@ -15496,14 +15452,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [95],
+          "action_ids" : [94],
           "actions" : ["FabricEgress.egress_next.set_mpls"],
           "base_default_next" : "FabricEgress.egress_next.egress_vlan",
           "next_tables" : {
             "FabricEgress.egress_next.set_mpls" : "FabricEgress.egress_next.egress_vlan"
           },
           "default_entry" : {
-            "action_id" : 95,
+            "action_id" : 94,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -15514,7 +15470,7 @@
           "id" : 31,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 320,
+            "line" : 331,
             "column" : 10,
             "source_fragment" : "egress_vlan"
           },
@@ -15538,15 +15494,16 @@
           "with_counters" : true,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [97, 57],
-          "actions" : ["FabricEgress.egress_next.pop_vlan", "nop"],
-          "base_default_next" : null,
+          "action_ids" : [95, 96, 97],
+          "actions" : ["FabricEgress.egress_next.push_vlan", "FabricEgress.egress_next.pop_vlan", "FabricEgress.egress_next.drop"],
+          "base_default_next" : "node_56",
           "next_tables" : {
-            "__HIT__" : "tbl_act_11",
-            "__MISS__" : "tbl_act_12"
+            "FabricEgress.egress_next.push_vlan" : "node_56",
+            "FabricEgress.egress_next.pop_vlan" : "node_56",
+            "FabricEgress.egress_next.drop" : "node_56"
           },
           "default_entry" : {
-            "action_id" : 57,
+            "action_id" : 97,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -15555,29 +15512,12 @@
         {
           "name" : "tbl_act_11",
           "id" : 32,
-          "key" : [],
-          "match_type" : "exact",
-          "type" : "simple",
-          "max_size" : 1024,
-          "with_counters" : false,
-          "support_timeout" : false,
-          "direct_meters" : null,
-          "action_ids" : [102],
-          "actions" : ["act_11"],
-          "base_default_next" : "node_58",
-          "next_tables" : {
-            "act_11" : "node_58"
+          "source_info" : {
+            "filename" : "include/control/next.p4",
+            "line" : 375,
+            "column" : 25,
+            "source_fragment" : "="
           },
-          "default_entry" : {
-            "action_id" : 102,
-            "action_const" : true,
-            "action_data" : [],
-            "action_entry_const" : true
-          }
-        },
-        {
-          "name" : "tbl_act_12",
-          "id" : 33,
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -15599,13 +15539,13 @@
           }
         },
         {
-          "name" : "tbl_egress_next_push_vlan",
-          "id" : 34,
+          "name" : "tbl_act_12",
+          "id" : 33,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 360,
-            "column" : 20,
-            "source_fragment" : "push_vlan()"
+            "line" : 376,
+            "column" : 35,
+            "source_fragment" : "mark_to_drop(standard_metadata)"
           },
           "key" : [],
           "match_type" : "exact",
@@ -15614,14 +15554,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [96],
-          "actions" : ["FabricEgress.egress_next.push_vlan"],
-          "base_default_next" : "node_61",
+          "action_ids" : [102],
+          "actions" : ["act_11"],
+          "base_default_next" : "node_64",
           "next_tables" : {
-            "FabricEgress.egress_next.push_vlan" : "node_61"
+            "act_11" : "node_64"
           },
           "default_entry" : {
-            "action_id" : 96,
+            "action_id" : 102,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -15629,11 +15569,11 @@
         },
         {
           "name" : "tbl_act_13",
-          "id" : 35,
+          "id" : 34,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 369,
-            "column" : 25,
+            "line" : 379,
+            "column" : 29,
             "source_fragment" : "="
           },
           "key" : [],
@@ -15645,9 +15585,9 @@
           "direct_meters" : null,
           "action_ids" : [105],
           "actions" : ["act_14"],
-          "base_default_next" : "node_63",
+          "base_default_next" : "node_62",
           "next_tables" : {
-            "act_14" : "node_63"
+            "act_14" : "node_62"
           },
           "default_entry" : {
             "action_id" : 105,
@@ -15658,11 +15598,11 @@
         },
         {
           "name" : "tbl_act_14",
-          "id" : 36,
+          "id" : 35,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 370,
-            "column" : 35,
+            "line" : 380,
+            "column" : 39,
             "source_fragment" : "mark_to_drop(standard_metadata)"
           },
           "key" : [],
@@ -15674,9 +15614,9 @@
           "direct_meters" : null,
           "action_ids" : [104],
           "actions" : ["act_13"],
-          "base_default_next" : "node_69",
+          "base_default_next" : "node_64",
           "next_tables" : {
-            "act_13" : "node_69"
+            "act_13" : "node_64"
           },
           "default_entry" : {
             "action_id" : 104,
@@ -15686,13 +15626,13 @@
           }
         },
         {
-          "name" : "tbl_act_15",
-          "id" : 37,
+          "name" : "tbl_spgw_gtpu_encap",
+          "id" : 36,
           "source_info" : {
-            "filename" : "include/control/next.p4",
-            "line" : 373,
-            "column" : 29,
-            "source_fragment" : "="
+            "filename" : "include/control/spgw.p4",
+            "line" : 330,
+            "column" : 16,
+            "source_fragment" : "gtpu_encap()"
           },
           "key" : [],
           "match_type" : "exact",
@@ -15701,27 +15641,27 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [107],
-          "actions" : ["act_16"],
+          "action_ids" : [98],
+          "actions" : ["FabricEgress.spgw.gtpu_encap"],
           "base_default_next" : "node_67",
           "next_tables" : {
-            "act_16" : "node_67"
+            "FabricEgress.spgw.gtpu_encap" : "node_67"
           },
           "default_entry" : {
-            "action_id" : 107,
+            "action_id" : 98,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
           }
         },
         {
-          "name" : "tbl_act_16",
-          "id" : 38,
+          "name" : "tbl_act_15",
+          "id" : 37,
           "source_info" : {
-            "filename" : "include/control/next.p4",
-            "line" : 374,
-            "column" : 39,
-            "source_fragment" : "mark_to_drop(standard_metadata)"
+            "filename" : "include/control/spgw.p4",
+            "line" : 333,
+            "column" : 16,
+            "source_fragment" : "pdr_counter.count(fabric_md.spgw.ctr_id)"
           },
           "key" : [],
           "match_type" : "exact",
@@ -15744,66 +15684,8 @@
           }
         },
         {
-          "name" : "tbl_spgw_gtpu_encap",
-          "id" : 39,
-          "source_info" : {
-            "filename" : "include/control/spgw.p4",
-            "line" : 330,
-            "column" : 16,
-            "source_fragment" : "gtpu_encap()"
-          },
-          "key" : [],
-          "match_type" : "exact",
-          "type" : "simple",
-          "max_size" : 1024,
-          "with_counters" : false,
-          "support_timeout" : false,
-          "direct_meters" : null,
-          "action_ids" : [98],
-          "actions" : ["FabricEgress.spgw.gtpu_encap"],
-          "base_default_next" : "node_72",
-          "next_tables" : {
-            "FabricEgress.spgw.gtpu_encap" : "node_72"
-          },
-          "default_entry" : {
-            "action_id" : 98,
-            "action_const" : true,
-            "action_data" : [],
-            "action_entry_const" : true
-          }
-        },
-        {
-          "name" : "tbl_act_17",
-          "id" : 40,
-          "source_info" : {
-            "filename" : "include/control/spgw.p4",
-            "line" : 333,
-            "column" : 16,
-            "source_fragment" : "pdr_counter.count(fabric_md.spgw.ctr_id)"
-          },
-          "key" : [],
-          "match_type" : "exact",
-          "type" : "simple",
-          "max_size" : 1024,
-          "with_counters" : false,
-          "support_timeout" : false,
-          "direct_meters" : null,
-          "action_ids" : [108],
-          "actions" : ["act_17"],
-          "base_default_next" : "node_74",
-          "next_tables" : {
-            "act_17" : "node_74"
-          },
-          "default_entry" : {
-            "action_id" : 108,
-            "action_const" : true,
-            "action_data" : [],
-            "action_entry_const" : true
-          }
-        },
-        {
           "name" : "FabricEgress.process_int_main.process_int_source.tb_int_source",
-          "id" : 41,
+          "id" : 38,
           "source_info" : {
             "filename" : "include/int/int_source.p4",
             "line" : 66,
@@ -15842,12 +15724,12 @@
           "with_counters" : true,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [60, 55],
+          "action_ids" : [59, 55],
           "actions" : ["FabricEgress.process_int_main.process_int_source.int_source_dscp", "nop"],
-          "base_default_next" : "node_77",
+          "base_default_next" : "node_72",
           "next_tables" : {
-            "FabricEgress.process_int_main.process_int_source.int_source_dscp" : "node_77",
-            "nop" : "node_77"
+            "FabricEgress.process_int_main.process_int_source.int_source_dscp" : "node_72",
+            "nop" : "node_72"
           },
           "default_entry" : {
             "action_id" : 55,
@@ -15857,8 +15739,8 @@
           }
         },
         {
-          "name" : "tbl_act_18",
-          "id" : 42,
+          "name" : "tbl_act_16",
+          "id" : 39,
           "key" : [],
           "match_type" : "exact",
           "type" : "simple",
@@ -15866,14 +15748,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [109],
-          "actions" : ["act_18"],
+          "action_ids" : [107],
+          "actions" : ["act_16"],
           "base_default_next" : "FabricEgress.process_int_main.process_int_transit.tb_int_insert",
           "next_tables" : {
-            "act_18" : "FabricEgress.process_int_main.process_int_transit.tb_int_insert"
+            "act_16" : "FabricEgress.process_int_main.process_int_transit.tb_int_insert"
           },
           "default_entry" : {
-            "action_id" : 109,
+            "action_id" : 107,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -15881,7 +15763,7 @@
         },
         {
           "name" : "FabricEgress.process_int_main.process_int_transit.tb_int_insert",
-          "id" : 43,
+          "id" : 40,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 315,
@@ -15902,12 +15784,12 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [61, 56],
+          "action_ids" : [60, 56],
           "actions" : ["FabricEgress.process_int_main.process_int_transit.init_metadata", "nop"],
-          "base_default_next" : "node_80",
+          "base_default_next" : "node_75",
           "next_tables" : {
-            "FabricEgress.process_int_main.process_int_transit.init_metadata" : "node_80",
-            "nop" : "node_80"
+            "FabricEgress.process_int_main.process_int_transit.init_metadata" : "node_75",
+            "nop" : "node_75"
           },
           "default_entry" : {
             "action_id" : 56,
@@ -15917,8 +15799,8 @@
           }
         },
         {
-          "name" : "tbl_act_19",
-          "id" : 44,
+          "name" : "tbl_act_17",
+          "id" : 41,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 420,
@@ -15932,14 +15814,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [110],
-          "actions" : ["act_19"],
-          "base_default_next" : "node_82",
+          "action_ids" : [108],
+          "actions" : ["act_17"],
+          "base_default_next" : "node_77",
           "next_tables" : {
-            "act_19" : "node_82"
+            "act_17" : "node_77"
           },
           "default_entry" : {
-            "action_id" : 110,
+            "action_id" : 108,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -15947,7 +15829,7 @@
         },
         {
           "name" : "FabricEgress.process_int_main.process_int_transit.tb_int_inst_0003",
-          "id" : 45,
+          "id" : 42,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 331,
@@ -15968,7 +15850,7 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 58],
+          "action_ids" : [61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 57],
           "actions" : ["FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i0", "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i1", "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i2", "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i3", "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i4", "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i5", "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i6", "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i7", "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i8", "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i9", "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i10", "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i11", "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i12", "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i13", "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i14", "FabricEgress.process_int_main.process_int_transit.int_set_header_0003_i15", "NoAction"],
           "base_default_next" : "FabricEgress.process_int_main.process_int_transit.tb_int_inst_0407",
           "next_tables" : {
@@ -15991,7 +15873,7 @@
             "NoAction" : "FabricEgress.process_int_main.process_int_transit.tb_int_inst_0407"
           },
           "default_entry" : {
-            "action_id" : 58,
+            "action_id" : 57,
             "action_const" : false,
             "action_data" : [],
             "action_entry_const" : false
@@ -16011,7 +15893,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 62,
+                "action_id" : 61,
                 "action_data" : []
               },
               "priority" : 1
@@ -16030,7 +15912,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 63,
+                "action_id" : 62,
                 "action_data" : []
               },
               "priority" : 2
@@ -16049,7 +15931,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 64,
+                "action_id" : 63,
                 "action_data" : []
               },
               "priority" : 3
@@ -16068,7 +15950,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 65,
+                "action_id" : 64,
                 "action_data" : []
               },
               "priority" : 4
@@ -16087,7 +15969,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 66,
+                "action_id" : 65,
                 "action_data" : []
               },
               "priority" : 5
@@ -16106,7 +15988,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 67,
+                "action_id" : 66,
                 "action_data" : []
               },
               "priority" : 6
@@ -16125,7 +16007,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 68,
+                "action_id" : 67,
                 "action_data" : []
               },
               "priority" : 7
@@ -16144,7 +16026,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 69,
+                "action_id" : 68,
                 "action_data" : []
               },
               "priority" : 8
@@ -16163,7 +16045,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 70,
+                "action_id" : 69,
                 "action_data" : []
               },
               "priority" : 9
@@ -16182,7 +16064,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 71,
+                "action_id" : 70,
                 "action_data" : []
               },
               "priority" : 10
@@ -16201,7 +16083,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 72,
+                "action_id" : 71,
                 "action_data" : []
               },
               "priority" : 11
@@ -16220,7 +16102,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 73,
+                "action_id" : 72,
                 "action_data" : []
               },
               "priority" : 12
@@ -16239,7 +16121,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 74,
+                "action_id" : 73,
                 "action_data" : []
               },
               "priority" : 13
@@ -16258,7 +16140,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 75,
+                "action_id" : 74,
                 "action_data" : []
               },
               "priority" : 14
@@ -16277,7 +16159,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 76,
+                "action_id" : 75,
                 "action_data" : []
               },
               "priority" : 15
@@ -16296,7 +16178,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 77,
+                "action_id" : 76,
                 "action_data" : []
               },
               "priority" : 16
@@ -16305,7 +16187,7 @@
         },
         {
           "name" : "FabricEgress.process_int_main.process_int_transit.tb_int_inst_0407",
-          "id" : 46,
+          "id" : 43,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 375,
@@ -16326,30 +16208,30 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 59],
+          "action_ids" : [77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 58],
           "actions" : ["FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i0", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i1", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i2", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i3", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i4", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i5", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i6", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i7", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i8", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i9", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i10", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i11", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i12", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i13", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i14", "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i15", "NoAction"],
-          "base_default_next" : "tbl_act_20",
+          "base_default_next" : "tbl_act_18",
           "next_tables" : {
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i0" : "tbl_act_20",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i1" : "tbl_act_20",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i2" : "tbl_act_20",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i3" : "tbl_act_20",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i4" : "tbl_act_20",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i5" : "tbl_act_20",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i6" : "tbl_act_20",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i7" : "tbl_act_20",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i8" : "tbl_act_20",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i9" : "tbl_act_20",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i10" : "tbl_act_20",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i11" : "tbl_act_20",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i12" : "tbl_act_20",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i13" : "tbl_act_20",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i14" : "tbl_act_20",
-            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i15" : "tbl_act_20",
-            "NoAction" : "tbl_act_20"
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i0" : "tbl_act_18",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i1" : "tbl_act_18",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i2" : "tbl_act_18",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i3" : "tbl_act_18",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i4" : "tbl_act_18",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i5" : "tbl_act_18",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i6" : "tbl_act_18",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i7" : "tbl_act_18",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i8" : "tbl_act_18",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i9" : "tbl_act_18",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i10" : "tbl_act_18",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i11" : "tbl_act_18",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i12" : "tbl_act_18",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i13" : "tbl_act_18",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i14" : "tbl_act_18",
+            "FabricEgress.process_int_main.process_int_transit.int_set_header_0407_i15" : "tbl_act_18",
+            "NoAction" : "tbl_act_18"
           },
           "default_entry" : {
-            "action_id" : 59,
+            "action_id" : 58,
             "action_const" : false,
             "action_data" : [],
             "action_entry_const" : false
@@ -16369,7 +16251,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 78,
+                "action_id" : 77,
                 "action_data" : []
               },
               "priority" : 1
@@ -16388,7 +16270,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 79,
+                "action_id" : 78,
                 "action_data" : []
               },
               "priority" : 2
@@ -16407,7 +16289,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 80,
+                "action_id" : 79,
                 "action_data" : []
               },
               "priority" : 3
@@ -16426,7 +16308,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 81,
+                "action_id" : 80,
                 "action_data" : []
               },
               "priority" : 4
@@ -16445,7 +16327,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 82,
+                "action_id" : 81,
                 "action_data" : []
               },
               "priority" : 5
@@ -16464,7 +16346,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 83,
+                "action_id" : 82,
                 "action_data" : []
               },
               "priority" : 6
@@ -16483,7 +16365,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 84,
+                "action_id" : 83,
                 "action_data" : []
               },
               "priority" : 7
@@ -16502,7 +16384,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 85,
+                "action_id" : 84,
                 "action_data" : []
               },
               "priority" : 8
@@ -16521,7 +16403,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 86,
+                "action_id" : 85,
                 "action_data" : []
               },
               "priority" : 9
@@ -16540,7 +16422,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 87,
+                "action_id" : 86,
                 "action_data" : []
               },
               "priority" : 10
@@ -16559,7 +16441,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 88,
+                "action_id" : 87,
                 "action_data" : []
               },
               "priority" : 11
@@ -16578,7 +16460,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 89,
+                "action_id" : 88,
                 "action_data" : []
               },
               "priority" : 12
@@ -16597,7 +16479,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 90,
+                "action_id" : 89,
                 "action_data" : []
               },
               "priority" : 13
@@ -16616,7 +16498,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 91,
+                "action_id" : 90,
                 "action_data" : []
               },
               "priority" : 14
@@ -16635,7 +16517,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 92,
+                "action_id" : 91,
                 "action_data" : []
               },
               "priority" : 15
@@ -16654,7 +16536,7 @@
                 }
               ],
               "action_entry" : {
-                "action_id" : 93,
+                "action_id" : 92,
                 "action_data" : []
               },
               "priority" : 16
@@ -16662,8 +16544,8 @@
           ]
         },
         {
-          "name" : "tbl_act_20",
-          "id" : 47,
+          "name" : "tbl_act_18",
+          "id" : 44,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 425,
@@ -16677,22 +16559,22 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [112],
-          "actions" : ["act_21"],
-          "base_default_next" : "node_86",
+          "action_ids" : [110],
+          "actions" : ["act_19"],
+          "base_default_next" : "node_81",
           "next_tables" : {
-            "act_21" : "node_86"
+            "act_19" : "node_81"
           },
           "default_entry" : {
-            "action_id" : 112,
+            "action_id" : 110,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
           }
         },
         {
-          "name" : "tbl_act_21",
-          "id" : 48,
+          "name" : "tbl_act_19",
+          "id" : 45,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 428,
@@ -16706,22 +16588,22 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [111],
-          "actions" : ["act_20"],
-          "base_default_next" : "node_88",
+          "action_ids" : [109],
+          "actions" : ["act_18"],
+          "base_default_next" : "node_83",
           "next_tables" : {
-            "act_20" : "node_88"
+            "act_18" : "node_83"
           },
           "default_entry" : {
-            "action_id" : 111,
+            "action_id" : 109,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
           }
         },
         {
-          "name" : "tbl_act_22",
-          "id" : 49,
+          "name" : "tbl_act_20",
+          "id" : 46,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 431,
@@ -16735,22 +16617,22 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [113],
-          "actions" : ["act_22"],
-          "base_default_next" : "node_90",
+          "action_ids" : [111],
+          "actions" : ["act_20"],
+          "base_default_next" : "node_85",
           "next_tables" : {
-            "act_22" : "node_90"
+            "act_20" : "node_85"
           },
           "default_entry" : {
-            "action_id" : 113,
+            "action_id" : 111,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
           }
         },
         {
-          "name" : "tbl_act_23",
-          "id" : 50,
+          "name" : "tbl_act_21",
+          "id" : 47,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 434,
@@ -16764,14 +16646,14 @@
           "with_counters" : false,
           "support_timeout" : false,
           "direct_meters" : null,
-          "action_ids" : [114],
-          "actions" : ["act_23"],
+          "action_ids" : [112],
+          "actions" : ["act_21"],
           "base_default_next" : null,
           "next_tables" : {
-            "act_23" : null
+            "act_21" : null
           },
           "default_entry" : {
-            "action_id" : 114,
+            "action_id" : 112,
             "action_const" : true,
             "action_data" : [],
             "action_entry_const" : true
@@ -16844,7 +16726,7 @@
           "id" : 17,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 335,
+            "line" : 347,
             "column" : 12,
             "source_fragment" : "fabric_metadata.is_multicast == true ..."
           },
@@ -16897,7 +16779,7 @@
           "id" : 18,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 340,
+            "line" : 352,
             "column" : 12,
             "source_fragment" : "fabric_metadata.mpls_label == 0"
           },
@@ -16923,7 +16805,7 @@
           "id" : 19,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 341,
+            "line" : 353,
             "column" : 16,
             "source_fragment" : "hdr.mpls.isValid()"
           },
@@ -16942,67 +16824,11 @@
           "false_next" : "FabricEgress.egress_next.egress_vlan"
         },
         {
-          "name" : "node_58",
+          "name" : "node_56",
           "id" : 20,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 357,
-            "column" : 16,
-            "source_fragment" : "!egress_vlan.apply().hit"
-          },
-          "expression" : {
-            "type" : "expression",
-            "value" : {
-              "op" : "not",
-              "left" : null,
-              "right" : {
-                "type" : "expression",
-                "value" : {
-                  "op" : "d2b",
-                  "left" : null,
-                  "right" : {
-                    "type" : "field",
-                    "value" : ["scalars", "egress_next_tmp"]
-                  }
-                }
-              }
-            }
-          },
-          "true_next" : "node_59",
-          "false_next" : "node_61"
-        },
-        {
-          "name" : "node_59",
-          "id" : 21,
-          "source_info" : {
-            "filename" : "include/control/next.p4",
-            "line" : 359,
-            "column" : 20,
-            "source_fragment" : "fabric_metadata.vlan_id != DEFAULT_VLAN_ID"
-          },
-          "expression" : {
-            "type" : "expression",
-            "value" : {
-              "op" : "!=",
-              "left" : {
-                "type" : "field",
-                "value" : ["scalars", "fabric_metadata_t._vlan_id1"]
-              },
-              "right" : {
-                "type" : "hexstr",
-                "value" : "0x0ffe"
-              }
-            }
-          },
-          "true_next" : "tbl_egress_next_push_vlan",
-          "false_next" : "node_61"
-        },
-        {
-          "name" : "node_61",
-          "id" : 22,
-          "source_info" : {
-            "filename" : "include/control/next.p4",
-            "line" : 368,
+            "line" : 374,
             "column" : 12,
             "source_fragment" : "hdr.mpls.isValid()"
           },
@@ -17017,15 +16843,15 @@
               }
             }
           },
-          "true_next" : "tbl_act_13",
-          "false_next" : "node_65"
+          "true_next" : "tbl_act_11",
+          "false_next" : "node_60"
         },
         {
-          "name" : "node_63",
-          "id" : 23,
+          "name" : "node_58",
+          "id" : 21,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 370,
+            "line" : 376,
             "column" : 16,
             "source_fragment" : "hdr.mpls.ttl == 0"
           },
@@ -17043,15 +16869,15 @@
               }
             }
           },
-          "true_next" : "tbl_act_14",
-          "false_next" : "node_69"
+          "true_next" : "tbl_act_12",
+          "false_next" : "node_64"
         },
         {
-          "name" : "node_65",
-          "id" : 24,
+          "name" : "node_60",
+          "id" : 22,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 372,
+            "line" : 378,
             "column" : 15,
             "source_fragment" : "hdr.ipv4.isValid() && fabric_metadata.fwd_type != FWD_BRIDGING"
           },
@@ -17086,15 +16912,15 @@
               }
             }
           },
-          "true_next" : "tbl_act_15",
-          "false_next" : "node_69"
+          "true_next" : "tbl_act_13",
+          "false_next" : "node_64"
         },
         {
-          "name" : "node_67",
-          "id" : 25,
+          "name" : "node_62",
+          "id" : 23,
           "source_info" : {
             "filename" : "include/control/next.p4",
-            "line" : 374,
+            "line" : 380,
             "column" : 20,
             "source_fragment" : "hdr.ipv4.ttl == 0"
           },
@@ -17112,12 +16938,12 @@
               }
             }
           },
-          "true_next" : "tbl_act_16",
-          "false_next" : "node_69"
+          "true_next" : "tbl_act_14",
+          "false_next" : "node_64"
         },
         {
-          "name" : "node_69",
-          "id" : 26,
+          "name" : "node_64",
+          "id" : 24,
           "source_info" : {
             "filename" : "include/control/spgw.p4",
             "line" : 328,
@@ -17145,12 +16971,12 @@
               }
             }
           },
-          "true_next" : "node_70",
-          "false_next" : "node_74"
+          "true_next" : "node_65",
+          "false_next" : "node_69"
         },
         {
-          "name" : "node_70",
-          "id" : 27,
+          "name" : "node_65",
+          "id" : 25,
           "source_info" : {
             "filename" : "include/control/spgw.p4",
             "line" : 329,
@@ -17179,11 +17005,11 @@
             }
           },
           "true_next" : "tbl_spgw_gtpu_encap",
-          "false_next" : "node_72"
+          "false_next" : "node_67"
         },
         {
-          "name" : "node_72",
-          "id" : 28,
+          "name" : "node_67",
+          "id" : 26,
           "source_info" : {
             "filename" : "include/control/spgw.p4",
             "line" : 332,
@@ -17211,12 +17037,12 @@
               }
             }
           },
-          "true_next" : "tbl_act_17",
-          "false_next" : "node_74"
+          "true_next" : "tbl_act_15",
+          "false_next" : "node_69"
         },
         {
-          "name" : "node_74",
-          "id" : 29,
+          "name" : "node_69",
+          "id" : 27,
           "source_info" : {
             "filename" : "include/int/int_main.p4",
             "line" : 102,
@@ -17292,11 +17118,11 @@
             }
           },
           "false_next" : null,
-          "true_next" : "node_75"
+          "true_next" : "node_70"
         },
         {
-          "name" : "node_75",
-          "id" : 30,
+          "name" : "node_70",
+          "id" : 28,
           "source_info" : {
             "filename" : "include/int/int_main.p4",
             "line" : 106,
@@ -17325,11 +17151,11 @@
             }
           },
           "true_next" : "FabricEgress.process_int_main.process_int_source.tb_int_source",
-          "false_next" : "node_77"
+          "false_next" : "node_72"
         },
         {
-          "name" : "node_77",
-          "id" : 31,
+          "name" : "node_72",
+          "id" : 29,
           "source_info" : {
             "filename" : "include/int/int_main.p4",
             "line" : 110,
@@ -17348,11 +17174,11 @@
             }
           },
           "false_next" : null,
-          "true_next" : "tbl_act_18"
+          "true_next" : "tbl_act_16"
         },
         {
-          "name" : "node_80",
-          "id" : 32,
+          "name" : "node_75",
+          "id" : 30,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 419,
@@ -17380,12 +17206,12 @@
               }
             }
           },
-          "true_next" : "tbl_act_19",
-          "false_next" : "node_82"
+          "true_next" : "tbl_act_17",
+          "false_next" : "node_77"
         },
         {
-          "name" : "node_82",
-          "id" : 33,
+          "name" : "node_77",
+          "id" : 31,
           "expression" : {
             "type" : "expression",
             "value" : {
@@ -17408,8 +17234,8 @@
           "true_next" : "FabricEgress.process_int_main.process_int_transit.tb_int_inst_0003"
         },
         {
-          "name" : "node_86",
-          "id" : 34,
+          "name" : "node_81",
+          "id" : 32,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 427,
@@ -17427,12 +17253,12 @@
               }
             }
           },
-          "true_next" : "tbl_act_21",
-          "false_next" : "node_88"
+          "true_next" : "tbl_act_19",
+          "false_next" : "node_83"
         },
         {
-          "name" : "node_88",
-          "id" : 35,
+          "name" : "node_83",
+          "id" : 33,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 430,
@@ -17450,12 +17276,12 @@
               }
             }
           },
-          "true_next" : "tbl_act_22",
-          "false_next" : "node_90"
+          "true_next" : "tbl_act_20",
+          "false_next" : "node_85"
         },
         {
-          "name" : "node_90",
-          "id" : 36,
+          "name" : "node_85",
+          "id" : 34,
           "source_info" : {
             "filename" : "include/int/int_transit.p4",
             "line" : 433,
@@ -17474,7 +17300,7 @@
             }
           },
           "false_next" : null,
-          "true_next" : "tbl_act_23"
+          "true_next" : "tbl_act_21"
         }
       ]
     }
