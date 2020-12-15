@@ -898,14 +898,17 @@ tables {
     match_type: EXACT
   }
   action_refs {
+    id: 16807339
+  }
+  action_refs {
     id: 16790030
   }
   action_refs {
-    id: 16819938
+    id: 16787838
     annotations: "@defaultonly"
     scope: DEFAULT_ONLY
   }
-  const_default_action_id: 16819938
+  const_default_action_id: 16787838
   direct_resource_ids: 318827144
   size: 1024
 }
@@ -1554,9 +1557,23 @@ actions {
 }
 actions {
   preamble {
+    id: 16807339
+    name: "FabricEgress.egress_next.push_vlan"
+    alias: "push_vlan"
+  }
+}
+actions {
+  preamble {
     id: 16790030
     name: "FabricEgress.egress_next.pop_vlan"
     alias: "pop_vlan"
+  }
+}
+actions {
+  preamble {
+    id: 16787838
+    name: "FabricEgress.egress_next.drop"
+    alias: "egress_next.drop"
   }
 }
 action_profiles {

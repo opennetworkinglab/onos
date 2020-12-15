@@ -38,12 +38,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.onosproject.net.flow.instructions.Instruction.Type.OUTPUT;
-import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.ETH_DST;
-import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.ETH_SRC;
-import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.MPLS_LABEL;
-import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.MPLS_PUSH;
-import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.VLAN_ID;
-import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.VLAN_POP;
+import static org.onosproject.net.flow.instructions.L2ModificationInstruction.L2SubType.*;
 import static org.onosproject.pipelines.fabric.impl.behaviour.FabricUtils.instruction;
 import static org.onosproject.pipelines.fabric.impl.behaviour.FabricUtils.l2Instruction;
 import static org.onosproject.pipelines.fabric.impl.behaviour.FabricUtils.l2Instructions;
@@ -225,6 +220,12 @@ final class FabricTreatmentInterpreter {
     static PiAction mapEgressNextTreatment(
             TrafficTreatment treatment, PiTableId tableId)
             throws PiInterpreterException {
+        L2ModificationInstruction pushVlan = l2Instruction(treatment, VLAN_PUSH);
+        if (pushVlan != null) {
+            return PiAction.builder()
+                    .withId(FabricConstants.FABRIC_EGRESS_EGRESS_NEXT_PUSH_VLAN)
+                    .build();
+        }
         l2InstructionOrFail(treatment, VLAN_POP, tableId);
         return PiAction.builder()
                 .withId(FabricConstants.FABRIC_EGRESS_EGRESS_NEXT_POP_VLAN)
