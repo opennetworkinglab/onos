@@ -65,8 +65,10 @@ import static org.hamcrest.core.IsNull.notNullValue;
  */
 public class P4InfoParserTest {
     private static final String PATH = "basic.p4info";
+    private static final String PATH2 = "test_p4runtime_translation_p4info.txt";
 
     private final URL p4InfoUrl = P4InfoParserTest.class.getResource(PATH);
+    private final URL p4InfoUrl2 = P4InfoParserTest.class.getResource(PATH2);
 
     private static final Long DEFAULT_MAX_TABLE_SIZE = 1024L;
     private static final Long DEFAULT_MAX_ACTION_PROFILE_SIZE = 64L;
@@ -276,6 +278,96 @@ public class P4InfoParserTest {
         // Check existence
         assertThat("model parsed value is null", packetInOperationalModel, notNullValue());
         assertThat("model parsed value is null", packetOutOperationalModel, notNullValue());
+    }
+
+    /**
+     * Tests parse method with P4Runtime translation fields.
+     * @throws Exception if equality group objects dose not match as expected
+     */
+    @Test
+    public void testParseP4RuntimeTranslation() throws Exception {
+        PiPipelineModel model = P4InfoParser.parse(p4InfoUrl2);
+        // Generate a P4Info object from the file
+        final P4Info p4info;
+        try {
+            p4info = getP4InfoMessage(p4InfoUrl2);
+        } catch (IOException e) {
+            throw new P4InfoParserException("Unable to parse protobuf " + p4InfoUrl.toString(), e);
+        }
+        List<Table> tableMsgs =  p4info.getTablesList();
+        PiTableId table0Id = PiTableId.of(tableMsgs.get(0).getPreamble().getName());
+
+        //parse tables
+        PiTableModel table0Model = model.table(table0Id).orElse(null);
+
+        // Check matchFields
+        List<MatchField> matchFieldList = tableMsgs.get(0).getMatchFieldsList();
+        List<PiMatchFieldModel> piMatchFieldList = new ArrayList<>();
+
+        for (MatchField matchFieldIter : matchFieldList) {
+            MatchField.MatchType matchType = matchFieldIter.getMatchType();
+            PiMatchType piMatchType;
+            switch (matchType) {
+                case EXACT: piMatchType = PiMatchType.EXACT; break;
+                case LPM: piMatchType = PiMatchType.LPM; break;
+                case TERNARY: piMatchType = PiMatchType.TERNARY; break;
+                case RANGE: piMatchType = PiMatchType.RANGE; break;
+                default: Assert.fail(); return;
+            }
+            if (matchFieldIter.getTypeName().getName().equals("mac_addr_t")) {
+                piMatchFieldList.add(new P4MatchFieldModel(PiMatchFieldId.of(matchFieldIter.getName()),
+                                                           P4MatchFieldModel.BIT_WIDTH_UNDEFINED, piMatchType));
+            } else {
+                piMatchFieldList.add(new P4MatchFieldModel(PiMatchFieldId.of(matchFieldIter.getName()),
+                                                           matchFieldIter.getBitwidth(), piMatchType));
+            }
+        }
+        assertThat("Incorrect order for matchFields",
+                   table0Model.matchFields(),
+                   IsIterableContainingInOrder.contains(
+                           piMatchFieldList.get(0), piMatchFieldList.get(1),
+                           piMatchFieldList.get(2), piMatchFieldList.get(3)));
+
+        //check table0 actionsRefs
+        List<ActionRef> actionRefList = tableMsgs.get(0).getActionRefsList();
+        assertThat("Incorrect size for actionRefs",
+                   actionRefList.size(),
+                   is(equalTo(4)));
+
+        //create action instances
+        // Set egress with string as parameter
+        PiActionId actionId = PiActionId.of("set_egress_port");
+        PiActionParamId piActionParamId = PiActionParamId.of("port");
+        PiActionParamModel actionParamModel = new P4ActionParamModel(
+                piActionParamId, P4ActionParamModel.BIT_WIDTH_UNDEFINED);
+        ImmutableMap<PiActionParamId, PiActionParamModel> params = new
+                ImmutableMap.Builder<PiActionParamId, PiActionParamModel>()
+                .put(piActionParamId, actionParamModel).build();
+        PiActionModel setEgressPortAction = new P4ActionModel(actionId, params);
+
+        // Set egress with 32 bit as parameter
+        actionId = PiActionId.of("set_egress_port2");
+        piActionParamId = PiActionParamId.of("port");
+        int bitWitdth = 32;
+        actionParamModel = new P4ActionParamModel(
+                piActionParamId, bitWitdth);
+        params = new ImmutableMap.Builder<PiActionParamId, PiActionParamModel>()
+                .put(piActionParamId, actionParamModel).build();
+
+        PiActionModel setEgressPortAction2 = new P4ActionModel(actionId, params);
+
+        actionId = PiActionId.of("send_to_cpu");
+        PiActionModel sendToCpuAction =
+                new P4ActionModel(actionId, new ImmutableMap.Builder<PiActionParamId, PiActionParamModel>().build());
+
+        actionId = PiActionId.of("drop");
+        PiActionModel dropAction =
+                new P4ActionModel(actionId, new ImmutableMap.Builder<PiActionParamId, PiActionParamModel>().build());
+
+        //check table0 actions
+        assertThat("action dose not match",
+                   table0Model.actions(), IsIterableContainingInAnyOrder.containsInAnyOrder(
+                        setEgressPortAction, setEgressPortAction2, sendToCpuAction, dropAction));
     }
 
     /**

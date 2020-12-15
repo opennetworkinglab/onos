@@ -66,6 +66,7 @@ public class TableEntryEncoderTest {
     private static final String DST_ADDR = "dstAddr";
     private static final String SRC_ADDR = "srcAddr";
     private static final String STANDARD_METADATA = "standard_metadata";
+    private static final String LOCAL_METADATA = "local_metadata";
     private static final String ECMP_METADATA = "ecmp_metadata";
     private static final String INGRESS_PORT = "ingress_port";
     private static final String ETHER_TYPE = "etherType";
@@ -76,6 +77,7 @@ public class TableEntryEncoderTest {
 
     private final Random rand = new Random();
     private final URL p4InfoUrl = this.getClass().getResource("/test.p4info");
+    private final URL p4InfoUrl2 = this.getClass().getResource("/test_p4runtime_translation_p4info.txt");
 
     private final PiPipeconf defaultPipeconf = DefaultPiPipeconf.builder()
             .withId(new PiPipeconfId("mock"))
@@ -83,17 +85,30 @@ public class TableEntryEncoderTest {
             .addExtension(P4_INFO_TEXT, p4InfoUrl)
             .build();
 
+    private final PiPipeconf defaultPipeconf2 = DefaultPiPipeconf.builder()
+            .withId(new PiPipeconfId("mock"))
+            .withPipelineModel(EasyMock.niceMock(PiPipelineModel.class))
+            .addExtension(P4_INFO_TEXT, p4InfoUrl2)
+            .build();
+
     private final P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(defaultPipeconf);
     private final ImmutableByteSequence ethAddr = copyFrom(rand.nextInt()).fit(48);
+    private final ImmutableByteSequence ethAddrString = ImmutableByteSequence.copyFrom(
+            "00:11:22:33:44:55:66".getBytes());
     private final ImmutableByteSequence portValue = copyFrom((short) rand.nextInt());
+    private final ImmutableByteSequence portValueString = ImmutableByteSequence.copyFrom(
+            String.format("Ethernet%d", rand.nextInt()).getBytes());
+    private final ImmutableByteSequence portValue32Bit = copyFrom((short) rand.nextInt()).fit(32);
     private final PiMatchFieldId ethDstAddrFieldId = PiMatchFieldId.of(HDR + DOT + ETHERNET + DOT + DST_ADDR);
     private final PiMatchFieldId ethSrcAddrFieldId = PiMatchFieldId.of(HDR + DOT + ETHERNET + DOT + SRC_ADDR);
     private final PiMatchFieldId inPortFieldId = PiMatchFieldId.of(STANDARD_METADATA + DOT + INGRESS_PORT);
+    private final PiMatchFieldId inPortFieldId2 = PiMatchFieldId.of(LOCAL_METADATA + DOT + INGRESS_PORT);
     private final PiMatchFieldId ethTypeFieldId = PiMatchFieldId.of(HDR + DOT + ETHERNET + DOT + ETHER_TYPE);
     private final PiMatchFieldId ecmpGroupFieldId =
             PiMatchFieldId.of(META + DOT + ECMP_METADATA + DOT + ECMP_GROUP_ID);
     private final PiActionParamId portParamId = PiActionParamId.of(PORT);
     private final PiActionId outActionId = PiActionId.of(SET_EGRESS_PORT);
+    private final PiActionId outActionId2 = PiActionId.of(SET_EGRESS_PORT + "2");
     private final PiTableId tableId = PiTableId.of(TABLE_0);
     private final PiTableId ecmpTableId = PiTableId.of(TABLE_ECMP);
     private final PiCounterCellData counterCellData = new PiCounterCellData(PACKETS, BYTES);
@@ -115,6 +130,42 @@ public class TableEntryEncoderTest {
             .withPriority(1)
             .withCookie(2)
             .withCounterCellData(counterCellData)
+            .build();
+
+    private final PiTableEntry piTableEntry2 = PiTableEntry
+            .builder()
+            .forTable(tableId)
+            .withMatchKey(PiMatchKey.builder()
+                                  .addFieldMatch(new PiExactFieldMatch(inPortFieldId2, portValue32Bit))
+                                  .addFieldMatch(new PiExactFieldMatch(ethDstAddrFieldId, ethAddrString))
+                                  .addFieldMatch(new PiExactFieldMatch(ethSrcAddrFieldId, ethAddrString))
+                                  .addFieldMatch(new PiExactFieldMatch(ethTypeFieldId, portValue))
+                                  .build())
+            .withAction(PiAction
+                                .builder()
+                                .withId(outActionId)
+                                .withParameter(new PiActionParam(portParamId, portValueString))
+                                .build())
+            .withPriority(1)
+            .withCookie(2)
+            .build();
+
+    private final PiTableEntry piTableEntry3 = PiTableEntry
+            .builder()
+            .forTable(tableId)
+            .withMatchKey(PiMatchKey.builder()
+                                  .addFieldMatch(new PiExactFieldMatch(inPortFieldId2, portValue32Bit))
+                                  .addFieldMatch(new PiExactFieldMatch(ethDstAddrFieldId, ethAddrString))
+                                  .addFieldMatch(new PiExactFieldMatch(ethSrcAddrFieldId, ethAddrString))
+                                  .addFieldMatch(new PiExactFieldMatch(ethTypeFieldId, portValue))
+                                  .build())
+            .withAction(PiAction
+                                .builder()
+                                .withId(outActionId2)
+                                .withParameter(new PiActionParam(portParamId, portValue32Bit))
+                                .build())
+            .withPriority(1)
+            .withCookie(2)
             .build();
 
     private final PiTableEntry piTableEntryWithoutAction = PiTableEntry
@@ -175,7 +226,6 @@ public class TableEntryEncoderTest {
         new EqualsTester()
                 .addEqualityGroup(piTableEntry, decodedPiTableEntry)
                 .testEquals();
-
         // Table ID.
         int p4InfoTableId = browser.tables().getByName(tableId.id()).getPreamble().getId();
         int encodedTableId = tableEntryMsg.getTableId();
@@ -208,6 +258,39 @@ public class TableEntryEncoderTest {
         assertThat(encodedCounterData, is(counterCellData));
 
         // TODO: improve, assert other field match types (ternary, LPM)
+    }
+
+    @Test
+    public void testTableEntryEncoderWithTranslations() throws Exception {
+        TableEntry tableEntryMsg = Codecs.CODECS.tableEntry().encode(
+                piTableEntry2, null, defaultPipeconf2);
+        PiTableEntry decodedPiTableEntry = Codecs.CODECS.tableEntry().decode(
+                tableEntryMsg, null, defaultPipeconf2);
+
+        // Test equality for decoded entry.
+        new EqualsTester()
+                .addEqualityGroup(piTableEntry2, decodedPiTableEntry)
+                .testEquals();
+
+        // Check the exact match with string
+        byte[] encodedExactMatchValueString = tableEntryMsg.getMatch(1).getExact().getValue().toByteArray();
+        assertThat(encodedExactMatchValueString, is(ethAddrString.asArray()));
+
+        Action actionMsg = tableEntryMsg.getAction().getAction();
+
+        // Check action param value with string
+        byte[] encodedActionParamString = actionMsg.getParams(0).getValue().toByteArray();
+        assertThat(encodedActionParamString, is(portValueString.asArray()));
+
+        TableEntry tableEntryMsg1 = Codecs.CODECS.tableEntry().encode(
+                piTableEntry3, null, defaultPipeconf2);
+        PiTableEntry decodedPiTableEntry1 = Codecs.CODECS.tableEntry().decode(
+                tableEntryMsg1, null, defaultPipeconf2);
+
+        // Test equality for decoded entry.
+        new EqualsTester()
+                .addEqualityGroup(piTableEntry3, decodedPiTableEntry1)
+                .testEquals();
     }
 
     @Test
