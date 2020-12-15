@@ -1,0 +1,162 @@
+pkg_info {
+  arch: "v1model"
+}
+tables {
+  preamble {
+    id: 36960149
+    name: "table0"
+    alias: "table0"
+  }
+  match_fields {
+    id: 1
+    name: "local_metadata.ingress_port"
+    bitwidth: 32
+    match_type: EXACT
+    type_name {
+      name: "port_id_bit_t"
+    }
+  }
+  match_fields {
+    id: 2
+    name: "hdr.ethernet.srcAddr"
+    match_type: EXACT
+    type_name {
+      name: "mac_addr_t"
+    }
+  }
+  match_fields {
+    id: 3
+    name: "hdr.ethernet.dstAddr"
+    match_type: EXACT
+    type_name {
+      name: "mac_addr_t"
+    }
+  }
+  match_fields {
+    id: 4
+    name: "hdr.ethernet.etherType"
+    bitwidth: 16
+    match_type: EXACT
+  }
+  action_refs {
+    id: 27607748
+  }
+  action_refs {
+    id: 32872817
+  }
+  action_refs {
+    id: 24562328
+  }
+  action_refs {
+    id: 18759588
+  }
+  const_default_action_id: 18759588
+  size: 1024
+}
+actions {
+  preamble {
+    id: 24562328
+    name: "send_to_cpu"
+    alias: "send_to_cpu"
+  }
+}
+actions {
+  preamble {
+    id: 27607748
+    name: "set_egress_port"
+    alias: "set_egress_port"
+  }
+  params {
+    id: 1
+    name: "port"
+    type_name {
+      name: "port_id_str_t"
+    }
+  }
+}
+actions {
+  preamble {
+    id: 32872817
+    name: "set_egress_port2"
+    alias: "set_egress_port2"
+  }
+  params {
+    id: 1
+    name: "port"
+    bitwidth: 32
+    type_name {
+      name: "port_id_bit_t"
+    }
+  }
+}
+actions {
+  preamble {
+    id: 18759588
+    name: "drop"
+    alias: "drop"
+  }
+}
+controller_packet_metadata {
+  preamble {
+    id: 81826293
+    name: "packet_in"
+    alias: "packet_in"
+    annotations: "@controller_header(\"packet_in\")"
+  }
+  metadata {
+    id: 1
+    name: "ingress_port"
+    bitwidth: 9
+  }
+  metadata {
+    id: 2
+    name: "_padding"
+    bitwidth: 7
+  }
+}
+controller_packet_metadata {
+  preamble {
+    id: 76689799
+    name: "packet_out"
+    alias: "packet_out"
+    annotations: "@controller_header(\"packet_out\")"
+  }
+  metadata {
+    id: 1
+    name: "egress_port"
+    bitwidth: 9
+  }
+  metadata {
+    id: 2
+    name: "_padding"
+    bitwidth: 7
+  }
+}
+type_info {
+  new_types {
+    key: "mac_addr_t"
+    value {
+      translated_type {
+        sdn_string {
+        }
+      }
+    }
+  }
+  new_types {
+    key: "port_id_bit_t"
+    value {
+      translated_type {
+        sdn_bitwidth: 32
+      }
+    }
+  }
+  new_types {
+    key: "port_id_str_t"
+    value {
+      translated_type {
+        sdn_string {
+        }
+      }
+    }
+  }
+}
