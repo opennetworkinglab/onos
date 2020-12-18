@@ -1,0 +1,50 @@
+{
+  "type": "object",
+  "description": "A network object.",
+  "required": [
+    "networkId",
+    "type",
+    "name",
+    "segmentId",
+    "gatewayIp",
+    "cidr",
+    "mtu"
+  ],
+  "properties": {
+    "networkId": {
+      "type": "string",
+      "example": "sona-network",
+      "description": "The ID of the attached network."
+    },
+    "type": {
+      "type": "string",
+      "example": "VXLAN",
+      "description": "Type of kubernetes network."
+    },
+    "name": {
+      "type": "string",
+      "example": "sona-network",
+      "description": "The name of network."
+    },
+    "segmentId": {
+      "type": "string",
+      "example": "1",
+      "description": "Segment ID of tenant network."
+    },
+    "gatewayIp": {
+      "type": "string",
+      "example": "10.10.10.1",
+      "description": "The IP address of the gateway."
+    },
+    "cidr": {
+      "type": "string",
+      "example": "10.10.10.0/24",
+      "description": "The CIDR of this network."
+    },
+    "mtu": {
+      "type": "integer",
+      "example": 1500,
+      "description": "The Maximum Transmission Unit of this network."
+    }
+  }
+}
