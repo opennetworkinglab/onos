@@ -9,6 +9,7 @@ TEST_DEPS = TEST_ADAPTERS + [
 ]
 
 osgi_jar_with_tests(
+    exclude_tests = ["org.onosproject.kubevirtnode.api.KubevirtNodeTest"],
     test_deps = TEST_DEPS,
     deps = COMPILE_DEPS,
 )

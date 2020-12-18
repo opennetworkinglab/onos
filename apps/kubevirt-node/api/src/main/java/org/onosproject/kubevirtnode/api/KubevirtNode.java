@@ -1,0 +1,189 @@
+/*
+ * Copyright 2020-present Open Networking Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.onosproject.kubevirtnode.api;
+
+import org.onlab.packet.IpAddress;
+import org.onosproject.net.DeviceId;
+
+import java.util.Collection;
+
+/**
+ * Representation of a KubeVirt node used in kubevirt networking service.
+ */
+public interface KubevirtNode {
+
+    /**
+     * Lists of kubernetes node types.
+     */
+    enum Type {
+        /**
+         * Signifies that this is a kubevirt master node.
+         */
+        MASTER,
+
+        /**
+         * Signifies that this is a kubevirt worker node.
+         */
+        WORKER,
+    }
+
+    /**
+     * Returns cluster name of the node.
+     *
+     * @return cluster name
+     */
+    String clusterName();
+
+    /**
+     * Returns hostname of the node.
+     *
+     * @return hostname
+     */
+    String hostname();
+
+    /**
+     * Returns the type of the node.
+     *
+     * @return node type
+     */
+    KubevirtNode.Type type();
+
+    /**
+     * Returns the OVSDB device ID of the node.
+     *
+     * @return ovsdb device id
+     */
+    DeviceId ovsdb();
+
+    /**
+     * Returns the device ID of the integration bridge at the node.
+     *
+     * @return device id
+     */
+    DeviceId intgBridge();
+
+    /**
+     * Returns the management network IP address of the node.
+     *
+     * @return ip address
+     */
+    IpAddress managementIp();
+
+    /**
+     * Returns the data network IP address used for tunneling.
+     *
+     * @return ip address; null if tunnel mode is not enabled
+     */
+    IpAddress dataIp();
+
+    /**
+     * Returns the initialization state of the node.
+     *
+     * @return node state
+     */
+    KubevirtNodeState state();
+
+    /**
+     * Returns new kubevirt node instance with given state.
+     *
+     * @param newState updated state
+     * @return updated kubernetes node
+     */
+    KubevirtNode updateState(KubevirtNodeState newState);
+
+    /**
+     * Returns a collection of physical interfaces.
+     *
+     * @return physical interfaces
+     */
+    Collection<KubevirtPhyInterface> phyIntfs();
+
+    /**
+     * Builder of new node entity.
+     */
+    interface Builder {
+        /**
+         * Builds an immutable kubevirt node instance.
+         *
+         * @return kubevirt node instance
+         */
+        KubevirtNode build();
+
+        /**
+         * Returns kubevirt node builder with supplied cluster name.
+         *
+         * @param clusterName cluster name
+         * @return kubevirt node builder
+         */
+        KubevirtNode.Builder clusterName(String clusterName);
+
+        /**
+         * Returns kubevirt node builder with supplied hostname.
+         *
+         * @param hostname hostname of the node
+         * @return kubevirt node builder
+         */
+        KubevirtNode.Builder hostname(String hostname);
+
+        /**
+         * Returns kubevirt node builder with supplied type.
+         *
+         * @param type kubevirt node type
+         * @return kubevirt node builder
+         */
+        KubevirtNode.Builder type(KubevirtNode.Type type);
+
+        /**
+         * Returns kubevirt node builder with supplied integration bridge name.
+         *
+         * @param deviceId integration bridge device ID
+         * @return kubevirt node builder
+         */
+        KubevirtNode.Builder intgBridge(DeviceId deviceId);
+
+        /**
+         * Returns kubevirt node builder with supplied management IP address.
+         *
+         * @param managementIp management IP address
+         * @return kubevirt node builder
+         */
+        KubevirtNode.Builder managementIp(IpAddress managementIp);
+
+        /**
+         * Returns kubevirt node builder with supplied data IP address.
+         *
+         * @param dataIp data IP address
+         * @return kubevirt node builder
+         */
+        KubevirtNode.Builder dataIp(IpAddress dataIp);
+
+        /**
+         * Returns kubevirt node builder with supplied physical interfaces.
+         *
+         * @param phyIntfs a collection of physical interfaces
+         * @return kubevirt node builder
+         */
+        KubevirtNode.Builder phyIntfs(Collection<KubevirtPhyInterface> phyIntfs);
+
+        /**
+         * Returns kubevirt node builder with supplied node state.
+         *
+         * @param state kubevirt node state
+         * @return kubevirt node builder
+         */
+        KubevirtNode.Builder state(KubevirtNodeState state);
+    }
+}
