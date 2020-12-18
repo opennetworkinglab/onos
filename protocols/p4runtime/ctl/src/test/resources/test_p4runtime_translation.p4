@@ -130,7 +130,7 @@ control ingress(inout headers_t hdr,
             local_metadata.ingress_port : exact;
             hdr.ethernet.srcAddr        : exact;
             hdr.ethernet.dstAddr        : exact;
-            hdr.ethernet.etherType      : exact;
+            hdr.ethernet.etherType      : optional;
         }
         actions = {
             set_egress_port;

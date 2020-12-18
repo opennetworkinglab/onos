@@ -34,19 +34,24 @@ import org.onosproject.net.pi.runtime.PiActionProfileGroupId;
 import org.onosproject.net.pi.runtime.PiCounterCellData;
 import org.onosproject.net.pi.runtime.PiExactFieldMatch;
 import org.onosproject.net.pi.runtime.PiMatchKey;
+import org.onosproject.net.pi.runtime.PiOptionalFieldMatch;
 import org.onosproject.net.pi.runtime.PiTableEntry;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
 import org.onosproject.p4runtime.ctl.utils.P4InfoBrowser;
 import org.onosproject.p4runtime.ctl.utils.PipeconfHelper;
+import p4.v1.P4RuntimeOuterClass;
 import p4.v1.P4RuntimeOuterClass.Action;
 import p4.v1.P4RuntimeOuterClass.CounterData;
 import p4.v1.P4RuntimeOuterClass.TableEntry;
 
 import java.net.URL;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.hasItem;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
 import static org.onlab.util.ImmutableByteSequence.ofOnes;
 import static org.onosproject.net.pi.model.PiPipeconf.ExtensionType.P4_INFO_TEXT;
@@ -92,6 +97,7 @@ public class TableEntryEncoderTest {
             .build();
 
     private final P4InfoBrowser browser = PipeconfHelper.getP4InfoBrowser(defaultPipeconf);
+    private final P4InfoBrowser browser2 = PipeconfHelper.getP4InfoBrowser(defaultPipeconf2);
     private final ImmutableByteSequence ethAddr = copyFrom(rand.nextInt()).fit(48);
     private final ImmutableByteSequence ethAddrString = ImmutableByteSequence.copyFrom(
             "00:11:22:33:44:55:66".getBytes());
@@ -139,7 +145,7 @@ public class TableEntryEncoderTest {
                                   .addFieldMatch(new PiExactFieldMatch(inPortFieldId2, portValue32Bit))
                                   .addFieldMatch(new PiExactFieldMatch(ethDstAddrFieldId, ethAddrString))
                                   .addFieldMatch(new PiExactFieldMatch(ethSrcAddrFieldId, ethAddrString))
-                                  .addFieldMatch(new PiExactFieldMatch(ethTypeFieldId, portValue))
+                                  .addFieldMatch(new PiOptionalFieldMatch(ethTypeFieldId, portValue))
                                   .build())
             .withAction(PiAction
                                 .builder()
@@ -157,12 +163,29 @@ public class TableEntryEncoderTest {
                                   .addFieldMatch(new PiExactFieldMatch(inPortFieldId2, portValue32Bit))
                                   .addFieldMatch(new PiExactFieldMatch(ethDstAddrFieldId, ethAddrString))
                                   .addFieldMatch(new PiExactFieldMatch(ethSrcAddrFieldId, ethAddrString))
-                                  .addFieldMatch(new PiExactFieldMatch(ethTypeFieldId, portValue))
+                                  .addFieldMatch(new PiOptionalFieldMatch(ethTypeFieldId, portValue))
                                   .build())
             .withAction(PiAction
                                 .builder()
                                 .withId(outActionId2)
                                 .withParameter(new PiActionParam(portParamId, portValue32Bit))
+                                .build())
+            .withPriority(1)
+            .withCookie(2)
+            .build();
+
+    private final PiTableEntry piTableEntryWithoutOptionalField = PiTableEntry
+            .builder()
+            .forTable(tableId)
+            .withMatchKey(PiMatchKey.builder()
+                                  .addFieldMatch(new PiExactFieldMatch(inPortFieldId2, portValue32Bit))
+                                  .addFieldMatch(new PiExactFieldMatch(ethDstAddrFieldId, ethAddrString))
+                                  .addFieldMatch(new PiExactFieldMatch(ethSrcAddrFieldId, ethAddrString))
+                                  .build())
+            .withAction(PiAction
+                                .builder()
+                                .withId(outActionId)
+                                .withParameter(new PiActionParam(portParamId, portValueString))
                                 .build())
             .withPriority(1)
             .withCookie(2)
@@ -291,6 +314,31 @@ public class TableEntryEncoderTest {
         new EqualsTester()
                 .addEqualityGroup(piTableEntry3, decodedPiTableEntry1)
                 .testEquals();
+    }
+
+    @Test
+    public void testTableEntryEncoderWithoutOptionalField() throws Exception {
+        TableEntry tableEntryMsg = Codecs.CODECS.tableEntry().encode(
+                piTableEntryWithoutOptionalField, null, defaultPipeconf2);
+        PiTableEntry decodedPiTableEntry = Codecs.CODECS.tableEntry().decode(
+                tableEntryMsg, null, defaultPipeconf2);
+
+        // Table ID.
+        int p4InfoTableId = browser2.tables().getByName(tableId.id()).getPreamble().getId();
+        int encodedTableId = tableEntryMsg.getTableId();
+        assertThat(encodedTableId, is(p4InfoTableId));
+
+        // Test equality for decoded entry.
+        new EqualsTester()
+                .addEqualityGroup(piTableEntryWithoutOptionalField, decodedPiTableEntry)
+                .testEquals();
+
+        // no optional field
+        assertThat(tableEntryMsg.getMatchCount(), is(3));
+        assertThat(tableEntryMsg.getMatchList().stream()
+                           .map(P4RuntimeOuterClass.FieldMatch::getFieldMatchTypeCase)
+                           .collect(Collectors.toList()),
+                   not(hasItem(P4RuntimeOuterClass.FieldMatch.FieldMatchTypeCase.OPTIONAL)));
     }
 
     @Test

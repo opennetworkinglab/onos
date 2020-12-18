@@ -36,7 +36,7 @@ tables {
     id: 4
     name: "hdr.ethernet.etherType"
     bitwidth: 16
-    match_type: EXACT
+    match_type: OPTIONAL
   }
   action_refs {
     id: 27607748

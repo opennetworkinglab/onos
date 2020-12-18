@@ -57,6 +57,7 @@ import com.google.common.base.Joiner;
 import org.onosproject.net.pi.runtime.PiExactFieldMatch;
 import org.onosproject.net.pi.runtime.PiFieldMatch;
 import org.onosproject.net.pi.runtime.PiLpmFieldMatch;
+import org.onosproject.net.pi.runtime.PiOptionalFieldMatch;
 import org.onosproject.net.pi.runtime.PiRangeFieldMatch;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
 
@@ -630,6 +631,14 @@ public final class CriterionJsonMatcher extends
                                             ((PiRangeFieldMatch) fieldMatch).lowValue())) {
                             description.appendText("match low value was " +
                                                            ((PiRangeFieldMatch) fieldMatch).lowValue());
+                            return false;
+                        }
+                        break;
+                    case OPTIONAL:
+                        if (!Objects.equals(copyFrom(HexString.fromHexString(matchNode.get("value")
+                                                                                     .textValue(), null)),
+                                            ((PiOptionalFieldMatch) fieldMatch).value())) {
+                            description.appendText("match value was " + ((PiOptionalFieldMatch) fieldMatch).value());
                             return false;
                         }
                         break;

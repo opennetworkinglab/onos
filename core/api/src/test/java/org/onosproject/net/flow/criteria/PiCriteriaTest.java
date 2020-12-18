@@ -22,6 +22,7 @@ import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.runtime.PiExactFieldMatch;
 import org.onosproject.net.pi.runtime.PiFieldMatch;
 import org.onosproject.net.pi.runtime.PiLpmFieldMatch;
+import org.onosproject.net.pi.runtime.PiOptionalFieldMatch;
 import org.onosproject.net.pi.runtime.PiRangeFieldMatch;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
 
@@ -73,6 +74,40 @@ public class PiCriteriaTest {
             .matchExact(ethMatchFieldId, matchExactLong1).build();
     private Criterion matchPiExactLong2 = PiCriterion.builder()
             .matchExact(ethMatchFieldId, matchExactLong2).build();
+
+    private Criterion matchPiOptionalByte1 = PiCriterion.builder()
+            .matchOptional(ethMatchFieldId, matchExactBytes1).build();
+    private Criterion sameAsMatchPiOptionalByte1 = PiCriterion.builder()
+            .matchOptional(ethMatchFieldId, matchExactBytes1).build();
+    private Criterion matchPiOptionalByte2 = PiCriterion.builder()
+            .matchOptional(ethMatchFieldId, matchExactBytes2).build();
+
+    private short matchOptionalShort1 = 0x800;
+    private short matchOptionalShort2 = 0x806;
+    private Criterion matchPiOptionalShort1 = PiCriterion.builder()
+            .matchOptional(ethMatchFieldId, matchOptionalShort1).build();
+    private Criterion sameAsMatchPiOptionalShort1 = PiCriterion.builder()
+            .matchOptional(ethMatchFieldId, matchOptionalShort1).build();
+    private Criterion matchPiOptionalShort2 = PiCriterion.builder()
+            .matchOptional(ethMatchFieldId, matchOptionalShort2).build();
+
+    private int matchOptionalInt1 = 0x800;
+    private int matchOptionalInt2 = 0x806;
+    private Criterion matchPiOptionalInt1 = PiCriterion.builder()
+            .matchOptional(ethMatchFieldId, matchOptionalInt1).build();
+    private Criterion sameAsMatchPiOptionalInt1 = PiCriterion.builder()
+            .matchOptional(ethMatchFieldId, matchOptionalInt1).build();
+    private Criterion matchPiOptionalInt2 = PiCriterion.builder()
+            .matchOptional(ethMatchFieldId, matchOptionalInt2).build();
+
+    private long matchOptionalLong1 = 0x800;
+    private long matchOptionalLong2 = 0x806;
+    private Criterion matchPiOptionalLong1 = PiCriterion.builder()
+            .matchOptional(ethMatchFieldId, matchOptionalLong1).build();
+    private Criterion sameAsMatchPiOptionalLong1 = PiCriterion.builder()
+            .matchOptional(ethMatchFieldId, matchOptionalLong1).build();
+    private Criterion matchPiOptionalLong2 = PiCriterion.builder()
+            .matchOptional(ethMatchFieldId, matchOptionalLong2).build();
 
     private PiMatchFieldId ipv4MatchFieldId = PiMatchFieldId.of("ipv4_t.dstAddr");
     private int mask = 0x00ffffff;
@@ -242,6 +277,37 @@ public class PiCriteriaTest {
     }
 
     /**
+     * Test the OptionalMatchPi method.
+     */
+    @Test
+    public void testOptionalMatchPiMethod() {
+
+        Criterion matchPiBytes = PiCriterion.builder().matchOptional(ethMatchFieldId, matchExactBytes1).build();
+        PiCriterion piCriterionBytes = checkAndConvert(matchPiBytes, Criterion.Type.PROTOCOL_INDEPENDENT,
+                                                       PiCriterion.class);
+        PiFieldMatch expectedMatchBytes = new PiOptionalFieldMatch(ethMatchFieldId, copyFrom(matchExactBytes1));
+        assertThat(piCriterionBytes.fieldMatches().iterator().next(), is(expectedMatchBytes));
+
+        Criterion matchPiShort = PiCriterion.builder().matchOptional(ethMatchFieldId, matchExactShort1).build();
+        PiCriterion piCriterionShort = checkAndConvert(matchPiShort, Criterion.Type.PROTOCOL_INDEPENDENT,
+                                                       PiCriterion.class);
+        PiFieldMatch expectedMatchShort = new PiOptionalFieldMatch(ethMatchFieldId, copyFrom(matchExactShort1));
+        assertThat(piCriterionShort.fieldMatches().iterator().next(), is(expectedMatchShort));
+
+        Criterion matchPiInt = PiCriterion.builder().matchOptional(ethMatchFieldId, matchExactInt1).build();
+        PiCriterion piCriterionInt = checkAndConvert(matchPiInt, Criterion.Type.PROTOCOL_INDEPENDENT,
+                                                     PiCriterion.class);
+        PiFieldMatch expectedMatchInt = new PiOptionalFieldMatch(ethMatchFieldId, copyFrom(matchExactInt1));
+        assertThat(piCriterionInt.fieldMatches().iterator().next(), is(expectedMatchInt));
+
+        Criterion matchPiLong = PiCriterion.builder().matchOptional(ethMatchFieldId, matchExactLong1).build();
+        PiCriterion piCriterionLong = checkAndConvert(matchPiLong, Criterion.Type.PROTOCOL_INDEPENDENT,
+                                                      PiCriterion.class);
+        PiFieldMatch expectedMatchLong = new PiOptionalFieldMatch(ethMatchFieldId, copyFrom(matchExactLong1));
+        assertThat(piCriterionLong.fieldMatches().iterator().next(), is(expectedMatchLong));
+    }
+
+    /**
      * Test the LpmMatchPi method.
      */
     @Test
@@ -381,6 +447,32 @@ public class PiCriteriaTest {
         new EqualsTester()
                 .addEqualityGroup(matchPiExactLong1, sameAsMatchPiExactLong1)
                 .addEqualityGroup(matchPiExactLong2)
+                .testEquals();
+    }
+
+    /**
+     * Test the equals() method of the PiCriterion class.
+     */
+    @Test
+    public void testPiOptionalCriterionEquals() {
+        new EqualsTester()
+                .addEqualityGroup(matchPiOptionalByte1, sameAsMatchPiOptionalByte1)
+                .addEqualityGroup(matchPiOptionalByte2)
+                .testEquals();
+
+        new EqualsTester()
+                .addEqualityGroup(matchPiOptionalShort1, sameAsMatchPiOptionalShort1)
+                .addEqualityGroup(matchPiOptionalShort2)
+                .testEquals();
+
+        new EqualsTester()
+                .addEqualityGroup(matchPiOptionalInt1, sameAsMatchPiOptionalInt1)
+                .addEqualityGroup(matchPiOptionalInt2)
+                .testEquals();
+
+        new EqualsTester()
+                .addEqualityGroup(matchPiOptionalLong1, sameAsMatchPiOptionalLong1)
+                .addEqualityGroup(matchPiOptionalLong2)
                 .testEquals();
     }
 

@@ -49,6 +49,7 @@ import org.onosproject.net.pi.model.PiMatchFieldId;
 import org.onosproject.net.pi.runtime.PiExactFieldMatch;
 import org.onosproject.net.pi.runtime.PiFieldMatch;
 import org.onosproject.net.pi.runtime.PiLpmFieldMatch;
+import org.onosproject.net.pi.runtime.PiOptionalFieldMatch;
 import org.onosproject.net.pi.runtime.PiRangeFieldMatch;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
 
@@ -519,6 +520,12 @@ public class CriterionCodecTest {
                 .matchRange(ipv4MatchFieldId, matchRangeBytes1, matchRangeHighBytes).build();
         ObjectNode rangeResult = criterionCodec.encode(rangeBytesCriterion, context);
         assertThat(rangeResult, matchesCriterion(rangeBytesCriterion));
+
+        byte[] matchOptionalBytes = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55};
+        Criterion optionalBytesCriterion = PiCriterion.builder().matchOptional(ethMatchFieldId,
+                                                                               matchOptionalBytes).build();
+        ObjectNode optionalResult = criterionCodec.encode(optionalBytesCriterion, context);
+        assertThat(optionalResult, matchesCriterion(optionalBytesCriterion));
     }
 
     /**
@@ -555,6 +562,11 @@ public class CriterionCodecTest {
                                       is(copyFrom((byte) 0x20)));
                     Assert.assertThat(((PiRangeFieldMatch) piFieldMatch).lowValue(),
                                       is(copyFrom((byte) 0x10)));
+                    break;
+                case OPTIONAL:
+                    Assert.assertThat(piFieldMatch.fieldId().id(), is("eth_dst"));
+                    Assert.assertThat(((PiOptionalFieldMatch) piFieldMatch).value(),
+                                      is(copyFrom(new byte[]{0x00, 0x11, 0x22, 0x33, 0x44, 0x55})));
                     break;
                 default:
                     Assert.fail();

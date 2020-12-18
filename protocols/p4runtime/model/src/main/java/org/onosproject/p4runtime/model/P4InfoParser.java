@@ -114,6 +114,7 @@ public final class P4InfoParser {
                     .put(MatchField.MatchType.LPM, PiMatchType.LPM)
                     .put(MatchField.MatchType.TERNARY, PiMatchType.TERNARY)
                     .put(MatchField.MatchType.RANGE, PiMatchType.RANGE)
+                    .put(MatchField.MatchType.OPTIONAL, PiMatchType.OPTIONAL)
                     // Don't map UNSPECIFIED as we don't support it at the moment.
                     .build();
     public static final int NO_SIZE = -1;
