@@ -23,6 +23,7 @@ import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.runtime.PiExactFieldMatch;
 import org.onosproject.net.pi.runtime.PiFieldMatch;
 import org.onosproject.net.pi.runtime.PiLpmFieldMatch;
+import org.onosproject.net.pi.runtime.PiOptionalFieldMatch;
 import org.onosproject.net.pi.runtime.PiRangeFieldMatch;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
 import org.onosproject.p4runtime.ctl.utils.P4InfoBrowser;
@@ -33,6 +34,7 @@ import static java.lang.String.format;
 import static org.onlab.util.ImmutableByteSequence.copyFrom;
 import static org.onosproject.p4runtime.ctl.codec.Utils.assertPrefixLen;
 import static org.onosproject.p4runtime.ctl.codec.Utils.assertSize;
+import static org.onosproject.p4runtime.ctl.codec.Utils.sdnStringUnsupported;
 
 /**
  * Codec for P4Runtime FieldMatch. Metadata is expected to be a Preamble for
@@ -64,6 +66,7 @@ public final class FieldMatchCodec
                                    matchFieldInfo.getName(), tablePreamble.getName());
         int fieldId = matchFieldInfo.getId();
         int fieldBitwidth = matchFieldInfo.getBitwidth();
+        boolean isSdnString = browser.isTypeString(matchFieldInfo.getTypeName());
 
         messageBuilder.setFieldId(fieldId);
 
@@ -71,8 +74,7 @@ public final class FieldMatchCodec
             case EXACT:
                 PiExactFieldMatch fieldMatch = (PiExactFieldMatch) piFieldMatch;
                 ByteString exactValue = ByteString.copyFrom(fieldMatch.value().asReadOnlyBuffer());
-                // We support string only for EXACT match (via p4runtime_translation)
-                if (!browser.isTypeString(matchFieldInfo.getTypeName())) {
+                if (!isSdnString) {
                     assertSize(VALUE_OF_PREFIX + entityName, exactValue, fieldBitwidth);
                 }
                 return messageBuilder.setExact(
@@ -85,6 +87,9 @@ public final class FieldMatchCodec
                 PiTernaryFieldMatch ternaryMatch = (PiTernaryFieldMatch) piFieldMatch;
                 ByteString ternaryValue = ByteString.copyFrom(ternaryMatch.value().asReadOnlyBuffer());
                 ByteString ternaryMask = ByteString.copyFrom(ternaryMatch.mask().asReadOnlyBuffer());
+                if (isSdnString) {
+                    sdnStringUnsupported(entityName, piFieldMatch.type());
+                }
                 assertSize(VALUE_OF_PREFIX + entityName, ternaryValue, fieldBitwidth);
                 assertSize(MASK_OF_PREFIX + entityName, ternaryMask, fieldBitwidth);
                 return messageBuilder.setTernary(
@@ -98,6 +103,9 @@ public final class FieldMatchCodec
                 PiLpmFieldMatch lpmMatch = (PiLpmFieldMatch) piFieldMatch;
                 ByteString lpmValue = ByteString.copyFrom(lpmMatch.value().asReadOnlyBuffer());
                 int lpmPrefixLen = lpmMatch.prefixLength();
+                if (isSdnString) {
+                    sdnStringUnsupported(entityName, piFieldMatch.type());
+                }
                 assertSize(VALUE_OF_PREFIX + entityName, lpmValue, fieldBitwidth);
                 assertPrefixLen(entityName, lpmPrefixLen, fieldBitwidth);
                 return messageBuilder.setLpm(
@@ -110,12 +118,26 @@ public final class FieldMatchCodec
                 PiRangeFieldMatch rangeMatch = (PiRangeFieldMatch) piFieldMatch;
                 ByteString rangeHighValue = ByteString.copyFrom(rangeMatch.highValue().asReadOnlyBuffer());
                 ByteString rangeLowValue = ByteString.copyFrom(rangeMatch.lowValue().asReadOnlyBuffer());
+                if (isSdnString) {
+                    sdnStringUnsupported(entityName, piFieldMatch.type());
+                }
                 assertSize(HIGH_RANGE_VALUE_OF_PREFIX + entityName, rangeHighValue, fieldBitwidth);
                 assertSize(LOW_RANGE_VALUE_OF_PREFIX + entityName, rangeLowValue, fieldBitwidth);
                 return messageBuilder.setRange(
                         P4RuntimeOuterClass.FieldMatch.Range.newBuilder()
                                 .setHigh(rangeHighValue)
                                 .setLow(rangeLowValue)
+                                .build())
+                        .build();
+            case OPTIONAL:
+                PiOptionalFieldMatch optionalMatch = (PiOptionalFieldMatch) piFieldMatch;
+                ByteString optionalValue = ByteString.copyFrom(optionalMatch.value().asReadOnlyBuffer());
+                if (!isSdnString) {
+                    assertSize(VALUE_OF_PREFIX + entityName, optionalValue, fieldBitwidth);
+                }
+                return messageBuilder.setOptional(
+                        P4RuntimeOuterClass.FieldMatch.Optional.newBuilder()
+                                .setValue(optionalValue)
                                 .build())
                         .build();
             default:
@@ -156,6 +178,10 @@ public final class FieldMatchCodec
                 ImmutableByteSequence rangeHighValue = copyFrom(rangeFieldMatch.getHigh().asReadOnlyByteBuffer());
                 ImmutableByteSequence rangeLowValue = copyFrom(rangeFieldMatch.getLow().asReadOnlyByteBuffer());
                 return new PiRangeFieldMatch(headerFieldId, rangeLowValue, rangeHighValue);
+            case OPTIONAL:
+                P4RuntimeOuterClass.FieldMatch.Optional optionalFieldMatch = message.getOptional();
+                ImmutableByteSequence optionalValue = copyFrom(optionalFieldMatch.getValue().asReadOnlyByteBuffer());
+                return new PiOptionalFieldMatch(headerFieldId, optionalValue);
             default:
                 throw new CodecException(format(
                         "Decoding of field match type '%s' not implemented", typeCase.name()));

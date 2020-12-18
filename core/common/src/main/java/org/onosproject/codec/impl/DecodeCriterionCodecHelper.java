@@ -666,9 +666,18 @@ public final class DecodeCriterionCodecHelper {
                                                                     CriterionCodec.PI_MATCH_LOW_VALUE +
                                                                             MISSING_MEMBER_MESSAGE).asText(), null),
                                     HexString.fromHexString(nullIsIllegal(node.get(CriterionCodec.PI_MATCH_HIGH_VALUE),
-                                                                    CriterionCodec.PI_MATCH_HIGH_VALUE +
-                                                                            MISSING_MEMBER_MESSAGE).asText(), null)
-                                    );
+                                                                     CriterionCodec.PI_MATCH_HIGH_VALUE +
+                                                                             MISSING_MEMBER_MESSAGE).asText(), null));
+                            break;
+                        case OPTIONAL:
+                            builder.matchOptional(
+                                    PiMatchFieldId.of(
+                                            nullIsIllegal(node.get(CriterionCodec.PI_MATCH_FIELD_ID),
+                                                          CriterionCodec.PI_MATCH_FIELD_ID +
+                                                                  MISSING_MEMBER_MESSAGE).asText()),
+                                    HexString.fromHexString(nullIsIllegal(node.get(CriterionCodec.PI_MATCH_VALUE),
+                                                                    CriterionCodec.PI_MATCH_VALUE +
+                                                                            MISSING_MEMBER_MESSAGE).asText(), null));
                             break;
                         default:
                             throw new IllegalArgumentException("Type " + type + " is unsupported");

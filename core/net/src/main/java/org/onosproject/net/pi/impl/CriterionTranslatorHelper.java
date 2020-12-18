@@ -85,6 +85,7 @@ import org.onosproject.net.pi.model.PiMatchType;
 import org.onosproject.net.pi.runtime.PiExactFieldMatch;
 import org.onosproject.net.pi.runtime.PiFieldMatch;
 import org.onosproject.net.pi.runtime.PiLpmFieldMatch;
+import org.onosproject.net.pi.runtime.PiOptionalFieldMatch;
 import org.onosproject.net.pi.runtime.PiTernaryFieldMatch;
 import org.onosproject.net.pi.service.PiTranslationException;
 
@@ -163,6 +164,8 @@ final class CriterionTranslatorHelper {
             switch (matchType) {
                 case EXACT:
                     return new PiExactFieldMatch(fieldId, translator.exactMatch());
+                case OPTIONAL:
+                    return new PiOptionalFieldMatch(fieldId, translator.exactMatch());
                 case TERNARY:
                     final Pair<ImmutableByteSequence, ImmutableByteSequence> tp = translator.ternaryMatch();
                     return new PiTernaryFieldMatch(fieldId, tp.getLeft(), tp.getRight());

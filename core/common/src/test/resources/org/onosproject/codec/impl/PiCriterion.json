@@ -23,6 +23,11 @@
             "match": "range",
             "highValue": "20",
             "lowValue": "10"
+        },
+        {
+            "field": "eth_dst",
+            "match": "optional",
+            "value": "001122334455"
         }
     ]
 }

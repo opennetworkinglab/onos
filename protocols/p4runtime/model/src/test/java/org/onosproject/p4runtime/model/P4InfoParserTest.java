@@ -281,11 +281,11 @@ public class P4InfoParserTest {
     }
 
     /**
-     * Tests parse method with P4Runtime translation fields.
+     * Tests parse method with P4Runtime translation fields and optional fields.
      * @throws Exception if equality group objects dose not match as expected
      */
     @Test
-    public void testParseP4RuntimeTranslation() throws Exception {
+    public void testParseP4RuntimeTranslationAndOptional() throws Exception {
         PiPipelineModel model = P4InfoParser.parse(p4InfoUrl2);
         // Generate a P4Info object from the file
         final P4Info p4info;
@@ -312,6 +312,7 @@ public class P4InfoParserTest {
                 case LPM: piMatchType = PiMatchType.LPM; break;
                 case TERNARY: piMatchType = PiMatchType.TERNARY; break;
                 case RANGE: piMatchType = PiMatchType.RANGE; break;
+                case OPTIONAL: piMatchType = PiMatchType.OPTIONAL; break;
                 default: Assert.fail(); return;
             }
             if (matchFieldIter.getTypeName().getName().equals("mac_addr_t")) {

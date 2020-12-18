@@ -44,6 +44,7 @@ import org.onosproject.net.pi.runtime.PiExactFieldMatch;
 import org.onosproject.net.pi.runtime.PiFieldMatch;
 import org.onosproject.net.pi.runtime.PiLpmFieldMatch;
 import org.onosproject.net.pi.runtime.PiMatchKey;
+import org.onosproject.net.pi.runtime.PiOptionalFieldMatch;
 import org.onosproject.net.pi.runtime.PiRangeFieldMatch;
 import org.onosproject.net.pi.runtime.PiTableAction;
 import org.onosproject.net.pi.runtime.PiTableEntry;
@@ -114,7 +115,8 @@ final class PiFlowRuleTranslatorImpl {
             // Need to ignore priority if no TCAM lookup match field
             needPriority = tableModel.matchFields().stream()
                     .anyMatch(match -> match.matchType() == PiMatchType.TERNARY ||
-                            match.matchType() == PiMatchType.RANGE);
+                            match.matchType() == PiMatchType.RANGE ||
+                            match.matchType() == PiMatchType.OPTIONAL);
         }
         // Translate treatment.
         final PiTableAction piTableAction = translateTreatment(rule.treatment(), interpreter, piTableId, pipelineModel);
@@ -362,6 +364,7 @@ final class PiFlowRuleTranslatorImpl {
                     case TERNARY:
                     case LPM:
                     case RANGE:
+                    case OPTIONAL:
                         // Skip field.
                         break;
                     default:
@@ -447,6 +450,15 @@ final class PiFlowRuleTranslatorImpl {
                     fieldMatch.fieldId(), fieldModel.matchType().name(), fieldMatch.type().name()));
         }
 
+        // Check if the arbitrary bit width is supported
+        if (!fieldModel.hasBitWidth() &&
+                !fieldModel.matchType().equals(PiMatchType.EXACT) &&
+                !fieldModel.matchType().equals(PiMatchType.OPTIONAL)) {
+            throw new PiTranslationException(format(
+                    "Arbitrary bit width for field '%s' and match type %s is not supported",
+                    fieldMatch.fieldId(), fieldModel.matchType().name()));
+        }
+
         int modelBitWidth = fieldModel.bitWidth();
 
         /*
@@ -461,7 +473,6 @@ final class PiFlowRuleTranslatorImpl {
         try {
             switch (fieldModel.matchType()) {
                 case EXACT:
-                    // TODO: arbitrary bit width is supported only for the EXACT match case.
                     PiExactFieldMatch exactField = (PiExactFieldMatch) fieldMatch;
                     return new PiExactFieldMatch(fieldMatch.fieldId(),
                                                  fieldModel.hasBitWidth() ?
@@ -492,6 +503,12 @@ final class PiFlowRuleTranslatorImpl {
                     return new PiRangeFieldMatch(fieldMatch.fieldId(),
                                                  ((PiRangeFieldMatch) fieldMatch).lowValue().fit(modelBitWidth),
                                                  ((PiRangeFieldMatch) fieldMatch).highValue().fit(modelBitWidth));
+                case OPTIONAL:
+                    PiOptionalFieldMatch optionalField = (PiOptionalFieldMatch) fieldMatch;
+                    return new PiOptionalFieldMatch(fieldMatch.fieldId(),
+                                                    fieldModel.hasBitWidth() ?
+                                                            optionalField.value().fit(modelBitWidth) :
+                                                            optionalField.value());
                 default:
                     // Should never be here.
                     throw new IllegalArgumentException(

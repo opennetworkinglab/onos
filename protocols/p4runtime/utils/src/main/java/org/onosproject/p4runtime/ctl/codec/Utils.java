@@ -17,6 +17,7 @@
 package org.onosproject.p4runtime.ctl.codec;
 
 import com.google.protobuf.ByteString;
+import org.onosproject.net.pi.model.PiMatchType;
 
 import static java.lang.String.format;
 
@@ -48,5 +49,12 @@ final class Utils {
                     "wrong prefix length for %s, field size is %d bits, but found one is %d",
                     entityDescr, bitWidth, prefixLength));
         }
+    }
+
+    static void sdnStringUnsupported(String entityDescr, PiMatchType matchType)
+            throws CodecException {
+        throw new CodecException(format(
+                "%s is expected to be a sdn_string, but it is unsupported for %s match type",
+                entityDescr, matchType.name()));
     }
 }
