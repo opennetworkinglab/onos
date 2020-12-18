@@ -238,6 +238,8 @@ APP_MAP = {
     "//apps/intentsync:onos-apps-intentsync-oar": [],
     "//apps/k8s-networking:onos-apps-k8s-networking-oar": ["sona"],
     "//apps/k8s-node:onos-apps-k8s-node-oar": ["sona"],
+    "//apps/kubevirt-networking:onos-apps-kubevirt-networking-oar": ["sona"],
+    "//apps/kubevirt-node:onos-apps-kubevirt-node-oar": ["sona"],
     "//apps/kafka-integration:onos-apps-kafka-integration-oar": [],
     "//apps/l3vpn:onos-apps-l3vpn-oar": [],
     "//apps/layout:onos-apps-layout-oar": [],

@@ -1,0 +1,48 @@
+{
+  "type": "object",
+  "required": [
+    "nodes"
+  ],
+  "properties": {
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "clusterName",
+          "hostname",
+          "type",
+          "managementIp",
+          "dataIp",
+          "integrationBridge"
+        ],
+        "properties": {
+          "clusterName": {
+            "type": "string",
+            "example": "kubernetes"
+          },
+          "hostname": {
+            "type": "string",
+            "example": "host1"
+          },
+          "type": {
+            "type": "string",
+            "example": "GATEWAY"
+          },
+          "managementIp": {
+            "type": "string",
+            "example": "10.10.10.1"
+          },
+          "dataIp": {
+            "type": "string",
+            "example": "20.20.20.2"
+          },
+          "integrationBridge": {
+            "type": "string",
+            "example": "of:0000000000000001"
+          }
+        }
+      }
+    }
+  }
+}
