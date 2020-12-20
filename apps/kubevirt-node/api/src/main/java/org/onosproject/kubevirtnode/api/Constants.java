@@ -23,6 +23,11 @@ public final class Constants {
     private Constants() {
     }
 
+    public static final String HOST_NAME = "hostname";
+    public static final String TYPE = "type";
+    public static final String MANAGEMENT_IP = "managementIp";
+    public static final String DATA_IP = "dataIp";
+
     public static final String VXLAN = "vxlan";
     public static final String GRE = "gre";
     public static final String GENEVE = "geneve";

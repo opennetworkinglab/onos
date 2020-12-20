@@ -17,6 +17,7 @@ TEST_DEPS = TEST_ADAPTERS + TEST_REST + [
     "//core/api:onos-api-tests",
     "//core/common:onos-core-common-tests",
     "//web/api:onos-rest-tests",
+    "@minimal_json//jar",
 ]
 
 osgi_jar_with_tests(
