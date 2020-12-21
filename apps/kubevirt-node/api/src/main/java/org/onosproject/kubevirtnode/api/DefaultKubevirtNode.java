@@ -125,6 +125,20 @@ public class DefaultKubevirtNode implements KubevirtNode {
     }
 
     @Override
+    public KubevirtNode updateIntgBridge(DeviceId deviceId) {
+        return new Builder()
+                .hostname(hostname)
+                .clusterName(clusterName)
+                .type(type)
+                .intgBridge(deviceId)
+                .managementIp(managementIp)
+                .dataIp(dataIp)
+                .state(state)
+                .phyIntfs(phyIntfs)
+                .build();
+    }
+
+    @Override
     public Collection<KubevirtPhyInterface> phyIntfs() {
         if (phyIntfs == null) {
             return new ArrayList<>();

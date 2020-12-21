@@ -100,9 +100,17 @@ public interface KubevirtNode {
      * Returns new kubevirt node instance with given state.
      *
      * @param newState updated state
-     * @return updated kubernetes node
+     * @return updated kubevirt node
      */
     KubevirtNode updateState(KubevirtNodeState newState);
+
+    /**
+     * Returns new kubevirt node instance with given integration bridge.
+     *
+     * @param deviceId  integration bridge device ID
+     * @return updated kubevirt node
+     */
+    KubevirtNode updateIntgBridge(DeviceId deviceId);
 
     /**
      * Returns a collection of physical interfaces.
