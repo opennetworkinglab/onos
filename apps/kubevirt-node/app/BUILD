@@ -14,6 +14,7 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + CLI + REST + [
 ]
 
 TEST_DEPS = TEST_ADAPTERS + TEST_REST + [
+    "//apps/kubevirt-node/api:onos-apps-kubevirt-node-api-tests",
     "//core/api:onos-api-tests",
     "//core/common:onos-core-common-tests",
     "//web/api:onos-rest-tests",
