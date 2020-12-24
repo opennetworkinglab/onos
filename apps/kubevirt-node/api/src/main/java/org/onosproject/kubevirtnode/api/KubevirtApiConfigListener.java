@@ -13,18 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.kubevirtnode.web;
+package org.onosproject.kubevirtnode.api;
 
-import org.onlab.rest.AbstractWebApplication;
-
-import java.util.Set;
+import org.onosproject.event.EventListener;
 
 /**
- * KubeVirt node REST APIs web application.
+ * Listener for KubeVirt API config event.
  */
-public class KubevirtNodeWebApplication extends AbstractWebApplication {
-    @Override
-    public Set<Class<?>> getClasses() {
-        return getClasses(KubevirtNodeWebResource.class, KubevirtApiConfigWebResource.class);
-    }
+public interface KubevirtApiConfigListener extends EventListener<KubevirtApiConfigEvent> {
 }

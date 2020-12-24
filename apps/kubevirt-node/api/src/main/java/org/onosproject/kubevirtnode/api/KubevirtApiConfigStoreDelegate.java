@@ -13,18 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.onosproject.kubevirtnode.web;
+package org.onosproject.kubevirtnode.api;
 
-import org.onlab.rest.AbstractWebApplication;
-
-import java.util.Set;
+import org.onosproject.store.StoreDelegate;
 
 /**
- * KubeVirt node REST APIs web application.
+ * KubeVirt API server config store delegate.
  */
-public class KubevirtNodeWebApplication extends AbstractWebApplication {
-    @Override
-    public Set<Class<?>> getClasses() {
-        return getClasses(KubevirtNodeWebResource.class, KubevirtApiConfigWebResource.class);
-    }
+public interface KubevirtApiConfigStoreDelegate extends StoreDelegate<KubevirtApiConfigEvent> {
 }

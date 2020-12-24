@@ -1,0 +1,32 @@
+{
+  "type": "object",
+  "required": [
+    "clusterName",
+    "segmentId",
+    "scheme",
+    "ipAddress",
+    "port"
+  ],
+  "properties": {
+    "clusterName": {
+      "type": "string",
+      "example": "kubernetes"
+    },
+    "segmentId": {
+      "type": "integer",
+      "example": 1
+    },
+    "scheme": {
+      "type": "string",
+      "example": "HTTP"
+    },
+    "ipAddress": {
+      "type": "string",
+      "example": "10.10.10.2"
+    },
+    "port": {
+      "type": "integer",
+      "example": 6443
+    }
+  }
+}

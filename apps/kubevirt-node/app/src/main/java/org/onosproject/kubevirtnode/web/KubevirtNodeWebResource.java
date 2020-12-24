@@ -50,7 +50,7 @@ import static org.onlab.util.Tools.readTreeFromStream;
 /**
  * Handles REST API call of KubeVirt node config.
  */
-@Path("configure")
+@Path("node")
 public class KubevirtNodeWebResource extends AbstractWebResource {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -84,7 +84,6 @@ public class KubevirtNodeWebResource extends AbstractWebResource {
      * @onos.rsModel KubevirtNode
      */
     @POST
-    @Path("node")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createNodes(InputStream input) {
@@ -113,7 +112,6 @@ public class KubevirtNodeWebResource extends AbstractWebResource {
      * @onos.rsModel KubevirtNode
      */
     @PUT
-    @Path("node")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateNodes(InputStream input) {
@@ -141,7 +139,7 @@ public class KubevirtNodeWebResource extends AbstractWebResource {
      * 304 NOT_MODIFIED without the updated config
      */
     @DELETE
-    @Path("node/{hostname}")
+    @Path("{hostname}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteNode(@PathParam("hostname") String hostname) {
@@ -186,7 +184,7 @@ public class KubevirtNodeWebResource extends AbstractWebResource {
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("init/node/{hostname}")
+    @Path("init/{hostname}")
     public Response initNode(@PathParam("hostname") String hostname) {
         log.trace(String.format(MESSAGE_NODE, QUERY));
 

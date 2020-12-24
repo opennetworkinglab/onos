@@ -35,7 +35,6 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
 import java.io.InputStream;
 
 import static org.easymock.EasyMock.anyObject;
@@ -53,7 +52,7 @@ import static org.junit.Assert.assertThat;
 public class KubevirtNodeWebResourceTest extends ResourceTest {
 
     final KubevirtNodeAdminService mockKubevirtNodeAdminService = createMock(KubevirtNodeAdminService.class);
-    private static final String NODE_PATH = "configure/node";
+    private static final String PATH = "node";
 
     private KubevirtNode kubevirtNode;
 
@@ -101,7 +100,7 @@ public class KubevirtNodeWebResourceTest extends ResourceTest {
         InputStream jsonStream = KubevirtNodeWebResourceTest.class
                 .getResourceAsStream("kubevirt-worker-node.json");
 
-        Response response = wt.path(NODE_PATH).request(MediaType.APPLICATION_JSON_TYPE)
+        Response response = wt.path(PATH).request(MediaType.APPLICATION_JSON_TYPE)
                 .post(Entity.json(jsonStream));
         final int status = response.getStatus();
 
@@ -123,7 +122,7 @@ public class KubevirtNodeWebResourceTest extends ResourceTest {
         InputStream jsonStream = KubevirtNodeWebResourceTest.class
                 .getResourceAsStream("kubevirt-worker-node.json");
 
-        Response response = wt.path(NODE_PATH).request(MediaType.APPLICATION_JSON_TYPE)
+        Response response = wt.path(PATH).request(MediaType.APPLICATION_JSON_TYPE)
                 .put(Entity.json(jsonStream));
         final int status = response.getStatus();
 
@@ -144,7 +143,7 @@ public class KubevirtNodeWebResourceTest extends ResourceTest {
         InputStream jsonStream = KubevirtNodeWebResourceTest.class
                 .getResourceAsStream("kubevirt-worker-node.json");
 
-        Response response = wt.path(NODE_PATH).request(MediaType.APPLICATION_JSON_TYPE)
+        Response response = wt.path(PATH).request(MediaType.APPLICATION_JSON_TYPE)
                 .put(Entity.json(jsonStream));
         final int status = response.getStatus();
 
@@ -162,7 +161,7 @@ public class KubevirtNodeWebResourceTest extends ResourceTest {
         expect(mockKubevirtNodeAdminService.removeNode(anyString())).andReturn(kubevirtNode).once();
         replay(mockKubevirtNodeAdminService);
 
-        String location = NODE_PATH + "/worker-node";
+        String location = PATH + "/worker-node";
 
         final WebTarget wt = target();
         Response response = wt.path(location).request(
@@ -183,7 +182,7 @@ public class KubevirtNodeWebResourceTest extends ResourceTest {
         expect(mockKubevirtNodeAdminService.node(anyString())).andReturn(null).once();
         replay(mockKubevirtNodeAdminService);
 
-        String location = NODE_PATH + "/worker-node";
+        String location = PATH + "/worker-node";
 
         final WebTarget wt = target();
         Response response = wt.path(location).request(
