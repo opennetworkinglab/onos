@@ -16,6 +16,9 @@
 package org.onosproject.kubevirtnode.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang.StringUtils;
+import org.onlab.packet.IpAddress;
+import org.onosproject.kubevirtnode.api.KubevirtApiConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +43,37 @@ public final class KubevirtNodeUtil {
      * Prevents object installation from external.
      */
     private KubevirtNodeUtil() {
+    }
+
+    /**
+     * Generates endpoint URL by referring to scheme, ipAddress and port.
+     *
+     * @param apiConfig     kubernetes API config
+     * @return generated endpoint URL
+     */
+    public static String endpoint(KubevirtApiConfig apiConfig) {
+        return endpoint(apiConfig.scheme(), apiConfig.ipAddress(), apiConfig.port());
+    }
+
+    /**
+     * Generates endpoint URL by referring to scheme, ipAddress and port.
+     *
+     * @param scheme        scheme
+     * @param ipAddress     IP address
+     * @param port          port number
+     * @return generated endpoint URL
+     */
+    public static String endpoint(KubevirtApiConfig.Scheme scheme, IpAddress ipAddress, int port) {
+        StringBuilder endpoint = new StringBuilder();
+        String protocol = StringUtils.lowerCase(scheme.name());
+
+        endpoint.append(protocol);
+        endpoint.append(COLON_SLASH);
+        endpoint.append(ipAddress.toString());
+        endpoint.append(COLON);
+        endpoint.append(port);
+
+        return endpoint.toString();
     }
 
     /**

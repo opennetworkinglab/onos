@@ -16,8 +16,10 @@
 package org.onosproject.kubevirtnode.web;
 
 import org.onosproject.codec.CodecService;
+import org.onosproject.kubevirtnode.api.KubevirtApiConfig;
 import org.onosproject.kubevirtnode.api.KubevirtNode;
 import org.onosproject.kubevirtnode.api.KubevirtPhyInterface;
+import org.onosproject.kubevirtnode.codec.KubevirtApiConfigCodec;
 import org.onosproject.kubevirtnode.codec.KubevirtNodeCodec;
 import org.onosproject.kubevirtnode.codec.KubevirtPhyInterfaceCodec;
 import org.osgi.service.component.annotations.Activate;
@@ -44,6 +46,7 @@ public class KubevirtNodeCodecRegister {
     protected void activate() {
         codecService.registerCodec(KubevirtNode.class, new KubevirtNodeCodec());
         codecService.registerCodec(KubevirtPhyInterface.class, new KubevirtPhyInterfaceCodec());
+        codecService.registerCodec(KubevirtApiConfig.class, new KubevirtApiConfigCodec());
 
         log.info("Started");
     }
@@ -52,6 +55,7 @@ public class KubevirtNodeCodecRegister {
     protected void deactivate() {
         codecService.unregisterCodec(KubevirtNode.class);
         codecService.unregisterCodec(KubevirtPhyInterface.class);
+        codecService.unregisterCodec(KubevirtApiConfig.class);
 
         log.info("Stopped");
     }
