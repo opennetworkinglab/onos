@@ -15,10 +15,6 @@
  */
 package org.onosproject.kubevirtnode.impl;
 
-/**
- * Service administering the inventory of kubevirt nodes.
- */
-
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.IpAddress;
@@ -66,6 +62,9 @@ import static org.onosproject.kubevirtnode.impl.OsgiPropertyConstants.OVSDB_PORT
 import static org.onosproject.kubevirtnode.util.KubevirtNodeUtil.genDpid;
 import static org.slf4j.LoggerFactory.getLogger;
 
+/**
+ * Service administering the inventory of kubevirt nodes.
+ */
 @Component(
         immediate = true,
         service = {KubevirtNodeService.class, KubevirtNodeAdminService.class},

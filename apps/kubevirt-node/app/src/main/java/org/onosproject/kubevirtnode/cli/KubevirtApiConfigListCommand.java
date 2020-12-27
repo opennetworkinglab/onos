@@ -44,8 +44,13 @@ public class KubevirtApiConfigListCommand extends AbstractShellCommand {
             print("%s", json(config));
         } else {
             print(FORMAT, "Scheme", "IpAddress", "Port", "State");
-            print(FORMAT, config.scheme().name(), config.ipAddress().toString(),
-                    config.port(), config.state().name());
+            if (config != null) {
+                print(FORMAT, config.scheme().name(), config.ipAddress().toString(),
+                        config.port(), config.state().name());
+            } else {
+                print("Kubevirt config not found!");
+            }
+
         }
     }
 
