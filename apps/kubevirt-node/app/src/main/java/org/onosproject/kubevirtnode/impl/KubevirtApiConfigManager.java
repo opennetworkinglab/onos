@@ -15,10 +15,6 @@
  */
 package org.onosproject.kubevirtnode.impl;
 
-/**
- * Service administering the inventory of KubeVirt API configs.
- */
-
 import com.google.common.base.Strings;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
@@ -49,6 +45,9 @@ import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.kubevirtnode.util.KubevirtNodeUtil.endpoint;
 import static org.slf4j.LoggerFactory.getLogger;
 
+/**
+ * Service administering the inventory of KubeVirt API configs.
+ */
 @Component(
         immediate = true,
         service = {KubevirtApiConfigService.class, KubevirtApiConfigAdminService.class }

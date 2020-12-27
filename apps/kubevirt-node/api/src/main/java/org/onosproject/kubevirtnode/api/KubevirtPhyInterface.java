@@ -15,6 +15,9 @@
  */
 package org.onosproject.kubevirtnode.api;
 
+/**
+ * Representation of a KubeVirt physical interface used in KubeVirt networking service.
+ */
 public interface KubevirtPhyInterface {
     /**
      * Returns physical network name that this interface binds to.

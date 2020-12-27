@@ -16,6 +16,9 @@
 package org.onosproject.kubevirtnode.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.fabric8.kubernetes.client.ConfigBuilder;
+import io.fabric8.kubernetes.client.DefaultKubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.lang.StringUtils;
 import org.onlab.packet.IpAddress;
 import org.onosproject.kubevirtnode.api.KubevirtApiConfig;
@@ -128,5 +131,35 @@ public final class KubevirtNodeUtil {
             log.debug("Json string parsing exception caused by {}", e);
         }
         return null;
+    }
+
+    /**
+     * Obtains workable kubernetes client.
+     *
+     * @param config kubernetes API config
+     * @return kubernetes client
+     */
+    public static KubernetesClient k8sClient(KubevirtApiConfig config) {
+        if (config == null) {
+            log.warn("Kubernetes API server config is empty.");
+            return null;
+        }
+
+        String endpoint = endpoint(config);
+
+        ConfigBuilder configBuilder = new ConfigBuilder().withMasterUrl(endpoint);
+
+        if (config.scheme() == KubevirtApiConfig.Scheme.HTTPS) {
+            configBuilder.withTrustCerts(true)
+                    .withCaCertData(config.caCertData())
+                    .withClientCertData(config.clientCertData())
+                    .withClientKeyData(config.clientKeyData());
+
+            if (StringUtils.isNotEmpty(config.token())) {
+                configBuilder.withOauthToken(config.token());
+            }
+        }
+
+        return new DefaultKubernetesClient(configBuilder.build());
     }
 }

@@ -15,10 +15,6 @@
  */
 package org.onosproject.kubevirtnode.impl;
 
-/**
- * Implementation of kubevirt node store using consistent map.
- */
-
 import com.google.common.collect.ImmutableSet;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
@@ -60,6 +56,9 @@ import static org.onosproject.kubevirtnode.api.KubevirtNodeEvent.Type.KUBEVIRT_N
 import static org.onosproject.kubevirtnode.api.KubevirtNodeEvent.Type.KUBEVIRT_NODE_UPDATED;
 import static org.slf4j.LoggerFactory.getLogger;
 
+/**
+ * Implementation of kubevirt node store using consistent map.
+ */
 @Component(immediate = true, service = KubevirtNodeStore.class)
 public class DistributedKubevirtNodeStore
         extends AbstractStore<KubevirtNodeEvent, KubevirtNodeStoreDelegate>

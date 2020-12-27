@@ -32,7 +32,6 @@ import java.util.List;
 import static org.onosproject.kubevirtnode.util.KubevirtNodeUtil.genFormatString;
 import static org.onosproject.kubevirtnode.util.KubevirtNodeUtil.prettyJson;
 
-
 /**
  * Lists all nodes registered to the service.
  */
