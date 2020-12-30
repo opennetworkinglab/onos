@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.onosproject</groupId>
         <artifactId>onos-archetypes</artifactId>
-        <version>2.2.8-SNAPSHOT</version>
+        <version>2.2.8-b2</version>
     </parent>
 
     <artifactId>onos-bundle-archetype</artifactId>
