@@ -14,9 +14,8 @@
  limitations under the License.
 """
 
-load("@npm_angular_bazel//:index.bzl", "ng_module", "ng_package")
-load("@npm_bazel_typescript//:index.bzl", "ts_library")
-load("@npm_bazel_karma//:index.bzl", "karma_web_test")
+load("@npm//@bazel/typescript:index.bzl", "ts_library")
+load("@npm//@bazel/karma:index.bzl", "karma_web_test")
 
 package(default_visibility = ["//:__subpackages__"])
 
@@ -28,7 +27,7 @@ NG_FACTORY_ADDED_IMPORTS = [
     "@npm//@angular/forms",
 ]
 
-ng_module(
+ts_library(
     name = "gui2-fw-lib",
     srcs = glob(
         include = [
@@ -39,17 +38,22 @@ ng_module(
             "**/*.spec.ts",
         ],
     ),
-    assets = glob([
+    angular_assets = glob([
         "lib/**/*.css",
         "lib/**/*.html",
     ]),
-    entry_point = ":public_api.ts",
+    module_name = "org_onosproject_onos/web/gui2-fw-lib",
+    #    entry_point = ":public_api.ts",
     tsconfig = "//web/gui2:tsconfig.json",
+    use_angular_plugin = True,
     deps = [
         "@npm//@angular/animations",
         "@npm//@angular/common",
+        "@npm//@angular/compiler-cli",
+        "@npm//@angular/core",
         "@npm//@angular/platform-browser",
         "@npm//@angular/router",
+        "@npm//@bazel/typescript",
         "@npm//d3",
         "@npm//rxjs",
     ],
@@ -105,18 +109,12 @@ karma_web_test(
     ],
 )
 
-# bazel run //web/gui2-fw-lib:npm_package.pack to create a tgz
-ng_package(
-    name = "npm_package",
-    srcs = ["package.json"],
-    data = glob([
-        "**/*.css",
-        "**/*.html",
-    ]),
-    entry_point = ":public_api.ts",
-    include_devmode_srcs = False,
-    readme_md = ":README.md",
-    deps = [
-        ":gui2-fw-lib",
+filegroup(
+    name = "extra_css",
+    srcs = [
+        "lib/widget/panel.css",
+        "lib/widget/panel-theme.css",
+        "lib/widget/table.css",
+        "lib/widget/table.theme.css",
     ],
 )

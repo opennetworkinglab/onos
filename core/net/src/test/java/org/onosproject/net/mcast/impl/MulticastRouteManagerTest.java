@@ -34,6 +34,7 @@ import org.onosproject.net.mcast.McastListener;
 import org.onosproject.net.mcast.McastRoute;
 import org.onosproject.store.service.TestStorageService;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static junit.framework.Assert.fail;
@@ -141,13 +142,13 @@ public class MulticastRouteManagerTest {
     private void validateEvents(McastEvent.Type... evs) {
         if (events.size() != evs.length) {
             fail(String.format("Mismatch number of events# obtained -> %s : expected %s",
-                               events, evs));
+                               events, Arrays.toString(evs)));
         }
 
         for (int i = 0; i < evs.length; i++) {
             if (evs[i] != events.get(i).type()) {
                 fail(String.format("Mismatched events# obtained -> %s : expected %s",
-                                   events, evs));
+                                   events, Arrays.toString(evs)));
             }
         }
     }

@@ -14,9 +14,10 @@
  limitations under the License.
 """
 
+load("@npm//@bazel/typescript:index.bzl", "ts_library")
+
 package(default_visibility = ["//:__subpackages__"])
 
-load("@npm_angular_bazel//:index.bzl", "ng_module")
 load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
 
 sass_binary(
@@ -39,7 +40,7 @@ sass_binary(
     src = ":lib/yangdetails/yangdetails.theme.scss",
 )
 
-ng_module(
+ts_library(
     name = "yang-gui2-lib",
     srcs = glob(
         include = [
@@ -49,18 +50,21 @@ ng_module(
             "**/*.spec.ts",
         ],
     ),
-    assets = [
+    angular_assets = [
         ":yangtable-styles",
         ":yangdetails-styles",
         ":yangtable-theme",
         ":yangdetails-theme",
+        "//web/gui2-fw-lib:extra_css",
     ] + glob([
         "**/*.html",
     ]),
     tsconfig = "//web/gui2:tsconfig.json",
+    use_angular_plugin = True,
     deps = [
         "//web/gui2-fw-lib",
         "@npm//@angular/animations",
+        "@npm//@angular/common",
         "@npm//@angular/core",
         "@npm//@angular/forms",
         "@npm//@angular/platform-browser-dynamic",

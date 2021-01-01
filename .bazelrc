@@ -21,10 +21,12 @@ build --host_force_python=PY2
 build --nouse_ijars
 build --experimental_strict_action_env
 
+# For external/io_grpc_grpc_java/core/src/main/java/io/grpc/internal/RetriableStream.java
+build --javacopt="-Xep:GuardedBy:WARN -Xep:ComparableType:WARN"
+
 # intellij-bazel plugin needs this
 build --incompatible_new_actions_api=false
 build --incompatible_generated_protos_in_virtual_imports=false
-build --incompatible_depset_union=false
 
 # For bazelbuild/rules_nodejs
 build --define=angular_ivy_enabled=True

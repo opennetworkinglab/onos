@@ -184,6 +184,11 @@ buildifier(
         "./web/gui2/node_modules/@angular/bazel/src/esm5.bzl",
         "./web/gui2/node_modules/@bazel/typescript/internal/common/tsconfig.bzl",
         "./web/gui2/node_modules/@bazel/typescript/internal/common/compilation.bzl",
+        "./web/gui2/node_modules/@bazel/rollup/rollup_bundle.bzl",
+        "./web/gui2/node_modules/@bazel/typescript/internal/ts_project.bzl",
+        "./web/gui2/node_modules/@bazel/typescript/internal/build_defs.bzl",
+        "./web/gui2/node_modules/@bazel/protractor/protractor_web_test.bzl",
+        "./web/gui2/node_modules/@bazel/typescript/third_party/github.com/bazelbuild/bazel/src/main/protobuf/BUILD.bazel",
     ],
     mode = "check",
 )
@@ -195,6 +200,10 @@ buildifier(
         "./web/gui2/node_modules/@angular/bazel/src/esm5.bzl",
         "./web/gui2/node_modules/@bazel/typescript/internal/common/tsconfig.bzl",
         "./web/gui2/node_modules/@bazel/typescript/internal/common/compilation.bzl",
+        "./web/gui2/node_modules/@bazel/typescript/internal/ts_project.bzl",
+        "./web/gui2/node_modules/@bazel/typescript/internal/build_defs.bzl",
+        "./web/gui2/node_modules/@bazel/protractor/protractor_web_test.bzl",
+        "./web/gui2/node_modules/@bazel/typescript/third_party/github.com/bazelbuild/bazel/src/main/protobuf/BUILD.bazel",
     ],
     mode = "fix",
 )

@@ -1,12 +1,9 @@
 """
  Copyright 2020-present Open Networking Foundation
-
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
  You may obtain a copy of the License at
-
      http://www.apache.org/licenses/LICENSE-2.0
-
  Unless required by applicable law or agreed to in writing, software
  distributed under the License is distributed on an "AS IS" BASIS,
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,15 +14,10 @@
 package(default_visibility = ["//:__subpackages__"])
 
 load("@build_bazel_rules_nodejs//:index.bzl", "pkg_web")
-load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
 load("@npm//history-server:index.bzl", "history_server")
-load("@npm//html-insert-assets:index.bzl", "html_insert_assets")
-load("@npm_angular_bazel//:index.bzl", "ng_module")
-load("@npm_bazel_rollup//:index.bzl", "rollup_bundle")
-load("@npm_bazel_terser//:index.bzl", "terser_minified")
-load("@npm_bazel_typescript//:index.bzl", "ts_config", "ts_devserver", "ts_library")
-
-#load("@npm_bazel_karma//:index.bzl", "ts_web_test_suite")
+load("@npm//@bazel/rollup:index.bzl", "rollup_bundle")
+load("@npm//@bazel/terser:index.bzl", "terser_minified")
+load("@npm//@bazel/typescript:index.bzl", "ts_library")
 
 exports_files([
     "WEB-INF/web.xml",
@@ -38,7 +30,7 @@ NG_FACTORY_ADDED_IMPORTS = [
     "@npm//@angular/forms",
 ]
 
-ng_module(
+ts_library(
     name = "gui2",
     srcs = [
         "environments/environment.prod.ts",
@@ -46,6 +38,7 @@ ng_module(
         "onos.prod.ts",
     ],
     tsconfig = "//web/gui2:tsconfig.json",
+    use_angular_plugin = True,
     deps = NG_FACTORY_ADDED_IMPORTS + [
         "//web/gui2/src/main/webapp/app:app",
         "@npm//@angular/core",
@@ -63,14 +56,15 @@ rollup_bundle(
     output_dir = True,
     deps = [
         "//web/gui2/src/main/webapp:gui2",
-        "@npm//rollup-plugin-commonjs",
-        "@npm//rollup-plugin-node-resolve",
+        "@npm//@rollup/plugin-commonjs",
+        "@npm//@rollup/plugin-node-resolve",
     ],
 )
 
 terser_minified(
     name = "bundle-es2015.min",
     src = ":bundle-es2015",
+    config_file = "terser.config.json",
 )
 
 # Files that we serve in both development and production

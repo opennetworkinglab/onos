@@ -38,7 +38,7 @@
     "karma-mocha-reporter": "^2.2.5",
     "karma-ng-html2js-preprocessor": "^1.0.0",
     "karma-phantomjs-launcher": "^1.0.4",
-    "phantomjs": "^2.1.7",
+    "phantomjs-prebuilt": "^2.1.16",
     "@bazel/hide-bazel-files": "0.40.0"
   },
   "babel": {

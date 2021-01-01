@@ -15,9 +15,9 @@ workspace(
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-RULES_NODEJS_VERSION = "1.0.1"
+RULES_NODEJS_VERSION = "3.0.0"
 
-RULES_NODEJS_SHA256 = "e1a0d6eb40ec89f61a13a028e7113aa3630247253bcb1406281b627e44395145"
+RULES_NODEJS_SHA256 = "6142e9586162b179fdd570a55e50d1332e7d9c030efd853453438d607569721d"
 
 http_archive(
     name = "build_bazel_rules_nodejs",
@@ -26,12 +26,14 @@ http_archive(
 )
 
 # Rules for compiling sass
-RULES_SASS_VERSION = "1.24.0"
+RULES_SASS_VERSION = "1.30.0"
 
-RULES_SASS_SHA256 = "77e241148f26d5dbb98f96fe0029d8f221c6cb75edbb83e781e08ac7f5322c5f"
+RULES_SASS_SHA256 = "8392cf8910db2b1dc3b488ea18113bfe4fd666037bf8ec30d2a3f08fc602a6d8"
 
 http_archive(
     name = "io_bazel_rules_sass",
+    patch_args = ["-p1"],
+    patches = ["@build_bazel_rules_nodejs//:rules_sass.issue127.patch"],
     sha256 = RULES_SASS_SHA256,
     strip_prefix = "rules_sass-%s" % RULES_SASS_VERSION,
     urls = [
@@ -66,6 +68,7 @@ Try running `yarn bazel` instead.
 # TODO: remove the custom repositories once "rules_nodejs" supports v10.16.0 by default.
 node_repositories(
     node_repositories = {
+        "10.16.0-linux_arm64": ("node-v10.16.0-linux-arm64.tar.gz", "node-v10.16.0-linux-arm64", "2d84a777318bc95dd2a201ab8d700aea7e20641b3ece0c048399398dc645cbd7"),
         "10.16.0-darwin_amd64": ("node-v10.16.0-darwin-x64.tar.gz", "node-v10.16.0-darwin-x64", "6c009df1b724026d84ae9a838c5b382662e30f6c5563a0995532f2bece39fa9c"),
         "10.16.0-linux_amd64": ("node-v10.16.0-linux-x64.tar.xz", "node-v10.16.0-linux-x64", "1827f5b99084740234de0c506f4dd2202a696ed60f76059696747c34339b9d48"),
         "10.16.0-windows_amd64": ("node-v10.16.0-win-x64.zip", "node-v10.16.0-win-x64", "aa22cb357f0fb54ccbc06b19b60e37eefea5d7dd9940912675d3ed988bf9a059"),
@@ -83,11 +86,11 @@ load("@npm//:install_bazel_dependencies.bzl", "install_bazel_dependencies")
 
 install_bazel_dependencies()
 
-load("@npm_bazel_protractor//:package.bzl", "npm_bazel_protractor_dependencies")
+load("@npm//@bazel/protractor:package.bzl", "npm_bazel_protractor_dependencies")
 
 npm_bazel_protractor_dependencies()
 
-load("@npm_bazel_karma//:package.bzl", "npm_bazel_karma_dependencies")
+load("@npm//@bazel/karma:package.bzl", "npm_bazel_karma_dependencies")
 
 npm_bazel_karma_dependencies()
 
@@ -101,7 +104,7 @@ browser_repositories(
     firefox = True,
 )
 
-load("@npm_bazel_typescript//:index.bzl", "ts_setup_workspace")
+load("@npm//@bazel/typescript:index.bzl", "ts_setup_workspace")
 
 ts_setup_workspace()
 

@@ -116,7 +116,7 @@ public class TopologyManager
     public TopologyCluster getCluster(Topology topology, ClusterId clusterId) {
         checkPermission(TOPOLOGY_READ);
         checkNotNull(topology, TOPOLOGY_NULL);
-        checkNotNull(topology, CLUSTER_ID_NULL);
+        checkNotNull(clusterId, CLUSTER_ID_NULL);
         return store.getCluster(topology, clusterId);
     }
 
@@ -124,7 +124,7 @@ public class TopologyManager
     public Set<DeviceId> getClusterDevices(Topology topology, TopologyCluster cluster) {
         checkPermission(TOPOLOGY_READ);
         checkNotNull(topology, TOPOLOGY_NULL);
-        checkNotNull(topology, CLUSTER_NULL);
+        checkNotNull(cluster, CLUSTER_NULL);
         return store.getClusterDevices(topology, cluster);
     }
 
@@ -132,7 +132,7 @@ public class TopologyManager
     public Set<Link> getClusterLinks(Topology topology, TopologyCluster cluster) {
         checkPermission(TOPOLOGY_READ);
         checkNotNull(topology, TOPOLOGY_NULL);
-        checkNotNull(topology, CLUSTER_NULL);
+        checkNotNull(cluster, CLUSTER_NULL);
         return store.getClusterLinks(topology, cluster);
     }
 

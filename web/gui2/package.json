@@ -4,38 +4,38 @@
   "license": "MIT",
   "engines": {
     "node": ">=10.9.0 <13.0.0",
-    "yarn": ">=1.9.2 <2.0.0"
+    "yarn": ">=1.9.2 <2.3.1"
   },
   "scripts": {
     "postinstall": "ngcc"
   },
   "private": true,
   "dependencies": {
-    "@angular/animations": "9.1.0",
-    "@angular/common": "9.1.0",
-    "@angular/core": "9.1.0",
-    "@angular/forms": "9.1.0",
-    "@angular/platform-browser": "9.1.0",
-    "@angular/platform-browser-dynamic": "9.1.0",
-    "@angular/router": "9.1.0",
-    "d3": "^5.15.0",
-    "rxjs": "~6.5.4",
+    "@angular/animations": "10.2.4",
+    "@angular/common": "10.2.4",
+    "@angular/core": "10.2.4",
+    "@angular/forms": "10.2.4",
+    "@angular/platform-browser": "10.2.4",
+    "@angular/platform-browser-dynamic": "10.2.4",
+    "@angular/router": "10.2.4",
+    "d3": "^5.16.0",
+    "rxjs": "~6.6.3",
     "topojson-client": "^3.1.0",
-    "tslib": "1.10.0",
-    "zone.js": "0.10.2"
+    "tslib": "1.14.1",
+    "zone.js": "0.10.3"
   },
   "devDependencies": {
-    "@angular/bazel": "9.1.0",
-    "@angular/cli": "9.1.0",
-    "@angular/compiler": "9.1.0",
-    "@angular/compiler-cli": "9.1.0",
-    "@angular-devkit/build-angular": "~0.901.1",
-    "@bazel/hide-bazel-files": "1.1.0",
-    "@bazel/karma": "1.6.0",
-    "@bazel/protractor": "1.6.0",
-    "@bazel/rollup": "1.6.0",
-    "@bazel/terser": "1.6.0",
-    "@bazel/typescript": "1.6.0",
+    "@angular/cli": "10.2.1",
+    "@angular/compiler": "10.2.4",
+    "@angular/compiler-cli": "10.2.4",
+    "@angular-devkit/build-angular": "~0.1002.1",
+    "@bazel/angular": "2.0.0",
+    "@bazel/buildifier": "^3.4.0",
+    "@bazel/karma": "2.0.0",
+    "@bazel/protractor": "2.0.0",
+    "@bazel/rollup": "2.0.0",
+    "@bazel/terser": "2.0.0",
+    "@bazel/typescript": "2.0.0",
     "@types/jasmine": "3.4.0",
     "@types/node": "10.14.22",
     "core-js": "2.6.9",
@@ -51,10 +51,10 @@
     "karma-coverage-istanbul-reporter": "~2.1.1",
     "protractor": "~5.4.2",
     "requirejs": "2.3.6",
-    "rollup": "~1.21.4",
-    "rollup-plugin-commonjs": "~10.1.0",
-    "rollup-plugin-node-resolve": "~5.2.0",
+    "rollup": "2.3.4",
+    "@rollup/plugin-commonjs": "^14.0.0",
+    "@rollup/plugin-node-resolve": "^8.4.0",
     "terser": "4.3.1",
-    "typescript": "3.8.3"
+    "typescript": "3.9.7"
   }
 }

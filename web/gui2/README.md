@@ -1,6 +1,6 @@
-# ONOS GUI 2.4.0
+# ONOS GUI 2.5.0
 
-This project is based on __[Angular 9](https://angular.io/docs)__ 
+This project is based on __[Angular 10](https://angular.io/docs)__ 
 and __[ES6](http://www.ecma-international.org/ecma-262/6.0/index.html)__ (aka __ES2015__), 
 as an alternative to the 1.0.0 GUI which was based 
 off __[AngularJS 1.3.5](https://angularjs.org/)__
@@ -56,7 +56,7 @@ and are displayed smoothly by HTML5 compatible browsers. Occasionally the d3
 libraries (such as d3-force) are used to help position graphics, but an over
 dependence on d3 is mainly avoided.
 
-The main framework used is Angular 9, with a strong emphasis on making resuable
+The main framework used is Angular 10, with a strong emphasis on making resuable
 components, directives, services and classes. Angular Routing and animation are
 also used.
 
@@ -172,7 +172,7 @@ This module should then be given it's own ```BUILD.Bazel``` file to compile this
 package(default_visibility = ["//:__subpackages__"])
 
 load("@io_bazel_rules_sass//:defs.bzl", "sass_binary")
-load("@npm_angular_bazel//:index.bzl", "ng_module")
+load("@npm//@angular/bazel:index.bzl", "ng_module")
 
 sass_binary(
     name = "mynewmodule-styles",
