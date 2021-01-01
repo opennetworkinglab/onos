@@ -319,7 +319,7 @@ public class PiCriterionTranslatorsTest {
 
     @Test
     public void testMplsCriterion() throws Exception {
-        MplsLabel mplsLabel = MplsLabel.mplsLabel(random.nextInt(2 ^ 20));
+        MplsLabel mplsLabel = MplsLabel.mplsLabel(random.nextInt(1 << 20));
         int bitWidth = 32;
 
         MplsCriterion criterion = (MplsCriterion) Criteria.matchMplsLabel(mplsLabel);
@@ -357,9 +357,9 @@ public class PiCriterionTranslatorsTest {
 
     @Test
     public void testSctpPortCriterion() throws Exception {
-        TpPort value1 = TpPort.tpPort(random.nextInt(2 ^ 16));
-        TpPort value2 = TpPort.tpPort(random.nextInt(2 ^ 16));
-        TpPort mask = TpPort.tpPort(random.nextInt(2 ^ 16));
+        TpPort value1 = TpPort.tpPort(random.nextInt(1 << 16));
+        TpPort value2 = TpPort.tpPort(random.nextInt(1 << 16));
+        TpPort mask = TpPort.tpPort(random.nextInt(1 << 16));
 
         int bitWidth = 16;
 
@@ -377,7 +377,7 @@ public class PiCriterionTranslatorsTest {
 
     @Test
     public void testTcpFlagsCriterion() throws Exception {
-        int pbbIsid = random.nextInt(2 ^ 12);
+        int pbbIsid = random.nextInt(1 << 12);
         int bitWidth = 12;
 
         TcpFlagsCriterion criterion = (TcpFlagsCriterion) Criteria.matchTcpFlags(pbbIsid);
@@ -389,9 +389,9 @@ public class PiCriterionTranslatorsTest {
 
     @Test
     public void testTcpPortCriterion() throws Exception {
-        TpPort value1 = TpPort.tpPort(random.nextInt(2 ^ 16));
-        TpPort value2 = TpPort.tpPort(random.nextInt(2 ^ 16));
-        TpPort mask = TpPort.tpPort(random.nextInt(2 ^ 16));
+        TpPort value1 = TpPort.tpPort(random.nextInt(1 << 16));
+        TpPort value2 = TpPort.tpPort(random.nextInt(1 << 16));
+        TpPort mask = TpPort.tpPort(random.nextInt(1 << 16));
 
         int bitWidth = 16;
 

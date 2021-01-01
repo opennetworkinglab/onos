@@ -77,7 +77,7 @@ public class ServerControllerConfig
         checkNotNull(deviceId, MSG_DEVICE_ID_NULL);
 
         MastershipService mastershipService = getHandler().get(MastershipService.class);
-        checkNotNull(deviceId, MSG_MASTERSHIP_NULL);
+        checkNotNull(mastershipService, MSG_MASTERSHIP_NULL);
 
         if (!mastershipService.isLocalMaster(deviceId)) {
             log.warn(
@@ -158,7 +158,7 @@ public class ServerControllerConfig
         checkNotNull(deviceId, MSG_DEVICE_ID_NULL);
 
         MastershipService mastershipService = getHandler().get(MastershipService.class);
-        checkNotNull(deviceId, MSG_MASTERSHIP_NULL);
+        checkNotNull(mastershipService, MSG_MASTERSHIP_NULL);
 
         if (!mastershipService.isLocalMaster(deviceId)) {
             log.warn(
@@ -203,7 +203,7 @@ public class ServerControllerConfig
         checkNotNull(deviceId, MSG_DEVICE_ID_NULL);
 
         MastershipService mastershipService = getHandler().get(MastershipService.class);
-        checkNotNull(deviceId, MSG_MASTERSHIP_NULL);
+        checkNotNull(mastershipService, MSG_MASTERSHIP_NULL);
 
         if (!mastershipService.isLocalMaster(deviceId)) {
             log.warn(

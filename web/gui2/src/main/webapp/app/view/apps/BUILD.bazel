@@ -14,11 +14,11 @@
  limitations under the License.
 """
 
+load("@npm//@bazel/typescript:index.bzl", "ts_library")
+
 package(default_visibility = ["//:__subpackages__"])
 
-load("@npm_angular_bazel//:index.bzl", "ng_module")
-
-ng_module(
+ts_library(
     name = "gui2-view-apps",
     srcs = glob(
         include = [
@@ -28,15 +28,19 @@ ng_module(
             "**/*.spec.ts",
         ],
     ),
-    assets = glob([
+    angular_assets = [
+        "//web/gui2-fw-lib:extra_css",
+    ] + glob([
         "**/*.css",
         "**/*.html",
     ]),
     module_name = "gui2-view-apps",
     tsconfig = "//web/gui2:tsconfig.json",
+    use_angular_plugin = True,
     deps = [
         "//web/gui2-fw-lib",
         "@npm//@angular/animations",
+        "@npm//@angular/common",
         "@npm//@angular/core",
         "@npm//@angular/forms",
         "@npm//@angular/platform-browser-dynamic",

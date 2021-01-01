@@ -413,7 +413,7 @@ public class DeviceManager
     private void handlePortRequest(InternalPortUpDownEvent event) {
         DeviceId deviceId = event.deviceId();
         checkNotNull(deviceId, DEVICE_ID_NULL);
-        checkNotNull(deviceId, PORT_NUMBER_NULL);
+        checkNotNull(event.portNumber(), PORT_NUMBER_NULL);
         checkState(mastershipService.isLocalMaster(deviceId), EVENT_NON_MASTER);
         changePortStateAtMaster(event.deviceId(), event.portNumber(), event.isEnable());
     }
@@ -435,7 +435,7 @@ public class DeviceManager
     public void changePortState(DeviceId deviceId, PortNumber portNumber,
                                 boolean enable) {
         checkNotNull(deviceId, DEVICE_ID_NULL);
-        checkNotNull(deviceId, PORT_NUMBER_NULL);
+        checkNotNull(portNumber, PORT_NUMBER_NULL);
         NodeId masterId = mastershipService.getMasterFor(deviceId);
 
         if (masterId == null) {

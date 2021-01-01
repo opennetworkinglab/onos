@@ -14,9 +14,7 @@
  limitations under the License.
 """
 
-load("@npm_angular_bazel//:index.bzl", "ng_module")
-load("@npm_bazel_karma//:index.bzl", "karma_web_test_suite")
-load("@npm_bazel_typescript//:index.bzl", "ts_library")
+load("@npm//@bazel/typescript:index.bzl", "ts_library")
 
 package(default_visibility = ["//:__subpackages__"])
 
@@ -26,7 +24,7 @@ NG_FACTORY_ADDED_IMPORTS = [
     "@npm//@angular/forms",
 ]
 
-ng_module(
+ts_library(
     name = "app",
     srcs = [
         "nav/nav.component.ts",
@@ -35,7 +33,7 @@ ng_module(
         "onos.service.ts",
         "onos-routing.module.ts",
     ],
-    assets = [
+    angular_assets = [
         "onos.common.css",
         "onos.component.css",
         "onos.component.html",
@@ -44,6 +42,7 @@ ng_module(
         "nav/nav.theme.css",
     ],
     tsconfig = "//web/gui2:tsconfig.json",
+    use_angular_plugin = True,
     deps = NG_FACTORY_ADDED_IMPORTS + [
         "//web/gui2-fw-lib",
         "//web/gui2/src/main/webapp/app/view/apps:gui2-view-apps",
@@ -67,6 +66,7 @@ ng_module(
         "//apps/yang-gui/yang-gui2-lib:yang-gui2-lib",
         "//apps/inbandtelemetry/intApp-gui2/intApp:intapp-gui2-lib",
         "@npm//@angular/core",
+        "@npm//@angular/common",
         "@npm//@angular/router",
         "@npm//@angular/platform-browser",
         "@npm//rxjs",

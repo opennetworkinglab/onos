@@ -100,6 +100,7 @@ public class CpmanViewMessageHandler extends UiMessageHandler {
                 DeviceId deviceId = DeviceId.deviceId(uri);
                 if (cpms.availableResourcesSync(localNodeId, CONTROL_MESSAGE).contains(deviceId.toString())) {
                     Map<ControlMetricType, Long[]> data = generateMatrix(cpms, cs, deviceId);
+                    @SuppressWarnings("FromTemporalAccessor")
                     LocalDateTime ldt = LocalDateTime.from(Instant.ofEpochMilli(timestamp * MILLI_CONV_UNIT));
 
                     populateMetrics(cm, data, ldt, NUM_OF_DATA_POINTS);

@@ -1,0 +1,11 @@
+{
+    "compress": {
+    "keep_fnames": "bazel_no_debug",
+        "passes": 3,
+        "pure_getters": true,
+        "reduce_funcs": "bazel_no_debug",
+        "reduce_vars": "bazel_no_debug",
+        "sequences": "bazel_no_debug"
+},
+    "mangle": "bazel_no_debug"
+}

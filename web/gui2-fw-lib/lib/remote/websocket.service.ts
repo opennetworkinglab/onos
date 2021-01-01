@@ -187,7 +187,7 @@ export class WebSocketService {
         let ev: EventType;
         let h;
         try {
-            ev = JSON.parse(msgEvent.data);
+            ev = JSON.parse(msgEvent.data.toString()) as EventType;
         } catch (e) {
             this.log.error('Message.data is not valid JSON', msgEvent.data, e);
             return null;

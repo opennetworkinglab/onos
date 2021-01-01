@@ -117,7 +117,7 @@ genrule(
           " jar xf ../../$(location //tools/gui:tools-gui-gulp) &&" +
           " $$NPM $$NPM_ARGS install  --no-cache --loglevel=error > $$ROOT/$(location onos-gui1-npm-install.log) 2>&1 &&" +
           " find . -name package.json | while read pjson; do egrep -v '/execroot/' $$pjson > ptmp; mv ptmp $$pjson; done &&" +
-          " find package.json gulpfile.babel.js node_modules gulp-tasks -type f -exec touch -t 201806280000 {} \; &&" +
+          " find package.json gulpfile.babel.js node_modules gulp-tasks -type f -exec touch -t 202101010000 {} \\; &&" +
           " jar Mcf $$ROOT/$(location onos-gui-npm-install.jar) package.json gulpfile.babel.js node_modules gulp-tasks &&" +
           " touch $$ROOT/$(location onos-gui1-npm-install.log)",  # to get the log always as the 2nd file
 )
@@ -150,7 +150,7 @@ genrule(
           " chmod a+x ./node_modules/gulp/bin/gulp.js &&" +
           " $$ROOT/$$NPM $$NPM_ARGS run build --no-cache --loglevel=error > $$ROOT/$(location onos-gui1-npm-build.log) &&" +
           " cd ../../web/gui/src/main/webapp &&" +
-          " find dist vendor data README.md _doc _dev app/fw app/*.css app/*.js app/*.txt -type f -exec touch -t 201806280000 {} \; &&" +
+          " find dist vendor data README.md _doc _dev app/fw app/*.css app/*.js app/*.txt -type f -exec touch -t 201806280000 {} \\; &&" +
           " jar Mcf $$ROOT/$(location onos-gui-npm-build.jar) dist vendor data README.md _doc _dev app/fw app/*.css app/*.js app/*.txt &&" +
           " touch $$ROOT/$(location onos-gui1-npm-build.log)",  # to get the log always as the 2nd file
 )
@@ -176,7 +176,7 @@ genrule(
     ),
     outs = ["web_app_all.jar"],
     cmd = "cd web/gui &&" +
-          " find src/main/webapp -type f -exec touch -t 201806280000 {} \; &&" +
+          " find src/main/webapp -type f -exec touch -t 201806280000 {} \\; &&" +
           " jar Mcf ../../$@ src/main/webapp",
 )
 
@@ -190,7 +190,7 @@ genrule(
     outs = ["app_view_tar.jar"],
     cmd = " ROOT=`pwd` &&" +
           " cd web/gui/src/main/webapp/app/view &&" +
-          " find . -type f -exec touch -t 201806280000 {} \; &&" +
+          " find . -type f -exec touch -t 201806280000 {} \\; &&" +
           " jar Mcf $$ROOT/$@ .",
 )
 
@@ -260,7 +260,7 @@ genrule(
           " mkdir ./WEB-INF/classes/raw && " +
           " for i in $(locations :_raw_classes_files); do cp $$ROOT/$$i ./WEB-INF/classes/raw/; done &&" +
           " jar xf $$ROOT/$(location :onos-gui-jar) &&" +
-          " find . -type f -exec touch -t 201806280000 {} \; &&" +
+          " find . -type f -exec touch -t 201806280000 {} \\; &&" +
           " jar cmf META-INF/MANIFEST.MF $$ROOT/$@ .",
     output_to_bindir = 1,
     visibility = ["//visibility:public"],

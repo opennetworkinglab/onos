@@ -19,7 +19,7 @@
 """
 
 load("//tools/build/bazel:jdk_genrule.bzl", genrule = "jdk_genrule")
-load("@npm_bazel_typescript//:index.bzl", "ts_config")
+load("@npm//@bazel/typescript:index.bzl", "ts_config")
 
 COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + CLI + [
     "@javax_ws_rs_api//jar",
@@ -101,7 +101,7 @@ genrule(
           " mv web/gui/src/main/resources/org/onosproject/ui/lion* WEB-INF/classes/org/onosproject/ui/ &&" +
           " cp -R $$ROOT/$(location //web/gui2/src/main/webapp:prodapp)/* WEB-INF/classes/ &&" +
           " mv $$ROOT/$(location //web/gui2/src/main/webapp:WEB-INF/web.xml) WEB-INF &&" +
-          " find . -type f -exec touch -t 202001010001 {} \; &&" +
+          " find . -type f -exec touch -t 202001010001 {} \\; &&" +
           " jar cmf META-INF/MANIFEST.MF $$ROOT/$@ WEB-INF/web.xml WEB-INF/classes OSGI-INF/*.xml",
     output_to_bindir = 1,
     visibility = ["//visibility:public"],

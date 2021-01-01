@@ -124,9 +124,9 @@ load("//tools/build/bazel:gnoi_workspace.bzl", "generate_gnoi")
 generate_gnoi()
 
 # For GUI2 build
-RULES_NODEJS_VERSION = "1.6.0"
+RULES_NODEJS_VERSION = "2.3.2"
 
-RULES_NODEJS_SHA256 = "f9e7b9f42ae202cc2d2ce6d698ccb49a9f7f7ea572a78fd451696d03ef2ee116"
+RULES_NODEJS_SHA256 = "b3521b29c7cb0c47a1a735cce7e7e811a4f80d8e3720cf3a1b624533e4bb7cb6"
 
 load("//tools/build/bazel:topo_workspace.bzl", "generate_topo_device")
 
@@ -161,6 +161,7 @@ load("@build_bazel_rules_nodejs//:index.bzl", "node_repositories", "npm_install"
 # because "selenium-webdriver" which is required for "ng e2e" cannot be installed.
 node_repositories(
     node_repositories = {
+        "10.16.0-linux_arm64": ("node-v10.16.0-linux-arm64.tar.gz", "node-v10.16.0-linux-arm64", "2d84a777318bc95dd2a201ab8d700aea7e20641b3ece0c048399398dc645cbd7"),
         "10.16.0-darwin_amd64": ("node-v10.16.0-darwin-x64.tar.gz", "node-v10.16.0-darwin-x64", "6c009df1b724026d84ae9a838c5b382662e30f6c5563a0995532f2bece39fa9c"),
         "10.16.0-linux_amd64": ("node-v10.16.0-linux-x64.tar.xz", "node-v10.16.0-linux-x64", "1827f5b99084740234de0c506f4dd2202a696ed60f76059696747c34339b9d48"),
         "10.16.0-windows_amd64": ("node-v10.16.0-win-x64.zip", "node-v10.16.0-win-x64", "aa22cb357f0fb54ccbc06b19b60e37eefea5d7dd9940912675d3ed988bf9a059"),
@@ -185,9 +186,6 @@ npm_install(
 
 # Install any Bazel rules which were extracted earlier by the npm_install rule.
 # Versions are set in web/gui2-fw-lib/package.json
-load("@npm//:install_bazel_dependencies.bzl", "install_bazel_dependencies")
-
-install_bazel_dependencies()
 
 RULES_WEBTESTING_VERSION = "0.3.3"
 

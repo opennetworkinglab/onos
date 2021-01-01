@@ -142,7 +142,7 @@ public class VirtualNetworkDeviceManager
     public PortStatistics getStatisticsForPort(DeviceId deviceId,
                                                PortNumber portNumber) {
         checkNotNull(deviceId, DEVICE_NULL);
-        checkNotNull(deviceId, PORT_NUMBER_NULL);
+        checkNotNull(portNumber, PORT_NUMBER_NULL);
         // TODO not supported at the moment.
         return null;
     }
@@ -151,7 +151,7 @@ public class VirtualNetworkDeviceManager
     public PortStatistics getDeltaStatisticsForPort(DeviceId deviceId,
                                                     PortNumber portNumber) {
         checkNotNull(deviceId, DEVICE_NULL);
-        checkNotNull(deviceId, PORT_NUMBER_NULL);
+        checkNotNull(portNumber, PORT_NUMBER_NULL);
         // TODO not supported at the moment.
         return null;
     }

@@ -139,7 +139,7 @@ public class RegionManager extends AbstractListenerManager<RegionEvent, RegionLi
                                List<Set<NodeId>> masterNodeIds) {
         checkNotNull(regionId, REGION_ID_NULL);
         checkNotNull(name, NAME_NULL);
-        checkNotNull(name, REGION_TYPE_NULL);
+        checkNotNull(type, REGION_TYPE_NULL);
 
         return store.createRegion(regionId, name, type, genAnnots(regionId),
                                   masterNodeIds == null ? of() : masterNodeIds);
@@ -150,7 +150,7 @@ public class RegionManager extends AbstractListenerManager<RegionEvent, RegionLi
                                List<Set<NodeId>> masterNodeIds) {
         checkNotNull(regionId, REGION_ID_NULL);
         checkNotNull(name, NAME_NULL);
-        checkNotNull(name, REGION_TYPE_NULL);
+        checkNotNull(type, REGION_TYPE_NULL);
 
         return store.updateRegion(regionId, name, type, genAnnots(regionId),
                                   masterNodeIds == null ? of() : masterNodeIds);
