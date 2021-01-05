@@ -260,7 +260,7 @@ public class LinkDiscovery implements TimerTask {
             Optional<Device> srcDevice = findSourceDeviceByChassisId(deviceService, srcChassisId);
 
             if (!srcDevice.isPresent()) {
-                log.warn("source device not found. srcChassisId value: {}", srcChassisId);
+                log.debug("source device not found. srcChassisId value: {}", srcChassisId);
                 return false;
             }
             Optional<Port> sourcePort = findSourcePortByName(
@@ -269,7 +269,7 @@ public class LinkDiscovery implements TimerTask {
                     srcDevice.get());
 
             if (!sourcePort.isPresent()) {
-                log.warn("source port not found. sourcePort value: {}", sourcePort);
+                log.debug("source port not found. sourcePort value: {}", sourcePort);
                 return false;
             }
 
