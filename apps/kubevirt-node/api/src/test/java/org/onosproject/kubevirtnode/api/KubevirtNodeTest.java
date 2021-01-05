@@ -47,6 +47,7 @@ public abstract class KubevirtNodeTest {
                 .hostname(hostname)
                 .type(type)
                 .intgBridge(intgBridge.id())
+                .tunBridge(intgBridge.id())
                 .managementIp(ipAddr)
                 .dataIp(ipAddr)
                 .state(state)

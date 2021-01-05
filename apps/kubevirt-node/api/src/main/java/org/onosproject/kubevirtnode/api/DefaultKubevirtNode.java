@@ -39,6 +39,7 @@ public class DefaultKubevirtNode implements KubevirtNode {
     private final String hostname;
     private final Type type;
     private final DeviceId intgBridge;
+    private final DeviceId tunBridge;
     private final IpAddress managementIp;
     private final IpAddress dataIp;
     private final KubevirtNodeState state;
@@ -51,19 +52,22 @@ public class DefaultKubevirtNode implements KubevirtNode {
      * @param hostname          hostname
      * @param type              node type
      * @param intgBridge        integration bridge
+     * @param tunBridge         tunnel bridge
      * @param managementIp      management IP address
      * @param dataIp            data IP address
      * @param state             node state
      * @param phyIntfs          physical interfaces
      */
     protected DefaultKubevirtNode(String clusterName, String hostname, Type type,
-                                  DeviceId intgBridge, IpAddress managementIp,
-                                  IpAddress dataIp, KubevirtNodeState state,
+                                  DeviceId intgBridge, DeviceId tunBridge,
+                                  IpAddress managementIp, IpAddress dataIp,
+                                  KubevirtNodeState state,
                                   Collection<KubevirtPhyInterface> phyIntfs) {
         this.clusterName = clusterName;
         this.hostname = hostname;
         this.type = type;
         this.intgBridge = intgBridge;
+        this.tunBridge = tunBridge;
         this.managementIp = managementIp;
         this.dataIp = dataIp;
         this.state = state;
@@ -96,6 +100,11 @@ public class DefaultKubevirtNode implements KubevirtNode {
     }
 
     @Override
+    public DeviceId tunBridge() {
+        return tunBridge;
+    }
+
+    @Override
     public IpAddress managementIp() {
         return managementIp;
     }
@@ -117,6 +126,7 @@ public class DefaultKubevirtNode implements KubevirtNode {
                 .clusterName(clusterName)
                 .type(type)
                 .intgBridge(intgBridge)
+                .tunBridge(tunBridge)
                 .managementIp(managementIp)
                 .dataIp(dataIp)
                 .state(newState)
@@ -131,6 +141,22 @@ public class DefaultKubevirtNode implements KubevirtNode {
                 .clusterName(clusterName)
                 .type(type)
                 .intgBridge(deviceId)
+                .tunBridge(tunBridge)
+                .managementIp(managementIp)
+                .dataIp(dataIp)
+                .state(state)
+                .phyIntfs(phyIntfs)
+                .build();
+    }
+
+    @Override
+    public KubevirtNode updateTunBridge(DeviceId deviceId) {
+        return new Builder()
+                .hostname(hostname)
+                .clusterName(clusterName)
+                .type(type)
+                .intgBridge(intgBridge)
+                .tunBridge(deviceId)
                 .managementIp(managementIp)
                 .dataIp(dataIp)
                 .state(state)
@@ -168,9 +194,11 @@ public class DefaultKubevirtNode implements KubevirtNode {
                 .clusterName(node.clusterName())
                 .type(node.type())
                 .intgBridge(node.intgBridge())
+                .tunBridge(node.tunBridge())
                 .managementIp(node.managementIp())
                 .dataIp(node.dataIp())
-                .state(node.state());
+                .state(node.state())
+                .phyIntfs(node.phyIntfs());
     }
 
     @Override
@@ -186,13 +214,14 @@ public class DefaultKubevirtNode implements KubevirtNode {
                 hostname.equals(that.hostname) &&
                 type == that.type &&
                 intgBridge.equals(that.intgBridge) &&
+                tunBridge.equals(that.tunBridge) &&
                 managementIp.equals(that.managementIp) &&
                 dataIp.equals(that.dataIp);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(clusterName, hostname, type, intgBridge,
+        return Objects.hash(clusterName, hostname, type, intgBridge, tunBridge,
                 managementIp, dataIp);
     }
 
@@ -203,9 +232,11 @@ public class DefaultKubevirtNode implements KubevirtNode {
                 .add("hostname", hostname)
                 .add("type", type)
                 .add("intgBridge", intgBridge)
+                .add("tunBridge", tunBridge)
                 .add("managementIp", managementIp)
                 .add("dataIp", dataIp)
                 .add("state", state)
+                .add("phyIntfs", phyIntfs)
                 .toString();
     }
 
@@ -215,6 +246,7 @@ public class DefaultKubevirtNode implements KubevirtNode {
         private String hostname;
         private Type type;
         private DeviceId intgBridge;
+        private DeviceId tunBridge;
         private IpAddress managementIp;
         private IpAddress dataIp;
         private KubevirtNodeState state;
@@ -240,6 +272,7 @@ public class DefaultKubevirtNode implements KubevirtNode {
                     hostname,
                     type,
                     intgBridge,
+                    tunBridge,
                     managementIp,
                     dataIp,
                     state,
@@ -268,6 +301,12 @@ public class DefaultKubevirtNode implements KubevirtNode {
         @Override
         public Builder intgBridge(DeviceId deviceId) {
             this.intgBridge = deviceId;
+            return this;
+        }
+
+        @Override
+        public Builder tunBridge(DeviceId deviceId) {
+            this.tunBridge = deviceId;
             return this;
         }
 

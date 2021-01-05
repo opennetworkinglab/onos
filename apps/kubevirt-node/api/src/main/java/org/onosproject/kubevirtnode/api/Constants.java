@@ -32,5 +32,17 @@ public final class Constants {
     public static final String GRE = "gre";
     public static final String GENEVE = "geneve";
 
+    public static final String INTEGRATION_BRIDGE = "br-int";
+    public static final String TUNNEL_BRIDGE = "br-tun";
+
+    public static final String INTEGRATION_TO_TUNNEL = "int-to-tun";
+    public static final String TUNNEL_TO_INTEGRATION = "tun-to-int";
+
+    public static final String BRIDGE_PREFIX = "br-";
+    public static final String INTEGRATION_TO_PHYSICAL_PREFIX = "int-to-";
+    public static final String PHYSICAL_TO_INTEGRATION_SUFFIX = "-to-int";
+
+    public static final String FLOW_KEY = "flow";
+
     public static final String DEFAULT_CLUSTER_NAME = "default";
 }

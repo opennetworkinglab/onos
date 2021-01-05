@@ -26,12 +26,11 @@ public enum KubevirtNodeState {
     PRE_ON_BOARD {
         @Override
         public void process(KubevirtNodeHandler handler, KubevirtNode node) {
-
         }
 
         @Override
-        public KubevirtNodeState nodeState() {
-            return null;
+        public KubevirtNodeState nextState() {
+            return ON_BOARDED;
         }
     },
     /**
@@ -40,12 +39,12 @@ public enum KubevirtNodeState {
     ON_BOARDED {
         @Override
         public void process(KubevirtNodeHandler handler, KubevirtNode node) {
-
+            handler.processOnBoardedState(node);
         }
 
         @Override
-        public KubevirtNodeState nodeState() {
-            return null;
+        public KubevirtNodeState nextState() {
+            return ON_BOARDED;
         }
     },
     /**
@@ -54,12 +53,12 @@ public enum KubevirtNodeState {
     INIT {
         @Override
         public void process(KubevirtNodeHandler handler, KubevirtNode node) {
-
+            handler.processInitState(node);
         }
 
         @Override
-        public KubevirtNodeState nodeState() {
-            return null;
+        public KubevirtNodeState nextState() {
+            return DEVICE_CREATED;
         }
     },
     /**
@@ -68,12 +67,12 @@ public enum KubevirtNodeState {
     DEVICE_CREATED {
         @Override
         public void process(KubevirtNodeHandler handler, KubevirtNode node) {
-
+            handler.processDeviceCreatedState(node);
         }
 
         @Override
-        public KubevirtNodeState nodeState() {
-            return null;
+        public KubevirtNodeState nextState() {
+            return COMPLETE;
         }
     },
     /**
@@ -82,12 +81,12 @@ public enum KubevirtNodeState {
     COMPLETE {
         @Override
         public void process(KubevirtNodeHandler handler, KubevirtNode node) {
-
+            handler.processCompleteState(node);
         }
 
         @Override
-        public KubevirtNodeState nodeState() {
-            return null;
+        public KubevirtNodeState nextState() {
+            return COMPLETE;
         }
     },
     /**
@@ -96,12 +95,12 @@ public enum KubevirtNodeState {
     INCOMPLETE {
         @Override
         public void process(KubevirtNodeHandler handler, KubevirtNode node) {
-
+            handler.processIncompleteState(node);
         }
 
         @Override
-        public KubevirtNodeState nodeState() {
-            return null;
+        public KubevirtNodeState nextState() {
+            return INIT;
         }
     };
 
@@ -118,5 +117,5 @@ public enum KubevirtNodeState {
      *
      * @return the next kubevirt node state
      */
-    public abstract KubevirtNodeState nodeState();
+    public abstract KubevirtNodeState nextState();
 }

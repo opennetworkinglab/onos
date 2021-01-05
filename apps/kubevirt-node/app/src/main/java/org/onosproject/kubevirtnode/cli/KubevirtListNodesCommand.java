@@ -38,7 +38,7 @@ import static org.onosproject.kubevirtnode.util.KubevirtNodeUtil.prettyJson;
 @Service
 @Command(scope = "onos", name = "kubevirt-nodes",
         description = "Lists all nodes registered in KubeVirt node service")
-public class KubevirtNodeListCommand extends AbstractShellCommand {
+public class KubevirtListNodesCommand extends AbstractShellCommand {
 
     private static final int HOSTNAME_LENGTH = 35;
     private static final int TYPE_LENGTH = 15;

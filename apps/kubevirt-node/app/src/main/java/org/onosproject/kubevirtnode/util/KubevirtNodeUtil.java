@@ -16,17 +16,29 @@
 package org.onosproject.kubevirtnode.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.lang.StringUtils;
 import org.onlab.packet.IpAddress;
 import org.onosproject.kubevirtnode.api.KubevirtApiConfig;
+import org.onosproject.kubevirtnode.api.KubevirtNode;
+import org.onosproject.net.Device;
+import org.onosproject.net.behaviour.BridgeConfig;
+import org.onosproject.net.behaviour.BridgeName;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.ovsdb.controller.OvsdbClientService;
+import org.onosproject.ovsdb.controller.OvsdbController;
+import org.onosproject.ovsdb.controller.OvsdbNodeId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Dictionary;
 import java.util.List;
+
+import static org.onlab.util.Tools.get;
 
 /**
  * An utility that used in KubeVirt node app.
@@ -41,6 +53,8 @@ public final class KubevirtNodeUtil {
     private static final int HEX_LENGTH = 16;
     private static final String OF_PREFIX = "of:";
     private static final String ZERO = "0";
+
+    private static final int PORT_NAME_MAX_LENGTH = 15;
 
     /**
      * Prevents object installation from external.
@@ -161,5 +175,107 @@ public final class KubevirtNodeUtil {
         }
 
         return new DefaultKubernetesClient(configBuilder.build());
+    }
+
+    /**
+     * Gets the ovsdb client with supplied openstack node.
+     *
+     * @param node              kubernetes node
+     * @param ovsdbPort         ovsdb port
+     * @param ovsdbController   ovsdb controller
+     * @return ovsdb client
+     */
+    public static OvsdbClientService getOvsdbClient(KubevirtNode node,
+                                                    int ovsdbPort,
+                                                    OvsdbController ovsdbController) {
+        OvsdbNodeId ovsdb = new OvsdbNodeId(node.managementIp(), ovsdbPort);
+        return ovsdbController.getOvsdbClient(ovsdb);
+    }
+
+    /**
+     * Checks whether the controller has a connection with an OVSDB that resides
+     * inside the given kubernetes node.
+     *
+     * @param node              kubernetes node
+     * @param ovsdbPort         OVSDB port
+     * @param ovsdbController   OVSDB controller
+     * @param deviceService     device service
+     * @return true if the controller is connected to the OVSDB, false otherwise
+     */
+    public static boolean isOvsdbConnected(KubevirtNode node,
+                                           int ovsdbPort,
+                                           OvsdbController ovsdbController,
+                                           DeviceService deviceService) {
+        OvsdbClientService client = getOvsdbClient(node, ovsdbPort, ovsdbController);
+        return deviceService.isAvailable(node.ovsdb()) &&
+                client != null &&
+                client.isConnected();
+    }
+
+    /**
+     * Adds or removes a network interface (aka port) into a given bridge of kubernetes node.
+     *
+     * @param k8sNode       kubernetes node
+     * @param bridgeName    bridge name
+     * @param intfName      interface name
+     * @param deviceService device service
+     * @param addOrRemove   add port is true, remove it otherwise
+     */
+    public static synchronized void addOrRemoveSystemInterface(KubevirtNode k8sNode,
+                                                               String bridgeName,
+                                                               String intfName,
+                                                               DeviceService deviceService,
+                                                               boolean addOrRemove) {
+
+
+        Device device = deviceService.getDevice(k8sNode.ovsdb());
+        if (device == null || !device.is(BridgeConfig.class)) {
+            log.info("device is null or this device if not ovsdb device");
+            return;
+        }
+        BridgeConfig bridgeConfig =  device.as(BridgeConfig.class);
+
+        if (addOrRemove) {
+            bridgeConfig.addPort(BridgeName.bridgeName(bridgeName), intfName);
+        } else {
+            bridgeConfig.deletePort(BridgeName.bridgeName(bridgeName), intfName);
+        }
+    }
+
+    /**
+     * Re-structures the OVS port name.
+     * The length of OVS port name should be not large than 15.
+     *
+     * @param portName  original port name
+     * @return re-structured OVS port name
+     */
+    public static String structurePortName(String portName) {
+
+        // The size of OVS port name should not be larger than 15
+        if (portName.length() > PORT_NAME_MAX_LENGTH) {
+            return StringUtils.substring(portName, 0, PORT_NAME_MAX_LENGTH);
+        }
+
+        return portName;
+    }
+
+    /**
+     * Gets Boolean property from the propertyName
+     * Return null if propertyName is not found.
+     *
+     * @param properties   properties to be looked up
+     * @param propertyName the name of the property to look up
+     * @return value when the propertyName is defined or return null
+     */
+    public static Boolean getBooleanProperty(Dictionary<?, ?> properties,
+                                             String propertyName) {
+        Boolean value;
+        try {
+            String s = get(properties, propertyName);
+            value = Strings.isNullOrEmpty(s) ? null : Boolean.valueOf(s);
+        } catch (ClassCastException e) {
+            value = null;
+        }
+        return value;
     }
 }

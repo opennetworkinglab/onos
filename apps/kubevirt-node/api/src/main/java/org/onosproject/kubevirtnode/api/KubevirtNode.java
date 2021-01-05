@@ -76,6 +76,13 @@ public interface KubevirtNode {
     DeviceId intgBridge();
 
     /**
+     * Returns the device ID of the tunnel bridge at the node.
+     *
+     * @return device id
+     */
+    DeviceId tunBridge();
+
+    /**
      * Returns the management network IP address of the node.
      *
      * @return ip address
@@ -111,6 +118,14 @@ public interface KubevirtNode {
      * @return updated kubevirt node
      */
     KubevirtNode updateIntgBridge(DeviceId deviceId);
+
+    /**
+     * Returns new kubevirt node instance with given tunnel bridge.
+     *
+     * @param deviceId  tunnel bridge device ID
+     * @return updated kubevirt node
+     */
+    KubevirtNode updateTunBridge(DeviceId deviceId);
 
     /**
      * Returns a collection of physical interfaces.
@@ -161,6 +176,14 @@ public interface KubevirtNode {
          * @return kubevirt node builder
          */
         KubevirtNode.Builder intgBridge(DeviceId deviceId);
+
+        /**
+         * Returns kubevirt node builder with supplied tunnel bridge name.
+         *
+         * @param deviceId tunnel bridge device ID
+         * @return kubevirt node builder
+         */
+        KubevirtNode.Builder tunBridge(DeviceId deviceId);
 
         /**
          * Returns kubevirt node builder with supplied management IP address.

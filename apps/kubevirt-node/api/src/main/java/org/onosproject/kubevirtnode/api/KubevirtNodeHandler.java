@@ -19,4 +19,42 @@ package org.onosproject.kubevirtnode.api;
  * Service handling KubeVirt node state.
  */
 public interface KubevirtNodeHandler {
+
+    /**
+     * Processes the given node for init state.
+     * It creates required bridges on OVS by referring to node type.
+     *
+     * @param node kubevirt node
+     */
+    void processInitState(KubevirtNode node);
+
+    /**
+     * Processes the given node for device created state.
+     * It creates required ports on the bridges based on the node type.
+     *
+     * @param node kubevirt node
+     */
+    void processDeviceCreatedState(KubevirtNode node);
+
+    /**
+     * Processes the given node for complete state.
+     * It performs post-init jobs for the complete node.
+     *
+     * @param node kubevirt node
+     */
+    void processCompleteState(KubevirtNode node);
+
+    /**
+     * Processes the given node for incomplete state.
+     *
+     * @param node kubevirt node
+     */
+    void processIncompleteState(KubevirtNode node);
+
+    /**
+     * Processes the given node for on boarded state.
+     *
+     * @param node kubevirt node
+     */
+    void processOnBoardedState(KubevirtNode node);
 }

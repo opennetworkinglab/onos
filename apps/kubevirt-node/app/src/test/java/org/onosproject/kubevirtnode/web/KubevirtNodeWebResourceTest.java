@@ -83,6 +83,7 @@ public class KubevirtNodeWebResourceTest extends ResourceTest {
                 .dataIp(IpAddress.valueOf("10.134.34.222"))
                 .managementIp(IpAddress.valueOf("10.134.231.30"))
                 .intgBridge(DeviceId.deviceId("of:00000000000000a1"))
+                .tunBridge(DeviceId.deviceId("of:00000000000000a2"))
                 .state(KubevirtNodeState.INIT)
                 .build();
     }

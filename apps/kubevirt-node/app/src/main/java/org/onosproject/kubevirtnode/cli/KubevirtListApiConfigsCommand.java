@@ -31,7 +31,7 @@ import static org.onosproject.kubevirtnode.util.KubevirtNodeUtil.prettyJson;
 @Service
 @Command(scope = "onos", name = "kubevirt-api-configs",
         description = "Lists all KubeVirt API server configs registered to the service")
-public class KubevirtApiConfigListCommand extends AbstractShellCommand {
+public class KubevirtListApiConfigsCommand extends AbstractShellCommand {
 
     private static final String FORMAT = "%-10s%-25s%-10s%-10s";
 
