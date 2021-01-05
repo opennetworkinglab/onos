@@ -4,6 +4,7 @@
   "managementIp": "172.16.130.4",
   "dataIp": "172.16.130.4",
   "integrationBridge": "of:00000000000000a1",
+  "tunnelBridge": "of:00000000000000a2",
   "phyIntfs": [
     {
       "network": "mgmtnetwork",

@@ -164,6 +164,7 @@ public class KubevirtNodeManager
         checkNotNull(node, ERR_NULL_NODE);
 
         KubevirtNode intNode;
+        KubevirtNode tunNode;
 
         if (node.intgBridge() == null) {
             String deviceIdStr = genDpid(deviceIdCounter.incrementAndGet());
@@ -177,9 +178,21 @@ public class KubevirtNodeManager
                     NOT_DUPLICATED_MSG, intNode.intgBridge());
         }
 
-        nodeStore.createNode(intNode);
+        if (node.tunBridge() == null) {
+            String deviceIdStr = genDpid(deviceIdCounter.incrementAndGet());
+            checkNotNull(deviceIdStr, ERR_NULL_DEVICE_ID);
+            tunNode = intNode.updateTunBridge(DeviceId.deviceId(deviceIdStr));
+            checkArgument(!hasTunBridge(tunNode.tunBridge(), tunNode.hostname()),
+                    NOT_DUPLICATED_MSG, tunNode.tunBridge());
+        } else {
+            tunNode = intNode;
+            checkArgument(!hasTunBridge(tunNode.tunBridge(), tunNode.hostname()),
+                    NOT_DUPLICATED_MSG, tunNode.tunBridge());
+        }
 
-        log.info(String.format(MSG_NODE, intNode.hostname(), MSG_CREATED));
+        nodeStore.createNode(tunNode);
+
+        log.info(String.format(MSG_NODE, tunNode.hostname(), MSG_CREATED));
     }
 
     @Override
@@ -187,6 +200,7 @@ public class KubevirtNodeManager
         checkNotNull(node, ERR_NULL_NODE);
 
         KubevirtNode intNode;
+        KubevirtNode tunNode;
 
         KubevirtNode existingNode = nodeStore.node(node.hostname());
         checkNotNull(existingNode, ERR_NULL_NODE);
@@ -203,9 +217,19 @@ public class KubevirtNodeManager
                     NOT_DUPLICATED_MSG, intNode.intgBridge());
         }
 
-        nodeStore.updateNode(intNode);
+        DeviceId existTunBridge = nodeStore.node(node.hostname()).tunBridge();
+        if (intNode.tunBridge() == null) {
+            tunNode = intNode.updateTunBridge(existTunBridge);
+            checkArgument(!hasTunBridge(tunNode.tunBridge(), tunNode.hostname()),
+                    NOT_DUPLICATED_MSG, tunNode.tunBridge());
+        } else {
+            tunNode = intNode;
+            checkArgument(!hasTunBridge(tunNode.tunBridge(), tunNode.hostname()),
+                    NOT_DUPLICATED_MSG, tunNode.tunBridge());
+        }
+        nodeStore.updateNode(tunNode);
 
-        log.info(String.format(MSG_NODE, intNode.hostname(), MSG_UPDATED));
+        log.info(String.format(MSG_NODE, tunNode.hostname(), MSG_UPDATED));
     }
 
     @Override
@@ -266,10 +290,26 @@ public class KubevirtNodeManager
                 .findFirst().orElse(null);
     }
 
+    @Override
+    public KubevirtNode nodeByTunBridge(DeviceId deviceId) {
+        return nodeStore.nodes().stream()
+                .filter(node -> Objects.equals(node.tunBridge(), deviceId))
+                .findFirst().orElse(null);
+    }
+
     private boolean hasIntgBridge(DeviceId deviceId, String hostname) {
         Optional<KubevirtNode> existNode = nodeStore.nodes().stream()
                 .filter(n -> !n.hostname().equals(hostname))
                 .filter(n -> deviceId.equals(n.intgBridge()))
+                .findFirst();
+
+        return existNode.isPresent();
+    }
+
+    private boolean hasTunBridge(DeviceId deviceId, String hostname) {
+        Optional<KubevirtNode> existNode = nodeStore.nodes().stream()
+                .filter(n -> !n.hostname().equals(hostname))
+                .filter(n -> deviceId.equals(n.tunBridge()))
                 .findFirst();
 
         return existNode.isPresent();

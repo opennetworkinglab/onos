@@ -48,6 +48,7 @@ public final class KubevirtNodeCodec extends JsonCodec<KubevirtNode> {
 
     private static final String TYPE = "type";
     private static final String INTEGRATION_BRIDGE = "integrationBridge";
+    private static final String TUNNEL_BRIDGE = "tunnelBridge";
     private static final String STATE = "state";
     private static final String PHYSICAL_INTERFACES = "phyIntfs";
 
@@ -66,6 +67,11 @@ public final class KubevirtNodeCodec extends JsonCodec<KubevirtNode> {
         // serialize integration bridge config
         if (node.intgBridge() != null) {
             result.put(INTEGRATION_BRIDGE, node.intgBridge().toString());
+        }
+
+        // serialize tunnel bridge config
+        if (node.tunBridge() != null) {
+            result.put(TUNNEL_BRIDGE, node.tunBridge().toString());
         }
 
         // serialize data IP only if it presents
@@ -113,6 +119,11 @@ public final class KubevirtNodeCodec extends JsonCodec<KubevirtNode> {
         JsonNode intBridgeJson = json.get(INTEGRATION_BRIDGE);
         if (intBridgeJson != null) {
             nodeBuilder.intgBridge(DeviceId.deviceId(intBridgeJson.asText()));
+        }
+
+        JsonNode tunBridgeJson = json.get(TUNNEL_BRIDGE);
+        if (tunBridgeJson != null) {
+            nodeBuilder.tunBridge(DeviceId.deviceId(tunBridgeJson.asText()));
         }
 
         // parse physical interfaces

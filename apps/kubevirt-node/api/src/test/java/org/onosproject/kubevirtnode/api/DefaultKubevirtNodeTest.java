@@ -81,6 +81,7 @@ public final class DefaultKubevirtNodeTest extends KubevirtNodeTest {
                 .managementIp(MANAGEMENT_IP)
                 .dataIp(DATA_IP)
                 .intgBridge(DEVICE_1.id())
+                .tunBridge(DEVICE_1.id())
                 .state(KubevirtNodeState.COMPLETE)
                 .phyIntfs(PHY_INTFS)
                 .build();
@@ -135,6 +136,7 @@ public final class DefaultKubevirtNodeTest extends KubevirtNodeTest {
         DefaultKubevirtNode.builder()
                 .type(KubevirtNode.Type.WORKER)
                 .intgBridge(DEVICE_1.id())
+                .tunBridge(DEVICE_1.id())
                 .managementIp(TEST_IP)
                 .dataIp(TEST_IP)
                 .state(KubevirtNodeState.INIT)
@@ -149,6 +151,7 @@ public final class DefaultKubevirtNodeTest extends KubevirtNodeTest {
         DefaultKubevirtNode.builder()
                 .hostname(HOSTNAME_1)
                 .intgBridge(DEVICE_1.id())
+                .tunBridge(DEVICE_1.id())
                 .managementIp(TEST_IP)
                 .dataIp(TEST_IP)
                 .state(KubevirtNodeState.INIT)
@@ -165,6 +168,7 @@ public final class DefaultKubevirtNodeTest extends KubevirtNodeTest {
                 .hostname(HOSTNAME_1)
                 .type(KubevirtNode.Type.WORKER)
                 .intgBridge(DEVICE_1.id())
+                .tunBridge(DEVICE_1.id())
                 .dataIp(TEST_IP)
                 .state(KubevirtNodeState.INIT)
                 .build();

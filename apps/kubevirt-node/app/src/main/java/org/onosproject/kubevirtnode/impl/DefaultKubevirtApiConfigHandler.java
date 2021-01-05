@@ -25,6 +25,7 @@ import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.kubevirtnode.api.DefaultKubevirtNode;
+import org.onosproject.kubevirtnode.api.DefaultKubevirtPhyInterface;
 import org.onosproject.kubevirtnode.api.KubevirtApiConfig;
 import org.onosproject.kubevirtnode.api.KubevirtApiConfigAdminService;
 import org.onosproject.kubevirtnode.api.KubevirtApiConfigEvent;
@@ -32,6 +33,7 @@ import org.onosproject.kubevirtnode.api.KubevirtApiConfigListener;
 import org.onosproject.kubevirtnode.api.KubevirtNode;
 import org.onosproject.kubevirtnode.api.KubevirtNodeAdminService;
 import org.onosproject.kubevirtnode.api.KubevirtNodeState;
+import org.onosproject.kubevirtnode.api.KubevirtPhyInterface;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -39,7 +41,10 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
@@ -61,6 +66,8 @@ public class DefaultKubevirtApiConfigHandler {
 
     private static final String INTERNAL_IP = "InternalIP";
     private static final String K8S_ROLE = "node-role.kubernetes.io";
+    private static final String DEFAULT_PHY_NETWORK = "physical.network";
+    private static final String DEFAULT_PHY_INTERFACE = "physical.interface";
 
     private static final long SLEEP_MS = 10000; // we wait 10s
 
@@ -157,13 +164,23 @@ public class DefaultKubevirtApiConfigHandler {
             }
         }
 
-        // TODO: need to config the physnet obtained from node's annotation
+        // start to parse kubernetes annotation
+        Map<String, String> annots = node.getMetadata().getAnnotations();
+        String physnet = annots.get(DEFAULT_PHY_NETWORK);
+        String physintf = annots.get(DEFAULT_PHY_INTERFACE);
+
+        Set<KubevirtPhyInterface> phys = new HashSet<>();
+        if (physnet != null && physintf != null) {
+            phys.add(DefaultKubevirtPhyInterface.builder().network(physnet).intf(physintf).build());
+        }
+
         return DefaultKubevirtNode.builder()
                 .hostname(hostname)
                 .managementIp(managementIp)
                 .dataIp(dataIp)
                 .type(nodeType)
                 .state(KubevirtNodeState.ON_BOARDED)
+                .phyIntfs(phys)
                 .build();
     }
 

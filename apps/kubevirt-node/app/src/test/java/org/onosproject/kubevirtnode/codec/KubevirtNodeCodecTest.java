@@ -96,6 +96,7 @@ public class KubevirtNodeCodecTest {
                 .state(KubevirtNodeState.INIT)
                 .managementIp(IpAddress.valueOf("10.10.10.1"))
                 .intgBridge(DeviceId.deviceId("br-int"))
+                .tunBridge(DeviceId.deviceId("br-tun"))
                 .dataIp(IpAddress.valueOf("20.20.20.2"))
                 .phyIntfs(ImmutableList.of(phyIntf1, phyIntf2))
                 .build();
@@ -118,6 +119,7 @@ public class KubevirtNodeCodecTest {
         assertThat(node.managementIp().toString(), is("172.16.130.4"));
         assertThat(node.dataIp().toString(), is("172.16.130.4"));
         assertThat(node.intgBridge().toString(), is("of:00000000000000a1"));
+        assertThat(node.tunBridge().toString(), is("of:00000000000000a2"));
         assertThat(node.phyIntfs().size(), is(2));
 
         node.phyIntfs().forEach(intf -> {

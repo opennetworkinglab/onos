@@ -29,6 +29,7 @@ public final class KubevirtNodeJsonMatcher extends TypeSafeDiagnosingMatcher<Jso
 
     private final KubevirtNode node;
     private static final String INTEGRATION_BRIDGE = "integrationBridge";
+    private static final String TUNNEL_BRIDGE = "tunnelBridge";
     private static final String STATE = "state";
     private static final String PHYSICAL_INTERFACES = "phyIntfs";
 
@@ -68,6 +69,16 @@ public final class KubevirtNodeJsonMatcher extends TypeSafeDiagnosingMatcher<Jso
             String intgBridge = node.intgBridge().toString();
             if (!jsonIntgBridge.asText().equals(intgBridge)) {
                 description.appendText("integration bridge was " + jsonIntgBridge);
+                return false;
+            }
+        }
+
+        // check tunnel bridge
+        JsonNode jsonTunBridge = jsonNode.get(TUNNEL_BRIDGE);
+        if (jsonTunBridge != null) {
+            String tunBridge = node.tunBridge().toString();
+            if (!jsonTunBridge.asText().equals(tunBridge)) {
+                description.appendText("tunnel bridge was " + jsonTunBridge);
                 return false;
             }
         }

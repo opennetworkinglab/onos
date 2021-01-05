@@ -82,4 +82,13 @@ public interface KubevirtNodeService extends ListenerService<KubevirtNodeEvent, 
      * @return kubevirt node
      */
     KubevirtNode node(IpAddress mgmtIp);
+
+    /**
+     * Returns the node with the specified tunnel device ID.
+     * The device ID tunnel bridge.
+     *
+     * @param deviceId device id
+     * @return kubevirt node
+     */
+    KubevirtNode nodeByTunBridge(DeviceId deviceId);
 }
