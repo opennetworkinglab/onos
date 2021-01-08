@@ -492,12 +492,10 @@ class NextObjectiveTranslator
     }
 
     private boolean isGroupModifyOp(NextObjective obj) {
-        // If operation is ADD_TO_EXIST, REMOVE_FROM_EXIST or MODIFY, it means we modify
+        // If operation is ADD_TO_EXIST, REMOVE_FROM_EXIST it means we modify
         // group buckets only, no changes for flow rules.
-        // FIXME Please note that for MODIFY op this could not apply in future if we extend the scope of MODIFY
         return obj.op() == Objective.Operation.ADD_TO_EXISTING ||
-                obj.op() == Objective.Operation.REMOVE_FROM_EXISTING ||
-                obj.op() == Objective.Operation.MODIFY;
+                obj.op() == Objective.Operation.REMOVE_FROM_EXISTING;
     }
 
     private boolean isXconnect(NextObjective obj) {

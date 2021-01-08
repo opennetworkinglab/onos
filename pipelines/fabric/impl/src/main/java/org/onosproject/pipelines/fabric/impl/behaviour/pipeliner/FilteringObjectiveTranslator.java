@@ -71,6 +71,7 @@ class FilteringObjectiveTranslator
             .withId(FabricConstants.FABRIC_INGRESS_FILTERING_DENY)
             .build();
 
+    private static final int INTERFACE_CONFIG_UPDATE = 2;
 
     FilteringObjectiveTranslator(DeviceId deviceId, FabricCapabilities capabilities) {
         super(deviceId, capabilities);
@@ -101,7 +102,7 @@ class FilteringObjectiveTranslator
                 obj.conditions(), Criterion.Type.ETH_DST_MASKED);
 
         ingressPortVlanRule(obj, inPort, outerVlan, innerVlan, resultBuilder);
-        if (shouldAddFwdClassifierRule(obj)) {
+        if (shouldModifyFwdClassifierTable(obj)) {
             fwdClassifierRules(obj, inPort, ethDst, ethDstMasked, resultBuilder);
         } else {
             log.debug("Skipping fwd classifier rules for device {}.", deviceId);
@@ -109,18 +110,42 @@ class FilteringObjectiveTranslator
         return resultBuilder.build();
     }
 
-    private boolean shouldAddFwdClassifierRule(FilteringObjective obj) {
+    private boolean shouldModifyFwdClassifierTable(FilteringObjective obj) {
         // NOTE: in fabric pipeline the forwarding classifier acts similarly
         // to the TMAC table of OFDPA that matches on input port.
+        // NOTE: that SR signals when it is a port update event by not setting
+        // the INTERFACE_CONFIG_UPDATE metadata. During the INTERFACE_CONFIG_UPDATE
+        // there is no need to add/remove rules in the fwd_classifier table.
+        // NOTE: that in scenarios like (T, N) -> T where we remove only the native
+        // VLAN there is not an ADD following the remove.
 
-        // Forwarding classifier rules should be added to translation when:
-        // - the operation is ADD OR
-        // - it doesn't refer to double tagged traffic OR
+        // Forwarding classifier rules should be added/removed to translation when:
+        // - the operation is ADD
+        //     AND it is a port update event (ADD or UPDATE) OR
+        // - it doesn't refer to double tagged traffic
+        //     AND it is a port REMOVE event OR
         // - it refers to double tagged traffic
         //     and SR is triggering the removal of forwarding classifier rules.
-        return obj.op() == Objective.Operation.ADD ||
-                !isDoubleTagged(obj) ||
+        return (obj.op() == Objective.Operation.ADD && !isInterfaceConfigUpdate(obj)) ||
+                (!isDoubleTagged(obj) && !isInterfaceConfigUpdate(obj)) ||
                 (isDoubleTagged(obj) && isLastDoubleTaggedForPort(obj));
+    }
+
+    /**
+     * Check if the given filtering objective is triggered by a interface config change.
+     *
+     * @param obj Filtering objective to check.
+     * @return True if SR is signaling to not remove the forwarding classifier rule,
+     * false otherwise.
+     */
+    private boolean isInterfaceConfigUpdate(FilteringObjective obj) {
+        if (obj.meta() == null) {
+            return false;
+        }
+        Instructions.MetadataInstruction meta = obj.meta().writeMetadata();
+        // SR is setting this metadata when an interface config update has
+        // been performed and thus fwd classifier rules should not be removed
+        return (meta != null && (meta.metadata() & meta.metadataMask()) == INTERFACE_CONFIG_UPDATE);
     }
 
     /**
