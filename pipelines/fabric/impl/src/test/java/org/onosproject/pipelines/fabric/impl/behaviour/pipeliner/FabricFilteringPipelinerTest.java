@@ -344,6 +344,57 @@ public class FabricFilteringPipelinerTest extends FabricPipelinerTest {
         assertError(ObjectiveError.BADPARAMS, result2);
     }
 
+    /**
+     * Test port update scenarios for filtering objective. Creates only one rule for
+     * ingress_port_vlan table.
+     */
+    @Test
+    public void testPortUpdate() throws FabricPipelinerException {
+        // Tagged port scenario
+        FilteringObjective filteringObjective = DefaultFilteringObjective.builder()
+                .withKey(Criteria.matchInPort(PORT_1))
+                .addCondition(Criteria.matchEthDst(ROUTER_MAC))
+                .addCondition(Criteria.matchVlanId(VLAN_100))
+                .withPriority(PRIORITY)
+                .fromApp(APP_ID)
+                .withMeta(DefaultTrafficTreatment.builder()
+                        .writeMetadata(2, 0xffffffffffffffffL)
+                        .build())
+                .permit()
+                .add();
+        ObjectiveTranslation actualTranslation = translator.translate(filteringObjective);
+        Collection<FlowRule> expectedFlowRules = Lists.newArrayList();
+        // Ingress port vlan rule
+        expectedFlowRules.add(buildExpectedVlanInPortRule(
+                PORT_1, VLAN_100, null, VlanId.NONE,
+                FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN));
+        ObjectiveTranslation expectedTranslation = buildExpectedTranslation(expectedFlowRules);
+        assertEquals(expectedTranslation, actualTranslation);
+
+        // Untagged port scenario
+        filteringObjective = DefaultFilteringObjective.builder()
+                .withKey(Criteria.matchInPort(PORT_1))
+                .addCondition(Criteria.matchEthDst(ROUTER_MAC))
+                .addCondition(Criteria.matchVlanId(VlanId.NONE))
+                .withPriority(PRIORITY)
+                .fromApp(APP_ID)
+                .withMeta(DefaultTrafficTreatment.builder()
+                        .pushVlan()
+                        .setVlanId(VLAN_200)
+                        .writeMetadata(2, 0xffffffffffffffffL)
+                        .build())
+                .permit()
+                .add();
+        actualTranslation = translator.translate(filteringObjective);
+        expectedFlowRules = Lists.newArrayList();
+        // Ingress port vlan rule
+        expectedFlowRules.add(buildExpectedVlanInPortRule(
+                PORT_1, VlanId.NONE, null, VLAN_200,
+                FabricConstants.FABRIC_INGRESS_FILTERING_INGRESS_PORT_VLAN));
+        expectedTranslation = buildExpectedTranslation(expectedFlowRules);
+        assertEquals(expectedTranslation, actualTranslation);
+    }
+
     /* Utilities */
 
     private void assertError(ObjectiveError error, ObjectiveTranslation actualTranslation) {
