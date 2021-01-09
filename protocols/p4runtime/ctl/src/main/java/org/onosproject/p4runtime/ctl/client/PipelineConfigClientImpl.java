@@ -166,16 +166,20 @@ final class PipelineConfigClientImpl implements P4RuntimePipelineConfigClient {
     private boolean comparePipelineConfig(
             PiPipeconf pipeconf, ForwardingPipelineConfig cfgFromDevice) {
         if (cfgFromDevice == null) {
+            log.debug("Failed to comparePipelineConfig. cfgFromDevice is null");
             return false;
         }
 
         final ForwardingPipelineConfig expectedCfg = buildForwardingPipelineConfigMsg(
                 pipeconf, null);
         if (expectedCfg == null) {
+            // Problem logged by buildForwardingPipelineConfigMsg
             return false;
         }
 
         if (cfgFromDevice.hasCookie()) {
+            log.debug("Cookie from device = {}", cfgFromDevice.getCookie().getCookie());
+            log.debug("Pipeconf fingerprint = {}", pipeconf.fingerprint());
             return cfgFromDevice.getCookie().getCookie() == pipeconf.fingerprint();
         }
 
