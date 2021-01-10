@@ -1,0 +1,163 @@
+/*
+ * Copyright 2021-present Open Networking Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.onosproject.kubevirtnetworking.impl;
+
+
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableSet;
+import org.onosproject.core.ApplicationId;
+import org.onosproject.core.CoreService;
+import org.onosproject.event.ListenerRegistry;
+import org.onosproject.kubevirtnetworking.api.KubevirtNetwork;
+import org.onosproject.kubevirtnetworking.api.KubevirtNetworkAdminService;
+import org.onosproject.kubevirtnetworking.api.KubevirtNetworkEvent;
+import org.onosproject.kubevirtnetworking.api.KubevirtNetworkListener;
+import org.onosproject.kubevirtnetworking.api.KubevirtNetworkService;
+import org.onosproject.kubevirtnetworking.api.KubevirtNetworkStore;
+import org.onosproject.kubevirtnetworking.api.KubevirtNetworkStoreDelegate;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.slf4j.Logger;
+
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onosproject.kubevirtnetworking.api.Constants.KUBEVIRT_NETWORKING_APP_ID;
+import static org.slf4j.LoggerFactory.getLogger;
+
+/**
+ * Provides implementation of administering and interfacing kubevirt network.
+ */
+@Component(
+        immediate = true,
+        service = {KubevirtNetworkAdminService.class, KubevirtNetworkService.class}
+)
+public class KubevirtNetworkManager
+        extends ListenerRegistry<KubevirtNetworkEvent, KubevirtNetworkListener>
+        implements KubevirtNetworkAdminService, KubevirtNetworkService {
+
+    protected final Logger log = getLogger(getClass());
+
+    private static final String MSG_NETWORK  = "Kubernetes network %s %s";
+
+    private static final String MSG_CREATED = "created";
+    private static final String MSG_UPDATED = "updated";
+    private static final String MSG_REMOVED = "removed";
+
+    private static final String ERR_NULL_NETWORK  = "Kubernetes network cannot be null";
+    private static final String ERR_NULL_NETWORK_ID  = "Kubernetes network ID cannot be null";
+
+    private static final String ERR_IN_USE = " still in use";
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected CoreService coreService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected KubevirtNetworkStore networkStore;
+
+    private final KubevirtNetworkStoreDelegate delegate = new InternalNetworkStorageDelegate();
+
+    private ApplicationId appId;
+
+    @Activate
+    protected void activate() {
+        appId = coreService.registerApplication(KUBEVIRT_NETWORKING_APP_ID);
+
+        networkStore.setDelegate(delegate);
+        log.info("Started");
+    }
+
+    @Deactivate
+    protected void deactivate() {
+        networkStore.unsetDelegate(delegate);
+        log.info("Stopped");
+    }
+
+    @Override
+    public void createNetwork(KubevirtNetwork network) {
+        checkNotNull(network, ERR_NULL_NETWORK);
+        checkArgument(!Strings.isNullOrEmpty(network.networkId()), ERR_NULL_NETWORK_ID);
+
+        networkStore.createNetwork(network);
+
+        log.info(String.format(MSG_NETWORK, network.name(), MSG_CREATED));
+    }
+
+    @Override
+    public void updateNetwork(KubevirtNetwork network) {
+        checkNotNull(network, ERR_NULL_NETWORK);
+        checkArgument(!Strings.isNullOrEmpty(network.networkId()), ERR_NULL_NETWORK_ID);
+
+        networkStore.updateNetwork(network);
+
+        log.info(String.format(MSG_NETWORK, network.networkId(), MSG_UPDATED));
+    }
+
+    @Override
+    public void removeNetwork(String networkId) {
+        checkArgument(!Strings.isNullOrEmpty(networkId), ERR_NULL_NETWORK_ID);
+
+        synchronized (this) {
+//            if (isNetworkInUse(networkId)) {
+//                final String error = String.format(MSG_NETWORK, networkId, ERR_IN_USE);
+//                throw new IllegalStateException(error);
+//            }
+            KubevirtNetwork network = networkStore.removeNetwork(networkId);
+
+            if (network != null) {
+                log.info(String.format(MSG_NETWORK, network.name(), MSG_REMOVED));
+            }
+        }
+    }
+
+    @Override
+    public void clear() {
+        networkStore.clear();
+    }
+
+    @Override
+    public KubevirtNetwork network(String networkId) {
+        checkArgument(!Strings.isNullOrEmpty(networkId), ERR_NULL_NETWORK_ID);
+        return networkStore.network(networkId);
+    }
+
+    @Override
+    public Set<KubevirtNetwork> networks() {
+        return ImmutableSet.copyOf(networkStore.networks());
+    }
+
+    @Override
+    public Set<KubevirtNetwork> networks(KubevirtNetwork.Type type) {
+        return ImmutableSet.copyOf(networkStore.networks().stream()
+                .filter(n -> n.type() == type).collect(Collectors.toSet()));
+    }
+
+    private class InternalNetworkStorageDelegate implements KubevirtNetworkStoreDelegate {
+
+        @Override
+        public void notify(KubevirtNetworkEvent event) {
+            if (event != null) {
+                log.trace("send kubevirt networking event {}", event);
+                process(event);
+            }
+        }
+    }
+}
