@@ -24,6 +24,8 @@ import org.onosproject.net.pi.model.PiPacketOperationType;
 import java.util.List;
 import java.util.Objects;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 /**
  * Implementation of PiPacketOperationModel for P4Runtime.
  */
@@ -33,7 +35,7 @@ final class P4PacketOperationModel implements PiPacketOperationModel {
     private final ImmutableList<PiPacketMetadataModel> metadatas;
 
     P4PacketOperationModel(PiPacketOperationType type,
-                                  ImmutableList<PiPacketMetadataModel> metadatas) {
+                           ImmutableList<PiPacketMetadataModel> metadatas) {
         this.type = type;
         this.metadatas = metadatas;
     }
@@ -64,5 +66,13 @@ final class P4PacketOperationModel implements PiPacketOperationModel {
         final P4PacketOperationModel other = (P4PacketOperationModel) obj;
         return Objects.equals(this.type, other.type)
                 && Objects.equals(this.metadatas, other.metadatas);
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("type", type)
+                .add("metadatas", metadatas)
+                .toString();
     }
 }

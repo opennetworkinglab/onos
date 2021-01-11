@@ -20,6 +20,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import com.google.common.hash.Hashing;
+import com.google.common.hash.HashingInputStream;
 import com.google.protobuf.ExtensionRegistry;
 import com.google.protobuf.TextFormat;
 import org.onosproject.net.pi.model.PiActionId;
@@ -135,6 +137,19 @@ public final class P4InfoParser {
             throw new P4InfoParserException("Unable to parse protobuf " + p4InfoUrl.toString(), e);
         }
 
+        // Generate fingerprint of the pipeline by hashing p4info file
+        final int fingerprint;
+        try {
+            HashingInputStream hin = new HashingInputStream(Hashing.crc32(), p4InfoUrl.openStream());
+            //noinspection StatementWithEmptyBody
+            while (hin.read() != -1) {
+                // Do nothing. Reading all input stream to update hash.
+            }
+            fingerprint = hin.hash().asInt();
+        } catch (IOException e) {
+            throw new P4InfoParserException("Unable to generate fingerprint " + p4InfoUrl.toString(), e);
+        }
+
         // Start by parsing and mapping instances to to their integer P4Info IDs.
         // Convenient to build the table model at the end.
 
@@ -243,7 +258,8 @@ public final class P4InfoParser {
                 meterImmMap,
                 registerImmMap,
                 actProfileImmMap,
-                ImmutableMap.copyOf(pktOpMap));
+                ImmutableMap.copyOf(pktOpMap),
+                fingerprint);
     }
 
 
