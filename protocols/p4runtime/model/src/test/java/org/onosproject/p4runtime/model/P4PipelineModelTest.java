@@ -340,12 +340,18 @@ public class P4PipelineModelTest {
                     .put(PI_PACKET_OPERATION_TYPE_2, P4_PACKET_OPERATION_MODEL_2)
                     .build();
 
+    private static final int FINGER_PRINT_1 = 0;
+    private static final int FINGER_PRINT_2 = 1;
+
     private static final PiPipelineModel P4_PIPELINE_MODEL_1 =
-            new P4PipelineModel(TABLES_1, COUNTERS_1, METERS_1, REGISTERS_1, ACTION_PROFILES_1, PACKET_OPERATIONS_1);
+            new P4PipelineModel(TABLES_1, COUNTERS_1, METERS_1, REGISTERS_1, ACTION_PROFILES_1, PACKET_OPERATIONS_1,
+                    FINGER_PRINT_1);
     private static final PiPipelineModel SAME_AS_P4_PIPELINE_MODEL_1 =
-            new P4PipelineModel(TABLES_1, COUNTERS_1, METERS_1, REGISTERS_1, ACTION_PROFILES_1, PACKET_OPERATIONS_1);
+            new P4PipelineModel(TABLES_1, COUNTERS_1, METERS_1, REGISTERS_1, ACTION_PROFILES_1, PACKET_OPERATIONS_1,
+                    FINGER_PRINT_1);
     private static final PiPipelineModel P4_PIPELINE_MODEL_2 =
-            new P4PipelineModel(TABLES_2, COUNTERS_2, METERS_2, REGISTERS_1, ACTION_PROFILES_2, PACKET_OPERATIONS_2);
+            new P4PipelineModel(TABLES_2, COUNTERS_2, METERS_2, REGISTERS_1, ACTION_PROFILES_2, PACKET_OPERATIONS_2,
+                    FINGER_PRINT_2);
 
     /**
      * Checks that the P4PipelineModel class is immutable.

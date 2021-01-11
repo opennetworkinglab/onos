@@ -23,6 +23,8 @@ import org.onosproject.net.pi.model.PiTableId;
 
 import java.util.Objects;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 /**
  * Implementation of PiMeterModel for P4Runtime.
  */
@@ -86,5 +88,16 @@ final class P4MeterModel implements PiMeterModel {
                 && Objects.equals(this.unit, other.unit)
                 && Objects.equals(this.table, other.table)
                 && Objects.equals(this.size, other.size);
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("id", id)
+                .add("meterType", meterType)
+                .add("unit", unit)
+                .add("table", table)
+                .add("size", size)
+                .toString();
     }
 }

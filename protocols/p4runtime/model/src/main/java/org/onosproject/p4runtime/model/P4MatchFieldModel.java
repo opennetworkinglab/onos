@@ -22,6 +22,8 @@ import org.onosproject.net.pi.model.PiMatchType;
 
 import java.util.Objects;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 /**
  * Implementation of PiMatchFieldModel for P4Runtime.
  */
@@ -69,5 +71,14 @@ final class P4MatchFieldModel implements PiMatchFieldModel {
         return Objects.equals(this.id, other.id)
                 && Objects.equals(this.bitWidth, other.bitWidth)
                 && Objects.equals(this.matchType, other.matchType);
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("id", id)
+                .add("bitWidth", bitWidth)
+                .add("matchType", matchType)
+                .toString();
     }
 }
