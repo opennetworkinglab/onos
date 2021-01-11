@@ -21,6 +21,8 @@ import org.onosproject.net.pi.model.PiPacketMetadataModel;
 
 import java.util.Objects;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 /**
  * Implementation of PiPacketMetadataModel for P4Runtime.
  */
@@ -60,5 +62,13 @@ final class P4PacketMetadataModel implements PiPacketMetadataModel {
         final P4PacketMetadataModel other = (P4PacketMetadataModel) obj;
         return Objects.equals(this.id, other.id)
                 && Objects.equals(this.bitWidth, other.bitWidth);
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("id", id)
+                .add("bitWidth", bitWidth)
+                .toString();
     }
 }

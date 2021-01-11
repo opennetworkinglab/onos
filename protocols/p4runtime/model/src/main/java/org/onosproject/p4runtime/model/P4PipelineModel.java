@@ -35,6 +35,8 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 /**
  * Implementation of PiPipelineModel for P4Runtime.
  */
@@ -46,6 +48,7 @@ final class P4PipelineModel implements PiPipelineModel {
     private final ImmutableMap<PiRegisterId, PiRegisterModel> registers;
     private final ImmutableMap<PiActionProfileId, PiActionProfileModel> actionProfiles;
     private final ImmutableMap<PiPacketOperationType, PiPacketOperationModel> packetOperations;
+    private final int fingerprint;
 
     P4PipelineModel(
             ImmutableMap<PiTableId, PiTableModel> tables,
@@ -53,13 +56,15 @@ final class P4PipelineModel implements PiPipelineModel {
             ImmutableMap<PiMeterId, PiMeterModel> meters,
             ImmutableMap<PiRegisterId, PiRegisterModel> registers,
             ImmutableMap<PiActionProfileId, PiActionProfileModel> actionProfiles,
-            ImmutableMap<PiPacketOperationType, PiPacketOperationModel> packetOperations) {
+            ImmutableMap<PiPacketOperationType, PiPacketOperationModel> packetOperations,
+            int fingerprint) {
         this.tables = tables;
         this.counters = counters;
         this.meters = meters;
         this.registers = registers;
         this.actionProfiles = actionProfiles;
         this.packetOperations = packetOperations;
+        this.fingerprint = fingerprint;
     }
 
     @Override
@@ -120,7 +125,11 @@ final class P4PipelineModel implements PiPipelineModel {
 
     @Override
     public int hashCode() {
-        return Objects.hash(tables, counters, meters, actionProfiles, packetOperations);
+        // NOTE: that the fingerprint is derived by hashing the p4Info file
+        //       this because the hashcode is not deterministic across multiple
+        //       JVMs instance. This hashcode is also used to derive the fingerprint
+        //       of the pipeconf.
+        return fingerprint;
     }
 
     @Override
@@ -135,7 +144,22 @@ final class P4PipelineModel implements PiPipelineModel {
         return Objects.equals(this.tables, other.tables)
                 && Objects.equals(this.counters, other.counters)
                 && Objects.equals(this.meters, other.meters)
+                && Objects.equals(this.registers, other.registers)
                 && Objects.equals(this.actionProfiles, other.actionProfiles)
-                && Objects.equals(this.packetOperations, other.packetOperations);
+                && Objects.equals(this.packetOperations, other.packetOperations)
+                && this.fingerprint == other.fingerprint;
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("tables", tables.values())
+                .add("counters", counters.values())
+                .add("meters", meters.values())
+                .add("registers", registers.values())
+                .add("actionProfiles", actionProfiles.values())
+                .add("packetOperations", packetOperations.values())
+                .add("fingerprint", fingerprint)
+                .toString();
     }
 }

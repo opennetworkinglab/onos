@@ -21,6 +21,8 @@ import org.onosproject.net.pi.model.PiRegisterId;
 
 import java.util.Objects;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 /**
  * Implementation of PiRegisterModel for P4Runtime.
  */
@@ -60,5 +62,13 @@ final class P4RegisterModel implements PiRegisterModel {
         final P4RegisterModel other = (P4RegisterModel) obj;
         return Objects.equals(this.id, other.id)
                 && Objects.equals(this.size, other.size);
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("id", id)
+                .add("size", size)
+                .toString();
     }
 }

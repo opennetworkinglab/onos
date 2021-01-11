@@ -34,6 +34,8 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 /**
  * Implementation of PiTableModel for P4Runtime.
  */
@@ -163,5 +165,22 @@ final class P4TableModel implements PiTableModel {
                 && Objects.equals(this.matchFields, other.matchFields)
                 && Objects.equals(this.actions, other.actions)
                 && Objects.equals(this.constDefaultAction, other.constDefaultAction);
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("id", id)
+                .add("tableType", tableType)
+                .add("actionProfile", actionProfile)
+                .add("maxSize", maxSize)
+                .add("counters", counters)
+                .add("meters", meters)
+                .add("supportAging", supportAging)
+                .add("matchFields", matchFields)
+                .add("actions", actions)
+                .add("constDefaultAction", constDefaultAction)
+                .add("isConstTable", isConstTable)
+                .toString();
     }
 }

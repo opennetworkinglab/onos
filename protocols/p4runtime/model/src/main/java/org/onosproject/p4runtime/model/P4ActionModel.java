@@ -26,6 +26,8 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 
+import static com.google.common.base.MoreObjects.toStringHelper;
+
 /**
  * Implementation of PiActionModel for P4Runtime.
  */
@@ -71,5 +73,13 @@ final class P4ActionModel implements PiActionModel {
         final P4ActionModel other = (P4ActionModel) obj;
         return Objects.equals(this.id, other.id)
                 && Objects.equals(this.params, other.params);
+    }
+
+    @Override
+    public String toString() {
+        return toStringHelper(this)
+                .add("id", id)
+                .add("params", params.values())
+                .toString();
     }
 }
