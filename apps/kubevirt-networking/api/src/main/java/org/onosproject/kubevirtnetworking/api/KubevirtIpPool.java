@@ -44,7 +44,7 @@ public class KubevirtIpPool {
      *
      * @return start address of IP pool
      */
-    public IpAddress getStart() {
+    public IpAddress start() {
         return start;
     }
 
@@ -53,7 +53,7 @@ public class KubevirtIpPool {
      *
      * @return end address of IP pool
      */
-    public IpAddress getEnd() {
+    public IpAddress end() {
         return end;
     }
 

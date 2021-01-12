@@ -39,7 +39,7 @@ public final class DefaultKubevirtNetwork implements KubevirtNetwork {
     private final String segmentId;
     private final IpAddress gatewayIp;
     private final String cidr;
-    private final Set<KubevirtHostRoute> hostRouts;
+    private final Set<KubevirtHostRoute> hostRoutes;
     private final KubevirtIpPool ipPool;
 
     /**
@@ -52,12 +52,12 @@ public final class DefaultKubevirtNetwork implements KubevirtNetwork {
      * @param segmentId         segment identifier
      * @param gatewayIp         gateway IP address
      * @param cidr              CIDR of network
-     * @param hostRouts         a set of host routes
+     * @param hostRoutes        a set of host routes
      * @param ipPool            IP pool
      */
     public DefaultKubevirtNetwork(String networkId, Type type, String name,
                                   Integer mtu, String segmentId, IpAddress gatewayIp,
-                                  String cidr, Set<KubevirtHostRoute> hostRouts,
+                                  String cidr, Set<KubevirtHostRoute> hostRoutes,
                                   KubevirtIpPool ipPool) {
         this.networkId = networkId;
         this.type = type;
@@ -66,7 +66,7 @@ public final class DefaultKubevirtNetwork implements KubevirtNetwork {
         this.segmentId = segmentId;
         this.gatewayIp = gatewayIp;
         this.cidr = cidr;
-        this.hostRouts = hostRouts;
+        this.hostRoutes = hostRoutes;
         this.ipPool = ipPool;
     }
 
@@ -106,8 +106,8 @@ public final class DefaultKubevirtNetwork implements KubevirtNetwork {
     }
 
     @Override
-    public Set<KubevirtHostRoute> hostRouts() {
-        return ImmutableSet.copyOf(hostRouts);
+    public Set<KubevirtHostRoute> hostRoutes() {
+        return ImmutableSet.copyOf(hostRoutes);
     }
 
     @Override
@@ -127,14 +127,14 @@ public final class DefaultKubevirtNetwork implements KubevirtNetwork {
         return networkId.equals(that.networkId) && type == that.type &&
                 name.equals(that.name) && mtu.equals(that.mtu) &&
                 gatewayIp.equals(that.gatewayIp) &&
-                cidr.equals(that.cidr) && hostRouts.equals(that.hostRouts) &&
+                cidr.equals(that.cidr) && hostRoutes.equals(that.hostRoutes) &&
                 ipPool.equals(that.ipPool);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(networkId, type, name, mtu, segmentId, gatewayIp,
-                cidr, hostRouts, ipPool);
+                cidr, hostRoutes, ipPool);
     }
 
     @Override
@@ -147,7 +147,7 @@ public final class DefaultKubevirtNetwork implements KubevirtNetwork {
                 .add("segmentId", segmentId)
                 .add("gatewayIp", gatewayIp)
                 .add("cidr", cidr)
-                .add("hostRouts", hostRouts)
+                .add("hostRouts", hostRoutes)
                 .add("ipPool", ipPool)
                 .toString();
     }
