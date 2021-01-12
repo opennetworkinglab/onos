@@ -60,7 +60,7 @@ public final class KubevirtPhyInterfaceJsonMatcher extends TypeSafeDiagnosingMat
     }
 
     /**
-     * Factory to allocate an openstack physical interface matcher.
+     * Factory to allocate an kubevirt physical interface matcher.
      *
      * @param phyIntf kubevirt physical interface object we are looking for
      * @return matcher

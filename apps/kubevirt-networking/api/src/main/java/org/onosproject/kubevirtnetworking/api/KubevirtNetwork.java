@@ -104,7 +104,7 @@ public interface KubevirtNetwork {
      *
      * @return host routes
      */
-    Set<KubevirtHostRoute> hostRouts();
+    Set<KubevirtHostRoute> hostRoutes();
 
     /**
      * Returns the IP pool.

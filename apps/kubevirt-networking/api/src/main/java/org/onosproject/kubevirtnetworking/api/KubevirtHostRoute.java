@@ -44,7 +44,7 @@ public class KubevirtHostRoute {
      *
      * @return destination CIDR
      */
-    public IpPrefix getDestination() {
+    public IpPrefix destination() {
         return destination;
     }
 
@@ -53,7 +53,7 @@ public class KubevirtHostRoute {
      *
      * @return nexthop IP address
      */
-    public IpAddress getNexthop() {
+    public IpAddress nexthop() {
         return nexthop;
     }
 
