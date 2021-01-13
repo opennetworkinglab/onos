@@ -1,0 +1,12 @@
+{
+  "networkId": "network",
+  "name": "network",
+  "type": "FLAT",
+  "mtu": 1500,
+  "cidr": "10.10.10.0/24",
+  "gatewayIp": "10.10.10.1",
+  "ipPool": {
+    "start": "10.10.10.100",
+    "end": "10.10.10.200"
+  }
+}

@@ -25,6 +25,6 @@ import java.util.Set;
 public class KubevirtNetworkingWebApplication extends AbstractWebApplication {
     @Override
     public Set<Class<?>> getClasses() {
-        return getClasses(KubevirtNetworkingWebResource.class);
+        return getClasses(KubevirtNetworkWebResource.class);
     }
 }

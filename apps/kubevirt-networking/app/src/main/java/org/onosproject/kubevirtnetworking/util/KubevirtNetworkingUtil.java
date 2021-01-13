@@ -15,11 +15,14 @@
  */
 package org.onosproject.kubevirtnetworking.util;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.StringUtils;
 import org.onosproject.cfg.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -68,5 +71,38 @@ public final class KubevirtNetworkingUtil {
         }
 
         return portName;
+    }
+
+    /**
+     * Generates string format based on the given string length list.
+     *
+     * @param stringLengths a list of string lengths
+     * @return string format (e.g., %-28s%-15s%-24s%-20s%-15s)
+     */
+    public static String genFormatString(List<Integer> stringLengths) {
+        StringBuilder fsb = new StringBuilder();
+        stringLengths.forEach(length -> {
+            fsb.append("%-");
+            fsb.append(length);
+            fsb.append("s");
+        });
+        return fsb.toString();
+    }
+
+    /**
+     * Prints out the JSON string in pretty format.
+     *
+     * @param mapper        Object mapper
+     * @param jsonString    JSON string
+     * @return pretty formatted JSON string
+     */
+    public static String prettyJson(ObjectMapper mapper, String jsonString) {
+        try {
+            Object jsonObject = mapper.readValue(jsonString, Object.class);
+            return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonObject);
+        } catch (IOException e) {
+            log.debug("Json string parsing exception caused by {}", e);
+        }
+        return null;
     }
 }
