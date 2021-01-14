@@ -166,6 +166,7 @@
     "httpclient-osgi": "mvn:org.apache.httpcomponents:httpclient-osgi:4.5.1",
     "httpcore-osgi": "mvn:org.apache.httpcomponents:httpcore-osgi:4.4.4",
     "influxdb-java": "mvn:org.influxdb:influxdb-java:2.9",
+    "ipaddress": "mvn:com.github.seancfoley:ipaddress:5.3.3",
     "simpleclient": "mvn:io.prometheus:simpleclient:0.5.0",
     "simpleclient_common": "mvn:io.prometheus:simpleclient_common:0.5.0",
     "simpleclient_hotspot": "mvn:io.prometheus:simpleclient_hotspot:0.5.0",

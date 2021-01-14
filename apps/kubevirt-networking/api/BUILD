@@ -1,6 +1,7 @@
 COMPILE_DEPS = CORE_DEPS + [
     "@k8s_client//jar",
     "@k8s_model//jar",
+    "@ipaddress//jar",
     "@okhttp//jar",
     "@okio//jar",
     "@logging_interceptor//jar",

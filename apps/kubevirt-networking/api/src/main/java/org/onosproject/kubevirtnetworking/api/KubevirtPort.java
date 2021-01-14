@@ -26,6 +26,13 @@ import org.onosproject.net.PortNumber;
 public interface KubevirtPort {
 
     /**
+     * Returns the network identifier associated with the port.
+     *
+     * @return network identifier
+     */
+    String networkId();
+
+    /**
      * Returns the MAC address of the port.
      *
      * @return MAC address
@@ -80,6 +87,14 @@ public interface KubevirtPort {
          * @return kubernetes port
          */
         KubevirtPort build();
+
+        /**
+         * Returns port builder with supplied network identifier.
+         *
+         * @param networkId network identifier
+         * @return port builder
+         */
+        Builder networkId(String networkId);
 
         /**
          * Returns port builder with supplied MAC address.

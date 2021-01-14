@@ -115,6 +115,13 @@ public final class KubevirtNetworkCodec extends JsonCodec<KubevirtNetwork> {
                 .gatewayIp(IpAddress.valueOf(gatewayIp))
                 .cidr(cidr);
 
+        if (!type.equals(KubevirtNetwork.Type.FLAT.name())) {
+            JsonNode segmentIdJson = json.get(SEGMENT_ID);
+            if (segmentIdJson != null) {
+                networkBuilder.segmentId(segmentIdJson.asText());
+            }
+        }
+
         JsonNode ipPoolJson = json.get(IP_POOL);
         if (ipPoolJson != null) {
             final JsonCodec<KubevirtIpPool>
