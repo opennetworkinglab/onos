@@ -17,14 +17,19 @@ package org.onosproject.kubevirtnetworking.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.net.util.SubnetUtils;
+import org.onlab.packet.IpAddress;
 import org.onosproject.cfg.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * An utility that used in KubeVirt networking app.
@@ -104,5 +109,40 @@ public final class KubevirtNetworkingUtil {
             log.debug("Json string parsing exception caused by {}", e);
         }
         return null;
+    }
+
+    /**
+     * Obtains valid IP addresses of the given subnet.
+     *
+     * @param cidr CIDR
+     * @return set of IP addresses
+     */
+    public static Set<IpAddress> getSubnetIps(String cidr) {
+        SubnetUtils utils = new SubnetUtils(cidr);
+        utils.setInclusiveHostCount(false);
+        SubnetUtils.SubnetInfo info = utils.getInfo();
+        Set<String> allAddresses =
+                new HashSet<>(Arrays.asList(info.getAllAddresses()));
+
+        if (allAddresses.size() > 2) {
+            allAddresses.remove(info.getLowAddress());
+            allAddresses.remove(info.getHighAddress());
+        }
+
+        return allAddresses.stream()
+                .map(IpAddress::valueOf).collect(Collectors.toSet());
+    }
+
+    /**
+     * Calculate the broadcast address from given IP address and subnet prefix length.
+     *
+     * @param ipAddr        IP address
+     * @param prefixLength  subnet prefix length
+     * @return broadcast address
+     */
+    public static String getBroadcastAddr(String ipAddr, int prefixLength) {
+        String subnet = ipAddr + "/" + prefixLength;
+        SubnetUtils utils = new SubnetUtils(subnet);
+        return utils.getInfo().getBroadcastAddress();
     }
 }

@@ -36,6 +36,8 @@ public class DefaultKubevirtInstanceTest {
     private static final String UID_2 = "2";
     private static final String NAME_1 = "instance-1";
     private static final String NAME_2 = "instance-2";
+    private static final String NETWORK_ID_1 = "net-1";
+    private static final String NETWORK_ID_2 = "net-2";
     private static final MacAddress MAC_1 = MacAddress.valueOf("11:22:33:44:55:66");
     private static final MacAddress MAC_2 = MacAddress.valueOf("66:55:44:33:22:11");
     private static final IpAddress IP_1 = IpAddress.valueOf("10.10.10.10");
@@ -44,8 +46,8 @@ public class DefaultKubevirtInstanceTest {
     private static final DeviceId DID_2 = DeviceId.deviceId("did2");
     private static final PortNumber PN_1 = PortNumber.portNumber(1);
     private static final PortNumber PN_2 = PortNumber.portNumber(2);
-    private static final KubevirtPort PORT_1 = createPort(MAC_1, IP_1, DID_1, PN_1);
-    private static final KubevirtPort PORT_2 = createPort(MAC_2, IP_2, DID_2, PN_2);
+    private static final KubevirtPort PORT_1 = createPort(NETWORK_ID_1, MAC_1, IP_1, DID_1, PN_1);
+    private static final KubevirtPort PORT_2 = createPort(NETWORK_ID_2, MAC_2, IP_2, DID_2, PN_2);
 
     private KubevirtInstance instance1;
     private KubevirtInstance sameAsInstance1;
@@ -105,8 +107,10 @@ public class DefaultKubevirtInstanceTest {
         assertEquals(ImmutableSet.of(PORT_1), instance1.ports());
     }
 
-    static KubevirtPort createPort(MacAddress mac, IpAddress ip, DeviceId did, PortNumber pn) {
+    static KubevirtPort createPort(String networkId, MacAddress mac, IpAddress ip,
+                                   DeviceId did, PortNumber pn) {
         return DefaultKubevirtPort.builder()
+                .networkId(networkId)
                 .macAddress(mac)
                 .ipAddress(ip)
                 .deviceId(did)

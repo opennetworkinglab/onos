@@ -30,6 +30,8 @@ import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
  * Unit tests for the default kubevirt port class.
  */
 public class DefaultKubevirtPortTest {
+    private static final String NETWORK_ID_1 = "net-1";
+    private static final String NETWORK_ID_2 = "net-2";
     private static final MacAddress MAC_ADDRESS_1 = MacAddress.valueOf("00:11:22:33:44:55");
     private static final MacAddress MAC_ADDRESS_2 = MacAddress.valueOf("11:22:33:44:55:66");
     private static final IpAddress IP_ADDRESS_1 = IpAddress.valueOf("10.10.10.10");
@@ -57,6 +59,7 @@ public class DefaultKubevirtPortTest {
     @Before
     public void setUp() {
         port1 = DefaultKubevirtPort.builder()
+                .networkId(NETWORK_ID_1)
                 .macAddress(MAC_ADDRESS_1)
                 .ipAddress(IP_ADDRESS_1)
                 .deviceId(DEVICE_ID_1)
@@ -64,6 +67,7 @@ public class DefaultKubevirtPortTest {
                 .build();
 
         sameAsPort1 = DefaultKubevirtPort.builder()
+                .networkId(NETWORK_ID_1)
                 .macAddress(MAC_ADDRESS_1)
                 .ipAddress(IP_ADDRESS_1)
                 .deviceId(DEVICE_ID_1)
@@ -71,6 +75,7 @@ public class DefaultKubevirtPortTest {
                 .build();
 
         port2 = DefaultKubevirtPort.builder()
+                .networkId(NETWORK_ID_2)
                 .macAddress(MAC_ADDRESS_2)
                 .ipAddress(IP_ADDRESS_2)
                 .deviceId(DEVICE_ID_2)
@@ -95,6 +100,7 @@ public class DefaultKubevirtPortTest {
     public void testConstruction() {
         KubevirtPort port = port1;
 
+        assertEquals(NETWORK_ID_1, port.networkId());
         assertEquals(MAC_ADDRESS_1, port.macAddress());
         assertEquals(IP_ADDRESS_1, port.ipAddress());
         assertEquals(DEVICE_ID_1, port.deviceId());

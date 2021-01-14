@@ -32,6 +32,7 @@ public final class DefaultKubevirtPort implements KubevirtPort {
 
     private static final String NOT_NULL_MSG = "Port % cannot be null";
 
+    private final String networkId;
     private final MacAddress macAddress;
     private final IpAddress ipAddress;
     private final DeviceId deviceId;
@@ -40,17 +41,24 @@ public final class DefaultKubevirtPort implements KubevirtPort {
     /**
      * Default constructor.
      *
+     * @param networkId         network identifier
      * @param macAddress        MAC address
      * @param ipAddress         IP address
      * @param deviceId          device identifier
      * @param portNumber        port number
      */
-    public DefaultKubevirtPort(MacAddress macAddress, IpAddress ipAddress,
+    public DefaultKubevirtPort(String networkId, MacAddress macAddress, IpAddress ipAddress,
                                DeviceId deviceId, PortNumber portNumber) {
+        this.networkId = networkId;
         this.macAddress = macAddress;
         this.ipAddress = ipAddress;
         this.deviceId = deviceId;
         this.portNumber = portNumber;
+    }
+
+    @Override
+    public String networkId() {
+        return networkId;
     }
 
     @Override
@@ -92,18 +100,20 @@ public final class DefaultKubevirtPort implements KubevirtPort {
             return false;
         }
         DefaultKubevirtPort that = (DefaultKubevirtPort) o;
-        return macAddress.equals(that.macAddress) && ipAddress.equals(that.ipAddress) &&
-                deviceId.equals(that.deviceId) && portNumber.equals(that.portNumber);
+        return networkId.equals(that.networkId) && macAddress.equals(that.macAddress) &&
+                ipAddress.equals(that.ipAddress) && deviceId.equals(that.deviceId) &&
+                portNumber.equals(that.portNumber);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(macAddress, ipAddress, deviceId, portNumber);
+        return Objects.hash(networkId, macAddress, ipAddress, deviceId, portNumber);
     }
 
     @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
+                .add("networkId", networkId)
                 .add("macAddress", macAddress)
                 .add("ipAddress", ipAddress)
                 .add("deviceId", deviceId)
@@ -125,6 +135,7 @@ public final class DefaultKubevirtPort implements KubevirtPort {
      */
     public static final class Builder implements KubevirtPort.Builder {
 
+        private String networkId;
         private MacAddress macAddress;
         private IpAddress ipAddress;
         private DeviceId deviceId;
@@ -136,10 +147,18 @@ public final class DefaultKubevirtPort implements KubevirtPort {
 
         @Override
         public KubevirtPort build() {
+            checkArgument(networkId != null, NOT_NULL_MSG, "networkId");
             checkArgument(macAddress != null, NOT_NULL_MSG, "macAddress");
             checkArgument(ipAddress != null, NOT_NULL_MSG, "ipAddress");
 
-            return new DefaultKubevirtPort(macAddress, ipAddress, deviceId, portNumber);
+            return new DefaultKubevirtPort(networkId, macAddress, ipAddress,
+                    deviceId, portNumber);
+        }
+
+        @Override
+        public Builder networkId(String networkId) {
+            this.networkId = networkId;
+            return this;
         }
 
         @Override

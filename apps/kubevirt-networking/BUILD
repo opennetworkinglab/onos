@@ -2,6 +2,7 @@ BUNDLES = [
     "//apps/kubevirt-networking/api:onos-apps-kubevirt-networking-api",
     "//apps/kubevirt-networking/app:onos-apps-kubevirt-networking-app",
     "@commons_net//jar",
+    "@ipaddress//jar",
     "@jersey_client//jar",
     "@json//jar",
     "@k8s_client//jar",

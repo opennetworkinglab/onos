@@ -22,6 +22,7 @@ import org.junit.Test;
 import org.onlab.packet.IpAddress;
 
 import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertTrue;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.FLAT;
 import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.VXLAN;
@@ -127,5 +128,32 @@ public class DefaultKubevirtNetworkTest {
         assertEquals(GATEWAY_IP_1, network.gatewayIp());
         assertEquals(CIDR_1, network.cidr());
         assertEquals(new KubevirtIpPool(IP_POOL_START_1, IP_POOL_END_1), network.ipPool());
+    }
+
+    /**
+     * Test IP address initialization.
+     */
+    @Test
+    public void testIpInitialization() {
+        KubevirtIpPool ipPool1 = network1.ipPool();
+        assertEquals(101, ipPool1.availableIps().size());
+        assertEquals(0, ipPool1.allocatedIps().size());
+    }
+
+    /**
+     * Test IP address allocation.
+     */
+    @Test
+    public void testIpAllocationAndRelease() throws Exception {
+        KubevirtIpPool ipPool1 = network1.ipPool();
+        IpAddress ip = ipPool1.allocateIp();
+        assertEquals(100, ipPool1.availableIps().size());
+        assertEquals(1, ipPool1.allocatedIps().size());
+        assertEquals(IpAddress.valueOf("10.10.10.100"), ip);
+
+        ipPool1.releaseIp(ip);
+        assertEquals(101, ipPool1.availableIps().size());
+        assertEquals(0, ipPool1.allocatedIps().size());
+        assertTrue(ipPool1.availableIps().contains(ip));
     }
 }
