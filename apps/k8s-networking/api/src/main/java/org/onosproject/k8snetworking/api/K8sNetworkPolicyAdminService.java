@@ -15,7 +15,8 @@
  */
 package org.onosproject.k8snetworking.api;
 
-import io.fabric8.kubernetes.api.model.networking.NetworkPolicy;
+
+import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicy;
 
 /**
  * Service for administering the inventory of kubernetes network policy.

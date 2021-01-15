@@ -17,8 +17,8 @@ package org.onosproject.k8snetworking.impl;
 
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watcher;
+import io.fabric8.kubernetes.client.WatcherException;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
@@ -156,7 +156,7 @@ public class K8sPodWatcher {
         }
 
         @Override
-        public void onClose(KubernetesClientException e) {
+        public void onClose(WatcherException e) {
             log.warn("Pod watcher OnClose", e);
         }
 
