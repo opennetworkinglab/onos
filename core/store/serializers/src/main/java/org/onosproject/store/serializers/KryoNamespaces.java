@@ -167,6 +167,13 @@ import org.onosproject.net.flowobjective.NextObjective;
 import org.onosproject.net.flowobjective.NextTreatment;
 import org.onosproject.net.flowobjective.Objective;
 import org.onosproject.net.flowobjective.ObjectiveError;
+import org.onosproject.net.group.DefaultGroupBucket;
+import org.onosproject.net.group.DefaultGroupKey;
+import org.onosproject.net.group.DefaultGroup;
+import org.onosproject.net.group.DefaultGroupDescription;
+import org.onosproject.net.group.GroupDescription;
+import org.onosproject.net.group.Group;
+import org.onosproject.net.group.GroupBuckets;
 import org.onosproject.net.host.DefaultHostDescription;
 import org.onosproject.net.host.HostDescription;
 import org.onosproject.net.intent.ConnectivityIntent;
@@ -660,6 +667,13 @@ public final class KryoNamespaces {
             .register(SetEvent.class)
             .register(SetEvent.Type.class)
             .register(GroupId.class)
+            .register(DefaultGroup.class,
+                    DefaultGroupBucket.class,
+                    DefaultGroupDescription.class,
+                    DefaultGroupKey.class,
+                    GroupDescription.Type.class,
+                    Group.GroupState.class,
+                    GroupBuckets.class)
             .register(Annotations.class)
             .register(OduSignalType.class)
             .register(OchSignalType.class)
@@ -708,6 +722,7 @@ public final class KryoNamespaces {
                     PiActionParam.class,
                     PiActionProfileGroup.class,
                     PiActionProfileGroupHandle.class,
+                    PiActionProfileGroup.WeightedMember.class,
                     PiActionProfileGroupId.class,
                     PiActionProfileMember.class,
                     PiActionProfileMemberHandle.class,
