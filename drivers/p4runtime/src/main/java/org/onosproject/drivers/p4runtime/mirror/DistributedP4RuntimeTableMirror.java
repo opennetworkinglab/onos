@@ -33,4 +33,9 @@ public final class DistributedP4RuntimeTableMirror
     public DistributedP4RuntimeTableMirror() {
         super(PiEntityType.TABLE_ENTRY);
     }
+
+    @Override
+    protected String mapSimpleName() {
+        return PiEntityType.TABLE_ENTRY.name().toLowerCase();
+    }
 }
