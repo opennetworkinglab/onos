@@ -30,9 +30,7 @@ import org.onosproject.net.MastershipRole;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.group.DefaultGroup;
-import org.onosproject.net.group.DefaultGroupBucket;
 import org.onosproject.net.group.DefaultGroupDescription;
-import org.onosproject.net.group.DefaultGroupKey;
 import org.onosproject.net.group.Group;
 import org.onosproject.net.group.Group.GroupState;
 import org.onosproject.net.group.GroupBucket;
@@ -192,14 +190,7 @@ public class DistributedGroupStore
         KryoNamespace.Builder kryoBuilder = new KryoNamespace.Builder()
                 .register(KryoNamespaces.API)
                 .nextId(KryoNamespaces.BEGIN_USER_CUSTOM_ID)
-                .register(DefaultGroup.class,
-                          DefaultGroupBucket.class,
-                          DefaultGroupDescription.class,
-                          DefaultGroupKey.class,
-                          GroupDescription.Type.class,
-                          Group.GroupState.class,
-                          GroupBuckets.class,
-                          GroupStoreMessage.class,
+                .register(GroupStoreMessage.class,
                           GroupStoreMessage.Type.class,
                           UpdateType.class,
                           GroupStoreMessageSubjects.class,
