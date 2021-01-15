@@ -16,10 +16,15 @@
 package org.onosproject.kubevirtnetworking.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.fabric8.kubernetes.client.ConfigBuilder;
+import io.fabric8.kubernetes.client.DefaultKubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.net.util.SubnetUtils;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cfg.ConfigProperty;
+import org.onosproject.kubevirtnode.api.KubevirtApiConfig;
+import org.onosproject.kubevirtnode.api.KubevirtApiConfigService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +44,8 @@ public final class KubevirtNetworkingUtil {
     private static final Logger log = LoggerFactory.getLogger(KubevirtNetworkingUtil.class);
 
     private static final int PORT_NAME_MAX_LENGTH = 15;
+    private static final String COLON_SLASH = "://";
+    private static final String COLON = ":";
 
     /**
      * Prevents object installation from external.
@@ -144,5 +151,85 @@ public final class KubevirtNetworkingUtil {
         String subnet = ipAddr + "/" + prefixLength;
         SubnetUtils utils = new SubnetUtils(subnet);
         return utils.getInfo().getBroadcastAddress();
+    }
+    /**
+     * Generates endpoint URL by referring to scheme, ipAddress and port.
+     *
+     * @param scheme        scheme
+     * @param ipAddress     IP address
+     * @param port          port number
+     * @return generated endpoint URL
+     */
+    public static String endpoint(KubevirtApiConfig.Scheme scheme, IpAddress ipAddress, int port) {
+        StringBuilder endpoint = new StringBuilder();
+        String protocol = org.apache.commons.lang3.StringUtils.lowerCase(scheme.name());
+
+        endpoint.append(protocol);
+        endpoint.append(COLON_SLASH);
+        endpoint.append(ipAddress.toString());
+        endpoint.append(COLON);
+        endpoint.append(port);
+
+        return endpoint.toString();
+    }
+
+    /**
+     * Generates endpoint URL by referring to scheme, ipAddress and port.
+     *
+     * @param apiConfig     kubernetes API config
+     * @return generated endpoint URL
+     */
+    public static String endpoint(KubevirtApiConfig apiConfig) {
+        return endpoint(apiConfig.scheme(), apiConfig.ipAddress(), apiConfig.port());
+    }
+
+    /**
+     * Obtains workable kubernetes client.
+     *
+     * @param config kubernetes API config
+     * @return kubernetes client
+     */
+    public static KubernetesClient k8sClient(KubevirtApiConfig config) {
+        if (config == null) {
+            log.warn("Kubernetes API server config is empty.");
+            return null;
+        }
+
+        String endpoint = endpoint(config);
+
+        ConfigBuilder configBuilder = new ConfigBuilder().withMasterUrl(endpoint);
+
+        if (config.scheme() == KubevirtApiConfig.Scheme.HTTPS) {
+            configBuilder.withTrustCerts(true)
+                    .withOauthToken(config.token())
+                    .withCaCertData(config.caCertData())
+                    .withClientCertData(config.clientCertData())
+                    .withClientKeyData(config.clientKeyData());
+        }
+
+        return new DefaultKubernetesClient(configBuilder.build());
+    }
+
+    /**
+     * Obtains workable kubernetes client.
+     *
+     * @param service kubernetes API service
+     * @return kubernetes client
+     */
+    public static KubernetesClient k8sClient(KubevirtApiConfigService service) {
+        KubevirtApiConfig config = service.apiConfig();
+        if (config == null) {
+            log.error("Failed to find valid kubernetes API configuration.");
+            return null;
+        }
+
+        KubernetesClient client = k8sClient(config);
+
+        if (client == null) {
+            log.error("Failed to connect to kubernetes API server.");
+            return null;
+        }
+
+        return client;
     }
 }

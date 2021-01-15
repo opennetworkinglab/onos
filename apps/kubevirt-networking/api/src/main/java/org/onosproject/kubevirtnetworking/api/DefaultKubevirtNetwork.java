@@ -107,7 +107,11 @@ public final class DefaultKubevirtNetwork implements KubevirtNetwork {
 
     @Override
     public Set<KubevirtHostRoute> hostRoutes() {
-        return ImmutableSet.copyOf(hostRoutes);
+        if (hostRoutes == null || hostRoutes.size() == 0) {
+            return ImmutableSet.of();
+        } else {
+            return ImmutableSet.copyOf(hostRoutes);
+        }
     }
 
     @Override
