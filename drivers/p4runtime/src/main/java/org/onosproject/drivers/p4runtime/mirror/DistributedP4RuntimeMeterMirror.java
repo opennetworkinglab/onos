@@ -33,4 +33,9 @@ public final class DistributedP4RuntimeMeterMirror
     public DistributedP4RuntimeMeterMirror() {
         super(PiEntityType.METER_CELL_CONFIG);
     }
+
+    @Override
+    protected String mapSimpleName() {
+        return PiEntityType.METER_CELL_CONFIG.name().toLowerCase();
+    }
 }

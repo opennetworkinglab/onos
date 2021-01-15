@@ -33,4 +33,9 @@ public final class DistributedP4RuntimeActionProfileGroupMirror
     public DistributedP4RuntimeActionProfileGroupMirror() {
         super(PiEntityType.ACTION_PROFILE_GROUP);
     }
+
+    @Override
+    protected String mapSimpleName() {
+        return PiEntityType.ACTION_PROFILE_GROUP.name().toLowerCase();
+    }
 }

@@ -48,6 +48,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.String.format;
 import static org.onosproject.net.pi.service.PiPipeconfWatchdogService.PipelineStatus.READY;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -62,6 +63,8 @@ import static org.slf4j.LoggerFactory.getLogger;
 public abstract class AbstractDistributedP4RuntimeMirror
         <H extends PiHandle, E extends PiEntity>
         implements P4RuntimeMirror<H, E> {
+
+    private static final String MAP_NAME_TEMPLATE = "onos-p4runtime-mirror-%s-map";
 
     private final Logger log = getLogger(getClass());
 
@@ -92,10 +95,17 @@ public abstract class AbstractDistributedP4RuntimeMirror
         this.flushOnPipelineUnknown = flushOnPipelineUnknown;
     }
 
+    /**
+     * Returns a string that identifies the map maintained by this store among
+     * others that uses this abstract class.
+     *
+     * @return string
+     */
+    protected abstract String mapSimpleName();
+
     @Activate
     public void activate() {
-        final String mapName = "onos-p4runtime-mirror-"
-                + entityType.name().toLowerCase();
+        final String fullMapName = format(MAP_NAME_TEMPLATE, mapSimpleName());
         final KryoNamespace serializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
                 .register(TimedEntry.class)
@@ -103,14 +113,14 @@ public abstract class AbstractDistributedP4RuntimeMirror
 
         mirrorMap = storageService
                 .<PiHandle, TimedEntry<E>>eventuallyConsistentMapBuilder()
-                .withName(mapName)
+                .withName(fullMapName)
                 .withSerializer(serializer)
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
 
         annotationsMap = storageService
                 .<PiHandle, Annotations>eventuallyConsistentMapBuilder()
-                .withName(mapName + "-annotations")
+                .withName(fullMapName + "-annotations")
                 .withSerializer(serializer)
                 .withTimestampProvider((k, v) -> new WallClockTimestamp())
                 .build();
