@@ -18,7 +18,7 @@ package org.onosproject.k8snetworking.impl;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.MoreExecutors;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.networking.NetworkPolicy;
+import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicy;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

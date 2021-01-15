@@ -15,7 +15,7 @@
  */
 package org.onosproject.k8snetworking.api;
 
-import io.fabric8.kubernetes.api.model.networking.NetworkPolicy;
+import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicy;
 import org.onosproject.store.Store;
 
 import java.util.Set;
