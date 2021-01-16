@@ -83,12 +83,24 @@ public final class DefaultKubevirtPort implements KubevirtPort {
 
     @Override
     public KubevirtPort updatePortNumber(PortNumber portNumber) {
-        return null;
+        return new Builder()
+                .networkId(networkId)
+                .macAddress(macAddress)
+                .ipAddress(ipAddress)
+                .deviceId(deviceId)
+                .portNumber(portNumber)
+                .build();
     }
 
     @Override
     public KubevirtPort updateDeviceId(DeviceId deviceId) {
-        return null;
+        return new Builder()
+                .networkId(networkId)
+                .macAddress(macAddress)
+                .ipAddress(ipAddress)
+                .deviceId(deviceId)
+                .portNumber(portNumber)
+                .build();
     }
 
     @Override

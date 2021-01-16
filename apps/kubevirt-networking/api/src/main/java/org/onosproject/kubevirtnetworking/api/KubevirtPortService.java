@@ -35,6 +35,14 @@ public interface KubevirtPortService
     KubevirtPort port(MacAddress mac);
 
     /**
+     * Returns the kubevirt ports belongs to the given network.
+     *
+     * @param networkId network identifier
+     * @return kubevirt ports
+     */
+    Set<KubevirtPort> ports(String networkId);
+
+    /**
      * Returns all kubevirt ports registered.
      *
      * @return set of kubevirt ports

@@ -38,7 +38,7 @@ public interface KubevirtPortStore
      *
      * @param port kubevirt port
      */
-    void updatedPort(KubevirtPort port);
+    void updatePort(KubevirtPort port);
 
     /**
      * Removes the kubevirt port with the given MAC address.
