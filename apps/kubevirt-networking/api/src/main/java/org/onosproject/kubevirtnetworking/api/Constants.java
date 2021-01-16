@@ -63,6 +63,7 @@ public final class Constants {
     public static final int CLI_MAC_ADDRESS_LENGTH = 25;
     public static final int CLI_PORTS_LENGTH = 20;
     public static final int CLI_NAMESPACE_LENGTH = 15;
+    public static final int CLI_STATUS_LENGTH = 15;
     public static final int CLI_PHASE_LENGTH = 15;
     public static final int CLI_TYPE_LENGTH = 15;
     public static final int CLI_TYPES_LENGTH = 30;
