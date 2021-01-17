@@ -19,9 +19,11 @@ import org.onosproject.codec.CodecService;
 import org.onosproject.kubevirtnetworking.api.KubevirtHostRoute;
 import org.onosproject.kubevirtnetworking.api.KubevirtIpPool;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetwork;
+import org.onosproject.kubevirtnetworking.api.KubevirtPort;
 import org.onosproject.kubevirtnetworking.codec.KubevirtHostRouteCodec;
 import org.onosproject.kubevirtnetworking.codec.KubevirtIpPoolCodec;
 import org.onosproject.kubevirtnetworking.codec.KubevirtNetworkCodec;
+import org.onosproject.kubevirtnetworking.codec.KubevirtPortCodec;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -48,6 +50,7 @@ public class KubevirtNetworkingCodecRegister {
         codecService.registerCodec(KubevirtHostRoute.class, new KubevirtHostRouteCodec());
         codecService.registerCodec(KubevirtIpPool.class, new KubevirtIpPoolCodec());
         codecService.registerCodec(KubevirtNetwork.class, new KubevirtNetworkCodec());
+        codecService.registerCodec(KubevirtPort.class, new KubevirtPortCodec());
 
         log.info("Started");
     }
@@ -58,6 +61,7 @@ public class KubevirtNetworkingCodecRegister {
         codecService.unregisterCodec(KubevirtHostRoute.class);
         codecService.unregisterCodec(KubevirtIpPool.class);
         codecService.unregisterCodec(KubevirtNetwork.class);
+        codecService.unregisterCodec(KubevirtPort.class);
 
         log.info("Stopped");
     }

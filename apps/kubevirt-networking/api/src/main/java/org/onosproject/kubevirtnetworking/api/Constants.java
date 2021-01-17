@@ -53,6 +53,7 @@ public final class Constants {
 
     // flow rule priority
     public static final int PRIORITY_SWITCHING_RULE = 30000;
+    public static final int PRIORITY_DHCP_RULE = 42000;
 
     // CLI item length
     public static final int CLI_ID_LENGTH = 30;

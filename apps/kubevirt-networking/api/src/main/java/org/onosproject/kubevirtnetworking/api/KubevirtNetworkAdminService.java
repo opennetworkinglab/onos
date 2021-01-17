@@ -15,6 +15,8 @@
  */
 package org.onosproject.kubevirtnetworking.api;
 
+import org.onlab.packet.IpAddress;
+
 public interface KubevirtNetworkAdminService extends KubevirtNetworkService {
 
     /**
@@ -37,6 +39,22 @@ public interface KubevirtNetworkAdminService extends KubevirtNetworkService {
      * @param networkId network identifier
      */
     void removeNetwork(String networkId);
+
+    /**
+     * Allocate an IP address.
+     *
+     * @param networkId network identifier
+     * @return IP address
+     */
+    IpAddress allocateIp(String networkId);
+
+    /**
+     * Release the existing IP address.
+     *
+     * @param networkId network identifier
+     * @param ip IP address to be released
+     */
+    void releaseIp(String networkId, IpAddress ip);
 
     void clear();
 }

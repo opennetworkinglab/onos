@@ -18,6 +18,7 @@ package org.onosproject.kubevirtnetworking.impl;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
+import org.onlab.packet.IpAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.ListenerRegistry;
@@ -64,6 +65,7 @@ public class KubevirtNetworkManager
 
     private static final String ERR_NULL_NETWORK  = "Kubernetes network cannot be null";
     private static final String ERR_NULL_NETWORK_ID  = "Kubernetes network ID cannot be null";
+    private static final String ERR_NULL_IP = "IP address cannot be null";
 
     private static final String ERR_IN_USE = " still in use";
 
@@ -125,6 +127,35 @@ public class KubevirtNetworkManager
             if (network != null) {
                 log.info(String.format(MSG_NETWORK, network.name(), MSG_REMOVED));
             }
+        }
+    }
+
+    @Override
+    public IpAddress allocateIp(String networkId) {
+        checkArgument(!Strings.isNullOrEmpty(networkId), ERR_NULL_NETWORK_ID);
+
+        try {
+            KubevirtNetwork network = networkStore.network(networkId);
+            IpAddress ip = network.ipPool().allocateIp();
+            networkStore.updateNetwork(network);
+            return ip;
+        } catch (Exception e) {
+            log.error("Failed to allocate IP address");
+        }
+        return null;
+    }
+
+    @Override
+    public void releaseIp(String networkId, IpAddress ip) {
+        checkArgument(!Strings.isNullOrEmpty(networkId), ERR_NULL_NETWORK_ID);
+        checkArgument(ip != null, ERR_NULL_IP);
+
+        try {
+            KubevirtNetwork network = networkStore.network(networkId);
+            network.ipPool().releaseIp(ip);
+            networkStore.updateNetwork(network);
+        } catch (Exception e) {
+            log.error("Failed to allocate IP address");
         }
     }
 
