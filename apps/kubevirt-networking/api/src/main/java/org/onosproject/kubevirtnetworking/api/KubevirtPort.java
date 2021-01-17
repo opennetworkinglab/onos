@@ -61,20 +61,28 @@ public interface KubevirtPort {
     PortNumber portNumber();
 
     /**
-     * Returns new port instance with the given port number.
+     * Returns new port instance with the given IP address.
      *
-     * @param portNumber updated port number
+     * @param updatedIpAddress updated ip address
      * @return updated port
      */
-    KubevirtPort updatePortNumber(PortNumber portNumber);
+    KubevirtPort updateIpAddress(IpAddress updatedIpAddress);
+
+    /**
+     * Returns new port instance with the given port number.
+     *
+     * @param updatedPortNumber updated port number
+     * @return updated port
+     */
+    KubevirtPort updatePortNumber(PortNumber updatedPortNumber);
 
     /**
      * Returns new port instance with the given device ID.
      *
-     * @param deviceId device identifier
+     * @param updatedDeviceId device identifier
      * @return updated port
      */
-    KubevirtPort updateDeviceId(DeviceId deviceId);
+    KubevirtPort updateDeviceId(DeviceId updatedDeviceId);
 
     /**
      * Builder of new port.

@@ -82,23 +82,34 @@ public final class DefaultKubevirtPort implements KubevirtPort {
     }
 
     @Override
-    public KubevirtPort updatePortNumber(PortNumber portNumber) {
+    public KubevirtPort updateIpAddress(IpAddress updateIpAddress) {
         return new Builder()
                 .networkId(networkId)
                 .macAddress(macAddress)
-                .ipAddress(ipAddress)
+                .ipAddress(updateIpAddress)
                 .deviceId(deviceId)
                 .portNumber(portNumber)
                 .build();
     }
 
     @Override
-    public KubevirtPort updateDeviceId(DeviceId deviceId) {
+    public KubevirtPort updatePortNumber(PortNumber updatedPortNumber) {
         return new Builder()
                 .networkId(networkId)
                 .macAddress(macAddress)
                 .ipAddress(ipAddress)
                 .deviceId(deviceId)
+                .portNumber(updatedPortNumber)
+                .build();
+    }
+
+    @Override
+    public KubevirtPort updateDeviceId(DeviceId updatedDeviceId) {
+        return new Builder()
+                .networkId(networkId)
+                .macAddress(macAddress)
+                .ipAddress(ipAddress)
+                .deviceId(updatedDeviceId)
                 .portNumber(portNumber)
                 .build();
     }
@@ -161,7 +172,6 @@ public final class DefaultKubevirtPort implements KubevirtPort {
         public KubevirtPort build() {
             checkArgument(networkId != null, NOT_NULL_MSG, "networkId");
             checkArgument(macAddress != null, NOT_NULL_MSG, "macAddress");
-            checkArgument(ipAddress != null, NOT_NULL_MSG, "ipAddress");
 
             return new DefaultKubevirtPort(networkId, macAddress, ipAddress,
                     deviceId, portNumber);

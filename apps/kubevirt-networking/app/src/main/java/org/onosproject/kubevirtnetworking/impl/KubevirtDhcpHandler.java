@@ -25,6 +25,7 @@ import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
+import org.onlab.packet.TpPort;
 import org.onlab.packet.UDP;
 import org.onlab.packet.dhcp.DhcpOption;
 import org.onlab.util.Tools;
@@ -40,11 +41,14 @@ import org.onosproject.kubevirtnetworking.api.KubevirtNetwork;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetworkService;
 import org.onosproject.kubevirtnetworking.api.KubevirtPort;
 import org.onosproject.kubevirtnetworking.api.KubevirtPortService;
+import org.onosproject.kubevirtnode.api.KubevirtNode;
 import org.onosproject.kubevirtnode.api.KubevirtNodeEvent;
 import org.onosproject.kubevirtnode.api.KubevirtNodeListener;
 import org.onosproject.kubevirtnode.api.KubevirtNodeService;
 import org.onosproject.net.ConnectPoint;
+import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
+import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.packet.DefaultOutboundPacket;
 import org.onosproject.net.packet.PacketContext;
@@ -79,7 +83,9 @@ import static org.onlab.packet.DHCP.DHCPOptionCode.OptionCode_SubnetMask;
 import static org.onlab.packet.DHCP.MsgType.DHCPACK;
 import static org.onlab.packet.DHCP.MsgType.DHCPOFFER;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.kubevirtnetworking.api.Constants.DHCP_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.KUBEVIRT_NETWORKING_APP_ID;
+import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_DHCP_RULE;
 import static org.onosproject.kubevirtnetworking.impl.OsgiPropertyConstants.DHCP_SERVER_MAC;
 import static org.onosproject.kubevirtnetworking.impl.OsgiPropertyConstants.DHCP_SERVER_MAC_DEFAULT;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.getBroadcastAddr;
@@ -616,7 +622,47 @@ public class KubevirtDhcpHandler {
 
         @Override
         public void event(KubevirtNodeEvent event) {
+            KubevirtNode node = event.subject();
+            switch (event.type()) {
+                case KUBEVIRT_NODE_COMPLETE:
+                    eventExecutor.execute(() -> processNodeCompletion(node));
+                    break;
+                case KUBEVIRT_NODE_CREATED:
+                case KUBEVIRT_NODE_INCOMPLETE:
+                case KUBEVIRT_NODE_REMOVED:
+                case KUBEVIRT_NODE_UPDATED:
+                default:
+                    break;
+            }
+        }
 
+        private void processNodeCompletion(KubevirtNode node) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+            setDhcpRule(node, true);
+        }
+
+        private void setDhcpRule(KubevirtNode node, boolean install) {
+            TrafficSelector selector = DefaultTrafficSelector.builder()
+                    .matchEthType(Ethernet.TYPE_IPV4)
+                    .matchIPProtocol(IPv4.PROTOCOL_UDP)
+                    .matchUdpDst(TpPort.tpPort(UDP.DHCP_SERVER_PORT))
+                    .matchUdpSrc(TpPort.tpPort(UDP.DHCP_CLIENT_PORT))
+                    .build();
+
+            TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                    .punt()
+                    .build();
+
+            flowService.setRule(
+                    appId,
+                    node.intgBridge(),
+                    selector,
+                    treatment,
+                    PRIORITY_DHCP_RULE,
+                    DHCP_TABLE,
+                    install);
         }
     }
 }

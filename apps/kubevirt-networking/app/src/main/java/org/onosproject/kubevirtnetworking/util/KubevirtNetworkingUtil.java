@@ -16,13 +16,21 @@
 package org.onosproject.kubevirtnetworking.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.net.util.SubnetUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.MacAddress;
 import org.onosproject.cfg.ConfigProperty;
+import org.onosproject.kubevirtnetworking.api.DefaultKubevirtPort;
+import org.onosproject.kubevirtnetworking.api.KubevirtNetwork;
+import org.onosproject.kubevirtnetworking.api.KubevirtPort;
 import org.onosproject.kubevirtnode.api.KubevirtApiConfig;
 import org.onosproject.kubevirtnode.api.KubevirtApiConfigService;
 import org.slf4j.Logger;
@@ -32,6 +40,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -46,6 +55,12 @@ public final class KubevirtNetworkingUtil {
     private static final int PORT_NAME_MAX_LENGTH = 15;
     private static final String COLON_SLASH = "://";
     private static final String COLON = ":";
+
+    private static final String NETWORK_STATUS_KEY = "k8s.v1.cni.cncf.io/network-status";
+    private static final String NAME = "name";
+    private static final String NETWORK_PREFIX = "default/";
+    private static final String MAC = "mac";
+    private static final String IPS = "ips";
 
     /**
      * Prevents object installation from external.
@@ -231,5 +246,53 @@ public final class KubevirtNetworkingUtil {
         }
 
         return client;
+    }
+
+    /**
+     * Obtains the kubevirt port from kubevirt POD.
+     *
+     * @param networks set of existing kubevirt networks
+     * @param pod kubevirt POD
+     * @return kubevirt port
+     */
+    public static KubevirtPort getPort(Set<KubevirtNetwork> networks, Pod pod) {
+        try {
+            Map<String, String> annots = pod.getMetadata().getAnnotations();
+            String networkStatusStr = annots.get(NETWORK_STATUS_KEY);
+
+            if (networkStatusStr == null) {
+                return null;
+            }
+
+            JSONArray networkStatus = new JSONArray(networkStatusStr);
+
+            for (int i = 0; i < networkStatus.length(); i++) {
+                JSONObject object = networkStatus.getJSONObject(i);
+                String name = object.getString(NAME);
+                KubevirtNetwork network = networks.stream()
+                        .filter(n -> (NETWORK_PREFIX + n.name()).equals(name))
+                        .findAny().orElse(null);
+                if (network != null) {
+                    String mac = object.getString(MAC);
+
+                    KubevirtPort.Builder builder = DefaultKubevirtPort.builder()
+                            .macAddress(MacAddress.valueOf(mac))
+                            .networkId(network.networkId());
+
+                    if (object.has(IPS)) {
+                        JSONArray ips = object.getJSONArray(IPS);
+                        String ip = (String) ips.get(0);
+                        builder.ipAddress(IpAddress.valueOf(ip));
+                    }
+
+                    return builder.build();
+                }
+            }
+
+        } catch (JSONException e) {
+            log.error("Failed to parse network status object", e);
+        }
+
+        return null;
     }
 }
