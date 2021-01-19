@@ -18,6 +18,9 @@ package org.onosproject.kubevirtnode.impl;
 import io.fabric8.kubernetes.api.model.Node;
 import io.fabric8.kubernetes.api.model.NodeAddress;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
@@ -66,8 +69,9 @@ public class DefaultKubevirtApiConfigHandler {
 
     private static final String INTERNAL_IP = "InternalIP";
     private static final String K8S_ROLE = "node-role.kubernetes.io";
-    private static final String DEFAULT_PHY_NETWORK = "physical.network";
-    private static final String DEFAULT_PHY_INTERFACE = "physical.interface";
+    private static final String PHYSNET_CONFIG_KEY = "physnet-config";
+    private static final String NETWORK_KEY = "network";
+    private static final String INTERFACE_KEY = "interface";
 
     private static final long SLEEP_MS = 10000; // we wait 10s
 
@@ -166,12 +170,26 @@ public class DefaultKubevirtApiConfigHandler {
 
         // start to parse kubernetes annotation
         Map<String, String> annots = node.getMetadata().getAnnotations();
-        String physnet = annots.get(DEFAULT_PHY_NETWORK);
-        String physintf = annots.get(DEFAULT_PHY_INTERFACE);
-
+        String physnetConfig = annots.get(PHYSNET_CONFIG_KEY);
         Set<KubevirtPhyInterface> phys = new HashSet<>();
-        if (physnet != null && physintf != null) {
-            phys.add(DefaultKubevirtPhyInterface.builder().network(physnet).intf(physintf).build());
+        try {
+            if (physnetConfig != null) {
+                JSONArray configJson = new JSONArray(physnetConfig);
+
+                for (int i = 0; i < configJson.length(); i++) {
+                    JSONObject object = configJson.getJSONObject(i);
+                    String network = object.getString(NETWORK_KEY);
+                    String intf = object.getString(INTERFACE_KEY);
+
+                    if (network != null && intf != null) {
+                        phys.add(DefaultKubevirtPhyInterface.builder()
+                                .network(network).intf(intf).build());
+                    }
+
+                }
+            }
+        } catch (JSONException e) {
+            log.error("Failed to parse network status object", e);
         }
 
         return DefaultKubevirtNode.builder()
