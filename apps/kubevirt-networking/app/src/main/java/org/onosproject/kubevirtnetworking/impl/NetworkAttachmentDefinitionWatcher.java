@@ -207,7 +207,9 @@ public class NetworkAttachmentDefinitionWatcher {
 
             KubevirtNetwork network = parseKubevirtNetwork(resource);
             if (network != null) {
-                adminService.createNetwork(network);
+                if (adminService.network(network.networkId()) == null) {
+                    adminService.createNetwork(network);
+                }
             }
         }
 

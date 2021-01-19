@@ -3,6 +3,7 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + CLI + REST + [
     "//protocols/ovsdb/api:onos-protocols-ovsdb-api",
     "//protocols/ovsdb/rfc:onos-protocols-ovsdb-rfc",
     "//apps/kubevirt-node/api:onos-apps-kubevirt-node-api",
+    "@json//jar",
     "@k8s_client//jar",
     "@k8s_model//jar",
     "@k8s_model_common//jar",
