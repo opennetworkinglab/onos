@@ -22,7 +22,7 @@ def _impl(ctx):
         "mkdir readme && touch readme/README && %s cf %s readme/README" % (jar_exe_path, outjar.path),
     ]
 
-    ctx.action(
+    ctx.actions.run_shell(
         outputs = [outjar],
         progress_message = "Generating minimal jar for %s" % ctx.attr.name,
         command = ";\n".join(cmd),
