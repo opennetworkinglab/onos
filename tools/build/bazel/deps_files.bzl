@@ -9,7 +9,7 @@ def _impl(ctx):
         "echo %s >>  %s" % (",".join(dep_list), output.path),
     ]
 
-    ctx.action(
+    ctx.actions.run_shell(
         inputs = ctx.files.deps,
         outputs = [output],
         progress_message = "Generating deps file paths for %s" % ctx.attr.name,

@@ -36,7 +36,7 @@ def _impl(ctx):
         "%s cf %s -C %s ." % (jar_exe_path, outjar.path, dir),
     ]
 
-    ctx.action(
+    ctx.actions.run_shell(
         inputs = ctx.files.srcs + ctx.files.deps,
         outputs = [outjar],
         progress_message = "Generating javadocs jar for %s" % ctx.attr.name,

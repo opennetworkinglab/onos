@@ -29,7 +29,7 @@ def _impl(ctx):
         "[ -n \"$dir\" -a -d \"$dir\" ] && %s cf %s -C $dir ." % (jar_path, outjar.path),
     ]
 
-    ctx.action(
+    ctx.actions.run_shell(
         inputs = ctx.files.srcs,
         outputs = [outjar],
         progress_message = "Generating source jar for %s" % ctx.attr.name,
