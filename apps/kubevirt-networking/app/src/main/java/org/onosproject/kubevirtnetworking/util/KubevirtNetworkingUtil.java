@@ -258,6 +258,10 @@ public final class KubevirtNetworkingUtil {
     public static KubevirtPort getPort(Set<KubevirtNetwork> networks, Pod pod) {
         try {
             Map<String, String> annots = pod.getMetadata().getAnnotations();
+            if (annots == null) {
+                return null;
+            }
+
             String networkStatusStr = annots.get(NETWORK_STATUS_KEY);
 
             if (networkStatusStr == null) {
