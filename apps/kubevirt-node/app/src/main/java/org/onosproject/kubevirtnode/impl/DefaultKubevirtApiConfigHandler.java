@@ -138,7 +138,11 @@ public class DefaultKubevirtApiConfigHandler {
 
         for (Node node : k8sClient.nodes().list().getItems()) {
             KubevirtNode kubevirtNode = buildKubevirtNode(node);
-            nodeAdminService.createNode(kubevirtNode);
+            // we always provision VMs to worker nodes, so only need to install
+            // flow rules in worker nodes
+            if (kubevirtNode.type() == WORKER) {
+                nodeAdminService.createNode(kubevirtNode);
+            }
         }
     }
 
