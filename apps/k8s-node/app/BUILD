@@ -29,6 +29,7 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + CLI + REST + [
     "@okio//jar",
     "@logging_interceptor//jar",
     "@jackson_dataformat_yaml//jar",
+    "@jackson_datatype_jsr310//jar",
     "@snakeyaml//jar",
     "@commons_net//jar",
 ]
