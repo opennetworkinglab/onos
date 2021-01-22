@@ -248,7 +248,8 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
             provisionEthTypeBasedFilter(filter, ethType, output,
                                         (L2ModificationInstruction) vlanId.get(),
                                         (L2ModificationInstruction) vlanPush.get());
-        } else if (ethType.ethType().equals(EthType.EtherType.LLDP.ethType())) {
+        } else if (ethType.ethType().equals(EthType.EtherType.LLDP.ethType()) ||
+                   ethType.ethType().equals(EthType.EtherType.PPPoED.ethType())) {
             provisionEthTypeBasedFilter(filter, ethType, output, null, null);
 
         } else if (ethType.ethType().equals(EthType.EtherType.IPV4.ethType())) {
