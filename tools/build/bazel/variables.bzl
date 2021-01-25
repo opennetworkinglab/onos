@@ -1,4 +1,4 @@
-ONOS_VERSION = "2.5.1-SNAPSHOT"
+ONOS_VERSION = "2.5.1-rc1"
 ONOS_ARTIFACT_BASE = "onos-"
 ONOS_GROUP_ID = "org.onosproject"
 ONOS_ORIGIN = "ONOS Community"

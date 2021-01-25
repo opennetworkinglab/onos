@@ -38,7 +38,7 @@
     </fileSets>
     <requiredProperties>
         <requiredProperty key="onosVersion">
-            <defaultValue>2.5.1-SNAPSHOT</defaultValue>
+            <defaultValue>2.5.1-rc1</defaultValue>
         </requiredProperty>
     </requiredProperties>
 </archetype-descriptor>
