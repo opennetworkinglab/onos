@@ -49,6 +49,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
@@ -158,17 +159,17 @@ public class DefaultKubevirtApiConfigHandler {
             }
         }
 
-        String roleStr = node.getMetadata().getLabels().keySet().stream()
+        Set<String> rolesFull = node.getMetadata().getLabels().keySet().stream()
                 .filter(l -> l.contains(K8S_ROLE))
-                .findFirst().orElse(null);
+                .collect(Collectors.toSet());
 
         KubevirtNode.Type nodeType = WORKER;
-        if (roleStr != null) {
+
+        for (String roleStr : rolesFull) {
             String role = roleStr.split("/")[1];
             if (MASTER.name().equalsIgnoreCase(role)) {
                 nodeType = MASTER;
-            } else {
-                nodeType = WORKER;
+                break;
             }
         }
 
