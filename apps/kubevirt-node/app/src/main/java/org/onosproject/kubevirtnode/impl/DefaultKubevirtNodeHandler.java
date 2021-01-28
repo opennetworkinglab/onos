@@ -15,6 +15,8 @@
  */
 package org.onosproject.kubevirtnode.impl;
 
+import com.google.common.collect.Lists;
+import org.onlab.packet.IpAddress;
 import org.onlab.util.Tools;
 import org.onosproject.cfg.ComponentConfigService;
 import org.onosproject.cluster.ClusterService;
@@ -22,6 +24,7 @@ import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.kubevirtnode.api.KubevirtApiConfigService;
 import org.onosproject.kubevirtnode.api.KubevirtNode;
 import org.onosproject.kubevirtnode.api.KubevirtNodeAdminService;
 import org.onosproject.kubevirtnode.api.KubevirtNodeEvent;
@@ -138,6 +141,9 @@ public class DefaultKubevirtNodeHandler implements KubevirtNodeHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected KubevirtNodeAdminService nodeAdminService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected KubevirtApiConfigService apiConfigService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected ComponentConfigService componentConfigService;
@@ -293,9 +299,9 @@ public class DefaultKubevirtNodeHandler implements KubevirtNodeHandler {
     private void createBridge(KubevirtNode node, String bridgeName, DeviceId devId) {
         Device device = deviceService.getDevice(node.ovsdb());
 
-        List<ControllerInfo> controllers = clusterService.getNodes().stream()
-                .map(n -> new ControllerInfo(n.ip(), DEFAULT_OFPORT, DEFAULT_OF_PROTO))
-                .collect(Collectors.toList());
+        IpAddress serverIp = apiConfigService.apiConfig().ipAddress();
+        ControllerInfo controlInfo = new ControllerInfo(serverIp, DEFAULT_OFPORT, DEFAULT_OF_PROTO);
+        List<ControllerInfo> controllers = Lists.newArrayList(controlInfo);
 
         String dpid = devId.toString().substring(DPID_BEGIN);
 
