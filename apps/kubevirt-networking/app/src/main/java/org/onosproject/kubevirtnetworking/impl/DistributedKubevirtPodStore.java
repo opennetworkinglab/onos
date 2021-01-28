@@ -36,12 +36,14 @@ import io.fabric8.kubernetes.api.model.ExecAction;
 import io.fabric8.kubernetes.api.model.FieldsV1;
 import io.fabric8.kubernetes.api.model.HTTPGetAction;
 import io.fabric8.kubernetes.api.model.HTTPHeader;
+import io.fabric8.kubernetes.api.model.Handler;
 import io.fabric8.kubernetes.api.model.HostPathVolumeSource;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.KeyToPath;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.LabelSelectorRequirement;
 import io.fabric8.kubernetes.api.model.Lifecycle;
+import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.ManagedFieldsEntry;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
 import io.fabric8.kubernetes.api.model.NodeSelector;
@@ -178,6 +180,11 @@ public class DistributedKubevirtPodStore
             .register(PodSecurityContext.class)
             .register(SELinuxOptions.class)
             .register(SeccompProfile.class)
+            .register(Handler.class)
+            .register(ExecAction.class)
+            .register(HTTPGetAction.class)
+            .register(TCPSocketAction.class)
+            .register(HTTPHeader.class)
             .register(Volume.class)
             .register(VolumeDevice.class)
             .register(VolumeMount.class)
@@ -202,6 +209,7 @@ public class DistributedKubevirtPodStore
             .register(PodAffinityTerm.class)
             .register(LabelSelector.class)
             .register(LabelSelectorRequirement.class)
+            .register(LocalObjectReference.class)
             .register(PodAntiAffinity.class)
             .register(ManagedFieldsEntry.class)
             .register(FieldsV1.class)
