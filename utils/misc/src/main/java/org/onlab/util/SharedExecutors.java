@@ -108,12 +108,14 @@ public final class SharedExecutors {
      */
     public static void shutdown() {
         synchronized (SHARED_TIMER_LOCK) {
-            sharedTimer.shutdown();
-            singleThreadExecutor.backingExecutor().shutdown();
-            poolThreadExecutor.backingExecutor().shutdown();
-            sharedTimer = null;
-            singleThreadExecutor = null;
-            poolThreadExecutor = null;
+            if (sharedTimer != null) {
+                sharedTimer.shutdown();
+                singleThreadExecutor.backingExecutor().shutdown();
+                poolThreadExecutor.backingExecutor().shutdown();
+                sharedTimer = null;
+                singleThreadExecutor = null;
+                poolThreadExecutor = null;
+            }
         }
     }
 

@@ -116,10 +116,12 @@ public final class SharedScheduledExecutors {
      */
     public static void shutdown() {
         synchronized (EXECUTORS_LOCK) {
-            singleThreadExecutor.backingExecutor().shutdown();
-            singleThreadExecutor = null;
-            poolThreadExecutor.backingExecutor().shutdown();
-            poolThreadExecutor = null;
+            if (singleThreadExecutor != null) {
+                singleThreadExecutor.backingExecutor().shutdown();
+                singleThreadExecutor = null;
+                poolThreadExecutor.backingExecutor().shutdown();
+                poolThreadExecutor = null;
+            }
         }
     }
 }
