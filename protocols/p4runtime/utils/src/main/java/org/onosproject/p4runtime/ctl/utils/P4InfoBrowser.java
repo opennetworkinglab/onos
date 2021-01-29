@@ -30,6 +30,7 @@ import p4.config.v1.P4InfoOuterClass.Meter;
 import p4.config.v1.P4InfoOuterClass.P4Info;
 import p4.config.v1.P4InfoOuterClass.Preamble;
 import p4.config.v1.P4InfoOuterClass.Table;
+import p4.config.v1.P4InfoOuterClass.Digest;
 
 import java.util.Map;
 
@@ -55,6 +56,7 @@ public final class P4InfoBrowser {
     private final Map<Integer, EntityBrowser<MatchField>> matchFields = Maps.newHashMap();
     private final Map<Integer, EntityBrowser<ControllerPacketMetadata.Metadata>> ctrlPktMetadatasMetadata =
             Maps.newHashMap();
+    private final EntityBrowser<Digest> digests = new EntityBrowser<>("digest");
 
     /**
      * Creates a new browser for the given P4Info.
@@ -116,6 +118,9 @@ public final class P4InfoBrowser {
                     entity.getMetadataList().forEach(m -> metadataBrowser.add(m.getName(), null, m.getId(), m));
                     ctrlPktMetadatasMetadata.put(ctrlPktMetadataId, metadataBrowser);
                 });
+
+        p4info.getDigestsList().forEach(
+                entity -> digests.addWithPreamble(entity.getPreamble(), entity));
     }
 
     /**
@@ -188,6 +193,15 @@ public final class P4InfoBrowser {
      */
     public EntityBrowser<ControllerPacketMetadata> controllerPacketMetadatas() {
         return ctrlPktMetadatas;
+    }
+
+    /**
+     * Returns a browser for digests.
+     *
+     * @return digest browser
+     */
+    public EntityBrowser<Digest> digests() {
+        return digests;
     }
 
     /**
