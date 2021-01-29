@@ -23,6 +23,7 @@ import p4.config.v1.P4InfoOuterClass.Action;
 import p4.config.v1.P4InfoOuterClass.ActionProfile;
 import p4.config.v1.P4InfoOuterClass.ControllerPacketMetadata;
 import p4.config.v1.P4InfoOuterClass.Counter;
+import p4.config.v1.P4InfoOuterClass.Digest;
 import p4.config.v1.P4InfoOuterClass.DirectCounter;
 import p4.config.v1.P4InfoOuterClass.DirectMeter;
 import p4.config.v1.P4InfoOuterClass.MatchField;
@@ -56,6 +57,7 @@ public final class P4InfoBrowser {
     private final Map<Integer, EntityBrowser<MatchField>> matchFields = Maps.newHashMap();
     private final Map<Integer, EntityBrowser<ControllerPacketMetadata.Metadata>> ctrlPktMetadatasMetadata =
             Maps.newHashMap();
+    private final EntityBrowser<Digest> digests = new EntityBrowser<>("digest");
     private final Map<String, Boolean> isTypeString = Maps.newHashMap();
 
     /**
@@ -118,6 +120,9 @@ public final class P4InfoBrowser {
                     entity.getMetadataList().forEach(m -> metadataBrowser.add(m.getName(), null, m.getId(), m));
                     ctrlPktMetadatasMetadata.put(ctrlPktMetadataId, metadataBrowser);
                 });
+
+        p4info.getDigestsList().forEach(
+                entity -> digests.addWithPreamble(entity.getPreamble(), entity));
         p4info.getTypeInfo().getNewTypesMap().forEach(
                 (s, p4NewTypeSpec) ->
                         isTypeString.put(s,
@@ -196,6 +201,15 @@ public final class P4InfoBrowser {
      */
     public EntityBrowser<ControllerPacketMetadata> controllerPacketMetadatas() {
         return ctrlPktMetadatas;
+    }
+
+    /**
+     * Returns a browser for digests.
+     *
+     * @return digest browser
+     */
+    public EntityBrowser<Digest> digests() {
+        return digests;
     }
 
     /**
