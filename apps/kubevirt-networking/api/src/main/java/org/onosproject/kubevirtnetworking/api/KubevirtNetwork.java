@@ -114,6 +114,13 @@ public interface KubevirtNetwork {
     KubevirtIpPool ipPool();
 
     /**
+     * Returns a set of DNS.
+     *
+     * @return a set of DNS
+     */
+    Set<IpAddress> dnses();
+
+    /**
      * Builder of new network.
      */
     interface Builder {
@@ -182,7 +189,7 @@ public interface KubevirtNetwork {
         Builder cidr(String cidr);
 
         /**
-         * Returns the IP pool.
+         * Returns network builder with the supplied IP pool.
          *
          * @param ipPool IP pool
          * @return network builder
@@ -190,11 +197,19 @@ public interface KubevirtNetwork {
         Builder ipPool(KubevirtIpPool ipPool);
 
         /**
-         * Returns host routes.
+         * Returns network builder with the host routes.
          *
          * @param hostRoutes host routes
          * @return network builder
          */
         Builder hostRoutes(Set<KubevirtHostRoute> hostRoutes);
+
+        /**
+         * Returns network builder with supplied DNSes.
+         *
+         * @param dnses a set of DNS
+         * @return network builder
+         */
+        Builder dnses(Set<IpAddress> dnses);
     }
 }

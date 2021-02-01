@@ -49,6 +49,8 @@ public class DefaultKubevirtNetworkTest {
     private static final IpAddress IP_POOL_START_2 = IpAddress.valueOf("20.20.20.100");
     private static final IpAddress IP_POOL_END_1 = IpAddress.valueOf("10.10.10.200");
     private static final IpAddress IP_POOL_END_2 = IpAddress.valueOf("20.20.20.200");
+    private static final IpAddress DNS_1 = IpAddress.valueOf("8.8.8.8");
+    private static final IpAddress DNS_2 = IpAddress.valueOf("8.8.4.4");
 
     private KubevirtNetwork network1;
     private KubevirtNetwork sameAsNetwork1;
@@ -77,6 +79,7 @@ public class DefaultKubevirtNetworkTest {
                 .cidr(CIDR_1)
                 .ipPool(new KubevirtIpPool(IP_POOL_START_1, IP_POOL_END_1))
                 .hostRoutes(ImmutableSet.of())
+                .dnses(ImmutableSet.of(DNS_1))
                 .build();
 
         sameAsNetwork1 = DefaultKubevirtNetwork.builder()
@@ -89,6 +92,7 @@ public class DefaultKubevirtNetworkTest {
                 .cidr(CIDR_1)
                 .ipPool(new KubevirtIpPool(IP_POOL_START_1, IP_POOL_END_1))
                 .hostRoutes(ImmutableSet.of())
+                .dnses(ImmutableSet.of(DNS_1))
                 .build();
 
         network2 = DefaultKubevirtNetwork.builder()
@@ -101,6 +105,7 @@ public class DefaultKubevirtNetworkTest {
                 .cidr(CIDR_2)
                 .ipPool(new KubevirtIpPool(IP_POOL_START_2, IP_POOL_END_2))
                 .hostRoutes(ImmutableSet.of())
+                .dnses(ImmutableSet.of(DNS_2))
                 .build();
     }
 
@@ -128,6 +133,7 @@ public class DefaultKubevirtNetworkTest {
         assertEquals(GATEWAY_IP_1, network.gatewayIp());
         assertEquals(CIDR_1, network.cidr());
         assertEquals(new KubevirtIpPool(IP_POOL_START_1, IP_POOL_END_1), network.ipPool());
+        assertEquals(ImmutableSet.of(DNS_1), network.dnses());
     }
 
     /**

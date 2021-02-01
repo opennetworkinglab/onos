@@ -19,15 +19,19 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
+import org.apache.commons.lang.StringUtils;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.kubevirtnetworking.api.DefaultKubevirtNetwork;
+import org.onosproject.kubevirtnetworking.api.KubevirtHostRoute;
 import org.onosproject.kubevirtnetworking.api.KubevirtIpPool;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetwork;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type;
@@ -44,7 +48,9 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
@@ -69,9 +75,12 @@ public class NetworkAttachmentDefinitionWatcher {
     private static final String GATEWAY_IP = "gatewayIp";
     private static final String CIDR = "cidr";
     private static final String HOST_ROUTES = "hostRoutes";
+    private static final String DESTINATION = "destination";
+    private static final String NEXTHOP = "nexthop";
     private static final String IP_POOL = "ipPool";
     private static final String START = "start";
     private static final String END = "end";
+    private static final String DNSES = "dnses";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
@@ -283,6 +292,36 @@ public class NetworkAttachmentDefinitionWatcher {
                         builder.ipPool(new KubevirtIpPool(
                                 IpAddress.valueOf(start), IpAddress.valueOf(end)));
                     }
+
+                    JSONArray routesJson = configJson.getJSONArray(HOST_ROUTES);
+                    Set<KubevirtHostRoute> hostRoutes = new HashSet<>();
+                    if (routesJson != null) {
+                        for (int i = 0; i < routesJson.length(); i++) {
+                            JSONObject route = routesJson.getJSONObject(i);
+                            String destinationStr = route.getString(DESTINATION);
+                            String nexthopStr = route.getString(NEXTHOP);
+
+                            if (StringUtils.isNotEmpty(destinationStr) &&
+                                    StringUtils.isNotEmpty(nexthopStr)) {
+                                hostRoutes.add(new KubevirtHostRoute(
+                                        IpPrefix.valueOf(destinationStr),
+                                        IpAddress.valueOf(nexthopStr)));
+                            }
+                        }
+                    }
+                    builder.hostRoutes(hostRoutes);
+
+                    JSONArray dnsesJson = configJson.getJSONArray(DNSES);
+                    Set<IpAddress> dnses = new HashSet<>();
+                    if (dnsesJson != null) {
+                        for (int i = 0; i < dnsesJson.length(); i++) {
+                             String dns = dnsesJson.getString(i);
+                             if (StringUtils.isNotEmpty(dns)) {
+                                 dnses.add(IpAddress.valueOf(dns));
+                             }
+                        }
+                    }
+                    builder.dnses(dnses);
 
                     builder.networkId(name).name(name).type(Type.valueOf(type))
                             .mtu(mtu).gatewayIp(IpAddress.valueOf(gatewayIp)).cidr(cidr);

@@ -474,28 +474,25 @@ public class KubevirtDhcpHandler {
 
             option.setCode(OptionCode_DomainServer.getValue());
 
-            option.setLength((byte) DHCP_OPTION_DNS_LENGTH);
-            ByteBuffer dnsByteBuf = ByteBuffer.allocate(DHCP_OPTION_DNS_LENGTH);
-            dnsByteBuf.put(DEFAULT_PRIMARY_DNS.toOctets());
-            dnsByteBuf.put(DEFAULT_SECONDARY_DNS.toOctets());
+            if (network.dnses().isEmpty()) {
+                option.setLength((byte) DHCP_OPTION_DNS_LENGTH);
+                ByteBuffer dnsByteBuf = ByteBuffer.allocate(DHCP_OPTION_DNS_LENGTH);
+                dnsByteBuf.put(DEFAULT_PRIMARY_DNS.toOctets());
+                dnsByteBuf.put(DEFAULT_SECONDARY_DNS.toOctets());
 
-            option.setData(dnsByteBuf.array());
+                option.setData(dnsByteBuf.array());
+            } else {
+                int dnsLength = 4 * network.dnses().size();
 
-            // TODO: need to customize the DNS server list
-//            if (dnsServers.isEmpty()) {
-//
-//            } else {
-//                int dnsLength = 4 * dnsServers.size();
-//
-//                option.setLength((byte) dnsLength);
-//
-//                ByteBuffer dnsByteBuf = ByteBuffer.allocate(DHCP_OPTION_DNS_LENGTH);
-//
-//                for (String dnsServer : dnsServers) {
-//                    dnsByteBuf.put(IpAddress.valueOf(dnsServer).toOctets());
-//                }
-//                option.setData(dnsByteBuf.array());
-//            }
+                option.setLength((byte) dnsLength);
+
+                ByteBuffer dnsByteBuf = ByteBuffer.allocate(DHCP_OPTION_DNS_LENGTH);
+
+                for (IpAddress dnsServer : network.dnses()) {
+                    dnsByteBuf.put(dnsServer.toOctets());
+                }
+                option.setData(dnsByteBuf.array());
+            }
 
             return option;
         }

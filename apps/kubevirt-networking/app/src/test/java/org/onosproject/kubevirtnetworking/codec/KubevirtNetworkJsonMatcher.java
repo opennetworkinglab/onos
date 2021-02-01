@@ -18,6 +18,7 @@ package org.onosproject.kubevirtnetworking.codec;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
+import org.onlab.packet.IpAddress;
 import org.onosproject.kubevirtnetworking.api.KubevirtHostRoute;
 import org.onosproject.kubevirtnetworking.api.KubevirtIpPool;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetwork;
@@ -37,6 +38,7 @@ public final class KubevirtNetworkJsonMatcher extends TypeSafeDiagnosingMatcher<
     private static final String CIDR = "cidr";
     private static final String HOST_ROUTES = "hostRoutes";
     private static final String IP_POOL = "ipPool";
+    private static final String DNSES = "dnses";
 
     private KubevirtNetworkJsonMatcher(KubevirtNetwork network) {
         this.network = network;
@@ -137,6 +139,32 @@ public final class KubevirtNetworkJsonMatcher extends TypeSafeDiagnosingMatcher<
 
                 if (!routeFound) {
                     description.appendText("Host route not found " + hostRoute.toString());
+                    return false;
+                }
+            }
+        }
+
+        // check dnses
+        JsonNode jsonDnses = jsonNode.get(DNSES);
+        if (jsonDnses != null) {
+            if (jsonDnses.size() != network.dnses().size()) {
+                description.appendText("DNSes size was " + jsonDnses.size());
+                return false;
+            }
+
+
+            for (IpAddress dns : network.dnses()) {
+                boolean dnsFound = false;
+                for (int dnsIndex = 0; dnsIndex < jsonDnses.size(); dnsIndex++) {
+                    String jsonDns = jsonDnses.get(dnsIndex).asText();
+                    if (jsonDns.equals(dns.toString())) {
+                        dnsFound = true;
+                        break;
+                    }
+                }
+
+                if (!dnsFound) {
+                    description.appendText("DNS not found " + dns.toString());
                     return false;
                 }
             }
