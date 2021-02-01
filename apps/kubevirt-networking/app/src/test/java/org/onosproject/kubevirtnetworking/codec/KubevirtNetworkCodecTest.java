@@ -100,6 +100,7 @@ public final class KubevirtNetworkCodecTest {
                 .cidr("10.10.10.0/24")
                 .hostRoutes(ImmutableSet.of(hostRoute1, hostRoute2))
                 .ipPool(ipPool)
+                .dnses(ImmutableSet.of(IpAddress.valueOf("8.8.8.8")))
                 .build();
 
         ObjectNode networkJson = kubevirtNetworkCodec.encode(network, context);
@@ -122,6 +123,10 @@ public final class KubevirtNetworkCodecTest {
         assertThat(network.gatewayIp().toString(), is("10.10.0.1"));
         assertThat(network.ipPool().start().toString(), is("10.10.10.100"));
         assertThat(network.ipPool().end().toString(), is("10.10.10.200"));
+        assertThat(network.dnses().size(), is(1));
+        KubevirtHostRoute route = network.hostRoutes().stream().findFirst().orElse(null);
+        assertThat(route, is(new KubevirtHostRoute(IpPrefix.valueOf("10.10.10.0/24"),
+                IpAddress.valueOf("10.10.10.1"))));
     }
 
     private KubevirtNetwork getKubevirtNetwork(String resourceName) throws IOException {

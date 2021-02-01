@@ -19,6 +19,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.IpAddress;
 
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -41,6 +42,7 @@ public final class DefaultKubevirtNetwork implements KubevirtNetwork {
     private final String cidr;
     private final Set<KubevirtHostRoute> hostRoutes;
     private final KubevirtIpPool ipPool;
+    private final Set<IpAddress> dnses;
 
     /**
      * Default constructor.
@@ -54,11 +56,12 @@ public final class DefaultKubevirtNetwork implements KubevirtNetwork {
      * @param cidr              CIDR of network
      * @param hostRoutes        a set of host routes
      * @param ipPool            IP pool
+     * @param dnses             a set of DNSes
      */
     public DefaultKubevirtNetwork(String networkId, Type type, String name,
                                   Integer mtu, String segmentId, IpAddress gatewayIp,
                                   String cidr, Set<KubevirtHostRoute> hostRoutes,
-                                  KubevirtIpPool ipPool) {
+                                  KubevirtIpPool ipPool, Set<IpAddress> dnses) {
         this.networkId = networkId;
         this.type = type;
         this.name = name;
@@ -68,6 +71,7 @@ public final class DefaultKubevirtNetwork implements KubevirtNetwork {
         this.cidr = cidr;
         this.hostRoutes = hostRoutes;
         this.ipPool = ipPool;
+        this.dnses = dnses;
     }
 
     @Override
@@ -120,6 +124,15 @@ public final class DefaultKubevirtNetwork implements KubevirtNetwork {
     }
 
     @Override
+    public Set<IpAddress> dnses() {
+        if (dnses == null || dnses.size() == 0) {
+            return ImmutableSet.of();
+        } else {
+            return ImmutableSet.copyOf(dnses);
+        }
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -132,13 +145,14 @@ public final class DefaultKubevirtNetwork implements KubevirtNetwork {
                 name.equals(that.name) && mtu.equals(that.mtu) &&
                 gatewayIp.equals(that.gatewayIp) &&
                 cidr.equals(that.cidr) && hostRoutes.equals(that.hostRoutes) &&
-                ipPool.equals(that.ipPool);
+                ipPool.equals(that.ipPool) &&
+                dnses.equals(that.dnses);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(networkId, type, name, mtu, segmentId, gatewayIp,
-                cidr, hostRoutes, ipPool);
+                cidr, hostRoutes, ipPool, dnses);
     }
 
     @Override
@@ -153,6 +167,7 @@ public final class DefaultKubevirtNetwork implements KubevirtNetwork {
                 .add("cidr", cidr)
                 .add("hostRouts", hostRoutes)
                 .add("ipPool", ipPool)
+                .add("dnses", dnses)
                 .toString();
     }
 
@@ -176,6 +191,7 @@ public final class DefaultKubevirtNetwork implements KubevirtNetwork {
         private String cidr;
         private Set<KubevirtHostRoute> hostRouts;
         private KubevirtIpPool ipPool;
+        private Set<IpAddress> dnses;
 
         @Override
         public KubevirtNetwork build() {
@@ -191,8 +207,12 @@ public final class DefaultKubevirtNetwork implements KubevirtNetwork {
                 checkArgument(segmentId != null, NOT_NULL_MSG, "segmentId");
             }
 
+            if (dnses == null) {
+                dnses = new HashSet<>();
+            }
+
             return new DefaultKubevirtNetwork(networkId, type, name, mtu, segmentId,
-                    gatewayIp, cidr, hostRouts, ipPool);
+                    gatewayIp, cidr, hostRouts, ipPool, dnses);
         }
 
         @Override
@@ -246,6 +266,12 @@ public final class DefaultKubevirtNetwork implements KubevirtNetwork {
         @Override
         public Builder hostRoutes(Set<KubevirtHostRoute> hostRoutes) {
             this.hostRouts = hostRoutes;
+            return this;
+        }
+
+        @Override
+        public KubevirtNetwork.Builder dnses(Set<IpAddress> dnses) {
+            this.dnses = dnses;
             return this;
         }
     }

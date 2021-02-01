@@ -51,6 +51,7 @@ public final class KubevirtNetworkCodec extends JsonCodec<KubevirtNetwork> {
     private static final String CIDR = "cidr";
     private static final String HOST_ROUTES = "hostRoutes";
     private static final String IP_POOL = "ipPool";
+    private static final String DNSES = "dnses";
 
     private static final String MISSING_MESSAGE = " is required in KubevirtNetwork";
 
@@ -83,6 +84,14 @@ public final class KubevirtNetworkCodec extends JsonCodec<KubevirtNetwork> {
         if (network.ipPool() != null) {
             ObjectNode ipPoolJson = context.codec(KubevirtIpPool.class).encode(network.ipPool(), context);
             result.set(IP_POOL, ipPoolJson);
+        }
+
+        if (network.dnses() != null && !network.dnses().isEmpty()) {
+            ArrayNode dnses = context.mapper().createArrayNode();
+            network.dnses().forEach(dns -> {
+                dnses.add(dns.toString());
+            });
+            result.set(DNSES, dnses);
         }
 
         return result;
@@ -143,6 +152,19 @@ public final class KubevirtNetworkCodec extends JsonCodec<KubevirtNetwork> {
             });
         }
         networkBuilder.hostRoutes(hostRoutes);
+
+        // parse DNSes
+        Set<IpAddress> dnses = new HashSet<>();
+        JsonNode dnsesJson = json.get(DNSES);
+        if (dnsesJson != null) {
+            for (int i = 0; i < dnsesJson.size(); i++) {
+                JsonNode dnsJson = dnsesJson.get(i);
+                if (dnsJson != null) {
+                    dnses.add(IpAddress.valueOf(dnsJson.asText()));
+                }
+            }
+        }
+        networkBuilder.dnses(dnses);
 
         log.trace("Network is {}", networkBuilder.build().toString());
 
