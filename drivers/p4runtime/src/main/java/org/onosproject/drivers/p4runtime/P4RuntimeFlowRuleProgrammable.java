@@ -58,17 +58,20 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.onosproject.drivers.p4runtime.P4RuntimeDriverProperties.DEFAULT_DELETE_BEFORE_UPDATE;
 import static org.onosproject.drivers.p4runtime.P4RuntimeDriverProperties.DEFAULT_READ_COUNTERS_WITH_TABLE_ENTRIES;
 import static org.onosproject.drivers.p4runtime.P4RuntimeDriverProperties.DEFAULT_READ_FROM_MIRROR;
 import static org.onosproject.drivers.p4runtime.P4RuntimeDriverProperties.DEFAULT_SUPPORT_DEFAULT_TABLE_ENTRY;
 import static org.onosproject.drivers.p4runtime.P4RuntimeDriverProperties.DEFAULT_SUPPORT_TABLE_COUNTERS;
+import static org.onosproject.drivers.p4runtime.P4RuntimeDriverProperties.DEFAULT_TABLE_WILCARD_READS;
 import static org.onosproject.drivers.p4runtime.P4RuntimeDriverProperties.DELETE_BEFORE_UPDATE;
 import static org.onosproject.drivers.p4runtime.P4RuntimeDriverProperties.READ_COUNTERS_WITH_TABLE_ENTRIES;
 import static org.onosproject.drivers.p4runtime.P4RuntimeDriverProperties.READ_FROM_MIRROR;
 import static org.onosproject.drivers.p4runtime.P4RuntimeDriverProperties.SUPPORT_DEFAULT_TABLE_ENTRY;
 import static org.onosproject.drivers.p4runtime.P4RuntimeDriverProperties.SUPPORT_TABLE_COUNTERS;
+import static org.onosproject.drivers.p4runtime.P4RuntimeDriverProperties.TABLE_WILCARD_READS;
 import static org.onosproject.drivers.p4runtime.P4RuntimeFlowRuleProgrammable.Operation.APPLY;
 import static org.onosproject.drivers.p4runtime.P4RuntimeFlowRuleProgrammable.Operation.REMOVE;
 import static org.onosproject.net.flow.FlowEntry.FlowEntryState.ADDED;
@@ -181,28 +184,51 @@ public class P4RuntimeFlowRuleProgrammable
     private Collection<PiTableEntry> getAllTableEntriesFromDevice() {
         final P4RuntimeReadClient.ReadRequest request = client.read(
                 p4DeviceId, pipeconf);
-        // Read entries from all non-constant tables, including default ones.
-        pipelineModel.tables().stream()
-                .filter(t -> !t.isConstantTable())
-                .forEach(t -> {
-                    request.tableEntries(t.id());
-                    if (driverBoolProperty(SUPPORT_DEFAULT_TABLE_ENTRY,
-                                           DEFAULT_SUPPORT_DEFAULT_TABLE_ENTRY) &&
-                            t.constDefaultAction().isEmpty()) {
-                        request.defaultTableEntry(t.id());
-                    }
-                });
+        final boolean supportDefaultTableEntry = driverBoolProperty(
+                SUPPORT_DEFAULT_TABLE_ENTRY, DEFAULT_SUPPORT_DEFAULT_TABLE_ENTRY);
+        final boolean tableWildcardReads = driverBoolProperty(
+                TABLE_WILCARD_READS, DEFAULT_TABLE_WILCARD_READS);
+        if (!tableWildcardReads) {
+            // Read entries from all non-constant tables, including default ones.
+            pipelineModel.tables().stream()
+                    .filter(t -> !t.isConstantTable())
+                    .forEach(t -> {
+                        request.tableEntries(t.id());
+                        if (supportDefaultTableEntry && t.constDefaultAction().isEmpty()) {
+                            request.defaultTableEntry(t.id());
+                        }
+                    });
+        } else {
+            request.allTableEntries();
+            if (supportDefaultTableEntry) {
+                request.allDefaultTableEntries();
+            }
+        }
         final P4RuntimeReadClient.ReadResponse response = request.submitSync();
         if (!response.isSuccess()) {
             return null;
         }
-        return response.all(PiTableEntry.class).stream()
+        Stream<PiTableEntry> piTableEntries = response.all(PiTableEntry.class).stream()
                 // Device implementation might return duplicate entries. For
                 // example if reading only default ones is not supported and
                 // non-default entries are returned, by using distinct() we
                 // are robust against that possibility.
-                .distinct()
-                .collect(Collectors.toList());
+                .distinct();
+        if (tableWildcardReads) {
+            // When doing a wildcard read on all tables, the device might
+            // return table entries of tables not present in the pipeline
+            // model or constant (default) entries that are filtered out.
+            piTableEntries = piTableEntries.filter(te -> {
+                var piTableModel = pipelineModel.table(te.table());
+                    if (piTableModel.isEmpty() ||
+                            piTableModel.get().isConstantTable() ||
+                            (supportDefaultTableEntry && piTableModel.get().constDefaultAction().isPresent())) {
+                        return false;
+                    }
+                return true;
+            });
+        }
+        return piTableEntries.collect(Collectors.toList());
     }
 
     @Override

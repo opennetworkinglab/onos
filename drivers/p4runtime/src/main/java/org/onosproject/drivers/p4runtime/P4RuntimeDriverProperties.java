@@ -51,4 +51,9 @@ public final class P4RuntimeDriverProperties {
     // True if target supports reading and writing table entries.
     public static final String SUPPORT_DEFAULT_TABLE_ENTRY = "supportDefaultTableEntry";
     public static final boolean DEFAULT_SUPPORT_DEFAULT_TABLE_ENTRY = true;
+
+    // If true we read table entries from all tables with a single wildcard read.
+    // Otherwise, we submit a read request with wildcard read on a table basis.
+    public static final String TABLE_WILCARD_READS = "tableWildcardReads";
+    public static final boolean DEFAULT_TABLE_WILCARD_READS = false;
 }

@@ -99,6 +99,20 @@ public interface P4RuntimeReadClient {
         ReadRequest defaultTableEntry(Iterable<PiTableId> tableIds);
 
         /**
+         * Requests to read all table entries from all tables.
+         *
+         * @return this
+         */
+        ReadRequest allTableEntries();
+
+        /**
+         * Requests to read all default table entries from all tables.
+         *
+         * @return this
+         */
+        ReadRequest allDefaultTableEntries();
+
+        /**
          * Requests to read all action profile groups from the given action
          * profile.
          *

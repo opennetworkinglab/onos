@@ -157,6 +157,28 @@ public final class ReadRequestImpl implements P4RuntimeReadClient.ReadRequest {
     }
 
     @Override
+    public P4RuntimeReadClient.ReadRequest allTableEntries() {
+        try {
+            doTableEntry(null, false);
+        } catch (InternalRequestException e) {
+            log.warn("Unable to read entries for all tables from {}: {}",
+                     client.deviceId(), e.getMessage());
+        }
+        return this;
+    }
+
+    @Override
+    public P4RuntimeReadClient.ReadRequest allDefaultTableEntries() {
+        try {
+            doTableEntry(null, true);
+        } catch (InternalRequestException e) {
+            log.warn("Unable to read default entries for all tables from {}: {}",
+                     client.deviceId(), e.getMessage());
+        }
+        return this;
+    }
+
+    @Override
     public P4RuntimeReadClient.ReadRequest actionProfileGroups(PiActionProfileId actionProfileId) {
         try {
             requestMsg.addEntities(
@@ -270,10 +292,16 @@ public final class ReadRequestImpl implements P4RuntimeReadClient.ReadRequest {
 
     private void doTableEntry(PiTableId piTableId, boolean defaultEntries)
             throws InternalRequestException {
-        checkNotNull(piTableId);
-        final var builder = P4RuntimeOuterClass.TableEntry.newBuilder()
-                .setTableId(p4TableId(piTableId))
-                .setIsDefaultAction(defaultEntries);
+
+        final var builder = P4RuntimeOuterClass.TableEntry.newBuilder();
+
+        builder.setIsDefaultAction(defaultEntries);
+        if (piTableId == null) {
+            builder.setCounterData(P4RuntimeOuterClass.CounterData.getDefaultInstance());
+            builder.setMeterConfig(P4RuntimeOuterClass.MeterConfig.getDefaultInstance());
+        } else {
+            builder.setTableId(p4TableId(piTableId));
+        }
         if (tableHasCounters(piTableId)) {
             builder.setCounterData(P4RuntimeOuterClass.CounterData
                                            .getDefaultInstance());
