@@ -49,6 +49,15 @@ public interface KubevirtNetworkAdminService extends KubevirtNetworkService {
     IpAddress allocateIp(String networkId);
 
     /**
+     * Reserve the given IP address.
+     *
+     * @param networkId network identifier
+     * @param ip IP address to be reserved
+     * @return reserve result
+     */
+    boolean reserveIp(String networkId, IpAddress ip);
+
+    /**
      * Release the existing IP address.
      *
      * @param networkId network identifier

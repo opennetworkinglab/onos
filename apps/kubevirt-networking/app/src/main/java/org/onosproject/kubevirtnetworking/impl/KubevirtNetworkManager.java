@@ -15,7 +15,6 @@
  */
 package org.onosproject.kubevirtnetworking.impl;
 
-
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.packet.IpAddress;
@@ -143,6 +142,22 @@ public class KubevirtNetworkManager
             log.error("Failed to allocate IP address");
         }
         return null;
+    }
+
+    @Override
+    public boolean reserveIp(String networkId, IpAddress ip) {
+        checkArgument(!Strings.isNullOrEmpty(networkId), ERR_NULL_NETWORK_ID);
+        checkArgument(ip != null, ERR_NULL_IP);
+
+        KubevirtNetwork network = networkStore.network(networkId);
+        boolean result = network.ipPool().reserveIp(ip);
+        if (result) {
+            networkStore.updateNetwork(network);
+        } else {
+            log.warn("Failed to reserve IP address");
+        }
+
+        return result;
     }
 
     @Override

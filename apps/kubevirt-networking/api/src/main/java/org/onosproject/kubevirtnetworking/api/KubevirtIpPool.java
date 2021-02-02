@@ -117,6 +117,27 @@ public class KubevirtIpPool {
     }
 
     /**
+     * Reserves the given IP address.
+     *
+     * @param ip IP address to be reserved
+     * @return result for IP address reservation
+     */
+    public synchronized boolean reserveIp(IpAddress ip) {
+        if (availableIps.size() <= 0) {
+            return false;
+        }
+
+        if (allocatedIps.contains(ip) || !availableIps.contains(ip)) {
+            return false;
+        }
+
+        availableIps.remove(ip);
+        allocatedIps.add(ip);
+
+        return true;
+    }
+
+    /**
      * Releases the given IP address.
      *
      * @param ip IP address to be released
