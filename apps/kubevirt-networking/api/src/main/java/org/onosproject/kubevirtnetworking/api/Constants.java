@@ -51,6 +51,11 @@ public final class Constants {
     public static final int FORWARDING_TABLE = 80;
     public static final int ERROR_TABLE = 100;
 
+    // tenant integration bridge flow table index
+    public static final int TENANT_INBOUND_TABLE = 0;
+    public static final int TENANT_DHCP_TABLE = 5;
+    public static final int TENANT_FORWARDING_TABLE = 80;
+
     // flow rule priority
     public static final int PRIORITY_SWITCHING_RULE = 30000;
     public static final int PRIORITY_DHCP_RULE = 42000;

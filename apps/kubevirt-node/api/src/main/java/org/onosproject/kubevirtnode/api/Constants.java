@@ -34,6 +34,7 @@ public final class Constants {
 
     public static final String INTEGRATION_BRIDGE = "br-int";
     public static final String TUNNEL_BRIDGE = "br-tun";
+    public static final String TENANT_BRIDGE_PREFIX = "br-int-";
 
     public static final String INTEGRATION_TO_TUNNEL = "int-to-tun";
     public static final String TUNNEL_TO_INTEGRATION = "tun-to-int";

@@ -16,6 +16,7 @@
 package org.onosproject.kubevirtnetworking.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
@@ -55,6 +56,7 @@ public final class KubevirtNetworkingUtil {
     private static final int PORT_NAME_MAX_LENGTH = 15;
     private static final String COLON_SLASH = "://";
     private static final String COLON = ":";
+    private static final String OF_PREFIX = "of:";
 
     private static final String NETWORK_STATUS_KEY = "k8s.v1.cni.cncf.io/network-status";
     private static final String NAME = "name";
@@ -114,6 +116,21 @@ public final class KubevirtNetworkingUtil {
             fsb.append("s");
         });
         return fsb.toString();
+    }
+
+    /**
+     * Auto generates DPID from the given name.
+     *
+     * @param name name
+     * @return auto generated DPID
+     */
+    public static String genDpidFromName(String name) {
+        if (name != null) {
+            String hexString = Integer.toHexString(name.hashCode());
+            return OF_PREFIX + Strings.padStart(hexString, 16, '0');
+        }
+
+        return null;
     }
 
     /**
@@ -246,6 +263,17 @@ public final class KubevirtNetworkingUtil {
         }
 
         return client;
+    }
+
+    /**
+     * Obtains the hex string of the given segment ID with fixed padding.
+     *
+     * @param segIdStr segment identifier string
+     * @return hex string with padding
+     */
+    public static String segmentIdHex(String segIdStr) {
+        int segId = Integer.parseInt(segIdStr);
+        return String.format("%06x", segId).toLowerCase();
     }
 
     /**
