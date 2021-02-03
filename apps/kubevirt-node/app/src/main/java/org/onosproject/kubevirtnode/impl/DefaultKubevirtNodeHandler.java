@@ -81,6 +81,7 @@ import static org.onosproject.kubevirtnode.api.Constants.INTEGRATION_BRIDGE;
 import static org.onosproject.kubevirtnode.api.Constants.INTEGRATION_TO_PHYSICAL_PREFIX;
 import static org.onosproject.kubevirtnode.api.Constants.INTEGRATION_TO_TUNNEL;
 import static org.onosproject.kubevirtnode.api.Constants.PHYSICAL_TO_INTEGRATION_SUFFIX;
+import static org.onosproject.kubevirtnode.api.Constants.TENANT_BRIDGE_PREFIX;
 import static org.onosproject.kubevirtnode.api.Constants.TUNNEL_BRIDGE;
 import static org.onosproject.kubevirtnode.api.Constants.TUNNEL_TO_INTEGRATION;
 import static org.onosproject.kubevirtnode.api.Constants.VXLAN;
@@ -620,7 +621,9 @@ public class DefaultKubevirtNodeHandler implements KubevirtNodeHandler {
             if (!phyNetworkNames.contains(brName)) {
                 // integration bridge and tunnel bridge should NOT be treated as
                 // physical bridges
-                if (brName.equals(INTEGRATION_BRIDGE) || brName.equals(TUNNEL_BRIDGE)) {
+                if (brName.equals(INTEGRATION_BRIDGE) ||
+                        brName.equals(TUNNEL_BRIDGE) ||
+                        brName.startsWith(TENANT_BRIDGE_PREFIX)) {
                     continue;
                 }
                 removePhysicalPatchPorts(node, brName.substring(NETWORK_BEGIN));

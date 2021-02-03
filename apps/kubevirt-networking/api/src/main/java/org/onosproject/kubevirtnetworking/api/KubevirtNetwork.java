@@ -16,6 +16,7 @@
 package org.onosproject.kubevirtnetworking.api;
 
 import org.onlab.packet.IpAddress;
+import org.onosproject.net.DeviceId;
 
 import java.util.Set;
 
@@ -119,6 +120,22 @@ public interface KubevirtNetwork {
      * @return a set of DNS
      */
     Set<IpAddress> dnses();
+
+    /**
+     * Returns the tenant integration bridge name in case the bridge type
+     * is VXLAN/GRE/GENEVE.
+     *
+     * @return tunnel bridge name
+     */
+    String tenantBridgeName();
+
+    /**
+     * Returns the tenant integration bridge's device identifier.
+     *
+     * @param hostname kubevirt node hostname
+     * @return device identifier
+     */
+    DeviceId tenantDeviceId(String hostname);
 
     /**
      * Builder of new network.
