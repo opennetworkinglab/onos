@@ -18,18 +18,24 @@ package org.onosproject.kubevirtnetworking.api;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
+import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Port;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DeviceService;
 
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static org.onosproject.kubevirtnetworking.api.Constants.TUNNEL_TO_TENANT_PREFIX;
 import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.FLAT;
 import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.GENEVE;
 import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.GRE;
 import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.VXLAN;
+import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 
 /**
  * Default implementation class of kubevirt network.
@@ -159,6 +165,17 @@ public final class DefaultKubevirtNetwork implements KubevirtNetwork {
     }
 
     @Override
+    public PortNumber tunnelToTenantPort(DeviceId deviceId) {
+        String portName = TUNNEL_TO_TENANT_PREFIX + segmentIdHex(segmentId);
+        Port port = port(deviceId, portName);
+        if (port == null) {
+            return null;
+        } else {
+            return port.number();
+        }
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -195,6 +212,14 @@ public final class DefaultKubevirtNetwork implements KubevirtNetwork {
                 .add("ipPool", ipPool)
                 .add("dnses", dnses)
                 .toString();
+    }
+
+    private Port port(DeviceId deviceId, String portName) {
+        DeviceService deviceService = DefaultServiceDirectory.getService(DeviceService.class);
+        return deviceService.getPorts(deviceId).stream()
+                .filter(p -> p.isEnabled() &&
+                        Objects.equals(p.annotations().value(PORT_NAME), portName))
+                .findAny().orElse(null);
     }
 
     private String segmentIdHex(String segIdStr) {

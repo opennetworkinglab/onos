@@ -222,7 +222,9 @@ public class DefaultKubevirtNodeHandler implements KubevirtNodeHandler {
             }
 
             // create patch ports between integration to other bridges
-            createPatchInterfaces(node);
+            // for now, we do not directly connect br-int with br-tun,
+            // as br-int only deals with FLAT and VLAN network
+            // createPatchInterfaces(node);
 
             if (node.dataIp() != null && !isIntfEnabled(node, VXLAN)) {
                 createVxlanTunnelInterface(node);

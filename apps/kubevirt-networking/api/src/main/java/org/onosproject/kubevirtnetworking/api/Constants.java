@@ -31,6 +31,9 @@ public final class Constants {
     public static final MacAddress DEFAULT_GATEWAY_MAC =
                         MacAddress.valueOf(DEFAULT_GATEWAY_MAC_STR);
 
+    public static final String TENANT_TO_TUNNEL_PREFIX = "i-to-t-";
+    public static final String TUNNEL_TO_TENANT_PREFIX = "t-to-i-";
+
     // flow table index
     public static final int STAT_INBOUND_TABLE = 0;
     public static final int VTAP_INBOUND_TABLE = 1;
@@ -54,11 +57,19 @@ public final class Constants {
     // tenant integration bridge flow table index
     public static final int TENANT_INBOUND_TABLE = 0;
     public static final int TENANT_DHCP_TABLE = 5;
+    public static final int TENANT_ARP_TABLE = 30;
+    public static final int TENANT_ICMP_TABLE = 35;
     public static final int TENANT_FORWARDING_TABLE = 80;
 
+    // tunnel bridge flow table index
+    public static final int TUNNEL_DEFAULT_TABLE = 0;
+
     // flow rule priority
-    public static final int PRIORITY_SWITCHING_RULE = 30000;
+    public static final int PRIORITY_ICMP_RULE = 43000;
+    public static final int PRIORITY_FORWARDING_RULE = 30000;
     public static final int PRIORITY_DHCP_RULE = 42000;
+    public static final int PRIORITY_ARP_GATEWAY_RULE = 41000;
+    public static final int PRIORITY_TUNNEL_RULE = 31000;
 
     // CLI item length
     public static final int CLI_ID_LENGTH = 30;
