@@ -17,6 +17,7 @@ package org.onosproject.kubevirtnetworking.api;
 
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
 
 import java.util.Set;
 
@@ -136,6 +137,14 @@ public interface KubevirtNetwork {
      * @return device identifier
      */
     DeviceId tenantDeviceId(String hostname);
+
+    /**
+     * Returns the tunnel to tenant port number.
+     *
+     * @param deviceId device identifier
+     * @return port number
+     */
+    PortNumber tunnelToTenantPort(DeviceId deviceId);
 
     /**
      * Builder of new network.

@@ -17,6 +17,7 @@ package org.onosproject.kubevirtnode.api;
 
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.PortNumber;
 
 import java.util.Collection;
 
@@ -133,6 +134,27 @@ public interface KubevirtNode {
      * @return physical interfaces
      */
     Collection<KubevirtPhyInterface> phyIntfs();
+
+    /**
+     * Returns the VXLAN tunnel port.
+     *
+     * @return VXLAN port number; null if tunnel port does not exist
+     */
+    PortNumber vxlanPort();
+
+    /**
+     * Returns the GRE tunnel port.
+     *
+     * @return GRE port number; null if the GRE tunnel port does not exist
+     */
+    PortNumber grePort();
+
+    /**
+     * Returns the GENEVE tunnel port number.
+     *
+     * @return GENEVE port number; null if the GRE tunnel port does not exist
+     */
+    PortNumber genevePort();
 
     /**
      * Builder of new node entity.

@@ -26,6 +26,7 @@ import org.apache.commons.net.util.SubnetUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onosproject.cfg.ConfigProperty;
@@ -34,6 +35,11 @@ import org.onosproject.kubevirtnetworking.api.KubevirtNetwork;
 import org.onosproject.kubevirtnetworking.api.KubevirtPort;
 import org.onosproject.kubevirtnode.api.KubevirtApiConfig;
 import org.onosproject.kubevirtnode.api.KubevirtApiConfigService;
+import org.onosproject.kubevirtnode.api.KubevirtNode;
+import org.onosproject.net.DeviceId;
+import org.onosproject.net.Port;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DeviceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,9 +48,13 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.onosproject.kubevirtnetworking.api.Constants.TUNNEL_TO_TENANT_PREFIX;
+import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 
 /**
  * An utility that used in KubeVirt networking app.
@@ -233,7 +243,6 @@ public final class KubevirtNetworkingUtil {
 
         if (config.scheme() == KubevirtApiConfig.Scheme.HTTPS) {
             configBuilder.withTrustCerts(true)
-                    .withOauthToken(config.token())
                     .withCaCertData(config.caCertData())
                     .withClientCertData(config.clientCertData())
                     .withClientKeyData(config.clientKeyData());
@@ -274,6 +283,27 @@ public final class KubevirtNetworkingUtil {
     public static String segmentIdHex(String segIdStr) {
         int segId = Integer.parseInt(segIdStr);
         return String.format("%06x", segId).toLowerCase();
+    }
+
+    /**
+     * Obtains the tunnel port number with the given network and node.
+     *
+     * @param network kubevirt network
+     * @param node kubevirt node
+     * @return tunnel port number
+     */
+    public static PortNumber tunnelPort(KubevirtNetwork network, KubevirtNode node) {
+        switch (network.type()) {
+            case VXLAN:
+                return node.vxlanPort();
+            case GRE:
+                return node.grePort();
+            case GENEVE:
+                return node.genevePort();
+            default:
+                break;
+        }
+        return null;
     }
 
     /**
@@ -331,4 +361,64 @@ public final class KubevirtNetworkingUtil {
 
         return null;
     }
+
+    /**
+     * Obtains the tunnel bridge to tenant bridge patch port number.
+     *
+     * @param node kubevirt node
+     * @param network kubevirt network
+     * @return patch port number
+     */
+    public static PortNumber tunnelToTenantPort(KubevirtNode node, KubevirtNetwork network) {
+        if (network.segmentId() == null) {
+            return null;
+        }
+
+        if (node.tunBridge() == null) {
+            return null;
+        }
+
+        String tunToTenantPortName = TUNNEL_TO_TENANT_PREFIX + segmentIdHex(network.segmentId());
+        return portNumber(node.tunBridge(), tunToTenantPortName);
+    }
+
+    /**
+     * Obtains the tunnel port number of the given node.
+     *
+     * @param node kubevirt node
+     * @param network kubevirt network
+     * @return tunnel port number
+     */
+    public static PortNumber tunnelPort(KubevirtNode node, KubevirtNetwork network) {
+        if (network.segmentId() == null) {
+            return null;
+        }
+
+        if (node.tunBridge() == null) {
+            return null;
+        }
+
+        switch (network.type()) {
+            case VXLAN:
+                return node.vxlanPort();
+            case GRE:
+                return node.grePort();
+            case GENEVE:
+                return node.genevePort();
+            case FLAT:
+            default:
+                // do nothing
+                return null;
+        }
+    }
+
+    private static PortNumber portNumber(DeviceId deviceId, String portName) {
+        DeviceService deviceService = DefaultServiceDirectory.getService(DeviceService.class);
+        Port port = deviceService.getPorts(deviceId).stream()
+                .filter(p -> p.isEnabled() &&
+                        Objects.equals(p.annotations().value(PORT_NAME), portName))
+                .findAny().orElse(null);
+        return port != null ? port.number() : null;
+    }
+
 }

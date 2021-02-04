@@ -155,12 +155,6 @@ public class KubevirtPodPortMapper {
                 return;
             }
 
-            KubernetesClient client = k8sClient(kubevirtApiConfigService);
-
-            if (client == null) {
-                return;
-            }
-
             Map<String, String> annots = pod.getMetadata().getAnnotations();
             if (annots == null) {
                 return;
@@ -206,12 +200,6 @@ public class KubevirtPodPortMapper {
                 return;
             }
 
-            KubernetesClient client = k8sClient(kubevirtApiConfigService);
-
-            if (client == null) {
-                return;
-            }
-
             KubevirtPort port = getPort(kubevirtNetworkAdminService.networks(), pod);
             if (port == null) {
                 return;
@@ -244,6 +232,12 @@ public class KubevirtPodPortMapper {
                     Map<String, String> annots = pod.getMetadata().getAnnotations();
                     annots.put(NETWORK_STATUS_KEY, networkStatus.toString(4));
 
+                    KubernetesClient client = k8sClient(kubevirtApiConfigService);
+
+                    if (client == null) {
+                        return;
+                    }
+
                     client.pods().inNamespace(pod.getMetadata().getNamespace())
                             .withName(pod.getMetadata().getName())
                             .edit(r -> new PodBuilder(r)
@@ -260,12 +254,6 @@ public class KubevirtPodPortMapper {
 
         private void processPodDeletion(Pod pod) {
             if (!isRelevantHelper()) {
-                return;
-            }
-
-            KubernetesClient client = k8sClient(kubevirtApiConfigService);
-
-            if (client == null) {
                 return;
             }
 

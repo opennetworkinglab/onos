@@ -49,7 +49,7 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.kubevirtnetworking.api.Constants.KUBEVIRT_NETWORKING_APP_ID;
 import static org.onosproject.kubevirtnetworking.api.Constants.PRE_FLAT_TABLE;
-import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_SWITCHING_RULE;
+import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_FORWARDING_RULE;
 import static org.onosproject.kubevirtnetworking.api.Constants.VTAG_TABLE;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.structurePortName;
 import static org.onosproject.kubevirtnode.api.Constants.INTEGRATION_TO_PHYSICAL_PREFIX;
@@ -57,7 +57,7 @@ import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Populates switching flow rules on OVS for the physical interfaces.
+ * Populates switching flow rules on OVS for the provider network (underlay).
  */
 @Component(immediate = true)
 public class KubevirtSwitchingPhysicalHandler {
@@ -121,7 +121,7 @@ public class KubevirtSwitchingPhysicalHandler {
                 deviceId,
                 selector.build(),
                 treatment.build(),
-                PRIORITY_SWITCHING_RULE,
+                PRIORITY_FORWARDING_RULE,
                 VTAG_TABLE,
                 install);
     }

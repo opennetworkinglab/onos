@@ -17,8 +17,12 @@ package org.onosproject.kubevirtnode.api;
 
 import com.google.common.base.MoreObjects;
 import org.apache.commons.lang.StringUtils;
+import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.packet.IpAddress;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.Port;
+import org.onosproject.net.PortNumber;
+import org.onosproject.net.device.DeviceService;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,6 +30,10 @@ import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.onosproject.kubevirtnode.api.Constants.DEFAULT_CLUSTER_NAME;
+import static org.onosproject.kubevirtnode.api.Constants.GENEVE;
+import static org.onosproject.kubevirtnode.api.Constants.GRE;
+import static org.onosproject.kubevirtnode.api.Constants.VXLAN;
+import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 
 /**
  * Representation of a KubeVirt node.
@@ -171,6 +179,33 @@ public class DefaultKubevirtNode implements KubevirtNode {
         }
 
         return phyIntfs;
+    }
+
+    @Override
+    public PortNumber vxlanPort() {
+        return tunnelPort(VXLAN);
+    }
+
+    @Override
+    public PortNumber grePort() {
+        return tunnelPort(GRE);
+    }
+
+    @Override
+    public PortNumber genevePort() {
+        return tunnelPort(GENEVE);
+    }
+
+    private PortNumber tunnelPort(String tunnelType) {
+        if (dataIp == null) {
+            return null;
+        }
+        DeviceService deviceService = DefaultServiceDirectory.getService(DeviceService.class);
+        Port port = deviceService.getPorts(tunBridge).stream()
+                .filter(p -> p.isEnabled() &&
+                        Objects.equals(p.annotations().value(PORT_NAME), tunnelType))
+                .findAny().orElse(null);
+        return port != null ? port.number() : null;
     }
 
     /**

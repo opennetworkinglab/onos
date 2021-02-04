@@ -16,9 +16,13 @@
 package org.onosproject.kubevirtnetworking.impl;
 
 import com.google.common.collect.Lists;
+import org.onlab.packet.ARP;
+import org.onlab.packet.EthType;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.IPv4;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.TpPort;
 import org.onlab.packet.UDP;
 import org.onosproject.cluster.ClusterService;
@@ -65,14 +69,31 @@ import java.util.concurrent.ExecutorService;
 
 import static java.lang.Thread.sleep;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static org.onlab.packet.ICMP.CODE_ECHO_REQEUST;
+import static org.onlab.packet.ICMP.TYPE_ECHO_REPLY;
+import static org.onlab.packet.ICMP.TYPE_ECHO_REQUEST;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.kubevirtnetworking.api.Constants.DEFAULT_GATEWAY_MAC;
 import static org.onosproject.kubevirtnetworking.api.Constants.KUBEVIRT_NETWORKING_APP_ID;
+import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_ARP_GATEWAY_RULE;
 import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_DHCP_RULE;
-import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_SWITCHING_RULE;
+import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_FORWARDING_RULE;
+import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_ICMP_RULE;
+import static org.onosproject.kubevirtnetworking.api.Constants.TENANT_ARP_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.TENANT_DHCP_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.TENANT_FORWARDING_TABLE;
+import static org.onosproject.kubevirtnetworking.api.Constants.TENANT_ICMP_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.TENANT_INBOUND_TABLE;
+import static org.onosproject.kubevirtnetworking.api.Constants.TENANT_TO_TUNNEL_PREFIX;
+import static org.onosproject.kubevirtnetworking.api.Constants.TUNNEL_TO_TENANT_PREFIX;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.segmentIdHex;
+import static org.onosproject.kubevirtnetworking.util.RulePopulatorUtil.NXM_NX_IP_TTL;
+import static org.onosproject.kubevirtnetworking.util.RulePopulatorUtil.NXM_OF_ICMP_TYPE;
+import static org.onosproject.kubevirtnetworking.util.RulePopulatorUtil.buildLoadExtension;
+import static org.onosproject.kubevirtnetworking.util.RulePopulatorUtil.buildMoveArpShaToThaExtension;
+import static org.onosproject.kubevirtnetworking.util.RulePopulatorUtil.buildMoveArpSpaToTpaExtension;
+import static org.onosproject.kubevirtnetworking.util.RulePopulatorUtil.buildMoveEthSrcToDstExtension;
+import static org.onosproject.kubevirtnetworking.util.RulePopulatorUtil.buildMoveIpSrcToDstExtension;
 import static org.onosproject.kubevirtnode.api.Constants.TUNNEL_BRIDGE;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -86,9 +107,7 @@ public class KubevirtNetworkHandler {
     private static final int DEFAULT_OFPORT = 6653;
     private static final int DPID_BEGIN = 3;
     private static final long SLEEP_MS = 3000; // we wait 3s for init each node
-
-    public static final String INTEGRATION_TO_TUNNEL_PREFIX = "i-to-t-";
-    public static final String TUNNEL_TO_INTEGRATION_PREFIX = "t-to-i-";
+    private static final int DEFAULT_TTL = 0xff;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
@@ -195,29 +214,29 @@ public class KubevirtNetworkHandler {
 
         InterfaceConfig ifaceConfig = device.as(InterfaceConfig.class);
 
-        String intToTunIntf =
-                INTEGRATION_TO_TUNNEL_PREFIX + segmentIdHex(network.segmentId());
-        String tunToIntIntf =
-                TUNNEL_TO_INTEGRATION_PREFIX + segmentIdHex(network.segmentId());
+        String tenantToTunIntf =
+                TENANT_TO_TUNNEL_PREFIX + segmentIdHex(network.segmentId());
+        String tunToTenantIntf =
+                TUNNEL_TO_TENANT_PREFIX + segmentIdHex(network.segmentId());
 
-        // integration bridge -> tunnel bridge
-        PatchDescription brIntTunPatchDesc =
+        // tenant bridge -> tunnel bridge
+        PatchDescription brTenantTunPatchDesc =
                 DefaultPatchDescription.builder()
                         .deviceId(network.tenantBridgeName())
-                        .ifaceName(intToTunIntf)
-                        .peer(tunToIntIntf)
+                        .ifaceName(tenantToTunIntf)
+                        .peer(tunToTenantIntf)
                         .build();
 
-        ifaceConfig.addPatchMode(intToTunIntf, brIntTunPatchDesc);
+        ifaceConfig.addPatchMode(tenantToTunIntf, brTenantTunPatchDesc);
 
-        // tunnel bridge -> integration bridge
-        PatchDescription brTunIntPatchDesc =
+        // tunnel bridge -> tenant bridge
+        PatchDescription brTunTenantPatchDesc =
                 DefaultPatchDescription.builder()
                         .deviceId(TUNNEL_BRIDGE)
-                        .ifaceName(tunToIntIntf)
-                        .peer(intToTunIntf)
+                        .ifaceName(tunToTenantIntf)
+                        .peer(tenantToTunIntf)
                         .build();
-        ifaceConfig.addPatchMode(tunToIntIntf, brTunIntPatchDesc);
+        ifaceConfig.addPatchMode(tunToTenantIntf, brTunTenantPatchDesc);
     }
 
     private void removePatchInterface(KubevirtNode node, KubevirtNetwork network) {
@@ -230,7 +249,7 @@ public class KubevirtNetworkHandler {
 
         InterfaceConfig ifaceConfig = device.as(InterfaceConfig.class);
 
-        String tunToIntIntf = TUNNEL_TO_INTEGRATION_PREFIX + segmentIdHex(network.segmentId());
+        String tunToIntIntf = TUNNEL_TO_TENANT_PREFIX + segmentIdHex(network.segmentId());
 
         ifaceConfig.removePatchMode(tunToIntIntf);
     }
@@ -249,10 +268,14 @@ public class KubevirtNetworkHandler {
         }
 
         flowService.connectTables(deviceId, TENANT_INBOUND_TABLE, TENANT_DHCP_TABLE);
-        flowService.connectTables(deviceId, TENANT_DHCP_TABLE, TENANT_FORWARDING_TABLE);
+        flowService.connectTables(deviceId, TENANT_DHCP_TABLE, TENANT_ARP_TABLE);
+        flowService.connectTables(deviceId, TENANT_ARP_TABLE, TENANT_ICMP_TABLE);
+        flowService.connectTables(deviceId, TENANT_ICMP_TABLE, TENANT_FORWARDING_TABLE);
 
         setDhcpRule(deviceId, true);
         setForwardingRule(deviceId, true);
+        setGatewayArpRule(node, network, true);
+        setGatewayIcmpRule(node, network, true);
 
         log.info("Install default flow rules for tenant bridge {}", network.tenantBridgeName());
     }
@@ -279,7 +302,7 @@ public class KubevirtNetworkHandler {
                 install);
     }
 
-    public void setForwardingRule(DeviceId deviceId, boolean install) {
+    private void setForwardingRule(DeviceId deviceId, boolean install) {
         TrafficSelector selector = DefaultTrafficSelector.builder().build();
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
                 .setOutput(PortNumber.NORMAL)
@@ -290,8 +313,68 @@ public class KubevirtNetworkHandler {
                 deviceId,
                 selector,
                 treatment,
-                PRIORITY_SWITCHING_RULE,
+                PRIORITY_FORWARDING_RULE,
                 TENANT_FORWARDING_TABLE,
+                install);
+    }
+
+    private void setGatewayArpRule(KubevirtNode node, KubevirtNetwork network, boolean install) {
+        Device device = deviceService.getDevice(network.tenantDeviceId(node.hostname()));
+
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
+        sBuilder.matchEthType(EthType.EtherType.ARP.ethType().toShort())
+                .matchArpOp(ARP.OP_REQUEST)
+                .matchArpTpa(Ip4Address.valueOf(network.gatewayIp().toString()));
+
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+        tBuilder.extension(buildMoveEthSrcToDstExtension(device), device.id())
+                .extension(buildMoveArpShaToThaExtension(device), device.id())
+                .extension(buildMoveArpSpaToTpaExtension(device), device.id())
+                .setArpOp(ARP.OP_REPLY)
+                .setArpSha(DEFAULT_GATEWAY_MAC)
+                .setArpSpa(Ip4Address.valueOf(network.gatewayIp().toString()))
+                .setEthSrc(DEFAULT_GATEWAY_MAC)
+                .setOutput(PortNumber.IN_PORT);
+
+        flowService.setRule(
+                appId,
+                device.id(),
+                sBuilder.build(),
+                tBuilder.build(),
+                PRIORITY_ARP_GATEWAY_RULE,
+                TENANT_ARP_TABLE,
+                install
+        );
+    }
+
+    private void setGatewayIcmpRule(KubevirtNode node, KubevirtNetwork network, boolean install) {
+        DeviceId deviceId = network.tenantDeviceId(node.hostname());
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchIPProtocol(IPv4.PROTOCOL_ICMP)
+                .matchIcmpType(TYPE_ECHO_REQUEST)
+                .matchIcmpCode(CODE_ECHO_REQEUST)
+                .matchIPDst(IpPrefix.valueOf(network.gatewayIp(), 32));
+
+        Device device = deviceService.getDevice(deviceId);
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
+                .extension(buildMoveEthSrcToDstExtension(device), device.id())
+                .extension(buildMoveIpSrcToDstExtension(device), device.id())
+                .extension(buildLoadExtension(device,
+                        NXM_NX_IP_TTL, DEFAULT_TTL), device.id())
+                .extension(buildLoadExtension(device,
+                        NXM_OF_ICMP_TYPE, TYPE_ECHO_REPLY), device.id())
+                .setIpSrc(network.gatewayIp())
+                .setEthSrc(DEFAULT_GATEWAY_MAC)
+                .setOutput(PortNumber.IN_PORT);
+
+        flowService.setRule(
+                appId,
+                deviceId,
+                sBuilder.build(),
+                tBuilder.build(),
+                PRIORITY_ICMP_RULE,
+                TENANT_ICMP_TABLE,
                 install);
     }
 
