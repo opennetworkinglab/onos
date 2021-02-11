@@ -97,6 +97,30 @@ tables {
   direct_resource_ids: 302001091
   size: 1024
 }
+tables {
+  preamble {
+    id: 33592598
+    name: "wcmp_control.wcmp_table_oneshot"
+    alias: "wcmp_table_oneshot"
+    annotations: "@oneshot"
+  }
+  match_fields {
+    id: 1
+    name: "local_metadata.next_hop_id"
+    bitwidth: 16
+    match_type: EXACT
+  }
+  action_refs {
+    id: 16794308
+  }
+  action_refs {
+    id: 16800567
+    annotations: "@defaultonly()"
+  }
+  implementation_id: 285259294
+  direct_resource_ids: 302001091
+  size: 1024
+}
 actions {
   preamble {
     id: 16794308

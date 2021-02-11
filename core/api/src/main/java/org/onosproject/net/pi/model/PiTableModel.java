@@ -109,6 +109,14 @@ public interface PiTableModel {
     boolean isConstantTable();
 
     /**
+     * Returns true if the table supports one shot only when associated to an
+     * action profile.
+     *
+     * @return true if table support one shot only, false otherwise
+     */
+    boolean oneShotOnly();
+
+    /**
      * Returns the action model associated with the given ID, if present. If not
      * present, it means that this table does not support such an action.
      *

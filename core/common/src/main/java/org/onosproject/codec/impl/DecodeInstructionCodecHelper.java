@@ -329,6 +329,7 @@ public final class DecodeInstructionCodecHelper {
 
             return Instructions.piTableAction(piActionProfileMemberId);
         }
+        // TODO: implement JSON decoder for ACTION_SET
         throw new IllegalArgumentException("Protocol-independent Instruction subtype "
                                                    + subType + " is not supported");
     }

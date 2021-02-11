@@ -27,8 +27,6 @@ import org.onosproject.net.pi.model.PiActionParamId;
 import org.onosproject.net.pi.model.PiActionParamModel;
 import org.onosproject.net.pi.model.PiActionProfileId;
 import org.onosproject.net.pi.model.PiActionProfileModel;
-import org.onosproject.net.pi.model.PiPacketMetadataId;
-import org.onosproject.net.pi.model.PiPacketMetadataModel;
 import org.onosproject.net.pi.model.PiCounterId;
 import org.onosproject.net.pi.model.PiCounterModel;
 import org.onosproject.net.pi.model.PiCounterType;
@@ -38,6 +36,8 @@ import org.onosproject.net.pi.model.PiMatchType;
 import org.onosproject.net.pi.model.PiMeterId;
 import org.onosproject.net.pi.model.PiMeterModel;
 import org.onosproject.net.pi.model.PiMeterType;
+import org.onosproject.net.pi.model.PiPacketMetadataId;
+import org.onosproject.net.pi.model.PiPacketMetadataModel;
 import org.onosproject.net.pi.model.PiPacketOperationModel;
 import org.onosproject.net.pi.model.PiPacketOperationType;
 import org.onosproject.net.pi.model.PiPipelineModel;
@@ -261,6 +261,7 @@ public class P4PipelineModelTest {
     /* Table Models */
     private static final PiTableId PI_TABLE_ID_1 = PiTableId.of("Table1");
     private static final PiTableId PI_TABLE_ID_2 = PiTableId.of("Table2");
+    private static final PiTableId PI_TABLE_ID_3 = PiTableId.of("Table3");
 
     private static final PiTableType PI_TABLE_TYPE_1 = PiTableType.DIRECT;
     private static final PiTableType PI_TABLE_TYPE_2 = PiTableType.INDIRECT;
@@ -277,11 +278,15 @@ public class P4PipelineModelTest {
     private static final PiTableModel P4_TABLE_MODEL_1 =
             new P4TableModel(PI_TABLE_ID_1, PI_TABLE_TYPE_1, P4_ACTION_PROFILE_MODEL_1, MAX_SIZE_1, COUNTERS_1,
                              METERS_1, SUPPORT_AGING_1, MATCH_FIELDS_1, ACTIONS_1, P4_ACTION_MODEL_DEFAULT_1,
-                             IS_CONST_TABLE_1);
+                             IS_CONST_TABLE_1, false);
     private static final PiTableModel P4_TABLE_MODEL_2 =
             new P4TableModel(PI_TABLE_ID_2, PI_TABLE_TYPE_2, P4_ACTION_PROFILE_MODEL_2, MAX_SIZE_2, COUNTERS_2,
                              METERS_2, SUPPORT_AGING_2, MATCH_FIELDS_2, ACTIONS_2, P4_ACTION_MODEL_DEFAULT_2,
-                             IS_CONST_TABLE_2);
+                             IS_CONST_TABLE_2, false);
+    private static final PiTableModel P4_TABLE_MODEL_3 =
+            new P4TableModel(PI_TABLE_ID_2, PI_TABLE_TYPE_2, P4_ACTION_PROFILE_MODEL_2, MAX_SIZE_2, COUNTERS_2,
+                             METERS_2, SUPPORT_AGING_2, MATCH_FIELDS_2, ACTIONS_2, P4_ACTION_MODEL_DEFAULT_2,
+                             IS_CONST_TABLE_2, true);
 
     /* Packet operations */
     private static final PiPacketOperationType PI_PACKET_OPERATION_TYPE_1 = PiPacketOperationType.PACKET_IN;
@@ -308,6 +313,10 @@ public class P4PipelineModelTest {
     private static final ImmutableMap<PiTableId, PiTableModel> TABLES_2 =
             new ImmutableMap.Builder<PiTableId, PiTableModel>()
                     .put(PI_TABLE_ID_2, P4_TABLE_MODEL_2)
+                    .build();
+    private static final ImmutableMap<PiTableId, PiTableModel> TABLES_3 =
+            new ImmutableMap.Builder<PiTableId, PiTableModel>()
+                    .put(PI_TABLE_ID_3, P4_TABLE_MODEL_3)
                     .build();
 
     private static final ImmutableMap<PiActionProfileId, PiActionProfileModel> ACTION_PROFILES_1 =
@@ -357,15 +366,18 @@ public class P4PipelineModelTest {
 
     private static final PiPipelineModel P4_PIPELINE_MODEL_1 =
             new P4PipelineModel(TABLES_1, COUNTERS_1, METERS_1, REGISTERS_1, ACTION_PROFILES_1, PACKET_OPERATIONS_1,
-                    FINGER_PRINT_1);
+                                FINGER_PRINT_1);
     private static final PiPipelineModel SAME_AS_P4_PIPELINE_MODEL_1 =
             new P4PipelineModel(TABLES_1, COUNTERS_1, METERS_1, REGISTERS_1, ACTION_PROFILES_1, PACKET_OPERATIONS_1,
-                    FINGER_PRINT_1);
+                                FINGER_PRINT_1);
     private static final PiPipelineModel P4_PIPELINE_MODEL_2 =
             new P4PipelineModel(TABLES_2, COUNTERS_2, METERS_2, REGISTERS_1, ACTION_PROFILES_2, PACKET_OPERATIONS_2,
-                    FINGER_PRINT_2);
+                                FINGER_PRINT_2);
     private static final PiPipelineModel P4_PIPELINE_MODEL_3 =
             new P4PipelineModel(TABLES_2, COUNTERS_2, METERS_2, REGISTERS_1, ACTION_PROFILES_2, PACKET_OPERATIONS_3,
+                                FINGER_PRINT_2);
+    private static final PiPipelineModel P4_PIPELINE_MODEL_4 =
+            new P4PipelineModel(TABLES_3, COUNTERS_2, METERS_2, REGISTERS_1, ACTION_PROFILES_2, PACKET_OPERATIONS_3,
                                 FINGER_PRINT_2);
 
     /**
@@ -385,6 +397,7 @@ public class P4PipelineModelTest {
                 .addEqualityGroup(P4_PIPELINE_MODEL_1, SAME_AS_P4_PIPELINE_MODEL_1)
                 .addEqualityGroup(P4_PIPELINE_MODEL_2)
                 .addEqualityGroup(P4_PIPELINE_MODEL_3)
+                .addEqualityGroup(P4_PIPELINE_MODEL_4)
                 .testEquals();
     }
 }

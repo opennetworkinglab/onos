@@ -83,10 +83,8 @@ public class P4InfoParserTest {
         // Generate two PiPipelineModels from p4Info file
         PiPipelineModel model = P4InfoParser.parse(p4InfoUrl);
         PiPipelineModel model2 = P4InfoParser.parse(p4InfoUrl);
-
         // Check equality
         new EqualsTester().addEqualityGroup(model, model2).testEquals();
-
         // Generate a P4Info object from the file
         final P4Info p4info;
         try {
@@ -94,30 +92,33 @@ public class P4InfoParserTest {
         } catch (IOException e) {
             throw new P4InfoParserException("Unable to parse protobuf " + p4InfoUrl.toString(), e);
         }
-
         List<Table> tableMsgs =  p4info.getTablesList();
         PiTableId table0Id = PiTableId.of(tableMsgs.get(0).getPreamble().getName());
         PiTableId wcmpTableId = PiTableId.of(tableMsgs.get(1).getPreamble().getName());
-
+        PiTableId wcmpTableOneShotId = PiTableId.of(tableMsgs.get(2).getPreamble().getName());
         //parse tables
         PiTableModel table0Model = model.table(table0Id).orElse(null);
         PiTableModel wcmpTableModel = model.table(wcmpTableId).orElse(null);
+        PiTableModel wcmpTableOneShotModel = model.table(wcmpTableOneShotId).orElse(null);
         PiTableModel table0Model2 = model2.table(table0Id).orElse(null);
         PiTableModel wcmpTableModel2 = model2.table(wcmpTableId).orElse(null);
-
         new EqualsTester().addEqualityGroup(table0Model, table0Model2)
                 .addEqualityGroup(wcmpTableModel, wcmpTableModel2).testEquals();
-
         // Check existence
         assertThat("model parsed value is null", table0Model, notNullValue());
         assertThat("model parsed value is null", wcmpTableModel, notNullValue());
+        assertThat("model parsed value is null", wcmpTableOneShotModel, notNullValue());
         assertThat("Incorrect size for table0 size", table0Model.maxSize(), is(equalTo(DEFAULT_MAX_TABLE_SIZE)));
         assertThat("Incorrect size for wcmp_table size", wcmpTableModel.maxSize(), is(equalTo(DEFAULT_MAX_TABLE_SIZE)));
+        assertThat("Incorrect size for wcmp_table_one_shot size", wcmpTableOneShotModel.maxSize(),
+                   is(equalTo(DEFAULT_MAX_TABLE_SIZE)));
+        // Check one-shot annotation
+        assertThat("error parsing one-shot annotation", wcmpTableModel.oneShotOnly(), is(false));
+        assertThat("error parsing one-shot annotation", wcmpTableOneShotModel.oneShotOnly(), is(true));
 
         // Check matchFields
         List<MatchField> matchFieldList = tableMsgs.get(0).getMatchFieldsList();
         List<PiMatchFieldModel> piMatchFieldList = new ArrayList<>();
-
         for (MatchField matchFieldIter : matchFieldList) {
             MatchField.MatchType matchType = matchFieldIter.getMatchType();
             PiMatchType piMatchType;
@@ -140,7 +141,6 @@ public class P4InfoParserTest {
                 piMatchFieldList.get(4), piMatchFieldList.get(5),
                 piMatchFieldList.get(6), piMatchFieldList.get(7),
                 piMatchFieldList.get(8)));
-
         assertThat("Incorrect size for matchFields", wcmpTableModel.matchFields().size(), is(equalTo(1)));
 
         // check if matchFields are in order
@@ -256,8 +256,8 @@ public class P4InfoParserTest {
         Collection<PiMeterModel> meterModel = model.meters();
         Collection<PiMeterModel> meterModel2 = model2.meters();
 
-        assertThat("model pased meter collaction should be empty", meterModel.isEmpty(), is(true));
-        assertThat("model pased meter collaction should be empty", meterModel2.isEmpty(), is(true));
+        assertThat("model parsed meter collection should be empty", meterModel.isEmpty(), is(true));
+        assertThat("model parsed meter collection should be empty", meterModel2.isEmpty(), is(true));
 
         //parse packet operations
         PiPacketOperationModel packetInOperationalModel =

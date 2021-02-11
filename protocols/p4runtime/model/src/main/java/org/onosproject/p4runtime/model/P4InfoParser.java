@@ -75,6 +75,10 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static org.onosproject.p4runtime.model.P4InfoAnnotationUtils.MAX_GROUP_SIZE_ANNOTATION;
+import static org.onosproject.p4runtime.model.P4InfoAnnotationUtils.ONE_SHOT_ONLY_ANNOTATION;
+import static org.onosproject.p4runtime.model.P4InfoAnnotationUtils.getAnnotationValue;
+import static org.onosproject.p4runtime.model.P4InfoAnnotationUtils.isAnnotationPresent;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -86,6 +90,7 @@ public final class P4InfoParser {
 
     private static final String PACKET_IN = "packet_in";
     private static final String PACKET_OUT = "packet_out";
+
 
     private static final Map<CounterSpec.Unit, PiCounterModel.Unit> COUNTER_UNIT_MAP =
             new ImmutableMap.Builder<CounterSpec.Unit, PiCounterModel.Unit>()
@@ -224,6 +229,8 @@ public final class P4InfoParser {
                     // Filter out missed mapping.
                     .filter(Objects::nonNull)
                     .forEach(counterModel -> tableCounterMapBuilder.put(counterModel.id(), counterModel));
+            // Check if table supports one-shot only
+            boolean oneShotOnly = isAnnotationPresent(ONE_SHOT_ONLY_ANNOTATION, tableMsg.getPreamble());
             tableImmMapBuilder.put(
                     tableId,
                     new P4TableModel(
@@ -238,8 +245,7 @@ public final class P4InfoParser {
                             tableFieldMapBuilder.build(),
                             tableActionMapBuilder.build(),
                             actionMap.get(tableMsg.getConstDefaultActionId()),
-                            tableMsg.getIsConstTable()));
-
+                            tableMsg.getIsConstTable(), oneShotOnly));
         }
 
         // Get a map with proper PI IDs for some of those maps we created at the beginning.
@@ -355,8 +361,8 @@ public final class P4InfoParser {
             // correctly interpret P4Runtime-defined max_group_size annotation:
             // https://s3-us-west-2.amazonaws.com/p4runtime/docs/master/
             // P4Runtime-Spec.html#sec-p4info-action-profile
-            final String maxSizeAnnString = findAnnotation(
-                    "max_group_size", actProfileMsg.getPreamble());
+            final String maxSizeAnnString = getAnnotationValue(
+                    MAX_GROUP_SIZE_ANNOTATION, actProfileMsg.getPreamble());
             final int maxSizeAnn = maxSizeAnnString != null
                     ? Integer.valueOf(maxSizeAnnString) : 0;
             final int maxGroupSize;
@@ -479,15 +485,6 @@ public final class P4InfoParser {
                     "Unrecognized match field type '%s'", type));
         }
         return MATCH_TYPE_MAP.get(type);
-    }
-
-    private static String findAnnotation(String name, P4InfoOuterClass.Preamble preamble) {
-        return preamble.getAnnotationsList().stream()
-                .filter(a -> a.startsWith("@" + name))
-                // e.g. @my_annotaion(value)
-                .map(a -> a.substring(name.length() + 2, a.length() - 1))
-                .findFirst()
-                .orElse(null);
     }
 
     private static boolean isFieldString(P4Info p4info, String fieldTypeName) {

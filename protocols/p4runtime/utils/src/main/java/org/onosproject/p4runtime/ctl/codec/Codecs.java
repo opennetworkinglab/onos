@@ -40,6 +40,7 @@ public final class Codecs {
     private final PacketMetadataCodec packetMetadata;
     private final PacketOutCodec packetOut;
     private final TableEntryCodec tableEntry;
+    private final ActionSetCodec actionSet;
 
     private Codecs() {
         this.action = new ActionCodec();
@@ -59,6 +60,7 @@ public final class Codecs {
         this.packetMetadata = new PacketMetadataCodec();
         this.packetOut = new PacketOutCodec();
         this.tableEntry = new TableEntryCodec();
+        this.actionSet = new ActionSetCodec();
     }
 
     public EntityCodec entity() {
@@ -127,5 +129,9 @@ public final class Codecs {
 
     DirectCounterEntryCodec directCounterEntry() {
         return directCounterEntry;
+    }
+
+    ActionSetCodec actionSet() {
+        return actionSet;
     }
 }

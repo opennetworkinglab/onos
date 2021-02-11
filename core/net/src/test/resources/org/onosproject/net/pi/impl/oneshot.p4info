@@ -1,0 +1,94 @@
+pkg_info {
+  arch: "v1model"
+}
+tables {
+  preamble {
+    id: 33594717
+    name: "ingress.wcmp_control.wcmp_table"
+    alias: "wcmp_table"
+    annotations: "@oneshot"
+  }
+  match_fields {
+    id: 1
+    name: "local_metadata.next_hop_id"
+    bitwidth: 16
+    match_type: EXACT
+  }
+  action_refs {
+    id: 16796092
+  }
+  action_refs {
+    id: 16800567
+    annotations: "@defaultonly"
+    scope: DEFAULT_ONLY
+  }
+  implementation_id: 285253634
+  size: 1024
+}
+actions {
+  preamble {
+    id: 16800567
+    name: "NoAction"
+    alias: "NoAction"
+  }
+}
+actions {
+  preamble {
+    id: 16796092
+    name: "ingress.wcmp_control.set_egress_port"
+    alias: "wcmp_control.set_egress_port"
+  }
+  params {
+    id: 1
+    name: "port"
+    bitwidth: 9
+  }
+}
+action_profiles {
+  preamble {
+    id: 285253634
+    name: "ingress.wcmp_control.wcmp_selector"
+    alias: "wcmp_selector"
+  }
+  table_ids: 33594717
+  with_selector: true
+  size: 64
+}
+controller_packet_metadata {
+  preamble {
+    id: 67146229
+    name: "packet_in"
+    alias: "packet_in"
+    annotations: "@controller_header(\"packet_in\")"
+  }
+  metadata {
+    id: 1
+    name: "ingress_port"
+    bitwidth: 9
+  }
+  metadata {
+    id: 2
+    name: "_padding"
+    bitwidth: 7
+  }
+}
+controller_packet_metadata {
+  preamble {
+    id: 67121543
+    name: "packet_out"
+    alias: "packet_out"
+    annotations: "@controller_header(\"packet_out\")"
+  }
+  metadata {
+    id: 1
+    name: "egress_port"
+    bitwidth: 9
+  }
+  metadata {
+    id: 2
+    name: "_padding"
+    bitwidth: 7
+  }
+}
+type_info {
+}

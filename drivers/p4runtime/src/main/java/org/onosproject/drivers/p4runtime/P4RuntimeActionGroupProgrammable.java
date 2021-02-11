@@ -131,8 +131,17 @@ public class P4RuntimeActionGroupProgrammable
         // Dump groups and members from device for all action profiles.
         final P4RuntimeReadClient.ReadRequest request = client.read(
                 p4DeviceId, pipeconf);
-        pipeconf.pipelineModel().actionProfiles()
-                .stream().map(PiActionProfileModel::id)
+
+        pipeconf.pipelineModel().actionProfiles().stream()
+                // Do not issue groups and members reads for one-shot tables.
+                // Those tables won't use separate groups and members, but the
+                // action profile elements are embedded in the table entry via
+                // action sets and weighted actions.
+                .filter(piActionProfileModel -> piActionProfileModel.tables().stream()
+                        .map(tableId -> pipeconf.pipelineModel().table(tableId))
+                        .allMatch(piTableModel -> piTableModel.isPresent() &&
+                                 !piTableModel.get().oneShotOnly()))
+                .map(PiActionProfileModel::id)
                 .forEach(id -> request.actionProfileGroups(id)
                         .actionProfileMembers(id));
         final P4RuntimeReadClient.ReadResponse response = request.submitSync();

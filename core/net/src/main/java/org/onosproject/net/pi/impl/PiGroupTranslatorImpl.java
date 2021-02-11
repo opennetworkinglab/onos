@@ -94,6 +94,18 @@ final class PiGroupTranslatorImpl {
                     actionProfileId));
         }
 
+        // Check if the table associated with the action profile supports only
+        // one-shot action profile programming.
+        boolean isTableOneShot = actionProfileModel.tables().stream()
+                .map(tableId -> pipeconf.pipelineModel().table(tableId))
+                .allMatch(piTableModel -> piTableModel.isPresent() &&
+                        piTableModel.get().oneShotOnly());
+        if (isTableOneShot) {
+            throw new PiTranslationException(format(
+                    "Table associated to action profile '%s' supports only one-shot action profile programming",
+                    actionProfileId));
+        }
+
         // Check group validity.
         if (actionProfileModel.maxGroupSize() > 0
                 && group.buckets().buckets().size() > actionProfileModel.maxGroupSize()) {

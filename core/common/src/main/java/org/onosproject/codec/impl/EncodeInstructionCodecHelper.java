@@ -289,6 +289,7 @@ public final class EncodeInstructionCodecHelper {
                 final PiActionProfileMemberId memberId = (PiActionProfileMemberId) piInstruction.action();
                 result.put(InstructionCodec.PI_ACTION_PROFILE_MEMBER_ID, memberId.id());
                 break;
+            //TODO: implement JSON encoder for ACTION_SET
             default:
                 throw new IllegalArgumentException("Cannot convert protocol-independent subtype of" +
                                                            piInstruction.action().type().name());

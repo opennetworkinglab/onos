@@ -40,6 +40,7 @@ import org.onosproject.net.pi.model.PiTableModel;
 import org.onosproject.net.pi.model.PiTableType;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionParam;
+import org.onosproject.net.pi.runtime.PiActionSet;
 import org.onosproject.net.pi.runtime.PiExactFieldMatch;
 import org.onosproject.net.pi.runtime.PiFieldMatch;
 import org.onosproject.net.pi.runtime.PiLpmFieldMatch;
@@ -234,19 +235,28 @@ final class PiFlowRuleTranslatorImpl {
         switch (piTableAction.type()) {
             case ACTION:
                 return checkPiAction((PiAction) piTableAction, table);
+            case ACTION_SET:
+                for (var actProfAct : ((PiActionSet) piTableAction).actions()) {
+                    checkPiAction(actProfAct.action(), table);
+                }
             case ACTION_PROFILE_GROUP_ID:
+                if (table.actionProfile() == null || !table.actionProfile().hasSelector()) {
+                    throw new PiTranslationException(format(
+                            "action is of type '%s', but table '%s' does not" +
+                                    "implement an action profile with dynamic selection",
+                            piTableAction.type(), table.id()));
+                }
             case ACTION_PROFILE_MEMBER_ID:
                 if (!table.tableType().equals(PiTableType.INDIRECT)) {
                     throw new PiTranslationException(format(
                             "action is indirect of type '%s', but table '%s' is of type '%s'",
                             piTableAction.type(), table.id(), table.tableType()));
                 }
-                if (piTableAction.type().equals(PiTableAction.Type.ACTION_PROFILE_GROUP_ID)
-                        && (table.actionProfile() == null || !table.actionProfile().hasSelector())) {
+                if (!piTableAction.type().equals(PiTableAction.Type.ACTION_SET) &&
+                        table.oneShotOnly()) {
                     throw new PiTranslationException(format(
-                            "action is of type '%s', but table '%s' does not" +
-                                    "implement an action profile with dynamic selection",
-                            piTableAction.type(), table.id()));
+                            "table '%s' supports only one shot programming", table.id()
+                    ));
                 }
                 return piTableAction;
             default:

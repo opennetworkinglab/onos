@@ -95,6 +95,11 @@ public class MockTableModel implements PiTableModel {
     }
 
     @Override
+    public boolean oneShotOnly() {
+        return false;
+    }
+
+    @Override
     public Optional<PiActionModel> action(PiActionId actionId) {
         return Optional.empty();
     }

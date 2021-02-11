@@ -10,6 +10,7 @@ TEST_DEPS = TEST + TEST_REST + TEST_ADAPTERS + [
     "//core/store/dist:onos-core-dist-tests",
     "//utils/osgi:onlab-osgi-tests",
     "//pipelines/basic:onos-pipelines-basic",
+    "//protocols/p4runtime/model:onos-protocols-p4runtime-model-native",
     "@minimal_json//jar",
 ]
 

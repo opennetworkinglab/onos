@@ -21,6 +21,7 @@ import org.onosproject.net.pi.model.PiTableId;
 import org.onosproject.net.pi.runtime.PiAction;
 import org.onosproject.net.pi.runtime.PiActionProfileGroupId;
 import org.onosproject.net.pi.runtime.PiActionProfileMemberId;
+import org.onosproject.net.pi.runtime.PiActionSet;
 import org.onosproject.net.pi.runtime.PiCounterCellData;
 import org.onosproject.net.pi.runtime.PiMatchKey;
 import org.onosproject.net.pi.runtime.PiTableAction;
@@ -179,6 +180,12 @@ public final class TableEntryCodec
                 tableActionMsgBuilder.setActionProfileMemberId(
                         ((PiActionProfileMemberId) piTableAction).id());
                 break;
+            case ACTION_SET:
+                P4RuntimeOuterClass.ActionProfileActionSet theActionProfileActionSet =
+                        CODECS.actionSet().encode(
+                                (PiActionSet) piTableAction, null, pipeconf);
+                tableActionMsgBuilder.setActionProfileActionSet(theActionProfileActionSet);
+                break;
             default:
                 throw new CodecException(
                         format("Building of table action type %s not implemented",
@@ -202,6 +209,9 @@ public final class TableEntryCodec
             case ACTION_PROFILE_MEMBER_ID:
                 return PiActionProfileMemberId.of(
                         tableActionMsg.getActionProfileMemberId());
+            case ACTION_PROFILE_ACTION_SET:
+                return CODECS.actionSet().decode(
+                        tableActionMsg.getActionProfileActionSet(), null, pipeconf);
             default:
                 throw new CodecException(
                         format("Decoding of table action type %s not implemented",
