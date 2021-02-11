@@ -22,6 +22,7 @@ import org.junit.Test;
 import org.onosproject.net.pi.model.PiPacketMetadataId;
 import org.onosproject.net.pi.model.PiPacketMetadataModel;
 import org.onosproject.net.pi.model.PiPacketOperationType;
+
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
 
 /**
@@ -42,6 +43,9 @@ public class P4PacketOperationModelTest {
         new P4PacketMetadataModel(PI_CONTROL_METADATA_ID_1, BIT_WIDTH_1);
     private static final PiPacketMetadataModel PI_CONTROL_METADATA_MODEL_2 =
         new P4PacketMetadataModel(PI_CONTROL_METADATA_ID_2, BIT_WIDTH_2);
+    private static final PiPacketMetadataModel PI_CONTROL_METADATA_MODEL_3 =
+            new P4PacketMetadataModel(
+                    PI_CONTROL_METADATA_ID_2, P4PacketMetadataModel.BIT_WIDTH_UNDEFINED);
 
     private static final ImmutableList<PiPacketMetadataModel> METADATAS_1 =
         new ImmutableList.Builder<PiPacketMetadataModel>()
@@ -58,6 +62,11 @@ public class P4PacketOperationModelTest {
             .add(PI_CONTROL_METADATA_MODEL_1)
             .add(PI_CONTROL_METADATA_MODEL_2)
             .build();
+    private static final ImmutableList<PiPacketMetadataModel> METADATAS_4 =
+            new ImmutableList.Builder<PiPacketMetadataModel>()
+                    .add(PI_CONTROL_METADATA_MODEL_1)
+                    .add(PI_CONTROL_METADATA_MODEL_3)
+                    .build();
 
     private static final P4PacketOperationModel P4_PACKET_OPERATION_MODEL_1 =
         new P4PacketOperationModel(PI_PACKET_OPERATION_TYPE_1, METADATAS_1);
@@ -67,6 +76,8 @@ public class P4PacketOperationModelTest {
         new P4PacketOperationModel(PI_PACKET_OPERATION_TYPE_2, METADATAS_2);
     private static final P4PacketOperationModel P4_PACKET_OPERATION_MODEL_3 =
         new P4PacketOperationModel(PI_PACKET_OPERATION_TYPE_2, METADATAS_3);
+    private static final P4PacketOperationModel P4_PACKET_OPERATION_MODEL_4 =
+            new P4PacketOperationModel(PI_PACKET_OPERATION_TYPE_2, METADATAS_4);
 
     /**
      * Checks that the P4PacketOperationModel class is immutable.
@@ -85,6 +96,7 @@ public class P4PacketOperationModelTest {
             .addEqualityGroup(P4_PACKET_OPERATION_MODEL_1, SAME_AS_P4_PACKET_OPERATION_MODEL_1)
             .addEqualityGroup(P4_PACKET_OPERATION_MODEL_2)
             .addEqualityGroup(P4_PACKET_OPERATION_MODEL_3)
+            .addEqualityGroup(P4_PACKET_OPERATION_MODEL_4)
             .testEquals();
     }
 }

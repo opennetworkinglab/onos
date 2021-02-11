@@ -28,6 +28,8 @@ import static com.google.common.base.MoreObjects.toStringHelper;
  */
 final class P4PacketMetadataModel implements PiPacketMetadataModel {
 
+    static final int BIT_WIDTH_UNDEFINED = -1;
+
     private final PiPacketMetadataId id;
     private final int bitWidth;
 
@@ -44,6 +46,11 @@ final class P4PacketMetadataModel implements PiPacketMetadataModel {
     @Override
     public int bitWidth() {
         return bitWidth;
+    }
+
+    @Override
+    public boolean hasBitWidth() {
+        return bitWidth != BIT_WIDTH_UNDEFINED;
     }
 
     @Override

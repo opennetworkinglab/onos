@@ -413,7 +413,9 @@ public final class P4InfoParser {
                     ImmutableList.builder();
             ctrlPktMetaMsg.getMetadataList().forEach(metadataMsg -> metadataListBuilder.add(
                     new P4PacketMetadataModel(PiPacketMetadataId.of(metadataMsg.getName()),
-                                               metadataMsg.getBitwidth())));
+                                              isFieldString(p4info, metadataMsg.getTypeName().getName()) ?
+                                                      P4PacketMetadataModel.BIT_WIDTH_UNDEFINED :
+                                                      metadataMsg.getBitwidth())));
             packetOpMap.put(
                     mapPacketOpType(ctrlPktMetaMsg.getPreamble().getName()),
                     new P4PacketOperationModel(mapPacketOpType(ctrlPktMetaMsg.getPreamble().getName()),

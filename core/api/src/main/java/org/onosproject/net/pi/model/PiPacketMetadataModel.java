@@ -37,4 +37,12 @@ public interface PiPacketMetadataModel {
      * @return size in bit
      */
     int bitWidth();
+
+    /**
+     * Return true is the packet metadata has a fixed bit width.
+     * It returns false if it can have flexible bit width.
+     *
+     * @return True if the packet metadata has fixed bit width, false otherwise
+     */
+    boolean hasBitWidth();
 }

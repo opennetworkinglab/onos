@@ -297,6 +297,8 @@ public class P4PipelineModelTest {
             new P4PacketMetadataModel(PI_CONTROL_METADATA_ID_1, META_BIT_WIDTH_1);
     private static final PiPacketMetadataModel P4_CONTROL_METADATA_MODEL_2 =
             new P4PacketMetadataModel(PI_CONTROL_METADATA_ID_2, META_BIT_WIDTH_2);
+    private static final PiPacketMetadataModel P4_CONTROL_METADATA_MODEL_3 =
+            new P4PacketMetadataModel(PI_CONTROL_METADATA_ID_2, P4PacketMetadataModel.BIT_WIDTH_UNDEFINED);
 
     /* Pipeline Models */
     private static final ImmutableMap<PiTableId, PiTableModel> TABLES_1 =
@@ -325,11 +327,17 @@ public class P4PipelineModelTest {
             new ImmutableList.Builder<PiPacketMetadataModel>()
                     .add(P4_CONTROL_METADATA_MODEL_2)
                     .build();
+    private static final ImmutableList<PiPacketMetadataModel> METADATAS_3 =
+            new ImmutableList.Builder<PiPacketMetadataModel>()
+                    .add(P4_CONTROL_METADATA_MODEL_3)
+                    .build();
 
     private static final PiPacketOperationModel P4_PACKET_OPERATION_MODEL_1 =
             new P4PacketOperationModel(PI_PACKET_OPERATION_TYPE_1, METADATAS_1);
     private static final PiPacketOperationModel P4_PACKET_OPERATION_MODEL_2 =
             new P4PacketOperationModel(PI_PACKET_OPERATION_TYPE_2, METADATAS_2);
+    private static final PiPacketOperationModel P4_PACKET_OPERATION_MODEL_3 =
+            new P4PacketOperationModel(PI_PACKET_OPERATION_TYPE_1, METADATAS_3);
 
     private static final ImmutableMap<PiPacketOperationType, PiPacketOperationModel> PACKET_OPERATIONS_1 =
             new ImmutableMap.Builder<PiPacketOperationType, PiPacketOperationModel>()
@@ -338,6 +346,10 @@ public class P4PipelineModelTest {
     private static final ImmutableMap<PiPacketOperationType, PiPacketOperationModel> PACKET_OPERATIONS_2 =
             new ImmutableMap.Builder<PiPacketOperationType, PiPacketOperationModel>()
                     .put(PI_PACKET_OPERATION_TYPE_2, P4_PACKET_OPERATION_MODEL_2)
+                    .build();
+    private static final ImmutableMap<PiPacketOperationType, PiPacketOperationModel> PACKET_OPERATIONS_3 =
+            new ImmutableMap.Builder<PiPacketOperationType, PiPacketOperationModel>()
+                    .put(PI_PACKET_OPERATION_TYPE_1, P4_PACKET_OPERATION_MODEL_3)
                     .build();
 
     private static final int FINGER_PRINT_1 = 0;
@@ -352,6 +364,9 @@ public class P4PipelineModelTest {
     private static final PiPipelineModel P4_PIPELINE_MODEL_2 =
             new P4PipelineModel(TABLES_2, COUNTERS_2, METERS_2, REGISTERS_1, ACTION_PROFILES_2, PACKET_OPERATIONS_2,
                     FINGER_PRINT_2);
+    private static final PiPipelineModel P4_PIPELINE_MODEL_3 =
+            new P4PipelineModel(TABLES_2, COUNTERS_2, METERS_2, REGISTERS_1, ACTION_PROFILES_2, PACKET_OPERATIONS_3,
+                                FINGER_PRINT_2);
 
     /**
      * Checks that the P4PipelineModel class is immutable.
@@ -369,6 +384,7 @@ public class P4PipelineModelTest {
         new EqualsTester()
                 .addEqualityGroup(P4_PIPELINE_MODEL_1, SAME_AS_P4_PIPELINE_MODEL_1)
                 .addEqualityGroup(P4_PIPELINE_MODEL_2)
+                .addEqualityGroup(P4_PIPELINE_MODEL_3)
                 .testEquals();
     }
 }
