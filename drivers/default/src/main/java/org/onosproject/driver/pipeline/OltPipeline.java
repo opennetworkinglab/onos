@@ -214,10 +214,10 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
             provisionEthTypeBasedFilter(filter, ethType, output,
                                         (L2ModificationInstruction) vlanId.get(),
                                         (L2ModificationInstruction) vlanPush.get());
-        } else if (ethType.ethType().equals(EthType.EtherType.LLDP.ethType()) ||
-                   ethType.ethType().equals(EthType.EtherType.PPPoED.ethType())) {
+        } else if (ethType.ethType().equals(EthType.EtherType.PPPoED.ethType()))  {
+            provisionPPPoED(filter, ethType, vlanId.orElse(null), vlanPcp.orElse(null), output);
+        } else if (ethType.ethType().equals(EthType.EtherType.LLDP.ethType())) {
             provisionEthTypeBasedFilter(filter, ethType, output, null, null);
-
         } else if (ethType.ethType().equals(EthType.EtherType.IPV4.ethType())) {
             IPProtocolCriterion ipProto = (IPProtocolCriterion)
                     filterForCriterion(filter.conditions(), Criterion.Type.IP_PROTO);
@@ -975,6 +975,30 @@ public class OltPipeline extends AbstractHandlerBehaviour implements Pipeliner {
         //In case of downstream there will be no match on the VLAN, which is null,
         // so it will just be output, meter, writeMetadata
 
+        buildAndApplyRule(filter, selector, treatment);
+    }
+
+    private void provisionPPPoED(FilteringObjective filter, EthTypeCriterion ethType,
+                                 Instruction vlanIdInstruction,
+                                 Instruction vlanPcpInstruction,
+                                 Instructions.OutputInstruction output) {
+        Instruction meter = filter.meta().metered();
+        Instruction writeMetadata = filter.meta().writeMetadata();
+
+        VlanIdCriterion matchVlanId = (VlanIdCriterion)
+                filterForCriterion(filter.conditions(), Criterion.Type.VLAN_VID);
+
+        TrafficSelector selector;
+        TrafficTreatment treatment;
+
+        if (matchVlanId != null) {
+            log.debug("Building pppoed selector with match VLAN {}.", matchVlanId);
+        } else {
+            log.debug("Building pppoed selector without match VLAN.");
+        }
+
+        selector = buildSelector(filter.key(), ethType, matchVlanId);
+        treatment = buildTreatment(output, meter, writeMetadata, vlanIdInstruction, vlanPcpInstruction);
         buildAndApplyRule(filter, selector, treatment);
     }
 
