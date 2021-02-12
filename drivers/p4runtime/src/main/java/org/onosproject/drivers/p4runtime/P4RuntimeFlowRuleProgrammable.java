@@ -156,23 +156,52 @@ public class P4RuntimeFlowRuleProgrammable
             }
         }
 
-        if (!inconsistentEntries.isEmpty()) {
-            // Trigger clean up of inconsistent entries.
-            log.warn("Found {} inconsistent table entries on {}, removing them...",
-                     inconsistentEntries.size(), deviceId);
-            // Submit delete request and update mirror when done.
-            client.write(p4DeviceId, pipeconf)
-                    .entities(inconsistentEntries, DELETE)
-                    .submit().whenComplete((response, ex) -> {
+        // Default entries need to be treated in a different way according to the spec:
+        // the client can modify (reset or update) them but cannot remove the entries
+        List<PiTableEntry> inconsistentDefaultEntries = Lists.newArrayList();
+        List<PiTableEntry> tempDefaultEntries = inconsistentEntries.stream()
+                .filter(PiTableEntry::isDefaultAction)
+                .collect(Collectors.toList());
+        inconsistentEntries.removeAll(tempDefaultEntries);
+        // Once we have removed the default entry from inconsistentEntries we need to
+        // craft for each default entry a copy without the action field. According to
+        // the spec leaving the action field unset will reset the original default entry.
+        tempDefaultEntries.forEach(piTableEntry -> {
+            PiTableEntry resetEntry = PiTableEntry.builder()
+                    .forTable(piTableEntry.table()).build();
+            inconsistentDefaultEntries.add(resetEntry);
+        });
+
+        // Clean up of inconsistent entries.
+        if (!inconsistentEntries.isEmpty() || !inconsistentDefaultEntries.isEmpty()) {
+            WriteRequest writeRequest = client.write(p4DeviceId, pipeconf);
+            // Trigger remove of inconsistent entries.
+            if (!inconsistentEntries.isEmpty()) {
+                log.warn("Found {} inconsistent table entries on {}, removing them...",
+                        inconsistentEntries.size(), deviceId);
+                writeRequest = writeRequest.entities(inconsistentEntries, DELETE);
+            }
+
+            // Trigger reset of inconsistent default entries.
+            if (!inconsistentDefaultEntries.isEmpty()) {
+                log.warn("Found {} inconsistent default table entries on {}, resetting them...",
+                        inconsistentDefaultEntries.size(), deviceId);
+                writeRequest = writeRequest.entities(inconsistentDefaultEntries, MODIFY);
+            }
+
+            // Submit delete request for non-default entries and modify request
+            // for default entries. Updates mirror when done.
+            writeRequest.submit().whenComplete((response, ex) -> {
                 if (ex != null) {
                     log.error("Exception removing inconsistent table entries", ex);
                 } else {
                     log.debug("Successfully removed {} out of {} inconsistent entries",
-                              response.success().size(), response.all().size());
+                            response.success().size(), response.all().size());
                 }
-                tableMirror.applyWriteResponse(response);
+                // We can use the entity as the handle does not contain the action field
+                // so the key will be removed even if the table entry is different
+                response.success().forEach(entity -> tableMirror.remove((PiTableEntryHandle) entity.handle()));
             });
-
         }
 
         return result.build();
