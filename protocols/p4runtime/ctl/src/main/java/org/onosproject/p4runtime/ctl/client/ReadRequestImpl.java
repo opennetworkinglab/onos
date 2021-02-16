@@ -301,10 +301,9 @@ public final class ReadRequestImpl implements P4RuntimeReadClient.ReadRequest {
             builder.setMeterConfig(P4RuntimeOuterClass.MeterConfig.getDefaultInstance());
         } else {
             builder.setTableId(p4TableId(piTableId));
-        }
-        if (tableHasCounters(piTableId)) {
-            builder.setCounterData(P4RuntimeOuterClass.CounterData
-                                           .getDefaultInstance());
+            if (tableHasCounters(piTableId)) {
+                builder.setCounterData(P4RuntimeOuterClass.CounterData.getDefaultInstance());
+            }
         }
         final var entityMsg = P4RuntimeOuterClass.Entity
                 .newBuilder().setTableEntry(builder.build()).build();
