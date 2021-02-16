@@ -173,48 +173,6 @@
                    impl="org.onosproject.driver.traceable.OfdpaPipelineTraceable" />
     </driver>
 
-    <driver name="celestica" extends="default"
-            manufacturer="PMC GPON Networks" hwVersion="PAS5211 v2" swVersion="vOLT version 1.5.3.*">
-        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
-                   impl="org.onosproject.driver.pipeline.OltPipeline"/>
-        <behaviour api="org.onosproject.net.behaviour.MeterQuery"
-                   impl="org.onosproject.driver.query.FullMetersAvailable"/>
-    </driver>
-    <driver name="pmc-olt" extends="default"
-            manufacturer="PMC GPON Networks" hwVersion="PASffffffff v-1" swVersion="vOLT.*">
-        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
-                   impl="org.onosproject.driver.pipeline.OltPipeline"/>
-        <behaviour api="org.onosproject.net.behaviour.MeterQuery"
-                   impl="org.onosproject.driver.query.FullMetersAvailable"/>
-    </driver>
-    <driver name="voltha" extends="default"
-            manufacturer="VOLTHA Project" hwVersion=".*" swVersion=".*">
-        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
-                   impl="org.onosproject.driver.pipeline.OltPipeline"/>
-        <behaviour api="org.onosproject.net.behaviour.MeterQuery"
-                   impl="org.onosproject.driver.query.FullMetersAvailable"/>
-    </driver>
-    <driver name="fj-olt" extends="default"
-            manufacturer="Fujitsu" hwVersion="svkOLT" swVersion="v1.0">
-        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
-                   impl="org.onosproject.driver.pipeline.OltPipeline"/>
-        <behaviour api="org.onosproject.net.behaviour.MeterQuery"
-                   impl="org.onosproject.driver.query.FullMetersAvailable"/>
-    </driver>
-    <driver name="nokia-olt" extends="default"
-            manufacturer="Nokia" hwVersion="SDOLT" swVersion="5.2.1">
-        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
-                   impl="org.onosproject.driver.pipeline.NokiaOltPipeline"/>
-        <behaviour api="org.onosproject.net.behaviour.MeterQuery"
-                   impl="org.onosproject.driver.query.FullMetersAvailable"/>
-    </driver>
-    <driver name="g.fast" extends="default"
-            manufacturer="TEST1" hwVersion="TEST2" swVersion="TEST3">
-        <behaviour api="org.onosproject.net.behaviour.Pipeliner"
-                   impl="org.onosproject.driver.pipeline.OltPipeline"/>
-        <behaviour api="org.onosproject.net.behaviour.MeterQuery"
-                   impl="org.onosproject.driver.query.FullMetersAvailable"/>
-    </driver>
     <!--  The SoftRouter driver is meant to be used by any software/NPU based
        ~  switch that wishes to implement a simple 2-table router. To use this
        ~  driver, configure ONOS with the dpid of the device, or extend the
