@@ -412,6 +412,7 @@ public class KubevirtNetworkHandler {
                     initIntegrationTunnelBridge(network);
                     break;
                 case FLAT:
+                case VLAN:
                 default:
                     // do nothing
                     break;
@@ -430,6 +431,7 @@ public class KubevirtNetworkHandler {
                     purgeIntegrationTunnelBridge(network);
                     break;
                 case FLAT:
+                case VLAN:
                 default:
                     // do nothing
                     break;
@@ -498,6 +500,7 @@ public class KubevirtNetworkHandler {
                         setDefaultRules(node, network);
                         break;
                     case FLAT:
+                    case VLAN:
                     default:
                         // do nothing
                         break;

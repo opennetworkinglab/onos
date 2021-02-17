@@ -406,6 +406,7 @@ public final class KubevirtNetworkingUtil {
             case GENEVE:
                 return node.genevePort();
             case FLAT:
+            case VLAN:
             default:
                 // do nothing
                 return null;
