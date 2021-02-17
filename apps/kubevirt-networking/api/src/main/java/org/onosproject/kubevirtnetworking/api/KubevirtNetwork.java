@@ -50,6 +50,11 @@ public interface KubevirtNetwork {
          * FLAT typed provider network.
          */
         FLAT,
+
+        /**
+         * VLAN typed virtual network.
+         */
+        VLAN,
     }
 
     /**

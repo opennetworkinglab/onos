@@ -60,6 +60,7 @@ import static org.onosproject.kubevirtnetworking.api.Constants.KUBEVIRT_NETWORKI
 import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_TUNNEL_RULE;
 import static org.onosproject.kubevirtnetworking.api.Constants.TUNNEL_DEFAULT_TABLE;
 import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.FLAT;
+import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.VLAN;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.getPort;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.tunnelPort;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.tunnelToTenantPort;
@@ -151,8 +152,7 @@ public class KubevirtSwitchingTenantHandler {
             return;
         }
 
-        // TODO: need to handle VLAN case
-        if (network.type() == FLAT) {
+        if (network.type() == FLAT || network.type() == VLAN) {
             return;
         }
 
@@ -216,8 +216,7 @@ public class KubevirtSwitchingTenantHandler {
             return;
         }
 
-        // TODO: need to handle VLAN case
-        if (network.type() == FLAT) {
+        if (network.type() == FLAT || network.type() == VLAN) {
             return;
         }
 
