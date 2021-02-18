@@ -262,6 +262,10 @@ public final class KubevirtNetworkingUtil {
                 return null;
             }
 
+            if (!annots.containsKey(NETWORK_STATUS_KEY)) {
+                return null;
+            }
+
             String networkStatusStr = annots.get(NETWORK_STATUS_KEY);
 
             if (networkStatusStr == null) {

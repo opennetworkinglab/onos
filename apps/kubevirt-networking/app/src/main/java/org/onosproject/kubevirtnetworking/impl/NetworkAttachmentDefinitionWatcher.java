@@ -293,35 +293,39 @@ public class NetworkAttachmentDefinitionWatcher {
                                 IpAddress.valueOf(start), IpAddress.valueOf(end)));
                     }
 
-                    JSONArray routesJson = configJson.getJSONArray(HOST_ROUTES);
-                    Set<KubevirtHostRoute> hostRoutes = new HashSet<>();
-                    if (routesJson != null) {
-                        for (int i = 0; i < routesJson.length(); i++) {
-                            JSONObject route = routesJson.getJSONObject(i);
-                            String destinationStr = route.getString(DESTINATION);
-                            String nexthopStr = route.getString(NEXTHOP);
+                    if (configJson.has(HOST_ROUTES)) {
+                        JSONArray routesJson = configJson.getJSONArray(HOST_ROUTES);
+                        Set<KubevirtHostRoute> hostRoutes = new HashSet<>();
+                        if (routesJson != null) {
+                            for (int i = 0; i < routesJson.length(); i++) {
+                                JSONObject route = routesJson.getJSONObject(i);
+                                String destinationStr = route.getString(DESTINATION);
+                                String nexthopStr = route.getString(NEXTHOP);
 
-                            if (StringUtils.isNotEmpty(destinationStr) &&
-                                    StringUtils.isNotEmpty(nexthopStr)) {
-                                hostRoutes.add(new KubevirtHostRoute(
-                                        IpPrefix.valueOf(destinationStr),
-                                        IpAddress.valueOf(nexthopStr)));
+                                if (StringUtils.isNotEmpty(destinationStr) &&
+                                        StringUtils.isNotEmpty(nexthopStr)) {
+                                    hostRoutes.add(new KubevirtHostRoute(
+                                            IpPrefix.valueOf(destinationStr),
+                                            IpAddress.valueOf(nexthopStr)));
+                                }
                             }
                         }
+                        builder.hostRoutes(hostRoutes);
                     }
-                    builder.hostRoutes(hostRoutes);
 
-                    JSONArray dnsesJson = configJson.getJSONArray(DNSES);
-                    Set<IpAddress> dnses = new HashSet<>();
-                    if (dnsesJson != null) {
-                        for (int i = 0; i < dnsesJson.length(); i++) {
-                             String dns = dnsesJson.getString(i);
-                             if (StringUtils.isNotEmpty(dns)) {
-                                 dnses.add(IpAddress.valueOf(dns));
-                             }
+                    if (configJson.has(DNSES)) {
+                        JSONArray dnsesJson = configJson.getJSONArray(DNSES);
+                        Set<IpAddress> dnses = new HashSet<>();
+                        if (dnsesJson != null) {
+                            for (int i = 0; i < dnsesJson.length(); i++) {
+                                String dns = dnsesJson.getString(i);
+                                if (StringUtils.isNotEmpty(dns)) {
+                                    dnses.add(IpAddress.valueOf(dns));
+                                }
+                            }
                         }
+                        builder.dnses(dnses);
                     }
-                    builder.dnses(dnses);
 
                     builder.networkId(name).name(name).type(Type.valueOf(type))
                             .mtu(mtu).gatewayIp(IpAddress.valueOf(gatewayIp)).cidr(cidr);

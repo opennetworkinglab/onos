@@ -24,7 +24,7 @@ public final class OsgiPropertyConstants {
     }
 
     static final String OVSDB_PORT = "ovsdbPortNum";
-    static final int OVSDB_PORT_NUM_DEFAULT = 6653;
+    static final int OVSDB_PORT_NUM_DEFAULT = 6650;
 
     static final String AUTO_RECOVERY = "autoRecovery";
     static final boolean AUTO_RECOVERY_DEFAULT = true;
