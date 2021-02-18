@@ -17,13 +17,22 @@ package org.onosproject.kubevirtnode.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
+import io.fabric8.kubernetes.api.model.Node;
+import io.fabric8.kubernetes.api.model.NodeAddress;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.lang.StringUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.onlab.packet.IpAddress;
+import org.onosproject.kubevirtnode.api.DefaultKubevirtNode;
+import org.onosproject.kubevirtnode.api.DefaultKubevirtPhyInterface;
 import org.onosproject.kubevirtnode.api.KubevirtApiConfig;
 import org.onosproject.kubevirtnode.api.KubevirtNode;
+import org.onosproject.kubevirtnode.api.KubevirtNodeState;
+import org.onosproject.kubevirtnode.api.KubevirtPhyInterface;
 import org.onosproject.net.Device;
 import org.onosproject.net.behaviour.BridgeConfig;
 import org.onosproject.net.behaviour.BridgeName;
@@ -36,9 +45,15 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Dictionary;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.onlab.util.Tools.get;
+import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.MASTER;
+import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.WORKER;
 
 /**
  * An utility that used in KubeVirt node app.
@@ -53,6 +68,11 @@ public final class KubevirtNodeUtil {
     private static final int HEX_LENGTH = 16;
     private static final String OF_PREFIX = "of:";
     private static final String ZERO = "0";
+    private static final String INTERNAL_IP = "InternalIP";
+    private static final String K8S_ROLE = "node-role.kubernetes.io";
+    private static final String PHYSNET_CONFIG_KEY = "physnet-config";
+    private static final String NETWORK_KEY = "network";
+    private static final String INTERFACE_KEY = "interface";
 
     private static final int PORT_NAME_MAX_LENGTH = 15;
 
@@ -277,5 +297,71 @@ public final class KubevirtNodeUtil {
             value = null;
         }
         return value;
+    }
+
+    /**
+     * Returns the kubevirt node from the node.
+     *
+     * @param node a raw node object returned from a k8s client
+     * @return kubevirt node
+     */
+    public static KubevirtNode buildKubevirtNode(Node node) {
+        String hostname = node.getMetadata().getName();
+        IpAddress managementIp = null;
+        IpAddress dataIp = null;
+
+        for (NodeAddress nodeAddress:node.getStatus().getAddresses()) {
+            if (nodeAddress.getType().equals(INTERNAL_IP)) {
+                managementIp = IpAddress.valueOf(nodeAddress.getAddress());
+                dataIp = IpAddress.valueOf(nodeAddress.getAddress());
+            }
+        }
+
+        Set<String> rolesFull = node.getMetadata().getLabels().keySet().stream()
+                .filter(l -> l.contains(K8S_ROLE))
+                .collect(Collectors.toSet());
+
+        KubevirtNode.Type nodeType = WORKER;
+
+        for (String roleStr : rolesFull) {
+            String role = roleStr.split("/")[1];
+            if (MASTER.name().equalsIgnoreCase(role)) {
+                nodeType = MASTER;
+                break;
+            }
+        }
+
+        // start to parse kubernetes annotation
+        Map<String, String> annots = node.getMetadata().getAnnotations();
+        String physnetConfig = annots.get(PHYSNET_CONFIG_KEY);
+        Set<KubevirtPhyInterface> phys = new HashSet<>();
+        try {
+            if (physnetConfig != null) {
+                JSONArray configJson = new JSONArray(physnetConfig);
+
+                for (int i = 0; i < configJson.length(); i++) {
+                    JSONObject object = configJson.getJSONObject(i);
+                    String network = object.getString(NETWORK_KEY);
+                    String intf = object.getString(INTERFACE_KEY);
+
+                    if (network != null && intf != null) {
+                        phys.add(DefaultKubevirtPhyInterface.builder()
+                                .network(network).intf(intf).build());
+                    }
+
+                }
+            }
+        } catch (JSONException e) {
+            log.error("Failed to parse network status object", e);
+        }
+
+        return DefaultKubevirtNode.builder()
+                .hostname(hostname)
+                .managementIp(managementIp)
+                .dataIp(dataIp)
+                .type(nodeType)
+                .state(KubevirtNodeState.ON_BOARDED)
+                .phyIntfs(phys)
+                .build();
     }
 }
