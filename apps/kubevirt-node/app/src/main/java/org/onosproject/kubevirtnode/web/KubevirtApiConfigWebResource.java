@@ -60,8 +60,6 @@ public class KubevirtApiConfigWebResource extends AbstractWebResource {
     private static final String ENDPOINT = "endpoint";
     private static final String ERROR_MESSAGE = " cannot be null";
 
-    private final KubevirtApiConfigAdminService service = get(KubevirtApiConfigAdminService.class);
-
     @Context
     private UriInfo uriInfo;
 
@@ -80,6 +78,8 @@ public class KubevirtApiConfigWebResource extends AbstractWebResource {
         log.trace(String.format(MESSAGE_CONFIG, CREATE));
 
         KubevirtApiConfig config = readApiConfig(input);
+        KubevirtApiConfigAdminService service = get(KubevirtApiConfigAdminService.class);
+
         if (config != null) {
             service.createApiConfig(config);
         }
@@ -103,6 +103,7 @@ public class KubevirtApiConfigWebResource extends AbstractWebResource {
     public Response deleteApiConfig(@PathParam("endpoint") String endpoint) {
         log.trace(String.format(MESSAGE_CONFIG, REMOVE));
 
+        KubevirtApiConfigAdminService service = get(KubevirtApiConfigAdminService.class);
         KubevirtApiConfig existing = service.apiConfig();
 
         if (existing == null) {

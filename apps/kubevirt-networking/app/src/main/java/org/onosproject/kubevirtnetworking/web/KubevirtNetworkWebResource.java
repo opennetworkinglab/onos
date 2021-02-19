@@ -55,9 +55,6 @@ public class KubevirtNetworkWebResource extends AbstractWebResource {
 
     private static final String RESULT = "result";
 
-    private final KubevirtNetworkAdminService adminService =
-            get(KubevirtNetworkAdminService.class);
-
     /**
      * Creates a network from the JSON input stream.
      *
@@ -71,13 +68,14 @@ public class KubevirtNetworkWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response createNetwork(InputStream input) {
         log.trace(String.format(MESSAGE, "CREATE"));
+        KubevirtNetworkAdminService service = get(KubevirtNetworkAdminService.class);
         URI location;
 
         try {
             ObjectNode jsonTree = readTreeFromStream(mapper(), input);
             final KubevirtNetwork network =
                     codec(KubevirtNetwork.class).decode(jsonTree, this);
-            adminService.createNetwork(network);
+            service.createNetwork(network);
             location = new URI(network.networkId());
         } catch (IOException | URISyntaxException e) {
             throw new IllegalArgumentException(e);
@@ -101,6 +99,7 @@ public class KubevirtNetworkWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateNetwork(@PathParam("id") String id, InputStream input) {
         log.trace(String.format(MESSAGE, "UPDATED"));
+        KubevirtNetworkAdminService service = get(KubevirtNetworkAdminService.class);
 
         try {
             ObjectNode jsonTree = readTreeFromStream(mapper(), input);
@@ -112,7 +111,7 @@ public class KubevirtNetworkWebResource extends AbstractWebResource {
 
             final KubevirtNetwork network =
                     codec(KubevirtNetwork.class).decode(jsonTree, this);
-            adminService.updateNetwork(network);
+            service.updateNetwork(network);
         } catch (IOException e) {
             throw new IllegalArgumentException(e);
         }
@@ -130,8 +129,9 @@ public class KubevirtNetworkWebResource extends AbstractWebResource {
     @Path("{id}")
     public Response removeNetwork(@PathParam("id") String id) {
         log.trace(String.format(MESSAGE, "DELETE " + id));
+        KubevirtNetworkAdminService service = get(KubevirtNetworkAdminService.class);
 
-        adminService.removeNetwork(id);
+        service.removeNetwork(id);
         return Response.noContent().build();
     }
 
@@ -146,8 +146,10 @@ public class KubevirtNetworkWebResource extends AbstractWebResource {
     public Response hasNetwork(@PathParam("id") String id) {
         log.trace(String.format(MESSAGE, "QUERY " + id));
 
+        KubevirtNetworkAdminService service = get(KubevirtNetworkAdminService.class);
+
         ObjectNode root = mapper().createObjectNode();
-        KubevirtNetwork network = adminService.network(id);
+        KubevirtNetwork network = service.network(id);
 
         if (network == null) {
             root.put(RESULT, false);
@@ -167,7 +169,8 @@ public class KubevirtNetworkWebResource extends AbstractWebResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getNetworks() {
-        final Iterable<KubevirtNetwork> networks = adminService.networks();
+        KubevirtNetworkAdminService service = get(KubevirtNetworkAdminService.class);
+        final Iterable<KubevirtNetwork> networks = service.networks();
         return ok(encodeArray(KubevirtNetwork.class, "networks", networks)).build();
     }
 
@@ -182,7 +185,8 @@ public class KubevirtNetworkWebResource extends AbstractWebResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{id}")
     public Response getNetworkById(@PathParam("id") String id) {
-        final KubevirtNetwork network = nullIsNotFound(adminService.network(id),
+        KubevirtNetworkAdminService service = get(KubevirtNetworkAdminService.class);
+        final KubevirtNetwork network = nullIsNotFound(service.network(id),
                 NETWORK_NOT_FOUND + id);
         return ok(codec(KubevirtNetwork.class).encode(network, this)).build();
     }
