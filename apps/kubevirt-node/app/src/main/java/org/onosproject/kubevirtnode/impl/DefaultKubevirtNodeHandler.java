@@ -79,11 +79,9 @@ import static org.onosproject.kubevirtnode.api.Constants.GENEVE;
 import static org.onosproject.kubevirtnode.api.Constants.GRE;
 import static org.onosproject.kubevirtnode.api.Constants.INTEGRATION_BRIDGE;
 import static org.onosproject.kubevirtnode.api.Constants.INTEGRATION_TO_PHYSICAL_PREFIX;
-import static org.onosproject.kubevirtnode.api.Constants.INTEGRATION_TO_TUNNEL;
 import static org.onosproject.kubevirtnode.api.Constants.PHYSICAL_TO_INTEGRATION_SUFFIX;
 import static org.onosproject.kubevirtnode.api.Constants.TENANT_BRIDGE_PREFIX;
 import static org.onosproject.kubevirtnode.api.Constants.TUNNEL_BRIDGE;
-import static org.onosproject.kubevirtnode.api.Constants.TUNNEL_TO_INTEGRATION;
 import static org.onosproject.kubevirtnode.api.Constants.VXLAN;
 import static org.onosproject.kubevirtnode.api.KubevirtNodeService.APP_ID;
 import static org.onosproject.kubevirtnode.api.KubevirtNodeState.COMPLETE;
@@ -120,7 +118,8 @@ public class DefaultKubevirtNodeHandler implements KubevirtNodeHandler {
     private static final int DPID_BEGIN = 3;
     private static final int NETWORK_BEGIN = 3;
     private static final long SLEEP_SHORT_MS = 1000; // we wait 1s
-    private static final long SLEEP_LONG_MS = 2000; // we wait 2s
+    private static final long SLEEP_MID_MS = 2000; // we wait 2s
+    private static final long SLEEP_LONG_MS = 5000; // we wait 5s
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
@@ -237,12 +236,6 @@ public class DefaultKubevirtNodeHandler implements KubevirtNodeHandler {
             if (node.dataIp() != null && !isIntfEnabled(node, GENEVE)) {
                 createGeneveTunnelInterface(node);
             }
-
-            // provision new physical interfaces on the given node
-            // this includes creating physical bridge, attaching physical port
-            // to physical bridge, adding patch ports to both physical bridge and br-int
-            provisionPhysicalInterfaces(node);
-
         } catch (Exception e) {
             log.error("Exception occurred because of {}", e);
         }
@@ -350,6 +343,8 @@ public class DefaultKubevirtNodeHandler implements KubevirtNodeHandler {
      * Creates a tunnel interface in a given kubernetes node.
      *
      * @param node       kubevirt node
+     * @param type       kubevirt type
+     * @param intfName   tunnel interface name
      */
     private void createTunnelInterface(KubevirtNode node,
                                        String type, String intfName) {
@@ -373,6 +368,7 @@ public class DefaultKubevirtNodeHandler implements KubevirtNodeHandler {
      * Builds tunnel description according to the network type.
      *
      * @param type      network type
+     * @param intfName  tunnel interface
      * @return tunnel description
      */
     private TunnelDescription buildTunnelDesc(String type, String intfName) {
@@ -418,36 +414,6 @@ public class DefaultKubevirtNodeHandler implements KubevirtNodeHandler {
                         .anyMatch(port -> Objects.equals(
                                 port.annotations().value(PORT_NAME), intf) &&
                                 port.isEnabled());
-    }
-
-    private void createPatchInterfaces(KubevirtNode node) {
-        Device device = deviceService.getDevice(node.ovsdb());
-        if (device == null || !device.is(InterfaceConfig.class)) {
-            log.error("Failed to create patch interface on {}", node.ovsdb());
-            return;
-        }
-
-        InterfaceConfig ifaceConfig = device.as(InterfaceConfig.class);
-
-        // integration bridge -> tunnel bridge
-        PatchDescription brIntTunPatchDesc =
-                DefaultPatchDescription.builder()
-                        .deviceId(INTEGRATION_BRIDGE)
-                        .ifaceName(INTEGRATION_TO_TUNNEL)
-                        .peer(TUNNEL_TO_INTEGRATION)
-                        .build();
-
-        ifaceConfig.addPatchMode(INTEGRATION_TO_TUNNEL, brIntTunPatchDesc);
-
-        // tunnel bridge -> integration bridge
-        PatchDescription brTunIntPatchDesc =
-                DefaultPatchDescription.builder()
-                        .deviceId(TUNNEL_BRIDGE)
-                        .ifaceName(TUNNEL_TO_INTEGRATION)
-                        .peer(INTEGRATION_TO_TUNNEL)
-                        .build();
-
-        ifaceConfig.addPatchMode(TUNNEL_TO_INTEGRATION, brTunIntPatchDesc);
     }
 
     /**
@@ -527,6 +493,11 @@ public class DefaultKubevirtNodeHandler implements KubevirtNodeHandler {
 
         cleanPhysicalInterfaces(node);
 
+        // provision new physical interfaces on the given node
+        // this includes creating physical bridge, attaching physical port
+        // to physical bridge, adding patch ports to both physical bridge and br-int
+        provisionPhysicalInterfaces(node);
+
         return node.intgBridge() != null && node.tunBridge() != null &&
                 deviceService.isAvailable(node.intgBridge()) &&
                 deviceService.isAvailable(node.tunBridge());
@@ -537,24 +508,36 @@ public class DefaultKubevirtNodeHandler implements KubevirtNodeHandler {
         try {
             // we need to wait a while, in case tunneling ports
             // creation requires some time
-            sleep(SLEEP_LONG_MS);
+            sleep(SLEEP_MID_MS);
         } catch (InterruptedException e) {
             log.error("Exception caused during init state checking...");
         }
 
         if (node.dataIp() != null && !isIntfEnabled(node, VXLAN)) {
+            log.warn("VXLAN interface is not enabled!");
             return false;
         }
         if (node.dataIp() != null && !isIntfEnabled(node, GRE)) {
+            log.warn("GRE interface is not enabled!");
             return false;
         }
         if (node.dataIp() != null && !isIntfEnabled(node, GENEVE)) {
+            log.warn("GENEVE interface is not enabled!");
             return false;
         }
 
         for (KubevirtPhyInterface phyIntf : node.phyIntfs()) {
             if (phyIntf == null) {
+                log.warn("Physnet interface is invalid");
                 return false;
+            }
+
+            try {
+                // we need to wait a while, in case tunneling ports
+                // creation requires some time
+                sleep(SLEEP_LONG_MS);
+            } catch (InterruptedException e) {
+                log.error("Exception caused during init state checking...");
             }
 
             String bridgeName = BRIDGE_PREFIX + phyIntf.network();
@@ -564,6 +547,9 @@ public class DefaultKubevirtNodeHandler implements KubevirtNodeHandler {
             if (!(hasPhyBridge(node, bridgeName) &&
                     hasPhyPatchPort(node, patchPortName) &&
                     hasPhyIntf(node, phyIntf.intf()))) {
+                log.warn("PhyBridge {}", hasPhyBridge(node, bridgeName));
+                log.warn("hasPhyPatchPort {}", hasPhyPatchPort(node, patchPortName));
+                log.warn("hasPhyIntf {}", hasPhyIntf(node, phyIntf.intf()));
                 return false;
             }
         }
@@ -596,11 +582,16 @@ public class DefaultKubevirtNodeHandler implements KubevirtNodeHandler {
                 createPhysicalBridge(node, pi);
                 createPhysicalPatchPorts(node, pi);
                 attachPhysicalPort(node, pi);
+
+                log.info("Creating physnet bridge {}", bridgeName);
+                log.info("Creating patch ports for physnet {}", bridgeName);
             } else {
                 // in case physical bridge exists, but patch port is missing on br-int,
                 // we will add patch port to connect br-int with physical bridge
                 if (!hasPhyPatchPort(node, patchPortName)) {
                     createPhysicalPatchPorts(node, pi);
+
+                    log.info("Creating patch ports for physnet {}", bridgeName);
                 }
             }
         });
@@ -620,16 +611,18 @@ public class DefaultKubevirtNodeHandler implements KubevirtNodeHandler {
         // we remove existing physical bridges and patch ports, if the physical
         // bridges are not defined in kubevirt node
         for (String brName : bridgeNames) {
+            // integration bridge and tunnel bridge should NOT be treated as
+            // physical bridges
+            if (brName.equals(INTEGRATION_BRIDGE) ||
+                    brName.equals(TUNNEL_BRIDGE) ||
+                    brName.startsWith(TENANT_BRIDGE_PREFIX)) {
+                continue;
+            }
+
             if (!phyNetworkNames.contains(brName)) {
-                // integration bridge and tunnel bridge should NOT be treated as
-                // physical bridges
-                if (brName.equals(INTEGRATION_BRIDGE) ||
-                        brName.equals(TUNNEL_BRIDGE) ||
-                        brName.startsWith(TENANT_BRIDGE_PREFIX)) {
-                    continue;
-                }
                 removePhysicalPatchPorts(node, brName.substring(NETWORK_BEGIN));
                 removePhysicalBridge(node, brName.substring(NETWORK_BEGIN));
+                log.info("Removing physical bridge {}...", brName);
             }
         }
     }

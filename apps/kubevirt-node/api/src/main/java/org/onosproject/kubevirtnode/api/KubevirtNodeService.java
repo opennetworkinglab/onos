@@ -84,6 +84,14 @@ public interface KubevirtNodeService extends ListenerService<KubevirtNodeEvent, 
     KubevirtNode node(IpAddress mgmtIp);
 
     /**
+     * Checks whether has the node with the given hostname.
+     *
+     * @param hostname hostname
+     * @return true if it has the node, false otherwise
+     */
+    boolean hasNode(String hostname);
+
+    /**
      * Returns the node with the specified tunnel device ID.
      * The device ID tunnel bridge.
      *
