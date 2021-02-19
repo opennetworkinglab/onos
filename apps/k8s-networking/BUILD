@@ -18,7 +18,6 @@ BUNDLES = [
     "@k8s_model_discovery//jar",
     "@k8s_model_metrics//jar",
     "@k8s_model_scheduling//jar",
-    "@k8s_model_settings//jar",
     "@k8s_model_storageclass//jar",
     "@k8s_model_autoscaling//jar",
     "@k8s_model_events//jar",
