@@ -138,6 +138,18 @@ public class NetworkAttachmentDefinitionWatcher {
         log.info("Stopped");
     }
 
+    private void instantiateWatcher() {
+        KubernetesClient client = k8sClient(configService);
+
+        if (client != null) {
+            try {
+                client.customResource(nadCrdCxt).watch(watcher);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     private class InternalKubevirtApiConfigListener implements KubevirtApiConfigListener {
 
         private boolean isRelevantHelper() {
@@ -164,15 +176,7 @@ public class NetworkAttachmentDefinitionWatcher {
                 return;
             }
 
-            KubernetesClient client = k8sClient(configService);
-
-            if (client != null) {
-                try {
-                    client.customResource(nadCrdCxt).watch(watcher);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+            instantiateWatcher();
         }
     }
 
@@ -201,7 +205,12 @@ public class NetworkAttachmentDefinitionWatcher {
 
         @Override
         public void onClose(WatcherException e) {
-            log.warn("Network-attachment-definition watcher OnClose", e);
+            // due to the bugs in fabric8, the watcher might be closed,
+            // we will re-instantiate the watcher in this case
+            // FIXME: https://github.com/fabric8io/kubernetes-client/issues/2135
+            log.warn("Network-attachment-definition watcher OnClose, re-instantiate the watcher...");
+
+            instantiateWatcher();
         }
 
         private void processAddition(String resource) {
