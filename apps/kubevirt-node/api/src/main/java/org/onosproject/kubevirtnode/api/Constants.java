@@ -46,4 +46,6 @@ public final class Constants {
     public static final String FLOW_KEY = "flow";
 
     public static final String DEFAULT_CLUSTER_NAME = "default";
+
+    public static final String SONA_PROJECT_DOMAIN = "sonaproject.github.io";
 }

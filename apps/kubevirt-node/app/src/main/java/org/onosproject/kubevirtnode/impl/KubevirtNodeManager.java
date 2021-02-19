@@ -57,9 +57,10 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.kubevirtnode.api.Constants.INTEGRATION_BRIDGE;
+import static org.onosproject.kubevirtnode.api.Constants.TUNNEL_BRIDGE;
 import static org.onosproject.kubevirtnode.impl.OsgiPropertyConstants.OVSDB_PORT;
 import static org.onosproject.kubevirtnode.impl.OsgiPropertyConstants.OVSDB_PORT_NUM_DEFAULT;
-import static org.onosproject.kubevirtnode.util.KubevirtNodeUtil.genDpid;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -90,6 +91,8 @@ public class KubevirtNodeManager
     private static final String ERR_NULL_DEVICE_ID = "KubeVirt node device ID cannot be null";
 
     private static final String NOT_DUPLICATED_MSG = "% cannot be duplicated";
+
+    private static final String OF_PREFIX = "of:";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected KubevirtNodeStore nodeStore;
@@ -167,7 +170,7 @@ public class KubevirtNodeManager
         KubevirtNode tunNode;
 
         if (node.intgBridge() == null) {
-            String deviceIdStr = genDpid(deviceIdCounter.incrementAndGet());
+            String deviceIdStr = genDpidFromName(INTEGRATION_BRIDGE + "-" + node.hostname());
             checkNotNull(deviceIdStr, ERR_NULL_DEVICE_ID);
             intNode = node.updateIntgBridge(DeviceId.deviceId(deviceIdStr));
             checkArgument(!hasIntgBridge(intNode.intgBridge(), intNode.hostname()),
@@ -179,7 +182,7 @@ public class KubevirtNodeManager
         }
 
         if (node.tunBridge() == null) {
-            String deviceIdStr = genDpid(deviceIdCounter.incrementAndGet());
+            String deviceIdStr = genDpidFromName(TUNNEL_BRIDGE + "-" + node.hostname());
             checkNotNull(deviceIdStr, ERR_NULL_DEVICE_ID);
             tunNode = intNode.updateTunBridge(DeviceId.deviceId(deviceIdStr));
             checkArgument(!hasTunBridge(tunNode.tunBridge(), tunNode.hostname()),
@@ -291,6 +294,11 @@ public class KubevirtNodeManager
     }
 
     @Override
+    public boolean hasNode(String hostname) {
+        return nodeStore.nodes().stream().anyMatch(n -> n.hostname().equals(hostname));
+    }
+
+    @Override
     public KubevirtNode nodeByTunBridge(DeviceId deviceId) {
         return nodeStore.nodes().stream()
                 .filter(node -> Objects.equals(node.tunBridge(), deviceId))
@@ -313,6 +321,15 @@ public class KubevirtNodeManager
                 .findFirst();
 
         return existNode.isPresent();
+    }
+
+    private String genDpidFromName(String name) {
+        if (name != null) {
+            String hexString = Integer.toHexString(name.hashCode());
+            return OF_PREFIX + Strings.padStart(hexString, 16, '0');
+        }
+
+        return null;
     }
 
     private class InternalNodeStoreDelegate implements KubevirtNodeStoreDelegate {

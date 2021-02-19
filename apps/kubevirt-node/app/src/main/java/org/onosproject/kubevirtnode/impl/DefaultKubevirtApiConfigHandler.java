@@ -123,7 +123,9 @@ public class DefaultKubevirtApiConfigHandler {
             // we always provision VMs to worker nodes, so only need to install
             // flow rules in worker nodes
             if (kubevirtNode.type() == WORKER) {
-                nodeAdminService.createNode(kubevirtNode);
+                if (!nodeAdminService.hasNode(kubevirtNode.hostname())) {
+                    nodeAdminService.createNode(kubevirtNode);
+                }
             }
         }
     }
@@ -153,8 +155,6 @@ public class DefaultKubevirtApiConfigHandler {
             if (checkApiServerConfig(config)) {
                 KubevirtApiConfig newConfig = config.updateState(CONNECTED);
                 configAdminService.updateApiConfig(newConfig);
-
-                bootstrapKubevirtNodes(config);
             }
         }
     }

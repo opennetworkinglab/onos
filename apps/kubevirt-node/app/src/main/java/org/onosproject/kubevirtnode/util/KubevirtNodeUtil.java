@@ -52,6 +52,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.onlab.util.Tools.get;
+import static org.onosproject.kubevirtnode.api.Constants.SONA_PROJECT_DOMAIN;
 import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.MASTER;
 import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.WORKER;
 
@@ -70,7 +71,8 @@ public final class KubevirtNodeUtil {
     private static final String ZERO = "0";
     private static final String INTERNAL_IP = "InternalIP";
     private static final String K8S_ROLE = "node-role.kubernetes.io";
-    private static final String PHYSNET_CONFIG_KEY = "physnet-config";
+    private static final String PHYSNET_CONFIG_KEY = SONA_PROJECT_DOMAIN + "/physnet-config";
+    private static final String DATA_IP_KEY = SONA_PROJECT_DOMAIN + "/data-ip";
     private static final String NETWORK_KEY = "network";
     private static final String INTERFACE_KEY = "interface";
 
@@ -334,6 +336,7 @@ public final class KubevirtNodeUtil {
         // start to parse kubernetes annotation
         Map<String, String> annots = node.getMetadata().getAnnotations();
         String physnetConfig = annots.get(PHYSNET_CONFIG_KEY);
+        String dataIpStr = annots.get(DATA_IP_KEY);
         Set<KubevirtPhyInterface> phys = new HashSet<>();
         try {
             if (physnetConfig != null) {
@@ -350,6 +353,10 @@ public final class KubevirtNodeUtil {
                     }
 
                 }
+            }
+
+            if (dataIpStr != null) {
+                dataIp = IpAddress.valueOf(dataIpStr);
             }
         } catch (JSONException e) {
             log.error("Failed to parse network status object", e);
