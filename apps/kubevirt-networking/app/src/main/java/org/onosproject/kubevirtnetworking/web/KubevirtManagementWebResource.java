@@ -42,9 +42,6 @@ public class KubevirtManagementWebResource extends AbstractWebResource {
     private static final long SLEEP_MS = 5000; // we wait 5s for init each node
     private static final long TIMEOUT_MS = 10000; // we wait 10s
 
-    private final KubevirtNodeAdminService nodeAdminService =
-            get(KubevirtNodeAdminService.class);
-
     /**
      * Synchronizes the flow rules.
      *
@@ -55,18 +52,21 @@ public class KubevirtManagementWebResource extends AbstractWebResource {
     @Path("sync/rules")
     public Response syncRules() {
 
-        nodeAdminService.completeNodes(WORKER).forEach(this::syncRulesBase);
+        KubevirtNodeAdminService service = get(KubevirtNodeAdminService.class);
+
+        service.completeNodes(WORKER).forEach(this::syncRulesBase);
         return ok(mapper().createObjectNode()).build();
     }
 
     private void syncRulesBase(KubevirtNode node) {
         KubevirtNode updated = node.updateState(INIT);
-        nodeAdminService.updateNode(updated);
+        KubevirtNodeAdminService service = get(KubevirtNodeAdminService.class);
+        service.updateNode(updated);
 
         boolean result = true;
         long timeoutExpiredMs = System.currentTimeMillis() + TIMEOUT_MS;
 
-        while (nodeAdminService.node(node.hostname()).state() != COMPLETE) {
+        while (service.node(node.hostname()).state() != COMPLETE) {
 
             long  waitMs = timeoutExpiredMs - System.currentTimeMillis();
 
@@ -76,10 +76,10 @@ public class KubevirtManagementWebResource extends AbstractWebResource {
                 log.error("Exception caused during node synchronization...");
             }
 
-            if (nodeAdminService.node(node.hostname()).state() == COMPLETE) {
+            if (service.node(node.hostname()).state() == COMPLETE) {
                 break;
             } else {
-                nodeAdminService.updateNode(updated);
+                service.updateNode(updated);
                 log.info("Failed to synchronize flow rules, retrying...");
             }
 

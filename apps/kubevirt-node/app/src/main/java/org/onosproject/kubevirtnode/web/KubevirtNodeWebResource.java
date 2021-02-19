@@ -70,8 +70,6 @@ public class KubevirtNodeWebResource extends AbstractWebResource {
     private static final String HOST_NAME = "hostname";
     private static final String ERROR_MESSAGE = " cannot be null";
 
-    private final KubevirtNodeAdminService nodeAdminService = get(KubevirtNodeAdminService.class);
-
     @Context
     private UriInfo uriInfo;
 
@@ -89,10 +87,12 @@ public class KubevirtNodeWebResource extends AbstractWebResource {
     public Response createNodes(InputStream input) {
         log.trace(String.format(MESSAGE_NODE, CREATE));
 
+        KubevirtNodeAdminService service = get(KubevirtNodeAdminService.class);
+
         readNodeConfiguration(input).forEach(node -> {
-            KubevirtNode existing = nodeAdminService.node(node.hostname());
+            KubevirtNode existing = service.node(node.hostname());
             if (existing == null) {
-                nodeAdminService.createNode(node);
+                service.createNode(node);
             }
         });
 
@@ -117,14 +117,15 @@ public class KubevirtNodeWebResource extends AbstractWebResource {
     public Response updateNodes(InputStream input) {
         log.trace(String.format(MESSAGE_NODE, UPDATE));
 
+        KubevirtNodeAdminService service = get(KubevirtNodeAdminService.class);
         Set<KubevirtNode> nodes = readNodeConfiguration(input);
         for (KubevirtNode node: nodes) {
-            KubevirtNode existing = nodeAdminService.node(node.hostname());
+            KubevirtNode existing = service.node(node.hostname());
             if (existing == null) {
                 log.warn("There is no node configuration to update : {}", node.hostname());
                 return Response.notModified().build();
             } else if (!existing.equals(node)) {
-                nodeAdminService.updateNode(node);
+                service.updateNode(node);
             }
         }
 
@@ -145,14 +146,15 @@ public class KubevirtNodeWebResource extends AbstractWebResource {
     public Response deleteNode(@PathParam("hostname") String hostname) {
         log.trace(String.format(MESSAGE_NODE, REMOVE));
 
-        KubevirtNode existing = nodeAdminService.node(
+        KubevirtNodeAdminService service = get(KubevirtNodeAdminService.class);
+        KubevirtNode existing = service.node(
                 nullIsIllegal(hostname, HOST_NAME + ERROR_MESSAGE));
 
         if (existing == null) {
             log.warn("There is no node configuration to delete : {}", hostname);
             return Response.notModified().build();
         } else {
-            nodeAdminService.removeNode(hostname);
+            service.removeNode(hostname);
         }
 
         return Response.noContent().build();
@@ -170,7 +172,8 @@ public class KubevirtNodeWebResource extends AbstractWebResource {
     public Response stateOfNode(@PathParam("hostname") String hostname) {
         log.trace(String.format(MESSAGE_NODE, QUERY));
 
-        KubevirtNode node = nodeAdminService.node(hostname);
+        KubevirtNodeAdminService service = get(KubevirtNodeAdminService.class);
+        KubevirtNode node = service.node(hostname);
         String nodeState = node != null ? node.state().toString() : NOT_EXIST;
 
         return ok(mapper().createObjectNode().put(STATE, nodeState)).build();
@@ -188,13 +191,14 @@ public class KubevirtNodeWebResource extends AbstractWebResource {
     public Response initNode(@PathParam("hostname") String hostname) {
         log.trace(String.format(MESSAGE_NODE, QUERY));
 
-        KubevirtNode node = nodeAdminService.node(hostname);
+        KubevirtNodeAdminService service = get(KubevirtNodeAdminService.class);
+        KubevirtNode node = service.node(hostname);
         if (node == null) {
             log.error("Given node {} does not exist", hostname);
             return Response.serverError().build();
         }
         KubevirtNode updated = node.updateState(KubevirtNodeState.INIT);
-        nodeAdminService.updateNode(updated);
+        service.updateNode(updated);
         return ok(mapper().createObjectNode()).build();
     }
 
@@ -209,10 +213,12 @@ public class KubevirtNodeWebResource extends AbstractWebResource {
     public Response initAllNodes() {
         log.trace(String.format(MESSAGE_NODE, QUERY));
 
-        nodeAdminService.nodes()
+        KubevirtNodeAdminService service = get(KubevirtNodeAdminService.class);
+
+        service.nodes()
                 .forEach(n -> {
                     KubevirtNode updated = n.updateState(KubevirtNodeState.INIT);
-                    nodeAdminService.updateNode(updated);
+                    service.updateNode(updated);
                 });
 
         return ok(mapper().createObjectNode()).build();
@@ -229,11 +235,12 @@ public class KubevirtNodeWebResource extends AbstractWebResource {
     public Response initIncompleteNodes() {
         log.trace(String.format(MESSAGE_NODE, QUERY));
 
-        nodeAdminService.nodes().stream()
+        KubevirtNodeAdminService service = get(KubevirtNodeAdminService.class);
+        service.nodes().stream()
                 .filter(n -> n.state() != KubevirtNodeState.COMPLETE)
                 .forEach(n -> {
                     KubevirtNode updated = n.updateState(KubevirtNodeState.INIT);
-                    nodeAdminService.updateNode(updated);
+                    service.updateNode(updated);
                 });
 
         return ok(mapper().createObjectNode()).build();
