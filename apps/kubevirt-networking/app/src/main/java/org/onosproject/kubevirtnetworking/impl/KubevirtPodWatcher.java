@@ -99,6 +99,14 @@ public class KubevirtPodWatcher {
         log.info("Stopped");
     }
 
+    private void instantiatePodWatcher() {
+        KubernetesClient client = k8sClient(kubevirtApiConfigService);
+
+        if (client != null) {
+            client.pods().inAnyNamespace().watch(internalKubevirtPodWatcher);
+        }
+    }
+
     private class InternalKubevirtApiConfigListener implements KubevirtApiConfigListener {
 
         private boolean isRelevantHelper() {
@@ -125,11 +133,7 @@ public class KubevirtPodWatcher {
                 return;
             }
 
-            KubernetesClient client = k8sClient(kubevirtApiConfigService);
-
-            if (client != null) {
-                client.pods().inAnyNamespace().watch(internalKubevirtPodWatcher);
-            }
+            instantiatePodWatcher();
         }
     }
 
@@ -157,7 +161,11 @@ public class KubevirtPodWatcher {
 
         @Override
         public void onClose(WatcherException e) {
-            log.warn("Pod watcher OnClose", e);
+            // due to the bugs in fabric8, pod watcher might be closed,
+            // we will re-instantiate the pod watcher in this case
+            // FIXME: https://github.com/fabric8io/kubernetes-client/issues/2135
+            log.warn("Pod watcher OnClose, re-instantiate the POD watcher...");
+            instantiatePodWatcher();
         }
 
         private void processAddition(Pod pod) {
