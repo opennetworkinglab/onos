@@ -26,9 +26,10 @@ import java.util.List;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.onosproject.kubevirtnode.api.KubevirtNodeState.DEVICE_CREATED;
+import static org.onosproject.kubevirtnode.api.KubevirtNodeState.ON_BOARDED;
 
 /**
- * Unit tests for DefaultKubevirtNode.
+ * Unit tests for Default Kubevirt Node.
  */
 public final class DefaultKubevirtNodeTest extends KubevirtNodeTest {
 
@@ -36,14 +37,18 @@ public final class DefaultKubevirtNodeTest extends KubevirtNodeTest {
 
     private static final String HOSTNAME_1 = "hostname_1";
     private static final String HOSTNAME_2 = "hostname_2";
+    private static final String HOSTNAME_3 = "hostname_3";
     private static final Device DEVICE_1 = createDevice(1);
     private static final Device DEVICE_2 = createDevice(2);
+    private static final Device DEVICE_3 = createDevice(3);
 
     private static final IpAddress MANAGEMENT_IP = IpAddress.valueOf("10.10.10.10");
     private static final IpAddress DATA_IP = IpAddress.valueOf("20.20.20.20");
 
     private static final String PHY_INTF_NETWORK = "mgmtnetwork";
     private static final String PHY_INTF_NAME = "eth3";
+
+    private static final String GATEWAY_BRIDGE_NAME = "gateway";
 
     private static final List<KubevirtPhyInterface> PHY_INTFS = initPhyIntfs();
 
@@ -84,6 +89,7 @@ public final class DefaultKubevirtNodeTest extends KubevirtNodeTest {
                 .tunBridge(DEVICE_1.id())
                 .state(KubevirtNodeState.COMPLETE)
                 .phyIntfs(PHY_INTFS)
+                .gatewayBridgeName(GATEWAY_BRIDGE_NAME)
                 .build();
     }
 
@@ -172,6 +178,25 @@ public final class DefaultKubevirtNodeTest extends KubevirtNodeTest {
                 .dataIp(TEST_IP)
                 .state(KubevirtNodeState.INIT)
                 .build();
+    }
+
+    /**
+     * Checks building a gateway node.
+     */
+    @Test
+    public void testGatewayBuild() {
+        KubevirtNode node = DefaultKubevirtNode.builder()
+                .hostname(HOSTNAME_3)
+                .type(KubevirtNode.Type.GATEWAY)
+                .intgBridge(DEVICE_2.id())
+                .gatewayBridgeName(GATEWAY_BRIDGE_NAME)
+                .managementIp(MANAGEMENT_IP)
+                .dataIp(TEST_IP)
+                .state(ON_BOARDED)
+                .build();
+
+        assertEquals(node.intgBridge(), DEVICE_2.id());
+        assertEquals(node.gatewayBridgeName(), GATEWAY_BRIDGE_NAME);
     }
 
     private static List<KubevirtPhyInterface> initPhyIntfs() {
