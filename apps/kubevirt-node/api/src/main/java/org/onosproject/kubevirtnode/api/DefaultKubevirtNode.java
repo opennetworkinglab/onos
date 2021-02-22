@@ -52,6 +52,7 @@ public class DefaultKubevirtNode implements KubevirtNode {
     private final IpAddress dataIp;
     private final KubevirtNodeState state;
     private final Collection<KubevirtPhyInterface> phyIntfs;
+    private final String gatewayBridgeName;
 
     /**
      * A default constructor of kubevirt node.
@@ -65,12 +66,14 @@ public class DefaultKubevirtNode implements KubevirtNode {
      * @param dataIp            data IP address
      * @param state             node state
      * @param phyIntfs          physical interfaces
+     * @param gatewayBridgeName  gateway bridge name
      */
     protected DefaultKubevirtNode(String clusterName, String hostname, Type type,
                                   DeviceId intgBridge, DeviceId tunBridge,
                                   IpAddress managementIp, IpAddress dataIp,
                                   KubevirtNodeState state,
-                                  Collection<KubevirtPhyInterface> phyIntfs) {
+                                  Collection<KubevirtPhyInterface> phyIntfs,
+                                  String gatewayBridgeName) {
         this.clusterName = clusterName;
         this.hostname = hostname;
         this.type = type;
@@ -80,6 +83,7 @@ public class DefaultKubevirtNode implements KubevirtNode {
         this.dataIp = dataIp;
         this.state = state;
         this.phyIntfs = phyIntfs;
+        this.gatewayBridgeName = gatewayBridgeName;
     }
 
     @Override
@@ -139,6 +143,7 @@ public class DefaultKubevirtNode implements KubevirtNode {
                 .dataIp(dataIp)
                 .state(newState)
                 .phyIntfs(phyIntfs)
+                .gatewayBridgeName(gatewayBridgeName)
                 .build();
     }
 
@@ -154,6 +159,7 @@ public class DefaultKubevirtNode implements KubevirtNode {
                 .dataIp(dataIp)
                 .state(state)
                 .phyIntfs(phyIntfs)
+                .gatewayBridgeName(gatewayBridgeName)
                 .build();
     }
 
@@ -169,6 +175,7 @@ public class DefaultKubevirtNode implements KubevirtNode {
                 .dataIp(dataIp)
                 .state(state)
                 .phyIntfs(phyIntfs)
+                .gatewayBridgeName(gatewayBridgeName)
                 .build();
     }
 
@@ -194,6 +201,11 @@ public class DefaultKubevirtNode implements KubevirtNode {
     @Override
     public PortNumber genevePort() {
         return tunnelPort(GENEVE);
+    }
+
+    @Override
+    public String gatewayBridgeName() {
+        return gatewayBridgeName;
     }
 
     private PortNumber tunnelPort(String tunnelType) {
@@ -233,7 +245,8 @@ public class DefaultKubevirtNode implements KubevirtNode {
                 .managementIp(node.managementIp())
                 .dataIp(node.dataIp())
                 .state(node.state())
-                .phyIntfs(node.phyIntfs());
+                .phyIntfs(node.phyIntfs())
+                .gatewayBridgeName(node.gatewayBridgeName());
     }
 
     @Override
@@ -272,6 +285,7 @@ public class DefaultKubevirtNode implements KubevirtNode {
                 .add("dataIp", dataIp)
                 .add("state", state)
                 .add("phyIntfs", phyIntfs)
+                .add("gatewayBridgeName", gatewayBridgeName)
                 .toString();
     }
 
@@ -286,6 +300,7 @@ public class DefaultKubevirtNode implements KubevirtNode {
         private IpAddress dataIp;
         private KubevirtNodeState state;
         private Collection<KubevirtPhyInterface> phyIntfs;
+        private String gatewayBridgeName;
 
         // private constructor not intended to use from external
         private Builder() {
@@ -311,7 +326,8 @@ public class DefaultKubevirtNode implements KubevirtNode {
                     managementIp,
                     dataIp,
                     state,
-                    phyIntfs
+                    phyIntfs,
+                    gatewayBridgeName
             );
         }
 
@@ -366,6 +382,12 @@ public class DefaultKubevirtNode implements KubevirtNode {
         @Override
         public Builder state(KubevirtNodeState state) {
             this.state = state;
+            return this;
+        }
+
+        @Override
+        public Builder gatewayBridgeName(String gatewayBridgeName) {
+            this.gatewayBridgeName = gatewayBridgeName;
             return this;
         }
     }

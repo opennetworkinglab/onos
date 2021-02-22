@@ -39,6 +39,11 @@ public interface KubevirtNode {
          * Signifies that this is a kubevirt worker node.
          */
         WORKER,
+
+        /**
+         * Signifies that this is a gateway which is running on master node.
+         */
+        GATEWAY,
     }
 
     /**
@@ -157,6 +162,13 @@ public interface KubevirtNode {
     PortNumber genevePort();
 
     /**
+     * Returns the name of the gateway bridge.
+     *
+     * @return gateway bridge name
+     */
+    String gatewayBridgeName();
+
+    /**
      * Builder of new node entity.
      */
     interface Builder {
@@ -238,5 +250,13 @@ public interface KubevirtNode {
          * @return kubevirt node builder
          */
         KubevirtNode.Builder state(KubevirtNodeState state);
+
+        /**
+         * Returns kubevirt node builder with supplied gateway bridge name.
+         *
+         * @param gatewayBridgeName gateway bridge name
+         * @return kubevirt node builder
+         */
+        KubevirtNode.Builder gatewayBridgeName(String gatewayBridgeName);
     }
 }

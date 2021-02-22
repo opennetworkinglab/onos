@@ -51,6 +51,7 @@ public final class KubevirtNodeCodec extends JsonCodec<KubevirtNode> {
     private static final String TUNNEL_BRIDGE = "tunnelBridge";
     private static final String STATE = "state";
     private static final String PHYSICAL_INTERFACES = "phyIntfs";
+    private static final String GATEWAY_BRIDGE_NAME = "gatewayBridgeName";
 
     private static final String MISSING_MESSAGE = " is required in OpenstackNode";
 
@@ -88,6 +89,11 @@ public final class KubevirtNodeCodec extends JsonCodec<KubevirtNode> {
                 phyIntfs.add(phyIntfJson);
             });
             result.set(PHYSICAL_INTERFACES, phyIntfs);
+        }
+
+        // serialize external bridge if exist
+        if (node.gatewayBridgeName() != null) {
+            result.put(GATEWAY_BRIDGE_NAME, node.gatewayBridgeName());
         }
 
         return result;
@@ -139,6 +145,11 @@ public final class KubevirtNodeCodec extends JsonCodec<KubevirtNode> {
             });
         }
         nodeBuilder.phyIntfs(phyIntfs);
+
+        JsonNode externalBridgeJson = json.get(GATEWAY_BRIDGE_NAME);
+        if (externalBridgeJson != null) {
+            nodeBuilder.gatewayBridgeName(externalBridgeJson.asText());
+        }
 
         log.trace("node is {}", nodeBuilder.build().toString());
 

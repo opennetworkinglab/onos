@@ -43,6 +43,7 @@ import java.util.concurrent.ExecutorService;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.GATEWAY;
 import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.WORKER;
 import static org.onosproject.kubevirtnode.api.KubevirtNodeService.APP_ID;
 import static org.onosproject.kubevirtnode.api.KubevirtNodeState.INIT;
@@ -187,7 +188,7 @@ public class KubevirtNodeWatcher {
                     node.getMetadata().getName());
 
             KubevirtNode kubevirtNode = buildKubevirtNode(node);
-            if (kubevirtNode.type() == WORKER) {
+            if (kubevirtNode.type() == WORKER || kubevirtNode.type() == GATEWAY) {
                 if (!kubevirtNodeAdminService.hasNode(kubevirtNode.hostname())) {
                     kubevirtNodeAdminService.createNode(kubevirtNode);
                 }

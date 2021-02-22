@@ -142,6 +142,44 @@ public class KubevirtNodeCodecTest {
     }
 
     /**
+     * Tests the kubevirt gateway node encoding.
+     */
+    @Test
+    public void testKubevirtGatweayNodeEncode() {
+        KubevirtNode node = DefaultKubevirtNode.builder()
+                .hostname("gateway")
+                .type(KubevirtNode.Type.GATEWAY)
+                .state(KubevirtNodeState.INIT)
+                .managementIp(IpAddress.valueOf("10.10.10.1"))
+                .intgBridge(DeviceId.deviceId("br-int"))
+                .tunBridge(DeviceId.deviceId("br-tun"))
+                .dataIp(IpAddress.valueOf("20.20.20.2"))
+                .gatewayBridgeName("gateway")
+                .build();
+
+        ObjectNode nodeJson = kubevirtNodeCodec.encode(node, context);
+        assertThat(nodeJson, matchesKubevirtNode(node));
+    }
+
+    /**
+     * Tests the kubevirt gateway node decoding.
+     *
+     * @throws IOException io exception
+     */
+    @Test
+    public void testKubevirtGatewayNodeDecode() throws IOException {
+        KubevirtNode node = getKubevirtNode("KubevirtGatewayNode.json");
+
+        assertThat(node.hostname(), is("gateway-01"));
+        assertThat(node.type().name(), is("GATEWAY"));
+        assertThat(node.managementIp().toString(), is("172.16.130.4"));
+        assertThat(node.dataIp().toString(), is("172.16.130.4"));
+        assertThat(node.intgBridge().toString(), is("of:00000000000000a1"));
+        assertThat(node.tunBridge().toString(), is("of:00000000000000a2"));
+        assertThat(node.gatewayBridgeName(), is("gateway"));
+    }
+
+    /**
      * Mock codec context for use in codec unit tests.
      */
     private class MockCodecContext implements CodecContext {

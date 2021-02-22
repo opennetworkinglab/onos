@@ -15,7 +15,6 @@
  */
 package org.onosproject.kubevirtnode.impl;
 
-import io.fabric8.kubernetes.api.model.Node;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
@@ -26,7 +25,6 @@ import org.onosproject.kubevirtnode.api.KubevirtApiConfig;
 import org.onosproject.kubevirtnode.api.KubevirtApiConfigAdminService;
 import org.onosproject.kubevirtnode.api.KubevirtApiConfigEvent;
 import org.onosproject.kubevirtnode.api.KubevirtApiConfigListener;
-import org.onosproject.kubevirtnode.api.KubevirtNode;
 import org.onosproject.kubevirtnode.api.KubevirtNodeAdminService;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -42,8 +40,6 @@ import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.kubevirtnode.api.KubevirtApiConfig.State.CONNECTED;
 import static org.onosproject.kubevirtnode.api.KubevirtApiConfigService.APP_ID;
-import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.WORKER;
-import static org.onosproject.kubevirtnode.util.KubevirtNodeUtil.buildKubevirtNode;
 import static org.onosproject.kubevirtnode.util.KubevirtNodeUtil.k8sClient;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -108,26 +104,6 @@ public class DefaultKubevirtApiConfigHandler {
     private boolean checkApiServerConfig(KubevirtApiConfig config) {
         KubernetesClient k8sClient = k8sClient(config);
         return k8sClient != null && k8sClient.getApiVersion() != null;
-    }
-
-    private void bootstrapKubevirtNodes(KubevirtApiConfig config) {
-        KubernetesClient k8sClient = k8sClient(config);
-
-        if (k8sClient == null) {
-            log.warn("Failed to connect to kubernetes API server");
-            return;
-        }
-
-        for (Node node : k8sClient.nodes().list().getItems()) {
-            KubevirtNode kubevirtNode = buildKubevirtNode(node);
-            // we always provision VMs to worker nodes, so only need to install
-            // flow rules in worker nodes
-            if (kubevirtNode.type() == WORKER) {
-                if (!nodeAdminService.hasNode(kubevirtNode.hostname())) {
-                    nodeAdminService.createNode(kubevirtNode);
-                }
-            }
-        }
     }
 
     private class InternalKubevirtApiConfigListener implements KubevirtApiConfigListener {

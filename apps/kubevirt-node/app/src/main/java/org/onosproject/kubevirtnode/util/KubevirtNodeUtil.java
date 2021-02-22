@@ -15,6 +15,9 @@
  */
 package org.onosproject.kubevirtnode.util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import io.fabric8.kubernetes.api.model.Node;
@@ -53,6 +56,7 @@ import java.util.stream.Collectors;
 
 import static org.onlab.util.Tools.get;
 import static org.onosproject.kubevirtnode.api.Constants.SONA_PROJECT_DOMAIN;
+import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.GATEWAY;
 import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.MASTER;
 import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.WORKER;
 
@@ -73,6 +77,8 @@ public final class KubevirtNodeUtil {
     private static final String K8S_ROLE = "node-role.kubernetes.io";
     private static final String PHYSNET_CONFIG_KEY = SONA_PROJECT_DOMAIN + "/physnet-config";
     private static final String DATA_IP_KEY = SONA_PROJECT_DOMAIN + "/data-ip";
+    private static final String GATEWAY_CONFIG_KEY = SONA_PROJECT_DOMAIN + "/gateway-config";
+    private static final String GATEWAY_BRIDGE_NAME = "gatewayBridgeName";
     private static final String NETWORK_KEY = "network";
     private static final String INTERFACE_KEY = "interface";
 
@@ -336,8 +342,10 @@ public final class KubevirtNodeUtil {
         // start to parse kubernetes annotation
         Map<String, String> annots = node.getMetadata().getAnnotations();
         String physnetConfig = annots.get(PHYSNET_CONFIG_KEY);
+        String gatewayConfig = annots.get(GATEWAY_CONFIG_KEY);
         String dataIpStr = annots.get(DATA_IP_KEY);
         Set<KubevirtPhyInterface> phys = new HashSet<>();
+        String gatewayBridgeName = null;
         try {
             if (physnetConfig != null) {
                 JSONArray configJson = new JSONArray(physnetConfig);
@@ -351,15 +359,25 @@ public final class KubevirtNodeUtil {
                         phys.add(DefaultKubevirtPhyInterface.builder()
                                 .network(network).intf(intf).build());
                     }
-
                 }
             }
 
             if (dataIpStr != null) {
                 dataIp = IpAddress.valueOf(dataIpStr);
             }
+
+            if (gatewayConfig != null) {
+                JsonNode jsonNode = new ObjectMapper().readTree(gatewayConfig);
+
+                nodeType = GATEWAY;
+                gatewayBridgeName = jsonNode.get(GATEWAY_BRIDGE_NAME).asText();
+            }
         } catch (JSONException e) {
-            log.error("Failed to parse network status object", e);
+            log.error("Failed to parse physnet config or gateway config object because of{}", e);
+        } catch (JsonMappingException e) {
+            log.error("Failed to parse physnet config or gateway config object because of{}", e);
+        } catch (JsonProcessingException e) {
+            log.error("Failed to parse physnet config or gateway config object because of{}", e);
         }
 
         return DefaultKubevirtNode.builder()
@@ -369,6 +387,7 @@ public final class KubevirtNodeUtil {
                 .type(nodeType)
                 .state(KubevirtNodeState.ON_BOARDED)
                 .phyIntfs(phys)
+                .gatewayBridgeName(gatewayBridgeName)
                 .build();
     }
 }
