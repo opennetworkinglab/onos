@@ -104,6 +104,17 @@ public final class PiActionParam {
     }
 
     /**
+     * Creates an action's runtime parameter for the given param ID and string
+     * value.
+     *
+     * @param id    parameter identifier
+     * @param value value
+     */
+    public PiActionParam(PiActionParamId id, String value) {
+        this(id, copyFrom(value));
+    }
+
+    /**
      * Returns the identifier of this parameter.
      *
      * @return parameter identifier

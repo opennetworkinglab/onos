@@ -195,6 +195,18 @@ public final class PiCriterion implements Criterion {
         }
 
         /**
+         * Adds an exact field match for the given fieldId and value.
+         *
+         * @param fieldId protocol-independent header field Id
+         * @param value   exact match value
+         * @return this
+         */
+        public Builder matchExact(PiMatchFieldId fieldId, String value) {
+            fieldMatchMapBuilder.put(fieldId, new PiExactFieldMatch(fieldId, copyFrom(value)));
+            return this;
+        }
+
+        /**
          * Adds a ternary field match for the given fieldId, value and mask.
          *
          * @param fieldId protocol-independent header field Id
@@ -394,6 +406,18 @@ public final class PiCriterion implements Criterion {
          * @return this
          */
         public Builder matchOptional(PiMatchFieldId fieldId, byte[] value) {
+            fieldMatchMapBuilder.put(fieldId, new PiOptionalFieldMatch(fieldId, copyFrom(value)));
+            return this;
+        }
+
+        /**
+         * Adds an optional field match for the given fieldId and value.
+         *
+         * @param fieldId protocol-independent header field Id
+         * @param value   optional match value
+         * @return this
+         */
+        public Builder matchOptional(PiMatchFieldId fieldId, String value) {
             fieldMatchMapBuilder.put(fieldId, new PiOptionalFieldMatch(fieldId, copyFrom(value)));
             return this;
         }

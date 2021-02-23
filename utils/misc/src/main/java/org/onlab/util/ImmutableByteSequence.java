@@ -51,6 +51,7 @@ public final class ImmutableByteSequence {
     The order of a newly-created byte buffer is always BIG_ENDIAN.
      */
     private ByteBuffer value;
+    private boolean isAscii = false;
 
     /**
      * Private constructor. Creates a new byte sequence object backed by the
@@ -63,6 +64,11 @@ public final class ImmutableByteSequence {
         // Rewind buffer so it's ready to be read.
         // No write operation should be performed on it from now on.
         this.value.rewind();
+    }
+
+    private ImmutableByteSequence(ByteBuffer value, boolean isAscii) {
+        this(value);
+        this.isAscii = isAscii;
     }
 
     /**
@@ -123,6 +129,20 @@ public final class ImmutableByteSequence {
         }
 
         return new ImmutableByteSequence(ByteBuffer.wrap(bytes));
+    }
+
+    /**
+     * Creates a new immutable byte sequence from the given string.
+     *
+     * @param original a string
+     * @return a new byte buffer object
+     */
+    public static ImmutableByteSequence copyFrom(String original) {
+        checkArgument(original != null && original.length() > 0,
+                      "Cannot copy from an empty or null string");
+        return new ImmutableByteSequence(ByteBuffer.allocate(original.length())
+                                                 .put(original.getBytes()),
+                                         true);
     }
 
     /**
@@ -394,19 +414,34 @@ public final class ImmutableByteSequence {
     }
 
     /**
-     * Returns a hexadecimal representation of this byte sequence, e.g.
-     * 0xbeef. The length of the returned string is not representative of the
-     * length of the byte sequence, as all padding zeros are removed.
+     * Returns the ASCII representation of the byte sequence if the content can
+     * be interpreted as an ASCII string, otherwise returns the hexadecimal
+     * representation of this byte sequence, e.g.0xbeef. The length of the
+     * returned string is not representative of the length of the byte sequence,
+     * as all padding zeros are removed.
      *
      * @return hexadecimal representation
      */
     @Override
     public String toString() {
-        final String hexValue = HexString
-                .toHexString(value.array(), "")
-                // Remove leading zeros, but leave one if string is all zeros.
-                .replaceFirst("^0+(?!$)", "");
-        return "0x" + hexValue;
+        if (this.isAscii()) {
+            return new String(value.array());
+        } else {
+            return "0x" + HexString
+                    .toHexString(value.array(), "")
+                    // Remove leading zeros, but leave one if string is all zeros.
+                    .replaceFirst("^0+(?!$)", "");
+        }
+    }
+
+    /**
+     * Checks if the content can be interpreted as an ASCII printable string.
+     *
+     * @return True if the content can be interpreted as an ASCII printable
+     *  string, false otherwise
+     */
+    public boolean isAscii() {
+        return isAscii;
     }
 
     /**

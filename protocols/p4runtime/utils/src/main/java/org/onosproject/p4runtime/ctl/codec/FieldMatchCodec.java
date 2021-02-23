@@ -152,16 +152,23 @@ public final class FieldMatchCodec
             PiPipeconf pipeconf, P4InfoBrowser browser)
             throws CodecException, P4InfoBrowser.NotFoundException {
 
-        String fieldMatchName = browser.matchFields(tablePreamble.getId())
-                .getById(message.getFieldId()).getName();
-        PiMatchFieldId headerFieldId = PiMatchFieldId.of(fieldMatchName);
+        final P4InfoOuterClass.MatchField matchField =
+                browser.matchFields(tablePreamble.getId())
+                        .getById(message.getFieldId());
+        final PiMatchFieldId headerFieldId = PiMatchFieldId.of(matchField.getName());
+        final boolean isSdnString = browser.isTypeString(matchField.getTypeName());
 
         P4RuntimeOuterClass.FieldMatch.FieldMatchTypeCase typeCase = message.getFieldMatchTypeCase();
 
         switch (typeCase) {
             case EXACT:
                 P4RuntimeOuterClass.FieldMatch.Exact exactFieldMatch = message.getExact();
-                ImmutableByteSequence exactValue = copyFrom(exactFieldMatch.getValue().asReadOnlyByteBuffer());
+                ImmutableByteSequence exactValue;
+                if (isSdnString) {
+                    exactValue = copyFrom(new String(exactFieldMatch.getValue().toByteArray()));
+                } else {
+                    exactValue = copyFrom(exactFieldMatch.getValue().asReadOnlyByteBuffer());
+                }
                 return new PiExactFieldMatch(headerFieldId, exactValue);
             case TERNARY:
                 P4RuntimeOuterClass.FieldMatch.Ternary ternaryFieldMatch = message.getTernary();
@@ -180,7 +187,12 @@ public final class FieldMatchCodec
                 return new PiRangeFieldMatch(headerFieldId, rangeLowValue, rangeHighValue);
             case OPTIONAL:
                 P4RuntimeOuterClass.FieldMatch.Optional optionalFieldMatch = message.getOptional();
-                ImmutableByteSequence optionalValue = copyFrom(optionalFieldMatch.getValue().asReadOnlyByteBuffer());
+                ImmutableByteSequence optionalValue;
+                if (isSdnString) {
+                    optionalValue = copyFrom(new String(optionalFieldMatch.getValue().toByteArray()));
+                } else {
+                    optionalValue = copyFrom(optionalFieldMatch.getValue().asReadOnlyByteBuffer());
+                }
                 return new PiOptionalFieldMatch(headerFieldId, optionalValue);
             default:
                 throw new CodecException(format(
