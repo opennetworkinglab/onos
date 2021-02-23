@@ -74,10 +74,14 @@ public final class ActionCodec
         final PiAction.Builder builder = PiAction.builder()
                 .withId(PiActionId.of(actionName));
         for (P4RuntimeOuterClass.Action.Param p : message.getParamsList()) {
-            final String paramName = paramInfo.getById(p.getParamId()).getName();
-            final ImmutableByteSequence value = ImmutableByteSequence.copyFrom(
-                    p.getValue().toByteArray());
-            builder.withParameter(new PiActionParam(PiActionParamId.of(paramName), value));
+            final P4InfoOuterClass.Action.Param actionParam = paramInfo.getById(p.getParamId());
+            final ImmutableByteSequence value;
+            if (browser.isTypeString(actionParam.getTypeName())) {
+                value = ImmutableByteSequence.copyFrom(new String(p.getValue().toByteArray()));
+            } else {
+                value = ImmutableByteSequence.copyFrom(p.getValue().toByteArray());
+            }
+            builder.withParameter(new PiActionParam(PiActionParamId.of(actionParam.getName()), value));
         }
         return builder.build();
     }

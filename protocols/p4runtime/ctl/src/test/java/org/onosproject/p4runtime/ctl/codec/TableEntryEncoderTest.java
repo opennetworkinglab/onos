@@ -100,10 +100,10 @@ public class TableEntryEncoderTest {
     private final P4InfoBrowser browser2 = PipeconfHelper.getP4InfoBrowser(defaultPipeconf2);
     private final ImmutableByteSequence ethAddr = copyFrom(rand.nextInt()).fit(48);
     private final ImmutableByteSequence ethAddrString = ImmutableByteSequence.copyFrom(
-            "00:11:22:33:44:55:66".getBytes());
+            "00:11:22:33:44:55:66");
     private final ImmutableByteSequence portValue = copyFrom((short) rand.nextInt());
     private final ImmutableByteSequence portValueString = ImmutableByteSequence.copyFrom(
-            String.format("Ethernet%d", rand.nextInt()).getBytes());
+            String.format("Ethernet%d", rand.nextInt()));
     private final ImmutableByteSequence portValue32Bit = copyFrom((short) rand.nextInt()).fit(32);
     private final PiMatchFieldId ethDstAddrFieldId = PiMatchFieldId.of(HDR + DOT + ETHERNET + DOT + DST_ADDR);
     private final PiMatchFieldId ethSrcAddrFieldId = PiMatchFieldId.of(HDR + DOT + ETHERNET + DOT + SRC_ADDR);

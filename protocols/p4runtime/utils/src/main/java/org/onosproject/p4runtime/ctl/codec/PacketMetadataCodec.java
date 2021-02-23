@@ -17,6 +17,7 @@
 package org.onosproject.p4runtime.ctl.codec;
 
 import com.google.protobuf.ByteString;
+import org.onlab.util.ImmutableByteSequence;
 import org.onosproject.net.pi.model.PiPacketMetadataId;
 import org.onosproject.net.pi.model.PiPipeconf;
 import org.onosproject.net.pi.runtime.PiPacketMetadata;
@@ -54,14 +55,18 @@ public final class PacketMetadataCodec
             P4InfoOuterClass.Preamble ctrlPktMetaPreamble,
             PiPipeconf pipeconf, P4InfoBrowser browser)
             throws P4InfoBrowser.NotFoundException {
-        final String packetMetadataName = browser
-                .packetMetadatas(ctrlPktMetaPreamble.getId())
-                .getById(message.getMetadataId()).getName();
-        final PiPacketMetadataId metadataId = PiPacketMetadataId
-                .of(packetMetadataName);
+        final P4InfoOuterClass.ControllerPacketMetadata.Metadata packetMetadata =
+                browser.packetMetadatas(ctrlPktMetaPreamble.getId())
+                .getById(message.getMetadataId());
+        final ImmutableByteSequence value;
+        if (browser.isTypeString(packetMetadata.getTypeName())) {
+            value = copyFrom(new String(message.getValue().toByteArray()));
+        } else {
+            value = copyFrom(message.getValue().asReadOnlyByteBuffer());
+        }
         return PiPacketMetadata.builder()
-                .withId(metadataId)
-                .withValue(copyFrom(message.getValue().asReadOnlyByteBuffer()))
+                .withId(PiPacketMetadataId.of(packetMetadata.getName()))
+                .withValue(value)
                 .build();
     }
 }
