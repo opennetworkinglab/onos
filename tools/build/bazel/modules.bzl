@@ -248,7 +248,7 @@ APP_MAP = {
     "//apps/mcast:onos-apps-mcast-oar": ["seba", "tost"],
     "//apps/metrics:onos-apps-metrics-oar": [],
     "//apps/mfwd:onos-apps-mfwd-oar": [],
-    "//apps/mlb:onos-apps-mlb-oar": [],
+    "//apps/mlb:onos-apps-mlb-oar": ["tost"],
     "//apps/mobility:onos-apps-mobility-oar": [],
     "//apps/netconf/client:onos-apps-netconf-client-oar": [],
     "//apps/network-troubleshoot:onos-apps-network-troubleshoot-oar": [],
