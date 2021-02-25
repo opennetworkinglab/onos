@@ -88,4 +88,6 @@ public final class Constants {
     public static final int CLI_LABELS_LENGTH = 30;
     public static final int CLI_CONTAINERS_LENGTH = 30;
     public static final int CLI_MARGIN_LENGTH = 2;
+
+    public static final int PRIORITY_STATEFUL_SNAT_RULE = 40500;
 }

@@ -75,6 +75,7 @@ import static org.onosproject.kubevirtnetworking.api.Constants.VTAP_OUTBOUND_TAB
 import static org.onosproject.kubevirtnetworking.impl.OsgiPropertyConstants.PROVIDER_NETWORK_ONLY;
 import static org.onosproject.kubevirtnetworking.impl.OsgiPropertyConstants.PROVIDER_NETWORK_ONLY_DEFAULT;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.getPropertyValueAsBoolean;
+import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.GATEWAY;
 import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.WORKER;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -350,7 +351,8 @@ public class KubevirtFlowRuleManager implements KubevirtFlowRuleService {
 
         @Override
         public boolean isRelevant(KubevirtNodeEvent event) {
-            return event.subject().type().equals(WORKER);
+            return event.subject().type().equals(WORKER) ||
+                    event.subject().type().equals(GATEWAY);
         }
 
         private boolean isRelevantHelper() {
