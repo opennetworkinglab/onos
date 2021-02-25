@@ -52,6 +52,7 @@ import org.onosproject.net.behaviour.DefaultPatchDescription;
 import org.onosproject.net.behaviour.InterfaceConfig;
 import org.onosproject.net.behaviour.PatchDescription;
 import org.onosproject.net.device.DeviceAdminService;
+import org.onosproject.net.driver.DriverService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
@@ -75,6 +76,7 @@ import static org.onlab.packet.ICMP.TYPE_ECHO_REQUEST;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.kubevirtnetworking.api.Constants.DEFAULT_GATEWAY_MAC;
 import static org.onosproject.kubevirtnetworking.api.Constants.KUBEVIRT_NETWORKING_APP_ID;
+import static org.onosproject.kubevirtnetworking.api.Constants.PRE_FLAT_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_ARP_GATEWAY_RULE;
 import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_DHCP_RULE;
 import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_FORWARDING_RULE;
@@ -95,6 +97,8 @@ import static org.onosproject.kubevirtnetworking.util.RulePopulatorUtil.buildMov
 import static org.onosproject.kubevirtnetworking.util.RulePopulatorUtil.buildMoveEthSrcToDstExtension;
 import static org.onosproject.kubevirtnetworking.util.RulePopulatorUtil.buildMoveIpSrcToDstExtension;
 import static org.onosproject.kubevirtnode.api.Constants.TUNNEL_BRIDGE;
+import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.GATEWAY;
+import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.WORKER;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -132,6 +136,9 @@ public class KubevirtNetworkHandler {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected KubevirtFlowRuleService flowService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected DriverService driverService;
 
     private final KubevirtNetworkListener networkListener = new InternalNetworkEventListener();
     private final KubevirtNodeListener nodeListener = new InternalNodeEventListener();
@@ -274,8 +281,10 @@ public class KubevirtNetworkHandler {
 
         setDhcpRule(deviceId, true);
         setForwardingRule(deviceId, true);
-        setGatewayArpRule(node, network, true);
-        setGatewayIcmpRule(node, network, true);
+        setGatewayArpRule(network, TENANT_ARP_TABLE,
+                network.tenantDeviceId(node.hostname()), true);
+        setGatewayIcmpRule(network, TENANT_ICMP_TABLE,
+                network.tenantDeviceId(node.hostname()), true);
 
         log.info("Install default flow rules for tenant bridge {}", network.tenantBridgeName());
     }
@@ -318,8 +327,9 @@ public class KubevirtNetworkHandler {
                 install);
     }
 
-    private void setGatewayArpRule(KubevirtNode node, KubevirtNetwork network, boolean install) {
-        Device device = deviceService.getDevice(network.tenantDeviceId(node.hostname()));
+    private void setGatewayArpRule(KubevirtNetwork network,
+                                   int tableNum, DeviceId deviceId, boolean install) {
+        Device device = deviceService.getDevice(deviceId);
 
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
         sBuilder.matchEthType(EthType.EtherType.ARP.ethType().toShort())
@@ -342,13 +352,14 @@ public class KubevirtNetworkHandler {
                 sBuilder.build(),
                 tBuilder.build(),
                 PRIORITY_ARP_GATEWAY_RULE,
-                TENANT_ARP_TABLE,
+                tableNum,
                 install
         );
     }
 
-    private void setGatewayIcmpRule(KubevirtNode node, KubevirtNetwork network, boolean install) {
-        DeviceId deviceId = network.tenantDeviceId(node.hostname());
+    private void
+    setGatewayIcmpRule(KubevirtNetwork network,
+                       int tableNum, DeviceId deviceId, boolean install) {
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPProtocol(IPv4.PROTOCOL_ICMP)
@@ -374,8 +385,34 @@ public class KubevirtNetworkHandler {
                 sBuilder.build(),
                 tBuilder.build(),
                 PRIORITY_ICMP_RULE,
-                TENANT_ICMP_TABLE,
+                tableNum,
                 install);
+    }
+
+
+    private void initGatewayNodeBridge(KubevirtNetwork network, boolean install) {
+        KubevirtNode electedGateway = gatewayNodeForSpecifiedNetwork(network);
+        if (electedGateway == null) {
+            log.warn("There's no elected gateway for the network {}", network.name());
+        }
+
+        setGatewayArpRule(network, PRE_FLAT_TABLE, electedGateway.intgBridge(), install);
+        setGatewayIcmpRule(network, PRE_FLAT_TABLE, electedGateway.intgBridge(), install);
+    }
+
+    /**
+     * Returns the gateway node for the specified network.
+     * Among gateways, only one gateway would act as a gateway per network.
+     *
+     * @param network kubevirt network
+     * @return gateway node which would act as the gateway for the network
+     */
+    private KubevirtNode gatewayNodeForSpecifiedNetwork(KubevirtNetwork network) {
+        //TODO: would implement election logic for each network.
+        //TODO: would implement cleanup logic in case a gateway node is added
+        // and the election is changed
+        return nodeService.completeNodes(GATEWAY).stream()
+                .findFirst().orElse(null);
     }
 
     private class InternalNetworkEventListener implements KubevirtNetworkListener {
@@ -413,6 +450,8 @@ public class KubevirtNetworkHandler {
                     break;
                 case FLAT:
                 case VLAN:
+                    initGatewayNodeBridge(network, true);
+                    break;
                 default:
                     // do nothing
                     break;
@@ -432,6 +471,8 @@ public class KubevirtNetworkHandler {
                     break;
                 case FLAT:
                 case VLAN:
+                    initGatewayNodeBridge(network, false);
+                    break;
                 default:
                     // do nothing
                     break;
@@ -487,23 +528,40 @@ public class KubevirtNetworkHandler {
                 return;
             }
 
-            for (KubevirtNetwork network : networkService.networks()) {
-                switch (network.type()) {
-                    case VXLAN:
-                    case GRE:
-                    case GENEVE:
-                        if (network.segmentId() == null) {
-                            continue;
-                        }
-                        createBridge(node, network);
-                        createPatchInterface(node, network);
-                        setDefaultRules(node, network);
-                        break;
-                    case FLAT:
-                    case VLAN:
-                    default:
-                        // do nothing
-                        break;
+            if (node.type().equals(WORKER)) {
+                for (KubevirtNetwork network : networkService.networks()) {
+                    switch (network.type()) {
+                        case VXLAN:
+                        case GRE:
+                        case GENEVE:
+                            if (network.segmentId() == null) {
+                                continue;
+                            }
+                            createBridge(node, network);
+                            createPatchInterface(node, network);
+                            setDefaultRules(node, network);
+                            break;
+                        case FLAT:
+                        case VLAN:
+                        default:
+                            // do nothing
+                            break;
+                    }
+                }
+            } else if (node.type().equals(GATEWAY)) {
+                for (KubevirtNetwork network : networkService.networks()) {
+                    switch (network.type()) {
+                        case FLAT:
+                        case VLAN:
+                            initGatewayNodeBridge(network, true);
+                            break;
+                        case VXLAN:
+                        case GRE:
+                        case GENEVE:
+                        default:
+                            // do nothing
+                            break;
+                    }
                 }
             }
         }
