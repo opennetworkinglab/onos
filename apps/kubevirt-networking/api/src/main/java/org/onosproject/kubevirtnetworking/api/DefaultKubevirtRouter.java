@@ -1,0 +1,190 @@
+/*
+ * Copyright 2021-present Open Networking Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.onosproject.kubevirtnetworking.api;
+
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import org.onlab.packet.IpAddress;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkArgument;
+
+/**
+ * Default implementation class of kubevirt router.
+ */
+public final class DefaultKubevirtRouter implements KubevirtRouter {
+
+    private static final String NOT_NULL_MSG = "Router % cannot be null";
+
+    private final String name;
+    private final String description;
+    private final boolean enableSnat;
+    private final Set<String> internal;
+    private final Map<IpAddress, String> external;
+    private final KubevirtPeerRouter peerRouter;
+
+    /**
+     * A default constructor.
+     *
+     * @param name          router name
+     * @param description   router description
+     * @param enableSnat    snat use indicator
+     * @param internal      internal networks
+     * @param external      external network
+     * @param peerRouter    external peer router
+     */
+    public DefaultKubevirtRouter(String name, String description, boolean enableSnat,
+                                 Set<String> internal,
+                                 Map<IpAddress, String> external,
+                                 KubevirtPeerRouter peerRouter) {
+        this.name = name;
+        this.description = description;
+        this.enableSnat = enableSnat;
+        this.internal = internal;
+        this.external = external;
+        this.peerRouter = peerRouter;
+    }
+
+    @Override
+    public String name() {
+        return name;
+    }
+
+    @Override
+    public String description() {
+        return description;
+    }
+
+    @Override
+    public boolean enableSnat() {
+        return enableSnat;
+    }
+
+    @Override
+    public Set<String> internal() {
+        return ImmutableSet.copyOf(internal);
+    }
+
+    @Override
+    public Map<IpAddress, String> external() {
+        return ImmutableMap.copyOf(external);
+    }
+
+    @Override
+    public KubevirtPeerRouter peerRouter() {
+        return peerRouter;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultKubevirtRouter that = (DefaultKubevirtRouter) o;
+        return enableSnat == that.enableSnat && name.equals(that.name) &&
+                description.equals(that.description) && internal.equals(that.internal) &&
+                external.equals(that.external) && peerRouter.equals(that.peerRouter);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, description, enableSnat, internal, external, peerRouter);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("name", name)
+                .add("description", description)
+                .add("enableSnat", enableSnat)
+                .add("internal", internal)
+                .add("external", external)
+                .add("peerRouter", peerRouter)
+                .toString();
+    }
+
+    /**
+     * Returns new builder instance.
+     *
+     * @return kubevirt router builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static final class Builder implements KubevirtRouter.Builder {
+
+        private String name;
+        private String description;
+        private boolean enableSnat;
+        private Set<String> internal;
+        private Map<IpAddress, String> external;
+        private KubevirtPeerRouter peerRouter;
+
+        @Override
+        public KubevirtRouter build() {
+            checkArgument(name != null, NOT_NULL_MSG, "name");
+
+            return new DefaultKubevirtRouter(name, description, enableSnat,
+                    internal, external, peerRouter);
+        }
+
+        @Override
+        public Builder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        @Override
+        public Builder description(String description) {
+            this.description = description;
+            return this;
+        }
+
+        @Override
+        public Builder enableSnat(boolean flag) {
+            this.enableSnat = flag;
+            return this;
+        }
+
+        @Override
+        public Builder internal(Set<String> internal) {
+            this.internal = Objects.requireNonNullElseGet(internal, HashSet::new);
+            return this;
+        }
+
+        @Override
+        public Builder external(Map<IpAddress, String> external) {
+            this.external = Objects.requireNonNullElseGet(external, HashMap::new);
+            return this;
+        }
+
+        @Override
+        public Builder peerRouter(KubevirtPeerRouter router) {
+            this.peerRouter = router;
+            return this;
+        }
+    }
+}
