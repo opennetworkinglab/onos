@@ -1,14 +1,14 @@
 {
   "type": "object",
-  "title": "regions",
+  "title": "networks",
   "required": [
-    "regions"
+    "networks"
   ],
   "properties": {
-    "regions": {
+    "networks": {
       "type": "array",
       "xml": {
-        "name": "regions",
+        "name": "networks",
         "wrapped": true
       },
       "items": {

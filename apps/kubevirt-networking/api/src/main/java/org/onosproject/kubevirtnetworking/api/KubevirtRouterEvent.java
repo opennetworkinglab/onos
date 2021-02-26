@@ -28,7 +28,7 @@ public class KubevirtRouterEvent extends AbstractEvent<KubevirtRouterEvent.Type,
      * @param type      kubevirt router event type
      * @param subject   kubevirt router
      */
-    protected KubevirtRouterEvent(Type type, KubevirtRouter subject) {
+    public KubevirtRouterEvent(Type type, KubevirtRouter subject) {
         super(type, subject);
     }
 

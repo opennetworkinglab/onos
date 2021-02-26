@@ -24,6 +24,7 @@ COMPILE_DEPS = CORE_DEPS + [
     "@okhttp//jar",
     "@okio//jar",
     "@logging_interceptor//jar",
+    "@jackson_databind//jar",
     "@jackson_dataformat_yaml//jar",
     "@jackson_datatype_jsr310//jar",
     "@snakeyaml//jar",

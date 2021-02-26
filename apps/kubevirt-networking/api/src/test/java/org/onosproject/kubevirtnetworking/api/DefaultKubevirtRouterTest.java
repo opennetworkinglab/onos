@@ -73,7 +73,7 @@ public class DefaultKubevirtRouterTest {
                 .description(DESCRIPTION_1)
                 .enableSnat(ENABLE_SNAT_1)
                 .internal(ImmutableSet.of(NETWORK_NAME_1))
-                .external(ImmutableMap.of(IpAddress.valueOf("10.10.10.10"), NETWORK_NAME_1))
+                .external(ImmutableMap.of("10.10.10.10", NETWORK_NAME_1))
                 .peerRouter(PEER_ROUTER_1)
                 .build();
         sameAsRouter1 = DefaultKubevirtRouter.builder()
@@ -81,7 +81,7 @@ public class DefaultKubevirtRouterTest {
                 .description(DESCRIPTION_1)
                 .enableSnat(ENABLE_SNAT_1)
                 .internal(ImmutableSet.of(NETWORK_NAME_1))
-                .external(ImmutableMap.of(IpAddress.valueOf("10.10.10.10"), NETWORK_NAME_1))
+                .external(ImmutableMap.of("10.10.10.10", NETWORK_NAME_1))
                 .peerRouter(PEER_ROUTER_1)
                 .build();
         router2 = DefaultKubevirtRouter.builder()
@@ -89,7 +89,7 @@ public class DefaultKubevirtRouterTest {
                 .description(DESCRIPTION_2)
                 .enableSnat(ENABLE_SNAT_2)
                 .internal(ImmutableSet.of(NETWORK_NAME_2))
-                .external(ImmutableMap.of(IpAddress.valueOf("20.20.20.20"), NETWORK_NAME_2))
+                .external(ImmutableMap.of("20.20.20.20", NETWORK_NAME_2))
                 .peerRouter(PEER_ROUTER_2)
                 .build();
     }
@@ -115,7 +115,7 @@ public class DefaultKubevirtRouterTest {
         assertEquals(DESCRIPTION_1, router.description());
         assertEquals(ENABLE_SNAT_1, router.enableSnat());
         assertEquals(ImmutableSet.of(NETWORK_NAME_1), router.internal());
-        assertEquals(ImmutableMap.of(IpAddress.valueOf("10.10.10.10"), NETWORK_NAME_1), router.external());
+        assertEquals(ImmutableMap.of("10.10.10.10", NETWORK_NAME_1), router.external());
         assertEquals(PEER_ROUTER_1, router.peerRouter());
     }
 }

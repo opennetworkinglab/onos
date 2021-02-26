@@ -35,7 +35,7 @@ public class KubevirtPeerRouter {
      * @param ipAddress  IP address
      * @param macAddress MAC address
      */
-    KubevirtPeerRouter(IpAddress ipAddress, MacAddress macAddress) {
+    public KubevirtPeerRouter(IpAddress ipAddress, MacAddress macAddress) {
         this.ipAddress = ipAddress;
         this.macAddress = macAddress;
     }

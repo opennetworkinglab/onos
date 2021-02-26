@@ -56,7 +56,7 @@ public class KubevirtPortManager
 
     protected final Logger log = getLogger(getClass());
 
-    private static final String MSG_PORT = "Kubernetes port %s %s";
+    private static final String MSG_PORT = "Kubevirt port %s %s";
     private static final String MSG_CREATED = "created";
     private static final String MSG_UPDATED = "updated";
     private static final String MSG_REMOVED = "removed";
@@ -158,7 +158,7 @@ public class KubevirtPortManager
         @Override
         public void notify(KubevirtPortEvent event) {
             if (event != null) {
-                log.trace("send kubevirt networking event {}", event);
+                log.trace("send kubevirt port event {}", event);
                 process(event);
             }
         }

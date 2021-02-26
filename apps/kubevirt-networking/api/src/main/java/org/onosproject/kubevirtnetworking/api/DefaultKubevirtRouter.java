@@ -18,7 +18,6 @@ package org.onosproject.kubevirtnetworking.api;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.onlab.packet.IpAddress;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,7 +38,7 @@ public final class DefaultKubevirtRouter implements KubevirtRouter {
     private final String description;
     private final boolean enableSnat;
     private final Set<String> internal;
-    private final Map<IpAddress, String> external;
+    private final Map<String, String> external;
     private final KubevirtPeerRouter peerRouter;
 
     /**
@@ -54,7 +53,7 @@ public final class DefaultKubevirtRouter implements KubevirtRouter {
      */
     public DefaultKubevirtRouter(String name, String description, boolean enableSnat,
                                  Set<String> internal,
-                                 Map<IpAddress, String> external,
+                                 Map<String, String> external,
                                  KubevirtPeerRouter peerRouter) {
         this.name = name;
         this.description = description;
@@ -85,13 +84,25 @@ public final class DefaultKubevirtRouter implements KubevirtRouter {
     }
 
     @Override
-    public Map<IpAddress, String> external() {
+    public Map<String, String> external() {
         return ImmutableMap.copyOf(external);
     }
 
     @Override
     public KubevirtPeerRouter peerRouter() {
         return peerRouter;
+    }
+
+    @Override
+    public KubevirtRouter updatePeerRouter(KubevirtPeerRouter updated) {
+        return DefaultKubevirtRouter.builder()
+                .name(name)
+                .enableSnat(enableSnat)
+                .description(description)
+                .internal(internal)
+                .external(external)
+                .peerRouter(updated)
+                .build();
     }
 
     @Override
@@ -140,7 +151,7 @@ public final class DefaultKubevirtRouter implements KubevirtRouter {
         private String description;
         private boolean enableSnat;
         private Set<String> internal;
-        private Map<IpAddress, String> external;
+        private Map<String, String> external;
         private KubevirtPeerRouter peerRouter;
 
         @Override
@@ -176,7 +187,7 @@ public final class DefaultKubevirtRouter implements KubevirtRouter {
         }
 
         @Override
-        public Builder external(Map<IpAddress, String> external) {
+        public Builder external(Map<String, String> external) {
             this.external = Objects.requireNonNullElseGet(external, HashMap::new);
             return this;
         }
