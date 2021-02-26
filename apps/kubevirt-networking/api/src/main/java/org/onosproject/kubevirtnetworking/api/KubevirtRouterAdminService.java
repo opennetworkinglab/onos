@@ -15,6 +15,8 @@
  */
 package org.onosproject.kubevirtnetworking.api;
 
+import org.onlab.packet.MacAddress;
+
 /**
  * Service for administering the inventory of kubevirt router service.
  */
@@ -40,6 +42,14 @@ public interface KubevirtRouterAdminService extends KubevirtRouterService {
      * @param name router name
      */
     void removeRouter(String name);
+
+    /**
+     * Updates the MAC address of the peer router.
+     *
+     * @param name router name
+     * @param mac peer router MAC address
+     */
+    void updatePeerRouterMac(String name, MacAddress mac);
 
     /**
      * Removes all routers.

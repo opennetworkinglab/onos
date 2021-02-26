@@ -413,6 +413,16 @@ public final class KubevirtNetworkingUtil {
         }
     }
 
+    public static String parseResourceName(String resource) {
+        try {
+            JSONObject json = new JSONObject(resource);
+            return json.getJSONObject("metadata").getString("name");
+        } catch (JSONException e) {
+            log.error("");
+        }
+        return "";
+    }
+
     private static PortNumber portNumber(DeviceId deviceId, String portName) {
         DeviceService deviceService = DefaultServiceDirectory.getService(DeviceService.class);
         Port port = deviceService.getPorts(deviceId).stream()

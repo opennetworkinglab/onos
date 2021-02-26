@@ -16,15 +16,15 @@
 package org.onosproject.kubevirtnetworking.impl;
 
 import com.google.common.collect.ImmutableSet;
-import org.onlab.packet.MacAddress;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.kubevirtnetworking.api.DefaultKubevirtPort;
-import org.onosproject.kubevirtnetworking.api.KubevirtPort;
-import org.onosproject.kubevirtnetworking.api.KubevirtPortEvent;
-import org.onosproject.kubevirtnetworking.api.KubevirtPortStore;
-import org.onosproject.kubevirtnetworking.api.KubevirtPortStoreDelegate;
+import org.onosproject.kubevirtnetworking.api.DefaultKubevirtRouter;
+import org.onosproject.kubevirtnetworking.api.KubevirtPeerRouter;
+import org.onosproject.kubevirtnetworking.api.KubevirtRouter;
+import org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent;
+import org.onosproject.kubevirtnetworking.api.KubevirtRouterStore;
+import org.onosproject.kubevirtnetworking.api.KubevirtRouterStoreDelegate;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
@@ -47,18 +47,18 @@ import java.util.concurrent.ExecutorService;
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.kubevirtnetworking.api.KubevirtPortEvent.Type.KUBEVIRT_PORT_CREATED;
-import static org.onosproject.kubevirtnetworking.api.KubevirtPortEvent.Type.KUBEVIRT_PORT_REMOVED;
-import static org.onosproject.kubevirtnetworking.api.KubevirtPortEvent.Type.KUBEVIRT_PORT_UPDATED;
+import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_CREATED;
+import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_REMOVED;
+import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_UPDATED;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * Implementation of kubevirt pod store using consistent map.
+ * Implementation of kubevirt router store using consistent map.
  */
-@Component(immediate = true, service = KubevirtPortStore.class)
-public class DistributedKubevirtPortStore
-        extends AbstractStore<KubevirtPortEvent, KubevirtPortStoreDelegate>
-        implements KubevirtPortStore {
+@Component(immediate = true, service = KubevirtRouterStore.class)
+public class DistributedKubevirtRouterStore
+        extends AbstractStore<KubevirtRouterEvent, KubevirtRouterStoreDelegate>
+        implements KubevirtRouterStore {
 
     private final Logger log = getLogger(getClass());
 
@@ -67,10 +67,11 @@ public class DistributedKubevirtPortStore
     private static final String APP_ID = "org.onosproject.kubevirtnetwork";
 
     private static final KryoNamespace
-            SERIALIZER_KUBEVIRT_PORT = KryoNamespace.newBuilder()
+            SERIALIZER_KUBEVIRT_ROUTER = KryoNamespace.newBuilder()
             .register(KryoNamespaces.API)
-            .register(KubevirtPort.class)
-            .register(DefaultKubevirtPort.class)
+            .register(KubevirtRouter.class)
+            .register(DefaultKubevirtRouter.class)
+            .register(KubevirtPeerRouter.class)
             .register(Collection.class)
             .build();
 
@@ -83,99 +84,95 @@ public class DistributedKubevirtPortStore
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler", log));
 
-    private final MapEventListener<String, KubevirtPort> portMapListener =
-            new KubevirtPortMapListener();
+    private final MapEventListener<String, KubevirtRouter> routerMapListener =
+            new KubevirtRouterMapListener();
 
-    private ConsistentMap<String, KubevirtPort> portStore;
+    private ConsistentMap<String, KubevirtRouter> routerStore;
 
     @Activate
     protected void activate() {
         ApplicationId appId = coreService.registerApplication(APP_ID);
-        portStore = storageService.<String, KubevirtPort>consistentMapBuilder()
-                .withSerializer(Serializer.using(SERIALIZER_KUBEVIRT_PORT))
-                .withName("kubevirt-portstore")
+        routerStore = storageService.<String, KubevirtRouter>consistentMapBuilder()
+                .withSerializer(Serializer.using(SERIALIZER_KUBEVIRT_ROUTER))
+                .withName("kubevirt-routerstore")
                 .withApplicationId(appId)
                 .build();
-        portStore.addListener(portMapListener);
+        routerStore.addListener(routerMapListener);
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
-        portStore.removeListener(portMapListener);
+        routerStore.removeListener(routerMapListener);
         eventExecutor.shutdown();
         log.info("Stopped");
     }
 
     @Override
-    public void createPort(KubevirtPort port) {
-        portStore.compute(port.macAddress().toString(), (mac, existing) -> {
-            final String error = port.macAddress().toString() + ERR_DUPLICATE;
+    public void createRouter(KubevirtRouter router) {
+        routerStore.compute(router.name(), (name, existing) -> {
+            final String error = router.name() + ERR_DUPLICATE;
             checkArgument(existing == null, error);
-            return port;
+            return router;
         });
     }
 
     @Override
-    public void updatePort(KubevirtPort port) {
-        portStore.compute(port.macAddress().toString(), (mac, existing) -> {
-            final String error = port.macAddress().toString() + ERR_NOT_FOUND;
+    public void updateRouter(KubevirtRouter router) {
+        routerStore.compute(router.name(), (name, existing) -> {
+            final String error = router.name() + ERR_NOT_FOUND;
             checkArgument(existing != null, error);
-            return port;
+            return router;
         });
     }
 
     @Override
-    public KubevirtPort removePort(MacAddress mac) {
-        Versioned<KubevirtPort> port = portStore.remove(mac.toString());
-        if (port == null) {
-            final String error = mac.toString() + ERR_NOT_FOUND;
+    public KubevirtRouter removeRouter(String name) {
+        Versioned<KubevirtRouter> router = routerStore.remove(name);
+        if (router == null) {
+            final String error = name + ERR_NOT_FOUND;
             throw new IllegalArgumentException(error);
         }
-        return port.value();
+        return router.value();
     }
 
     @Override
-    public KubevirtPort port(MacAddress mac) {
-        return portStore.asJavaMap().get(mac.toString());
+    public KubevirtRouter router(String name) {
+        return routerStore.asJavaMap().get(name);
     }
 
     @Override
-    public Set<KubevirtPort> ports() {
-        return ImmutableSet.copyOf(portStore.asJavaMap().values());
+    public Set<KubevirtRouter> routers() {
+        return ImmutableSet.copyOf(routerStore.asJavaMap().values());
     }
 
     @Override
     public void clear() {
-        portStore.clear();
+        routerStore.clear();
     }
 
-    private class KubevirtPortMapListener implements MapEventListener<String, KubevirtPort> {
+    private class KubevirtRouterMapListener implements MapEventListener<String, KubevirtRouter> {
 
         @Override
-        public void event(MapEvent<String, KubevirtPort> event) {
+        public void event(MapEvent<String, KubevirtRouter> event) {
             switch (event.type()) {
                 case INSERT:
-                    log.debug("Kubevirt port created");
+                    log.debug("Kubevirt router created");
                     eventExecutor.execute(() ->
-                            notifyDelegate(new KubevirtPortEvent(
-                                    KUBEVIRT_PORT_CREATED, event.newValue().value())));
+                            notifyDelegate(new KubevirtRouterEvent(
+                                    KUBEVIRT_ROUTER_CREATED, event.newValue().value())));
                     break;
                 case UPDATE:
-                    log.debug("Kubevirt port updated");
+                    log.debug("Kubevirt router updated");
                     eventExecutor.execute(() ->
-                            notifyDelegate(new KubevirtPortEvent(
-                                    KUBEVIRT_PORT_UPDATED, event.newValue().value())));
+                            notifyDelegate(new KubevirtRouterEvent(
+                                    KUBEVIRT_ROUTER_UPDATED, event.newValue().value())));
                     break;
                 case REMOVE:
-                    log.debug("Kubevirt port removed");
-                    // if the event object has invalid port value, we do not
-                    // propagate KUBEVIRT_PORT_REMOVED event.
-                    if (event.oldValue() != null && event.oldValue().value() != null) {
-                        eventExecutor.execute(() ->
-                                notifyDelegate(new KubevirtPortEvent(
-                                        KUBEVIRT_PORT_REMOVED, event.oldValue().value())));
-                    }
+                    log.debug("Kubevirt router removed");
+                    eventExecutor.execute(() ->
+                            notifyDelegate(new KubevirtRouterEvent(
+                                    KUBEVIRT_ROUTER_REMOVED, event.oldValue().value())));
                     break;
                 default:
                     // do nothing

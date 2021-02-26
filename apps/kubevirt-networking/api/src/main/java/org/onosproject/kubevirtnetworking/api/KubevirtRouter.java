@@ -15,8 +15,6 @@
  */
 package org.onosproject.kubevirtnetworking.api;
 
-import org.onlab.packet.IpAddress;
-
 import java.util.Map;
 import java.util.Set;
 
@@ -59,7 +57,7 @@ public interface KubevirtRouter {
      *
      * @return external network paired with external router IP address
      */
-    Map<IpAddress, String> external();
+    Map<String, String> external();
 
     /**
      * Returns external peer router.
@@ -67,6 +65,14 @@ public interface KubevirtRouter {
      * @return peer router
      */
     KubevirtPeerRouter peerRouter();
+
+    /**
+     * Updates the peer router.
+     *
+     * @param updated updated peer router
+     * @return kubevirt router with the updated peer router
+     */
+    KubevirtRouter updatePeerRouter(KubevirtPeerRouter updated);
 
     interface Builder {
 
@@ -115,7 +121,7 @@ public interface KubevirtRouter {
          * @param external external network with IP
          * @return router builder
          */
-        Builder external(Map<IpAddress, String> external);
+        Builder external(Map<String, String> external);
 
         /**
          * Returns kubevirt router builder with supplied peer router.

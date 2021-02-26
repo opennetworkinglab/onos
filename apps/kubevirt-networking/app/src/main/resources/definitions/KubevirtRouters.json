@@ -1,0 +1,91 @@
+{
+  "type": "object",
+  "title": "routers",
+  "required": [
+    "routers"
+  ],
+  "properties": {
+    "routers": {
+      "type": "array",
+      "xml": {
+        "name": "routers",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "description": "A router object.",
+        "required": [
+          "name",
+          "enableSnat",
+          "internal",
+          "external",
+          "peerRouter"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "router-1",
+            "description": "The name of router."
+          },
+          "enableSnat": {
+            "type": "boolean",
+            "example": "true",
+            "description": "Enable SNAT flag."
+          },
+          "internal": {
+            "type": "array",
+            "xml": {
+              "name": "internal",
+              "wrapped": true
+            },
+            "items": {
+              "type": "string",
+              "example": "vxlan-1",
+              "description": "name of internal network"
+            }
+          },
+          "external": {
+            "type": "object",
+            "description": "external networks",
+            "required": [
+              "ip",
+              "name"
+            ],
+            "properties": {
+              "ipaddress": {
+                "type": "string",
+                "example": "10.10.10.5",
+                "description": "Router IP address of the external network"
+              },
+              "name": {
+                "type": "string",
+                "example": "flat",
+                "description": "Name of the external network"
+              }
+            }
+          },
+          "peerRouter": {
+            "type": "object",
+            "description": "peer router",
+            "required": [
+              "ip",
+              "mac"
+            ],
+            "properties": {
+              "ipaddress": {
+                "type": "string",
+                "example": "10.10.10.1",
+                "description": "IP address of the peer router"
+              },
+              "macaddress": {
+                "type": "string",
+                "example": "11:22:33:44:55:66",
+                "description": "MAC address of the peer router"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
