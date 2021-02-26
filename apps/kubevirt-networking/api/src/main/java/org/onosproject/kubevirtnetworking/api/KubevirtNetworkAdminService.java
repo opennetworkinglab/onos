@@ -17,6 +17,9 @@ package org.onosproject.kubevirtnetworking.api;
 
 import org.onlab.packet.IpAddress;
 
+/**
+ * Service for administering the inventory of kubevirt network service.
+ */
 public interface KubevirtNetworkAdminService extends KubevirtNetworkService {
 
     /**
