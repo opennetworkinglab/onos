@@ -1,0 +1,54 @@
+{
+  "type": "object",
+  "title": "floatingips",
+  "required": [
+    "floatingips"
+  ],
+  "properties": {
+    "floatingips": {
+      "type": "array",
+      "xml": {
+        "name": "floatingips",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "description": "A floating IP object.",
+        "required": [
+          "id",
+          "routerName",
+          "floatingIp",
+          "podName",
+          "fixedIp"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "6a073105-c735-4e53-8d74-64191c6985fe",
+            "description": "The ID of floating IP."
+          },
+          "routerName": {
+            "type": "string",
+            "example": "router-1",
+            "description": "Name of router."
+          },
+          "floatingIp": {
+            "type": "string",
+            "example": "10.10.10.5",
+            "description": "Floating IP address."
+          },
+          "podName": {
+            "type": "string",
+            "example": "pod-1",
+            "description": "Name of POD associated with this floating IP"
+          },
+          "fixedIp": {
+            "type": "string",
+            "example": "20.20.20.5",
+            "description": "Fixed IP address."
+          }
+        }
+      }
+    }
+  }
+}

@@ -23,15 +23,12 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.karaf.shell.api.action.Command;
 import org.apache.karaf.shell.api.action.lifecycle.Service;
 import org.onosproject.cli.AbstractShellCommand;
-import org.onosproject.kubevirtnetworking.api.KubevirtRouter;
+import org.onosproject.kubevirtnetworking.api.KubevirtFloatingIp;
 import org.onosproject.kubevirtnetworking.api.KubevirtRouterService;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 
-import static org.onosproject.kubevirtnetworking.api.Constants.CLI_FLAG_LENGTH;
-import static org.onosproject.kubevirtnetworking.api.Constants.CLI_IP_ADDRESSES_LENGTH;
 import static org.onosproject.kubevirtnetworking.api.Constants.CLI_IP_ADDRESS_LENGTH;
 import static org.onosproject.kubevirtnetworking.api.Constants.CLI_MARGIN_LENGTH;
 import static org.onosproject.kubevirtnetworking.api.Constants.CLI_NAME_LENGTH;
@@ -39,53 +36,50 @@ import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.gen
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.prettyJson;
 
 /**
- * Lists kubevirt routers.
+ * Lists kubevirt floating IPs.
  */
 @Service
-@Command(scope = "onos", name = "kubevirt-routers",
-        description = "Lists all kubevirt routers")
-public class KubevirtListRouterCommand extends AbstractShellCommand {
+@Command(scope = "onos", name = "kubevirt-fips",
+        description = "Lists all kubevirt floating IPs")
+public class KubevirtListFloatingIpCommand extends AbstractShellCommand {
 
     @Override
     protected void doExecute() throws Exception {
         KubevirtRouterService service = get(KubevirtRouterService.class);
-        List<KubevirtRouter> routers = Lists.newArrayList(service.routers());
-        routers.sort(Comparator.comparing(KubevirtRouter::name));
+        List<KubevirtFloatingIp> fips = Lists.newArrayList(service.floatingIps());
+        fips.sort(Comparator.comparing(KubevirtFloatingIp::routerName));
 
         String format = genFormatString(ImmutableList.of(CLI_NAME_LENGTH,
-                CLI_FLAG_LENGTH, CLI_IP_ADDRESSES_LENGTH, CLI_IP_ADDRESS_LENGTH));
+                CLI_IP_ADDRESS_LENGTH, CLI_NAME_LENGTH, CLI_IP_ADDRESS_LENGTH));
 
         if (outputJson()) {
-            print("%s", json(routers));
+            print("%s", json(fips));
         } else {
-            print(format, "Name", "SNAT", "Internal", "External");
+            print(format, "Router Name", "Floating IP", "POD Name", "Fixed IP");
+            for (KubevirtFloatingIp fip : fips) {
 
-            for (KubevirtRouter router : routers) {
-                Set<String> internalCidrs = router.internal();
-                Set<String> externalIps = router.external().keySet();
+                String fixedIp = fip.fixedIp() == null ? "N/A" : fip.fixedIp().toString();
+                String podName = fip.podName() == null ? "N/A" : fip.podName();
 
-                String internal = internalCidrs.size() == 0 ? "[]" : internalCidrs.toString();
-                String external = externalIps.size() == 0 ? "[]" : externalIps.toString();
-
-                print(format, StringUtils.substring(router.name(), 0,
+                print(format, StringUtils.substring(fip.routerName(), 0,
                         CLI_NAME_LENGTH - CLI_MARGIN_LENGTH),
-                        StringUtils.substring(String.valueOf(router.enableSnat()), 0,
-                                CLI_FLAG_LENGTH - CLI_MARGIN_LENGTH),
-                        StringUtils.substring(internal, 0,
-                                CLI_IP_ADDRESSES_LENGTH - CLI_MARGIN_LENGTH),
-                        StringUtils.substring(external, 0,
+                        StringUtils.substring(fip.floatingIp().toString(), 0,
+                                CLI_IP_ADDRESS_LENGTH - CLI_MARGIN_LENGTH),
+                        StringUtils.substring(podName, 0,
+                                CLI_NAME_LENGTH - CLI_MARGIN_LENGTH),
+                        StringUtils.substring(fixedIp, 0,
                                 CLI_IP_ADDRESS_LENGTH - CLI_MARGIN_LENGTH)
                 );
             }
         }
     }
 
-    private String json(List<KubevirtRouter> routers) {
+    private String json(List<KubevirtFloatingIp> fips) {
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode result = mapper.createArrayNode();
 
-        for (KubevirtRouter router : routers) {
-            result.add(jsonForEntity(router, KubevirtRouter.class));
+        for (KubevirtFloatingIp fip : fips) {
+            result.add(jsonForEntity(fip, KubevirtFloatingIp.class));
         }
 
         return prettyJson(mapper, result.toString());

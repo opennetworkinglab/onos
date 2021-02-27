@@ -29,7 +29,9 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreServiceAdapter;
 import org.onosproject.core.DefaultApplicationId;
 import org.onosproject.event.Event;
+import org.onosproject.kubevirtnetworking.api.DefaultKubevirtFloatingIp;
 import org.onosproject.kubevirtnetworking.api.DefaultKubevirtRouter;
+import org.onosproject.kubevirtnetworking.api.KubevirtFloatingIp;
 import org.onosproject.kubevirtnetworking.api.KubevirtPeerRouter;
 import org.onosproject.kubevirtnetworking.api.KubevirtRouter;
 import org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent;
@@ -41,6 +43,11 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_FLOATING_IP_ASSOCIATED;
+import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_FLOATING_IP_CREATED;
+import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_FLOATING_IP_DISASSOCIATED;
+import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_FLOATING_IP_REMOVED;
+import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_FLOATING_IP_UPDATED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_CREATED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_REMOVED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_UPDATED;
@@ -53,9 +60,12 @@ public class KubevirtRouterManagerTest {
     private static final ApplicationId TEST_APP_ID = new DefaultApplicationId(1, "test");
 
     private static final String ROUTER_NAME = "router-1";
+    private static final String POD_NAME = "pod-1";
     private static final String UPDATED_DESCRIPTION = "router-updated";
-
     private static final MacAddress UPDATED_MAC = MacAddress.valueOf("FF:FF:FF:FF:FF:FF");
+
+    private static final String FLOATING_IP_ID = "fip-1";
+    private static final String UNKNOWN_ID = "unknown";
 
     private static final KubevirtRouter ROUTER = DefaultKubevirtRouter.builder()
             .name(ROUTER_NAME)
@@ -75,6 +85,20 @@ public class KubevirtRouterManagerTest {
             .enableSnat(true)
             .peerRouter(new KubevirtPeerRouter(IpAddress.valueOf("20.20.20.20"),
                     MacAddress.valueOf("11:22:33:44:55:66")))
+            .build();
+
+    private static final KubevirtFloatingIp FLOATING_IP_DISASSOCIATED = DefaultKubevirtFloatingIp.builder()
+            .id(FLOATING_IP_ID)
+            .routerName(ROUTER_NAME)
+            .floatingIp(IpAddress.valueOf("10.10.10.10"))
+            .build();
+
+    private static final KubevirtFloatingIp FLOATING_IP_ASSOCIATED = DefaultKubevirtFloatingIp.builder()
+            .id(FLOATING_IP_ID)
+            .routerName(ROUTER_NAME)
+            .floatingIp(IpAddress.valueOf("10.10.10.10"))
+            .fixedIp(IpAddress.valueOf("20.20.20.20"))
+            .podName(POD_NAME)
             .build();
 
     private final TestKubevirtRouterListener testListener = new TestKubevirtRouterListener();
@@ -202,8 +226,138 @@ public class KubevirtRouterManagerTest {
         target.updateRouter(null);
     }
 
+    /**
+     * Tests if getting all floating IPs returns the correct set of floating IPs.
+     */
+    @Test
+    public void testGetFloatingIps() {
+        createBasicFloatingIpDisassociated();
+        assertEquals("Number of floating IPs did not match", 1, target.floatingIps().size());
+    }
+
+    /**
+     * Tests if getting a floating IP with ID returns the correct floating IP.
+     */
+    @Test
+    public void testGetFloatingIpById() {
+        createBasicFloatingIpDisassociated();
+        assertNotNull("Floating IP did not match", target.floatingIp(FLOATING_IP_ID));
+        assertNull("Floating IP did not match", target.floatingIp(UNKNOWN_ID));
+    }
+
+    /**
+     * Tests if getting a floating IP with POD name returns the correct floating IP.
+     */
+    @Test
+    public void testGetFloatingIpByPodName() {
+        createBasicFloatingIpAssociated();
+        assertNotNull("Floating IP did not match", target.floatingIpByPodName(POD_NAME));
+        assertNull("Floating IP did not match", target.floatingIpByPodName(UNKNOWN_ID));
+    }
+
+    /**
+     * Tests if getting floating IPs with router name returns the correct floating IPs.
+     */
+    @Test
+    public void testGetFloatingIpsByRouterName() {
+        createBasicFloatingIpDisassociated();
+        assertEquals("Number of floating IPs did not match", 1,
+                target.floatingIpsByRouter(ROUTER_NAME).size());
+    }
+
+    /**
+     * Tests creating and removing a floating IP, and checks if it triggers proper events.
+     */
+    @Test
+    public void testCreateAndRemoveFloatingIp() {
+        target.createFloatingIp(FLOATING_IP_DISASSOCIATED);
+        assertEquals("Number of floating IP did not match", 1, target.floatingIps().size());
+        assertNotNull("Floating IP was not created", target.floatingIp(FLOATING_IP_ID));
+
+        target.removeFloatingIp(FLOATING_IP_ID);
+        assertEquals("Number of floating IP did not match", 0, target.floatingIps().size());
+        assertNull("Floating IP was not created", target.floatingIp(FLOATING_IP_ID));
+
+        validateEvents(KUBEVIRT_FLOATING_IP_CREATED, KUBEVIRT_FLOATING_IP_REMOVED);
+    }
+
+    /**
+     * Tests associating a floating IP, and checks if it triggers proper events.
+     */
+    @Test
+    public void testAssociateFloatingIp() {
+        target.createFloatingIp(FLOATING_IP_DISASSOCIATED);
+        assertEquals("Number of floating IP did not match", 1, target.floatingIps().size());
+        assertNotNull("Floating IP was not created", target.floatingIp(FLOATING_IP_ID));
+
+        target.updateFloatingIp(FLOATING_IP_ASSOCIATED);
+        assertEquals("Number of floating IP did not match", 1, target.floatingIps().size());
+        assertNotNull("Floating IP was not created", target.floatingIp(FLOATING_IP_ID));
+
+        validateEvents(KUBEVIRT_FLOATING_IP_CREATED, KUBEVIRT_FLOATING_IP_UPDATED,
+                KUBEVIRT_FLOATING_IP_ASSOCIATED);
+    }
+
+    /**
+     * Tests disassociating a floating IP, and checks if it triggers proper events.
+     */
+    @Test
+    public void testDisassociateFloatingIp() {
+        target.createFloatingIp(FLOATING_IP_ASSOCIATED);
+        assertEquals("Number of floating IP did not match", 1, target.floatingIps().size());
+        assertNotNull("Floating IP was not created", target.floatingIp(FLOATING_IP_ID));
+
+        target.updateFloatingIp(FLOATING_IP_DISASSOCIATED);
+        assertEquals("Number of floating IP did not match", 1, target.floatingIps().size());
+        assertNotNull("Floating IP was not created", target.floatingIp(FLOATING_IP_ID));
+
+        validateEvents(KUBEVIRT_FLOATING_IP_CREATED, KUBEVIRT_FLOATING_IP_UPDATED,
+                KUBEVIRT_FLOATING_IP_DISASSOCIATED);
+    }
+
+    /**
+     * Tests if creating a null floating IP fails with an exception.
+     */
+    @Test(expected = NullPointerException.class)
+    public void testCreateNullFloatingIp() {
+        target.createFloatingIp(null);
+    }
+
+    /**
+     * Tests if creating a duplicate floating IP fails with an exception.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testCreateDuplicateFloatingIp() {
+        target.createFloatingIp(FLOATING_IP_ASSOCIATED);
+        target.createFloatingIp(FLOATING_IP_DISASSOCIATED);
+    }
+
+    /**
+     * Tests if removing floating IP with null ID fails with an exception.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testRemoveFloatingIpWithNull() {
+        target.removeFloatingIp(null);
+    }
+
+    /**
+     * Tests if updating an unregistered floating IP fails with an exception.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void testUpdateUnregisteredFloatingIp() {
+        target.updateFloatingIp(FLOATING_IP_ASSOCIATED);
+    }
+
     private void createBasicRouters() {
         target.createRouter(ROUTER);
+    }
+
+    private void createBasicFloatingIpDisassociated() {
+        target.createFloatingIp(FLOATING_IP_DISASSOCIATED);
+    }
+
+    private void createBasicFloatingIpAssociated() {
+        target.createFloatingIp(FLOATING_IP_ASSOCIATED);
     }
 
     private static class TestCoreService extends CoreServiceAdapter {

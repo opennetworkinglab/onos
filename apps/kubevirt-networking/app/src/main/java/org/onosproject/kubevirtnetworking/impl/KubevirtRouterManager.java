@@ -21,6 +21,7 @@ import org.onlab.packet.MacAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.ListenerRegistry;
+import org.onosproject.kubevirtnetworking.api.KubevirtFloatingIp;
 import org.onosproject.kubevirtnetworking.api.KubevirtPeerRouter;
 import org.onosproject.kubevirtnetworking.api.KubevirtRouter;
 import org.onosproject.kubevirtnetworking.api.KubevirtRouterAdminService;
@@ -37,6 +38,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -57,12 +59,16 @@ public class KubevirtRouterManager
     protected final Logger log = getLogger(getClass());
 
     private static final String MSG_ROUTER = "Kubevirt router %s %s";
+    private static final String MSG_FLOATING_IP = "Kubevirt floating IP %s %s";
     private static final String MSG_CREATED = "created";
     private static final String MSG_UPDATED = "updated";
     private static final String MSG_REMOVED = "removed";
 
     private static final String ERR_NULL_ROUTER = "Kubevirt router cannot be null";
     private static final String ERR_NULL_ROUTER_NAME = "Kubevirt router name cannot be null";
+    private static final String ERR_NULL_FLOATING_IP = "Kubevirt floating IP cannot be null";
+    private static final String ERR_NULL_FLOATING_IP_ID = "Kubevirt floating IP ID cannot be null";
+    private static final String ERR_NULL_POD_NAME = "Kubevirt POD name cannot be null";
     private static final String ERR_IN_USE = " still in use";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
@@ -142,6 +148,39 @@ public class KubevirtRouterManager
     }
 
     @Override
+    public void createFloatingIp(KubevirtFloatingIp floatingIp) {
+        checkNotNull(floatingIp, ERR_NULL_FLOATING_IP);
+        checkArgument(!Strings.isNullOrEmpty(floatingIp.id()), ERR_NULL_FLOATING_IP_ID);
+
+        kubevirtRouterStore.createFloatingIp(floatingIp);
+
+        log.info(String.format(MSG_FLOATING_IP, floatingIp.floatingIp(), MSG_CREATED));
+    }
+
+    @Override
+    public void updateFloatingIp(KubevirtFloatingIp floatingIp) {
+        checkNotNull(floatingIp, ERR_NULL_FLOATING_IP);
+        checkArgument(!Strings.isNullOrEmpty(floatingIp.id()), ERR_NULL_FLOATING_IP_ID);
+
+        kubevirtRouterStore.updateFloatingIp(floatingIp);
+
+        log.info(String.format(MSG_FLOATING_IP, floatingIp.floatingIp(), MSG_UPDATED));
+    }
+
+    @Override
+    public void removeFloatingIp(String id) {
+        checkArgument(!Strings.isNullOrEmpty(id), ERR_NULL_FLOATING_IP_ID);
+
+        synchronized (this) {
+            KubevirtFloatingIp floatingIp = kubevirtRouterStore.removeFloatingIp(id);
+
+            if (floatingIp != null) {
+                log.info(String.format(MSG_FLOATING_IP, floatingIp.floatingIp(), MSG_REMOVED));
+            }
+        }
+    }
+
+    @Override
     public void clear() {
         kubevirtRouterStore.clear();
     }
@@ -157,8 +196,35 @@ public class KubevirtRouterManager
         return ImmutableSet.copyOf(kubevirtRouterStore.routers());
     }
 
+    @Override
+    public KubevirtFloatingIp floatingIp(String id) {
+        checkArgument(!Strings.isNullOrEmpty(id), ERR_NULL_FLOATING_IP_ID);
+        return kubevirtRouterStore.floatingIp(id);
+    }
+
+    @Override
+    public KubevirtFloatingIp floatingIpByPodName(String podName) {
+        checkArgument(!Strings.isNullOrEmpty(podName), ERR_NULL_POD_NAME);
+        return kubevirtRouterStore.floatingIps().stream()
+                .filter(ips -> podName.equals(ips.podName()))
+                .findAny().orElse(null);
+    }
+
+    @Override
+    public Set<KubevirtFloatingIp> floatingIpsByRouter(String routerName) {
+        checkArgument(!Strings.isNullOrEmpty(routerName), ERR_NULL_ROUTER_NAME);
+        return kubevirtRouterStore.floatingIps().stream()
+                .filter(ips -> routerName.equals(ips.routerName()))
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Set<KubevirtFloatingIp> floatingIps() {
+        return ImmutableSet.copyOf(kubevirtRouterStore.floatingIps());
+    }
+
     private boolean isRouterInUse(String name) {
-        return false;
+        return floatingIpsByRouter(name).size() > 0;
     }
 
     private class InternalRouterStorageDelegate implements KubevirtRouterStoreDelegate {

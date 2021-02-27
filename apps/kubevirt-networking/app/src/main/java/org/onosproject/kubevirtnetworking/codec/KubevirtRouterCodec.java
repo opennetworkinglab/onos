@@ -57,7 +57,7 @@ public final class KubevirtRouterCodec extends JsonCodec<KubevirtRouter> {
 
     @Override
     public ObjectNode encode(KubevirtRouter router, CodecContext context) {
-        checkNotNull(router, "Kubevirt router pool cannot be null");
+        checkNotNull(router, "Kubevirt router cannot be null");
 
         ObjectNode result = context.mapper().createObjectNode()
                 .put(NAME, router.name())
