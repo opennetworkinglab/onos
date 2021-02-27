@@ -77,7 +77,7 @@ public interface KubevirtRouter {
     interface Builder {
 
         /**
-         * Builds an immutable network instance.
+         * Builds an immutable router instance.
          *
          * @return kubevirt router
          */

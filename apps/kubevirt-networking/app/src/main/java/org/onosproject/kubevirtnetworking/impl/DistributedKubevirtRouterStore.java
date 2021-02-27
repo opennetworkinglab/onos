@@ -15,11 +15,14 @@
  */
 package org.onosproject.kubevirtnetworking.impl;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import org.onlab.util.KryoNamespace;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.kubevirtnetworking.api.DefaultKubevirtFloatingIp;
 import org.onosproject.kubevirtnetworking.api.DefaultKubevirtRouter;
+import org.onosproject.kubevirtnetworking.api.KubevirtFloatingIp;
 import org.onosproject.kubevirtnetworking.api.KubevirtPeerRouter;
 import org.onosproject.kubevirtnetworking.api.KubevirtRouter;
 import org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent;
@@ -47,6 +50,11 @@ import java.util.concurrent.ExecutorService;
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
+import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_FLOATING_IP_ASSOCIATED;
+import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_FLOATING_IP_CREATED;
+import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_FLOATING_IP_DISASSOCIATED;
+import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_FLOATING_IP_REMOVED;
+import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_FLOATING_IP_UPDATED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_CREATED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_REMOVED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_UPDATED;
@@ -72,6 +80,8 @@ public class DistributedKubevirtRouterStore
             .register(KubevirtRouter.class)
             .register(DefaultKubevirtRouter.class)
             .register(KubevirtPeerRouter.class)
+            .register(KubevirtFloatingIp.class)
+            .register(DefaultKubevirtFloatingIp.class)
             .register(Collection.class)
             .build();
 
@@ -86,8 +96,11 @@ public class DistributedKubevirtRouterStore
 
     private final MapEventListener<String, KubevirtRouter> routerMapListener =
             new KubevirtRouterMapListener();
+    private final MapEventListener<String, KubevirtFloatingIp> fipMapListener =
+            new KubevirtFloatingIpMapListener();
 
     private ConsistentMap<String, KubevirtRouter> routerStore;
+    private ConsistentMap<String, KubevirtFloatingIp> fipStore;
 
     @Activate
     protected void activate() {
@@ -97,13 +110,20 @@ public class DistributedKubevirtRouterStore
                 .withName("kubevirt-routerstore")
                 .withApplicationId(appId)
                 .build();
+        fipStore = storageService.<String, KubevirtFloatingIp>consistentMapBuilder()
+                .withSerializer(Serializer.using(SERIALIZER_KUBEVIRT_ROUTER))
+                .withName("kubevirt-fipstore")
+                .withApplicationId(appId)
+                .build();
         routerStore.addListener(routerMapListener);
+        fipStore.addListener(fipMapListener);
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
         routerStore.removeListener(routerMapListener);
+        fipStore.removeListener(fipMapListener);
         eventExecutor.shutdown();
         log.info("Stopped");
     }
@@ -147,8 +167,48 @@ public class DistributedKubevirtRouterStore
     }
 
     @Override
+    public void createFloatingIp(KubevirtFloatingIp floatingIp) {
+        fipStore.compute(floatingIp.id(), (id, existing) -> {
+            final String error = floatingIp.id() + ERR_DUPLICATE;
+            checkArgument(existing == null, error);
+            return floatingIp;
+        });
+    }
+
+    @Override
+    public void updateFloatingIp(KubevirtFloatingIp floatingIp) {
+        fipStore.compute(floatingIp.id(), (id, existing) -> {
+            final String error = floatingIp.id() + ERR_NOT_FOUND;
+            checkArgument(existing != null, error);
+            return floatingIp;
+        });
+    }
+
+    @Override
+    public KubevirtFloatingIp removeFloatingIp(String id) {
+        Versioned<KubevirtFloatingIp> floatingIp = fipStore.remove(id);
+        if (floatingIp == null) {
+            final String error = id + ERR_NOT_FOUND;
+            throw new IllegalArgumentException(error);
+        }
+        return floatingIp.value();
+    }
+
+    @Override
+    public KubevirtFloatingIp floatingIp(String id) {
+        return fipStore.asJavaMap().get(id);
+    }
+
+    @Override
+    public Set<KubevirtFloatingIp> floatingIps() {
+        return ImmutableSet.copyOf(fipStore.asJavaMap().values());
+    }
+
+
+    @Override
     public void clear() {
         routerStore.clear();
+        fipStore.clear();
     }
 
     private class KubevirtRouterMapListener implements MapEventListener<String, KubevirtRouter> {
@@ -177,6 +237,83 @@ public class DistributedKubevirtRouterStore
                 default:
                     // do nothing
                     break;
+            }
+        }
+    }
+
+    private class KubevirtFloatingIpMapListener implements MapEventListener<String, KubevirtFloatingIp> {
+
+        @Override
+        public void event(MapEvent<String, KubevirtFloatingIp> event) {
+            switch (event.type()) {
+                case INSERT:
+                    eventExecutor.execute(() -> processFloatingIpMapInsertion(event));
+                    break;
+                case UPDATE:
+                    eventExecutor.execute(()  -> processFloatingIpMapUpdate(event));
+                    break;
+                case REMOVE:
+                    eventExecutor.execute(() -> processFloatingIpMapRemoval(event));
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void processFloatingIpMapInsertion(MapEvent<String, KubevirtFloatingIp> event) {
+            log.debug("Kubevirt floating IP created");
+            KubevirtRouter router = Strings.isNullOrEmpty(
+                    event.newValue().value().routerName()) ?
+                    null :
+                    router(event.newValue().value().routerName());
+            notifyDelegate(new KubevirtRouterEvent(
+                    KUBEVIRT_FLOATING_IP_CREATED,
+                    router,
+                    event.newValue().value()));
+        }
+
+        private void processFloatingIpMapUpdate(MapEvent<String, KubevirtFloatingIp> event) {
+            log.debug("Kubevirt floating IP updated");
+            KubevirtRouter router = Strings.isNullOrEmpty(
+                    event.newValue().value().routerName()) ?
+                    null :
+                    router(event.newValue().value().routerName());
+            notifyDelegate(new KubevirtRouterEvent(
+                    KUBEVIRT_FLOATING_IP_UPDATED,
+                    router,
+                    event.newValue().value()));
+            processFloatingIpUpdate(event, router);
+        }
+
+        private void processFloatingIpMapRemoval(MapEvent<String, KubevirtFloatingIp> event) {
+            log.debug("Kubevirt floating IP removed");
+            KubevirtRouter router = Strings.isNullOrEmpty(
+                    event.oldValue().value().routerName()) ?
+                    null :
+                    router(event.oldValue().value().routerName());
+            notifyDelegate(new KubevirtRouterEvent(
+                    KUBEVIRT_FLOATING_IP_REMOVED,
+                    router,
+                    event.oldValue().value()));
+        }
+
+        private void processFloatingIpUpdate(MapEvent<String, KubevirtFloatingIp> event,
+                                             KubevirtRouter router) {
+            String oldPodName = event.oldValue().value().podName();
+            String newPodName = event.newValue().value().podName();
+
+            if (Strings.isNullOrEmpty(oldPodName) && !Strings.isNullOrEmpty(newPodName)) {
+                notifyDelegate(new KubevirtRouterEvent(
+                        KUBEVIRT_FLOATING_IP_ASSOCIATED,
+                        router,
+                        event.newValue().value(), newPodName));
+            }
+
+            if (!Strings.isNullOrEmpty(oldPodName) && Strings.isNullOrEmpty(newPodName)) {
+                notifyDelegate(new KubevirtRouterEvent(
+                        KUBEVIRT_FLOATING_IP_DISASSOCIATED,
+                        router,
+                        event.newValue().value(), oldPodName));
             }
         }
     }

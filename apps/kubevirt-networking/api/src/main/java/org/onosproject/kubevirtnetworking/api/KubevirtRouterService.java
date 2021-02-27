@@ -39,4 +39,35 @@ public interface KubevirtRouterService
      * @return set of kubevirt routers
      */
     Set<KubevirtRouter> routers();
+
+    /**
+     * Returns the kubevirt floating IP with the supplied identifier.
+     *
+     * @param id floating IP identifier
+     * @return kubevirt floating IP
+     */
+    KubevirtFloatingIp floatingIp(String id);
+
+    /**
+     * Returns the kubevirt floating IP associated with the supplied POD.
+     *
+     * @param podName name of POD
+     * @return kubevirt floating IP
+     */
+    KubevirtFloatingIp floatingIpByPodName(String podName);
+
+    /**
+     * Returns the kubevirt floating IPs bound to the given router.
+     *
+     * @param routerName name of router
+     * @return set of kubevirt floating IPs
+     */
+    Set<KubevirtFloatingIp> floatingIpsByRouter(String routerName);
+
+    /**
+     * Returns all kubevirt floating IPs.
+     *
+     * @return set of kubevirt floating IPs
+     */
+    Set<KubevirtFloatingIp> floatingIps();
 }

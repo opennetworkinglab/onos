@@ -1,0 +1,7 @@
+{
+  "id": "fip-1",
+  "routerName": "router-1",
+  "floatingIp": "10.10.10.10",
+  "podName": "pod-1",
+  "fixedIp": "20.20.20.20"
+}

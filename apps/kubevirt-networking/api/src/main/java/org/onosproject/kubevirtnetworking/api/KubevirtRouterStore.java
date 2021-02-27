@@ -63,7 +63,44 @@ public interface KubevirtRouterStore
     Set<KubevirtRouter> routers();
 
     /**
-     * Removes all kubevirt routers.
+     * Creates a new kubevirt floating IP.
+     *
+     * @param floatingIp kubevirt floating IP
+     */
+    void createFloatingIp(KubevirtFloatingIp floatingIp);
+
+    /**
+     * Updates the kubevirt floating IP.
+     *
+     * @param floatingIp kubevirt floating IP
+     */
+    void updateFloatingIp(KubevirtFloatingIp floatingIp);
+
+    /**
+     * Removes the kubevirt floating IP with the given identifier.
+     *
+     * @param id floating IP identifier
+     * @return removed kubevirt floating IP; null if failed
+     */
+    KubevirtFloatingIp removeFloatingIp(String id);
+
+    /**
+     * Returns the kubevirt floating IP with the given identifier.
+     *
+     * @param id floating IP identifier
+     * @return kubevirt floating IP; null if not found
+     */
+    KubevirtFloatingIp floatingIp(String id);
+
+    /**
+     * Returns all kubevirt floating IPs.
+     *
+     * @return set of kubevirt floating IPs
+     */
+    Set<KubevirtFloatingIp> floatingIps();
+
+    /**
+     * Removes all kubevirt routers and floating IPs.
      */
     void clear();
 }

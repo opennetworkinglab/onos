@@ -52,6 +52,27 @@ public interface KubevirtRouterAdminService extends KubevirtRouterService {
     void updatePeerRouterMac(String name, MacAddress mac);
 
     /**
+     * Creates a kubevirt floating IP with the given information.
+     *
+     * @param floatingIp a new floating IP
+     */
+    void createFloatingIp(KubevirtFloatingIp floatingIp);
+
+    /**
+     * Updates the kubevirt floating IP with the given information.
+     *
+     * @param floatingIp the updated floating IP
+     */
+    void updateFloatingIp(KubevirtFloatingIp floatingIp);
+
+    /**
+     * Removes the floating IP with the given identifier.
+     *
+     * @param id floating IP identifier
+     */
+    void removeFloatingIp(String id);
+
+    /**
      * Removes all routers.
      */
     void clear();
