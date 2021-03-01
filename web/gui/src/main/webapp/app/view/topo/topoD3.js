@@ -101,7 +101,8 @@
 
     // internal state
     var deviceLabelIndex = 0,
-        hostLabelIndex = 0;
+        hostLabelIndex = 0,
+        linkLabelsEnabled = true;
 
     // note: these are the device icon colors without affinity (no master)
     var dColTheme = {
@@ -171,6 +172,11 @@
     function deviceLabel(d) {
         var idx = (deviceLabelIndex < d.labels.length) ? deviceLabelIndex : 0;
         return d.labels[idx];
+    }
+
+    function toggleLinkLabels() {
+        linkLabelsEnabled = !linkLabelsEnabled;
+        return linkLabelsEnabled;
     }
 
     function trimLabel(label) {
@@ -390,39 +396,49 @@
         var entering;
 
         api.updateLinkLabelModel();
+        if (linkLabelsEnabled) {
 
-        // for elements already existing, we need to update the text
-        // and adjust the rectangle size to fit
-        api.linkLabel().each(function (d) {
-            var el = d3.select(this),
-                rect = el.select('rect'),
-                text = el.select('text');
-            text.text(d.label);
-            rect.attr(rectAroundText(el));
-        });
+            // for elements already existing, we need to update the text
+            // and adjust the rectangle size to fit
+            api.linkLabel().each(function (d) {
+                var el = d3.select(this),
+                    rect = el.select('rect'),
+                    text = el.select('text');
+                text.text(d.label);
+                rect.attr(rectAroundText(el));
+            });
 
-        entering = api.linkLabel().enter().append('g')
-            .classed('linkLabel', true)
-            .attr('id', function (d) { return d.id; });
+            entering = api.linkLabel().enter().append('g')
+                .classed('linkLabel', true)
+                .attr('id', function (d) { return d.id; });
 
-        entering.each(function (d) {
-            var el = d3.select(this),
-                rect,
-                text;
+            entering.each(function (d) {
+                var el = d3.select(this),
+                    rect,
+                    text;
 
-            if (d.ldata.type() === 'hostLink') {
-                el.classed('hostLinkLabel', true);
-                sus.visible(el, api.showHosts());
-            }
+                if (d.ldata.type() === 'hostLink') {
+                    el.classed('hostLinkLabel', true);
+                    sus.visible(el, api.showHosts());
+                }
 
-            d.el = el;
-            rect = el.append('rect');
-            text = el.append('text').text(d.label);
-            rect.attr(rectAroundText(el));
-            text.attr('dy', linkLabelOffset);
+                d.el = el;
+                rect = el.append('rect');
+                text = el.append('text').text(d.label);
+                rect.attr(rectAroundText(el));
+                text.attr('dy', linkLabelOffset);
 
-            el.attr('transform', transformLabel(d.ldata.position, d.key));
-        });
+                el.attr('transform', transformLabel(d.ldata.position, d.key));
+            });
+        } else {
+            api.linkLabel().each(function (d) {
+                var el = d3.select(this),
+                    rect = el.select('rect'),
+                    text = el.select('text');
+                text.text('');
+                rect.attr(rectAroundText(el));
+            });
+        }
 
         // Remove any labels that are no longer required.
         api.linkLabel().exit().remove();
@@ -648,6 +664,7 @@
                 setHostLabIndex: setHostLabIndex,
                 hostLabel: hostLabel,
                 deviceLabel: deviceLabel,
+                toggleLinkLabels: toggleLinkLabels,
                 trimLabel: trimLabel,
 
                 updateDeviceLabel: updateDeviceRendering,

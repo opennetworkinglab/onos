@@ -104,6 +104,7 @@
             N: [fltr.clickAction, cycLayer],
             L: [tfs.cycleDeviceLabels, cycDev],
             'shift-L': [tfs.cycleHostLabels, cycHost],
+            'alt-L': [tfs.cycleLinkLabels, quiet],
 
             U: [tfs.unpin, unpin],
             R: [resetZoom, rzoom],
