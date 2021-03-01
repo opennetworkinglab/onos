@@ -83,6 +83,7 @@
         function uiDragTxt() { return topoLion('qh_gest_drag'); }
         function uiCmdScrTxt() { return topoLion('qh_gest_cmd_scroll'); }
         function uiCmdDragTxt() { return topoLion('qh_gest_cmd_drag'); }
+        function quiet() { return ""; }
 
         actionMap = {
             I: [toggleInstances, togInst],
@@ -108,6 +109,9 @@
             R: [resetZoom, rzoom],
             dot: [ttbs.toggleToolbar, togtb],
             E: [equalizeMasters, eqmaster],
+
+            "shift-openBracket": [tfs.toggleHostTextSize, quiet],
+            "shift-closeBracket": [tfs.toggleHostIconSize, quiet],
 
             // -- instance color palette debug
             // 9: function () { sus.cat7().testCard(svg); },
@@ -305,7 +309,7 @@
         // keep the map lines constant width while zooming
         mapG.style('stroke-width', (2.0 / sc) + 'px');
 
-        tfs.setNodeScale(sc);
+        tfs.adjustNodeScale();
     }
 
     function setUpZoom() {

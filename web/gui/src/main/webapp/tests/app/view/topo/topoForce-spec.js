@@ -42,7 +42,7 @@ describe('factory: view/topo/topoForce.js', function() {
             'updateDeviceColors', 'toggleHosts',
             'togglePorts', 'toggleOffline',
             'cycleDeviceLabels', 'cycleHostLabels', 'unpin',
-            'showMastership', 'showBadLinks', 'setNodeScale',
+            'showMastership', 'showBadLinks', 'adjustNodeScale',
 
             'resetAllLocations', 'addDevice', 'updateDevice', 'removeDevice',
             'addHost', 'updateHost', 'moveHost', 'removeHost',

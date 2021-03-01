@@ -71,7 +71,7 @@
         linkNums = [], // array of link number labels
         devIconDim = 36, // node target dimension
         devIconDimMin = 20, // node minimum dimension when zoomed out
-        devIconDimMax = 40, // node maximum dimension when zoomed in
+        devIconDimMax = 70, // node maximum dimension when zoomed in
         portLabelDim = 30;
 
     // SVG elements;
@@ -107,6 +107,7 @@
         },
     };
 
+    var hostScaleFactor = {icon: 1.0, text: 1.0};
 
     // ==========================
     // === EVENT HANDLERS
@@ -626,8 +627,8 @@
         $timeout(updateLinks, 2000);
     }
 
-    function deviceScale() {
-        var scale = uplink.zoomer().scale(),
+    function deviceScale(scaleFactor) {
+        var scale = uplink.zoomer().scale() * scaleFactor,
             dim = devIconDim,
             multiplier = 1;
 
@@ -640,37 +641,54 @@
         return multiplier;
     }
 
-    function linkWidthScale(scale) {
+    function linkWidthScale() {
         var scale = uplink.zoomer().scale();
         return linkScale(widthRatio) / scale;
     }
 
-    function portLabelScale(scale) {
+    function portLabelScale() {
         var scale = uplink.zoomer().scale();
         return portLabelDim / (portLabelDim * scale);
     }
 
-    function setNodeScale(scale) {
+    function adjustNodeScale() {
         // Scale the network nodes
         _.each(network.nodes, function (node) {
             if (node.class === 'host') {
-                node.el.selectAll('g').style('transform', 'scale(' + deviceScale(scale) + ')');
-                node.el.selectAll('text').style('transform', 'scale(' + deviceScale(scale) + ')');
+                node.el.selectAll('g').style('transform', 'scale(' + deviceScale(hostScaleFactor.icon) + ')');
+                node.el.selectAll('text').style('transform', 'scale(' + deviceScale(hostScaleFactor.text) + ')');
                 return;
             }
-            node.el.selectAll('*')
-                .style('transform', 'scale(' + deviceScale(scale) + ')');
+            node.el.selectAll('*').style('transform', 'scale(' + deviceScale(1.0) + ')');
         });
 
         // Scale the network links
         _.each(network.links, function (link) {
-            link.el.style('stroke-width', linkWidthScale(scale) + 'px');
+            link.el.style('stroke-width', linkWidthScale() + 'px');
         });
 
         d3.select('#topo-portLabels')
             .selectAll('.portLabel')
             .selectAll('*')
-            .style('transform', 'scale(' + portLabelScale(scale) + ')');
+            .style('transform', 'scale(' + portLabelScale() + ')');
+    }
+
+
+    function toggleScale(scale) {
+        if (scale < 0.5) {
+            return 1.0
+        }
+        return scale - 0.2;
+    }
+
+    function toggleHostTextSize() {
+        hostScaleFactor.text = toggleScale(hostScaleFactor.text);
+        adjustNodeScale();
+    }
+
+    function toggleHostIconSize() {
+         hostScaleFactor.icon = toggleScale(hostScaleFactor.icon);
+         adjustNodeScale();
     }
 
     function resetAllLocations() {
@@ -1288,7 +1306,10 @@
                 unpin: unpin,
                 showMastership: showMastership,
                 showBadLinks: showBadLinks,
-                setNodeScale: setNodeScale,
+                adjustNodeScale: adjustNodeScale,
+
+                toggleHostTextSize: toggleHostTextSize,
+                toggleHostIconSize: toggleHostIconSize,
 
                 resetAllLocations: resetAllLocations,
                 addDevice: addDevice,
