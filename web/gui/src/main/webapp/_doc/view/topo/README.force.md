@@ -62,9 +62,8 @@ Force service API.
 * Will briefly highlight links for which there is only a single backing link
 * Also writes a summary of bad links to the console
 
-`setNodeScale()`
-* `scale`: the scale to use
-* Rescales the nodes and links (and labels) based on the input parameter
+`adjustNodeScale()`
+* Rescales the nodes and links (and labels) based on the current zoomer state
 
 `resetAllLocations()`
 * Resets all nodes (hosts, devices) to the configured positions
