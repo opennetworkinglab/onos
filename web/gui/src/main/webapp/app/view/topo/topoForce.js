@@ -551,6 +551,10 @@
         });
     }
 
+    function cycleLinkLabels() {
+        td3.toggleLinkLabels();
+    }
+
     function unpin() {
         var hov = tss.hovered();
         if (hov) {
@@ -1303,6 +1307,7 @@
                 toggleOffline: toggleOffline,
                 cycleDeviceLabels: cycleDeviceLabels,
                 cycleHostLabels: cycleHostLabels,
+                cycleLinkLabels: cycleLinkLabels,
                 unpin: unpin,
                 showMastership: showMastership,
                 showBadLinks: showBadLinks,

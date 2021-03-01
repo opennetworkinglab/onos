@@ -135,6 +135,7 @@ public class NullProviders {
     private final NullGroupProvider groupProvider = new NullGroupProvider();
     private final NullPacketProvider packetProvider = new NullPacketProvider();
     private final TopologyMutationDriver topologyMutationDriver = new TopologyMutationDriver();
+    private final PortStatsDriver portStatsDriver = new PortStatsDriver();
 
     private DeviceProviderService deviceProviderService;
     private HostProviderService hostProviderService;
@@ -349,6 +350,7 @@ public class NullProviders {
         topologyMutationDriver.start(mutationRate, linkService, deviceService,
                                      linkProviderService, deviceProviderService,
                                      simulator);
+        portStatsDriver.start(deviceService, deviceProviderService);
     }
 
     // Selects the simulator based on the specified name.
