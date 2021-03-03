@@ -566,7 +566,7 @@ public abstract class TopologyViewMessageHandlerBase extends TopoologyTrafficMes
 
     private String glyphForHost(Annotations annot) {
         String uiType = annot.value(AnnotationKeys.UI_TYPE);
-        return isNullOrEmpty(uiType) ? DEFAULT_HOST_GLYPH : uiType;
+        return isNullOrEmpty(uiType) ? DEFAULT_HOST_GLYPH : "m_" + uiType;
     }
 
     // Generates a property panel model for a host details response
