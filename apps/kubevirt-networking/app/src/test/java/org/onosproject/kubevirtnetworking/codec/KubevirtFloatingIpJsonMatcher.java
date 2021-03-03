@@ -28,6 +28,7 @@ public final class KubevirtFloatingIpJsonMatcher extends TypeSafeDiagnosingMatch
     private final KubevirtFloatingIp floatingIp;
     private static final String ID = "id";
     private static final String ROUTER_NAME = "routerName";
+    private static final String NETWORK_NAME = "networkName";
     private static final String POD_NAME = "podName";
     private static final String FLOATING_IP = "floatingIp";
     private static final String FIXED_IP = "fixedIp";
@@ -52,6 +53,14 @@ public final class KubevirtFloatingIpJsonMatcher extends TypeSafeDiagnosingMatch
         String routerName = floatingIp.routerName();
         if (!jsonRouterName.equals(routerName)) {
             description.appendText("Router name was " + jsonRouterName);
+            return false;
+        }
+
+        // check network name
+        String jsonNetworkName = jsonNode.get(NETWORK_NAME).asText();
+        String networkName = floatingIp.networkName();
+        if (!jsonNetworkName.equals(networkName)) {
+            description.appendText("Network name was " + jsonNetworkName);
             return false;
         }
 

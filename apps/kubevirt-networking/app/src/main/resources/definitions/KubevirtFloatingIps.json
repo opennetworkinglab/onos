@@ -17,6 +17,7 @@
         "required": [
           "id",
           "routerName",
+          "networkName",
           "floatingIp",
           "podName",
           "fixedIp"
@@ -31,6 +32,11 @@
             "type": "string",
             "example": "router-1",
             "description": "Name of router."
+          },
+          "networkName": {
+            "type": "string",
+            "example": "flat-1",
+            "description": "Name of network."
           },
           "floatingIp": {
             "type": "string",

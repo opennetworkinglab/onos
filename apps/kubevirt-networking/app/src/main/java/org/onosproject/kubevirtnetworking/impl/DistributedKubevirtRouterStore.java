@@ -44,6 +44,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
@@ -56,6 +57,10 @@ import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KU
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_FLOATING_IP_REMOVED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_FLOATING_IP_UPDATED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_CREATED;
+import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_EXTERNAL_NETWORK_ATTACHED;
+import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_EXTERNAL_NETWORK_DETACHED;
+import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_INTERNAL_NETWORKS_ATTACHED;
+import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_INTERNAL_NETWORKS_DETACHED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_REMOVED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_UPDATED;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -72,6 +77,10 @@ public class DistributedKubevirtRouterStore
 
     private static final String ERR_NOT_FOUND = " does not exist";
     private static final String ERR_DUPLICATE = " already exists";
+    private static final String MSG_FLOATING_IP = "Kubevirt floating IP %s %s with %s";
+    private static final String MSG_ASSOCIATED = "associated";
+    private static final String MSG_DISASSOCIATED = "disassociated";
+
     private static final String APP_ID = "org.onosproject.kubevirtnetwork";
 
     private static final KryoNamespace
@@ -223,10 +232,7 @@ public class DistributedKubevirtRouterStore
                                     KUBEVIRT_ROUTER_CREATED, event.newValue().value())));
                     break;
                 case UPDATE:
-                    log.debug("Kubevirt router updated");
-                    eventExecutor.execute(() ->
-                            notifyDelegate(new KubevirtRouterEvent(
-                                    KUBEVIRT_ROUTER_UPDATED, event.newValue().value())));
+                    eventExecutor.execute(() -> processRouterMapUpdate(event));
                     break;
                 case REMOVE:
                     log.debug("Kubevirt router removed");
@@ -237,6 +243,59 @@ public class DistributedKubevirtRouterStore
                 default:
                     // do nothing
                     break;
+            }
+        }
+
+        private void processRouterMapUpdate(MapEvent<String, KubevirtRouter> event) {
+            log.debug("Kubevirt router updated");
+            eventExecutor.execute(() ->
+                    notifyDelegate(new KubevirtRouterEvent(
+                            KUBEVIRT_ROUTER_UPDATED, event.newValue().value())));
+
+            KubevirtRouter router = Strings.isNullOrEmpty(
+                    event.newValue().value().name()) ?
+                    null :
+                    router(event.newValue().value().name());
+
+            KubevirtRouter oldValue = event.oldValue().value();
+            KubevirtRouter newValue = event.newValue().value();
+
+            if (oldValue.external().size() == 0 && newValue.external().size() > 0) {
+                newValue.external().entrySet().stream().findAny()
+                        .ifPresent(entry ->
+                            notifyDelegate(new KubevirtRouterEvent(
+                            KUBEVIRT_ROUTER_EXTERNAL_NETWORK_ATTACHED,
+                            router, entry.getKey(), entry.getValue(),
+                            newValue.peerRouter().ipAddress().toString())));
+            }
+
+            if (oldValue.external().size() > 0 && newValue.external().size() == 0) {
+                oldValue.external().entrySet().stream().findAny()
+                        .ifPresent(entry ->
+                            notifyDelegate(new KubevirtRouterEvent(
+                            KUBEVIRT_ROUTER_EXTERNAL_NETWORK_DETACHED,
+                            router, entry.getKey(), entry.getValue(),
+                            oldValue.peerRouter().ipAddress().toString())));
+            }
+
+            Set<String> added = new HashSet<>(newValue.internal());
+            Set<String> oldset = oldValue.internal();
+            added.removeAll(oldset);
+
+            Set<String> removed = new HashSet<>(oldValue.internal());
+            Set<String> newset = newValue.internal();
+            removed.removeAll(newset);
+
+            if (added.size() > 0) {
+                notifyDelegate(new KubevirtRouterEvent(
+                        KUBEVIRT_ROUTER_INTERNAL_NETWORKS_ATTACHED,
+                        router, added));
+            }
+
+            if (removed.size() > 0) {
+                notifyDelegate(new KubevirtRouterEvent(
+                        KUBEVIRT_ROUTER_INTERNAL_NETWORKS_DETACHED,
+                        router, removed));
             }
         }
     }
@@ -307,6 +366,8 @@ public class DistributedKubevirtRouterStore
                         KUBEVIRT_FLOATING_IP_ASSOCIATED,
                         router,
                         event.newValue().value(), newPodName));
+                log.info(String.format(MSG_FLOATING_IP,
+                        event.newValue().value().floatingIp(), MSG_ASSOCIATED, newPodName));
             }
 
             if (!Strings.isNullOrEmpty(oldPodName) && Strings.isNullOrEmpty(newPodName)) {
@@ -314,6 +375,8 @@ public class DistributedKubevirtRouterStore
                         KUBEVIRT_FLOATING_IP_DISASSOCIATED,
                         router,
                         event.newValue().value(), oldPodName));
+                log.info(String.format(MSG_FLOATING_IP,
+                        event.newValue().value().floatingIp(), MSG_DISASSOCIATED, oldPodName));
             }
         }
     }

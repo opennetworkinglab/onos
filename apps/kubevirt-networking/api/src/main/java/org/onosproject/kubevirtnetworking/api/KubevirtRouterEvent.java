@@ -17,6 +17,8 @@ package org.onosproject.kubevirtnetworking.api;
 
 import org.onosproject.event.AbstractEvent;
 
+import java.util.Set;
+
 import static com.google.common.base.MoreObjects.toStringHelper;
 
 /**
@@ -26,6 +28,10 @@ public class KubevirtRouterEvent extends AbstractEvent<KubevirtRouterEvent.Type,
 
     private final KubevirtFloatingIp floatingIp;
     private final String podName;
+    private final Set<String> internal;
+    private final String externalIp;
+    private final String externalNet;
+    private final String peerRouterIp;
 
     /**
      * Creates an event of a given type for the specified kubevirt router.
@@ -37,6 +43,10 @@ public class KubevirtRouterEvent extends AbstractEvent<KubevirtRouterEvent.Type,
         super(type, subject);
         this.floatingIp = null;
         this.podName = null;
+        this.internal = null;
+        this.externalIp = null;
+        this.externalNet = null;
+        this.peerRouterIp = null;
     }
 
     /**
@@ -50,6 +60,10 @@ public class KubevirtRouterEvent extends AbstractEvent<KubevirtRouterEvent.Type,
         super(type, subject);
         this.floatingIp = floatingIp;
         this.podName = null;
+        this.internal = null;
+        this.externalIp = null;
+        this.externalNet = null;
+        this.peerRouterIp = null;
     }
 
     /**
@@ -64,6 +78,48 @@ public class KubevirtRouterEvent extends AbstractEvent<KubevirtRouterEvent.Type,
         super(type, subject);
         this.floatingIp = floatingIp;
         this.podName = podName;
+        this.internal = null;
+        this.externalIp = null;
+        this.externalNet = null;
+        this.peerRouterIp = null;
+    }
+
+    /**
+     * Creates an event of a given type for the specified kubevirt router.
+     *
+     * @param type        kubevirt router event type
+     * @param subject     kubevirt router
+     * @param internal    internal networks attached to the router
+     */
+    public KubevirtRouterEvent(Type type, KubevirtRouter subject, Set<String> internal) {
+        super(type, subject);
+        this.internal = internal;
+        this.podName = null;
+        this.floatingIp = null;
+        this.externalIp = null;
+        this.externalNet = null;
+        this.peerRouterIp = null;
+    }
+
+    /**
+     * Creates an event of a given type for the specified kubevirt router.
+     *
+     * @param type          kubevirt router event type
+     * @param subject       kubevirt router
+     * @param externalIp    virtual router's IP address included in external network
+     * @param externalNet   external network name
+     * @param peerRouterIp  external peer router IP address
+     */
+    public KubevirtRouterEvent(Type type, KubevirtRouter subject,
+                               String externalIp, String externalNet,
+                               String peerRouterIp) {
+        super(type, subject);
+        this.internal = null;
+        this.podName = null;
+        this.floatingIp = null;
+        this.externalIp = externalIp;
+        this.externalNet = externalNet;
+        this.peerRouterIp = peerRouterIp;
     }
 
     public enum Type {
@@ -81,6 +137,26 @@ public class KubevirtRouterEvent extends AbstractEvent<KubevirtRouterEvent.Type,
          * Signifies that the kubevirt router is removed.
          */
         KUBEVIRT_ROUTER_REMOVED,
+
+        /**
+         * Signifies that a new external network is added to the router.
+         */
+        KUBEVIRT_ROUTER_EXTERNAL_NETWORK_ATTACHED,
+
+        /**
+         * Signifies that the existing external network is removed from the router.
+         */
+        KUBEVIRT_ROUTER_EXTERNAL_NETWORK_DETACHED,
+
+        /**
+         * Signifies that a new internal network is added to the router.
+         */
+        KUBEVIRT_ROUTER_INTERNAL_NETWORKS_ATTACHED,
+
+        /**
+         * Signifies that the existing internal network is removed from the router.
+         */
+        KUBEVIRT_ROUTER_INTERNAL_NETWORKS_DETACHED,
 
         /**
          * Signifies that a new kubevirt floating IP is created.
@@ -136,6 +212,10 @@ public class KubevirtRouterEvent extends AbstractEvent<KubevirtRouterEvent.Type,
                 .add("router", subject())
                 .add("floatingIp", floatingIp)
                 .add("podName", podName)
+                .add("internal", internal)
+                .add("externalIp", externalIp)
+                .add("externalNet", externalNet)
+                .add("peerRouterIp", peerRouterIp)
                 .toString();
     }
 }

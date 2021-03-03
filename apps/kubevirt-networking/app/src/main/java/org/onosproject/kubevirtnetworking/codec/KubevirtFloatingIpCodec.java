@@ -38,6 +38,7 @@ public final class KubevirtFloatingIpCodec extends JsonCodec<KubevirtFloatingIp>
     private static final String ID = "id";
     private static final String ROUTER_NAME = "routerName";
     private static final String POD_NAME = "podName";
+    private static final String NETWORK_NAME = "networkName";
     private static final String FLOATING_IP = "floatingIp";
     private static final String FIXED_IP = "fixedIp";
 
@@ -50,6 +51,7 @@ public final class KubevirtFloatingIpCodec extends JsonCodec<KubevirtFloatingIp>
         ObjectNode result = context.mapper().createObjectNode()
                 .put(ID, fip.id())
                 .put(ROUTER_NAME, fip.routerName())
+                .put(NETWORK_NAME, fip.networkName())
                 .put(FLOATING_IP, fip.floatingIp().toString());
 
         if (fip.podName() != null) {
@@ -74,10 +76,13 @@ public final class KubevirtFloatingIpCodec extends JsonCodec<KubevirtFloatingIp>
                 ROUTER_NAME + MISSING_MESSAGE);
         String floatingIp = nullIsIllegal(json.get(FLOATING_IP).asText(),
                 FLOATING_IP + MISSING_MESSAGE);
+        String networkName = nullIsIllegal(json.get(NETWORK_NAME).asText(),
+                NETWORK_NAME + MISSING_MESSAGE);
 
         KubevirtFloatingIp.Builder builder = DefaultKubevirtFloatingIp.builder()
                 .id(id)
                 .routerName(routerName)
+                .networkName(networkName)
                 .floatingIp(IpAddress.valueOf(floatingIp));
 
         JsonNode podName = json.get(POD_NAME);

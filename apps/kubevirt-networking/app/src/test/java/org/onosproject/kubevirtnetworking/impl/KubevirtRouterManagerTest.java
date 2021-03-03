@@ -49,6 +49,10 @@ import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KU
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_FLOATING_IP_REMOVED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_FLOATING_IP_UPDATED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_CREATED;
+import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_EXTERNAL_NETWORK_ATTACHED;
+import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_EXTERNAL_NETWORK_DETACHED;
+import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_INTERNAL_NETWORKS_ATTACHED;
+import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_INTERNAL_NETWORKS_DETACHED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_REMOVED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_UPDATED;
 
@@ -61,6 +65,7 @@ public class KubevirtRouterManagerTest {
 
     private static final String ROUTER_NAME = "router-1";
     private static final String POD_NAME = "pod-1";
+    private static final String NETWORK_NAME = "flat-1";
     private static final String UPDATED_DESCRIPTION = "router-updated";
     private static final MacAddress UPDATED_MAC = MacAddress.valueOf("FF:FF:FF:FF:FF:FF");
 
@@ -70,17 +75,31 @@ public class KubevirtRouterManagerTest {
     private static final KubevirtRouter ROUTER = DefaultKubevirtRouter.builder()
             .name(ROUTER_NAME)
             .description(ROUTER_NAME)
-            .internal(ImmutableSet.of("vxlan-1", "vxlan-2"))
-            .external(ImmutableMap.of("10.10.10.10", "flat"))
+            .internal(ImmutableSet.of())
+            .external(ImmutableMap.of())
             .enableSnat(true)
-            .peerRouter(new KubevirtPeerRouter(IpAddress.valueOf("20.20.20.20"),
-                    MacAddress.valueOf("11:22:33:44:55:66")))
             .build();
 
     private static final KubevirtRouter ROUTER_UPDATED = DefaultKubevirtRouter.builder()
             .name(ROUTER_NAME)
             .description(UPDATED_DESCRIPTION)
+            .internal(ImmutableSet.of())
+            .external(ImmutableMap.of())
+            .enableSnat(true)
+            .build();
+
+    private static final KubevirtRouter ROUTER_WITH_INTERNAL = DefaultKubevirtRouter.builder()
+            .name(ROUTER_NAME)
+            .description(ROUTER_NAME)
             .internal(ImmutableSet.of("vxlan-1", "vxlan-2"))
+            .external(ImmutableMap.of())
+            .enableSnat(true)
+            .build();
+
+    private static final KubevirtRouter ROUTER_WITH_EXTERNAL = DefaultKubevirtRouter.builder()
+            .name(ROUTER_NAME)
+            .description(ROUTER_NAME)
+            .internal(ImmutableSet.of())
             .external(ImmutableMap.of("10.10.10.10", "flat"))
             .enableSnat(true)
             .peerRouter(new KubevirtPeerRouter(IpAddress.valueOf("20.20.20.20"),
@@ -90,12 +109,14 @@ public class KubevirtRouterManagerTest {
     private static final KubevirtFloatingIp FLOATING_IP_DISASSOCIATED = DefaultKubevirtFloatingIp.builder()
             .id(FLOATING_IP_ID)
             .routerName(ROUTER_NAME)
+            .networkName(NETWORK_NAME)
             .floatingIp(IpAddress.valueOf("10.10.10.10"))
             .build();
 
     private static final KubevirtFloatingIp FLOATING_IP_ASSOCIATED = DefaultKubevirtFloatingIp.builder()
             .id(FLOATING_IP_ID)
             .routerName(ROUTER_NAME)
+            .networkName(NETWORK_NAME)
             .floatingIp(IpAddress.valueOf("10.10.10.10"))
             .fixedIp(IpAddress.valueOf("20.20.20.20"))
             .podName(POD_NAME)
@@ -184,13 +205,60 @@ public class KubevirtRouterManagerTest {
      */
     @Test
     public void testPeerRouterMacUpdate() {
-        target.createRouter(ROUTER);
+        target.createRouter(ROUTER_WITH_EXTERNAL);
 
         target.updatePeerRouterMac(ROUTER_NAME, UPDATED_MAC);
         assertEquals("MAC address was not updated", UPDATED_MAC,
                 target.router(ROUTER_NAME).peerRouter().macAddress());
 
         validateEvents(KUBEVIRT_ROUTER_CREATED, KUBEVIRT_ROUTER_UPDATED);
+    }
+
+    /**
+     * Tests router's internal networks attached and detached.
+     */
+    @Test
+    public void testRouterInternalAttachedAndDetached() {
+        target.createRouter(ROUTER);
+        assertEquals("Number of router did not match", 1, target.routers().size());
+        assertEquals("Router internal did not match", 0, target.router(ROUTER_NAME).internal().size());
+
+        target.updateRouter(ROUTER_WITH_INTERNAL);
+        assertEquals("Number of router did not match", 1, target.routers().size());
+        assertEquals("Router internal did not match", 2, target.router(ROUTER_NAME).internal().size());
+
+        target.updateRouter(ROUTER);
+        assertEquals("Number of router did not match", 1, target.routers().size());
+        assertEquals("Router internal did not match", 0, target.router(ROUTER_NAME).internal().size());
+
+        validateEvents(KUBEVIRT_ROUTER_CREATED, KUBEVIRT_ROUTER_UPDATED,
+                KUBEVIRT_ROUTER_INTERNAL_NETWORKS_ATTACHED, KUBEVIRT_ROUTER_UPDATED,
+                KUBEVIRT_ROUTER_INTERNAL_NETWORKS_DETACHED);
+    }
+
+    /**
+     * Tests router's external networks attached and detached.
+     */
+    @Test
+    public void testRouterExternalAttachedAndDetached() {
+        target.createRouter(ROUTER);
+        assertEquals("Number of router did not match", 1, target.routers().size());
+        assertNull(target.router(ROUTER_NAME).peerRouter());
+        assertEquals(0, target.router(ROUTER_NAME).external().size());
+
+        target.updateRouter(ROUTER_WITH_EXTERNAL);
+        assertEquals("Number of router did not match", 1, target.routers().size());
+        assertNotNull(target.router(ROUTER_NAME).peerRouter());
+        assertEquals(1, target.router(ROUTER_NAME).external().size());
+
+        target.updateRouter(ROUTER);
+        assertEquals("Number of router did not match", 1, target.routers().size());
+        assertNull(target.router(ROUTER_NAME).peerRouter());
+        assertEquals(0, target.router(ROUTER_NAME).external().size());
+
+        validateEvents(KUBEVIRT_ROUTER_CREATED, KUBEVIRT_ROUTER_UPDATED,
+                KUBEVIRT_ROUTER_EXTERNAL_NETWORK_ATTACHED, KUBEVIRT_ROUTER_UPDATED,
+                KUBEVIRT_ROUTER_EXTERNAL_NETWORK_DETACHED);
     }
 
     /**
