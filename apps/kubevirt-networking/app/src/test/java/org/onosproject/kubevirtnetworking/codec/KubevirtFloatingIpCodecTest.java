@@ -71,6 +71,7 @@ public final class KubevirtFloatingIpCodecTest {
         KubevirtFloatingIp floatingIp = DefaultKubevirtFloatingIp.builder()
                 .id("fip-id")
                 .routerName("router-1")
+                .networkName("flat-1")
                 .floatingIp(IpAddress.valueOf("10.10.10.10"))
                 .podName("pod-1")
                 .fixedIp(IpAddress.valueOf("20.20.20.20"))
@@ -86,6 +87,7 @@ public final class KubevirtFloatingIpCodecTest {
 
         assertEquals("fip-1", floatingIp.id());
         assertEquals("router-1", floatingIp.routerName());
+        assertEquals("flat-1", floatingIp.networkName());
         assertEquals("10.10.10.10", floatingIp.floatingIp().toString());
         assertEquals("pod-1", floatingIp.podName());
         assertEquals("20.20.20.20", floatingIp.fixedIp().toString());

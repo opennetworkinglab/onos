@@ -32,6 +32,7 @@ public final class DefaultKubevirtFloatingIp implements KubevirtFloatingIp {
     private final String id;
     private final String routerName;
     private final String podName;
+    private final String networkName;
     private final IpAddress floatingIp;
     private final IpAddress fixedIp;
 
@@ -41,14 +42,16 @@ public final class DefaultKubevirtFloatingIp implements KubevirtFloatingIp {
      * @param id            floating IP identifier
      * @param routerName    router name
      * @param podName       POD name
+     * @param networkName   network name
      * @param floatingIp    floating IP address
      * @param fixedIp       fixed IP address
      */
     public DefaultKubevirtFloatingIp(String id, String routerName, String podName,
-                                     IpAddress floatingIp, IpAddress fixedIp) {
+                                     String networkName, IpAddress floatingIp, IpAddress fixedIp) {
         this.id = id;
         this.routerName = routerName;
         this.podName = podName;
+        this.networkName = networkName;
         this.floatingIp = floatingIp;
         this.fixedIp = fixedIp;
     }
@@ -61,6 +64,11 @@ public final class DefaultKubevirtFloatingIp implements KubevirtFloatingIp {
     @Override
     public String routerName() {
         return routerName;
+    }
+
+    @Override
+    public String networkName() {
+        return networkName;
     }
 
     @Override
@@ -82,6 +90,7 @@ public final class DefaultKubevirtFloatingIp implements KubevirtFloatingIp {
     public KubevirtFloatingIp updateFixedIp(IpAddress ip) {
         return DefaultKubevirtFloatingIp.builder()
                 .id(id)
+                .networkName(networkName)
                 .routerName(routerName)
                 .floatingIp(floatingIp)
                 .fixedIp(ip)
@@ -93,6 +102,7 @@ public final class DefaultKubevirtFloatingIp implements KubevirtFloatingIp {
     public KubevirtFloatingIp updatePodName(String name) {
         return DefaultKubevirtFloatingIp.builder()
                 .id(id)
+                .networkName(networkName)
                 .routerName(routerName)
                 .floatingIp(floatingIp)
                 .fixedIp(fixedIp)
@@ -111,6 +121,7 @@ public final class DefaultKubevirtFloatingIp implements KubevirtFloatingIp {
         DefaultKubevirtFloatingIp that = (DefaultKubevirtFloatingIp) o;
         return id.equals(that.id) && routerName.equals(that.routerName) &&
                 Objects.equals(podName, that.podName) &&
+                networkName.equals(that.networkName) &&
                 floatingIp.equals(that.floatingIp) &&
                 Objects.equals(fixedIp, that.fixedIp);
     }
@@ -126,6 +137,7 @@ public final class DefaultKubevirtFloatingIp implements KubevirtFloatingIp {
                 .add("id", id)
                 .add("routerName", routerName)
                 .add("podName", podName)
+                .add("networkName", networkName)
                 .add("floatingIp", floatingIp)
                 .add("fixedIp", fixedIp)
                 .toString();
@@ -145,16 +157,18 @@ public final class DefaultKubevirtFloatingIp implements KubevirtFloatingIp {
         private String id;
         private String routerName;
         private String podName;
+        private String networkName;
         private IpAddress floatingIp;
         private IpAddress fixedIp;
 
         @Override
         public KubevirtFloatingIp build() {
             checkArgument(id != null, NOT_NULL_MSG, "id");
+            checkArgument(networkName != null, NOT_NULL_MSG, "networkName");
             checkArgument(routerName != null, NOT_NULL_MSG, "routerName");
             checkArgument(floatingIp != null, NOT_NULL_MSG, "floatingIp");
 
-            return new DefaultKubevirtFloatingIp(id, routerName, podName, floatingIp, fixedIp);
+            return new DefaultKubevirtFloatingIp(id, routerName, podName, networkName, floatingIp, fixedIp);
         }
 
         @Override
@@ -166,6 +180,12 @@ public final class DefaultKubevirtFloatingIp implements KubevirtFloatingIp {
         @Override
         public Builder routerName(String name) {
             this.routerName = name;
+            return this;
+        }
+
+        @Override
+        public Builder networkName(String name) {
+            this.networkName = name;
             return this;
         }
 

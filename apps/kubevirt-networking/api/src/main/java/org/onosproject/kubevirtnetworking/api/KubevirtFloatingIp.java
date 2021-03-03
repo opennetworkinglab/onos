@@ -37,6 +37,13 @@ public interface KubevirtFloatingIp {
     String routerName();
 
     /**
+     * Returns the name of network where the floating IPs are belong to.
+     *
+     * @return name of network
+     */
+    String networkName();
+
+    /**
      * Returns the floating IP address.
      *
      * @return floating IP address
@@ -96,6 +103,14 @@ public interface KubevirtFloatingIp {
          * @return floating IP builder
          */
         Builder routerName(String name);
+
+        /**
+         * Returns kubevirt floating IP builder with supplied network name.
+         *
+         * @param name network name
+         * @return floating IP builder
+         */
+        Builder networkName(String name);
 
         /**
          * Returns kubevirt floating IP builder with supplied floating IP address.

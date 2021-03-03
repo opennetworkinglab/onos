@@ -80,12 +80,20 @@ public final class DefaultKubevirtRouter implements KubevirtRouter {
 
     @Override
     public Set<String> internal() {
-        return ImmutableSet.copyOf(internal);
+        if (internal == null) {
+            return ImmutableSet.of();
+        } else {
+            return ImmutableSet.copyOf(internal);
+        }
     }
 
     @Override
     public Map<String, String> external() {
-        return ImmutableMap.copyOf(external);
+        if (external == null) {
+            return ImmutableMap.of();
+        } else {
+            return ImmutableMap.copyOf(external);
+        }
     }
 
     @Override

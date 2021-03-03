@@ -47,7 +47,7 @@ public class KubevirtListFloatingIpCommand extends AbstractShellCommand {
     protected void doExecute() throws Exception {
         KubevirtRouterService service = get(KubevirtRouterService.class);
         List<KubevirtFloatingIp> fips = Lists.newArrayList(service.floatingIps());
-        fips.sort(Comparator.comparing(KubevirtFloatingIp::routerName));
+        fips.sort(Comparator.comparing(KubevirtFloatingIp::networkName));
 
         String format = genFormatString(ImmutableList.of(CLI_NAME_LENGTH,
                 CLI_IP_ADDRESS_LENGTH, CLI_NAME_LENGTH, CLI_IP_ADDRESS_LENGTH));
@@ -55,13 +55,13 @@ public class KubevirtListFloatingIpCommand extends AbstractShellCommand {
         if (outputJson()) {
             print("%s", json(fips));
         } else {
-            print(format, "Router Name", "Floating IP", "POD Name", "Fixed IP");
+            print(format, "Network Name", "Floating IP", "POD Name", "Fixed IP");
             for (KubevirtFloatingIp fip : fips) {
 
                 String fixedIp = fip.fixedIp() == null ? "N/A" : fip.fixedIp().toString();
                 String podName = fip.podName() == null ? "N/A" : fip.podName();
 
-                print(format, StringUtils.substring(fip.routerName(), 0,
+                print(format, StringUtils.substring(fip.networkName(), 0,
                         CLI_NAME_LENGTH - CLI_MARGIN_LENGTH),
                         StringUtils.substring(fip.floatingIp().toString(), 0,
                                 CLI_IP_ADDRESS_LENGTH - CLI_MARGIN_LENGTH),

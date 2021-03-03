@@ -32,6 +32,8 @@ public class DefaultKubevirtFloatingIpTest {
     private static final String ID_2 = "fip_id_2";
     private static final String ROUTER_NAME_1 = "router-1";
     private static final String ROUTER_NAME_2 = "router-2";
+    private static final String NETWORK_NAME_1 = "flat-1";
+    private static final String NETWORK_NAME_2 = "flat-2";
     private static final IpAddress FLOATING_IP_1 = IpAddress.valueOf("10.10.10.10");
     private static final IpAddress FLOATING_IP_2 = IpAddress.valueOf("20.20.20.20");
     private static final String POD_NAME_1 = "pod-1";
@@ -59,6 +61,7 @@ public class DefaultKubevirtFloatingIpTest {
         fip1 = DefaultKubevirtFloatingIp.builder()
                 .id(ID_1)
                 .routerName(ROUTER_NAME_1)
+                .networkName(NETWORK_NAME_1)
                 .floatingIp(FLOATING_IP_1)
                 .podName(POD_NAME_1)
                 .fixedIp(FIXED_IP_1)
@@ -67,6 +70,7 @@ public class DefaultKubevirtFloatingIpTest {
         sameAsFip1 = DefaultKubevirtFloatingIp.builder()
                 .id(ID_1)
                 .routerName(ROUTER_NAME_1)
+                .networkName(NETWORK_NAME_1)
                 .floatingIp(FLOATING_IP_1)
                 .podName(POD_NAME_1)
                 .fixedIp(FIXED_IP_1)
@@ -75,6 +79,7 @@ public class DefaultKubevirtFloatingIpTest {
         fip2 = DefaultKubevirtFloatingIp.builder()
                 .id(ID_2)
                 .routerName(ROUTER_NAME_2)
+                .networkName(NETWORK_NAME_2)
                 .floatingIp(FLOATING_IP_2)
                 .podName(POD_NAME_2)
                 .fixedIp(FIXED_IP_2)
@@ -100,6 +105,7 @@ public class DefaultKubevirtFloatingIpTest {
 
         assertEquals(ID_1, fip.id());
         assertEquals(ROUTER_NAME_1, fip.routerName());
+        assertEquals(NETWORK_NAME_1, fip.networkName());
         assertEquals(FLOATING_IP_1, fip.floatingIp());
         assertEquals(POD_NAME_1, fip.podName());
         assertEquals(FIXED_IP_1, fip.fixedIp());

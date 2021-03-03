@@ -394,6 +394,7 @@ public class KubevirtNetworkHandler {
         KubevirtNode electedGateway = gatewayNodeForSpecifiedNetwork(network);
         if (electedGateway == null) {
             log.warn("There's no elected gateway for the network {}", network.name());
+            return;
         }
 
         setGatewayArpRule(network, PRE_FLAT_TABLE, electedGateway.intgBridge(), install);
