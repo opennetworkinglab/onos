@@ -350,7 +350,6 @@ public class NullProviders {
         topologyMutationDriver.start(mutationRate, linkService, deviceService,
                                      linkProviderService, deviceProviderService,
                                      simulator);
-        portStatsDriver.start(deviceService, deviceProviderService);
     }
 
     // Selects the simulator based on the specified name.
@@ -429,6 +428,19 @@ public class NullProviders {
         deviceService.getDevices()
                 .forEach(device -> mastershipService.setRole(localNode, device.id(),
                                                              NONE));
+    }
+
+    /**
+     * Enables or disables simulated port statistics.
+     *
+     * @param on true to enable
+     */
+    public void enablePortStats(boolean on) {
+        if (on) {
+            portStatsDriver.start(deviceService, deviceProviderService);
+        } else {
+            portStatsDriver.stop();
+        }
     }
 
     // Null provider base class.
