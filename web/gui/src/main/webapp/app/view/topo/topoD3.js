@@ -88,11 +88,11 @@
     };
 
     function mapDeviceTypeToGlyph(type) {
-        return remappedDeviceTypes[type] || type || 'unknown';
+        return remappedDeviceTypes[type] || ('m_' + type) || 'unknown';
     }
 
     function mapHostTypeToGlyph(type) {
-        return remappedHostTypes[type] || type || 'unknown';
+        return remappedHostTypes[type] || ('m_' + type) || 'unknown';
     }
 
     function badgeStatus(badge) {
