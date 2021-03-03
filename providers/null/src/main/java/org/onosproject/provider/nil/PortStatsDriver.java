@@ -61,10 +61,12 @@ class PortStatsDriver implements Runnable {
      */
     void start(DeviceService deviceService,
                DeviceProviderService deviceProviderService) {
-        stopped = false;
-        this.deviceService = deviceService;
-        this.deviceProviderService = deviceProviderService;
-        executor.execute(this);
+        if (stopped) {
+            stopped = false;
+            this.deviceService = deviceService;
+            this.deviceProviderService = deviceProviderService;
+            executor.execute(this);
+        }
     }
 
     /**
