@@ -40,6 +40,7 @@ public final class DefaultKubevirtRouter implements KubevirtRouter {
     private final Set<String> internal;
     private final Map<String, String> external;
     private final KubevirtPeerRouter peerRouter;
+    private final String gateway;
 
     /**
      * A default constructor.
@@ -50,17 +51,20 @@ public final class DefaultKubevirtRouter implements KubevirtRouter {
      * @param internal      internal networks
      * @param external      external network
      * @param peerRouter    external peer router
+     * @param gateway       elected gateway node id
      */
     public DefaultKubevirtRouter(String name, String description, boolean enableSnat,
                                  Set<String> internal,
                                  Map<String, String> external,
-                                 KubevirtPeerRouter peerRouter) {
+                                 KubevirtPeerRouter peerRouter,
+                                 String gateway) {
         this.name = name;
         this.description = description;
         this.enableSnat = enableSnat;
         this.internal = internal;
         this.external = external;
         this.peerRouter = peerRouter;
+        this.gateway = gateway;
     }
 
     @Override
@@ -102,6 +106,11 @@ public final class DefaultKubevirtRouter implements KubevirtRouter {
     }
 
     @Override
+    public String electedGateway() {
+        return gateway;
+    }
+
+    @Override
     public KubevirtRouter updatePeerRouter(KubevirtPeerRouter updated) {
         return DefaultKubevirtRouter.builder()
                 .name(name)
@@ -110,6 +119,20 @@ public final class DefaultKubevirtRouter implements KubevirtRouter {
                 .internal(internal)
                 .external(external)
                 .peerRouter(updated)
+                .electedGateway(gateway)
+                .build();
+    }
+
+    @Override
+    public KubevirtRouter updatedElectedGateway(String updated) {
+        return DefaultKubevirtRouter.builder()
+                .name(name)
+                .enableSnat(enableSnat)
+                .description(description)
+                .internal(internal)
+                .external(external)
+                .peerRouter(peerRouter)
+                .electedGateway(updated)
                 .build();
     }
 
@@ -124,12 +147,14 @@ public final class DefaultKubevirtRouter implements KubevirtRouter {
         DefaultKubevirtRouter that = (DefaultKubevirtRouter) o;
         return enableSnat == that.enableSnat && name.equals(that.name) &&
                 description.equals(that.description) && internal.equals(that.internal) &&
-                external.equals(that.external) && peerRouter.equals(that.peerRouter);
+                external.equals(that.external) && peerRouter.equals(that.peerRouter) &&
+                gateway.equals(that.electedGateway());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, description, enableSnat, internal, external, peerRouter);
+        return Objects.hash(name, description, enableSnat,
+                internal, external, peerRouter, gateway);
     }
 
     @Override
@@ -141,6 +166,7 @@ public final class DefaultKubevirtRouter implements KubevirtRouter {
                 .add("internal", internal)
                 .add("external", external)
                 .add("peerRouter", peerRouter)
+                .add("electedGateway", gateway)
                 .toString();
     }
 
@@ -161,13 +187,14 @@ public final class DefaultKubevirtRouter implements KubevirtRouter {
         private Set<String> internal;
         private Map<String, String> external;
         private KubevirtPeerRouter peerRouter;
+        private String gateway;
 
         @Override
         public KubevirtRouter build() {
             checkArgument(name != null, NOT_NULL_MSG, "name");
 
             return new DefaultKubevirtRouter(name, description, enableSnat,
-                    internal, external, peerRouter);
+                    internal, external, peerRouter, gateway);
         }
 
         @Override
@@ -203,6 +230,12 @@ public final class DefaultKubevirtRouter implements KubevirtRouter {
         @Override
         public Builder peerRouter(KubevirtPeerRouter router) {
             this.peerRouter = router;
+            return this;
+        }
+
+        @Override
+        public Builder electedGateway(String gateway) {
+            this.gateway = gateway;
             return this;
         }
     }

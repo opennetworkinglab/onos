@@ -67,12 +67,28 @@ public interface KubevirtRouter {
     KubevirtPeerRouter peerRouter();
 
     /**
+     * Returns elected gateway node hostname.
+     *
+     * @return gateway node hostname.
+     */
+    String electedGateway();
+
+    /**
      * Updates the peer router.
      *
      * @param updated updated peer router
-     * @return kubevirt router with the updated peer router
+     * @return kubevirt router with updated peer router
      */
     KubevirtRouter updatePeerRouter(KubevirtPeerRouter updated);
+
+    /**
+     * Updates the elected gateway node host name.
+     *
+     * @param updated updated elected gateway node hostname
+     * @return kubevirt router with the updated gateway node hostname
+     */
+    KubevirtRouter updatedElectedGateway(String updated);
+
 
     interface Builder {
 
@@ -130,5 +146,13 @@ public interface KubevirtRouter {
          * @return router builder
          */
         Builder peerRouter(KubevirtPeerRouter router);
+
+        /**
+         * Returns kubevirt router builder with supplied elected gateway node hostname.
+         *
+         * @param gateway gateway node hostname
+         * @return router builder
+         */
+        Builder electedGateway(String gateway);
     }
 }

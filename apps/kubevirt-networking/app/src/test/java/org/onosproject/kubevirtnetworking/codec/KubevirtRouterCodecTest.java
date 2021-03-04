@@ -83,6 +83,7 @@ public final class KubevirtRouterCodecTest {
                 .internal(ImmutableSet.of("vlan-1"))
                 .external(ImmutableMap.of("10.10.10.20", "flat-1"))
                 .peerRouter(peerRouter)
+                .electedGateway("gatewayNode")
                 .build();
 
         ObjectNode routerJson = kubevirtRouterCodec.encode(router, context);
@@ -96,10 +97,13 @@ public final class KubevirtRouterCodecTest {
         assertEquals("router-1", router.name());
         assertEquals("Example Virtual Router", router.description());
         assertTrue(router.enableSnat());
+        assertEquals("192.168.10.5",
+                router.external().keySet().stream().findAny().orElse(null));
         assertEquals("external-network", router.external().get("192.168.10.5"));
         assertTrue(router.internal().contains("vxlan-network-1"));
         assertTrue(router.internal().contains("vxlan-network-2"));
         assertEquals("192.168.10.1", router.peerRouter().ipAddress().toString());
+        assertEquals("gatewayNode", router.electedGateway());
     }
 
     private KubevirtRouter getKubevirtRouter(String resourceName) throws IOException {

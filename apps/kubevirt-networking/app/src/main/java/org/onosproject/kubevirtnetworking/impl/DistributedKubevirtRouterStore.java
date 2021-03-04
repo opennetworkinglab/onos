@@ -45,6 +45,7 @@ import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
@@ -56,6 +57,9 @@ import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KU
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_FLOATING_IP_DISASSOCIATED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_FLOATING_IP_REMOVED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_FLOATING_IP_UPDATED;
+import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_GATEWAY_NODE_ATTACHED;
+import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_GATEWAY_NODE_CHANGED;
+import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_GATEWAY_NODE_DETACHED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_CREATED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_EXTERNAL_NETWORK_ATTACHED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_EXTERNAL_NETWORK_DETACHED;
@@ -296,6 +300,27 @@ public class DistributedKubevirtRouterStore
                 notifyDelegate(new KubevirtRouterEvent(
                         KUBEVIRT_ROUTER_INTERNAL_NETWORKS_DETACHED,
                         router, removed));
+            }
+            if (oldValue.electedGateway() == null
+                    && newValue.electedGateway() != null) {
+                notifyDelegate(new KubevirtRouterEvent(
+                        KUBEVIRT_GATEWAY_NODE_ATTACHED,
+                        router, newValue.electedGateway()));
+            }
+
+            if (oldValue.electedGateway() != null
+                    && newValue.electedGateway() == null) {
+                notifyDelegate(new KubevirtRouterEvent(
+                        KUBEVIRT_GATEWAY_NODE_DETACHED,
+                        router, oldValue.electedGateway()));
+            }
+
+            if (oldValue.electedGateway() != null
+                    && newValue.electedGateway() != null
+                    && !Objects.equals(oldValue.electedGateway(), newValue.electedGateway())) {
+                notifyDelegate(new KubevirtRouterEvent(
+                        KUBEVIRT_GATEWAY_NODE_CHANGED,
+                        router, oldValue.electedGateway()));
             }
         }
     }

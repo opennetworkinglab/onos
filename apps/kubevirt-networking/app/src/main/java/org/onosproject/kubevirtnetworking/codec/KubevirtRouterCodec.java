@@ -52,6 +52,7 @@ public final class KubevirtRouterCodec extends JsonCodec<KubevirtRouter> {
     private static final String IP_ADDRESS = "ip";
     private static final String MAC_ADDRESS = "mac";
     private static final String NETWORK = "network";
+    private static final String GATEWAY = "gateway";
 
     private static final String MISSING_MESSAGE = " is required in KubevirtRouter";
 
@@ -96,6 +97,10 @@ public final class KubevirtRouterCodec extends JsonCodec<KubevirtRouter> {
             result.set(PEER_ROUTER, peerRouter);
         }
 
+        if (router.electedGateway() != null) {
+            result.put(GATEWAY, router.electedGateway());
+        }
+
         return result;
     }
 
@@ -119,6 +124,10 @@ public final class KubevirtRouterCodec extends JsonCodec<KubevirtRouter> {
         JsonNode enableSnatJson = json.get(ENABLE_SNAT);
         if (enableSnatJson != null) {
             builder.enableSnat(enableSnatJson.asBoolean());
+        }
+        JsonNode electedGwJson = json.get(GATEWAY);
+        if (electedGwJson != null) {
+            builder.electedGateway(electedGwJson.asText());
         }
 
         ArrayNode internalJson = (ArrayNode) json.get(INTERNAL);
