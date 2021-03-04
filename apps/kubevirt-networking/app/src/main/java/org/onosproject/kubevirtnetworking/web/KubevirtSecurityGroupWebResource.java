@@ -15,8 +15,8 @@
  */
 package org.onosproject.kubevirtnetworking.web;
 
-import org.onosproject.kubevirtnetworking.api.KubevirtRouter;
-import org.onosproject.kubevirtnetworking.api.KubevirtRouterService;
+import org.onosproject.kubevirtnetworking.api.KubevirtSecurityGroup;
+import org.onosproject.kubevirtnetworking.api.KubevirtSecurityGroupService;
 import org.onosproject.rest.AbstractWebResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,25 +28,25 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
- * Handles REST API call for kubevirt router.
+ * Handles REST API call for kubevirt security group.
  */
-@Path("router")
-public class KubevirtRouterWebResource extends AbstractWebResource {
+@Path("security-group")
+public class KubevirtSecurityGroupWebResource extends AbstractWebResource {
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
-    private static final String ROUTERS = "routers";
+    private static final String SECURITY_GROUPS = "security-groups";
 
     /**
-     * Returns set of all routers.
+     * Returns set of all security groups.
      *
-     * @return 200 OK with set of all routers
-     * @onos.rsModel KubevirtRouters
+     * @return 200 OK with set of all security groups
+     * @onos.rsModel KubevirtSecurityGroups
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getRouters() {
-        KubevirtRouterService service = get(KubevirtRouterService.class);
-        final Iterable<KubevirtRouter> routers = service.routers();
-        return ok(encodeArray(KubevirtRouter.class, ROUTERS, routers)).build();
+    public Response getSecurityGroups() {
+        KubevirtSecurityGroupService service = get(KubevirtSecurityGroupService.class);
+        final Iterable<KubevirtSecurityGroup> sgs = service.securityGroups();
+        return ok(encodeArray(KubevirtSecurityGroup.class, SECURITY_GROUPS, sgs)).build();
     }
 }

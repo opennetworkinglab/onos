@@ -85,6 +85,7 @@ public class KubevirtShowPodCommand extends AbstractShellCommand {
             print("    Pull Policy: %s", container.getImagePullPolicy());
             print("    Commands: %s", container.getCommand());
             print("    Args: %s", container.getArgs());
+            counter++;
         }
     }
 

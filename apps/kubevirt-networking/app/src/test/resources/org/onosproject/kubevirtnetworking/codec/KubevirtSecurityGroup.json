@@ -1,0 +1,18 @@
+{
+  "id": "sg-1",
+  "name": "sg",
+  "description": "example-sg",
+  "rules": [
+    {
+      "id": "sgr-1",
+      "securityGroupId": "sg-1",
+      "direction": "ingress",
+      "etherType": "IPv4",
+      "portRangeMax": 80,
+      "portRangeMin": 0,
+      "protocol": "tcp",
+      "remoteIpPrefix": "0.0.0.0/0",
+      "remoteGroupId": "g-1"
+    }
+  ]
+}
