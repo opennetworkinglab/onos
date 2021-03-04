@@ -46,6 +46,11 @@ public class KubevirtShowNodeCommand extends AbstractShellCommand {
     protected void doExecute() throws Exception {
         KubevirtNodeService service = get(KubevirtNodeService.class);
 
+        if (names == null || names.size() == 0) {
+            print("Need to specify at least one node name using --name option.");
+            return;
+        }
+
         for (String name : names) {
             KubevirtNode node = service.node(name);
             if (node == null) {
