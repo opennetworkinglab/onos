@@ -30,10 +30,12 @@ import javax.ws.rs.core.Response;
 /**
  * Handles REST API call for kubevirt floating IPs.
  */
-@Path("floatingips")
+@Path("floating-ip")
 public class KubevirtFloatingIpsWebResource extends AbstractWebResource {
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
+
+    private static final String FLOATING_IPS = "floating-ips";
 
     /**
      * Returns set of all floating IPs.
@@ -46,6 +48,6 @@ public class KubevirtFloatingIpsWebResource extends AbstractWebResource {
     public Response getFloatingIps() {
         KubevirtRouterService service = get(KubevirtRouterService.class);
         final Iterable<KubevirtFloatingIp> fips = service.floatingIps();
-        return ok(encodeArray(KubevirtFloatingIp.class, "floatingips", fips)).build();
+        return ok(encodeArray(KubevirtFloatingIp.class, FLOATING_IPS, fips)).build();
     }
 }

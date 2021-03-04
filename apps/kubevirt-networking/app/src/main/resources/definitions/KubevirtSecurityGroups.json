@@ -1,0 +1,103 @@
+{
+  "type": "object",
+  "description": "A security_group object.",
+  "required": [
+    "securityGroup"
+  ],
+  "properties": {
+    "securityGroup": {
+      "type": "object",
+      "required": [
+        "id",
+        "description",
+        "name",
+        "securityGroupRules"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "example": "2076db17-a522-4506-91de-c6dd8e837028",
+          "description": "The ID of the security group."
+        },
+        "description": {
+          "type": "string",
+          "example": "security group for webservers",
+          "description": "A human-readable description for the resource."
+        },
+        "name": {
+          "type": "string",
+          "example": "new-webservers",
+          "description": "Human-readable name of the resource."
+        },
+        "securityGroupRules": {
+          "type": "array",
+          "description": "A list of security_group_rule objects.",
+          "items": {
+            "type": "object",
+            "description": "A security group rule object.",
+            "required": [
+              "id",
+              "securityGroupId",
+              "direction",
+              "etherType",
+              "portRangeMax",
+              "portRangeMin",
+              "protocol",
+              "remoteIpPrefix",
+              "remoteGroupId"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "2bc0accf-312e-429a-956e-e4407625eb62",
+                "description": "The ID of this security group rule."
+              },
+              "securityGroupId": {
+                "type": "string",
+                "example": "a7734e61-b545-452d-a3cd-0189cbd9747a",
+                "description": "The security group ID to associate with this security group rule."
+              },
+              "direction": {
+                "type": "string",
+                "example": "ingress",
+                "description": "Ingress or egress, which is the direction in which the metering rule is applied."
+              },
+              "etherType": {
+                "type": "string",
+                "example": "IPv4",
+                "description": "Must be IPv4 or IPv6, and addresses represented in CIDR must match the ingress or egress rules."
+              },
+              "portRangeMax": {
+                "type": "integer",
+                "format": "int32",
+                "example": 80,
+                "description": "The maximum port number in the range that is matched by the security group rule."
+              },
+              "portRangeMin": {
+                "type": "integer",
+                "format": "int32",
+                "example": 80,
+                "description": "The minimum port number in the range that is matched by the security group rule."
+              },
+              "protocol": {
+                "type": "string",
+                "example": "tcp",
+                "description": "The IP protocol can be represented by a string, an integer, or null."
+              },
+              "remoteIpPrefix": {
+                "type": "string",
+                "example": "",
+                "description": "The remote IP prefix to associate with this metering rule packet."
+              },
+              "remoteGroupId": {
+                "type": "string",
+                "example": "85cc3048-abc3-43cc-89b3-377341426ac5",
+                "description": "The remote group UUID to associate with this security group rule."
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

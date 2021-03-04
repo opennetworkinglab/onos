@@ -335,7 +335,7 @@ public final class DefaultKubevirtNetwork implements KubevirtNetwork {
         }
 
         @Override
-        public KubevirtNetwork.Builder dnses(Set<IpAddress> dnses) {
+        public Builder dnses(Set<IpAddress> dnses) {
             this.dnses = dnses;
             return this;
         }

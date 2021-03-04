@@ -28,7 +28,9 @@ public class KubevirtNetworkingWebApplication extends AbstractWebApplication {
         return getClasses(
                 KubevirtNetworkWebResource.class,
                 KubevirtManagementWebResource.class,
-                KubevirtRouterWebResource.class
+                KubevirtRouterWebResource.class,
+                KubevirtFloatingIpsWebResource.class,
+                KubevirtSecurityGroupWebResource.class
         );
     }
 }
