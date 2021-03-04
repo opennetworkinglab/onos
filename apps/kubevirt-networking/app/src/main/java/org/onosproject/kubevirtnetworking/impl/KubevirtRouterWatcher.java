@@ -30,6 +30,7 @@ import org.onosproject.core.CoreService;
 import org.onosproject.kubevirtnetworking.api.AbstractWatcher;
 import org.onosproject.kubevirtnetworking.api.KubevirtRouter;
 import org.onosproject.kubevirtnetworking.api.KubevirtRouterAdminService;
+import org.onosproject.kubevirtnetworking.api.KubevirtRouterService;
 import org.onosproject.kubevirtnode.api.KubevirtApiConfigEvent;
 import org.onosproject.kubevirtnode.api.KubevirtApiConfigListener;
 import org.onosproject.kubevirtnode.api.KubevirtApiConfigService;
@@ -77,6 +78,9 @@ public class KubevirtRouterWatcher extends AbstractWatcher {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected KubevirtApiConfigService configService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected KubevirtRouterService routerService;
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler"));
@@ -133,7 +137,14 @@ public class KubevirtRouterWatcher extends AbstractWatcher {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode json = mapper.readTree(resource);
             ObjectNode spec = (ObjectNode) json.get("spec");
-            return codec(KubevirtRouter.class).decode(spec, this);
+            KubevirtRouter router = codec(KubevirtRouter.class).decode(spec, this);
+            KubevirtRouter existing = routerService.router(router.name());
+
+            if (existing == null) {
+                return router;
+            } else {
+                return router.updatedElectedGateway(existing.electedGateway());
+            }
         } catch (IOException e) {
             log.error("Failed to parse kubevirt router object");
         }

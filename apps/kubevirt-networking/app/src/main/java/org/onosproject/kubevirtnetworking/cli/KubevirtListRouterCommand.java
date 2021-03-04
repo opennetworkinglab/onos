@@ -53,12 +53,12 @@ public class KubevirtListRouterCommand extends AbstractShellCommand {
         routers.sort(Comparator.comparing(KubevirtRouter::name));
 
         String format = genFormatString(ImmutableList.of(CLI_NAME_LENGTH,
-                CLI_FLAG_LENGTH, CLI_IP_ADDRESSES_LENGTH, CLI_IP_ADDRESS_LENGTH));
+                CLI_FLAG_LENGTH, CLI_IP_ADDRESSES_LENGTH, CLI_IP_ADDRESS_LENGTH, CLI_NAME_LENGTH));
 
         if (outputJson()) {
             print("%s", json(routers));
         } else {
-            print(format, "Name", "SNAT", "Internal", "External");
+            print(format, "Name", "SNAT", "Internal", "External", "GatewayNode");
 
             for (KubevirtRouter router : routers) {
                 Set<String> internalCidrs = router.internal();
@@ -66,6 +66,7 @@ public class KubevirtListRouterCommand extends AbstractShellCommand {
 
                 String internal = internalCidrs.size() == 0 ? "[]" : internalCidrs.toString();
                 String external = externalIps.size() == 0 ? "[]" : externalIps.toString();
+                String gwNode = router.electedGateway() == null ? "N/A" : router.electedGateway();
 
                 print(format, StringUtils.substring(router.name(), 0,
                         CLI_NAME_LENGTH - CLI_MARGIN_LENGTH),
@@ -74,7 +75,9 @@ public class KubevirtListRouterCommand extends AbstractShellCommand {
                         StringUtils.substring(internal, 0,
                                 CLI_IP_ADDRESSES_LENGTH - CLI_MARGIN_LENGTH),
                         StringUtils.substring(external, 0,
-                                CLI_IP_ADDRESS_LENGTH - CLI_MARGIN_LENGTH)
+                                CLI_IP_ADDRESS_LENGTH - CLI_MARGIN_LENGTH),
+                        StringUtils.substring(gwNode, 0,
+                                CLI_NAME_LENGTH - CLI_MARGIN_LENGTH)
                 );
             }
         }

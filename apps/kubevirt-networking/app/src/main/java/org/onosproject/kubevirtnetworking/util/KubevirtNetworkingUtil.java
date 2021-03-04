@@ -27,15 +27,19 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.onlab.osgi.DefaultServiceDirectory;
+import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.kubevirtnetworking.api.DefaultKubevirtPort;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetwork;
 import org.onosproject.kubevirtnetworking.api.KubevirtPort;
+import org.onosproject.kubevirtnetworking.api.KubevirtRouter;
+import org.onosproject.kubevirtnetworking.api.KubevirtRouterService;
 import org.onosproject.kubevirtnode.api.KubevirtApiConfig;
 import org.onosproject.kubevirtnode.api.KubevirtApiConfigService;
 import org.onosproject.kubevirtnode.api.KubevirtNode;
+import org.onosproject.kubevirtnode.api.KubevirtNodeService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
@@ -54,6 +58,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.onosproject.kubevirtnetworking.api.Constants.TUNNEL_TO_TENANT_PREFIX;
+import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.GATEWAY;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 
 /**
@@ -83,8 +88,8 @@ public final class KubevirtNetworkingUtil {
     /**
      * Obtains the boolean property value with specified property key name.
      *
-     * @param properties    a collection of properties
-     * @param name          key name
+     * @param properties a collection of properties
+     * @param name       key name
      * @return mapping value
      */
     public static boolean getPropertyValueAsBoolean(Set<ConfigProperty> properties,
@@ -99,7 +104,7 @@ public final class KubevirtNetworkingUtil {
      * Re-structures the OVS port name.
      * The length of OVS port name should be not large than 15.
      *
-     * @param portName  original port name
+     * @param portName original port name
      * @return re-structured OVS port name
      */
     public static String structurePortName(String portName) {
@@ -146,8 +151,8 @@ public final class KubevirtNetworkingUtil {
     /**
      * Prints out the JSON string in pretty format.
      *
-     * @param mapper        Object mapper
-     * @param jsonString    JSON string
+     * @param mapper     Object mapper
+     * @param jsonString JSON string
      * @return pretty formatted JSON string
      */
     public static String prettyJson(ObjectMapper mapper, String jsonString) {
@@ -185,8 +190,8 @@ public final class KubevirtNetworkingUtil {
     /**
      * Calculate the broadcast address from given IP address and subnet prefix length.
      *
-     * @param ipAddr        IP address
-     * @param prefixLength  subnet prefix length
+     * @param ipAddr       IP address
+     * @param prefixLength subnet prefix length
      * @return broadcast address
      */
     public static String getBroadcastAddr(String ipAddr, int prefixLength) {
@@ -194,12 +199,13 @@ public final class KubevirtNetworkingUtil {
         SubnetUtils utils = new SubnetUtils(subnet);
         return utils.getInfo().getBroadcastAddress();
     }
+
     /**
      * Generates endpoint URL by referring to scheme, ipAddress and port.
      *
-     * @param scheme        scheme
-     * @param ipAddress     IP address
-     * @param port          port number
+     * @param scheme    scheme
+     * @param ipAddress IP address
+     * @param port      port number
      * @return generated endpoint URL
      */
     public static String endpoint(KubevirtApiConfig.Scheme scheme, IpAddress ipAddress, int port) {
@@ -218,7 +224,7 @@ public final class KubevirtNetworkingUtil {
     /**
      * Generates endpoint URL by referring to scheme, ipAddress and port.
      *
-     * @param apiConfig     kubernetes API config
+     * @param apiConfig kubernetes API config
      * @return generated endpoint URL
      */
     public static String endpoint(KubevirtApiConfig apiConfig) {
@@ -289,7 +295,7 @@ public final class KubevirtNetworkingUtil {
      * Obtains the tunnel port number with the given network and node.
      *
      * @param network kubevirt network
-     * @param node kubevirt node
+     * @param node    kubevirt node
      * @return tunnel port number
      */
     public static PortNumber tunnelPort(KubevirtNetwork network, KubevirtNode node) {
@@ -310,7 +316,7 @@ public final class KubevirtNetworkingUtil {
      * Obtains the kubevirt port from kubevirt POD.
      *
      * @param networks set of existing kubevirt networks
-     * @param pod kubevirt POD
+     * @param pod      kubevirt POD
      * @return kubevirt port
      */
     public static KubevirtPort getPort(Set<KubevirtNetwork> networks, Pod pod) {
@@ -365,7 +371,7 @@ public final class KubevirtNetworkingUtil {
     /**
      * Obtains the tunnel bridge to tenant bridge patch port number.
      *
-     * @param node kubevirt node
+     * @param node    kubevirt node
      * @param network kubevirt network
      * @return patch port number
      */
@@ -385,7 +391,7 @@ public final class KubevirtNetworkingUtil {
     /**
      * Obtains the tunnel port number of the given node.
      *
-     * @param node kubevirt node
+     * @param node    kubevirt node
      * @param network kubevirt network
      * @return tunnel port number
      */
@@ -432,4 +438,64 @@ public final class KubevirtNetworkingUtil {
         return port != null ? port.number() : null;
     }
 
+    /**
+     * Returns the gateway node for the specified kubevirt router.
+     * Among gateways, only one gateway would act as a gateway per perter.
+     * Currently gateway node is selected based on modulo operation with router hashcode.
+     *
+     * @param nodeService kubevirt node service
+     * @param router      kubevirt router
+     * @return elected gateway node
+     */
+    public static KubevirtNode gatewayNodeForSpecifiedRouter(KubevirtNodeService nodeService,
+                                                             KubevirtRouter router) {
+        //TODO: enhance election logic for a better load balancing
+
+        int numOfGateways = nodeService.completeNodes(GATEWAY).size();
+        if (numOfGateways == 0) {
+            return null;
+        }
+        return (KubevirtNode) nodeService.completeNodes(GATEWAY).toArray()[router.hashCode() % numOfGateways];
+    }
+
+    /**
+     * Returns the mac address of the br-int port of specified device.
+     *
+     * @param deviceService device service
+     * @param deviceId      device Id
+     * @return mac address of the br-int port
+     */
+    public static MacAddress getbrIntMacAddress(DeviceService deviceService,
+                                                DeviceId deviceId) {
+        return MacAddress.valueOf(deviceService.getPorts(deviceId).stream()
+                .filter(port -> Objects.equals(port.annotations().value(PORT_NAME), "br-int"))
+                .map(port -> port.annotations().value("portMac"))
+                .findAny().orElse(null));
+    }
+
+    /**
+     * Returns the snat ip address with specified router.
+     *
+     * @param routerService     router service
+     * @param internalNetworkId internal network id which is associated with the router
+     * @return snat ip address if exist, null otherwise
+     */
+    public static IpAddress getRouterSnatIpAddress(KubevirtRouterService routerService,
+                                                    String internalNetworkId) {
+        KubevirtRouter router = routerService.routers().stream()
+                .filter(r -> r.internal().contains(internalNetworkId))
+                .findAny().orElse(null);
+
+        if (router == null) {
+            return null;
+        }
+
+        String routerSnatIp = router.external().keySet().stream().findAny().orElse(null);
+
+        if (routerSnatIp == null) {
+            return null;
+        }
+
+        return Ip4Address.valueOf(routerSnatIp);
+    }
 }

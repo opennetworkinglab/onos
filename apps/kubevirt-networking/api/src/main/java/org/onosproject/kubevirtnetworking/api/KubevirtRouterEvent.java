@@ -32,6 +32,7 @@ public class KubevirtRouterEvent extends AbstractEvent<KubevirtRouterEvent.Type,
     private final String externalIp;
     private final String externalNet;
     private final String peerRouterIp;
+    private final String gateway;
 
     /**
      * Creates an event of a given type for the specified kubevirt router.
@@ -47,6 +48,7 @@ public class KubevirtRouterEvent extends AbstractEvent<KubevirtRouterEvent.Type,
         this.externalIp = null;
         this.externalNet = null;
         this.peerRouterIp = null;
+        this.gateway = null;
     }
 
     /**
@@ -64,6 +66,8 @@ public class KubevirtRouterEvent extends AbstractEvent<KubevirtRouterEvent.Type,
         this.externalIp = null;
         this.externalNet = null;
         this.peerRouterIp = null;
+        this.gateway = null;
+
     }
 
     /**
@@ -82,6 +86,7 @@ public class KubevirtRouterEvent extends AbstractEvent<KubevirtRouterEvent.Type,
         this.externalIp = null;
         this.externalNet = null;
         this.peerRouterIp = null;
+        this.gateway = null;
     }
 
     /**
@@ -99,6 +104,7 @@ public class KubevirtRouterEvent extends AbstractEvent<KubevirtRouterEvent.Type,
         this.externalIp = null;
         this.externalNet = null;
         this.peerRouterIp = null;
+        this.gateway = null;
     }
 
     /**
@@ -120,6 +126,19 @@ public class KubevirtRouterEvent extends AbstractEvent<KubevirtRouterEvent.Type,
         this.externalIp = externalIp;
         this.externalNet = externalNet;
         this.peerRouterIp = peerRouterIp;
+        this.gateway = null;
+    }
+
+    public KubevirtRouterEvent(Type type, KubevirtRouter subject,
+                               String gateway) {
+        super(type, subject);
+        this.gateway = gateway;
+        this.floatingIp = null;
+        this.podName = null;
+        this.internal = null;
+        this.externalIp = null;
+        this.externalNet = null;
+        this.peerRouterIp = null;
     }
 
     public enum Type {
@@ -181,7 +200,20 @@ public class KubevirtRouterEvent extends AbstractEvent<KubevirtRouterEvent.Type,
         /**
          * Signifies that the floating IP disassociated from the fixed IP.
          */
-        KUBEVIRT_FLOATING_IP_DISASSOCIATED
+        KUBEVIRT_FLOATING_IP_DISASSOCIATED,
+
+        /**
+         * Signified that the gateway node associated for this router.
+         */
+        KUBEVIRT_GATEWAY_NODE_ATTACHED,
+        /**
+         * Signified that the gateway node disassociated for this router.
+         */
+        KUBEVIRT_GATEWAY_NODE_DETACHED,
+        /**
+         * Signified that the gateway node changed for this router.
+         */
+        KUBEVIRT_GATEWAY_NODE_CHANGED
     }
 
     /**
@@ -229,6 +261,15 @@ public class KubevirtRouterEvent extends AbstractEvent<KubevirtRouterEvent.Type,
         return externalNet;
     }
 
+    /**
+     * Returns the gateway of the router event.
+     *
+     * @return gateway if exists, null otherwise
+     */
+    public String gateway() {
+        return gateway;
+    }
+
     @Override
     public String toString() {
         if (floatingIp == null) {
@@ -243,6 +284,7 @@ public class KubevirtRouterEvent extends AbstractEvent<KubevirtRouterEvent.Type,
                 .add("externalIp", externalIp)
                 .add("externalNet", externalNet)
                 .add("peerRouterIp", peerRouterIp)
+                .add("gatewayNodeHostName", gateway)
                 .toString();
     }
 }

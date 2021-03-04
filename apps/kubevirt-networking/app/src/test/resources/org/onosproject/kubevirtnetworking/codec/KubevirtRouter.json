@@ -12,5 +12,6 @@
   ],
   "peerRouter": {
     "ip": "192.168.10.1"
-  }
+  },
+  "gateway": "gatewayNode"
 }

@@ -139,7 +139,7 @@ public class KubevirtFlowRuleManager implements KubevirtFlowRuleService {
         localNodeId = clusterService.getLocalNode().id();
         leadershipService.runForLeadership(appId.name());
         nodeService.completeNodes(WORKER)
-                .forEach(node -> initializePipeline(node.intgBridge()));
+                .forEach(node -> initializeWorkerNodePipeline(node.intgBridge()));
 
         log.info("Started");
     }
@@ -245,7 +245,30 @@ public class KubevirtFlowRuleManager implements KubevirtFlowRuleService {
         }));
     }
 
-    protected void initializePipeline(DeviceId deviceId) {
+    protected void initializeGatewayNodePipeline(DeviceId deviceId) {
+        // for inbound table transition
+        connectTables(deviceId, STAT_INBOUND_TABLE, VTAG_TABLE);
+
+        if (getProviderNetworkOnlyFlag()) {
+            // we directly transit from vTag table to PRE_FLAT table for provider
+            // network only mode, because there is no need to differentiate ARP
+            // and IP packets on this mode
+            connectTables(deviceId, VTAG_TABLE, PRE_FLAT_TABLE);
+        } else {
+            // for vTag and ARP table transition
+            connectTables(deviceId, VTAG_TABLE, ARP_TABLE);
+        }
+
+        // for PRE_FLAT and FLAT table transition
+        connectTables(deviceId, PRE_FLAT_TABLE, FLAT_TABLE);
+
+        // for setting up default FLAT table behavior which is drop
+        setupGatewayNodeFlatTable(deviceId);
+
+        // for setting up default Forwarding table behavior which is NORMAL
+        setupForwardingTable(deviceId);
+    }
+    protected void initializeWorkerNodePipeline(DeviceId deviceId) {
         // for inbound table transition
         connectTables(deviceId, STAT_INBOUND_TABLE, VTAP_INBOUND_TABLE);
         connectTables(deviceId, VTAP_INBOUND_TABLE, DHCP_TABLE);
@@ -266,6 +289,9 @@ public class KubevirtFlowRuleManager implements KubevirtFlowRuleService {
         // for PRE_FLAT and FLAT table transition
         connectTables(deviceId, PRE_FLAT_TABLE, FLAT_TABLE);
 
+        // for FLAT table and ACL table transition
+        connectTables(deviceId, FLAT_TABLE, ACL_EGRESS_TABLE);
+
         // for ARP and ACL table transition
         connectTables(deviceId, ARP_TABLE, ACL_INGRESS_TABLE);
 
@@ -282,8 +308,8 @@ public class KubevirtFlowRuleManager implements KubevirtFlowRuleService {
         // table lookup
         setupJumpTable(deviceId);
 
-        // for setting up default FLAT table behavior which is NORMAL
-        setupFlatTable(deviceId);
+        // for setting up default Forwarding table behavior which is NORMAL
+        setupForwardingTable(deviceId);
     }
 
     private void setupJumpTable(DeviceId deviceId) {
@@ -323,7 +349,7 @@ public class KubevirtFlowRuleManager implements KubevirtFlowRuleService {
         applyRule(flowRule, true);
     }
 
-    private void setupFlatTable(DeviceId deviceId) {
+    private void setupForwardingTable(DeviceId deviceId) {
         TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
         TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder()
                 .setOutput(PortNumber.NORMAL);
@@ -335,10 +361,29 @@ public class KubevirtFlowRuleManager implements KubevirtFlowRuleService {
                 .withPriority(LOW_PRIORITY)
                 .fromApp(appId)
                 .makePermanent()
+                .forTable(FORWARDING_TABLE)
+                .build();
+
+        applyRule(flowRule, true);
+    }
+
+    private void setupGatewayNodeFlatTable(DeviceId deviceId) {
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder();
+        TrafficTreatment.Builder treatment = DefaultTrafficTreatment.builder()
+                .drop();
+
+        FlowRule flowRule = DefaultFlowRule.builder()
+                .forDevice(deviceId)
+                .withSelector(selector.build())
+                .withTreatment(treatment.build())
+                .withPriority(DROP_PRIORITY)
+                .fromApp(appId)
+                .makePermanent()
                 .forTable(FLAT_TABLE)
                 .build();
 
         applyRule(flowRule, true);
+
     }
 
     private boolean getProviderNetworkOnlyFlag() {
@@ -372,7 +417,11 @@ public class KubevirtFlowRuleManager implements KubevirtFlowRuleService {
                             return;
                         }
 
-                        initializePipeline(node.intgBridge());
+                        if (event.subject().type().equals(WORKER)) {
+                            initializeWorkerNodePipeline(node.intgBridge());
+                        } else {
+                            initializeGatewayNodePipeline(node.intgBridge());
+                        }
                     });
                     break;
                 case KUBEVIRT_NODE_CREATED:

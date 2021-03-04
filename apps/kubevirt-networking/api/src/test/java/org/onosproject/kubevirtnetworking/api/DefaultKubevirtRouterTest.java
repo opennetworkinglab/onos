@@ -43,6 +43,8 @@ public class DefaultKubevirtRouterTest {
     private static final KubevirtNetwork.Type TYPE_2 = VXLAN;
     private static final String NETWORK_NAME_1 = "net-1";
     private static final String NETWORK_NAME_2 = "net-2";
+    private static final String GATEWAY_HOST_1 = "gateway-1";
+    private static final String GATEWAY_HOST_2 = "gateway-2";
 
     private static final KubevirtPeerRouter PEER_ROUTER_1 =
             new KubevirtPeerRouter(IpAddress.valueOf("192.168.10.10"),
@@ -75,6 +77,7 @@ public class DefaultKubevirtRouterTest {
                 .internal(ImmutableSet.of(NETWORK_NAME_1))
                 .external(ImmutableMap.of("10.10.10.10", NETWORK_NAME_1))
                 .peerRouter(PEER_ROUTER_1)
+                .electedGateway(GATEWAY_HOST_1)
                 .build();
         sameAsRouter1 = DefaultKubevirtRouter.builder()
                 .name(NAME_1)
@@ -83,6 +86,7 @@ public class DefaultKubevirtRouterTest {
                 .internal(ImmutableSet.of(NETWORK_NAME_1))
                 .external(ImmutableMap.of("10.10.10.10", NETWORK_NAME_1))
                 .peerRouter(PEER_ROUTER_1)
+                .electedGateway(GATEWAY_HOST_1)
                 .build();
         router2 = DefaultKubevirtRouter.builder()
                 .name(NAME_2)
@@ -91,6 +95,7 @@ public class DefaultKubevirtRouterTest {
                 .internal(ImmutableSet.of(NETWORK_NAME_2))
                 .external(ImmutableMap.of("20.20.20.20", NETWORK_NAME_2))
                 .peerRouter(PEER_ROUTER_2)
+                .electedGateway(GATEWAY_HOST_2)
                 .build();
     }
 
