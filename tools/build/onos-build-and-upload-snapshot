@@ -1,0 +1,39 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Builds the snapshot artifacts and uploads them.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+# shellcheck disable=SC1090
+. "$ONOS_ROOT"/tools/build/envDefaults
+
+set -ex -o pipefail
+
+DRY_RUN=${1:-""}
+dryRun=0
+if [ "${DRY_RUN}" == "--dry-run" ]; then
+    dryRun=1
+fi
+
+[[ ! "$ONOS_POM_VERSION" =~ "SNAPSHOT" ]] && echo "Version is not a SNAPSHOT" && exit 1;
+
+cd "$ONOS_ROOT"
+
+# Build ONOS
+bazel build onos
+
+if [ $dryRun -eq 0 ]; then
+    publish_url="https://oss.sonatype.org/content/repositories/snapshots/"
+else
+    publish_url=""
+fi
+
+# Create artifact catalog
+onos-publish-catalog publishing-catalog-snapshot
+
+# publish artifacts with Maven
+if [ $dryRun -eq 0 ]; then
+    onos-maven-upload.py publishing-catalog-snapshot "${publish_url}"
+else
+    onos-maven-upload.py publishing-catalog-snapshot "${publish_url}" --dry_run
+fi
