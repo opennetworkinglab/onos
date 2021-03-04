@@ -49,6 +49,11 @@ public class KubevirtShowPodCommand extends AbstractShellCommand {
     protected void doExecute() throws Exception {
         KubevirtPodService service = get(KubevirtPodService.class);
 
+        if (names == null || names.size() == 0) {
+            print("Need to specify at least one POD name using --name option.");
+            return;
+        }
+
         for (String name : names) {
             Pod pod = service.pods().stream().filter(p -> p.getMetadata().getName().equals(name))
                     .findAny().orElse(null);
