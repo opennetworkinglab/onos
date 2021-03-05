@@ -38,7 +38,9 @@ import org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent;
 import org.onosproject.kubevirtnetworking.api.KubevirtRouterListener;
 import org.onosproject.store.service.TestStorageService;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -92,6 +94,14 @@ public class KubevirtRouterManagerTest {
             .name(ROUTER_NAME)
             .description(ROUTER_NAME)
             .internal(ImmutableSet.of("vxlan-1", "vxlan-2"))
+            .external(ImmutableMap.of())
+            .enableSnat(true)
+            .build();
+
+    private static final KubevirtRouter ROUTER_WITH_SINGLE_INTERNAL = DefaultKubevirtRouter.builder()
+            .name(ROUTER_NAME)
+            .description(ROUTER_NAME)
+            .internal(ImmutableSet.of("vxlan-1"))
             .external(ImmutableMap.of())
             .enableSnat(true)
             .build();
@@ -234,6 +244,22 @@ public class KubevirtRouterManagerTest {
         validateEvents(KUBEVIRT_ROUTER_CREATED, KUBEVIRT_ROUTER_UPDATED,
                 KUBEVIRT_ROUTER_INTERNAL_NETWORKS_ATTACHED, KUBEVIRT_ROUTER_UPDATED,
                 KUBEVIRT_ROUTER_INTERNAL_NETWORKS_DETACHED);
+    }
+
+    @Test
+    public void testRouterInternalShrink() {
+        target.createRouter(ROUTER_WITH_INTERNAL);
+        assertEquals("Number of router did not match", 1, target.routers().size());
+        assertEquals("Router internal did not match", 2, target.router(ROUTER_NAME).internal().size());
+
+        target.updateRouter(ROUTER_WITH_SINGLE_INTERNAL);
+        assertEquals("Number of router did not match", 1, target.routers().size());
+        assertEquals("Router internal did not match", 1, target.router(ROUTER_NAME).internal().size());
+
+        validateEvents(KUBEVIRT_ROUTER_CREATED, KUBEVIRT_ROUTER_UPDATED,
+                KUBEVIRT_ROUTER_INTERNAL_NETWORKS_DETACHED);
+
+        validateInternalRemoval(ImmutableSet.of("vxlan-2"));
     }
 
     /**
@@ -439,10 +465,18 @@ public class KubevirtRouterManagerTest {
     private static class TestKubevirtRouterListener implements KubevirtRouterListener {
 
         private List<KubevirtRouterEvent> events = Lists.newArrayList();
+        private Set<String> internalAdded = new HashSet<>();
+        private Set<String> internalRemoved = new HashSet<>();
 
         @Override
         public void event(KubevirtRouterEvent event) {
             events.add(event);
+            if (event.type() == KUBEVIRT_ROUTER_INTERNAL_NETWORKS_ATTACHED) {
+                internalAdded = event.internal();
+            }
+            if (event.type() == KUBEVIRT_ROUTER_INTERNAL_NETWORKS_DETACHED) {
+                internalRemoved = event.internal();
+            }
         }
     }
 
@@ -454,5 +488,15 @@ public class KubevirtRouterManagerTest {
             i++;
         }
         testListener.events.clear();
+    }
+
+    private void validateInternalAddition(Set<String> internal) {
+        assertEquals("internal addition entries", internal, testListener.internalAdded);
+        testListener.internalAdded.clear();
+    }
+
+    private void validateInternalRemoval(Set<String> internal) {
+        assertEquals("internal addition entries", internal, testListener.internalRemoved);
+        testListener.internalRemoved.clear();
     }
 }

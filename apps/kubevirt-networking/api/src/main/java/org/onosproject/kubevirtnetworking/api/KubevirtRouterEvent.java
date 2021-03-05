@@ -202,6 +202,33 @@ public class KubevirtRouterEvent extends AbstractEvent<KubevirtRouterEvent.Type,
         return podName;
     }
 
+    /**
+     * Returns the internal of the router event.
+     *
+     * @return kubevirt internal network set, null if the event is not relevant to the internal
+     */
+    public Set<String> internal() {
+        return internal;
+    }
+
+    /**
+     * Returns the external IP address of the router event.
+     *
+     * @return external IP address, null if the event is not relevant to the external
+     */
+    public String externalIp() {
+        return externalIp;
+    }
+
+    /**
+     * Returns the external network of the router event.
+     *
+     * @return external network, null if the event is not relevant ot the external
+     */
+    public String externalNet() {
+        return externalNet;
+    }
+
     @Override
     public String toString() {
         if (floatingIp == null) {
