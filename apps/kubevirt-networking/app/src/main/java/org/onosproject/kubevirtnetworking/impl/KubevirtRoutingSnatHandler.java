@@ -77,6 +77,7 @@ import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_STATEFUL
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.gatewayNodeForSpecifiedRouter;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.getRouterSnatIpAddress;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.getbrIntMacAddress;
+import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.getRouterForKubevirtPort;
 import static org.onosproject.kubevirtnetworking.util.RulePopulatorUtil.CT_NAT_SRC_FLAG;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -250,7 +251,7 @@ public class KubevirtRoutingSnatHandler {
                 selector,
                 tBuilder.build(),
                 PRIORITY_STATEFUL_SNAT_RULE,
-                PRE_FLAT_TABLE,
+                FLAT_TABLE,
                 install);
     }
 
@@ -320,7 +321,7 @@ public class KubevirtRoutingSnatHandler {
                 .niciraConnTrackTreatmentBuilder(driverService, gatewayNode.intgBridge())
                 .commit(false)
                 .natAction(true)
-                .table((short) PRE_FLAT_TABLE)
+                .table((short) FLAT_TABLE)
                 .build();
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
@@ -334,7 +335,7 @@ public class KubevirtRoutingSnatHandler {
                 sBuilder.build(),
                 treatment,
                 PRIORITY_STATEFUL_SNAT_RULE,
-                PRE_FLAT_TABLE,
+                FLAT_TABLE,
                 install);
 
         router.internal().forEach(networkName -> {
@@ -549,7 +550,7 @@ public class KubevirtRoutingSnatHandler {
                 return;
             }
 
-            KubevirtRouter router = routerForKubevirtPort(kubevirtPort);
+            KubevirtRouter router = getRouterForKubevirtPort(kubevirtRouterService, kubevirtPort);
             if (router == null) {
                 return;
             }
@@ -570,7 +571,7 @@ public class KubevirtRoutingSnatHandler {
                 return;
             }
 
-            KubevirtRouter router = routerForKubevirtPort(kubevirtPort);
+            KubevirtRouter router = getRouterForKubevirtPort(kubevirtRouterService, kubevirtPort);
             if (router == null) {
                 return;
             }
@@ -591,7 +592,7 @@ public class KubevirtRoutingSnatHandler {
                 return;
             }
 
-            KubevirtRouter router = routerForKubevirtPort(kubevirtPort);
+            KubevirtRouter router = getRouterForKubevirtPort(kubevirtRouterService, kubevirtPort);
             if (router == null) {
                 return;
             }
@@ -605,16 +606,6 @@ public class KubevirtRoutingSnatHandler {
                 }
                 setStatefulSnatDownStreamRuleForKubevirtPort(gwNode, gatewaySnatIp, kubevirtPort, false);
             }
-        }
-
-        private KubevirtRouter routerForKubevirtPort(KubevirtPort kubevirtPort) {
-            if (kubevirtPort.ipAddress() != null) {
-                return kubevirtRouterService.routers().stream()
-                        .filter(r -> r.internal().contains(kubevirtPort.networkId()))
-                        .findAny().orElse(null);
-            }
-
-            return null;
         }
     }
 }

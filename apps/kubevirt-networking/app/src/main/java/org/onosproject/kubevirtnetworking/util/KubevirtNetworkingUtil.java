@@ -59,6 +59,7 @@ import java.util.stream.Collectors;
 
 import static org.onosproject.kubevirtnetworking.api.Constants.TUNNEL_TO_TENANT_PREFIX;
 import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.GATEWAY;
+import static org.onosproject.net.AnnotationKeys.PORT_MAC;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 
 /**
@@ -78,6 +79,7 @@ public final class KubevirtNetworkingUtil {
     private static final String NETWORK_PREFIX = "default/";
     private static final String MAC = "mac";
     private static final String IPS = "ips";
+    private static final String BR_INT = "br-int";
 
     /**
      * Prevents object installation from external.
@@ -468,8 +470,8 @@ public final class KubevirtNetworkingUtil {
     public static MacAddress getbrIntMacAddress(DeviceService deviceService,
                                                 DeviceId deviceId) {
         return MacAddress.valueOf(deviceService.getPorts(deviceId).stream()
-                .filter(port -> Objects.equals(port.annotations().value(PORT_NAME), "br-int"))
-                .map(port -> port.annotations().value("portMac"))
+                .filter(port -> Objects.equals(port.annotations().value(PORT_NAME), BR_INT))
+                .map(port -> port.annotations().value(PORT_MAC))
                 .findAny().orElse(null));
     }
 
@@ -497,5 +499,36 @@ public final class KubevirtNetworkingUtil {
         }
 
         return Ip4Address.valueOf(routerSnatIp);
+    }
+
+    /**
+     * Returns the kubevirt router with specified kubevirt port.
+     *
+     * @param routerService kubevirt router service
+     * @param kubevirtPort  kubevirt port
+     * @return kubevirt router
+     */
+    public static KubevirtRouter getRouterForKubevirtPort(KubevirtRouterService routerService,
+                                                          KubevirtPort kubevirtPort) {
+        if (kubevirtPort.ipAddress() != null) {
+            return routerService.routers().stream()
+                    .filter(r -> r.internal().contains(kubevirtPort.networkId()))
+                    .findAny().orElse(null);
+        }
+        return null;
+    }
+
+    /**
+     * Returns the kubevirt router with specified kubevirt network.
+     *
+     * @param routerService kubevirt router service
+     * @param kubevirtNetwork kubevirt network
+     * @return kubevirt router
+     */
+    public static KubevirtRouter getRouterForKubevirtNetwork(KubevirtRouterService routerService,
+                                                             KubevirtNetwork kubevirtNetwork) {
+        return routerService.routers().stream()
+                .filter(router -> router.internal().contains(kubevirtNetwork.networkId()))
+                .findAny().orElse(null);
     }
 }
