@@ -93,26 +93,33 @@ import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_DHCP_RUL
 import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_FORWARDING_RULE;
 import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_ICMP_RULE;
 import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_INTERNAL_ROUTING_RULE;
+import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_TUNNEL_RULE;
 import static org.onosproject.kubevirtnetworking.api.Constants.TENANT_ARP_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.TENANT_DHCP_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.TENANT_FORWARDING_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.TENANT_ICMP_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.TENANT_INBOUND_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.TENANT_TO_TUNNEL_PREFIX;
+import static org.onosproject.kubevirtnetworking.api.Constants.TUNNEL_DEFAULT_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.TUNNEL_TO_TENANT_PREFIX;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.gatewayNodeForSpecifiedRouter;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.getRouterForKubevirtNetwork;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.getRouterForKubevirtPort;
-import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.getbrIntMacAddress;
+import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.getRouterMacAddress;
+import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.portNumber;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.segmentIdHex;
+import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.tunnelPort;
+import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.tunnelToTenantPort;
 import static org.onosproject.kubevirtnetworking.util.RulePopulatorUtil.NXM_NX_IP_TTL;
 import static org.onosproject.kubevirtnetworking.util.RulePopulatorUtil.NXM_OF_ICMP_TYPE;
+import static org.onosproject.kubevirtnetworking.util.RulePopulatorUtil.buildExtension;
 import static org.onosproject.kubevirtnetworking.util.RulePopulatorUtil.buildLoadExtension;
 import static org.onosproject.kubevirtnetworking.util.RulePopulatorUtil.buildMoveArpShaToThaExtension;
 import static org.onosproject.kubevirtnetworking.util.RulePopulatorUtil.buildMoveArpSpaToTpaExtension;
 import static org.onosproject.kubevirtnetworking.util.RulePopulatorUtil.buildMoveEthSrcToDstExtension;
 import static org.onosproject.kubevirtnetworking.util.RulePopulatorUtil.buildMoveIpSrcToDstExtension;
 import static org.onosproject.kubevirtnode.api.Constants.TUNNEL_BRIDGE;
+import static org.onosproject.kubevirtnode.api.Constants.TUNNEL_TO_INTEGRATION;
 import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.GATEWAY;
 import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.WORKER;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -213,7 +220,7 @@ public class KubevirtNetworkHandler {
         if (tunBridge != null) {
             log.warn("The tunnel bridge {} already exists at node {}",
                     network.tenantBridgeName(), node.hostname());
-            setDefaultRules(node, network);
+            setDefaultRulesForTenantNetwork(node, network);
             return;
         }
 
@@ -248,7 +255,7 @@ public class KubevirtNetworkHandler {
         deviceService.removeDevice(network.tenantDeviceId(node.hostname()));
     }
 
-    private void createPatchInterfaceInCaseOveray(KubevirtNode node, KubevirtNetwork network) {
+    private void createPatchTenantInterface(KubevirtNode node, KubevirtNetwork network) {
         Device device = deviceService.getDevice(node.ovsdb());
 
         if (device == null || !device.is(InterfaceConfig.class)) {
@@ -298,7 +305,7 @@ public class KubevirtNetworkHandler {
         ifaceConfig.removePatchMode(tunToIntIntf);
     }
 
-    private void setArpRules(KubevirtNode node, KubevirtNetwork network) {
+    private void setArpRulesForTenantNetwork(KubevirtNode node, KubevirtNetwork network) {
 
         KubevirtRouter router = getRouterForKubevirtNetwork(kubevirtRouterService, network);
         if (router == null) {
@@ -310,11 +317,11 @@ public class KubevirtNetworkHandler {
             return;
         }
 
-        setGatewayArpRuleForInternalNetworkInCaseOveray(network, TENANT_ARP_TABLE, electedGw.intgBridge(),
+        setGatewayArpRuleForTenantInternalNetwork(router, network, TENANT_ARP_TABLE, electedGw.intgBridge(),
                 network.tenantDeviceId(node.hostname()), true);
     }
 
-    private void setIcmpRules(KubevirtNode node, KubevirtNetwork network) {
+    private void setIcmpRulesForTenantNetwork(KubevirtNode node, KubevirtNetwork network) {
         KubevirtRouter router = getRouterForKubevirtNetwork(kubevirtRouterService, network);
         if (router == null) {
             return;
@@ -325,12 +332,25 @@ public class KubevirtNetworkHandler {
             return;
         }
 
-        setGatewayIcmpRuleForInternalNetworkInCaseOveray(network, TENANT_ICMP_TABLE, electedGw.intgBridge(),
+        setGatewayIcmpRuleForTenantInternalNetwork(router, network, TENANT_ICMP_TABLE, electedGw.intgBridge(),
                 network.tenantDeviceId(node.hostname()), true);
     }
 
+    private void setDefaultGatewayRuleToWorkerNodeWhenNodeCreated(KubevirtNode node, KubevirtNetwork network) {
+        KubevirtRouter router = getRouterForKubevirtNetwork(kubevirtRouterService, network);
+        if (router == null) {
+            return;
+        }
 
-    private void setDefaultRules(KubevirtNode node, KubevirtNetwork network) {
+        KubevirtNode electedGw = gatewayNodeForSpecifiedRouter(nodeService, router);
+        if (electedGw == null) {
+            return;
+        }
+
+        setDefaulGatewayRuleToWorkerNodeTunBridge(router, network, electedGw.intgBridge(), node, true);
+    }
+
+    private void setDefaultRulesForTenantNetwork(KubevirtNode node, KubevirtNetwork network) {
         DeviceId deviceId = network.tenantDeviceId(node.hostname());
 
         while (!deviceService.isAvailable(deviceId)) {
@@ -348,13 +368,13 @@ public class KubevirtNetworkHandler {
         flowService.connectTables(deviceId, TENANT_ARP_TABLE, TENANT_ICMP_TABLE);
         flowService.connectTables(deviceId, TENANT_ICMP_TABLE, TENANT_FORWARDING_TABLE);
 
-        setDhcpRule(deviceId, true);
+        setDhcpRuleForTenantNetwork(deviceId, true);
         setForwardingRule(deviceId, true);
 
         log.info("Install default flow rules for tenant bridge {}", network.tenantBridgeName());
     }
 
-    private void setDhcpRule(DeviceId deviceId, boolean install) {
+    private void setDhcpRuleForTenantNetwork(DeviceId deviceId, boolean install) {
         TrafficSelector selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
                 .matchIPProtocol(IPv4.PROTOCOL_UDP)
@@ -400,39 +420,136 @@ public class KubevirtNetworkHandler {
             case VXLAN:
             case GRE:
             case GENEVE:
-
+                setDefaultEgressRuleToGatewayNode(router, network, electedGateway.intgBridge(), install);
                 kubevirtNodeService.completeNodes(WORKER).forEach(node -> {
-                    setGatewayArpRuleForInternalNetworkInCaseOveray(network, TENANT_ARP_TABLE,
+                    setGatewayArpRuleForTenantInternalNetwork(router, network, TENANT_ARP_TABLE,
                             electedGateway.intgBridge(),
                             network.tenantDeviceId(node.hostname()), install);
-                    setGatewayIcmpRuleForInternalNetworkInCaseOveray(network, TENANT_ICMP_TABLE,
+                    setGatewayIcmpRuleForTenantInternalNetwork(router, network, TENANT_ICMP_TABLE,
                             electedGateway.intgBridge(),
                             network.tenantDeviceId(node.hostname()), install);
+                    setDefaulGatewayRuleToWorkerNodeTunBridge(router, network,
+                            electedGateway.intgBridge(), node, install);
                 });
                 break;
             case FLAT:
             case VLAN:
-                setGatewayArpRuleForInternalNetworkInCaseVlanFlat(network, PRE_FLAT_TABLE,
+                setGatewayArpRuleForProviderInternalNetwork(router, network, PRE_FLAT_TABLE,
                         electedGateway.intgBridge(), install);
-                setGatewayIcmpRuleForInternalNetworkInCaseVlanFlat(network, PRE_FLAT_TABLE,
+                setGatewayIcmpRuleForProviderInternalNetwork(router, network, PRE_FLAT_TABLE,
                         electedGateway.intgBridge(), install);
-                setGatewayInterNetworkRoutingWithinSameRouter(network, router, electedGateway, install);
+                setGatewayProviderInterNetworkRoutingWithinSameRouter(network, router, electedGateway, install);
                 break;
             default:
                 // do nothing
                 break;
         }
-
     }
 
-    private void setGatewayIcmpRuleForInternalNetworkInCaseOveray(KubevirtNetwork network,
-                                                                  int tableNum,
-                                                                  DeviceId gwDeviceId,
-                                                                  DeviceId tenantDeviceId,
-                                                                  boolean install) {
-        MacAddress brIntMacAddress = getbrIntMacAddress(deviceService, gwDeviceId);
+    private void setDefaulGatewayRuleToWorkerNodeTunBridge(KubevirtRouter router,
+                                                           KubevirtNetwork network,
+                                                           DeviceId gwDeviceId,
+                                                           KubevirtNode workerNode,
+                                                           boolean install) {
+        MacAddress routerMacAddress = getRouterMacAddress(router);
 
-        if (brIntMacAddress == null) {
+        if (routerMacAddress == null) {
+            log.warn("Setting gateway default eggress rule to gateway for tenant internal network because " +
+                    "there's no br-int port for device {}", gwDeviceId);
+            return;
+        }
+
+        KubevirtNode gwNode = kubevirtNodeService.node(gwDeviceId);
+
+        if (gwNode == null) {
+            log.warn("Setting gateway default eggress rule to gateway for tenant internal network because " +
+                    "there's no gateway node for device {}", gwDeviceId);
+            return;
+        }
+
+
+        PortNumber patchPortNumber = tunnelToTenantPort(workerNode, network);
+        if (patchPortNumber == null) {
+            return;
+        }
+
+        PortNumber tunnelPortNumber = tunnelPort(workerNode, network);
+        if (tunnelPortNumber == null) {
+            return;
+        }
+
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
+                .matchInPort(patchPortNumber)
+                .matchEthType(Ethernet.TYPE_IPV4)
+                .matchEthDst((routerMacAddress));
+
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
+                .setTunnelId(Long.parseLong(network.segmentId()))
+                .extension(buildExtension(
+                        deviceService,
+                        workerNode.tunBridge(),
+                        gwNode.dataIp().getIp4Address()),
+                        workerNode.tunBridge())
+                .setOutput(tunnelPortNumber);
+
+        flowService.setRule(
+                appId,
+                workerNode.tunBridge(),
+                sBuilder.build(),
+                tBuilder.build(),
+                PRIORITY_FORWARDING_RULE,
+                TUNNEL_DEFAULT_TABLE,
+                install);
+    }
+
+    private void setDefaultEgressRuleToGatewayNode(KubevirtRouter router,
+                                                   KubevirtNetwork network,
+                                                   DeviceId gwDeviceId,
+                                                   boolean install) {
+        MacAddress routerMacAddress = getRouterMacAddress(router);
+
+        if (routerMacAddress == null) {
+            log.warn("Setting gateway default eggress rule to gateway for tenant internal network because " +
+                    "there's no br-int port for device {}", gwDeviceId);
+            return;
+        }
+
+        KubevirtNode gwNode = kubevirtNodeService.node(gwDeviceId);
+
+        if (gwNode == null) {
+            log.warn("Setting gateway default eggress rule to gateway for tenant internal network because " +
+                    "there's no gateway node for device {}", gwDeviceId);
+            return;
+        }
+
+        PortNumber tunToIntPortNum = portNumber(gwNode.tunBridge(), TUNNEL_TO_INTEGRATION);
+
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
+                .matchTunnelId(Long.parseLong(network.segmentId()));
+
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
+                .setOutput(tunToIntPortNum);
+
+        flowService.setRule(
+                appId,
+                gwNode.tunBridge(),
+                sBuilder.build(),
+                tBuilder.build(),
+                PRIORITY_TUNNEL_RULE,
+                TUNNEL_DEFAULT_TABLE,
+                install);
+    }
+
+
+    private void setGatewayIcmpRuleForTenantInternalNetwork(KubevirtRouter router,
+                                                            KubevirtNetwork network,
+                                                            int tableNum,
+                                                            DeviceId gwDeviceId,
+                                                            DeviceId tenantDeviceId,
+                                                            boolean install) {
+        MacAddress routerMacAddress = getRouterMacAddress(router);
+
+        if (routerMacAddress == null) {
             log.warn("Setting gateway ICMP rule for internal network because " +
                     "there's no br-int port for device {}", gwDeviceId);
             return;
@@ -463,7 +580,7 @@ public class KubevirtNetworkHandler {
                 .extension(buildLoadExtension(device,
                         NXM_OF_ICMP_TYPE, TYPE_ECHO_REPLY), device.id())
                 .setIpSrc(network.gatewayIp())
-                .setEthSrc(brIntMacAddress)
+                .setEthSrc(routerMacAddress)
                 .setOutput(PortNumber.IN_PORT);
 
         flowService.setRule(
@@ -476,15 +593,16 @@ public class KubevirtNetworkHandler {
                 install);
     }
 
-    private void setGatewayArpRuleForInternalNetworkInCaseOveray(KubevirtNetwork network,
-                                                                 int tableNum,
-                                                                 DeviceId gwDeviceId,
-                                                                 DeviceId tenantDeviceId,
-                                                                 boolean install) {
+    private void setGatewayArpRuleForTenantInternalNetwork(KubevirtRouter router,
+                                                           KubevirtNetwork network,
+                                                           int tableNum,
+                                                           DeviceId gwDeviceId,
+                                                           DeviceId tenantDeviceId,
+                                                           boolean install) {
 
-        MacAddress brIntMacAddress = getbrIntMacAddress(deviceService, gwDeviceId);
+        MacAddress routerMacAddress = getRouterMacAddress(router);
 
-        if (brIntMacAddress == null) {
+        if (routerMacAddress == null) {
             log.warn("Setting gateway arp rule for internal network because " +
                     "there's no br-int port for device {}", gwDeviceId);
             return;
@@ -510,9 +628,9 @@ public class KubevirtNetworkHandler {
                 .extension(buildMoveArpShaToThaExtension(device), device.id())
                 .extension(buildMoveArpSpaToTpaExtension(device), device.id())
                 .setArpOp(ARP.OP_REPLY)
-                .setArpSha(brIntMacAddress)
+                .setArpSha(routerMacAddress)
                 .setArpSpa(Ip4Address.valueOf(network.gatewayIp().toString()))
-                .setEthSrc(brIntMacAddress)
+                .setEthSrc(routerMacAddress)
                 .setOutput(PortNumber.IN_PORT);
 
         flowService.setRule(
@@ -526,7 +644,7 @@ public class KubevirtNetworkHandler {
         );
     }
 
-    private void setGatewayInterNetworkRoutingWithinSameRouter(
+    private void setGatewayProviderInterNetworkRoutingWithinSameRouter(
             KubevirtNetwork network, KubevirtRouter router, KubevirtNode gatewayNode, boolean install) {
         router.internal().forEach(srcNetwork -> {
             if (srcNetwork.equals(network.networkId())
@@ -535,14 +653,17 @@ public class KubevirtNetworkHandler {
             }
 
             kubevirtPortService.ports(network.networkId()).forEach(port -> {
-                setGatewayInterNetworkRoutingFromNetworkToPort(kubevirtNetworkService.network(srcNetwork),
+                setGatewayInterNetworkRoutingFromNetworkToPort(router, kubevirtNetworkService.network(srcNetwork),
                         port, gatewayNode, install);
             });
         });
     }
 
-    private void setGatewayInterNetworkRoutingFromNetworkToPort(KubevirtNetwork srcNetwork, KubevirtPort dstPort,
-                                                                KubevirtNode gatewayNode, boolean install) {
+    private void setGatewayInterNetworkRoutingFromNetworkToPort(KubevirtRouter router,
+                                                                KubevirtNetwork srcNetwork,
+                                                                KubevirtPort dstPort,
+                                                                KubevirtNode gatewayNode,
+                                                                boolean install) {
 
         Device gwDevice = deviceService.getDevice(gatewayNode.intgBridge());
 
@@ -552,9 +673,9 @@ public class KubevirtNetworkHandler {
             return;
         }
 
-        MacAddress brIntMacAddress = getbrIntMacAddress(deviceService, gatewayNode.intgBridge());
+        MacAddress routerMacAddress = getRouterMacAddress(router);
 
-        if (brIntMacAddress == null) {
+        if (routerMacAddress == null) {
             log.warn("Failed to set internal network routing rule because " +
                     "there's no br-int port for device {}", gatewayNode.intgBridge());
             return;
@@ -562,12 +683,12 @@ public class KubevirtNetworkHandler {
 
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
-                .matchEthDst(brIntMacAddress)
+                .matchEthDst(routerMacAddress)
                 .matchIPSrc(IpPrefix.valueOf(srcNetwork.cidr()))
                 .matchIPDst(IpPrefix.valueOf(dstPort.ipAddress(), 32));
 
         TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setEthSrc(brIntMacAddress)
+                .setEthSrc(routerMacAddress)
                 .setEthDst(dstPort.macAddress())
                 .transition(FORWARDING_TABLE)
                 .build();
@@ -583,14 +704,14 @@ public class KubevirtNetworkHandler {
         );
     }
 
-    private void setGatewayArpRuleForInternalNetworkInCaseVlanFlat(KubevirtNetwork network,
-                                                                   int tableNum, DeviceId gwDeviceId, boolean install) {
+    private void setGatewayArpRuleForProviderInternalNetwork(KubevirtRouter router, KubevirtNetwork network,
+                                                             int tableNum, DeviceId gwDeviceId, boolean install) {
 
 
         Device device = deviceService.getDevice(gwDeviceId);
-        MacAddress brIntMacAddress = getbrIntMacAddress(deviceService, gwDeviceId);
+        MacAddress routerMacAddress = getRouterMacAddress(router);
 
-        if (brIntMacAddress == null) {
+        if (routerMacAddress == null) {
             log.warn("Setting gateway arp rule for internal network because " +
                     "there's no br-int port for device {}", gwDeviceId);
             return;
@@ -606,9 +727,9 @@ public class KubevirtNetworkHandler {
                 .extension(buildMoveArpShaToThaExtension(device), device.id())
                 .extension(buildMoveArpSpaToTpaExtension(device), device.id())
                 .setArpOp(ARP.OP_REPLY)
-                .setArpSha(brIntMacAddress)
+                .setArpSha(routerMacAddress)
                 .setArpSpa(Ip4Address.valueOf(network.gatewayIp().toString()))
-                .setEthSrc(brIntMacAddress)
+                .setEthSrc(routerMacAddress)
                 .setOutput(PortNumber.IN_PORT);
 
         flowService.setRule(
@@ -625,16 +746,17 @@ public class KubevirtNetworkHandler {
     /**
      * Sends ICMP echo reply for the ICMP echo request from the kubevirt VM.
      *
+     * @param router kubevirt router
      * @param network kubevirt network
      * @param tableNum flow table number
      * @param deviceId device id of the selected gateway for the network
      * @param install install if true, remove otherwise
      */
-    private void setGatewayIcmpRuleForInternalNetworkInCaseVlanFlat(KubevirtNetwork network,
-                                                                    int tableNum, DeviceId deviceId, boolean install) {
-        MacAddress brIntMacAddress = getbrIntMacAddress(deviceService, deviceId);
+    private void setGatewayIcmpRuleForProviderInternalNetwork(KubevirtRouter router, KubevirtNetwork network,
+                                                              int tableNum, DeviceId deviceId, boolean install) {
+        MacAddress routerMacAddress = getRouterMacAddress(router);
 
-        if (brIntMacAddress == null) {
+        if (routerMacAddress == null) {
             log.error("Setting gateway ICMP rule for internal network because " +
                     "there's no br-int port for device {}", deviceId);
             return;
@@ -656,7 +778,7 @@ public class KubevirtNetworkHandler {
                 .extension(buildLoadExtension(device,
                         NXM_OF_ICMP_TYPE, TYPE_ECHO_REPLY), device.id())
                 .setIpSrc(network.gatewayIp())
-                .setEthSrc(brIntMacAddress)
+                .setEthSrc(routerMacAddress)
                 .setOutput(PortNumber.IN_PORT);
 
         flowService.setRule(
@@ -815,11 +937,12 @@ public class KubevirtNetworkHandler {
 
         private void removeDetachedInternalNetworkRules(KubevirtNetwork removedNetwork, KubevirtRouter router,
                                                         KubevirtNode electedGw) {
-            router.internal().forEach(networkName -> {
-                kubevirtPortService.ports(networkName).forEach(kubevirtPort -> {
-                    setGatewayInterNetworkRoutingFromNetworkToPort(
-                            removedNetwork, kubevirtPort, electedGw, false);
-                });
+            router.internal().stream().filter(networkId -> kubevirtNetworkService.network(networkId) != null)
+                    .forEach(networkId -> {
+                        kubevirtPortService.ports(networkId).forEach(kubevirtPort -> {
+                            setGatewayInterNetworkRoutingFromNetworkToPort(
+                                    router, removedNetwork, kubevirtPort, electedGw, false);
+                        });
             });
         }
 
@@ -966,8 +1089,8 @@ public class KubevirtNetworkHandler {
 
             nodeService.completeNodes().forEach(n -> {
                 createBridge(n, network);
-                createPatchInterfaceInCaseOveray(n, network);
-                setDefaultRules(n, network);
+                createPatchTenantInterface(n, network);
+                setDefaultRulesForTenantNetwork(n, network);
             });
         }
 
@@ -1021,11 +1144,11 @@ public class KubevirtNetworkHandler {
                                 continue;
                             }
                             createBridge(node, network);
-                            createPatchInterfaceInCaseOveray(node, network);
-                            setDefaultRules(node, network);
-                            setArpRules(node, network);
-                            setIcmpRules(node, network);
-
+                            createPatchTenantInterface(node, network);
+                            setDefaultRulesForTenantNetwork(node, network);
+                            setArpRulesForTenantNetwork(node, network);
+                            setIcmpRulesForTenantNetwork(node, network);
+                            setDefaultGatewayRuleToWorkerNodeWhenNodeCreated(node, network);
                             break;
                         case FLAT:
                         case VLAN:
@@ -1130,7 +1253,7 @@ public class KubevirtNetworkHandler {
                             || kubevirtNetworkService.network(srcNetwork) == null) {
                         return;
                     }
-                    setGatewayInterNetworkRoutingFromNetworkToPort(kubevirtNetworkService.network(srcNetwork),
+                    setGatewayInterNetworkRoutingFromNetworkToPort(router, kubevirtNetworkService.network(srcNetwork),
                             kubevirtPort, gwNode, true);
                 });
             }
@@ -1155,7 +1278,7 @@ public class KubevirtNetworkHandler {
                             || kubevirtNetworkService.network(srcNetwork) == null) {
                         return;
                     }
-                    setGatewayInterNetworkRoutingFromNetworkToPort(kubevirtNetworkService.network(srcNetwork),
+                    setGatewayInterNetworkRoutingFromNetworkToPort(router, kubevirtNetworkService.network(srcNetwork),
                             kubevirtPort, gwNode, true);
                 });
             }
@@ -1180,7 +1303,7 @@ public class KubevirtNetworkHandler {
                             || kubevirtNetworkService.network(srcNetwork) == null) {
                         return;
                     }
-                    setGatewayInterNetworkRoutingFromNetworkToPort(kubevirtNetworkService.network(srcNetwork),
+                    setGatewayInterNetworkRoutingFromNetworkToPort(router, kubevirtNetworkService.network(srcNetwork),
                             kubevirtPort, gwNode, false);
                 });
             }

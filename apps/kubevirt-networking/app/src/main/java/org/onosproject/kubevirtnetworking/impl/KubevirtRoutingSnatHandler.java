@@ -23,6 +23,7 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
+import org.onlab.packet.VlanId;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
@@ -30,8 +31,6 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.kubevirtnetworking.api.KubevirtFlowRuleService;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetwork;
-import org.onosproject.kubevirtnetworking.api.KubevirtNetworkEvent;
-import org.onosproject.kubevirtnetworking.api.KubevirtNetworkListener;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetworkService;
 import org.onosproject.kubevirtnetworking.api.KubevirtPort;
 import org.onosproject.kubevirtnetworking.api.KubevirtPortEvent;
@@ -45,7 +44,6 @@ import org.onosproject.kubevirtnetworking.util.RulePopulatorUtil;
 import org.onosproject.kubevirtnode.api.KubevirtNode;
 import org.onosproject.kubevirtnode.api.KubevirtNodeService;
 import org.onosproject.net.Device;
-import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceAdminService;
 import org.onosproject.net.driver.DriverService;
@@ -73,13 +71,22 @@ import static org.onosproject.kubevirtnetworking.api.Constants.FORWARDING_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.KUBEVIRT_NETWORKING_APP_ID;
 import static org.onosproject.kubevirtnetworking.api.Constants.PRE_FLAT_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_ARP_GATEWAY_RULE;
+import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_FORWARDING_RULE;
 import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_STATEFUL_SNAT_RULE;
+import static org.onosproject.kubevirtnetworking.api.Constants.TUNNEL_DEFAULT_TABLE;
+import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.GENEVE;
+import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.GRE;
+import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.VLAN;
+import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.VXLAN;
+import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.externalPatchPortNum;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.gatewayNodeForSpecifiedRouter;
-import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.getRouterSnatIpAddress;
-import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.getbrIntMacAddress;
+import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.getExternalNetworkByRouter;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.getRouterForKubevirtPort;
+import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.getRouterSnatIpAddress;
+import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.getRouterMacAddress;
+import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.tunnelPort;
 import static org.onosproject.kubevirtnetworking.util.RulePopulatorUtil.CT_NAT_SRC_FLAG;
-import static org.onosproject.net.AnnotationKeys.PORT_NAME;
+import static org.onosproject.kubevirtnetworking.util.RulePopulatorUtil.buildExtension;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -133,9 +140,6 @@ public class KubevirtRoutingSnatHandler {
     private final InternalRouterEventListener kubevirtRouterlistener =
             new InternalRouterEventListener();
 
-    private final InternalNetworkEventListener kubevirtNetworkEventListener =
-            new InternalNetworkEventListener();
-
     private ApplicationId appId;
     private NodeId localNodeId;
 
@@ -147,7 +151,6 @@ public class KubevirtRoutingSnatHandler {
 
         kubevirtPortService.addListener(kubevirtPortListener);
         kubevirtRouterService.addListener(kubevirtRouterlistener);
-        kubevirtNetworkService.addListener(kubevirtNetworkEventListener);
 
         log.info("Started");
     }
@@ -157,7 +160,6 @@ public class KubevirtRoutingSnatHandler {
         leadershipService.withdraw(appId.name());
         kubevirtPortService.removeListener(kubevirtPortListener);
         kubevirtRouterService.removeListener(kubevirtRouterlistener);
-        kubevirtNetworkService.removeListener(kubevirtNetworkEventListener);
 
         eventExecutor.shutdown();
 
@@ -183,13 +185,13 @@ public class KubevirtRoutingSnatHandler {
 
         setArpResponseToPeerRouter(electedGw, Ip4Address.valueOf(routerSnatIp), install);
         setStatefulSnatUpstreamRules(electedGw, router, Ip4Address.valueOf(routerSnatIp), install);
-        setStatefulSnatDownstreamRuleForRouter(router, electedGw, Ip4Address.valueOf(routerSnatIp), install);
+        setStatefulSnatDownstreamRuleForRouter(electedGw, router, Ip4Address.valueOf(routerSnatIp), install);
     }
 
     private void setArpResponseToPeerRouter(KubevirtNode gatewayNode, Ip4Address ip4Address, boolean install) {
 
         TrafficSelector selector = DefaultTrafficSelector.builder()
-                .matchInPort(externalPatchPortNum(gatewayNode))
+                .matchInPort(externalPatchPortNum(deviceService, gatewayNode))
                 .matchEthType(EthType.EtherType.ARP.ethType().toShort())
                 .matchArpOp(ARP.OP_REQUEST)
                 .matchArpTpa(ip4Address)
@@ -218,15 +220,22 @@ public class KubevirtRoutingSnatHandler {
                 install);
     }
 
-    private void setStatefulSnatUpstreamRules(KubevirtNode gatewayNode, KubevirtRouter router,
-                                              Ip4Address ip4Address, boolean install) {
+    private void setStatefulSnatUpstreamRules(KubevirtNode gatewayNode,
+                                              KubevirtRouter router,
+                                              Ip4Address ip4Address,
+                                              boolean install) {
+        MacAddress routerMacAddress = getRouterMacAddress(router);
+        if (routerMacAddress == null) {
+            return;
+        }
+        MacAddress peerRouterMacAddres = router.peerRouter().macAddress();
+        if (peerRouterMacAddres == null) {
+            return;
+        }
 
-        MacAddress brIntMacAddress = getbrIntMacAddress(deviceService, gatewayNode.intgBridge());
-
-        TrafficSelector selector = DefaultTrafficSelector.builder()
+        TrafficSelector.Builder selector = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
-                .matchEthDst(brIntMacAddress)
-                .build();
+                .matchEthDst(routerMacAddress);
 
         TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
 
@@ -241,41 +250,27 @@ public class KubevirtRoutingSnatHandler {
                 .build();
 
         tBuilder.extension(natTreatment, gatewayNode.intgBridge())
-                .setEthDst(router.peerRouter().macAddress())
+                .setEthDst(peerRouterMacAddres)
                 .setEthSrc(DEFAULT_GATEWAY_MAC)
-                .setOutput(externalPatchPortNum(gatewayNode));
+                .setOutput(externalPatchPortNum(deviceService, gatewayNode));
 
         flowService.setRule(
                 appId,
                 gatewayNode.intgBridge(),
-                selector,
+                selector.build(),
                 tBuilder.build(),
                 PRIORITY_STATEFUL_SNAT_RULE,
-                FLAT_TABLE,
+                PRE_FLAT_TABLE,
                 install);
     }
 
-    private void setStatefulSnatDownStreamRuleForNetwork(KubevirtNode gatewayNode,
-                                                         KubevirtRouter router,
-                                                         KubevirtNetwork network,
-                                                         boolean install) {
-        kubevirtPortService.ports(network.networkId()).forEach(kubevirtPort -> {
-            String routerSnatIp = router.external().keySet().stream().findAny().orElse(null);
-            if (routerSnatIp == null) {
-                return;
-            }
-            setStatefulSnatDownStreamRuleForKubevirtPort(gatewayNode, IpAddress.valueOf(routerSnatIp),
-                    kubevirtPort, install);
-        });
-    }
+    private void setStatefulSnatDownStreamRuleForKubevirtPort(KubevirtRouter router,
+                                                              KubevirtNode gatewayNode,
+                                                              KubevirtPort kubevirtPort,
+                                                              boolean install) {
+        MacAddress routerMacAddress = getRouterMacAddress(router);
 
-    private void setStatefulSnatDownStreamRuleForKubevirtPort(KubevirtNode gatewayNode,
-                                                         IpAddress gatewaySnatIp,
-                                                         KubevirtPort kubevirtPort,
-                                                         boolean install) {
-        MacAddress brIntMacAddress = getbrIntMacAddress(deviceService, gatewayNode.intgBridge());
-
-        if (brIntMacAddress == null) {
+        if (routerMacAddress == null) {
             log.error("Failed to set stateful snat downstream rule because " +
                     "there's no br-int port for device {}", gatewayNode.intgBridge());
             return;
@@ -283,39 +278,105 @@ public class KubevirtRoutingSnatHandler {
 
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
+                .matchEthSrc(routerMacAddress)
                 .matchIPDst(IpPrefix.valueOf(kubevirtPort.ipAddress(), 32));
 
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+        KubevirtNetwork network = kubevirtNetworkService.network(kubevirtPort.networkId());
+
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
                 .setEthDst(kubevirtPort.macAddress())
-                .transition(FORWARDING_TABLE)
-                .build();
+                .transition(FORWARDING_TABLE);
 
         flowService.setRule(
                 appId,
                 gatewayNode.intgBridge(),
                 sBuilder.build(),
-                treatment,
+                tBuilder.build(),
                 PRIORITY_STATEFUL_SNAT_RULE,
                 FLAT_TABLE,
                 install);
+
+        if (network.type() == VXLAN || network.type() == GENEVE || network.type() == GRE) {
+            setDownStreamRulesToGatewayTunBridge(router, network, kubevirtPort, install);
+        }
     }
 
-    private void setStatefulSnatDownstreamRuleForRouter(KubevirtRouter router,
-                                                        KubevirtNode gatewayNode,
-                                                        IpAddress gatewaySnatIp,
-                                                        boolean install) {
+    private void setDownStreamRulesToGatewayTunBridge(KubevirtRouter router,
+                                                      KubevirtNetwork network,
+                                                      KubevirtPort port, boolean install) {
+        KubevirtNode electedGw = gatewayNodeForSpecifiedRouter(kubevirtNodeService, router);
 
-        MacAddress brIntMacAddress = getbrIntMacAddress(deviceService, gatewayNode.intgBridge());
+        if (electedGw == null) {
+            return;
+        }
 
-        if (brIntMacAddress == null) {
-            log.error("Failed to set stateful snat downstream rule because " +
-                    "there's no br-int port for device {}", gatewayNode.intgBridge());
+        KubevirtNode workerNode = kubevirtNodeService.node(port.deviceId());
+        if (workerNode == null) {
+            return;
+        }
+
+        PortNumber tunnelPortNumber = tunnelPort(electedGw, network);
+        if (tunnelPortNumber == null) {
             return;
         }
 
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
-                .matchIPDst(IpPrefix.valueOf(gatewaySnatIp, 32));
+                .matchIPDst(IpPrefix.valueOf(port.ipAddress(), 32))
+                .matchEthDst(port.macAddress());
+
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
+                .setTunnelId(Long.parseLong(network.segmentId()))
+                .extension(buildExtension(
+                        deviceService,
+                        electedGw.tunBridge(),
+                        workerNode.dataIp().getIp4Address()),
+                        electedGw.tunBridge())
+                .setOutput(tunnelPortNumber);
+
+        flowService.setRule(
+                appId,
+                electedGw.tunBridge(),
+                sBuilder.build(),
+                tBuilder.build(),
+                PRIORITY_FORWARDING_RULE,
+                TUNNEL_DEFAULT_TABLE,
+                install);
+    }
+
+    private void setStatefulSnatDownstreamRuleForRouter(KubevirtNode gatewayNode,
+                                                        KubevirtRouter router,
+                                                        IpAddress gatewaySnatIp,
+                                                        boolean install) {
+
+        MacAddress routerMacAddress = getRouterMacAddress(router);
+
+        if (routerMacAddress == null) {
+            log.warn("Failed to set stateful snat downstream rule because " +
+                    "there's no br-int port for device {}", gatewayNode.intgBridge());
+            return;
+        }
+
+        KubevirtNetwork externalNetwork = getExternalNetworkByRouter(kubevirtNetworkService, router);
+
+        if (externalNetwork == null) {
+            log.warn("Failed to set stateful snat downstream rule because " +
+                    "there's no external network router {}", router.name());
+            return;
+        }
+
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder();
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder();
+
+        if (externalNetwork.type() == VLAN) {
+            sBuilder.matchEthType(Ethernet.TYPE_VLAN)
+                    .matchVlanId(VlanId.vlanId(externalNetwork.segmentId()));
+            tBuilder.popVlan();
+        } else {
+            sBuilder.matchEthType(Ethernet.TYPE_IPV4);
+        }
+
+        sBuilder.matchIPDst(IpPrefix.valueOf(gatewaySnatIp, 32));
 
         ExtensionTreatment natTreatment = RulePopulatorUtil
                 .niciraConnTrackTreatmentBuilder(driverService, gatewayNode.intgBridge())
@@ -324,36 +385,17 @@ public class KubevirtRoutingSnatHandler {
                 .table((short) FLAT_TABLE)
                 .build();
 
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setEthSrc(brIntMacAddress)
-                .extension(natTreatment, gatewayNode.intgBridge())
-                .build();
+        tBuilder.setEthSrc(routerMacAddress)
+                .extension(natTreatment, gatewayNode.intgBridge());
 
         flowService.setRule(
                 appId,
                 gatewayNode.intgBridge(),
                 sBuilder.build(),
-                treatment,
+                tBuilder.build(),
                 PRIORITY_STATEFUL_SNAT_RULE,
-                FLAT_TABLE,
+                PRE_FLAT_TABLE,
                 install);
-
-        router.internal().forEach(networkName -> {
-            KubevirtNetwork network = kubevirtNetworkService.network(networkName);
-
-            if (network != null) {
-                setStatefulSnatDownStreamRuleForNetwork(gatewayNode, router, network, install);
-            }
-        });
-    }
-
-    private PortNumber externalPatchPortNum(KubevirtNode gatewayNode) {
-        Port port = deviceService.getPorts(gatewayNode.intgBridge()).stream()
-                .filter(p -> p.isEnabled() &&
-                        Objects.equals(p.annotations().value(PORT_NAME), "int-to-gateway"))
-                .findAny().orElse(null);
-
-        return port != null ? port.number() : null;
     }
 
     private class InternalRouterEventListener implements KubevirtRouterListener {
@@ -381,11 +423,150 @@ public class KubevirtRoutingSnatHandler {
                     eventExecutor.execute(() -> processRouterInternalNetworksDetached(event.subject(),
                             event.internal()));
                     break;
+                case KUBEVIRT_GATEWAY_NODE_ATTACHED:
+                    eventExecutor.execute(() -> processRouterGatewayNodeAttached(event.subject(),
+                            event.gateway()));
+                    break;
+                case KUBEVIRT_GATEWAY_NODE_DETACHED:
+                    eventExecutor.execute(() -> processRouterGatewayNodeDetached(event.subject(),
+                            event.gateway()));
+                    break;
+                case KUBEVIRT_ROUTER_EXTERNAL_NETWORK_ATTACHED:
+                    eventExecutor.execute(() -> processRouterExternalNetAttached(event.subject(), event.externalIp()));
+                    break;
+                case KUBEVIRT_ROUTER_EXTERNAL_NETWORK_DETACHED:
+                    eventExecutor.execute(() -> processRouterExternalNetDetached(event.subject(), event.externalIp()));
+                    break;
                 default:
                     //do nothing
                     break;
             }
         }
+
+        private void processRouterExternalNetAttached(KubevirtRouter router, String externalIp) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+            KubevirtNode electedGw = gatewayNodeForSpecifiedRouter(kubevirtNodeService, router);
+
+            if (electedGw == null) {
+                log.warn("Fail to process router external network attached gateway node snat for router {} " +
+                        "there's no gateway assigned to it", router.name());
+                return;
+            }
+
+            if (router.enableSnat() && router.peerRouter() != null && externalIp != null) {
+                setArpResponseToPeerRouter(electedGw, Ip4Address.valueOf(externalIp), true);
+                setStatefulSnatUpstreamRules(electedGw, router, Ip4Address.valueOf(externalIp), true);
+                setStatefulSnatDownstreamRuleForRouter(electedGw, router, Ip4Address.valueOf(externalIp), true);
+            }
+
+            router.internal()
+                    .stream()
+                    .filter(networkId -> kubevirtNetworkService.network(networkId) != null)
+                    .map(kubevirtNetworkService::network)
+                    .forEach(network -> {
+                        String routerSnatIp = router.external().keySet().stream().findAny().orElse(null);
+                        if (routerSnatIp == null) {
+                            return;
+                        }
+                        kubevirtPortService.ports(network.networkId()).forEach(kubevirtPort -> {
+                            setStatefulSnatDownStreamRuleForKubevirtPort(router,
+                                    electedGw, kubevirtPort, true);
+                        });
+                    });
+        }
+
+        private void processRouterExternalNetDetached(KubevirtRouter router, String externalIp) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+            if (!isRelevantHelper()) {
+                return;
+            }
+            KubevirtNode electedGw = gatewayNodeForSpecifiedRouter(kubevirtNodeService, router);
+
+            if (electedGw == null) {
+                log.warn("Fail to process router external network attached gateway node snat for router {} " +
+                        "there's no gateway assigned to it", router.name());
+                return;
+            }
+
+            if (router.enableSnat() && router.peerRouter() != null && externalIp != null) {
+                setArpResponseToPeerRouter(electedGw, Ip4Address.valueOf(externalIp), false);
+                setStatefulSnatUpstreamRules(electedGw, router, Ip4Address.valueOf(externalIp), false);
+                setStatefulSnatDownstreamRuleForRouter(electedGw, router, Ip4Address.valueOf(externalIp), false);
+            }
+
+            router.internal()
+                    .stream()
+                    .filter(networkId -> kubevirtNetworkService.network(networkId) != null)
+                    .map(kubevirtNetworkService::network)
+                    .forEach(network -> {
+                        String routerSnatIp = router.external().keySet().stream().findAny().orElse(null);
+                        if (routerSnatIp == null) {
+                            return;
+                        }
+                        kubevirtPortService.ports(network.networkId()).forEach(kubevirtPort -> {
+                            setStatefulSnatDownStreamRuleForKubevirtPort(router,
+                                    electedGw, kubevirtPort, false);
+                        });
+                    });
+        }
+
+        private void processRouterGatewayNodeAttached(KubevirtRouter router, String attachedGatewayId) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            KubevirtNode attachedGateway = kubevirtNodeService.node(attachedGatewayId);
+            if (attachedGateway == null) {
+                return;
+            }
+
+            router.internal()
+                    .stream()
+                    .filter(networkId -> kubevirtNetworkService.network(networkId) != null)
+                    .map(kubevirtNetworkService::network)
+                    .forEach(network -> {
+                        String routerSnatIp = router.external().keySet().stream().findAny().orElse(null);
+                        if (routerSnatIp == null) {
+                            return;
+                        }
+                        kubevirtPortService.ports(network.networkId()).forEach(kubevirtPort -> {
+                            setStatefulSnatDownStreamRuleForKubevirtPort(router,
+                                    attachedGateway, kubevirtPort, true);
+                });
+            });
+        }
+
+        private void processRouterGatewayNodeDetached(KubevirtRouter router, String detachedGatewayId) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            KubevirtNode detachedGateway = kubevirtNodeService.node(detachedGatewayId);
+            if (detachedGateway == null) {
+                return;
+            }
+
+            router.internal()
+                    .stream()
+                    .filter(networkId -> kubevirtNetworkService.network(networkId) != null)
+                    .map(kubevirtNetworkService::network)
+                    .forEach(network -> {
+                        String routerSnatIp = router.external().keySet().stream().findAny().orElse(null);
+                        if (routerSnatIp == null) {
+                            return;
+                        }
+
+                        kubevirtPortService.ports(network.networkId()).forEach(kubevirtPort -> {
+                            setStatefulSnatDownStreamRuleForKubevirtPort(router,
+                                    detachedGateway, kubevirtPort, false);
+                        });
+                    });
+        }
+
         private void processRouterInternalNetworksAttached(KubevirtRouter router,
                                                            Set<String> attachedInternalNetworks) {
             if (!isRelevantHelper()) {
@@ -398,13 +579,13 @@ public class KubevirtRoutingSnatHandler {
             }
 
             attachedInternalNetworks.forEach(networkId -> {
+                String routerSnatIp = router.external().keySet().stream().findAny().orElse(null);
+                if (routerSnatIp == null) {
+                    return;
+                }
+
                 kubevirtPortService.ports(networkId).forEach(kubevirtPort -> {
-                    String routerSnatIp = router.external().keySet().stream().findAny().orElse(null);
-                    if (routerSnatIp == null) {
-                        return;
-                    }
-                    setStatefulSnatDownStreamRuleForKubevirtPort(gwNode, IpAddress.valueOf(routerSnatIp),
-                            kubevirtPort, true);
+                    setStatefulSnatDownStreamRuleForKubevirtPort(router, gwNode, kubevirtPort, true);
                 });
             });
         }
@@ -421,14 +602,14 @@ public class KubevirtRoutingSnatHandler {
             }
 
             detachedInternalNetworks.forEach(networkId -> {
+                String routerSnatIp = router.external().keySet().stream().findAny().orElse(null);
+                if (routerSnatIp == null) {
+                    log.info("snatIp is null");
+                    return;
+                }
+
                 kubevirtPortService.ports(networkId).forEach(kubevirtPort -> {
-                    String routerSnatIp = router.external().keySet().stream().findAny().orElse(null);
-                    if (routerSnatIp == null) {
-                        log.info("snatIp is null");
-                        return;
-                    }
-                    setStatefulSnatDownStreamRuleForKubevirtPort(gwNode, IpAddress.valueOf(routerSnatIp),
-                            kubevirtPort, false);
+                    setStatefulSnatDownStreamRuleForKubevirtPort(router, gwNode, kubevirtPort, false);
                 });
             });
         }
@@ -456,67 +637,6 @@ public class KubevirtRoutingSnatHandler {
             }
             if (router.enableSnat() && !router.external().isEmpty() && router.peerRouter() != null) {
                 initGatewayNodeSnatForRouter(router, true);
-            }
-        }
-    }
-
-    private class InternalNetworkEventListener implements KubevirtNetworkListener {
-
-        private boolean isRelevantHelper() {
-            return Objects.equals(localNodeId, leadershipService.getLeader(appId.name()));
-        }
-
-        @Override
-        public void event(KubevirtNetworkEvent event) {
-            switch (event.type()) {
-                case KUBEVIRT_NETWORK_CREATED:
-                    eventExecutor.execute(() -> processNetworkCreation(event.subject()));
-                    break;
-                case KUBEVIRT_NETWORK_REMOVED:
-                    eventExecutor.execute(() -> processNetworkRemoval(event.subject()));
-                    break;
-                case KUBEVIRT_NETWORK_UPDATED:
-                default:
-                    // do nothing
-                    break;
-            }
-        }
-
-        private void processNetworkCreation(KubevirtNetwork network) {
-            if (!isRelevantHelper()) {
-                return;
-            }
-
-            switch (network.type()) {
-                case VXLAN:
-                case GRE:
-                case GENEVE:
-                    break;
-                case FLAT:
-                case VLAN:
-                    break;
-                default:
-                    // do nothing
-                    break;
-            }
-        }
-
-        private void processNetworkRemoval(KubevirtNetwork network) {
-            if (!isRelevantHelper()) {
-                return;
-            }
-
-            switch (network.type()) {
-                case VXLAN:
-                case GRE:
-                case GENEVE:
-                    break;
-                case FLAT:
-                case VLAN:
-                    break;
-                default:
-                    // do nothing
-                    break;
             }
         }
     }
@@ -562,7 +682,7 @@ public class KubevirtRoutingSnatHandler {
                 if (gatewaySnatIp == null) {
                     return;
                 }
-                setStatefulSnatDownStreamRuleForKubevirtPort(gwNode, gatewaySnatIp, kubevirtPort, true);
+                setStatefulSnatDownStreamRuleForKubevirtPort(router, gwNode, kubevirtPort, true);
             }
         }
 
@@ -579,11 +699,7 @@ public class KubevirtRoutingSnatHandler {
             KubevirtNode gwNode = gatewayNodeForSpecifiedRouter(kubevirtNodeService, router);
 
             if (gwNode != null) {
-                IpAddress gatewaySnatIp = getRouterSnatIpAddress(kubevirtRouterService, kubevirtPort.networkId());
-                if (gatewaySnatIp == null) {
-                    return;
-                }
-                setStatefulSnatDownStreamRuleForKubevirtPort(gwNode, gatewaySnatIp, kubevirtPort, true);
+                setStatefulSnatDownStreamRuleForKubevirtPort(router, gwNode, kubevirtPort, true);
             }
         }
 
@@ -600,11 +716,7 @@ public class KubevirtRoutingSnatHandler {
             KubevirtNode gwNode = gatewayNodeForSpecifiedRouter(kubevirtNodeService, router);
 
             if (gwNode != null) {
-                IpAddress gatewaySnatIp = getRouterSnatIpAddress(kubevirtRouterService, kubevirtPort.networkId());
-                if (gatewaySnatIp == null) {
-                    return;
-                }
-                setStatefulSnatDownStreamRuleForKubevirtPort(gwNode, gatewaySnatIp, kubevirtPort, false);
+                setStatefulSnatDownStreamRuleForKubevirtPort(router, gwNode, kubevirtPort, false);
             }
         }
     }

@@ -61,11 +61,12 @@ public class KubevirtListRouterCommand extends AbstractShellCommand {
             print(format, "Name", "SNAT", "Internal", "External", "GatewayNode");
 
             for (KubevirtRouter router : routers) {
-                Set<String> internalCidrs = router.internal();
-                Set<String> externalIps = router.external().keySet();
+                Set<String> internalNetworks = router.internal();
+                String externalNetwork = router.external().values().stream().findAny().orElse(null);
 
-                String internal = internalCidrs.size() == 0 ? "[]" : internalCidrs.toString();
-                String external = externalIps.size() == 0 ? "[]" : externalIps.toString();
+
+                String internal = internalNetworks.size() == 0 ? "[]" : internalNetworks.toString();
+                String external = externalNetwork == null ? "[]" : externalNetwork;
                 String gwNode = router.electedGateway() == null ? "N/A" : router.electedGateway();
 
                 print(format, StringUtils.substring(router.name(), 0,
