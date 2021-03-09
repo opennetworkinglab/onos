@@ -399,7 +399,7 @@ public class DistributedKubevirtRouterStore
                 notifyDelegate(new KubevirtRouterEvent(
                         KUBEVIRT_FLOATING_IP_DISASSOCIATED,
                         router,
-                        event.newValue().value(), oldPodName));
+                        event.oldValue().value(), oldPodName));
                 log.info(String.format(MSG_FLOATING_IP,
                         event.newValue().value().floatingIp(), MSG_DISASSOCIATED, oldPodName));
             }

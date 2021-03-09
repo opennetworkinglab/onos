@@ -34,6 +34,7 @@ import org.onosproject.kubevirtnetworking.api.KubevirtPodListener;
 import org.onosproject.kubevirtnetworking.api.KubevirtPort;
 import org.onosproject.kubevirtnetworking.api.KubevirtPortAdminService;
 import org.onosproject.kubevirtnode.api.KubevirtApiConfigService;
+import org.onosproject.kubevirtnode.api.KubevirtNodeService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverService;
@@ -98,6 +99,9 @@ public class KubevirtPodPortMapper {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected KubevirtApiConfigService kubevirtApiConfigService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected KubevirtNodeService kubevirtNodeService;
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler"));
@@ -186,7 +190,7 @@ public class KubevirtPodPortMapper {
                 log.error("Failed to reserve IP address", e);
             }
 
-            Set<KubevirtPort> ports = getPorts(kubevirtNetworkAdminService.networks(), pod);
+            Set<KubevirtPort> ports = getPorts(kubevirtNodeService, kubevirtNetworkAdminService.networks(), pod);
             if (ports.size() == 0) {
                 return;
             }
@@ -203,7 +207,7 @@ public class KubevirtPodPortMapper {
                 return;
             }
 
-            Set<KubevirtPort> ports = getPorts(kubevirtNetworkAdminService.networks(), pod);
+            Set<KubevirtPort> ports = getPorts(kubevirtNodeService, kubevirtNetworkAdminService.networks(), pod);
             if (ports.size() == 0) {
                 return;
             }
@@ -261,7 +265,7 @@ public class KubevirtPodPortMapper {
                 return;
             }
 
-            Set<KubevirtPort> ports = getPorts(kubevirtNetworkAdminService.networks(), pod);
+            Set<KubevirtPort> ports = getPorts(kubevirtNodeService, kubevirtNetworkAdminService.networks(), pod);
             if (ports.size() == 0) {
                 return;
             }

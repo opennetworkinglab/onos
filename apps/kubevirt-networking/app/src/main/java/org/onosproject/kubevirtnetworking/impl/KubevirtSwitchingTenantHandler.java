@@ -133,7 +133,7 @@ public class KubevirtSwitchingTenantHandler {
     }
 
     private Set<KubevirtPort> getPortByPod(Pod pod) {
-        return getPorts(kubevirtNetworkService.networks(), pod);
+        return getPorts(kubevirtNodeService, kubevirtNetworkService.networks(), pod);
     }
 
     private void setIngressRules(Pod pod, boolean install) {

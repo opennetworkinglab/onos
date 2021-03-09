@@ -79,10 +79,13 @@ import static org.onosproject.kubevirtnode.api.Constants.GENEVE;
 import static org.onosproject.kubevirtnode.api.Constants.GRE;
 import static org.onosproject.kubevirtnode.api.Constants.INTEGRATION_BRIDGE;
 import static org.onosproject.kubevirtnode.api.Constants.INTEGRATION_TO_PHYSICAL_PREFIX;
+import static org.onosproject.kubevirtnode.api.Constants.INTEGRATION_TO_TUNNEL;
 import static org.onosproject.kubevirtnode.api.Constants.PHYSICAL_TO_INTEGRATION_SUFFIX;
 import static org.onosproject.kubevirtnode.api.Constants.TENANT_BRIDGE_PREFIX;
 import static org.onosproject.kubevirtnode.api.Constants.TUNNEL_BRIDGE;
+import static org.onosproject.kubevirtnode.api.Constants.TUNNEL_TO_INTEGRATION;
 import static org.onosproject.kubevirtnode.api.Constants.VXLAN;
+import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.GATEWAY;
 import static org.onosproject.kubevirtnode.api.KubevirtNodeService.APP_ID;
 import static org.onosproject.kubevirtnode.api.KubevirtNodeState.COMPLETE;
 import static org.onosproject.kubevirtnode.api.KubevirtNodeState.DEVICE_CREATED;
@@ -498,6 +501,10 @@ public class DefaultKubevirtNodeHandler implements KubevirtNodeHandler {
         // to physical bridge, adding patch ports to both physical bridge and br-int
         provisionPhysicalInterfaces(node);
 
+        if (node.type() == GATEWAY) {
+            createPatchInterfaceBetweenBrIntBrTun(node);
+        }
+
         return node.intgBridge() != null && node.tunBridge() != null &&
                 deviceService.isAvailable(node.intgBridge()) &&
                 deviceService.isAvailable(node.tunBridge());
@@ -554,6 +561,14 @@ public class DefaultKubevirtNodeHandler implements KubevirtNodeHandler {
             }
         }
 
+        if (node.type() == GATEWAY) {
+            if (!(hasPhyIntf(node, INTEGRATION_TO_TUNNEL) &&
+                    hasPhyIntf(node, TUNNEL_TO_INTEGRATION))) {
+                log.warn("IntToTunPort {}", hasPhyIntf(node, INTEGRATION_TO_TUNNEL));
+                log.warn("TunToIntPort {}", hasPhyIntf(node, TUNNEL_TO_INTEGRATION));
+                return false;
+            }
+        }
         return true;
     }
 
@@ -625,6 +640,38 @@ public class DefaultKubevirtNodeHandler implements KubevirtNodeHandler {
                 log.info("Removing physical bridge {}...", brName);
             }
         }
+    }
+
+
+    private void createPatchInterfaceBetweenBrIntBrTun(KubevirtNode node) {
+        Device device = deviceService.getDevice(node.ovsdb());
+
+        if (device == null || !device.is(InterfaceConfig.class)) {
+            log.error("Failed to create patch interface on {}", node.ovsdb());
+            return;
+        }
+
+        InterfaceConfig ifaceConfig = device.as(InterfaceConfig.class);
+
+        // int bridge -> tunnel bridge
+        PatchDescription brIntTunPatchDesc =
+                DefaultPatchDescription.builder()
+                        .deviceId(INTEGRATION_BRIDGE)
+                        .ifaceName(INTEGRATION_TO_TUNNEL)
+                        .peer(TUNNEL_TO_INTEGRATION)
+                        .build();
+
+        ifaceConfig.addPatchMode(INTEGRATION_TO_TUNNEL, brIntTunPatchDesc);
+
+        // tunnel bridge -> int bridge
+        PatchDescription brTunIntPatchDesc =
+                DefaultPatchDescription.builder()
+                        .deviceId(TUNNEL_BRIDGE)
+                        .ifaceName(TUNNEL_TO_INTEGRATION)
+                        .peer(INTEGRATION_TO_TUNNEL)
+                        .build();
+
+        ifaceConfig.addPatchMode(TUNNEL_TO_INTEGRATION, brTunIntPatchDesc);
     }
 
     private void unprovisionPhysicalInterfaces(KubevirtNode node) {

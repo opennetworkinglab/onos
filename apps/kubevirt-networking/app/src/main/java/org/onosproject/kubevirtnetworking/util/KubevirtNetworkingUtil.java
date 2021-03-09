@@ -34,6 +34,7 @@ import org.onlab.packet.MacAddress;
 import org.onosproject.cfg.ConfigProperty;
 import org.onosproject.kubevirtnetworking.api.DefaultKubevirtPort;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetwork;
+import org.onosproject.kubevirtnetworking.api.KubevirtNetworkService;
 import org.onosproject.kubevirtnetworking.api.KubevirtPort;
 import org.onosproject.kubevirtnetworking.api.KubevirtRouter;
 import org.onosproject.kubevirtnetworking.api.KubevirtRouterService;
@@ -60,7 +61,6 @@ import java.util.stream.Collectors;
 
 import static org.onosproject.kubevirtnetworking.api.Constants.TUNNEL_TO_TENANT_PREFIX;
 import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.GATEWAY;
-import static org.onosproject.net.AnnotationKeys.PORT_MAC;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 
 /**
@@ -318,11 +318,12 @@ public final class KubevirtNetworkingUtil {
     /**
      * Obtains the kubevirt port from kubevirt POD.
      *
+     * @param nodeService kubevirt node service
      * @param networks set of existing kubevirt networks
      * @param pod      kubevirt POD
      * @return kubevirt ports attached to the POD
      */
-    public static Set<KubevirtPort> getPorts(Set<KubevirtNetwork> networks, Pod pod) {
+    public static Set<KubevirtPort> getPorts(KubevirtNodeService nodeService, Set<KubevirtNetwork> networks, Pod pod) {
         try {
             Map<String, String> annots = pod.getMetadata().getAnnotations();
             if (annots == null) {
@@ -338,6 +339,12 @@ public final class KubevirtNetworkingUtil {
             if (networkStatusStr == null) {
                 return ImmutableSet.of();
             }
+            KubevirtPort.Builder builder = DefaultKubevirtPort.builder();
+
+            KubevirtNode node = nodeService.node(pod.getSpec().getNodeName());
+            if (node != null) {
+                builder.deviceId(node.intgBridge());
+            }
 
             JSONArray networkStatus = new JSONArray(networkStatusStr);
             Set<KubevirtPort> ports = new HashSet<>();
@@ -351,8 +358,7 @@ public final class KubevirtNetworkingUtil {
                 if (network != null) {
                     String mac = object.getString(MAC);
 
-                    KubevirtPort.Builder builder = DefaultKubevirtPort.builder()
-                            .macAddress(MacAddress.valueOf(mac))
+                    builder.macAddress(MacAddress.valueOf(mac))
                             .networkId(network.networkId());
 
                     if (object.has(IPS)) {
@@ -435,7 +441,7 @@ public final class KubevirtNetworkingUtil {
         return "";
     }
 
-    private static PortNumber portNumber(DeviceId deviceId, String portName) {
+    public static PortNumber portNumber(DeviceId deviceId, String portName) {
         DeviceService deviceService = DefaultServiceDirectory.getService(DeviceService.class);
         Port port = deviceService.getPorts(deviceId).stream()
                 .filter(p -> p.isEnabled() &&
@@ -471,12 +477,19 @@ public final class KubevirtNetworkingUtil {
      * @param deviceId      device Id
      * @return mac address of the br-int port
      */
-    public static MacAddress getbrIntMacAddress(DeviceService deviceService,
-                                                DeviceId deviceId) {
-        return MacAddress.valueOf(deviceService.getPorts(deviceId).stream()
-                .filter(port -> Objects.equals(port.annotations().value(PORT_NAME), BR_INT))
-                .map(port -> port.annotations().value(PORT_MAC))
-                .findAny().orElse(null));
+
+    /**
+     * Returns the mac address of the router.
+     *
+     * @param router kubevirt router
+     * @return macc address of the router
+     */
+    public static MacAddress getRouterMacAddress(KubevirtRouter router) {
+        if (router.mac() == null) {
+            log.warn("Failed to get mac address of router {}", router.name());
+        }
+
+        return router.mac();
     }
 
     /**
@@ -534,5 +547,31 @@ public final class KubevirtNetworkingUtil {
         return routerService.routers().stream()
                 .filter(router -> router.internal().contains(kubevirtNetwork.networkId()))
                 .findAny().orElse(null);
+    }
+
+    /**
+     * Returns the external patch port number with specified gateway.
+     *
+     * @param deviceService device service
+     * @param gatewayNode gateawy node
+     * @return external patch port number
+     */
+    public static PortNumber externalPatchPortNum(DeviceService deviceService, KubevirtNode gatewayNode) {
+        Port port = deviceService.getPorts(gatewayNode.intgBridge()).stream()
+                .filter(p -> p.isEnabled() &&
+                        Objects.equals(p.annotations().value(PORT_NAME), "int-to-gateway"))
+                .findAny().orElse(null);
+
+        return port != null ? port.number() : null;
+    }
+
+    public static KubevirtNetwork getExternalNetworkByRouter(KubevirtNetworkService networkService,
+                                                             KubevirtRouter router) {
+        String networkId = router.external().values().stream().findAny().orElse(null);
+        if (networkId == null) {
+            return null;
+        }
+
+        return networkService.network(networkId);
     }
 }
