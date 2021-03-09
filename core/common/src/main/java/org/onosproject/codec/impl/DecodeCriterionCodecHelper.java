@@ -108,6 +108,7 @@ public final class DecodeCriterionCodecHelper {
         decoderMap.put(Criterion.Type.ICMPV4_CODE.name(), new IcmpV4CodeDecoder());
         decoderMap.put(Criterion.Type.IPV6_SRC.name(), new IpV6SrcDecoder());
         decoderMap.put(Criterion.Type.IPV6_DST.name(), new IpV6DstDecoder());
+        decoderMap.put(Criterion.Type.SRV6_DST_SID.name(), new Srv6DstSidDecoder());
         decoderMap.put(Criterion.Type.IPV6_FLABEL.name(), new IpV6FLabelDecoder());
         decoderMap.put(Criterion.Type.ICMPV6_TYPE.name(), new IcmpV6TypeDecoder());
         decoderMap.put(Criterion.Type.ICMPV6_CODE.name(), new IcmpV6CodeDecoder());
@@ -308,6 +309,24 @@ public final class DecodeCriterionCodecHelper {
             return Criteria.matchIPv6Dst(IpPrefix.valueOf(ip));
         }
     }
+
+    private class Srv6DstSidDecoder implements CriterionDecoder {
+        @Override
+        public Criterion decodeCriterion(ObjectNode json) {
+            String ip = nullIsIllegal(json.get(CriterionCodec.IP),
+                                      CriterionCodec.IP + MISSING_MEMBER_MESSAGE).asText();
+            return Criteria.matchSrv6DstSid(IpPrefix.valueOf(ip));
+        }
+    }
+
+      public Criterion decodeCriterion(ObjectNode json) {
+        int flowLabel = nullIsIllegal(json.get(CriterionCodec.FLOW_LABEL),
+                                      CriterionCodec.FLOW_LABEL + MISSING_MEMBER_MESSAGE).asInt();
+        return Criteria.matchIPv6FlowLabel(flowLabel);
+    }
+
+
+
 
     private class TcpSrcDecoder implements CriterionDecoder {
         @Override

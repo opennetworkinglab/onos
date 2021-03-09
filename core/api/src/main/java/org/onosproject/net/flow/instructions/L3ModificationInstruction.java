@@ -18,6 +18,7 @@ package org.onosproject.net.flow.instructions;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -52,9 +53,30 @@ public abstract class L3ModificationInstruction implements Instruction {
         IPV6_DST,
 
         /**
+         * SRV6 dst SID modification.
+         */
+        SRV6_DST_SID,
+
+         /**
          * IPv6 flow label modification.
          */
         IPV6_FLABEL,
+
+        /**
+         * SRV6 head push
+         */
+        SRV6_SRH_PUSH,
+
+        /**
+         * SRV6 head pop
+         */
+        SRV6_SRH_POP,
+
+        /**
+         * SRV6 SID list modification.
+         */
+        SRV6_SID_LIST,
+
 
         /**
          * Decrement TTL.
@@ -155,6 +177,91 @@ public abstract class L3ModificationInstruction implements Instruction {
                 ModIPInstruction that = (ModIPInstruction) obj;
                 return  Objects.equals(ip, that.ip) &&
                         Objects.equals(this.subtype(), that.subtype());
+            }
+            return false;
+        }
+    }
+
+    //
+    /**
+     * Represents a SRH header modification instruction.
+     */
+    public static final class ModSrv6HeaderInstruction extends L3ModificationInstruction {
+
+        private final L3SubType subtype;
+
+        ModSrv6HeaderInstruction(L3SubType subType) {
+            this.subtype = subType;
+        }
+
+        @Override
+        public L3SubType subtype() {
+            return subtype;
+        }
+
+        @Override
+        public String toString() {
+            return subtype().toString() ;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type(), subtype);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof ModSrv6HeaderInstruction) {
+                ModSrv6HeaderInstruction that = (ModSrv6HeaderInstruction) obj;
+                return Objects.equals(subtype, that.subtype) ;//&&
+                        //Objects.equals(this.ethernetType, that.ethernetType);
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Represents a SRV6 SID list modification.
+     */
+    public static final class ModSrv6SidListInstruction
+            extends L3ModificationInstruction {
+
+        private final List<IpAddress> sids;
+
+        ModSrv6SidListInstruction(List<IpAddress> sids) {
+            this.sids = sids;
+        }
+
+        public List<IpAddress> sids() {
+            return sids;
+        }
+
+        @Override
+        public L3SubType subtype() {
+            return L3SubType.SRV6_SID_LIST;
+        }
+
+        @Override
+        public String toString() {
+            return subtype().toString() + SEPARATOR + sids;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(type(), subtype(), sids);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj instanceof ModSrv6SidListInstruction) {
+                ModSrv6SidListInstruction that = (ModSrv6SidListInstruction) obj;
+                return Objects.equals(sids, that.sids);
             }
             return false;
         }

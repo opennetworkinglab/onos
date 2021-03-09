@@ -1335,6 +1335,7 @@ public abstract class LinkCollectionCompiler<T> {
             case IPV4_DST:
             case IPV6_SRC:
             case IPV6_DST:
+            case SRV6_DST_SID:
                 ModIPInstruction ipInstr = (ModIPInstruction) l3instruction;
                 // TODO check if ip falls in original prefix
                 IpPrefix prefix = ipInstr.ip().toIpPrefix();
@@ -1353,6 +1354,10 @@ public abstract class LinkCollectionCompiler<T> {
 
                     case IPV6_DST:
                         builder.matchIPv6Dst(prefix);
+                        break;
+
+                    case SRV6_DST_SID:
+                        builder.matchSrv6DstSid(prefix);
                         break;
 
                     default:

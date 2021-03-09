@@ -339,6 +339,14 @@ public interface TrafficSelector {
         Builder matchIPv6Dst(IpPrefix ip);
 
         /**
+         * Matches a l3 SRV6 DST SID.
+         *
+         * @param ip a l3 SRV6 DST SID.
+         * @return a selection builder
+         */
+        Builder matchSrv6DstSid(IpPrefix ip);
+
+        /**
          * Matches an IPv6 flow label.
          *
          * @param flowLabel an IPv6 flow label
