@@ -337,11 +337,13 @@ public abstract class TopologyViewMessageHandlerBase extends TopoologyTrafficMes
         Host host = event.subject();
         Host prevHost = event.prevSubject();
         String hostType = host.annotations().value(AnnotationKeys.UI_TYPE);
+        String connectionType = host.annotations().value(AnnotationKeys.CONNECTION_TYPE);
         String ip = ip(host.ipAddresses());
 
         ObjectNode payload = objectNode()
                 .put("id", host.id().toString())
-                .put("type", isNullOrEmpty(hostType) ? "endstation" : hostType);
+                .put("type", isNullOrEmpty(hostType) ? "endstation" : hostType)
+                .put("connectionType", isNullOrEmpty(connectionType) ? "wired" : connectionType);
 
         // set most recent connect point (and previous if we know it)
         payload.set("cp", hostConnect(host.location()));

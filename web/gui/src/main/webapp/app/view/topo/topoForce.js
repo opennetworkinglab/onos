@@ -217,7 +217,9 @@
             };
             model.links.push(linkData);
 
-            var lnk = tms.createHostLink(model.id, cp.device, cp.port);
+            // Make cell-phone devices default to wireless; others have to be annotated explicitly
+            var cType = model.type === 'cellPhone' ? "wireless" : model.connectionType
+            var lnk = tms.createHostLink(model.id, cp.device, cp.port, cType);
             if (lnk) {
                 network.links.push(lnk);
                 lu[linkData.key] = lnk;
@@ -363,6 +365,7 @@
         var th = ts.theme(),
             el = ldata.el,
             type = ldata.type(),
+            connectionType = ldata.connectionType(),
             lw = ldata.linkWidth(),
             online = ldata.online(),
             modeCls = ldata.expected() ? 'inactive' : 'not-permitted',
@@ -382,10 +385,19 @@
             if (type) {
                 el.classed(type, true);
             }
-            el.transition()
-                .duration(delay)
-                .attr('stroke-width', linkScale(lw))
-                .attr('stroke', linkConfig[th].baseColor);
+
+            if (connectionType === 'wireless') {
+                el.transition()
+                    .duration(delay)
+                    .attr('stroke-width', linkScale(lw))
+                    .attr('stroke', linkConfig[th].baseColor)
+                    .attr('stroke-dasharray', '3 6');
+            } else {
+                el.transition()
+                    .duration(delay)
+                    .attr('stroke-width', linkScale(lw))
+                    .attr('stroke', linkConfig[th].baseColor);
+            }
         }
     }
 
