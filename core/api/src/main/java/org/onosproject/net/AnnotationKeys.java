@@ -50,6 +50,11 @@ public final class AnnotationKeys {
     public static final String UI_TYPE = "uiType";
 
     /**
+     * Annotation key for UI connection type (the style for host link rendering).
+     */
+    public static final String CONNECTION_TYPE = "connectionType";
+
+    /**
      * Annotation key for UI location type of device/host
      * (either 'geo' or 'grid').
      */
