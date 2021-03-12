@@ -139,7 +139,7 @@ public class KubevirtNetworkManager
             networkStore.updateNetwork(network);
             return ip;
         } catch (Exception e) {
-            log.error("Failed to allocate IP address");
+            log.error("Failed to allocate IP address", e);
         }
         return null;
     }

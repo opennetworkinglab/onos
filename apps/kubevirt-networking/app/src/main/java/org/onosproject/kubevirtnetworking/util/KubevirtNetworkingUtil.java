@@ -17,6 +17,7 @@ package org.onosproject.kubevirtnetworking.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableSet;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
@@ -319,26 +320,27 @@ public final class KubevirtNetworkingUtil {
      *
      * @param networks set of existing kubevirt networks
      * @param pod      kubevirt POD
-     * @return kubevirt port
+     * @return kubevirt ports attached to the POD
      */
-    public static KubevirtPort getPort(Set<KubevirtNetwork> networks, Pod pod) {
+    public static Set<KubevirtPort> getPorts(Set<KubevirtNetwork> networks, Pod pod) {
         try {
             Map<String, String> annots = pod.getMetadata().getAnnotations();
             if (annots == null) {
-                return null;
+                return ImmutableSet.of();
             }
 
             if (!annots.containsKey(NETWORK_STATUS_KEY)) {
-                return null;
+                return ImmutableSet.of();
             }
 
             String networkStatusStr = annots.get(NETWORK_STATUS_KEY);
 
             if (networkStatusStr == null) {
-                return null;
+                return ImmutableSet.of();
             }
 
             JSONArray networkStatus = new JSONArray(networkStatusStr);
+            Set<KubevirtPort> ports = new HashSet<>();
 
             for (int i = 0; i < networkStatus.length(); i++) {
                 JSONObject object = networkStatus.getJSONObject(i);
@@ -359,15 +361,17 @@ public final class KubevirtNetworkingUtil {
                         builder.ipAddress(IpAddress.valueOf(ip));
                     }
 
-                    return builder.build();
+                    ports.add(builder.build());
                 }
             }
+
+            return ports;
 
         } catch (JSONException e) {
             log.error("Failed to parse network status object", e);
         }
 
-        return null;
+        return ImmutableSet.of();
     }
 
     /**

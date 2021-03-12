@@ -52,6 +52,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
@@ -61,7 +62,7 @@ import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_TUNNEL_R
 import static org.onosproject.kubevirtnetworking.api.Constants.TUNNEL_DEFAULT_TABLE;
 import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.FLAT;
 import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.VLAN;
-import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.getPort;
+import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.getPorts;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.tunnelPort;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.tunnelToTenantPort;
 import static org.onosproject.kubevirtnetworking.util.RulePopulatorUtil.buildExtension;
@@ -131,62 +132,64 @@ public class KubevirtSwitchingTenantHandler {
         log.info("Stopped");
     }
 
-    private KubevirtPort getPortByPod(Pod pod) {
-        return getPort(kubevirtNetworkService.networks(), pod);
+    private Set<KubevirtPort> getPortByPod(Pod pod) {
+        return getPorts(kubevirtNetworkService.networks(), pod);
     }
 
     private void setIngressRules(Pod pod, boolean install) {
-        KubevirtPort port = getPortByPod(pod);
+        Set<KubevirtPort> ports = getPortByPod(pod);
 
-        if (port == null) {
+        if (ports.size() == 0) {
             return;
         }
 
-        if (port.ipAddress() == null) {
-            return;
+        for (KubevirtPort port : ports) {
+            if (port.ipAddress() == null) {
+                return;
+            }
+
+            KubevirtNetwork network = kubevirtNetworkService.network(port.networkId());
+
+            if (network == null) {
+                return;
+            }
+
+            if (network.type() == FLAT || network.type() == VLAN) {
+                return;
+            }
+
+            if (network.segmentId() == null) {
+                return;
+            }
+
+            KubevirtNode localNode = kubevirtNodeService.node(pod.getSpec().getNodeName());
+            if (localNode == null || localNode.type() == MASTER) {
+                return;
+            }
+
+            PortNumber patchPortNumber = tunnelToTenantPort(localNode, network);
+            if (patchPortNumber == null) {
+                return;
+            }
+
+            TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
+                    .matchTunnelId(Long.parseLong(network.segmentId()));
+
+            TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
+                    .setOutput(patchPortNumber);
+
+            flowRuleService.setRule(
+                    appId,
+                    localNode.tunBridge(),
+                    sBuilder.build(),
+                    tBuilder.build(),
+                    PRIORITY_TUNNEL_RULE,
+                    TUNNEL_DEFAULT_TABLE,
+                    install);
+
+            log.debug("Install ingress rules for instance {}, segment ID {}",
+                    port.ipAddress(), network.segmentId());
         }
-
-        KubevirtNetwork network = kubevirtNetworkService.network(port.networkId());
-
-        if (network == null) {
-            return;
-        }
-
-        if (network.type() == FLAT || network.type() == VLAN) {
-            return;
-        }
-
-        if (network.segmentId() == null) {
-            return;
-        }
-
-        KubevirtNode localNode = kubevirtNodeService.node(pod.getSpec().getNodeName());
-        if (localNode == null || localNode.type() == MASTER) {
-            return;
-        }
-
-        PortNumber patchPortNumber = tunnelToTenantPort(localNode, network);
-        if (patchPortNumber == null) {
-            return;
-        }
-
-        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
-                .matchTunnelId(Long.parseLong(network.segmentId()));
-
-        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
-                .setOutput(patchPortNumber);
-
-        flowRuleService.setRule(
-                appId,
-                localNode.tunBridge(),
-                sBuilder.build(),
-                tBuilder.build(),
-                PRIORITY_TUNNEL_RULE,
-                TUNNEL_DEFAULT_TABLE,
-                install);
-
-        log.debug("Install ingress rules for instance {}, segment ID {}",
-                port.ipAddress(), network.segmentId());
     }
 
     private void setEgressRules(Pod pod, boolean install) {
@@ -200,85 +203,87 @@ public class KubevirtSwitchingTenantHandler {
             return;
         }
 
-        KubevirtPort port = getPortByPod(pod);
+        Set<KubevirtPort> ports = getPortByPod(pod);
 
-        if (port == null) {
+        if (ports.size() == 0) {
             return;
         }
 
-        if (port.ipAddress() == null) {
-            return;
-        }
-
-        KubevirtNetwork network = kubevirtNetworkService.network(port.networkId());
-
-        if (network == null) {
-            return;
-        }
-
-        if (network.type() == FLAT || network.type() == VLAN) {
-            return;
-        }
-
-        if (network.segmentId() == null) {
-            return;
-        }
-
-        for (KubevirtNode remoteNode : kubevirtNodeService.completeNodes(WORKER)) {
-            if (remoteNode.hostname().equals(localNode.hostname())) {
-                continue;
-            }
-
-            PortNumber patchPortNumber = tunnelToTenantPort(remoteNode, network);
-            if (patchPortNumber == null) {
+        for (KubevirtPort port : ports) {
+            if (port.ipAddress() == null) {
                 return;
             }
 
-            PortNumber tunnelPortNumber = tunnelPort(remoteNode, network);
-            if (tunnelPortNumber == null) {
+            KubevirtNetwork network = kubevirtNetworkService.network(port.networkId());
+
+            if (network == null) {
                 return;
             }
 
-            TrafficSelector.Builder sIpBuilder = DefaultTrafficSelector.builder()
-                    .matchInPort(patchPortNumber)
-                    .matchEthType(Ethernet.TYPE_IPV4)
-                    .matchIPDst(IpPrefix.valueOf(port.ipAddress(), 32));
+            if (network.type() == FLAT || network.type() == VLAN) {
+                return;
+            }
 
-            TrafficSelector.Builder sArpBuilder = DefaultTrafficSelector.builder()
-                    .matchInPort(patchPortNumber)
-                    .matchEthType(Ethernet.TYPE_ARP)
-                    .matchArpTpa(Ip4Address.valueOf(port.ipAddress().toString()));
+            if (network.segmentId() == null) {
+                return;
+            }
 
-            TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
-                    .setTunnelId(Long.parseLong(network.segmentId()))
-                    .extension(buildExtension(
-                            deviceService,
-                            remoteNode.tunBridge(),
-                            localNode.dataIp().getIp4Address()),
-                            remoteNode.tunBridge())
-                    .setOutput(tunnelPortNumber);
+            for (KubevirtNode remoteNode : kubevirtNodeService.completeNodes(WORKER)) {
+                if (remoteNode.hostname().equals(localNode.hostname())) {
+                    continue;
+                }
 
-            flowRuleService.setRule(
-                    appId,
-                    remoteNode.tunBridge(),
-                    sIpBuilder.build(),
-                    tBuilder.build(),
-                    PRIORITY_TUNNEL_RULE,
-                    TUNNEL_DEFAULT_TABLE,
-                    install);
+                PortNumber patchPortNumber = tunnelToTenantPort(remoteNode, network);
+                if (patchPortNumber == null) {
+                    return;
+                }
 
-            flowRuleService.setRule(
-                    appId,
-                    remoteNode.tunBridge(),
-                    sArpBuilder.build(),
-                    tBuilder.build(),
-                    PRIORITY_TUNNEL_RULE,
-                    TUNNEL_DEFAULT_TABLE,
-                    install);
+                PortNumber tunnelPortNumber = tunnelPort(remoteNode, network);
+                if (tunnelPortNumber == null) {
+                    return;
+                }
+
+                TrafficSelector.Builder sIpBuilder = DefaultTrafficSelector.builder()
+                        .matchInPort(patchPortNumber)
+                        .matchEthType(Ethernet.TYPE_IPV4)
+                        .matchIPDst(IpPrefix.valueOf(port.ipAddress(), 32));
+
+                TrafficSelector.Builder sArpBuilder = DefaultTrafficSelector.builder()
+                        .matchInPort(patchPortNumber)
+                        .matchEthType(Ethernet.TYPE_ARP)
+                        .matchArpTpa(Ip4Address.valueOf(port.ipAddress().toString()));
+
+                TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
+                        .setTunnelId(Long.parseLong(network.segmentId()))
+                        .extension(buildExtension(
+                                deviceService,
+                                remoteNode.tunBridge(),
+                                localNode.dataIp().getIp4Address()),
+                                remoteNode.tunBridge())
+                        .setOutput(tunnelPortNumber);
+
+                flowRuleService.setRule(
+                        appId,
+                        remoteNode.tunBridge(),
+                        sIpBuilder.build(),
+                        tBuilder.build(),
+                        PRIORITY_TUNNEL_RULE,
+                        TUNNEL_DEFAULT_TABLE,
+                        install);
+
+                flowRuleService.setRule(
+                        appId,
+                        remoteNode.tunBridge(),
+                        sArpBuilder.build(),
+                        tBuilder.build(),
+                        PRIORITY_TUNNEL_RULE,
+                        TUNNEL_DEFAULT_TABLE,
+                        install);
+            }
+
+            log.debug("Install egress rules for instance {}, segment ID {}",
+                    port.ipAddress(), network.segmentId());
         }
-
-        log.debug("Install egress rules for instance {}, segment ID {}",
-                port.ipAddress(), network.segmentId());
     }
 
     private class InternalKubevirtNodeListener implements KubevirtNodeListener {
