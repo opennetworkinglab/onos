@@ -17,6 +17,7 @@
         "required": [
           "name",
           "enableSnat",
+          "mac",
           "internal",
           "external",
           "peerRouter"
@@ -31,6 +32,11 @@
             "type": "boolean",
             "example": "true",
             "description": "Enable SNAT flag."
+          },
+          "mac": {
+            "type": "string",
+            "example": "11:22:33:44:55:66",
+            "description": "The MAC address of virtual router."
           },
           "internal": {
             "type": "array",
@@ -77,7 +83,7 @@
                 "example": "10.10.10.1",
                 "description": "IP address of the peer router"
               },
-              "macaddress": {
+              "mac": {
                 "type": "string",
                 "example": "11:22:33:44:55:66",
                 "description": "MAC address of the peer router"

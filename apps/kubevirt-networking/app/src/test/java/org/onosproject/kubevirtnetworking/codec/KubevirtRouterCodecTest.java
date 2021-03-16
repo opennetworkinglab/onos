@@ -79,6 +79,7 @@ public final class KubevirtRouterCodecTest {
         KubevirtRouter router = DefaultKubevirtRouter.builder()
                 .name("router-1")
                 .enableSnat(true)
+                .mac(MacAddress.valueOf("11:22:33:44:55:66"))
                 .description("router-1")
                 .internal(ImmutableSet.of("vlan-1"))
                 .external(ImmutableMap.of("10.10.10.20", "flat-1"))
@@ -97,6 +98,7 @@ public final class KubevirtRouterCodecTest {
         assertEquals("router-1", router.name());
         assertEquals("Example Virtual Router", router.description());
         assertTrue(router.enableSnat());
+        assertEquals("11:22:33:44:55:66", router.mac().toString());
         assertEquals("192.168.10.5",
                 router.external().keySet().stream().findAny().orElse(null));
         assertEquals("external-network", router.external().get("192.168.10.5"));
