@@ -15,6 +15,8 @@
  */
 package org.onosproject.kubevirtnetworking.api;
 
+import org.onlab.packet.MacAddress;
+
 import java.util.Map;
 import java.util.Set;
 
@@ -43,6 +45,13 @@ public interface KubevirtRouter {
      * @return true if the router support SNAT, false otherwise
      */
     boolean enableSnat();
+
+    /**
+     * Returns the MAC address.
+     *
+     * @return mac address
+     */
+    MacAddress mac();
 
     /**
      * Returns a set of internal networks.
@@ -122,6 +131,14 @@ public interface KubevirtRouter {
          * @return router builder
          */
         Builder enableSnat(boolean flag);
+
+        /**
+         * Returns kubevirt router builder with supplied MAC address.
+         *
+         * @param mac MAC address
+         * @return router builder
+         */
+        Builder mac(MacAddress mac);
 
         /**
          * Returns kubevirt router builder with supplied internal networks.

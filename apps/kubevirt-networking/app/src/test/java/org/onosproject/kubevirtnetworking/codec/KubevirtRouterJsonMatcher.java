@@ -73,6 +73,14 @@ public final class KubevirtRouterJsonMatcher extends TypeSafeDiagnosingMatcher<J
             }
         }
 
+        // check vrouter MAC
+        String jsonMac = jsonNode.get(MAC_ADDRESS).asText();
+        String mac = router.mac().toString();
+        if (!jsonMac.equals(mac)) {
+            description.appendText("MAC was " + jsonMac);
+            return false;
+        }
+
         // check internal
         JsonNode jsonInternal = jsonNode.get(INTERNAL);
         if (jsonInternal != null) {
@@ -134,10 +142,10 @@ public final class KubevirtRouterJsonMatcher extends TypeSafeDiagnosingMatcher<J
                 }
             }
 
-            JsonNode jsonMac = jsonPeerRouter.get(MAC_ADDRESS);
+            JsonNode jsonProuterMac = jsonPeerRouter.get(MAC_ADDRESS);
 
-            if (jsonMac != null) {
-                if (!jsonMac.asText().equals(router.peerRouter().macAddress().toString())) {
+            if (jsonProuterMac != null) {
+                if (!jsonProuterMac.asText().equals(router.peerRouter().macAddress().toString())) {
                     description.appendText("Peer router MAC was " + jsonMac);
                     return false;
                 }

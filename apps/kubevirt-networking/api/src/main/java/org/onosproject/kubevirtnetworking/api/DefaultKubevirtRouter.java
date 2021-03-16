@@ -18,6 +18,7 @@ package org.onosproject.kubevirtnetworking.api;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.onlab.packet.MacAddress;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,6 +38,7 @@ public final class DefaultKubevirtRouter implements KubevirtRouter {
     private final String name;
     private final String description;
     private final boolean enableSnat;
+    private final MacAddress mac;
     private final Set<String> internal;
     private final Map<String, String> external;
     private final KubevirtPeerRouter peerRouter;
@@ -48,12 +50,14 @@ public final class DefaultKubevirtRouter implements KubevirtRouter {
      * @param name          router name
      * @param description   router description
      * @param enableSnat    snat use indicator
+     * @param mac           MAC address
      * @param internal      internal networks
      * @param external      external network
      * @param peerRouter    external peer router
      * @param gateway       elected gateway node id
      */
-    public DefaultKubevirtRouter(String name, String description, boolean enableSnat,
+    public DefaultKubevirtRouter(String name, String description,
+                                 boolean enableSnat, MacAddress mac,
                                  Set<String> internal,
                                  Map<String, String> external,
                                  KubevirtPeerRouter peerRouter,
@@ -61,6 +65,7 @@ public final class DefaultKubevirtRouter implements KubevirtRouter {
         this.name = name;
         this.description = description;
         this.enableSnat = enableSnat;
+        this.mac = mac;
         this.internal = internal;
         this.external = external;
         this.peerRouter = peerRouter;
@@ -80,6 +85,11 @@ public final class DefaultKubevirtRouter implements KubevirtRouter {
     @Override
     public boolean enableSnat() {
         return enableSnat;
+    }
+
+    @Override
+    public MacAddress mac() {
+        return mac;
     }
 
     @Override
@@ -116,6 +126,7 @@ public final class DefaultKubevirtRouter implements KubevirtRouter {
                 .name(name)
                 .enableSnat(enableSnat)
                 .description(description)
+                .mac(mac)
                 .internal(internal)
                 .external(external)
                 .peerRouter(updated)
@@ -129,6 +140,7 @@ public final class DefaultKubevirtRouter implements KubevirtRouter {
                 .name(name)
                 .enableSnat(enableSnat)
                 .description(description)
+                .mac(mac)
                 .internal(internal)
                 .external(external)
                 .peerRouter(peerRouter)
@@ -146,14 +158,14 @@ public final class DefaultKubevirtRouter implements KubevirtRouter {
         }
         DefaultKubevirtRouter that = (DefaultKubevirtRouter) o;
         return enableSnat == that.enableSnat && name.equals(that.name) &&
-                description.equals(that.description) && internal.equals(that.internal) &&
-                external.equals(that.external) && peerRouter.equals(that.peerRouter) &&
-                gateway.equals(that.electedGateway());
+                description.equals(that.description) && mac.equals(that.mac) &&
+                internal.equals(that.internal) && external.equals(that.external) &&
+                peerRouter.equals(that.peerRouter) && gateway.equals(that.electedGateway());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, description, enableSnat,
+        return Objects.hash(name, description, mac, enableSnat,
                 internal, external, peerRouter, gateway);
     }
 
@@ -163,6 +175,7 @@ public final class DefaultKubevirtRouter implements KubevirtRouter {
                 .add("name", name)
                 .add("description", description)
                 .add("enableSnat", enableSnat)
+                .add("mac", mac)
                 .add("internal", internal)
                 .add("external", external)
                 .add("peerRouter", peerRouter)
@@ -184,6 +197,7 @@ public final class DefaultKubevirtRouter implements KubevirtRouter {
         private String name;
         private String description;
         private boolean enableSnat;
+        private MacAddress mac;
         private Set<String> internal;
         private Map<String, String> external;
         private KubevirtPeerRouter peerRouter;
@@ -193,7 +207,7 @@ public final class DefaultKubevirtRouter implements KubevirtRouter {
         public KubevirtRouter build() {
             checkArgument(name != null, NOT_NULL_MSG, "name");
 
-            return new DefaultKubevirtRouter(name, description, enableSnat,
+            return new DefaultKubevirtRouter(name, description, enableSnat, mac,
                     internal, external, peerRouter, gateway);
         }
 
@@ -212,6 +226,12 @@ public final class DefaultKubevirtRouter implements KubevirtRouter {
         @Override
         public Builder enableSnat(boolean flag) {
             this.enableSnat = flag;
+            return this;
+        }
+
+        @Override
+        public Builder mac(MacAddress mac) {
+            this.mac = mac;
             return this;
         }
 

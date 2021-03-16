@@ -39,6 +39,8 @@ public class DefaultKubevirtRouterTest {
     private static final String DESCRIPTION_2 = "dummy router 2";
     private static final boolean ENABLE_SNAT_1 = false;
     private static final boolean ENABLE_SNAT_2 = true;
+    private static final MacAddress MAC_ADDRESS_1 = MacAddress.valueOf("11:22:33:44:55:66");
+    private static final MacAddress MAC_ADDRESS_2 = MacAddress.valueOf("22:33:44:55:66:77");
     private static final KubevirtNetwork.Type TYPE_1 = FLAT;
     private static final KubevirtNetwork.Type TYPE_2 = VXLAN;
     private static final String NETWORK_NAME_1 = "net-1";
@@ -74,6 +76,7 @@ public class DefaultKubevirtRouterTest {
                 .name(NAME_1)
                 .description(DESCRIPTION_1)
                 .enableSnat(ENABLE_SNAT_1)
+                .mac(MAC_ADDRESS_1)
                 .internal(ImmutableSet.of(NETWORK_NAME_1))
                 .external(ImmutableMap.of("10.10.10.10", NETWORK_NAME_1))
                 .peerRouter(PEER_ROUTER_1)
@@ -83,6 +86,7 @@ public class DefaultKubevirtRouterTest {
                 .name(NAME_1)
                 .description(DESCRIPTION_1)
                 .enableSnat(ENABLE_SNAT_1)
+                .mac(MAC_ADDRESS_1)
                 .internal(ImmutableSet.of(NETWORK_NAME_1))
                 .external(ImmutableMap.of("10.10.10.10", NETWORK_NAME_1))
                 .peerRouter(PEER_ROUTER_1)
@@ -92,6 +96,7 @@ public class DefaultKubevirtRouterTest {
                 .name(NAME_2)
                 .description(DESCRIPTION_2)
                 .enableSnat(ENABLE_SNAT_2)
+                .mac(MAC_ADDRESS_2)
                 .internal(ImmutableSet.of(NETWORK_NAME_2))
                 .external(ImmutableMap.of("20.20.20.20", NETWORK_NAME_2))
                 .peerRouter(PEER_ROUTER_2)
@@ -119,6 +124,7 @@ public class DefaultKubevirtRouterTest {
         assertEquals(NAME_1, router.name());
         assertEquals(DESCRIPTION_1, router.description());
         assertEquals(ENABLE_SNAT_1, router.enableSnat());
+        assertEquals(MAC_ADDRESS_1, router.mac());
         assertEquals(ImmutableSet.of(NETWORK_NAME_1), router.internal());
         assertEquals(ImmutableMap.of("10.10.10.10", NETWORK_NAME_1), router.external());
         assertEquals(PEER_ROUTER_1, router.peerRouter());
