@@ -297,7 +297,6 @@ public class KubevirtFloatingIpHandler {
                 install);
     }
 
-
     private void setFloatingIpDownstreamRulesToGatewayTunBridge(KubevirtRouter router,
                                                                 KubevirtFloatingIp floatingIp,
                                                                 KubevirtNetwork network,
@@ -316,13 +315,13 @@ public class KubevirtFloatingIpHandler {
             log.warn("Failed to install floating Ip rules for floating ip {} " +
                     "because fail to fine the worker node that the associated port is running on",
                     floatingIp.floatingIp());
+            return;
         }
 
         PortNumber tunnelPortNumber = tunnelPort(electedGw, network);
         if (tunnelPortNumber == null) {
             return;
         }
-
 
         TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
                 .matchEthType(Ethernet.TYPE_IPV4)
@@ -357,15 +356,6 @@ public class KubevirtFloatingIpHandler {
         @Override
         public void event(KubevirtRouterEvent event) {
             switch (event.type()) {
-                case KUBEVIRT_ROUTER_CREATED:
-                    eventExecutor.execute(() -> processRouterCreation(event.subject()));
-                    break;
-                case KUBEVIRT_ROUTER_UPDATED:
-                    eventExecutor.execute(() -> processRouterUpdate(event.subject()));
-                    break;
-                case KUBEVIRT_ROUTER_REMOVED:
-                    eventExecutor.execute(() -> processRouterDeletion(event.subject()));
-                    break;
                 case KUBEVIRT_FLOATING_IP_ASSOCIATED:
                     eventExecutor.execute(() -> processFloatingIpAssociation(event.subject(),
                             event.floatingIp()));
@@ -379,42 +369,6 @@ public class KubevirtFloatingIpHandler {
                     //do nothing
                     break;
             }
-        }
-
-        private void processRouterCreation(KubevirtRouter router) {
-            if (!isRelevantHelper()) {
-                return;
-            }
-            kubevirtRouterService.floatingIpsByRouter(router.name())
-                    .stream()
-                    .filter(fip -> fip.fixedIp() != null)
-                    .forEach(fip -> {
-                        processFloatingIpAssociation(router, fip);
-                    });
-        }
-
-        private void processRouterDeletion(KubevirtRouter router) {
-            if (!isRelevantHelper()) {
-                return;
-            }
-            kubevirtRouterService.floatingIpsByRouter(router.name())
-                    .stream()
-                    .filter(fip -> fip.fixedIp() != null)
-                    .forEach(fip -> {
-                        processFloatingIpDisassociation(router, fip);
-                    });
-        }
-
-        private void processRouterUpdate(KubevirtRouter router) {
-            if (!isRelevantHelper()) {
-                return;
-            }
-            kubevirtRouterService.floatingIpsByRouter(router.name())
-                    .stream()
-                    .filter(fip -> fip.fixedIp() != null)
-                    .forEach(fip -> {
-                        processFloatingIpAssociation(router, fip);
-                    });
         }
 
         private void processFloatingIpAssociation(KubevirtRouter router, KubevirtFloatingIp floatingIp) {

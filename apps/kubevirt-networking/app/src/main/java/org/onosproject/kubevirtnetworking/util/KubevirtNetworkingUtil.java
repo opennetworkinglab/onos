@@ -42,6 +42,7 @@ import org.onosproject.kubevirtnode.api.KubevirtApiConfig;
 import org.onosproject.kubevirtnode.api.KubevirtApiConfigService;
 import org.onosproject.kubevirtnode.api.KubevirtNode;
 import org.onosproject.kubevirtnode.api.KubevirtNodeService;
+import org.onosproject.kubevirtnode.api.KubevirtPhyInterface;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
@@ -471,14 +472,6 @@ public final class KubevirtNetworkingUtil {
     }
 
     /**
-     * Returns the mac address of the br-int port of specified device.
-     *
-     * @param deviceService device service
-     * @param deviceId      device Id
-     * @return mac address of the br-int port
-     */
-
-    /**
      * Returns the mac address of the router.
      *
      * @param router kubevirt router
@@ -553,13 +546,20 @@ public final class KubevirtNetworkingUtil {
      * Returns the external patch port number with specified gateway.
      *
      * @param deviceService device service
-     * @param gatewayNode gateawy node
+     * @param gatewayNode gateway node
      * @return external patch port number
      */
     public static PortNumber externalPatchPortNum(DeviceService deviceService, KubevirtNode gatewayNode) {
+        KubevirtPhyInterface intf = gatewayNode.phyIntfs().stream().findFirst().orElse(null);
+        if (intf == null) {
+            log.warn("No external interface is attached to gateway {}", gatewayNode.hostname());
+            return null;
+        }
+
+        String patchPortName = "int-to-" + intf.network();
         Port port = deviceService.getPorts(gatewayNode.intgBridge()).stream()
                 .filter(p -> p.isEnabled() &&
-                        Objects.equals(p.annotations().value(PORT_NAME), "int-to-gateway"))
+                        Objects.equals(p.annotations().value(PORT_NAME), patchPortName))
                 .findAny().orElse(null);
 
         return port != null ? port.number() : null;

@@ -16,7 +16,6 @@
 package org.onosproject.kubevirtnode.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
@@ -372,12 +371,8 @@ public final class KubevirtNodeUtil {
                 nodeType = GATEWAY;
                 gatewayBridgeName = jsonNode.get(GATEWAY_BRIDGE_NAME).asText();
             }
-        } catch (JSONException e) {
-            log.error("Failed to parse physnet config or gateway config object because of{}", e);
-        } catch (JsonMappingException e) {
-            log.error("Failed to parse physnet config or gateway config object because of{}", e);
-        } catch (JsonProcessingException e) {
-            log.error("Failed to parse physnet config or gateway config object because of{}", e);
+        } catch (JSONException | JsonProcessingException e) {
+            log.error("Failed to parse physnet config or gateway config object", e);
         }
 
         return DefaultKubevirtNode.builder()
