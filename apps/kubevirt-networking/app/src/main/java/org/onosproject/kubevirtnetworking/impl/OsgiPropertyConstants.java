@@ -28,4 +28,7 @@ public final class OsgiPropertyConstants {
 
     static final String DHCP_SERVER_MAC = "dhcpServerMac";
     static final String DHCP_SERVER_MAC_DEFAULT = "fe:00:00:00:00:02";
+
+    static final String USE_SECURITY_GROUP = "useSecurityGroup";
+    static final boolean USE_SECURITY_GROUP_DEFAULT = true;
 }

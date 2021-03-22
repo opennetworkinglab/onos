@@ -48,4 +48,11 @@ public interface KubevirtNetworkService
      * @return set of kubevirt networks
      */
     Set<KubevirtNetwork> networks(Type type);
+
+    /**
+     * Returns all kubevirt tenant networks.
+     *
+     * @return set of kubevirt tenant networks
+     */
+    Set<KubevirtNetwork> tenantNetworks();
 }

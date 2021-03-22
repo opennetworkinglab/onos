@@ -16,12 +16,17 @@
 package org.onosproject.kubevirtnetworking.api;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableSet;
+import org.onlab.osgi.DefaultServiceDirectory;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
+import org.onosproject.kubevirtnode.api.KubevirtNode;
+import org.onosproject.kubevirtnode.api.KubevirtNodeService;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 
 import java.util.Objects;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -37,6 +42,7 @@ public final class DefaultKubevirtPort implements KubevirtPort {
     private final IpAddress ipAddress;
     private final DeviceId deviceId;
     private final PortNumber portNumber;
+    private final Set<String> securityGroups;
 
     /**
      * Default constructor.
@@ -46,14 +52,16 @@ public final class DefaultKubevirtPort implements KubevirtPort {
      * @param ipAddress         IP address
      * @param deviceId          device identifier
      * @param portNumber        port number
+     * @param securityGroups    security groups
      */
     public DefaultKubevirtPort(String networkId, MacAddress macAddress, IpAddress ipAddress,
-                               DeviceId deviceId, PortNumber portNumber) {
+                               DeviceId deviceId, PortNumber portNumber, Set<String> securityGroups) {
         this.networkId = networkId;
         this.macAddress = macAddress;
         this.ipAddress = ipAddress;
         this.deviceId = deviceId;
         this.portNumber = portNumber;
+        this.securityGroups = securityGroups;
     }
 
     @Override
@@ -77,6 +85,27 @@ public final class DefaultKubevirtPort implements KubevirtPort {
     }
 
     @Override
+    public DeviceId tenantDeviceId() {
+        KubevirtNetworkService networkService =
+                DefaultServiceDirectory.getService(KubevirtNetworkService.class);
+        KubevirtNodeService nodeService =
+                DefaultServiceDirectory.getService(KubevirtNodeService.class);
+        KubevirtNetwork network = networkService.network(networkId);
+        KubevirtNode node = nodeService.node(deviceId);
+        return network.tenantDeviceId(node.hostname());
+    }
+
+    @Override
+    public boolean isTenant() {
+        KubevirtNetworkService networkService =
+                DefaultServiceDirectory.getService(KubevirtNetworkService.class);
+        KubevirtNetwork network = networkService.network(networkId);
+        return network.type() == KubevirtNetwork.Type.VXLAN ||
+                network.type() == KubevirtNetwork.Type.GRE ||
+                network.type() == KubevirtNetwork.Type.GENEVE;
+    }
+
+    @Override
     public PortNumber portNumber() {
         return portNumber;
     }
@@ -89,6 +118,7 @@ public final class DefaultKubevirtPort implements KubevirtPort {
                 .ipAddress(updateIpAddress)
                 .deviceId(deviceId)
                 .portNumber(portNumber)
+                .securityGroups(securityGroups)
                 .build();
     }
 
@@ -100,6 +130,7 @@ public final class DefaultKubevirtPort implements KubevirtPort {
                 .ipAddress(ipAddress)
                 .deviceId(deviceId)
                 .portNumber(updatedPortNumber)
+                .securityGroups(securityGroups)
                 .build();
     }
 
@@ -111,6 +142,28 @@ public final class DefaultKubevirtPort implements KubevirtPort {
                 .ipAddress(ipAddress)
                 .deviceId(updatedDeviceId)
                 .portNumber(portNumber)
+                .securityGroups(securityGroups)
+                .build();
+    }
+
+    @Override
+    public Set<String> securityGroups() {
+        if (securityGroups != null) {
+            return ImmutableSet.copyOf(securityGroups);
+        } else {
+            return ImmutableSet.of();
+        }
+    }
+
+    @Override
+    public KubevirtPort updateSecurityGroups(Set<String> sgs) {
+        return new Builder()
+                .networkId(networkId)
+                .macAddress(macAddress)
+                .ipAddress(ipAddress)
+                .deviceId(deviceId)
+                .portNumber(portNumber)
+                .securityGroups(sgs)
                 .build();
     }
 
@@ -125,12 +178,12 @@ public final class DefaultKubevirtPort implements KubevirtPort {
         DefaultKubevirtPort that = (DefaultKubevirtPort) o;
         return networkId.equals(that.networkId) && macAddress.equals(that.macAddress) &&
                 ipAddress.equals(that.ipAddress) && deviceId.equals(that.deviceId) &&
-                portNumber.equals(that.portNumber);
+                portNumber.equals(that.portNumber) && securityGroups.equals(that.securityGroups);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(networkId, macAddress, ipAddress, deviceId, portNumber);
+        return Objects.hash(networkId, macAddress, ipAddress, deviceId, portNumber, securityGroups);
     }
 
     @Override
@@ -141,6 +194,7 @@ public final class DefaultKubevirtPort implements KubevirtPort {
                 .add("ipAddress", ipAddress)
                 .add("deviceId", deviceId)
                 .add("portNumber", portNumber)
+                .add("securityGroups", securityGroups)
                 .toString();
     }
 
@@ -163,6 +217,7 @@ public final class DefaultKubevirtPort implements KubevirtPort {
         private IpAddress ipAddress;
         private DeviceId deviceId;
         private PortNumber portNumber;
+        private Set<String> securityGroups;
 
         // private constructor not intended to use from external
         private Builder() {
@@ -174,7 +229,7 @@ public final class DefaultKubevirtPort implements KubevirtPort {
             checkArgument(macAddress != null, NOT_NULL_MSG, "macAddress");
 
             return new DefaultKubevirtPort(networkId, macAddress, ipAddress,
-                    deviceId, portNumber);
+                    deviceId, portNumber, securityGroups);
         }
 
         @Override
@@ -204,6 +259,12 @@ public final class DefaultKubevirtPort implements KubevirtPort {
         @Override
         public Builder portNumber(PortNumber portNumber) {
             this.portNumber = portNumber;
+            return this;
+        }
+
+        @Override
+        public Builder securityGroups(Set<String> securityGroups) {
+            this.securityGroups = securityGroups;
             return this;
         }
     }

@@ -15,6 +15,7 @@
  */
 package org.onosproject.kubevirtnetworking.api;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.testing.EqualsTester;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,6 +23,8 @@ import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
+
+import java.util.Set;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.onlab.junit.ImmutableClassChecker.assertThatClassIsImmutable;
@@ -40,6 +43,8 @@ public class DefaultKubevirtPortTest {
     private static final DeviceId DEVICE_ID_2 = DeviceId.deviceId("of:000000000000002");
     private static final PortNumber PORT_NUMBER_1 = PortNumber.portNumber(1);
     private static final PortNumber PORT_NUMBER_2 = PortNumber.portNumber(2);
+    private static final Set<String> SGS_1 = ImmutableSet.of("1");
+    private static final Set<String> SGS_2 = ImmutableSet.of("2");
 
     private KubevirtPort port1;
     private KubevirtPort sameAsPort1;
@@ -64,6 +69,7 @@ public class DefaultKubevirtPortTest {
                 .ipAddress(IP_ADDRESS_1)
                 .deviceId(DEVICE_ID_1)
                 .portNumber(PORT_NUMBER_1)
+                .securityGroups(SGS_1)
                 .build();
 
         sameAsPort1 = DefaultKubevirtPort.builder()
@@ -72,6 +78,7 @@ public class DefaultKubevirtPortTest {
                 .ipAddress(IP_ADDRESS_1)
                 .deviceId(DEVICE_ID_1)
                 .portNumber(PORT_NUMBER_1)
+                .securityGroups(SGS_1)
                 .build();
 
         port2 = DefaultKubevirtPort.builder()
@@ -80,6 +87,7 @@ public class DefaultKubevirtPortTest {
                 .ipAddress(IP_ADDRESS_2)
                 .deviceId(DEVICE_ID_2)
                 .portNumber(PORT_NUMBER_2)
+                .securityGroups(SGS_2)
                 .build();
     }
 
@@ -105,5 +113,6 @@ public class DefaultKubevirtPortTest {
         assertEquals(IP_ADDRESS_1, port.ipAddress());
         assertEquals(DEVICE_ID_1, port.deviceId());
         assertEquals(PORT_NUMBER_1, port.portNumber());
+        assertEquals(SGS_1, port.securityGroups());
     }
 }

@@ -34,7 +34,7 @@ public final class Constants {
     public static final String TENANT_TO_TUNNEL_PREFIX = "i-to-t-";
     public static final String TUNNEL_TO_TENANT_PREFIX = "t-to-i-";
 
-    // flow table index
+    // provider and VLAN integration bridge flow table index
     public static final int STAT_INBOUND_TABLE = 0;
     public static final int VTAP_INBOUND_TABLE = 1;
     public static final int STAT_FLAT_OUTBOUND_TABLE = 10;
@@ -44,9 +44,9 @@ public final class Constants {
     public static final int FLAT_TABLE = 32;
     public static final int ARP_TABLE = 35;
     public static final int ACL_EGRESS_TABLE = 40;
-    public static final int ACL_INGRESS_TABLE = 44;
-    public static final int CT_TABLE = 45;
     public static final int ACL_RECIRC_TABLE = 43;
+    public static final int ACL_INGRESS_TABLE = 44;
+    public static final int ACL_CT_TABLE = 45;
     public static final int JUMP_TABLE = 50;
     public static final int ROUTING_TABLE = 60;
     public static final int STAT_OUTBOUND_TABLE = 70;
@@ -54,11 +54,15 @@ public final class Constants {
     public static final int FORWARDING_TABLE = 80;
     public static final int ERROR_TABLE = 100;
 
-    // tenant integration bridge flow table index
+    // tenant (VXLAN/GRE/GENEVE) integration bridge flow table index
     public static final int TENANT_INBOUND_TABLE = 0;
     public static final int TENANT_DHCP_TABLE = 5;
     public static final int TENANT_ARP_TABLE = 30;
     public static final int TENANT_ICMP_TABLE = 35;
+    public static final int TENANT_ACL_EGRESS_TABLE = 40;
+    public static final int TENANT_ACL_RECIRC_TABLE = 43;
+    public static final int TENANT_ACL_INGRESS_TABLE = 44;
+    public static final int TENANT_ACL_CT_TABLE = 45;
     public static final int TENANT_FORWARDING_TABLE = 80;
 
     // tunnel bridge flow table index
@@ -69,7 +73,16 @@ public final class Constants {
     public static final int PRIORITY_FORWARDING_RULE = 30000;
     public static final int PRIORITY_DHCP_RULE = 42000;
     public static final int PRIORITY_ARP_GATEWAY_RULE = 41000;
+    public static final int PRIORITY_ARP_DEFAULT_RULE = 40000;
     public static final int PRIORITY_TUNNEL_RULE = 31000;
+
+    public static final int PRIORITY_IP_INGRESS_RULE = 19000;
+    public static final int PRIORITY_IP_EGRESS_RULE = 18000;
+    public static final int PRIORITY_ACL_RULE = 31000;
+    public static final int PRIORITY_ACL_INGRESS_RULE = 30000;
+    public static final int PRIORITY_CT_HOOK_RULE = 30500;
+    public static final int PRIORITY_CT_RULE = 32000;
+    public static final int PRIORITY_CT_DROP_RULE = 32500;
 
     // CLI item length
     public static final int CLI_ID_LENGTH = 30;

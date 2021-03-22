@@ -30,6 +30,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static org.onosproject.kubevirtnetworking.api.Constants.TENANT_TO_TUNNEL_PREFIX;
 import static org.onosproject.kubevirtnetworking.api.Constants.TUNNEL_TO_TENANT_PREFIX;
 import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.FLAT;
 import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.GENEVE;
@@ -157,9 +158,7 @@ public final class DefaultKubevirtNetwork implements KubevirtNetwork {
     public DeviceId tenantDeviceId(String hostname) {
         if (type == VXLAN || type == GRE || type == GENEVE) {
             String dpid = genDpidFromName(tenantBridgeName() + "-" + hostname);
-            if (dpid != null) {
-                return DeviceId.deviceId(dpid);
-            }
+            return DeviceId.deviceId(dpid);
         }
         return null;
     }
@@ -167,6 +166,17 @@ public final class DefaultKubevirtNetwork implements KubevirtNetwork {
     @Override
     public PortNumber tunnelToTenantPort(DeviceId deviceId) {
         String portName = TUNNEL_TO_TENANT_PREFIX + segmentIdHex(segmentId);
+        Port port = port(deviceId, portName);
+        if (port == null) {
+            return null;
+        } else {
+            return port.number();
+        }
+    }
+
+    @Override
+    public PortNumber tenantToTunnelPort(DeviceId deviceId) {
+        String portName = TENANT_TO_TUNNEL_PREFIX + segmentIdHex(segmentId);
         Port port = port(deviceId, portName);
         if (port == null) {
             return null;

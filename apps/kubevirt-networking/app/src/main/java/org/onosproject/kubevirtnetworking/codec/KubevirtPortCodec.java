@@ -16,6 +16,7 @@
 package org.onosproject.kubevirtnetworking.codec;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
@@ -40,6 +41,7 @@ public final class KubevirtPortCodec extends JsonCodec<KubevirtPort> {
     private static final String IP_ADDRESS = "ipAddress";
     private static final String DEVICE_ID = "deviceId";
     private static final String PORT_NUMBER = "portNumber";
+    private static final String SECURITY_GROUPS = "securityGroups";
 
     private static final String MISSING_MESSAGE = " is required in KubevirtPort";
 
@@ -61,6 +63,14 @@ public final class KubevirtPortCodec extends JsonCodec<KubevirtPort> {
 
         if (port.portNumber() != null) {
             result.put(PORT_NUMBER, port.portNumber().toString());
+        }
+
+        if (port.securityGroups() != null) {
+            ArrayNode sgIds = context.mapper().createArrayNode();
+            for (String sgId : port.securityGroups()) {
+                sgIds.add(sgId);
+            }
+            result.set(SECURITY_GROUPS, sgIds);
         }
 
         return result;

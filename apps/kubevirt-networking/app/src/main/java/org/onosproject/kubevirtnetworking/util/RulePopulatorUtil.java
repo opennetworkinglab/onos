@@ -15,15 +15,19 @@
  */
 package org.onosproject.kubevirtnetworking.util;
 
+import com.google.common.collect.Maps;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.TpPort;
 import org.onosproject.net.Device;
 import org.onosproject.net.DeviceId;
+import org.onosproject.net.behaviour.ExtensionSelectorResolver;
 import org.onosproject.net.behaviour.ExtensionTreatmentResolver;
 import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.driver.DriverHandler;
 import org.onosproject.net.driver.DriverService;
+import org.onosproject.net.flow.criteria.ExtensionSelector;
+import org.onosproject.net.flow.criteria.ExtensionSelectorType;
 import org.onosproject.net.flow.instructions.ExtensionPropertyException;
 import org.onosproject.net.flow.instructions.ExtensionTreatment;
 import org.onosproject.net.flow.instructions.ExtensionTreatmentType;
@@ -31,6 +35,8 @@ import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_LOAD;
 import static org.onosproject.net.flow.instructions.ExtensionTreatmentType.ExtensionTreatmentTypes.NICIRA_MOV_ARP_SHA_TO_THA;
@@ -254,6 +260,185 @@ public final class RulePopulatorUtil {
             log.warn("Failed to get tunnelDst extension treatment for {} " +
                     "because of {}", deviceId, e);
             return null;
+        }
+    }
+
+
+    /**
+     * Builds OVS ConnTrack matches.
+     *
+     * @param driverService driver service
+     * @param deviceId device ID
+     * @param ctState connection tracking sate masking value
+     * @param ctSateMask connection tracking sate masking value
+     * @return OVS ConnTrack extension match
+     */
+    public static ExtensionSelector buildCtExtensionSelector(DriverService driverService,
+                                                             DeviceId deviceId,
+                                                             long ctState,
+                                                             long ctSateMask) {
+        DriverHandler handler = driverService.createHandler(deviceId);
+        ExtensionSelectorResolver esr = handler.behaviour(ExtensionSelectorResolver.class);
+
+        ExtensionSelector extensionSelector = esr.getExtensionSelector(
+                ExtensionSelectorType.ExtensionSelectorTypes.NICIRA_MATCH_CONNTRACK_STATE.type());
+        try {
+            extensionSelector.setPropertyValue(CT_STATE, ctState);
+            extensionSelector.setPropertyValue(CT_STATE_MASK, ctSateMask);
+        } catch (Exception e) {
+            log.error("Failed to set nicira match CT state because of {}", e);
+            return null;
+        }
+
+        return extensionSelector;
+    }
+
+    /**
+     * Computes ConnTack State flag values.
+     *
+     * @param isTracking true for +trk, false for -trk
+     * @param isNew true for +new, false for nothing
+     * @param isEstablished true for +est, false for nothing
+     * @return ConnTrack State flags
+     */
+    public static long computeCtStateFlag(boolean isTracking,
+                                          boolean isNew,
+                                          boolean isEstablished) {
+        long ctMaskFlag = 0x00;
+
+        if (isTracking) {
+            ctMaskFlag = ctMaskFlag | CT_STATE_TRK;
+        }
+
+        if (isNew) {
+            ctMaskFlag = ctMaskFlag | CT_STATE_TRK;
+            ctMaskFlag = ctMaskFlag | CT_STATE_NEW;
+        }
+
+        if (isEstablished) {
+            ctMaskFlag = ctMaskFlag | CT_STATE_TRK;
+            ctMaskFlag = ctMaskFlag | CT_STATE_EST;
+        }
+
+        return ctMaskFlag;
+    }
+
+    /**
+     * Computes ConnTrack State mask values.
+     *
+     * @param isTracking true for setting +trk/-trk value, false for otherwise
+     * @param isNew true for setting +new value, false for otherwise
+     * @param isEstablished true for setting +est value, false for otherwise
+     * @return ConnTrack State Mask value
+     */
+    public static long computeCtMaskFlag(boolean isTracking,
+                                         boolean isNew,
+                                         boolean isEstablished) {
+        long ctMaskFlag = 0x00;
+
+        if (isTracking) {
+            ctMaskFlag = ctMaskFlag | CT_STATE_TRK;
+        }
+
+        if (isNew) {
+            ctMaskFlag = ctMaskFlag | CT_STATE_TRK;
+            ctMaskFlag = ctMaskFlag | CT_STATE_NEW;
+        }
+
+        if (isEstablished) {
+            ctMaskFlag = ctMaskFlag | CT_STATE_TRK;
+            ctMaskFlag = ctMaskFlag | CT_STATE_EST;
+        }
+
+        return ctMaskFlag;
+    }
+
+    /**
+     * Computes port and port mask value from port min/max values.
+     *
+     * @param portMin port min value
+     * @param portMax port max value
+     * @return Port Mask value
+     */
+    public static Map<TpPort, TpPort> buildPortRangeMatches(int portMin, int portMax) {
+
+        boolean processing = true;
+        int start = portMin;
+        Map<TpPort, TpPort> portMaskMap = Maps.newHashMap();
+        while (processing) {
+            String minStr = Integer.toBinaryString(start);
+            String binStrMinPadded = STR_PADDING.substring(minStr.length()) + minStr;
+
+            int mask = testMasks(binStrMinPadded, start, portMax);
+            int maskStart = binLower(binStrMinPadded, mask);
+            int maskEnd = binHigher(binStrMinPadded, mask);
+
+            log.debug("start : {} port/mask = {} / {} ", start, getMask(mask), maskStart);
+            portMaskMap.put(TpPort.tpPort(maskStart), TpPort.tpPort(
+                    Integer.parseInt(Objects.requireNonNull(getMask(mask)), PORT_RADIX)));
+
+            start = maskEnd + 1;
+            if (start > portMax) {
+                processing = false;
+            }
+        }
+
+        return portMaskMap;
+    }
+
+    private static int binLower(String binStr, int bits) {
+        StringBuilder outBin = new StringBuilder(
+                binStr.substring(MASK_BEGIN_IDX, MASK_MAX_IDX - bits));
+        for (int i = 0; i < bits; i++) {
+            outBin.append(STR_ZERO);
+        }
+
+        return Integer.parseInt(outBin.toString(), MASK_RADIX);
+    }
+
+    private static int binHigher(String binStr, int bits) {
+        StringBuilder outBin = new StringBuilder(
+                binStr.substring(MASK_BEGIN_IDX, MASK_MAX_IDX - bits));
+        for (int i = 0; i < bits; i++) {
+            outBin.append(STR_ONE);
+        }
+
+        return Integer.parseInt(outBin.toString(), MASK_RADIX);
+    }
+
+    private static int testMasks(String binStr, int start, int end) {
+        int mask = MASK_BEGIN_IDX;
+        for (; mask <= MASK_MAX_IDX; mask++) {
+            int maskStart = binLower(binStr, mask);
+            int maskEnd = binHigher(binStr, mask);
+            if (maskStart < start || maskEnd > end) {
+                return mask - 1;
+            }
+        }
+
+        return mask;
+    }
+
+    private static String getMask(int bits) {
+        switch (bits) {
+            case 0:  return "ffff";
+            case 1:  return "fffe";
+            case 2:  return "fffc";
+            case 3:  return "fff8";
+            case 4:  return "fff0";
+            case 5:  return "ffe0";
+            case 6:  return "ffc0";
+            case 7:  return "ff80";
+            case 8:  return "ff00";
+            case 9:  return "fe00";
+            case 10: return "fc00";
+            case 11: return "f800";
+            case 12: return "f000";
+            case 13: return "e000";
+            case 14: return "c000";
+            case 15: return "8000";
+            case 16: return "0000";
+            default: return null;
         }
     }
 

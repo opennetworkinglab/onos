@@ -20,6 +20,8 @@ import org.onlab.packet.MacAddress;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.PortNumber;
 
+import java.util.Set;
+
 /**
  * Representation of virtual port.
  */
@@ -54,6 +56,20 @@ public interface KubevirtPort {
     DeviceId deviceId();
 
     /**
+     * Returns the tenant device ID of the port.
+     *
+     * @return device ID
+     */
+    DeviceId tenantDeviceId();
+
+    /**
+     * Returns the result whether the port is associated with the tenant network.
+     *
+     * @return true if the port is associated with tenant network, false otherwise
+     */
+    boolean isTenant();
+
+    /**
      * Returns the port number of the port.
      *
      * @return port number
@@ -83,6 +99,21 @@ public interface KubevirtPort {
      * @return updated port
      */
     KubevirtPort updateDeviceId(DeviceId updatedDeviceId);
+
+    /**
+     * Returns the security group IDs.
+     *
+     * @return security group identifiers.
+     */
+    Set<String> securityGroups();
+
+    /**
+     * Returns new port instance with the given security groups.
+     *
+     * @param sgs security groups
+     * @return updated port
+     */
+    KubevirtPort updateSecurityGroups(Set<String> sgs);
 
     /**
      * Builder of new port.
@@ -135,5 +166,13 @@ public interface KubevirtPort {
          * @return port builder
          */
         Builder portNumber(PortNumber portNumber);
+
+        /**
+         * Returns port builder with supplied security group identifiers.
+         *
+         * @param securityGroups security group identifiers
+         * @return port builder
+         */
+        Builder securityGroups(Set<String> securityGroups);
     }
 }
