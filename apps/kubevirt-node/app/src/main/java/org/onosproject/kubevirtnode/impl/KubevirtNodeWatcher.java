@@ -44,6 +44,7 @@ import java.util.concurrent.ExecutorService;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.GATEWAY;
+import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.MASTER;
 import static org.onosproject.kubevirtnode.api.KubevirtNode.Type.WORKER;
 import static org.onosproject.kubevirtnode.api.KubevirtNodeService.APP_ID;
 import static org.onosproject.kubevirtnode.api.KubevirtNodeState.INIT;
@@ -203,18 +204,29 @@ public class KubevirtNodeWatcher {
             log.trace("Process node {} updating event from API server.",
                     node.getMetadata().getName());
 
+            KubevirtNode original = buildKubevirtNode(node);
             KubevirtNode existing = kubevirtNodeAdminService.node(node.getMetadata().getName());
 
-            if (existing != null) {
-                KubevirtNode kubevirtNode = buildKubevirtNode(node);
+            // if a master node is annotated as a gateway node, we simply add
+            // the node into the cluster
+            if (original.type() == GATEWAY && existing == null) {
+                kubevirtNodeAdminService.createNode(original);
+            }
 
+            // if a gateway annotation removed from the master node, we simply remove
+            // the node from the cluster
+            if (original.type() == MASTER && existing != null && existing.type() == GATEWAY) {
+                kubevirtNodeAdminService.removeNode(original.hostname());
+            }
+
+            if (existing != null) {
                 // we update the kubevirt node and re-run bootstrapping,
-                // only if the updated node has different phyInts and data IP
+                // if the updated node has different phyInts and data IP
                 // this means we assume that the node's hostname, type and mgmt IP
                 // are immutable
-                if (!kubevirtNode.phyIntfs().equals(existing.phyIntfs()) ||
-                        !kubevirtNode.dataIp().equals(existing.dataIp())) {
-                    kubevirtNodeAdminService.updateNode(kubevirtNode.updateState(INIT));
+                if (!original.phyIntfs().equals(existing.phyIntfs()) ||
+                        !original.dataIp().equals(existing.dataIp())) {
+                    kubevirtNodeAdminService.updateNode(original.updateState(INIT));
                 }
             }
         }
