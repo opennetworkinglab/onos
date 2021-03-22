@@ -15,6 +15,7 @@
  */
 package org.onosproject.kubevirtnetworking.api;
 
+import org.onlab.packet.MacAddress;
 import org.onosproject.event.AbstractEvent;
 
 import java.util.Set;
@@ -33,6 +34,7 @@ public class KubevirtRouterEvent extends AbstractEvent<KubevirtRouterEvent.Type,
     private final String externalNet;
     private final String peerRouterIp;
     private final String gateway;
+    private final MacAddress peerRouterMac;
 
     /**
      * Creates an event of a given type for the specified kubevirt router.
@@ -49,6 +51,7 @@ public class KubevirtRouterEvent extends AbstractEvent<KubevirtRouterEvent.Type,
         this.externalNet = null;
         this.peerRouterIp = null;
         this.gateway = null;
+        this.peerRouterMac = null;
     }
 
     /**
@@ -67,7 +70,7 @@ public class KubevirtRouterEvent extends AbstractEvent<KubevirtRouterEvent.Type,
         this.externalNet = null;
         this.peerRouterIp = null;
         this.gateway = null;
-
+        this.peerRouterMac = null;
     }
 
     /**
@@ -87,6 +90,7 @@ public class KubevirtRouterEvent extends AbstractEvent<KubevirtRouterEvent.Type,
         this.externalNet = null;
         this.peerRouterIp = null;
         this.gateway = null;
+        this.peerRouterMac = null;
     }
 
     /**
@@ -105,6 +109,7 @@ public class KubevirtRouterEvent extends AbstractEvent<KubevirtRouterEvent.Type,
         this.externalNet = null;
         this.peerRouterIp = null;
         this.gateway = null;
+        this.peerRouterMac = null;
     }
 
     /**
@@ -115,10 +120,11 @@ public class KubevirtRouterEvent extends AbstractEvent<KubevirtRouterEvent.Type,
      * @param externalIp    virtual router's IP address included in external network
      * @param externalNet   external network name
      * @param peerRouterIp  external peer router IP address
+     * @param peerRouterMac external peer router MAC address
      */
     public KubevirtRouterEvent(Type type, KubevirtRouter subject,
                                String externalIp, String externalNet,
-                               String peerRouterIp) {
+                               String peerRouterIp, MacAddress peerRouterMac) {
         super(type, subject);
         this.internal = null;
         this.podName = null;
@@ -127,6 +133,7 @@ public class KubevirtRouterEvent extends AbstractEvent<KubevirtRouterEvent.Type,
         this.externalNet = externalNet;
         this.peerRouterIp = peerRouterIp;
         this.gateway = null;
+        this.peerRouterMac = peerRouterMac;
     }
 
     public KubevirtRouterEvent(Type type, KubevirtRouter subject,
@@ -139,6 +146,7 @@ public class KubevirtRouterEvent extends AbstractEvent<KubevirtRouterEvent.Type,
         this.externalIp = null;
         this.externalNet = null;
         this.peerRouterIp = null;
+        this.peerRouterMac = null;
     }
 
     public enum Type {
@@ -268,6 +276,23 @@ public class KubevirtRouterEvent extends AbstractEvent<KubevirtRouterEvent.Type,
      */
     public String gateway() {
         return gateway;
+    }
+
+    /**
+     * Returns the external peer router IP address.
+     *
+     * @return external peer router IP if exists, null otherwise
+     */
+    public String externalPeerRouterIp() {
+        return peerRouterIp;
+    }
+    /**
+     * Returns the external peer router MAC address.
+     *
+     * @return external peer router MAC if exists, null otherwise
+     */
+    public MacAddress peerRouterMac() {
+        return peerRouterMac;
     }
 
     @Override

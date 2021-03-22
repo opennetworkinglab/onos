@@ -42,7 +42,6 @@ import org.onosproject.kubevirtnode.api.KubevirtApiConfig;
 import org.onosproject.kubevirtnode.api.KubevirtApiConfigService;
 import org.onosproject.kubevirtnode.api.KubevirtNode;
 import org.onosproject.kubevirtnode.api.KubevirtNodeService;
-import org.onosproject.kubevirtnode.api.KubevirtPhyInterface;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
@@ -550,13 +549,13 @@ public final class KubevirtNetworkingUtil {
      * @return external patch port number
      */
     public static PortNumber externalPatchPortNum(DeviceService deviceService, KubevirtNode gatewayNode) {
-        KubevirtPhyInterface intf = gatewayNode.phyIntfs().stream().findFirst().orElse(null);
-        if (intf == null) {
+        String gatewayBridgeName = gatewayNode.gatewayBridgeName();
+        if (gatewayBridgeName == null) {
             log.warn("No external interface is attached to gateway {}", gatewayNode.hostname());
             return null;
         }
 
-        String patchPortName = "int-to-" + intf.network();
+        String patchPortName = "int-to-" + gatewayBridgeName;
         Port port = deviceService.getPorts(gatewayNode.intgBridge()).stream()
                 .filter(p -> p.isEnabled() &&
                         Objects.equals(p.annotations().value(PORT_NAME), patchPortName))
