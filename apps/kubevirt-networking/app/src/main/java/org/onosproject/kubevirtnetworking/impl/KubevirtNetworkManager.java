@@ -21,6 +21,7 @@ import org.onlab.packet.IpAddress;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.event.ListenerRegistry;
+import org.onosproject.kubevirtnetworking.api.KubevirtFlowRuleService;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetwork;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetworkAdminService;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetworkEvent;
@@ -28,6 +29,10 @@ import org.onosproject.kubevirtnetworking.api.KubevirtNetworkListener;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetworkService;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetworkStore;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetworkStoreDelegate;
+import org.onosproject.kubevirtnetworking.api.KubevirtRouterService;
+import org.onosproject.kubevirtnode.api.KubevirtNodeService;
+import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.packet.PacketService;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -72,7 +77,22 @@ public class KubevirtNetworkManager
     protected CoreService coreService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected DeviceService deviceService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected KubevirtNetworkStore networkStore;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected KubevirtRouterService routerService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected KubevirtNodeService kubevirtNodeService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected PacketService packetService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected KubevirtFlowRuleService kubevirtFlowRuleService;
 
     private final KubevirtNetworkStoreDelegate delegate = new InternalNetworkStorageDelegate();
 

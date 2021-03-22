@@ -84,7 +84,6 @@ import static org.onlab.packet.ICMP.CODE_ECHO_REQEUST;
 import static org.onlab.packet.ICMP.TYPE_ECHO_REPLY;
 import static org.onlab.packet.ICMP.TYPE_ECHO_REQUEST;
 import static org.onlab.util.Tools.groupedThreads;
-import static org.onosproject.kubevirtnetworking.api.Constants.FLAT_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.FORWARDING_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.KUBEVIRT_NETWORKING_APP_ID;
 import static org.onosproject.kubevirtnetworking.api.Constants.PRE_FLAT_TABLE;
@@ -664,7 +663,6 @@ public class KubevirtNetworkHandler {
                                                                 KubevirtPort dstPort,
                                                                 KubevirtNode gatewayNode,
                                                                 boolean install) {
-
         Device gwDevice = deviceService.getDevice(gatewayNode.intgBridge());
 
         if (gwDevice == null) {
@@ -699,7 +697,7 @@ public class KubevirtNetworkHandler {
                 sBuilder.build(),
                 treatment,
                 PRIORITY_INTERNAL_ROUTING_RULE,
-                FLAT_TABLE,
+                PRE_FLAT_TABLE,
                 install
         );
     }
