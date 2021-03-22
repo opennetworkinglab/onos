@@ -42,10 +42,14 @@ import org.onosproject.net.pi.service.PiPipeconfService;
 import org.onosproject.net.pi.service.PiPipeconfWatchdogEvent;
 import org.onosproject.net.pi.service.PiPipeconfWatchdogListener;
 import org.onosproject.net.pi.service.PiPipeconfWatchdogService;
+import org.onosproject.store.primitives.DefaultDistributedSet;
 import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.DistributedPrimitive;
+import org.onosproject.store.service.DistributedSet;
 import org.onosproject.store.service.EventuallyConsistentMap;
 import org.onosproject.store.service.EventuallyConsistentMapEvent;
 import org.onosproject.store.service.EventuallyConsistentMapListener;
+import org.onosproject.store.service.Serializer;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.WallClockTimestamp;
 import org.osgi.service.component.ComponentContext;
@@ -129,11 +133,20 @@ public class PiPipeconfWatchdogManager
     private EventuallyConsistentMap<DeviceId, PipelineStatus> statusMap;
     private Map<DeviceId, PipelineStatus> localStatusMap;
 
+    // Configured devices by this cluster. We use a set to keep track of all devices for which
+    // we have pushed the forwarding pipeline config at least once. This guarantees that device
+    // pipelines are wiped out/reset at least once when starting the cluster, minimizing the risk
+    // of any stale state from previous runs affecting control operations. Another effect of this
+    // approach is that the default entries mirror will get populated even though the pipeline results
+    // to be the same across different ONOS installations.
+    private static final String CONFIGURED_DEVICES = "onos-pipeconf-configured-set";
+    private DistributedSet<DeviceId> configuredDevices;
+
     @Activate
     public void activate() {
         eventDispatcher.addSink(PiPipeconfWatchdogEvent.class, listenerRegistry);
         localStatusMap = Maps.newConcurrentMap();
-        // Init distributed status map.
+        // Init distributed status map and configured devices set
         KryoNamespace.Builder serializer = KryoNamespace.newBuilder()
                 .register(KryoNamespaces.API)
                 .register(PipelineStatus.class);
@@ -142,6 +155,12 @@ public class PiPipeconfWatchdogManager
                 .withSerializer(serializer)
                 .withTimestampProvider((k, v) -> new WallClockTimestamp()).build();
         statusMap.addListener(new StatusMapListener());
+        // Init the set of the configured devices
+        configuredDevices = new DefaultDistributedSet<>(storageService.<DeviceId>setBuilder()
+                .withName(CONFIGURED_DEVICES)
+                .withSerializer(Serializer.using(KryoNamespaces.API))
+                .build(),
+                DistributedPrimitive.DEFAULT_OPERATION_TIMEOUT_MILLIS);
         // Register component configurable properties.
         componentConfigService.registerProperties(getClass());
         // Start periodic watchdog task.
@@ -230,6 +249,7 @@ public class PiPipeconfWatchdogManager
                 final boolean success = doSetPipeconfIfRequired(device, pipeconf);
                 if (success) {
                     signalStatusReady(device.id());
+                    signalStatusConfigured(device.id());
                 } else {
                     signalStatusUnknown(device.id());
                 }
@@ -253,7 +273,8 @@ public class PiPipeconfWatchdogManager
         if (!handshaker.hasConnection()) {
             return false;
         }
-        if (Futures.getUnchecked(pipelineProg.isPipeconfSet(pipeconf))) {
+        if (Futures.getUnchecked(pipelineProg.isPipeconfSet(pipeconf)) &&
+                configuredDevices.contains(device.id())) {
             log.debug("Pipeconf {} already configured on {}",
                       pipeconf.id(), device.id());
             return true;
@@ -279,6 +300,14 @@ public class PiPipeconfWatchdogManager
 
     private void signalStatusReady(DeviceId deviceId) {
         statusMap.put(deviceId, PipelineStatus.READY);
+    }
+
+    private void signalStatusUnconfigured(DeviceId deviceId) {
+        configuredDevices.remove(deviceId);
+    }
+
+    private void signalStatusConfigured(DeviceId deviceId) {
+        configuredDevices.add(deviceId);
     }
 
     private boolean isLocalMaster(Device device) {
@@ -354,6 +383,7 @@ public class PiPipeconfWatchdogManager
                 case DEVICE_REMOVED:
                 case DEVICE_SUSPENDED:
                     signalStatusUnknown(device.id());
+                    signalStatusUnconfigured(device.id());
                     break;
                 case PORT_ADDED:
                 case PORT_UPDATED:
