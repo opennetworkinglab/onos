@@ -601,12 +601,20 @@ public class DefaultKubevirtNodeHandler implements KubevirtNodeHandler {
                 log.info("Creating physnet bridge {}", bridgeName);
                 log.info("Creating patch ports for physnet {}", bridgeName);
             } else {
-                // in case physical bridge exists, but patch port is missing on br-int,
-                // we will add patch port to connect br-int with physical bridge
+                // in case physical bridge exists, but patch port is missing,
+                // we will add patch port to connect br-physnet with physical bridge
                 if (!hasPhyPatchPort(node, patchPortName)) {
                     createPhysicalPatchPorts(node, pi);
 
                     log.info("Creating patch ports for physnet {}", bridgeName);
+                }
+
+                // in case physical bridge exists, but physnet interface is missing,
+                // we will add the physnet interface to connect br-physnet to the external
+                if (!hasPhyIntf(node, pi.intf())) {
+                    attachPhysicalPort(node, pi);
+
+                    log.info("Attaching external ports for physnet {}", bridgeName);
                 }
             }
         });
@@ -977,6 +985,9 @@ public class DefaultKubevirtNodeHandler implements KubevirtNodeHandler {
                 case KUBEVIRT_NODE_UPDATED:
                     eventExecutor.execute(() -> {
                         if (!isRelevantHelper()) {
+                            return;
+                        }
+                        if (event.subject() == null) {
                             return;
                         }
                         bootstrapNode(event.subject());

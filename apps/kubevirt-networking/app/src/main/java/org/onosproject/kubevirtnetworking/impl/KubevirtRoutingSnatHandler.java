@@ -42,6 +42,8 @@ import org.onosproject.kubevirtnetworking.api.KubevirtRouterListener;
 import org.onosproject.kubevirtnetworking.api.KubevirtRouterService;
 import org.onosproject.kubevirtnetworking.util.RulePopulatorUtil;
 import org.onosproject.kubevirtnode.api.KubevirtNode;
+import org.onosproject.kubevirtnode.api.KubevirtNodeEvent;
+import org.onosproject.kubevirtnode.api.KubevirtNodeListener;
 import org.onosproject.kubevirtnode.api.KubevirtNodeService;
 import org.onosproject.net.Device;
 import org.onosproject.net.PortNumber;
@@ -140,6 +142,9 @@ public class KubevirtRoutingSnatHandler {
     private final InternalRouterEventListener kubevirtRouterlistener =
             new InternalRouterEventListener();
 
+    private final InternalNodeEventListener kubevirtNodeListener =
+            new InternalNodeEventListener();
+
     private ApplicationId appId;
     private NodeId localNodeId;
 
@@ -151,6 +156,7 @@ public class KubevirtRoutingSnatHandler {
 
         kubevirtPortService.addListener(kubevirtPortListener);
         kubevirtRouterService.addListener(kubevirtRouterlistener);
+        kubevirtNodeService.addListener(kubevirtNodeListener);
 
         log.info("Started");
     }
@@ -158,6 +164,7 @@ public class KubevirtRoutingSnatHandler {
     @Deactivate
     protected void deactivate() {
         leadershipService.withdraw(appId.name());
+        kubevirtNodeService.removeListener(kubevirtNodeListener);
         kubevirtPortService.removeListener(kubevirtPortListener);
         kubevirtRouterService.removeListener(kubevirtRouterlistener);
 
@@ -718,6 +725,14 @@ public class KubevirtRoutingSnatHandler {
             if (gwNode != null) {
                 setStatefulSnatDownStreamRuleForKubevirtPort(router, gwNode, kubevirtPort, false);
             }
+        }
+    }
+
+    private class InternalNodeEventListener implements KubevirtNodeListener {
+
+        @Override
+        public void event(KubevirtNodeEvent event) {
+
         }
     }
 }

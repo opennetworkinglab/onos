@@ -347,7 +347,7 @@ public class KubevirtNetworkHandler {
             return;
         }
 
-        setDefaulGatewayRuleToWorkerNodeTunBridge(router, network, electedGw.intgBridge(), node, true);
+        setDefaultGatewayRuleToWorkerNodeTunBridge(router, network, electedGw.intgBridge(), node, true);
     }
 
     private void setDefaultRulesForTenantNetwork(KubevirtNode node, KubevirtNetwork network) {
@@ -428,7 +428,7 @@ public class KubevirtNetworkHandler {
                     setGatewayIcmpRuleForTenantInternalNetwork(router, network, TENANT_ICMP_TABLE,
                             electedGateway.intgBridge(),
                             network.tenantDeviceId(node.hostname()), install);
-                    setDefaulGatewayRuleToWorkerNodeTunBridge(router, network,
+                    setDefaultGatewayRuleToWorkerNodeTunBridge(router, network,
                             electedGateway.intgBridge(), node, install);
                 });
                 break;
@@ -446,11 +446,11 @@ public class KubevirtNetworkHandler {
         }
     }
 
-    private void setDefaulGatewayRuleToWorkerNodeTunBridge(KubevirtRouter router,
-                                                           KubevirtNetwork network,
-                                                           DeviceId gwDeviceId,
-                                                           KubevirtNode workerNode,
-                                                           boolean install) {
+    private void setDefaultGatewayRuleToWorkerNodeTunBridge(KubevirtRouter router,
+                                                            KubevirtNetwork network,
+                                                            DeviceId gwDeviceId,
+                                                            KubevirtNode workerNode,
+                                                            boolean install) {
         MacAddress routerMacAddress = getRouterMacAddress(router);
 
         if (routerMacAddress == null) {
