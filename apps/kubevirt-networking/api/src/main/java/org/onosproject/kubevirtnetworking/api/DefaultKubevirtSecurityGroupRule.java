@@ -114,6 +114,21 @@ public final class DefaultKubevirtSecurityGroupRule implements KubevirtSecurityG
     }
 
     @Override
+    public KubevirtSecurityGroupRule updateDirection(String updated) {
+        return DefaultKubevirtSecurityGroupRule.builder()
+                .remoteGroupId(remoteGroupId)
+                .etherType(etherType)
+                .protocol(protocol)
+                .portRangeMin(portRangeMin)
+                .portRangeMax(portRangeMax)
+                .securityGroupId(securityGroupId)
+                .remoteIpPrefix(remoteIpPrefix)
+                .id(id)
+                .direction(updated)
+                .build();
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

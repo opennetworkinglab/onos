@@ -86,6 +86,14 @@ public interface KubevirtSecurityGroupRule {
     String remoteGroupId();
 
     /**
+     * Returns the security group rule with updated direction.
+     *
+     * @param direction direction
+     * @return updated security group
+     */
+    KubevirtSecurityGroupRule updateDirection(String direction);
+
+    /**
      * A default builder interface.
      */
     interface Builder {

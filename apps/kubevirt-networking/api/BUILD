@@ -1,4 +1,5 @@
 COMPILE_DEPS = CORE_DEPS + [
+    "//apps/kubevirt-node/api:onos-apps-kubevirt-node-api",
     "@k8s_client//jar",
     "@k8s_model//jar",
     "@k8s_model_common//jar",

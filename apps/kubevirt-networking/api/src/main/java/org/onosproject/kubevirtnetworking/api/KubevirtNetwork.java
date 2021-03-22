@@ -144,12 +144,20 @@ public interface KubevirtNetwork {
     DeviceId tenantDeviceId(String hostname);
 
     /**
-     * Returns the tunnel to tenant port number.
+     * Returns the tunnel bridge to tenant bridge port number.
      *
      * @param deviceId device identifier
      * @return port number
      */
     PortNumber tunnelToTenantPort(DeviceId deviceId);
+
+    /**
+     * Returns the tenant bridge to tunnel bridge patch port number.
+     *
+     * @param deviceId device identifier
+     * @return port number
+     */
+    PortNumber tenantToTunnelPort(DeviceId deviceId);
 
     /**
      * Builder of new network.

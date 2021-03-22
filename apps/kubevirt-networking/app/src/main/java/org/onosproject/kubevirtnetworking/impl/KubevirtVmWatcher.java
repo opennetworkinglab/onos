@@ -87,6 +87,8 @@ public class KubevirtVmWatcher {
     private static final String DOMAIN = "domain";
     private static final String DEVICES = "devices";
     private static final String INTERFACES = "interfaces";
+    private static final String NETWORK_POLICIES = "networkPolicies";
+    private static final String SECURITY_GROUPS = "securityGroups";
     private static final String NAME = "name";
     private static final String NETWORK = "network";
     private static final String MAC = "macAddress";
@@ -211,6 +213,9 @@ public class KubevirtVmWatcher {
                 case DELETED:
                     eventExecutor.execute(() -> processDeletion(resource));
                     break;
+                case MODIFIED:
+                    eventExecutor.execute(() -> processModification(resource));
+                    break;
                 case ERROR:
                     log.warn("Failures processing VM manipulation.");
                     break;
@@ -237,6 +242,9 @@ public class KubevirtVmWatcher {
                         .build();
 
                 String name = parseResourceName(resource);
+
+                Set<String> sgs = parseSecurityGroups(resource);
+                port = port.updateSecurityGroups(sgs);
 
                 Map<String, IpAddress> ips = parseIpAddresses(resource);
                 IpAddress ip;
@@ -300,6 +308,28 @@ public class KubevirtVmWatcher {
 
                     portAdminService.createPort(updated);
                 }
+            });
+        }
+
+        private void processModification(String resource) {
+            if (!isMaster()) {
+                return;
+            }
+
+            parseMacAddresses(resource).forEach((mac, net) -> {
+                KubevirtPort port = DefaultKubevirtPort.builder()
+                        .macAddress(mac)
+                        .networkId(net)
+                        .build();
+
+                KubevirtPort existing = portAdminService.port(port.macAddress());
+
+                if (existing == null) {
+                    return;
+                }
+
+                Set<String> sgs = parseSecurityGroups(resource);
+                portAdminService.updatePort(existing.updateSecurityGroups(sgs));
             });
         }
 
@@ -408,6 +438,37 @@ public class KubevirtVmWatcher {
                 log.error("Failed to update kubevirt VM IP addresses");
             }
             return null;
+        }
+
+        private Set<String> parseSecurityGroups(String resource) {
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode json = mapper.readTree(resource);
+                JsonNode metadata = json.get(SPEC).get(TEMPLATE).get(METADATA);
+
+                JsonNode annots = metadata.get(ANNOTATIONS);
+                if (annots == null) {
+                    return new HashSet<>();
+                }
+
+                JsonNode sgsJson = annots.get(SECURITY_GROUPS);
+                if (sgsJson == null) {
+                    return new HashSet<>();
+                }
+
+                Set<String> result = new HashSet<>();
+                ArrayNode sgs = (ArrayNode) mapper.readTree(sgsJson.asText());
+                for (JsonNode sg : sgs) {
+                    result.add(sg.asText());
+                }
+
+                return result;
+
+            } catch (IOException e) {
+                log.error("Failed to parse kubevirt security group IDs.");
+            }
+
+            return new HashSet<>();
         }
 
         private Map<MacAddress, String> parseMacAddresses(String resource) {

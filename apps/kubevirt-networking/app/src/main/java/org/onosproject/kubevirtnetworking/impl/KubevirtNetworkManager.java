@@ -46,6 +46,9 @@ import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.onosproject.kubevirtnetworking.api.Constants.KUBEVIRT_NETWORKING_APP_ID;
+import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.GENEVE;
+import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.GRE;
+import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.VXLAN;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -214,6 +217,15 @@ public class KubevirtNetworkManager
     public Set<KubevirtNetwork> networks(KubevirtNetwork.Type type) {
         return ImmutableSet.copyOf(networkStore.networks().stream()
                 .filter(n -> n.type() == type).collect(Collectors.toSet()));
+    }
+
+    @Override
+    public Set<KubevirtNetwork> tenantNetworks() {
+        return ImmutableSet.copyOf(networkStore.networks().stream()
+                .filter(n -> n.type() == VXLAN ||
+                             n.type() == GRE ||
+                             n.type() == GENEVE)
+                .collect(Collectors.toSet()));
     }
 
     private class InternalNetworkStorageDelegate implements KubevirtNetworkStoreDelegate {

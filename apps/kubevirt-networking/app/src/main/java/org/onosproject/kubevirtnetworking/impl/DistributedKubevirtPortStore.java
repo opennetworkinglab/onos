@@ -25,6 +25,7 @@ import org.onosproject.kubevirtnetworking.api.KubevirtPort;
 import org.onosproject.kubevirtnetworking.api.KubevirtPortEvent;
 import org.onosproject.kubevirtnetworking.api.KubevirtPortStore;
 import org.onosproject.kubevirtnetworking.api.KubevirtPortStoreDelegate;
+import org.onosproject.net.DeviceId;
 import org.onosproject.store.AbstractStore;
 import org.onosproject.store.serializers.KryoNamespaces;
 import org.onosproject.store.service.ConsistentMap;
@@ -41,6 +42,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
@@ -48,7 +50,10 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.kubevirtnetworking.api.KubevirtPortEvent.Type.KUBEVIRT_PORT_CREATED;
+import static org.onosproject.kubevirtnetworking.api.KubevirtPortEvent.Type.KUBEVIRT_PORT_DEVICE_ADDED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtPortEvent.Type.KUBEVIRT_PORT_REMOVED;
+import static org.onosproject.kubevirtnetworking.api.KubevirtPortEvent.Type.KUBEVIRT_PORT_SECURITY_GROUP_ADDED;
+import static org.onosproject.kubevirtnetworking.api.KubevirtPortEvent.Type.KUBEVIRT_PORT_SECURITY_GROUP_REMOVED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtPortEvent.Type.KUBEVIRT_PORT_UPDATED;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -166,6 +171,8 @@ public class DistributedKubevirtPortStore
                     eventExecutor.execute(() ->
                             notifyDelegate(new KubevirtPortEvent(
                                     KUBEVIRT_PORT_UPDATED, event.newValue().value())));
+                    processSecurityGroupEvent(event.oldValue().value(), event.newValue().value());
+                    processDeviceEvent(event.oldValue().value(), event.newValue().value());
                     break;
                 case REMOVE:
                     log.debug("Kubevirt port removed");
@@ -180,6 +187,37 @@ public class DistributedKubevirtPortStore
                 default:
                     // do nothing
                     break;
+            }
+        }
+
+        private void processSecurityGroupEvent(KubevirtPort oldPort, KubevirtPort newPort) {
+            Set<String> oldSecurityGroups = oldPort.securityGroups() == null ?
+                    ImmutableSet.of() : oldPort.securityGroups();
+            Set<String> newSecurityGroups = newPort.securityGroups() == null ?
+                    ImmutableSet.of() : newPort.securityGroups();
+
+            oldSecurityGroups.stream()
+                    .filter(sgId -> !Objects.requireNonNull(
+                            newPort.securityGroups()).contains(sgId))
+                    .forEach(sgId -> notifyDelegate(new KubevirtPortEvent(
+                            KUBEVIRT_PORT_SECURITY_GROUP_REMOVED, newPort, sgId
+                    )));
+
+            newSecurityGroups.stream()
+                    .filter(sgId -> !oldPort.securityGroups().contains(sgId))
+                    .forEach(sgId -> notifyDelegate(new KubevirtPortEvent(
+                            KUBEVIRT_PORT_SECURITY_GROUP_ADDED, newPort, sgId
+                    )));
+        }
+
+        private void processDeviceEvent(KubevirtPort oldPort, KubevirtPort newPort) {
+            DeviceId oldDeviceId = oldPort.deviceId();
+            DeviceId newDeviceId = newPort.deviceId();
+
+            if (oldDeviceId == null && newDeviceId != null) {
+                notifyDelegate(new KubevirtPortEvent(
+                        KUBEVIRT_PORT_DEVICE_ADDED, newPort, newDeviceId
+                ));
             }
         }
     }
