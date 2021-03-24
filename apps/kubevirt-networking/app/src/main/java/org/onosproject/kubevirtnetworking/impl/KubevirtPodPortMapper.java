@@ -16,17 +16,11 @@
 package org.onosproject.kubevirtnetworking.impl;
 
 import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.kubernetes.api.model.PodBuilder;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.onlab.packet.IpAddress;
 import org.onosproject.cluster.ClusterService;
 import org.onosproject.cluster.LeadershipService;
 import org.onosproject.cluster.NodeId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.kubevirtnetworking.api.KubevirtNetwork;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetworkAdminService;
 import org.onosproject.kubevirtnetworking.api.KubevirtPodAdminService;
 import org.onosproject.kubevirtnetworking.api.KubevirtPodEvent;
@@ -34,6 +28,7 @@ import org.onosproject.kubevirtnetworking.api.KubevirtPodListener;
 import org.onosproject.kubevirtnetworking.api.KubevirtPort;
 import org.onosproject.kubevirtnetworking.api.KubevirtPortAdminService;
 import org.onosproject.kubevirtnode.api.KubevirtApiConfigService;
+import org.onosproject.kubevirtnode.api.KubevirtNode;
 import org.onosproject.kubevirtnode.api.KubevirtNodeService;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.device.DeviceService;
@@ -50,11 +45,11 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
+import static java.lang.Thread.sleep;
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static org.onlab.util.Tools.groupedThreads;
 import static org.onosproject.kubevirtnetworking.api.Constants.KUBEVIRT_NETWORKING_APP_ID;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.getPorts;
-import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.k8sClient;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -69,6 +64,7 @@ public class KubevirtPodPortMapper {
     private static final String NAME = "name";
     private static final String IPS = "ips";
     private static final String NETWORK_PREFIX = "default/";
+    private static final long SLEEP_MS = 2000; // we wait 2s
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
@@ -143,19 +139,15 @@ public class KubevirtPodPortMapper {
                 case KUBEVIRT_POD_UPDATED:
                     eventExecutor.execute(() -> processPodUpdate(event.subject()));
                     break;
-                case KUBEVIRT_POD_REMOVED:
-                    eventExecutor.execute(() -> processPodDeletion(event.subject()));
-                    break;
                 case KUBEVIRT_POD_CREATED:
-                    eventExecutor.execute(() -> processPodCreation(event.subject()));
-                    break;
+                case KUBEVIRT_POD_REMOVED:
                 default:
                     // do nothing
                     break;
             }
         }
 
-        private void processPodCreation(Pod pod) {
+        private void processPodUpdate(Pod pod) {
             if (!isRelevantHelper()) {
                 return;
             }
@@ -169,113 +161,33 @@ public class KubevirtPodPortMapper {
                 return;
             }
 
-            try {
-                String networkStatusStr = pod.getMetadata().getAnnotations().get(NETWORK_STATUS_KEY);
-                JSONArray networkStatus = new JSONArray(networkStatusStr);
-                for (int i = 0; i < networkStatus.length(); i++) {
-                    JSONObject object = networkStatus.getJSONObject(i);
-                    String name = object.getString(NAME);
-                    KubevirtNetwork jsonNetwork = kubevirtNetworkAdminService.networks().stream()
-                            .filter(n -> (NETWORK_PREFIX + n.name()).equals(name))
-                            .findAny().orElse(null);
-                    if (jsonNetwork != null) {
-                        JSONArray ips = object.getJSONArray(IPS);
-                        if (ips != null && ips.length() > 0) {
-                            IpAddress ip = IpAddress.valueOf(ips.getString(0));
-                            kubevirtNetworkAdminService.reserveIp(jsonNetwork.networkId(), ip);
-                        }
-                    }
+            KubevirtNode node = kubevirtNodeService.node(pod.getSpec().getNodeName());
+
+            if (node == null) {
+                try {
+                    // we wait until all k8s nodes are available
+                    sleep(SLEEP_MS);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
-            } catch (Exception e) {
-                log.error("Failed to reserve IP address", e);
             }
 
-            Set<KubevirtPort> ports = getPorts(kubevirtNodeService, kubevirtNetworkAdminService.networks(), pod);
+            Set<KubevirtPort> ports =
+                    getPorts(kubevirtNodeService, kubevirtNetworkAdminService.networks(), pod);
             if (ports.size() == 0) {
                 return;
             }
 
             ports.forEach(port -> {
-                if (kubevirtPortAdminService.port(port.macAddress()) == null) {
-                    kubevirtPortAdminService.createPort(port);
-                }
-            });
-        }
+                KubevirtPort existing = kubevirtPortAdminService.port(port.macAddress());
 
-        private void processPodUpdate(Pod pod) {
-            if (!isRelevantHelper()) {
-                return;
-            }
-
-            Set<KubevirtPort> ports = getPorts(kubevirtNodeService, kubevirtNetworkAdminService.networks(), pod);
-            if (ports.size() == 0) {
-                return;
-            }
-
-            for (KubevirtPort port : ports) {
-                if (kubevirtPortAdminService.port(port.macAddress()) != null) {
-                    continue;
-                }
-
-                if (port.ipAddress() == null) {
-                    try {
-                        IpAddress ip = kubevirtNetworkAdminService.allocateIp(port.networkId());
-                        log.info("IP address {} is allocated from network {}", ip, port.networkId());
-                        port = port.updateIpAddress(ip);
-
-                        // update the POD annotation to inject the allocated IP address
-                        String networkStatusStr = pod.getMetadata().getAnnotations().get(NETWORK_STATUS_KEY);
-                        JSONArray networkStatus = new JSONArray(networkStatusStr);
-                        for (int i = 0; i < networkStatus.length(); i++) {
-                            JSONObject object = networkStatus.getJSONObject(i);
-                            String name = object.getString(NAME);
-
-                            if (name.equals(NETWORK_PREFIX + port.networkId())) {
-                                JSONArray ipsJson = new JSONArray();
-                                ipsJson.put(ip.toString());
-                                object.put(IPS, ipsJson);
-                            }
-                        }
-                        Map<String, String> annots = pod.getMetadata().getAnnotations();
-                        annots.put(NETWORK_STATUS_KEY, networkStatus.toString(4));
-
-                        KubernetesClient client = k8sClient(kubevirtApiConfigService);
-
-                        if (client == null) {
-                            return;
-                        }
-
-                        client.pods().inNamespace(pod.getMetadata().getNamespace())
-                                .withName(pod.getMetadata().getName())
-                                .edit(r -> new PodBuilder(r)
-                                        .editMetadata()
-                                        .addToAnnotations(annots)
-                                        .endMetadata().build()
-                                );
-                    } catch (Exception e) {
-                        log.error("Failed to allocate IP address", e);
+                if (existing != null) {
+                    if (port.deviceId() != null && existing.deviceId() == null) {
+                        KubevirtPort updated = existing.updateDeviceId(port.deviceId());
+                        // internal we update device ID of kubevirt port
+                        kubevirtPortAdminService.updatePort(updated);
                     }
                 }
-                kubevirtPortAdminService.createPort(port);
-            }
-        }
-
-        private void processPodDeletion(Pod pod) {
-            if (!isRelevantHelper()) {
-                return;
-            }
-
-            Set<KubevirtPort> ports = getPorts(kubevirtNodeService, kubevirtNetworkAdminService.networks(), pod);
-            if (ports.size() == 0) {
-                return;
-            }
-
-            ports.forEach(port -> {
-                if (port.ipAddress() != null) {
-                    kubevirtNetworkAdminService.releaseIp(port.networkId(), port.ipAddress());
-                }
-
-                kubevirtPortAdminService.removePort(port.macAddress());
             });
         }
     }

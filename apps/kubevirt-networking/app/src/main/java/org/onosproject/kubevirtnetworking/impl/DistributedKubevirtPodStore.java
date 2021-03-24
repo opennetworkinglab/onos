@@ -28,6 +28,8 @@ import io.fabric8.kubernetes.api.model.ContainerStateRunning;
 import io.fabric8.kubernetes.api.model.ContainerStateTerminated;
 import io.fabric8.kubernetes.api.model.ContainerStateWaiting;
 import io.fabric8.kubernetes.api.model.ContainerStatus;
+import io.fabric8.kubernetes.api.model.DownwardAPIVolumeFile;
+import io.fabric8.kubernetes.api.model.DownwardAPIVolumeSource;
 import io.fabric8.kubernetes.api.model.EmptyDirVolumeSource;
 import io.fabric8.kubernetes.api.model.EnvFromSource;
 import io.fabric8.kubernetes.api.model.EnvVar;
@@ -212,6 +214,9 @@ public class DistributedKubevirtPodStore
             .register(LocalObjectReference.class)
             .register(PodAntiAffinity.class)
             .register(ManagedFieldsEntry.class)
+            .register(DownwardAPIVolumeSource.class)
+            .register(DownwardAPIVolumeFile.class)
+            .register(ObjectFieldSelector.class)
             .register(FieldsV1.class)
             .register(LinkedHashMap.class)
             .register(Collection.class)

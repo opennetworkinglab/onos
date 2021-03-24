@@ -96,7 +96,7 @@ public class KubevirtPodManager
 
         kubevirtPodStore.createPod(pod);
 
-        log.info(String.format(MSG_POD, pod.getMetadata().getName(), MSG_CREATED));
+        log.debug(String.format(MSG_POD, pod.getMetadata().getName(), MSG_CREATED));
     }
 
     @Override
@@ -107,7 +107,7 @@ public class KubevirtPodManager
 
         kubevirtPodStore.updatePod(pod);
 
-        log.info(String.format(MSG_POD, pod.getMetadata().getName(), MSG_UPDATED));
+        log.debug(String.format(MSG_POD, pod.getMetadata().getName(), MSG_UPDATED));
     }
 
     @Override
@@ -123,7 +123,7 @@ public class KubevirtPodManager
             Pod pod = kubevirtPodStore.removePod(uid);
 
             if (pod != null) {
-                log.info(String.format(MSG_POD,
+                log.debug(String.format(MSG_POD,
                         pod.getMetadata().getName(), MSG_REMOVED));
             }
         }

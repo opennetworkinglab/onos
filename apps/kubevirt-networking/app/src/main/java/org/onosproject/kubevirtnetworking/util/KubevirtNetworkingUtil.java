@@ -42,6 +42,7 @@ import org.onosproject.kubevirtnode.api.KubevirtApiConfig;
 import org.onosproject.kubevirtnode.api.KubevirtApiConfigService;
 import org.onosproject.kubevirtnode.api.KubevirtNode;
 import org.onosproject.kubevirtnode.api.KubevirtNodeService;
+import org.onosproject.kubevirtnode.api.KubevirtPhyInterface;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Port;
 import org.onosproject.net.PortNumber;
@@ -323,7 +324,8 @@ public final class KubevirtNetworkingUtil {
      * @param pod      kubevirt POD
      * @return kubevirt ports attached to the POD
      */
-    public static Set<KubevirtPort> getPorts(KubevirtNodeService nodeService, Set<KubevirtNetwork> networks, Pod pod) {
+    public static Set<KubevirtPort> getPorts(KubevirtNodeService nodeService,
+                                             Set<KubevirtNetwork> networks, Pod pod) {
         try {
             Map<String, String> annots = pod.getMetadata().getAnnotations();
             if (annots == null) {
@@ -339,9 +341,11 @@ public final class KubevirtNetworkingUtil {
             if (networkStatusStr == null) {
                 return ImmutableSet.of();
             }
+
             KubevirtPort.Builder builder = DefaultKubevirtPort.builder();
 
             KubevirtNode node = nodeService.node(pod.getSpec().getNodeName());
+
             if (node != null) {
                 builder.deviceId(node.intgBridge());
             }
@@ -360,12 +364,6 @@ public final class KubevirtNetworkingUtil {
 
                     builder.macAddress(MacAddress.valueOf(mac))
                             .networkId(network.networkId());
-
-                    if (object.has(IPS)) {
-                        JSONArray ips = object.getJSONArray(IPS);
-                        String ip = (String) ips.get(0);
-                        builder.ipAddress(IpAddress.valueOf(ip));
-                    }
 
                     ports.add(builder.build());
                 }
@@ -549,13 +547,13 @@ public final class KubevirtNetworkingUtil {
      * @return external patch port number
      */
     public static PortNumber externalPatchPortNum(DeviceService deviceService, KubevirtNode gatewayNode) {
-        String gatewayBridgeName = gatewayNode.gatewayBridgeName();
-        if (gatewayBridgeName == null) {
+        KubevirtPhyInterface intf = gatewayNode.phyIntfs().stream().findFirst().orElse(null);
+        if (intf == null) {
             log.warn("No external interface is attached to gateway {}", gatewayNode.hostname());
             return null;
         }
 
-        String patchPortName = "int-to-" + gatewayBridgeName;
+        String patchPortName = "int-to-" + intf.network();
         Port port = deviceService.getPorts(gatewayNode.intgBridge()).stream()
                 .filter(p -> p.isEnabled() &&
                         Objects.equals(p.annotations().value(PORT_NAME), patchPortName))
