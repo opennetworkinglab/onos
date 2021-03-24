@@ -101,6 +101,8 @@ import static org.onosproject.kubevirtnetworking.api.Constants.TENANT_INBOUND_TA
 import static org.onosproject.kubevirtnetworking.api.Constants.TENANT_TO_TUNNEL_PREFIX;
 import static org.onosproject.kubevirtnetworking.api.Constants.TUNNEL_DEFAULT_TABLE;
 import static org.onosproject.kubevirtnetworking.api.Constants.TUNNEL_TO_TENANT_PREFIX;
+import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.FLAT;
+import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.VLAN;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.gatewayNodeForSpecifiedRouter;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.getRouterForKubevirtNetwork;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.getRouterForKubevirtPort;
@@ -430,6 +432,7 @@ public class KubevirtNetworkHandler {
                     setDefaultGatewayRuleToWorkerNodeTunBridge(router, network,
                             electedGateway.intgBridge(), node, install);
                 });
+                setGatewayProviderInterNetworkRoutingWithinSameRouter(network, router, electedGateway, install);
                 break;
             case FLAT:
             case VLAN:
@@ -679,27 +682,69 @@ public class KubevirtNetworkHandler {
             return;
         }
 
-        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
-                .matchEthType(Ethernet.TYPE_IPV4)
-                .matchEthDst(routerMacAddress)
-                .matchIPSrc(IpPrefix.valueOf(srcNetwork.cidr()))
-                .matchIPDst(IpPrefix.valueOf(dstPort.ipAddress(), 32));
+        TrafficSelector.Builder sBuilder;
+        TrafficTreatment treatment;
 
-        TrafficTreatment treatment = DefaultTrafficTreatment.builder()
-                .setEthSrc(routerMacAddress)
-                .setEthDst(dstPort.macAddress())
-                .transition(FORWARDING_TABLE)
-                .build();
+        if (srcNetwork.type() == FLAT || srcNetwork.type() == VLAN) {
+            sBuilder = DefaultTrafficSelector.builder()
+                    .matchEthType(Ethernet.TYPE_IPV4)
+                    .matchEthDst(routerMacAddress)
+                    .matchIPSrc(IpPrefix.valueOf(srcNetwork.cidr()))
+                    .matchIPDst(IpPrefix.valueOf(dstPort.ipAddress(), 32));
 
-        flowService.setRule(
-                appId,
-                gwDevice.id(),
-                sBuilder.build(),
-                treatment,
-                PRIORITY_INTERNAL_ROUTING_RULE,
-                PRE_FLAT_TABLE,
-                install
-        );
+            treatment = DefaultTrafficTreatment.builder()
+                    .setEthSrc(routerMacAddress)
+                    .setEthDst(dstPort.macAddress())
+                    .transition(FORWARDING_TABLE)
+                    .build();
+
+            flowService.setRule(
+                    appId,
+                    gwDevice.id(),
+                    sBuilder.build(),
+                    treatment,
+                    PRIORITY_INTERNAL_ROUTING_RULE,
+                    PRE_FLAT_TABLE,
+                    install);
+        } else {
+            KubevirtNetwork dstNetwork = kubevirtNetworkService.network(dstPort.networkId());
+            if (dstNetwork == null) {
+                return;
+            }
+
+            KubevirtNode dstPortWorkerNode = kubevirtNodeService.node(dstPort.deviceId());
+            if (dstPortWorkerNode == null) {
+                return;
+            }
+
+            sBuilder = DefaultTrafficSelector.builder()
+                    .matchEthType(Ethernet.TYPE_IPV4)
+                    .matchEthDst(routerMacAddress)
+                    .matchTunnelId(Long.parseLong(srcNetwork.segmentId()))
+                    .matchIPSrc(IpPrefix.valueOf(srcNetwork.cidr()))
+                    .matchIPDst(IpPrefix.valueOf(dstPort.ipAddress(), 32));
+
+            treatment = DefaultTrafficTreatment.builder()
+                    .setTunnelId(Long.parseLong(dstNetwork.segmentId()))
+                    .setEthSrc(routerMacAddress)
+                    .setEthDst(dstPort.macAddress())
+                    .extension(buildExtension(
+                            deviceService,
+                            gatewayNode.tunBridge(),
+                            dstPortWorkerNode.dataIp().getIp4Address()),
+                            gatewayNode.tunBridge())
+                    .setOutput(PortNumber.IN_PORT)
+                    .build();
+
+            flowService.setRule(
+                    appId,
+                    gatewayNode.tunBridge(),
+                    sBuilder.build(),
+                    treatment,
+                    PRIORITY_INTERNAL_ROUTING_RULE,
+                    TUNNEL_DEFAULT_TABLE,
+                    install);
+        }
     }
 
     private void setGatewayArpRuleForProviderInternalNetwork(KubevirtRouter router, KubevirtNetwork network,
