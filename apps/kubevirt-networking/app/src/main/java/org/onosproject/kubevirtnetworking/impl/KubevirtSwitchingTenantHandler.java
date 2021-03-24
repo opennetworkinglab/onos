@@ -15,7 +15,6 @@
  */
 package org.onosproject.kubevirtnetworking.impl;
 
-import io.fabric8.kubernetes.api.model.Pod;
 import org.onlab.packet.Ethernet;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpPrefix;
@@ -27,10 +26,10 @@ import org.onosproject.core.CoreService;
 import org.onosproject.kubevirtnetworking.api.KubevirtFlowRuleService;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetwork;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetworkService;
-import org.onosproject.kubevirtnetworking.api.KubevirtPodEvent;
-import org.onosproject.kubevirtnetworking.api.KubevirtPodListener;
 import org.onosproject.kubevirtnetworking.api.KubevirtPodService;
 import org.onosproject.kubevirtnetworking.api.KubevirtPort;
+import org.onosproject.kubevirtnetworking.api.KubevirtPortEvent;
+import org.onosproject.kubevirtnetworking.api.KubevirtPortListener;
 import org.onosproject.kubevirtnetworking.api.KubevirtPortService;
 import org.onosproject.kubevirtnode.api.KubevirtNode;
 import org.onosproject.kubevirtnode.api.KubevirtNodeEvent;
@@ -52,7 +51,6 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
@@ -62,7 +60,6 @@ import static org.onosproject.kubevirtnetworking.api.Constants.PRIORITY_TUNNEL_R
 import static org.onosproject.kubevirtnetworking.api.Constants.TUNNEL_DEFAULT_TABLE;
 import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.FLAT;
 import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.VLAN;
-import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.getPorts;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.tunnelPort;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.tunnelToTenantPort;
 import static org.onosproject.kubevirtnetworking.util.RulePopulatorUtil.buildExtension;
@@ -103,8 +100,8 @@ public class KubevirtSwitchingTenantHandler {
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
             groupedThreads(this.getClass().getSimpleName(), "event-handler"));
 
-    private final InternalKubevirtPodListener kubevirtPodListener =
-            new InternalKubevirtPodListener();
+    private final InternalKubevirtPortListener kubevirtPortListener =
+            new InternalKubevirtPortListener();
     private final InternalKubevirtNodeListener kubevirtNodeListener =
             new InternalKubevirtNodeListener();
 
@@ -116,7 +113,7 @@ public class KubevirtSwitchingTenantHandler {
         appId = coreService.registerApplication(KUBEVIRT_NETWORKING_APP_ID);
         localNodeId = clusterService.getLocalNode().id();
         leadershipService.runForLeadership(appId.name());
-        kubevirtPodService.addListener(kubevirtPodListener);
+        kubevirtPortService.addListener(kubevirtPortListener);
         kubevirtNodeService.addListener(kubevirtNodeListener);
 
         log.info("Started");
@@ -124,7 +121,7 @@ public class KubevirtSwitchingTenantHandler {
 
     @Deactivate
     protected void deactivate() {
-        kubevirtPodService.removeListener(kubevirtPodListener);
+        kubevirtPortService.removeListener(kubevirtPortListener);
         kubevirtNodeService.removeListener(kubevirtNodeListener);
         leadershipService.withdraw(appId.name());
         eventExecutor.shutdown();
@@ -132,158 +129,134 @@ public class KubevirtSwitchingTenantHandler {
         log.info("Stopped");
     }
 
-    private Set<KubevirtPort> getPortByPod(Pod pod) {
-        return getPorts(kubevirtNodeService, kubevirtNetworkService.networks(), pod);
-    }
-
-    private void setIngressRules(Pod pod, boolean install) {
-        Set<KubevirtPort> ports = getPortByPod(pod);
-
-        if (ports.size() == 0) {
+    private void setIngressRules(KubevirtPort port, boolean install) {
+        if (port.ipAddress() == null) {
             return;
         }
 
-        for (KubevirtPort port : ports) {
-            if (port.ipAddress() == null) {
-                return;
+        KubevirtNetwork network = kubevirtNetworkService.network(port.networkId());
+
+        if (network == null) {
+            return;
+        }
+
+        if (network.type() == FLAT || network.type() == VLAN) {
+            return;
+        }
+
+        if (network.segmentId() == null) {
+            return;
+        }
+
+        KubevirtNode localNode = kubevirtNodeService.node(port.deviceId());
+        if (localNode == null || localNode.type() == MASTER) {
+            return;
+        }
+
+        PortNumber patchPortNumber = tunnelToTenantPort(localNode, network);
+        if (patchPortNumber == null) {
+            return;
+        }
+
+        TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
+                .matchTunnelId(Long.parseLong(network.segmentId()));
+
+        TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
+                .setOutput(patchPortNumber);
+
+        flowRuleService.setRule(
+                appId,
+                localNode.tunBridge(),
+                sBuilder.build(),
+                tBuilder.build(),
+                PRIORITY_TUNNEL_RULE,
+                TUNNEL_DEFAULT_TABLE,
+                install);
+
+        log.debug("Install ingress rules for instance {}, segment ID {}",
+                port.ipAddress(), network.segmentId());
+    }
+
+    private void setEgressRules(KubevirtPort port, boolean install) {
+        if (port.ipAddress() == null) {
+            return;
+        }
+
+        KubevirtNetwork network = kubevirtNetworkService.network(port.networkId());
+
+        if (network == null) {
+            return;
+        }
+
+        if (network.type() == FLAT || network.type() == VLAN) {
+            return;
+        }
+
+        if (network.segmentId() == null) {
+            return;
+        }
+
+        KubevirtNode localNode = kubevirtNodeService.node(port.deviceId());
+
+        if (localNode == null || localNode.type() == MASTER) {
+            return;
+        }
+
+        for (KubevirtNode remoteNode : kubevirtNodeService.completeNodes(WORKER)) {
+            if (remoteNode.hostname().equals(localNode.hostname())) {
+                continue;
             }
 
-            KubevirtNetwork network = kubevirtNetworkService.network(port.networkId());
-
-            if (network == null) {
-                return;
-            }
-
-            if (network.type() == FLAT || network.type() == VLAN) {
-                return;
-            }
-
-            if (network.segmentId() == null) {
-                return;
-            }
-
-            KubevirtNode localNode = kubevirtNodeService.node(pod.getSpec().getNodeName());
-            if (localNode == null || localNode.type() == MASTER) {
-                return;
-            }
-
-            PortNumber patchPortNumber = tunnelToTenantPort(localNode, network);
+            PortNumber patchPortNumber = tunnelToTenantPort(remoteNode, network);
             if (patchPortNumber == null) {
                 return;
             }
 
-            TrafficSelector.Builder sBuilder = DefaultTrafficSelector.builder()
-                    .matchTunnelId(Long.parseLong(network.segmentId()));
+            PortNumber tunnelPortNumber = tunnelPort(remoteNode, network);
+            if (tunnelPortNumber == null) {
+                return;
+            }
+
+            TrafficSelector.Builder sIpBuilder = DefaultTrafficSelector.builder()
+                    .matchInPort(patchPortNumber)
+                    .matchEthType(Ethernet.TYPE_IPV4)
+                    .matchIPDst(IpPrefix.valueOf(port.ipAddress(), 32));
+
+            TrafficSelector.Builder sArpBuilder = DefaultTrafficSelector.builder()
+                    .matchInPort(patchPortNumber)
+                    .matchEthType(Ethernet.TYPE_ARP)
+                    .matchArpTpa(Ip4Address.valueOf(port.ipAddress().toString()));
 
             TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
-                    .setOutput(patchPortNumber);
+                    .setTunnelId(Long.parseLong(network.segmentId()))
+                    .extension(buildExtension(
+                            deviceService,
+                            remoteNode.tunBridge(),
+                            localNode.dataIp().getIp4Address()),
+                            remoteNode.tunBridge())
+                    .setOutput(tunnelPortNumber);
 
             flowRuleService.setRule(
                     appId,
-                    localNode.tunBridge(),
-                    sBuilder.build(),
+                    remoteNode.tunBridge(),
+                    sIpBuilder.build(),
                     tBuilder.build(),
                     PRIORITY_TUNNEL_RULE,
                     TUNNEL_DEFAULT_TABLE,
                     install);
 
-            log.debug("Install ingress rules for instance {}, segment ID {}",
-                    port.ipAddress(), network.segmentId());
-        }
-    }
-
-    private void setEgressRules(Pod pod, boolean install) {
-        KubevirtNode localNode = kubevirtNodeService.node(pod.getSpec().getNodeName());
-
-        if (localNode == null) {
-            return;
+            flowRuleService.setRule(
+                    appId,
+                    remoteNode.tunBridge(),
+                    sArpBuilder.build(),
+                    tBuilder.build(),
+                    PRIORITY_TUNNEL_RULE,
+                    TUNNEL_DEFAULT_TABLE,
+                    install);
         }
 
-        if (localNode.type() == MASTER) {
-            return;
-        }
-
-        Set<KubevirtPort> ports = getPortByPod(pod);
-
-        if (ports.size() == 0) {
-            return;
-        }
-
-        for (KubevirtPort port : ports) {
-            if (port.ipAddress() == null) {
-                return;
-            }
-
-            KubevirtNetwork network = kubevirtNetworkService.network(port.networkId());
-
-            if (network == null) {
-                return;
-            }
-
-            if (network.type() == FLAT || network.type() == VLAN) {
-                return;
-            }
-
-            if (network.segmentId() == null) {
-                return;
-            }
-
-            for (KubevirtNode remoteNode : kubevirtNodeService.completeNodes(WORKER)) {
-                if (remoteNode.hostname().equals(localNode.hostname())) {
-                    continue;
-                }
-
-                PortNumber patchPortNumber = tunnelToTenantPort(remoteNode, network);
-                if (patchPortNumber == null) {
-                    return;
-                }
-
-                PortNumber tunnelPortNumber = tunnelPort(remoteNode, network);
-                if (tunnelPortNumber == null) {
-                    return;
-                }
-
-                TrafficSelector.Builder sIpBuilder = DefaultTrafficSelector.builder()
-                        .matchInPort(patchPortNumber)
-                        .matchEthType(Ethernet.TYPE_IPV4)
-                        .matchIPDst(IpPrefix.valueOf(port.ipAddress(), 32));
-
-                TrafficSelector.Builder sArpBuilder = DefaultTrafficSelector.builder()
-                        .matchInPort(patchPortNumber)
-                        .matchEthType(Ethernet.TYPE_ARP)
-                        .matchArpTpa(Ip4Address.valueOf(port.ipAddress().toString()));
-
-                TrafficTreatment.Builder tBuilder = DefaultTrafficTreatment.builder()
-                        .setTunnelId(Long.parseLong(network.segmentId()))
-                        .extension(buildExtension(
-                                deviceService,
-                                remoteNode.tunBridge(),
-                                localNode.dataIp().getIp4Address()),
-                                remoteNode.tunBridge())
-                        .setOutput(tunnelPortNumber);
-
-                flowRuleService.setRule(
-                        appId,
-                        remoteNode.tunBridge(),
-                        sIpBuilder.build(),
-                        tBuilder.build(),
-                        PRIORITY_TUNNEL_RULE,
-                        TUNNEL_DEFAULT_TABLE,
-                        install);
-
-                flowRuleService.setRule(
-                        appId,
-                        remoteNode.tunBridge(),
-                        sArpBuilder.build(),
-                        tBuilder.build(),
-                        PRIORITY_TUNNEL_RULE,
-                        TUNNEL_DEFAULT_TABLE,
-                        install);
-            }
-
-            log.debug("Install egress rules for instance {}, segment ID {}",
-                    port.ipAddress(), network.segmentId());
-        }
+        log.debug("Install egress rules for instance {}, segment ID {}",
+                port.ipAddress(), network.segmentId());
     }
 
     private class InternalKubevirtNodeListener implements KubevirtNodeListener {
@@ -311,30 +284,35 @@ public class KubevirtSwitchingTenantHandler {
                 return;
             }
 
-            kubevirtPodService.pods().stream()
-                    .filter(pod -> node.hostname().equals(pod.getSpec().getNodeName()))
-                    .forEach(pod -> {
-                        setIngressRules(pod, true);
-                        setEgressRules(pod, true);
+            kubevirtPortService.ports().stream()
+                    .filter(port -> node.equals(kubevirtNodeService.node(port.deviceId())))
+                    .forEach(port -> {
+                        setIngressRules(port, true);
+                        setEgressRules(port, true);
                     });
         }
     }
 
-    private class InternalKubevirtPodListener implements KubevirtPodListener {
+    private class InternalKubevirtPortListener implements KubevirtPortListener {
+
+        @Override
+        public boolean isRelevant(KubevirtPortEvent event) {
+            return event.subject().deviceId() != null;
+        }
 
         private boolean isRelevantHelper() {
             return Objects.equals(localNodeId, leadershipService.getLeader(appId.name()));
         }
 
         @Override
-        public void event(KubevirtPodEvent event) {
+        public void event(KubevirtPortEvent event) {
 
             switch (event.type()) {
-                case KUBEVIRT_POD_UPDATED:
-                    eventExecutor.execute(() -> processPodUpdate(event.subject()));
+                case KUBEVIRT_PORT_UPDATED:
+                    eventExecutor.execute(() -> processPortUpdate(event.subject()));
                     break;
-                case KUBEVIRT_POD_REMOVED:
-                    eventExecutor.execute(() -> processPodRemoval(event.subject()));
+                case KUBEVIRT_PORT_REMOVED:
+                    eventExecutor.execute(() -> processPortRemoval(event.subject()));
                     break;
                 default:
                     // do nothing
@@ -342,22 +320,22 @@ public class KubevirtSwitchingTenantHandler {
             }
         }
 
-        private void processPodUpdate(Pod pod) {
+        private void processPortUpdate(KubevirtPort port) {
             if (!isRelevantHelper()) {
                 return;
             }
 
-            setIngressRules(pod, true);
-            setEgressRules(pod, true);
+            setIngressRules(port, true);
+            setEgressRules(port, true);
         }
 
-        private void processPodRemoval(Pod pod) {
+        private void processPortRemoval(KubevirtPort port) {
             if (!isRelevantHelper()) {
                 return;
             }
 
-            setIngressRules(pod, false);
-            setEgressRules(pod, false);
+            setIngressRules(port, false);
+            setEgressRules(port, false);
         }
     }
 }
