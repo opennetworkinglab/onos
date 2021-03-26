@@ -266,6 +266,8 @@ public final class FabricConstants {
             PiActionId.of("FabricIngress.forwarding.set_next_id_routing_v6");
     public static final PiActionId FABRIC_INGRESS_NEXT_ROUTING_SIMPLE =
             PiActionId.of("FabricIngress.next.routing_simple");
+    public static final PiActionId FABRIC_INGRESS_SPGW_LOAD_PDR_QOS =
+            PiActionId.of("FabricIngress.spgw.load_pdr_qos");
     public static final PiActionId FABRIC_EGRESS_EGRESS_NEXT_PUSH_VLAN =
             PiActionId.of("FabricEgress.egress_next.push_vlan");
     public static final PiActionId FABRIC_EGRESS_BNG_EGRESS_DOWNSTREAM_ENCAP_V4 =
@@ -322,6 +324,7 @@ public final class FabricConstants {
     public static final PiActionParamId DMAC = PiActionParamId.of("dmac");
     public static final PiActionParamId MON_PORT =
             PiActionParamId.of("mon_port");
+    public static final PiActionParamId QID = PiActionParamId.of("qid");
     public static final PiActionParamId NOTIFY_CP =
             PiActionParamId.of("notify_cp");
     public static final PiActionParamId SRC_IFACE =

@@ -104,6 +104,7 @@ typedef bit<32> pcc_rule_id_t;
 typedef bit<32> far_id_t;
 typedef bit<32> pdr_ctr_id_t;
 typedef bit<32> teid_t;
+typedef bit<5> qid_t;
 
 const spgw_interface_t SPGW_IFACE_UNKNOWN = 8w0;
 const spgw_interface_t SPGW_IFACE_ACCESS = 8w1;
