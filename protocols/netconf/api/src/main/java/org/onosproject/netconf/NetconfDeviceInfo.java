@@ -126,8 +126,9 @@ public class NetconfDeviceInfo {
     /**
      * Convenieince constructor that converts all known fields from NetCfg data.
      * @param netconfConfig NetCf configuration
+     * @param deviceId deviceId as per netcfg
      */
-    public NetconfDeviceInfo(NetconfDeviceConfig netconfConfig) {
+    public NetconfDeviceInfo(NetconfDeviceConfig netconfConfig, DeviceId deviceId) {
         checkArgument(!netconfConfig.username().isEmpty(), "Empty device name");
         checkArgument(netconfConfig.port() > 0, "Negative port");
         checkNotNull(netconfConfig.ip(), "Null ip address");
@@ -135,6 +136,7 @@ public class NetconfDeviceInfo {
         this.name = netconfConfig.username();
         this.password = netconfConfig.password();
         this.ipAddress = netconfConfig.ip();
+        this.deviceId = deviceId;
         this.port = netconfConfig.port();
         this.path = netconfConfig.path();
         if (netconfConfig.sshKey() != null && !netconfConfig.sshKey().isEmpty()) {
