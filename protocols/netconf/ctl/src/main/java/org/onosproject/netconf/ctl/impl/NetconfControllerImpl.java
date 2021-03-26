@@ -370,7 +370,7 @@ public class NetconfControllerImpl implements NetconfController {
 
             if (netCfg != null) {
                 log.debug("Device {} is present in NetworkConfig", deviceId);
-                deviceInfo = new NetconfDeviceInfo(netCfg);
+                deviceInfo = new NetconfDeviceInfo(netCfg, deviceId);
             } else {
                 log.debug("Creating NETCONF device {}", deviceId);
                 deviceInfo = createDeviceInfo(deviceId);
