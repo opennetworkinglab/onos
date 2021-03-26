@@ -145,12 +145,20 @@ control SpgwIngress(inout parsed_headers_t hdr,
     //===== PDR Tables ======//
     //=============================//
 
-    action load_pdr(pdr_ctr_id_t ctr_id,
-                    far_id_t far_id,
-                    bit<1> needs_gtpu_decap) {
+    action load_pdr(pdr_ctr_id_t  ctr_id,
+                    far_id_t      far_id,
+                    bit<1>        needs_gtpu_decap) {
         fabric_md.spgw.ctr_id = ctr_id;
         fabric_md.spgw.far_id = far_id;
         fabric_md.spgw.needs_gtpu_decap = (_BOOL)needs_gtpu_decap;
+    }
+
+    action load_pdr_qos(pdr_ctr_id_t ctr_id,
+                        far_id_t     far_id,
+                        bit<1>       needs_gtpu_decap,
+                        qid_t        qid) {
+        load_pdr(ctr_id, far_id, needs_gtpu_decap);
+        // we cannot set the qid, since bmv2 does not support it   
     }
 
     // These two tables scale well and cover the average case PDR
@@ -161,6 +169,7 @@ control SpgwIngress(inout parsed_headers_t hdr,
         }
         actions = {
             load_pdr;
+            load_pdr_qos;
         }
         size = MAX_DOWNLINK_PDRS;
     }
@@ -172,6 +181,7 @@ control SpgwIngress(inout parsed_headers_t hdr,
         }
         actions = {
             load_pdr;
+            load_pdr_qos;
         }
         size = MAX_UPLINK_PDRS;
     }

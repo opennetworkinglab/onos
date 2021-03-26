@@ -408,6 +408,9 @@ tables {
     id: 16800614
   }
   action_refs {
+    id: 16785920
+  }
+  action_refs {
     id: 16800567
     annotations: "@defaultonly"
     scope: DEFAULT_ONLY
@@ -434,6 +437,9 @@ tables {
   }
   action_refs {
     id: 16800614
+  }
+  action_refs {
+    id: 16785920
   }
   action_refs {
     id: 16800567
@@ -787,6 +793,33 @@ actions {
     id: 3
     name: "needs_gtpu_decap"
     bitwidth: 1
+  }
+}
+actions {
+  preamble {
+    id: 16785920
+    name: "FabricIngress.spgw.load_pdr_qos"
+    alias: "load_pdr_qos"
+  }
+  params {
+    id: 1
+    name: "ctr_id"
+    bitwidth: 32
+  }
+  params {
+    id: 2
+    name: "far_id"
+    bitwidth: 32
+  }
+  params {
+    id: 3
+    name: "needs_gtpu_decap"
+    bitwidth: 1
+  }
+  params {
+    id: 4
+    name: "qid"
+    bitwidth: 5
   }
 }
 actions {
