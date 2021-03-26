@@ -77,7 +77,7 @@ public class DriverRegistryManager extends DefaultDriverProvider implements Driv
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static final String FORMAT = "Required drivers: {}";
+    private static final String FORMAT = "Modified, Required drivers: {}";
     private static final String COMMA = ",";
     private static final String NO_DRIVER = "Driver not found";
     private static final String DEFAULT = "default";
@@ -179,6 +179,8 @@ public class DriverRegistryManager extends DefaultDriverProvider implements Driv
     private synchronized void checkRequiredDrivers() {
         Set<String> driverSet = registeredDrivers();
         boolean isReady = driverSet.containsAll(requiredDriverSet);
+        log.debug("RequiredDriverSet {}, isReady {}, isStarted {}",
+                  requiredDriverSet, isReady, isStarted);
         if (isReady && !isStarted) {
             log.info("Starting driver subsystem");
             componentService.activate(null, DRIVER_COMPONENT);
