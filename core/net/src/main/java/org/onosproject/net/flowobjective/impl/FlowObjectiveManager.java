@@ -579,8 +579,12 @@ public class FlowObjectiveManager implements FlowObjectiveService {
         @Override
         public void event(DriverEvent event) {
             String driverName = event.subject().name();
+            //we invalidate the pipeliner if the event is for the same driver or
+            // if we have the device in the cache but the driver for it changed.
             driverHandlers.entrySet().stream()
-                    .filter(e -> driverName.equals(e.getValue().driver().name()))
+                    .filter(e -> driverName.equals(e.getValue().driver().name())
+                            || !e.getValue().driver().name()
+                            .equals(driverService.getDriver(e.getKey()).name()))
                     .map(Map.Entry::getKey)
                     .distinct()
                     .forEach(FlowObjectiveManager.this::invalidatePipeliner);
