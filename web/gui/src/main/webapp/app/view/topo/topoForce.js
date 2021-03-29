@@ -365,7 +365,7 @@
         var th = ts.theme(),
             el = ldata.el,
             type = ldata.type(),
-            connectionType = ldata.connectionType(),
+            connectionType = ldata.connectionType,
             lw = ldata.linkWidth(),
             online = ldata.online(),
             modeCls = ldata.expected() ? 'inactive' : 'not-permitted',
