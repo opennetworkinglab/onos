@@ -44,6 +44,8 @@ import org.onosproject.net.config.basics.SubjectFactories;
 import org.onosproject.net.device.DeviceEvent;
 import org.onosproject.net.device.DeviceListener;
 import org.onosproject.net.device.DeviceService;
+import org.onosproject.net.flow.DefaultTrafficSelector;
+import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.host.HostEvent;
 import org.onosproject.net.host.HostListener;
 import org.onosproject.net.host.HostService;
@@ -591,6 +593,32 @@ public class SimpleIntManager implements IntService {
                                         .enabled(true)
                                         .build();
                                 setConfig(intDeviceConfig);
+
+                                // For each watched subnet, we install two INT rules.
+                                // One match on the source, another match on the destination.
+                                intentMap.clear();
+                                config.watchSubnets().forEach(subnet -> {
+                                    IntIntent.Builder intIntentBuilder = IntIntent.builder()
+                                            .withReportType(IntIntent.IntReportType.TRACKED_FLOW)
+                                            .withReportType(IntIntent.IntReportType.DROPPED_PACKET)
+                                            .withReportType(IntIntent.IntReportType.CONGESTED_QUEUE)
+                                            .withTelemetryMode(IntIntent.TelemetryMode.POSTCARD);
+                                    if (subnet.prefixLength() == 0) {
+                                        // Special case, match any packet
+                                        installIntIntent(intIntentBuilder
+                                                .withSelector(DefaultTrafficSelector.emptySelector())
+                                                .build());
+                                    } else {
+                                        TrafficSelector selector = DefaultTrafficSelector.builder()
+                                                .matchIPSrc(subnet)
+                                                .build();
+                                        installIntIntent(intIntentBuilder.withSelector(selector).build());
+                                        selector = DefaultTrafficSelector.builder()
+                                                .matchIPDst(subnet)
+                                                .build();
+                                        installIntIntent(intIntentBuilder.withSelector(selector).build());
+                                    }
+                                });
                             });
                     break;
                 // TODO: Support removing INT config.

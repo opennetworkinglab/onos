@@ -15,13 +15,19 @@
  */
 package org.onosproject.net.behaviour.inbandtelemetry;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.annotations.Beta;
+import com.google.common.collect.Sets;
 import org.onlab.packet.IpAddress;
+import org.onlab.packet.IpPrefix;
 import org.onlab.packet.MacAddress;
 import org.onlab.packet.TpPort;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.net.config.Config;
 import org.onosproject.ui.JsonUtils;
+
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * Application level configuration of the INT process.
@@ -32,7 +38,11 @@ import org.onosproject.ui.JsonUtils;
  *       "report": {
  *         "collectorIp": "192.168.0.1",
  *         "collectorPort": 5500,
- *         "minFlowHopLatencyChangeNs": 300
+ *         "minFlowHopLatencyChangeNs": 300,
+ *         "watchSubnets": [
+ *           "192.168.0.0/24",
+ *           "10.140.0.0/16"
+ *         ]
  *       }
  *     }
  *   }
@@ -46,6 +56,7 @@ public final class IntReportConfig extends Config<ApplicationId> {
     private static final String COLLECTOR_NEXT_HOP_MAC = "collectorNextHopMac";
     private static final String SINK_IP = "sinkIp";
     private static final String SINK_MAC = "sinkMac";
+    private static final String WATCH_SUBNETS = "watchSubnets";
 
     /**
      * IP address of the collector.
@@ -146,6 +157,24 @@ public final class IntReportConfig extends Config<ApplicationId> {
     }
 
     /**
+     * Gets subnets to be watched.
+     *
+     * @return subnets to be watched
+     */
+    public Set<IpPrefix> watchSubnets() {
+        if (object.hasNonNull(WATCH_SUBNETS) && object.path(WATCH_SUBNETS).isArray()) {
+            Set<IpPrefix> subnets = Sets.newHashSet();
+            ArrayNode subnetArray = (ArrayNode) object.path(WATCH_SUBNETS);
+            subnetArray.forEach(subnetNode -> {
+                subnets.add(IpPrefix.valueOf(subnetNode.asText()));
+            });
+            return subnets;
+        } else {
+            return Collections.EMPTY_SET;
+        }
+    }
+
+    /**
      * Sets the collector IP to the config.
      *
      * @param collectorIp the collector IP
@@ -204,5 +233,15 @@ public final class IntReportConfig extends Config<ApplicationId> {
      */
     public IntReportConfig setSinkMac(MacAddress sinkMac) {
         return (IntReportConfig) setOrClear(SINK_MAC, sinkMac.toString());
+    }
+
+    /**
+     * Sets subnets to be watched.
+     *
+     * @param subnets subnets to be watched.
+     * @return the config
+     */
+    public IntReportConfig setWatchSubnets(Set<IpPrefix> subnets) {
+        return (IntReportConfig) setOrClear(WATCH_SUBNETS, subnets);
     }
 }

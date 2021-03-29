@@ -1,5 +1,10 @@
 {
   "collectorIp": "10.0.0.1",
   "collectorPort": 32766,
-  "minFlowHopLatencyChangeNs": 32
+  "minFlowHopLatencyChangeNs": 32,
+  "watchSubnets": [
+    "0.0.0.0/0",
+    "192.168.10.0/24",
+    "192.168.20.0/24"
+  ]
 }

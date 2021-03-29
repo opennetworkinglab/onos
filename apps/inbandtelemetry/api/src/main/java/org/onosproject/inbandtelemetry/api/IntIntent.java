@@ -16,6 +16,7 @@
 package org.onosproject.inbandtelemetry.api;
 
 import com.google.common.annotations.Beta;
+import com.google.common.base.Objects;
 import org.onosproject.net.behaviour.inbandtelemetry.IntMetadataType;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.TrafficSelector;
@@ -175,6 +176,27 @@ public final class IntIntent {
         return new Builder();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        IntIntent intIntent = (IntIntent) o;
+        return Objects.equal(selector, intIntent.selector) &&
+                Objects.equal(metadataTypes, intIntent.metadataTypes) &&
+                headerType == intIntent.headerType &&
+                Objects.equal(reportTypes, intIntent.reportTypes) &&
+                telemetryMode == intIntent.telemetryMode;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(selector, metadataTypes, headerType, reportTypes, telemetryMode);
+    }
+
     /**
      * An IntIntent builder.
      */
@@ -246,7 +268,6 @@ public final class IntIntent {
          * @return an IntIntent
          */
         public IntIntent build() {
-            checkArgument(!selector.criteria().isEmpty(), "Empty selector cannot match any flow.");
             checkNotNull(headerType, "Header type cannot be null.");
             checkArgument(!reportTypes.isEmpty(), "Report types cannot be empty.");
             checkNotNull(telemetryMode, "Telemetry mode cannot be null.");
