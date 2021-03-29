@@ -23,8 +23,6 @@ import org.onosproject.net.flow.TrafficSelector;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 /**
  * Represents a device-level objective to collect INT metadata for packets
  * identified by a traffic selector.
@@ -129,8 +127,6 @@ public final class IntObjective {
          * @return an IntObjective
          */
         public IntObjective build() {
-            checkArgument(!selector.criteria().isEmpty(), "Empty selector cannot match any flow.");
-
             return new IntObjective(selector, metadataTypes);
         }
     }

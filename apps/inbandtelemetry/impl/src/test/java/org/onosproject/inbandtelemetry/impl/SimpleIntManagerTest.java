@@ -27,6 +27,7 @@ import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.onlab.junit.TestUtils;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.IpPrefix;
 import org.onlab.packet.TpPort;
@@ -35,6 +36,7 @@ import org.onosproject.TestApplicationId;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.inbandtelemetry.api.IntIntent;
+import org.onosproject.inbandtelemetry.api.IntIntentId;
 import org.onosproject.mastership.MastershipService;
 import org.onosproject.net.ConnectPoint;
 import org.onosproject.net.DefaultDevice;
@@ -58,6 +60,7 @@ import org.onosproject.net.device.DeviceService;
 import org.onosproject.net.flow.DefaultTrafficSelector;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.host.HostService;
+import org.onosproject.store.service.ConsistentMap;
 import org.onosproject.store.service.StorageService;
 import org.onosproject.store.service.TestStorageService;
 
@@ -65,6 +68,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createNiceMock;
@@ -90,12 +94,14 @@ public class SimpleIntManagerTest {
     private static final int MIN_FLOW_HOP_LATENCY_CHANGE_NS = 32;
     private static final String INT_REPORT_CONFIG_KEY = "report";
     private static final DeviceId DEVICE_ID = DeviceId.deviceId("device:leaf1");
+    private static final String WATCHED_SUBNET_1 = "192.168.10.0/24";
+    private static final String WATCHED_SUBNET_2 = "192.168.20.0/24";
     private static final TrafficSelector FLOW_SELECTOR1 = DefaultTrafficSelector.builder()
-            .matchIPDst(IpPrefix.valueOf("192.168.10.0/24"))
+            .matchIPDst(IpPrefix.valueOf(WATCHED_SUBNET_1))
             .matchVlanId(VlanId.vlanId((short) 10))
             .build();
     private static final TrafficSelector FLOW_SELECTOR2 = DefaultTrafficSelector.builder()
-            .matchIPDst(IpPrefix.valueOf("192.168.20.0/24"))
+            .matchIPDst(IpPrefix.valueOf(WATCHED_SUBNET_2))
             .matchVlanId(VlanId.vlanId((short) 20))
             .build();
     private static final Device DEFAULT_DEVICE =
@@ -182,6 +188,49 @@ public class SimpleIntManagerTest {
         IntDeviceConfig expectedConfig = createIntDeviceConfig();
         IntDeviceConfig actualConfig = manager.getConfig();
         assertEquals(expectedConfig, actualConfig);
+
+        // Install watch subnets via netcfg
+        // In the report-config.json, there are 3 subnets we want to watch
+        // For subnet 0.0.0.0/0, the IntManager will create only one IntIntent with an empty selector.
+        Set<IntIntent> expectedIntIntents = Sets.newHashSet();
+        ConsistentMap<IntIntentId, IntIntent> intentMap = TestUtils.getField(manager, "intentMap");
+        IntIntent.Builder baseIntentBuilder = IntIntent.builder()
+                .withReportType(IntIntent.IntReportType.TRACKED_FLOW)
+                .withReportType(IntIntent.IntReportType.DROPPED_PACKET)
+                .withReportType(IntIntent.IntReportType.CONGESTED_QUEUE)
+                .withTelemetryMode(IntIntent.TelemetryMode.POSTCARD);
+
+        // Watch IP Src == subnet 1
+        TrafficSelector expectedSelector = DefaultTrafficSelector.builder()
+                .matchIPSrc(IpPrefix.valueOf(WATCHED_SUBNET_1))
+                .build();
+        expectedIntIntents.add(baseIntentBuilder.withSelector(expectedSelector).build());
+        // Watch IP Dst == subnet 1
+        expectedSelector = DefaultTrafficSelector.builder()
+                .matchIPDst(IpPrefix.valueOf(WATCHED_SUBNET_1))
+                .build();
+        expectedIntIntents.add(baseIntentBuilder.withSelector(expectedSelector).build());
+        // Watch IP Src == subnet 2
+        expectedSelector = DefaultTrafficSelector.builder()
+                .matchIPSrc(IpPrefix.valueOf(WATCHED_SUBNET_2))
+                .build();
+        expectedIntIntents.add(baseIntentBuilder.withSelector(expectedSelector).build());
+        // Watch IP Dst == subnet 2
+        expectedSelector = DefaultTrafficSelector.builder()
+                .matchIPDst(IpPrefix.valueOf(WATCHED_SUBNET_2))
+                .build();
+        expectedIntIntents.add(baseIntentBuilder.withSelector(expectedSelector).build());
+        // Any packets
+        expectedSelector = DefaultTrafficSelector.emptySelector();
+        expectedIntIntents.add(baseIntentBuilder.withSelector(expectedSelector).build());
+
+        // The INT intent installation order can be random, so we need to collect
+        // all expected INT intents and check if actual intent exists.
+        assertEquals(5, intentMap.size());
+        intentMap.entrySet().forEach(entry -> {
+            IntIntent actualIntIntent = entry.getValue().value();
+            assertTrue(expectedIntIntents.contains(actualIntIntent));
+        });
     }
 
     @Test
