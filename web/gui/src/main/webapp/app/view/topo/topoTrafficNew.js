@@ -109,9 +109,14 @@
                 tt: function () { return topoLion('tr_btn_monitor_sel_intent'); },
                 gid: 'm_intentTraffic',
             },
+            C: {
+                cb: function () { tts.showCustomTraffic(); },
+                tt: function () { return topoLion('tr_btn_monitor_custom_all'); },
+                gid: 'm_allTraffic',
+            },
 
             _keyOrder: [
-                '0', 'A', 'F', 'V', 'leftArrow', 'rightArrow', 'W',
+                '0', 'A', 'F', 'V', 'leftArrow', 'rightArrow', 'W', 'C'
             ],
         },
 

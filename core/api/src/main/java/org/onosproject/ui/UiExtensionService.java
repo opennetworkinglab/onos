@@ -56,6 +56,22 @@ public interface UiExtensionService {
     }
 
     /**
+     * Registers the specified topo hilighter factory.
+     *
+     * @param factory UI topo higlighter factory to register
+     */
+    default void register(UiTopoHighlighterFactory factory) {
+    }
+
+    /**
+     * Unregisters the specified user interface extension.
+     *
+     * @param factory UI topo higlighter factory to unregister
+     */
+    default void unregister(UiTopoHighlighterFactory factory) {
+    }
+
+    /**
      * Returns the list of registered user interface extensions.
      *
      * @return list of extensions
@@ -77,6 +93,15 @@ public interface UiExtensionService {
      */
     default List<UiGlyph> getGlyphs() {
         return new ArrayList<UiGlyph>();
+    }
+
+    /**
+     * Returns the list of registered topo highlighter factories.
+     *
+     * @return list of highlighter factories
+     */
+    default List<UiTopoHighlighterFactory> getTopoHighlighterFactories() {
+        return new ArrayList<UiTopoHighlighterFactory>();
     }
 
     /**

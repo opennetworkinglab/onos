@@ -113,6 +113,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     private static final String REQ_SEL_INTENT_TRAFFIC = "requestSelectedIntentTraffic";
     private static final String SEL_INTENT = "selectIntent";
     private static final String REQ_ALL_TRAFFIC = "requestAllTraffic";
+    private static final String REQ_CUSTOM_TRAFFIC = "requestCustomTraffic";
     private static final String REQ_DEV_LINK_FLOWS = "requestDeviceLinkFlows";
     private static final String CANCEL_TRAFFIC = "cancelTraffic";
     private static final String REQ_SUMMARY = "requestSummary";
@@ -246,6 +247,7 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
                 new RemoveIntents(),
 
                 new ReqAllTraffic(),
+                new ReqCustomTraffic(),
                 new ReqDevLinkFlows(),
                 new ReqRelatedIntents(),
                 new ReqNextIntent(),
@@ -620,6 +622,17 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
                 default:
                     break;
             }
+        }
+    }
+
+    private final class ReqCustomTraffic extends RequestHandler {
+        private ReqCustomTraffic() {
+            super(REQ_CUSTOM_TRAFFIC);
+        }
+
+        @Override
+        public void process(ObjectNode payload) {
+            traffic.monitor((int) number(payload, "index"));
         }
     }
 

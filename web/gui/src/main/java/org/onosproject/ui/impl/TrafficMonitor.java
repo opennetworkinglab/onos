@@ -151,6 +151,14 @@ public class TrafficMonitor extends TrafficMonitorBase {
     }
 
     @Override
+    protected void sendCustomTraffic() {
+        log.debug("sendCustomTraffic");
+        if (topoHighlighter != null) {
+            msgHandler.sendHighlights(topoHighlighter.createHighlights());
+        }
+    }
+
+    @Override
     protected void sendClearHighlights() {
         log.debug("sendClearHighlights");
         msgHandler.sendHighlights(new Highlights());

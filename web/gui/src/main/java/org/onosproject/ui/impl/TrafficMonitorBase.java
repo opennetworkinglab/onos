@@ -38,6 +38,9 @@ import org.onosproject.net.DefaultEdgeLink;
 import org.onosproject.net.DeviceId;
 import org.onosproject.net.Link;
 import org.onosproject.net.statistic.Load;
+import org.onosproject.ui.UiExtensionService;
+import org.onosproject.ui.UiTopoHighlighter;
+import org.onosproject.ui.UiTopoHighlighterFactory;
 import org.onosproject.ui.impl.topo.TopoologyTrafficMessageHandlerAbstract;
 import org.onosproject.ui.impl.topo.util.IntentSelection;
 import org.onosproject.ui.impl.topo.util.ServicesBundle;
@@ -69,8 +72,7 @@ import static org.onosproject.net.DefaultEdgeLink.createEdgeLink;
 import static org.onosproject.net.statistic.PortStatisticsService.MetricType.BYTES;
 import static org.onosproject.net.statistic.PortStatisticsService.MetricType.PACKETS;
 import static org.onosproject.net.DefaultEdgeLink.createEdgeLinks;
-import static org.onosproject.ui.impl.TrafficMonitorBase.Mode.IDLE;
-import static org.onosproject.ui.impl.TrafficMonitorBase.Mode.SELECTED_INTENT;
+import static org.onosproject.ui.impl.TrafficMonitorBase.Mode.*;
 
 /**
  * Base superclass for traffic monitor (both 'classic' and 'topo2' versions).
@@ -85,6 +87,7 @@ public abstract class TrafficMonitorBase extends AbstractTopoMonitor {
     protected IntentSelection selectedIntents = null;
     protected final TopoologyTrafficMessageHandlerAbstract msgHandler;
     protected NodeSelection selectedNodes = null;
+    protected UiTopoHighlighter topoHighlighter = null;
 
     protected void sendSelectedIntents() {
         log.debug("sendSelectedIntents: {}", selectedIntents);
@@ -285,7 +288,8 @@ public abstract class TrafficMonitorBase extends AbstractTopoMonitor {
         ALL_PORT_TRAFFIC_PKT_PS,
         DEV_LINK_FLOWS,
         RELATED_INTENTS,
-        SELECTED_INTENT
+        SELECTED_INTENT,
+        CUSTOM_TRAFFIC_MONITOR
     }
 
     /**
@@ -373,6 +377,22 @@ public abstract class TrafficMonitorBase extends AbstractTopoMonitor {
                 clearAll();
                 break;
         }
+    }
+
+
+    public synchronized void monitor(int index) {
+        mode = CUSTOM_TRAFFIC_MONITOR;
+        List<UiTopoHighlighterFactory> factories = services.get(UiExtensionService.class)
+                .getTopoHighlighterFactories();
+        if (factories.isEmpty()) {
+            return;
+        }
+
+        UiTopoHighlighterFactory factory = factories.get(index % factories.size());
+        topoHighlighter = factory.newTopoHighlighter();
+        clearSelection();
+        scheduleTask();
+        sendCustomTraffic();
     }
 
     /**
@@ -472,6 +492,12 @@ public abstract class TrafficMonitorBase extends AbstractTopoMonitor {
      * traffic traversing links for the "selected" intent.
      */
     protected abstract void sendSelectedIntentTraffic();
+
+    /**
+     * Subclass should compile and send appropriate highlights data showing
+     * custom traffic on links.
+     */
+    protected abstract void sendCustomTraffic();
 
     /**
      * Subclass should send a "clear highlights" event.
@@ -711,6 +737,9 @@ public abstract class TrafficMonitorBase extends AbstractTopoMonitor {
                         break;
                     case SELECTED_INTENT:
                         sendSelectedIntentTraffic();
+                        break;
+                    case CUSTOM_TRAFFIC_MONITOR:
+                        sendCustomTraffic();
                         break;
 
                     default:
