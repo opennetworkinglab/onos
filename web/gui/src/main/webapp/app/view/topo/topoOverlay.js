@@ -398,12 +398,22 @@
             }
         });
 
+        const stylePattern = /style=\"[^\"]*\"/g;
+
         data.links.forEach(function (link) {
             var ldata = api.findLinkById(link.id);
 
             if (ldata && ldata.el && !ldata.el.empty()) {
                 if (!link.subdue) {
                     api.unsupLink(ldata.key, less);
+                }
+                var styleFound = link.css.match(stylePattern);
+                if (styleFound) {
+                    link.css = link.css.replace(stylePattern, '');
+                    var style = styleFound[0].replace('style="', '').replace('"$', '')
+                    ldata.el.attr('style', style);
+                } else {
+                    ldata.el.attr('style', '');
                 }
                 ldata.el.classed(link.css, true);
                 ldata.label = link.label;

@@ -49,6 +49,7 @@ import org.onosproject.ui.UiPreferencesService;
 import org.onosproject.ui.UiSessionToken;
 import org.onosproject.ui.UiTokenService;
 import org.onosproject.ui.UiTopo2OverlayFactory;
+import org.onosproject.ui.UiTopoHighlighterFactory;
 import org.onosproject.ui.UiTopoMap;
 import org.onosproject.ui.UiTopoMapFactory;
 import org.onosproject.ui.UiTopoOverlayFactory;
@@ -140,6 +141,7 @@ public class UiExtensionManager
     private final List<UiExtension> extensions = Lists.newArrayList();
 
     private final List<UiGlyph> glyphs = Lists.newArrayList();
+    private final List<UiTopoHighlighterFactory> highlighterFactories = Lists.newArrayList();
 
     // Map of views to extensions
     private final Map<String, UiExtension> views = Maps.newHashMap();
@@ -366,6 +368,22 @@ public class UiExtensionManager
     }
 
     @Override
+    public synchronized void register(UiTopoHighlighterFactory factory) {
+        checkPermission(UI_WRITE);
+        if (!highlighterFactories.contains(factory)) {
+            highlighterFactories.add(factory);
+            UiWebSocketServlet.sendToAll(GUI_ADDED, null);
+        }
+    }
+
+    @Override
+    public synchronized void unregister(UiTopoHighlighterFactory factory) {
+        checkPermission(UI_WRITE);
+        highlighterFactories.remove(factory);
+        UiWebSocketServlet.sendToAll(GUI_REMOVED, null);
+    }
+
+    @Override
     public synchronized List<UiExtension> getExtensions() {
         checkPermission(UI_READ);
         return ImmutableList.copyOf(extensions);
@@ -375,6 +393,12 @@ public class UiExtensionManager
     public synchronized List<UiGlyph> getGlyphs() {
         checkPermission(GLYPH_READ);
         return ImmutableList.copyOf(glyphs);
+    }
+
+    @Override
+    public synchronized List<UiTopoHighlighterFactory> getTopoHighlighterFactories() {
+        checkPermission(UI_READ);
+        return ImmutableList.copyOf(highlighterFactories);
     }
 
     @Override

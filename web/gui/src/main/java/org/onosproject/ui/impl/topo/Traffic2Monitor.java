@@ -65,6 +65,10 @@ public class Traffic2Monitor extends TrafficMonitorBase {
     }
 
     @Override
+    protected void sendCustomTraffic() {
+    }
+
+    @Override
     protected void sendAllPortTrafficBits() {
         log.debug("TOPO-2-TRAFFIC: sendAllPortTrafficBits");
         msgHandler.sendHighlights(trafficSummary(TrafficLink.StatsType.PORT_STATS));

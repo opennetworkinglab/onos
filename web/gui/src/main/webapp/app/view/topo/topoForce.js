@@ -1023,6 +1023,7 @@
 
     function clearLinkTrafficStyle() {
         link.style('stroke-width', null)
+            .style('stroke', null)
             .classed(allTrafficClasses, false);
     }
 
