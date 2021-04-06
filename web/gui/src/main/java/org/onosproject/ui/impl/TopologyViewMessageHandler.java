@@ -173,7 +173,6 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
 
     private static final String SLASH = "/";
 
-    private static final long TRAFFIC_PERIOD = 5000;
     private static final long SUMMARY_PERIOD = 30000;
 
     private static final Comparator<? super ControllerNode> NODE_COMPARATOR =
@@ -214,8 +213,8 @@ public class TopologyViewMessageHandler extends TopologyViewMessageHandlerBase {
     public void init(UiConnection connection, ServiceDirectory directory) {
         super.init(connection, directory);
         appId = directory.get(CoreService.class).registerApplication(MY_APP_ID);
-        traffic = new TrafficMonitor(TRAFFIC_PERIOD, services, this);
-        protectedIntentMonitor = new ProtectedIntentMonitor(TRAFFIC_PERIOD, services, this);
+        traffic = new TrafficMonitor(services, this);
+        protectedIntentMonitor = new ProtectedIntentMonitor(services, this);
     }
 
     @Override

@@ -21,6 +21,35 @@ package org.onosproject.ui.topo;
  */
 public class AbstractTopoMonitor {
 
+    /**
+     * Creates a new topo monitor base.
+     */
+    protected AbstractTopoMonitor() {
+    }
+
+    /**
+     * Number of milliseconds between invocations of sending traffic data.
+     */
+    protected static long trafficPeriod = 5000;
+
+    /**
+     * Sets the traffic refresh period in milliseconds.
+     *
+     * @param ms refresh rate in millis
+     */
+    public static void setTrafficPeriod(long ms) {
+        trafficPeriod = ms;
+    }
+
+    /**
+     * Returns the traffic refresh period in milliseconds.
+     *
+     * @return refresh rate in millis
+     */
+    public static long getTrafficPeriod() {
+        return trafficPeriod;
+    }
+
     // TODO: pull common code up into this class
 
     // Note to Andrea:

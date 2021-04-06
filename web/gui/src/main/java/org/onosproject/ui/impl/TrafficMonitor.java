@@ -59,13 +59,11 @@ public class TrafficMonitor extends TrafficMonitorBase {
     /**
      * Constructs a traffic monitor.
      *
-     * @param trafficPeriod  traffic task period in ms
      * @param servicesBundle bundle of services
      * @param msgHandler     our message handler
      */
-    public TrafficMonitor(long trafficPeriod, ServicesBundle servicesBundle,
-                          TopologyViewMessageHandler msgHandler) {
-        super(trafficPeriod, servicesBundle, msgHandler);
+    public TrafficMonitor(ServicesBundle servicesBundle, TopologyViewMessageHandler msgHandler) {
+        super(servicesBundle, msgHandler);
         this.msgHandler = msgHandler;
 
     }
