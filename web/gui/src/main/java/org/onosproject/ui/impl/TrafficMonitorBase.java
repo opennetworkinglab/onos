@@ -292,10 +292,6 @@ public abstract class TrafficMonitorBase extends AbstractTopoMonitor {
         CUSTOM_TRAFFIC_MONITOR
     }
 
-    /**
-     * Number of milliseconds between invocations of sending traffic data.
-     */
-    protected final long trafficPeriod;
 
     /**
      * Holds references to services.
@@ -314,14 +310,11 @@ public abstract class TrafficMonitorBase extends AbstractTopoMonitor {
      * Constructs the monitor, initializing the task period and
      * services bundle reference.
      *
-     * @param trafficPeriod  traffic task period in ms
      * @param servicesBundle bundle of services
      * @param msgHandler Traffic Message handler
      */
-    protected TrafficMonitorBase(long trafficPeriod,
-                                 ServicesBundle servicesBundle,
+    protected TrafficMonitorBase(ServicesBundle servicesBundle,
                                  TopoologyTrafficMessageHandlerAbstract msgHandler) {
-        this.trafficPeriod = trafficPeriod;
         this.services = servicesBundle;
         this.msgHandler = msgHandler;
         timer = new Timer("uiTopo-" + getClass().getSimpleName());

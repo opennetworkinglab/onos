@@ -48,13 +48,12 @@ public class Traffic2Monitor extends TrafficMonitorBase {
     /**
      * Constructs a traffic monitor.
      *
-     * @param trafficPeriod  traffic task period in ms
      * @param servicesBundle bundle of services
      * @param msgHandler     our message handler
      */
-    public Traffic2Monitor(long trafficPeriod, ServicesBundle servicesBundle,
+    public Traffic2Monitor(ServicesBundle servicesBundle,
                            Topo2TrafficMessageHandler msgHandler) {
-        super(trafficPeriod, servicesBundle, msgHandler);
+        super(servicesBundle, msgHandler);
         this.msgHandler = msgHandler;
     }
 
