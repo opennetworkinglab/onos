@@ -33,6 +33,7 @@ import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
 import org.onosproject.kubevirtnetworking.api.KubevirtFlowRuleService;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetwork;
+import org.onosproject.kubevirtnetworking.api.KubevirtNetworkAdminService;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetworkEvent;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetworkListener;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetworkService;
@@ -156,7 +157,7 @@ public class KubevirtNetworkHandler {
     protected KubevirtNodeService nodeService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
-    protected KubevirtNetworkService networkService;
+    protected KubevirtNetworkAdminService networkService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected KubevirtFlowRuleService flowService;
@@ -834,6 +835,13 @@ public class KubevirtNetworkHandler {
                 install);
     }
 
+    private void reserveVrouterIp(KubevirtNetwork network) {
+        String networkId = network.networkId();
+        IpAddress vrouterIp = network.ipPool().start();
+
+        networkService.reserveIp(networkId, vrouterIp);
+    }
+
     private class InternalRouterEventListener implements KubevirtRouterListener {
         private boolean isRelevantHelper() {
             return Objects.equals(localNodeId, leadershipService.getLeader(appId.name()));
@@ -1097,6 +1105,8 @@ public class KubevirtNetworkHandler {
                     initIntegrationTunnelBridge(network);
                     break;
                 case FLAT:
+                    reserveVrouterIp(network);
+                    break;
                 case VLAN:
                     break;
                 default:
@@ -1194,6 +1204,8 @@ public class KubevirtNetworkHandler {
                             setDefaultGatewayRuleToWorkerNodeWhenNodeCreated(node, network);
                             break;
                         case FLAT:
+                            reserveVrouterIp(network);
+                            break;
                         case VLAN:
                         default:
                             // do nothing

@@ -49,6 +49,12 @@ public class KubevirtListIpAddressCommand extends AbstractShellCommand {
     @Override
     protected void doExecute() throws Exception {
         KubevirtNetworkService service = get(KubevirtNetworkService.class);
+
+        if (networkId == null) {
+            error("No network identifier was specified");
+            return;
+        }
+
         KubevirtNetwork network = service.network(networkId);
 
         if (network == null) {
