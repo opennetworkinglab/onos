@@ -22,15 +22,17 @@ copyright = '''/*
  */
 '''
 
+IMPORT_ACTION_ID = "import org.onosproject.net.pi.model.PiActionId;"
+IMPORT_ACTION_PARAM_ID = "import org.onosproject.net.pi.model.PiActionParamId;"
+IMPORT_ACTION_PROFILE_ID = "import org.onosproject.net.pi.model.PiActionProfileId;"
+IMPORT_METER_ID = "import org.onosproject.net.pi.model.PiMeterId;"
+IMPORT_PACKET_METADATA_ID = "import org.onosproject.net.pi.model.PiPacketMetadataId;"
+IMPORT_COUNTER_ID = "import org.onosproject.net.pi.model.PiCounterId;"
+IMPORT_MATCH_FIELD_ID = "import org.onosproject.net.pi.model.PiMatchFieldId;"
+IMPORT_TABLE_ID = "import org.onosproject.net.pi.model.PiTableId;"
+
 imports = '''
-import org.onosproject.net.pi.model.PiActionId;
-import org.onosproject.net.pi.model.PiActionParamId;
-import org.onosproject.net.pi.model.PiActionProfileId;
-import org.onosproject.net.pi.model.PiMeterId;
-import org.onosproject.net.pi.model.PiPacketMetadataId;
-import org.onosproject.net.pi.model.PiCounterId;
-import org.onosproject.net.pi.model.PiMatchFieldId;
-import org.onosproject.net.pi.model.PiTableId;'''
+'''
 
 PKG_FMT = 'package %s;'
 DEFAULT_PKG_PATH = 'org.onosproject.pipelines.%s'
@@ -92,6 +94,7 @@ class ConstantClassGenerator(object):
     action_profiles = set()
     packet_metadata = set()
     meters = set()
+    direct_meters = set()
 
     # https://stackoverflow.com/questions/1175208/elegant-python-function-to-convert-camelcase-to-snake-case
     def convert_camel_to_all_caps(self, name):
@@ -106,11 +109,20 @@ class ConstantClassGenerator(object):
         self.java_doc = JAVA_DOC_FMT % (base_name, )
 
     def parse(self, p4info):
+        global imports
+
+        if len(p4info.tables) > 0:
+            imports += IMPORT_TABLE_ID + "\n"
+            imports += IMPORT_MATCH_FIELD_ID + "\n"
+
         for tbl in p4info.tables:
             for mf in tbl.match_fields:
                 self.header_fields.add(mf.name)
 
             self.tables.add(tbl.preamble.name)
+
+        if len(p4info.counters) > 0 or len(p4info.direct_counters) > 0:
+            imports += IMPORT_COUNTER_ID + "\n"
 
         for ctr in p4info.counters:
             self.counters.add(ctr.preamble.name)
@@ -118,20 +130,37 @@ class ConstantClassGenerator(object):
         for dir_ctr in p4info.direct_counters:
             self.direct_counters.add(dir_ctr.preamble.name)
 
+        if len(p4info.actions) > 0:
+            imports += IMPORT_ACTION_ID + "\n"
+            imports += IMPORT_ACTION_PARAM_ID + "\n"
+
         for act in p4info.actions:
             self.actions.add(act.preamble.name)
 
             for param in act.params:
                 self.action_params.add(param.name)
 
+        if len(p4info.action_profiles) > 0:
+            imports += IMPORT_ACTION_PROFILE_ID + "\n"
+
         for act_prof in p4info.action_profiles:
             self.action_profiles.add(act_prof.preamble.name)
+
+        if len(p4info.controller_packet_metadata) > 0:
+            imports += IMPORT_PACKET_METADATA_ID + "\n"
 
         for cpm in p4info.controller_packet_metadata:
             for mta in cpm.metadata:
                 self.packet_metadata.add(mta.name)
+
+        if len(p4info.meters) > 0 or len(p4info.direct_meters) > 0:
+            imports += IMPORT_METER_ID + "\n"
+
         for mtr in p4info.meters:
             self.meters.add(mtr.preamble.name)
+
+        for dir_mtr in p4info.direct_meters:
+            self.direct_meters.add(dir_mtr.preamble.name)
 
     def const_line(self, name, type, constructor):
         var_name = self.convert_camel_to_all_caps(name)
@@ -199,6 +228,12 @@ class ConstantClassGenerator(object):
             lines.append('    // Meter IDs')
         for mtr in self.meters:
             lines.append(self.const_line(mtr, PI_METER_ID, PI_METER_ID_CST))
+
+        if len(self.direct_meters) is not 0:
+            lines.append('    // Direct Meter IDs')
+        for mtr in self.direct_meters:
+            lines.append(self.const_line(mtr, PI_METER_ID, PI_METER_ID_CST))
+
         lines.append(CLASS_CLOSE)
         # end of class
 
@@ -240,7 +275,7 @@ def main():
 
     if output == '-':
         # std output
-        print java_code
+        print(java_code)
     else:
         with open(output, 'w') as output_file:
             output_file.write(java_code)
