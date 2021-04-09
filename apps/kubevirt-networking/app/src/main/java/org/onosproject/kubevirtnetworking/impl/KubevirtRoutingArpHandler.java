@@ -234,8 +234,9 @@ public class KubevirtRoutingArpHandler {
                 case KUBEVIRT_ROUTER_EXTERNAL_NETWORK_ATTACHED:
                     eventExecutor.execute(() -> processRouterExternalNetAttachedOrGwAttached(event.subject()));
                     break;
+                case KUBEVIRT_ROUTER_REMOVED:
                 case KUBEVIRT_ROUTER_EXTERNAL_NETWORK_DETACHED:
-                    eventExecutor.execute(() -> processRouterExternalNetDetached(event.subject(),
+                    eventExecutor.execute(() -> processRouterRemovedOrExternalNetDetached(event.subject(),
                             event.externalIp(), event.externalPeerRouterIp()));
                     break;
                 case KUBEVIRT_GATEWAY_NODE_DETACHED:
@@ -272,8 +273,8 @@ public class KubevirtRoutingArpHandler {
             }
         }
 
-        private void processRouterExternalNetDetached(KubevirtRouter router, String routerSnatIp,
-                                                      String peerRouterIp) {
+        private void processRouterRemovedOrExternalNetDetached(KubevirtRouter router, String routerSnatIp,
+                                                               String peerRouterIp) {
             if (!isRelevantHelper()) {
                 return;
             }

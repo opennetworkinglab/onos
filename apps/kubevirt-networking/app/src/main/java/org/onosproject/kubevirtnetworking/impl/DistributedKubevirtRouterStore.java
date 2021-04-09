@@ -67,6 +67,7 @@ import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KU
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_INTERNAL_NETWORKS_DETACHED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_REMOVED;
 import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_ROUTER_UPDATED;
+import static org.onosproject.kubevirtnetworking.api.KubevirtRouterEvent.Type.KUBEVIRT_SNAT_STATUS_DISABLED;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -323,6 +324,11 @@ public class DistributedKubevirtRouterStore
                 notifyDelegate(new KubevirtRouterEvent(
                         KUBEVIRT_GATEWAY_NODE_CHANGED,
                         router, oldValue.electedGateway()));
+            }
+
+            if (oldValue.enableSnat() && !newValue.enableSnat()) {
+                notifyDelegate(new KubevirtRouterEvent(
+                        KUBEVIRT_SNAT_STATUS_DISABLED, router));
             }
         }
     }

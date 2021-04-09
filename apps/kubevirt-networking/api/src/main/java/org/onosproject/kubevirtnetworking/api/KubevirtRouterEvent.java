@@ -221,7 +221,11 @@ public class KubevirtRouterEvent extends AbstractEvent<KubevirtRouterEvent.Type,
         /**
          * Signified that the gateway node changed for this router.
          */
-        KUBEVIRT_GATEWAY_NODE_CHANGED
+        KUBEVIRT_GATEWAY_NODE_CHANGED,
+        /**
+         * Signified that the snat status disabled for this router.
+         */
+        KUBEVIRT_SNAT_STATUS_DISABLED
     }
 
     /**
