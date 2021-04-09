@@ -173,11 +173,17 @@ public class KubevirtRoutingSnatHandler {
     }
 
     private void initGatewayNodeSnatForRouter(KubevirtRouter router, boolean install) {
-        KubevirtNode electedGw = gatewayNodeForSpecifiedRouter(kubevirtNodeService, router);
+        if (router.electedGateway() == null) {
+            log.warn("Fail to initialize gateway node snat for router {} " +
+                    "because there's no gateway assigned to it", router.name());
+            return;
+        }
+
+        KubevirtNode electedGw = kubevirtNodeService.node(router.electedGateway());
 
         if (electedGw == null) {
             log.warn("Fail to initialize gateway node snat for router {} " +
-                    "there's no gateway assigned to it", router.name());
+                    "because there's no gateway assigned to it", router.name());
             return;
         }
 
@@ -185,7 +191,7 @@ public class KubevirtRoutingSnatHandler {
 
         if (routerSnatIp == null) {
             log.warn("Fail to initialize gateway node snat for router {} " +
-                    "there's no gateway snat ip assigned to it", router.name());
+                    "because there's no gateway snat ip assigned to it", router.name());
             return;
         }
 
@@ -425,6 +431,7 @@ public class KubevirtRoutingSnatHandler {
                 case KUBEVIRT_ROUTER_CREATED:
                     eventExecutor.execute(() -> processRouterCreation(event.subject()));
                     break;
+                case KUBEVIRT_SNAT_STATUS_DISABLED:
                 case KUBEVIRT_ROUTER_REMOVED:
                     eventExecutor.execute(() -> processRouterDeletion(event.subject()));
                     break;
@@ -544,6 +551,10 @@ public class KubevirtRoutingSnatHandler {
                 return;
             }
 
+            if (!router.enableSnat()) {
+                return;
+            }
+
             router.internal()
                     .stream()
                     .filter(networkId -> kubevirtNetworkService.network(networkId) != null)
@@ -567,6 +578,10 @@ public class KubevirtRoutingSnatHandler {
 
             KubevirtNode detachedGateway = kubevirtNodeService.node(detachedGatewayId);
             if (detachedGateway == null) {
+                return;
+            }
+
+            if (!router.enableSnat()) {
                 return;
             }
 
@@ -598,6 +613,10 @@ public class KubevirtRoutingSnatHandler {
                 return;
             }
 
+            if (!router.enableSnat()) {
+                return;
+            }
+
             attachedInternalNetworks.forEach(networkId -> {
                 String routerSnatIp = router.external().keySet().stream().findAny().orElse(null);
                 if (routerSnatIp == null) {
@@ -618,6 +637,10 @@ public class KubevirtRoutingSnatHandler {
 
             KubevirtNode gwNode = gatewayNodeForSpecifiedRouter(kubevirtNodeService, router);
             if (gwNode == null) {
+                return;
+            }
+
+            if (!router.enableSnat()) {
                 return;
             }
 
@@ -646,7 +669,7 @@ public class KubevirtRoutingSnatHandler {
             if (!isRelevantHelper()) {
                 return;
             }
-            if (router.enableSnat() && !router.external().isEmpty() && router.peerRouter() != null) {
+            if (!router.external().isEmpty() && router.peerRouter() != null) {
                 initGatewayNodeSnatForRouter(router, false);
             }
         }
