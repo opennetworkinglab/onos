@@ -54,6 +54,8 @@ import org.onosproject.net.flow.DefaultTrafficTreatment;
 import org.onosproject.net.flow.TrafficSelector;
 import org.onosproject.net.flow.TrafficTreatment;
 import org.onosproject.net.flow.instructions.ExtensionTreatment;
+import org.onosproject.net.packet.DefaultOutboundPacket;
+import org.onosproject.net.packet.PacketService;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -61,6 +63,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.slf4j.Logger;
 
+import java.nio.ByteBuffer;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -80,6 +83,7 @@ import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.GENEVE
 import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.GRE;
 import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.VLAN;
 import static org.onosproject.kubevirtnetworking.api.KubevirtNetwork.Type.VXLAN;
+import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.buildGarpPacket;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.externalPatchPortNum;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.gatewayNodeForSpecifiedRouter;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.getRouterForKubevirtPort;
@@ -130,6 +134,9 @@ public class KubevirtRoutingSnatHandler {
     protected DriverService driverService;
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
+    protected PacketService packetService;
+
+    @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected KubevirtRouterService kubevirtRouterService;
 
     private final ExecutorService eventExecutor = newSingleThreadExecutor(
@@ -172,15 +179,14 @@ public class KubevirtRoutingSnatHandler {
         log.info("Stopped");
     }
 
-    private void initGatewayNodeSnatForRouter(KubevirtRouter router, boolean install) {
+    private void initGatewayNodeSnatForRouter(KubevirtRouter router, String gateway, boolean install) {
         if (router.electedGateway() == null) {
             log.warn("Fail to initialize gateway node snat for router {} " +
                     "because there's no gateway assigned to it", router.name());
             return;
         }
 
-        KubevirtNode electedGw = kubevirtNodeService.node(router.electedGateway());
-
+        KubevirtNode electedGw = kubevirtNodeService.node(gateway);
         if (electedGw == null) {
             log.warn("Fail to initialize gateway node snat for router {} " +
                     "because there's no gateway assigned to it", router.name());
@@ -454,6 +460,10 @@ public class KubevirtRoutingSnatHandler {
                     eventExecutor.execute(() -> processRouterGatewayNodeDetached(event.subject(),
                             event.gateway()));
                     break;
+                case KUBEVIRT_GATEWAY_NODE_CHANGED:
+                    eventExecutor.execute(() -> processRouterGatewayNodeChanged(event.subject(),
+                            event.gateway()));
+                    break;
                 case KUBEVIRT_ROUTER_EXTERNAL_NETWORK_ATTACHED:
                     eventExecutor.execute(() -> processRouterExternalNetAttached(event.subject(),
                             event.externalIp(), event.externalNet(),
@@ -661,7 +671,7 @@ public class KubevirtRoutingSnatHandler {
                 return;
             }
             if (router.enableSnat() && !router.external().isEmpty() && router.peerRouter() != null) {
-                initGatewayNodeSnatForRouter(router, true);
+                initGatewayNodeSnatForRouter(router, router.electedGateway(), true);
             }
         }
 
@@ -670,7 +680,7 @@ public class KubevirtRoutingSnatHandler {
                 return;
             }
             if (!router.external().isEmpty() && router.peerRouter() != null) {
-                initGatewayNodeSnatForRouter(router, false);
+                initGatewayNodeSnatForRouter(router, router.electedGateway(), false);
             }
         }
 
@@ -679,8 +689,53 @@ public class KubevirtRoutingSnatHandler {
                 return;
             }
             if (router.enableSnat() && !router.external().isEmpty() && router.peerRouter() != null) {
-                initGatewayNodeSnatForRouter(router, true);
+                initGatewayNodeSnatForRouter(router, router.electedGateway(), true);
             }
+        }
+
+        private void processRouterGatewayNodeChanged(KubevirtRouter router,
+                                                     String disAssociatedGateway) {
+            if (!isRelevantHelper()) {
+                return;
+            }
+
+            if (router.enableSnat() && !router.external().isEmpty() && router.peerRouter() != null) {
+                initGatewayNodeSnatForRouter(router, disAssociatedGateway, false);
+                initGatewayNodeSnatForRouter(router, router.electedGateway(), true);
+
+                processRouterGatewayNodeDetached(router, disAssociatedGateway);
+                processRouterGatewayNodeAttached(router, router.electedGateway());
+
+                sendGarpPacketForSnatIp(router);
+            }
+        }
+
+        private void sendGarpPacketForSnatIp(KubevirtRouter router) {
+            if (router == null || router.electedGateway() == null) {
+                return;
+            }
+
+            String routerSnatIp = router.external().keySet().stream().findAny().orElse(null);
+
+            if (routerSnatIp == null) {
+                log.warn("Fail to initialize gateway node snat for router {} " +
+                        "because there's no gateway snat ip assigned to it", router.name());
+                return;
+            }
+
+            Ethernet ethernet = buildGarpPacket(DEFAULT_GATEWAY_MAC, IpAddress.valueOf(routerSnatIp));
+
+            if (ethernet == null) {
+                return;
+            }
+
+            KubevirtNode gatewayNode = kubevirtNodeService.node(router.electedGateway());
+
+            TrafficTreatment treatment = DefaultTrafficTreatment.builder()
+                    .setOutput(externalPatchPortNum(deviceService, gatewayNode)).build();
+
+            packetService.emit(new DefaultOutboundPacket(gatewayNode.intgBridge(), treatment,
+                    ByteBuffer.wrap(ethernet.serialize())));
         }
     }
 

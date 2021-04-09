@@ -28,6 +28,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.onlab.osgi.DefaultServiceDirectory;
+import org.onlab.packet.ARP;
+import org.onlab.packet.Ethernet;
 import org.onlab.packet.Ip4Address;
 import org.onlab.packet.IpAddress;
 import org.onlab.packet.MacAddress;
@@ -561,6 +563,13 @@ public final class KubevirtNetworkingUtil {
         return port != null ? port.number() : null;
     }
 
+    /**
+     * Returns the kubevirt external network with specified router.
+     *
+     * @param networkService kubevirt network service
+     * @param router kubevirt router
+     * @return external network
+     */
     public static KubevirtNetwork getExternalNetworkByRouter(KubevirtNetworkService networkService,
                                                              KubevirtRouter router) {
         String networkId = router.external().values().stream().findAny().orElse(null);
@@ -569,5 +578,34 @@ public final class KubevirtNetworkingUtil {
         }
 
         return networkService.network(networkId);
+    }
+
+    public static Ethernet buildGarpPacket(MacAddress srcMac, IpAddress srcIp) {
+        if (srcMac == null || srcIp == null) {
+            return null;
+        }
+
+        Ethernet ethernet = new Ethernet();
+        ethernet.setDestinationMACAddress(MacAddress.BROADCAST);
+        ethernet.setSourceMACAddress(srcMac);
+        ethernet.setEtherType(Ethernet.TYPE_ARP);
+
+        ARP arp = new ARP();
+        arp.setOpCode(ARP.OP_REPLY);
+        arp.setProtocolType(ARP.PROTO_TYPE_IP);
+        arp.setHardwareType(ARP.HW_TYPE_ETHERNET);
+
+        arp.setProtocolAddressLength((byte) Ip4Address.BYTE_LENGTH);
+        arp.setHardwareAddressLength((byte) Ethernet.DATALAYER_ADDRESS_LENGTH);
+
+        arp.setSenderHardwareAddress(srcMac.toBytes());
+        arp.setTargetHardwareAddress(MacAddress.BROADCAST.toBytes());
+
+        arp.setSenderProtocolAddress(srcIp.toOctets());
+        arp.setTargetProtocolAddress(srcIp.toOctets());
+
+        ethernet.setPayload(arp);
+
+        return ethernet;
     }
 }
