@@ -520,7 +520,8 @@ public class GeneralDeviceProvider extends AbstractProvider
                             this::submitCheckupTasksForAllDevices,
                             1,
                             checkupInterval,
-                            TimeUnit.SECONDS);
+                            TimeUnit.SECONDS,
+                            true);
         }
     }
 
@@ -633,17 +634,19 @@ public class GeneralDeviceProvider extends AbstractProvider
     }
 
     private void createOrUpdateDevice(DeviceId deviceId, boolean available) {
-        if (deviceService.getDevice(deviceId) != null
-                && deviceService.isAvailable(deviceId) == available) {
-            // Other nodes might have advertised this device before us.
-            return;
-        }
         assertConfig(deviceId);
+
         if (available) {
             // Push port descriptions. If marking online, make sure to update
             // ports before other subsystems pick up the device  event.
             final List<PortDescription> ports = getPortDetails(deviceId);
             providerService.updatePorts(deviceId, ports);
+        }
+
+        if (deviceService.getDevice(deviceId) != null
+                && deviceService.isAvailable(deviceId) == available) {
+            // Other nodes might have advertised this device before us.
+            return;
         }
         providerService.deviceConnected(deviceId, getDeviceDescription(
                 deviceId, available));
