@@ -153,6 +153,9 @@ public class DistributedApplicationStore extends ApplicationArchive
 
     private ApplicationId coreAppId;
 
+    // Apps started in this node.
+    private final Set<String> localStartedApps = Sets.newConcurrentHashSet();
+
     @Activate
     public void activate() {
         messageHandlingExecutor = newSingleThreadExecutor(groupedThreads("onos/store/app",
@@ -453,6 +456,9 @@ public class DistributedApplicationStore extends ApplicationArchive
     private void activate(ApplicationId appId, boolean updateTime) {
         Versioned<InternalApplicationHolder> vAppHolder = apps.get(appId);
         if (vAppHolder != null) {
+            if (log.isTraceEnabled()) {
+                log.trace("Activating {}", appId);
+            }
             if (updateTime) {
                 updateTime(appId.name());
             }
@@ -531,6 +537,9 @@ public class DistributedApplicationStore extends ApplicationArchive
                     return new InternalApplicationHolder(v.app(), v.state(), ImmutableSet.copyOf(permissions));
                 });
         if (permissionsChanged.get()) {
+            if (log.isTraceEnabled()) {
+                log.trace("Permission changed for {}", appId);
+            }
             notifyDelegate(new ApplicationEvent(APP_PERMISSIONS_CHANGED, appHolder.value().app()));
         }
     }
@@ -544,10 +553,21 @@ public class DistributedApplicationStore extends ApplicationArchive
         @Override
         public void accept(Application app) {
             if (app != null) { // FIXME: Once ONOS-6977 is fixed
+                if (log.isTraceEnabled()) {
+                    log.trace("Received an activation for {}", app.id());
+                }
                 String appName = app.id().name();
                 installAppIfNeeded(app);
                 setActive(appName);
-                notifyDelegate(new ApplicationEvent(APP_ACTIVATED, app));
+                boolean ready = localStartedApps.containsAll(app.requiredApps());
+                if (ready && delegate != null) {
+                    notifyDelegate(new ApplicationEvent(APP_ACTIVATED, app));
+                    localStartedApps.add(appName);
+                } else if (delegate == null) {
+                    log.warn("Postponing app activation {} due to the delegate being null", app.id());
+                } else {
+                    log.warn("Postponing app activation {} due to req apps being not ready", app.id());
+                }
             }
         }
     }
@@ -574,8 +594,12 @@ public class DistributedApplicationStore extends ApplicationArchive
             if ((event.type() == MapEvent.Type.INSERT || event.type() == MapEvent.Type.UPDATE) && newApp != null) {
                 setupApplicationAndNotify(appId, newApp.app(), newApp.state());
             } else if (event.type() == MapEvent.Type.REMOVE && oldApp != null) {
+                if (log.isTraceEnabled()) {
+                    log.trace("{} has been uninstalled", appId);
+                }
                 notifyDelegate(new ApplicationEvent(APP_UNINSTALLED, oldApp.app()));
                 purgeApplication(appId.name());
+                localStartedApps.remove(appId.name());
             } else {
                 log.warn("Can't perform {} on application {}", event.type(), event.key());
             }
@@ -586,10 +610,17 @@ public class DistributedApplicationStore extends ApplicationArchive
         // ACTIVATED state is handled separately in NextAppToActivateValueListener
         if (state == INSTALLED) {
             fetchBitsIfNeeded(app);
+            if (log.isTraceEnabled()) {
+                log.trace("{} has been installed", app.id());
+            }
             notifyDelegate(new ApplicationEvent(APP_INSTALLED, app));
         } else if (state == DEACTIVATED) {
+            if (log.isTraceEnabled()) {
+                log.trace("{} has been deactivated", app.id());
+            }
             clearActive(appId.name());
             notifyDelegate(new ApplicationEvent(APP_DEACTIVATED, app));
+            localStartedApps.remove(appId.name());
         }
     }
 
@@ -652,6 +683,9 @@ public class DistributedApplicationStore extends ApplicationArchive
                                     app.id().name(), node.id());
                             latch.countDown();
                             if (delegateInstallation) {
+                                if (log.isTraceEnabled()) {
+                                    log.trace("Delegate installation for {}", app.id());
+                                }
                                 notifyDelegate(new ApplicationEvent(APP_INSTALLED, app));
                             }
                         } else if (error != null) {

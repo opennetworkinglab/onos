@@ -297,6 +297,8 @@ public class ApplicationManager
                 changed = true;
             } else if (feature == null) {
                 log.warn("Feature {} not found", name);
+            } else if (log.isDebugEnabled()) {
+                log.debug("Feature already installed for {}", app.id());
             }
         }
         return changed;
