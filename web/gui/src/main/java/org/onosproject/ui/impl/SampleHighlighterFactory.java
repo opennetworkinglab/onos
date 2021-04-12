@@ -39,7 +39,7 @@ import org.osgi.service.component.annotations.ReferenceCardinality;
 import static org.onosproject.net.DefaultEdgeLink.createEdgeLinks;
 import static org.onosproject.ui.topo.NodeBadge.text;
 
-@Component(immediate = false)
+@Component(enabled = false)
 public class SampleHighlighterFactory {
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
