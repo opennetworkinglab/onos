@@ -91,6 +91,7 @@ genrule(
         ":_onos-gui2-base-jar",
         "//web/gui:onos-gui-lion-for-gui2",
         "//web/gui2/src/main/webapp:WEB-INF/web.xml",
+        "//web/gui:onos-gui-jar_cfgdef.jar",
     ],
     outs = ["onos-gui2.jar"],
     cmd = " ROOT=`pwd` &&" +
@@ -101,6 +102,7 @@ genrule(
           " mv web/gui/src/main/resources/org/onosproject/ui/lion* WEB-INF/classes/org/onosproject/ui/ &&" +
           " cp -R $$ROOT/$(location //web/gui2/src/main/webapp:prodapp)/* WEB-INF/classes/ &&" +
           " mv $$ROOT/$(location //web/gui2/src/main/webapp:WEB-INF/web.xml) WEB-INF &&" +
+          " (cd WEB-INF/classes && jar xf $$ROOT/$(location //web/gui:onos-gui-jar_cfgdef.jar)) &&" +
           " find . -type f -exec touch -t 202001010001 {} \\; &&" +
           " jar cmf META-INF/MANIFEST.MF $$ROOT/$@ WEB-INF/web.xml WEB-INF/classes OSGI-INF/*.xml",
     output_to_bindir = 1,
