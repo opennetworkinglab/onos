@@ -1,0 +1,22 @@
+{
+  "name": "lb-1",
+  "description": "Example Load Balancer",
+  "networkId": "net-1",
+  "vip": "10.10.10.10",
+  "members": [
+    "10.10.10.11",
+    "10.10.10.12"
+  ],
+  "rules": [
+    {
+      "protocol": "tcp",
+      "portRangeMax": 8000,
+      "portRangeMin": 7000
+    },
+    {
+      "protocol": "udp",
+      "portRangeMax": 9000,
+      "portRangeMin": 8000
+    }
+  ]
+}

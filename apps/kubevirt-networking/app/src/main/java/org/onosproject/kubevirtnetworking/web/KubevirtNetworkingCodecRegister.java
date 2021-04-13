@@ -19,6 +19,8 @@ import org.onosproject.codec.CodecService;
 import org.onosproject.kubevirtnetworking.api.KubevirtFloatingIp;
 import org.onosproject.kubevirtnetworking.api.KubevirtHostRoute;
 import org.onosproject.kubevirtnetworking.api.KubevirtIpPool;
+import org.onosproject.kubevirtnetworking.api.KubevirtLoadBalancer;
+import org.onosproject.kubevirtnetworking.api.KubevirtLoadBalancerRule;
 import org.onosproject.kubevirtnetworking.api.KubevirtNetwork;
 import org.onosproject.kubevirtnetworking.api.KubevirtPort;
 import org.onosproject.kubevirtnetworking.api.KubevirtRouter;
@@ -27,6 +29,8 @@ import org.onosproject.kubevirtnetworking.api.KubevirtSecurityGroupRule;
 import org.onosproject.kubevirtnetworking.codec.KubevirtFloatingIpCodec;
 import org.onosproject.kubevirtnetworking.codec.KubevirtHostRouteCodec;
 import org.onosproject.kubevirtnetworking.codec.KubevirtIpPoolCodec;
+import org.onosproject.kubevirtnetworking.codec.KubevirtLoadBalancerCodec;
+import org.onosproject.kubevirtnetworking.codec.KubevirtLoadBalancerRuleCodec;
 import org.onosproject.kubevirtnetworking.codec.KubevirtNetworkCodec;
 import org.onosproject.kubevirtnetworking.codec.KubevirtPortCodec;
 import org.onosproject.kubevirtnetworking.codec.KubevirtRouterCodec;
@@ -63,6 +67,8 @@ public class KubevirtNetworkingCodecRegister {
         codecService.registerCodec(KubevirtFloatingIp.class, new KubevirtFloatingIpCodec());
         codecService.registerCodec(KubevirtSecurityGroup.class, new KubevirtSecurityGroupCodec());
         codecService.registerCodec(KubevirtSecurityGroupRule.class, new KubevirtSecurityGroupRuleCodec());
+        codecService.registerCodec(KubevirtLoadBalancer.class, new KubevirtLoadBalancerCodec());
+        codecService.registerCodec(KubevirtLoadBalancerRule.class, new KubevirtLoadBalancerRuleCodec());
 
         log.info("Started");
     }
@@ -78,6 +84,8 @@ public class KubevirtNetworkingCodecRegister {
         codecService.unregisterCodec(KubevirtFloatingIp.class);
         codecService.unregisterCodec(KubevirtSecurityGroup.class);
         codecService.unregisterCodec(KubevirtSecurityGroupRule.class);
+        codecService.unregisterCodec(KubevirtLoadBalancer.class);
+        codecService.unregisterCodec(KubevirtLoadBalancerRule.class);
 
         log.info("Stopped");
     }

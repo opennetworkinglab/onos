@@ -51,7 +51,7 @@ public interface KubevirtRouterStore
      * Returns the kubevirt router with the given router name.
      *
      * @param name router name
-     * @return removed kubevirt router; null if failed
+     * @return kubevirt router; null if failed
      */
     KubevirtRouter router(String name);
 

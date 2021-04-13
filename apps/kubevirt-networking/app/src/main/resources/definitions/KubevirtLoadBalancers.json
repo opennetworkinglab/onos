@@ -1,0 +1,94 @@
+{
+  "type": "object",
+  "title": "loadBalancers",
+  "required": [
+    "loadBalancers"
+  ],
+  "properties": {
+    "loadBalancers": {
+      "type": "array",
+      "xml": {
+        "name": "loadBalancers",
+        "wrapped": true
+      },
+      "items": {
+        "type": "object",
+        "description": "A load balancer object.",
+        "required": [
+          "name",
+          "description",
+          "networkId",
+          "vip",
+          "members",
+          "rules"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "lb-1",
+            "description": "The name of load balancer."
+          },
+          "description": {
+            "type": "string",
+            "example": "Example load balancer",
+            "description": "The description of load balancer."
+          },
+          "networkId": {
+            "type": "string",
+            "example": "net-1",
+            "description": "The name of network where the load balancer is attached to."
+          },
+          "vip": {
+            "type": "string",
+            "example": "10.10.10.10",
+            "description": "The virtual IP address of the load balancer."
+          },
+          "members": {
+            "type": "array",
+            "xml": {
+              "name": "members",
+              "wrapped": true
+            },
+            "items": {
+              "type": "string",
+              "example": "10.10.10.11",
+              "description": "IP address of member instance."
+            }
+          },
+          "rules": {
+            "type": "array",
+            "description": "A list of load balancer rule objects.",
+            "items": {
+              "type": "object",
+              "description": "A load balancer rule object.",
+              "required": [
+                "portRangeMax",
+                "portRangeMin",
+                "protocol"
+              ],
+              "properties": {
+                "portRangeMax": {
+                  "type": "integer",
+                  "format": "int32",
+                  "example": 80,
+                  "description": "The maximum port number in the range that is matched by the rule."
+                },
+                "portRangeMin": {
+                  "type": "integer",
+                  "format": "int32",
+                  "example": 80,
+                  "description": "The minimum port number in the range that is matched by the rule."
+                },
+                "protocol": {
+                  "type": "string",
+                  "example": "tcp",
+                  "description": "The IP protocol can be represented by a string, an integer, or null."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
