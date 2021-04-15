@@ -36,6 +36,7 @@ COMPILE_DEPS = CORE_DEPS + JACKSON + KRYO + CLI + REST + [
     "@snakeyaml//jar",
     "@zjsonpatch//jar",
     "@validation_api//jar",
+    "@dns_java//jar",
 ]
 
 TEST_DEPS = TEST_ADAPTERS + TEST_REST + [

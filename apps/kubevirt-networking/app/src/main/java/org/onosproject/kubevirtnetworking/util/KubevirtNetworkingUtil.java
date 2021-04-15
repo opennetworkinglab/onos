@@ -50,8 +50,11 @@ import org.onosproject.net.PortNumber;
 import org.onosproject.net.device.DeviceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xbill.DNS.Address;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -580,6 +583,29 @@ public final class KubevirtNetworkingUtil {
         return networkService.network(networkId);
     }
 
+    /**
+     * Resolve a DNS with the given DNS server and hostname.
+     *
+     * @param hostname      hostname to be resolved
+     * @return resolved IP address
+     */
+    public static IpAddress resolveHostname(String hostname) {
+        try {
+            InetAddress addr = Address.getByName(hostname);
+            return IpAddress.valueOf(IpAddress.Version.INET, addr.getAddress());
+        } catch (UnknownHostException e) {
+            log.warn("Failed to resolve IP address of host {}", hostname);
+        }
+        return null;
+    }
+
+    /**
+     * Builds a GARP packet using the given source MAC and source IP address.
+     *
+     * @param srcMac source MAC address
+     * @param srcIp  source IP address
+     * @return GARP packet
+     */
     public static Ethernet buildGarpPacket(MacAddress srcMac, IpAddress srcIp) {
         if (srcMac == null || srcIp == null) {
             return null;

@@ -41,6 +41,7 @@ public final class KubevirtApiConfigCodec extends JsonCodec<KubevirtApiConfig> {
     private static final String CA_CERT_DATA = "caCertData";
     private static final String CLIENT_CERT_DATA = "clientCertData";
     private static final String CLIENT_KEY_DATA = "clientKeyData";
+    private static final String SERVICE_FQDN = "serviceFqdn";
 
     private static final String MISSING_MESSAGE = " is required in KubevirtApiConfig";
 
@@ -79,6 +80,10 @@ public final class KubevirtApiConfigCodec extends JsonCodec<KubevirtApiConfig> {
             }
         }
 
+        if (entity.serviceFqdn() != null) {
+            node.put(SERVICE_FQDN, entity.serviceFqdn());
+        }
+
         return node;
     }
 
@@ -104,6 +109,7 @@ public final class KubevirtApiConfigCodec extends JsonCodec<KubevirtApiConfig> {
         JsonNode caCertDataJson = json.get(CA_CERT_DATA);
         JsonNode clientCertDataJson = json.get(CLIENT_CERT_DATA);
         JsonNode clientKeyDataJson = json.get(CLIENT_KEY_DATA);
+        JsonNode serviceFqdn = json.get(SERVICE_FQDN);
 
         String token = "";
         String caCertData = "";
@@ -154,6 +160,10 @@ public final class KubevirtApiConfigCodec extends JsonCodec<KubevirtApiConfig> {
 
         if (StringUtils.isNotEmpty(clientKeyData)) {
             builder.clientKeyData(clientKeyData);
+        }
+
+        if (serviceFqdn != null) {
+            builder.serviceFqdn(serviceFqdn.asText());
         }
 
         return builder.build();

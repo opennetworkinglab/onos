@@ -34,6 +34,7 @@ BUNDLES = [
     "@snakeyaml//jar",
     "@zjsonpatch//jar",
     "@validation_api//jar",
+    "@dns_java//jar",
 ]
 
 onos_app(

@@ -35,6 +35,7 @@ public final class KubevirtApiConfigJsonMatcher extends TypeSafeDiagnosingMatche
     private static final String CA_CERT_DATA = "caCertData";
     private static final String CLIENT_CERT_DATA = "clientCertData";
     private static final String CLIENT_KEY_DATA = "clientKeyData";
+    private static final String SERVICE_FQDN = "serviceFqdn";
 
     private KubevirtApiConfigJsonMatcher(KubevirtApiConfig kubevirtApiConfig) {
         this.kubevirtApiConfig = kubevirtApiConfig;
@@ -114,6 +115,17 @@ public final class KubevirtApiConfigJsonMatcher extends TypeSafeDiagnosingMatche
         if (jsonClientKeyData != null) {
             if (!jsonClientKeyData.asText().equals(clientKeyData)) {
                 description.appendText("clientKeyData was " + jsonClientKeyData);
+                return false;
+            }
+        }
+
+        // service FQDN
+        JsonNode jsonServiceFqdn = jsonNode.get(SERVICE_FQDN);
+        String serviceFqdn = kubevirtApiConfig.serviceFqdn();
+
+        if (jsonServiceFqdn != null) {
+            if (!jsonServiceFqdn.asText().equals(serviceFqdn)) {
+                description.appendText("serviceFqdn was " + jsonServiceFqdn);
                 return false;
             }
         }

@@ -117,6 +117,13 @@ public interface KubevirtApiConfig {
     String clientKeyData();
 
     /**
+     * Returns the Fully Qualified Domain Name (FQDN) of the service.
+     *
+     * @return service Fqdn
+     */
+    String serviceFqdn();
+
+    /**
      * Builder of new API config entity.
      */
     interface Builder {
@@ -191,5 +198,13 @@ public interface KubevirtApiConfig {
          * @return KubeVirt API config builder
          */
         Builder clientKeyData(String clientKeyData);
+
+        /**
+         * Returns KUbevirt API server config builder with supplied service Fqdn.
+         *
+         * @param serviceFqdn service FQDN
+         * @return KubeVirt API config builder
+         */
+        Builder serviceFqdn(String serviceFqdn);
     }
 }

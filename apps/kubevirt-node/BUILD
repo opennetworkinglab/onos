@@ -30,6 +30,7 @@ BUNDLES = JACKSON + [
     "@jackson_dataformat_yaml//jar",
     "@jackson_datatype_jsr310//jar",
     "@snakeyaml//jar",
+    "@dns_java//jar",
 ]
 
 onos_app(

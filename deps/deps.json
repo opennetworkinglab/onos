@@ -289,6 +289,7 @@
     "json": "mvn:org.json:json:jar:20090211",
     "engine.io-client": "mvn:io.socket:engine.io-client:jar:0.8.3",
     "org_codehaus_mojo_animal_sniffer_annotations": "mvn:org.codehaus.mojo:animal-sniffer-annotations:1.17",
+    "dns-java": "mvn:dnsjava:dnsjava:3.3.1",
 
 
     // grpc related jars
