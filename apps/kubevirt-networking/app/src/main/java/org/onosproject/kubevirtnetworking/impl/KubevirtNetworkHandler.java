@@ -109,6 +109,7 @@ import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.get
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.getRouterForKubevirtPort;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.getRouterMacAddress;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.portNumber;
+import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.resolveHostname;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.segmentIdHex;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.tunnelPort;
 import static org.onosproject.kubevirtnetworking.util.KubevirtNetworkingUtil.tunnelToTenantPort;
@@ -228,7 +229,20 @@ public class KubevirtNetworkHandler {
 
         Device device = deviceService.getDevice(node.ovsdb());
 
-        IpAddress serverIp = apiConfigService.apiConfig().ipAddress();
+        IpAddress serverIp;
+        String serviceFqdn = apiConfigService.apiConfig().serviceFqdn();
+        IpAddress serviceIp = null;
+
+        if (serviceFqdn != null) {
+            serviceIp = resolveHostname(serviceFqdn);
+        }
+
+        if (serviceIp != null) {
+            serverIp = serviceIp;
+        } else {
+            serverIp = apiConfigService.apiConfig().ipAddress();
+        }
+
         ControllerInfo controlInfo =
                 new ControllerInfo(serverIp, DEFAULT_OFPORT, DEFAULT_OF_PROTO);
         List<ControllerInfo> controllers = Lists.newArrayList(controlInfo);
@@ -1140,7 +1154,7 @@ public class KubevirtNetworkHandler {
                 return;
             }
 
-            nodeService.completeNodes().forEach(n -> {
+            nodeService.completeNodes(WORKER).forEach(n -> {
                 createBridge(n, network);
                 createPatchTenantInterface(n, network);
                 setDefaultRulesForTenantNetwork(n, network);

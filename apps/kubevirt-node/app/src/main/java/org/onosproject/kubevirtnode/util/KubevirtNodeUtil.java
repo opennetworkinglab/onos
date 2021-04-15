@@ -44,8 +44,11 @@ import org.onosproject.ovsdb.controller.OvsdbController;
 import org.onosproject.ovsdb.controller.OvsdbNodeId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xbill.DNS.Address;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.List;
@@ -82,6 +85,7 @@ public final class KubevirtNodeUtil {
     private static final String INTERFACE_KEY = "interface";
 
     private static final int PORT_NAME_MAX_LENGTH = 15;
+    private static final int DNS_DEFAULT_PORT = 53;
 
     /**
      * Prevents object installation from external.
@@ -384,5 +388,21 @@ public final class KubevirtNodeUtil {
                 .phyIntfs(phys)
                 .gatewayBridgeName(gatewayBridgeName)
                 .build();
+    }
+
+    /**
+     * Resolve a DNS with the given DNS server and hostname.
+     *
+     * @param hostname      hostname to be resolved
+     * @return resolved IP address
+     */
+    public static IpAddress resolveHostname(String hostname) {
+        try {
+            InetAddress addr = Address.getByName(hostname);
+            return IpAddress.valueOf(IpAddress.Version.INET, addr.getAddress());
+        } catch (UnknownHostException e) {
+            log.warn("Failed to resolve IP address of host {}", hostname);
+        }
+        return null;
     }
 }

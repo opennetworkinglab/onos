@@ -99,6 +99,7 @@ import static org.onosproject.kubevirtnode.util.KubevirtNodeUtil.addOrRemoveSyst
 import static org.onosproject.kubevirtnode.util.KubevirtNodeUtil.getBooleanProperty;
 import static org.onosproject.kubevirtnode.util.KubevirtNodeUtil.getOvsdbClient;
 import static org.onosproject.kubevirtnode.util.KubevirtNodeUtil.isOvsdbConnected;
+import static org.onosproject.kubevirtnode.util.KubevirtNodeUtil.resolveHostname;
 import static org.onosproject.kubevirtnode.util.KubevirtNodeUtil.structurePortName;
 import static org.onosproject.net.AnnotationKeys.PORT_NAME;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -123,6 +124,7 @@ public class DefaultKubevirtNodeHandler implements KubevirtNodeHandler {
     private static final long SLEEP_SHORT_MS = 1000; // we wait 1s
     private static final long SLEEP_MID_MS = 2000; // we wait 2s
     private static final long SLEEP_LONG_MS = 5000; // we wait 5s
+    private static final IpAddress DNS_SERVER_IP = IpAddress.valueOf("169.254.25.10");
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY)
     protected CoreService coreService;
@@ -298,7 +300,20 @@ public class DefaultKubevirtNodeHandler implements KubevirtNodeHandler {
     private void createBridge(KubevirtNode node, String bridgeName, DeviceId devId) {
         Device device = deviceService.getDevice(node.ovsdb());
 
-        IpAddress serverIp = apiConfigService.apiConfig().ipAddress();
+        IpAddress serverIp;
+        String serviceFqdn = apiConfigService.apiConfig().serviceFqdn();
+        IpAddress serviceIp = null;
+
+        if (serviceFqdn != null) {
+            serviceIp = resolveHostname(serviceFqdn);
+        }
+
+        if (serviceIp != null) {
+            serverIp = serviceIp;
+        } else {
+            serverIp = apiConfigService.apiConfig().ipAddress();
+        }
+
         ControllerInfo controlInfo = new ControllerInfo(serverIp, DEFAULT_OFPORT, DEFAULT_OF_PROTO);
         List<ControllerInfo> controllers = Lists.newArrayList(controlInfo);
 
