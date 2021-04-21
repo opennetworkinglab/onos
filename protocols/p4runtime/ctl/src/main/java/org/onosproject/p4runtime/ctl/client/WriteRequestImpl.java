@@ -238,6 +238,10 @@ final class WriteRequestImpl implements P4RuntimeWriteClient.WriteRequest {
                     .build();
             requestMsg.addUpdates(updateMsg);
             responseBuilder.addPendingResponse(handle, piEntity, updateType);
+            if (log.isTraceEnabled()) {
+                log.trace("Adding {} update to write request for {}: {}", updateType, handle.deviceId(),
+                        piEntity == null ? handle : piEntity);
+            }
         } catch (CodecException e) {
             responseBuilder.addFailedResponse(
                     handle, piEntity, updateType, e.getMessage(),
